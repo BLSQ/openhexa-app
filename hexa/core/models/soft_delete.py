@@ -15,7 +15,7 @@ class SoftDeleteQuerySet(models.QuerySet):
 
 class DefaultSoftDeletedManager(models.Manager):
     """
-    This manager will return all objects no marked as  soft deleted
+    This manager will return all objects not marked as  soft deleted
     """
 
     def get_queryset(self):
@@ -24,7 +24,7 @@ class DefaultSoftDeletedManager(models.Manager):
 
 class IncludeSoftDeletedManager(models.Manager):
     """
-    A manager that will include all objects (soft_deleted or not)
+    A manager that returns all objects (soft_deleted or not)
     """
 
     def get_queryset(self):
@@ -51,6 +51,10 @@ class SoftDeletedModel(models.Model):
 
     deleted_at = models.DateTimeField(default=None, blank=True, null=True)
     restored_at = models.DateTimeField(default=None, blank=True, null=True)
+
+    objects = DefaultSoftDeletedManager()
+    all_objects = IncludeSoftDeletedManager()
+    deleted_objects = SoftDeletedOnlyManager()
 
     @property
     def is_deleted(self):

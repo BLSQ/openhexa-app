@@ -23,7 +23,7 @@ class TestSoftDeleteModel(TestCase):
         my_model = TestMyModel.objects.create()
 
         self.assertFalse(my_model.is_deleted)
-self.assertFalse(my_model.is_restored)
+        self.assertFalse(my_model.is_restored)
         my_model.delete()
 
         self.assertTrue(my_model.is_deleted)

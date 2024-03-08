@@ -1,9 +1,6 @@
-from typing import Any
-
 from django.contrib import admin
-from django.db.models.query import QuerySet
-from django.http.request import HttpRequest
 
+from hexa.core.admin import GlobalObjectsModelAdmin
 from hexa.pipelines.models import (
     Index,
     IndexPermission,
@@ -20,14 +17,11 @@ def restore_pipelines(modeladmin, request, queryset):
 
 
 @admin.register(Pipeline)
-class PipelineAdmin(admin.ModelAdmin):
+class PipelineAdmin(GlobalObjectsModelAdmin):
     list_display = ("name", "code", "workspace", "deleted_at", "restored_at")
     list_filter = ("workspace",)
     search_fields = ("code", "name")
     actions = [restore_pipelines]
-
-    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        return Pipeline.all_objects.all()
 
 
 @admin.register(PipelineRun)
