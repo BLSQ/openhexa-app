@@ -25,7 +25,7 @@ def delete_pipeline(principal: User, pipeline: Pipeline):
         pipeline.workspace
         and pipeline.workspace.workspacemembership_set.filter(
             user=principal,
-            role__in=[WorkspaceMembershipRole.EDITOR, WorkspaceMembershipRole.ADMIN],
+            role__in=[WorkspaceMembershipRole.ADMIN],
         ).exists()
     )
 

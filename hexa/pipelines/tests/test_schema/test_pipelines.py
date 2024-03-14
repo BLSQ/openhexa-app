@@ -354,6 +354,70 @@ class PipelinesV2Test(GraphQLTestCase):
         self.assertEqual(False, r["data"]["deletePipeline"]["success"])
         self.assertEqual(["PERMISSION_DENIED"], r["data"]["deletePipeline"]["errors"])
 
+    def test_delete_pipeline_queued_permission_denied(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.get(code="new_pipeline")
+        run = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=pipeline.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+
+        run.state = PipelineRunState.QUEUED
+        run.save()
+
+        pipeline = Pipeline.objects.filter(workspace=self.WS1).first()
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+                mutation deletePipeline($input: DeletePipelineInput!) {
+                    deletePipeline(input: $input) {
+                        success
+                        errors
+                    }
+                }
+            """,
+            {"input": {"id": str(pipeline.id)}},
+        )
+
+        self.assertEqual(False, r["data"]["deletePipeline"]["success"])
+        self.assertEqual(["PERMISSION_DENIED"], r["data"]["deletePipeline"]["errors"])
+
+    def test_delete_pipeline_running_permission_denied(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.get(code="new_pipeline")
+        run = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=pipeline.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+
+        run.state = PipelineRunState.RUNNING
+        run.save()
+
+        pipeline = Pipeline.objects.filter(workspace=self.WS1).first()
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+                mutation deletePipeline($input: DeletePipelineInput!) {
+                    deletePipeline(input: $input) {
+                        success
+                        errors
+                    }
+                }
+            """,
+            {"input": {"id": str(pipeline.id)}},
+        )
+
+        self.assertEqual(False, r["data"]["deletePipeline"]["success"])
+        self.assertEqual(["PERMISSION_DENIED"], r["data"]["deletePipeline"]["errors"])
+
     def test_delete_pipeline(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         self.test_create_pipeline()
@@ -389,7 +453,7 @@ class PipelinesV2Test(GraphQLTestCase):
             {"input": {"id": str(id1)}},
         )
         self.assertEqual(True, r["data"]["deletePipeline"]["success"])
-        self.assertEqual(0, len(Pipeline.objects.all()))
+        self.assertEqual(0, len(Pipeline.objects.filter_for_user(user=self.USER_ROOT)))
 
     def test_pipeline_new_run(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
