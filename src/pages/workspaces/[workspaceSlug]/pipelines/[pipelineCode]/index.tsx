@@ -1,4 +1,8 @@
-import { ExclamationCircleIcon, PlayIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationCircleIcon,
+  PlayIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
 import Block from "core/components/Block/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
@@ -31,6 +35,7 @@ import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import PipelineVersionParametersTable from "pipelines/features/PipelineVersionParametersTable/PipelineVersionParametersTable";
 import { useState } from "react";
 import CronProperty from "workspaces/features/CronProperty";
+import DeletePipelineDialog from "workspaces/features/DeletePipelineDialog";
 import PipelineVersionsDialog from "workspaces/features/PipelineVersionsDialog";
 import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import WorkspaceMemberProperty from "workspaces/features/WorkspaceMemberProperty/";
@@ -56,6 +61,8 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const router = useRouter();
   const [isVersionsDialogOpen, setVersionsDialogOpen] = useState(false);
   const [isRunPipelineDialogOpen, setRunPipelineDialogOpen] = useState(false);
+  const [isDeletePipelineDialogOpen, setDeletePipelineDialogOpen] =
+    useState(false);
   const [isWebhookFeatureEnabled] = useFeature("pipeline_webhook");
   const { data } = useWorkspacePipelinePageQuery({
     variables: {
@@ -152,6 +159,15 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                   onClick={() => setRunPipelineDialogOpen(true)}
                 >
                   {t("Run")}
+                </Button>
+              )}
+              {pipeline.permissions.delete && (
+                <Button
+                  onClick={() => setDeletePipelineDialogOpen(true)}
+                  className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
+                  leadingIcon={<TrashIcon className="w-4" />}
+                >
+                  {t("Delete")}
                 </Button>
               )}
             </div>
@@ -425,6 +441,12 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
         open={isRunPipelineDialogOpen}
         onClose={() => setRunPipelineDialogOpen(false)}
         pipeline={pipeline}
+      />
+      <DeletePipelineDialog
+        open={isDeletePipelineDialogOpen}
+        onClose={() => setDeletePipelineDialogOpen(false)}
+        pipeline={pipeline}
+        workspace={workspace}
       />
     </Page>
   );

@@ -80,6 +80,8 @@ query WorkspacePipelinePage(
     permissions {
       run
       update
+      schedule
+      delete
     }
     webhookUrl
     webhookEnabled
@@ -88,9 +90,6 @@ query WorkspacePipelinePage(
     name
     description
     schedule
-    permissions {
-      schedule
-    }
     currentVersion {
       id
       number

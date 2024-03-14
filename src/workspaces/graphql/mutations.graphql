@@ -111,6 +111,13 @@ mutation generateNewDatabasePassword(
   }
 }
 
+mutation deletePipeline($input: DeletePipelineInput!) {
+  deletePipeline(input: $input) {
+    success
+    errors
+  }
+}
+
 mutation deletePipelineVersion($input: DeletePipelineVersionInput!) {
   deletePipelineVersion(input: $input) {
     success

@@ -64,7 +64,7 @@ describe("DeletePipelineVersionDialog", () => {
     expect(container).toMatchSnapshot();
   });
 
-  it("Archives a workspace ", async () => {
+  it("Delete a pipeline version ", async () => {
     const { useArchiveWorkspaceMutation } = jest.requireActual(
       "workspaces/graphql/mutations.generated",
     );
