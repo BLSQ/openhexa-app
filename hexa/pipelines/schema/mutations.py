@@ -112,11 +112,11 @@ def resolve_run_pipeline(_, info, **kwargs):
             "errors": ["PIPELINE_NOT_FOUND"],
         }
 
-    number = input.get("version", pipeline.last_version.number)
     try:
-        version = PipelineVersion.objects.filter_for_user(request.user).get(
-            pipeline=pipeline, number=number
-        )
+        if input.get("versionId"):
+            version = pipeline.versions.get(id=input.get("versionId"))
+        else:
+            version = pipeline.last_version
     except PipelineVersion.DoesNotExist:
         return {
             "success": False,
@@ -165,8 +165,9 @@ def resolve_upload_pipeline(_, info, **kwargs):
     input = kwargs["input"]
 
     try:
+        pipeline_code = input.get("pipelineCode", input.get("code"))
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
-            code=input["code"], workspace__slug=input["workspaceSlug"]
+            code=pipeline_code, workspace__slug=input["workspaceSlug"]
         )
     except Pipeline.DoesNotExist:
         return {
@@ -182,13 +183,16 @@ def resolve_upload_pipeline(_, info, **kwargs):
                 "Pipeline timeout value cannot be negative or greater than the maximum allowed value."
             )
 
-        newpipelineversion = pipeline.upload_new_version(
+        version = pipeline.upload_new_version(
             user=request.user,
+            name=input.get("name"),
+            description=input.get("description"),
+            external_link=input.get("externalLink"),
             zipfile=base64.b64decode(input.get("zipfile").encode("ascii")),
             parameters=input["parameters"],
             timeout=input.get("timeout"),
         )
-        return {"success": True, "errors": [], "version": newpipelineversion.number}
+        return {"success": True, "errors": [], "version": version}
     except PipelineDoesNotSupportParametersError:
         return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
     except InvalidTimeoutValueError:

@@ -70,7 +70,7 @@ class PipelineVersionsTest(GraphQLTestCase):
             code="pipeline", name="My Pipeline", workspace=cls.WORKSPACE
         )
 
-    def test_create_version(self, user=None):
+    def test_create_version(self, version="First Version", user=None):
         if user is None:
             user = self.USER_ADMIN
         self.client.force_login(user)
@@ -81,7 +81,6 @@ class PipelineVersionsTest(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
-                    version
                 }
             }
             """,
@@ -89,6 +88,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                 "input": {
                     "code": self.PIPELINE.code,
                     "workspaceSlug": self.WORKSPACE.slug,
+                    "name": version,
                     "parameters": [],
                     "zipfile": "",
                 }
@@ -97,9 +97,9 @@ class PipelineVersionsTest(GraphQLTestCase):
         self.assertEqual(r["data"]["uploadPipeline"]["success"], True)
 
     def test_version_is_latest(self):
-        self.test_create_version()
-        self.test_create_version()
-        self.test_create_version()
+        self.test_create_version("Version 1")
+        self.test_create_version("Version 2")
+        self.test_create_version("Version 3")
 
         self.assertTrue(self.PIPELINE.last_version.is_latest_version)
         self.assertFalse(self.PIPELINE.versions.last().is_latest_version)
