@@ -79,7 +79,7 @@ cryptography==42.0.4
     #   moto
 dhis2-py==2.3.0
     # via -r requirements.in
-django==5.0.2
+django==5.0.3
     # via
     #   -r requirements.in
     #   ariadne-django
@@ -112,7 +112,6 @@ geopandas==0.14.1
     # via -r requirements.in
 google-api-core[grpc]==2.15.0
     # via
-    #   google-api-core
     #   google-cloud-appengine-logging
     #   google-cloud-core
     #   google-cloud-iam
