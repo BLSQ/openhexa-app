@@ -32,6 +32,8 @@ enum PipelineRunStatus {
   running
   failed
   queued
+  stopped
+  terminating
 }
 
 type PipelineParameter {
@@ -107,6 +109,7 @@ type PipelinePermissions {
   run: Boolean!
   deleteVersion: Boolean!
   schedule: Boolean!
+  stopPipeline: Boolean!
 }
 
 extend type WorkspacePermissions {
@@ -159,6 +162,7 @@ enum PipelineError {
   PIPELINE_ALREADY_EXISTS
   INVALID_CONFIG
   PIPELINE_ALREADY_COMPLETED
+  PIPELINE_ALREADY_STOPPED
   INVALID_TIMEOUT_VALUE
   PERMISSION_DENIED
   FILE_NOT_FOUND
@@ -199,6 +203,15 @@ input RunPipelineInput {
   version: Int
   config: JSON!
   sendMailNotifications: Boolean
+}
+
+input StopPipelineInput {
+  runId: UUID!
+}
+
+type StopPipelineResult {
+  success: Boolean!
+  errors: [PipelineError!]!
 }
 
 type RunPipelineResult {
@@ -304,6 +317,7 @@ extend type Mutation {
   updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult! @loginRequired
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult! @loginRequired
   runPipeline(input: RunPipelineInput): RunPipelineResult! @loginRequired
+  stopPipeline(input: StopPipelineInput!): StopPipelineResult! @loginRequired
   pipelineToken(input: PipelineTokenInput): PipelineTokenResult!
   uploadPipeline(input: UploadPipelineInput): UploadPipelineResult!
   logPipelineMessage(input: LogPipelineMessageInput): LogPipelineMessageResult!

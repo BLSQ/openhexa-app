@@ -98,6 +98,46 @@ def resolve_delete_pipeline(_, info, **kwargs):
         }
 
 
+@pipelines_mutations.field("stopPipeline")
+def resolve_stop_pipeline(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        pipeline_run = PipelineRun.objects.get(id=input.get("runId"))
+        if pipeline_run.state in [PipelineRunState.SUCCESS, PipelineRunState.FAILED]:
+            return {
+                "success": False,
+                "errors": ["PIPELINE_ALREADY_COMPLETED"],
+            }
+
+        if pipeline_run.state in [
+            PipelineRunState.TO_TERMINATE,
+            PipelineRunState.STOPPED,
+        ]:
+            return {
+                "success": False,
+                "errors": ["PIPELINE_ALREADY_STOPPED"],
+            }
+
+        pipeline_run.stop_if_has_perm(request.user)
+        return {
+            "success": True,
+            "errors": [],
+        }
+    except PipelineRun.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+
+
 @pipelines_mutations.field("runPipeline")
 def resolve_run_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]

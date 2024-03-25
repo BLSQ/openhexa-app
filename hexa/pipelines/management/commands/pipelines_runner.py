@@ -126,21 +126,29 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
                     resources={
                         "limits": {
                             "smarter-devices/fuse": "1",
-                            "cpu": run.pipeline.cpu_limit
-                            if run.pipeline.cpu_limit != ""
-                            else settings.PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT,
-                            "memory": run.pipeline.memory_limit
-                            if run.pipeline.memory_limit != ""
-                            else settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_LIMIT,
+                            "cpu": (
+                                run.pipeline.cpu_limit
+                                if run.pipeline.cpu_limit != ""
+                                else settings.PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT
+                            ),
+                            "memory": (
+                                run.pipeline.memory_limit
+                                if run.pipeline.memory_limit != ""
+                                else settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_LIMIT
+                            ),
                         },
                         "requests": {
                             "smarter-devices/fuse": "1",
-                            "cpu": run.pipeline.cpu_request
-                            if run.pipeline.cpu_request != ""
-                            else settings.PIPELINE_DEFAULT_CONTAINER_CPU_REQUEST,
-                            "memory": run.pipeline.memory_request
-                            if run.pipeline.memory_request != ""
-                            else settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_REQUEST,
+                            "cpu": (
+                                run.pipeline.cpu_request
+                                if run.pipeline.cpu_request != ""
+                                else settings.PIPELINE_DEFAULT_CONTAINER_CPU_REQUEST
+                            ),
+                            "memory": (
+                                run.pipeline.memory_request
+                                if run.pipeline.memory_request != ""
+                                else settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_REQUEST
+                            ),
                         },
                     },
                     # Having /dev/fuse is not enough. We also need to be able to execute the mount()
@@ -165,6 +173,10 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
         run.save()
 
         remote_pod = v1.read_namespaced_pod(pod.metadata.name, pod.metadata.namespace)
+        # if the run is flagged as TO_TERMINATE delete the corresponding pod
+        if run.state == PipelineRunState.TO_TERMINATE:
+            break
+
         # still running
         if (
             remote_pod
@@ -190,19 +202,30 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
         reason = f"Timeout killed run {run.pipeline.name} #{run.id}"
         stdout = "\n".join([stdout, reason])
 
+    if run.stopped_by is not None:
+        reason = f"Stop signal sent to run {run.pipeline.name} #{run.id}."
+        stdout = "\n".join([stdout, reason])
+
     # delete terminated pod
+    grace_period = 0 if run.state == PipelineRunState.TERMINATING else None
     try:
         v1.delete_namespaced_pod(
             name=pod.metadata.name,
             namespace=pod.metadata.namespace,
             body=k8s.V1DeleteOptions(),
+            grace_period_seconds=grace_period,
         )
     except ApiException as e:
         # If the pod not found -> ignore exception, osef
         if e.status != 404:
             logger.exception("pod delete")
 
-    return remote_pod.status.phase == "Succeeded", stdout
+    success = (
+        remote_pod.status.phase == "Succeeded"
+        and run.state == PipelineRunState.TERMINATING
+    )
+
+    return success, stdout
 
 
 def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
@@ -225,11 +248,15 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
         run.refresh_from_db()
         run.last_heartbeat = timezone.now()
         run.save()
+        # we stop the running process when
+        if run.state == PipelineRunState.TERMINATING:
+            proc.kill()
+            break
 
         proc.poll()
         if proc.returncode is not None:
             break
-        sleep(5)
+        sleep(10)
 
     return proc.returncode == 0, proc.stdout.read().decode("UTF-8")
 
@@ -281,7 +308,10 @@ def run_pipeline(run: PipelineRun):
     run.refresh_from_db()
     run.duration = timezone.now() - time_start
     run.run_logs = "\n".join([base_logs, container_logs])
-    if success:
+
+    if run.stopped_by is not None:
+        run.state = PipelineRunState.STOPPED
+    elif success:
         run.state = PipelineRunState.SUCCESS
     else:
         run.state = PipelineRunState.FAILED
