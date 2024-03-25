@@ -7,6 +7,7 @@ from sentry_sdk import capture_exception
 from hexa.core.graphql import result_page
 from hexa.databases.utils import get_table_definition
 from hexa.files.api import get_storage
+from hexa.files.basefs import NotFound
 from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_permissions
@@ -220,10 +221,12 @@ def resolve_pipeline_run_outputs(run: PipelineRun, info, **kwargs):
                     )
             else:
                 result.append(output)
+        except NotFound:
+            # File object might be deleted
+            continue
         except Exception as e:
             # Table or Bucket object might be deleted
             capture_exception(e)
-            continue
 
     return result
 
