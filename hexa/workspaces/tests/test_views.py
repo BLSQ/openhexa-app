@@ -148,7 +148,7 @@ class ViewsTest(TestCase):
             code="my-pipeline",
             description="This is a test pipeline",
         )
-        cls.PIPELINE.upload_new_version(cls.USER_JULIA, b"", [])
+        cls.PIPELINE.upload_new_version(cls.USER_JULIA, b"", [], name="Version")
 
     def test_workspace_credentials_404(self):
         self.client.force_login(self.USER_JANE)

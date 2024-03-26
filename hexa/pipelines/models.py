@@ -105,15 +105,7 @@ class PipelineVersionQuerySet(BaseQuerySet):
 
 class PipelineVersion(models.Model):
     class Meta:
-        ordering = ("-number",)
-
-        constraints = [
-            models.UniqueConstraint(
-                "id",
-                "number",
-                name="pipeline_unique_version",
-            ),
-        ]
+        ordering = ("-created_at",)
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -124,7 +116,9 @@ class PipelineVersion(models.Model):
     pipeline = models.ForeignKey(
         "Pipeline", on_delete=models.CASCADE, related_name="versions"
     )
-    number = models.SmallIntegerField()
+    name = models.CharField(max_length=250)
+    external_link = models.URLField(blank=True, null=True)
+    description = models.TextField(null=True)
     zipfile = models.BinaryField()
     parameters = models.JSONField(blank=True, default=dict)
     timeout = models.IntegerField(
@@ -147,7 +141,7 @@ class PipelineVersion(models.Model):
 
     @property
     def display_name(self):
-        return f"{self.pipeline.name} - v{self.number}"
+        return f"{self.pipeline.name} - {self.name}"
 
     def __str__(self):
         return self.display_name
@@ -227,12 +221,22 @@ class Pipeline(SoftDeletedModel):
     def last_run(self) -> "PipelineRun":
         return self.pipelinerun_set.first()
 
-    def upload_new_version(self, user: User, zipfile, parameters, timeout: int = None):
-        newnumber = self.last_version.number + 1 if self.last_version else 1
+    def upload_new_version(
+        self,
+        user: User,
+        zipfile: str,
+        parameters: dict,
+        name: str,
+        description: str = None,
+        external_link: str = None,
+        timeout: int = None,
+    ):
         version = PipelineVersion(
             user=user,
             pipeline=self,
-            number=newnumber,
+            name=name,
+            description=description,
+            external_link=external_link,
             zipfile=zipfile,
             parameters=parameters,
             timeout=timeout,

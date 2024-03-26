@@ -15,7 +15,7 @@ urlpatterns = [
     ),
     path("credentials/", views.credentials, name="credentials"),
     path(
-        "<uuid:id>/run/<int:version_number>",
+        "<uuid:id>/run/<uuid:version_id>",
         views.run_pipeline,
         name="run_with_version",
     ),
