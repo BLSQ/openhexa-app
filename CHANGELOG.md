@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.67.0](https://github.com/BLSQ/openhexa-app/compare/0.66.5...0.67.0) (2024-03-26)
+
+
+### Features
+
+* **Pipelines:** enable soft delete of pipeline ([#663](https://github.com/BLSQ/openhexa-app/issues/663)) ([5511e50](https://github.com/BLSQ/openhexa-app/commit/5511e5098a4fba8a79423d40c00fce22de39bd92))
+
+
+### Bug Fixes
+
+* **datasets:** Allow pipelines to download linked datasets ([#671](https://github.com/BLSQ/openhexa-app/issues/671)) ([019e4ba](https://github.com/BLSQ/openhexa-app/commit/019e4baa80f40117af553ce1ed42ea98f62be601))
+* **Files:** Do not log missing output files in Sentry ([#669](https://github.com/BLSQ/openhexa-app/issues/669)) ([f526543](https://github.com/BLSQ/openhexa-app/commit/f52654360a706574ec5e757f9fc42c0b38b26334))
+
+
+### Miscellaneous
+
+* **deps:** bump cryptography from 42.0.2 to 42.0.4 ([#664](https://github.com/BLSQ/openhexa-app/issues/664)) ([e090914](https://github.com/BLSQ/openhexa-app/commit/e0909140c81947467425ff0e3b8744877969df5a))
+* **deps:** bump django from 5.0.2 to 5.0.3 ([#668](https://github.com/BLSQ/openhexa-app/issues/668)) ([48fb9e0](https://github.com/BLSQ/openhexa-app/commit/48fb9e02323fa020b4c2f1b384037ac9d82bac90))
+
 ## [0.66.5](https://github.com/BLSQ/openhexa-app/compare/0.66.4...0.66.5) (2024-03-05)
 
 
