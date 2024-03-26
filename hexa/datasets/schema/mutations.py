@@ -228,14 +228,9 @@ def resolve_version_file_download(_, info, **kwargs):
         file = DatasetVersionFile.objects.filter_for_user(request.user).get(
             id=mutation_input["fileId"]
         )
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        if isinstance(request.user, PipelineRunUser):
-            if (
-                request.user.pipeline_run.pipeline.workspace
-                != file.dataset_version.dataset.workspace
-            ):
-                raise PermissionDenied
-        elif not request.user.has_perm(
+        # We only get the file if the user or pipeline can see the dataset either by direct access or via a link.
+        # FIXME: Implement a better permission system to be able to check if the pipeline can download the file.
+        if not isinstance(request.user, PipelineRunUser) and not request.user.has_perm(
             "datasets.download_dataset_version", file.dataset_version
         ):
             raise PermissionDenied

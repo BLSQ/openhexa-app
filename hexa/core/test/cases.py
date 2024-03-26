@@ -5,6 +5,7 @@ from django import test
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpRequest
 
+from hexa.pipelines.authentication import PipelineRunUser
 from hexa.plugins.connector_airflow.authentication import DAGRunUser
 from hexa.user_management.models import User
 from hexa.user_management.tests.cases import TwoFactorClient
@@ -23,7 +24,9 @@ class TestCase(test.TestCase):
         return _pre_setup
 
     @staticmethod
-    def mock_request(user: typing.Union[AnonymousUser, User, DAGRunUser]):
+    def mock_request(
+        user: typing.Union[AnonymousUser, User, DAGRunUser, PipelineRunUser],
+    ):
         request = HttpRequest()
         request.user = user
         request.session = {}

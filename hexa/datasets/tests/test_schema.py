@@ -481,3 +481,84 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                 },
                 r["data"]["prepareVersionFileDownload"],
             )
+
+    @mock_gcp_storage
+    def test_prepare_version_file_download_linked_dataset(self):
+        serena = self.create_user("sereba@blsq.org", is_superuser=True)
+        src_workspace = self.create_workspace(
+            serena,
+            name="Source Workspace",
+            description="Test workspace",
+        )
+
+        dataset = self.create_dataset(
+            serena, src_workspace, "Dataset", "Dataset description"
+        )
+        dataset_version = self.create_dataset_version(serena, dataset=dataset)
+        version_file = self.create_dataset_version_file(
+            serena, dataset_version=dataset_version
+        )
+
+        tgt_workspace = self.create_workspace(
+            serena, "Target Workspace", "Test workspace"
+        )
+        olivia = self.create_user(
+            "olivia@blsq.org",
+        )
+        self.create_feature_flag(code="datasets", user=olivia)
+        self.join_workspace(
+            olivia, workspace=tgt_workspace, role=WorkspaceMembershipRole.ADMIN
+        )
+
+        self.client.force_login(olivia)
+        r = self.run_query(
+            """
+            mutation PrepareVersionFileDownload ($input: PrepareVersionFileDownloadInput!) {
+                prepareVersionFileDownload(input: $input) {
+                    downloadUrl
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "fileId": str(version_file.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["FILE_NOT_FOUND"],
+                "downloadUrl": None,
+            },
+            r["data"]["prepareVersionFileDownload"],
+        )
+        dataset.link(principal=olivia, workspace=tgt_workspace)
+
+        r = self.run_query(
+            """
+            mutation PrepareVersionFileDownload ($input: PrepareVersionFileDownloadInput!) {
+                prepareVersionFileDownload(input: $input) {
+                    downloadUrl
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "fileId": str(version_file.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "downloadUrl": "http://signed-url/some-uri.csv",
+            },
+            r["data"]["prepareVersionFileDownload"],
+        )
