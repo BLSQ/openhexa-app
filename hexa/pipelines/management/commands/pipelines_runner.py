@@ -173,8 +173,8 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
         run.save()
 
         remote_pod = v1.read_namespaced_pod(pod.metadata.name, pod.metadata.namespace)
-        # if the run is flagged as TO_TERMINATE delete the corresponding pod
-        if run.state == PipelineRunState.TO_TERMINATE:
+        # if the run is flagged as TERMINATING stop the loop
+        if run.state == PipelineRunState.TERMINATING:
             break
 
         # still running
@@ -202,12 +202,14 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
         reason = f"Timeout killed run {run.pipeline.name} #{run.id}"
         stdout = "\n".join([stdout, reason])
 
-    if run.stopped_by is not None:
+    grace_period = None
+
+    if run.state == PipelineRunState.TERMINATING:
         reason = f"Stop signal sent to run {run.pipeline.name} #{run.id}."
         stdout = "\n".join([stdout, reason])
+        grace_period = 0
 
     # delete terminated pod
-    grace_period = 0 if run.state == PipelineRunState.TERMINATING else None
     try:
         v1.delete_namespaced_pod(
             name=pod.metadata.name,
@@ -222,7 +224,7 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
 
     success = (
         remote_pod.status.phase == "Succeeded"
-        and run.state == PipelineRunState.TERMINATING
+        and run.state != PipelineRunState.TERMINATING
     )
 
     return success, stdout
@@ -248,7 +250,7 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
         run.refresh_from_db()
         run.last_heartbeat = timezone.now()
         run.save()
-        # we stop the running process when
+        # we stop the running process when the run state is a terminating
         if run.state == PipelineRunState.TERMINATING:
             proc.kill()
             break
@@ -256,7 +258,7 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
         proc.poll()
         if proc.returncode is not None:
             break
-        sleep(10)
+        sleep(5)
 
     return proc.returncode == 0, proc.stdout.read().decode("UTF-8")
 
@@ -309,7 +311,7 @@ def run_pipeline(run: PipelineRun):
     run.duration = timezone.now() - time_start
     run.run_logs = "\n".join([base_logs, container_logs])
 
-    if run.stopped_by is not None:
+    if run.state == PipelineRunState.TERMINATING:
         run.state = PipelineRunState.STOPPED
     elif success:
         run.state = PipelineRunState.SUCCESS

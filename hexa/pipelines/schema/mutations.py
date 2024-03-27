@@ -112,7 +112,7 @@ def resolve_stop_pipeline(_, info, **kwargs):
             }
 
         if pipeline_run.state in [
-            PipelineRunState.TO_TERMINATE,
+            PipelineRunState.TERMINATING,
             PipelineRunState.STOPPED,
         ]:
             return {
@@ -120,7 +120,7 @@ def resolve_stop_pipeline(_, info, **kwargs):
                 "errors": ["PIPELINE_ALREADY_STOPPED"],
             }
 
-        pipeline_run.stop_if_has_perm(request.user)
+        pipeline_run.stop(request.user)
         return {
             "success": True,
             "errors": [],
