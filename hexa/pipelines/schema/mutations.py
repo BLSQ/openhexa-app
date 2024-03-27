@@ -112,7 +112,7 @@ def resolve_stop_pipeline(_, info, **kwargs):
             }
 
         if pipeline_run.state in [
-            PipelineRunState.TO_TERMINATE,
+            PipelineRunState.TERMINATING,
             PipelineRunState.STOPPED,
         ]:
             return {

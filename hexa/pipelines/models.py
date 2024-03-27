@@ -412,10 +412,10 @@ class PipelineRun(Base, WithStatus):
         self.save()
 
     def stop_if_has_perm(self, principal: User):
-        if not principal.has_perm("pipelines.stop_pipeline", self):
+        if not principal.has_perm("pipelines.stop_pipeline", self.pipeline):
             raise PermissionDenied
 
-        self.state = PipelineRunState.TO_TERMINATE
+        self.state = PipelineRunState.TERMINATING
         self.stopped_by = principal
         self.save()
 
