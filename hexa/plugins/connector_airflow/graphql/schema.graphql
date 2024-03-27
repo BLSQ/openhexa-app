@@ -39,6 +39,8 @@ enum DAGRunStatus {
   running
   failed
   queued
+  stopped
+  terminating
 }
 
 enum DAGRunOrderBy {

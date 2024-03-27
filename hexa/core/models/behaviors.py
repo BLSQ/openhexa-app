@@ -5,6 +5,8 @@ class Status(enum.Enum):
     SUCCESS = "SUCCESS"
     PENDING = "PENDING"
     RUNNING = "RUNNING"
+    STOPPED = "STOPPED"
+    TERMINATING = "TERMINATING"
     ERROR = "ERROR"
     UNKNOWN = "UNKNOWN"
 
