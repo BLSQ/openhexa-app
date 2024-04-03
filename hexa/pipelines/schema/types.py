@@ -112,6 +112,14 @@ def resolve_pipeline_permissions_schedule(pipeline: Pipeline, info, **kwargs):
     )
 
 
+@pipeline_permissions.field("stopPipeline")
+def resolve_pipeline_permissions_stop_pipeline(pipeline: Pipeline, info, **kwargs):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipelines.stop_pipeline", pipeline
+    )
+
+
 @pipeline_version_object.field("isLatestVersion")
 def resolve_pipeline_version_is_latest(version: PipelineVersion, info, **kwargs):
     return version.is_latest_version

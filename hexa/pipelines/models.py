@@ -322,6 +322,8 @@ class PipelineRunState(models.TextChoices):
     RUNNING = "running", _("Running")
     FAILED = "failed", _("Failed")
     QUEUED = "queued", _("Queued")
+    TERMINATING = "terminating", _("terminating")
+    STOPPED = "stopped", _("Stopped")
 
 
 class PipelineRun(Base, WithStatus):
@@ -330,6 +332,8 @@ class PipelineRun(Base, WithStatus):
         PipelineRunState.RUNNING: Status.RUNNING,
         PipelineRunState.FAILED: Status.ERROR,
         PipelineRunState.QUEUED: Status.PENDING,
+        PipelineRunState.STOPPED: Status.STOPPED,
+        PipelineRunState.TERMINATING: Status.TERMINATING,
     }
 
     class Meta:
@@ -358,6 +362,9 @@ class PipelineRun(Base, WithStatus):
     current_progress = models.PositiveSmallIntegerField(default=0)
     send_mail_notifications = models.BooleanField(default=False)
     timeout = models.IntegerField(null=True)
+    stopped_by = models.ForeignKey(
+        "user_management.User", null=True, on_delete=models.SET_NULL, related_name="+"
+    )
 
     objects = PipelineRunQuerySet.as_manager()
 
@@ -402,6 +409,14 @@ class PipelineRun(Base, WithStatus):
                 "timestamp": datetime.utcnow().isoformat(),
             }
         )
+        self.save()
+
+    def stop(self, principal: User):
+        if not principal.has_perm("pipelines.stop_pipeline", self.pipeline):
+            raise PermissionDenied
+
+        self.state = PipelineRunState.TERMINATING
+        self.stopped_by = principal
         self.save()
 
     def progress_update(self, percent: int):

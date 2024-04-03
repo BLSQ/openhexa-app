@@ -494,6 +494,8 @@ class DAGRunState(models.TextChoices):
     RUNNING = "running", _("Running")
     FAILED = "failed", _("Failed")
     QUEUED = "queued", _("Queued")
+    TERMINATING = "terminating", _("terminating")  # terminating
+    STOPPED = "stopped", _("Stopped")
 
 
 class DAGRunTrigger(str, enum.Enum):
@@ -507,6 +509,8 @@ class DAGRun(Base, WithStatus):
         DAGRunState.RUNNING: Status.RUNNING,
         DAGRunState.FAILED: Status.ERROR,
         DAGRunState.QUEUED: Status.PENDING,
+        DAGRunState.STOPPED: Status.STOPPED,
+        DAGRunState.TERMINATING: Status.TERMINATING,
     }
 
     class Meta:
