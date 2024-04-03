@@ -55,7 +55,7 @@ export const WorskspaceInvitationsDocument = gql`
  *   },
  * });
  */
-export function useWorskspaceInvitationsQuery(baseOptions: Apollo.QueryHookOptions<WorskspaceInvitationsQuery, WorskspaceInvitationsQueryVariables>) {
+export function useWorskspaceInvitationsQuery(baseOptions: Apollo.QueryHookOptions<WorskspaceInvitationsQuery, WorskspaceInvitationsQueryVariables> & ({ variables: WorskspaceInvitationsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<WorskspaceInvitationsQuery, WorskspaceInvitationsQueryVariables>(WorskspaceInvitationsDocument, options);
       }

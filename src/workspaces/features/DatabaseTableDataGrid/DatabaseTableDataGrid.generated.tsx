@@ -69,7 +69,7 @@ export const DatabaseTableDataGridDocument = gql`
  *   },
  * });
  */
-export function useDatabaseTableDataGridQuery(baseOptions: Apollo.QueryHookOptions<DatabaseTableDataGridQuery, DatabaseTableDataGridQueryVariables>) {
+export function useDatabaseTableDataGridQuery(baseOptions: Apollo.QueryHookOptions<DatabaseTableDataGridQuery, DatabaseTableDataGridQueryVariables> & ({ variables: DatabaseTableDataGridQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<DatabaseTableDataGridQuery, DatabaseTableDataGridQueryVariables>(DatabaseTableDataGridDocument, options);
       }

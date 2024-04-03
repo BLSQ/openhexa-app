@@ -16,7 +16,7 @@ jest.mock("workspaces/graphql/mutations.generated", () => ({
 }));
 
 const PIPELINE = {
-  id: faker.datatype.uuid(),
+  id: faker.string.uuid(),
   code: faker.science.chemicalElement().name,
 };
 const WORKSPACE = {

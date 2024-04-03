@@ -16,7 +16,7 @@ jest.mock("workspaces/graphql/mutations.generated", () => ({
 }));
 
 const WORKSPACE = {
-  id: faker.datatype.uuid(),
+  id: faker.string.uuid(),
   slug: "SLUG",
   name: faker.commerce.productName(),
 };

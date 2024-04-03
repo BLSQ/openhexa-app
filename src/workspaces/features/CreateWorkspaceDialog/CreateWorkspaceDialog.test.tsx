@@ -88,7 +88,7 @@ describe("CreateWorkspaceDialog", () => {
 
     const user = userEvent.setup();
     const workspace = {
-      slug: faker.datatype.uuid(),
+      slug: faker.string.uuid(),
       name: "Workspace's name",
       description: faker.lorem.lines(),
       countries: [],

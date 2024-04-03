@@ -117,9 +117,8 @@ export default {
     Object.keys(fields).forEach((key) => {
       if (["code", "description"].includes(key)) {
         // I don't know yet why but trying to make the translation work here makes the i18n:extract to fail
-        errors[
-          key
-        ] = `"${key}" is a protected word and cannot be used as a field name.`;
+        errors[key] =
+          `"${key}" is a protected word and cannot be used as a field name.`;
       }
     });
     return errors;

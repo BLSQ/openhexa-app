@@ -18,7 +18,7 @@ exports[`CountryPicker renders 1`] = `
           class="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-none"
           data-headlessui-state=""
           data-testid="combobox-input"
-          id="headlessui-combobox-input-6fbe024f-2316-4265-a6e8-d65a837e308a"
+          id="headlessui-combobox-input-6fbe024f-2316-4265-aa6e-8d65a837e308"
           placeholder="Select a country"
           role="combobox"
           type="text"
@@ -29,7 +29,7 @@ exports[`CountryPicker renders 1`] = `
         aria-haspopup="listbox"
         data-headlessui-state=""
         data-testid="combobox-button"
-        id="headlessui-combobox-button-e67862f3-ccbf-4c51-b8ed-ed1d0420ea19"
+        id="headlessui-combobox-button-e67862f3-ccbf-4c51-ab8e-ded1d0420ea1"
         tabindex="-1"
         type="button"
       >

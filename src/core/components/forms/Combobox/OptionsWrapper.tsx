@@ -1,5 +1,4 @@
-import { ReactNode, useEffect } from "react";
-import { ReactElement } from "react-markdown/lib/react-markdown";
+import { ReactNode, useEffect, ReactElement } from "react";
 
 const OptionsWrapper = (props: {
   onOpen?: () => void;

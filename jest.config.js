@@ -9,13 +9,9 @@ const createJestConfig = nextJest({
 const customJestConfig = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   modulePaths: ["<rootDir>/src/"],
-  moduleNameMapper: {
-    "react-markdown":
-      "<rootDir>/node_modules/react-markdown/react-markdown.min.js",
-  },
   testEnvironment: "jest-environment-jsdom",
   reporters: ["default", process.env.CI ? "github-actions" : null].filter(
-    Boolean
+    Boolean,
   ),
   clearMocks: true,
   restoreMocks: true,

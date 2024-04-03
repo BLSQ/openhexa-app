@@ -67,7 +67,7 @@ export const PipelineVersionPickerDocument = gql`
  *   },
  * });
  */
-export function usePipelineVersionPickerQuery(baseOptions: Apollo.QueryHookOptions<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables>) {
+export function usePipelineVersionPickerQuery(baseOptions: Apollo.QueryHookOptions<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables> & ({ variables: PipelineVersionPickerQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables>(PipelineVersionPickerDocument, options);
       }

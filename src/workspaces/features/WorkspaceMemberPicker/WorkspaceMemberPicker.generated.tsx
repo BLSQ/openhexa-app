@@ -51,7 +51,7 @@ export const WorkspaceMemberPickerDocument = gql`
  *   },
  * });
  */
-export function useWorkspaceMemberPickerQuery(baseOptions: Apollo.QueryHookOptions<WorkspaceMemberPickerQuery, WorkspaceMemberPickerQueryVariables>) {
+export function useWorkspaceMemberPickerQuery(baseOptions: Apollo.QueryHookOptions<WorkspaceMemberPickerQuery, WorkspaceMemberPickerQueryVariables> & ({ variables: WorkspaceMemberPickerQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<WorkspaceMemberPickerQuery, WorkspaceMemberPickerQueryVariables>(WorkspaceMemberPickerDocument, options);
       }

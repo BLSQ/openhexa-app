@@ -81,8 +81,11 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
 };
 
 const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
-  const enhancedFetch = (url: RequestInfo, init: RequestInit) => {
-    return fetch(url, {
+  const enhancedFetch = (input: RequestInfo | URL, init?: RequestInit) => {
+    if (typeof init === "undefined") {
+      init = {};
+    }
+    return fetch(input, {
       ...init,
       headers: {
         ...init.headers,

@@ -17,7 +17,7 @@ function nextFrame() {
 describe("DataCard", () => {
   it("renders", async () => {
     const item = {
-      name: faker.name.jobDescriptor(),
+      name: faker.person.jobDescriptor(),
     };
     const { container } = render(
       <DataCard item={item}>

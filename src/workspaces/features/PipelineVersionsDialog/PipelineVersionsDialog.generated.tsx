@@ -63,7 +63,7 @@ export const PipelineVersionsDialogDocument = gql`
  *   },
  * });
  */
-export function usePipelineVersionsDialogQuery(baseOptions: Apollo.QueryHookOptions<PipelineVersionsDialogQuery, PipelineVersionsDialogQueryVariables>) {
+export function usePipelineVersionsDialogQuery(baseOptions: Apollo.QueryHookOptions<PipelineVersionsDialogQuery, PipelineVersionsDialogQueryVariables> & ({ variables: PipelineVersionsDialogQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<PipelineVersionsDialogQuery, PipelineVersionsDialogQueryVariables>(PipelineVersionsDialogDocument, options);
       }

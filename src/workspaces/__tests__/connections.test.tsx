@@ -25,7 +25,7 @@ jest.mock("workspaces/helpers/connections/utils", () => ({
 describe("Connections", () => {
   const WORKSPACE = {
     __typename: "Workspace",
-    slug: faker.datatype.uuid(),
+    slug: faker.string.uuid(),
     name: faker.company.name(),
     description: faker.company.catchPhrase(),
     countries: [],
@@ -44,7 +44,7 @@ describe("Connections", () => {
 
   const CONNECTION = {
     __typename: "Connection",
-    id: faker.datatype.uuid(),
+    id: faker.string.uuid(),
     description: faker.commerce.productDescription(),
     name: faker.commerce.productName(),
     slug: "MY_SLUG",
@@ -173,7 +173,7 @@ describe("Connections", () => {
     const pushSpy = jest.spyOn(router, "push");
     const CONNECTION = {
       __typename: "Connection",
-      id: faker.datatype.uuid(),
+      id: faker.string.uuid(),
       description: faker.commerce.productDescription(),
       name: faker.commerce.productName(),
       slug: "MY_SLUG",
@@ -227,7 +227,7 @@ describe("Connections", () => {
     const user = userEvent.setup();
     const CONNECTION = {
       __typename: "Connection",
-      id: faker.datatype.uuid(),
+      id: faker.string.uuid(),
       description: faker.commerce.productDescription(),
       name: faker.commerce.productName(),
       slug: "MY_SLUG",

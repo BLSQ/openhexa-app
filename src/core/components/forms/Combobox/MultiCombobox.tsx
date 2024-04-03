@@ -17,6 +17,7 @@ import {
 import { usePopper } from "react-popper";
 import CheckOption from "./CheckOption";
 import OptionsWrapper from "./OptionsWrapper";
+import { ByComparator } from "@headlessui/react/dist/types";
 
 type MultiComboboxProps<T> = {
   onInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -120,9 +121,9 @@ function MultiCombobox<T extends { [key: string]: any }>(
       onChange={onChange}
       value={value}
       disabled={disabled}
-      multiple={true}
+      multiple
       name={name}
-      by={by}
+      by={by as ByComparator<T>}
     >
       {({ open }) => (
         <div className={clsx("relative", className)} ref={setReferenceElement}>

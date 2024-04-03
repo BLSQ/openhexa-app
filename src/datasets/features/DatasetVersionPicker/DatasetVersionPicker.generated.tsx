@@ -57,7 +57,7 @@ export const DatasetVersionPickerDocument = gql`
  *   },
  * });
  */
-export function useDatasetVersionPickerQuery(baseOptions: Apollo.QueryHookOptions<DatasetVersionPickerQuery, DatasetVersionPickerQueryVariables>) {
+export function useDatasetVersionPickerQuery(baseOptions: Apollo.QueryHookOptions<DatasetVersionPickerQuery, DatasetVersionPickerQueryVariables> & ({ variables: DatasetVersionPickerQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<DatasetVersionPickerQuery, DatasetVersionPickerQueryVariables>(DatasetVersionPickerDocument, options);
       }

@@ -178,7 +178,7 @@ ${PipelineRunStatusBadge_DagRunFragmentDoc}`;
  *   },
  * });
  */
-export function usePipelinePageQuery(baseOptions: Apollo.QueryHookOptions<PipelinePageQuery, PipelinePageQueryVariables>) {
+export function usePipelinePageQuery(baseOptions: Apollo.QueryHookOptions<PipelinePageQuery, PipelinePageQueryVariables> & ({ variables: PipelinePageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<PipelinePageQuery, PipelinePageQueryVariables>(PipelinePageDocument, options);
       }
@@ -232,7 +232,7 @@ ${PipelineRunDataCard_DagFragmentDoc}`;
  *   },
  * });
  */
-export function usePipelineRunPageQuery(baseOptions: Apollo.QueryHookOptions<PipelineRunPageQuery, PipelineRunPageQueryVariables>) {
+export function usePipelineRunPageQuery(baseOptions: Apollo.QueryHookOptions<PipelineRunPageQuery, PipelineRunPageQueryVariables> & ({ variables: PipelineRunPageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<PipelineRunPageQuery, PipelineRunPageQueryVariables>(PipelineRunPageDocument, options);
       }
@@ -280,7 +280,7 @@ export const PipelineConfigureRunPageDocument = gql`
  *   },
  * });
  */
-export function usePipelineConfigureRunPageQuery(baseOptions: Apollo.QueryHookOptions<PipelineConfigureRunPageQuery, PipelineConfigureRunPageQueryVariables>) {
+export function usePipelineConfigureRunPageQuery(baseOptions: Apollo.QueryHookOptions<PipelineConfigureRunPageQuery, PipelineConfigureRunPageQueryVariables> & ({ variables: PipelineConfigureRunPageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<PipelineConfigureRunPageQuery, PipelineConfigureRunPageQueryVariables>(PipelineConfigureRunPageDocument, options);
       }

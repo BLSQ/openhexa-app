@@ -31,9 +31,9 @@ export function TestApp(props: TestAppProps) {
 }
 
 export const LOGGED_IN_USER = {
-  id: faker.datatype.uuid(),
-  firstName: faker.name.firstName,
-  lastName: faker.name.lastName,
+  id: faker.string.uuid(),
+  firstName: faker.person.firstName,
+  lastName: faker.person.lastName,
   avatar: {
     initials: "AE",
     color: "red",

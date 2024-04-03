@@ -47,7 +47,7 @@ export const GetPipelineRunDocument = gql`
  *   },
  * });
  */
-export function useGetPipelineRunQuery(baseOptions: Apollo.QueryHookOptions<GetPipelineRunQuery, GetPipelineRunQueryVariables>) {
+export function useGetPipelineRunQuery(baseOptions: Apollo.QueryHookOptions<GetPipelineRunQuery, GetPipelineRunQueryVariables> & ({ variables: GetPipelineRunQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<GetPipelineRunQuery, GetPipelineRunQueryVariables>(GetPipelineRunDocument, options);
       }

@@ -15,12 +15,12 @@ jest.mock("workspaces/graphql/mutations.generated", () => ({
 }));
 
 const PIPELINE = {
-  id: faker.datatype.uuid(),
+  id: faker.string.uuid(),
   code: faker.science.chemicalElement().name,
 };
 const VERSION = {
-  id: faker.datatype.uuid(),
-  number: faker.datatype.number(),
+  id: faker.string.uuid(),
+  number: faker.number.int(),
 };
 const useDeletePipelineVersionMutationMock =
   useDeletePipelineVersionMutation as jest.Mock;

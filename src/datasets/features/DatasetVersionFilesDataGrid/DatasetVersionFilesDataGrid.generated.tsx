@@ -63,7 +63,7 @@ export const DatasetVersionFilesDataGridDocument = gql`
  *   },
  * });
  */
-export function useDatasetVersionFilesDataGridQuery(baseOptions: Apollo.QueryHookOptions<DatasetVersionFilesDataGridQuery, DatasetVersionFilesDataGridQueryVariables>) {
+export function useDatasetVersionFilesDataGridQuery(baseOptions: Apollo.QueryHookOptions<DatasetVersionFilesDataGridQuery, DatasetVersionFilesDataGridQueryVariables> & ({ variables: DatasetVersionFilesDataGridQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<DatasetVersionFilesDataGridQuery, DatasetVersionFilesDataGridQueryVariables>(DatasetVersionFilesDataGridDocument, options);
       }

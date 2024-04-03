@@ -1,9 +1,8 @@
 import { gql } from "@apollo/client";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useRouter } from "next/router";
-import { useCallback } from "react";
+import { ReactElement, useCallback } from "react";
 import { useTranslation } from "next-i18next";
-import { ReactElement } from "react-markdown/lib/react-markdown";
 import {
   DeleteConnectionTrigger_ConnectionFragment,
   DeleteConnectionTrigger_WorkspaceFragment,

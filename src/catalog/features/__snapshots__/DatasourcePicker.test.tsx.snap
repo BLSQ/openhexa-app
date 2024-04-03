@@ -18,7 +18,7 @@ exports[`DatasourcePicker renders 1`] = `
           class="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-none"
           data-headlessui-state=""
           data-testid="combobox-input"
-          id="headlessui-combobox-input-6fbe024f-2316-4265-a6e8-d65a837e308a"
+          id="headlessui-combobox-input-6fbe024f-2316-4265-aa6e-8d65a837e308"
           placeholder="Select datasources"
           role="combobox"
           type="text"
@@ -29,7 +29,7 @@ exports[`DatasourcePicker renders 1`] = `
         aria-haspopup="listbox"
         data-headlessui-state=""
         data-testid="combobox-button"
-        id="headlessui-combobox-button-e67862f3-ccbf-4c51-b8ed-ed1d0420ea19"
+        id="headlessui-combobox-button-e67862f3-ccbf-4c51-ab8e-ded1d0420ea1"
         tabindex="-1"
         type="button"
       >
@@ -39,6 +39,7 @@ exports[`DatasourcePicker renders 1`] = `
           <svg
             aria-hidden="true"
             class="h-5 w-5 hover:text-gray-500"
+            data-slot="icon"
             fill="none"
             stroke="currentColor"
             stroke-width="1.5"
@@ -46,7 +47,7 @@ exports[`DatasourcePicker renders 1`] = `
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
+              d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
               stroke-linecap="round"
               stroke-linejoin="round"
             />

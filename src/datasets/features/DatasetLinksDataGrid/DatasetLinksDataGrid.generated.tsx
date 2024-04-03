@@ -61,7 +61,7 @@ export const DatasetLinksDataGridDocument = gql`
  *   },
  * });
  */
-export function useDatasetLinksDataGridQuery(baseOptions: Apollo.QueryHookOptions<DatasetLinksDataGridQuery, DatasetLinksDataGridQueryVariables>) {
+export function useDatasetLinksDataGridQuery(baseOptions: Apollo.QueryHookOptions<DatasetLinksDataGridQuery, DatasetLinksDataGridQueryVariables> & ({ variables: DatasetLinksDataGridQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<DatasetLinksDataGridQuery, DatasetLinksDataGridQueryVariables>(DatasetLinksDataGridDocument, options);
       }

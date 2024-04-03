@@ -56,17 +56,17 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - name: Cache dependencies
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ./node_modules
-            ${{ github.workspace }}/.next/cache
-          key: node_modules-v20-${{ hashFiles('package-lock.json') }}
+      # - name: Cache dependencies
+      #   id: cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ./node_modules
+      #       ${{ github.workspace }}/.next/cache
+      #     key: node_modules-v20-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
+        # if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - run: npm run lint
