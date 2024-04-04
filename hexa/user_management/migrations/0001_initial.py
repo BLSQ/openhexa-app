@@ -6,6 +6,7 @@ import django.db.models.deletion
 import django.utils.timezone
 import django_countries.fields
 from django.conf import settings
+from django.contrib.postgres.operations import CreateCollation
 from django.db import migrations, models
 
 import hexa.user_management.models
@@ -19,6 +20,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        CreateCollation(
+            "case_insensitive",
+            provider="icu",
+            locale="und-u-ks-level2",
+            deterministic=True,
+        ),
         migrations.CreateModel(
             name="User",
             fields=[
