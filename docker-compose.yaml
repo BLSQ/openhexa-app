@@ -9,15 +9,13 @@ x-app: &common
     networks:
       - openhexa
     environment:
+      - DEBUG=true
       - DJANGO_SETTINGS_MODULE=config.settings.dev
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
       - DATABASE_NAME=hexa-app
       - DATABASE_USER=hexa-app
       - DATABASE_PASSWORD=hexa-app
-      - ACCESSMOD_BUCKET_NAME=s3://hexa-demo-accessmod
-      - ACCESSMOD_MANAGE_REQUESTS_URL=http://localhost:3000/admin/access-requests
-      - ACCESSMOD_SET_PASSWORD_URL=http://localhost:3000/account/set-password
       - NEW_FRONTEND_DOMAIN=localhost:3000
       - PIPELINE_SCHEDULER_SPAWNER=docker
       - PIPELINE_API_URL=http://app:8000
@@ -49,21 +47,14 @@ x-app: &common
       - GCS_SERVICE_ACCOUNT_KEY
       - WORKSPACE_BUCKET_PREFIX=hexa-test-
       - WORKSPACE_BUCKET_REGION=europe-west1
-      - AWS_USERNAME
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_ENDPOINT_URL
-      - AWS_DEFAULT_REGION
-      - AWS_USER_ARN
-      - AWS_APP_ROLE_ARN
-      - AWS_PERMISSIONS_BOUNDARY_POLICY_ARN
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
     
 
 services:
   db:
-    image: postgis/postgis:12-3.2
+    image: postgis/postgis:16-3.4-alpine
+    container_name: db
     networks:
       - openhexa
     volumes:
@@ -84,15 +75,6 @@ services:
     image: blsq/openhexa-app
     ports:
       - "8000:8000"
-    depends_on:
-      - db
-
-  dataworker:
-    <<: *common
-    command: "manage validate_fileset_worker"
-    restart: unless-stopped
-    profiles:
-      - "dataworker"
     depends_on:
       - db
 

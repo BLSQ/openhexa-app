@@ -80,8 +80,6 @@ case "$command" in
     python manage.py createsuperuser --no-input || true
     python manage.py loaddata base.json
     python manage.py loaddata demo.json
-    python manage.py loaddata live.json
-    python manage.py datasource_index
   else
     echo "The \"fixtures\" command can only be executed in dev mode"
   fi

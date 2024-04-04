@@ -78,7 +78,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "hexa.user_management.middlewares.TwoFactorMiddleware",
     "hexa.user_management.middlewares.UserLanguageMiddleware",
-    "hexa.plugins.connector_airflow.middlewares.dag_run_authentication_middleware",
     "hexa.pipelines.middlewares.pipeline_run_authentication_middleware",
     "hexa.workspaces.middlewares.workspace_token_authentication_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -375,15 +374,3 @@ WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET")
 # import json
 # base64.b64encode(json.dumps(service_account_key_content).encode("utf-8"))
 GCS_SERVICE_ACCOUNT_KEY = os.environ.get("GCS_SERVICE_ACCOUNT_KEY", "")
-
-# S3 settings
-AWS_USERNAME = os.environ.get("AWS_USERNAME", "")
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
-AWS_ENDPOINT_URL = os.environ.get("AWS_ENDPOINT_URL", "")
-AWS_DEFAULT_REGION = os.environ.get("AWS_DEFAULT_REGION", "")
-AWS_USER_ARN = os.environ.get("AWS_USER_ARN", "")
-AWS_APP_ROLE_ARN = os.environ.get("AWS_APP_ROLE_ARN", "")
-AWS_PERMISSIONS_BOUNDARY_POLICY_ARN = os.environ.get(
-    "AWS_PERMISSIONS_BOUNDARY_POLICY_ARN", ""
-)
