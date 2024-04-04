@@ -1,7 +1,0 @@
-{% load embed %}
-
-<div x-show="current==='{{ id }}'">
-    <div {% slot extra_wrapper_attrs %}{% endslot %}>
-        {% slot content %}{% endslot %}
-    </div>
-</div>

@@ -5,16 +5,3 @@ enum ActivityStatus {
   ERROR
   UNKNOWN
 }
-
-type Activity {
-  description: String!
-  occurredAt: DateTime!
-  url: URL!
-  status: ActivityStatus!
-}
-
-
-extend type Query {
-  totalNotebooks: Int! @loginRequired
-  lastActivities: [Activity!]! @loginRequired
-}
