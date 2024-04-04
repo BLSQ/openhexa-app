@@ -91,7 +91,7 @@ def credentials(request: HttpRequest) -> HttpResponse:
 @require_POST
 @csrf_exempt
 def run_pipeline(
-    request: HttpRequest, id: uuid.UUID, version_number: int = None
+    request: HttpRequest, id: uuid.UUID, version_id: uuid.UUID = None
 ) -> HttpResponse:
     """Runs a pipeline. The endpoint accepts both form data and JSON payloads.
 
@@ -113,9 +113,9 @@ def run_pipeline(
     # Get the pipeline version
     try:
         pipeline_version = pipeline.last_version
-        if version_number is not None:
+        if version_id is not None:
             pipeline_version = PipelineVersion.objects.get(
-                pipeline=pipeline, number=version_number
+                pipeline=pipeline, id=version_id
             )
 
         if pipeline_version is None:

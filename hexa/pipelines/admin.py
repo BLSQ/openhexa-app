@@ -27,13 +27,14 @@ class PipelineAdmin(GlobalObjectsModelAdmin):
 @admin.register(PipelineRun)
 class PipelineRunAdmin(admin.ModelAdmin):
     list_display = ("pipeline", "trigger_mode", "state", "execution_date")
-    list_filter = ("trigger_mode", "state", "execution_date")
+    list_filter = ("trigger_mode", "state", "execution_date", "pipeline")
 
 
 @admin.register(PipelineVersion)
 class PipelineVersionAdmin(admin.ModelAdmin):
-    list_display = ("pipeline", "number", "created_at")
+    list_display = ("pipeline", "name", "created_at")
     list_filter = ("created_at",)
+    search_fields = ("name", "pipeline__name", "pipeline__id")
 
 
 @admin.register(Index)

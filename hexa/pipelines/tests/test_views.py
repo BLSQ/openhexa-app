@@ -61,7 +61,9 @@ class ViewsTest(TestCase):
             description="This is a test pipeline",
             webhook_enabled=True,
         )
-        cls.PIPELINE.upload_new_version(cls.USER_JULIA, b"", [])
+        cls.PIPELINE.upload_new_version(
+            cls.USER_JULIA, b"", name="Version 1", parameters=[]
+        )
 
     def test_run_pipeline_not_enabled(self):
         self.PIPELINE.webhook_enabled = False
@@ -107,7 +109,7 @@ class ViewsTest(TestCase):
         response = self.client.post(
             reverse(
                 "pipelines:run_with_version",
-                args=[self.PIPELINE.id, self.PIPELINE.last_version.number],
+                args=[self.PIPELINE.id, self.PIPELINE.last_version.id],
             ),
             content_type="application/json",
         )
@@ -119,7 +121,9 @@ class ViewsTest(TestCase):
     def test_run_pipeline_invalid_version(self):
         self.assertEqual(self.PIPELINE.last_run, None)
         response = self.client.post(
-            reverse("pipelines:run_with_version", args=[self.PIPELINE.id, 30]),
+            reverse(
+                "pipelines:run_with_version", args=[self.PIPELINE.id, uuid.uuid4()]
+            ),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 404)
@@ -160,6 +164,7 @@ class ViewsTest(TestCase):
             self.USER_JULIA,
             b"",
             parameters,
+            name=str(uuid.uuid4()),
         )
         endpoint_url = reverse(
             "pipelines:run",

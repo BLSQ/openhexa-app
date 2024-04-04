@@ -62,7 +62,10 @@ type PipelineVersion {
   id: UUID!
   user: User
   pipeline: Pipeline!
-  number: Int!
+  name: String!
+  number: String @deprecated(reason: "Use name field instead")
+  description: String
+  externalLink: URL
   createdAt: DateTime!
   parameters: [PipelineParameter!]!
   isLatestVersion: Boolean!
@@ -201,7 +204,7 @@ type DeletePipelineResult {
 
 input RunPipelineInput {
   id: UUID!
-  version: Int
+  versionId: UUID
   config: JSON!
   sendMailNotifications: Boolean
 }
@@ -234,7 +237,11 @@ type PipelineTokenResult {
 
 input UploadPipelineInput {
   workspaceSlug: String!
-  code: String!
+  code: String @deprecated(reason: "Use 'pipelineCode' field instead")
+  pipelineCode: String
+  name: String!
+  description: String
+  externalLink: URL
   parameters: [ParameterInput!]!
   zipfile: String!
   timeout: Int
@@ -242,7 +249,7 @@ input UploadPipelineInput {
 
 type UploadPipelineResult {
   success: Boolean!
-  version: Int
+  version: PipelineVersion
   errors: [PipelineError!]!
 }
 
