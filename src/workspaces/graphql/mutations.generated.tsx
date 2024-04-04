@@ -81,6 +81,13 @@ export type DeletePipelineMutationVariables = Types.Exact<{
 
 export type DeletePipelineMutation = { __typename?: 'Mutation', deletePipeline: { __typename?: 'DeletePipelineResult', success: boolean, errors: Array<Types.PipelineError> } };
 
+export type StopPipelineMutationVariables = Types.Exact<{
+  input: Types.StopPipelineInput;
+}>;
+
+
+export type StopPipelineMutation = { __typename?: 'Mutation', stopPipeline: { __typename?: 'StopPipelineResult', success: boolean, errors: Array<Types.PipelineError> } };
+
 export type DeletePipelineVersionMutationVariables = Types.Exact<{
   input: Types.DeletePipelineVersionInput;
 }>;
@@ -533,6 +540,40 @@ export function useDeletePipelineMutation(baseOptions?: Apollo.MutationHookOptio
 export type DeletePipelineMutationHookResult = ReturnType<typeof useDeletePipelineMutation>;
 export type DeletePipelineMutationResult = Apollo.MutationResult<DeletePipelineMutation>;
 export type DeletePipelineMutationOptions = Apollo.BaseMutationOptions<DeletePipelineMutation, DeletePipelineMutationVariables>;
+export const StopPipelineDocument = gql`
+    mutation stopPipeline($input: StopPipelineInput!) {
+  stopPipeline(input: $input) {
+    success
+    errors
+  }
+}
+    `;
+export type StopPipelineMutationFn = Apollo.MutationFunction<StopPipelineMutation, StopPipelineMutationVariables>;
+
+/**
+ * __useStopPipelineMutation__
+ *
+ * To run a mutation, you first call `useStopPipelineMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useStopPipelineMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [stopPipelineMutation, { data, loading, error }] = useStopPipelineMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useStopPipelineMutation(baseOptions?: Apollo.MutationHookOptions<StopPipelineMutation, StopPipelineMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<StopPipelineMutation, StopPipelineMutationVariables>(StopPipelineDocument, options);
+      }
+export type StopPipelineMutationHookResult = ReturnType<typeof useStopPipelineMutation>;
+export type StopPipelineMutationResult = Apollo.MutationResult<StopPipelineMutation>;
+export type StopPipelineMutationOptions = Apollo.BaseMutationOptions<StopPipelineMutation, StopPipelineMutationVariables>;
 export const DeletePipelineVersionDocument = gql`
     mutation deletePipelineVersion($input: DeletePipelineVersionInput!) {
   deletePipelineVersion(input: $input) {

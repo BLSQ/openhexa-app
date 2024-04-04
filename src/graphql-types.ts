@@ -885,7 +885,9 @@ export enum DagRunStatus {
   Failed = 'failed',
   Queued = 'queued',
   Running = 'running',
-  Success = 'success'
+  Stopped = 'stopped',
+  Success = 'success',
+  Terminating = 'terminating'
 }
 
 export enum DagRunTrigger {
@@ -1718,6 +1720,7 @@ export type Mutation = {
   runPipeline: RunPipelineResult;
   setDAGRunFavorite?: Maybe<SetDagRunFavoriteResult>;
   setPassword: SetPasswordResult;
+  stopPipeline: StopPipelineResult;
   updateAccessmodAccessibilityAnalysis: UpdateAccessmodAccessibilityAnalysisResult;
   updateAccessmodFileset: UpdateAccessmodFilesetResult;
   updateAccessmodProject: UpdateAccessmodProjectResult;
@@ -2058,6 +2061,11 @@ export type MutationSetPasswordArgs = {
 };
 
 
+export type MutationStopPipelineArgs = {
+  input: StopPipelineInput;
+};
+
+
 export type MutationUpdateAccessmodAccessibilityAnalysisArgs = {
   input?: InputMaybe<UpdateAccessmodAccessibilityAnalysisInput>;
 };
@@ -2246,6 +2254,7 @@ export enum PipelineError {
   PermissionDenied = 'PERMISSION_DENIED',
   PipelineAlreadyCompleted = 'PIPELINE_ALREADY_COMPLETED',
   PipelineAlreadyExists = 'PIPELINE_ALREADY_EXISTS',
+  PipelineAlreadyStopped = 'PIPELINE_ALREADY_STOPPED',
   PipelineDoesNotSupportParameters = 'PIPELINE_DOES_NOT_SUPPORT_PARAMETERS',
   PipelineNotFound = 'PIPELINE_NOT_FOUND',
   PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND',
@@ -2271,6 +2280,7 @@ export type PipelinePermissions = {
   deleteVersion: Scalars['Boolean']['output'];
   run: Scalars['Boolean']['output'];
   schedule: Scalars['Boolean']['output'];
+  stopPipeline: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 
@@ -2296,6 +2306,7 @@ export type PipelineRun = {
   run_id: Scalars['UUID']['output'];
   sendMailNotifications: Scalars['Boolean']['output'];
   status: PipelineRunStatus;
+  stoppedBy?: Maybe<User>;
   timeout?: Maybe<Scalars['Int']['output']>;
   triggerMode?: Maybe<PipelineRunTrigger>;
   user?: Maybe<User>;
@@ -2328,7 +2339,9 @@ export enum PipelineRunStatus {
   Failed = 'failed',
   Queued = 'queued',
   Running = 'running',
-  Success = 'success'
+  Stopped = 'stopped',
+  Success = 'success',
+  Terminating = 'terminating'
 }
 
 export enum PipelineRunTrigger {
@@ -2892,6 +2905,16 @@ export type SetPasswordInput = {
 export type SetPasswordResult = {
   __typename?: 'SetPasswordResult';
   error?: Maybe<SetPasswordError>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type StopPipelineInput = {
+  runId: Scalars['UUID']['input'];
+};
+
+export type StopPipelineResult = {
+  __typename?: 'StopPipelineResult';
+  errors: Array<PipelineError>;
   success: Scalars['Boolean']['output'];
 };
 

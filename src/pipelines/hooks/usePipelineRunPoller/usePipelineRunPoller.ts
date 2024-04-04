@@ -26,9 +26,11 @@ export default function usePipelineRunPoller(runId: PipelineRun["id"] | null) {
     const { data } = await fetch({ fetchPolicy: "network-only" });
     if (
       data?.run &&
-      [PipelineRunStatus.Queued, PipelineRunStatus.Running].includes(
-        data.run.status,
-      )
+      [
+        PipelineRunStatus.Queued,
+        PipelineRunStatus.Running,
+        PipelineRunStatus.Terminating,
+      ].includes(data.run.status)
     ) {
       setTimeout(() => retry(), backoffRef.current.duration());
     }

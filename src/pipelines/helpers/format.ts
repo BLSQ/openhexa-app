@@ -11,5 +11,9 @@ export function formatDAGRunStatus(status: DagRunStatus | PipelineRunStatus) {
       return i18n!.t("Running");
     case DagRunStatus.Success:
       return i18n!.t("Succeeded");
+    case DagRunStatus.Stopped:
+      return i18n!.t("Stopped");
+    case DagRunStatus.Terminating:
+      return i18n!.t("Terminating");
   }
 }

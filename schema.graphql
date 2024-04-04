@@ -796,6 +796,8 @@ enum DAGRunStatus {
   running
   failed
   queued
+  stopped
+  terminating
 }
 
 enum DAGRunTrigger {
@@ -1513,6 +1515,7 @@ type Mutation {
   updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult!
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult!
   runPipeline(input: RunPipelineInput): RunPipelineResult!
+  stopPipeline(input: StopPipelineInput!): StopPipelineResult!
   pipelineToken(input: PipelineTokenInput): PipelineTokenResult!
   uploadPipeline(input: UploadPipelineInput): UploadPipelineResult!
   logPipelineMessage(input: LogPipelineMessageInput): LogPipelineMessageResult!
@@ -1639,6 +1642,7 @@ enum PipelineError {
   PIPELINE_ALREADY_EXISTS
   INVALID_CONFIG
   PIPELINE_ALREADY_COMPLETED
+  PIPELINE_ALREADY_STOPPED
   INVALID_TIMEOUT_VALUE
   PERMISSION_DENIED
   FILE_NOT_FOUND
@@ -1662,6 +1666,7 @@ type PipelinePermissions {
   run: Boolean!
   deleteVersion: Boolean!
   schedule: Boolean!
+  stopPipeline: Boolean!
 }
 
 type PipelineRecipient {
@@ -1688,6 +1693,7 @@ type PipelineRun {
   sendMailNotifications: Boolean!
   timeout: Int
   datasetVersions: [DatasetVersion!]!
+  stoppedBy: User
 }
 
 type PipelineRunMessage {
@@ -1715,6 +1721,8 @@ enum PipelineRunStatus {
   running
   failed
   queued
+  stopped
+  terminating
 }
 
 enum PipelineRunTrigger {
@@ -2065,6 +2073,15 @@ type SetPasswordResult {
 scalar SimplifiedExtentType
 
 scalar StackPriorities
+
+input StopPipelineInput {
+  runId: UUID!
+}
+
+type StopPipelineResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+}
 
 type TableColumn {
   name: String!

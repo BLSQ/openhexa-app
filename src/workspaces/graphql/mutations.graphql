@@ -118,6 +118,13 @@ mutation deletePipeline($input: DeletePipelineInput!) {
   }
 }
 
+mutation stopPipeline($input: StopPipelineInput!){
+  stopPipeline(input: $input){
+    success
+    errors
+  }
+}
+
 mutation deletePipelineVersion($input: DeletePipelineVersionInput!) {
   deletePipelineVersion(input: $input) {
     success
