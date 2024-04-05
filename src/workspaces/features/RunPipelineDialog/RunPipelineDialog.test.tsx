@@ -1,14 +1,13 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { TestApp } from "core/helpers/testutils";
 import { v4 } from "uuid";
 
-import RunPipelineDialog from "../RunPipelineDialog";
 import { useLazyQuery } from "@apollo/client";
-import { ParameterField_ParameterFragment } from "./ParameterField.generated";
-import { runPipeline } from "workspaces/helpers/pipelines";
 import { UserEvent } from "@testing-library/user-event/dist/types/setup/setup";
+import { runPipeline } from "workspaces/helpers/pipelines";
+import RunPipelineDialog from "../RunPipelineDialog";
+import { ParameterField_ParameterFragment } from "./ParameterField.generated";
 
 jest.mock("@apollo/client", () => ({
   ...jest.requireActual("@apollo/client"),
@@ -38,7 +37,7 @@ const pipelineWithParameters = (
     },
     currentVersion: {
       id: v4(),
-      number: 3,
+      name: "3",
       createdAt: "2023-06-21T13:27:59.928Z",
       user: {
         displayName: "test",
@@ -79,7 +78,7 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       { is_ok: null },
-      pipeline.currentVersion.number,
+      pipeline.currentVersion.id,
       false,
     );
   });
@@ -99,7 +98,7 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       {},
-      pipeline.currentVersion.number,
+      pipeline.currentVersion.id,
       true,
     );
   });
@@ -152,7 +151,7 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       {},
-      pipeline.currentVersion.number,
+      pipeline.currentVersion.id,
       false,
     );
   });
@@ -199,7 +198,7 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       { int_param: 0, float_param: 2.2 },
-      pipeline.currentVersion.number,
+      pipeline.currentVersion.id,
       false,
     );
   });
@@ -234,7 +233,7 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       { multi: ["0", "1", "2"] },
-      pipeline.currentVersion.number,
+      pipeline.currentVersion.id,
       false,
     );
   });
@@ -269,7 +268,7 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       { string: "coucou" },
-      pipeline.currentVersion.number,
+      pipeline.currentVersion.id,
       false,
     );
   });
@@ -305,7 +304,7 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       { choices_param: 2 },
-      pipeline.currentVersion.number,
+      pipeline.currentVersion.id,
       false,
     );
   });

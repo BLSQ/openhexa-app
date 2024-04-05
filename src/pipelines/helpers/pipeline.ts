@@ -51,7 +51,7 @@ export async function downloadPipelineVersion(versionId: string) {
       query GetPipelineVersion($versionId: UUID!) {
         pipelineVersion(id: $versionId) {
           id
-          number
+          name
           pipeline {
             code
           }
@@ -71,7 +71,9 @@ export async function downloadPipelineVersion(versionId: string) {
   const url = window.URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = `${pipeline.code}-${data.pipelineVersion.number}.zip`;
+  anchor.download = `${pipeline.code}-${encodeURIComponent(
+    data.pipelineVersion.name,
+  )}.zip`;
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);

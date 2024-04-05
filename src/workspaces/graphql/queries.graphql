@@ -92,7 +92,9 @@ query WorkspacePipelinePage(
     schedule
     currentVersion {
       id
-      number
+      name
+      description
+      externalLink
       ...PipelineVersionPicker_version
       ...PipelineVersionParametersTable_version
       ...DownloadPipelineVersion_version
@@ -107,7 +109,7 @@ query WorkspacePipelinePage(
       items {
         id
         version {
-          number
+          name
           createdAt
           user {
             ...User_user
@@ -177,7 +179,7 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: UUID!) {
   pipelineRun(id: $runId) {
     id
     version {
-      number
+      name
       parameters {
         code
         name

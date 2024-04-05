@@ -31,7 +31,7 @@ const PipelineVersionsDialog = (props: PipelineVersionsDialogProps) => {
   const { t } = useTranslation();
   const [selectedPipelineVersion, setSelectedPipelineVersion] = useState<{
     id: string;
-    number: number;
+    name: string;
   } | null>();
 
   const { data, refetch, loading } = useQuery<
@@ -50,7 +50,7 @@ const PipelineVersionsDialog = (props: PipelineVersionsDialogProps) => {
             totalItems
             items {
               id
-              number
+              name
               user {
                 ...User_user
               }
@@ -101,8 +101,8 @@ const PipelineVersionsDialog = (props: PipelineVersionsDialogProps) => {
           >
             <TextColumn
               className="font-bold"
-              id="number"
-              accessor={"number"}
+              id="name"
+              accessor={"name"}
               label={t("Version")}
             />
             <UserColumn accessor="user" id="user" label={t("User")} />
@@ -122,7 +122,7 @@ const PipelineVersionsDialog = (props: PipelineVersionsDialogProps) => {
                       onClick={() => {
                         setSelectedPipelineVersion({
                           id: item.id,
-                          number: item.number,
+                          name: item.name,
                         });
                       }}
                     >

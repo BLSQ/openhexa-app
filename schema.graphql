@@ -1753,7 +1753,9 @@ type PipelineVersion {
   id: UUID!
   user: User
   pipeline: Pipeline!
-  number: Int!
+  name: String!
+  description: String
+  externalLink: URL
   createdAt: DateTime!
   parameters: [PipelineParameter!]!
   isLatestVersion: Boolean!
@@ -1976,7 +1978,7 @@ type RunDAGResult {
 
 input RunPipelineInput {
   id: UUID!
-  version: Int
+  versionId: UUID
   config: JSON!
   sendMailNotifications: Boolean
 }
@@ -2402,6 +2404,7 @@ type UpdateWorkspaceResult {
 input UploadPipelineInput {
   workspaceSlug: String!
   code: String!
+  name: String!
   parameters: [ParameterInput!]!
   zipfile: String!
   timeout: Int
@@ -2409,7 +2412,7 @@ input UploadPipelineInput {
 
 type UploadPipelineResult {
   success: Boolean!
-  version: Int
+  version: PipelineVersion
   errors: [PipelineError!]!
 }
 

@@ -11,7 +11,7 @@ export type PipelineVersionsDialogQueryVariables = Types.Exact<{
 }>;
 
 
-export type PipelineVersionsDialogQuery = { __typename?: 'Query', pipeline?: { __typename?: 'Pipeline', id: string, versions: { __typename?: 'PipelineVersionPage', totalItems: number, items: Array<{ __typename?: 'PipelineVersion', id: string, number: number, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }> } } | null };
+export type PipelineVersionsDialogQuery = { __typename?: 'Query', pipeline?: { __typename?: 'Pipeline', id: string, versions: { __typename?: 'PipelineVersionPage', totalItems: number, items: Array<{ __typename?: 'PipelineVersion', id: string, name: string, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }> } } | null };
 
 export type PipelineVersionsDialog_PipelineFragment = { __typename?: 'Pipeline', id: string, code: string, workspace?: { __typename?: 'Workspace', slug: string } | null, permissions: { __typename?: 'PipelinePermissions', deleteVersion: boolean } };
 
@@ -35,7 +35,7 @@ export const PipelineVersionsDialogDocument = gql`
       totalItems
       items {
         id
-        number
+        name
         user {
           ...User_user
         }

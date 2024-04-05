@@ -11,6 +11,7 @@ import { Trans, useTranslation } from "next-i18next";
 import DownloadPipelineVersion from "../DownloadPipelineVersion";
 import PipelineVersionParametersTable from "../PipelineVersionParametersTable";
 import { PipelineVersionCard_VersionFragment } from "./PipelineVersionCard.generated";
+import Link from "core/components/Link";
 
 type PipelineVersionCardProps = {
   version: PipelineVersionCard_VersionFragment;
@@ -27,7 +28,7 @@ const PipelineVersionCard = ({
       <Block.Header className="flex">
         <div className="flex-1">
           <span className="font-bold text-xl">
-            {t("Version")} {version.number}
+            {t("Version")} {version.name}
           </span>{" "}
           <span className="text-gray-400">
             <Trans>
@@ -49,12 +50,21 @@ const PipelineVersionCard = ({
       </Block.Header>
       <Block.Content>
         <DescriptionList>
-          <DescriptionList.Item label={t("Identifier")}>
-            <code>{version.number}</code>
+          <DescriptionList.Item label={t("Name")}>
+            {version.name}
           </DescriptionList.Item>
-          <DescriptionList.Item label={t("Created at")}>
-            <Time datetime={version.createdAt} />
-          </DescriptionList.Item>
+          {version.description && (
+            <DescriptionList.Item fullWidth label={t("Description")}>
+              {version.description}
+            </DescriptionList.Item>
+          )}
+          {version.externalLink && (
+            <DescriptionList.Item label={t("Link")}>
+              <Link href={version.externalLink} target="_blank">
+                {version.externalLink}
+              </Link>
+            </DescriptionList.Item>
+          )}
           <DescriptionList.Item label={t("Created by")}>
             {version.user?.displayName ?? "-"}
           </DescriptionList.Item>
@@ -90,7 +100,9 @@ PipelineVersionCard.fragments = {
   version: gql`
     fragment PipelineVersionCard_version on PipelineVersion {
       id
-      number
+      name
+      description
+      externalLink
       isLatestVersion
       createdAt
 

@@ -1,19 +1,18 @@
-import { gql, useLazyQuery, useQuery } from "@apollo/client";
-import Select from "core/components/forms/Select";
+import { gql, useLazyQuery } from "@apollo/client";
+import { Combobox } from "core/components/forms/Combobox";
+import useDebounce from "core/hooks/useDebounce";
 import { DateTime } from "luxon";
-import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "next-i18next";
+import { useCallback, useMemo, useState } from "react";
 import {
   PipelineVersionPickerQuery,
   PipelineVersionPicker_PipelineFragment,
   PipelineVersionPicker_VersionFragment,
 } from "./PipelineVersionPicker.generated";
-import { Combobox } from "core/components/forms/Combobox";
-import useDebounce from "core/hooks/useDebounce";
 
 type Option = {
   id: string;
-  number: number;
+  name: string;
   createdAt: string;
   user?: { displayName: string } | null;
 };
@@ -50,7 +49,7 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
   const displayValue = useCallback(
     (option: Option) =>
       option
-        ? `V${option.number} - ${DateTime.fromISO(
+        ? `V${option.name} - ${DateTime.fromISO(
             option.createdAt,
           ).toLocaleString(DateTime.DATETIME_MED)}`
         : "",
@@ -59,11 +58,9 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
   const filterOptions = useCallback(
     (options: Option[], query: string) => {
       return options.filter((option) =>
-        `V${option.number} - ${DateTime.fromISO(
-          option.createdAt,
-        ).toLocaleString(DateTime.DATETIME_MED)} - ${
-          option.user?.displayName ?? t("Unknown")
-        }}`
+        `V${option.name} - ${DateTime.fromISO(option.createdAt).toLocaleString(
+          DateTime.DATETIME_MED,
+        )} - ${option.user?.displayName ?? t("Unknown")}}`
           .toLowerCase()
           .includes(query.toLowerCase()),
       );
@@ -111,7 +108,7 @@ PipelineVersionPicker.fragments = {
   version: gql`
     fragment PipelineVersionPicker_version on PipelineVersion {
       id
-      number
+      name
       createdAt
       parameters {
         code

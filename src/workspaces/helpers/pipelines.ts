@@ -126,7 +126,7 @@ export function getCronExpressionDescription(
 export async function runPipeline(
   pipelineId: string,
   config: any,
-  version?: number,
+  versionId?: string,
   sendMailNotifications?: boolean,
 ) {
   const client = getApolloClient();
@@ -149,7 +149,7 @@ export async function runPipeline(
       }
     `,
     variables: {
-      input: { id: pipelineId, config, version, sendMailNotifications },
+      input: { id: pipelineId, config, versionId, sendMailNotifications },
     },
     update: (cache, { data }) => {
       if (!data || !data.runPipeline.run) {

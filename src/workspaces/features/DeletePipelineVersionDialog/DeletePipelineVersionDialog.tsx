@@ -67,10 +67,10 @@ const DeletePipelineVersionDialog = (
       <Dialog.Content className="space-y-4">
         <p>
           {t(
-            "You're about to delete version {{number}} of pipeline {{name}}.",
+            "You're about to delete version {{name}} of pipeline {{pipelineName}}.",
             {
-              number: version.number,
-              name: pipeline.name,
+              name: version.name,
+              pipelineName: pipeline.name,
             },
           )}
         </p>
@@ -99,7 +99,7 @@ DeletePipelineVersionDialog.fragments = {
   version: gql`
     fragment DeletePipelineVersion_version on PipelineVersion {
       id
-      number
+      name
     }
   `,
 };

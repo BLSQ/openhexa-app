@@ -53,7 +53,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       ) {
         pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
           currentVersion {
-            number
+            name
             createdAt
             user {
               displayName
@@ -75,7 +75,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       const run = await runPipeline(
         pipeline.id,
         convertParametersToPipelineInput(version, params),
-        version?.number,
+        version?.id,
         sendMailNotifications,
       );
       await router.push(
@@ -221,21 +221,22 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
               </div>
             )}
             {!showVersionPicker ? (
-              <div className="mb-6 flex justify-start gap-x-1">
+              <div className="mb-6 gap-x-1">
                 <p>
                   {!("run" in props)
-                    ? t("This pipeline will run using the latest version")
-                    : t("This pipeline will run using the same version")}
+                    ? t("This pipeline will run using the latest version.")
+                    : t("This pipeline will run using the same version.")}
+                  &nbsp;
+                  <button
+                    className="text-sm text-blue-600 hover:text-blue-500 inline"
+                    role="link"
+                    onClick={() => {
+                      setShowVersionPicker(true);
+                    }}
+                  >
+                    {t("Select specific version")}
+                  </button>
                 </p>
-                <button
-                  className="text-sm text-blue-600 hover:text-blue-500"
-                  role="link"
-                  onClick={() => {
-                    setShowVersionPicker(true);
-                  }}
-                >
-                  {t("(select specific version)")}
-                </button>
               </div>
             ) : (
               <Field
@@ -253,9 +254,6 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
               </Field>
             )}
 
-            {parameters.length === 0 && (
-              <p>{t("This pipeline has no parameter")}</p>
-            )}
             <div
               className={clsx(
                 "grid gap-x-3 gap-y-4",
@@ -329,7 +327,7 @@ RunPipelineDialog.fragments = {
       code
       currentVersion {
         id
-        number
+        name
         createdAt
         parameters {
           name
@@ -353,7 +351,7 @@ RunPipelineDialog.fragments = {
       config
       version {
         id
-        number
+        name
         createdAt
         parameters {
           ...ParameterField_parameter
@@ -368,7 +366,7 @@ RunPipelineDialog.fragments = {
   version: gql`
     fragment RunPipelineDialog_version on PipelineVersion {
       id
-      number
+      name
       createdAt
       parameters {
         ...ParameterField_parameter

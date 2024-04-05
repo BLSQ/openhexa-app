@@ -29,7 +29,7 @@ DownloadPipelineVersion.fragments = {
   version: gql`
     fragment DownloadPipelineVersion_version on PipelineVersion {
       id
-      number
+      name
       pipeline {
         id
         code

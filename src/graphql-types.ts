@@ -2365,9 +2365,11 @@ export type PipelineTokenResult = {
 export type PipelineVersion = {
   __typename?: 'PipelineVersion';
   createdAt: Scalars['DateTime']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  externalLink?: Maybe<Scalars['URL']['output']>;
   id: Scalars['UUID']['output'];
   isLatestVersion: Scalars['Boolean']['output'];
-  number: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
   parameters: Array<PipelineParameter>;
   pipeline: Pipeline;
   timeout?: Maybe<Scalars['Int']['output']>;
@@ -2807,7 +2809,7 @@ export type RunPipelineInput = {
   config: Scalars['JSON']['input'];
   id: Scalars['UUID']['input'];
   sendMailNotifications?: InputMaybe<Scalars['Boolean']['input']>;
-  version?: InputMaybe<Scalars['Int']['input']>;
+  versionId?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 export type RunPipelineResult = {
@@ -3261,6 +3263,7 @@ export type UpdateWorkspaceResult = {
 
 export type UploadPipelineInput = {
   code: Scalars['String']['input'];
+  name: Scalars['String']['input'];
   parameters: Array<ParameterInput>;
   timeout?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug: Scalars['String']['input'];
@@ -3271,7 +3274,7 @@ export type UploadPipelineResult = {
   __typename?: 'UploadPipelineResult';
   errors: Array<PipelineError>;
   success: Scalars['Boolean']['output'];
-  version?: Maybe<Scalars['Int']['output']>;
+  version?: Maybe<PipelineVersion>;
 };
 
 export type User = {

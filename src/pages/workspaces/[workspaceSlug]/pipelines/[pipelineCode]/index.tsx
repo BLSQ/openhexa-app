@@ -32,7 +32,6 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import DownloadPipelineVersion from "pipelines/features/DownloadPipelineVersion/DownloadPipelineVersion";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
-import PipelineVersionParametersTable from "pipelines/features/PipelineVersionParametersTable/PipelineVersionParametersTable";
 import { useState } from "react";
 import CronProperty from "workspaces/features/CronProperty";
 import DeletePipelineDialog from "workspaces/features/DeletePipelineDialog";
@@ -72,10 +71,6 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
       perPage,
     },
   });
-  const [displayedVersion, setDisplayedVersion] = useState(
-    data?.pipeline?.currentVersion ?? null,
-  );
-
   if (!data?.workspace || !data?.pipeline) {
     return null;
   }
@@ -210,7 +205,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               collapsible={false}
               title={() => (
                 <div className="flex flex-1 gap-2 items-center">
-                  <h4 className="font-medium">{t("Current version")}</h4>
+                  <h4 className="font-medium">{t("Version")}</h4>
                   <div className="flex-1"></div>
                   <Link
                     className="text-sm"
@@ -231,17 +226,24 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               {pipeline.currentVersion ? (
                 <>
                   <DescriptionList>
-                    <DescriptionList.Item label={t("Identifier")}>
-                      <code>{pipeline.currentVersion.number}</code>
-                      {pipeline.currentVersion.id && (
-                        <Badge
-                          className="ml-2 text-gray-500 text-sm"
-                          borderColor="border-gray-300"
-                        >
-                          {t("Latest version")}
-                        </Badge>
-                      )}
+                    <DescriptionList.Item label={t("Name")}>
+                      {pipeline.currentVersion.name}
                     </DescriptionList.Item>
+                    {pipeline.currentVersion.description && (
+                      <DescriptionList.Item label={t("Description")} fullWidth>
+                        {pipeline.currentVersion.description}
+                      </DescriptionList.Item>
+                    )}
+                    {pipeline.currentVersion.externalLink && (
+                      <DescriptionList.Item label={t("External link")}>
+                        <Link
+                          href={pipeline.currentVersion.externalLink}
+                          target={"_blank"}
+                        >
+                          {pipeline.currentVersion.externalLink}
+                        </Link>
+                      </DescriptionList.Item>
+                    )}
                     <DescriptionList.Item label={t("Created at")}>
                       <Time datetime={pipeline.currentVersion.createdAt} />
                     </DescriptionList.Item>
