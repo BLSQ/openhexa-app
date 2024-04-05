@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.68.0](https://github.com/BLSQ/openhexa-app/compare/0.67.0...0.68.0) (2024-04-05)
+
+
+### Features
+
+* **Pipelines:** Add a name, description and link to the version model ([#672](https://github.com/BLSQ/openhexa-app/issues/672)) ([7a680d6](https://github.com/BLSQ/openhexa-app/commit/7a680d60fbee67f95f2a357c83041ecac19ea06b))
+* **Pipelines:** allow user to stop a pipeline ([#670](https://github.com/BLSQ/openhexa-app/issues/670)) ([75f005e](https://github.com/BLSQ/openhexa-app/commit/75f005e8285c6838b1ee33d1864e92de4804a718))
+
+
+### Bug Fixes
+
+* **tests:** Remove collation from the latter migration file, merge migrations ([de8a520](https://github.com/BLSQ/openhexa-app/commit/de8a52037d3fdd3eb11cc81e276bf113d5129c27))
+
+
+### Miscellaneous
+
+* **DB:** Add case_insensitive collation to the first migration ([259ecc9](https://github.com/BLSQ/openhexa-app/commit/259ecc95f4ae7e05c15f60301c9c22b316561dfb))
+
 ## [0.67.0](https://github.com/BLSQ/openhexa-app/compare/0.66.5...0.67.0) (2024-03-26)
 
 
