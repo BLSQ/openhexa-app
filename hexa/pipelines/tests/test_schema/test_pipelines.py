@@ -16,7 +16,6 @@ from hexa.pipelines.models import (
     PipelineRun,
     PipelineRunState,
     PipelineRunTrigger,
-    PipelineVersion,
 )
 from hexa.pipelines.utils import mail_run_recipients
 from hexa.user_management.models import Feature, FeatureFlag, User
@@ -176,20 +175,24 @@ class PipelinesV2Test(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
-                    version
+                    version {
+                        name
+                    }
                 }
             }""",
             {
                 "input": {
                     "code": code1,
                     "workspaceSlug": self.WS1.slug,
+                    "name": "Version 1",
                     "parameters": [],
                     "zipfile": "",
                 }
             },
         )
         self.assertEqual(
-            {"success": True, "version": 1, "errors": []}, r["data"]["uploadPipeline"]
+            {"success": True, "version": {"name": "Version 1"}, "errors": []},
+            r["data"]["uploadPipeline"],
         )
 
     def test_create_pipeline_version_negative_timeout(self):
@@ -206,13 +209,13 @@ class PipelinesV2Test(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
-                    version
                 }
             }""",
             {
                 "input": {
                     "code": code1,
                     "workspaceSlug": self.WS1.slug,
+                    "name": "Version 1",
                     "parameters": [],
                     "zipfile": "",
                     "timeout": -46800,
@@ -220,7 +223,7 @@ class PipelinesV2Test(GraphQLTestCase):
             },
         )
         self.assertEqual(
-            {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"], "version": None},
+            {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]},
             r["data"]["uploadPipeline"],
         )
 
@@ -238,13 +241,13 @@ class PipelinesV2Test(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
-                    version
                 }
             }""",
             {
                 "input": {
                     "code": code1,
                     "workspaceSlug": self.WS1.slug,
+                    "name": "Version 1",
                     "parameters": [],
                     "zipfile": "",
                     "timeout": 46800,
@@ -252,7 +255,7 @@ class PipelinesV2Test(GraphQLTestCase):
             },
         )
         self.assertEqual(
-            {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"], "version": None},
+            {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]},
             r["data"]["uploadPipeline"],
         )
 
@@ -269,13 +272,14 @@ class PipelinesV2Test(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
-                    version
+                    version { name }
                 }
             }""",
             {
                 "input": {
                     "code": pipeline.code,
                     "workspaceSlug": self.WS1.slug,
+                    "name": "Version w parameters",
                     "parameters": [
                         {
                             "code": "param1",
@@ -293,7 +297,12 @@ class PipelinesV2Test(GraphQLTestCase):
             },
         )
         self.assertEqual(
-            {"success": True, "version": 1, "errors": []}, r["data"]["uploadPipeline"]
+            {
+                "success": True,
+                "version": {"name": "Version w parameters"},
+                "errors": [],
+            },
+            r["data"]["uploadPipeline"],
         )
 
         r = self.run_query(
@@ -760,6 +769,7 @@ class PipelinesV2Test(GraphQLTestCase):
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
+            name="Version 1",
             zipfile=base64.b64decode("".encode("ascii")),
             parameters={},
         )
@@ -794,6 +804,7 @@ class PipelinesV2Test(GraphQLTestCase):
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
+            name="Version 1",
             zipfile=base64.b64decode("".encode("ascii")),
             parameters={},
         )
@@ -821,6 +832,7 @@ class PipelinesV2Test(GraphQLTestCase):
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
+            name="Version 1",
             zipfile=base64.b64decode("".encode("ascii")),
             parameters={},
         )
@@ -854,6 +866,7 @@ class PipelinesV2Test(GraphQLTestCase):
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
+            name="Version 1",
             zipfile=base64.b64decode("".encode("ascii")),
             parameters={},
         )
@@ -888,11 +901,13 @@ class PipelinesV2Test(GraphQLTestCase):
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
+            name="Version 1",
             zipfile=base64.b64decode("".encode("ascii")),
             parameters={},
         )
         pipeline.upload_new_version(
             user=self.USER_ROOT,
+            name="Version 2",
             zipfile=base64.b64decode("".encode("ascii")),
             parameters={},
         )
@@ -1117,7 +1132,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_pipeline_new_run()
 
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
-        version = PipelineVersion.objects.get(pipeline=pipeline, number=1)
+        version = pipeline.last_version
         run = pipeline.run(
             user=self.USER_ROOT,
             pipeline_version=version,
@@ -1143,7 +1158,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_pipeline_new_run()
 
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
-        version = PipelineVersion.objects.get(pipeline=pipeline, number=1)
+        version = pipeline.last_version
         PipelineRecipient.objects.create(pipeline=pipeline, user=self.USER_ROOT)
         PipelineRecipient.objects.create(pipeline=pipeline, user=self.USER_LAMBDA)
 
@@ -1173,6 +1188,7 @@ class PipelinesV2Test(GraphQLTestCase):
         pipeline = Pipeline.objects.filter_for_user(self.USER_SABRINA).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
+            name="Version 1",
             zipfile=base64.b64decode("".encode("ascii")),
             parameters={},
         )
@@ -1208,6 +1224,7 @@ class PipelinesV2Test(GraphQLTestCase):
         pipeline = Pipeline.objects.filter_for_user(self.USER_SABRINA).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
+            name="Version 1",
             zipfile=base64.b64decode("".encode("ascii")),
             parameters=[
                 {
@@ -1255,6 +1272,7 @@ class PipelinesV2Test(GraphQLTestCase):
         pipeline.upload_new_version(
             user=self.USER_ROOT,
             zipfile=base64.b64decode("".encode("ascii")),
+            name="Version 1",
             parameters=[
                 {
                     "code": "param1",
@@ -1299,6 +1317,7 @@ class PipelinesV2Test(GraphQLTestCase):
         pipeline = Pipeline.objects.filter_for_user(self.USER_SABRINA).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
+            name="Version 1",
             zipfile=base64.b64decode("".encode("ascii")),
             parameters=[
                 {
@@ -1344,6 +1363,7 @@ class PipelinesV2Test(GraphQLTestCase):
         pipeline = Pipeline.objects.filter_for_user(self.USER_SABRINA).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
+            name="Version 1",
             zipfile=base64.b64decode("".encode("ascii")),
             parameters=[
                 {
@@ -1389,6 +1409,7 @@ class PipelinesV2Test(GraphQLTestCase):
         pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
+            name="Version 1",
             zipfile=base64.b64decode("".encode("ascii")),
             parameters=[
                 {
@@ -1454,6 +1475,7 @@ class PipelinesV2Test(GraphQLTestCase):
         pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
+            name="Version 1",
             zipfile=base64.b64decode("".encode("ascii")),
             parameters=[
                 {
@@ -1522,6 +1544,7 @@ class PipelinesV2Test(GraphQLTestCase):
                 "input": {
                     "code": pipeline.code,
                     "workspaceSlug": self.WS1.slug,
+                    "name": "Version with parameters",
                     "parameters": [
                         {
                             "code": "param1",
@@ -1560,6 +1583,7 @@ class PipelinesV2Test(GraphQLTestCase):
                 "input": {
                     "code": pipeline.code,
                     "workspaceSlug": self.WS1.slug,
+                    "name": "Version unschedulable",
                     "parameters": [
                         {
                             "code": "param1",
@@ -1593,13 +1617,14 @@ class PipelinesV2Test(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
-                    version
+                    version { name }
                 }
             }""",
             {
                 "input": {
                     "code": code1,
                     "workspaceSlug": self.WS1.slug,
+                    "name": "Version with timeout",
                     "parameters": [],
                     "zipfile": "",
                     "timeout": 3600,
@@ -1607,7 +1632,12 @@ class PipelinesV2Test(GraphQLTestCase):
             },
         )
         self.assertEqual(
-            {"success": True, "version": 1, "errors": []}, r["data"]["uploadPipeline"]
+            {
+                "success": True,
+                "errors": [],
+                "version": {"name": "Version with timeout"},
+            },
+            r["data"]["uploadPipeline"],
         )
 
         id1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().id
