@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.46.0](https://github.com/BLSQ/openhexa-frontend/compare/0.45.2...0.46.0) (2024-04-05)
+
+
+### Features
+
+* **Pipelines:** Add version's name, description & link to the web UI ([#585](https://github.com/BLSQ/openhexa-frontend/issues/585)) ([38022c0](https://github.com/BLSQ/openhexa-frontend/commit/38022c0fe758c0a04c6752997cd0809596919dab))
+* **Pipelines:** allow user to delete pipeline ([#569](https://github.com/BLSQ/openhexa-frontend/issues/569)) ([1c55dfb](https://github.com/BLSQ/openhexa-frontend/commit/1c55dfb950eef3e1d7d534686c2d3a203294c23b))
+* **Pipelines:** allow user to stop a running/queued pipeline ([#587](https://github.com/BLSQ/openhexa-frontend/issues/587)) ([a62786c](https://github.com/BLSQ/openhexa-frontend/commit/a62786c1a32c5a4bd44d9f607f9053c2a35a9ccc))
+
+
+### Miscellaneous
+
+* Add swc to package-lock.json ([fd41a99](https://github.com/BLSQ/openhexa-frontend/commit/fd41a99ba693210cd736f68d3216fc75b82f28f9))
+* **deps:** Update all js dependencies ([#586](https://github.com/BLSQ/openhexa-frontend/issues/586)) ([bf4c280](https://github.com/BLSQ/openhexa-frontend/commit/bf4c28001afeaf249850270a56729baa23751b3f))
+
 ## [0.45.2](https://github.com/BLSQ/openhexa-frontend/compare/0.45.1...0.45.2) (2024-02-26)
 
 
