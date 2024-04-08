@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.68.1](https://github.com/BLSQ/openhexa-app/compare/0.68.0...0.68.1) (2024-04-08)
+
+
+### Bug Fixes
+
+* Put back wait-for-it in docker-entrypoint ([00071d5](https://github.com/BLSQ/openhexa-app/commit/00071d5107f284dc777201a4bc12d9cca927fa86))
+* **SoftDelete:** hard delete model on django admin ([#676](https://github.com/BLSQ/openhexa-app/issues/676)) ([bd6b322](https://github.com/BLSQ/openhexa-app/commit/bd6b3229953226bb095192c5cc74f03372a23ea3))
+
 ## [0.68.0](https://github.com/BLSQ/openhexa-app/compare/0.67.0...0.68.0) (2024-04-05)
 
 
