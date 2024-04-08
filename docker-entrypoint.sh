@@ -52,11 +52,13 @@ case "$command" in
   python manage.py $command $arguments
   ;;
 "test")
+  wait-for-it db:5432
   export DJANGO_SETTINGS_MODULE=config.settings.test
   python manage.py makemigrations --check
   python manage.py test $arguments
   ;;
 "coveraged-test")
+  wait-for-it db:5432
   export DJANGO_SETTINGS_MODULE=config.settings.test
   python manage.py makemigrations --check
   coverage run manage.py test $arguments
