@@ -1,4 +1,8 @@
+from typing import Any
+
 from django.contrib import admin
+from django.db.models.query import QuerySet
+from django.http import HttpRequest
 
 from hexa.core.filters import SoftDeleteFilter
 
@@ -35,6 +39,10 @@ class GlobalObjectsModelAdmin(admin.ModelAdmin):
         if ordering:
             qs = qs.order_by(*ordering)
         return qs
+
+    def delete_queryset(self, request: HttpRequest, queryset: QuerySet[Any]) -> None:
+        for obj in queryset:
+            obj.hard_delete()
 
     def get_list_filter(self, request):
         list_filter = super().get_list_filter(request) or []
