@@ -204,11 +204,6 @@ class Bucket(Datasource):
     def __str__(self):
         return self.display_name
 
-    def get_absolute_url(self):
-        return reverse(
-            "connector_s3:datasource_detail", kwargs={"datasource_id": self.id}
-        )
-
 
 class BucketPermission(Permission):
     class Meta(Permission.Meta):
@@ -375,15 +370,3 @@ class Object(Entry):
             type=metadata["Type"],
             size=metadata["Size"],
         )
-
-    def get_absolute_url(self):
-        if self.type == "directory" and self.key.endswith("/"):
-            return reverse(
-                "connector_s3:object_detail",
-                kwargs={"bucket_id": self.bucket.id, "path": self.key[:-1]},
-            )
-        else:
-            return reverse(
-                "connector_s3:object_detail",
-                kwargs={"bucket_id": self.bucket.id, "path": self.key},
-            )

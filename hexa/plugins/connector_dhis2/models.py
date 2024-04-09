@@ -8,7 +8,6 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q, QuerySet
 from django.template.defaultfilters import pluralize
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from slugify import slugify
@@ -245,11 +244,6 @@ class Instance(Datasource):
             except Exception:
                 logger.exception("index error")
 
-    def get_absolute_url(self):
-        return reverse(
-            "connector_dhis2:instance_detail", kwargs={"instance_id": self.id}
-        )
-
 
 class InstancePermission(Permission):
     class Meta(Permission.Meta):
@@ -407,12 +401,6 @@ class DataElement(Dhis2Entry):
         index.datasource_name = self.instance.name
         index.datasource_id = self.instance.id
 
-    def get_absolute_url(self):
-        return reverse(
-            "connector_dhis2:data_element_detail",
-            kwargs={"instance_id": self.instance.id, "data_element_id": self.id},
-        )
-
 
 class OrganisationUnitQuerySet(EntryQuerySet):
     def direct_children_of(
@@ -451,12 +439,6 @@ class OrganisationUnit(Dhis2Entry):
         index.search = f"{self.name} {self.description} {self.dhis2_id}"
         index.datasource_name = self.instance.name
         index.datasource_id = self.instance.id
-
-    def get_absolute_url(self):
-        return reverse(
-            "connector_dhis2:organisation_unit_detail",
-            kwargs={"instance_id": self.instance.id, "organisation_unit_id": self.id},
-        )
 
 
 class IndicatorType(Dhis2Entry):
@@ -502,12 +484,6 @@ class Indicator(Dhis2Entry):
         index.datasource_name = self.instance.name
         index.datasource_id = self.instance.id
 
-    def get_absolute_url(self):
-        return reverse(
-            "connector_dhis2:indicator_detail",
-            kwargs={"instance_id": self.instance.id, "indicator_id": self.id},
-        )
-
 
 class DataSet(Dhis2Entry):
     searchable = True  # TODO: remove (see comment in datasource_index command)
@@ -530,9 +506,3 @@ class DataSet(Dhis2Entry):
         index.search = f"{self.name} {self.description} {self.dhis2_id}"
         index.datasource_name = self.instance.name
         index.datasource_id = self.instance.id
-
-    def get_absolute_url(self):
-        return reverse(
-            "connector_dhis2:dataset_detail",
-            kwargs={"instance_id": self.instance.id, "dataset_id": self.id},
-        )

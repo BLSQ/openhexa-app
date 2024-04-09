@@ -1,8 +1,3 @@
-from unittest import mock
-
-import pytz
-from django.utils import timezone
-
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_airflow.models import (
     DAG,
@@ -51,52 +46,3 @@ class CoreDashboardTest(GraphQLTestCase):
         cls.DAG = DAG.objects.create(template=template, dag_id="Test DAG 1 ")
 
         DAGPermission.objects.create(dag=cls.DAG, team=cls.TEAM_1)
-
-    def test_core_dashboard_notebooks(self):
-        self.client.force_login(self.USER_SABRINA)
-        r = self.run_query(
-            """
-                query totalNotebooks {
-                    totalNotebooks
-                }
-                """
-        )
-
-        self.assertEqual(
-            1,
-            r["data"]["totalNotebooks"],
-        )
-
-    def test_core_dashboard_activities(self):
-        with mock.patch.object(
-            timezone,
-            "now",
-            return_value=timezone.datetime(2022, 11, 7, 00, 00, 30, tzinfo=pytz.UTC),
-        ):
-            self.client.force_login(self.USER_SABRINA)
-            r = self.run_query(
-                """
-                query activities {
-                    lastActivities {
-                        description
-                        status
-                        url
-                        occurredAt
-                    }
-                }
-                """
-            )
-
-            self.assertEqual(
-                {
-                    "lastActivities": [
-                        {
-                            "description": "All datasources are up to date!",
-                            "status": "SUCCESS",
-                            "url": "/catalog/",
-                            "occurredAt": "2022-11-07T00:00:30Z",
-                        }
-                    ],
-                },
-                r["data"],
-            )

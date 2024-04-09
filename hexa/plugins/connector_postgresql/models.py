@@ -9,7 +9,6 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q
 from django.template.defaultfilters import pluralize
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from psycopg2 import OperationalError, sql
@@ -200,11 +199,6 @@ class Database(Datasource):
             deleted=deleted_count,
         )
 
-    def get_absolute_url(self):
-        return reverse(
-            "connector_postgresql:datasource_detail", kwargs={"datasource_id": self.id}
-        )
-
 
 class TableQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User):
@@ -237,12 +231,6 @@ class Table(Entry):
         index.search = f"{self.name}"
         index.datasource_name = self.database.database
         index.datasource_id = self.database.id
-
-    def get_absolute_url(self):
-        return reverse(
-            "connector_postgresql:table_detail",
-            kwargs={"datasource_id": self.database.id, "table_id": self.id},
-        )
 
 
 class DatabasePermission(Permission):

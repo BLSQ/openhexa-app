@@ -1,8 +1,0 @@
-{% if single %}
-    <td title="{{ date|default:'-' }}" class="px-3 lg:px-6 py-4 whitespace-nowrap truncate text-sm text-gray-500">{{ date|default:"-" }}</td>
-{% else %}
-    <td class="px-3 lg:px-6 py-4 whitespace-nowrap">
-        <div title="{{ date|default:'-' }}" class="text-sm text-gray-900 truncate">{{ date|default:"-" }}</div>
-        <div class="text-sm text-gray-500 truncate">{{ secondary_text|default:"-" }}</div>
-    </td>
-{% endif %}

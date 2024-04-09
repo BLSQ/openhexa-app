@@ -11,7 +11,6 @@ from django.core.exceptions import PermissionDenied
 from django.core.signing import Signer
 from django.db import models
 from django.db.models import Q
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
@@ -378,12 +377,6 @@ class PipelineRun(Base, WithStatus):
             return self.STATUS_MAPPINGS[self.state]
         except KeyError:
             return Status.UNKNOWN
-
-    def get_absolute_url(self) -> str:
-        return reverse(
-            "pipelines:pipeline_run_detail",
-            args=(self.pipeline.id, self.id),
-        )
 
     def get_code(self):
         return self.pipeline_version.zipfile
