@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.68.2](https://github.com/BLSQ/openhexa-app/compare/0.68.1...0.68.2) (2024-04-10)
+
+
+### Bug Fixes
+
+* **pipelines:** Add a new resolver pipelineVersion for the return of uploadPipeline ([3321900](https://github.com/BLSQ/openhexa-app/commit/33219005fea5dedefcf253a24994f87a7f9e1b07))
+
 ## [0.68.1](https://github.com/BLSQ/openhexa-app/compare/0.68.0...0.68.1) (2024-04-08)
 
 
