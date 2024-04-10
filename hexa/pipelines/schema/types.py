@@ -13,6 +13,7 @@ from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_permissions
 
 pipeline_permissions = ObjectType("PipelinePermissions")
+pipeline_version_permissions = ObjectType("PipelineVersionPermissions")
 pipeline_parameter = ObjectType("PipelineParameter")
 pipeline_run_status_enum = EnumType("PipelineRunStatus", PipelineRun.STATUS_MAPPINGS)
 pipeline_run_order_by_enum = EnumType(
@@ -78,6 +79,14 @@ def resolve_pipeline_permissions_update(pipeline: Pipeline, info, **kwargs):
     )
 
 
+@pipeline_permissions.field("createVersion")
+def resolve_pipeline_permissions_create_version(pipeline: Pipeline, info, **kwargs):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipelines.create_pipeline_version", pipeline
+    )
+
+
 @pipeline_permissions.field("delete")
 def resolve_pipeline_permissions_delete(pipeline: Pipeline, info, **kwargs):
     request = info.context["request"]
@@ -118,6 +127,39 @@ def resolve_pipeline_permissions_stop_pipeline(pipeline: Pipeline, info, **kwarg
     return request.user.is_authenticated and request.user.has_perm(
         "pipelines.stop_pipeline", pipeline
     )
+
+
+@pipeline_version_permissions.field("update")
+def resolve_pipeline_version_permissions_update(
+    version: PipelineVersion, info, **kwargs
+):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipelines.update_pipeline_version", version
+    )
+
+
+@pipeline_version_permissions.field("delete")
+def resolve_pipeline_version_permissions_delete(
+    version: PipelineVersion, info, **kwargs
+):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipelines.delete_pipeline_version", version
+    )
+
+
+@pipeline_version_permissions.field("stop")
+def resolve_pipeline_version_permissions_stop(version: PipelineVersion, info, **kwargs):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipelines.stop_pipeline", version.pipeline
+    )
+
+
+@pipeline_version_object.field("permissions")
+def resolve_pipeline_version_permissions(version: PipelineVersion, info, **kwargs):
+    return version
 
 
 @pipeline_version_object.field("isLatestVersion")

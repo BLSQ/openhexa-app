@@ -242,8 +242,32 @@ def resolve_upload_pipeline(_, info, **kwargs):
         return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
     except InvalidTimeoutValueError:
         return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
-    except Exception as e:
-        return {"success": False, "errors": [str(e)]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
+@pipelines_mutations.field("updatePipelineVersion")
+@convert_kwargs_to_snake_case
+def resolve_update_pipeline_version(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        pipeline_version = PipelineVersion.objects.filter_for_user(request.user).get(
+            id=input.pop("id")
+        )
+        pipeline_version.update_if_has_perm(request.user, **input)
+        return {"pipeline_version": pipeline_version, "success": True, "errors": []}
+    except PipelineVersion.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
 
 
 @pipelines_mutations.field("deletePipelineVersion")
