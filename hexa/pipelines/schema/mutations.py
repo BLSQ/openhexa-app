@@ -232,7 +232,12 @@ def resolve_upload_pipeline(_, info, **kwargs):
             parameters=input["parameters"],
             timeout=input.get("timeout"),
         )
-        return {"success": True, "errors": [], "version": version}
+        return {
+            "success": True,
+            "errors": [],
+            "pipeline_version": version,
+            "version": version.name,  # FIXME: This is a temporary fix to not break the SDK before 1.0.43
+        }
     except PipelineDoesNotSupportParametersError:
         return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
     except InvalidTimeoutValueError:

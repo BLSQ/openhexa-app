@@ -175,7 +175,8 @@ class PipelinesV2Test(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
-                    version {
+                    version
+                    pipelineVersion {
                         name
                     }
                 }
@@ -191,7 +192,12 @@ class PipelinesV2Test(GraphQLTestCase):
             },
         )
         self.assertEqual(
-            {"success": True, "version": {"name": "Version 1"}, "errors": []},
+            {
+                "success": True,
+                "version": "Version 1",
+                "pipelineVersion": {"name": "Version 1"},
+                "errors": [],
+            },
             r["data"]["uploadPipeline"],
         )
 
@@ -272,7 +278,7 @@ class PipelinesV2Test(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
-                    version { name }
+                    pipelineVersion { name }
                 }
             }""",
             {
@@ -299,7 +305,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.assertEqual(
             {
                 "success": True,
-                "version": {"name": "Version w parameters"},
+                "pipelineVersion": {"name": "Version w parameters"},
                 "errors": [],
             },
             r["data"]["uploadPipeline"],
@@ -1617,7 +1623,7 @@ class PipelinesV2Test(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
-                    version { name }
+                    pipelineVersion { name }
                 }
             }""",
             {
@@ -1635,7 +1641,7 @@ class PipelinesV2Test(GraphQLTestCase):
             {
                 "success": True,
                 "errors": [],
-                "version": {"name": "Version with timeout"},
+                "pipelineVersion": {"name": "Version with timeout"},
             },
             r["data"]["uploadPipeline"],
         )
