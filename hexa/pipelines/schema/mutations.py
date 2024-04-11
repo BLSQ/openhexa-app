@@ -16,6 +16,7 @@ from hexa.pipelines.models import (
     PipelineRun,
     PipelineRunState,
     PipelineRunTrigger,
+    PipelineType,
     PipelineVersion,
 )
 from hexa.workspaces.models import Workspace
@@ -43,10 +44,13 @@ def resolve_create_pipeline(_, info, **kwargs):
         }
 
     try:
+        type = PipelineType.NOTEBOOK if input.get("notebook") else PipelineType.DEFAULT
         pipeline = Pipeline.objects.create(
             code=input["code"],
             name=input.get("name"),
             workspace=workspace,
+            type=type,
+            notebook=input.get("notebook"),
         )
     except IntegrityError:
         return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}

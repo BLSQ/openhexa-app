@@ -138,6 +138,11 @@ type PipelineRecipient {
   pipeline: Pipeline!
 }
 
+enum PipelineType {
+  DEFAULT 
+  NOTEBOOK
+}
+
 type Pipeline {
   id: UUID!
   name: String
@@ -155,6 +160,7 @@ type Pipeline {
   recipients: [PipelineRecipient!]!
   webhookEnabled: Boolean!
   webhookUrl: String
+  type: PipelineType!
 }
 
 type PipelinesPage {

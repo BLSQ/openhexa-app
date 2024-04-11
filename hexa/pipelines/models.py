@@ -165,6 +165,11 @@ class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
         )
 
 
+class PipelineType(models.TextChoices):
+    NOTEBOOK = "notebook", _("Notebook")
+    DEFAULT = "default", _("Default")
+
+
 class Pipeline(SoftDeletedModel):
     class Meta:
         verbose_name = "Pipeline"
@@ -194,6 +199,14 @@ class Pipeline(SoftDeletedModel):
     memory_request = models.CharField(blank=True, max_length=32)
     memory_limit = models.CharField(blank=True, max_length=32)
     recipients = models.ManyToManyField(User, through="PipelineRecipient")
+
+    type = models.CharField(
+        max_length=200,
+        blank=False,
+        choices=PipelineType.choices,
+        default=PipelineType.DEFAULT,
+    )
+    notebook = models.CharField(max_length=200, null=True, blank=True)
 
     objects = DefaultSoftDeletedManager.from_queryset(PipelineQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()
