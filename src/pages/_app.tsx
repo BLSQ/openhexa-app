@@ -8,7 +8,7 @@ import NavigationProgress from "nextjs-progressbar";
 import "../styles/globals.css";
 import AlertManager from "core/components/AlertManager";
 import { useEffect } from "react";
-import * as Sentry from "@sentry/nextjs";
+import { setUser } from "@sentry/nextjs";
 import { Settings } from "luxon";
 import { MeProvider } from "identity/hooks/useMe";
 import ErrorBoundary from "core/components/ErrorBoundary/ErrorBoundary";
@@ -27,7 +27,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
 
   Settings.defaultLocale = me?.user?.language ?? "en";
   useEffect(() => {
-    Sentry.setUser(me?.user ? { email: me.user.email, id: me.user.id } : null);
+    setUser(me?.user ? { email: me.user.email, id: me.user.id } : null);
   }, [me]);
   return (
     <ErrorBoundary>
