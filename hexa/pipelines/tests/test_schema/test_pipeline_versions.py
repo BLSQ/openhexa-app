@@ -170,7 +170,6 @@ class PipelineVersionsTest(GraphQLTestCase):
                 }
             },
         )
-        print(r)
         self.assertEqual(
             r["data"]["uploadPipeline"],
             {

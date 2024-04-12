@@ -61,7 +61,6 @@ input ParameterInput {
 type PipelineVersionPermissions {
   update: Boolean!
   delete: Boolean!
-  stop: Boolean!
 }
 
 type PipelineVersion {
@@ -120,8 +119,7 @@ type PipelinePermissions {
   run: Boolean!
   schedule: Boolean!
   createVersion: Boolean!
-  stopPipeline: Boolean! @deprecated(reason: "Use 'stop' field in 'PipelinePermissions' instead")
-  deleteVersion: Boolean! @deprecated(reason: "Use 'delete' field in 'PipelineVersionPermissions' instead")
+  stopPipeline: Boolean!
 }
 
 extend type WorkspacePermissions {
@@ -314,8 +312,7 @@ type UpdatePipelineResult {
 }
 
 input DeletePipelineVersionInput {
-  pipelineId: UUID!
-  versionId: UUID!
+  id: UUID!
 }
 
 enum DeletePipelineVersionError {

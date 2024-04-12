@@ -24,7 +24,6 @@ pipeline_run_order_by_enum = EnumType(
     },
 )
 pipeline_object = ObjectType("Pipeline")
-pipeline_version_object = ObjectType("PipelineVersion")
 generic_output_object = ObjectType("GenericOutput")
 
 pipeline_run_output_union = UnionType("PipelineRunOutput")
@@ -103,20 +102,13 @@ def resolve_pipeline_permissions_run(pipeline: Pipeline, info, **kwargs):
     )
 
 
-@pipeline_permissions.field("deleteVersion")
-def resolve_pipeline_permissions_delete_version(pipeline: Pipeline, info, **kwargs):
-    request = info.context["request"]
-    return request.user.is_authenticated and request.user.has_perm(
-        "pipelines.delete_pipeline_version", pipeline
-    )
-
-
 @pipeline_permissions.field("schedule")
 def resolve_pipeline_permissions_schedule(pipeline: Pipeline, info, **kwargs):
     request = info.context["request"]
     return (
         request.user.is_authenticated
         and request.user.has_perm("pipelines.run_pipeline", pipeline)
+        and pipeline.last_version
         and pipeline.last_version.is_schedulable
     )
 
@@ -147,24 +139,6 @@ def resolve_pipeline_version_permissions_delete(
     return request.user.is_authenticated and request.user.has_perm(
         "pipelines.delete_pipeline_version", version
     )
-
-
-@pipeline_version_permissions.field("stop")
-def resolve_pipeline_version_permissions_stop(version: PipelineVersion, info, **kwargs):
-    request = info.context["request"]
-    return request.user.is_authenticated and request.user.has_perm(
-        "pipelines.stop_pipeline", version.pipeline
-    )
-
-
-@pipeline_version_object.field("permissions")
-def resolve_pipeline_version_permissions(version: PipelineVersion, info, **kwargs):
-    return version
-
-
-@pipeline_version_object.field("isLatestVersion")
-def resolve_pipeline_version_is_latest(version: PipelineVersion, info, **kwargs):
-    return version.is_latest_version
 
 
 @pipeline_object.field("webhookUrl")
@@ -243,9 +217,19 @@ pipeline_run_object.set_alias("version", "pipeline_version")
 pipeline_version_object = ObjectType("PipelineVersion")
 
 
+@pipeline_version_object.field("isLatestVersion")
+def resolve_pipeline_version_is_latest(version: PipelineVersion, info, **kwargs):
+    return version.is_latest_version
+
+
 @pipeline_version_object.field("zipfile")
 def resolve_pipeline_version_zipfile(version: PipelineVersion, info, **kwargs):
     return base64.b64encode(version.zipfile).decode("ascii")
+
+
+@pipeline_version_object.field("permissions")
+def resolve_pipeline_version_permissions(version: PipelineVersion, info, **kwargs):
+    return version
 
 
 @pipeline_run_object.field("outputs")
@@ -298,6 +282,7 @@ bindables = [
     pipeline_run_status_enum,
     pipeline_run_order_by_enum,
     pipeline_version_object,
+    pipeline_version_permissions,
     generic_output_object,
     pipeline_run_output_union,
 ]

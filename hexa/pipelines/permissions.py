@@ -66,11 +66,14 @@ def update_pipeline_version(principal: User, version: PipelineVersion):
     ).exists()
 
 
-def delete_pipeline_version(principal: User, pipeline: Pipeline):
-    return pipeline.workspace.workspacemembership_set.filter(
-        user=principal,
-        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-    ).exists()
+def delete_pipeline_version(principal: User, version: PipelineVersion):
+    return (
+        version.pipeline.workspace.workspacemembership_set.filter(
+            user=principal,
+            role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
+        ).exists()
+        and version.pipeline.versions.count() > 1
+    )
 
 
 def view_pipeline_version(principal: User, pipeline_version: PipelineVersion):

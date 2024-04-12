@@ -18,7 +18,7 @@ from hexa.pipelines.models import (
     PipelineRunTrigger,
     PipelineVersion,
 )
-from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
+from hexa.workspaces.models import Workspace
 
 pipelines_mutations = MutationType()
 
@@ -275,23 +275,10 @@ def resolve_delete_pipeline_version(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
-        pipeline = Pipeline.objects.filter_for_user(request.user).get(
-            id=input["pipelineId"]
-        )
-        pipeline_version = PipelineVersion.objects.get(id=input["versionId"])
+        pipeline_version = PipelineVersion.objects.get(id=input["id"])
 
-        if pipeline.versions.all().count() == 1:
-            return {"success": False, "errors": ["PERMISSION_DENIED"]}
-
-        if not request.user.has_perm("pipelines.delete_pipeline_version", pipeline):
-            return {"success": False, "errors": ["PERMISSION_DENIED"]}
-
-        # Only workspace admins can delete pipeline(s) version(s) created by others
-        if (
-            request.user.id != pipeline_version.user.id
-            and not pipeline.workspace.workspacemembership_set.filter(
-                user=request.user, role=WorkspaceMembershipRole.ADMIN
-            ).exists()
+        if not request.user.has_perm(
+            "pipelines.delete_pipeline_version", pipeline_version
         ):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
@@ -299,11 +286,6 @@ def resolve_delete_pipeline_version(_, info, **kwargs):
         return {
             "success": True,
             "errors": [],
-        }
-    except Pipeline.DoesNotExist:
-        return {
-            "success": False,
-            "errors": ["PIPELINE_NOT_FOUND"],
         }
     except PipelineVersion.DoesNotExist:
         return {
