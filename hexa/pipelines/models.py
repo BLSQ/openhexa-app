@@ -128,6 +128,16 @@ class PipelineVersion(models.Model):
 
     objects = PipelineVersionQuerySet.as_manager()
 
+    def update_if_has_perm(self, principal: User, **kwargs):
+        if not principal.has_perm("pipelines.update_pipeline_version", self):
+            raise PermissionDenied
+
+        for key in ["name", "description", "external_link"]:
+            if key in kwargs and kwargs[key] is not None:
+                setattr(self, key, kwargs[key])
+
+        return self.save()
+
     @property
     def is_schedulable(self):
         return all(
@@ -231,6 +241,9 @@ class Pipeline(SoftDeletedModel):
         external_link: str = None,
         timeout: int = None,
     ):
+        if not user.has_perm("pipelines.update_pipeline", self):
+            raise PermissionDenied
+
         version = PipelineVersion(
             user=user,
             pipeline=self,

@@ -103,3 +103,116 @@ class PipelineVersionsTest(GraphQLTestCase):
 
         self.assertTrue(self.PIPELINE.last_version.is_latest_version)
         self.assertFalse(self.PIPELINE.versions.last().is_latest_version)
+
+    def test_update_version(self):
+        self.test_create_version("Version 1")
+
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation updatePipelineVersion($input: UpdatePipelineVersionInput!) {
+                updatePipelineVersion(input: $input) {
+                    success
+                    errors
+                    pipelineVersion {
+                        id
+                        name
+                        externalLink
+                        description
+
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.PIPELINE.last_version.id),
+                    "name": "New Version Name",
+                    "externalLink": "https://example.com",
+                    "description": "New Description",
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["updatePipelineVersion"],
+            {
+                "success": True,
+                "errors": [],
+                "pipelineVersion": {
+                    "id": str(self.PIPELINE.last_version.id),
+                    "name": "New Version Name",
+                    "externalLink": "https://example.com",
+                    "description": "New Description",
+                },
+            },
+        )
+
+    def test_create_version_not_admin(self):
+        self.client.force_login(self.USER_SABRINA)
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "code": self.PIPELINE.code,
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "name": "version",
+                    "parameters": [],
+                    "zipfile": "",
+                }
+            },
+        )
+        self.assertEqual(
+            r["data"]["uploadPipeline"],
+            {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+            },
+        )
+
+    def test_update_version_not_admin(self):
+        self.test_create_version("Version 1", user=self.USER_ADMIN)
+
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+            mutation updatePipelineVersion($input: UpdatePipelineVersionInput!) {
+                updatePipelineVersion(input: $input) {
+                    success
+                    errors
+                    pipelineVersion {
+                        id
+                        name
+                        externalLink
+                        description
+
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.PIPELINE.last_version.id),
+                    "name": "New Version Name",
+                    "externalLink": "https://example.com",
+                    "description": "New Description",
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["updatePipelineVersion"],
+            {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+                "pipelineVersion": None,
+            },
+        )

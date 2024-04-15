@@ -58,6 +58,11 @@ input ParameterInput {
   choices: [Generic!]
 }
 
+type PipelineVersionPermissions {
+  update: Boolean!
+  delete: Boolean!
+}
+
 type PipelineVersion {
   id: UUID!
   user: User
@@ -71,6 +76,7 @@ type PipelineVersion {
   isLatestVersion: Boolean!
   zipfile: String!
   timeout: Int
+  permissions: PipelineVersionPermissions!
 }
 
 type PipelineRun {
@@ -111,8 +117,8 @@ type PipelinePermissions {
   update: Boolean!
   delete: Boolean!
   run: Boolean!
-  deleteVersion: Boolean!
   schedule: Boolean!
+  createVersion: Boolean!
   stopPipeline: Boolean!
 }
 
@@ -306,8 +312,7 @@ type UpdatePipelineResult {
 }
 
 input DeletePipelineVersionInput {
-  pipelineId: UUID!
-  versionId: UUID!
+  id: UUID!
 }
 
 enum DeletePipelineVersionError {
@@ -321,17 +326,36 @@ type DeletePipelineVersionResult {
   errors: [DeletePipelineVersionError!]!
 }
 
+input UpdatePipelineVersionInput {
+  id: UUID!
+  name: String
+  description: String
+  externalLink: URL
+}
+
+enum UpdatePipelineVersionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+type UpdatePipelineVersionResult {
+  success: Boolean!
+  errors: [UpdatePipelineVersionError!]!
+  pipelineVersion: PipelineVersion
+}
+
 extend type Mutation {
   createPipeline(input: CreatePipelineInput!): CreatePipelineResult! @loginRequired
   updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult! @loginRequired
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult! @loginRequired
   runPipeline(input: RunPipelineInput): RunPipelineResult! @loginRequired
   stopPipeline(input: StopPipelineInput!): StopPipelineResult! @loginRequired
-  pipelineToken(input: PipelineTokenInput): PipelineTokenResult!
-  uploadPipeline(input: UploadPipelineInput): UploadPipelineResult!
-  logPipelineMessage(input: LogPipelineMessageInput): LogPipelineMessageResult!
-  updatePipelineProgress(input: UpdatePipelineProgressInput): UpdatePipelineProgressResult!
-  addPipelineOutput(input: AddPipelineOutputInput): AddPipelineOutputResult!
+  pipelineToken(input: PipelineTokenInput!): PipelineTokenResult!
+  uploadPipeline(input: UploadPipelineInput!): UploadPipelineResult!
+  updatePipelineVersion(input: UpdatePipelineVersionInput!): UpdatePipelineVersionResult!
+  logPipelineMessage(input: LogPipelineMessageInput!): LogPipelineMessageResult!
+  updatePipelineProgress(input: UpdatePipelineProgressInput!): UpdatePipelineProgressResult!
+  addPipelineOutput(input: AddPipelineOutputInput!): AddPipelineOutputResult!
   deletePipelineVersion(input: DeletePipelineVersionInput!): DeletePipelineVersionResult!
 }
  

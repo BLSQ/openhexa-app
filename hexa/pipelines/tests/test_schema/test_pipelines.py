@@ -768,41 +768,6 @@ class PipelinesV2Test(GraphQLTestCase):
                 r["data"]["addPipelineOutput"],
             )
 
-    def test_delete_pipeline_version_pipeline_not_found(self):
-        self.test_create_pipeline()
-        self.client.force_login(self.USER_ROOT)
-
-        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
-        pipeline.upload_new_version(
-            user=self.USER_ROOT,
-            name="Version 1",
-            zipfile=base64.b64decode("".encode("ascii")),
-            parameters={},
-        )
-
-        pipeline_versions = pipeline.versions.all()
-
-        r = self.run_query(
-            """
-            mutation deletePipelineVersion($input: DeletePipelineVersionInput!) {
-                deletePipelineVersion(input: $input) {
-                    success
-                    errors
-                }
-            }
-        """,
-            {
-                "input": {
-                    "pipelineId": str(uuid.uuid4()),
-                    "versionId": str(pipeline_versions.first().id),
-                }
-            },
-        )
-        self.assertEqual(
-            {"success": False, "errors": ["PIPELINE_NOT_FOUND"]},
-            r["data"]["deletePipelineVersion"],
-        )
-
     def test_delete_pipeline_version_not_found(self):
         self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
@@ -824,7 +789,7 @@ class PipelinesV2Test(GraphQLTestCase):
                 }
             }
         """,
-            {"input": {"pipelineId": str(pipeline.id), "versionId": str(uuid.uuid4())}},
+            {"input": {"id": str(uuid.uuid4())}},
         )
         self.assertEqual(
             {"success": False, "errors": ["PIPELINE_VERSION_NOT_FOUND"]},
@@ -855,8 +820,7 @@ class PipelinesV2Test(GraphQLTestCase):
         """,
             {
                 "input": {
-                    "pipelineId": str(pipeline.id),
-                    "versionId": str(pipeline_versions.first().id),
+                    "id": str(pipeline_versions.first().id),
                 }
             },
         )
@@ -867,7 +831,7 @@ class PipelinesV2Test(GraphQLTestCase):
 
     def test_delete_pipeline_version_permission_denied_one_version(self):
         self.test_create_pipeline()
-        self.client.force_login(self.USER_ROOT)
+        self.client.force_login(self.USER_LAMBDA)
 
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
         pipeline.upload_new_version(
@@ -877,7 +841,7 @@ class PipelinesV2Test(GraphQLTestCase):
             parameters={},
         )
 
-        pipeline_versions = pipeline.versions.all()
+        self.assertTrue(pipeline.versions.count() == 1)
 
         r = self.run_query(
             """
@@ -890,8 +854,7 @@ class PipelinesV2Test(GraphQLTestCase):
         """,
             {
                 "input": {
-                    "pipelineId": str(pipeline.id),
-                    "versionId": str(pipeline_versions.first().id),
+                    "id": str(pipeline.last_version.id),
                 }
             },
         )
@@ -929,8 +892,7 @@ class PipelinesV2Test(GraphQLTestCase):
         """,
             {
                 "input": {
-                    "pipelineId": str(pipeline.id),
-                    "versionId": str(pipeline_versions.first().id),
+                    "id": str(pipeline_versions.first().id),
                 }
             },
         )
