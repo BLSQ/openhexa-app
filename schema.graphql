@@ -289,21 +289,6 @@ type AccessmodZonalStatistics implements AccessmodAnalysis & AccessmodOwnership 
   zonalStatisticsGeo: AccessmodFileset
 }
 
-type Activity {
-  description: String!
-  occurredAt: DateTime!
-  url: URL!
-  status: ActivityStatus!
-}
-
-enum ActivityStatus {
-  SUCCESS
-  PENDING
-  RUNNING
-  ERROR
-  UNKNOWN
-}
-
 input AddPipelineOutputInput {
   uri: String!
   type: String!
@@ -374,38 +359,6 @@ type BucketObjectPage {
 enum BucketObjectType {
   FILE
   DIRECTORY
-}
-
-type CatalogEntry {
-  id: UUID!
-  name: String!
-  description: String
-  countries: [Country!]!
-  lastSyncedAt: DateTime
-  symbol: URL
-  externalId: String
-  externalType: String
-  externalSubtype: String
-  externalName: String
-  externalDescription: String
-  type: CatalogEntryType!
-  objectId: String!
-  objectUrl: URL!
-  datasource: Datasource
-}
-
-type CatalogEntryType {
-  id: UUID!
-  app: String!
-  model: String!
-  name: String!
-}
-
-type CatalogPage {
-  items: [CatalogEntry!]!
-  pageNumber: Int!
-  totalPages: Int!
-  totalItems: Int!
 }
 
 type Connection {
@@ -931,11 +884,6 @@ type DatasetVersionPermissions {
   update: Boolean!
   delete: Boolean!
   download: Boolean!
-}
-
-type Datasource {
-  id: UUID!
-  name: String!
 }
 
 scalar Date
@@ -1867,8 +1815,6 @@ type PrepareVersionFileDownloadResult {
 }
 
 type Query {
-  search(query: String, page: Int, perPage: Int, datasourceIds: [UUID!], types: [String!]): SearchQueryResult!
-  catalog(path: String, page: Int, perPage: Int): CatalogPage!
   me: Me!
   team(id: UUID!): Team
   teams(term: String, page: Int, perPage: Int): TeamPage!
@@ -1889,8 +1835,6 @@ type Query {
   boundaries(country_code: String!, level: String!): [WHOBoundary!]!
   countries: [Country!]!
   notebooksUrl: URL!
-  totalNotebooks: Int!
-  lastActivities: [Activity!]!
   pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage!
   pipeline(id: UUID!): Pipeline
   pipelineVersion(id: UUID!): PipelineVersion
@@ -2026,23 +1970,6 @@ type S3ObjectPage {
   totalPages: Int!
   totalItems: Int!
   items: [S3Object!]!
-}
-
-type SearchQueryResult {
-  results: [SearchResult!]!
-  types: [SearchType!]!
-}
-
-type SearchResult {
-  object: SearchResultObject!
-  rank: Float!
-}
-
-union SearchResultObject = CatalogEntry
-
-type SearchType {
-  value: String!
-  label: String!
 }
 
 enum SetDAGRunFavoriteError {

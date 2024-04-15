@@ -1,7 +1,5 @@
 import { CustomApolloClient } from "core/helpers/apollo";
-import useMe from "identity/hooks/useMe";
 import type { ReactElement } from "react";
-import Header from "./Header";
 import PageContent from "./PageContent";
 
 type LayoutProps = {
@@ -11,13 +9,7 @@ type LayoutProps = {
 
 const Layout = (props: LayoutProps) => {
   const { children } = props;
-  const me = useMe();
-  return (
-    <div className="flex min-h-screen flex-col ">
-      <Header />
-      {children}
-    </div>
-  );
+  return <div className="flex min-h-screen flex-col ">{children}</div>;
 };
 
 Layout.PageContent = PageContent;

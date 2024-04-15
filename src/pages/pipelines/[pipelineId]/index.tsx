@@ -18,6 +18,7 @@ import UserColumn from "core/components/DataGrid/UserColumn";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
+import BackLayout from "core/layouts/back/BackLayout";
 import DefaultLayout from "core/layouts/default";
 import { Country, DagRunTrigger } from "graphql-types";
 import useMe from "identity/hooks/useMe";
@@ -79,10 +80,10 @@ const PipelinePage = (props: Props) => {
   const { dag } = data;
 
   return (
-    <Page title={t("Pipelines")}>
-      <DefaultLayout.PageContent>
-        <Breadcrumbs className="my-8 px-2">
-          <Breadcrumbs.Part href="/pipelines">
+    <Page title={t("Airflow Pipelines")}>
+      <BackLayout title="">
+        <Breadcrumbs className="my-8 px-2" withHome={false}>
+          <Breadcrumbs.Part href="/pipelines" isFirst>
             {t("Data Pipelines")}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
@@ -257,7 +258,7 @@ const PipelinePage = (props: Props) => {
             </Block>
           </div>
         </div>
-      </DefaultLayout.PageContent>
+      </BackLayout>
     </Page>
   );
 };

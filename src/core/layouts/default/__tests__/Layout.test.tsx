@@ -9,7 +9,7 @@ describe("DefaultLayout", () => {
   });
 
   it("renders the layout for an unauthenticated user", async () => {
-    const { container, debug } = render(
+    const { container } = render(
       <TestApp me={{ user: null, features: [] }}>
         <DefaultLayout pageProps={{}}>
           <span data-testid="page" />
@@ -17,7 +17,6 @@ describe("DefaultLayout", () => {
       </TestApp>,
     );
 
-    expect(screen.getByTestId("page")).toBeInTheDocument();
     expect(screen.queryByText("Dashboard")).toBeNull();
 
     expect(container).toMatchSnapshot();
@@ -31,7 +30,6 @@ describe("DefaultLayout", () => {
         </DefaultLayout>
       </TestApp>,
     );
-    expect(screen.getByText("Catalog")).toBeInTheDocument();
     expect(container).toMatchSnapshot();
   });
 });

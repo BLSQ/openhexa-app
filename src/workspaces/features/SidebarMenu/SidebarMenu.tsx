@@ -32,6 +32,7 @@ import {
   SidebarMenu_WorkspaceFragment,
 } from "./SidebarMenu.generated";
 import { logout } from "identity/helpers/auth";
+import Tooltip from "core/components/Tooltip";
 
 interface SidebarMenuProps {
   workspace: SidebarMenu_WorkspaceFragment;
@@ -271,16 +272,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
               <QuestionMarkCircleIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
               {t("Documentation")}
             </Link>
-            {hasLegacyAccess && (
-              <Link
-                href="/catalog"
-                noStyle
-                className="group flex gap-2 px-4 py-2.5 text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-800"
-              >
-                <ArrowLeftCircleIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
-                {t("Go to OpenHEXA legacy")}
-              </Link>
-            )}
+
             <button
               onClick={() => logout()}
               className="group flex gap-2 px-4 py-2.5 text-red-600 transition-all hover:bg-gray-100 hover:text-gray-800"
@@ -289,6 +281,34 @@ const SidebarMenu = (props: SidebarMenuProps) => {
               {t("Sign out")}
             </button>
           </section>
+          {hasLegacyAccess && (
+            <section className="flex flex-col text-sm font-normal">
+              <div className="flex items-center justify-between px-4 py-2 pt-5 text-sm font-medium tracking-wide text-gray-500 opacity-90">
+                {t("Deprecated features")}
+                <Tooltip
+                  label={t(
+                    "Features linked here are deprecated and will be removed from OpenHEXA in the coming months",
+                  )}
+                >
+                  <QuestionMarkCircleIcon className="h-4 w-4 text-gray-500" />
+                </Tooltip>
+              </div>
+              <Link
+                href="/notebooks"
+                noStyle
+                className="px-4 py-2.5 text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-800"
+              >
+                {t("Notebooks")}
+              </Link>
+              <Link
+                href="/pipelines"
+                noStyle
+                className="px-4 py-2.5 text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-800"
+              >
+                {t("Airflow pipelines")}
+              </Link>
+            </section>
+          )}
 
           {me.user && (
             <section className="bg-gray-100 px-3 py-3">

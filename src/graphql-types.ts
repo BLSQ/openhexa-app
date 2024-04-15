@@ -324,22 +324,6 @@ export type AccessmodZonalStatistics = AccessmodAnalysis & AccessmodOwnership & 
   zonalStatisticsTable?: Maybe<AccessmodFileset>;
 };
 
-export type Activity = {
-  __typename?: 'Activity';
-  description: Scalars['String']['output'];
-  occurredAt: Scalars['DateTime']['output'];
-  status: ActivityStatus;
-  url: Scalars['URL']['output'];
-};
-
-export enum ActivityStatus {
-  Error = 'ERROR',
-  Pending = 'PENDING',
-  Running = 'RUNNING',
-  Success = 'SUCCESS',
-  Unknown = 'UNKNOWN'
-}
-
 export type AddPipelineOutputInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   type: Scalars['String']['input'];
@@ -430,41 +414,6 @@ export enum BucketObjectType {
   Directory = 'DIRECTORY',
   File = 'FILE'
 }
-
-export type CatalogEntry = {
-  __typename?: 'CatalogEntry';
-  countries: Array<Country>;
-  datasource?: Maybe<Datasource>;
-  description?: Maybe<Scalars['String']['output']>;
-  externalDescription?: Maybe<Scalars['String']['output']>;
-  externalId?: Maybe<Scalars['String']['output']>;
-  externalName?: Maybe<Scalars['String']['output']>;
-  externalSubtype?: Maybe<Scalars['String']['output']>;
-  externalType?: Maybe<Scalars['String']['output']>;
-  id: Scalars['UUID']['output'];
-  lastSyncedAt?: Maybe<Scalars['DateTime']['output']>;
-  name: Scalars['String']['output'];
-  objectId: Scalars['String']['output'];
-  objectUrl: Scalars['URL']['output'];
-  symbol?: Maybe<Scalars['URL']['output']>;
-  type: CatalogEntryType;
-};
-
-export type CatalogEntryType = {
-  __typename?: 'CatalogEntryType';
-  app: Scalars['String']['output'];
-  id: Scalars['UUID']['output'];
-  model: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-};
-
-export type CatalogPage = {
-  __typename?: 'CatalogPage';
-  items: Array<CatalogEntry>;
-  pageNumber: Scalars['Int']['output'];
-  totalItems: Scalars['Int']['output'];
-  totalPages: Scalars['Int']['output'];
-};
 
 export type Connection = {
   __typename?: 'Connection';
@@ -1109,12 +1058,6 @@ export type DatasetVersionPermissions = {
   delete: Scalars['Boolean']['output'];
   download: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
-};
-
-export type Datasource = {
-  __typename?: 'Datasource';
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
 };
 
 export enum DeclineWorkspaceInvitationError {
@@ -2517,7 +2460,6 @@ export type Query = {
   accessmodProject?: Maybe<AccessmodProject>;
   accessmodProjects: AccessmodProjectPage;
   boundaries: Array<WhoBoundary>;
-  catalog: CatalogPage;
   connection?: Maybe<Connection>;
   countries: Array<Country>;
   country?: Maybe<Country>;
@@ -2530,7 +2472,6 @@ export type Query = {
   datasetLinkBySlug?: Maybe<DatasetLink>;
   datasetVersion?: Maybe<DatasetVersion>;
   datasets: DatasetPage;
-  lastActivities: Array<Activity>;
   me: Me;
   notebooksUrl: Scalars['URL']['output'];
   organizations: Array<Organization>;
@@ -2540,10 +2481,8 @@ export type Query = {
   pipelineRun?: Maybe<PipelineRun>;
   pipelineVersion?: Maybe<PipelineVersion>;
   pipelines: PipelinesPage;
-  search: SearchQueryResult;
   team?: Maybe<Team>;
   teams: TeamPage;
-  totalNotebooks: Scalars['Int']['output'];
   workspace?: Maybe<Workspace>;
   workspaces: WorkspacePage;
 };
@@ -2605,13 +2544,6 @@ export type QueryAccessmodProjectsArgs = {
 export type QueryBoundariesArgs = {
   country_code: Scalars['String']['input'];
   level: Scalars['String']['input'];
-};
-
-
-export type QueryCatalogArgs = {
-  page?: InputMaybe<Scalars['Int']['input']>;
-  path?: InputMaybe<Scalars['String']['input']>;
-  perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -2706,15 +2638,6 @@ export type QueryPipelinesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type QuerySearchArgs = {
-  datasourceIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
-  page?: InputMaybe<Scalars['Int']['input']>;
-  perPage?: InputMaybe<Scalars['Int']['input']>;
-  query?: InputMaybe<Scalars['String']['input']>;
-  types?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 
@@ -2868,26 +2791,6 @@ export type S3ObjectPage = {
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
-};
-
-export type SearchQueryResult = {
-  __typename?: 'SearchQueryResult';
-  results: Array<SearchResult>;
-  types: Array<SearchType>;
-};
-
-export type SearchResult = {
-  __typename?: 'SearchResult';
-  object: SearchResultObject;
-  rank: Scalars['Float']['output'];
-};
-
-export type SearchResultObject = CatalogEntry;
-
-export type SearchType = {
-  __typename?: 'SearchType';
-  label: Scalars['String']['output'];
-  value: Scalars['String']['output'];
 };
 
 export enum SetDagRunFavoriteError {

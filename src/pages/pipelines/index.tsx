@@ -19,6 +19,7 @@ import {
   usePipelinesPageQuery,
 } from "pipelines/graphql/queries.generated";
 import { useMemo } from "react";
+import BackLayout from "core/layouts/back/BackLayout";
 
 type Props = {
   page: number;
@@ -56,70 +57,55 @@ const PipelinesPage = (props: Props) => {
   }
 
   return (
-    <Page title={t("Pipelines")}>
-      <DefaultLayout.PageContent>
-        <Breadcrumbs className="my-8 px-2">
-          <Breadcrumbs.Part href="/pipelines">
-            {t("Data Pipelines")}
-          </Breadcrumbs.Part>
-        </Breadcrumbs>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-medium">{t("Pipelines")}</h2>
-          </div>
-
-          <Block>
-            <DataGrid
-              defaultPageSize={props.perPage}
-              data={items}
-              totalItems={data.dags.totalItems}
-              fetchData={onChangePage}
-            >
-              <BaseColumn id="name" label={t("Name")} minWidth={240}>
-                {(item) => (
-                  <Link
-                    customStyle="text-gray-700 font-medium"
-                    href={{
-                      pathname: "/pipelines/[pipelinesId]",
-                      query: { pipelinesId: item.id },
-                    }}
-                  >
-                    {item.label || item.externalId}
-                  </Link>
-                )}
-              </BaseColumn>
-              <CountryColumn
-                accessor="countries"
-                label={t("Location")}
-                max={1}
-              />
-              <DateColumn
-                label={t("Last run")}
-                relative
-                accessor="lastRun.executionDate"
-              />
-              <TextColumn
-                label={t("Last status")}
-                accessor={(value) =>
-                  value.lastRun ? (
-                    <PipelineRunStatusBadge run={value.lastRun} />
-                  ) : (
-                    "-"
-                  )
-                }
-              />
-              <ChevronLinkColumn
-                maxWidth="100"
-                accessor="id"
-                url={(value: any) => ({
-                  pathname: "/pipelines/[pipelineId]",
-                  query: { pipelineId: value },
-                })}
-              />
-            </DataGrid>
-          </Block>
-        </div>
-      </DefaultLayout.PageContent>
+    <Page title={t("Airflow Pipelines")}>
+      <BackLayout title={t("Airflow Pipelines")}>
+        <Block>
+          <DataGrid
+            defaultPageSize={props.perPage}
+            data={items}
+            totalItems={data.dags.totalItems}
+            fetchData={onChangePage}
+          >
+            <BaseColumn id="name" label={t("Name")} minWidth={240}>
+              {(item) => (
+                <Link
+                  customStyle="text-gray-700 font-medium"
+                  href={{
+                    pathname: "/pipelines/[pipelinesId]",
+                    query: { pipelinesId: item.id },
+                  }}
+                >
+                  {item.label || item.externalId}
+                </Link>
+              )}
+            </BaseColumn>
+            <CountryColumn accessor="countries" label={t("Location")} max={1} />
+            <DateColumn
+              label={t("Last run")}
+              relative
+              accessor="lastRun.executionDate"
+            />
+            <TextColumn
+              label={t("Last status")}
+              accessor={(value) =>
+                value.lastRun ? (
+                  <PipelineRunStatusBadge run={value.lastRun} />
+                ) : (
+                  "-"
+                )
+              }
+            />
+            <ChevronLinkColumn
+              maxWidth="100"
+              accessor="id"
+              url={(value: any) => ({
+                pathname: "/pipelines/[pipelineId]",
+                query: { pipelineId: value },
+              })}
+            />
+          </DataGrid>
+        </Block>
+      </BackLayout>
     </Page>
   );
 };

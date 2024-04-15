@@ -16,6 +16,7 @@ import { runPipeline } from "pipelines/helpers/pipeline";
 import { getPipelineRun } from "pipelines/helpers/runs";
 import { useMemo } from "react";
 import ReactMarkdown from "react-markdown";
+import BackLayout from "core/layouts/back/BackLayout";
 
 type Props = {
   run: Awaited<ReturnType<typeof getPipelineRun>>;
@@ -56,9 +57,9 @@ const PipelineConfigureRunPage = (props: Props) => {
 
   return (
     <Page title={t("Configure Pipeline")}>
-      <DefaultLayout.PageContent>
-        <Breadcrumbs className="my-8 px-2">
-          <Breadcrumbs.Part href="/pipelines">
+      <BackLayout title={""}>
+        <Breadcrumbs className="my-8 px-2" withHome={false}>
+          <Breadcrumbs.Part href="/pipelines" isFirst>
             {t("Data Pipelines")}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
@@ -104,7 +105,7 @@ const PipelineConfigureRunPage = (props: Props) => {
             </Block>
           )}
         </div>
-      </DefaultLayout.PageContent>
+      </BackLayout>
     </Page>
   );
 };
