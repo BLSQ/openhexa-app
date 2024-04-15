@@ -221,3 +221,28 @@ export function renderOutputType(typename: string | undefined) {
       return "-";
   }
 }
+
+export async function deletePipelineVersion(versionId: string) {
+  const client = getApolloClient();
+  const { data } = await client.mutate({
+    mutation: gql`
+      mutation DeletePipelineVersion($input: DeletePipelineVersionInput!) {
+        deletePipelineVersion(input: $input) {
+          success
+          errors
+        }
+      }
+    `,
+    variables: { input: { id: versionId } },
+  });
+
+  if (data.deletePipelineVersion.success) {
+    return true;
+  }
+
+  if (data.deletePipelineVersion.errors.includes("PERMISSION_DENIED")) {
+    throw new Error("You are not authorized to perform this action");
+  }
+
+  throw new Error("Failed to delete pipeline version");
+}

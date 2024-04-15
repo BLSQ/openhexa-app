@@ -1732,6 +1732,7 @@ export type Mutation = {
   updateMembership: UpdateMembershipResult;
   updatePipeline: UpdatePipelineResult;
   updatePipelineProgress: UpdatePipelineProgressResult;
+  updatePipelineVersion: UpdatePipelineVersionResult;
   updateTeam: UpdateTeamResult;
   updateUser: UpdateUserResult;
   updateWorkspace: UpdateWorkspaceResult;
@@ -1742,7 +1743,7 @@ export type Mutation = {
 
 
 export type MutationAddPipelineOutputArgs = {
-  input?: InputMaybe<AddPipelineOutputInput>;
+  input: AddPipelineOutputInput;
 };
 
 
@@ -1967,7 +1968,7 @@ export type MutationLinkDatasetArgs = {
 
 
 export type MutationLogPipelineMessageArgs = {
-  input?: InputMaybe<LogPipelineMessageInput>;
+  input: LogPipelineMessageInput;
 };
 
 
@@ -1982,7 +1983,7 @@ export type MutationPinDatasetArgs = {
 
 
 export type MutationPipelineTokenArgs = {
-  input?: InputMaybe<PipelineTokenInput>;
+  input: PipelineTokenInput;
 };
 
 
@@ -2117,7 +2118,12 @@ export type MutationUpdatePipelineArgs = {
 
 
 export type MutationUpdatePipelineProgressArgs = {
-  input?: InputMaybe<UpdatePipelineProgressInput>;
+  input: UpdatePipelineProgressInput;
+};
+
+
+export type MutationUpdatePipelineVersionArgs = {
+  input: UpdatePipelineVersionInput;
 };
 
 
@@ -2142,7 +2148,7 @@ export type MutationUpdateWorkspaceMemberArgs = {
 
 
 export type MutationUploadPipelineArgs = {
-  input?: InputMaybe<UploadPipelineInput>;
+  input: UploadPipelineInput;
 };
 
 
@@ -2276,10 +2282,13 @@ export type PipelineParameter = {
 
 export type PipelinePermissions = {
   __typename?: 'PipelinePermissions';
+  createVersion: Scalars['Boolean']['output'];
   delete: Scalars['Boolean']['output'];
+  /** @deprecated Use 'delete' field in 'PipelineVersionPermissions' instead */
   deleteVersion: Scalars['Boolean']['output'];
   run: Scalars['Boolean']['output'];
   schedule: Scalars['Boolean']['output'];
+  /** @deprecated Use 'stop' field in 'PipelinePermissions' instead */
   stopPipeline: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
@@ -2370,7 +2379,10 @@ export type PipelineVersion = {
   id: Scalars['UUID']['output'];
   isLatestVersion: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
+  /** @deprecated Use name field instead */
+  number?: Maybe<Scalars['String']['output']>;
   parameters: Array<PipelineParameter>;
+  permissions: PipelineVersionPermissions;
   pipeline: Pipeline;
   timeout?: Maybe<Scalars['Int']['output']>;
   user?: Maybe<User>;
@@ -2383,6 +2395,13 @@ export type PipelineVersionPage = {
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
+};
+
+export type PipelineVersionPermissions = {
+  __typename?: 'PipelineVersionPermissions';
+  delete: Scalars['Boolean']['output'];
+  stop: Scalars['Boolean']['output'];
+  update: Scalars['Boolean']['output'];
 };
 
 export type PipelinesPage = {
@@ -3189,6 +3208,25 @@ export type UpdatePipelineResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export enum UpdatePipelineVersionError {
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type UpdatePipelineVersionInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  externalLink?: InputMaybe<Scalars['URL']['input']>;
+  id: Scalars['UUID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdatePipelineVersionResult = {
+  __typename?: 'UpdatePipelineVersionResult';
+  errors: Array<UpdatePipelineVersionError>;
+  pipelineVersion?: Maybe<PipelineVersion>;
+  success: Scalars['Boolean']['output'];
+};
+
 export enum UpdateTeamError {
   NameDuplicate = 'NAME_DUPLICATE',
   NotFound = 'NOT_FOUND',
@@ -3262,9 +3300,11 @@ export type UpdateWorkspaceResult = {
 };
 
 export type UploadPipelineInput = {
-  code: Scalars['String']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  externalLink?: InputMaybe<Scalars['URL']['input']>;
   name: Scalars['String']['input'];
   parameters: Array<ParameterInput>;
+  pipelineCode?: InputMaybe<Scalars['String']['input']>;
   timeout?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug: Scalars['String']['input'];
   zipfile: Scalars['String']['input'];
@@ -3273,8 +3313,10 @@ export type UploadPipelineInput = {
 export type UploadPipelineResult = {
   __typename?: 'UploadPipelineResult';
   errors: Array<PipelineError>;
+  pipelineVersion?: Maybe<PipelineVersion>;
   success: Scalars['Boolean']['output'];
-  version?: Maybe<PipelineVersion>;
+  /** @deprecated Use 'pipelineVersion' field instead */
+  version?: Maybe<Scalars['String']['output']>;
 };
 
 export type User = {

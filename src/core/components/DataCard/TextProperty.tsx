@@ -10,10 +10,11 @@ type TextPropertyProps = PropertyDefinition & {
   markdown?: boolean;
   defaultValue?: string;
   className?: string;
+  sm?: boolean;
 };
 
 const TextProperty = (props: TextPropertyProps) => {
-  const { className, markdown, ...delegated } = props;
+  const { className, markdown, sm = false, ...delegated } = props;
 
   const { property, section } = useDataCardProperty(delegated);
 
@@ -46,7 +47,13 @@ const TextProperty = (props: TextPropertyProps) => {
     return (
       <DataCard.Property property={property}>
         {markdown && property.displayValue ? (
-          <ReactMarkdown className="prose max-w-3xl text-sm">
+          <ReactMarkdown
+            className={clsx(
+              "prose max-w-3xl text-sm",
+              sm &&
+                "prose-h1:font-bold prose-h1:text-xl prose-h2:text-lg prose-h3:text-md prose-h2:mt-0",
+            )}
+          >
             {property.displayValue}
           </ReactMarkdown>
         ) : (

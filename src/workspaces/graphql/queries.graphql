@@ -73,9 +73,7 @@ query WorkspacePipelinePage(
   }
 
   pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
-    ...PipelineVersionsDialog_pipeline
     ...RunPipelineDialog_pipeline
-    ...DeletePipelineVersion_pipeline
     ...PipelineVersionPicker_pipeline
     permissions {
       run
@@ -114,7 +112,6 @@ query WorkspacePipelinePage(
           user {
             ...User_user
           }
-          ...DeletePipelineVersion_version
         }
         executionDate
         duration
@@ -144,6 +141,7 @@ query WorkspacePipelineVersionsPage(
     ...WorkspaceLayout_workspace
   }
   pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+    id
     code
     name
     currentVersion {

@@ -1516,11 +1516,12 @@ type Mutation {
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult!
   runPipeline(input: RunPipelineInput): RunPipelineResult!
   stopPipeline(input: StopPipelineInput!): StopPipelineResult!
-  pipelineToken(input: PipelineTokenInput): PipelineTokenResult!
-  uploadPipeline(input: UploadPipelineInput): UploadPipelineResult!
-  logPipelineMessage(input: LogPipelineMessageInput): LogPipelineMessageResult!
-  updatePipelineProgress(input: UpdatePipelineProgressInput): UpdatePipelineProgressResult!
-  addPipelineOutput(input: AddPipelineOutputInput): AddPipelineOutputResult!
+  pipelineToken(input: PipelineTokenInput!): PipelineTokenResult!
+  uploadPipeline(input: UploadPipelineInput!): UploadPipelineResult!
+  updatePipelineVersion(input: UpdatePipelineVersionInput!): UpdatePipelineVersionResult!
+  logPipelineMessage(input: LogPipelineMessageInput!): LogPipelineMessageResult!
+  updatePipelineProgress(input: UpdatePipelineProgressInput!): UpdatePipelineProgressResult!
+  addPipelineOutput(input: AddPipelineOutputInput!): AddPipelineOutputResult!
   deletePipelineVersion(input: DeletePipelineVersionInput!): DeletePipelineVersionResult!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
@@ -1664,9 +1665,10 @@ type PipelinePermissions {
   update: Boolean!
   delete: Boolean!
   run: Boolean!
-  deleteVersion: Boolean!
   schedule: Boolean!
-  stopPipeline: Boolean!
+  createVersion: Boolean!
+  stopPipeline: Boolean! @deprecated(reason: "Use 'stop' field in 'PipelinePermissions' instead")
+  deleteVersion: Boolean! @deprecated(reason: "Use 'delete' field in 'PipelineVersionPermissions' instead")
 }
 
 type PipelineRecipient {
@@ -1754,6 +1756,7 @@ type PipelineVersion {
   user: User
   pipeline: Pipeline!
   name: String!
+  number: String @deprecated(reason: "Use name field instead")
   description: String
   externalLink: URL
   createdAt: DateTime!
@@ -1761,6 +1764,7 @@ type PipelineVersion {
   isLatestVersion: Boolean!
   zipfile: String!
   timeout: Int
+  permissions: PipelineVersionPermissions!
 }
 
 type PipelineVersionPage {
@@ -1768,6 +1772,12 @@ type PipelineVersionPage {
   pageNumber: Int!
   totalPages: Int!
   totalItems: Int!
+}
+
+type PipelineVersionPermissions {
+  update: Boolean!
+  delete: Boolean!
+  stop: Boolean!
 }
 
 input PrepareAccessmodFileDownloadInput {
@@ -2333,6 +2343,24 @@ type UpdatePipelineResult {
   pipeline: Pipeline
 }
 
+enum UpdatePipelineVersionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input UpdatePipelineVersionInput {
+  id: UUID!
+  name: String
+  description: String
+  externalLink: URL
+}
+
+type UpdatePipelineVersionResult {
+  success: Boolean!
+  errors: [UpdatePipelineVersionError!]!
+  pipelineVersion: PipelineVersion
+}
+
 enum UpdateTeamError {
   NOT_FOUND
   PERMISSION_DENIED
@@ -2403,8 +2431,10 @@ type UpdateWorkspaceResult {
 
 input UploadPipelineInput {
   workspaceSlug: String!
-  code: String!
+  pipelineCode: String
   name: String!
+  description: String
+  externalLink: URL
   parameters: [ParameterInput!]!
   zipfile: String!
   timeout: Int
@@ -2412,7 +2442,8 @@ input UploadPipelineInput {
 
 type UploadPipelineResult {
   success: Boolean!
-  version: PipelineVersion
+  pipelineVersion: PipelineVersion
+  version: String @deprecated(reason: "Use 'pipelineVersion' field instead")
   errors: [PipelineError!]!
 }
 

@@ -3,6 +3,7 @@ import Page from "core/components/Page";
 import Pagination from "core/components/Pagination";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
+import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import PipelineVersionCard from "pipelines/features/PipelineVersionCard";
@@ -28,7 +29,7 @@ const PipelineVersionsPage: NextPageWithLayout<Props> = ({
 }) => {
   const { t } = useTranslation();
 
-  const { data } = useWorkspacePipelineVersionsPageQuery({
+  const { data, refetch } = useWorkspacePipelineVersionsPageQuery({
     variables: {
       workspaceSlug,
       pipelineCode,
@@ -36,6 +37,8 @@ const PipelineVersionsPage: NextPageWithLayout<Props> = ({
       perPage,
     },
   });
+
+  useCacheKey(["pipelines", data?.pipeline?.id], refetch);
 
   const router = useRouter();
   if (!data?.workspace || !data?.pipeline) {
@@ -91,7 +94,7 @@ const PipelineVersionsPage: NextPageWithLayout<Props> = ({
             </Breadcrumbs.Part>
           </Breadcrumbs>
         </WorkspaceLayout.Header>
-        <WorkspaceLayout.PageContent>
+        <WorkspaceLayout.PageContent className="grid grid-cols-1 2xl:grid-cols-2 gap-4">
           {data.pipeline.versions.items.length === 0 && (
             <div className="text-center text-gray-500">
               <div>{t("This pipeline does not have any version.")}</div>

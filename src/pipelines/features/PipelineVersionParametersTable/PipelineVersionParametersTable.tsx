@@ -40,8 +40,8 @@ const PipelineVersionParametersTable = (
         </TableRow>
       </TableHead>
       <TableBody>
-        {version.parameters.map((parameter) => (
-          <TableRow key={parameter.code}>
+        {version.parameters.map((parameter, i) => (
+          <TableRow key={i}>
             <TableCell spacing="tight" className="py-1">
               {parameter.name}
               &nbsp;<span className="text-gray-400">{parameter.help}</span>

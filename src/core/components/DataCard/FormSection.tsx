@@ -179,7 +179,7 @@ function FormSection<F extends { [key: string]: any }>(
   return (
     <DataCardSectionContext.Provider value={section}>
       <BlockSection
-        collapsible={collapsible}
+        collapsible={collapsible && !isEdited}
         defaultOpen={defaultOpen}
         className={className}
         title={({ open }) => (

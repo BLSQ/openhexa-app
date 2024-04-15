@@ -11,7 +11,6 @@ import TextProperty from "core/components/DataCard/TextProperty";
 import UserProperty from "core/components/DataCard/UserProperty";
 import Link from "core/components/Link";
 import ProgressPie from "core/components/ProgressPie";
-import Spinner from "core/components/Spinner";
 import { formatDuration } from "core/helpers/time";
 import useInterval from "core/hooks/useInterval";
 import useRelativeTime from "core/hooks/useRelativeTime";

@@ -3,7 +3,6 @@ import {
   PlayIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import Badge from "core/components/Badge";
 import Block from "core/components/Block/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
@@ -35,7 +34,6 @@ import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import { useState } from "react";
 import CronProperty from "workspaces/features/CronProperty";
 import DeletePipelineDialog from "workspaces/features/DeletePipelineDialog";
-import PipelineVersionsDialog from "workspaces/features/PipelineVersionsDialog";
 import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import WorkspaceMemberProperty from "workspaces/features/WorkspaceMemberProperty/";
 import {
@@ -58,7 +56,6 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const { pipelineCode, workspaceSlug, page, perPage } = props;
   const { t } = useTranslation();
   const router = useRouter();
-  const [isVersionsDialogOpen, setVersionsDialogOpen] = useState(false);
   const [isRunPipelineDialogOpen, setRunPipelineDialogOpen] = useState(false);
   const [isDeletePipelineDialogOpen, setDeletePipelineDialogOpen] =
     useState(false);
@@ -434,11 +431,6 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
           </div>
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
-      <PipelineVersionsDialog
-        pipeline={pipeline}
-        open={isVersionsDialogOpen}
-        onClose={() => setVersionsDialogOpen(false)}
-      />
       <RunPipelineDialog
         open={isRunPipelineDialogOpen}
         onClose={() => setRunPipelineDialogOpen(false)}
