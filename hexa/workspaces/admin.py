@@ -9,14 +9,28 @@ from .models import (
 )
 
 
+class WorkspaceMembershipInline(admin.TabularInline):
+    fields = ("user", "role")
+    model = WorkspaceMembership
+    extra = 0
+
+
+class WorkspaceInvitationInline(admin.TabularInline):
+    model = WorkspaceInvitation
+    extra = 0
+
+
 @admin.register(Workspace)
 class WorkspaceAdmin(admin.ModelAdmin):
-    list_display = ("slug", "name", "created_at", "updated_at", "archived")
+    list_display = ("slug", "name", "created_at", "updated_at")
     list_filter = ("archived",)
+
     search_fields = (
         "slug",
         "name",
     )
+
+    inlines = [WorkspaceMembershipInline, WorkspaceInvitationInline]
 
 
 @admin.register(WorkspaceMembership)
@@ -38,11 +52,17 @@ class ConnectionFieldInline(admin.StackedInline):
 @admin.register(Connection)
 class ConnectionAdmin(admin.ModelAdmin):
     list_display = (
-        "workspace",
         "name",
         "connection_type",
+        "workspace",
         "id",
     )
+
+    list_filter = (
+        "workspace",
+        "connection_type",
+    )
+
     inlines = [ConnectionFieldInline]
 
 

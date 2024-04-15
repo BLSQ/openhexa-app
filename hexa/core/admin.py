@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Sequence
 
 from django.contrib import admin
 from django.db.models.query import QuerySet
@@ -44,9 +44,15 @@ class GlobalObjectsModelAdmin(admin.ModelAdmin):
         for obj in queryset:
             obj.hard_delete()
 
-    def get_list_filter(self, request):
+    def get_list_filter(self, request: HttpRequest):
         list_filter = super().get_list_filter(request) or []
         if not isinstance(list_filter, list):
             list_filter = list(list_filter)
         list_filter.append(SoftDeleteFilter)
         return list_filter
+
+    def get_list_display(self, request: HttpRequest) -> Sequence[str]:
+        list_display = super().get_list_display(request)
+        if "is_deleted" in request.GET:
+            list_display = list(list_display) + ["deleted_at"]
+        return list_display
