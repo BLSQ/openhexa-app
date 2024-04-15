@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.47.0](https://github.com/BLSQ/openhexa-frontend/compare/0.46.0...0.47.0) (2024-04-15)
+
+
+### Features
+
+* Users can update their pipelines' versions ([#594](https://github.com/BLSQ/openhexa-frontend/issues/594)) ([147dcf7](https://github.com/BLSQ/openhexa-frontend/commit/147dcf7019c4382f33fc15450ca8ba2072c4f891))
+
+
+### Bug Fixes
+
+* **Sentry:** Bundle size is enormous with Sentry. Let's try to reduce it ([#593](https://github.com/BLSQ/openhexa-frontend/issues/593)) ([9d9ff77](https://github.com/BLSQ/openhexa-frontend/commit/9d9ff77a88c215769fd1e26ee34a2fbea07ccbf9))
+
+
+### Miscellaneous
+
+* **CI:** Cache docker images in the registry (bigger cache than on GHA) ([e520c52](https://github.com/BLSQ/openhexa-frontend/commit/e520c527c87778ca17580f45379d6620a9ef06c9))
+* **debt:** Remove catalog, search and revamp the menu of the user ([#592](https://github.com/BLSQ/openhexa-frontend/issues/592)) ([5b04fc0](https://github.com/BLSQ/openhexa-frontend/commit/5b04fc00fc85b6a0fd15eb55097b18d749e736a6))
+* Uncomment dependencies caching task ([02d0838](https://github.com/BLSQ/openhexa-frontend/commit/02d083839a6b1adcc4211b3027fee56e0c0dafac))
+
 ## [0.46.0](https://github.com/BLSQ/openhexa-frontend/compare/0.45.2...0.46.0) (2024-04-05)
 
 
