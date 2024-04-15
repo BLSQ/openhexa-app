@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.69.0](https://github.com/BLSQ/openhexa-app/compare/0.68.2...0.69.0) (2024-04-15)
+
+
+### Features
+
+* **pipelines:** Add permissions on PipelineVersion; users can update versions ([#680](https://github.com/BLSQ/openhexa-app/issues/680)) ([9557396](https://github.com/BLSQ/openhexa-app/commit/95573960549bddff8a8cd53579c8260f2c97e46d))
+
+
+### Miscellaneous
+
+* **Debt:** Remove all HTML pages handled by the frontend, remove the ui templates; removing deprecated graphql ([#678](https://github.com/BLSQ/openhexa-app/issues/678)) ([af576bc](https://github.com/BLSQ/openhexa-app/commit/af576bc66d98b8872ae9410d110548261b478e0a))
+
 ## [0.68.2](https://github.com/BLSQ/openhexa-app/compare/0.68.1...0.68.2) (2024-04-10)
 
 
