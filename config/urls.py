@@ -34,7 +34,6 @@ admin.site.index_title = "Welcome to OpenHEXA"
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("hexa.core.urls", namespace="core")),
-    path("catalog/", include("hexa.catalog.urls", namespace="catalog")),
     path("notebooks/", include("hexa.notebooks.urls", namespace="notebooks")),
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
     path("workspaces/", include("hexa.workspaces.urls", namespace="workspaces")),
@@ -59,12 +58,16 @@ urlpatterns = [
 
 # Connector apps URLs
 for app_config in get_hexa_app_configs(connector_only=True):
-    urlpatterns.append(
-        path(
-            app_config.route_prefix + "/",
-            include(app_config.name + ".urls", namespace=app_config.label),
+    try:
+        prefix = app_config.route_prefix or ""
+        urlpatterns.append(
+            path(
+                prefix + "/",
+                include(app_config.name + ".urls", namespace=app_config.label),
+            )
         )
-    )
+    except (NotImplementedError, ModuleNotFoundError):
+        pass
 
 if settings.DEBUG:
     import debug_toolbar

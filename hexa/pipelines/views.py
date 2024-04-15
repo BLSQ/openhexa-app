@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import BadSignature, Signer
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -55,7 +55,7 @@ def environment_sync(
             messages.error(request, _("The environment could not be synced"))
             logger.exception(f"Sync failed for environment {environment.id}")
 
-    return redirect(request.META.get("HTTP_REFERER", environment.get_absolute_url()))
+    return JsonResponse({"success": True})
 
 
 @require_POST

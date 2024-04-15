@@ -9,6 +9,7 @@ x-app: &common
     networks:
       - openhexa
     environment:
+      - DEBUG=true
       - DJANGO_SETTINGS_MODULE=config.settings.dev
       - DATABASE_HOST=db
       - DATABASE_PORT=5432

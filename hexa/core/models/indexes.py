@@ -224,7 +224,6 @@ class BaseIndex(Base):
             "description": self.description,
             "external_description": self.external_description,
             "countries": [country.code for country in self.countries],
-            "url": self.object.get_absolute_url() if self.object else None,
             "last_synced_at": (
                 date_format(self.last_synced_at)
                 if self.last_synced_at is not None

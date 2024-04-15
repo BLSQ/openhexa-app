@@ -8,9 +8,6 @@ class ConnectorAirflowConfig(ConnectorAppConfig):
     verbose_name = "Airflow Connector"
 
     ANONYMOUS_URLS = ["connector_airflow:webhook"]
-    LAST_ACTIVITIES = (
-        "hexa.plugins.connector_airflow.last_activities.get_last_activities"
-    )
 
     @property
     def route_prefix(self):

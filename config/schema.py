@@ -1,13 +1,13 @@
 import pathlib
+from uuid import UUID
 
 from ariadne import (
+    ScalarType,
     load_schema_from_path,
     make_executable_schema,
     snake_case_fallback_resolvers,
 )
 
-from hexa.catalog.schema import catalog_bindables, catalog_type_defs
-from hexa.core.schema import core_bindables, core_type_defs
 from hexa.countries.schema import countries_bindables, countries_type_defs
 from hexa.databases.schema import databases_bindables, databases_types_def
 from hexa.datasets.schema import datasets_bindables, datasets_type_defs
@@ -29,13 +29,24 @@ from hexa.user_management.schema import (
 )
 from hexa.workspaces.schema import workspaces_bindables, workspaces_type_def
 
+uuid_scalar = ScalarType("UUID")
+
+
+@uuid_scalar.value_parser
+def parse_uuid_value(value):
+    try:
+        UUID(value, version=4)
+        return str(value).upper()
+    except (ValueError, TypeError):
+        raise ValueError(f'"{value}" is not a valid uuid')
+
+
 type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
 )
 schema = make_executable_schema(
     [
         type_defs,
-        catalog_type_defs,
         identity_type_defs,
         tags_type_defs,
         dags_type_defs,
@@ -44,7 +55,6 @@ schema = make_executable_schema(
         accessmod_type_defs,
         countries_type_defs,
         notebooks_type_defs,
-        core_type_defs,
         pipelines_type_defs,
         workspaces_type_def,
         databases_types_def,
@@ -52,7 +62,7 @@ schema = make_executable_schema(
         datasets_type_defs,
     ],
     [
-        *catalog_bindables,
+        uuid_scalar,
         *pipelines_bindables,
         *identity_bindables,
         *tags_bindables,
@@ -62,7 +72,6 @@ schema = make_executable_schema(
         *accessmod_bindables,
         *countries_bindables,
         *notebooks_bindables,
-        *core_bindables,
         *workspaces_bindables,
         *databases_bindables,
         *files_bindables,

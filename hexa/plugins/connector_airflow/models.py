@@ -79,12 +79,6 @@ class Cluster(Environment):
         index.content = self.content_summary
         index.search = f"{self.name}"
 
-    def get_absolute_url(self) -> str:
-        return reverse(
-            "connector_airflow:cluster_detail",
-            args=(self.id,),
-        )
-
     def get_permission_set(self):
         return []
 
@@ -300,12 +294,6 @@ class DAG(IndexableMixin, models.Model):
         index.path = [self.template.cluster.id.hex, self.id.hex]
         index.external_id = f"{self.dag_id}"
         index.search = f"{self.dag_id}"
-
-    def get_absolute_url(self) -> str:
-        return reverse(
-            "connector_airflow:dag_detail",  # TODO
-            args=(self.id,),
-        )
 
     def get_airflow_url(self):
         return f"{self.template.cluster.url}graph?dag_id={self.dag_id}"
@@ -533,12 +521,6 @@ class DAGRun(Base, WithStatus):
     current_progress = models.PositiveSmallIntegerField(default=0)
 
     objects = DAGRunQuerySet.as_manager()
-
-    def get_absolute_url(self) -> str:
-        return reverse(
-            "connector_airflow:dag_run_detail",
-            args=(self.dag.id, self.id),
-        )
 
     @property
     def trigger_mode(self):

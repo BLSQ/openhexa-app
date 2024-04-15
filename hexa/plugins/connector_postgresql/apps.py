@@ -14,7 +14,3 @@ class PostgresqlConnectorConfig(ConnectorAppConfig):
     PIPELINES_CREDENTIALS = [
         "hexa.plugins.connector_postgresql.credentials.pipelines_credentials"
     ]
-
-    @property
-    def route_prefix(self):
-        return "postgresql"
