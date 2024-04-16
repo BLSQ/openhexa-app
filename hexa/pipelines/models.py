@@ -172,8 +172,8 @@ class Pipeline(SoftDeletedModel):
             models.UniqueConstraint(
                 "workspace_id",
                 "code",
-                "deleted_at",
                 name="unique_pipeline_code_per_workspace",
+                condition=Q(deleted_at__isnull=True),
             )
         ]
 
