@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.69.1](https://github.com/BLSQ/openhexa-app/compare/0.69.0...0.69.1) (2024-04-18)
+
+
+### Bug Fixes
+
+* **CI:** Use the registry to cache the layers ([2d40ba0](https://github.com/BLSQ/openhexa-app/commit/2d40ba0f29498ab2e06649aeccc3786dc5bc5de4))
+* **Pipelines:** enable nulls value check on Pipeline model constraint ([#685](https://github.com/BLSQ/openhexa-app/issues/685)) ([c98b789](https://github.com/BLSQ/openhexa-app/commit/c98b78994c94d4d0efa7fc0fdc52390b48d1e690))
+
+
+### Miscellaneous
+
+* **Admin:** Add inlines and better search filters to various models ([#683](https://github.com/BLSQ/openhexa-app/issues/683)) ([191a3ce](https://github.com/BLSQ/openhexa-app/commit/191a3ce4c690378487283174d075d33402bac2e3))
+* **Billing:** Add a label on the pipelines pod with the workspace ([a58bfae](https://github.com/BLSQ/openhexa-app/commit/a58bfaeda837dc06d3773a020e787190fa7624b0))
+* **deps:** bump gunicorn from 21.2.0 to 22.0.0 ([#686](https://github.com/BLSQ/openhexa-app/issues/686)) ([3a2d3f1](https://github.com/BLSQ/openhexa-app/commit/3a2d3f1c01598b79576442827d44bc8a28d92def))
+* **deps:** bump sqlparse from 0.4.4 to 0.5.0 ([#684](https://github.com/BLSQ/openhexa-app/issues/684)) ([3bba33b](https://github.com/BLSQ/openhexa-app/commit/3bba33b9318c4976d512243a890dc87ce366c813))
+
 ## [0.69.0](https://github.com/BLSQ/openhexa-app/compare/0.68.2...0.69.0) (2024-04-15)
 
 
