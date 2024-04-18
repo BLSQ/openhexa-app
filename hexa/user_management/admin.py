@@ -39,6 +39,7 @@ class UserCreationForm(BaseUserCreationForm):
 
 class MembershipInline(admin.TabularInline):
     model = Membership
+    extra = 0
 
 
 class FeatureFlagFormSet(forms.BaseInlineFormSet):
@@ -60,6 +61,7 @@ class FeatureFlagFormSet(forms.BaseInlineFormSet):
 class FeatureFlagInline(admin.TabularInline):
     model = FeatureFlag
     formset = FeatureFlagFormSet
+    extra = 0
 
 
 @admin.register(User)

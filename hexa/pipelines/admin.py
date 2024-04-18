@@ -18,9 +18,9 @@ def restore_pipelines(modeladmin, request, queryset):
 
 @admin.register(Pipeline)
 class PipelineAdmin(GlobalObjectsModelAdmin):
-    list_display = ("name", "code", "workspace", "deleted_at", "restored_at")
+    list_display = ("name", "code", "workspace")
     list_filter = ("workspace",)
-    search_fields = ("code", "name")
+    search_fields = ("id", "code", "name")
     actions = [restore_pipelines]
 
 
@@ -28,13 +28,14 @@ class PipelineAdmin(GlobalObjectsModelAdmin):
 class PipelineRunAdmin(admin.ModelAdmin):
     list_display = ("pipeline", "trigger_mode", "state", "execution_date")
     list_filter = ("trigger_mode", "state", "execution_date", "pipeline")
+    search_fields = ("pipeline__name", "pipeline__code", "pipeline__id", "id")
 
 
 @admin.register(PipelineVersion)
 class PipelineVersionAdmin(admin.ModelAdmin):
-    list_display = ("pipeline", "name", "created_at")
-    list_filter = ("created_at",)
-    search_fields = ("name", "pipeline__name", "pipeline__id")
+    list_display = ("name", "pipeline", "created_at")
+    list_filter = ("pipeline", "pipeline__workspace")
+    search_fields = ("name", "pipeline__name", "pipeline__code", "pipeline__id")
 
 
 @admin.register(Index)
