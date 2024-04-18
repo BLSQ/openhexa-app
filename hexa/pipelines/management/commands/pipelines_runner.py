@@ -41,6 +41,9 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
         metadata=k8s.V1ObjectMeta(
             namespace=os.environ.get("PIPELINE_NAMESPACE", "default"),
             name=container_name,
+            labels={
+                "hexa-workspace": env_vars["HEXA_WORKSPACE"],
+            },
             annotations={
                 # Unfortunately, it also seems that GKE (at least) uses app armor to restrict
                 # the syscalls a container is allowed to execute, so we need to ask to run
