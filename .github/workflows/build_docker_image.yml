@@ -91,8 +91,8 @@ jobs:
           context: .
           target: app
           file: Dockerfile
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=blsq/openhexa-app:buildcache
+          cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
           tags: |
             blsq/openhexa-app:${{ steps.version.outputs.number }}
             blsq/openhexa-app:latest
@@ -106,8 +106,8 @@ jobs:
           context: .
           target: app
           file: Dockerfile
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=blsq/openhexa-app:buildcache
+          cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
           tags: |
             blsq/openhexa-app:${{ github.event.inputs.tag }}
             blsq/openhexa-app:latest
