@@ -13,7 +13,7 @@ from django.core.management.base import BaseCommand
 from django.core.signing import Signer
 from django.utils import timezone
 
-from hexa.pipelines.models import PipelineRun, PipelineRunState
+from hexa.pipelines.models import PipelineRun, PipelineRunState, PipelineType
 from hexa.pipelines.utils import generate_pipeline_container_name, mail_run_recipients
 
 logger = getLogger(__name__)
@@ -115,8 +115,8 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
                             value=env_vars["HEXA_RUN_ID"],
                         ),
                         k8s.V1EnvVar(
-                            name="HEXA_WORKSPACE",
-                            value=env_vars["HEXA_WORKSPACE"],
+                            name="HEXA_PIPELINE_NOTEBOOK",
+                            value=env_vars["HEXA_PIPELINE_NOTEBOOK"],
                         ),
                     ],
                     # We need to have /dev/fuse mounted inside the container
@@ -236,7 +236,7 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
 def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
     from subprocess import PIPE, STDOUT, Popen
 
-    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=CLOUD_PIPELINE -e HEXA_RUN_ID={env_vars["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_vars["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_vars["HEXA_TOKEN"]} -e HEXA_WORKSPACE={env_vars["HEXA_WORKSPACE"]} --network openhexa --platform linux/amd64 --rm {image} pipeline cloudrun'
+    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=CLOUD_PIPELINE -e HEXA_RUN_ID={env_vars["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_vars["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_vars["HEXA_TOKEN"]} -e HEXA_WORKSPACE={env_vars["HEXA_WORKSPACE"]} -e HEXA_PIPELINE_NOTEBOOK={env_vars["HEXA_PIPELINE_NOTEBOOK"]} --network openhexa --platform linux/amd64 --rm {image} pipeline cloudrun'
     cmd = docker_cmd.split(" ") + [
         "--config",
         f"{base64.b64encode(json.dumps(run.config).encode('utf-8')).decode('utf-8')}",
@@ -284,6 +284,9 @@ def run_pipeline(run: PipelineRun):
         "HEXA_RUN_ID": str(run.id),
         "HEXA_PIPELINE_NAME": run.pipeline.name,
     }
+    if run.pipeline.type == PipelineType.NOTEBOOK:
+        env_vars.update({"HEXA_PIPELINE_NOTEBOOK": run.pipeline.notebook})
+
     image = (
         run.pipeline.workspace.docker_image
         if run.pipeline.workspace.docker_image
@@ -303,6 +306,7 @@ def run_pipeline(run: PipelineRun):
             logger.error("Scheduler spawner %s not found", settings.SCHEDULER_SPAWNER)
             success, container_logs = False, ""
     except Exception as e:
+        print(e, flush=True)
         run.state = PipelineRunState.FAILED
         run.duration = timezone.now() - time_start
         run.run_logs = "\n".join([base_logs, str(e)])

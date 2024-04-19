@@ -48,6 +48,7 @@ def resolve_bucket_objects(
     query=None,
     page=1,
     per_page=15,
+    ignore_delimiter=False,
     ignore_hidden_files=True,
     **kwargs,
 ):
@@ -59,6 +60,7 @@ def resolve_bucket_objects(
         page=page,
         per_page=per_page,
         query=query,
+        ignore_delimiter=ignore_delimiter,
         ignore_hidden_files=ignore_hidden_files,
     )
 

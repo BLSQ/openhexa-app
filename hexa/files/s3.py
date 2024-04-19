@@ -266,6 +266,7 @@ class S3Client(BaseClient):
         page: int = 1,
         per_page=30,
         query=None,
+        ignore_delimiter=False,
         ignore_hidden_files=True,
     ):
         prefix = prefix or ""
@@ -276,7 +277,7 @@ class S3Client(BaseClient):
 
         pages = paginator.paginate(
             Bucket=bucket_name,
-            Delimiter="/",
+            Delimiter="" if ignore_delimiter else "/",
             Prefix=prefix,
         )
 

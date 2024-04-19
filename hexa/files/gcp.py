@@ -217,6 +217,7 @@ class GCPClient(BaseClient):
         page: int = 1,
         per_page=30,
         query=None,
+        ignore_delimiter=False,
         ignore_hidden_files=True,
     ):
         """Returns the list of objects in a bucket with pagination support.
@@ -238,7 +239,7 @@ class GCPClient(BaseClient):
             prefix=prefix,
             # We take twice the number of items to be sure to have enough
             page_size=per_page * 2,
-            delimiter="/",
+            delimiter="" if ignore_delimiter else "/",
             include_trailing_delimiter=True,
         )
         max_items = (page * per_page) + 1

@@ -29,6 +29,15 @@ def get_bucket_object(bucket_name, file):
     return get_storage().get_bucket_object(bucket_name, file)
 
 
+def create_pipeline_object(code: str, name: str, workspace: Workspace, **kwargs):
+    return Pipeline.objects.create(
+        code=code,
+        name=name,
+        workspace=workspace,
+        **kwargs,
+    )
+
+
 @pipelines_mutations.field("createPipeline")
 def resolve_create_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -44,14 +53,33 @@ def resolve_create_pipeline(_, info, **kwargs):
         }
 
     try:
-        type = PipelineType.NOTEBOOK if input.get("notebook") else PipelineType.DEFAULT
-        pipeline = Pipeline.objects.create(
-            code=input["code"],
-            name=input.get("name"),
-            workspace=workspace,
-            type=type,
-            notebook=input.get("notebook"),
-        )
+        notebook = input.get("notebook")
+        if notebook:
+            get_bucket_object(workspace.bucket_name, notebook)
+            pipeline = create_pipeline_object(
+                code=input["code"],
+                name=input.get("name"),
+                workspace=workspace,
+                type=PipelineType.NOTEBOOK,
+                notebook=notebook,
+            )
+            # automatically create a new version
+            pipeline.upload_new_version(
+                user=request.user,
+                name=input.get("name"),
+                zipfile=base64.b64decode("".encode("ascii")),
+                parameters=[],
+            )
+        else:
+            pipeline = create_pipeline_object(
+                code=input["code"],
+                name=input.get("name"),
+                workspace=workspace,
+            )
+
+    except NotFound:
+        return {"success": False, "errors": ["FILE_NOT_FOUND"]}
+
     except IntegrityError:
         return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}
 
