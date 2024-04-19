@@ -23,6 +23,30 @@ class PodTerminationReason(Enum):
     DeadlineExceeded = "DeadlineExceeded"
 
 
+def build_run_env(target, env_vars: dict):
+    from kubernetes.client import models as k8s
+
+    if target == "docker":
+        env_vars.pop("HEXA_PIPELINE_NAME", "")
+        return " ".join([f"-e {key}={value}" for key, value in env_vars.items()])
+    elif target == "kubernetes":
+        env = [
+            k8s.V1EnvVar(
+                name=key,
+                value=value,
+            )
+            for key, value in env_vars.items()
+        ]
+
+        return [
+            k8s.V1EnvVar(
+                name="HEXA_ENVIRONMENT",
+                value="CLOUD_PIPELINE",
+            ),
+            *env,
+        ]
+
+
 def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
     from kubernetes import config
     from kubernetes.client import CoreV1Api
@@ -93,32 +117,7 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
                         "--config",
                         f"{base64.b64encode(json.dumps(run.config).encode('utf-8')).decode('utf-8')}",
                     ],
-                    env=[
-                        k8s.V1EnvVar(
-                            name="HEXA_ENVIRONMENT",
-                            value="CLOUD_PIPELINE",
-                        ),
-                        k8s.V1EnvVar(
-                            name="HEXA_SERVER_URL",
-                            value=env_vars["HEXA_SERVER_URL"],
-                        ),
-                        k8s.V1EnvVar(
-                            name="HEXA_TOKEN",
-                            value=env_vars["HEXA_TOKEN"],
-                        ),
-                        k8s.V1EnvVar(
-                            name="HEXA_PIPELINE_NAME",
-                            value=env_vars["HEXA_PIPELINE_NAME"],
-                        ),
-                        k8s.V1EnvVar(
-                            name="HEXA_RUN_ID",
-                            value=env_vars["HEXA_RUN_ID"],
-                        ),
-                        k8s.V1EnvVar(
-                            name="HEXA_PIPELINE_NOTEBOOK",
-                            value=env_vars["HEXA_PIPELINE_NOTEBOOK"],
-                        ),
-                    ],
+                    env=build_run_env("kubernetes", env_vars=env_vars),
                     # We need to have /dev/fuse mounted inside the container
                     # This is done by requesting a resource: smarter-devices/fuse
                     # This resource, is provided by the smarter-device-manager DaemonSet.
@@ -236,7 +235,9 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
 def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
     from subprocess import PIPE, STDOUT, Popen
 
-    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=CLOUD_PIPELINE -e HEXA_RUN_ID={env_vars["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_vars["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_vars["HEXA_TOKEN"]} -e HEXA_WORKSPACE={env_vars["HEXA_WORKSPACE"]} -e HEXA_PIPELINE_NOTEBOOK={env_vars["HEXA_PIPELINE_NOTEBOOK"]} --network openhexa --platform linux/amd64 --rm {image} pipeline cloudrun'
+    docker_env = build_run_env("docker", env_vars=env_vars)
+    docker_cmd = f"docker run --privileged -e HEXA_ENVIRONMENT=CLOUD_PIPELINE {docker_env} --network openhexa --platform linux/amd64 --rm {image} pipeline cloudrun"
+
     cmd = docker_cmd.split(" ") + [
         "--config",
         f"{base64.b64encode(json.dumps(run.config).encode('utf-8')).decode('utf-8')}",
@@ -285,7 +286,7 @@ def run_pipeline(run: PipelineRun):
         "HEXA_PIPELINE_NAME": run.pipeline.name,
     }
     if run.pipeline.type == PipelineType.NOTEBOOK:
-        env_vars.update({"HEXA_PIPELINE_NOTEBOOK": run.pipeline.notebook})
+        env_vars.update({"HEXA_NOTEBOOK_PATH": run.pipeline.notebook})
 
     image = (
         run.pipeline.workspace.docker_image
