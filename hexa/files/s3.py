@@ -282,7 +282,14 @@ class S3Client(BaseClient):
         )
 
         def is_object_match_query(obj):
-            if ignore_hidden_files and obj["name"].startswith("."):
+            is_hidden = obj["name"].startswith(".") or any(
+                [
+                    p.startswith(".")
+                    for p in obj["key"].split("/")[: len(obj["key"]) - 1]
+                ]
+            )
+            if ignore_hidden_files and is_hidden:
+                return False
                 return False
             if not query:
                 return True

@@ -16,6 +16,7 @@ from hexa.pipelines.models import (
     PipelineRun,
     PipelineRunState,
     PipelineRunTrigger,
+    PipelineType,
 )
 from hexa.pipelines.utils import mail_run_recipients
 from hexa.user_management.models import Feature, FeatureFlag, User
@@ -121,6 +122,91 @@ class PipelinesV2Test(GraphQLTestCase):
         pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).get()
 
         return pipeline
+
+    def test_create_pipeline_notebook_not_found(self):
+        self.assertEqual(0, len(Pipeline.objects.all()))
+
+        self.client.force_login(self.USER_ROOT)
+        with patch(
+            "hexa.pipelines.schema.mutations.get_bucket_object",
+            MagicMock(),
+        ) as bucket_mock:
+            bucket_mock.side_effect = NotFound("File not found")
+            r = self.run_query(
+                """
+                    mutation createPipeline($input: CreatePipelineInput!) {
+                        createPipeline(input: $input) {
+                            success 
+                            errors 
+                            pipeline {
+                                name 
+                                code
+                            }
+                        }
+                    }
+                """,
+                {
+                    "input": {
+                        "code": "new_pipeline",
+                        "name": "notebook.ipynb",
+                        "workspaceSlug": self.WS1.slug,
+                        "notebook": "notebook.ipynb",
+                    }
+                },
+            )
+
+            self.assertEqual(
+                {"success": False, "errors": ["FILE_NOT_FOUND"], "pipeline": None},
+                r["data"]["createPipeline"],
+            )
+
+    def test_create_pipeline_notebook(self):
+        self.assertEqual(0, len(Pipeline.objects.all()))
+
+        self.client.force_login(self.USER_ROOT)
+        with patch(
+            "hexa.pipelines.schema.mutations.get_bucket_object",
+            MagicMock(),
+        ) as bucket_mock:
+            bucket_mock.return_value = {
+                "name": "notebook.ipynb",
+                "type": "file",
+            }
+            r = self.run_query(
+                """
+                    mutation createPipeline($input: CreatePipelineInput!) {
+                        createPipeline(input: $input) {
+                            success 
+                            errors 
+                            pipeline {
+                                name 
+                                code
+                            }
+                        }
+                    }
+                """,
+                {
+                    "input": {
+                        "code": "new_pipeline",
+                        "name": "notebook.ipynb",
+                        "workspaceSlug": self.WS1.slug,
+                        "notebook": "notebook.ipynb",
+                    }
+                },
+            )
+
+            self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                    "pipeline": {"code": "new_pipeline", "name": "notebook.ipynb"},
+                },
+                r["data"]["createPipeline"],
+            )
+            self.assertEqual(1, len(Pipeline.objects.all()))
+            pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).get()
+            self.assertEqual(pipeline.type, PipelineType.NOTEBOOK)
+            self.assertEqual(pipeline.last_version.name, "notebook.ipynb")
 
     def test_list_pipelines(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
