@@ -9,9 +9,10 @@ class MockBucket:
     versioning_enabled = False
     lifecycle_rules = []
 
-    def __init__(self, client, name=None, user_project=None):
+    def __init__(self, client, name=None, user_project=None, labels: dict = None):
         name = _validate_name(name)
         self.name = name
+        self.labels = labels or {}
         self._client = client
         self._user_project = user_project
         self._blobs = []

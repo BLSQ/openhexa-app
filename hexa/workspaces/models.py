@@ -96,7 +96,9 @@ class WorkspaceManager(models.Manager):
         create_kwargs["db_name"] = db_name
         create_database(db_name, db_password)
 
-        bucket = get_storage().create_bucket(settings.WORKSPACE_BUCKET_PREFIX + slug)
+        bucket = get_storage().create_bucket(
+            settings.WORKSPACE_BUCKET_PREFIX + slug, labels={"hexa-workspace": slug}
+        )
         create_kwargs["bucket_name"] = bucket.name
 
         if load_sample_data:
