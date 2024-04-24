@@ -150,7 +150,7 @@ class PipelinesV2Test(GraphQLTestCase):
                         "code": "new_pipeline",
                         "name": "notebook.ipynb",
                         "workspaceSlug": self.WS1.slug,
-                        "notebook": "notebook.ipynb",
+                        "notebookPath": "notebook.ipynb",
                     }
                 },
             )
@@ -190,7 +190,7 @@ class PipelinesV2Test(GraphQLTestCase):
                         "code": "new_pipeline",
                         "name": "notebook.ipynb",
                         "workspaceSlug": self.WS1.slug,
-                        "notebook": "notebook.ipynb",
+                        "notebookPath": "notebook.ipynb",
                     }
                 },
             )

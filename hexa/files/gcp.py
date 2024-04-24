@@ -249,11 +249,10 @@ class GCPClient(BaseClient):
         objects = []
 
         def is_object_match_query(obj):
-            is_hidden = obj["name"].startswith(".") or any(
-                [
-                    p.startswith(".")
-                    for p in obj["key"].split("/")[: len(obj["key"]) - 1]
-                ]
+            is_hidden = (
+                obj["name"].startswith(".")
+                or obj["key"].startswith(".")
+                or "/." in obj["key"]
             )
             if ignore_hidden_files and is_hidden:
                 return False

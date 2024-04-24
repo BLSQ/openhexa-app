@@ -29,15 +29,6 @@ def get_bucket_object(bucket_name, file):
     return get_storage().get_bucket_object(bucket_name, file)
 
 
-def create_pipeline_object(code: str, name: str, workspace: Workspace, **kwargs):
-    return Pipeline.objects.create(
-        code=code,
-        name=name,
-        workspace=workspace,
-        **kwargs,
-    )
-
-
 @pipelines_mutations.field("createPipeline")
 def resolve_create_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -53,15 +44,16 @@ def resolve_create_pipeline(_, info, **kwargs):
         }
 
     try:
-        notebook = input.get("notebook")
+        notebook = input.get("notebookPath")
         if notebook:
+            # we need to check if the notebook path exist in the workspace bucket
             get_bucket_object(workspace.bucket_name, notebook)
-            pipeline = create_pipeline_object(
+            pipeline = Pipeline.objects.create(
                 code=input["code"],
                 name=input.get("name"),
                 workspace=workspace,
                 type=PipelineType.NOTEBOOK,
-                notebook=notebook,
+                notebookPath=notebook,
             )
             # automatically create a new version
             pipeline.upload_new_version(
@@ -71,10 +63,11 @@ def resolve_create_pipeline(_, info, **kwargs):
                 parameters=[],
             )
         else:
-            pipeline = create_pipeline_object(
+            pipeline = Pipeline.objects.create(
                 code=input["code"],
                 name=input.get("name"),
                 workspace=workspace,
+                type=PipelineType.ZIPFILE,
             )
 
     except NotFound:

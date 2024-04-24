@@ -167,7 +167,7 @@ class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
 
 class PipelineType(models.TextChoices):
     NOTEBOOK = "notebook", _("Notebook")
-    DEFAULT = "default", _("Default")
+    ZIPFILE = "zipFile", _("ZipFile")
 
 
 class Pipeline(SoftDeletedModel):
@@ -204,9 +204,9 @@ class Pipeline(SoftDeletedModel):
         max_length=200,
         blank=False,
         choices=PipelineType.choices,
-        default=PipelineType.DEFAULT,
+        default=PipelineType.ZIPFILE,
     )
-    notebook = models.CharField(max_length=200, null=True, blank=True)
+    notebookPath = models.TextField(null=True, blank=True)
 
     objects = DefaultSoftDeletedManager.from_queryset(PipelineQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()
