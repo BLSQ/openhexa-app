@@ -139,8 +139,8 @@ type PipelineRecipient {
 }
 
 enum PipelineType {
-  DEFAULT 
-  NOTEBOOK
+  zipFile 
+  notebook
 }
 
 type Pipeline {

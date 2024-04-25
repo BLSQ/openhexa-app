@@ -118,7 +118,7 @@ class PipelineVersion(models.Model):
     name = models.CharField(max_length=250)
     external_link = models.URLField(blank=True, null=True)
     description = models.TextField(null=True)
-    zipfile = models.BinaryField()
+    zipfile = models.BinaryField(null=True)
     parameters = models.JSONField(blank=True, default=dict)
     timeout = models.IntegerField(
         null=True,
@@ -206,7 +206,7 @@ class Pipeline(SoftDeletedModel):
         choices=PipelineType.choices,
         default=PipelineType.ZIPFILE,
     )
-    notebookPath = models.TextField(null=True, blank=True)
+    notebook_path = models.TextField(null=True, blank=True)
 
     objects = DefaultSoftDeletedManager.from_queryset(PipelineQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()
@@ -246,9 +246,9 @@ class Pipeline(SoftDeletedModel):
     def upload_new_version(
         self,
         user: User,
-        zipfile: str,
         parameters: dict,
         name: str,
+        zipfile: str = None,
         description: str = None,
         external_link: str = None,
         timeout: int = None,

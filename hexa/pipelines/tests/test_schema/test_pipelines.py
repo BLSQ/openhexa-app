@@ -117,9 +117,11 @@ class PipelinesV2Test(GraphQLTestCase):
             },
             r["data"]["createPipeline"],
         )
+        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).get()
+
         self.assertEqual(1, len(Pipeline.objects.all()))
         self.assertEqual(1, len(Pipeline.objects.filter_for_user(self.USER_ROOT)))
-        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).get()
+        self.assertEqual(pipeline.type, PipelineType.ZIPFILE)
 
         return pipeline
 

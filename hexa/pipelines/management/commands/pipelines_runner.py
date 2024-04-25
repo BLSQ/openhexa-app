@@ -244,7 +244,6 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
 def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
     from subprocess import PIPE, STDOUT, Popen
 
-    env_vars.pop("HEXA_PIPELINE_NAME", "")
     docker_env = " ".join([f"-e {key}={value}" for key, value in env_vars.items()])
     docker_cmd = f"docker run --privileged -e HEXA_ENVIRONMENT=CLOUD_PIPELINE {docker_env} --network openhexa --platform linux/amd64 --rm {image} pipeline cloudrun"
 

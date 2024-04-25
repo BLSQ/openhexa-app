@@ -44,22 +44,21 @@ def resolve_create_pipeline(_, info, **kwargs):
         }
 
     try:
-        notebook = input.get("notebookPath")
-        if notebook:
+        notebook_path = input.get("notebookPath")
+        if notebook_path:
             # we need to check if the notebook path exist in the workspace bucket
-            get_bucket_object(workspace.bucket_name, notebook)
+            get_bucket_object(workspace.bucket_name, notebook_path)
             pipeline = Pipeline.objects.create(
                 code=input["code"],
                 name=input.get("name"),
                 workspace=workspace,
                 type=PipelineType.NOTEBOOK,
-                notebookPath=notebook,
+                notebook_path=notebook_path,
             )
             # automatically create a new version
             pipeline.upload_new_version(
                 user=request.user,
                 name=input.get("name"),
-                zipfile=base64.b64decode("".encode("ascii")),
                 parameters=[],
             )
         else:

@@ -62,7 +62,7 @@ class ViewsTest(TestCase):
             webhook_enabled=True,
         )
         cls.PIPELINE.upload_new_version(
-            cls.USER_JULIA, b"", name="Version 1", parameters=[]
+            cls.USER_JULIA, zipfile=b"", name="Version 1", parameters=[]
         )
 
     def test_run_pipeline_not_enabled(self):
@@ -162,8 +162,8 @@ class ViewsTest(TestCase):
     ):
         self.PIPELINE.upload_new_version(
             self.USER_JULIA,
-            b"",
             parameters,
+            zipfile=b"",
             name=str(uuid.uuid4()),
         )
         endpoint_url = reverse(
@@ -173,9 +173,11 @@ class ViewsTest(TestCase):
         r = self.client.post(
             endpoint_url,
             content_type=content_type,
-            data=config
-            if "application/json" == content_type
-            else urlencode(config, doseq=True),
+            data=(
+                config
+                if "application/json" == content_type
+                else urlencode(config, doseq=True)
+            ),
         )
         self.assertEqual(r.status_code, 200)
         self.assertEqual(self.PIPELINE.last_run.config, result_config)
