@@ -35,7 +35,7 @@ class BaseClient(ABC):
         NotFound = NotFound
 
     @abstractmethod
-    def create_bucket(self, bucket_name: str):
+    def create_bucket(self, bucket_name: str, *args, **kwargs):
         pass
 
     @abstractmethod

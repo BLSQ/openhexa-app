@@ -84,11 +84,11 @@ def ensure_is_folder(object_key: str):
 
 
 class GCPClient(BaseClient):
-    def create_bucket(self, bucket_name: str):
+    def create_bucket(self, bucket_name: str, labels: dict = None, *args, **kwargs):
         client = get_storage_client()
         try:
             bucket = client.create_bucket(
-                bucket_name, location=settings.WORKSPACE_BUCKET_REGION
+                bucket_name, location=settings.WORKSPACE_BUCKET_REGION, labels=labels
             )
             bucket.storage_class = "STANDARD"  # Default storage class
 
@@ -128,6 +128,7 @@ class GCPClient(BaseClient):
                     "condition": {"isLive": False, "numNewerVersions": 3},
                 },
             ]
+
             bucket.cors = [
                 {
                     "origin": settings.CORS_ALLOWED_ORIGINS,
