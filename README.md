@@ -49,7 +49,7 @@ section of our wiki gives an overview of the local development setup required to
 
 ### Requirements
 
-The Frontend component requires a recent (`v16` or newer) version of [Node.js](https://nodejs.org/).
+The Frontend component requires a recent (`v20` or newer) version of [Node.js](https://nodejs.org/).
 
 We recommend using [`nvm`](https://github.com/nvm-sh/nvm) to manage multiple versions of Node.
 
