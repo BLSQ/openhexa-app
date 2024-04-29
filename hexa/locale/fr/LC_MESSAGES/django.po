@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-24 08:39+0000\n"
+"POT-Creation-Date: 2024-04-29 14:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,148 +18,1743 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: config/settings.py:213
+#: config/settings/base.py:212
 msgid "English"
 msgstr ""
 
-#: config/settings.py:214
+#: config/settings/base.py:213
 msgid "French"
 msgstr ""
 
-#: hexa/catalog/templates/catalog/components/data_header.html:29
-msgid "Never synced"
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:420
+msgid "open('foo"
 msgstr ""
 
-#: hexa/catalog/templates/catalog/index.html:4
-msgid "Data catalog"
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:424
+msgid "open(\"foo"
 msgstr ""
 
-#: hexa/catalog/templates/catalog/search.html:4
-#: hexa/catalog/templates/catalog/search.html:48 hexa/catalog/views.py:66
-#: hexa/core/templates/core/components/quick_search/quick_search.html:13
-#: hexa/core/templates/core/components/quick_search/quick_search.html:60
-msgid "Search"
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:428
+#, python-format
+msgid "%ls foo"
 msgstr ""
 
-#: hexa/catalog/templates/catalog/search.html:38
-#: hexa/core/templates/core/components/quick_search/quick_search.html:74
-msgid "Search for data sources, data elements..."
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:563
+msgid "a[0]."
 msgstr ""
 
-#: hexa/catalog/templates/catalog/search.html:55
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:570
+msgid "a[0].r"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:578
+msgid "a[0].from_"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:585
+msgid "assert str.star"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:592
+msgid "d['a b'].str"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:1552
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:1574
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:1577
+msgid "do not suppress"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:1553
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:1565
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:1568
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:1571
+msgid "suppress all"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:1554
+msgid "suppress all but a"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:1555
+msgid "suppress all but c"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:1603
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:1606
+msgid "---"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/IPython/core/tests/test_completer.py:1609
+msgid "--"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/ariadne_django/scalars/isodate.py:27
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:467
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:1241
+msgid "Enter a valid date."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/ariadne_django/scalars/isodatetime.py:26
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:517
+msgid "Enter a valid date/time."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/ariadne_django/scalars/isotime.py:25
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:490
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:1242
+msgid "Enter a valid time."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/_termui_impl.py:518
+#, python-brace-format
+msgid "{editor}: Editing failed"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/_termui_impl.py:522
+#, python-brace-format
+msgid "{editor}: Editing failed: {e}"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:1120
+msgid "Aborted!"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:1309
+#: venv/lib/python3.9/site-packages/click/decorators.py:559
+msgid "Show this message and exit."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:1340
+#: venv/lib/python3.9/site-packages/click/core.py:1370
+#, python-brace-format
+msgid "(Deprecated) {text}"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:1387
+msgid "Options"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:1413
+#, python-brace-format
+msgid "Got unexpected extra argument ({args})"
+msgid_plural "Got unexpected extra arguments ({args})"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:1429
+msgid "DeprecationWarning: The command {name!r} is deprecated."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:1636
+msgid "Commands"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:1668
+msgid "Missing command."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:1746
+msgid "No such command {name!r}."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:2310
+msgid "Value must be an iterable."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:2331
+#, python-brace-format
+msgid "Takes {nargs} values but 1 was given."
+msgid_plural "Takes {nargs} values but {len} were given."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:2778
+#, python-brace-format
+msgid "env var: {var}"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:2808
+msgid "(dynamic)"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:2821
+#, python-brace-format
+msgid "default: {default}"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/core.py:2834
+msgid "required"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/decorators.py:465
+#, python-format
+msgid "%(prog)s, version %(version)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/decorators.py:528
+msgid "Show the version and exit."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/exceptions.py:44
+#: venv/lib/python3.9/site-packages/click/exceptions.py:80
+#, python-brace-format
+msgid "Error: {message}"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/exceptions.py:72
+#, python-brace-format
+msgid "Try '{command} {option}' for help."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/exceptions.py:121
+#, python-brace-format
+msgid "Invalid value: {message}"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/exceptions.py:123
+#, python-brace-format
+msgid "Invalid value for {param_hint}: {message}"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/exceptions.py:179
+msgid "Missing argument"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/exceptions.py:181
+msgid "Missing option"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/exceptions.py:183
+msgid "Missing parameter"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/exceptions.py:185
+#, python-brace-format
+msgid "Missing {param_type}"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/exceptions.py:192
+#, python-brace-format
+msgid "Missing parameter: {param_name}"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/exceptions.py:212
+#, python-brace-format
+msgid "No such option: {name}"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/exceptions.py:224
+#, python-brace-format
+msgid "Did you mean {possibility}?"
+msgid_plural "(Possible options: {possibilities})"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/click/exceptions.py:262
+msgid "unknown error"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/exceptions.py:269
+msgid "Could not open file {filename!r}: {message}"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/parser.py:231
+msgid "Argument {name!r} takes {nargs} values."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/parser.py:413
+msgid "Option {name!r} does not take a value."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/parser.py:474
+msgid "Option {name!r} requires an argument."
+msgid_plural "Option {name!r} requires {nargs} arguments."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/click/shell_completion.py:319
+msgid "Shell completion is not supported for Bash versions older than 4.4."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/shell_completion.py:326
+msgid "Couldn't detect Bash version, shell completion is not supported."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/termui.py:158
+msgid "Repeat for confirmation"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/termui.py:174
+msgid "Error: The value you entered was invalid."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/termui.py:176
+#, python-brace-format
+msgid "Error: {e.message}"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/termui.py:187
+msgid "Error: The two entered values do not match."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/termui.py:243
+msgid "Error: invalid input"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/termui.py:773
+msgid "Press any key to continue..."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/types.py:266
+#, python-brace-format
 msgid ""
-"\n"
-"                            Enter one or more search terms separated by "
-"spaces. Use \"quotes\" for exact matches.\n"
-"                        "
+"Choose from:\n"
+"\t{choices}"
 msgstr ""
 
-#: hexa/catalog/templates/catalog/search.html:61
-msgid "By type"
+#: venv/lib/python3.9/site-packages/click/types.py:298
+msgid "{value!r} is not {choice}."
+msgid_plural "{value!r} is not one of {choices}."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/click/types.py:392
+msgid "{value!r} does not match the format {format}."
+msgid_plural "{value!r} does not match the formats {formats}."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/click/types.py:414
+msgid "{value!r} is not a valid {number_type}."
 msgstr ""
 
-#: hexa/catalog/templates/catalog/search.html:62
-msgid "By source"
+#: venv/lib/python3.9/site-packages/click/types.py:470
+#, python-brace-format
+msgid "{value} is not in the range {range}."
 msgstr ""
 
-#: hexa/catalog/templates/catalog/search.html:81
-msgid "No results found for your query"
+#: venv/lib/python3.9/site-packages/click/types.py:611
+msgid "{value!r} is not a valid boolean."
 msgstr ""
 
-#: hexa/catalog/templates/catalog/search.html:82
-msgid "Please try another term."
+#: venv/lib/python3.9/site-packages/click/types.py:635
+msgid "{value!r} is not a valid UUID."
 msgstr ""
 
-#: hexa/catalog/views.py:20 hexa/catalog/views.py:65
-#: hexa/plugins/connector_dhis2/views.py:73
-#: hexa/plugins/connector_dhis2/views.py:105
-#: hexa/plugins/connector_dhis2/views.py:181
-#: hexa/plugins/connector_dhis2/views.py:217
-#: hexa/plugins/connector_dhis2/views.py:302
-#: hexa/plugins/connector_dhis2/views.py:350
-#: hexa/plugins/connector_dhis2/views.py:418
-#: hexa/plugins/connector_dhis2/views.py:449
-#: hexa/plugins/connector_dhis2/views.py:517
-#: hexa/plugins/connector_postgresql/views.py:34
-#: hexa/plugins/connector_postgresql/views.py:66
-#: hexa/plugins/connector_postgresql/views.py:109
-#: hexa/plugins/connector_s3/views.py:27 hexa/plugins/connector_s3/views.py:71
-msgid "Catalog"
+#: venv/lib/python3.9/site-packages/click/types.py:822
+msgid "file"
 msgstr ""
 
-#: hexa/catalog/views.py:95
-msgid "The datasource will soon be synced"
+#: venv/lib/python3.9/site-packages/click/types.py:824
+msgid "directory"
 msgstr ""
 
-#: hexa/comments/templates/comments/components/comment.html:22
-#: hexa/ui/datacard/properties.py:342 hexa/ui/datagrid.py:369
-msgid "Just now"
+#: venv/lib/python3.9/site-packages/click/types.py:826
+msgid "path"
 msgstr ""
 
-#: hexa/comments/templates/comments/components/comment.html:24
-msgid "ago"
+#: venv/lib/python3.9/site-packages/click/types.py:877
+msgid "{name} {filename!r} does not exist."
 msgstr ""
 
-#: hexa/comments/templates/comments/components/form.html:14
-msgid "Comment"
+#: venv/lib/python3.9/site-packages/click/types.py:886
+msgid "{name} {filename!r} is a file."
 msgstr ""
 
-#: hexa/comments/templates/comments/components/form.html:28
-#: hexa/ui/templates/ui/datacard/section.html:47
-msgid "Cancel"
+#: venv/lib/python3.9/site-packages/click/types.py:894
+#, python-brace-format
+msgid "{name} '{filename}' is a directory."
 msgstr ""
 
-#: hexa/comments/templates/comments/components/form.html:31
-#: hexa/ui/templates/ui/datacard/section.html:51
-msgid "Save"
+#: venv/lib/python3.9/site-packages/click/types.py:903
+msgid "{name} {filename!r} is not readable."
 msgstr ""
 
-#: hexa/comments/templates/comments/components/page_section_comments.html:3
-msgid "Comments"
+#: venv/lib/python3.9/site-packages/click/types.py:912
+msgid "{name} {filename!r} is not writable."
 msgstr ""
 
-#: hexa/core/date_utils.py:29
+#: venv/lib/python3.9/site-packages/click/types.py:921
+msgid "{name} {filename!r} is not executable."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/click/types.py:988
+#, python-brace-format
+msgid "{len_type} values are required, but {len_value} was given."
+msgid_plural "{len_type} values are required, but {len_value} were given."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/contrib/messages/apps.py:15
+msgid "Messages"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/contrib/sitemaps/apps.py:8
+msgid "Site Maps"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/contrib/staticfiles/apps.py:9
+msgid "Static Files"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/contrib/syndication/apps.py:7
+msgid "Syndication"
+msgstr ""
+
+#. Translators: String used to replace omitted page numbers in elided page
+#. range generated by paginators, e.g. [1, 2, '…', 5, 6, 7, '…', 9, 10].
+#: venv/lib/python3.9/site-packages/django/core/paginator.py:30
+msgid "…"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/paginator.py:50
+msgid "That page number is not an integer"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/paginator.py:52
+msgid "That page number is less than 1"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/paginator.py:54
+msgid "That page contains no results"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:22
+msgid "Enter a valid value."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:104
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:752
+msgid "Enter a valid URL."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:165
+msgid "Enter a valid integer."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:176
+msgid "Enter a valid email address."
+msgstr ""
+
+#. Translators: "letters" means latin letters: a-z and A-Z.
+#: venv/lib/python3.9/site-packages/django/core/validators.py:259
+#, fuzzy
+#| msgid "Enter a valid “slug” consisting of letters, numbers or hyphens."
+msgid ""
+"Enter a valid “slug” consisting of letters, numbers, underscores or hyphens."
+msgstr ""
+"Entrer un « identifiant » valide composé de lettres, chiffres ou tirets."
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:267
+#, fuzzy
+#| msgid "Enter a valid “slug” consisting of letters, numbers or hyphens."
+msgid ""
+"Enter a valid “slug” consisting of Unicode letters, numbers, underscores, or "
+"hyphens."
+msgstr ""
+"Entrer un « identifiant » valide composé de lettres, chiffres ou tirets."
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:279
+#: venv/lib/python3.9/site-packages/django/core/validators.py:287
+#: venv/lib/python3.9/site-packages/django/core/validators.py:316
+msgid "Enter a valid IPv4 address."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:296
+#: venv/lib/python3.9/site-packages/django/core/validators.py:317
+msgid "Enter a valid IPv6 address."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:308
+#: venv/lib/python3.9/site-packages/django/core/validators.py:315
+msgid "Enter a valid IPv4 or IPv6 address."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:351
+msgid "Enter only digits separated by commas."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:357
+#, python-format
+msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:392
+#, python-format
+msgid "Ensure this value is less than or equal to %(limit_value)s."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:401
+#, python-format
+msgid "Ensure this value is greater than or equal to %(limit_value)s."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:410
+#, python-format
+msgid "Ensure this value is a multiple of step size %(limit_value)s."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:420
+#, python-format
+msgid ""
+"Ensure this value has at least %(limit_value)d character (it has "
+"%(show_value)d)."
+msgid_plural ""
+"Ensure this value has at least %(limit_value)d characters (it has "
+"%(show_value)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:438
+#, python-format
+msgid ""
+"Ensure this value has at most %(limit_value)d character (it has "
+"%(show_value)d)."
+msgid_plural ""
+"Ensure this value has at most %(limit_value)d characters (it has "
+"%(show_value)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:461
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:347
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:386
+msgid "Enter a number."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:463
+#, python-format
+msgid "Ensure that there are no more than %(max)s digit in total."
+msgid_plural "Ensure that there are no more than %(max)s digits in total."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:468
+#, python-format
+msgid "Ensure that there are no more than %(max)s decimal place."
+msgid_plural "Ensure that there are no more than %(max)s decimal places."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:473
+#, python-format
+msgid ""
+"Ensure that there are no more than %(max)s digit before the decimal point."
+msgid_plural ""
+"Ensure that there are no more than %(max)s digits before the decimal point."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:544
+#, python-format
+msgid ""
+"File extension “%(extension)s” is not allowed. Allowed extensions are: "
+"%(allowed_extensions)s."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/core/validators.py:605
+msgid "Null characters are not allowed."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/base.py:1423
+#: venv/lib/python3.9/site-packages/django/forms/models.py:893
+msgid "and"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/base.py:1425
+#, python-format
+msgid "%(model_name)s with this %(field_labels)s already exists."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/constraints.py:17
+#, python-format
+msgid "Constraint “%(name)s” is violated."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:128
+#, python-format
+msgid "Value %(value)r is not a valid choice."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:129
+msgid "This field cannot be null."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:130
+msgid "This field cannot be blank."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:131
+#, python-format
+msgid "%(model_name)s with this %(field_label)s already exists."
+msgstr ""
+
+#. Translators: The 'lookup_type' is one of 'date', 'year' or
+#. 'month'. Eg: "Title must be unique for pub_date year"
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:135
+#, python-format
+msgid ""
+"%(field_label)s must be unique for %(date_field_label)s %(lookup_type)s."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:173
+#, python-format
+msgid "Field of type: %(field_type)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1094
+#, python-format
+msgid "“%(value)s” value must be either True or False."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1095
+#, python-format
+msgid "“%(value)s” value must be either True, False, or None."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1097
+msgid "Boolean (Either True or False)"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1147
+#, python-format
+msgid "String (up to %(max_length)s)"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1149
+msgid "String (unlimited)"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1253
+msgid "Comma-separated integers"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1354
+#, python-format
+msgid ""
+"“%(value)s” value has an invalid date format. It must be in YYYY-MM-DD "
+"format."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1358
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1493
+#, python-format
+msgid ""
+"“%(value)s” value has the correct format (YYYY-MM-DD) but it is an invalid "
+"date."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1362
+msgid "Date (without time)"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1489
+#, python-format
+msgid ""
+"“%(value)s” value has an invalid format. It must be in YYYY-MM-DD HH:MM[:ss[."
+"uuuuuu]][TZ] format."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1497
+#, python-format
+msgid ""
+"“%(value)s” value has the correct format (YYYY-MM-DD HH:MM[:ss[.uuuuuu]]"
+"[TZ]) but it is an invalid date/time."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1502
+msgid "Date (with time)"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1626
+#, python-format
+msgid "“%(value)s” value must be a decimal number."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1628
+msgid "Decimal number"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1789
+#, python-format
+msgid ""
+"“%(value)s” value has an invalid format. It must be in [DD] [[HH:]MM:]ss[."
+"uuuuuu] format."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1793
+msgid "Duration"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1845
+msgid "Email address"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1870
+msgid "File path"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1948
+#, python-format
+msgid "“%(value)s” value must be a float."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1950
+msgid "Floating point number"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1990
+#, python-format
+msgid "“%(value)s” value must be an integer."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1992
+#: hexa/plugins/connector_dhis2/models.py:350
+msgid "Integer"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2088
+msgid "Big (8 byte) integer"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2105
+msgid "Small integer"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2113
+msgid "IPv4 address"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2144
+msgid "IP address"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2237
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2238
+#, python-format
+msgid "“%(value)s” value must be either None, True or False."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2240
+msgid "Boolean (Either True, False or None)"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2291
+msgid "Positive big integer"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2306
+msgid "Positive integer"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2321
+msgid "Positive small integer"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2337
+#, python-format
+msgid "Slug (up to %(max_length)s)"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2373
+#: hexa/plugins/connector_dhis2/models.py:337
+msgid "Text"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2448
+#, python-format
+msgid ""
+"“%(value)s” value has an invalid format. It must be in HH:MM[:ss[.uuuuuu]] "
+"format."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2452
+#, python-format
+msgid ""
+"“%(value)s” value has the correct format (HH:MM[:ss[.uuuuuu]]) but it is an "
+"invalid time."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2456
+#: hexa/plugins/connector_dhis2/models.py:346
+msgid "Time"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2564
+#: hexa/plugins/connector_dhis2/models.py:359
+msgid "URL"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2588
+msgid "Raw binary data"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2653
+#, python-format
+msgid "“%(value)s” is not a valid UUID."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2655
+msgid "Universally unique identifier"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/files.py:232
+#: hexa/plugins/connector_dhis2/models.py:360
+#: hexa/plugins/connector_s3/models.py:327
+msgid "File"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/files.py:393
+#: hexa/plugins/connector_dhis2/models.py:361
+msgid "Image"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/json.py:26
+msgid "A JSON object"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/json.py:28
+msgid "Value must be valid JSON."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:919
+#, python-format
+msgid "%(model)s instance with %(field)s %(value)r does not exist."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:921
+msgid "Foreign Key (type determined by related field)"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1212
+msgid "One-to-one relationship"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1269
+#, python-format
+msgid "%(from)s-%(to)s relationship"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1271
+#, python-format
+msgid "%(from)s-%(to)s relationships"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1319
+msgid "Many-to-many relationship"
+msgstr ""
+
+#. Translators: If found as last label character, these punctuation
+#. characters will prevent the default label_suffix to be appended to the label
+#: venv/lib/python3.9/site-packages/django/forms/boundfield.py:184
+msgid ":?.!"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:91
+msgid "This field is required."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:298
+msgid "Enter a whole number."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:551
+msgid "Enter a valid duration."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:552
+#, python-brace-format
+msgid "The number of days must be between {min_days} and {max_days}."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:621
+msgid "No file was submitted. Check the encoding type on the form."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:622
+msgid "No file was submitted."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:623
+msgid "The submitted file is empty."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:625
+#, python-format
+msgid "Ensure this filename has at most %(max)d character (it has %(length)d)."
+msgid_plural ""
+"Ensure this filename has at most %(max)d characters (it has %(length)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:630
+msgid "Please either submit a file or check the clear checkbox, not both."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:694
+msgid ""
+"Upload a valid image. The file you uploaded was either not an image or a "
+"corrupted image."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:857
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:949
+#: venv/lib/python3.9/site-packages/django/forms/models.py:1566
+#, python-format
+msgid "Select a valid choice. %(value)s is not one of the available choices."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:951
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:1070
+#: venv/lib/python3.9/site-packages/django/forms/models.py:1564
+msgid "Enter a list of values."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:1071
+msgid "Enter a complete value."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:1310
+msgid "Enter a valid UUID."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/fields.py:1340
+msgid "Enter a valid JSON."
+msgstr ""
+
+#. Translators: This is the default suffix added to form field labels
+#: venv/lib/python3.9/site-packages/django/forms/forms.py:98
+msgid ":"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/forms.py:244
+#: venv/lib/python3.9/site-packages/django/forms/forms.py:328
+#, python-format
+msgid "(Hidden field %(name)s) %(error)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/formsets.py:63
+#, python-format
+msgid ""
+"ManagementForm data is missing or has been tampered with. Missing fields: "
+"%(field_names)s. You may need to file a bug report if the issue persists."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/formsets.py:67
+#, python-format
+msgid "Please submit at most %(num)d form."
+msgid_plural "Please submit at most %(num)d forms."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/forms/formsets.py:72
+#, python-format
+msgid "Please submit at least %(num)d form."
+msgid_plural "Please submit at least %(num)d forms."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/forms/formsets.py:484
+#: venv/lib/python3.9/site-packages/django/forms/formsets.py:491
+msgid "Order"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/formsets.py:499
+msgid "Delete"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/models.py:886
+#, python-format
+msgid "Please correct the duplicate data for %(field)s."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/models.py:891
+#, python-format
+msgid "Please correct the duplicate data for %(field)s, which must be unique."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/models.py:898
+#, python-format
+msgid ""
+"Please correct the duplicate data for %(field_name)s which must be unique "
+"for the %(lookup)s in %(date_field)s."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/models.py:907
+msgid "Please correct the duplicate values below."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/models.py:1338
+msgid "The inline value did not match the parent instance."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/models.py:1429
+msgid "Select a valid choice. That choice is not one of the available choices."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/models.py:1568
+#, python-format
+msgid "“%(pk)s” is not a valid value."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/utils.py:226
+#, python-format
+msgid ""
+"%(datetime)s couldn’t be interpreted in time zone %(current_timezone)s; it "
+"may be ambiguous or it may not exist."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/widgets.py:463
+msgid "Clear"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/widgets.py:464
+msgid "Currently"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/widgets.py:465
+msgid "Change"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/widgets.py:794
+msgid "Unknown"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/widgets.py:795
+msgid "Yes"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/forms/widgets.py:796
+msgid "No"
+msgstr ""
+
+#. Translators: Please do not add spaces around commas.
+#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:861
+msgid "yes,no,maybe"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:891
+#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:908
+#, python-format
+msgid "%(size)d byte"
+msgid_plural "%(size)d bytes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:910
+#, python-format
+msgid "%s KB"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:912
+#, python-format
+msgid "%s MB"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:914
+#, python-format
+msgid "%s GB"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:916
+#, python-format
+msgid "%s TB"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:918
+#, python-format
+msgid "%s PB"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:73
+msgid "p.m."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:74
+msgid "a.m."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:79
+msgid "PM"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:80
+msgid "AM"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:152
+msgid "midnight"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:154
+msgid "noon"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:7
+#: venv/lib/python3.9/site-packages/tornado/locale.py:295
+msgid "Monday"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:8
+#: venv/lib/python3.9/site-packages/tornado/locale.py:296
+msgid "Tuesday"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:9
+#: venv/lib/python3.9/site-packages/tornado/locale.py:297
+msgid "Wednesday"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:10
+#: venv/lib/python3.9/site-packages/tornado/locale.py:298
+msgid "Thursday"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:11
+#: venv/lib/python3.9/site-packages/tornado/locale.py:299
+msgid "Friday"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:12
+#: venv/lib/python3.9/site-packages/tornado/locale.py:300
+msgid "Saturday"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:13
+#: venv/lib/python3.9/site-packages/tornado/locale.py:301
+msgid "Sunday"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:16
+msgid "Mon"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:17
+msgid "Tue"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:18
+msgid "Wed"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:19
+msgid "Thu"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:20
+msgid "Fri"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:21
+msgid "Sat"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:22
+msgid "Sun"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:25
+#: venv/lib/python3.9/site-packages/tornado/locale.py:281
+msgid "January"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:26
+#: venv/lib/python3.9/site-packages/tornado/locale.py:282
+msgid "February"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:27
+#: venv/lib/python3.9/site-packages/tornado/locale.py:283
+msgid "March"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:28
+#: venv/lib/python3.9/site-packages/tornado/locale.py:284
+msgid "April"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:29
+#: venv/lib/python3.9/site-packages/tornado/locale.py:285
+msgid "May"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:30
+#: venv/lib/python3.9/site-packages/tornado/locale.py:286
+msgid "June"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:31
+#: venv/lib/python3.9/site-packages/tornado/locale.py:287
+msgid "July"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:32
+#: venv/lib/python3.9/site-packages/tornado/locale.py:288
+msgid "August"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:33
+#: venv/lib/python3.9/site-packages/tornado/locale.py:289
+msgid "September"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:34
+#: venv/lib/python3.9/site-packages/tornado/locale.py:290
+msgid "October"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:35
+#: venv/lib/python3.9/site-packages/tornado/locale.py:291
+msgid "November"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:36
+#: venv/lib/python3.9/site-packages/tornado/locale.py:292
+msgid "December"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:39
+msgid "jan"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:40
+msgid "feb"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:41
+msgid "mar"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:42
+msgid "apr"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:43
+msgid "may"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:44
+msgid "jun"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:45
+msgid "jul"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:46
+msgid "aug"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:47
+msgid "sep"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:48
+msgid "oct"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:49
+msgid "nov"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:50
+msgid "dec"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:53
+msgctxt "abbrev. month"
+msgid "Jan."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:54
+msgctxt "abbrev. month"
+msgid "Feb."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:55
+msgctxt "abbrev. month"
+msgid "March"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:56
+msgctxt "abbrev. month"
+msgid "April"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:57
+msgctxt "abbrev. month"
+msgid "May"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:58
+msgctxt "abbrev. month"
+msgid "June"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:59
+msgctxt "abbrev. month"
+msgid "July"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:60
+msgctxt "abbrev. month"
+msgid "Aug."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:61
+msgctxt "abbrev. month"
+msgid "Sept."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:62
+msgctxt "abbrev. month"
+msgid "Oct."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:63
+msgctxt "abbrev. month"
+msgid "Nov."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:64
+msgctxt "abbrev. month"
+msgid "Dec."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:67
+msgctxt "alt. month"
+msgid "January"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:68
+msgctxt "alt. month"
+msgid "February"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:69
+msgctxt "alt. month"
+msgid "March"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:70
+msgctxt "alt. month"
+msgid "April"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:71
+msgctxt "alt. month"
+msgid "May"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:72
+msgctxt "alt. month"
+msgid "June"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:73
+msgctxt "alt. month"
+msgid "July"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:74
+msgctxt "alt. month"
+msgid "August"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:75
+msgctxt "alt. month"
+msgid "September"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:76
+msgctxt "alt. month"
+msgid "October"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:77
+msgctxt "alt. month"
+msgid "November"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/dates.py:78
+msgctxt "alt. month"
+msgid "December"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/ipv6.py:8
+msgid "This is not a valid IPv6 address."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/text.py:84
+#, python-format
+msgctxt "String to return when truncating text"
+msgid "%(truncated_text)s…"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/text.py:269
+msgid "or"
+msgstr ""
+
+#. Translators: This string is used as a separator between list elements
+#: venv/lib/python3.9/site-packages/django/utils/text.py:288
+#: venv/lib/python3.9/site-packages/django/utils/timesince.py:135
+msgid ", "
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/utils/timesince.py:8
+#, python-format
+msgid "%(num)d year"
+msgid_plural "%(num)d years"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/utils/timesince.py:9
+#, python-format
+msgid "%(num)d month"
+msgid_plural "%(num)d months"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/utils/timesince.py:10
+#, python-format
+msgid "%(num)d week"
+msgid_plural "%(num)d weeks"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/utils/timesince.py:11
+#, python-format
+msgid "%(num)d day"
+msgid_plural "%(num)d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/utils/timesince.py:12
+#, python-format
+msgid "%(num)d hour"
+msgid_plural "%(num)d hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/utils/timesince.py:13
+#, python-format
+msgid "%(num)d minute"
+msgid_plural "%(num)d minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.9/site-packages/django/views/csrf.py:111
+msgid "Forbidden"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/csrf.py:112
+msgid "CSRF verification failed. Request aborted."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/csrf.py:116
+msgid ""
+"You are seeing this message because this HTTPS site requires a “Referer "
+"header” to be sent by your web browser, but none was sent. This header is "
+"required for security reasons, to ensure that your browser is not being "
+"hijacked by third parties."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/csrf.py:122
+msgid ""
+"If you have configured your browser to disable “Referer” headers, please re-"
+"enable them, at least for this site, or for HTTPS connections, or for “same-"
+"origin” requests."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/csrf.py:127
+msgid ""
+"If you are using the <meta name=\"referrer\" content=\"no-referrer\"> tag or "
+"including the “Referrer-Policy: no-referrer” header, please remove them. The "
+"CSRF protection requires the “Referer” header to do strict referer checking. "
+"If you’re concerned about privacy, use alternatives like <a "
+"rel=\"noreferrer\" …> for links to third-party sites."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/csrf.py:136
+msgid ""
+"You are seeing this message because this site requires a CSRF cookie when "
+"submitting forms. This cookie is required for security reasons, to ensure "
+"that your browser is not being hijacked by third parties."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/csrf.py:142
+msgid ""
+"If you have configured your browser to disable cookies, please re-enable "
+"them, at least for this site, or for “same-origin” requests."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/csrf.py:148
+msgid "More information is available with DEBUG=True."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:44
+msgid "No year specified"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:64
+#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:115
+#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:214
+msgid "Date out of range"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:94
+msgid "No month specified"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:147
+msgid "No day specified"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:194
+msgid "No week specified"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:349
+#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:380
+#, python-format
+msgid "No %(verbose_name_plural)s available"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:652
+#, python-format
+msgid ""
+"Future %(verbose_name_plural)s not available because %(class_name)s."
+"allow_future is False."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:692
+#, python-format
+msgid "Invalid date string “%(datestr)s” given format “%(format)s”"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/generic/detail.py:56
+#, python-format
+msgid "No %(verbose_name)s found matching the query"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/generic/list.py:70
+msgid "Page is not “last”, nor can it be converted to an int."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/generic/list.py:77
+#, python-format
+msgid "Invalid page (%(page_number)s): %(message)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/generic/list.py:169
+#, python-format
+msgid "Empty list and “%(class_name)s.allow_empty” is False."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/static.py:38
+msgid "Directory indexes are not allowed here."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/static.py:40
+#, python-format
+msgid "“%(path)s” does not exist"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/static.py:79
+#, python-format
+msgid "Index of %(directory)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:7
+#: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:220
+msgid "The install worked successfully! Congratulations!"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:206
+#, python-format
+msgid ""
+"View <a href=\"https://docs.djangoproject.com/en/%(version)s/releases/\" "
+"target=\"_blank\" rel=\"noopener\">release notes</a> for Django %(version)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:221
+#, python-format
+msgid ""
+"You are seeing this page because <a href=\"https://docs.djangoproject.com/en/"
+"%(version)s/ref/settings/#debug\" target=\"_blank\" "
+"rel=\"noopener\">DEBUG=True</a> is in your settings file and you have not "
+"configured any URLs."
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:229
+msgid "Django Documentation"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:230
+msgid "Topics, references, &amp; how-to’s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:238
+msgid "Tutorial: A Polling App"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:239
+msgid "Get started with Django"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:247
+msgid "Django Community"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:248
+msgid "Connect, get help, or contribute"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:371
+msgid "1 second ago"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:377
+msgid "1 minute ago"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:382
+msgid "1 hour ago"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:385
+#, python-format
+msgid "%(time)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:387
+msgid "yesterday"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:387
+#, python-format
+msgid "yesterday at %(time)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:389
+#, python-format
+msgid "%(weekday)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:389
+#, python-format
+msgid "%(weekday)s at %(time)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:392
+#: venv/lib/python3.9/site-packages/tornado/locale.py:445
+#, python-format
+msgid "%(month_name)s %(day)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:394
+#, python-format
+msgid "%(month_name)s %(day)s at %(time)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:399
+#, python-format
+msgid "%(month_name)s %(day)s, %(year)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:401
+#, python-format
+msgid "%(month_name)s %(day)s, %(year)s at %(time)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:439
+#, python-format
+msgid "%(weekday)s, %(month_name)s %(day)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/locale.py:462
+#, python-format
+msgid "%(commas)s and %(last)s"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/test/locale_test.py:68
+msgctxt "law"
+msgid "right"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/test/locale_test.py:69
+msgctxt "good"
+msgid "right"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/test/locale_test.py:70
+#: venv/lib/python3.9/site-packages/tornado/test/locale_test.py:72
+msgctxt "organization"
+msgid "club"
+msgstr ""
+
+#: venv/lib/python3.9/site-packages/tornado/test/locale_test.py:74
+#: venv/lib/python3.9/site-packages/tornado/test/locale_test.py:75
+msgctxt "stick"
+msgid "club"
+msgstr ""
+
+#: hexa/core/date_utils.py:28
 #, python-format
 msgid "%(hours)d hour"
 msgid_plural "%(hours)d hours"
 msgstr[0] ""
 msgstr[1] ""
 
-#: hexa/core/date_utils.py:37
+#: hexa/core/date_utils.py:36
 #, python-format
 msgid "%dh"
 msgstr ""
 
-#: hexa/core/date_utils.py:42
+#: hexa/core/date_utils.py:41
 #, python-format
 msgid "%(minutes)d minute"
 msgid_plural "%(minutes)d minutes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: hexa/core/date_utils.py:50
+#: hexa/core/date_utils.py:49
 #, python-format
 msgid "%dm"
 msgstr ""
 
-#: hexa/core/date_utils.py:55
+#: hexa/core/date_utils.py:54
 #, python-format
 msgid "%(seconds)d second"
 msgid_plural "%(seconds)d seconds"
 msgstr[0] ""
 msgstr[1] ""
 
-#: hexa/core/date_utils.py:63
+#: hexa/core/date_utils.py:62
 #, python-format
 msgid "%ds"
 msgstr ""
 
-#: hexa/core/schema.py:46
-msgid "All datasources are up to date!"
+#: hexa/core/filters.py:11
+msgid "Soft deleted"
+msgstr ""
+
+#: hexa/core/filters.py:12
+msgid "Not Deleted"
 msgstr ""
 
 #: hexa/core/templates/core/components/buttons/button.html:12
 msgid "Missing label"
+msgstr ""
+
+#: hexa/core/templates/core/components/quick_search/quick_search.html:13
+#: hexa/core/templates/core/components/quick_search/quick_search.html:60
+msgid "Search"
+msgstr ""
+
+#: hexa/core/templates/core/components/quick_search/quick_search.html:74
+msgid "Search for data sources, data elements..."
 msgstr ""
 
 #: hexa/core/templates/core/components/quick_search/quick_search.html:81
@@ -197,44 +1792,48 @@ msgstr ""
 msgid "Switch to advanced search"
 msgstr ""
 
-#: hexa/pipelines/datagrids.py:42
-#: hexa/plugins/connector_airflow/datagrids.py:25
-msgid "Last run"
-msgstr ""
-
-#: hexa/pipelines/datagrids.py:43
-#: hexa/plugins/connector_airflow/datagrids.py:26
-msgid "Last state"
-msgstr ""
-
-#: hexa/pipelines/models.py:90
+#: hexa/pipelines/models.py:95
 msgid "Scheduled"
 msgstr ""
 
-#: hexa/pipelines/models.py:91
+#: hexa/pipelines/models.py:96
 msgid "Manual"
 msgstr ""
 
-#: hexa/pipelines/models.py:92
+#: hexa/pipelines/models.py:97
 msgid "Webhook"
 msgstr ""
 
-#: hexa/pipelines/models.py:299 hexa/plugins/connector_airflow/models.py:495
-#: hexa/ui/datacard/properties.py:366 hexa/ui/datagrid.py:510
+#: hexa/pipelines/models.py:169
+msgid "Notebook"
+msgstr ""
+
+#: hexa/pipelines/models.py:170
+msgid "ZipFile"
+msgstr ""
+
+#: hexa/pipelines/models.py:350 hexa/plugins/connector_airflow/models.py:481
 msgid "Success"
 msgstr ""
 
-#: hexa/pipelines/models.py:300 hexa/plugins/connector_airflow/models.py:496
-#: hexa/ui/datacard/properties.py:368 hexa/ui/datagrid.py:512
+#: hexa/pipelines/models.py:351 hexa/plugins/connector_airflow/models.py:482
 msgid "Running"
 msgstr ""
 
-#: hexa/pipelines/models.py:301 hexa/plugins/connector_airflow/models.py:497
+#: hexa/pipelines/models.py:352 hexa/plugins/connector_airflow/models.py:483
 msgid "Failed"
 msgstr ""
 
-#: hexa/pipelines/models.py:302 hexa/plugins/connector_airflow/models.py:498
+#: hexa/pipelines/models.py:353 hexa/plugins/connector_airflow/models.py:484
 msgid "Queued"
+msgstr ""
+
+#: hexa/pipelines/models.py:354 hexa/plugins/connector_airflow/models.py:485
+msgid "terminating"
+msgstr ""
+
+#: hexa/pipelines/models.py:355 hexa/plugins/connector_airflow/models.py:486
+msgid "Stopped"
 msgstr ""
 
 #: hexa/pipelines/templates/pipelines/mails/run_report.html:3
@@ -243,13 +1842,20 @@ msgid "The report for pipeline <b>%(pipeline_code)s</b> is available:"
 msgstr "Le rapport pour la pipeline <b>%(pipeline_code)s</b> est disponible :"
 
 #: hexa/pipelines/templates/pipelines/mails/run_report.html:4
-#, python-format
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "<ul>\n"
+#| "    <li>Status : %(status)s</li>\n"
+#| "    <li>Executed at : %(executed_at)s</li>\n"
+#| "    <li>Duration : %(duration | duration_format:True)s</li>\n"
+#| "</ul>\n"
 msgid ""
 "\n"
 "<ul>\n"
-"    <li>Status : %(status)s</li>\n"
-"    <li>Executed at : %(executed_at)s</li>\n"
-"    <li>Duration : %(duration | duration_format:True)s</li>\n"
+"    <li>Status: %(status)s</li>\n"
+"    <li>Executed at: %(executed_at)s</li>\n"
+"    <li>Duration: %(duration_t)s</li>\n"
 "</ul>\n"
 msgstr ""
 "\n"
@@ -267,21 +1873,27 @@ msgstr "Voir le rapport complet"
 #: hexa/pipelines/templates/pipelines/mails/run_report.txt:11
 #: hexa/user_management/templates/user_management/account_creation_email.html:10
 #: hexa/user_management/templates/user_management/token.txt:7
-#: hexa/workspaces/templates/workspaces/mails/invite_external_user.html:11
-#: hexa/workspaces/templates/workspaces/mails/invite_external_user.txt:7
-#: hexa/workspaces/templates/workspaces/mails/invite_member.html:13
-#: hexa/workspaces/templates/workspaces/mails/invite_member.txt:8
+#: hexa/workspaces/templates/workspaces/mails/invite_user.html:28
+#: hexa/workspaces/templates/workspaces/mails/invite_user.txt:20
 msgid "The OpenHEXA team"
 msgstr "L'équipe OpenHEXA"
 
 #: hexa/pipelines/templates/pipelines/mails/run_report.txt:2
-#, python-format
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "The report for pipeline %(pipeline_code)s is available:\n"
+#| "Status : %(status)s\n"
+#| "Executed at : %(executed_at)s\n"
+#| "Duration : %(duration | duration_format:True)s\n"
+#| "\n"
+#| "Please go to the following page to view it: %(run_url)s\n"
 msgid ""
 "\n"
 "The report for pipeline %(pipeline_code)s is available:\n"
-"Status : %(status)s\n"
-"Executed at : %(executed_at)s\n"
-"Duration : %(duration | duration_format:True)s\n"
+"Status: %(status)s\n"
+"Executed at: %(executed_at)s\n"
+"Duration: %(duration_t)s\n"
 "\n"
 "Please go to the following page to view it: %(run_url)s\n"
 msgstr ""
@@ -291,531 +1903,186 @@ msgstr ""
 "Exécuté le : %(executed_at)s\n"
 "Durée : %(duration | duration_format:True)s\n"
 "\n"
-"Vous pouvez accéder au rapport en cliquant sur le lien suivant : %(run_url)s\n"
+"Vous pouvez accéder au rapport en cliquant sur le lien suivant : "
+"%(run_url)s\n"
 
 #: hexa/pipelines/utils.py:25
 #, python-brace-format
 msgid "Run report of {code} ({state})"
 msgstr "Rapport d'exécution de {code} ({state})"
 
-#: hexa/pipelines/views.py:55
+#: hexa/pipelines/views.py:49
 msgid "The environment will soon be synced"
 msgstr "L'environnement sera bientôt synchronisé"
 
-#: hexa/pipelines/views.py:61
+#: hexa/pipelines/views.py:55
 msgid "The environment could not be synced"
 msgstr ""
 
-#: hexa/plugins/connector_accessmod/models.py:1472
+#: hexa/plugins/connector_accessmod/models.py:1473
 msgid ""
 "Designates that this user has all AccessMod-related permissions without "
 "explicitly assigning them."
 msgstr ""
 
-#: hexa/plugins/connector_airflow/datacards.py:62
-msgid "Airflow Cluster"
-msgstr ""
-
-#: hexa/plugins/connector_airflow/datacards.py:118
-msgid "Airflow DAG"
-msgstr ""
-
-#: hexa/plugins/connector_airflow/datacards.py:186
-msgid "Airflow DAG run"
-msgstr ""
-
-#: hexa/plugins/connector_airflow/last_activities.py:16
-msgid "An unknown user"
-msgstr ""
-
-#: hexa/plugins/connector_airflow/last_activities.py:12
-#, python-format
-msgid "%(user)s launched the <strong>%(dag)s</strong> pipeline."
-msgstr ""
-
-#: hexa/plugins/connector_airflow/models.py:102
+#: hexa/plugins/connector_airflow/models.py:96
 #, python-format
 msgid "%(dag_count)d DAG%(suffix)s"
 msgstr ""
 
-#: hexa/plugins/connector_airflow/templates/connector_airflow/cluster_detail.html:11
-msgid "DAGs"
-msgstr ""
-
-#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_detail.html:11
-msgid "Runs"
-msgstr ""
-
-#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_create.html:17
-#, python-format
-msgid ""
-"\n"
-"        Specify configuration for DAG %(dag_id)s\n"
-"    "
-msgstr ""
-
-#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_create.html:39
-msgid "Run with configuration"
-msgstr ""
-
-#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_create.html:48
-msgid "Pipeline documentation"
-msgstr ""
-
-#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_create.html:57
-msgid "No description yet"
-msgstr ""
-
-#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_create.html:60
-msgid "Sample configuration"
-msgstr ""
-
-#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_create.html:67
-msgid "No sample configuration yet"
-msgstr ""
-
-#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_toggle_favorite.html:7
-#, python-format
-msgid ""
-"\n"
-"        Add DAG RUN %(dag_run.run_id)s to favorites\n"
-"    "
-msgstr ""
-
-#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_toggle_favorite.html:25
-#, python-format
-msgid ""
-"\n"
-"                                        Add the run \"%(dag_run_id)s\" from "
-"the \"%(dag_id)s\" pipeline\n"
-"                                        to your favourites.\n"
-"                                    "
-msgstr ""
-
-#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_toggle_favorite.html:46
-msgid "Add to favorites"
-msgstr ""
-
-#: hexa/plugins/connector_airflow/views.py:41
-#: hexa/plugins/connector_airflow/views.py:109
-#: hexa/plugins/connector_airflow/views.py:165
-#: hexa/plugins/connector_airflow/views.py:200
-#: hexa/plugins/connector_airflow/views.py:260
-msgid "Data Pipelines"
-msgstr ""
-
-#: hexa/plugins/connector_airflow/views.py:148
-msgid "Invalid config provided. Please use valid JSON."
-msgstr ""
-
-#: hexa/plugins/connector_airflow/views.py:167
-msgid "Run with config"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/datacards.py:77 hexa/workspaces/models.py:444
-msgid "DHIS2 Instance"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/datacards.py:121
-msgid "DHIS2 Data Element"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/datacards.py:155
-msgid "DHIS2 Organisation Unit"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/datacards.py:190
-msgid "DHIS2 Indicator"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/datacards.py:219
-msgid "DHIS2 Dataset"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/datagrids.py:167
-msgid "Last synced"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/models.py:196
+#: hexa/plugins/connector_dhis2/models.py:194
 #, python-format
 msgid "%(count)d item%(suffix)s"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:339
+#: hexa/plugins/connector_dhis2/models.py:332
 msgid "Aggregate"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:340
+#: hexa/plugins/connector_dhis2/models.py:333
 msgid "Tracker"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:344
-msgid "Text"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/models.py:345
+#: hexa/plugins/connector_dhis2/models.py:338
 msgid "Long text"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:346
+#: hexa/plugins/connector_dhis2/models.py:339
 msgid "Letter"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:347
+#: hexa/plugins/connector_dhis2/models.py:340
 msgid "Phone number"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:348
+#: hexa/plugins/connector_dhis2/models.py:341
 msgid "Email"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:349
+#: hexa/plugins/connector_dhis2/models.py:342
 msgid "Yes/No"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:350
+#: hexa/plugins/connector_dhis2/models.py:343
 msgid "Yes Only"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:351
+#: hexa/plugins/connector_dhis2/models.py:344
 msgid "Date"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:352
+#: hexa/plugins/connector_dhis2/models.py:345
 msgid "Date & Time"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:353
-msgid "Time"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/models.py:354
+#: hexa/plugins/connector_dhis2/models.py:347
 msgid "Number"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:355
+#: hexa/plugins/connector_dhis2/models.py:348
 msgid "Unit interval"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:356
+#: hexa/plugins/connector_dhis2/models.py:349
 msgid "Percentage"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:357
-msgid "Integer"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/models.py:358
+#: hexa/plugins/connector_dhis2/models.py:351
 msgid "Positive Integer"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:359
+#: hexa/plugins/connector_dhis2/models.py:352
 msgid "Negative Integer"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:360
+#: hexa/plugins/connector_dhis2/models.py:353
 msgid "Positive or Zero Integer"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:361
+#: hexa/plugins/connector_dhis2/models.py:354
 msgid "Tracker Associate"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:362
+#: hexa/plugins/connector_dhis2/models.py:355
 msgid "Username"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:363
+#: hexa/plugins/connector_dhis2/models.py:356
 msgid "Coordinate"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:364
+#: hexa/plugins/connector_dhis2/models.py:357
 msgid "Organisation Unit"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:365
+#: hexa/plugins/connector_dhis2/models.py:358
 msgid "Age"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:366
-msgid "URL"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/models.py:367
-#: hexa/plugins/connector_s3/models.py:335
-msgid "File"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/models.py:368
-msgid "Image"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/models.py:372
+#: hexa/plugins/connector_dhis2/models.py:365
 msgid "Average"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:373
+#: hexa/plugins/connector_dhis2/models.py:366
 msgid "Average sum for org unit"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:374
+#: hexa/plugins/connector_dhis2/models.py:367
 msgid "Count"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:375 hexa/workspaces/models.py:443
+#: hexa/plugins/connector_dhis2/models.py:368 hexa/workspaces/models.py:433
 msgid "Custom"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:376
+#: hexa/plugins/connector_dhis2/models.py:369
 msgid "Default"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:377
+#: hexa/plugins/connector_dhis2/models.py:370
 msgid "Last"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:378
+#: hexa/plugins/connector_dhis2/models.py:371
 msgid "Last average for org unit"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:379
+#: hexa/plugins/connector_dhis2/models.py:372
 msgid "Max"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:380
+#: hexa/plugins/connector_dhis2/models.py:373
 msgid "Min"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:381
+#: hexa/plugins/connector_dhis2/models.py:374
 msgid "None"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:382
+#: hexa/plugins/connector_dhis2/models.py:375
 msgid "Standard Deviation"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:383
+#: hexa/plugins/connector_dhis2/models.py:376
 msgid "Sum"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:384
+#: hexa/plugins/connector_dhis2/models.py:377
 msgid "Variance"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/data_element_detail.html:9
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/organisation_unit_detail.html:14
-msgid "Datasets"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/data_element_list.html:4
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/page.html:17
-msgid "data element"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/dataset_detail.html:9
-msgid "Data elements"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/dataset_list.html:4
-msgid "datasets"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:18
-msgid "Type"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:22
-msgid "Name"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:26
-msgid "Instance"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:29
-msgid "Actions"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:37
-msgid "Data element"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:53
-msgid "Indicator"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:74
-msgid "Configure extract"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:77
-msgid "Choose your extraction options"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:81
-msgid "Period"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:96
-msgid "Delete"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:100
-msgid "Launch extract"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/indicator_list.html:4
-msgid "indicators"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/organisation_unit_detail.html:9
-msgid "Descendants"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/organisation_unit_list.html:4
-msgid "organisation unit"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/page.html:15
-msgid "You have an ongoing DHIS2 extract containing"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/page.html:18
-msgid "and"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/page.html:20
-msgid "indicator"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/templates/connector_dhis2/page.html:25
-msgid "View extract"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/views.py:107
-#: hexa/plugins/connector_dhis2/views.py:183
-msgid "Data Elements"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/views.py:117
-#, python-format
-msgid "Data elements in instance %(instance)s"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/views.py:219
-#: hexa/plugins/connector_dhis2/views.py:305
-msgid "Organisation Units"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/views.py:229
-#, python-format
-msgid "Organisation Units in instance %(instance)s"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/views.py:352
-#: hexa/plugins/connector_dhis2/views.py:420
-msgid "Indicators"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/views.py:362
-#, python-format
-msgid "Indicators in instance %(instance)s"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/views.py:451
-#: hexa/plugins/connector_dhis2/views.py:519
-msgid "Data Sets"
-msgstr ""
-
-#: hexa/plugins/connector_dhis2/views.py:461
-#, python-format
-msgid "Data sets in instance %(instance)s"
-msgstr ""
-
-#: hexa/plugins/connector_postgresql/datacards.py:79
-msgid "PostgreSQL Database"
-msgstr ""
-
-#: hexa/plugins/connector_postgresql/datacards.py:101
-msgid "Row count"
-msgstr ""
-
-#: hexa/plugins/connector_postgresql/datacards.py:117
-msgid "PostgreSQL Table"
-msgstr ""
-
-#: hexa/plugins/connector_postgresql/datagrids.py:17
-#, python-format
-msgid "%(rows)d rows"
-msgstr ""
-
-#: hexa/plugins/connector_postgresql/models.py:86
+#: hexa/plugins/connector_postgresql/models.py:84
 #, python-format
 msgid "%(count)d table%(suffix)s"
 msgstr ""
 
-#: hexa/plugins/connector_postgresql/templates/connector_postgresql/table_list.html:3
-msgid "tables"
-msgstr ""
-
-#: hexa/plugins/connector_postgresql/views.py:72
-#: hexa/plugins/connector_postgresql/views.py:115
-msgid "Tables"
-msgstr ""
-
-#: hexa/plugins/connector_postgresql/views.py:83
-#, python-format
-msgid "Tables in database %(database)s"
-msgstr ""
-
-#: hexa/plugins/connector_s3/datacards.py:25
-#: hexa/plugins/connector_s3/datacards.py:57
-#: hexa/plugins/connector_s3/templates/connector_s3/bucket_detail.html:7
-#: hexa/workspaces/models.py:440
-msgid "S3 Bucket"
-msgstr ""
-
-#: hexa/plugins/connector_s3/models.py:177
+#: hexa/plugins/connector_s3/models.py:176
 #, python-format
 msgid "%(count)d object%(suffix)s"
 msgstr ""
 
-#: hexa/plugins/connector_s3/models.py:330
+#: hexa/plugins/connector_s3/models.py:322
 msgid "Directory"
-msgstr ""
-
-#: hexa/plugins/connector_s3/templates/connector_s3/bucket_detail.html:22
-#: hexa/plugins/connector_s3/templates/connector_s3/object_detail.html:19
-msgid "Details"
-msgstr ""
-
-#: hexa/plugins/connector_s3/templates/connector_s3/bucket_detail.html:23
-#, python-format
-msgid ""
-"\n"
-"                Comments (%(count)s)\n"
-"            "
-msgstr ""
-
-#: hexa/plugins/connector_s3/templates/connector_s3/bucket_detail.html:30
-#: hexa/plugins/connector_s3/templates/connector_s3/components/usage.html:7
-msgid "Usage"
-msgstr ""
-
-#: hexa/plugins/connector_s3/templates/connector_s3/components/action_upload.html:13
-msgid "Upload a file"
-msgstr ""
-
-#: hexa/plugins/connector_s3/templates/connector_s3/object_detail.html:7
-msgid "S3 Object"
-msgstr ""
-
-#: hexa/plugins/connector_s3/templates/connector_s3/object_detail.html:10
-msgid "Download"
-msgstr ""
-
-#: hexa/plugins/connector_s3/templates/connector_s3/object_detail.html:17
-msgid "Content"
 msgstr ""
 
 #: hexa/templates/404.html:9 hexa/templates/500.html:9
@@ -849,160 +2116,47 @@ msgstr ""
 msgid "Untitled page"
 msgstr ""
 
-#: hexa/templates/partials/breadcrumbs.html:9
-msgid "Home"
-msgstr ""
-
-#: hexa/templates/partials/messages.html:61
-msgid "Dismiss"
-msgstr ""
-
-#: hexa/templates/partials/navbar_profile.html:13
-msgid "Open profile menu"
-msgstr ""
-
-#: hexa/templates/partials/navbar_profile.html:36
-msgid "Your account"
-msgstr ""
-
-#: hexa/templates/partials/navbar_profile.html:44
-#: hexa/user_management/models.py:195 hexa/workspaces/models.py:222
-msgid "Admin"
-msgstr ""
-
-#: hexa/templates/partials/navbar_profile.html:49
-msgid "Sign out"
-msgstr ""
-
-#: hexa/ui/datacard/datacard.py:204
-msgid "Save successful!"
-msgstr ""
-
-#: hexa/ui/datacard/properties.py:185
-msgid "Yes"
-msgstr ""
-
-#: hexa/ui/datacard/properties.py:185
-msgid "No"
-msgstr ""
-
-#: hexa/ui/datacard/properties.py:367 hexa/ui/datagrid.py:511
-msgid "Error"
-msgstr ""
-
-#: hexa/ui/datacard/properties.py:369 hexa/ui/datagrid.py:513
-msgid "Pending"
-msgstr ""
-
-#: hexa/ui/datacard/properties.py:370 hexa/ui/datagrid.py:514
-msgid "Unknown"
-msgstr ""
-
-#: hexa/ui/datagrid.py:117
-msgid "Item"
-msgstr ""
-
-#: hexa/ui/datagrid.py:117
-msgid "items"
-msgstr ""
-
-#: hexa/ui/templates/ui/datacard/property_text.html:14
-msgid "Show value"
-msgstr ""
-
-#: hexa/ui/templates/ui/datacard/property_text.html:20
-msgid "Hide value"
-msgstr ""
-
-#: hexa/ui/templates/ui/datacard/section.html:19
-msgid "Edit"
-msgstr ""
-
-#: hexa/ui/templates/ui/datagrid/footer_pagination.html:10
-#: hexa/ui/templates/ui/datagrid/footer_pagination.html:43
-msgid "Previous"
-msgstr ""
-
-#: hexa/ui/templates/ui/datagrid/footer_pagination.html:16
-#: hexa/ui/templates/ui/datagrid/footer_pagination.html:65
-msgid "Next"
-msgstr ""
-
-#: hexa/ui/templates/ui/datagrid/footer_pagination.html:24
-#, python-format
-msgid ""
-"\n"
-"                        Showing <span class=\"font-medium\">%(start_index)s</"
-"span> to\n"
-"                        <span class=\"font-medium\">%(end_index)s</span> of\n"
-"                        <span class=\"font-medium\">%(total_count)s</span> "
-"%(item_label)s\n"
-"                    "
-msgstr ""
-
-#: hexa/ui/templates/ui/datagrid/footer_pagination.html:30
-#, python-format
-msgid ""
-"\n"
-"                        Showing <span class=\"font-medium\">%(total_count)s</"
-"span> %(item_label)s\n"
-"                    "
-msgstr ""
-
-#: hexa/ui/templates/ui/datagrid/footer_view_all.html:7
-#, python-format
-msgid ""
-"\n"
-"                Showing <span class=\"font-medium\">%(current_page_count)s</"
-"span> %(item_label)s\n"
-"            "
-msgstr ""
-
-#: hexa/ui/templates/ui/datagrid/footer_view_all.html:15
-msgid "View all"
-msgstr ""
-
 #: hexa/ui/templates/ui/section/heading.html:6
 msgid "Untitled section"
 msgstr ""
 
-#: hexa/ui/tests/test_datagrid.py:31
-msgid "View"
-msgstr ""
-
-#: hexa/user_management/models.py:30 hexa/user_management/models.py:43
+#: hexa/user_management/models.py:29 hexa/user_management/models.py:42
 msgid "Email and password must be set"
 msgstr ""
 
-#: hexa/user_management/models.py:50
+#: hexa/user_management/models.py:49
 msgid "Superuser must have is_staff=True."
 msgstr ""
 
-#: hexa/user_management/models.py:52
+#: hexa/user_management/models.py:51
 msgid "Superuser must have is_superuser=True."
 msgstr ""
 
-#: hexa/user_management/models.py:83
+#: hexa/user_management/models.py:82
 msgid "email address"
 msgstr ""
 
-#: hexa/user_management/models.py:124
+#: hexa/user_management/models.py:123
 msgid "Corporate"
 msgstr ""
 
-#: hexa/user_management/models.py:125
+#: hexa/user_management/models.py:124
 msgid "Academic"
 msgstr ""
 
-#: hexa/user_management/models.py:126
+#: hexa/user_management/models.py:125
 msgid "Government"
 msgstr ""
 
-#: hexa/user_management/models.py:127
+#: hexa/user_management/models.py:126
 msgid "Non-governmental"
 msgstr ""
 
-#: hexa/user_management/models.py:196
+#: hexa/user_management/models.py:192 hexa/workspaces/models.py:225
+msgid "Admin"
+msgstr ""
+
+#: hexa/user_management/models.py:193
 msgid "Regular"
 msgstr ""
 
@@ -1027,92 +2181,110 @@ msgid "If you weren’t expecting this email, you can safely ignore it."
 msgstr "Si vous n'attendiez pas cet email, vous pouvez l'ignorer."
 
 #. Translators: "letters" means latin letters: a-z.
-#: hexa/workspaces/models.py:57
+#: hexa/workspaces/models.py:62
 msgid "Enter a valid “slug” consisting of letters, numbers or hyphens."
-msgstr "Entrer un « identifiant » valide composé de lettres, chiffres ou tirets."
+msgstr ""
+"Entrer un « identifiant » valide composé de lettres, chiffres ou tirets."
 
-#: hexa/workspaces/models.py:223
+#: hexa/workspaces/models.py:226
 msgid "Editor"
 msgstr "Editeur"
 
-#: hexa/workspaces/models.py:224
+#: hexa/workspaces/models.py:227
 msgid "Viewer"
 msgstr "Lecteur seule"
 
-#: hexa/workspaces/models.py:441
+#: hexa/workspaces/models.py:430
+msgid "S3 Bucket"
+msgstr ""
+
+#: hexa/workspaces/models.py:431
 msgid "GCS Bucket"
 msgstr "Bucket GCS"
 
-#: hexa/workspaces/models.py:442
+#: hexa/workspaces/models.py:432
 msgid "PostgreSQL DB"
 msgstr "DB PostgreSQL"
 
-#: hexa/workspaces/models.py:445
+#: hexa/workspaces/models.py:434
+msgid "DHIS2 Instance"
+msgstr ""
+
+#: hexa/workspaces/models.py:435
 msgid "IASO Instance"
 msgstr "Instance IASO"
 
-#: hexa/workspaces/schema/mutations.py:141
-#, fuzzy, python-brace-format
-#| msgid "You've been added to the workspace {workspace.name}"
-msgid "You've been added to the workspace {workspace_name}"
-msgstr "Vous avez été ajouté à l'espace de travail {workspace.name}"
-
-#: hexa/workspaces/templates/workspaces/mails/invite_external_user.html:3
-#, python-format
+#: hexa/workspaces/templates/workspaces/mails/invite_user.html:5
+#, fuzzy, python-format
+#| msgid ""
+#| "You have been invited to join <b>%(workspace)s</b> workspace by %(owner)s."
 msgid ""
-"You have been invited to join <b>%(workspace)s</b> workspace by %(owner)s."
+"\n"
+"    You have been invited to join <b>%(workspace)s</b> workspace by "
+"%(owner)s on OpenHEXA.\n"
+"\n"
+"    "
 msgstr ""
-"Vous avez été invité à rejoindre l'espace de travail <b>%(workspace)s</b> par %(owner)s."
+"Vous avez été invité à rejoindre l'espace de travail <b>%(workspace)s</b> "
+"par %(owner)s."
 
-#: hexa/workspaces/templates/workspaces/mails/invite_external_user.html:6
-#, python-format
+#: hexa/workspaces/templates/workspaces/mails/invite_user.html:10
+#, fuzzy, python-format
+#| msgid ""
+#| "<p>\n"
+#| "    <a href=\"%(workspace_signup_url)s\">Create your account</a>&nbsp;to "
+#| "join the workspace.\n"
+#| "</p>"
 msgid ""
-"<p>\n"
-"    <a href=\"%(workspace_signup_url)s\">Create your account</a>&nbsp;to "
-"join the workspace.\n"
-"</p>"
+"\n"
+"        <p>\n"
+"            <a href=\"%(url)s\">Create your account</a>&nbsp;to join the "
+"workspace.\n"
+"        </p>\n"
+"    "
 msgstr ""
 "<p>\n"
 "    <a href=\"%(workspace_signup_url)s\">Créer votre compte</a>&nbsp;pour "
 "rejoindre l'espace de travail.\n"
 "</p>"
 
-
-#: hexa/workspaces/templates/workspaces/mails/invite_external_user.txt:2
+#: hexa/workspaces/templates/workspaces/mails/invite_user.html:16
 #, fuzzy, python-format
 #| msgid ""
-#| "You've been invited to join the workspace {invitation.workspace.name} on "
-#| "OpenHexa"
-msgid "You have been invited to join  %(workspace)s workspace by %(owner)s."
-msgstr ""
-"Vous êtes invité à rejoindre l'espace de travail {invitation.workspace.name} "
-"sur OpenHexa"
-
-#: hexa/workspaces/templates/workspaces/mails/invite_external_user.txt:4
-#, python-format
-msgid "Create your account to join the workspace %(workspace_signup_url)s"
-msgstr "Créer votre compte pour rejoindre l'espace de travail %(workspace_signup_url)s"
-
-#: hexa/workspaces/templates/workspaces/mails/invite_member.html:3
-#, python-format
-msgid "You have been added to the workspace <b>%(workspace)s</b> by %(owner)s."
-msgstr "Vous avez été ajouté à l'espace de travail <b>%(workspace)s</b> par %(owner)s."
-
-#: hexa/workspaces/templates/workspaces/mails/invite_member.html:5
-msgid "Please go to the following page to access it:"
-msgstr "Vous pouvez accéder à l'espace de travail en cliquant sur le lien suivant :"
-
-#: hexa/workspaces/templates/workspaces/mails/invite_member.html:8
-msgid "Open the Workspace"
-msgstr "Accéder à l'espace de travail"
-
-#: hexa/workspaces/templates/workspaces/mails/invite_member.txt:2
-#, python-format
+#| "You have been added to the workspace <b>%(workspace)s</b> by %(owner)s."
 msgid ""
 "\n"
-"Your have been added to the workspace %(workspace)s by %(owner)s.\n"
+"    You have been added to the workspace <b>%(workspace)s</b> by %(owner)s.\n"
+"    "
+msgstr ""
+"Vous avez été ajouté à l'espace de travail <b>%(workspace)s</b> par "
+"%(owner)s."
+
+#: hexa/workspaces/templates/workspaces/mails/invite_user.html:20
+#, fuzzy
+#| msgid "Please go to the following page to access it:"
+msgid "Please go to the following page to review your invitations:"
+msgstr ""
+"Vous pouvez accéder à l'espace de travail en cliquant sur le lien suivant :"
+
+#: hexa/workspaces/templates/workspaces/mails/invite_user.html:22
+msgid "Manage invitations"
+msgstr ""
+
+#: hexa/workspaces/templates/workspaces/mails/invite_user.txt:4
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "Your have been added to the workspace %(workspace)s by %(owner)s.\n"
+#| "\n"
+#| "Please go to the following page to access it: %(workspace_url)s\n"
+msgid ""
 "\n"
-"Please go to the following page to access it: %(workspace_url)s\n"
+"    Your have been invited to join the workspace %(workspace)s by "
+"%(owner)s.\n"
+"\n"
+"    Please go to the following page to review your invitations : %(url)s\n"
+"    "
 msgstr ""
 "\n"
 "Vous avez été ajouté à l'espace de travail %(workspace)s par %(owner)s.\n"
@@ -1120,7 +2292,34 @@ msgstr ""
 "Vous pouvez accéder à l'espace de travail en cliquant sur le lien suivant : "
 "%(workspace_url)s\n"
 
-#: hexa/workspaces/utils.py:15
+#: hexa/workspaces/templates/workspaces/mails/invite_user.txt:11
+#, fuzzy, python-format
+#| msgid ""
+#| "You've been invited to join the workspace {invitation.workspace.name} on "
+#| "OpenHexa"
+msgid ""
+"\n"
+"    You have been invited to join  %(workspace)s workspace by %(owner)s.\n"
+"    "
+msgstr ""
+"Vous êtes invité à rejoindre l'espace de travail {invitation.workspace.name} "
+"sur OpenHexa"
+
+#: hexa/workspaces/templates/workspaces/mails/invite_user.txt:15
+#, fuzzy, python-format
+#| msgid "Create your account to join the workspace %(workspace_signup_url)s"
+msgid "Create your account to join the workspace %(url)s"
+msgstr ""
+"Créer votre compte pour rejoindre l'espace de travail "
+"%(workspace_signup_url)s"
+
+#: hexa/workspaces/utils.py:21
+#, fuzzy, python-brace-format
+#| msgid "You've been added to the workspace {workspace.name}"
+msgid "You've been added to the workspace {invitation.workspace.name}"
+msgstr "Vous avez été ajouté à l'espace de travail {workspace.name}"
+
+#: hexa/workspaces/utils.py:26
 #, fuzzy, python-brace-format
 #| msgid ""
 #| "You've been invited to join the workspace {invitation.workspace.name} on "
@@ -1131,3 +2330,6 @@ msgid ""
 msgstr ""
 "Vous êtes invité à rejoindre l'espace de travail {invitation.workspace.name} "
 "sur OpenHexa"
+
+#~ msgid "Open the Workspace"
+#~ msgstr "Accéder à l'espace de travail"

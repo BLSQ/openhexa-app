@@ -1,9 +1,9 @@
 {% load i18n date_utils %}
-{% blocktranslate %}
+{% blocktranslate with duration_t=duration|duration_format:True %}
 The report for pipeline {{pipeline_code}} is available:
-Status : {{status}}
-Executed at : {{executed_at}}
-Duration : {{duration | duration_format:True}}
+Status: {{status}}
+Executed at: {{executed_at}}
+Duration: {{duration_t}}
 
 Please go to the following page to view it: {{ run_url }}
 {% endblocktranslate %}
