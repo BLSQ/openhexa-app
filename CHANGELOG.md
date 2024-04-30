@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.69.2](https://github.com/BLSQ/openhexa-app/compare/0.69.1...0.69.2) (2024-04-30)
+
+
+### Bug Fixes
+
+* **Pipelines:** Fix the way we set the duration inside the translate block ([#692](https://github.com/BLSQ/openhexa-app/issues/692)) ([84fe452](https://github.com/BLSQ/openhexa-app/commit/84fe452835e06bbb6b3bf4093b173285064aeff9))
+
+
+### Miscellaneous
+
+* **GCP:** Set the workspace as a label on the bucket of the workspacee ([#689](https://github.com/BLSQ/openhexa-app/issues/689)) ([366c7a1](https://github.com/BLSQ/openhexa-app/commit/366c7a19a4d839bba86c71b82b03f4efcb063627))
+
 ## [0.69.1](https://github.com/BLSQ/openhexa-app/compare/0.69.0...0.69.1) (2024-04-18)
 
 
