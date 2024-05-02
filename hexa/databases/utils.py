@@ -3,10 +3,16 @@ from dataclasses import dataclass
 
 import psycopg2
 from psycopg2 import sql
+from psycopg2.errors import UndefinedTable
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from hexa.workspaces.models import Workspace
 
 from .api import get_db_server_credentials
+
+
+class TableNotFound(Exception):
+    pass
 
 
 class OrderByDirectionEnum(enum.Enum):
@@ -108,6 +114,22 @@ def get_table_sample_data(workspace: Workspace, table_name: str, n_rows: int = 4
 
             data = cursor.fetchall()
         return data
+    finally:
+        if conn:
+            conn.close()
+
+
+def delete_table(workspace: Workspace, table_name: str):
+    conn = None
+    try:
+        conn = get_workspace_database_connection(workspace)
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(
+                sql.SQL("DROP TABLE {table};").format(table=sql.Identifier(table_name)),
+            )
+    except UndefinedTable:
+        raise TableNotFound
     finally:
         if conn:
             conn.close()

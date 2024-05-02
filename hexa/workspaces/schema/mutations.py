@@ -7,6 +7,7 @@ from django.db import transaction
 from django.http import HttpRequest
 
 from hexa.countries.models import Country
+from hexa.databases.utils import TableNotFound, delete_table
 from hexa.user_management.models import Feature, FeatureFlag, User
 
 from ..models import (
@@ -447,4 +448,36 @@ def resolve_delete_workspace_invitation(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["PERMISSION_DENIED"],
+        }
+
+
+@workspace_mutations.field("deleteWorkspaceDatabaseTable")
+def resolve_delete_workspace_database_table(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=input["workspaceSlug"]
+        )
+        if not request.user.has_perm("workspaces.delete_database_table", workspace):
+            return {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+            }
+
+        delete_table(workspace, input.get("table"))
+        return {
+            "success": True,
+            "errors": [],
+        }
+    except TableNotFound:
+        return {
+            "success": False,
+            "errors": ["TABLE_NOT_FOUND"],
+        }
+    except Workspace.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["WORKSPACE_NOT_FOUND"],
         }
