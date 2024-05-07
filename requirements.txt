@@ -342,7 +342,7 @@ urllib3==1.26.18
     #   sentry-sdk
 websocket-client==1.7.0
     # via kubernetes
-werkzeug==3.0.1
+werkzeug==3.0.3
     # via moto
 wheel==0.42.0
     # via pip-tools
