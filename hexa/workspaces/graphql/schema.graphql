@@ -42,6 +42,7 @@ type WorkspacePermissions {
   manageMembers: Boolean!
   createConnection: Boolean!
   launchNotebookServer: Boolean!
+   deleteDatabaseTable: Boolean!
 }
 
 type WorkspacePage {
@@ -207,6 +208,22 @@ input GenerateWorkspaceTokenInput {
   slug: String!
 }
 
+input DeleteWorkspaceDatabaseTableInput {
+  workspaceSlug: String!
+  table: String!
+}
+
+enum DeleteWorkspaceDatabaseTableError {
+  PERMISSION_DENIED
+  TABLE_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+}
+
+type DeleteWorkspaceDatabaseTableResult {
+  success: Boolean!
+  errors: [DeleteWorkspaceDatabaseTableError!]!
+}
+
 type GenerateWorkspaceTokenResult {
   success: Boolean!
   token: String
@@ -283,6 +300,7 @@ extend type Mutation {
   declineWorkspaceInvitation(input: DeclineWorkspaceInvitationInput!): DeclineWorkspaceInvitationResult! @loginRequired
   resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult! @loginRequired
   deleteWorkspaceInvitation(input: DeleteWorkspaceInvitationInput!): DeleteWorkspaceInvitationResult! @loginRequired
+  deleteWorkspaceDatabaseTable(input: DeleteWorkspaceDatabaseTableInput!): DeleteWorkspaceDatabaseTableResult @loginRequired
 }
 
 ### Connections

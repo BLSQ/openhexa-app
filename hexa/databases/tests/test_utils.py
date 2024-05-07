@@ -1,11 +1,14 @@
 from unittest import mock
 
+from psycopg2.errors import UndefinedTable
 from psycopg2.extras import DictRow
 
 from hexa.core.test import TestCase
 from hexa.databases.utils import (
     OrderByDirectionEnum,
+    TableNotFound,
     TableRowsPage,
+    delete_table,
     get_database_definition,
     get_table_definition,
     get_table_rows,
@@ -179,3 +182,24 @@ class DatabaseUtilsTest(TestCase):
                 3,
             ),
         )
+
+    @mock.patch("psycopg2.connect")
+    def test_delete_database_table_not_found(self, mock_connect):
+        table_name = "database_tutorial"
+
+        mock_context_object = mock_connect.return_value
+        cursor = mock_context_object.cursor.return_value.__enter__.return_value
+        cursor.execute.side_effect = UndefinedTable
+
+        with self.assertRaises(TableNotFound):
+            delete_table(self.WORKSPACE, table_name)
+
+    @mock.patch("psycopg2.connect")
+    def test_delete_database_table(self, mock_connect):
+        table_name = "database_tutorial"
+
+        mock_context_object = mock_connect.return_value
+        cursor = mock_context_object.cursor.return_value.__enter__.return_value
+        cursor.execute.return_value = "DROP TABLE"
+
+        delete_table(self.WORKSPACE, table_name)
