@@ -278,6 +278,13 @@ class Pipeline(SoftDeletedModel):
         if not principal.has_perm("pipelines.update_pipeline", self):
             raise PermissionDenied
 
+        if (
+            kwargs.get("schedule") is not None
+            and self.last_version
+            and self.last_version.is_schedulable is False
+        ):
+            raise PermissionDenied
+
         for key in ["name", "description", "schedule", "config", "webhook_enabled"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])

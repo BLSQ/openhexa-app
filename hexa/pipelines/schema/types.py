@@ -105,11 +105,9 @@ def resolve_pipeline_permissions_run(pipeline: Pipeline, info, **kwargs):
 @pipeline_permissions.field("schedule")
 def resolve_pipeline_permissions_schedule(pipeline: Pipeline, info, **kwargs):
     request = info.context["request"]
-    return (
+    return bool(
         request.user.is_authenticated
-        and request.user.has_perm("pipelines.run_pipeline", pipeline)
-        and pipeline.last_version
-        and pipeline.last_version.is_schedulable
+        and request.user.has_perm("pipelines.schedule_pipeline", pipeline)
     )
 
 

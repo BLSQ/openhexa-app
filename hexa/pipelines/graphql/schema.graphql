@@ -161,6 +161,7 @@ type Pipeline {
   webhookEnabled: Boolean!
   webhookUrl: String
   type: PipelineType!
+  notebookPath: String
 }
 
 type PipelinesPage {
@@ -183,6 +184,7 @@ enum PipelineError {
   PERMISSION_DENIED
   FILE_NOT_FOUND
   TABLE_NOT_FOUND
+  CANNOT_UPDATE_NOTEBOOK_PIPELINE
 }
 
 extend type Query {

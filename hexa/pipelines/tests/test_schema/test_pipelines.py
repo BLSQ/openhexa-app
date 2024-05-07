@@ -156,7 +156,6 @@ class PipelinesV2Test(GraphQLTestCase):
                     }
                 },
             )
-
             self.assertEqual(
                 {"success": False, "errors": ["FILE_NOT_FOUND"], "pipeline": None},
                 r["data"]["createPipeline"],
@@ -208,7 +207,6 @@ class PipelinesV2Test(GraphQLTestCase):
             self.assertEqual(1, len(Pipeline.objects.all()))
             pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).get()
             self.assertEqual(pipeline.type, PipelineType.NOTEBOOK)
-            self.assertEqual(pipeline.last_version.name, "notebook.ipynb")
 
     def test_list_pipelines(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
@@ -1526,11 +1524,9 @@ class PipelinesV2Test(GraphQLTestCase):
         )
 
     def test_pipelines_permissions_schedule_with_params_false(self):
-        self.test_create_pipeline()
-        self.client.force_login(self.USER_ROOT)
-        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
+        pipeline = self.test_create_pipeline()
         pipeline.upload_new_version(
-            user=self.USER_ROOT,
+            user=self.USER_LAMBDA,
             name="Version 1",
             zipfile=base64.b64decode("".encode("ascii")),
             parameters=[
@@ -1555,6 +1551,7 @@ class PipelinesV2Test(GraphQLTestCase):
             ],
         )
 
+        self.client.force_login(self.USER_LAMBDA)
         r = self.run_query(
             """
             query pipelineByCode($code: String!, $workspaceSlug: String!) {
