@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.47.1](https://github.com/BLSQ/openhexa-frontend/compare/0.47.0...0.47.1) (2024-04-26)
+
+
+### Miscellaneous
+
+* **Package:** Set node.js version to &gt;= 20 ([bcbcf8f](https://github.com/BLSQ/openhexa-frontend/commit/bcbcf8f556be5d9341dd3e79d873ac2cc5e6e1f2))
+
 ## [0.47.0](https://github.com/BLSQ/openhexa-frontend/compare/0.46.0...0.47.0) (2024-04-15)
 
 
