@@ -88,7 +88,7 @@ class GCPClient(BaseClient):
         client = get_storage_client()
         try:
             bucket = client.create_bucket(
-                bucket_name, location=settings.WORKSPACE_BUCKET_REGION, labels=labels
+                bucket_name, location=settings.WORKSPACE_BUCKET_REGION
             )
             bucket.storage_class = "STANDARD"  # Default storage class
 
@@ -128,6 +128,8 @@ class GCPClient(BaseClient):
                     "condition": {"isLive": False, "numNewerVersions": 3},
                 },
             ]
+
+            bucket.labels = labels
 
             bucket.cors = [
                 {
