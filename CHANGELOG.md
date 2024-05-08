@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.69.3](https://github.com/BLSQ/openhexa-app/compare/0.69.2...0.69.3) (2024-05-08)
+
+
+### Bug Fixes
+
+* **Buckets:** Fix the way we set the labels on the gcp bucket ([97ea340](https://github.com/BLSQ/openhexa-app/commit/97ea340cc111232a4e40ff0e47c5784f5a6cdfea))
+
 ## [0.69.2](https://github.com/BLSQ/openhexa-app/compare/0.69.1...0.69.2) (2024-04-30)
 
 
