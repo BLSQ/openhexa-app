@@ -23,30 +23,6 @@ class PodTerminationReason(Enum):
     DeadlineExceeded = "DeadlineExceeded"
 
 
-def build_run_env(target, env_vars: dict):
-    from kubernetes.client import models as k8s
-
-    if target == "docker":
-        env_vars.pop("HEXA_PIPELINE_NAME", "")
-        return " ".join([f"-e {key}={value}" for key, value in env_vars.items()])
-    elif target == "kubernetes":
-        env = [
-            k8s.V1EnvVar(
-                name=key,
-                value=value,
-            )
-            for key, value in env_vars.items()
-        ]
-
-        return [
-            k8s.V1EnvVar(
-                name="HEXA_ENVIRONMENT",
-                value="CLOUD_PIPELINE",
-            ),
-            *env,
-        ]
-
-
 def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
     from kubernetes import config
     from kubernetes.client import CoreV1Api

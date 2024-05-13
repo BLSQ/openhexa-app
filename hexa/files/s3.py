@@ -266,7 +266,6 @@ class S3Client(BaseClient):
         page: int = 1,
         per_page=30,
         query=None,
-        ignore_delimiter=False,
         ignore_hidden_files=True,
     ):
         prefix = prefix or ""
@@ -277,17 +276,12 @@ class S3Client(BaseClient):
 
         pages = paginator.paginate(
             Bucket=bucket_name,
-            Delimiter="" if ignore_delimiter else "/",
+            Delimiter="/",
             Prefix=prefix,
         )
 
         def is_object_match_query(obj):
-            is_hidden = (
-                obj["name"].startswith(".")
-                or obj["key"].startswith(".")
-                or "/." in obj["key"]
-            )
-            if ignore_hidden_files and is_hidden:
+            if ignore_hidden_files and obj["name"].startswith("."):
                 return False
             if not query:
                 return True

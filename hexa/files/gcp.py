@@ -217,7 +217,6 @@ class GCPClient(BaseClient):
         page: int = 1,
         per_page=30,
         query=None,
-        ignore_delimiter=False,
         ignore_hidden_files=True,
     ):
         """Returns the list of objects in a bucket with pagination support.
@@ -239,7 +238,7 @@ class GCPClient(BaseClient):
             prefix=prefix,
             # We take twice the number of items to be sure to have enough
             page_size=per_page * 2,
-            delimiter="" if ignore_delimiter else "/",
+            delimiter="/",
             include_trailing_delimiter=True,
         )
         max_items = (page * per_page) + 1
@@ -249,12 +248,7 @@ class GCPClient(BaseClient):
         objects = []
 
         def is_object_match_query(obj):
-            is_hidden = (
-                obj["name"].startswith(".")
-                or obj["key"].startswith(".")
-                or "/." in obj["key"]
-            )
-            if ignore_hidden_files and is_hidden:
+            if ignore_hidden_files and obj["name"].startswith("."):
                 return False
             if not query:
                 return True
