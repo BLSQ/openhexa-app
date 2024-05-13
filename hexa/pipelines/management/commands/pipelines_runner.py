@@ -269,6 +269,7 @@ def run_pipeline(run: PipelineRun):
         "HEXA_WORKSPACE": run.pipeline.workspace.slug,
         "HEXA_RUN_ID": str(run.id),
         "HEXA_PIPELINE_NAME": run.pipeline.name,
+        "HEXA_PIPELINE_TYPE": run.pipeline.type,
     }
     if run.pipeline.type == PipelineType.NOTEBOOK:
         env_vars.update({"HEXA_NOTEBOOK_PATH": run.pipeline.notebookPath})
