@@ -42,11 +42,12 @@ enum ParameterTypes {
   str
   float
   dataset
-  dhis2connection
-  postgresqlConnection
-  iasoconnection
-  s3connection
-  gcsconnection
+  dhis2
+  postgresql
+  iaso
+  s3
+  gcs
+  custom
 }
 
 type PipelineParameter {

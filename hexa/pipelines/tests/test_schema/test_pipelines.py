@@ -17,6 +17,10 @@ from hexa.pipelines.models import (
     PipelineRunState,
     PipelineRunTrigger,
 )
+from hexa.pipelines.tests.test_schema.fixtures_for_pipelines import (
+    pipelines_parameters_with_connections,
+    pipelines_parameters_with_scalars,
+)
 from hexa.pipelines.utils import mail_run_recipients
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
@@ -265,7 +269,7 @@ class PipelinesV2Test(GraphQLTestCase):
             r["data"]["uploadPipeline"],
         )
 
-    def test_create_pipeline_w_parameters(self):
+    def test_create_pipeline_w_scalar_parameters(self):
         self.test_create_pipeline()
         self.assertEqual(1, len(Pipeline.objects.all()))
 
@@ -286,18 +290,7 @@ class PipelinesV2Test(GraphQLTestCase):
                     "code": pipeline.code,
                     "workspaceSlug": self.WS1.slug,
                     "name": "Version w parameters",
-                    "parameters": [
-                        {
-                            "code": "param1",
-                            "name": "Param 1",
-                            "type": "str",
-                            "help": "Param 1's Help",
-                            "default": "default value",
-                            "multiple": True,
-                            "required": True,
-                            "choices": ["Choice 1", "Choice 2"],
-                        }
-                    ],
+                    "parameters": pipelines_parameters_with_scalars,
                     "zipfile": "",
                 }
             },
@@ -332,22 +325,73 @@ class PipelinesV2Test(GraphQLTestCase):
             """,
             {"id": str(pipeline.id)},
         )
-        print(f"r = {r}")
         self.assertEqual(
             r["data"]["pipeline"]["currentVersion"],
             {
-                "parameters": [
-                    {
-                        "code": "param1",
-                        "name": "Param 1",
-                        "type": "str",
-                        "help": "Param 1's Help",
-                        "default": "default value",
-                        "multiple": True,
-                        "required": True,
-                        "choices": ["Choice 1", "Choice 2"],
+                "parameters": pipelines_parameters_with_scalars,
+            },
+        )
+
+    def test_create_pipeline_w_conn_parameters(self):
+        self.test_create_pipeline()
+        self.assertEqual(1, len(Pipeline.objects.all()))
+
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                    pipelineVersion { name }
+                }
+            }""",
+            {
+                "input": {
+                    "code": pipeline.code,
+                    "workspaceSlug": self.WS1.slug,
+                    "name": "Version w parameters",
+                    "parameters": pipelines_parameters_with_connections,
+                    "zipfile": "",
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "pipelineVersion": {"name": "Version w parameters"},
+                "errors": [],
+            },
+            r["data"]["uploadPipeline"],
+        )
+
+        r = self.run_query(
+            """
+            query ($id: UUID!) {
+                pipeline(id: $id) {
+                    currentVersion {
+                        parameters {
+                            code
+                            name
+                            type
+                            help
+                            default
+                            multiple
+                            required
+                            choices
+                        }
                     }
-                ],
+                }
+            }
+            """,
+            {"id": str(pipeline.id)},
+        )
+        self.assertEqual(
+            r["data"]["pipeline"]["currentVersion"],
+            {
+                "parameters": pipelines_parameters_with_connections,
             },
         )
 
