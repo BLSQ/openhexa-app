@@ -36,10 +36,24 @@ enum PipelineRunStatus {
   terminating
 }
 
+enum ParameterType {
+  bool
+  int
+  str
+  float
+  dataset
+  dhis2
+  postgresql
+  iaso
+  s3
+  gcs
+  custom
+}
+
 type PipelineParameter {
   code: String!
   name: String!
-  type: String!
+  type: ParameterType!
   multiple: Boolean!
   required: Boolean!
   default: Generic
