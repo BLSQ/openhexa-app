@@ -18,6 +18,7 @@ from hexa.pipelines.models import (
     PipelineRunTrigger,
 )
 from hexa.pipelines.tests.test_schema.fixtures_for_pipelines import (
+    pipelines_parameters_unvalid,
     pipelines_parameters_with_connections,
     pipelines_parameters_with_scalars,
 )
@@ -393,6 +394,67 @@ class PipelinesV2Test(GraphQLTestCase):
             {
                 "parameters": pipelines_parameters_with_connections,
             },
+        )
+
+    def test_create_pipeline_w_unvalid_parameters(self):
+        self.test_create_pipeline()
+        self.assertEqual(1, len(Pipeline.objects.all()))
+
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                    pipelineVersion { name }
+                }
+            }""",
+            {
+                "input": {
+                    "code": pipeline.code,
+                    "workspaceSlug": self.WS1.slug,
+                    "name": "Version w parameters",
+                    "parameters": pipelines_parameters_unvalid,
+                    "zipfile": "",
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "pipelineVersion": {"name": "Version w parameters"},
+                "errors": [],
+            },
+            r["data"]["uploadPipeline"],
+        )
+
+        r = self.run_query(
+            """
+            query ($id: UUID!) {
+                pipeline(id: $id) {
+                    currentVersion {
+                        parameters {
+                            code
+                            name
+                            type
+                            help
+                            default
+                            multiple
+                            required
+                            choices
+                        }
+                    }
+                }
+            }
+            """,
+            {"id": str(pipeline.id)},
+        )
+        self.assertEqual(
+            "Enum 'ParameterType' cannot represent value: 'dhis3'",
+            r["errors"][0]["message"],
         )
 
     def test_delete_pipeline_permission_denied(self):

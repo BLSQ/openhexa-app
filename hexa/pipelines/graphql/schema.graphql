@@ -36,7 +36,7 @@ enum PipelineRunStatus {
   terminating
 }
 
-enum ParameterTypes {
+enum ParameterType {
   bool
   int
   str
@@ -53,7 +53,7 @@ enum ParameterTypes {
 type PipelineParameter {
   code: String!
   name: String!
-  type: ParameterTypes
+  type: ParameterType!
   multiple: Boolean!
   required: Boolean!
   default: Generic

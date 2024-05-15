@@ -113,3 +113,16 @@ pipelines_parameters_with_connections = [
         "choices": [],
     },
 ]
+
+pipelines_parameters_unvalid = [
+    {
+        "code": "param1",
+        "name": "Param 1",
+        "type": "dhis3",
+        "help": "Param 1's Help",
+        "default": "default value",
+        "multiple": False,
+        "required": False,
+        "choices": [],
+    }
+]
