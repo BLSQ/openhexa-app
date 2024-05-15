@@ -146,7 +146,7 @@ export type WorkspaceDatabaseTablePageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceDatabaseTablePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, database: { __typename?: 'Database', table?: { __typename?: 'DatabaseTable', name: string, count?: number | null, columns: Array<{ __typename?: 'TableColumn', name: string, type: string }> } | null }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
+export type WorkspaceDatabaseTablePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', deleteDatabaseTable: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, database: { __typename?: 'Database', table?: { __typename?: 'DatabaseTable', name: string, count?: number | null, columns: Array<{ __typename?: 'TableColumn', name: string, type: string }> } | null }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type ConnectionsPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -994,6 +994,9 @@ export const WorkspaceDatabaseTablePageDocument = gql`
   workspace(slug: $workspaceSlug) {
     slug
     name
+    permissions {
+      deleteDatabaseTable
+    }
     database {
       table(name: $tableName) {
         name

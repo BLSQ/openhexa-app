@@ -1245,8 +1245,7 @@ export enum DeletePipelineVersionError {
 }
 
 export type DeletePipelineVersionInput = {
-  pipelineId: Scalars['UUID']['input'];
-  versionId: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 };
 
 export type DeletePipelineVersionResult = {
@@ -1267,6 +1266,23 @@ export type DeleteTeamInput = {
 export type DeleteTeamResult = {
   __typename?: 'DeleteTeamResult';
   errors: Array<DeleteTeamError>;
+  success: Scalars['Boolean']['output'];
+};
+
+export enum DeleteWorkspaceDatabaseTableError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  TableNotFound = 'TABLE_NOT_FOUND',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+export type DeleteWorkspaceDatabaseTableInput = {
+  table: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
+};
+
+export type DeleteWorkspaceDatabaseTableResult = {
+  __typename?: 'DeleteWorkspaceDatabaseTableResult';
+  errors: Array<DeleteWorkspaceDatabaseTableError>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -1630,6 +1646,7 @@ export type Mutation = {
   deletePipelineVersion: DeletePipelineVersionResult;
   deleteTeam: DeleteTeamResult;
   deleteWorkspace: DeleteWorkspaceResult;
+  deleteWorkspaceDatabaseTable?: Maybe<DeleteWorkspaceDatabaseTableResult>;
   deleteWorkspaceInvitation: DeleteWorkspaceInvitationResult;
   deleteWorkspaceMember: DeleteWorkspaceMemberResult;
   denyAccessmodAccessRequest: DenyAccessmodAccessRequestResult;
@@ -1847,6 +1864,11 @@ export type MutationDeleteTeamArgs = {
 
 export type MutationDeleteWorkspaceArgs = {
   input: DeleteWorkspaceInput;
+};
+
+
+export type MutationDeleteWorkspaceDatabaseTableArgs = {
+  input: DeleteWorkspaceDatabaseTableInput;
 };
 
 
@@ -2227,11 +2249,8 @@ export type PipelinePermissions = {
   __typename?: 'PipelinePermissions';
   createVersion: Scalars['Boolean']['output'];
   delete: Scalars['Boolean']['output'];
-  /** @deprecated Use 'delete' field in 'PipelineVersionPermissions' instead */
-  deleteVersion: Scalars['Boolean']['output'];
   run: Scalars['Boolean']['output'];
   schedule: Scalars['Boolean']['output'];
-  /** @deprecated Use 'stop' field in 'PipelinePermissions' instead */
   stopPipeline: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
@@ -2343,7 +2362,6 @@ export type PipelineVersionPage = {
 export type PipelineVersionPermissions = {
   __typename?: 'PipelineVersionPermissions';
   delete: Scalars['Boolean']['output'];
-  stop: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 
@@ -3377,6 +3395,7 @@ export type WorkspacePermissions = {
   createObject: Scalars['Boolean']['output'];
   createPipeline: Scalars['Boolean']['output'];
   delete: Scalars['Boolean']['output'];
+  deleteDatabaseTable: Scalars['Boolean']['output'];
   deleteObject: Scalars['Boolean']['output'];
   downloadObject: Scalars['Boolean']['output'];
   launchNotebookServer: Scalars['Boolean']['output'];

@@ -1063,8 +1063,7 @@ enum DeletePipelineVersionError {
 }
 
 input DeletePipelineVersionInput {
-  pipelineId: UUID!
-  versionId: UUID!
+  id: UUID!
 }
 
 type DeletePipelineVersionResult {
@@ -1084,6 +1083,22 @@ input DeleteTeamInput {
 type DeleteTeamResult {
   success: Boolean!
   errors: [DeleteTeamError!]!
+}
+
+enum DeleteWorkspaceDatabaseTableError {
+  PERMISSION_DENIED
+  TABLE_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+}
+
+input DeleteWorkspaceDatabaseTableInput {
+  workspaceSlug: String!
+  table: String!
+}
+
+type DeleteWorkspaceDatabaseTableResult {
+  success: Boolean!
+  errors: [DeleteWorkspaceDatabaseTableError!]!
 }
 
 enum DeleteWorkspaceError {
@@ -1483,6 +1498,7 @@ type Mutation {
   declineWorkspaceInvitation(input: DeclineWorkspaceInvitationInput!): DeclineWorkspaceInvitationResult!
   resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult!
   deleteWorkspaceInvitation(input: DeleteWorkspaceInvitationInput!): DeleteWorkspaceInvitationResult!
+  deleteWorkspaceDatabaseTable(input: DeleteWorkspaceDatabaseTableInput!): DeleteWorkspaceDatabaseTableResult
   createConnection(input: CreateConnectionInput!): CreateConnectionResult!
   updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult!
   deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult!
@@ -1615,8 +1631,7 @@ type PipelinePermissions {
   run: Boolean!
   schedule: Boolean!
   createVersion: Boolean!
-  stopPipeline: Boolean! @deprecated(reason: "Use 'stop' field in 'PipelinePermissions' instead")
-  deleteVersion: Boolean! @deprecated(reason: "Use 'delete' field in 'PipelineVersionPermissions' instead")
+  stopPipeline: Boolean!
 }
 
 type PipelineRecipient {
@@ -1725,7 +1740,6 @@ type PipelineVersionPage {
 type PipelineVersionPermissions {
   update: Boolean!
   delete: Boolean!
-  stop: Boolean!
 }
 
 input PrepareAccessmodFileDownloadInput {
@@ -2500,6 +2514,7 @@ type WorkspacePermissions {
   manageMembers: Boolean!
   createConnection: Boolean!
   launchNotebookServer: Boolean!
+  deleteDatabaseTable: Boolean!
   createPipeline: Boolean!
   createObject: Boolean!
   deleteObject: Boolean!

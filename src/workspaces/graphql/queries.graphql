@@ -392,6 +392,9 @@ query WorkspaceDatabaseTablePage($workspaceSlug: String!, $tableName: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    permissions {
+      deleteDatabaseTable
+    }
     database {
       table(name: $tableName) {
         name

@@ -1,3 +1,10 @@
+import { gql } from "@apollo/client";
+import { getApolloClient } from "core/helpers/apollo";
+import {
+  DeleteWorkspaceDatabaseTableMutation,
+  DeleteWorkspaceDatabaseTableMutationVariables,
+} from "./database.generated";
+
 type lang = "R" | "PYTHON";
 
 export const getReadTableSnippet = (tableName: string) => {
@@ -43,3 +50,28 @@ dbWriteTable(con, "${tableName}", Data_fin, overwrite=TRUE)`;
   }
   return text;
 };
+
+export async function deleteTable(workspace: string, tableName: string) {
+  const client = getApolloClient();
+  const { data } = await client.mutate<
+    DeleteWorkspaceDatabaseTableMutation,
+    DeleteWorkspaceDatabaseTableMutationVariables
+  >({
+    mutation: gql`
+      mutation deleteWorkspaceDatabaseTable(
+        $input: DeleteWorkspaceDatabaseTableInput!
+      ) {
+        deleteWorkspaceDatabaseTable(input: $input) {
+          success
+          errors
+        }
+      }
+    `,
+    variables: { input: { workspaceSlug: workspace, table: tableName } },
+  });
+
+  if (!data?.deleteWorkspaceDatabaseTable?.success) {
+    throw new Error("Impossible to delete table");
+  }
+  return true;
+}

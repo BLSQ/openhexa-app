@@ -1,4 +1,4 @@
-import { ViewColumnsIcon } from "@heroicons/react/24/outline";
+import { TrashIcon, ViewColumnsIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
@@ -12,6 +12,7 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import DatabaseTableDataGrid from "workspaces/features/DatabaseTableDataGrid/DatabaseTableDataGrid";
+import DeleteDatabaseTableTrigger from "workspaces/features/DeleteDatabaseTableTrigger";
 import {
   WorkspaceDatabaseTablePageDocument,
   WorkspaceDatabaseTablePageQuery,
@@ -38,6 +39,7 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = ({
       tableName: router.query.tableId as string,
     },
   });
+
   const [displayColumns, setDisplayColumns] = useState<
     { name: string; type: string }[]
   >(data?.workspace?.database.table?.columns ?? []);
@@ -101,6 +103,17 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = ({
               {table.name}
             </Breadcrumbs.Part>
           </Breadcrumbs>
+          <DeleteDatabaseTableTrigger workspace={workspace} table={table}>
+            {({ onClick }) => (
+              <Button
+                className="bg-red-500 hover:bg-red-700 focus:ring-red-500"
+                onClick={onClick}
+                leadingIcon={<TrashIcon className="w-4" />}
+              >
+                {t("Delete")}
+              </Button>
+            )}
+          </DeleteDatabaseTableTrigger>
         </WorkspaceLayout.Header>
         <WorkspaceLayout.PageContent className="space-y-4">
           <div className="flex justify-end">
