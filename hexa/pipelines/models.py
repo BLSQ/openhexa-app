@@ -219,6 +219,9 @@ class Pipeline(SoftDeletedModel):
         config: typing.Mapping[typing.Dict, typing.Any] = None,
         send_mail_notifications: bool = False,
     ):
+        timeout = settings.PIPELINE_RUN_DEFAULT_TIMEOUT
+        if pipeline_version and pipeline_version.timeout:
+            timeout = pipeline_version.timeout
         run = PipelineRun.objects.create(
             user=user,
             pipeline=self,
@@ -230,11 +233,7 @@ class Pipeline(SoftDeletedModel):
             config=config if config else self.config,
             access_token=str(uuid.uuid4()),
             send_mail_notifications=send_mail_notifications,
-            timeout=(
-                pipeline_version.timeout
-                if pipeline_version.timeout
-                else settings.PIPELINE_RUN_DEFAULT_TIMEOUT
-            ),
+            timeout=timeout,
         )
 
         return run
@@ -379,7 +378,9 @@ class PipelineRun(Base, WithStatus):
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     pipeline = models.ForeignKey("Pipeline", on_delete=models.CASCADE)
-    pipeline_version = models.ForeignKey("PipelineVersion", on_delete=models.CASCADE)
+    pipeline_version = models.ForeignKey(
+        "PipelineVersion", null=True, on_delete=models.CASCADE
+    )
     run_id = models.CharField(max_length=200, blank=False)
     execution_date = models.DateTimeField()
     last_heartbeat = models.DateTimeField(auto_now_add=True)

@@ -7,6 +7,7 @@ from enum import Enum
 from logging import getLogger
 from time import sleep
 
+import requests
 from django import db
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -218,22 +219,41 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
 
 
 def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
-    from subprocess import PIPE, STDOUT, Popen
+    import docker
+    import urllib3
 
-    docker_env = " ".join([f"-e {key}={value}" for key, value in env_vars.items()])
-    docker_cmd = f"docker run --privileged -e HEXA_ENVIRONMENT=CLOUD_PIPELINE {docker_env} --network openhexa --platform linux/amd64 --rm {image} pipeline cloudrun"
+    del env_vars[
+        "HEXA_PIPELINE_NAME"
+    ]  # If there are spaces in the pipeline name, it will break the command
 
-    cmd = docker_cmd.split(" ") + [
-        "--config",
-        f"{base64.b64encode(json.dumps(run.config).encode('utf-8')).decode('utf-8')}",
-    ]
-
-    proc = Popen(
-        cmd,
-        stdout=PIPE,
-        stderr=STDOUT,
-        close_fds=True,
+    cmd = (
+        'pipeline cloudrun --config="'
+        + base64.b64encode(json.dumps(run.config).encode("utf-8")).decode("utf-8")
+        + '"'
     )
+    try:
+        docker_client = docker.DockerClient(base_url="unix://var/run/docker.sock")
+        docker_client.ping()
+    except:
+        logger.exception("Docker client error", exc_info=True)
+        raise
+
+    env_vars.update(
+        {
+            "HEXA_ENVIRONMENT": "CLOUD_PIPELINE",
+            "HEXA_RUN_ID": str(run.id),
+        }
+    )
+    container = docker_client.containers.run(
+        image=image,
+        command=cmd,
+        privileged=True,
+        network="openhexa",
+        platform="linux/amd64",
+        environment=env_vars,
+        detach=True,
+    )
+    logger.debug("Container %s started", container.id)
 
     while True:
         run.refresh_from_db()
@@ -241,15 +261,26 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
         run.save()
         # we stop the running process when the run state is a terminating
         if run.state == PipelineRunState.TERMINATING:
-            proc.kill()
-            break
+            container.kill()
+            return False, container.logs().decode("UTF-8")
 
-        proc.poll()
-        if proc.returncode is not None:
-            break
-        sleep(5)
-
-    return proc.returncode == 0, proc.stdout.read().decode("UTF-8")
+        try:
+            logger.debug("Wait for container %s", container.id)
+            r = container.wait(timeout=1)
+            status_code = r["StatusCode"] == 0
+            logs = container.logs().decode("UTF-8")
+            container.remove()
+            return status_code, logs
+        except (
+            urllib3.exceptions.ReadTimeoutError,
+            requests.exceptions.ReadTimeout,
+            requests.exceptions.ConnectionError,
+        ):
+            logger.debug("Container wait timeout")
+            continue
+        except Exception as e:
+            logger.exception("Container wait error", exc_info=True)
+            return False, str(e)
 
 
 def run_pipeline(run: PipelineRun):
@@ -272,7 +303,7 @@ def run_pipeline(run: PipelineRun):
         "HEXA_PIPELINE_TYPE": run.pipeline.type,
     }
     if run.pipeline.type == PipelineType.NOTEBOOK:
-        env_vars.update({"HEXA_NOTEBOOK_PATH": run.pipeline.notebookPath})
+        env_vars.update({"HEXA_NOTEBOOK_PATH": run.pipeline.notebook_path})
 
     image = (
         run.pipeline.workspace.docker_image

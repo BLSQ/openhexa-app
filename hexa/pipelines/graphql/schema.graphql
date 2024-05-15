@@ -84,7 +84,7 @@ type PipelineRun {
   run_id: UUID!
   user: User
   pipeline: Pipeline!
-  version: PipelineVersion!
+  version: PipelineVersion
   config: JSON!
   status: PipelineRunStatus!
   executionDate: DateTime
