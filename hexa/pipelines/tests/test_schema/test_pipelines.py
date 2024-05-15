@@ -290,7 +290,7 @@ class PipelinesV2Test(GraphQLTestCase):
                         {
                             "code": "param1",
                             "name": "Param 1",
-                            "type": "string",
+                            "type": "str",
                             "help": "Param 1's Help",
                             "default": "default value",
                             "multiple": True,
@@ -332,7 +332,7 @@ class PipelinesV2Test(GraphQLTestCase):
             """,
             {"id": str(pipeline.id)},
         )
-
+        print(f"r = {r}")
         self.assertEqual(
             r["data"]["pipeline"]["currentVersion"],
             {
@@ -340,7 +340,7 @@ class PipelinesV2Test(GraphQLTestCase):
                     {
                         "code": "param1",
                         "name": "Param 1",
-                        "type": "string",
+                        "type": "str",
                         "help": "Param 1's Help",
                         "default": "default value",
                         "multiple": True,
