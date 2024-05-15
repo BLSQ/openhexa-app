@@ -184,7 +184,7 @@ class Workspace(Base):
         if not principal.has_perm("workspaces.update_workspace", self):
             raise PermissionDenied
 
-        for key in ["name", "slug", "countries", "description"]:
+        for key in ["name", "slug", "countries", "description", "docker_image"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 

@@ -2,6 +2,7 @@ type Workspace {
   slug: String!
   name: String!
   description: String
+  dockerImage: String
   members(page: Int, perPage: Int): WorkspaceMembershipPage!
   permissions: WorkspacePermissions!
   countries: [Country!]!
@@ -171,6 +172,7 @@ input UpdateWorkspaceInput {
   name: String
   description: String
   countries: [CountryInput!]
+  dockerImage: String
 }
 
 input DeleteWorkspaceInput {

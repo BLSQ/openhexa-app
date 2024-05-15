@@ -62,6 +62,9 @@ def resolve_update_workspace(_, info, **kwargs):
         if input.get("description", None):
             args["description"] = input["description"]
 
+        if input.get("dockerImage", None) is not None:
+            args["docker_image"] = input["dockerImage"]
+
         if "countries" in input:
             countries = [
                 Country.objects.get(code=c["code"]) for c in input["countries"]

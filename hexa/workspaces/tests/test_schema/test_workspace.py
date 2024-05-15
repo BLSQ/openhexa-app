@@ -377,6 +377,7 @@ class WorkspaceTest(GraphQLTestCase):
                     success
                     workspace {
                         description
+                        dockerImage
                     }
                     errors
                 }
@@ -386,6 +387,7 @@ class WorkspaceTest(GraphQLTestCase):
                 "input": {
                     "slug": self.WORKSPACE.slug,
                     "description": "This is a test for updating workspace description",
+                    "dockerImage": "blsq/custom-image",
                 }
             },
         )
@@ -394,7 +396,8 @@ class WorkspaceTest(GraphQLTestCase):
                 "success": True,
                 "errors": [],
                 "workspace": {
-                    "description": "This is a test for updating workspace description"
+                    "description": "This is a test for updating workspace description",
+                    "dockerImage": "blsq/custom-image",
                 },
             },
             r["data"]["updateWorkspace"],
