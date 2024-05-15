@@ -96,6 +96,22 @@ services:
       - "dataworker"
     depends_on:
       - db
+  
+  frontend:
+    image: "blsq/openhexa-frontend:${FRONTEND_VERSION:-main}"
+    platform: linux/amd64
+    networks:
+      - openhexa
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - OPENHEXA_BACKEND_URL=http://app:8000
+    profiles:
+      - frontend
+    restart: unless-stopped
+    depends_on:
+      - app
 
   pipelines_runner:
     <<: *common
