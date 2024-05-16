@@ -32,10 +32,14 @@ class WorkspaceTest(TestCase):
         )
 
         cls.USER_JULIA = User.objects.create_user(
-            "julia@bluesquarehub.com", "juliaspassword", is_superuser=True
+            "julia@bluesquarehub.com", "juliaspassword"
         )
         FeatureFlag.objects.create(
             feature=Feature.objects.create(code="workspaces"), user=cls.USER_JULIA
+        )
+        FeatureFlag.objects.create(
+            feature=Feature.objects.create(code="workspaces.create"),
+            user=cls.USER_JULIA,
         )
 
     @backend.mock_storage
