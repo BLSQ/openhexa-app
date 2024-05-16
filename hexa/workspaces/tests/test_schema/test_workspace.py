@@ -45,11 +45,17 @@ class WorkspaceTest(GraphQLTestCase):
             "standardpassword",
         )
         cls.USER_JULIA = User.objects.create_user(
-            "julia@bluesquarehub.com", "juliaspassword", is_superuser=True
+            "julia@bluesquarehub.com", "juliaspassword"
         )
-        cls.FEATURE = Feature.objects.create(code="workspaces")
-        FeatureFlag.objects.create(feature=cls.FEATURE, user=cls.USER_JULIA)
-        FeatureFlag.objects.create(feature=cls.FEATURE, user=cls.USER_PENDING)
+        cls.FEATURE_WORKSPACES = Feature.objects.create(code="workspaces")
+        cls.FEATURE_CREATE_WORKSPACES = Feature.objects.create(code="workspaces.create")
+        FeatureFlag.objects.create(feature=cls.FEATURE_WORKSPACES, user=cls.USER_JULIA)
+        FeatureFlag.objects.create(
+            feature=cls.FEATURE_CREATE_WORKSPACES, user=cls.USER_JULIA
+        )
+        FeatureFlag.objects.create(
+            feature=cls.FEATURE_WORKSPACES, user=cls.USER_PENDING
+        )
 
         cls.USER_WORKSPACE_ADMIN = User.objects.create_user(
             "workspaceroot@bluesquarehub.com",

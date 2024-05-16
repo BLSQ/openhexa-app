@@ -51,10 +51,14 @@ class DatabaseUtilsTest(TestCase):
             hostname="host", username="user", password="pwd", database="db1"
         )
         cls.USER_SABRINA = User.objects.create_user(
-            "sabrina@bluesquarehub.com", "standardpassword", is_superuser=True
+            "sabrina@bluesquarehub.com", "standardpassword"
         )
         FeatureFlag.objects.create(
             feature=Feature.objects.create(code="workspaces"), user=cls.USER_SABRINA
+        )
+        FeatureFlag.objects.create(
+            feature=Feature.objects.create(code="workspaces.create"),
+            user=cls.USER_SABRINA,
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(

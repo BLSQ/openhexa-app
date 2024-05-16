@@ -73,7 +73,10 @@ class WorkspaceManager(models.Manager):
         countries: typing.Sequence[Country] = None,
         load_sample_data: bool = False,
     ):
-        if not principal.has_perm("workspaces.create_workspace"):
+        can_create_workspace = (
+            principal.has_feature_flag("workspaces.create") or principal.is_superuser
+        )
+        if not can_create_workspace:
             raise PermissionDenied
 
         slug = create_workspace_slug(name)

@@ -4,8 +4,10 @@ from .models import Connection, Workspace, WorkspaceMembershipRole
 
 
 def create_workspace(principal: User):
-    """Only superusers can create a workspace"""
-    return principal.has_feature_flag("workspaces") and principal.is_superuser
+    """Can create a workspace"""
+    return principal.has_feature_flag("workspaces") and (
+        principal.has_feature_flag("workspaces.create") or principal.is_superuser
+    )
 
 
 def update_workspace(principal: User, workspace: Workspace):

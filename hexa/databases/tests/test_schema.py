@@ -25,7 +25,7 @@ class DatabaseTest(GraphQLTestCase):
             "sabrina@bluesquarehub.com", "standardpassword"
         )
         cls.USER_JULIA = User.objects.create_user(
-            "julia@bluesquarehub.com", "juliaspassword", is_superuser=True
+            "julia@bluesquarehub.com", "juliaspassword"
         )
         cls.DB1 = Database.objects.create(
             hostname="host",
@@ -35,6 +35,10 @@ class DatabaseTest(GraphQLTestCase):
         )
         FeatureFlag.objects.create(
             feature=Feature.objects.create(code="workspaces"), user=cls.USER_JULIA
+        )
+        FeatureFlag.objects.create(
+            feature=Feature.objects.create(code="workspaces.create"),
+            user=cls.USER_JULIA,
         )
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
             cls.USER_JULIA,
