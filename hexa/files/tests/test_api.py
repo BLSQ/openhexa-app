@@ -226,6 +226,40 @@ class APITestCase:
             ],
         )
 
+    def test_list_blobs_hidden_files(self):
+        bucket = self.get_client().create_bucket("bucket")
+        bucket.blob(
+            "dir/",
+            size=0,
+        )
+        bucket.blob(
+            "dir/readme.md",
+            size=2102,
+            content_type="text/plain",
+        )
+        bucket.blob(
+            "dir/.checkpoint.ipynb",
+            size=2102,
+            content_type="text/plain",
+        )
+        bucket.blob("dir/.b/", size=0)
+        bucket.blob("dir/.b/image.jpg", size=1, content_type="image/jpeg")
+
+        self.assertEqual(
+            self.to_keys(
+                self.get_client().list_bucket_objects(
+                    bucket.name,
+                    page=1,
+                    per_page=10,
+                    prefix="dir/",
+                    ignore_hidden_files=True,
+                )
+            ),
+            [
+                "dir/readme.md",
+            ],
+        )
+
     def test_list_blobs_pagination(self):
         bucket = self.get_client().create_bucket("my-bucket")
         for i in range(0, 12):

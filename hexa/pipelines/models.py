@@ -118,7 +118,7 @@ class PipelineVersion(models.Model):
     name = models.CharField(max_length=250)
     external_link = models.URLField(blank=True, null=True)
     description = models.TextField(null=True)
-    zipfile = models.BinaryField()
+    zipfile = models.BinaryField(null=True)
     parameters = models.JSONField(blank=True, default=dict)
     timeout = models.IntegerField(
         null=True,
@@ -165,6 +165,11 @@ class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
         )
 
 
+class PipelineType(models.TextChoices):
+    NOTEBOOK = "notebook", _("Notebook")
+    ZIPFILE = "zipFile", _("ZipFile")
+
+
 class Pipeline(SoftDeletedModel):
     class Meta:
         verbose_name = "Pipeline"
@@ -195,6 +200,14 @@ class Pipeline(SoftDeletedModel):
     memory_limit = models.CharField(blank=True, max_length=32)
     recipients = models.ManyToManyField(User, through="PipelineRecipient")
 
+    type = models.CharField(
+        max_length=200,
+        blank=False,
+        choices=PipelineType.choices,
+        default=PipelineType.ZIPFILE,
+    )
+    notebook_path = models.TextField(null=True, blank=True)
+
     objects = DefaultSoftDeletedManager.from_queryset(PipelineQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()
 
@@ -206,6 +219,9 @@ class Pipeline(SoftDeletedModel):
         config: typing.Mapping[typing.Dict, typing.Any] = None,
         send_mail_notifications: bool = False,
     ):
+        timeout = settings.PIPELINE_RUN_DEFAULT_TIMEOUT
+        if pipeline_version and pipeline_version.timeout:
+            timeout = pipeline_version.timeout
         run = PipelineRun.objects.create(
             user=user,
             pipeline=self,
@@ -217,11 +233,7 @@ class Pipeline(SoftDeletedModel):
             config=config if config else self.config,
             access_token=str(uuid.uuid4()),
             send_mail_notifications=send_mail_notifications,
-            timeout=(
-                pipeline_version.timeout
-                if pipeline_version.timeout
-                else settings.PIPELINE_RUN_DEFAULT_TIMEOUT
-            ),
+            timeout=timeout,
         )
 
         return run
@@ -233,9 +245,9 @@ class Pipeline(SoftDeletedModel):
     def upload_new_version(
         self,
         user: User,
-        zipfile: str,
         parameters: dict,
         name: str,
+        zipfile: str = None,
         description: str = None,
         external_link: str = None,
         timeout: int = None,
@@ -263,6 +275,13 @@ class Pipeline(SoftDeletedModel):
 
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("pipelines.update_pipeline", self):
+            raise PermissionDenied
+
+        if (
+            kwargs.get("schedule") is not None
+            and self.last_version
+            and self.last_version.is_schedulable is False
+        ):
             raise PermissionDenied
 
         for key in ["name", "description", "schedule", "config", "webhook_enabled"]:
@@ -359,7 +378,9 @@ class PipelineRun(Base, WithStatus):
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     pipeline = models.ForeignKey("Pipeline", on_delete=models.CASCADE)
-    pipeline_version = models.ForeignKey("PipelineVersion", on_delete=models.CASCADE)
+    pipeline_version = models.ForeignKey(
+        "PipelineVersion", null=True, on_delete=models.CASCADE
+    )
     run_id = models.CharField(max_length=200, blank=False)
     execution_date = models.DateTimeField()
     last_heartbeat = models.DateTimeField(auto_now_add=True)

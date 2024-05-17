@@ -16,6 +16,7 @@ from hexa.pipelines.models import (
     PipelineRun,
     PipelineRunState,
     PipelineRunTrigger,
+    PipelineType,
     PipelineVersion,
 )
 from hexa.workspaces.models import Workspace
@@ -43,11 +44,24 @@ def resolve_create_pipeline(_, info, **kwargs):
         }
 
     try:
-        pipeline = Pipeline.objects.create(
-            code=input["code"],
-            name=input.get("name"),
-            workspace=workspace,
-        )
+        data = {
+            "code": input["code"],
+            "name": input.get("name"),
+            "workspace": workspace,
+        }
+        if input.get("notebookPath", None) is not None:
+            data["type"] = PipelineType.NOTEBOOK
+            data["notebook_path"] = input["notebookPath"]
+            # we need to check if the notebook path exist in the workspace bucket
+            get_bucket_object(workspace.bucket_name, data["notebook_path"])
+        else:
+            data["type"] = PipelineType.ZIPFILE
+
+        pipeline = Pipeline.objects.create(**data)
+
+    except NotFound:
+        return {"success": False, "errors": ["FILE_NOT_FOUND"]}
+
     except IntegrityError:
         return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}
 
@@ -209,6 +223,11 @@ def resolve_upload_pipeline(_, info, **kwargs):
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
             code=pipeline_code, workspace__slug=input["workspaceSlug"]
         )
+        if pipeline.type == PipelineType.NOTEBOOK:
+            return {
+                "success": False,
+                "errors": ["CANNOT_UPDATE_NOTEBOOK_PIPELINE"],
+            }
     except Pipeline.DoesNotExist:
         return {
             "success": False,

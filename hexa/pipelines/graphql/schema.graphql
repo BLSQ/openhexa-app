@@ -98,7 +98,7 @@ type PipelineRun {
   run_id: UUID!
   user: User
   pipeline: Pipeline!
-  version: PipelineVersion!
+  version: PipelineVersion
   config: JSON!
   status: PipelineRunStatus!
   executionDate: DateTime
@@ -152,6 +152,11 @@ type PipelineRecipient {
   pipeline: Pipeline!
 }
 
+enum PipelineType {
+  zipFile 
+  notebook
+}
+
 type Pipeline {
   id: UUID!
   name: String
@@ -169,6 +174,8 @@ type Pipeline {
   recipients: [PipelineRecipient!]!
   webhookEnabled: Boolean!
   webhookUrl: String
+  type: PipelineType!
+  notebookPath: String
 }
 
 type PipelinesPage {
@@ -191,6 +198,7 @@ enum PipelineError {
   PERMISSION_DENIED
   FILE_NOT_FOUND
   TABLE_NOT_FOUND
+  CANNOT_UPDATE_NOTEBOOK_PIPELINE
 }
 
 extend type Query {
@@ -205,6 +213,7 @@ input CreatePipelineInput {
   code: String!
   name: String
   workspaceSlug: String!
+  notebookPath: String
 }
 
 type CreatePipelineResult {

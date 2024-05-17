@@ -47,6 +47,7 @@ pip-tools
 
 # development
 coverage[toml]
+docker
 
 # Data worker
 # (unpin or update with great caution, subtle issues can arise with new versions)
