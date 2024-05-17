@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.70.0](https://github.com/BLSQ/openhexa-app/compare/0.69.3...0.70.0) (2024-05-17)
+
+
+### Features
+
+* **Pipelines:** create pipeline from notebook ([3cac4d7](https://github.com/BLSQ/openhexa-app/commit/3cac4d769369703d6abaf1f5dc0d93c93897ad6e))
+* **Pipelines:** validate parameter types upon PipelineVersion run ([#699](https://github.com/BLSQ/openhexa-app/issues/699)) ([fa89e59](https://github.com/BLSQ/openhexa-app/commit/fa89e59194d8f766c181f4de3e4347058d1f7894))
+* **Workspaces:** add feature flag to allow users the creation of workspaces ([121a53a](https://github.com/BLSQ/openhexa-app/commit/121a53a14515ad46bb881532561b243918d1fdcd))
+* **Workspaces:** allow user to update workspace image and rename PIPELINE_IMAGE env ([#700](https://github.com/BLSQ/openhexa-app/issues/700)) ([2ced1cb](https://github.com/BLSQ/openhexa-app/commit/2ced1cb42a93070005bbc2bf318e3635fff54287))
+
+
+### Miscellaneous
+
+* **dev:** Add a frontend profile to run the frontend from the app repo ([#702](https://github.com/BLSQ/openhexa-app/issues/702)) ([e16a844](https://github.com/BLSQ/openhexa-app/commit/e16a844fc0cee64b32a09874eeaf1305536e7f2e))
+
 ## [0.69.3](https://github.com/BLSQ/openhexa-app/compare/0.69.2...0.69.3) (2024-05-08)
 
 
