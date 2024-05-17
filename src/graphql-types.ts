@@ -3201,6 +3201,7 @@ export enum UpdateWorkspaceError {
 export type UpdateWorkspaceInput = {
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']['input']>;
+  dockerImage?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   slug: Scalars['String']['input'];
 };
@@ -3310,6 +3311,7 @@ export type Workspace = {
   database: Database;
   datasets: DatasetLinkPage;
   description?: Maybe<Scalars['String']['output']>;
+  dockerImage?: Maybe<Scalars['String']['output']>;
   invitations: WorkspaceInvitationPage;
   members: WorkspaceMembershipPage;
   name: Scalars['String']['output'];

@@ -56,6 +56,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
         input: {
           slug: workspace.slug,
           name: values.name,
+          dockerImage: values.dockerImage,
           countries: ensureArray(values.countries || workspace.countries).map(
             ({ code }) => ({
               code,
@@ -133,6 +134,15 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                 visible={(value, isEditing) => isEditing || value?.length > 0}
                 label={t("Countries")}
                 defaultValue="-"
+              />
+              <TextProperty
+                id="dockerImage"
+                accessor="dockerImage"
+                label={t("Image")}
+                defaultValue="-"
+                help={t(
+                  "You can set a custom docker image that will be used to run pipelines and jupyterlab. That image can be created, for example, by extending blsq/openhexa-blsq-environment.",
+                )}
               />
             </DataCard.FormSection>
             <DataCard.Section title={t("Database")}>
