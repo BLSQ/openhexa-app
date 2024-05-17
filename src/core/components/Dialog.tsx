@@ -15,7 +15,7 @@ type DialogProps = {
   onClose: (value: any) => void;
   centered?: boolean;
   padding?: string;
-  children: ReactElement | ReactElement[];
+  children: ReactElement | ReactElement[] | ReactNode[] | ReactNode;
   onSubmit?: FormEventHandler;
   closeOnOutsideClick?: boolean;
   closeOnEsc?: boolean;

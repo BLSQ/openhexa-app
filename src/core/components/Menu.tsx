@@ -19,15 +19,6 @@ export const MenuClasses = {
     "origin-top-right  absolute right-0 mt-2 w-36 ring-1 ring-black ring-opacity-5 rounded shadow-lg bg-white text-gray-900 focus:outline-none text-right z-40 divide-y divide-gray-200",
 };
 
-const TRANSITION = {
-  enter: "transition ease-out duration-100",
-  enterFrom: "transform opacity-0 scale-95",
-  enterTo: "transform opacity-100 scale-100",
-  leave: "transition ease-in duration-75",
-  leaveFrom: "transform opacity-100 scale-100",
-  leaveTo: "transform opacity-0 scale-95",
-};
-
 type MenuProps = {
   label?: string;
   trigger?: ReactElement;

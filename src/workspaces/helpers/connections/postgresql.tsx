@@ -15,6 +15,7 @@ function PostgreSQLForm(props: { form: FormInstance<ConnectionForm> }) {
         name="db_name"
         label={t("Database name")}
         required
+        fullWidth
       />
       <Field
         onChange={form.handleInputChange}
@@ -24,6 +25,7 @@ function PostgreSQLForm(props: { form: FormInstance<ConnectionForm> }) {
         placeholder="Ex: 127.0.0.1"
         help={t("IP Address or domain name of the PostgreSQL server")}
         required
+        fullWidth
       />
       <Field
         onChange={form.handleInputChange}
@@ -34,6 +36,7 @@ function PostgreSQLForm(props: { form: FormInstance<ConnectionForm> }) {
         label={t("Port")}
         placeholder="5432"
         required
+        fullWidth
       />
 
       <Field
@@ -44,6 +47,7 @@ function PostgreSQLForm(props: { form: FormInstance<ConnectionForm> }) {
         help={t("Username to connect to the PostgreSQL server")}
         label={t("Username")}
         required
+        fullWidth
       />
 
       <Field
@@ -53,6 +57,7 @@ function PostgreSQLForm(props: { form: FormInstance<ConnectionForm> }) {
         help={t("Password to connect to the PostgreSQL server")}
         label={t("Password")}
         required
+        fullWidth
       />
     </>
   );

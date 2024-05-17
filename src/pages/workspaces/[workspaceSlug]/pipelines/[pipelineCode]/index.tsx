@@ -3,6 +3,7 @@ import {
   PlayIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import Badge from "core/components/Badge";
 import Block from "core/components/Block/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
@@ -25,7 +26,11 @@ import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
-import { PipelineRecipient, PipelineRunTrigger } from "graphql-types";
+import {
+  PipelineRecipient,
+  PipelineRunTrigger,
+  PipelineType,
+} from "graphql-types";
 import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
@@ -42,7 +47,10 @@ import {
   WorkspacePipelinePageQueryVariables,
   useWorkspacePipelinePageQuery,
 } from "workspaces/graphql/queries.generated";
-import { updatePipeline } from "workspaces/helpers/pipelines";
+import {
+  formatPipelineType,
+  updatePipeline,
+} from "workspaces/helpers/pipelines";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
@@ -56,7 +64,6 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const { pipelineCode, workspaceSlug, page, perPage } = props;
   const { t } = useTranslation();
   const router = useRouter();
-  const [isRunPipelineDialogOpen, setRunPipelineDialogOpen] = useState(false);
   const [isDeletePipelineDialogOpen, setDeletePipelineDialogOpen] =
     useState(false);
   const [isWebhookFeatureEnabled] = useFeature("pipeline_webhook");
@@ -146,12 +153,16 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 </DownloadPipelineVersion>
               )}
               {pipeline.permissions.run && (
-                <Button
-                  leadingIcon={<PlayIcon className="w-4" />}
-                  onClick={() => setRunPipelineDialogOpen(true)}
-                >
-                  {t("Run")}
-                </Button>
+                <RunPipelineDialog pipeline={pipeline}>
+                  {(onClick) => (
+                    <Button
+                      leadingIcon={<PlayIcon className="w-4" />}
+                      onClick={onClick}
+                    >
+                      {t("Run")}
+                    </Button>
+                  )}
+                </RunPipelineDialog>
               )}
               {pipeline.permissions.delete && (
                 <Button
@@ -188,6 +199,13 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 )}
                 readonly
               />
+              <RenderProperty id="type" label={t("Type")} accessor="type">
+                {(property) => (
+                  <Badge className="bg-gray-50">
+                    {formatPipelineType(property.displayValue)}
+                  </Badge>
+                )}
+              </RenderProperty>
               <TextProperty
                 id="description"
                 accessor={"description"}
@@ -197,64 +215,94 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 hideLabel
                 markdown
               />
-            </DataCard.FormSection>
-            <DataCard.Section
-              collapsible={false}
-              title={() => (
-                <div className="flex flex-1 gap-2 items-center">
-                  <h4 className="font-medium">{t("Version")}</h4>
-                  <div className="flex-1"></div>
-                  <Link
-                    className="text-sm"
-                    href={{
-                      pathname:
-                        "/workspaces/[workspaceSlug]/pipelines/[pipelineCode]/versions",
-                      query: {
-                        workspaceSlug: workspace.slug,
-                        pipelineCode: pipeline.code,
-                      },
-                    }}
-                  >
-                    {t("View all versions")}
-                  </Link>
-                </div>
-              )}
-            >
-              {pipeline.currentVersion ? (
+              {pipeline.type === PipelineType.Notebook && (
                 <>
-                  <DescriptionList>
-                    <DescriptionList.Item label={t("Name")}>
-                      {pipeline.currentVersion.name}
-                    </DescriptionList.Item>
-                    {pipeline.currentVersion.description && (
-                      <DescriptionList.Item label={t("Description")} fullWidth>
-                        {pipeline.currentVersion.description}
-                      </DescriptionList.Item>
+                  <RenderProperty
+                    id="notebookPath"
+                    accessor={"notebookPath"}
+                    label={t("Notebook path")}
+                    readonly
+                  >
+                    {(property) => (
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <Clipboard value={property.displayValue}>
+                          <Link
+                            customStyle="hover:opacity-80"
+                            href={`/workspaces/${encodeURIComponent(
+                              workspace.slug,
+                            )}/files/${property.displayValue.split("/").slice(0, -1).join("/")}`}
+                          >
+                            <code>{property.displayValue}</code>
+                          </Link>
+                        </Clipboard>
+                      </div>
                     )}
-                    {pipeline.currentVersion.externalLink && (
-                      <DescriptionList.Item label={t("External link")}>
-                        <Link
-                          href={pipeline.currentVersion.externalLink}
-                          target={"_blank"}
-                        >
-                          {pipeline.currentVersion.externalLink}
-                        </Link>
-                      </DescriptionList.Item>
-                    )}
-                    <DescriptionList.Item label={t("Created at")}>
-                      <Time datetime={pipeline.currentVersion.createdAt} />
-                    </DescriptionList.Item>
-                    <DescriptionList.Item label={t("Created by")}>
-                      {pipeline.currentVersion.user?.displayName ?? "-"}
-                    </DescriptionList.Item>
-                  </DescriptionList>
+                  </RenderProperty>
                 </>
-              ) : (
-                <span className="italic text-sm text-gray-500">
-                  {t("This pipeline has no versions yet")}
-                </span>
               )}
-            </DataCard.Section>
+            </DataCard.FormSection>
+            {pipeline.type === PipelineType.ZipFile && (
+              <DataCard.Section
+                collapsible={false}
+                title={() => (
+                  <div className="flex flex-1 gap-2 items-center">
+                    <h4 className="font-medium">{t("Version")}</h4>
+                    <div className="flex-1"></div>
+                    <Link
+                      className="text-sm"
+                      href={{
+                        pathname:
+                          "/workspaces/[workspaceSlug]/pipelines/[pipelineCode]/versions",
+                        query: {
+                          workspaceSlug: workspace.slug,
+                          pipelineCode: pipeline.code,
+                        },
+                      }}
+                    >
+                      {t("View all versions")}
+                    </Link>
+                  </div>
+                )}
+              >
+                {pipeline.currentVersion ? (
+                  <>
+                    <DescriptionList>
+                      <DescriptionList.Item label={t("Name")}>
+                        {pipeline.currentVersion.name}
+                      </DescriptionList.Item>
+                      {pipeline.currentVersion.description && (
+                        <DescriptionList.Item
+                          label={t("Description")}
+                          fullWidth
+                        >
+                          {pipeline.currentVersion.description}
+                        </DescriptionList.Item>
+                      )}
+                      {pipeline.currentVersion.externalLink && (
+                        <DescriptionList.Item label={t("External link")}>
+                          <Link
+                            href={pipeline.currentVersion.externalLink}
+                            target={"_blank"}
+                          >
+                            {pipeline.currentVersion.externalLink}
+                          </Link>
+                        </DescriptionList.Item>
+                      )}
+                      <DescriptionList.Item label={t("Created at")}>
+                        <Time datetime={pipeline.currentVersion.createdAt} />
+                      </DescriptionList.Item>
+                      <DescriptionList.Item label={t("Created by")}>
+                        {pipeline.currentVersion.user?.displayName ?? "-"}
+                      </DescriptionList.Item>
+                    </DescriptionList>
+                  </>
+                ) : (
+                  <span className="italic text-sm text-gray-500">
+                    {t("This pipeline has no versions yet")}
+                  </span>
+                )}
+              </DataCard.Section>
+            )}
             <DataCard.FormSection
               title={t("Scheduling")}
               onSave={
@@ -312,13 +360,13 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 onSave={onSaveWebhook}
                 collapsible={false}
               >
-                <div>
-                  <p>
+                <div className="text-gray-700">
+                  <p className="text-sm">
                     {t(
                       "You can use a webhook to trigger this pipeline from an external system using a POST request.",
                     )}
                   </p>
-                  <div className="mt-2 flex text-sm">
+                  <div className="mt-2 flex  items-center text-sm">
                     <ExclamationCircleIcon className="inline-block w-6 h-6 text-yellow-500 mr-1.5" />
                     {t(
                       "Webhooks are experimental and don't require any form of authentication for now: anyone with the URL will be able to trigger this pipeline",
@@ -431,11 +479,6 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
           </div>
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
-      <RunPipelineDialog
-        open={isRunPipelineDialogOpen}
-        onClose={() => setRunPipelineDialogOpen(false)}
-        pipeline={pipeline}
-      />
       <DeletePipelineDialog
         open={isDeletePipelineDialogOpen}
         onClose={() => setDeletePipelineDialogOpen(false)}

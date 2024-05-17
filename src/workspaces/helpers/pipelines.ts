@@ -12,6 +12,7 @@ import {
 import {
   ConnectionType,
   PipelineParameter,
+  PipelineType,
   PipelineVersion,
 } from "graphql-types";
 import { i18n } from "next-i18next";
@@ -125,7 +126,7 @@ export function getCronExpressionDescription(
 
 export async function runPipeline(
   pipelineId: string,
-  config: any,
+  config: any = {},
   versionId?: string,
   sendMailNotifications?: boolean,
 ) {
@@ -198,7 +199,7 @@ export async function runPipeline(
 
 export function getPipelineRunConfig(run: {
   config: any;
-  version: { parameters: Omit<PipelineParameter, "__typename">[] };
+  version?: { parameters: Omit<PipelineParameter, "__typename">[] } | null;
 }) {
   const config = run.config || {};
   const parameters = run.version?.parameters || [];
@@ -220,6 +221,13 @@ export function renderOutputType(typename: string | undefined) {
     default:
       return "-";
   }
+}
+
+export function toSpinalCase(str: string) {
+  return str
+    .replace(/(?!^)([A-Z])/g, " $1")
+    .replace(/[^A-Za-z0-9]/g, "-")
+    .toLowerCase();
 }
 
 export async function deletePipelineVersion(versionId: string) {
@@ -245,4 +253,15 @@ export async function deletePipelineVersion(versionId: string) {
   }
 
   throw new Error("Failed to delete pipeline version");
+}
+
+export function formatPipelineType(pipelineType: PipelineType) {
+  switch (pipelineType) {
+    case PipelineType.Notebook:
+      return i18n!.t("Jupyter notebook");
+    case PipelineType.ZipFile:
+      return i18n!.t("Standard pipeline");
+    default:
+      return i18n!.t("Pipeline");
+  }
 }

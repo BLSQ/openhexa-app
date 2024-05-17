@@ -1,5 +1,6 @@
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { StopIcon } from "@heroicons/react/24/solid";
+import Badge from "core/components/Badge";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
@@ -20,6 +21,7 @@ import {
   PipelineParameter,
   PipelineRunStatus,
   PipelineRunTrigger,
+  PipelineType,
 } from "graphql-types";
 import isNil from "lodash/isNil";
 import { DateTime } from "luxon";
@@ -38,6 +40,7 @@ import {
   useWorkspacePipelineRunPageQuery,
 } from "workspaces/graphql/queries.generated";
 import {
+  formatPipelineType,
   getPipelineRunConfig,
   isConnectionParameter,
 } from "workspaces/helpers/pipelines";
@@ -71,7 +74,6 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
     }
   }, [data]);
 
-  const [isRunPipelineDialogOpen, setIsRunPipelineDialogOpen] = useState(false);
   const [isStopPipelineDialogOpen, setIsStopPipelineDialogOpen] =
     useState(false);
 
@@ -175,12 +177,16 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
             </Breadcrumbs.Part>
           </Breadcrumbs>
           {isFinished && (
-            <Button
-              leadingIcon={<ArrowPathIcon className="h-4 w-4" />}
-              onClick={() => setIsRunPipelineDialogOpen(true)}
-            >
-              {t("Run again")}
-            </Button>
+            <RunPipelineDialog pipeline={run.pipeline} run={run}>
+              {(onClick) => (
+                <Button
+                  leadingIcon={<ArrowPathIcon className="h-4 w-4" />}
+                  onClick={onClick}
+                >
+                  {t("Run again")}
+                </Button>
+              )}
+            </RunPipelineDialog>
           )}
           {!isFinished && run.pipeline.permissions.stopPipeline && (
             <Button
@@ -259,6 +265,14 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                 <DescriptionList.Item label={t("Execution Date")}>
                   <Time datetime={run.executionDate} />
                 </DescriptionList.Item>
+                <DescriptionList.Item label={t("Type")}>
+                  <Badge>{formatPipelineType(run.pipeline.type)}</Badge>
+                </DescriptionList.Item>
+                {run.pipeline.type === PipelineType.Notebook && (
+                  <DescriptionList.Item label={t("Notebook")}>
+                    <code>{run.pipeline.notebookPath}</code>
+                  </DescriptionList.Item>
+                )}
                 <DescriptionList.Item label={t("Trigger")}>
                   {run.triggerMode === PipelineRunTrigger.Manual && t("Manual")}
                   {run.triggerMode === PipelineRunTrigger.Scheduled &&
@@ -279,9 +293,11 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                     <User user={run.stoppedBy} />
                   </DescriptionList.Item>
                 )}
-                <DescriptionList.Item label={t("Version")}>
-                  {run.version.name}
-                </DescriptionList.Item>
+                {run.version && (
+                  <DescriptionList.Item label={t("Version")}>
+                    {run.version.name}
+                  </DescriptionList.Item>
+                )}
                 <DescriptionList.Item
                   label={t("Timeout")}
                   help={t("See documentation for more info.")}
@@ -293,18 +309,20 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                 </DescriptionList.Item>
               </DescriptionList>
             </Block.Section>
-            <Block.Section title={t("Parameters")}>
-              <DescriptionList
-                columns={2}
-                displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
-              >
-                {config.map((entry) => (
-                  <DescriptionList.Item key={entry.name} label={entry.name}>
-                    {renderParameterValue(entry)}
-                  </DescriptionList.Item>
-                ))}
-              </DescriptionList>
-            </Block.Section>
+            {run.pipeline.type === PipelineType.ZipFile && (
+              <Block.Section title={t("Parameters")}>
+                <DescriptionList
+                  columns={2}
+                  displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
+                >
+                  {config.map((entry) => (
+                    <DescriptionList.Item key={entry.name} label={entry.name}>
+                      {renderParameterValue(entry)}
+                    </DescriptionList.Item>
+                  ))}
+                </DescriptionList>
+              </Block.Section>
+            )}
 
             {isFinished && (
               <Block.Section title={"Outputs"}>
@@ -327,12 +345,6 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
           </Block>
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
-      <RunPipelineDialog
-        open={isRunPipelineDialogOpen}
-        onClose={() => setIsRunPipelineDialogOpen(false)}
-        pipeline={run.pipeline}
-        run={run}
-      />
       <StopPipelineDialog
         open={isStopPipelineDialogOpen}
         pipeline={run.pipeline}

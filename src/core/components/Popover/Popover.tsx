@@ -5,7 +5,7 @@ import { ReactElement, useState } from "react";
 import { usePopper } from "react-popper";
 
 type PopoverProps = {
-  trigger: ReactElement;
+  trigger: React.ComponentProps<typeof HeadlessPopover.Button>["children"];
   placement?: Placement;
   className?: string;
   as?: any;
@@ -15,7 +15,7 @@ type PopoverProps = {
   children: React.ComponentProps<typeof HeadlessPopover>["children"];
 };
 
-const POPPER_MODIFIERS = [{ name: "offset", options: { offset: [0, 8] } }];
+const POPPER_MODIFIERS = [{ name: "offset", options: { offset: [0, 6] } }];
 
 const Popover = (props: PopoverProps) => {
   const {
@@ -44,7 +44,7 @@ const Popover = (props: PopoverProps) => {
       ref={setPopperElement}
       style={styles.popper}
       className={clsx(
-        "z-10 overflow-hidden rounded-lg bg-white p-4 shadow-lg ring-1 ring-black ring-opacity-5",
+        "z-10 overflow-hidden rounded-md bg-white p-4 shadow-md ring-1 ring-black ring-opacity-5",
         className,
       )}
       {...attributes.popper}

@@ -23,7 +23,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
   } = props;
 
   const inputClassName = clsx(
-    "w-full form-input appearance-none relative block",
+    "form-input appearance-none relative block",
     "px-3 py-2 border rounded-md focus:outline-none focus:z-10 sm:text-sm",
     "disabled:opacity-50 disabled:cursor-not-allowed",
     error
@@ -31,6 +31,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
       : "border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500",
     trailingIcon && "pr-4",
     leading && "pl-10",
+    fullWidth && "w-full",
     className,
   );
 

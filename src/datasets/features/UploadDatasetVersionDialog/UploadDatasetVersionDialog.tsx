@@ -129,6 +129,7 @@ version.add_file("/path/to/file.csv")`}
                 name={"name"}
                 label={t("Name")}
                 required
+                fullWidth
                 value={form.formData.name}
                 placeholder={t("Version name. ex: v2")}
                 onChange={form.handleInputChange}

@@ -8,6 +8,7 @@ import { UserEvent } from "@testing-library/user-event/dist/types/setup/setup";
 import { runPipeline } from "workspaces/helpers/pipelines";
 import RunPipelineDialog from "../RunPipelineDialog";
 import { ParameterField_ParameterFragment } from "./ParameterField.generated";
+import { PipelineType } from "graphql-types";
 
 jest.mock("@apollo/client", () => ({
   ...jest.requireActual("@apollo/client"),
@@ -29,6 +30,7 @@ const pipelineWithParameters = (
   return {
     id: v4(),
     code: "code",
+    type: PipelineType.ZipFile,
     workspace: {
       slug: "slug",
     },
@@ -73,7 +75,16 @@ describe("RunPipelineDialog", () => {
 
     const user = userEvent.setup();
 
-    render(<RunPipelineDialog open pipeline={pipeline} onClose={() => {}} />);
+    render(
+      <RunPipelineDialog pipeline={pipeline}>
+        {(onClick) => (
+          <button data-testid="trigger" onClick={onClick}>
+            Trigger
+          </button>
+        )}
+      </RunPipelineDialog>,
+    );
+    await user.click(await screen.findByTestId("trigger"));
     await submitForm(user);
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
@@ -92,7 +103,16 @@ describe("RunPipelineDialog", () => {
 
     const user = userEvent.setup();
 
-    render(<RunPipelineDialog open pipeline={pipeline} onClose={() => {}} />);
+    render(
+      <RunPipelineDialog pipeline={pipeline}>
+        {(onClick) => (
+          <button data-testid="trigger" onClick={onClick}>
+            Trigger
+          </button>
+        )}
+      </RunPipelineDialog>,
+    );
+    await user.click(await screen.findByTestId("trigger"));
     await user.click(await screen.findByLabelText("Receive mail notification"));
     await submitForm(user);
     expect(runPipelineMock).toHaveBeenCalledWith(
@@ -122,7 +142,17 @@ describe("RunPipelineDialog", () => {
 
     const user = userEvent.setup();
 
-    render(<RunPipelineDialog open pipeline={pipeline} onClose={() => {}} />);
+    render(
+      <RunPipelineDialog pipeline={pipeline}>
+        {(onClick) => (
+          <button data-testid="trigger" onClick={onClick}>
+            Trigger
+          </button>
+        )}
+      </RunPipelineDialog>,
+    );
+    await user.click(await screen.findByTestId("trigger"));
+
     await submitForm(user);
     expect(runPipelineMock).toHaveBeenCalled();
   });
@@ -146,7 +176,17 @@ describe("RunPipelineDialog", () => {
 
     const user = userEvent.setup();
 
-    render(<RunPipelineDialog open pipeline={pipeline} onClose={() => {}} />);
+    render(
+      <RunPipelineDialog pipeline={pipeline}>
+        {(onClick) => (
+          <button data-testid="trigger" onClick={onClick}>
+            Trigger
+          </button>
+        )}
+      </RunPipelineDialog>,
+    );
+    await user.click(await screen.findByTestId("trigger"));
+
     await submitForm(user);
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
@@ -185,7 +225,17 @@ describe("RunPipelineDialog", () => {
 
     const user = userEvent.setup();
 
-    render(<RunPipelineDialog open pipeline={pipeline} onClose={() => {}} />);
+    render(
+      <RunPipelineDialog pipeline={pipeline}>
+        {(onClick) => (
+          <button data-testid="trigger" onClick={onClick}>
+            Trigger
+          </button>
+        )}
+      </RunPipelineDialog>,
+    );
+    await user.click(await screen.findByTestId("trigger"));
+
     await submitForm(user);
     expect(runPipelineMock).not.toHaveBeenCalled();
 
@@ -222,7 +272,17 @@ describe("RunPipelineDialog", () => {
 
     const user = userEvent.setup();
 
-    render(<RunPipelineDialog open pipeline={pipeline} onClose={() => {}} />);
+    render(
+      <RunPipelineDialog pipeline={pipeline}>
+        {(onClick) => (
+          <button data-testid="trigger" onClick={onClick}>
+            Trigger
+          </button>
+        )}
+      </RunPipelineDialog>,
+    );
+    await user.click(await screen.findByTestId("trigger"));
+
     await submitForm(user);
     expect(runPipelineMock).not.toHaveBeenCalled();
 
@@ -257,7 +317,17 @@ describe("RunPipelineDialog", () => {
 
     const user = userEvent.setup();
 
-    render(<RunPipelineDialog open pipeline={pipeline} onClose={() => {}} />);
+    render(
+      <RunPipelineDialog pipeline={pipeline}>
+        {(onClick) => (
+          <button data-testid="trigger" onClick={onClick}>
+            Trigger
+          </button>
+        )}
+      </RunPipelineDialog>,
+    );
+    await user.click(await screen.findByTestId("trigger"));
+
     await submitForm(user);
     expect(runPipelineMock).not.toHaveBeenCalled();
 
@@ -292,7 +362,17 @@ describe("RunPipelineDialog", () => {
 
     const user = userEvent.setup();
 
-    render(<RunPipelineDialog open pipeline={pipeline} onClose={() => {}} />);
+    render(
+      <RunPipelineDialog pipeline={pipeline}>
+        {(onClick) => (
+          <button data-testid="trigger" onClick={onClick}>
+            Trigger
+          </button>
+        )}
+      </RunPipelineDialog>,
+    );
+    await user.click(await screen.findByTestId("trigger"));
+
     await submitForm(user);
     expect(runPipelineMock).not.toHaveBeenCalled();
 

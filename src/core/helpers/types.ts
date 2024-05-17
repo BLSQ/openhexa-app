@@ -1,11 +1,16 @@
 import type { AppProps } from "next/app";
 import type { NextPage } from "next";
-import type { ReactElement } from "react";
+import type { FC, ReactElement } from "react";
 import { CustomApolloClient } from "./apollo";
+import { DocumentNode } from "graphql";
 
 export type NextPageWithLayout<PP extends PageProps = any> = NextPage<PP> & {
   getLayout?: (page: ReactElement, pageProps: PP) => ReactElement;
 };
+
+export interface ApolloComponent<P = {}> extends FC<P> {
+  fragments: { [key: string]: DocumentNode };
+}
 
 export type NextPageWithFragments<T = any> = NextPage<T> & {
   fragments: { [key: string]: any };

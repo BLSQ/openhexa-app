@@ -21,6 +21,7 @@ function DHIS2Form(props: { form: FormInstance<ConnectionForm> }) {
           )}
           placeholder="https://play.dhis2.org/2.35.3"
           label={t("URL")}
+          fullWidth
         />
       </div>
 
@@ -31,6 +32,7 @@ function DHIS2Form(props: { form: FormInstance<ConnectionForm> }) {
         label={t("Username")}
         placeholder="admin"
         required
+        fullWidth
       />
 
       <Field
@@ -40,6 +42,7 @@ function DHIS2Form(props: { form: FormInstance<ConnectionForm> }) {
         label={t("Password")}
         placeholder="district"
         required
+        fullWidth
       />
     </>
   );

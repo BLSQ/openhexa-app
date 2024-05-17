@@ -2,7 +2,8 @@ import DataCard from "core/components/DataCard";
 import { useDataCardProperty } from "core/components/DataCard/context";
 import { PropertyDefinition } from "core/components/DataCard/types";
 import Input from "core/components/forms/Input";
-import { useTranslation } from "next-i18next";
+import { Trans, useTranslation } from "next-i18next";
+import Link from "core/components/Link";
 import {
   getCronExpressionDescription,
   validateCronExpression,
@@ -31,13 +32,35 @@ const CronProperty = (props: CronPropertyProps) => {
   if (section.isEdited && !property.readonly) {
     return (
       <DataCard.Property property={property}>
-        <Input
-          value={property.formValue ?? ""}
-          onChange={(e) => property.setValue(e.target.value)}
-          required={property.required}
-          readOnly={property.readonly}
-          placeholder={placeholder}
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            value={property.formValue ?? ""}
+            onChange={(e) => property.setValue(e.target.value)}
+            required={property.required}
+            readOnly={property.readonly}
+            placeholder={placeholder}
+            className="flex-shrink-0 w-72"
+            fullWidth={false}
+          />
+          <span className="flex-grow-0 text-gray-500 italic">
+            ({getCronExpressionDescription(property.formValue) ?? t("Invalid")})
+          </span>
+        </div>
+        <Trans>
+          <div className="text-xs text-gray-500 mt-1">
+            Use{" "}
+            <Link
+              href={
+                "https://crontab.guru/#" +
+                  property.formValue?.replaceAll(" ", "_") ?? ""
+              }
+              target="_blank"
+            >
+              crontab.guru
+            </Link>{" "}
+            to help you create a cron expression.
+          </div>
+        </Trans>
       </DataCard.Property>
     );
   } else {

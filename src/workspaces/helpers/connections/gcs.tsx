@@ -18,6 +18,7 @@ function GCSBucketForm(props: { form: FormInstance<ConnectionForm> }) {
         label={t("Bucket name")}
         placeholder="hexa-my-bucket"
         required
+        fullWidth
       />
       <div className="col-span-2">
         <Title level={6}>{t("Credentials")}</Title>
@@ -31,6 +32,7 @@ function GCSBucketForm(props: { form: FormInstance<ConnectionForm> }) {
         name="service_account_key"
         label={t("Service Account Key")}
         help={t("The service account key in JSON format")}
+        fullWidth
       >
         <Textarea
           name="service_account_key"

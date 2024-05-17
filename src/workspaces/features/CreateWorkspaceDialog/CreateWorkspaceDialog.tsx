@@ -93,6 +93,7 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
           value={form.formData.name}
           onChange={form.handleInputChange}
           autoComplete="off"
+          fullWidth
         />
 
         <Field

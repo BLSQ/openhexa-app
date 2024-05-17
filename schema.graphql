@@ -638,6 +638,7 @@ input CreatePipelineInput {
   code: String!
   name: String
   workspaceSlug: String!
+  notebookPath: String
 }
 
 type CreatePipelineResult {
@@ -1597,6 +1598,8 @@ type Pipeline {
   recipients: [PipelineRecipient!]!
   webhookEnabled: Boolean!
   webhookUrl: String
+  type: PipelineType!
+  notebookPath: String
 }
 
 enum PipelineError {
@@ -1612,6 +1615,7 @@ enum PipelineError {
   PERMISSION_DENIED
   FILE_NOT_FOUND
   TABLE_NOT_FOUND
+  CANNOT_UPDATE_NOTEBOOK_PIPELINE
 }
 
 type PipelineParameter {
@@ -1644,7 +1648,7 @@ type PipelineRun {
   run_id: UUID!
   user: User
   pipeline: Pipeline!
-  version: PipelineVersion!
+  version: PipelineVersion
   config: JSON!
   status: PipelineRunStatus!
   executionDate: DateTime
@@ -1712,6 +1716,11 @@ type PipelineTokenResult {
   success: Boolean!
   errors: [PipelineError!]!
   token: String
+}
+
+enum PipelineType {
+  zipFile
+  notebook
 }
 
 type PipelineVersion {

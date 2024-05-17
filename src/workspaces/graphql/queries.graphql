@@ -84,10 +84,13 @@ query WorkspacePipelinePage(
     webhookUrl
     webhookEnabled
     id
+    createdAt
     code
     name
     description
     schedule
+    type
+    notebookPath
     currentVersion {
       id
       name
@@ -199,6 +202,8 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: UUID!) {
       id
       code
       name
+      type
+      notebookPath
       permissions {
         stopPipeline
       }

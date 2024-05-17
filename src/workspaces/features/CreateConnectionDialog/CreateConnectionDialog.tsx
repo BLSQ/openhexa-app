@@ -218,6 +218,7 @@ export default function CreateConnectionDialog({
                 label={t("Connection name")}
                 placeholder={t("Ex: My database server")}
                 max={40}
+                fullWidth
                 help={t("Maximum 40 characters")}
                 required
               />
@@ -227,6 +228,7 @@ export default function CreateConnectionDialog({
                 value={form.formData.description}
                 className="col-span-2"
                 label={t("Description")}
+                fullWidth
                 placeholder={t("Type a description for your connection")}
                 help={t("Short description of the connection")}
                 required

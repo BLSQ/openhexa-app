@@ -110,6 +110,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
             type="email"
             autoComplete="email"
             required
+            fullWidth
             value={form.formData.email}
             onChange={form.handleInputChange}
             error={form.touched.email && form.errors.email}

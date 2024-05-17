@@ -1,6 +1,7 @@
 import * as Types from '../../../graphql-types';
 
 import { gql } from '@apollo/client';
+import { BucketObjectPicker_WorkspaceFragmentDoc } from '../BucketObjectPicker/BucketObjectPicker.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type GenerateWorkspaceTokenMutationVariables = Types.Exact<{
@@ -15,8 +16,9 @@ export type CreatePipelineDialog_WorkspaceFragment = { __typename?: 'Workspace',
 export const CreatePipelineDialog_WorkspaceFragmentDoc = gql`
     fragment CreatePipelineDialog_workspace on Workspace {
   slug
+  ...BucketObjectPicker_workspace
 }
-    `;
+    ${BucketObjectPicker_WorkspaceFragmentDoc}`;
 export const GenerateWorkspaceTokenDocument = gql`
     mutation GenerateWorkspaceToken($input: GenerateWorkspaceTokenInput!) {
   generateWorkspaceToken(input: $input) {

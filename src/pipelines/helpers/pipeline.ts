@@ -7,7 +7,7 @@ import {
   RunPipelineMutation,
 } from "./pipeline.generated";
 
-export async function runPipeline(pipelineId: string, config: object) {
+export async function runPipeline(pipelineId: string, config: object = {}) {
   const client = getApolloClient();
   const { data } = await client.mutate<RunPipelineMutation>({
     mutation: gql`

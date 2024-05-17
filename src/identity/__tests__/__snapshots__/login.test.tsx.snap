@@ -40,13 +40,13 @@ exports[`LoginPage: No Two Factor Authentication renders the login page 1`] = `
         Email address
       </label>
       <div
-        class="group relative"
+        class="group relative w-full"
       >
         <input
           aria-describedby="email-description"
           aria-invalid="false"
           autocomplete="email"
-          class="w-full form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-none focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 rounded-b-none"
+          class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-none focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 w-full rounded-b-none"
           data-testid="email"
           id="email"
           name="email"
@@ -63,13 +63,13 @@ exports[`LoginPage: No Two Factor Authentication renders the login page 1`] = `
         Password
       </label>
       <div
-        class="group relative"
+        class="group relative w-full"
       >
         <input
           aria-describedby="password-description"
           aria-invalid="false"
           autocomplete="current-password"
-          class="w-full form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-none focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 rounded-t-none"
+          class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-none focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 w-full rounded-t-none"
           data-testid="password"
           id="password"
           name="password"

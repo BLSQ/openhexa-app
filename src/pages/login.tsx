@@ -131,6 +131,7 @@ const LoginPage: NextPageWithLayout = () => {
               <p>{t("Enter the OTP code you received in your mailbox.")}</p>
             </div>
             <Field
+              fullWidth
               name="token"
               data-testid="token"
               label={t("OTP Code")}
@@ -162,6 +163,7 @@ const LoginPage: NextPageWithLayout = () => {
               </label>
               <Input
                 name="email"
+                fullWidth
                 data-testid="email"
                 value={form.formData.email}
                 required
@@ -180,6 +182,7 @@ const LoginPage: NextPageWithLayout = () => {
                 name="password"
                 value={form.formData.password}
                 required
+                fullWidth
                 data-testid="password"
                 type="password"
                 placeholder={t("Password")}

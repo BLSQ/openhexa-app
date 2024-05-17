@@ -36,6 +36,7 @@ function CustomForm(props: { form: FormInstance<ConnectionForm> }) {
                   code: event.target.value,
                 })
               }
+              fullWidth
               value={field.code}
               name={`code-${index}`}
               pattern="^[a-zA-Z0-9-_]*$"
@@ -55,6 +56,7 @@ function CustomForm(props: { form: FormInstance<ConnectionForm> }) {
                   value: event.target.value,
                 })
               }
+              fullWidth
               value={field.value ?? ""}
               placeholder={t("Value of the field")}
               required

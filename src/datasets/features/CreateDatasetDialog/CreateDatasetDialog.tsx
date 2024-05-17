@@ -91,6 +91,7 @@ const CreateDatasetDialog = (props: CreateDatasetDialogProps) => {
             value={form.formData.name}
             onChange={form.handleInputChange}
             required
+            fullWidth
             error={form.errors.name}
           />
           <Field name={"description"} label={t("Description")} required>

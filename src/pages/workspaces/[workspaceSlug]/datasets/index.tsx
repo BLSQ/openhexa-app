@@ -109,12 +109,6 @@ const WorkspaceDatasetsPage: NextPageWithLayout = (props: Props) => {
           {workspace.permissions.createDataset && (
             <>
               <Button
-                variant="secondary"
-                leadingIcon={<CloudArrowUpIcon className="h-4" />}
-              >
-                {t("Import")}
-              </Button>
-              <Button
                 leadingIcon={<PlusIcon className="h-4 w-4" />}
                 onClick={() => setDialogOpen(true)}
               >

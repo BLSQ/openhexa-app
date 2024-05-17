@@ -1,10 +1,9 @@
 import { gql } from "@apollo/client";
 import clsx from "clsx";
 import Card from "core/components/Card";
-import Tooltip from "core/components/Tooltip";
-import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import { useTranslation } from "next-i18next";
-import { getCronExpressionDescription } from "workspaces/helpers/pipelines";
+import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
+import { formatPipelineType } from "workspaces/helpers/pipelines";
 import {
   PipelineCard_PipelineFragment,
   PipelineCard_WorkspaceFragment,
@@ -35,13 +34,7 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
       }
       subtitle={
         <div className="flex justify-between">
-          {pipeline.schedule ? (
-            <Tooltip label={getCronExpressionDescription(pipeline.schedule)}>
-              <span>{t("Automatic")}</span>
-            </Tooltip>
-          ) : (
-            t("Manual")
-          )}
+          {formatPipelineType(pipeline.type)}
         </div>
       }
     >
@@ -66,6 +59,7 @@ PipelineCard.fragments = {
       name
       schedule
       description
+      type
       lastRuns: runs(orderBy: EXECUTION_DATE_DESC, page: 1, perPage: 1) {
         items {
           ...PipelineRunStatusBadge_run

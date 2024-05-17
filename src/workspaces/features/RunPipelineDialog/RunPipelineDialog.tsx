@@ -4,13 +4,17 @@ import clsx from "clsx";
 import Alert from "core/components/Alert";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
+import Spinner from "core/components/Spinner";
+import Checkbox from "core/components/forms/Checkbox/Checkbox";
 import Field from "core/components/forms/Field";
+import { AlertType } from "core/helpers/alert";
+import { ensureArray } from "core/helpers/array";
 import useCacheKey from "core/hooks/useCacheKey";
 import useForm from "core/hooks/useForm";
-import { PipelineVersion } from "graphql-types";
+import { PipelineType, PipelineVersion } from "graphql-types";
+import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { useTranslation } from "next-i18next";
 import {
   convertParametersToPipelineInput,
   isConnectionParameter,
@@ -23,14 +27,9 @@ import {
   RunPipelineDialog_PipelineFragment,
   RunPipelineDialog_RunFragment,
 } from "./RunPipelineDialog.generated";
-import Spinner from "core/components/Spinner";
-import { ensureArray } from "core/helpers/array";
-import Checkbox from "core/components/forms/Checkbox/Checkbox";
-import { AlertType } from "core/helpers/alert";
 
 type RunPipelineDialogProps = {
-  open: boolean;
-  onClose: () => void;
+  children(onClick: () => void): React.ReactNode;
   pipeline: RunPipelineDialog_PipelineFragment;
 } & (
   | {}
@@ -40,10 +39,28 @@ type RunPipelineDialogProps = {
 
 const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   const router = useRouter();
-  const { open, onClose, pipeline } = props;
+  const { pipeline, children } = props;
   const [showVersionPicker, setShowVersionPicker] = useState(false);
   const clearCache = useCacheKey(["pipelines", pipeline.code]);
   const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const onClose = () => setOpen(false);
+  const onClick = () => {
+    if (pipeline.type === PipelineType.ZipFile) {
+      setOpen(true);
+    } else {
+      runPipeline(pipeline.id).then((run) => {
+        router.push(
+          `/workspaces/${encodeURIComponent(
+            pipeline.workspace!.slug,
+          )}/pipelines/${encodeURIComponent(pipeline.id)}/runs/${encodeURIComponent(
+            run.id,
+          )}`,
+        );
+        clearCache();
+      });
+    }
+  };
 
   const [fetch, { data }] = useLazyQuery<PipelineCurrentVersionQuery>(
     gql`
@@ -80,7 +97,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       );
       await router.push(
         `/workspaces/${encodeURIComponent(
-          router.query.workspaceSlug as string,
+          pipeline.workspace!.slug,
         )}/pipelines/${encodeURIComponent(
           pipeline.id,
         )}/runs/${encodeURIComponent(run.id)}`,
@@ -181,12 +198,8 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form, form.formData.version]);
 
-  if (!pipeline.permissions.run && open) {
-    return (
-      <Alert onClose={onClose} type={AlertType.error}>
-        {t("You don't have permission to run this pipeline")}
-      </Alert>
-    );
+  if (!pipeline.permissions.run) {
+    return null;
   }
 
   if (!pipeline.currentVersion && open) {
@@ -200,117 +213,127 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   const parameters = form.formData.version?.parameters ?? [];
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      centered={false}
-      onSubmit={form.handleSubmit}
-      maxWidth={parameters.length > 4 ? "max-w-3xl" : "max-w-2xl"}
-    >
-      <Dialog.Title>{t("Run pipeline")}</Dialog.Title>
-      {!form.formData.version ? (
-        <Dialog.Content className="flex  items-center justify-center">
-          <Spinner size="lg" />
-        </Dialog.Content>
-      ) : (
-        <>
-          <Dialog.Content>
-            {form.errors.version && (
-              <div className="mt-3 text-sm text-red-600">
-                {form.errors.version}
-              </div>
-            )}
-            {!showVersionPicker ? (
-              <div className="mb-6 gap-x-1">
-                <p>
-                  {!("run" in props)
-                    ? t("This pipeline will run using the latest version.")
-                    : t("This pipeline will run using the same version.")}
-                  &nbsp;
-                  <button
-                    className="text-sm text-blue-600 hover:text-blue-500 inline"
-                    role="link"
-                    onClick={() => {
-                      setShowVersionPicker(true);
-                    }}
-                  >
-                    {t("Select specific version")}
-                  </button>
-                </p>
-              </div>
-            ) : (
-              <Field
-                name="version"
-                label={t("Version")}
-                required
-                className="mb-6"
-              >
-                <PipelineVersionPicker
-                  required
-                  pipeline={pipeline}
-                  value={form.formData.version ?? null}
-                  onChange={(value) => form.setFieldValue("version", value)}
-                />
-              </Field>
-            )}
+    <>
+      {children(onClick)}
 
-            <div
-              className={clsx(
-                "grid gap-x-3 gap-y-4",
-                parameters.length > 4 && "grid-cols-2 gap-x-5",
-              )}
-            >
-              {parameters.map((param, i) => (
-                <Field
-                  required={param.required || param.type === "bool"}
-                  key={i}
-                  name={param.code}
-                  label={param.name}
-                  help={param.help}
-                  error={form.touched[param.code] && form.errors[param.code]}
+      {pipeline.type === PipelineType.ZipFile && (
+        <Dialog
+          open={open}
+          onClose={onClose}
+          centered={false}
+          onSubmit={form.handleSubmit}
+          maxWidth={parameters.length > 4 ? "max-w-3xl" : "max-w-2xl"}
+        >
+          <Dialog.Title>{t("Run pipeline")}</Dialog.Title>
+          {!form.formData.version ? (
+            <Dialog.Content className="flex  items-center justify-center">
+              <Spinner size="lg" />
+            </Dialog.Content>
+          ) : (
+            <>
+              <Dialog.Content>
+                {form.errors.version && (
+                  <div className="mt-3 text-sm text-red-600">
+                    {form.errors.version}
+                  </div>
+                )}
+                {!showVersionPicker ? (
+                  <div className="mb-6 gap-x-1">
+                    <p>
+                      {!("run" in props)
+                        ? t("This pipeline will run using the latest version.")
+                        : t("This pipeline will run using the same version.")}
+                      &nbsp;
+                      <button
+                        className="text-sm text-blue-600 hover:text-blue-500 inline"
+                        role="link"
+                        onClick={() => {
+                          setShowVersionPicker(true);
+                        }}
+                      >
+                        {t("Select specific version")}
+                      </button>
+                    </p>
+                  </div>
+                ) : (
+                  <Field
+                    name="version"
+                    label={t("Version")}
+                    required
+                    className="mb-6"
+                  >
+                    <PipelineVersionPicker
+                      required
+                      pipeline={pipeline}
+                      value={form.formData.version ?? null}
+                      onChange={(value) => form.setFieldValue("version", value)}
+                    />
+                  </Field>
+                )}
+
+                <div
+                  className={clsx(
+                    "grid gap-x-3 gap-y-4",
+                    parameters.length > 4 && "grid-cols-2 gap-x-5",
+                  )}
                 >
-                  <ParameterField
-                    parameter={param}
-                    value={form.formData[param.code]}
-                    onChange={(value: any) => {
-                      form.setFieldValue(param.code, value);
-                    }}
-                    workspaceSlug={pipeline.workspace?.slug}
+                  {parameters.map((param, i) => (
+                    <Field
+                      required={param.required || param.type === "bool"}
+                      key={i}
+                      name={param.code}
+                      label={param.name}
+                      help={param.help}
+                      error={
+                        form.touched[param.code] && form.errors[param.code]
+                      }
+                    >
+                      <ParameterField
+                        parameter={param}
+                        value={form.formData[param.code]}
+                        onChange={(value: any) => {
+                          form.setFieldValue(param.code, value);
+                        }}
+                        workspaceSlug={pipeline.workspace?.slug}
+                      />
+                    </Field>
+                  ))}
+                </div>
+                {form.submitError && (
+                  <div className="mt-3 text-sm text-red-600">
+                    {form.submitError}
+                  </div>
+                )}
+              </Dialog.Content>
+              <Dialog.Actions className="flex-1 items-center">
+                <div className="flex flex-1 items-center">
+                  <Checkbox
+                    checked={form.formData.sendMailNotifications}
+                    name="sendMailNotifications"
+                    onChange={form.handleInputChange}
+                    label={t("Receive mail notification")}
+                    help={t(
+                      "You will receive an email when the pipeline is done",
+                    )}
                   />
-                </Field>
-              ))}
-            </div>
-            {form.submitError && (
-              <div className="mt-3 text-sm text-red-600">
-                {form.submitError}
-              </div>
-            )}
-          </Dialog.Content>
-          <Dialog.Actions className="flex-1 items-center">
-            <div className="flex flex-1 items-center">
-              <Checkbox
-                checked={form.formData.sendMailNotifications}
-                name="sendMailNotifications"
-                onChange={form.handleInputChange}
-                label={t("Receive mail notification")}
-                help={t("You will receive an email when the pipeline is done")}
-              />
-            </div>
-            <Button type="button" variant="white" onClick={onClose}>
-              {t("Cancel")}
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={form.isSubmitting}
-              leadingIcon={<PlayIcon className="h-4 w-4" />}
-            >
-              {t("Run")}
-            </Button>
-          </Dialog.Actions>
-        </>
+                </div>
+                <Button type="button" variant="white" onClick={onClose}>
+                  {t("Cancel")}
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={form.isSubmitting}
+                  leadingIcon={<PlayIcon className="h-4 w-4" />}
+                >
+                  {t("Run")}
+                </Button>
+              </Dialog.Actions>
+            </>
+          )}
+        </Dialog>
       )}
-    </Dialog>
+    </>
   );
 };
 
@@ -325,6 +348,7 @@ RunPipelineDialog.fragments = {
         run
       }
       code
+      type
       currentVersion {
         id
         name

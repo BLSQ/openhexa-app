@@ -19,6 +19,7 @@ function IASOForm(props: { form: FormInstance<ConnectionForm> }) {
           placeholder="https://iaso.bluesquare.org"
           label={t("Iaso Instance URL")}
           help={t("The base url to access the Iaso instance.")}
+          fullWidth
         />
       </div>
 
@@ -28,6 +29,7 @@ function IASOForm(props: { form: FormInstance<ConnectionForm> }) {
         name="username"
         label={t("Username")}
         required
+        fullWidth
       />
 
       <Field
@@ -36,6 +38,7 @@ function IASOForm(props: { form: FormInstance<ConnectionForm> }) {
         name="password"
         label={t("Password")}
         required
+        fullWidth
       />
     </>
   );

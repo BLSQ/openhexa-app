@@ -707,6 +707,7 @@ export type CreateMembershipResult = {
 export type CreatePipelineInput = {
   code: Scalars['String']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
+  notebookPath?: InputMaybe<Scalars['String']['input']>;
   workspaceSlug: Scalars['String']['input'];
 };
 
@@ -2194,10 +2195,12 @@ export type Pipeline = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   name?: Maybe<Scalars['String']['output']>;
+  notebookPath?: Maybe<Scalars['String']['output']>;
   permissions: PipelinePermissions;
   recipients: Array<PipelineRecipient>;
   runs: PipelineRunPage;
   schedule?: Maybe<Scalars['String']['output']>;
+  type: PipelineType;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   versions: PipelineVersionPage;
   webhookEnabled: Scalars['Boolean']['output'];
@@ -2219,6 +2222,7 @@ export type PipelineVersionsArgs = {
 };
 
 export enum PipelineError {
+  CannotUpdateNotebookPipeline = 'CANNOT_UPDATE_NOTEBOOK_PIPELINE',
   FileNotFound = 'FILE_NOT_FOUND',
   InvalidConfig = 'INVALID_CONFIG',
   InvalidTimeoutValue = 'INVALID_TIMEOUT_VALUE',
@@ -2281,7 +2285,7 @@ export type PipelineRun = {
   timeout?: Maybe<Scalars['Int']['output']>;
   triggerMode?: Maybe<PipelineRunTrigger>;
   user?: Maybe<User>;
-  version: PipelineVersion;
+  version?: Maybe<PipelineVersion>;
 };
 
 export type PipelineRunMessage = {
@@ -2332,6 +2336,11 @@ export type PipelineTokenResult = {
   success: Scalars['Boolean']['output'];
   token?: Maybe<Scalars['String']['output']>;
 };
+
+export enum PipelineType {
+  Notebook = 'notebook',
+  ZipFile = 'zipFile'
+}
 
 export type PipelineVersion = {
   __typename?: 'PipelineVersion';

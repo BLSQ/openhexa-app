@@ -74,6 +74,13 @@ export type GenerateNewDatabasePasswordMutationVariables = Types.Exact<{
 
 export type GenerateNewDatabasePasswordMutation = { __typename?: 'Mutation', generateNewDatabasePassword: { __typename?: 'GenerateNewDatabasePasswordResult', success: boolean, errors: Array<Types.GenerateNewDatabasePasswordError> } };
 
+export type CreatePipelineMutationVariables = Types.Exact<{
+  input: Types.CreatePipelineInput;
+}>;
+
+
+export type CreatePipelineMutation = { __typename?: 'Mutation', createPipeline: { __typename?: 'CreatePipelineResult', success: boolean, errors: Array<Types.PipelineError>, pipeline?: { __typename?: 'Pipeline', code: string } | null } };
+
 export type DeletePipelineMutationVariables = Types.Exact<{
   input: Types.DeletePipelineInput;
 }>;
@@ -506,6 +513,43 @@ export function useGenerateNewDatabasePasswordMutation(baseOptions?: Apollo.Muta
 export type GenerateNewDatabasePasswordMutationHookResult = ReturnType<typeof useGenerateNewDatabasePasswordMutation>;
 export type GenerateNewDatabasePasswordMutationResult = Apollo.MutationResult<GenerateNewDatabasePasswordMutation>;
 export type GenerateNewDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<GenerateNewDatabasePasswordMutation, GenerateNewDatabasePasswordMutationVariables>;
+export const CreatePipelineDocument = gql`
+    mutation createPipeline($input: CreatePipelineInput!) {
+  createPipeline(input: $input) {
+    success
+    errors
+    pipeline {
+      code
+    }
+  }
+}
+    `;
+export type CreatePipelineMutationFn = Apollo.MutationFunction<CreatePipelineMutation, CreatePipelineMutationVariables>;
+
+/**
+ * __useCreatePipelineMutation__
+ *
+ * To run a mutation, you first call `useCreatePipelineMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreatePipelineMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createPipelineMutation, { data, loading, error }] = useCreatePipelineMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreatePipelineMutation(baseOptions?: Apollo.MutationHookOptions<CreatePipelineMutation, CreatePipelineMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreatePipelineMutation, CreatePipelineMutationVariables>(CreatePipelineDocument, options);
+      }
+export type CreatePipelineMutationHookResult = ReturnType<typeof useCreatePipelineMutation>;
+export type CreatePipelineMutationResult = Apollo.MutationResult<CreatePipelineMutation>;
+export type CreatePipelineMutationOptions = Apollo.BaseMutationOptions<CreatePipelineMutation, CreatePipelineMutationVariables>;
 export const DeletePipelineDocument = gql`
     mutation deletePipeline($input: DeletePipelineInput!) {
   deletePipeline(input: $input) {

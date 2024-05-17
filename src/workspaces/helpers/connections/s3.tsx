@@ -16,6 +16,7 @@ function S3BucketForm(props: { form: FormInstance<ConnectionForm> }) {
         name="bucket_name"
         label={t("Bucket name")}
         required
+        fullWidth
       />
       <div className="col-span-2">
         <Title level={6}>{t("Credentials")}</Title>
@@ -33,6 +34,7 @@ function S3BucketForm(props: { form: FormInstance<ConnectionForm> }) {
         help={t(
           'The "Access key ID" of the AWS user with access to the bucket. This can be found in the AWS console.',
         )}
+        fullWidth
       />
 
       <Field
@@ -43,6 +45,7 @@ function S3BucketForm(props: { form: FormInstance<ConnectionForm> }) {
         help={t(
           'The "secret access key" of the AWS user with access to the bucket. This can be found in the AWS console.',
         )}
+        fullWidth
       />
     </>
   );
