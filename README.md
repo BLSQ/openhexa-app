@@ -79,6 +79,24 @@ docker compose --profile minio up
 You also have to set the `WORKSPACE_STORAGE_ENGINE` environment variable to `s3`.
 
 
+### Running with the frontend
+
+By default, we assume that the frontend is served outside from this project. If you want to run the frontend locally,
+you can use the `frontend` profile:
+
+```bash
+docker compose --profile frontend up
+```
+
+The frontend is then served on `http://localhost:3000`.
+
+By default, the `latest` tag will be used but you can set a PR number or use the main branch:
+
+```bash
+FRONTEND_VERSION=main docker compose --profile frontend up
+FRONTEND_VERSION=pr-604 docker compose --profile frontend up
+```
+
 ### Pipelines
 
 If you need the pipelines or want to work on them, there are 2 optional services to run: `pipelines_runner` and/or
