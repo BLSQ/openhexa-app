@@ -22,7 +22,7 @@ x-app: &common
       - NEW_FRONTEND_DOMAIN=localhost:3000
       - PIPELINE_SCHEDULER_SPAWNER=docker
       - PIPELINE_API_URL=http://app:8000
-      - PIPELINE_IMAGE=blsq/openhexa-base-environment:latest
+      - DEFAULT_WORKSPACE_IMAGE
       # The following variables are optional and can be set in your local .env file for testing purposes
       - DEBUG_LOGGING
       - DEBUG_TOOLBAR
@@ -96,6 +96,22 @@ services:
       - "dataworker"
     depends_on:
       - db
+  
+  frontend:
+    image: "blsq/openhexa-frontend:${FRONTEND_VERSION:-main}"
+    platform: linux/amd64
+    networks:
+      - openhexa
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - OPENHEXA_BACKEND_URL=http://app:8000
+    profiles:
+      - frontend
+    restart: unless-stopped
+    depends_on:
+      - app
 
   pipelines_runner:
     <<: *common
@@ -133,7 +149,7 @@ services:
     volumes:
       - minio_data:/data
     profiles:
-      - storage
+      - minio
     ports:
       - '9000:9000'
       - '9001:9001'

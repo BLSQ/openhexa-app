@@ -397,6 +397,10 @@ class OnlyGCP:
         )
         self.assertEqual(bucket.storage_class, "STANDARD")
 
+    def test_create_bucket_labels(self):
+        bucket = self.get_client().create_bucket("bucket", labels={"key": "value"})
+        self.assertEqual(bucket.labels, {"key": "value"})
+
 
 class OnlyS3:
     def test_generate_upload_url_raise_existing_dont_raise(self):

@@ -123,7 +123,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
     image = (
         workspace.docker_image
         if workspace.docker_image != ""
-        else settings.PIPELINE_IMAGE
+        else settings.DEFAULT_WORKSPACE_IMAGE
     )
 
     if sdk_auth_token is not None:

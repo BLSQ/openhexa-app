@@ -8,6 +8,7 @@ from django.core import mail
 from django.core.signing import Signer
 
 from hexa.core.test import GraphQLTestCase
+from hexa.databases.utils import TableNotFound
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
@@ -376,6 +377,7 @@ class WorkspaceTest(GraphQLTestCase):
                     success
                     workspace {
                         description
+                        dockerImage
                     }
                     errors
                 }
@@ -385,6 +387,7 @@ class WorkspaceTest(GraphQLTestCase):
                 "input": {
                     "slug": self.WORKSPACE.slug,
                     "description": "This is a test for updating workspace description",
+                    "dockerImage": "blsq/custom-image",
                 }
             },
         )
@@ -393,7 +396,8 @@ class WorkspaceTest(GraphQLTestCase):
                 "success": True,
                 "errors": [],
                 "workspace": {
-                    "description": "This is a test for updating workspace description"
+                    "description": "This is a test for updating workspace description",
+                    "dockerImage": "blsq/custom-image",
                 },
             },
             r["data"]["updateWorkspace"],
@@ -1532,3 +1536,74 @@ class WorkspaceTest(GraphQLTestCase):
         self.assertTrue(
             f"{settings.NEW_FRONTEND_DOMAIN}/user/account" in mail.outbox[0].body
         )
+
+    def test_delete_workspace_database_table_permission_denied(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+                mutation deleteWorkspaceDatabaseTable($input: DeleteWorkspaceDatabaseTableInput!) {
+                    deleteWorkspaceDatabaseTable(input: $input) {
+                        success
+                        errors
+                    }
+                }
+                """,
+            {"input": {"workspaceSlug": self.WORKSPACE.slug, "table": "foo"}},
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+            },
+            r["data"]["deleteWorkspaceDatabaseTable"],
+        )
+
+    def test_delete_workspace_database_table_not_found(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        with patch(
+            "hexa.workspaces.schema.mutations.delete_table"
+        ) as mocked_get_table_definition:
+            mocked_get_table_definition.side_effect = TableNotFound(
+                "Table foo doesn't exist"
+            )
+
+            r = self.run_query(
+                """
+                    mutation deleteWorkspaceDatabaseTable($input: DeleteWorkspaceDatabaseTableInput!) {
+                        deleteWorkspaceDatabaseTable(input: $input) {
+                            success
+                            errors
+                        }
+                    }
+                    """,
+                {"input": {"workspaceSlug": self.WORKSPACE.slug, "table": "foo"}},
+            )
+            self.assertEqual(
+                {
+                    "success": False,
+                    "errors": ["TABLE_NOT_FOUND"],
+                },
+                r["data"]["deleteWorkspaceDatabaseTable"],
+            )
+
+    def test_delete_workspace_database_table(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        with patch("hexa.workspaces.schema.mutations.delete_table"):
+            r = self.run_query(
+                """
+                    mutation deleteWorkspaceDatabaseTable($input: DeleteWorkspaceDatabaseTableInput!) {
+                        deleteWorkspaceDatabaseTable(input: $input) {
+                            success
+                            errors
+                        }
+                    }
+                    """,
+                {"input": {"workspaceSlug": self.WORKSPACE.slug, "table": "foo"}},
+            )
+            self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                },
+                r["data"]["deleteWorkspaceDatabaseTable"],
+            )

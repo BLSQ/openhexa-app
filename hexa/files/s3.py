@@ -110,7 +110,7 @@ def _get_bucket_object(bucket_name: str, object_key: str):
 
 
 class S3Client(BaseClient):
-    def create_bucket(self, bucket_name: str):
+    def create_bucket(self, bucket_name: str, *args, **kwargs):
         s3 = get_storage_client()
         try:
             s3.create_bucket(
