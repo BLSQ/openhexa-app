@@ -287,7 +287,7 @@ def run_pipeline(run: PipelineRun):
     image = (
         run.pipeline.workspace.docker_image
         if run.pipeline.workspace.docker_image
-        else settings.PIPELINE_IMAGE
+        else settings.DEFAULT_WORKSPACE_IMAGE
     )
     spawner = settings.PIPELINE_SCHEDULER_SPAWNER
 
