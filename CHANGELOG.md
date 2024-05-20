@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.48.0](https://github.com/BLSQ/openhexa-frontend/compare/0.47.1...0.48.0) (2024-05-20)
+
+
+### Features
+
+* **Databases:** allow admin/editor to delete table ([#601](https://github.com/BLSQ/openhexa-frontend/issues/601)) ([3545a79](https://github.com/BLSQ/openhexa-frontend/commit/3545a79b1e627bfc406a1c777339c9cb9a65f7a3))
+* **Pipelines:** run notebook as pipeline ([ed41dd3](https://github.com/BLSQ/openhexa-frontend/commit/ed41dd3c2a93aa997aa7fb99491348159e16e7e1))
+* **Workspaces:** Admin/Editor can now set custom image in settings ([#603](https://github.com/BLSQ/openhexa-frontend/issues/603)) ([06dea6b](https://github.com/BLSQ/openhexa-frontend/commit/06dea6bcb4074d34a015526822545b1297ecc217))
+
+
+### Miscellaneous
+
+* Graphql endpoint ([#604](https://github.com/BLSQ/openhexa-frontend/issues/604)) ([c75fb8e](https://github.com/BLSQ/openhexa-frontend/commit/c75fb8edbd00cdfeb6ed5c8374296ff723ce8f31))
+
 ## [0.47.1](https://github.com/BLSQ/openhexa-frontend/compare/0.47.0...0.47.1) (2024-04-26)
 
 
