@@ -16,7 +16,7 @@ import {
   CreateDatasetVersionError,
   DeleteDatasetError,
   DeleteDatasetLinkError,
-} from "graphql-types";
+} from "graphql/types";
 
 export async function updateDataset(
   datasetId: string,

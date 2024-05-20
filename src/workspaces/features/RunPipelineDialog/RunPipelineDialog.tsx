@@ -11,7 +11,7 @@ import { AlertType } from "core/helpers/alert";
 import { ensureArray } from "core/helpers/array";
 import useCacheKey from "core/hooks/useCacheKey";
 import useForm from "core/hooks/useForm";
-import { PipelineType, PipelineVersion } from "graphql-types";
+import { PipelineType, PipelineVersion } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";

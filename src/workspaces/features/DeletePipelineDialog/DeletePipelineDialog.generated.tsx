@@ -1,4 +1,4 @@
-import * as Types from '../../../graphql-types';
+import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
 export type PipelineDelete_PipelineFragment = { __typename?: 'Pipeline', id: string, name?: string | null, code: string };

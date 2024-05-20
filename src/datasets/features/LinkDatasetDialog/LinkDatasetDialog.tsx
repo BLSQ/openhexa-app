@@ -9,7 +9,7 @@ import {
   LinkDatasetDialogMutation,
   LinkDatasetDialogMutationVariables,
 } from "datasets/features/LinkDatasetDialog/LinkDatasetDialog.generated";
-import { LinkDatasetError } from "graphql-types";
+import { LinkDatasetError } from "graphql/types";
 import Field from "core/components/forms/Field";
 import useCacheKey from "core/hooks/useCacheKey";
 

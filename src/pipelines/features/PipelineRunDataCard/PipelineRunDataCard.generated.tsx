@@ -1,4 +1,4 @@
-import * as Types from '../../../graphql-types';
+import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
 import { PipelineRunReadonlyForm_DagFragmentDoc, PipelineRunReadonlyForm_DagRunFragmentDoc } from '../PipelineRunForm/PipelineRunReadonlyForm.generated';

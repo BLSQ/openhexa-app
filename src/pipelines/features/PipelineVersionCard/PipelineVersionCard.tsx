@@ -21,7 +21,7 @@ import {
   UpdatePipelineVersionMutation,
   UpdatePipelineVersionMutationVariables,
 } from "./PipelineVersionCard.generated";
-import { UpdatePipelineVersionError } from "graphql-types";
+import { UpdatePipelineVersionError } from "graphql/types";
 import { isValidUrl } from "core/helpers";
 import DeletePipelineVersionTrigger from "workspaces/features/DeletePipelineVersionTrigger";
 

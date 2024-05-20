@@ -1,4 +1,4 @@
-import { WorkspaceMembershipRole } from "graphql-types";
+import { WorkspaceMembershipRole } from "graphql/types";
 import { i18n } from "next-i18next";
 export function formatWorkspaceMembershipRole(role: WorkspaceMembershipRole) {
   switch (role) {

@@ -1,4 +1,4 @@
-import * as Types from '../../../graphql-types';
+import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
 export type ConnectionUsageSnippets_ConnectionFragment = { __typename?: 'Connection', id: string, type: Types.ConnectionType, slug: string, fields: Array<{ __typename?: 'ConnectionField', code: string }> };

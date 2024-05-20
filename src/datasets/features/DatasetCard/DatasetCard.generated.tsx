@@ -1,4 +1,4 @@
-import * as Types from '../../../graphql-types';
+import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
 export type DatasetCard_LinkFragment = { __typename?: 'DatasetLink', id: string, dataset: { __typename?: 'Dataset', name: string, slug: string, description?: string | null, updatedAt: any, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null }, workspace: { __typename?: 'Workspace', slug: string, name: string } };

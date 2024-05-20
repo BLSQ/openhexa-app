@@ -5,7 +5,7 @@ import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import useCacheKey from "core/hooks/useCacheKey";
-import { User, WorkspaceMembership } from "graphql-types";
+import { User, WorkspaceMembership } from "graphql/types";
 import { DateTime } from "luxon";
 import { useState } from "react";
 import { useTranslation } from "next-i18next";

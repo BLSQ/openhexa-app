@@ -95,6 +95,7 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
     });
   };
 
+  const ssrMode = typeof window === "undefined";
   const link = ApolloLink.from([
     onError(({ graphQLErrors, networkError }) => {
       if (graphQLErrors) {
@@ -112,12 +113,14 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
         );
       }
     }),
-
     createHttpLink({
-      uri: (operation) =>
-        operation.operationName
-          ? `${publicRuntimeConfig.GRAPHQL_ENDPOINT}${operation.operationName}/`
-          : publicRuntimeConfig.GRAPHQL_ENDPOINT,
+      uri: (operation) => {
+        let uri = (process.env.OPENHEXA_BACKEND_URL ?? "") + "/graphql/";
+        if (operation.operationName) {
+          uri = `${uri}${operation.operationName}/`;
+        }
+        return uri;
+      },
       fetch: enhancedFetch,
       credentials: "include",
       fetchOptions: {
@@ -129,7 +132,7 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
   const cache = new InMemoryCache(CACHE_CONFIG);
 
   return new ApolloClient({
-    ssrMode: typeof window === "undefined",
+    ssrMode,
     ssrForceFetchDelay: 100, // in milliseconds
     link,
     cache,

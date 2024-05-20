@@ -9,7 +9,7 @@ import { useEffect } from "react";
 import { useTranslation } from "next-i18next";
 import { useCreateWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import { useRouter } from "next/router";
-import { CreateWorkspaceError } from "graphql-types";
+import { CreateWorkspaceError } from "graphql/types";
 import Checkbox from "core/components/forms/Checkbox/Checkbox";
 
 type CreateWorkspaceDialogProps = {

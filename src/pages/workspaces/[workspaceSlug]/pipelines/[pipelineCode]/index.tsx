@@ -30,7 +30,7 @@ import {
   PipelineRecipient,
   PipelineRunTrigger,
   PipelineType,
-} from "graphql-types";
+} from "graphql/types";
 import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";

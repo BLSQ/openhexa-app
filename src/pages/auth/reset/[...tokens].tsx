@@ -3,7 +3,7 @@ import Field from "core/components/forms/Field";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import useForm from "core/hooks/useForm";
-import { SetPasswordError } from "graphql-types";
+import { SetPasswordError } from "graphql/types";
 import { useSetPasswordMutation } from "identity/graphql/mutations.generated";
 import Link from "core/components/Link";
 import { useRouter } from "next/router";

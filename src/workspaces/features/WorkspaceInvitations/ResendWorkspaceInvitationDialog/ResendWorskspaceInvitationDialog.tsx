@@ -4,7 +4,7 @@ import useCacheKey from "core/hooks/useCacheKey";
 import { useState } from "react";
 import { useResendWorkspaceInvitationMutation } from "workspaces/graphql/mutations.generated";
 
-import { ResendWorkspaceInvitationError } from "graphql-types";
+import { ResendWorkspaceInvitationError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";

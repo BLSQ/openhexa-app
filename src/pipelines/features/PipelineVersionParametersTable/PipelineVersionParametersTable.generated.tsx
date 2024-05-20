@@ -1,4 +1,4 @@
-import * as Types from '../../../graphql-types';
+import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
 export type PipelineVersionParametersTable_VersionFragment = { __typename?: 'PipelineVersion', id: string, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, multiple: boolean, type: string, help?: string | null, required: boolean, choices?: Array<any> | null }> };

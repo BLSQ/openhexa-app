@@ -1,4 +1,4 @@
-import * as Types from '../../../graphql-types';
+import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
 import { SidebarMenu_WorkspaceFragmentDoc } from '../../features/SidebarMenu/SidebarMenu.generated';

@@ -20,7 +20,7 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import BackLayout from "core/layouts/back/BackLayout";
 import DefaultLayout from "core/layouts/default";
-import { Country, DagRunTrigger } from "graphql-types";
+import { Country, DagRunTrigger } from "graphql/types";
 import useMe from "identity/hooks/useMe";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";

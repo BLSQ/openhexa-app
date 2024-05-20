@@ -1,4 +1,4 @@
-import * as Types from '../../../../graphql-types';
+import * as Types from '../../../../graphql/types';
 
 import { gql } from '@apollo/client';
 export type DeleteWorkspaceMember_WorkspaceMemberFragment = { __typename?: 'WorkspaceMembership', id: string, user: { __typename?: 'User', id: string, displayName: string } };

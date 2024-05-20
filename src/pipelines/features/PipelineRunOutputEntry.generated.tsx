@@ -1,4 +1,4 @@
-import * as Types from '../../graphql-types';
+import * as Types from '../../graphql/types';
 
 import { gql } from '@apollo/client';
 export type PipelineRunOutputEntry_OutputFragment = { __typename?: 'DAGRunOutput', title: string, uri: string };

@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
 import { FormInstance } from "core/hooks/useForm";
-import { Connection, ConnectionType } from "graphql-types";
+import { Connection, ConnectionType } from "graphql/types";
 import {
   DeleteConnectionMutation,
   DeleteConnectionMutationVariables,

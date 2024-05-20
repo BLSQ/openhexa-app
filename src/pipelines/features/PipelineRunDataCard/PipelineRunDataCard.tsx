@@ -14,7 +14,7 @@ import ProgressPie from "core/components/ProgressPie";
 import { formatDuration } from "core/helpers/time";
 import useInterval from "core/hooks/useInterval";
 import useRelativeTime from "core/hooks/useRelativeTime";
-import { DagRunStatus, DagRunTrigger } from "graphql-types";
+import { DagRunStatus, DagRunTrigger } from "graphql/types";
 import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
 import { getPipelineRunLabel } from "pipelines/helpers/runs";

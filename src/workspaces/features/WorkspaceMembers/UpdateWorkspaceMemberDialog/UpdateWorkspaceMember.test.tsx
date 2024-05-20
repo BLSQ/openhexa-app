@@ -8,7 +8,7 @@ import { TestApp } from "core/helpers/testutils";
 import router from "next/router";
 import UpdateWorkspaceMemberDialog from ".";
 import { v4 } from "uuid";
-import { WorkspaceMembershipRole } from "graphql-types";
+import { WorkspaceMembershipRole } from "graphql/types";
 
 const MEMBER = {
   id: v4(),

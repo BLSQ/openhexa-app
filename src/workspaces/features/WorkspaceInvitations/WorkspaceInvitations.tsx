@@ -7,7 +7,7 @@ import capitalize from "lodash/capitalize";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import { WorskspaceInvitationsQuery } from "./WorkspaceInvitations.generated";
-import { WorkspaceInvitation, WorkspaceInvitationStatus } from "graphql-types";
+import { WorkspaceInvitation, WorkspaceInvitationStatus } from "graphql/types";
 import Button from "core/components/Button/Button";
 import { ArrowPathIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useCallback, useState } from "react";

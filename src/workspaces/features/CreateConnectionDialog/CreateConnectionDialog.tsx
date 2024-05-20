@@ -5,7 +5,7 @@ import Link from "core/components/Link";
 import Spinner from "core/components/Spinner";
 import Field from "core/components/forms/Field";
 import useForm from "core/hooks/useForm";
-import { ConnectionType, CreateConnectionError } from "graphql-types";
+import { ConnectionType, CreateConnectionError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";

@@ -1,4 +1,4 @@
-import * as Types from '../../graphql-types';
+import * as Types from '../../graphql/types';
 
 import { gql } from '@apollo/client';
 export type CountryBadge_CountryFragment = { __typename?: 'Country', code: string, name: string, flag: string };

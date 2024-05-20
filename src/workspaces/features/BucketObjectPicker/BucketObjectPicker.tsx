@@ -7,7 +7,7 @@ import {
 import Button from "core/components/Button";
 import Popover from "core/components/Popover";
 import Input from "core/components/forms/Input";
-import { BucketObject, BucketObjectType } from "graphql-types";
+import { BucketObject, BucketObjectType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useEffect, useMemo, useState } from "react";
 import {

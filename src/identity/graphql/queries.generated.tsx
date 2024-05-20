@@ -1,4 +1,4 @@
-import * as Types from '../../graphql-types';
+import * as Types from '../../graphql/types';
 
 import { gql } from '@apollo/client';
 import { UserAvatar_UserFragmentDoc } from '../features/UserAvatar.generated';

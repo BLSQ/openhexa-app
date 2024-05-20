@@ -6,7 +6,7 @@ import Tabs from "core/components/Tabs";
 import Field from "core/components/forms/Field/Field";
 import Textarea from "core/components/forms/Textarea/Textarea";
 import useForm from "core/hooks/useForm";
-import { BucketObjectType, PipelineError } from "graphql-types";
+import { BucketObjectType, PipelineError } from "graphql/types";
 import { Trans, useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";

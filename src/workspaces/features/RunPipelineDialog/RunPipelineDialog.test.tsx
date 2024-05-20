@@ -8,7 +8,7 @@ import { UserEvent } from "@testing-library/user-event/dist/types/setup/setup";
 import { runPipeline } from "workspaces/helpers/pipelines";
 import RunPipelineDialog from "../RunPipelineDialog";
 import { ParameterField_ParameterFragment } from "./ParameterField.generated";
-import { PipelineType } from "graphql-types";
+import { PipelineType } from "graphql/types";
 
 jest.mock("@apollo/client", () => ({
   ...jest.requireActual("@apollo/client"),

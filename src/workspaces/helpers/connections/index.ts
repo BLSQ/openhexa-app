@@ -1,4 +1,4 @@
-import { ConnectionType } from "graphql-types";
+import { ConnectionType } from "graphql/types";
 export { convertFieldsToInput } from "./utils";
 export type { ConnectionForm, FieldForm } from "./utils";
 

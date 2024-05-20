@@ -3,6 +3,9 @@ name: Build OpenHEXA Frontend
 on:
   release:
     types: [ published ]
+  pull_request:
+  push:
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       tag:
@@ -47,6 +50,13 @@ jobs:
         with:
           path: code-next-cache
           key: code-.next-cache-${{ hashFiles('Dockerfile') }}
+      
+      - name: Cache ~.npm
+        id: cache-home-npm-cache
+        uses: actions/cache@v3
+        with:
+          path: code-.npm-cache
+          key: code-.npm-cache-${{ hashFiles('Dockerfile') }}
   
       - name: inject var-cache-apk into docker
         uses: reproducible-containers/buildkit-cache-dance@v2.1.4
@@ -61,6 +71,13 @@ jobs:
           cache-source: code-next-cache
           cache-target: /code/.next/cache
           skip-extraction: ${{ steps.cache-code-next-cache.outputs.cache-hit }}
+      
+      - name: inject ~/.npm into docker
+        uses: reproducible-containers/buildkit-cache-dance@v2.1.4
+        with:
+          cache-source: code-.npm-cache
+          cache-target: ~/.npm
+          skip-extraction: ${{ steps.cache-home-npm-cache.outputs.cache-hit }}
 
       - name: Build and push (release)
         if: ${{ github.event_name == 'release' }}
@@ -92,3 +109,23 @@ jobs:
           build-args: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
             "RELEASE=${{ steps.version.outputs.number }}"
+
+      - name: Build and push (pull request)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            blsq/openhexa-frontend:pr-${{ github.event.pull_request.number }}
+          cache-from: type=registry,ref=blsq/openhexa-frontend:buildcache
+      
+      - name: Build and push (main branch)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            blsq/openhexa-frontend:main
+          cache-from: type=registry,ref=blsq/openhexa-frontend:buildcache

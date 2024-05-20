@@ -9,7 +9,7 @@ import { gql } from "@apollo/client";
 import {
   UpdateWorkspaceMemberError,
   WorkspaceMembershipRole,
-} from "graphql-types";
+} from "graphql/types";
 import { UpdateWorkspaceMember_WorkspaceMemberFragment } from "./UpdateWorkspaceMemberDialog.generated";
 import Field from "core/components/forms/Field";
 import SimpleSelect from "core/components/forms/SimpleSelect";

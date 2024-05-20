@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MockedProvider } from "@apollo/client/testing";
 import { faker } from "@faker-js/faker";
 import { useQuery } from "@apollo/client";
-import { ConnectionType } from "graphql-types";
+import { ConnectionType } from "graphql/types";
 
 jest.mock("@apollo/client", () => ({
   __esModule: true,

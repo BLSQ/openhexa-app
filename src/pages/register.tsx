@@ -8,7 +8,7 @@ import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
 import CenteredLayout from "core/layouts/centered";
-import { RegisterError } from "graphql-types";
+import { RegisterError } from "graphql/types";
 import { useRegisterMutation } from "identity/graphql/mutations.generated";
 import { useTranslation } from "next-i18next";
 import Image from "next/legacy/image";

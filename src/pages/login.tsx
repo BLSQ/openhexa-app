@@ -12,7 +12,7 @@ import { useRouter } from "next/router";
 import { ReactElement, useState } from "react";
 import Page from "core/components/Page";
 import { useTranslation } from "next-i18next";
-import { LoginError } from "graphql-types";
+import { LoginError } from "graphql/types";
 import { generateChallenge } from "identity/helpers/auth";
 import Field from "core/components/forms/Field";
 import clsx from "clsx";

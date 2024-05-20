@@ -10,7 +10,7 @@ import {
   DeleteBucketObject_ObjectFragment,
   DeleteBucketObject_WorkspaceFragment,
 } from "./DeleteBucketObject.generated";
-import { BucketObjectType } from "graphql-types";
+import { BucketObjectType } from "graphql/types";
 
 type DeleteBucketObjectProps = {
   children?({ onClick }: { onClick(): void }): ReactElement;

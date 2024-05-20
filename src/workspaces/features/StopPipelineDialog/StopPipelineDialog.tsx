@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Button from "core/components/Button";
 import Spinner from "core/components/Spinner";
 import useCacheKey from "core/hooks/useCacheKey";
-import { PipelineError } from "graphql-types";
+import { PipelineError } from "graphql/types";
 import { useState } from "react";
 
 import Dialog from "core/components/Dialog";

@@ -6,7 +6,7 @@ import Spinner from "core/components/Spinner";
 import { AlertType } from "core/helpers/alert";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
-import { NotebookServer } from "graphql-types";
+import { NotebookServer } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";

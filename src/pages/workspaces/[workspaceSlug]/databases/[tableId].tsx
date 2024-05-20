@@ -7,7 +7,7 @@ import Popover from "core/components/Popover/Popover";
 import Checkbox from "core/components/forms/Checkbox/Checkbox";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
-import { OrderByDirection } from "graphql-types";
+import { OrderByDirection } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";

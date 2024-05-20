@@ -4,7 +4,7 @@ import {
   RunLogs_DagRunFragment,
   RunLogs_RunFragment,
 } from "./RunLogs.generated";
-import { PipelineRunStatus } from "graphql-types";
+import { PipelineRunStatus } from "graphql/types";
 
 type RunLogsProps = {
   run: RunLogs_DagRunFragment | RunLogs_RunFragment;

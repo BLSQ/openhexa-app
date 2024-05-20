@@ -20,7 +20,7 @@ import { LANGUAGES } from "core/helpers/i18n";
 import { createGetServerSideProps } from "core/helpers/page";
 import useToggle from "core/hooks/useToggle";
 import BackLayout from "core/layouts/back";
-import { WorkspaceInvitation, WorkspaceInvitationStatus } from "graphql-types";
+import { WorkspaceInvitation, WorkspaceInvitationStatus } from "graphql/types";
 import DisableTwoFactorDialog from "identity/features/DisableTwoFactorDialog";
 import EnableTwoFactorDialog from "identity/features/EnableTwoFactorDialog";
 import { useUpdateUserMutation } from "identity/graphql/mutations.generated";

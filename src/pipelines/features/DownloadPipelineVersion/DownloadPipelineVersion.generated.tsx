@@ -1,4 +1,4 @@
-import * as Types from '../../../graphql-types';
+import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
 export type DownloadPipelineVersion_VersionFragment = { __typename?: 'PipelineVersion', id: string, name: string, pipeline: { __typename?: 'Pipeline', id: string, code: string } };

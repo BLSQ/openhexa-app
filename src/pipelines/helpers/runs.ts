@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
-import { DagRunTrigger } from "graphql-types";
+import { DagRunTrigger } from "graphql/types";
 import { IncomingMessage } from "http";
 import { i18n } from "next-i18next";
 import {

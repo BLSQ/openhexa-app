@@ -1,4 +1,4 @@
-import * as Types from '../../../graphql-types';
+import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
 export type PipelineRunForm_DagFragment = { __typename?: 'DAG', formCode?: string | null, id: string, template: { __typename?: 'DAGTemplate', sampleConfig?: any | null } };

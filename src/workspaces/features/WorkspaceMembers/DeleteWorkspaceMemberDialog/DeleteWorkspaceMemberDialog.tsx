@@ -6,7 +6,7 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useDeleteWorkspaceMemberMutation } from "workspaces/graphql/mutations.generated";
 import useCacheKey from "core/hooks/useCacheKey";
-import { DeleteWorkspaceMemberError } from "graphql-types";
+import { DeleteWorkspaceMemberError } from "graphql/types";
 import useMe from "identity/hooks/useMe";
 import { gql } from "@apollo/client";
 import { DeleteWorkspaceMember_WorkspaceMemberFragment } from "./DeleteWorkspaceMemberDialog.generated";

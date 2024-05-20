@@ -1,4 +1,4 @@
-import * as Types from '../../../graphql-types';
+import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
 export type RunLogs_DagRunFragment = { __typename?: 'DAGRun', id: string, logs?: string | null, status: Types.DagRunStatus };

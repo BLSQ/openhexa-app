@@ -7,7 +7,7 @@ import Field from "core/components/forms/Field";
 import Textarea from "core/components/forms/Textarea";
 import { CreateDatasetDialog_WorkspaceFragment } from "./CreateDatasetDialog.generated";
 import { useRouter } from "next/router";
-import { CreateDatasetError } from "graphql-types";
+import { CreateDatasetError } from "graphql/types";
 
 type CreateDatasetDialogProps = {
   workspace: CreateDatasetDialog_WorkspaceFragment;

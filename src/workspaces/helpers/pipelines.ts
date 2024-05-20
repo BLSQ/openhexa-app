@@ -14,7 +14,7 @@ import {
   PipelineParameter,
   PipelineType,
   PipelineVersion,
-} from "graphql-types";
+} from "graphql/types";
 import { i18n } from "next-i18next";
 
 export async function updatePipeline(

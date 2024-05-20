@@ -11,7 +11,7 @@ import {
   DownloadVersionFileMutationVariables,
   DownloadVersionFile_FileFragment,
 } from "./DownloadVersionFile.generated";
-import { PrepareVersionFileDownloadError } from "graphql-types";
+import { PrepareVersionFileDownloadError } from "graphql/types";
 
 type DownloadVersionFileProps = {
   children?({

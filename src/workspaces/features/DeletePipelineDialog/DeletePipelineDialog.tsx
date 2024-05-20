@@ -8,7 +8,7 @@ import { useRouter } from "next/router";
 import Button from "core/components/Button";
 import Spinner from "core/components/Spinner";
 import useCacheKey from "core/hooks/useCacheKey";
-import { DeletePipelineVersionError, PipelineError } from "graphql-types";
+import { DeletePipelineVersionError, PipelineError } from "graphql/types";
 import { useState, version } from "react";
 import {
   useDeletePipelineMutation,

@@ -4,7 +4,7 @@ import Link from "core/components/Link";
 import Spinner from "core/components/Spinner";
 import Time from "core/components/Time";
 import useAutoScroll from "core/hooks/useAutoScroll";
-import { PipelineRunStatus } from "graphql-types";
+import { PipelineRunStatus } from "graphql/types";
 import Linkify from "linkify-react";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";

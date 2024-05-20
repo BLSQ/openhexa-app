@@ -6,7 +6,7 @@ import { useTranslation } from "next-i18next";
 import { useGenerateNewDatabasePasswordMutation } from "workspaces/graphql/mutations.generated";
 import { gql } from "@apollo/client";
 import { GenerateWorkspaceDatabasePasswordDialog_WorkspaceFragment } from "./GenerateDatabasePasswordDialog.generated";
-import { GenerateNewDatabasePasswordError } from "graphql-types";
+import { GenerateNewDatabasePasswordError } from "graphql/types";
 import { AlertType, displayAlert } from "core/helpers/alert";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 

@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "next-i18next";
 import useDebounce from "core/hooks/useDebounce";
 import { Combobox } from "core/components/forms/Combobox";
-import { ConnectionType } from "graphql-types";
+import { ConnectionType } from "graphql/types";
 import Connections from "workspaces/helpers/connections";
 import { WorkspaceConnectionPickerQuery } from "./WorkspaceConnectionPicker.generated";
 

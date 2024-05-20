@@ -1,4 +1,4 @@
-import * as Types from '../../../graphql-types';
+import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
 export type UpdateWorkspaceDescription_WorkspaceFragment = { __typename?: 'Workspace', slug: string, description?: string | null };

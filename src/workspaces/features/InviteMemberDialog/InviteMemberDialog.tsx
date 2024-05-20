@@ -8,7 +8,7 @@ import useForm from "core/hooks/useForm";
 import {
   InviteWorkspaceMembershipError,
   WorkspaceMembershipRole,
-} from "graphql-types";
+} from "graphql/types";
 import Input from "core/components/forms/Input";
 import SimpleSelect from "core/components/forms/SimpleSelect";
 import { gql } from "@apollo/client";

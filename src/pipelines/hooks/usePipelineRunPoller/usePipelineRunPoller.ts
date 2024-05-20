@@ -1,6 +1,6 @@
 import { gql, useLazyQuery } from "@apollo/client";
 import Backoff from "core/helpers/backoff";
-import { PipelineRun, PipelineRunStatus } from "graphql-types";
+import { PipelineRun, PipelineRunStatus } from "graphql/types";
 import { useCallback, useEffect, useRef } from "react";
 import { PipelineRunPollerQuery } from "./usePipelineRunPoller.generated";
 

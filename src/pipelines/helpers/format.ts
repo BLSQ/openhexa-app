@@ -1,4 +1,4 @@
-import { DagRunStatus, PipelineRunStatus } from "graphql-types";
+import { DagRunStatus, PipelineRunStatus } from "graphql/types";
 import { i18n } from "next-i18next";
 
 export function formatDAGRunStatus(status: DagRunStatus | PipelineRunStatus) {

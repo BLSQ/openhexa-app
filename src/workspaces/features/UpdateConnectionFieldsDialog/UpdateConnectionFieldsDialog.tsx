@@ -10,7 +10,7 @@ import Connections, {
   FieldForm,
 } from "workspaces/helpers/connections";
 import { UpdateConnectionFieldsDialog_ConnectionFragment } from "./UpdateConnectionFieldsDialog.generated";
-import { ConnectionType } from "graphql-types";
+import { ConnectionType } from "graphql/types";
 import { useUpdateConnectionMutation } from "workspaces/graphql/mutations.generated";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
 

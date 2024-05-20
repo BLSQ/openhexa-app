@@ -12,7 +12,7 @@ import Filesize from "core/components/Filesize";
 import Link from "core/components/Link";
 import SimplePagination from "core/components/Pagination/SimplePagination";
 import Spinner from "core/components/Spinner";
-import { BucketObjectType } from "graphql-types";
+import { BucketObjectType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import DeleteBucketObject from "../DeleteBucketObject";
 import DownloadBucketObject from "../DownloadBucketObject";

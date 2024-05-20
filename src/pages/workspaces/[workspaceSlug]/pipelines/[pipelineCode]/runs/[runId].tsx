@@ -22,7 +22,7 @@ import {
   PipelineRunStatus,
   PipelineRunTrigger,
   PipelineType,
-} from "graphql-types";
+} from "graphql/types";
 import isNil from "lodash/isNil";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";

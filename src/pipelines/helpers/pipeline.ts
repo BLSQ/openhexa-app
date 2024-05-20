@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
-import { RunDagError } from "graphql-types";
+import { RunDagError } from "graphql/types";
 import {
   GetPipelineVersionQuery,
   GetPipelineVersionQueryVariables,

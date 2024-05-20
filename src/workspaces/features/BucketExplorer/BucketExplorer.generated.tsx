@@ -1,4 +1,4 @@
-import * as Types from '../../../graphql-types';
+import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
 import { DownloadBucketObject_WorkspaceFragmentDoc, DownloadBucketObject_ObjectFragmentDoc } from '../DownloadBucketObject/DownloadBucketObject.generated';

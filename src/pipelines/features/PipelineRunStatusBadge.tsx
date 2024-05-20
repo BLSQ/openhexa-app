@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import clsx from "clsx";
 import Badge from "core/components/Badge";
 import Spinner from "core/components/Spinner";
-import { DagRunStatus } from "graphql-types";
+import { DagRunStatus } from "graphql/types";
 import { formatDAGRunStatus } from "pipelines/helpers/format";
 import { useMemo } from "react";
 import {

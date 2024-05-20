@@ -4,7 +4,7 @@ import useCacheKey from "core/hooks/useCacheKey";
 import { useState } from "react";
 import { useDeleteWorkspaceInvitationMutation } from "workspaces/graphql/mutations.generated";
 import { DeleteWorkspaceInvitation_WorkspaceInvitationFragment } from "./DeleteWorkspaceInvitationDialog.generated";
-import { DeleteWorkspaceInvitationError } from "graphql-types";
+import { DeleteWorkspaceInvitationError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";

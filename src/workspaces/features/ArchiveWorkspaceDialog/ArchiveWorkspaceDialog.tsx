@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import { useArchiveWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import useCacheKey from "core/hooks/useCacheKey";
 import { gql } from "@apollo/client";
-import { ArchiveWorkspaceError } from "graphql-types";
+import { ArchiveWorkspaceError } from "graphql/types";
 import { ArchiveWorkspace_WorkspaceFragment } from "./ArchiveWorkspaceDialog.generated";
 
 type ArchiveWorkspaceDialogProps = {
