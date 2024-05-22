@@ -166,6 +166,10 @@ class Workspace(Base):
         Dataset, through="datasets.DatasetLink", related_name="+"
     )
 
+    homepage = models.ForeignKey(
+        "embeds.WebPage", null=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
     @property

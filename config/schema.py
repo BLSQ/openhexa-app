@@ -11,6 +11,7 @@ from ariadne import (
 from hexa.countries.schema import countries_bindables, countries_type_defs
 from hexa.databases.schema import databases_bindables, databases_types_def
 from hexa.datasets.schema import datasets_bindables, datasets_type_defs
+from hexa.embeds.schema import embeds_bindables, embeds_types_defs
 from hexa.files.schema import files_bindables, files_type_def
 from hexa.notebooks.schema import notebooks_bindables, notebooks_type_defs
 from hexa.pipelines.schema import pipelines_bindables, pipelines_type_defs
@@ -52,6 +53,7 @@ schema = make_executable_schema(
         dags_type_defs,
         *dhis2_type_defs,
         *s3_type_defs,
+        embeds_types_defs,
         accessmod_type_defs,
         countries_type_defs,
         notebooks_type_defs,
@@ -74,6 +76,7 @@ schema = make_executable_schema(
         *notebooks_bindables,
         *workspaces_bindables,
         *databases_bindables,
+        *embeds_bindables,
         *files_bindables,
         *datasets_bindables,
         snake_case_fallback_resolvers,

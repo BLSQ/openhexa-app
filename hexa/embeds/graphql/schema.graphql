@@ -1,0 +1,16 @@
+type WebPage {
+  id: UUID!
+  title: String!
+  description: String
+  url: String!
+  fullWidth: Boolean!
+  allows: String!
+  height: String
+  width: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+
+  workspace: Workspace!
+}
+
+

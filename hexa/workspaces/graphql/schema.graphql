@@ -11,6 +11,7 @@ type Workspace {
   createdBy: User!
   connections: [Connection!]!
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
+  homepage: WebPage
 }
 
 type WorkspaceInvitationPage {
