@@ -102,7 +102,7 @@ class ConnectionTest(GraphQLTestCase):
         )
 
     def test_create_connection_permission_denied(self):
-        self.client.force_login(self.USER_REBECCA)
+        self.client.force_login(self.USER_VIEWER)
         r = self.run_query(
             """
             mutation createConnection($input:CreateConnectionInput!) {
@@ -518,7 +518,7 @@ class ConnectionTest(GraphQLTestCase):
         )
 
     def test_update_connection_permission_denied(self):
-        self.client.force_login(self.USER_REBECCA)
+        self.client.force_login(self.USER_VIEWER)
         r = self.run_query(
             """
             mutation updateConnection($input:UpdateConnectionInput!) {
@@ -548,7 +548,7 @@ class ConnectionTest(GraphQLTestCase):
         )
 
     def test_delete_connection_permission_denied(self):
-        self.client.force_login(self.USER_REBECCA)
+        self.client.force_login(self.USER_VIEWER)
         r = self.run_query(
             """
             mutation deleteConnection($input:DeleteConnectionInput!) {
