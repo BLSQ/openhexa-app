@@ -200,7 +200,7 @@ class ConnectionTest(TestCase):
         WorkspaceMembership.objects.create(
             user=cls.USER_JIM,
             workspace=cls.WORKSPACE,
-            role=WorkspaceMembershipRole.EDITOR,
+            role=WorkspaceMembershipRole.VIEWER,
         )
 
     def test_create_connection_admin_member(self):
@@ -214,7 +214,7 @@ class ConnectionTest(TestCase):
 
         self.assertEqual(Connection.objects.count(), 1)
 
-    def test_create_connection_editor_member(self):
+    def test_create_connection_viewer_member(self):
         with self.assertRaises(PermissionDenied):
             Connection.objects.create_if_has_perm(
                 self.USER_JIM,
