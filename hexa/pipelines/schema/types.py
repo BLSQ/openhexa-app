@@ -25,7 +25,6 @@ pipeline_run_order_by_enum = EnumType(
 )
 pipeline_object = ObjectType("Pipeline")
 generic_output_object = ObjectType("GenericOutput")
-
 pipeline_run_output_union = UnionType("PipelineRunOutput")
 
 
@@ -230,6 +229,13 @@ def resolve_pipeline_version_zipfile(version: PipelineVersion, info, **kwargs):
 @pipeline_version_object.field("permissions")
 def resolve_pipeline_version_permissions(version: PipelineVersion, info, **kwargs):
     return version
+
+
+@pipeline_version_object.field("pipelineRuns")
+def resolve_pipeline_versions_with_runs(version: PipelineVersion, info):
+    return PipelineRun.objects.filter(pipeline_version=version.id).order_by(
+        "-execution_date"
+    )
 
 
 @pipeline_run_object.field("outputs")

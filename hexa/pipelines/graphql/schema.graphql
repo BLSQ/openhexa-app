@@ -91,6 +91,7 @@ type PipelineVersion {
   zipfile: String!
   timeout: Int
   permissions: PipelineVersionPermissions!
+  pipelineRuns: [PipelineRun!]
 }
 
 type PipelineRun {

@@ -115,6 +115,7 @@ class PipelineVersion(models.Model):
     pipeline = models.ForeignKey(
         "Pipeline", on_delete=models.CASCADE, related_name="versions"
     )
+
     name = models.CharField(max_length=250)
     external_link = models.URLField(blank=True, null=True)
     description = models.TextField(null=True)

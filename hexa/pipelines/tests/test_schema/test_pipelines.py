@@ -1741,6 +1741,79 @@ class PipelinesV2Test(GraphQLTestCase):
             r["data"]["runPipeline"],
         )
 
+    def test_pipeline_new_run_with_config(self):
+        self.test_create_pipeline()
+
+        code1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().code
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                    pipelineVersion { name }
+                }
+            }""",
+            {
+                "input": {
+                    "code": code1,
+                    "workspaceSlug": self.WS1.slug,
+                    "name": "Version with timeout",
+                    "parameters": [
+                        {
+                            "code": "param1",
+                            "name": "Param 1",
+                            "type": "dataset",
+                            "help": "Param 1's Help",
+                            "default": "default value",
+                            "multiple": False,
+                            "required": False,
+                            "choices": [],
+                        }
+                    ],
+                    "zipfile": "",
+                    "timeout": 3600,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipelineVersion": {"name": "Version with timeout"},
+            },
+            r["data"]["uploadPipeline"],
+        )
+
+        id1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().id
+
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+            mutation runPipeline($input: RunPipelineInput!) {
+                runPipeline(input: $input) {
+                    success
+                    errors
+                    run {
+                        timeout
+                        status
+                    }
+                }
+            }
+            """,
+            {"input": {"id": str(id1), "config": {"Param 1": "param1"}}},
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "run": {"timeout": 3600, "status": PipelineRunState.QUEUED},
+            },
+            r["data"]["runPipeline"],
+        )
+
     def test_pipeline_new_run_default_timeout(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         self.test_create_pipeline_version()
