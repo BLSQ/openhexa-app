@@ -14,5 +14,6 @@ export const config = {
     "/graphql/:path*" /* GraphQL */,
     "/admin/:path*" /* Django Admin */,
     "/static/:path*" /* Static files of Django */,
+    "/auth/logout",
   ],
 };
