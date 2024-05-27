@@ -34,21 +34,15 @@ type Props = {
   prefix: string;
   workspaceSlug: string;
   searchQuery: string;
-  ignoreHiddenFiles: boolean;
+  showHiddenFiles: boolean;
 };
 
 const ENTRIES_PER_PAGE = 20;
 
 export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
-  const {
-    page,
-    prefix,
-    searchQuery,
-    workspaceSlug,
-    perPage,
-    ignoreHiddenFiles,
-  } = props;
+  const { page, prefix, searchQuery, workspaceSlug, perPage, showHiddenFiles } =
+    props;
   const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [isCreateFolderDialogOpen, setCreateFolderDialogOpen] = useState(false);
   const router = useRouter();
@@ -61,7 +55,7 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
       prefix,
       query: searchQuery,
       perPage,
-      ignoreHiddenFiles,
+      ignoreHiddenFiles: showHiddenFiles,
     },
   });
 
@@ -103,10 +97,10 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
 
   const onChangeHiddenFiles = (checked: boolean, onClose: () => void) => {
     if (checked) {
+      setCookie("show-hidden-files", true);
+    } else {
       // We don't want to show hidden files
       deleteCookie("show-hidden-files");
-    } else {
-      setCookie("show-hidden-files", true);
     }
     window.location.reload();
     onClose();
@@ -181,14 +175,14 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
               {({ close }) => (
                 <div>
                   <Switch
-                    checked={ignoreHiddenFiles}
+                    checked={!showHiddenFiles}
                     onChange={(checked) => onChangeHiddenFiles(checked, close)}
                     labelClassName="whitespace-nowrap"
-                    label={t("Hide hidden files")}
+                    label={t("Show hidden files")}
                   />
                   <p className="mt-1 text-sm text-gray-500">
                     {t(
-                      'This will hide files and directories starting by a "." (dot)',
+                      'This will show files and directories starting with a "." (dot)',
                     )}
                   </p>
                 </div>
@@ -252,7 +246,7 @@ export const getServerSideProps = createGetServerSideProps({
     const perPage = ctx.query?.perPage
       ? parseInt(ctx.query.perPage as string, 10)
       : ENTRIES_PER_PAGE;
-    const ignoreHiddenFiles = getCookie("show-hidden-files", ctx) === undefined;
+    const showHiddenFiles = getCookie("show-hidden-files", ctx) === undefined;
     const { data } = await client.query<
       WorkspaceFilesPageQuery,
       WorkspaceFilesPageQueryVariables
@@ -264,7 +258,7 @@ export const getServerSideProps = createGetServerSideProps({
         prefix,
         query: searchQuery,
         perPage,
-        ignoreHiddenFiles,
+        ignoreHiddenFiles: showHiddenFiles,
       },
     });
 
@@ -280,7 +274,7 @@ export const getServerSideProps = createGetServerSideProps({
         perPage,
         prefix,
         searchQuery,
-        ignoreHiddenFiles,
+        showHiddenFiles,
         workspaceSlug: ctx.params?.workspaceSlug,
       },
     };
