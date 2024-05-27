@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.70.1](https://github.com/BLSQ/openhexa-app/compare/0.70.0...0.70.1) (2024-05-27)
+
+
+### Features
+
+* **Connections:** editor can create/update/delete connection ([#706](https://github.com/BLSQ/openhexa-app/issues/706)) ([2b6d432](https://github.com/BLSQ/openhexa-app/commit/2b6d432a653824dab72a5e7564c2c7412db2358f))
+
+
+### Miscellaneous
+
+* Release 0.70.1 ([5448a4c](https://github.com/BLSQ/openhexa-app/commit/5448a4c774070e7367b05c6a0ff194a7996da3ae))
+
 ## [0.70.0](https://github.com/BLSQ/openhexa-app/compare/0.69.3...0.70.0) (2024-05-17)
 
 
