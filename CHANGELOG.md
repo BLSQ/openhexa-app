@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.48.1](https://github.com/BLSQ/openhexa-frontend/compare/0.48.0...0.48.1) (2024-05-27)
+
+
+### Features
+
+* help links open in new tab ([#608](https://github.com/BLSQ/openhexa-frontend/issues/608)) ([ecd7629](https://github.com/BLSQ/openhexa-frontend/commit/ecd7629005d61c9c7accf05051c7be7c3cf28664))
+
+
+### Bug Fixes
+
+* **Next:** handle logout url in middleware ([#607](https://github.com/BLSQ/openhexa-frontend/issues/607)) ([c35a12b](https://github.com/BLSQ/openhexa-frontend/commit/c35a12b21599cbc8b4ede602d6c3be8d6ed16c85))
+
+
+### Miscellaneous
+
+* Release 0.48.1 ([15e048b](https://github.com/BLSQ/openhexa-frontend/commit/15e048b790be064f7358735ae1fef09c7bf5f50c))
+
 ## [0.48.0](https://github.com/BLSQ/openhexa-frontend/compare/0.47.1...0.48.0) (2024-05-20)
 
 
