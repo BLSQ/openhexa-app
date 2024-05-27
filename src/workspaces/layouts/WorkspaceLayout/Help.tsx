@@ -32,7 +32,9 @@ const Help = (props: HelpProps) => {
         <ul className="list-inside list-disc">
           {links.map((link) => (
             <li key={link.href} className="py-1">
-              <Link href={link.href}>{link.label}</Link>
+              <Link target="_blank" href={link.href}>
+                {link.label}
+              </Link>
             </li>
           ))}
         </ul>
