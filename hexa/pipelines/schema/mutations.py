@@ -280,6 +280,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
             zipfile=base64.b64decode(input.get("zipfile").encode("ascii")),
             parameters=input["parameters"],
             timeout=input.get("timeout"),
+            config=input.get("config", {}),
         )
         return {
             "success": True,

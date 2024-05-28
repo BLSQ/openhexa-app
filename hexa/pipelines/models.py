@@ -121,6 +121,8 @@ class PipelineVersion(models.Model):
     description = models.TextField(null=True)
     zipfile = models.BinaryField(null=True)
     parameters = models.JSONField(blank=True, default=dict)
+    config = models.JSONField(blank=True, default=dict)
+
     timeout = models.IntegerField(
         null=True,
         help_text="Time (in seconds) after which the pipeline execution will be stopped (with a default value of 4 hours up to 12 max).",
@@ -132,7 +134,7 @@ class PipelineVersion(models.Model):
         if not principal.has_perm("pipelines.update_pipeline_version", self):
             raise PermissionDenied
 
-        for key in ["name", "description", "external_link"]:
+        for key in ["name", "description", "external_link", "config"]:
             if key in kwargs and kwargs[key] is not None:
                 setattr(self, key, kwargs[key])
 
