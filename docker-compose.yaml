@@ -74,7 +74,7 @@ services:
       - POSTGRES_USER=hexa-app
       - POSTGRES_PASSWORD=hexa-app
     ports:
-      - "5432:5432"
+      - "5434:5432"
 
   app:
     # Inherit from the block defined on top and override some fields
