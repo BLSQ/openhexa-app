@@ -487,6 +487,101 @@ class ConnectionTest(GraphQLTestCase):
             r["data"]["createConnection"],
         )
 
+    def test_get_connection_by_slug(self):
+        self.client.force_login(self.USER_SABRINA)
+        self.WORKSPACE_CONNECTION.set_fields(
+            self.USER_SABRINA,
+            [
+                {
+                    "code": "url",
+                    "value": "http://localhost",
+                    "secret": False,
+                },
+                {
+                    "code": "password",
+                    "value": "pA$$",
+                    "secret": True,
+                },
+            ],
+        )
+        r = self.run_query(
+            """
+            query getConnectionBySlug($slug: String!) {
+                connectionBySlug(slug: $slug) {
+                    fields {
+                        code
+                        value
+                        secret
+                    }
+                    
+                }
+            }
+            """,
+            {
+                "slug": self.WORKSPACE_CONNECTION.slug,
+            },
+        )
+        self.assertEqual(
+            {
+                "connectionBySlug": {
+                    "fields": [
+                        {
+                            "code": "url",
+                            "value": "http://localhost",
+                            "secret": False,
+                        },
+                        {
+                            "code": "password",
+                            "value": "pA$$",
+                            "secret": True,
+                        },
+                    ]
+                },
+            },
+            r["data"],
+        )
+
+    def test_get_connection_by_slug_not_found(self):
+        self.client.force_login(self.USER_SABRINA)
+        self.WORKSPACE_CONNECTION.set_fields(
+            self.USER_SABRINA,
+            [
+                {
+                    "code": "url",
+                    "value": "http://localhost",
+                    "secret": False,
+                },
+                {
+                    "code": "password",
+                    "value": "pA$$",
+                    "secret": True,
+                },
+            ],
+        )
+        r = self.run_query(
+            """
+            query getConnectionBySlug($slug: String!) {
+                connectionBySlug(slug: $slug) {
+                    fields {
+                        code
+                        value
+                        secret
+                    }
+                    
+                }
+            }
+            """,
+            {
+                "slug": "random_slug",
+            },
+        )
+        self.assertEqual(
+            {
+                "connectionBySlug": None,
+            },
+            r["data"],
+        )
+
     def test_update_connection_invalid_slug(self):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(

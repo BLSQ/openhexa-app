@@ -406,6 +406,7 @@ enum DeleteConnectionError {
 
 extend type Query {
   connection(id: UUID!): Connection @loginRequired
+  connectionBySlug(slug: String!): Connection @loginRequired
 }
 
 
