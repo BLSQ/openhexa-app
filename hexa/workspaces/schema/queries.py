@@ -39,6 +39,15 @@ def resolve_workspace_connection(_, info, id):
         return None
 
 
+@workspace_queries.field("connectionBySlug")
+def resolve_workspace_connection_by_slug(_, info, slug):
+    request = info.context["request"]
+    try:
+        return Connection.objects.filter_for_user(request.user).get(slug=slug)
+    except Connection.DoesNotExist:
+        return None
+
+
 @workspace_queries.field("pendingWorkspaceInvitations")
 @convert_kwargs_to_snake_case
 def resolve_pending_workspace_invitations(_, info, page=1, per_page=10):
