@@ -1,51 +1,126 @@
+
+"""
+Represents a workspace. A workspace is a shared environment where users can collaborate on data projects.
+"""
 type Workspace {
+  # The unique identifier for the workspace.
   slug: String!
+
+  # The name of the workspace.
   name: String!
+
+  # The description of the workspace.
   description: String
+
+  # The Docker image associated with the workspace.
   dockerImage: String
+
+  # The members of the workspace.
   members(page: Int, perPage: Int): WorkspaceMembershipPage!
+
+  # The permissions of the workspace.
   permissions: WorkspacePermissions!
+
+  # The countries associated with the workspace.
   countries: [Country!]!
+
+  # The date and time when the workspace was created.
   createdAt: DateTime!
+
+  # The date and time when the workspace was last updated.
   updatedAt: DateTime
+
+  # The user who created the workspace.
   createdBy: User!
+
+  # The connections associated with the workspace.
   connections: [Connection!]!
+
+  # The invitations sent to join the workspace.
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
 }
 
+"""
+Represents a page of workspace invitations.
+"""
 type WorkspaceInvitationPage {
+  # The current page number.
   pageNumber: Int!
+
+  # The total number of pages.
   totalPages: Int!
+
+  # The total number of items.
   totalItems: Int!
+
+  # The list of workspace invitations on the current page.
   items: [WorkspaceInvitation!]!
 }
 
+"""
+Represents an invitation to join a workspace.
+"""
 type WorkspaceInvitation {
+  # The unique identifier for the invitation.
   id: UUID!
+
+  # The email address of the invitee.
   email: String!
+
+  # The workspace associated with the invitation.
   workspace: Workspace!
+
+  # The role of the invitee in the workspace.
   role: WorkspaceMembershipRole!
+
+  # The status of the invitation.
   status: WorkspaceInvitationStatus!
+
+  # The user who sent the invitation.
   invitedBy: User
+
+  # The date and time when the invitation was created.
   createdAt: DateTime!
+
+  # The date and time when the invitation was last updated.
   updatedAt: DateTime
 }
 
+"""
+Represents the status of a workspace invitation.
+"""
 enum WorkspaceInvitationStatus {
   PENDING
   DECLINED
   ACCEPTED
 }
 
+"""
+Represents the permissions of a workspace.
+"""
 type WorkspacePermissions {
+  # Indicates whether the workspace can be updated.
   update: Boolean!
+
+  # Indicates whether the workspace can be deleted.
   delete: Boolean!
+
+  # Indicates whether the workspace members can be managed.
   manageMembers: Boolean!
+
+  # Indicates whether a connection can be created in the workspace.
   createConnection: Boolean!
+
+  # Indicates whether a notebook server can be launched in the workspace.
   launchNotebookServer: Boolean!
-   deleteDatabaseTable: Boolean!
+
+  # Indicates whether a database table can be deleted in the workspace.
+  deleteDatabaseTable: Boolean!
 }
 
+"""
+Represents a page of workspaces.
+"""
 type WorkspacePage {
   pageNumber: Int!
   totalPages: Int!
@@ -53,56 +128,105 @@ type WorkspacePage {
   items: [Workspace!]!
 }
 
-enum WorkspaceMembershipRole {
-  ADMIN
-  EDITOR
-  VIEWER
-}
-
-type WorkspaceMembership {
-  id: UUID!
-  user: User!
-  workspace: Workspace!
-  role: WorkspaceMembershipRole!
-  createdAt: DateTime!
-  updatedAt: DateTime
-}
-
+"""
+Represents a page of workspace memberships.
+"""
 type WorkspaceMembershipPage {
+  # The current page number.
   pageNumber: Int!
+
+  # The total number of pages.
   totalPages: Int!
+
+  # The total number of items.
   totalItems: Int!
+
+  # The list of workspace memberships on the current page.
   items: [WorkspaceMembership!]!
 }
 
+"""
+Represents a membership in a workspace.
+"""
+type WorkspaceMembership {
+  # The unique identifier for the membership.
+  id: UUID!
+
+  # The user who is a member of the workspace.
+  user: User!
+
+  # The workspace associated with the membership.
+  workspace: Workspace!
+
+  # The role of the member in the workspace.
+  role: WorkspaceMembershipRole!
+
+  # The date and time when the membership was created.
+  createdAt: DateTime!
+
+  # The date and time when the membership was last updated.
+  updatedAt: DateTime
+}
+
+"""
+Represents the role of a workspace membership.
+"""
+enum WorkspaceMembershipRole {
+  ADMIN  # The user has full access to the workspace.
+  EDITOR  # The user can edit the workspace, create pipelines and use the JupyterLab environment.
+  VIEWER  # The user can view the workspace and its contents.
+}
+
+
 
 extend type Query {
+  # Returns a workspace by its unique identifier.
   workspace(slug: String!): Workspace @loginRequired
+  # Returns a page of workspaces.
   workspaces(query: String, page: Int, perPage: Int): WorkspacePage! @loginRequired
+  # Returns the invitations to workspaces of the current user.
   pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
+
+  # Returns a database table by its identifier.
   databaseTable(id:String!): DatabaseTable @loginRequired
 }
 
+
+"""
+Enum representing the possible errors that can occur when creating a workspace.
+"""
 enum CreateWorkspaceError {
   PERMISSION_DENIED
   INVALID_SLUG
 }
 
+"""
+Enum representing the possible errors that can occur when updating a workspace.
+"""
 enum UpdateWorkspaceError {
   PERMISSION_DENIED
   NOT_FOUND
 }
 
+"""
+Enum representing the possible errors that can occur when deleting a workspace.
+"""
 enum DeleteWorkspaceError {
   PERMISSION_DENIED
   NOT_FOUND
 }
 
+"""
+Enum representing the possible errors that can occur when archiving a workspace.
+"""
 enum ArchiveWorkspaceError {
   PERMISSION_DENIED
   NOT_FOUND
 }
 
+"""
+Enum representing the possible errors that can occur when inviting a user to a workspace.
+"""
 enum InviteWorkspaceMembershipError {
   ALREADY_EXISTS
   PERMISSION_DENIED
@@ -110,108 +234,232 @@ enum InviteWorkspaceMembershipError {
   WORKSPACE_NOT_FOUND
 }
 
+"""
+Enum representing the possible errors that can occur when deleting a workspace member.
+"""
 enum DeleteWorkspaceMemberError {
   MEMBERSHIP_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""
+Enum representing the possible errors that can occur when updating a workspace member.
+"""
 enum UpdateWorkspaceMemberError {
   MEMBERSHIP_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""
+Represents the result of creating a workspace.
+"""
 type CreateWorkspaceResult {
+  # Indicates whether the creation was successful.
   success: Boolean!
+
+  # The errors that occurred during the creation.
   errors: [CreateWorkspaceError!]!
+
+  # The created workspace.
   workspace: Workspace
 }
 
+"""
+Represents the result of updating a workspace.
+"""
 type UpdateWorkspaceResult {
+  # Indicates whether the update was successful.
   success: Boolean!
+
+  # The errors that occurred during the update.
   errors: [UpdateWorkspaceError!]!
+
+  # The updated workspace.
   workspace: Workspace
 }
 
+"""
+Represents the result of deleting a workspace.
+"""
 type DeleteWorkspaceResult {
+  # Indicates whether the deletion was successful.
   success: Boolean!
+
+  # The errors that occurred during the deletion.
   errors: [DeleteWorkspaceError!]!
 }
 
+"""
+Represents the result of archiving a workspace.
+"""
 type ArchiveWorkspaceResult {
+  # Indicates whether the archiving was successful.
   success: Boolean!
+
+  # The errors that occurred during the archiving.
   errors: [ArchiveWorkspaceError!]!
 }
 
-type InviteWorkspaceMemberResult{
+"""
+Represents the result of inviting a member to a workspace.
+"""
+type InviteWorkspaceMemberResult {
+  # Indicates whether the invitation was successful.
   success: Boolean!
+
+  # The errors that occurred during the invitation.
   errors: [InviteWorkspaceMembershipError!]!
+
+  # The workspace membership associated with the invitation.
   workspaceMembership: WorkspaceMembership
 }
 
+"""
+Represents the result of deleting a workspace member.
+"""
 type DeleteWorkspaceMemberResult {
+  # Indicates whether the deletion was successful.
   success: Boolean!
+
+  # The errors that occurred during the deletion.
   errors: [DeleteWorkspaceMemberError!]!
 }
 
+"""
+Represents the result of updating a workspace member.
+"""
 type UpdateWorkspaceMemberResult {
+  # Indicates whether the update was successful.
   success: Boolean!
-  errors:[UpdateWorkspaceMemberError!]!
+
+  # The errors that occurred during the update.
+  errors: [UpdateWorkspaceMemberError!]!
+
+  # The updated workspace membership.
   workspaceMembership: WorkspaceMembership
 }
 
+"""
+Represents the input for creating a workspace.
+"""
 input CreateWorkspaceInput {
+  # The name of the workspace.
   name: String!
+
+  # The slug of the workspace.
   slug: String
+
+  # The description of the workspace.
   description: String
+
+  # The countries associated with the workspace.
   countries: [CountryInput!]
+
+  # Indicates whether to load sample data into the workspace.
   loadSampleData: Boolean
 }
 
+"""
+Represents the input for updating a workspace.
+"""
 input UpdateWorkspaceInput {
+  # The slug of the workspace.
   slug: String!
+
+  # The new name of the workspace.
   name: String
+
+  # The new description of the workspace.
   description: String
+
+  # The new countries associated with the workspace.
   countries: [CountryInput!]
+
+  # The new Docker image associated with the workspace.
   dockerImage: String
 }
 
+"""
+Represents the input for deleting a workspace.
+"""
 input DeleteWorkspaceInput {
+  # The slug of the workspace to delete.
   slug: String!
 }
 
+"""
+Represents the input for inviting a member to a workspace.
+"""
 input InviteWorkspaceMemberInput {
+  # The slug of the workspace.
   workspaceSlug: String!
+
+  # The email address of the user to invite.
   userEmail: String!
+
+  # The role of the user in the workspace.
   role: WorkspaceMembershipRole!
 }
 
+"""
+Represents the input for resending a workspace invitation.
+"""
 input ResendWorkspaceInvitationInput {
+  # The ID of the invitation to resend.
   invitationId: UUID!
 }
 
+"""
+Represents the input for deleting a workspace member.
+"""
 input DeleteWorkspaceMemberInput {
+  # The ID of the membership to delete.
   membershipId: UUID!
 }
 
+"""
+Represents the input for deleting a workspace invitation.
+"""
 input DeleteWorkspaceInvitationInput {
+  # The ID of the invitation to delete.
   invitationId: UUID!
 }
 
+"""
+Represents the input for updating a workspace member.
+"""
 input UpdateWorkspaceMemberInput {
+  # The ID of the membership to update.
   membershipId: UUID!
+
+  # The new role of the member in the workspace.
   role: WorkspaceMembershipRole!
 }
 
+"""
+Represents the input for archiving a workspace.
+"""
 input ArchiveWorkspaceInput {
+  # The slug of the workspace to archive.
   slug: String!
 }
 
+"""
+Represents the input for generating a workspace token.
+"""
 input GenerateWorkspaceTokenInput {
+  # The slug of the workspace.
   slug: String!
 }
 
+"""
+Represents the input for deleting a database table in a workspace.
+"""
 input DeleteWorkspaceDatabaseTableInput {
+  # The slug of the workspace.
   workspaceSlug: String!
+
+  # The name of the table to delete.
   table: String!
 }
 
@@ -221,53 +469,106 @@ enum DeleteWorkspaceDatabaseTableError {
   WORKSPACE_NOT_FOUND
 }
 
+
+"""
+Represents the result of deleting a database table in a workspace.
+"""
 type DeleteWorkspaceDatabaseTableResult {
+  # Indicates whether the deletion was successful.
   success: Boolean!
+
+  # The errors that occurred during the deletion.
   errors: [DeleteWorkspaceDatabaseTableError!]!
 }
 
+"""
+Represents the result of generating a workspace token.
+"""
 type GenerateWorkspaceTokenResult {
+  # Indicates whether the token generation was successful.
   success: Boolean!
+
+  # The generated token.
   token: String
+
+  # The errors that occurred during the token generation.
   errors: [GenerateWorkspaceTokenError!]!
 }
 
+"""
+Represents the error types for generating a workspace token.
+"""
 enum GenerateWorkspaceTokenError {
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""
+Represents the input for joining a workspace.
+"""
 input JoinWorkspaceInput {
+  # The ID of the invitation to accept.
   invitationId: UUID!
 }
 
+"""
+Represents the result of joining a workspace.
+"""
 type JoinWorkspaceResult {
+  # Indicates whether the joining was successful.
   success: Boolean!
+
+  # The joined workspace.
   workspace: Workspace
+
+  # The accepted invitation.
   invitation: WorkspaceInvitation
+
+  # The errors that occurred during the joining.
   errors: [JoinWorkspaceError!]!
 }
 
+"""
+Represents the result of deleting a workspace invitation.
+"""
 type DeleteWorkspaceInvitationResult {
+  # Indicates whether the deletion was successful.
   success: Boolean!
+
+  # The errors that occurred during the deletion.
   errors: [DeleteWorkspaceInvitationError!]!
 }
 
+"""
+Represents the result of resending a workspace invitation.
+"""
 type ResendWorkspaceInvitationResult {
+  # Indicates whether the resending was successful.
   success: Boolean!
+
+  # The errors that occurred during the resending.
   errors: [ResendWorkspaceInvitationError!]!
 }
 
+"""
+Represents the error types for resending a workspace invitation.
+"""
 enum ResendWorkspaceInvitationError {
   INVITATION_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""
+Represents the error types for deleting a workspace invitation.
+"""
 enum DeleteWorkspaceInvitationError {
   INVITATION_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""
+Represents the error types for joining a workspace.
+"""
 enum JoinWorkspaceError {
   ALREADY_EXISTS
   ALREADY_ACCEPTED
@@ -275,19 +576,36 @@ enum JoinWorkspaceError {
   INVITATION_NOT_FOUND
 }
 
+"""
+Represents the input for declining a workspace invitation.
+"""
 input DeclineWorkspaceInvitationInput {
+  # The ID of the invitation to decline.
   invitationId: UUID!
 }
 
+"""
+Represents the result of declining a workspace invitation.
+"""
 type DeclineWorkspaceInvitationResult {
+  # Indicates whether the declining was successful.
   success: Boolean!
+
+  # The declined invitation.
   invitation: WorkspaceInvitation
+
+  # The errors that occurred during the declining.
   errors: [DeclineWorkspaceInvitationError!]!
 }
+
+"""
+Represents the error types for declining a workspace invitation.
+"""
 enum DeclineWorkspaceInvitationError {
   INVITATION_NOT_FOUND
   PERMISSION_DENIED
 }
+
 
 extend type Mutation {
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult! @loginRequired
@@ -305,8 +623,10 @@ extend type Mutation {
   deleteWorkspaceDatabaseTable(input: DeleteWorkspaceDatabaseTableInput!): DeleteWorkspaceDatabaseTableResult @loginRequired
 }
 
-### Connections
 
+"""
+Represents the types of connections.
+"""
 enum ConnectionType {
   S3
   GCS
@@ -316,107 +636,221 @@ enum ConnectionType {
   IASO
 }
 
+"""
+Represents a field in a connection.
+"""
 type ConnectionField {
+  # The code of the field.
   code: String!
+
+  # The value of the field.
   value: String
+
+  # Indicates whether the field is a secret.
   secret: Boolean!
+
+  # The date and time when the field was created.
   createdAt: DateTime!
+
+  # The date and time when the field was last updated.
   updatedAt: DateTime
 }
 
+"""
+Represents the permissions of a connection.
+"""
 type ConnectionPermissions {
+  # Indicates whether the connection can be updated.
   update: Boolean!
+
+  # Indicates whether the connection can be deleted.
   delete: Boolean!
 }
 
+"""
+Represents a connection to an external data source or service.
+"""
 type Connection {
+  # The unique identifier for the connection.
   id: String!
+
+  # The name of the connection.
   name: String!
+
+  # The slug of the connection.
   slug: String!
+
+  # The description of the connection.
   description: String
+
+  # The date and time when the connection was created.
   createdAt: DateTime!
+
+  # The date and time when the connection was last updated.
   updatedAt: DateTime
+
+  # The type of the connection.
   type: ConnectionType!
+
+  # The user associated with the connection.
   user: User
+
+  # The fields of the connection.
   fields: [ConnectionField!]!
+
+  # The permissions of the connection.
   permissions: ConnectionPermissions!
 }
 
+"""
+Represents the input for a connection field.
+"""
 input ConnectionFieldInput {
+  # The code of the field.
   code: String!
+
+  # The value of the field.
   value: String
+
+  # Indicates whether the field is a secret.
   secret: Boolean!
 }
 
+"""
+Represents the input for creating a connection.
+"""
 input CreateConnectionInput {
+  # The slug of the workspace.
   workspaceSlug: String!
+
+  # The name of the connection.
   name: String!
+
+  # The slug of the connection.
   slug: String
+
+  # The description of the connection.
   description: String
+
+  # The type of the connection.
   type: ConnectionType!
+
+  # The fields of the connection.
   fields: [ConnectionFieldInput!]
 }
 
+"""
+Represents the result of creating a connection.
+"""
 type CreateConnectionResult {
+  # Indicates whether the creation was successful.
   success: Boolean!
+
+  # The created connection.
   connection: Connection
+
+  # The errors that occurred during the creation.
   errors: [CreateConnectionError!]!
 }
 
+"""
+Represents the error types for creating a connection.
+"""
 enum CreateConnectionError {
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
   INVALID_SLUG
 }
 
+"""
+Represents the input for updating a connection.
+"""
 input UpdateConnectionInput {
+  # The ID of the connection to update.
   id: String!
+
+  # The new name of the connection.
   name: String
+
+  # The new slug of the connection.
   slug: String
+
+  # The new description of the connection.
   description: String
+
+  # The new fields of the connection.
   fields: [ConnectionFieldInput!]
 }
 
+"""
+Represents the result of updating a connection.
+"""
 type UpdateConnectionResult {
+  # Indicates whether the update was successful.
   success: Boolean!
+
+  # The updated connection.
   connection: Connection
+
+  # The errors that occurred during the update.
   errors: [UpdateConnectionError!]!
 }
 
+"""
+Represents the error types for updating a connection.
+"""
 enum UpdateConnectionError {
   NOT_FOUND
   PERMISSION_DENIED
   INVALID_SLUG
 }
 
-
+"""
+Represents the input for deleting a connection.
+"""
 input DeleteConnectionInput {
+  # The ID of the connection to delete.
   id: String!
 }
 
+"""
+Represents the result of deleting a connection.
+"""
 type DeleteConnectionResult {
+  # Indicates whether the deletion was successful.
   success: Boolean!
+
+  # The errors that occurred during the deletion.
   errors: [DeleteConnectionError!]!
 }
 
+"""
+Represents the error types for deleting a connection.
+"""
 enum DeleteConnectionError {
   NOT_FOUND
   PERMISSION_DENIED
 }
 
+
 extend type Query {
+  # Returns a connection by its unique identifier.
   connection(id: UUID!): Connection @loginRequired
   connectionBySlug(slug: String!): Connection @loginRequired
 }
 
 
 extend type Mutation {
+  # Creates a connection in a workspace.
   createConnection(input: CreateConnectionInput!): CreateConnectionResult! @loginRequired
+  # Updates a connection in a workspace.
   updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult! @loginRequired
+  # Deletes a connection in a workspace.
   deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult! @loginRequired
 }
 
 
 extend type MePermissions {
+  # Indicates whether the user can create a workspace.
   createWorkspace: Boolean!
 }

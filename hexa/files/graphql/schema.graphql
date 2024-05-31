@@ -1,13 +1,20 @@
+
 extend type Workspace {
+  "File storage of the workspace represented as a bucket"
   bucket: Bucket!
 }
 
-
+"""
+The type of an object in a workspace's bucket.
+"""
 enum BucketObjectType {
   FILE
   DIRECTORY
 }
 
+"""
+An object in a workspace's bucket.
+"""
 type BucketObject {
   key: String!
   name: String!
@@ -17,6 +24,9 @@ type BucketObject {
   type: BucketObjectType!
 }
 
+"""
+A page of objects in a workspace's bucket.
+"""
 type BucketObjectPage {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
@@ -24,22 +34,35 @@ type BucketObjectPage {
   items: [BucketObject!]!
 }
 
+
+"""
+A bucket is where all the files and data related to a workspace are stored.
+"""
 type Bucket {
   name: String!
   objects(prefix: String, page: Int = 1, perPage: Int = 15, query: String, ignoreHiddenFiles: Boolean = true): BucketObjectPage!
   object(key: String!): BucketObject
 }
 
+"""
+Input for deleting an object from a workspace's bucket.
+"""
 input DeleteBucketObjectInput {
   workspaceSlug: String!
   objectKey: String!
 }
 
+"""
+Errors that can occur when deleting an object from a workspace's bucket.
+"""
 enum DeleteBucketObjectError {
   NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""
+The result of deleting an object from a workspace's bucket.
+"""
 type DeleteBucketObjectResult {
   success: Boolean!
   errors: [DeleteBucketObjectError!]!
@@ -50,44 +73,70 @@ input PrepareObjectDownloadInput {
   objectKey: String!
 }
 
+"""
+Errors that can occur when preparing to download an object from a workspace's bucket.
+"""
 enum PrepareObjectDownloadError {
   NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""
+The result of preparing to download an object from a workspace's bucket.
+"""
 type PrepareObjectDownloadResult {
   success: Boolean!
   downloadUrl: URL
   errors: [PrepareObjectDownloadError!]!
 }
 
+"""
+Input for preparing to upload an object to a workspace's bucket.
+The `contentType` 
+"""
 input PrepareObjectUploadInput {
   workspaceSlug: String!
   objectKey: String!
   contentType: String
 }
 
+"""
+Errors that can occur when preparing to upload an object to a workspace's bucket.
+"""
 enum PrepareObjectUploadError {
   PERMISSION_DENIED
 }
 
+"""
+The result of preparing to upload an object to a workspace's bucket. It contains a URL that can be used to upload the object using a PUT request.
+
+"""
 type PrepareObjectUploadResult {
+  "Url to upload the object to. The contentType passed with the PUT request should match the one passed in the input."
   uploadUrl: URL
   success: Boolean!
   errors: [PrepareObjectUploadError!]!
 }
 
-
+"""
+Input for creating a folder in a workspace's bucket.
+"""
 input CreateBucketFolderInput {
   workspaceSlug: String!
   folderKey: String!
 }
 
+"""
+Errors that can occur when creating a folder in a workspace's bucket.
+"""
 enum CreateBucketFolderError {
   ALREADY_EXISTS
   PERMISSION_DENIED
 }
 
+"""
+The result of creating a folder in a workspace's bucket.
+"""
 type CreateBucketFolderResult {
   success: Boolean!
   errors: [CreateBucketFolderError!]!
@@ -95,14 +144,32 @@ type CreateBucketFolderResult {
 }
 
 extend type Mutation {
+  """
+  Delete an object from a workspace's bucket.
+  """
   deleteBucketObject(input: DeleteBucketObjectInput!): DeleteBucketObjectResult!
+
+  """
+  Prepare to download an object from a workspace's bucket.
+  """
   prepareObjectDownload(input: PrepareObjectDownloadInput!): PrepareObjectDownloadResult!
+  
+  """
+  Prepare to upload an object to a workspace's bucket.
+  """
   prepareObjectUpload(input: PrepareObjectUploadInput!): PrepareObjectUploadResult!
+
+  """
+  Create a folder in a workspace's bucket.
+  """
   createBucketFolder(input: CreateBucketFolderInput!): CreateBucketFolderResult!
 }
 
 extend type WorkspacePermissions {
+  "User can create objects in the workspace's bucket."
   createObject: Boolean!
+  "User can delete objects in the workspace's bucket."
   deleteObject: Boolean!
+  "User can download objects from the workspace's bucket."
   downloadObject: Boolean!
 }
