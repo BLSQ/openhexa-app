@@ -52,7 +52,7 @@ const CronProperty = (props: CronPropertyProps) => {
             <Link
               href={
                 "https://crontab.guru/#" +
-                  property.formValue?.replaceAll(" ", "_") ?? ""
+                (property.formValue?.replaceAll(" ", "_") ?? "")
               }
               target="_blank"
             >
