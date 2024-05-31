@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.48.2](https://github.com/BLSQ/openhexa-frontend/compare/0.48.1...0.48.2) (2024-05-27)
+
+
+### Miscellaneous
+
+* **Files:** Improve messaging of hidden files viewer ([#606](https://github.com/BLSQ/openhexa-frontend/issues/606)) ([6648e47](https://github.com/BLSQ/openhexa-frontend/commit/6648e47624722bd56120fdcd175a0f3fa7fdd95f))
+
 ## [0.48.1](https://github.com/BLSQ/openhexa-frontend/compare/0.48.0...0.48.1) (2024-05-27)
 
 
