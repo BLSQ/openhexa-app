@@ -143,7 +143,9 @@ class PipelineVersion(models.Model):
     @property
     def is_schedulable(self):
         return all(
-            parameter.get("required") is False or parameter.get("default") is not None
+            parameter.get("required") is False
+            or parameter.get("default") is not None
+            or self.config.get(parameter.get("code"))
             for parameter in self.parameters
         )
 
@@ -280,7 +282,6 @@ class Pipeline(SoftDeletedModel):
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("pipelines.update_pipeline", self):
             raise PermissionDenied
-
         if (
             kwargs.get("schedule") is not None
             and self.last_version
