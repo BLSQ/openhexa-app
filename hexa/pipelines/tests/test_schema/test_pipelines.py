@@ -1487,6 +1487,55 @@ class PipelinesV2Test(GraphQLTestCase):
             r["data"]["pipelineByCode"],
         )
 
+    def test_pipelines_permissions_schedule_required_param_with_no_default_value_with_version_config(
+        self,
+    ):
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_SABRINA)
+        pipeline = Pipeline.objects.filter_for_user(self.USER_SABRINA).first()
+        pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            zipfile=base64.b64decode("".encode("ascii")),
+            name="Version 1",
+            config={"param1": "value"},
+            parameters=[
+                {
+                    "code": "param1",
+                    "name": "Param 1",
+                    "type": "string",
+                    "help": "Param 1's Help",
+                    "default": None,
+                    "multiple": False,
+                    "required": True,
+                }
+            ],
+        )
+        r = self.run_query(
+            """
+            query pipelineByCode($code: String!, $workspaceSlug: String!) {
+                pipelineByCode(code: $code, workspaceSlug: $workspaceSlug) {
+                    id
+                    code
+                    permissions {
+                      schedule
+                    }
+                }
+            }
+        """,
+            {
+                "code": pipeline.code,
+                "workspaceSlug": self.WS1.slug,
+            },
+        )
+        self.assertEqual(
+            {
+                "id": str(pipeline.id),
+                "code": pipeline.code,
+                "permissions": {"schedule": True},
+            },
+            r["data"]["pipelineByCode"],
+        )
+
     def test_pipelines_permissions_schedule_required_param_empty_string(self):
         self.test_create_pipeline()
         self.client.force_login(self.USER_SABRINA)
