@@ -255,6 +255,7 @@ class Pipeline(SoftDeletedModel):
         name: str,
         zipfile: str = None,
         description: str = None,
+        config: typing.Mapping[typing.Dict, typing.Any] = None,
         external_link: str = None,
         timeout: int = None,
     ):
@@ -268,6 +269,7 @@ class Pipeline(SoftDeletedModel):
             description=description,
             external_link=external_link,
             zipfile=zipfile,
+            config=config if config else self.config,
             parameters=parameters,
             timeout=timeout,
         )

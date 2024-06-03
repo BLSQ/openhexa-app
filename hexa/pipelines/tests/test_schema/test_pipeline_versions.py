@@ -119,7 +119,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                         name
                         externalLink
                         description
-
+                        config
                     }
                 }
             }
@@ -130,6 +130,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                     "name": "New Version Name",
                     "externalLink": "https://example.com",
                     "description": "New Description",
+                    "config": "{}",
                 }
             },
         )
@@ -144,6 +145,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                     "name": "New Version Name",
                     "externalLink": "https://example.com",
                     "description": "New Description",
+                    "config": "{}",
                 },
             },
         )
