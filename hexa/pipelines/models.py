@@ -236,7 +236,7 @@ class Pipeline(SoftDeletedModel):
             trigger_mode=trigger_mode,
             execution_date=timezone.now(),
             state=PipelineRunState.QUEUED,
-            config=config if config else self.config,
+            config=self.merge_pipeline_config(config, pipeline_version.config),
             access_token=str(uuid.uuid4()),
             send_mail_notifications=send_mail_notifications,
             timeout=timeout,
@@ -345,6 +345,15 @@ class Pipeline(SoftDeletedModel):
             signer.sign(self.id).encode("utf-8")
         ).decode()
         self.save()
+
+    def merge_pipeline_config(
+        self,
+        config: typing.Mapping[typing.Dict, typing.Any],
+        pipeline_version_config: typing.Mapping[typing.Dict, typing.Any],
+    ):
+        provided_config = config if config else self.config
+        merged_config = {**pipeline_version_config, **provided_config}
+        return merged_config
 
     def __str__(self):
         if self.name is not None and self.name != "":
