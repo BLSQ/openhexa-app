@@ -52,7 +52,7 @@
     "@types/react": "^18.2.72",
     "@types/uuid": "^9.0.8",
     "@uiw/react-codemirror": "^4.21.25",
-    "clsx": "^2.1.0",
+    "clsx": "^2.1.1",
     "codemirror": "^6.0.1",
     "codemirror-lang-r": "^0.1.0-2",
     "cookies-next": "^4.1.1",
