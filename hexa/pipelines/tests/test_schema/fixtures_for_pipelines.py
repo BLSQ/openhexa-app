@@ -126,3 +126,26 @@ pipelines_parameters_unvalid = [
         "choices": [],
     }
 ]
+
+pipelines_example_parameters = [
+    {
+        "code": "param1",
+        "name": "Param 1",
+        "type": "str",
+        "help": "Param 1's Help",
+        "default": None,
+        "multiple": False,
+        "required": True,
+        "choices": [],
+    },
+    {
+        "code": "param2",
+        "name": "Param 2",
+        "type": "str",
+        "help": "Param 2's Help",
+        "default": None,
+        "multiple": False,
+        "required": True,
+        "choices": [],
+    },
+]

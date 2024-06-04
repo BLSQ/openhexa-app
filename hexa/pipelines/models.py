@@ -255,7 +255,7 @@ class Pipeline(SoftDeletedModel):
         name: str,
         zipfile: str = None,
         description: str = None,
-        config: typing.Mapping[typing.Dict, typing.Any] = None,
+        config: typing.Mapping[typing.Dict, typing.Any] = {},
         external_link: str = None,
         timeout: int = None,
     ):
@@ -269,7 +269,7 @@ class Pipeline(SoftDeletedModel):
             description=description,
             external_link=external_link,
             zipfile=zipfile,
-            config=config if config else self.config,
+            config=config,
             parameters=parameters,
             timeout=timeout,
         )
@@ -348,11 +348,18 @@ class Pipeline(SoftDeletedModel):
 
     def merge_pipeline_config(
         self,
-        config: typing.Mapping[typing.Dict, typing.Any],
+        provided_config: typing.Mapping[typing.Dict, typing.Any],
         pipeline_version_config: typing.Mapping[typing.Dict, typing.Any],
     ):
-        provided_config = config if config else self.config
-        merged_config = {**pipeline_version_config, **provided_config}
+        cleaned_provided_config = {
+            key: value for key, value in provided_config.items() if value is not None
+        }
+        cleaned_pipeline_version_config = {
+            key: value
+            for key, value in pipeline_version_config.items()
+            if value is not None
+        }
+        merged_config = {**cleaned_pipeline_version_config, **cleaned_provided_config}
         return merged_config
 
     def __str__(self):
