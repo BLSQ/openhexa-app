@@ -1,4 +1,6 @@
 import base64
+import random
+import string
 import uuid
 from unittest.mock import MagicMock, patch
 
@@ -57,6 +59,9 @@ class PipelinesV2Test(GraphQLTestCase):
         cls.USER_SABRINA = User.objects.create_user(
             "sabrina@bluesquarehub.com",
             "standardpassword",
+        )
+        FeatureFlag.objects.create(
+            feature=Feature.objects.create(code="pipeline_webhook"), user=cls.USER_ROOT
         )
         FeatureFlag.objects.create(
             feature=Feature.objects.create(code="workspaces"), user=cls.USER_NOOB
@@ -1223,39 +1228,50 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
         self.assertEqual(pipeline.webhook_enabled, False)
-        r = self.run_query(
-            """
-            mutation updatePipeline($input: UpdatePipelineInput!) {
-                updatePipeline(input: $input) {
-                    success
-                    errors
-                    pipeline {
-                        webhookEnabled
-                        webhookUrl
+
+        with patch("hexa.pipelines.models.TimestampSigner") as mocked_signer:
+            random_string = base64.b64encode(
+                "".join(random.choices(string.ascii_lowercase, k=10)).encode("utf-8")
+            ).decode()
+
+            signer = mocked_signer.return_value
+            signer.sign.return_value = random_string
+            encoded_token = base64.b64encode(random_string.encode("utf-8")).decode()
+
+            r = self.run_query(
+                """
+                mutation updatePipeline($input: UpdatePipelineInput!) {
+                    updatePipeline(input: $input) {
+                        success
+                        errors
+                        pipeline {
+                            webhookEnabled
+                            webhookUrl
+                        }
                     }
                 }
-            }
-        """,
-            {
-                "input": {
-                    "id": str(pipeline.id),
-                    "webhookEnabled": True,
-                }
-            },
-        )
-        self.assertEqual(
-            {
-                "success": True,
-                "errors": [],
-                "pipeline": {
-                    "webhookEnabled": True,
-                    "webhookUrl": f"http://app.openhexa.test/pipelines/{pipeline.id}/run",
+            """,
+                {
+                    "input": {
+                        "id": str(pipeline.id),
+                        "webhookEnabled": True,
+                    }
                 },
-            },
-            r["data"]["updatePipeline"],
-        )
-        pipeline.refresh_from_db()
-        self.assertEqual(pipeline.webhook_enabled, True)
+            )
+
+            self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                    "pipeline": {
+                        "webhookEnabled": True,
+                        "webhookUrl": f"http://app.openhexa.test/pipelines/{encoded_token}/run",
+                    },
+                },
+                r["data"]["updatePipeline"],
+            )
+            pipeline.refresh_from_db()
+            self.assertEqual(pipeline.webhook_enabled, True)
 
     def test_delete_pipeline_workspace_members(self):
         self.test_create_pipeline_version()
@@ -2013,3 +2029,136 @@ class PipelinesV2Test(GraphQLTestCase):
         self.assertEqual(True, r["data"]["stopPipeline"]["success"])
         self.assertEqual(PipelineRunState.TERMINATING, run.state)
         self.assertEqual(self.USER_ROOT, run.stopped_by)
+
+    def test_generate_pipeline_webhook_url_not_found(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            mutation generateWebhookPipelineUrl($input: GeneratePipelineWebhookUrlInput!) {
+                generatePipelineWebhookUrl(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"id": str(uuid.uuid4())}},
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["PIPELINE_NOT_FOUND"]},
+            r["data"]["generatePipelineWebhookUrl"],
+        )
+
+    def test_generate_pipeline_webhook_url_not_enabled(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline.webhook_enabled = False
+        pipeline.save()
+
+        r = self.run_query(
+            """
+            mutation generateWebhookPipelineUrl($input: GeneratePipelineWebhookUrlInput!) {
+                generatePipelineWebhookUrl(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"id": str(pipeline.id)}},
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["WEBHOOK_NOT_ENABLED"]},
+            r["data"]["generatePipelineWebhookUrl"],
+        )
+
+    def test_generate_pipeline_webhook_url(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline.webhook_enabled = True
+        pipeline.save()
+
+        with patch("hexa.pipelines.models.TimestampSigner") as mocked_signer:
+            random_string = base64.b64encode(
+                "".join(random.choices(string.ascii_lowercase, k=10)).encode("utf-8")
+            ).decode()
+
+            signer = mocked_signer.return_value
+            signer.sign.return_value = random_string
+            encoded_token = base64.b64encode(random_string.encode("utf-8")).decode()
+
+            r = self.run_query(
+                """
+                mutation generateWebhookPipelineUrl($input: GeneratePipelineWebhookUrlInput!) {
+                    generatePipelineWebhookUrl(input: $input) {
+                        success
+                        errors
+                        pipeline {
+                         webhookUrl
+                        }
+                    }
+                }
+                """,
+                {"input": {"id": str(pipeline.id)}},
+            )
+
+            self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                    "pipeline": {
+                        "webhookUrl": f"http://app.openhexa.test/pipelines/{encoded_token}/run"
+                    },
+                },
+                r["data"]["generatePipelineWebhookUrl"],
+            )
+
+    def test_generate_pipeline_webhook_url_update_permission_denied(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_SABRINA)
+        pipeline = Pipeline.objects.get(code="new_pipeline")
+
+        r = self.run_query(
+            """
+            mutation generateWebhookPipelineUrl($input: GeneratePipelineWebhookUrlInput!) {
+                generatePipelineWebhookUrl(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"id": str(pipeline.id)}},
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["generatePipelineWebhookUrl"],
+        )
+
+    def test_generate_pipeline_webhook_url_feature_flag_permission_denied(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_LAMBDA)
+        pipeline = Pipeline.objects.get(code="new_pipeline")
+
+        r = self.run_query(
+            """
+            mutation generateWebhookPipelineUrl($input: GeneratePipelineWebhookUrlInput!) {
+                generatePipelineWebhookUrl(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"id": str(pipeline.id)}},
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["generatePipelineWebhookUrl"],
+        )

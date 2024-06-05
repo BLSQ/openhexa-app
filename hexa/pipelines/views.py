@@ -1,3 +1,5 @@
+import base64
+import binascii
 import json
 import uuid
 from logging import getLogger
@@ -6,7 +8,8 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
-from django.core.signing import BadSignature, Signer
+from django.core.exceptions import ValidationError
+from django.core.signing import BadSignature, Signer, TimestampSigner
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
@@ -91,7 +94,7 @@ def credentials(request: HttpRequest) -> HttpResponse:
 @require_POST
 @csrf_exempt
 def run_pipeline(
-    request: HttpRequest, id: uuid.UUID, version_id: uuid.UUID = None
+    request: HttpRequest, token: str, version_id: uuid.UUID = None
 ) -> HttpResponse:
     """Runs a pipeline. The endpoint accepts both form data and JSON payloads.
 
@@ -102,9 +105,21 @@ def run_pipeline(
         HttpResponse: Returns a dict with the `run_id` key containing the ID of the created run.
     """
     try:
-        pipeline = Pipeline.objects.get(id=id)
+        # TODO: this is a temp solution to support pipeline that used UUID as webhook token
+        # and will be removed once users have migrated to new webhook url system.
+        pipeline = Pipeline.objects.get(id=token)
     except Pipeline.DoesNotExist:
         return JsonResponse({"error": "Pipeline not found"}, status=404)
+    except ValidationError:
+        try:
+            signer = TimestampSigner()
+            decoded_value = base64.b64decode(token).decode("utf-8")
+            signer.unsign(decoded_value)
+            pipeline = Pipeline.objects.get(webhook_token=token)
+        except (UnicodeDecodeError, binascii.Error, BadSignature):
+            return JsonResponse({"error": "Invalid token"}, status=400)
+        except Pipeline.DoesNotExist:
+            return JsonResponse({"error": "Pipeline not found"}, status=404)
 
     # Only allow pipelines with public webhooks to be run with this endpoint
     if pipeline.webhook_enabled is False:

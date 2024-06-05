@@ -213,6 +213,36 @@ def resolve_pipelineToken(_, info, **kwargs):
         }
 
 
+@pipelines_mutations.field("generatePipelineWebhookUrl")
+def resolve_pipeline_generate_webhook_url(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            id=input.get("id")
+        )
+        if not request.user.has_perm(
+            "pipelines.update_pipeline", pipeline
+        ) or not request.user.has_feature_flag("pipeline_webhook"):
+            raise PermissionDenied
+
+        if pipeline.webhook_enabled is False:
+            return {"success": False, "errors": ["WEBHOOK_NOT_ENABLED"]}
+
+        pipeline.generate_webhook_token()
+        return {"success": True, "errors": [], "pipeline": pipeline}
+    except Pipeline.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+
+
 @pipelines_mutations.field("uploadPipeline")
 def resolve_upload_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]

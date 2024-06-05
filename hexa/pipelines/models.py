@@ -1,3 +1,4 @@
+import base64
 import time
 import typing
 import uuid
@@ -8,7 +9,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.core.exceptions import PermissionDenied
-from django.core.signing import Signer
+from django.core.signing import Signer, TimestampSigner
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -199,6 +200,7 @@ class Pipeline(SoftDeletedModel):
     memory_request = models.CharField(blank=True, max_length=32)
     memory_limit = models.CharField(blank=True, max_length=32)
     recipients = models.ManyToManyField(User, through="PipelineRecipient")
+    webhook_token = models.TextField(null=True, blank=True)
 
     type = models.CharField(
         max_length=200,
@@ -284,9 +286,12 @@ class Pipeline(SoftDeletedModel):
         ):
             raise PermissionDenied
 
-        for key in ["name", "description", "schedule", "config", "webhook_enabled"]:
+        for key in ["name", "description", "schedule", "config"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
+
+        if "webhook_enabled" in kwargs:
+            self.set_webhook_state(kwargs["webhook_enabled"])
 
         if "recipient_ids" in kwargs:
             PipelineRecipient.objects.filter(
@@ -322,6 +327,19 @@ class Pipeline(SoftDeletedModel):
                 "app_label": self._meta.app_label,
             }
         )
+
+    def set_webhook_state(self, enabled: bool):
+        if enabled:
+            self.generate_webhook_token()
+
+        self.webhook_enabled = enabled
+
+    def generate_webhook_token(self):
+        signer = TimestampSigner()
+        self.webhook_token = base64.b64encode(
+            signer.sign(self.id).encode("utf-8")
+        ).decode()
+        self.save()
 
     def __str__(self):
         if self.name is not None and self.name != "":

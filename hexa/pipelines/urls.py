@@ -15,9 +15,9 @@ urlpatterns = [
     ),
     path("credentials/", views.credentials, name="credentials"),
     path(
-        "<uuid:id>/run/<uuid:version_id>",
+        "<token>/run/<uuid:version_id>",
         views.run_pipeline,
         name="run_with_version",
     ),
-    path("<uuid:id>/run", views.run_pipeline, name="run"),
+    path("<token>/run", views.run_pipeline, name="run"),
 ]
