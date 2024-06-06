@@ -217,7 +217,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                     "name": "New Version Name",
                     "externalLink": "https://example.com",
                     "description": "New Description",
-                    "config": {},
+                    "config": {"param_example": None},
                 }
             },
         )
@@ -330,4 +330,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                 }
             },
         )
+        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
+        pipeline.schedule = "0 15 * * *"
+        pipeline.save()
         self.assertEqual(r["data"]["uploadPipeline"]["success"], True)
