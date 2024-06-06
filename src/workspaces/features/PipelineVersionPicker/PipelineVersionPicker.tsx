@@ -49,9 +49,9 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
   const displayValue = useCallback(
     (option: Option) =>
       option
-        ? `V${option.name} - ${DateTime.fromISO(
-            option.createdAt,
-          ).toLocaleString(DateTime.DATETIME_MED)}`
+        ? `${option.name} - ${DateTime.fromISO(option.createdAt).toLocaleString(
+            DateTime.DATETIME_MED,
+          )}`
         : "",
     [],
   );
