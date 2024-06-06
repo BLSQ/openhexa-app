@@ -134,10 +134,11 @@ class PipelineVersion(models.Model):
         if not principal.has_perm("pipelines.update_pipeline_version", self):
             raise PermissionDenied
 
+        if kwargs.get("config") and self.pipeline.schedule:
+            self.validate_new_config(kwargs.get("config"))
+
         for key in ["name", "description", "external_link", "config"]:
             if key in kwargs and kwargs[key] is not None:
-                if key == "config" and self.is_schedulable:
-                    self.validate_new_config(kwargs[key])
                 setattr(self, key, kwargs[key])
 
         return self.save()
