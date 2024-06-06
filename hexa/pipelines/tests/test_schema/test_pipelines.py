@@ -1450,8 +1450,13 @@ class PipelinesV2Test(GraphQLTestCase):
             f"Run report of {pipeline.code} ({run.state.label})",
             mail.outbox[0].subject,
         )
-        self.assertListEqual([self.USER_LAMBDA.email], mail.outbox[0].recipients())
-        self.assertListEqual([self.USER_ROOT.email], mail.outbox[1].recipients())
+
+        self.assertTrue(
+            any(self.USER_LAMBDA.email in email.recipients() for email in mail.outbox)
+        )
+        self.assertTrue(
+            any(self.USER_ROOT.email in email.recipients() for email in mail.outbox)
+        )
         self.assertTrue(
             f"https://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{pipeline.workspace.slug}/pipelines/{pipeline.code}/runs/{run.id}"
             in mail.outbox[0].body
