@@ -136,9 +136,22 @@ class PipelineVersion(models.Model):
 
         for key in ["name", "description", "external_link", "config"]:
             if key in kwargs and kwargs[key] is not None:
+                if key == "config" and self.is_schedulable:
+                    self.validate_new_config(kwargs[key])
                 setattr(self, key, kwargs[key])
 
         return self.save()
+
+    def validate_new_config(self, new_config: dict):
+        for parameter in self.parameters:
+            if (
+                parameter.get("required")
+                and parameter.get("defaul") is None
+                and self.config.get(parameter.get("code"))
+            ) and new_config.get(parameter.get("code")) is None:
+                raise PipelineDoesNotSupportParametersError(
+                    "Cannot push an unschedulable new version for a scheduled pipeline."
+                )
 
     @property
     def is_schedulable(self):
