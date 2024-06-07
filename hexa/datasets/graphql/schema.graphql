@@ -1,4 +1,7 @@
 
+"""
+Dataset is a collection of files that are related to each other and are versioned.
+"""
 type Dataset {
   id: ID!
   slug: String!
@@ -15,12 +18,22 @@ type Dataset {
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
 }
 
+"""
+Permissions of a dataset.
+"""
 type DatasetPermissions {
+  "Permissions to edit the dataset"
   update: Boolean!
+  "Permissions to delete the dataset"
   delete: Boolean!
+  "Permissions to create a new version of the dataset"
   createVersion: Boolean!
 }
 
+"""
+A version of a dataset. A version is a snapshot of the dataset at a point in time.
+
+"""
 type DatasetVersion {
   id: ID!
   name: String!
@@ -33,6 +46,9 @@ type DatasetVersion {
   files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!
 }
 
+"""
+A link of a dataset with a workspace.
+"""
 type DatasetLink {
   id: ID!
   isPinned: Boolean!
@@ -43,11 +59,19 @@ type DatasetLink {
   permissions: DatasetLinkPermissions!
   }
 
+"""
+Permissions of a dataset link.
+"""
 type DatasetLinkPermissions {
+  "Permissions to delete the link between the workspace and the dataset"
   delete: Boolean!
+  "Permissions to pin the dataset for the workspace"
   pin: Boolean!
 }
 
+"""
+A page of dataset links.
+"""
 type DatasetLinkPage {
   totalPages: Int!
   totalItems: Int!
@@ -55,12 +79,21 @@ type DatasetLinkPage {
   items: [DatasetLink!]!
 }
 
+"""
+Permissions of a dataset version.
+"""
 type DatasetVersionPermissions {
+  "Permissions to update the dataset version"
   update: Boolean!
+  "Permissions to delete the dataset version"
   delete: Boolean!
+  "Permissions to download the content of the dataset version"
   download: Boolean!
 }
 
+"""
+A file in a dataset version.
+"""
 type DatasetVersionFile {
   id: ID!
   uri: String!
@@ -70,6 +103,9 @@ type DatasetVersionFile {
   contentType: String!
 }
 
+"""
+A page of dataset version files.
+"""
 type DatasetVersionFilePage {
   totalPages: Int!
   totalItems: Int!
@@ -77,6 +113,9 @@ type DatasetVersionFilePage {
   items: [DatasetVersionFile!]!
 }
 
+"""
+A page of dataset versions.
+"""
 type DatasetVersionPage {
   totalPages: Int!
   totalItems: Int!
@@ -84,6 +123,9 @@ type DatasetVersionPage {
   items: [DatasetVersion!]!
 }
 
+"""
+A page of datasets.
+"""
 type DatasetPage {
   totalPages: Int!
   totalItems: Int!
@@ -92,24 +134,36 @@ type DatasetPage {
 }
 
 extend type Workspace {
+  "Linked datasets of the workspace"
   datasets(pinned: Boolean, query: String, page: Int = 1, perPage: Int = 15): DatasetLinkPage!
 }
 
 extend type WorkspacePermissions {
+  "Permissions to create a dataset in the workspace"
   createDataset: Boolean!
 }
 
 
-# Create Dataset
+"""
+Input for creating a dataset.
+"""
 input CreateDatasetInput {
   workspaceSlug: String!
   name: String!
   description: String
 }
+
+"""
+Errors that can occur when creating a dataset.
+"""
 enum CreateDatasetError {
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
 }
+
+"""
+Result of creating a dataset.
+"""
 type CreateDatasetResult {
   link: DatasetLink
   dataset: Dataset
@@ -117,73 +171,117 @@ type CreateDatasetResult {
   errors: [CreateDatasetError!]!
 }
 
-# Update Dataset
+"""
+Input for updating a dataset.
+"""
 input UpdateDatasetInput {
   datasetId: ID!
   name: String
   description: String
 }
+
+"""
+Errors that can occur when updating a dataset.
+"""
 enum UpdateDatasetError {
   DATASET_NOT_FOUND
   PERMISSION_DENIED
 }
+
+"""
+Result of updating a dataset.
+"""
 type UpdateDatasetResult {
   dataset: Dataset
   success: Boolean!
   errors: [UpdateDatasetError!]!
 }
 
-# Delete Dataset
+"""
+Input for deleting a dataset.
+"""
 input DeleteDatasetInput {
   id: ID!
 }
+
+"""
+Errors that can occur when deleting a dataset.
+"""
 enum DeleteDatasetError {
   DATASET_NOT_FOUND
   PERMISSION_DENIED
 }
+
+"""
+Result of deleting a dataset.
+"""
 type DeleteDatasetResult {
   success: Boolean!
   errors: [DeleteDatasetError!]!
 }
 
-# Create a version of dataset
+"""
+Input for creating a dataset version.
+"""
 input CreateDatasetVersionInput {
   datasetId: ID!
   name: String!
   description: String
 }
+
+"""
+Errors that can occur when creating a dataset version.
+"""
 enum CreateDatasetVersionError {
   DATASET_NOT_FOUND
   DUPLICATE_NAME
   PERMISSION_DENIED
 }
+
+"""
+Result of creating a dataset version.
+"""
 type CreateDatasetVersionResult {
   version: DatasetVersion
   success: Boolean!
   errors: [CreateDatasetVersionError!]!
 }
 
-
-# Delete a version of dataset
+"""
+Input for deleting a dataset version.
+"""
 input DeleteDatasetVersionInput {
   versionId: ID!
 }
+
+"""
+Errors that can occur when deleting a dataset version.
+"""
 enum DeleteDatasetVersionError {
   VERSION_NOT_FOUND
   PERMISSION_DENIED
 }
+
+"""
+Result of deleting a dataset version.
+"""
 type DeleteDatasetVersionResult {
   success: Boolean!
   errors: [DeleteDatasetVersionError!]!
 }
 
-# Create a file in a dataset version
+"""
+Input for creating a dataset version file.
+"""
 input CreateDatasetVersionFileInput {
   versionId: ID!
   contentType: String!
   uri: String!
 }
 
+"""
+Errors that can occur when creating a dataset version file.
+"""
 enum CreateDatasetVersionFileError {
   VERSION_NOT_FOUND
   LOCKED_VERSION
@@ -193,19 +291,29 @@ enum CreateDatasetVersionFileError {
 
 }
 
+"""
+Result of creating a dataset version file.
+"""
 type CreateDatasetVersionFileResult {
+  "The created file object"
   file: DatasetVersionFile
+  "The URL to upload the file to"
   uploadUrl: String
   success: Boolean!
   errors: [CreateDatasetVersionFileError!]!
 }
 
-# Link a dataset with another workspace
+"""
+Input for linking a dataset with a workspace.
+"""
 input LinkDatasetInput {
   datasetId: ID!
   workspaceSlug: String!
 }
 
+"""
+Errors that can occur when linking a dataset with a workspace.
+"""
 enum LinkDatasetError {
   DATASET_NOT_FOUND
   WORKSPACE_NOT_FOUND
@@ -213,6 +321,9 @@ enum LinkDatasetError {
   ALREADY_LINKED
 }
 
+"""
+Result of linking a dataset with a workspace.
+"""
 type LinkDatasetResult {
   link: DatasetLink
   success: Boolean!
@@ -220,48 +331,74 @@ type LinkDatasetResult {
 }
 
 
-# Delete the share of a dataset with another workspace
+"""
+Input for deleting a dataset link.
+"""
 input DeleteDatasetLinkInput {
   id: ID!
 }
 
+"""
+Errors that can occur when deleting a dataset link.
+"""
 enum DeleteDatasetLinkError {
   NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""
+Result of deleting a dataset link.
+"""
 type DeleteDatasetLinkResult {
   success: Boolean!
   errors: [DeleteDatasetLinkError!]!
 }
 
+"""
+Input for preparing a dataset version file download.
+"""
 input PrepareVersionFileDownloadInput {
   fileId: ID!
 }
 
+"""
+Errors that can occur when preparing a dataset version file download.
+"""
 enum PrepareVersionFileDownloadError {
   FILE_NOT_FOUND
   FILE_NOT_UPLOADED
   PERMISSION_DENIED
 }
 
+"""
+Result of preparing a dataset version file download.
+"""
 type PrepareVersionFileDownloadResult {
   downloadUrl: String
   success: Boolean!
   errors: [PrepareVersionFileDownloadError!]!
 }
 
+"""
+Input for pinning or unpinning a dataset for a workspace.
+"""
 input PinDatasetInput {
   linkId: ID!
   pinned: Boolean!
 }
 
+"""
+Errors that can occur when pinning or unpinning a dataset for a workspace.
+"""
 enum PinDatasetError {
   LINK_NOT_FOUND
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""
+Result of pinning or unpinning a dataset for a workspace.
+"""
 type PinDatasetResult {
   link: DatasetLink
   success: Boolean!
@@ -269,26 +406,37 @@ type PinDatasetResult {
 }
 
 extend type Query {
+  "Get a dataset by its ID."
   dataset(id: ID!): Dataset
+  "Get a dataset by its slug."
   datasetVersion(id: ID!): DatasetVersion
+  "Get a dataset link by its id."
   datasetLink(id: ID!): DatasetLink
+  "Get a dataset link by its slug."
   datasetLinkBySlug(workspaceSlug: String!, datasetSlug: String!): DatasetLink
+  "Search datasets."
   datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
 }
 
 extend type Mutation {
+  "Create a new dataset."
   createDataset(input: CreateDatasetInput!): CreateDatasetResult! @loginRequired
+  "Update a dataset."
   updateDataset(input: UpdateDatasetInput!): UpdateDatasetResult! @loginRequired
+  "Delete a dataset."
   deleteDataset(input: DeleteDatasetInput!): DeleteDatasetResult! @loginRequired
-
+  "Create a new dataset version."
   createDatasetVersion(input: CreateDatasetVersionInput!): CreateDatasetVersionResult! @loginRequired
+  "Delete a dataset version."
   deleteDatasetVersion(input: DeleteDatasetVersionInput!): DeleteDatasetVersionResult! @loginRequired
-
+  "Create a new file in a dataset version."
   createDatasetVersionFile(input: CreateDatasetVersionFileInput!): CreateDatasetVersionFileResult! @loginRequired
+  "Prepare to download a file in a dataset version."
   prepareVersionFileDownload(input: PrepareVersionFileDownloadInput!): PrepareVersionFileDownloadResult! @loginRequired
-
+  "Link a dataset with a workspace."
   linkDataset(input: LinkDatasetInput!): LinkDatasetResult! @loginRequired
+  "Delete a dataset link."
   deleteDatasetLink(input: DeleteDatasetLinkInput!): DeleteDatasetLinkResult! @loginRequired
-
+  "Pin or unpin a dataset for a workspace."
   pinDataset(input: PinDatasetInput!): PinDatasetResult! @loginRequired
 }

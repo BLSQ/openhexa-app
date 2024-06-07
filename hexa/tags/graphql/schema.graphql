@@ -1,3 +1,6 @@
+"""
+A tag is a label.
+"""
 type Tag {
     id: String!
     name: String!

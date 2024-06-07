@@ -1,299 +1,1044 @@
-# Users
+"""
+The User type represents a user in the system.
+"""
 type User {
+    """
+    The unique identifier of the user.
+    """
     id: UUID!
+
+    """
+    The email address of the user.
+    """
     email: String!
+
+    """
+    The first name of the user.
+    """
     firstName: String
+
+    """
+    The last name of the user.
+    """
     lastName: String
+
+    """
+    The display name of the user.
+    """
     displayName: String!
+
+    """
+    The language preference of the user.
+    """
     language: String!
+
+    """
+    The avatar of the user.
+    """
     avatar: Avatar!
+
+    """
+    The date when the user joined the system.
+    """
     dateJoined: DateTime!
+
+    """
+    The date of the user's last login.
+    """
     lastLogin: DateTime
 }
+
+"""
+The Avatar type represents the avatar of a user.
+"""
 type Avatar {
+    """
+    The initials of the user's avatar.
+    """
     initials: String!
+
+    """
+    The color of the user's avatar.
+    """
     color: String!
 }
 
+"""
+The Me type represents the currently authenticated user.
+"""
 type Me {
+    """
+    The user object representing the currently authenticated user.
+    """
     user: User
+
+    """
+    The feature flags assigned to the currently authenticated user.
+    """
     features: [FeatureFlag!]!
+
+    """
+    The permissions assigned to the currently authenticated user.
+    """
     permissions: MePermissions!
 }
 
+"""
+The MePermissions type represents the permissions of the currently authenticated user.
+"""
 type MePermissions {
+    """
+    Indicates whether the user has permission to create a team.
+    """
     createTeam: Boolean!
+
+    """
+    Indicates whether the user has permission to access the admin panel.
+    """
     adminPanel: Boolean!
+
+    """
+    Indicates whether the user has superuser privileges.
+    """
     superUser: Boolean!
 }
 
+"""
+The LoginInput type represents the input for the login mutation.
+"""
 input LoginInput {
+    """
+    The email address of the user.
+    """
     email: String!
+
+    """
+    The password of the user.
+    """
     password: String!
+
+    """
+    The token for two-factor authentication.
+    """
     token: String
 }
 
+"""
+The LoginError enum represents the possible errors that can occur during the login process.
+"""
 enum LoginError {
+    """
+    Indicates that an OTP (one-time password) is required for login.
+    """
     OTP_REQUIRED
+
+    """
+    Indicates that the provided credentials are invalid.
+    """
     INVALID_CREDENTIALS
+
+    """
+    Indicates that the provided OTP is invalid.
+    """
     INVALID_OTP
 }
 
+"""
+The LoginResult type represents the result of the login mutation.
+"""
 type LoginResult {
+    """
+    Indicates whether the login was successful.
+    """
     success: Boolean!
+
+    """
+    The list of errors that occurred during the login process.
+    """
     errors: [LoginError!]
 }
+
+"""
+The LogoutResult type represents the result of the logout mutation.
+"""
 type LogoutResult {
+    """
+    Indicates whether the logout was successful.
+    """
     success: Boolean!
 }
+
+"""
+The ResetPasswordInput type represents the input for the resetPassword mutation.
+"""
 input ResetPasswordInput {
+    """
+    The email address of the user.
+    """
     email: String!
 }
+
+"""
+The ResetPasswordResult type represents the result of the resetPassword mutation.
+"""
 type ResetPasswordResult {
+    """
+    Indicates whether the password reset was successful.
+    """
     success: Boolean!
 }
+
+"""
+The SetPasswordInput type represents the input for the setPassword mutation.
+"""
 input SetPasswordInput {
+    """
+    The base64-encoded user ID.
+    """
     uidb64: String!
+
+    """
+    The token for password reset.
+    """
     token: String!
+
+    """
+    The new password.
+    """
     password1: String!
+
+    """
+    The confirmation of the new password.
+    """
     password2: String!
 }
+
+"""
+The SetPasswordError enum represents the possible errors that can occur during the setPassword mutation.
+"""
 enum SetPasswordError {
+    """
+    Indicates that the user was not found.
+    """
     USER_NOT_FOUND
+
+    """
+    Indicates that the provided passwords do not match.
+    """
     PASSWORD_MISMATCH
+
+    """
+    Indicates that the provided token is invalid.
+    """
     INVALID_TOKEN
+
+    """
+    Indicates that the provided password is invalid.
+    """
     INVALID_PASSWORD
 }
+
+"""
+The SetPasswordResult type represents the result of the setPassword mutation.
+"""
 type SetPasswordResult {
+    """
+    Indicates whether the password was set successfully.
+    """
     success: Boolean!
+
+    """
+    The error that occurred during the setPassword mutation.
+    """
     error: SetPasswordError
 }
+
 extend type Query {
+    """
+    Retrieves the currently authenticated user.
+    """
     me: Me!
 }
 
+"""
+The RegisterInput type represents the input for the register mutation.
+"""
 input RegisterInput {
+    """
+    The first password for registration.
+    """
     password1: String!
+
+    """
+    The second password for registration (confirmation).
+    """
     password2: String!
+
+    """
+    The first name of the user.
+    """
     firstName: String!
+
+    """
+    The last name of the user.
+    """
     lastName: String!
+
+    """
+    The invitation token for registration.
+    """
     invitationToken: String!
 }
+
+"""
+The RegisterError enum represents the possible errors that can occur during the register mutation.
+"""
 enum RegisterError {
+    """
+    Indicates that the user is already logged in.
+    """
     ALREADY_LOGGED_IN
+
+    """
+    Indicates that the email address is already taken.
+    """
     EMAIL_TAKEN
+
+    """
+    Indicates that the invitation token is invalid.
+    """
     INVALID_TOKEN
+
+    """
+    Indicates that the provided passwords do not match.
+    """
     PASSWORD_MISMATCH
+
+    """
+    Indicates that the provided password is invalid.
+    """
     INVALID_PASSWORD
 }
+
+"""
+The RegisterResult type represents the result of the register mutation.
+"""
 type RegisterResult {
+    """
+    Indicates whether the registration was successful.
+    """
     success: Boolean!
+
+    """
+    The list of errors that occurred during the registration process.
+    """
     errors: [RegisterError!]
 }
 
+"""
+The UpdateUserInput type represents the input for the updateUser mutation.
+"""
 input UpdateUserInput {
+    """
+    The updated first name of the user.
+    """
     firstName: String
+
+    """
+    The updated last name of the user.
+    """
     lastName: String
+
+    """
+    The updated language preference of the user.
+    """
     language: String
 }
 
+"""
+The UpdateUserResult type represents the result of the updateUser mutation.
+"""
 type UpdateUserResult {
+    """
+    Indicates whether the user update was successful.
+    """
     success: Boolean!
+
+    """
+    The updated user object.
+    """
     user: User
+
+    """
+    The list of errors that occurred during the updateUser mutation.
+    """
     errors: [UpdateUserError!]!
 }
 
+"""
+The UpdateUserError enum represents the possible errors that can occur during the updateUser mutation.
+"""
 enum UpdateUserError {
+    """
+    Indicates that the user does not have permission to update their profile.
+    """
     PERMISSION_DENIED
+
+    """
+    Indicates that the provided language is invalid.
+    """
     INVALID_LANGUAGE
 }
 
 extend type Mutation {
+    """
+    Registers a new user.
+    """
     register(input: RegisterInput!): RegisterResult!
+
+    """
+    Authenticates a user and generates an access token.
+    """
     login(input: LoginInput!): LoginResult!
+
+    """
+    Logs out the currently authenticated user.
+    """
     logout: LogoutResult!
+
+    """
+    Sends a password reset email to the user.
+    """
     resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
+
+    """
+    Sets a new password for the user.
+    """
     setPassword(input: SetPasswordInput!): SetPasswordResult!
+
+    """
+    Updates the profile of the currently authenticated user.
+    """
     updateUser(input: UpdateUserInput!): UpdateUserResult! @loginRequired
 
-    verifyDevice(input: VerifyDeviceInput!): VerifyDeviceResult! 
+    """
+    Verifies a device for two-factor authentication.
+    """
+    verifyDevice(input: VerifyDeviceInput!): VerifyDeviceResult!
+
+    """
+    Generates a challenge for two-factor authentication.
+    """
     generateChallenge: GenerateChallengeResult! @loginRequired(withoutTwoFactor: true)
+
+    """
+    Enables two-factor authentication for the currently authenticated user.
+    """
     enableTwoFactor(input: EnableTwoFactorInput): EnableTwoFactorResult! @loginRequired
+
+    """
+    Disables two-factor authentication for the currently authenticated user.
+    """
     disableTwoFactor(input: DisableTwoFactorInput): DisableTwoFactorResult! @loginRequired
 }
 
+"""
+The Team type represents a team in the system.
+"""
 type Team {
+    """
+    The unique identifier of the team.
+    """
     id: UUID!
+
+    """
+    The name of the team.
+    """
     name: String!
+
+    """
+    Retrieves the memberships of the team.
+    """
     memberships(page: Int, perPage: Int): MembershipPage!
+
+    """
+    The permissions assigned to the team.
+    """
     permissions: TeamPermissions!
+
+    """
+    The date when the team was created.
+    """
     createdAt: DateTime!
+
+    """
+    The date when the team was last updated.
+    """
     updatedAt: DateTime!
 }
 
+"""
+The TeamPermissions type represents the permissions of a team.
+"""
 type TeamPermissions {
+    """
+    Indicates whether the user has permission to update the team.
+    """
     update: Boolean!
+
+    """
+    Indicates whether the user has permission to create a membership in the team.
+    """
     createMembership: Boolean!
+
+    """
+    Indicates whether the user has permission to delete the team.
+    """
     delete: Boolean!
 }
 
+"""
+The TeamPage type represents a paginated list of teams.
+"""
 type TeamPage {
+    """
+    The current page number.
+    """
     pageNumber: Int!
+
+    """
+    The total number of pages.
+    """
     totalPages: Int!
+
+    """
+    The total number of items.
+    """
     totalItems: Int!
+
+    """
+    The list of teams on the current page.
+    """
     items: [Team!]!
 }
+
+"""
+The CreateTeamInput type represents the input for the createTeam mutation.
+"""
 input CreateTeamInput {
+    """
+    The name of the team.
+    """
     name: String!
 }
+
+"""
+The CreateTeamResult type represents the result of the createTeam mutation.
+"""
 type CreateTeamResult {
+    """
+    The created team object.
+    """
     team: Team
+
+    """
+    Indicates whether the createTeam mutation was successful.
+    """
     success: Boolean!
+
+    """
+    The list of errors that occurred during the createTeam mutation.
+    """
     errors: [CreateTeamError!]!
 }
+
+"""
+The CreateTeamError enum represents the possible errors that can occur during the createTeam mutation.
+"""
 enum CreateTeamError {
+    """
+    Indicates that the user does not have permission to create a team.
+    """
     PERMISSION_DENIED
+
+    """
+    Indicates that a team with the same name already exists.
+    """
     NAME_DUPLICATE
 }
 
+"""
+The UpdateTeamInput type represents the input for the updateTeam mutation.
+"""
 input UpdateTeamInput {
+    """
+    The unique identifier of the team to update.
+    """
     id: UUID!
+
+    """
+    The updated name of the team.
+    """
     name: String
 }
+
+"""
+The UpdateTeamResult type represents the result of the updateTeam mutation.
+"""
 type UpdateTeamResult {
+    """
+    The updated team object.
+    """
     team: Team
+
+    """
+    Indicates whether the updateTeam mutation was successful.
+    """
     success: Boolean!
+
+    """
+    The list of errors that occurred during the updateTeam mutation.
+    """
     errors: [UpdateTeamError!]!
 }
+
+"""
+The UpdateTeamError enum represents the possible errors that can occur during the updateTeam mutation.
+"""
 enum UpdateTeamError {
+    """
+    Indicates that the team was not found.
+    """
     NOT_FOUND
+
+    """
+    Indicates that the user does not have permission to update the team.
+    """
     PERMISSION_DENIED
+
+    """
+    Indicates that a team with the same name already exists.
+    """
     NAME_DUPLICATE
 }
 
+"""
+The DeleteTeamInput type represents the input for the deleteTeam mutation.
+"""
 input DeleteTeamInput {
+    """
+    The unique identifier of the team to delete.
+    """
     id: UUID!
 }
+
+"""
+The DeleteTeamResult type represents the result of the deleteTeam mutation.
+"""
 type DeleteTeamResult {
+    """
+    Indicates whether the deleteTeam mutation was successful.
+    """
     success: Boolean!
+
+    """
+    The list of errors that occurred during the deleteTeam mutation.
+    """
     errors: [DeleteTeamError!]!
 }
+
+"""
+The DeleteTeamError enum represents the possible errors that can occur during the deleteTeam mutation.
+"""
 enum DeleteTeamError {
+    """
+    Indicates that the team was not found.
+    """
     NOT_FOUND
+
+    """
+    Indicates that the user does not have permission to delete the team.
+    """
     PERMISSION_DENIED
 }
+
 extend type Query {
+    # Retrieves a team by its unique identifier.
     team(id: UUID!): Team
+    # Search for teams.
     teams(term: String, page: Int, perPage: Int): TeamPage!
 }
 extend type Mutation {
+    # Creates a new team.
     createTeam(input: CreateTeamInput!): CreateTeamResult! @loginRequired
+    # Updates an existing team.
     updateTeam(input: UpdateTeamInput!): UpdateTeamResult! @loginRequired
+    # Deletes an existing team.
     deleteTeam(input: DeleteTeamInput!): DeleteTeamResult! @loginRequired
 }
 
-# Memberships
+
+"""
+The MembershipRole enum represents the role of a user in a team.
+"""
 enum MembershipRole {
+    """
+    Indicates that the user is an admin of the team.
+    """
     ADMIN
+
+    """
+    Indicates that the user is a regular member of the team.
+    """
     REGULAR
 }
+
+"""
+The MembershipPage type represents a paginated list of memberships.
+"""
 type MembershipPage {
+    """
+    The current page number.
+    """
     pageNumber: Int!
+
+    """
+    The total number of pages.
+    """
     totalPages: Int!
+
+    """
+    The total number of items.
+    """
     totalItems: Int!
+
+    """
+    The list of memberships on the current page.
+    """
     items: [Membership!]!
 }
+
+"""
+The Membership type represents a membership of a user in a team.
+"""
 type Membership {
+    """
+    The unique identifier of the membership.
+    """
     id: UUID!
+
+    """
+    The user associated with the membership.
+    """
     user: User!
+
+    """
+    The team associated with the membership.
+    """
     team: Team!
+
+    """
+    The permissions assigned to the membership.
+    """
     permissions: MembershipPermissions!
+
+    """
+    The role of the user in the team.
+    """
     role: MembershipRole!
+
+    """
+    The date when the membership was created.
+    """
     createdAt: DateTime!
+
+    """
+    The date when the membership was last updated.
+    """
     updatedAt: DateTime!
 }
 
+"""
+The MembershipPermissions type represents the permissions of a membership.
+"""
 type MembershipPermissions {
+    """
+    Indicates whether the user has permission to update the membership.
+    """
     update: Boolean!
+
+    """
+    Indicates whether the user has permission to delete the membership.
+    """
     delete: Boolean!
 }
 
+"""
+The PermissionMode enum represents the mode of permissions for a team.
+"""
 enum PermissionMode {
+    """
+    Indicates that the user is the owner of the team.
+    """
     OWNER
+
+    """
+    Indicates that the user is an editor of the team.
+    """
     EDITOR
+
+    """
+    Indicates that the user is a viewer of the team.
+    """
     VIEWER
 }
+
+"""
+The CreateMembershipInput type represents the input for the createMembership mutation.
+"""
 input CreateMembershipInput {
+    """
+    The email address of the user to add to the team.
+    """
     userEmail: String!
+
+    """
+    The unique identifier of the team.
+    """
     teamId: UUID!
+
+    """
+    The role of the user in the team.
+    """
     role: MembershipRole!
 }
+
+"""
+The CreateMembershipResult type represents the result of the createMembership mutation.
+"""
 type CreateMembershipResult {
+    """
+    Indicates whether the createMembership mutation was successful.
+    """
     success: Boolean!
+
+    """
+    The created membership object.
+    """
     membership: Membership
+
+    """
+    The list of errors that occurred during the createMembership mutation.
+    """
     errors: [CreateMembershipError!]!
 }
+
+"""
+The CreateMembershipError enum represents the possible errors that can occur during the createMembership mutation.
+"""
 enum CreateMembershipError {
+    """
+    Indicates that a membership with the same user and team already exists.
+    """
     ALREADY_EXISTS
+
+    """
+    Indicates that the user does not have permission to create a membership in the team.
+    """
     PERMISSION_DENIED
+
+    """
+    Indicates that the team or user was not found.
+    """
     NOT_FOUND
 }
+
+"""
+The UpdateMembershipInput type represents the input for the updateMembership mutation.
+"""
 input UpdateMembershipInput {
+    """
+    The unique identifier of the membership to update.
+    """
     id: UUID!
+
+    """
+    The updated role of the user in the team.
+    """
     role: MembershipRole!
 }
+
+"""
+The UpdateMembershipResult type represents the result of the updateMembership mutation.
+"""
 type UpdateMembershipResult {
+    """
+    Indicates whether the updateMembership mutation was successful.
+    """
     success: Boolean!
+
+    """
+    The updated membership object.
+    """
     membership: Membership
+
+    """
+    The list of errors that occurred during the updateMembership mutation.
+    """
     errors: [UpdateMembershipError!]!
 }
+
+"""
+The UpdateMembershipError enum represents the possible errors that can occur during the updateMembership mutation.
+"""
 enum UpdateMembershipError {
+    """
+    Indicates that the user does not have permission to update the membership.
+    """
     PERMISSION_DENIED
+
+    """
+    Indicates that the membership was not found.
+    """
     NOT_FOUND
+
+    """
+    Indicates that the provided role is invalid.
+    """
     INVALID_ROLE
 }
+
+"""
+The DeleteMembershipInput type represents the input for the deleteMembership mutation.
+"""
 input DeleteMembershipInput {
+    """
+    The unique identifier of the membership to delete.
+    """
     id: UUID!
 }
+
+"""
+The DeleteMembershipResult type represents the result of the deleteMembership mutation.
+"""
 type DeleteMembershipResult {
+    """
+    Indicates whether the deleteMembership mutation was successful.
+    """
     success: Boolean!
+
+    """
+    The list of errors that occurred during the deleteMembership mutation.
+    """
     errors: [DeleteMembershipError!]!
 }
+
+"""
+The DeleteMembershipError enum represents the possible errors that can occur during the deleteMembership mutation.
+"""
 enum DeleteMembershipError {
+    """
+    Indicates that the user does not have permission to delete the membership.
+    """
     PERMISSION_DENIED
+
+    """
+    Indicates that the membership was not found.
+    """
     NOT_FOUND
 }
+
 extend type Mutation {
+    # Creates a new membership in a team.
     createMembership(input: CreateMembershipInput!): CreateMembershipResult! @loginRequired
+    # Updates an existing membership in a team.
     updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult! @loginRequired
+    # Deletes an existing membership in a team.
     deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult! @loginRequired
 }
 
-# Organizations
+
+"""
+The Organization type represents an organization in the system.
+"""
 type Organization {
+    """
+    The unique identifier of the organization.
+    """
     id: UUID!
+
+    """
+    The name of the organization.
+    """
     name: String!
+
+    """
+    The type of the organization.
+    """
     type: String!
+
+    """
+    The URL of the organization.
+    """
     url: String!
+
+    """
+    The contact information of the organization.
+    """
     contactInfo: String!
 }
+
+"""
+The OrganizationInput type represents the input for creating or updating an organization.
+"""
 input OrganizationInput {
+    """
+    The unique identifier of the organization.
+    """
     id: UUID!
+
+    """
+    The updated name of the organization.
+    """
     name: String
+
+    """
+    The updated type of the organization.
+    """
     type: String
+
+    """
+    The updated URL of the organization.
+    """
     url: String
+
+    """
+    The updated contact information of the organization.
+    """
     contactInfo: String
 }
 
+"""
+The FeatureFlag type represents a feature flag in the system.
+"""
 type FeatureFlag {
+    """
+    The code of the feature flag.
+    """
     code: String!
+
+    """
+    The configuration of the feature flag.
+    """
     config: JSON!
 }
+
 extend type Query {
+    """
+    Retrieves a list of organizations.
+    """
     organizations: [Organization!]!
 }
-
-# Two Factor
 
 directive @loginRequired(withoutTwoFactor: Boolean) on FIELD_DEFINITION
 
@@ -301,53 +1046,86 @@ extend type Me {
     hasTwoFactorEnabled: Boolean!
 }
 
+"""
+The VerifyDeviceInput type represents the input for the verifyDevice mutation.
+"""
 input VerifyDeviceInput {
     token: String
 }
 
+"""
+The VerifyDeviceError enum represents the possible errors that can occur during the verifyDevice mutation.
+"""
 enum VerifyDeviceError {
     NO_DEVICE
     INVALID_OTP
 }
 
+"""
+The VerifyDeviceResult type represents the result of the verifyDevice mutation.
+"""
 type VerifyDeviceResult {
     success: Boolean!
     errors: [VerifyDeviceError!]
 }
 
+"""
+The GenerateChallengeError enum represents the possible errors that can occur during the generateChallenge mutation.
+"""
 enum GenerateChallengeError {
     DEVICE_NOT_FOUND
     CHALLENGE_ERROR
 }
 
+"""
+The GenerateChallengeResult type represents the result of the generateChallenge mutation.
+"""
 type GenerateChallengeResult {
     success: Boolean!
     errors: [GenerateChallengeError!]
 }
 
+"""
+The DisableTwoFactorError enum represents the possible errors that can occur during the disableTwoFactor mutation.
+"""
 enum DisableTwoFactorError {
     INVALID_OTP
     NOT_ENABLED
 }
 
+"""
+The DisableTwoFactorInput type represents the input for the disableTwoFactor mutation.
+"""
 input DisableTwoFactorInput {
     token: String!
 }
 
+"""
+The DisableTwoFactorResult type represents the result of the disableTwoFactor mutation.
+"""
 type DisableTwoFactorResult {
     success: Boolean!
     errors: [DisableTwoFactorError!]
 }
 
+"""
+The EnableTwoFactorInput type represents the input for the enableTwoFactor mutation.
+"""
 input EnableTwoFactorInput {
     email: String
 }
 
+"""
+The EnableTwoFactorError enum represents the possible errors that can occur during the enableTwoFactor mutation.
+"""
 enum EnableTwoFactorError {
     ALREADY_ENABLED
     EMAIL_MISMATCH
 }
 
+"""
+The EnableTwoFactorResult type represents the result of the enableTwoFactor mutation.
+"""
 type EnableTwoFactorResult {
     success: Boolean!
     verified: Boolean

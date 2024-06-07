@@ -1,69 +1,202 @@
+# The 'Database' type represents a database in your system.
 type Database {
+  # 'tables' field returns a paginated list of tables in the database.
   tables(page:Int, perPage:Int): DatabaseTablePage!
+
+  # 'table' field returns a specific table from the database.
+  # The table is identified by its 'name'.
   table(name: String!): DatabaseTable
+
+  # 'credentials' field returns the credentials used to connect to the database.
   credentials: DatabaseCredentials
 }
 
+# The 'DatabaseCredentials' type represents the credentials used to connect to a database.
 type DatabaseCredentials {
+  # 'dbName' is the name of the database.
   dbName: String!
+
+  # 'username' is the username used to connect to the database.
   username: String!
+
+  # 'password' is the password used to connect to the database.
   password: String!
+
+  # 'host' is the host of the database.
   host: String!
+
+  # 'port' is the port of the database.
   port: Int!
+
+  # 'url' is the connection URL of the database.
   url: String!
 }
-
 extend type Workspace {
   database: Database!
 }
 
+# Represents a column in a database table.
 type TableColumn {
   name: String!
   type: String!
 }
 
+"""
+The direction in which to order a list of items.
+"""
 enum OrderByDirection {
   ASC
   DESC
 }
 
+"""
+Represents a database table.
+"""
 type DatabaseTable {
+  """
+  The name of the table.
+  """
   name: String!
+
+  """
+  The number of rows in the table.
+  """
   count: Int
+
+  """
+  The columns of the table.
+  """
   columns: [TableColumn!]!
+
+  """
+  A sample row from the table.
+  """
   sample: JSON!
-  rows(orderBy: String!, direction: OrderByDirection!, page: Int!, perPage: Int = 15): TableRowsPage!
+
+  """
+  Retrieves a paginated list of rows from the table.
+  """
+  rows(
+    """
+    The column to order the rows by.
+    """
+    orderBy: String!,
+
+    """
+    The direction to order the rows in.
+    """
+    direction: OrderByDirection!,
+
+    """
+    The page number to retrieve.
+    """
+    page: Int!,
+
+    """
+    The number of rows per page.
+    """
+    perPage: Int = 15
+  ): TableRowsPage!
 }
 
+"""
+Represents a paginated list of rows from a database table.
+"""
 type TableRowsPage {
+  """
+  The page number of the result.
+  """
   pageNumber: Int!
+
+  """
+  Indicates if there is a next page available.
+  """
   hasNextPage: Boolean!
+
+  """
+  Indicates if there is a previous page available.
+  """
   hasPreviousPage: Boolean!
+
+  """
+  The rows in the current page.
+  """
   items: [JSON!]!
 }
 
+"""
+Represents a paginated list of database tables.
+"""
 type DatabaseTablePage {
+  """
+  The page number of the result.
+  """
   pageNumber: Int!
+
+  """
+  The total number of pages.
+  """
   totalPages: Int!
+
+  """
+  The total number of items.
+  """
   totalItems: Int!
+
+  """
+  The tables in the current page.
+  """
   items: [DatabaseTable!]!
 }
 
+"""
+Possible errors when generating a new database password.
+"""
 enum GenerateNewDatabasePasswordError {
+  """
+  The user does not have permission to generate a new password.
+  """
   PERMISSION_DENIED
+
+  """
+  The database was not found.
+  """
   NOT_FOUND
 }
 
+"""
+Input for generating a new database password.
+"""
 input GenerateNewDatabasePasswordInput {
+  """
+  The slug of the workspace.
+  """
   workspaceSlug: String!
 }
 
+"""
+The result of generating a new database password.
+"""
 type GenerateNewDatabasePasswordResult {
+  """
+  Indicates if the password generation was successful.
+  """
   success: Boolean!
-  errors:[GenerateNewDatabasePasswordError!]!
+
+  """
+  The errors that occurred during password generation.
+  """
+  errors: [GenerateNewDatabasePasswordError!]!
+
+  """
+  The workspace associated with the generated password.
+  """
   workspace: Workspace
 }
 
 extend type Mutation {
+  """
+  Generates a new password for a database.
+  """
   generateNewDatabasePassword(input: GenerateNewDatabasePasswordInput!): GenerateNewDatabasePasswordResult! @loginRequired
 }

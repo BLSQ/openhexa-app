@@ -1,3 +1,6 @@
+"""
+An enumeration representing the priority levels of a message.
+"""
 enum MessagePriority {
   DEBUG
   INFO
@@ -6,10 +9,13 @@ enum MessagePriority {
   CRITICAL
 }
 
+"""
+Represents a message associated with a pipeline run.
+"""
 type PipelineRunMessage {
-  message: String!
-  priority: MessagePriority!
-  timestamp: DateTime
+  message: String!  # The message content.
+  priority: MessagePriority!  # The priority level of the message.
+  timestamp: DateTime  # The timestamp when the message was created.
 }
 
 enum PipelineRunTrigger {
@@ -18,15 +24,23 @@ enum PipelineRunTrigger {
   webhook
 }
 
+"""
+Represents a generic output of a pipeline run.
+"""
 type GenericOutput {
-  name: String
-  type: String!
-  uri: String!
+  name: String  # The name of the output.
+  type: String!  # The type of the output.
+  uri: String!  # The URI of the output.
 }
 
-
+"""
+Represents an output of a pipeline run, which can be either a BucketObject, GenericOutput, or DatabaseTable.
+"""
 union PipelineRunOutput = BucketObject | GenericOutput | DatabaseTable
 
+"""
+Enum representing the status of a pipeline run.
+"""
 enum PipelineRunStatus {
   success
   running
@@ -36,6 +50,9 @@ enum PipelineRunStatus {
   terminating
 }
 
+"""
+Enum representing the type of a parameter.
+"""
 enum ParameterType {
   bool
   int
@@ -50,139 +67,178 @@ enum ParameterType {
   custom
 }
 
+"""
+Represents a parameter of a pipeline.
+"""
 type PipelineParameter {
-  code: String!
-  name: String!
-  type: ParameterType!
-  multiple: Boolean!
-  required: Boolean!
-  default: Generic
-  help: String
-  choices: [Generic!]
+  code: String!  # The code of the parameter.
+  name: String!  # The name of the parameter.
+  type: ParameterType!  # The type of the parameter.
+  multiple: Boolean!  # Indicates if the parameter allows multiple values.
+  required: Boolean!  # Indicates if the parameter is required.
+  default: Generic  # The default value of the parameter.
+  help: String  # The help text for the parameter.
+  choices: [Generic!]  # The list of choices for the parameter.
 }
 
+"""
+Represents an input parameter of a pipeline.
+"""
 input ParameterInput {
-  code: String!
-  type: String!
-  name: String
-  multiple: Boolean
-  required: Boolean
-  default: Generic
-  help: String
-  choices: [Generic!]
+  code: String!  # The code of the parameter.
+  type: String!  # The type of the parameter.
+  name: String  # The name of the parameter.
+  multiple: Boolean  # Indicates if the parameter allows multiple values.
+  required: Boolean  # Indicates if the parameter is required.
+  default: Generic  # The default value of the parameter.
+  help: String  # The help text for the parameter.
+  choices: [Generic!]  # The list of choices for the parameter.
 }
 
+"""
+Represents the permissions for a pipeline version.
+"""
 type PipelineVersionPermissions {
-  update: Boolean!
-  delete: Boolean!
+  update: Boolean!  # Indicates if the pipeline version can be updated.
+  delete: Boolean!  # Indicates if the pipeline version can be deleted.
 }
 
+"""
+Represents a version of a pipeline.
+"""
 type PipelineVersion {
-  id: UUID!
-  user: User
-  pipeline: Pipeline!
-  name: String!
-  number: String @deprecated(reason: "Use name field instead")
-  description: String
-  externalLink: URL
-  createdAt: DateTime!
-  parameters: [PipelineParameter!]!
-  isLatestVersion: Boolean!
-  zipfile: String!
-  timeout: Int
-  permissions: PipelineVersionPermissions!
+  id: UUID!  # The ID of the pipeline version.
+  user: User  # The user who created the pipeline version.
+  pipeline: Pipeline!  # The pipeline associated with the version.
+  name: String!  # The name of the pipeline version.
+  number: String @deprecated(reason: "Use name field instead")  # The version number of the pipeline (deprecated).
+  description: String  # The description of the pipeline version.
+  externalLink: URL  # The external link associated with the pipeline version.
+  createdAt: DateTime!  # The timestamp when the pipeline version was created.
+  parameters: [PipelineParameter!]!  # The parameters of the pipeline version.
+  isLatestVersion: Boolean!  # Indicates if the pipeline version is the latest version.
+  zipfile: String!  # The ZIP file base64 encoded.
+  timeout: Int  # The timeout value for the pipeline version (in seconds).
+  permissions: PipelineVersionPermissions!  # The permissions for the pipeline version.
 }
 
+"""
+Represents a pipeline run.
+"""
 type PipelineRun {
-  id: UUID!
-  run_id: UUID!
-  user: User
-  pipeline: Pipeline!
-  version: PipelineVersion
-  config: JSON!
-  status: PipelineRunStatus!
-  executionDate: DateTime
-  duration: Int
-  progress: Int!
-  triggerMode: PipelineRunTrigger
-  messages: [PipelineRunMessage!]!
-  logs: String
-  outputs: [PipelineRunOutput!]!
-  code: String!
-  sendMailNotifications: Boolean!
-  timeout: Int
-  datasetVersions: [DatasetVersion!]!
-  stoppedBy: User
+  id: UUID!  # The ID of the pipeline run.
+  run_id: UUID!  # The run ID of the pipeline run.
+  user: User  # The user who initiated the pipeline run.
+  pipeline: Pipeline!  # The pipeline associated with the run.
+  version: PipelineVersion  # The version of the pipeline used for the run.
+  config: JSON!  # The configuration for the pipeline run.
+  status: PipelineRunStatus!  # The status of the pipeline run.
+  executionDate: DateTime  # The execution date of the pipeline run.
+  duration: Int  # The duration of the pipeline run in seconds.
+  progress: Int!  # The progress of the pipeline run as a percentage.
+  triggerMode: PipelineRunTrigger  # The trigger mode of the pipeline run.
+  messages: [PipelineRunMessage!]!  # The messages associated with the pipeline run.
+  logs: String  # The logs generated during the pipeline run.
+  outputs: [PipelineRunOutput!]!  # The outputs generated by the pipeline run.
+  code: String!  # The code of the pipeline run.
+  sendMailNotifications: Boolean!  # Indicates if email notifications should be sent for the pipeline run.
+  timeout: Int  # The timeout value for the pipeline run.
+  datasetVersions: [DatasetVersion!]!  # The dataset versions associated with the pipeline run.
+  stoppedBy: User  # The user who stopped the pipeline run.
 }
 
+"""
+Enum representing the possible orderings for pipeline runs.
+"""
 enum PipelineRunOrderBy {
   EXECUTION_DATE_DESC
   EXECUTION_DATE_ASC
 }
 
+"""
+Represents a page of pipeline runs.
+"""
 type PipelineRunPage {
-  items: [PipelineRun!]!
-  pageNumber: Int!
-  totalPages: Int!
-  totalItems: Int!
+  items: [PipelineRun!]!  # The list of pipeline runs on the current page.
+  pageNumber: Int!  # The current page number.
+  totalPages: Int!  # The total number of pages.
+  totalItems: Int!  # The total number of pipeline runs.
 }
 
+"""
+Represents the permissions for a pipeline.
+"""
 type PipelinePermissions {
-  update: Boolean!
-  delete: Boolean!
-  run: Boolean!
-  schedule: Boolean!
-  createVersion: Boolean!
-  stopPipeline: Boolean!
+  update: Boolean!  # Indicates if the pipeline can be updated.
+  delete: Boolean!  # Indicates if the pipeline can be deleted.
+  run: Boolean!  # Indicates if the pipeline can be run.
+  schedule: Boolean!  # Indicates if the pipeline can be scheduled.
+  createVersion: Boolean!  # Indicates if a new version of the pipeline can be created.
+  stopPipeline: Boolean!  # Indicates if the pipeline can be stopped.
 }
 
 extend type WorkspacePermissions {
-  createPipeline: Boolean!
+  createPipeline: Boolean!  # Indicates if a pipeline can be created in the workspace.
 }
 
+"""
+Represents a page of pipeline versions.
+"""
 type PipelineVersionPage {
-  items: [PipelineVersion!]!
-  pageNumber: Int!
-  totalPages: Int!
-  totalItems: Int!
+  items: [PipelineVersion!]!  # The list of pipeline versions on the current page.
+  pageNumber: Int!  # The current page number.
+  totalPages: Int!  # The total number of pages.
+  totalItems: Int!  # The total number of pipeline versions.
 }
 
+"""
+Represents a recipient of a pipeline.
+"""
 type PipelineRecipient {
-  user: User!
-  pipeline: Pipeline!
+  user: User!  # The user who is a recipient of the pipeline.
+  pipeline: Pipeline!  # The pipeline associated with the recipient.
 }
 
+"""
+Represents the type of a pipeline.
+"""
 enum PipelineType {
-  zipFile 
-  notebook
+  zipFile # The pipeline is a ZIP file
+  notebook # The pipeline is a Jupyter notebook
 }
 
+"""
+Represents a pipeline.
+"""
 type Pipeline {
-  id: UUID!
-  name: String
-  code: String!
-  permissions: PipelinePermissions!
-  workspace: Workspace
-  config: JSON!
-  schedule: String
-  description: String
-  createdAt: DateTime!
-  updatedAt: DateTime
-  currentVersion: PipelineVersion
-  runs(page: Int, perPage: Int, orderBy: PipelineRunOrderBy): PipelineRunPage!
-  versions(page: Int, perPage: Int): PipelineVersionPage!
-  recipients: [PipelineRecipient!]!
-  webhookEnabled: Boolean!
-  webhookUrl: String
-  type: PipelineType!
-  notebookPath: String
+  id: UUID!  # The ID of the pipeline.
+  name: String  # The name of the pipeline.
+  code: String!  # The code of the pipeline.
+  permissions: PipelinePermissions!  # The permissions for the pipeline.
+  workspace: Workspace  # The workspace associated with the pipeline.
+  config: JSON!  # The configuration for the pipeline.
+  schedule: String  # The schedule for running the pipeline.
+  description: String  # The description of the pipeline.
+  createdAt: DateTime!  # The timestamp when the pipeline was created.
+  updatedAt: DateTime  # The timestamp when the pipeline was last updated.
+  currentVersion: PipelineVersion  # The current version of the pipeline.
+  runs(page: Int, perPage: Int, orderBy: PipelineRunOrderBy): PipelineRunPage!  # Retrieves the pipeline runs associated with the pipeline.
+  versions(page: Int, perPage: Int): PipelineVersionPage!  # Retrieves the pipeline versions associated with the pipeline.
+  recipients: [PipelineRecipient!]!  # The recipients of the pipeline.
+  webhookEnabled: Boolean!  # Indicates if the webhook is enabled for the pipeline.
+  webhookUrl: String  # The URL of the webhook for the pipeline.
+  type: PipelineType!  # The type of the pipeline.
+  notebookPath: String  # The path to the notebook file for the pipeline (only filled if the pipeline is a notebook).
 }
 
+"""
+Represents a page of pipelines.
+"""
 type PipelinesPage {
-  items: [Pipeline!]!
-  pageNumber: Int!
-  totalPages: Int!
-  totalItems: Int!
+  items: [Pipeline!]!  # The list of pipelines on the current page.
+  pageNumber: Int!  # The current page number.
+  totalPages: Int!  # The total number of pages.
+  totalItems: Int!  # The total number of pipelines.
 }
 
 enum PipelineError {
@@ -201,141 +257,200 @@ enum PipelineError {
   CANNOT_UPDATE_NOTEBOOK_PIPELINE
 }
 
-extend type Query {
-  pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage! @loginRequired
-  pipeline(id: UUID!): Pipeline @loginRequired
-  pipelineVersion(id: UUID!): PipelineVersion @loginRequired
-  pipelineByCode(workspaceSlug: String!, code: String!): Pipeline @loginRequired
-  pipelineRun(id: UUID!): PipelineRun @loginRequired
-}
-
+"""
+Represents the input for creating a pipeline.
+"""
 input CreatePipelineInput {
-  code: String!
-  name: String
-  workspaceSlug: String!
-  notebookPath: String
+  code: String!  # The code of the pipeline.
+  name: String  # The name of the pipeline.
+  workspaceSlug: String!  # The slug of the workspace where the pipeline will be created.
+  notebookPath: String  # The path to the notebook file for the pipeline.
 }
 
+"""
+Represents the result of creating a pipeline.
+"""
 type CreatePipelineResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-  pipeline: Pipeline
+  success: Boolean!  # Indicates if the pipeline was created successfully.
+  errors: [PipelineError!]!  # The list of errors that occurred during the creation of the pipeline.
+  pipeline: Pipeline  # The created pipeline.
 }
 
-input DeletePipelineInput {
-  id: UUID!
-}
-
-type DeletePipelineResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-}
-
-input RunPipelineInput {
-  id: UUID!
-  versionId: UUID
-  config: JSON!
-  sendMailNotifications: Boolean
-}
-
-input StopPipelineInput {
-  runId: UUID!
-}
-
-type StopPipelineResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-}
-
-type RunPipelineResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-  run: PipelineRun
-}
-
-input PipelineTokenInput {
-  workspaceSlug: String!
-  pipelineCode: String!
-}
-
-type PipelineTokenResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-  token: String
-}
-
-input UploadPipelineInput {
-  workspaceSlug: String!
-  code: String @deprecated(reason: "Use 'pipelineCode' field instead")
-  pipelineCode: String
-  name: String!
-  description: String
-  externalLink: URL
-  parameters: [ParameterInput!]!
-  zipfile: String!
-  timeout: Int
-}
-
-type UploadPipelineResult {
-  success: Boolean!
-  pipelineVersion: PipelineVersion
-  version: String @deprecated(reason: "Use 'pipelineVersion' field instead")
-  errors: [PipelineError!]!
-}
-
-input LogPipelineMessageInput {
-  priority: MessagePriority!
-  message: String!
-}
-
-type LogPipelineMessageResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-}
-
-input UpdatePipelineProgressInput {
-  percent: Int!
-}
-
-type UpdatePipelineProgressResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-}
-
-input AddPipelineOutputInput {
-  uri: String!
-  type: String!
-  name: String
-}
-
-type AddPipelineOutputResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-}
-
+"""
+Represents the input for updating a pipeline.
+"""
 input UpdatePipelineInput {
-  id: UUID!
-  name: String
-  config: JSON
-  schedule: String
-  description: String
-  recipientIds: [UUID!]
-  webhookEnabled: Boolean
+  id: UUID!  # The ID of the pipeline to update.
+  name: String  # The new name of the pipeline.
+  config: JSON  # The new configuration for the pipeline.
+  schedule: String  # The new schedule for running the pipeline.
+  description: String  # The new description of the pipeline.
+  recipientIds: [UUID!]  # The IDs of the recipients of the pipeline.
+  webhookEnabled: Boolean  # Indicates if the webhook should be enabled for the pipeline.
 }
+
+"""
+Enum representing the possible errors that can occur when updating a pipeline.
+"""
 enum UpdatePipelineError {
   NOT_FOUND
   PERMISSION_DENIED
   INVALID_CONFIG
 }
 
+"""
+Represents the result of updating a pipeline.
+"""
 type UpdatePipelineResult {
-  success: Boolean!
-  errors: [UpdatePipelineError!]!
-  pipeline: Pipeline
+  success: Boolean!  # Indicates if the pipeline was updated successfully.
+  errors: [UpdatePipelineError!]!  # The list of errors that occurred during the update of the pipeline.
+  pipeline: Pipeline  # The updated pipeline.
 }
 
+"""
+Represents the input for deleting a pipeline.
+"""
+input DeletePipelineInput {
+  id: UUID!  # The ID of the pipeline to delete.
+}
+
+"""
+Represents the result of deleting a pipeline.
+"""
+type DeletePipelineResult {
+  success: Boolean!  # Indicates if the pipeline was deleted successfully.
+  errors: [PipelineError!]!  # The list of errors that occurred during the deletion of the pipeline.
+}
+
+"""
+Represents the input for running a pipeline.
+"""
+input RunPipelineInput {
+  id: UUID!  # The ID of the pipeline to run.
+  versionId: UUID  # The ID of the pipeline version to use for the run.
+  config: JSON!  # The configuration for the pipeline run.
+  sendMailNotifications: Boolean  # Indicates if email notifications should be sent for the pipeline run.
+}
+
+"""
+Represents the result of running a pipeline.
+"""
+type RunPipelineResult {
+  success: Boolean!  # Indicates if the pipeline was run successfully.
+  errors: [PipelineError!]!  # The list of errors that occurred during the run of the pipeline.
+  run: PipelineRun  # The created pipeline run.
+}
+
+"""
+Represents the input for stopping a pipeline.
+"""
+input StopPipelineInput {
+  runId: UUID!  # The ID of the pipeline run to stop.
+}
+
+"""
+Represents the result of stopping a pipeline.
+"""
+type StopPipelineResult {
+  success: Boolean!  # Indicates if the pipeline was stopped successfully.
+  errors: [PipelineError!]!  # The list of errors that occurred during the stopping of the pipeline.
+}
+
+"""
+Represents the input for retrieving a pipeline token.
+"""
+input PipelineTokenInput {
+  workspaceSlug: String!  # The slug of the workspace where the pipeline is located.
+  pipelineCode: String!  # The code of the pipeline.
+}
+
+"""
+Represents the result of retrieving a pipeline token.
+"""
+type PipelineTokenResult {
+  success: Boolean!  # Indicates if the pipeline token was retrieved successfully.
+  errors: [PipelineError!]!  # The list of errors that occurred during the retrieval of the pipeline token.
+  token: String  # The pipeline token.
+}
+
+"""
+Represents the input for uploading a pipeline.
+"""
+input UploadPipelineInput {
+  workspaceSlug: String!  # The slug of the workspace where the pipeline will be uploaded.
+  code: String @deprecated(reason: "Use 'pipelineCode' field instead")  # The code of the pipeline (deprecated).
+  pipelineCode: String  # The code of the pipeline.
+  name: String!  # The name of the pipeline.
+  description: String  # The description of the pipeline.
+  externalLink: URL  # The external link associated with the pipeline.
+  parameters: [ParameterInput!]!  # The parameters of the pipeline.
+  zipfile: String!  # The path to the ZIP file containing the pipeline.
+  timeout: Int  # The timeout value for the pipeline.
+}
+
+"""
+Represents the result of uploading a pipeline.
+"""
+type UploadPipelineResult {
+  success: Boolean!  # Indicates if the pipeline was uploaded successfully.
+  pipelineVersion: PipelineVersion  # The uploaded pipeline version.
+  version: String @deprecated(reason: "Use 'pipelineVersion' field instead")  # The version of the uploaded pipeline (deprecated).
+  errors: [PipelineError!]!  # The list of errors that occurred during the upload of the pipeline.
+}
+
+"""
+Represents the input for logging a pipeline message.
+"""
+input LogPipelineMessageInput {
+  priority: MessagePriority!  # The priority level of the message.
+  message: String!  # The message content.
+}
+
+"""
+Represents the result of logging a pipeline message.
+"""
+type LogPipelineMessageResult {
+  success: Boolean!  # Indicates if the pipeline message was logged successfully.
+  errors: [PipelineError!]!  # The list of errors that occurred during the logging of the pipeline message.
+}
+
+"""
+Represents the input for updating the progress of a pipeline.
+"""
+input UpdatePipelineProgressInput {
+  percent: Int!  # The progress of the pipeline as a percentage.
+}
+
+"""
+Represents the result of updating the progress of a pipeline.
+"""
+type UpdatePipelineProgressResult {
+  success: Boolean!  # Indicates if the pipeline progress was updated successfully.
+  errors: [PipelineError!]!  # The list of errors that occurred during the update of the pipeline progress.
+}
+
+"""
+Represents the input for adding an output to a pipeline.
+"""
+input AddPipelineOutputInput {
+  uri: String!  # The URI of the output.
+  type: String!  # The type of the output.
+  name: String  # The name of the output.
+}
+
+"""
+Represents the result of adding an output to a pipeline.
+"""
+type AddPipelineOutputResult {
+  success: Boolean!  # Indicates if the output was added to the pipeline successfully.
+  errors: [PipelineError!]!  # The list of errors that occurred during the addition of the output to the pipeline.
+}
+
+"""
+Represents the input for deleting a pipeline version.
+"""
 input DeletePipelineVersionInput {
-  id: UUID!
+  id: UUID!  # The ID of the pipeline version to delete.
 }
 
 enum DeletePipelineVersionError {
@@ -344,41 +459,126 @@ enum DeletePipelineVersionError {
   PIPELINE_NOT_FOUND
 }
 
+"""
+Represents the result of deleting a pipeline version.
+"""
 type DeletePipelineVersionResult {
-  success: Boolean!
-  errors: [DeletePipelineVersionError!]!
+  success: Boolean!  # Indicates if the pipeline version was deleted successfully.
+  errors: [DeletePipelineVersionError!]!  # The list of errors that occurred during the deletion of the pipeline version.
 }
 
+"""
+Represents the input for updating a pipeline version.
+"""
 input UpdatePipelineVersionInput {
-  id: UUID!
-  name: String
-  description: String
-  externalLink: URL
+  id: UUID!  # The ID of the pipeline version to update.
+  name: String  # The new name of the pipeline version.
+  description: String  # The new description of the pipeline version.
+  externalLink: URL  # The new external link associated with the pipeline version.
 }
 
+"""
+Enum representing the possible errors that can occur when updating a pipeline version.
+"""
 enum UpdatePipelineVersionError {
   NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""
+Represents the result of updating a pipeline version.
+"""
 type UpdatePipelineVersionResult {
-  success: Boolean!
-  errors: [UpdatePipelineVersionError!]!
-  pipelineVersion: PipelineVersion
+  success: Boolean!  # Indicates if the pipeline version was updated successfully.
+  errors: [UpdatePipelineVersionError!]!  # The list of errors that occurred during the update of the pipeline version.
+  pipelineVersion: PipelineVersion  # The updated pipeline version.
+}
+
+extend type Query {
+  """
+  Retrieves a page of pipelines.
+  """
+  pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage! @loginRequired
+
+  """
+  Retrieves a pipeline by ID.
+  """
+  pipeline(id: UUID!): Pipeline @loginRequired
+
+  """
+  Retrieves a pipeline version by ID.
+  """
+  pipelineVersion(id: UUID!): PipelineVersion @loginRequired
+
+  """
+  Retrieves a pipeline by workspace slug and code.
+  """
+  pipelineByCode(workspaceSlug: String!, code: String!): Pipeline @loginRequired
+
+  """
+  Retrieves a pipeline run by ID.
+  """
+  pipelineRun(id: UUID!): PipelineRun @loginRequired
 }
 
 extend type Mutation {
+  """
+  Creates a new pipeline.
+  """
   createPipeline(input: CreatePipelineInput!): CreatePipelineResult! @loginRequired
+
+  """
+  Updates an existing pipeline.
+  """
   updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult! @loginRequired
+
+  """
+  Deletes a pipeline.
+  """
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult! @loginRequired
+
+  """
+  Runs a pipeline.
+  """
   runPipeline(input: RunPipelineInput): RunPipelineResult! @loginRequired
+
+  """
+  Stops a pipeline.
+  """
   stopPipeline(input: StopPipelineInput!): StopPipelineResult! @loginRequired
+
+  """
+  Retrieves a token for a pipeline.
+  """
   pipelineToken(input: PipelineTokenInput!): PipelineTokenResult!
+
+  """
+  Uploads a pipeline.
+  """
   uploadPipeline(input: UploadPipelineInput!): UploadPipelineResult!
+
+  """
+  Updates a pipeline version.
+  """
   updatePipelineVersion(input: UpdatePipelineVersionInput!): UpdatePipelineVersionResult!
+
+  """
+  Logs a message for a pipeline.
+  """
   logPipelineMessage(input: LogPipelineMessageInput!): LogPipelineMessageResult!
+
+  """
+  Updates the progress of a pipeline.
+  """
   updatePipelineProgress(input: UpdatePipelineProgressInput!): UpdatePipelineProgressResult!
+
+  """
+  Adds an output to a pipeline.
+  """
   addPipelineOutput(input: AddPipelineOutputInput!): AddPipelineOutputResult!
+
+  """
+  Deletes a pipeline version.
+  """
   deletePipelineVersion(input: DeletePipelineVersionInput!): DeletePipelineVersionResult!
 }
- 
