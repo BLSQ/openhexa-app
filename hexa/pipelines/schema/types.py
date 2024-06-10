@@ -143,7 +143,9 @@ def resolve_pipeline_version_permissions_delete(
 def resolve_pipeline_webhook_url(pipeline: Pipeline, info):
     request = info.context["request"]
     if pipeline.webhook_enabled:
-        return request.build_absolute_uri(reverse("pipelines:run", args=[pipeline.id]))
+        return request.build_absolute_uri(
+            reverse("pipelines:run", args=[pipeline.webhook_token])
+        )
 
 
 @pipeline_object.field("currentVersion")

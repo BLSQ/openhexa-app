@@ -453,6 +453,22 @@ input DeletePipelineVersionInput {
   id: UUID!  # The ID of the pipeline version to delete.
 }
 
+enum GeneratePipelineWebhookUrlError {
+  PIPELINE_NOT_FOUND
+  WEBHOOK_NOT_ENABLED
+  PERMISSION_DENIED
+}
+
+input GeneratePipelineWebhookUrlInput {
+  id: UUID!
+}
+
+type GeneratePipelineWebhookUrlResult {
+  success: Boolean!
+  errors: [GeneratePipelineWebhookUrlError!]!
+  pipeline: Pipeline
+}
+
 enum DeletePipelineVersionError {
   PIPELINE_VERSION_NOT_FOUND
   PERMISSION_DENIED
@@ -581,4 +597,5 @@ extend type Mutation {
   Deletes a pipeline version.
   """
   deletePipelineVersion(input: DeletePipelineVersionInput!): DeletePipelineVersionResult!
+  generatePipelineWebhookUrl(input: GeneratePipelineWebhookUrlInput!): GeneratePipelineWebhookUrlResult!
 }

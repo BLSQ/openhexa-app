@@ -1,4 +1,8 @@
+import base64
+import random
+import string
 import uuid
+from unittest.mock import patch
 from urllib.parse import urlencode
 
 from django.urls import reverse
@@ -61,9 +65,24 @@ class ViewsTest(TestCase):
             description="This is a test pipeline",
             webhook_enabled=True,
         )
+        cls.PIPELINE.generate_webhook_token()
         cls.PIPELINE.upload_new_version(
             cls.USER_JULIA, zipfile=b"", name="Version 1", parameters=[]
         )
+
+    def test_run_pipeline_invalid_token(self):
+        token = base64.b64encode(
+            "".join(random.choices(string.ascii_lowercase, k=10)).encode("utf-8")
+        ).decode()
+        r = self.client.post(
+            reverse(
+                "pipelines:run",
+                args=[token],
+            ),
+            content_type="application/json",
+        )
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json(), {"error": "Invalid token"})
 
     def test_run_pipeline_not_enabled(self):
         self.PIPELINE.webhook_enabled = False
@@ -71,7 +90,7 @@ class ViewsTest(TestCase):
         r = self.client.post(
             reverse(
                 "pipelines:run",
-                args=[self.PIPELINE.id],
+                args=[self.PIPELINE.webhook_token],
             ),
             content_type="application/json",
         )
@@ -83,7 +102,7 @@ class ViewsTest(TestCase):
         response = self.client.post(
             reverse(
                 "pipelines:run",
-                args=[self.PIPELINE.id],
+                args=[self.PIPELINE.webhook_token],
             ),
             content_type="application/json",
         )
@@ -93,23 +112,38 @@ class ViewsTest(TestCase):
             self.PIPELINE.last_run.trigger_mode, PipelineRunTrigger.WEBHOOK
         )
 
-    def test_run_pipeline_invalid_pipeline(self):
+    def test_run_pipeline_old_token(self):
         self.assertEqual(self.PIPELINE.last_run, None)
-        response = self.client.post(
-            reverse(
-                "pipelines:run",
-                args=[uuid.uuid4()],
-            ),
-            content_type="application/json",
-        )
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.json(), {"error": "Pipeline not found"})
+        old_token = self.PIPELINE.webhook_token
+
+        with patch("hexa.pipelines.models.TimestampSigner") as mocked_signer:
+            random_string = base64.b64encode(
+                "".join(random.choices(string.ascii_lowercase, k=10)).encode("utf-8")
+            ).decode()
+
+            signer = mocked_signer.return_value
+            signer.sign.return_value = base64.b64encode(
+                random_string.encode("utf-8")
+            ).decode()
+
+            self.PIPELINE.generate_webhook_token()
+            self.PIPELINE.refresh_from_db()
+
+            response = self.client.post(
+                reverse(
+                    "pipelines:run",
+                    args=[old_token],
+                ),
+                content_type="application/json",
+            )
+            self.assertEqual(response.status_code, 404)
+            self.assertEqual(response.json(), {"error": "Pipeline not found"})
 
     def test_run_pipeline_specific_version(self):
         response = self.client.post(
             reverse(
                 "pipelines:run_with_version",
-                args=[self.PIPELINE.id, self.PIPELINE.last_version.id],
+                args=[self.PIPELINE.webhook_token, self.PIPELINE.last_version.id],
             ),
             content_type="application/json",
         )
@@ -122,7 +156,8 @@ class ViewsTest(TestCase):
         self.assertEqual(self.PIPELINE.last_run, None)
         response = self.client.post(
             reverse(
-                "pipelines:run_with_version", args=[self.PIPELINE.id, uuid.uuid4()]
+                "pipelines:run_with_version",
+                args=[self.PIPELINE.webhook_token, uuid.uuid4()],
             ),
             content_type="application/json",
         )
@@ -168,7 +203,7 @@ class ViewsTest(TestCase):
         )
         endpoint_url = reverse(
             "pipelines:run",
-            args=[self.PIPELINE.id],
+            args=[self.PIPELINE.webhook_token],
         )
         r = self.client.post(
             endpoint_url,
@@ -359,7 +394,7 @@ class ViewsTest(TestCase):
     def test_send_mail_notifications(self):
         endpoint_url = reverse(
             "pipelines:run",
-            args=[self.PIPELINE.id],
+            args=[self.PIPELINE.webhook_token],
         )
         r = self.client.post(
             endpoint_url,
