@@ -340,12 +340,14 @@ export type AccessmodZonalStatistics = AccessmodAnalysis &
     zonalStatisticsTable?: Maybe<AccessmodFileset>;
   };
 
+/** Represents the input for adding an output to a pipeline. */
 export type AddPipelineOutputInput = {
   name?: InputMaybe<Scalars["String"]["input"]>;
   type: Scalars["String"]["input"];
   uri: Scalars["String"]["input"];
 };
 
+/** Represents the result of adding an output to a pipeline. */
 export type AddPipelineOutputResult = {
   __typename?: "AddPipelineOutputResult";
   errors: Array<PipelineError>;
@@ -366,27 +368,34 @@ export type ApproveAccessmodAccessRequestResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Enum representing the possible errors that can occur when archiving a workspace. */
 export enum ArchiveWorkspaceError {
   NotFound = "NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for archiving a workspace. */
 export type ArchiveWorkspaceInput = {
   slug: Scalars["String"]["input"];
 };
 
+/** Represents the result of archiving a workspace. */
 export type ArchiveWorkspaceResult = {
   __typename?: "ArchiveWorkspaceResult";
   errors: Array<ArchiveWorkspaceError>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** The Avatar type represents the avatar of a user. */
 export type Avatar = {
   __typename?: "Avatar";
+  /** The color of the user's avatar. */
   color: Scalars["String"]["output"];
+  /** The initials of the user's avatar. */
   initials: Scalars["String"]["output"];
 };
 
+/** A bucket is where all the files and data related to a workspace are stored. */
 export type Bucket = {
   __typename?: "Bucket";
   name: Scalars["String"]["output"];
@@ -394,10 +403,12 @@ export type Bucket = {
   objects: BucketObjectPage;
 };
 
+/** A bucket is where all the files and data related to a workspace are stored. */
 export type BucketObjectArgs = {
   key: Scalars["String"]["input"];
 };
 
+/** A bucket is where all the files and data related to a workspace are stored. */
 export type BucketObjectsArgs = {
   ignoreHiddenFiles?: InputMaybe<Scalars["Boolean"]["input"]>;
   page?: InputMaybe<Scalars["Int"]["input"]>;
@@ -406,6 +417,7 @@ export type BucketObjectsArgs = {
   query?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** An object in a workspace's bucket. */
 export type BucketObject = {
   __typename?: "BucketObject";
   key: Scalars["String"]["output"];
@@ -416,6 +428,7 @@ export type BucketObject = {
   updatedAt?: Maybe<Scalars["DateTime"]["output"]>;
 };
 
+/** A page of objects in a workspace's bucket. */
 export type BucketObjectPage = {
   __typename?: "BucketObjectPage";
   hasNextPage: Scalars["Boolean"]["output"];
@@ -424,11 +437,13 @@ export type BucketObjectPage = {
   pageNumber: Scalars["Int"]["output"];
 };
 
+/** The type of an object in a workspace's bucket. */
 export enum BucketObjectType {
   Directory = "DIRECTORY",
   File = "FILE",
 }
 
+/** Represents a connection to an external data source or service. */
 export type Connection = {
   __typename?: "Connection";
   createdAt: Scalars["DateTime"]["output"];
@@ -443,6 +458,7 @@ export type Connection = {
   user?: Maybe<User>;
 };
 
+/** Represents a field in a connection. */
 export type ConnectionField = {
   __typename?: "ConnectionField";
   code: Scalars["String"]["output"];
@@ -452,18 +468,21 @@ export type ConnectionField = {
   value?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** Represents the input for a connection field. */
 export type ConnectionFieldInput = {
   code: Scalars["String"]["input"];
   secret: Scalars["Boolean"]["input"];
   value?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** Represents the permissions of a connection. */
 export type ConnectionPermissions = {
   __typename?: "ConnectionPermissions";
   delete: Scalars["Boolean"]["output"];
   update: Scalars["Boolean"]["output"];
 };
 
+/** Represents the types of connections. */
 export enum ConnectionType {
   Custom = "CUSTOM",
   Dhis2 = "DHIS2",
@@ -600,16 +619,19 @@ export type CreateAccessmodZonalStatisticsResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Errors that can occur when creating a folder in a workspace's bucket. */
 export enum CreateBucketFolderError {
   AlreadyExists = "ALREADY_EXISTS",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Input for creating a folder in a workspace's bucket. */
 export type CreateBucketFolderInput = {
   folderKey: Scalars["String"]["input"];
   workspaceSlug: Scalars["String"]["input"];
 };
 
+/** The result of creating a folder in a workspace's bucket. */
 export type CreateBucketFolderResult = {
   __typename?: "CreateBucketFolderResult";
   errors: Array<CreateBucketFolderError>;
@@ -617,12 +639,14 @@ export type CreateBucketFolderResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Represents the error types for creating a connection. */
 export enum CreateConnectionError {
   InvalidSlug = "INVALID_SLUG",
   PermissionDenied = "PERMISSION_DENIED",
   WorkspaceNotFound = "WORKSPACE_NOT_FOUND",
 }
 
+/** Represents the input for creating a connection. */
 export type CreateConnectionInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   fields?: InputMaybe<Array<ConnectionFieldInput>>;
@@ -632,6 +656,7 @@ export type CreateConnectionInput = {
   workspaceSlug: Scalars["String"]["input"];
 };
 
+/** Represents the result of creating a connection. */
 export type CreateConnectionResult = {
   __typename?: "CreateConnectionResult";
   connection?: Maybe<Connection>;
@@ -639,17 +664,20 @@ export type CreateConnectionResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Errors that can occur when creating a dataset. */
 export enum CreateDatasetError {
   PermissionDenied = "PERMISSION_DENIED",
   WorkspaceNotFound = "WORKSPACE_NOT_FOUND",
 }
 
+/** Input for creating a dataset. */
 export type CreateDatasetInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   name: Scalars["String"]["input"];
   workspaceSlug: Scalars["String"]["input"];
 };
 
+/** Result of creating a dataset. */
 export type CreateDatasetResult = {
   __typename?: "CreateDatasetResult";
   dataset?: Maybe<Dataset>;
@@ -658,12 +686,14 @@ export type CreateDatasetResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Errors that can occur when creating a dataset version. */
 export enum CreateDatasetVersionError {
   DatasetNotFound = "DATASET_NOT_FOUND",
   DuplicateName = "DUPLICATE_NAME",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Errors that can occur when creating a dataset version file. */
 export enum CreateDatasetVersionFileError {
   AlreadyExists = "ALREADY_EXISTS",
   InvalidUri = "INVALID_URI",
@@ -672,26 +702,32 @@ export enum CreateDatasetVersionFileError {
   VersionNotFound = "VERSION_NOT_FOUND",
 }
 
+/** Input for creating a dataset version file. */
 export type CreateDatasetVersionFileInput = {
   contentType: Scalars["String"]["input"];
   uri: Scalars["String"]["input"];
   versionId: Scalars["ID"]["input"];
 };
 
+/** Result of creating a dataset version file. */
 export type CreateDatasetVersionFileResult = {
   __typename?: "CreateDatasetVersionFileResult";
   errors: Array<CreateDatasetVersionFileError>;
+  /** The created file object */
   file?: Maybe<DatasetVersionFile>;
   success: Scalars["Boolean"]["output"];
+  /** The URL to upload the file to */
   uploadUrl?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** Input for creating a dataset version. */
 export type CreateDatasetVersionInput = {
   datasetId: Scalars["ID"]["input"];
   description?: InputMaybe<Scalars["String"]["input"]>;
   name: Scalars["String"]["input"];
 };
 
+/** Result of creating a dataset version. */
 export type CreateDatasetVersionResult = {
   __typename?: "CreateDatasetVersionResult";
   errors: Array<CreateDatasetVersionError>;
@@ -699,25 +735,38 @@ export type CreateDatasetVersionResult = {
   version?: Maybe<DatasetVersion>;
 };
 
+/** The CreateMembershipError enum represents the possible errors that can occur during the createMembership mutation. */
 export enum CreateMembershipError {
+  /** Indicates that a membership with the same user and team already exists. */
   AlreadyExists = "ALREADY_EXISTS",
+  /** Indicates that the team or user was not found. */
   NotFound = "NOT_FOUND",
+  /** Indicates that the user does not have permission to create a membership in the team. */
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** The CreateMembershipInput type represents the input for the createMembership mutation. */
 export type CreateMembershipInput = {
+  /** The role of the user in the team. */
   role: MembershipRole;
+  /** The unique identifier of the team. */
   teamId: Scalars["UUID"]["input"];
+  /** The email address of the user to add to the team. */
   userEmail: Scalars["String"]["input"];
 };
 
+/** The CreateMembershipResult type represents the result of the createMembership mutation. */
 export type CreateMembershipResult = {
   __typename?: "CreateMembershipResult";
+  /** The list of errors that occurred during the createMembership mutation. */
   errors: Array<CreateMembershipError>;
+  /** The created membership object. */
   membership?: Maybe<Membership>;
+  /** Indicates whether the createMembership mutation was successful. */
   success: Scalars["Boolean"]["output"];
 };
 
+/** Represents the input for creating a pipeline. */
 export type CreatePipelineInput = {
   code: Scalars["String"]["input"];
   name?: InputMaybe<Scalars["String"]["input"]>;
@@ -725,6 +774,7 @@ export type CreatePipelineInput = {
   workspaceSlug: Scalars["String"]["input"];
 };
 
+/** Represents the result of creating a pipeline. */
 export type CreatePipelineResult = {
   __typename?: "CreatePipelineResult";
   errors: Array<PipelineError>;
@@ -732,27 +782,38 @@ export type CreatePipelineResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** The CreateTeamError enum represents the possible errors that can occur during the createTeam mutation. */
 export enum CreateTeamError {
+  /** Indicates that a team with the same name already exists. */
   NameDuplicate = "NAME_DUPLICATE",
+  /** Indicates that the user does not have permission to create a team. */
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** The CreateTeamInput type represents the input for the createTeam mutation. */
 export type CreateTeamInput = {
+  /** The name of the team. */
   name: Scalars["String"]["input"];
 };
 
+/** The CreateTeamResult type represents the result of the createTeam mutation. */
 export type CreateTeamResult = {
   __typename?: "CreateTeamResult";
+  /** The list of errors that occurred during the createTeam mutation. */
   errors: Array<CreateTeamError>;
+  /** Indicates whether the createTeam mutation was successful. */
   success: Scalars["Boolean"]["output"];
+  /** The created team object. */
   team?: Maybe<Team>;
 };
 
+/** Enum representing the possible errors that can occur when creating a workspace. */
 export enum CreateWorkspaceError {
   InvalidSlug = "INVALID_SLUG",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for creating a workspace. */
 export type CreateWorkspaceInput = {
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars["String"]["input"]>;
@@ -761,6 +822,7 @@ export type CreateWorkspaceInput = {
   slug?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** Represents the result of creating a workspace. */
 export type CreateWorkspaceResult = {
   __typename?: "CreateWorkspaceResult";
   errors: Array<CreateWorkspaceError>;
@@ -916,15 +978,22 @@ export type DatabaseCredentials = {
   username: Scalars["String"]["output"];
 };
 
+/** Represents a database table. */
 export type DatabaseTable = {
   __typename?: "DatabaseTable";
+  /** The columns of the table. */
   columns: Array<TableColumn>;
+  /** The number of rows in the table. */
   count?: Maybe<Scalars["Int"]["output"]>;
+  /** The name of the table. */
   name: Scalars["String"]["output"];
+  /** Retrieves a paginated list of rows from the table. */
   rows: TableRowsPage;
+  /** A sample row from the table. */
   sample: Scalars["JSON"]["output"];
 };
 
+/** Represents a database table. */
 export type DatabaseTableRowsArgs = {
   direction: OrderByDirection;
   orderBy: Scalars["String"]["input"];
@@ -932,14 +1001,20 @@ export type DatabaseTableRowsArgs = {
   perPage?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
+/** Represents a paginated list of database tables. */
 export type DatabaseTablePage = {
   __typename?: "DatabaseTablePage";
+  /** The tables in the current page. */
   items: Array<DatabaseTable>;
+  /** The page number of the result. */
   pageNumber: Scalars["Int"]["output"];
+  /** The total number of items. */
   totalItems: Scalars["Int"]["output"];
+  /** The total number of pages. */
   totalPages: Scalars["Int"]["output"];
 };
 
+/** Dataset is a collection of files that are related to each other and are versioned. */
 export type Dataset = {
   __typename?: "Dataset";
   createdAt: Scalars["DateTime"]["output"];
@@ -957,20 +1032,24 @@ export type Dataset = {
   workspace?: Maybe<Workspace>;
 };
 
+/** Dataset is a collection of files that are related to each other and are versioned. */
 export type DatasetLinksArgs = {
   page?: InputMaybe<Scalars["Int"]["input"]>;
   perPage?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
+/** Dataset is a collection of files that are related to each other and are versioned. */
 export type DatasetVersionArgs = {
   id: Scalars["ID"]["input"];
 };
 
+/** Dataset is a collection of files that are related to each other and are versioned. */
 export type DatasetVersionsArgs = {
   page?: InputMaybe<Scalars["Int"]["input"]>;
   perPage?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
+/** A link of a dataset with a workspace. */
 export type DatasetLink = {
   __typename?: "DatasetLink";
   createdAt: Scalars["DateTime"]["output"];
@@ -982,6 +1061,7 @@ export type DatasetLink = {
   workspace: Workspace;
 };
 
+/** A page of dataset links. */
 export type DatasetLinkPage = {
   __typename?: "DatasetLinkPage";
   items: Array<DatasetLink>;
@@ -990,12 +1070,16 @@ export type DatasetLinkPage = {
   totalPages: Scalars["Int"]["output"];
 };
 
+/** Permissions of a dataset link. */
 export type DatasetLinkPermissions = {
   __typename?: "DatasetLinkPermissions";
+  /** Permissions to delete the link between the workspace and the dataset */
   delete: Scalars["Boolean"]["output"];
+  /** Permissions to pin the dataset for the workspace */
   pin: Scalars["Boolean"]["output"];
 };
 
+/** A page of datasets. */
 export type DatasetPage = {
   __typename?: "DatasetPage";
   items: Array<Dataset>;
@@ -1004,13 +1088,18 @@ export type DatasetPage = {
   totalPages: Scalars["Int"]["output"];
 };
 
+/** Permissions of a dataset. */
 export type DatasetPermissions = {
   __typename?: "DatasetPermissions";
+  /** Permissions to create a new version of the dataset */
   createVersion: Scalars["Boolean"]["output"];
+  /** Permissions to delete the dataset */
   delete: Scalars["Boolean"]["output"];
+  /** Permissions to edit the dataset */
   update: Scalars["Boolean"]["output"];
 };
 
+/** A version of a dataset. A version is a snapshot of the dataset at a point in time. */
 export type DatasetVersion = {
   __typename?: "DatasetVersion";
   createdAt: Scalars["DateTime"]["output"];
@@ -1024,15 +1113,18 @@ export type DatasetVersion = {
   permissions: DatasetVersionPermissions;
 };
 
+/** A version of a dataset. A version is a snapshot of the dataset at a point in time. */
 export type DatasetVersionFileByNameArgs = {
   name: Scalars["String"]["input"];
 };
 
+/** A version of a dataset. A version is a snapshot of the dataset at a point in time. */
 export type DatasetVersionFilesArgs = {
   page?: InputMaybe<Scalars["Int"]["input"]>;
   perPage?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
+/** A file in a dataset version. */
 export type DatasetVersionFile = {
   __typename?: "DatasetVersionFile";
   contentType: Scalars["String"]["output"];
@@ -1043,6 +1135,7 @@ export type DatasetVersionFile = {
   uri: Scalars["String"]["output"];
 };
 
+/** A page of dataset version files. */
 export type DatasetVersionFilePage = {
   __typename?: "DatasetVersionFilePage";
   items: Array<DatasetVersionFile>;
@@ -1051,6 +1144,7 @@ export type DatasetVersionFilePage = {
   totalPages: Scalars["Int"]["output"];
 };
 
+/** A page of dataset versions. */
 export type DatasetVersionPage = {
   __typename?: "DatasetVersionPage";
   items: Array<DatasetVersion>;
@@ -1059,22 +1153,29 @@ export type DatasetVersionPage = {
   totalPages: Scalars["Int"]["output"];
 };
 
+/** Permissions of a dataset version. */
 export type DatasetVersionPermissions = {
   __typename?: "DatasetVersionPermissions";
+  /** Permissions to delete the dataset version */
   delete: Scalars["Boolean"]["output"];
+  /** Permissions to download the content of the dataset version */
   download: Scalars["Boolean"]["output"];
+  /** Permissions to update the dataset version */
   update: Scalars["Boolean"]["output"];
 };
 
+/** Represents the error types for declining a workspace invitation. */
 export enum DeclineWorkspaceInvitationError {
   InvitationNotFound = "INVITATION_NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for declining a workspace invitation. */
 export type DeclineWorkspaceInvitationInput = {
   invitationId: Scalars["UUID"]["input"];
 };
 
+/** Represents the result of declining a workspace invitation. */
 export type DeclineWorkspaceInvitationResult = {
   __typename?: "DeclineWorkspaceInvitationResult";
   errors: Array<DeclineWorkspaceInvitationError>;
@@ -1143,101 +1244,126 @@ export type DeleteAccessmodProjectResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Errors that can occur when deleting an object from a workspace's bucket. */
 export enum DeleteBucketObjectError {
   NotFound = "NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Input for deleting an object from a workspace's bucket. */
 export type DeleteBucketObjectInput = {
   objectKey: Scalars["String"]["input"];
   workspaceSlug: Scalars["String"]["input"];
 };
 
+/** The result of deleting an object from a workspace's bucket. */
 export type DeleteBucketObjectResult = {
   __typename?: "DeleteBucketObjectResult";
   errors: Array<DeleteBucketObjectError>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** Represents the error types for deleting a connection. */
 export enum DeleteConnectionError {
   NotFound = "NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for deleting a connection. */
 export type DeleteConnectionInput = {
   id: Scalars["String"]["input"];
 };
 
+/** Represents the result of deleting a connection. */
 export type DeleteConnectionResult = {
   __typename?: "DeleteConnectionResult";
   errors: Array<DeleteConnectionError>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** Errors that can occur when deleting a dataset. */
 export enum DeleteDatasetError {
   DatasetNotFound = "DATASET_NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Input for deleting a dataset. */
 export type DeleteDatasetInput = {
   id: Scalars["ID"]["input"];
 };
 
+/** Errors that can occur when deleting a dataset link. */
 export enum DeleteDatasetLinkError {
   NotFound = "NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Input for deleting a dataset link. */
 export type DeleteDatasetLinkInput = {
   id: Scalars["ID"]["input"];
 };
 
+/** Result of deleting a dataset link. */
 export type DeleteDatasetLinkResult = {
   __typename?: "DeleteDatasetLinkResult";
   errors: Array<DeleteDatasetLinkError>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** Result of deleting a dataset. */
 export type DeleteDatasetResult = {
   __typename?: "DeleteDatasetResult";
   errors: Array<DeleteDatasetError>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** Errors that can occur when deleting a dataset version. */
 export enum DeleteDatasetVersionError {
   PermissionDenied = "PERMISSION_DENIED",
   VersionNotFound = "VERSION_NOT_FOUND",
 }
 
+/** Input for deleting a dataset version. */
 export type DeleteDatasetVersionInput = {
   versionId: Scalars["ID"]["input"];
 };
 
+/** Result of deleting a dataset version. */
 export type DeleteDatasetVersionResult = {
   __typename?: "DeleteDatasetVersionResult";
   errors: Array<DeleteDatasetVersionError>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** The DeleteMembershipError enum represents the possible errors that can occur during the deleteMembership mutation. */
 export enum DeleteMembershipError {
+  /** Indicates that the membership was not found. */
   NotFound = "NOT_FOUND",
+  /** Indicates that the user does not have permission to delete the membership. */
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** The DeleteMembershipInput type represents the input for the deleteMembership mutation. */
 export type DeleteMembershipInput = {
+  /** The unique identifier of the membership to delete. */
   id: Scalars["UUID"]["input"];
 };
 
+/** The DeleteMembershipResult type represents the result of the deleteMembership mutation. */
 export type DeleteMembershipResult = {
   __typename?: "DeleteMembershipResult";
+  /** The list of errors that occurred during the deleteMembership mutation. */
   errors: Array<DeleteMembershipError>;
+  /** Indicates whether the deleteMembership mutation was successful. */
   success: Scalars["Boolean"]["output"];
 };
 
+/** Represents the input for deleting a pipeline. */
 export type DeletePipelineInput = {
   id: Scalars["UUID"]["input"];
 };
 
+/** Represents the result of deleting a pipeline. */
 export type DeletePipelineResult = {
   __typename?: "DeletePipelineResult";
   errors: Array<PipelineError>;
@@ -1250,28 +1376,38 @@ export enum DeletePipelineVersionError {
   PipelineVersionNotFound = "PIPELINE_VERSION_NOT_FOUND",
 }
 
+/** Represents the input for deleting a pipeline version. */
 export type DeletePipelineVersionInput = {
   id: Scalars["UUID"]["input"];
 };
 
+/** Represents the result of deleting a pipeline version. */
 export type DeletePipelineVersionResult = {
   __typename?: "DeletePipelineVersionResult";
   errors: Array<DeletePipelineVersionError>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** The DeleteTeamError enum represents the possible errors that can occur during the deleteTeam mutation. */
 export enum DeleteTeamError {
+  /** Indicates that the team was not found. */
   NotFound = "NOT_FOUND",
+  /** Indicates that the user does not have permission to delete the team. */
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** The DeleteTeamInput type represents the input for the deleteTeam mutation. */
 export type DeleteTeamInput = {
+  /** The unique identifier of the team to delete. */
   id: Scalars["UUID"]["input"];
 };
 
+/** The DeleteTeamResult type represents the result of the deleteTeam mutation. */
 export type DeleteTeamResult = {
   __typename?: "DeleteTeamResult";
+  /** The list of errors that occurred during the deleteTeam mutation. */
   errors: Array<DeleteTeamError>;
+  /** Indicates whether the deleteTeam mutation was successful. */
   success: Scalars["Boolean"]["output"];
 };
 
@@ -1281,56 +1417,67 @@ export enum DeleteWorkspaceDatabaseTableError {
   WorkspaceNotFound = "WORKSPACE_NOT_FOUND",
 }
 
+/** Represents the input for deleting a database table in a workspace. */
 export type DeleteWorkspaceDatabaseTableInput = {
   table: Scalars["String"]["input"];
   workspaceSlug: Scalars["String"]["input"];
 };
 
+/** Represents the result of deleting a database table in a workspace. */
 export type DeleteWorkspaceDatabaseTableResult = {
   __typename?: "DeleteWorkspaceDatabaseTableResult";
   errors: Array<DeleteWorkspaceDatabaseTableError>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** Enum representing the possible errors that can occur when deleting a workspace. */
 export enum DeleteWorkspaceError {
   NotFound = "NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for deleting a workspace. */
 export type DeleteWorkspaceInput = {
   slug: Scalars["String"]["input"];
 };
 
+/** Represents the error types for deleting a workspace invitation. */
 export enum DeleteWorkspaceInvitationError {
   InvitationNotFound = "INVITATION_NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for deleting a workspace invitation. */
 export type DeleteWorkspaceInvitationInput = {
   invitationId: Scalars["UUID"]["input"];
 };
 
+/** Represents the result of deleting a workspace invitation. */
 export type DeleteWorkspaceInvitationResult = {
   __typename?: "DeleteWorkspaceInvitationResult";
   errors: Array<DeleteWorkspaceInvitationError>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** Enum representing the possible errors that can occur when deleting a workspace member. */
 export enum DeleteWorkspaceMemberError {
   MembershipNotFound = "MEMBERSHIP_NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for deleting a workspace member. */
 export type DeleteWorkspaceMemberInput = {
   membershipId: Scalars["UUID"]["input"];
 };
 
+/** Represents the result of deleting a workspace member. */
 export type DeleteWorkspaceMemberResult = {
   __typename?: "DeleteWorkspaceMemberResult";
   errors: Array<DeleteWorkspaceMemberError>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** Represents the result of deleting a workspace. */
 export type DeleteWorkspaceResult = {
   __typename?: "DeleteWorkspaceResult";
   errors: Array<DeleteWorkspaceError>;
@@ -1351,30 +1498,36 @@ export type DenyAccessmodAccessRequestResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** The DisableTwoFactorError enum represents the possible errors that can occur during the disableTwoFactor mutation. */
 export enum DisableTwoFactorError {
   InvalidOtp = "INVALID_OTP",
   NotEnabled = "NOT_ENABLED",
 }
 
+/** The DisableTwoFactorInput type represents the input for the disableTwoFactor mutation. */
 export type DisableTwoFactorInput = {
   token: Scalars["String"]["input"];
 };
 
+/** The DisableTwoFactorResult type represents the result of the disableTwoFactor mutation. */
 export type DisableTwoFactorResult = {
   __typename?: "DisableTwoFactorResult";
   errors?: Maybe<Array<DisableTwoFactorError>>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** The EnableTwoFactorError enum represents the possible errors that can occur during the enableTwoFactor mutation. */
 export enum EnableTwoFactorError {
   AlreadyEnabled = "ALREADY_ENABLED",
   EmailMismatch = "EMAIL_MISMATCH",
 }
 
+/** The EnableTwoFactorInput type represents the input for the enableTwoFactor mutation. */
 export type EnableTwoFactorInput = {
   email?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** The EnableTwoFactorResult type represents the result of the enableTwoFactor mutation. */
 export type EnableTwoFactorResult = {
   __typename?: "EnableTwoFactorResult";
   errors?: Maybe<Array<EnableTwoFactorError>>;
@@ -1382,48 +1535,82 @@ export type EnableTwoFactorResult = {
   verified?: Maybe<Scalars["Boolean"]["output"]>;
 };
 
+/** The FeatureFlag type represents a feature flag in the system. */
 export type FeatureFlag = {
   __typename?: "FeatureFlag";
+  /** The code of the feature flag. */
   code: Scalars["String"]["output"];
+  /** The configuration of the feature flag. */
   config: Scalars["JSON"]["output"];
 };
 
+/** The GenerateChallengeError enum represents the possible errors that can occur during the generateChallenge mutation. */
 export enum GenerateChallengeError {
   ChallengeError = "CHALLENGE_ERROR",
   DeviceNotFound = "DEVICE_NOT_FOUND",
 }
 
+/** The GenerateChallengeResult type represents the result of the generateChallenge mutation. */
 export type GenerateChallengeResult = {
   __typename?: "GenerateChallengeResult";
   errors?: Maybe<Array<GenerateChallengeError>>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** Possible errors when generating a new database password. */
 export enum GenerateNewDatabasePasswordError {
+  /** The database was not found. */
   NotFound = "NOT_FOUND",
+  /** The user does not have permission to generate a new password. */
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Input for generating a new database password. */
 export type GenerateNewDatabasePasswordInput = {
+  /** The slug of the workspace. */
   workspaceSlug: Scalars["String"]["input"];
 };
 
+/** The result of generating a new database password. */
 export type GenerateNewDatabasePasswordResult = {
   __typename?: "GenerateNewDatabasePasswordResult";
+  /** The errors that occurred during password generation. */
   errors: Array<GenerateNewDatabasePasswordError>;
+  /** Indicates if the password generation was successful. */
   success: Scalars["Boolean"]["output"];
+  /** The workspace associated with the generated password. */
   workspace?: Maybe<Workspace>;
 };
 
+export enum GeneratePipelineWebhookUrlError {
+  PermissionDenied = "PERMISSION_DENIED",
+  PipelineNotFound = "PIPELINE_NOT_FOUND",
+  WebhookNotEnabled = "WEBHOOK_NOT_ENABLED",
+}
+
+export type GeneratePipelineWebhookUrlInput = {
+  id: Scalars["UUID"]["input"];
+};
+
+export type GeneratePipelineWebhookUrlResult = {
+  __typename?: "GeneratePipelineWebhookUrlResult";
+  errors: Array<GeneratePipelineWebhookUrlError>;
+  pipeline?: Maybe<Pipeline>;
+  success: Scalars["Boolean"]["output"];
+};
+
+/** Represents the error types for generating a workspace token. */
 export enum GenerateWorkspaceTokenError {
   PermissionDenied = "PERMISSION_DENIED",
   WorkspaceNotFound = "WORKSPACE_NOT_FOUND",
 }
 
+/** Represents the input for generating a workspace token. */
 export type GenerateWorkspaceTokenInput = {
   slug: Scalars["String"]["input"];
 };
 
+/** Represents the result of generating a workspace token. */
 export type GenerateWorkspaceTokenResult = {
   __typename?: "GenerateWorkspaceTokenResult";
   errors: Array<GenerateWorkspaceTokenError>;
@@ -1431,6 +1618,7 @@ export type GenerateWorkspaceTokenResult = {
   token?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** Represents a generic output of a pipeline run. */
 export type GenericOutput = {
   __typename?: "GenericOutput";
   name?: Maybe<Scalars["String"]["output"]>;
@@ -1438,12 +1626,14 @@ export type GenericOutput = {
   uri: Scalars["String"]["output"];
 };
 
+/** Represents the input for inviting a member to a workspace. */
 export type InviteWorkspaceMemberInput = {
   role: WorkspaceMembershipRole;
   userEmail: Scalars["String"]["input"];
   workspaceSlug: Scalars["String"]["input"];
 };
 
+/** Represents the result of inviting a member to a workspace. */
 export type InviteWorkspaceMemberResult = {
   __typename?: "InviteWorkspaceMemberResult";
   errors: Array<InviteWorkspaceMembershipError>;
@@ -1451,6 +1641,7 @@ export type InviteWorkspaceMemberResult = {
   workspaceMembership?: Maybe<WorkspaceMembership>;
 };
 
+/** Enum representing the possible errors that can occur when inviting a user to a workspace. */
 export enum InviteWorkspaceMembershipError {
   AlreadyExists = "ALREADY_EXISTS",
   PermissionDenied = "PERMISSION_DENIED",
@@ -1458,6 +1649,7 @@ export enum InviteWorkspaceMembershipError {
   WorkspaceNotFound = "WORKSPACE_NOT_FOUND",
 }
 
+/** Represents the error types for joining a workspace. */
 export enum JoinWorkspaceError {
   AlreadyAccepted = "ALREADY_ACCEPTED",
   AlreadyExists = "ALREADY_EXISTS",
@@ -1465,10 +1657,12 @@ export enum JoinWorkspaceError {
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for joining a workspace. */
 export type JoinWorkspaceInput = {
   invitationId: Scalars["UUID"]["input"];
 };
 
+/** Represents the result of joining a workspace. */
 export type JoinWorkspaceResult = {
   __typename?: "JoinWorkspaceResult";
   errors: Array<JoinWorkspaceError>;
@@ -1508,6 +1702,7 @@ export type LaunchNotebookServerResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Errors that can occur when linking a dataset with a workspace. */
 export enum LinkDatasetError {
   AlreadyLinked = "ALREADY_LINKED",
   DatasetNotFound = "DATASET_NOT_FOUND",
@@ -1515,11 +1710,13 @@ export enum LinkDatasetError {
   WorkspaceNotFound = "WORKSPACE_NOT_FOUND",
 }
 
+/** Input for linking a dataset with a workspace. */
 export type LinkDatasetInput = {
   datasetId: Scalars["ID"]["input"];
   workspaceSlug: Scalars["String"]["input"];
 };
 
+/** Result of linking a dataset with a workspace. */
 export type LinkDatasetResult = {
   __typename?: "LinkDatasetResult";
   errors: Array<LinkDatasetError>;
@@ -1527,88 +1724,131 @@ export type LinkDatasetResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Represents the input for logging a pipeline message. */
 export type LogPipelineMessageInput = {
   message: Scalars["String"]["input"];
   priority: MessagePriority;
 };
 
+/** Represents the result of logging a pipeline message. */
 export type LogPipelineMessageResult = {
   __typename?: "LogPipelineMessageResult";
   errors: Array<PipelineError>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** The LoginError enum represents the possible errors that can occur during the login process. */
 export enum LoginError {
+  /** Indicates that the provided credentials are invalid. */
   InvalidCredentials = "INVALID_CREDENTIALS",
+  /** Indicates that the provided OTP is invalid. */
   InvalidOtp = "INVALID_OTP",
+  /** Indicates that an OTP (one-time password) is required for login. */
   OtpRequired = "OTP_REQUIRED",
 }
 
+/** The LoginInput type represents the input for the login mutation. */
 export type LoginInput = {
+  /** The email address of the user. */
   email: Scalars["String"]["input"];
+  /** The password of the user. */
   password: Scalars["String"]["input"];
+  /** The token for two-factor authentication. */
   token?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** The LoginResult type represents the result of the login mutation. */
 export type LoginResult = {
   __typename?: "LoginResult";
+  /** The list of errors that occurred during the login process. */
   errors?: Maybe<Array<LoginError>>;
+  /** Indicates whether the login was successful. */
   success: Scalars["Boolean"]["output"];
 };
 
+/** The LogoutResult type represents the result of the logout mutation. */
 export type LogoutResult = {
   __typename?: "LogoutResult";
+  /** Indicates whether the logout was successful. */
   success: Scalars["Boolean"]["output"];
 };
 
+/** The Me type represents the currently authenticated user. */
 export type Me = {
   __typename?: "Me";
+  /** The feature flags assigned to the currently authenticated user. */
   features: Array<FeatureFlag>;
   hasTwoFactorEnabled: Scalars["Boolean"]["output"];
+  /** The permissions assigned to the currently authenticated user. */
   permissions: MePermissions;
+  /** The user object representing the currently authenticated user. */
   user?: Maybe<User>;
 };
 
+/** The MePermissions type represents the permissions of the currently authenticated user. */
 export type MePermissions = {
   __typename?: "MePermissions";
+  /** Indicates whether the user has permission to access the admin panel. */
   adminPanel: Scalars["Boolean"]["output"];
   createAccessmodProject: Scalars["Boolean"]["output"];
+  /** Indicates whether the user has permission to create a team. */
   createTeam: Scalars["Boolean"]["output"];
   createWorkspace: Scalars["Boolean"]["output"];
   manageAccessmodAccessRequests: Scalars["Boolean"]["output"];
+  /** Indicates whether the user has superuser privileges. */
   superUser: Scalars["Boolean"]["output"];
 };
 
+/** The Membership type represents a membership of a user in a team. */
 export type Membership = {
   __typename?: "Membership";
+  /** The date when the membership was created. */
   createdAt: Scalars["DateTime"]["output"];
+  /** The unique identifier of the membership. */
   id: Scalars["UUID"]["output"];
+  /** The permissions assigned to the membership. */
   permissions: MembershipPermissions;
+  /** The role of the user in the team. */
   role: MembershipRole;
+  /** The team associated with the membership. */
   team: Team;
+  /** The date when the membership was last updated. */
   updatedAt: Scalars["DateTime"]["output"];
+  /** The user associated with the membership. */
   user: User;
 };
 
+/** The MembershipPage type represents a paginated list of memberships. */
 export type MembershipPage = {
   __typename?: "MembershipPage";
+  /** The list of memberships on the current page. */
   items: Array<Membership>;
+  /** The current page number. */
   pageNumber: Scalars["Int"]["output"];
+  /** The total number of items. */
   totalItems: Scalars["Int"]["output"];
+  /** The total number of pages. */
   totalPages: Scalars["Int"]["output"];
 };
 
+/** The MembershipPermissions type represents the permissions of a membership. */
 export type MembershipPermissions = {
   __typename?: "MembershipPermissions";
+  /** Indicates whether the user has permission to delete the membership. */
   delete: Scalars["Boolean"]["output"];
+  /** Indicates whether the user has permission to update the membership. */
   update: Scalars["Boolean"]["output"];
 };
 
+/** The MembershipRole enum represents the role of a user in a team. */
 export enum MembershipRole {
+  /** Indicates that the user is an admin of the team. */
   Admin = "ADMIN",
+  /** Indicates that the user is a regular member of the team. */
   Regular = "REGULAR",
 }
 
+/** An enumeration representing the priority levels of a message. */
 export enum MessagePriority {
   Critical = "CRITICAL",
   Debug = "DEBUG",
@@ -1619,6 +1859,7 @@ export enum MessagePriority {
 
 export type Mutation = {
   __typename?: "Mutation";
+  /** Adds an output to a pipeline. */
   addPipelineOutput: AddPipelineOutputResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
   archiveWorkspace: ArchiveWorkspaceResult;
@@ -1628,12 +1869,17 @@ export type Mutation = {
   createAccessmodProject: CreateAccessmodProjectResult;
   createAccessmodProjectMember: CreateAccessmodProjectMemberResult;
   createAccessmodZonalStatistics: CreateAccessmodZonalStatisticsResult;
+  /** Create a folder in a workspace's bucket. */
   createBucketFolder: CreateBucketFolderResult;
   createConnection: CreateConnectionResult;
+  /** Create a new dataset. */
   createDataset: CreateDatasetResult;
+  /** Create a new dataset version. */
   createDatasetVersion: CreateDatasetVersionResult;
+  /** Create a new file in a dataset version. */
   createDatasetVersionFile: CreateDatasetVersionFileResult;
   createMembership: CreateMembershipResult;
+  /** Creates a new pipeline. */
   createPipeline: CreatePipelineResult;
   createTeam: CreateTeamResult;
   createWorkspace: CreateWorkspaceResult;
@@ -1642,13 +1888,19 @@ export type Mutation = {
   deleteAccessmodFileset: DeleteAccessmodFilesetResult;
   deleteAccessmodProject: DeleteAccessmodProjectResult;
   deleteAccessmodProjectMember: DeleteAccessmodProjectMemberResult;
+  /** Delete an object from a workspace's bucket. */
   deleteBucketObject: DeleteBucketObjectResult;
   deleteConnection: DeleteConnectionResult;
+  /** Delete a dataset. */
   deleteDataset: DeleteDatasetResult;
+  /** Delete a dataset link. */
   deleteDatasetLink: DeleteDatasetLinkResult;
+  /** Delete a dataset version. */
   deleteDatasetVersion: DeleteDatasetVersionResult;
   deleteMembership: DeleteMembershipResult;
+  /** Deletes a pipeline. */
   deletePipeline: DeletePipelineResult;
+  /** Deletes a pipeline version. */
   deletePipelineVersion: DeletePipelineVersionResult;
   deleteTeam: DeleteTeamResult;
   deleteWorkspace: DeleteWorkspaceResult;
@@ -1656,36 +1908,55 @@ export type Mutation = {
   deleteWorkspaceInvitation: DeleteWorkspaceInvitationResult;
   deleteWorkspaceMember: DeleteWorkspaceMemberResult;
   denyAccessmodAccessRequest: DenyAccessmodAccessRequestResult;
+  /** Disables two-factor authentication for the currently authenticated user. */
   disableTwoFactor: DisableTwoFactorResult;
+  /** Enables two-factor authentication for the currently authenticated user. */
   enableTwoFactor: EnableTwoFactorResult;
+  /** Generates a challenge for two-factor authentication. */
   generateChallenge: GenerateChallengeResult;
+  /** Generates a new password for a database. */
   generateNewDatabasePassword: GenerateNewDatabasePasswordResult;
+  generatePipelineWebhookUrl: GeneratePipelineWebhookUrlResult;
   generateWorkspaceToken: GenerateWorkspaceTokenResult;
   inviteWorkspaceMember: InviteWorkspaceMemberResult;
   joinWorkspace: JoinWorkspaceResult;
   launchAccessmodAnalysis: LaunchAccessmodAnalysisResult;
   launchNotebookServer: LaunchNotebookServerResult;
+  /** Link a dataset with a workspace. */
   linkDataset: LinkDatasetResult;
+  /** Logs a message for a pipeline. */
   logPipelineMessage: LogPipelineMessageResult;
+  /** Authenticates a user and generates an access token. */
   login: LoginResult;
+  /** Logs out the currently authenticated user. */
   logout: LogoutResult;
+  /** Pin or unpin a dataset for a workspace. */
   pinDataset: PinDatasetResult;
+  /** Retrieves a token for a pipeline. */
   pipelineToken: PipelineTokenResult;
   prepareAccessmodFileDownload: PrepareAccessmodFileDownloadResult;
   prepareAccessmodFileUpload: PrepareAccessmodFileUploadResult;
   prepareAccessmodFilesetVisualizationDownload: PrepareAccessmodFilesetVisualizationDownloadResult;
   prepareDownloadURL?: Maybe<PrepareDownloadUrlResult>;
+  /** Prepare to download an object from a workspace's bucket. */
   prepareObjectDownload: PrepareObjectDownloadResult;
+  /** Prepare to upload an object to a workspace's bucket. */
   prepareObjectUpload: PrepareObjectUploadResult;
+  /** Prepare to download a file in a dataset version. */
   prepareVersionFileDownload: PrepareVersionFileDownloadResult;
+  /** Registers a new user. */
   register: RegisterResult;
   requestAccessmodAccess: RequestAccessmodAccessInputResult;
   resendWorkspaceInvitation: ResendWorkspaceInvitationResult;
+  /** Sends a password reset email to the user. */
   resetPassword: ResetPasswordResult;
   runDAG: RunDagResult;
+  /** Runs a pipeline. */
   runPipeline: RunPipelineResult;
   setDAGRunFavorite?: Maybe<SetDagRunFavoriteResult>;
+  /** Sets a new password for the user. */
   setPassword: SetPasswordResult;
+  /** Stops a pipeline. */
   stopPipeline: StopPipelineResult;
   updateAccessmodAccessibilityAnalysis: UpdateAccessmodAccessibilityAnalysisResult;
   updateAccessmodFileset: UpdateAccessmodFilesetResult;
@@ -1694,16 +1965,23 @@ export type Mutation = {
   updateAccessmodZonalStatistics: UpdateAccessmodZonalStatisticsResult;
   updateConnection: UpdateConnectionResult;
   updateDAG: UpdateDagResult;
+  /** Update a dataset. */
   updateDataset: UpdateDatasetResult;
   updateMembership: UpdateMembershipResult;
+  /** Updates an existing pipeline. */
   updatePipeline: UpdatePipelineResult;
+  /** Updates the progress of a pipeline. */
   updatePipelineProgress: UpdatePipelineProgressResult;
+  /** Updates a pipeline version. */
   updatePipelineVersion: UpdatePipelineVersionResult;
   updateTeam: UpdateTeamResult;
+  /** Updates the profile of the currently authenticated user. */
   updateUser: UpdateUserResult;
   updateWorkspace: UpdateWorkspaceResult;
   updateWorkspaceMember: UpdateWorkspaceMemberResult;
+  /** Uploads a pipeline. */
   uploadPipeline: UploadPipelineResult;
+  /** Verifies a device for two-factor authentication. */
   verifyDevice: VerifyDeviceResult;
 };
 
@@ -1865,6 +2143,10 @@ export type MutationEnableTwoFactorArgs = {
 
 export type MutationGenerateNewDatabasePasswordArgs = {
   input: GenerateNewDatabasePasswordInput;
+};
+
+export type MutationGeneratePipelineWebhookUrlArgs = {
+  input: GeneratePipelineWebhookUrlInput;
 };
 
 export type MutationGenerateWorkspaceTokenArgs = {
@@ -2050,28 +2332,42 @@ export type NotebookServer = {
   url: Scalars["String"]["output"];
 };
 
+/** The direction in which to order a list of items. */
 export enum OrderByDirection {
   Asc = "ASC",
   Desc = "DESC",
 }
 
+/** The Organization type represents an organization in the system. */
 export type Organization = {
   __typename?: "Organization";
+  /** The contact information of the organization. */
   contactInfo: Scalars["String"]["output"];
+  /** The unique identifier of the organization. */
   id: Scalars["UUID"]["output"];
+  /** The name of the organization. */
   name: Scalars["String"]["output"];
+  /** The type of the organization. */
   type: Scalars["String"]["output"];
+  /** The URL of the organization. */
   url: Scalars["String"]["output"];
 };
 
+/** The OrganizationInput type represents the input for creating or updating an organization. */
 export type OrganizationInput = {
+  /** The updated contact information of the organization. */
   contactInfo?: InputMaybe<Scalars["String"]["input"]>;
+  /** The unique identifier of the organization. */
   id: Scalars["UUID"]["input"];
+  /** The updated name of the organization. */
   name?: InputMaybe<Scalars["String"]["input"]>;
+  /** The updated type of the organization. */
   type?: InputMaybe<Scalars["String"]["input"]>;
+  /** The updated URL of the organization. */
   url?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** Represents an input parameter of a pipeline. */
 export type ParameterInput = {
   choices?: InputMaybe<Array<Scalars["Generic"]["input"]>>;
   code: Scalars["String"]["input"];
@@ -2083,23 +2379,45 @@ export type ParameterInput = {
   type: Scalars["String"]["input"];
 };
 
+/** Enum representing the type of a parameter. */
+export enum ParameterType {
+  Bool = "bool",
+  Custom = "custom",
+  Dataset = "dataset",
+  Dhis2 = "dhis2",
+  Float = "float",
+  Gcs = "gcs",
+  Iaso = "iaso",
+  Int = "int",
+  Postgresql = "postgresql",
+  S3 = "s3",
+  Str = "str",
+}
+
+/** The PermissionMode enum represents the mode of permissions for a team. */
 export enum PermissionMode {
+  /** Indicates that the user is an editor of the team. */
   Editor = "EDITOR",
+  /** Indicates that the user is the owner of the team. */
   Owner = "OWNER",
+  /** Indicates that the user is a viewer of the team. */
   Viewer = "VIEWER",
 }
 
+/** Errors that can occur when pinning or unpinning a dataset for a workspace. */
 export enum PinDatasetError {
   LinkNotFound = "LINK_NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
   WorkspaceNotFound = "WORKSPACE_NOT_FOUND",
 }
 
+/** Input for pinning or unpinning a dataset for a workspace. */
 export type PinDatasetInput = {
   linkId: Scalars["ID"]["input"];
   pinned: Scalars["Boolean"]["input"];
 };
 
+/** Result of pinning or unpinning a dataset for a workspace. */
 export type PinDatasetResult = {
   __typename?: "PinDatasetResult";
   errors: Array<PinDatasetError>;
@@ -2107,6 +2425,7 @@ export type PinDatasetResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Represents a pipeline. */
 export type Pipeline = {
   __typename?: "Pipeline";
   code: Scalars["String"]["output"];
@@ -2129,12 +2448,14 @@ export type Pipeline = {
   workspace?: Maybe<Workspace>;
 };
 
+/** Represents a pipeline. */
 export type PipelineRunsArgs = {
   orderBy?: InputMaybe<PipelineRunOrderBy>;
   page?: InputMaybe<Scalars["Int"]["input"]>;
   perPage?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
+/** Represents a pipeline. */
 export type PipelineVersionsArgs = {
   page?: InputMaybe<Scalars["Int"]["input"]>;
   perPage?: InputMaybe<Scalars["Int"]["input"]>;
@@ -2156,6 +2477,7 @@ export enum PipelineError {
   WorkspaceNotFound = "WORKSPACE_NOT_FOUND",
 }
 
+/** Represents a parameter of a pipeline. */
 export type PipelineParameter = {
   __typename?: "PipelineParameter";
   choices?: Maybe<Array<Scalars["Generic"]["output"]>>;
@@ -2165,9 +2487,10 @@ export type PipelineParameter = {
   multiple: Scalars["Boolean"]["output"];
   name: Scalars["String"]["output"];
   required: Scalars["Boolean"]["output"];
-  type: Scalars["String"]["output"];
+  type: ParameterType;
 };
 
+/** Represents the permissions for a pipeline. */
 export type PipelinePermissions = {
   __typename?: "PipelinePermissions";
   createVersion: Scalars["Boolean"]["output"];
@@ -2178,12 +2501,14 @@ export type PipelinePermissions = {
   update: Scalars["Boolean"]["output"];
 };
 
+/** Represents a recipient of a pipeline. */
 export type PipelineRecipient = {
   __typename?: "PipelineRecipient";
   pipeline: Pipeline;
   user: User;
 };
 
+/** Represents a pipeline run. */
 export type PipelineRun = {
   __typename?: "PipelineRun";
   code: Scalars["String"]["output"];
@@ -2207,6 +2532,7 @@ export type PipelineRun = {
   version?: Maybe<PipelineVersion>;
 };
 
+/** Represents a message associated with a pipeline run. */
 export type PipelineRunMessage = {
   __typename?: "PipelineRunMessage";
   message: Scalars["String"]["output"];
@@ -2214,13 +2540,16 @@ export type PipelineRunMessage = {
   timestamp?: Maybe<Scalars["DateTime"]["output"]>;
 };
 
+/** Enum representing the possible orderings for pipeline runs. */
 export enum PipelineRunOrderBy {
   ExecutionDateAsc = "EXECUTION_DATE_ASC",
   ExecutionDateDesc = "EXECUTION_DATE_DESC",
 }
 
+/** Represents an output of a pipeline run, which can be either a BucketObject, GenericOutput, or DatabaseTable. */
 export type PipelineRunOutput = BucketObject | DatabaseTable | GenericOutput;
 
+/** Represents a page of pipeline runs. */
 export type PipelineRunPage = {
   __typename?: "PipelineRunPage";
   items: Array<PipelineRun>;
@@ -2229,6 +2558,7 @@ export type PipelineRunPage = {
   totalPages: Scalars["Int"]["output"];
 };
 
+/** Enum representing the status of a pipeline run. */
 export enum PipelineRunStatus {
   Failed = "failed",
   Queued = "queued",
@@ -2244,11 +2574,13 @@ export enum PipelineRunTrigger {
   Webhook = "webhook",
 }
 
+/** Represents the input for retrieving a pipeline token. */
 export type PipelineTokenInput = {
   pipelineCode: Scalars["String"]["input"];
   workspaceSlug: Scalars["String"]["input"];
 };
 
+/** Represents the result of retrieving a pipeline token. */
 export type PipelineTokenResult = {
   __typename?: "PipelineTokenResult";
   errors: Array<PipelineError>;
@@ -2256,11 +2588,13 @@ export type PipelineTokenResult = {
   token?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** Represents the type of a pipeline. */
 export enum PipelineType {
   Notebook = "notebook",
   ZipFile = "zipFile",
 }
 
+/** Represents a version of a pipeline. */
 export type PipelineVersion = {
   __typename?: "PipelineVersion";
   createdAt: Scalars["DateTime"]["output"];
@@ -2279,6 +2613,7 @@ export type PipelineVersion = {
   zipfile: Scalars["String"]["output"];
 };
 
+/** Represents a page of pipeline versions. */
 export type PipelineVersionPage = {
   __typename?: "PipelineVersionPage";
   items: Array<PipelineVersion>;
@@ -2287,12 +2622,14 @@ export type PipelineVersionPage = {
   totalPages: Scalars["Int"]["output"];
 };
 
+/** Represents the permissions for a pipeline version. */
 export type PipelineVersionPermissions = {
   __typename?: "PipelineVersionPermissions";
   delete: Scalars["Boolean"]["output"];
   update: Scalars["Boolean"]["output"];
 };
 
+/** Represents a page of pipelines. */
 export type PipelinesPage = {
   __typename?: "PipelinesPage";
   items: Array<Pipeline>;
@@ -2343,6 +2680,7 @@ export type PrepareDownloadUrlResult = {
   url?: Maybe<Scalars["URL"]["output"]>;
 };
 
+/** Errors that can occur when preparing to download an object from a workspace's bucket. */
 export enum PrepareObjectDownloadError {
   NotFound = "NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
@@ -2353,6 +2691,7 @@ export type PrepareObjectDownloadInput = {
   workspaceSlug: Scalars["String"]["input"];
 };
 
+/** The result of preparing to download an object from a workspace's bucket. */
 export type PrepareObjectDownloadResult = {
   __typename?: "PrepareObjectDownloadResult";
   downloadUrl?: Maybe<Scalars["URL"]["output"]>;
@@ -2360,33 +2699,46 @@ export type PrepareObjectDownloadResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Errors that can occur when preparing to upload an object to a workspace's bucket. */
 export enum PrepareObjectUploadError {
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/**
+ * Input for preparing to upload an object to a workspace's bucket.
+ * The `contentType`
+ */
 export type PrepareObjectUploadInput = {
   contentType?: InputMaybe<Scalars["String"]["input"]>;
   objectKey: Scalars["String"]["input"];
   workspaceSlug: Scalars["String"]["input"];
 };
 
+/**
+ * The result of preparing to upload an object to a workspace's bucket. It contains
+ * a URL that can be used to upload the object using a PUT request.
+ */
 export type PrepareObjectUploadResult = {
   __typename?: "PrepareObjectUploadResult";
   errors: Array<PrepareObjectUploadError>;
   success: Scalars["Boolean"]["output"];
+  /** Url to upload the object to. The contentType passed with the PUT request should match the one passed in the input. */
   uploadUrl?: Maybe<Scalars["URL"]["output"]>;
 };
 
+/** Errors that can occur when preparing a dataset version file download. */
 export enum PrepareVersionFileDownloadError {
   FileNotFound = "FILE_NOT_FOUND",
   FileNotUploaded = "FILE_NOT_UPLOADED",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Input for preparing a dataset version file download. */
 export type PrepareVersionFileDownloadInput = {
   fileId: Scalars["ID"]["input"];
 };
 
+/** Result of preparing a dataset version file download. */
 export type PrepareVersionFileDownloadResult = {
   __typename?: "PrepareVersionFileDownloadResult";
   downloadUrl?: Maybe<Scalars["String"]["output"]>;
@@ -2407,25 +2759,38 @@ export type Query = {
   accessmodProjects: AccessmodProjectPage;
   boundaries: Array<WhoBoundary>;
   connection?: Maybe<Connection>;
+  connectionBySlug?: Maybe<Connection>;
   countries: Array<Country>;
   country?: Maybe<Country>;
   dag?: Maybe<Dag>;
   dagRun?: Maybe<DagRun>;
   dags: DagPage;
   databaseTable?: Maybe<DatabaseTable>;
+  /** Get a dataset by its ID. */
   dataset?: Maybe<Dataset>;
+  /** Get a dataset link by its id. */
   datasetLink?: Maybe<DatasetLink>;
+  /** Get a dataset link by its slug. */
   datasetLinkBySlug?: Maybe<DatasetLink>;
+  /** Get a dataset by its slug. */
   datasetVersion?: Maybe<DatasetVersion>;
+  /** Search datasets. */
   datasets: DatasetPage;
+  /** Retrieves the currently authenticated user. */
   me: Me;
   notebooksUrl: Scalars["URL"]["output"];
+  /** Retrieves a list of organizations. */
   organizations: Array<Organization>;
   pendingWorkspaceInvitations: WorkspaceInvitationPage;
+  /** Retrieves a pipeline by ID. */
   pipeline?: Maybe<Pipeline>;
+  /** Retrieves a pipeline by workspace slug and code. */
   pipelineByCode?: Maybe<Pipeline>;
+  /** Retrieves a pipeline run by ID. */
   pipelineRun?: Maybe<PipelineRun>;
+  /** Retrieves a pipeline version by ID. */
   pipelineVersion?: Maybe<PipelineVersion>;
+  /** Retrieves a page of pipelines. */
   pipelines: PipelinesPage;
   team?: Maybe<Team>;
   teams: TeamPage;
@@ -2485,6 +2850,10 @@ export type QueryBoundariesArgs = {
 
 export type QueryConnectionArgs = {
   id: Scalars["UUID"]["input"];
+};
+
+export type QueryConnectionBySlugArgs = {
+  slug: Scalars["String"]["input"];
 };
 
 export type QueryCountryArgs = {
@@ -2580,25 +2949,40 @@ export type QueryWorkspacesArgs = {
   query?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** The RegisterError enum represents the possible errors that can occur during the register mutation. */
 export enum RegisterError {
+  /** Indicates that the user is already logged in. */
   AlreadyLoggedIn = "ALREADY_LOGGED_IN",
+  /** Indicates that the email address is already taken. */
   EmailTaken = "EMAIL_TAKEN",
+  /** Indicates that the provided password is invalid. */
   InvalidPassword = "INVALID_PASSWORD",
+  /** Indicates that the invitation token is invalid. */
   InvalidToken = "INVALID_TOKEN",
+  /** Indicates that the provided passwords do not match. */
   PasswordMismatch = "PASSWORD_MISMATCH",
 }
 
+/** The RegisterInput type represents the input for the register mutation. */
 export type RegisterInput = {
+  /** The first name of the user. */
   firstName: Scalars["String"]["input"];
+  /** The invitation token for registration. */
   invitationToken: Scalars["String"]["input"];
+  /** The last name of the user. */
   lastName: Scalars["String"]["input"];
+  /** The first password for registration. */
   password1: Scalars["String"]["input"];
+  /** The second password for registration (confirmation). */
   password2: Scalars["String"]["input"];
 };
 
+/** The RegisterResult type represents the result of the register mutation. */
 export type RegisterResult = {
   __typename?: "RegisterResult";
+  /** The list of errors that occurred during the registration process. */
   errors?: Maybe<Array<RegisterError>>;
+  /** Indicates whether the registration was successful. */
   success: Scalars["Boolean"]["output"];
 };
 
@@ -2621,27 +3005,34 @@ export type RequestAccessmodAccessInputResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Represents the error types for resending a workspace invitation. */
 export enum ResendWorkspaceInvitationError {
   InvitationNotFound = "INVITATION_NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for resending a workspace invitation. */
 export type ResendWorkspaceInvitationInput = {
   invitationId: Scalars["UUID"]["input"];
 };
 
+/** Represents the result of resending a workspace invitation. */
 export type ResendWorkspaceInvitationResult = {
   __typename?: "ResendWorkspaceInvitationResult";
   errors: Array<ResendWorkspaceInvitationError>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** The ResetPasswordInput type represents the input for the resetPassword mutation. */
 export type ResetPasswordInput = {
+  /** The email address of the user. */
   email: Scalars["String"]["input"];
 };
 
+/** The ResetPasswordResult type represents the result of the resetPassword mutation. */
 export type ResetPasswordResult = {
   __typename?: "ResetPasswordResult";
+  /** Indicates whether the password reset was successful. */
   success: Scalars["Boolean"]["output"];
 };
 
@@ -2663,6 +3054,7 @@ export type RunDagResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Represents the input for running a pipeline. */
 export type RunPipelineInput = {
   config: Scalars["JSON"]["input"];
   id: Scalars["UUID"]["input"];
@@ -2670,6 +3062,7 @@ export type RunPipelineInput = {
   versionId?: InputMaybe<Scalars["UUID"]["input"]>;
 };
 
+/** Represents the result of running a pipeline. */
 export type RunPipelineResult = {
   __typename?: "RunPipelineResult";
   errors: Array<PipelineError>;
@@ -2728,30 +3121,45 @@ export type SetDagRunFavoriteResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** The SetPasswordError enum represents the possible errors that can occur during the setPassword mutation. */
 export enum SetPasswordError {
+  /** Indicates that the provided password is invalid. */
   InvalidPassword = "INVALID_PASSWORD",
+  /** Indicates that the provided token is invalid. */
   InvalidToken = "INVALID_TOKEN",
+  /** Indicates that the provided passwords do not match. */
   PasswordMismatch = "PASSWORD_MISMATCH",
+  /** Indicates that the user was not found. */
   UserNotFound = "USER_NOT_FOUND",
 }
 
+/** The SetPasswordInput type represents the input for the setPassword mutation. */
 export type SetPasswordInput = {
+  /** The new password. */
   password1: Scalars["String"]["input"];
+  /** The confirmation of the new password. */
   password2: Scalars["String"]["input"];
+  /** The token for password reset. */
   token: Scalars["String"]["input"];
+  /** The base64-encoded user ID. */
   uidb64: Scalars["String"]["input"];
 };
 
+/** The SetPasswordResult type represents the result of the setPassword mutation. */
 export type SetPasswordResult = {
   __typename?: "SetPasswordResult";
+  /** The error that occurred during the setPassword mutation. */
   error?: Maybe<SetPasswordError>;
+  /** Indicates whether the password was set successfully. */
   success: Scalars["Boolean"]["output"];
 };
 
+/** Represents the input for stopping a pipeline. */
 export type StopPipelineInput = {
   runId: Scalars["UUID"]["input"];
 };
 
+/** Represents the result of stopping a pipeline. */
 export type StopPipelineResult = {
   __typename?: "StopPipelineResult";
   errors: Array<PipelineError>;
@@ -2764,47 +3172,70 @@ export type TableColumn = {
   type: Scalars["String"]["output"];
 };
 
+/** Represents a paginated list of rows from a database table. */
 export type TableRowsPage = {
   __typename?: "TableRowsPage";
+  /** Indicates if there is a next page available. */
   hasNextPage: Scalars["Boolean"]["output"];
+  /** Indicates if there is a previous page available. */
   hasPreviousPage: Scalars["Boolean"]["output"];
+  /** The rows in the current page. */
   items: Array<Scalars["JSON"]["output"]>;
+  /** The page number of the result. */
   pageNumber: Scalars["Int"]["output"];
 };
 
+/** A tag is a label. */
 export type Tag = {
   __typename?: "Tag";
   id: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
 };
 
+/** The Team type represents a team in the system. */
 export type Team = {
   __typename?: "Team";
+  /** The date when the team was created. */
   createdAt: Scalars["DateTime"]["output"];
+  /** The unique identifier of the team. */
   id: Scalars["UUID"]["output"];
+  /** Retrieves the memberships of the team. */
   memberships: MembershipPage;
+  /** The name of the team. */
   name: Scalars["String"]["output"];
+  /** The permissions assigned to the team. */
   permissions: TeamPermissions;
+  /** The date when the team was last updated. */
   updatedAt: Scalars["DateTime"]["output"];
 };
 
+/** The Team type represents a team in the system. */
 export type TeamMembershipsArgs = {
   page?: InputMaybe<Scalars["Int"]["input"]>;
   perPage?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
+/** The TeamPage type represents a paginated list of teams. */
 export type TeamPage = {
   __typename?: "TeamPage";
+  /** The list of teams on the current page. */
   items: Array<Team>;
+  /** The current page number. */
   pageNumber: Scalars["Int"]["output"];
+  /** The total number of items. */
   totalItems: Scalars["Int"]["output"];
+  /** The total number of pages. */
   totalPages: Scalars["Int"]["output"];
 };
 
+/** The TeamPermissions type represents the permissions of a team. */
 export type TeamPermissions = {
   __typename?: "TeamPermissions";
+  /** Indicates whether the user has permission to create a membership in the team. */
   createMembership: Scalars["Boolean"]["output"];
+  /** Indicates whether the user has permission to delete the team. */
   delete: Scalars["Boolean"]["output"];
+  /** Indicates whether the user has permission to update the team. */
   update: Scalars["Boolean"]["output"];
 };
 
@@ -2916,12 +3347,14 @@ export type UpdateAccessmodZonalStatisticsResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Represents the error types for updating a connection. */
 export enum UpdateConnectionError {
   InvalidSlug = "INVALID_SLUG",
   NotFound = "NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for updating a connection. */
 export type UpdateConnectionInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   fields?: InputMaybe<Array<ConnectionFieldInput>>;
@@ -2930,6 +3363,7 @@ export type UpdateConnectionInput = {
   slug?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** Represents the result of updating a connection. */
 export type UpdateConnectionResult = {
   __typename?: "UpdateConnectionResult";
   connection?: Maybe<Connection>;
@@ -2957,17 +3391,20 @@ export type UpdateDagResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Errors that can occur when updating a dataset. */
 export enum UpdateDatasetError {
   DatasetNotFound = "DATASET_NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Input for updating a dataset. */
 export type UpdateDatasetInput = {
   datasetId: Scalars["ID"]["input"];
   description?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** Result of updating a dataset. */
 export type UpdateDatasetResult = {
   __typename?: "UpdateDatasetResult";
   dataset?: Maybe<Dataset>;
@@ -2975,30 +3412,43 @@ export type UpdateDatasetResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** The UpdateMembershipError enum represents the possible errors that can occur during the updateMembership mutation. */
 export enum UpdateMembershipError {
+  /** Indicates that the provided role is invalid. */
   InvalidRole = "INVALID_ROLE",
+  /** Indicates that the membership was not found. */
   NotFound = "NOT_FOUND",
+  /** Indicates that the user does not have permission to update the membership. */
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** The UpdateMembershipInput type represents the input for the updateMembership mutation. */
 export type UpdateMembershipInput = {
+  /** The unique identifier of the membership to update. */
   id: Scalars["UUID"]["input"];
+  /** The updated role of the user in the team. */
   role: MembershipRole;
 };
 
+/** The UpdateMembershipResult type represents the result of the updateMembership mutation. */
 export type UpdateMembershipResult = {
   __typename?: "UpdateMembershipResult";
+  /** The list of errors that occurred during the updateMembership mutation. */
   errors: Array<UpdateMembershipError>;
+  /** The updated membership object. */
   membership?: Maybe<Membership>;
+  /** Indicates whether the updateMembership mutation was successful. */
   success: Scalars["Boolean"]["output"];
 };
 
+/** Enum representing the possible errors that can occur when updating a pipeline. */
 export enum UpdatePipelineError {
   InvalidConfig = "INVALID_CONFIG",
   NotFound = "NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for updating a pipeline. */
 export type UpdatePipelineInput = {
   config?: InputMaybe<Scalars["JSON"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
@@ -3009,16 +3459,19 @@ export type UpdatePipelineInput = {
   webhookEnabled?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
+/** Represents the input for updating the progress of a pipeline. */
 export type UpdatePipelineProgressInput = {
   percent: Scalars["Int"]["input"];
 };
 
+/** Represents the result of updating the progress of a pipeline. */
 export type UpdatePipelineProgressResult = {
   __typename?: "UpdatePipelineProgressResult";
   errors: Array<PipelineError>;
   success: Scalars["Boolean"]["output"];
 };
 
+/** Represents the result of updating a pipeline. */
 export type UpdatePipelineResult = {
   __typename?: "UpdatePipelineResult";
   errors: Array<UpdatePipelineError>;
@@ -3026,11 +3479,13 @@ export type UpdatePipelineResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** Enum representing the possible errors that can occur when updating a pipeline version. */
 export enum UpdatePipelineVersionError {
   NotFound = "NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for updating a pipeline version. */
 export type UpdatePipelineVersionInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   externalLink?: InputMaybe<Scalars["URL"]["input"]>;
@@ -3038,6 +3493,7 @@ export type UpdatePipelineVersionInput = {
   name?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** Represents the result of updating a pipeline version. */
 export type UpdatePipelineVersionResult = {
   __typename?: "UpdatePipelineVersionResult";
   errors: Array<UpdatePipelineVersionError>;
@@ -3045,47 +3501,71 @@ export type UpdatePipelineVersionResult = {
   success: Scalars["Boolean"]["output"];
 };
 
+/** The UpdateTeamError enum represents the possible errors that can occur during the updateTeam mutation. */
 export enum UpdateTeamError {
+  /** Indicates that a team with the same name already exists. */
   NameDuplicate = "NAME_DUPLICATE",
+  /** Indicates that the team was not found. */
   NotFound = "NOT_FOUND",
+  /** Indicates that the user does not have permission to update the team. */
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** The UpdateTeamInput type represents the input for the updateTeam mutation. */
 export type UpdateTeamInput = {
+  /** The unique identifier of the team to update. */
   id: Scalars["UUID"]["input"];
+  /** The updated name of the team. */
   name?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** The UpdateTeamResult type represents the result of the updateTeam mutation. */
 export type UpdateTeamResult = {
   __typename?: "UpdateTeamResult";
+  /** The list of errors that occurred during the updateTeam mutation. */
   errors: Array<UpdateTeamError>;
+  /** Indicates whether the updateTeam mutation was successful. */
   success: Scalars["Boolean"]["output"];
+  /** The updated team object. */
   team?: Maybe<Team>;
 };
 
+/** The UpdateUserError enum represents the possible errors that can occur during the updateUser mutation. */
 export enum UpdateUserError {
+  /** Indicates that the provided language is invalid. */
   InvalidLanguage = "INVALID_LANGUAGE",
+  /** Indicates that the user does not have permission to update their profile. */
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** The UpdateUserInput type represents the input for the updateUser mutation. */
 export type UpdateUserInput = {
+  /** The updated first name of the user. */
   firstName?: InputMaybe<Scalars["String"]["input"]>;
+  /** The updated language preference of the user. */
   language?: InputMaybe<Scalars["String"]["input"]>;
+  /** The updated last name of the user. */
   lastName?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** The UpdateUserResult type represents the result of the updateUser mutation. */
 export type UpdateUserResult = {
   __typename?: "UpdateUserResult";
+  /** The list of errors that occurred during the updateUser mutation. */
   errors: Array<UpdateUserError>;
+  /** Indicates whether the user update was successful. */
   success: Scalars["Boolean"]["output"];
+  /** The updated user object. */
   user?: Maybe<User>;
 };
 
+/** Enum representing the possible errors that can occur when updating a workspace. */
 export enum UpdateWorkspaceError {
   NotFound = "NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for updating a workspace. */
 export type UpdateWorkspaceInput = {
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars["String"]["input"]>;
@@ -3094,16 +3574,19 @@ export type UpdateWorkspaceInput = {
   slug: Scalars["String"]["input"];
 };
 
+/** Enum representing the possible errors that can occur when updating a workspace member. */
 export enum UpdateWorkspaceMemberError {
   MembershipNotFound = "MEMBERSHIP_NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
 
+/** Represents the input for updating a workspace member. */
 export type UpdateWorkspaceMemberInput = {
   membershipId: Scalars["UUID"]["input"];
   role: WorkspaceMembershipRole;
 };
 
+/** Represents the result of updating a workspace member. */
 export type UpdateWorkspaceMemberResult = {
   __typename?: "UpdateWorkspaceMemberResult";
   errors: Array<UpdateWorkspaceMemberError>;
@@ -3111,6 +3594,7 @@ export type UpdateWorkspaceMemberResult = {
   workspaceMembership?: Maybe<WorkspaceMembership>;
 };
 
+/** Represents the result of updating a workspace. */
 export type UpdateWorkspaceResult = {
   __typename?: "UpdateWorkspaceResult";
   errors: Array<UpdateWorkspaceError>;
@@ -3118,6 +3602,7 @@ export type UpdateWorkspaceResult = {
   workspace?: Maybe<Workspace>;
 };
 
+/** Represents the input for uploading a pipeline. */
 export type UploadPipelineInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   externalLink?: InputMaybe<Scalars["URL"]["input"]>;
@@ -3129,6 +3614,7 @@ export type UploadPipelineInput = {
   zipfile: Scalars["String"]["input"];
 };
 
+/** Represents the result of uploading a pipeline. */
 export type UploadPipelineResult = {
   __typename?: "UploadPipelineResult";
   errors: Array<PipelineError>;
@@ -3138,28 +3624,41 @@ export type UploadPipelineResult = {
   version?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** The User type represents a user in the system. */
 export type User = {
   __typename?: "User";
+  /** The avatar of the user. */
   avatar: Avatar;
+  /** The date when the user joined the system. */
   dateJoined: Scalars["DateTime"]["output"];
+  /** The display name of the user. */
   displayName: Scalars["String"]["output"];
+  /** The email address of the user. */
   email: Scalars["String"]["output"];
+  /** The first name of the user. */
   firstName?: Maybe<Scalars["String"]["output"]>;
+  /** The unique identifier of the user. */
   id: Scalars["UUID"]["output"];
+  /** The language preference of the user. */
   language: Scalars["String"]["output"];
+  /** The date of the user's last login. */
   lastLogin?: Maybe<Scalars["DateTime"]["output"]>;
+  /** The last name of the user. */
   lastName?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** The VerifyDeviceError enum represents the possible errors that can occur during the verifyDevice mutation. */
 export enum VerifyDeviceError {
   InvalidOtp = "INVALID_OTP",
   NoDevice = "NO_DEVICE",
 }
 
+/** The VerifyDeviceInput type represents the input for the verifyDevice mutation. */
 export type VerifyDeviceInput = {
   token?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** The VerifyDeviceResult type represents the result of the verifyDevice mutation. */
 export type VerifyDeviceResult = {
   __typename?: "VerifyDeviceResult";
   errors?: Maybe<Array<VerifyDeviceError>>;
@@ -3189,14 +3688,17 @@ export type WhoRegion = {
   name: Scalars["String"]["output"];
 };
 
+/** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type Workspace = {
   __typename?: "Workspace";
+  /** File storage of the workspace represented as a bucket */
   bucket: Bucket;
   connections: Array<Connection>;
   countries: Array<Country>;
   createdAt: Scalars["DateTime"]["output"];
   createdBy: User;
   database: Database;
+  /** Linked datasets of the workspace */
   datasets: DatasetLinkPage;
   description?: Maybe<Scalars["String"]["output"]>;
   dockerImage?: Maybe<Scalars["String"]["output"]>;
@@ -3208,6 +3710,7 @@ export type Workspace = {
   updatedAt?: Maybe<Scalars["DateTime"]["output"]>;
 };
 
+/** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type WorkspaceDatasetsArgs = {
   page?: InputMaybe<Scalars["Int"]["input"]>;
   perPage?: InputMaybe<Scalars["Int"]["input"]>;
@@ -3215,17 +3718,20 @@ export type WorkspaceDatasetsArgs = {
   query?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+/** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type WorkspaceInvitationsArgs = {
   includeAccepted?: InputMaybe<Scalars["Boolean"]["input"]>;
   page?: InputMaybe<Scalars["Int"]["input"]>;
   perPage?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
+/** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type WorkspaceMembersArgs = {
   page?: InputMaybe<Scalars["Int"]["input"]>;
   perPage?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
+/** Represents an invitation to join a workspace. */
 export type WorkspaceInvitation = {
   __typename?: "WorkspaceInvitation";
   createdAt: Scalars["DateTime"]["output"];
@@ -3238,6 +3744,7 @@ export type WorkspaceInvitation = {
   workspace: Workspace;
 };
 
+/** Represents a page of workspace invitations. */
 export type WorkspaceInvitationPage = {
   __typename?: "WorkspaceInvitationPage";
   items: Array<WorkspaceInvitation>;
@@ -3246,12 +3753,14 @@ export type WorkspaceInvitationPage = {
   totalPages: Scalars["Int"]["output"];
 };
 
+/** Represents the status of a workspace invitation. */
 export enum WorkspaceInvitationStatus {
   Accepted = "ACCEPTED",
   Declined = "DECLINED",
   Pending = "PENDING",
 }
 
+/** Represents a membership in a workspace. */
 export type WorkspaceMembership = {
   __typename?: "WorkspaceMembership";
   createdAt: Scalars["DateTime"]["output"];
@@ -3262,6 +3771,7 @@ export type WorkspaceMembership = {
   workspace: Workspace;
 };
 
+/** Represents a page of workspace memberships. */
 export type WorkspaceMembershipPage = {
   __typename?: "WorkspaceMembershipPage";
   items: Array<WorkspaceMembership>;
@@ -3270,12 +3780,14 @@ export type WorkspaceMembershipPage = {
   totalPages: Scalars["Int"]["output"];
 };
 
+/** Represents the role of a workspace membership. */
 export enum WorkspaceMembershipRole {
   Admin = "ADMIN",
   Editor = "EDITOR",
   Viewer = "VIEWER",
 }
 
+/** Represents a page of workspaces. */
 export type WorkspacePage = {
   __typename?: "WorkspacePage";
   items: Array<Workspace>;
@@ -3284,15 +3796,20 @@ export type WorkspacePage = {
   totalPages: Scalars["Int"]["output"];
 };
 
+/** Represents the permissions of a workspace. */
 export type WorkspacePermissions = {
   __typename?: "WorkspacePermissions";
   createConnection: Scalars["Boolean"]["output"];
+  /** Permissions to create a dataset in the workspace */
   createDataset: Scalars["Boolean"]["output"];
+  /** User can create objects in the workspace's bucket. */
   createObject: Scalars["Boolean"]["output"];
   createPipeline: Scalars["Boolean"]["output"];
   delete: Scalars["Boolean"]["output"];
   deleteDatabaseTable: Scalars["Boolean"]["output"];
+  /** User can delete objects in the workspace's bucket. */
   deleteObject: Scalars["Boolean"]["output"];
+  /** User can download objects from the workspace's bucket. */
   downloadObject: Scalars["Boolean"]["output"];
   launchNotebookServer: Scalars["Boolean"]["output"];
   manageMembers: Scalars["Boolean"]["output"];

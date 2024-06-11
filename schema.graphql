@@ -289,12 +289,14 @@ type AccessmodZonalStatistics implements AccessmodAnalysis & AccessmodOwnership 
   zonalStatisticsGeo: AccessmodFileset
 }
 
+"""Represents the input for adding an output to a pipeline."""
 input AddPipelineOutputInput {
   uri: String!
   type: String!
   name: String
 }
 
+"""Represents the result of adding an output to a pipeline."""
 type AddPipelineOutputResult {
   success: Boolean!
   errors: [PipelineError!]!
@@ -313,33 +315,46 @@ type ApproveAccessmodAccessRequestResult {
   errors: [ApproveAccessmodAccessRequestError!]!
 }
 
+"""
+Enum representing the possible errors that can occur when archiving a workspace.
+"""
 enum ArchiveWorkspaceError {
   PERMISSION_DENIED
   NOT_FOUND
 }
 
+"""Represents the input for archiving a workspace."""
 input ArchiveWorkspaceInput {
   slug: String!
 }
 
+"""Represents the result of archiving a workspace."""
 type ArchiveWorkspaceResult {
   success: Boolean!
   errors: [ArchiveWorkspaceError!]!
 }
 
+"""The Avatar type represents the avatar of a user."""
 type Avatar {
+  """The initials of the user's avatar."""
   initials: String!
+
+  """The color of the user's avatar."""
   color: String!
 }
 
 scalar BigInt
 
+"""
+A bucket is where all the files and data related to a workspace are stored.
+"""
 type Bucket {
   name: String!
   objects(prefix: String, page: Int = 1, perPage: Int = 15, query: String, ignoreHiddenFiles: Boolean = true): BucketObjectPage!
   object(key: String!): BucketObject
 }
 
+"""An object in a workspace's bucket."""
 type BucketObject {
   key: String!
   name: String!
@@ -349,6 +364,7 @@ type BucketObject {
   type: BucketObjectType!
 }
 
+"""A page of objects in a workspace's bucket."""
 type BucketObjectPage {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
@@ -356,11 +372,13 @@ type BucketObjectPage {
   items: [BucketObject!]!
 }
 
+"""The type of an object in a workspace's bucket."""
 enum BucketObjectType {
   FILE
   DIRECTORY
 }
 
+"""Represents a connection to an external data source or service."""
 type Connection {
   id: String!
   name: String!
@@ -374,6 +392,7 @@ type Connection {
   permissions: ConnectionPermissions!
 }
 
+"""Represents a field in a connection."""
 type ConnectionField {
   code: String!
   value: String
@@ -382,17 +401,20 @@ type ConnectionField {
   updatedAt: DateTime
 }
 
+"""Represents the input for a connection field."""
 input ConnectionFieldInput {
   code: String!
   value: String
   secret: Boolean!
 }
 
+"""Represents the permissions of a connection."""
 type ConnectionPermissions {
   update: Boolean!
   delete: Boolean!
 }
 
+"""Represents the types of connections."""
 enum ConnectionType {
   S3
   GCS
@@ -522,28 +544,33 @@ type CreateAccessmodZonalStatisticsResult {
   errors: [CreateAccessmodZonalStatisticsError!]!
 }
 
+"""Errors that can occur when creating a folder in a workspace's bucket."""
 enum CreateBucketFolderError {
   ALREADY_EXISTS
   PERMISSION_DENIED
 }
 
+"""Input for creating a folder in a workspace's bucket."""
 input CreateBucketFolderInput {
   workspaceSlug: String!
   folderKey: String!
 }
 
+"""The result of creating a folder in a workspace's bucket."""
 type CreateBucketFolderResult {
   success: Boolean!
   errors: [CreateBucketFolderError!]!
   folder: BucketObject
 }
 
+"""Represents the error types for creating a connection."""
 enum CreateConnectionError {
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
   INVALID_SLUG
 }
 
+"""Represents the input for creating a connection."""
 input CreateConnectionInput {
   workspaceSlug: String!
   name: String!
@@ -553,23 +580,27 @@ input CreateConnectionInput {
   fields: [ConnectionFieldInput!]
 }
 
+"""Represents the result of creating a connection."""
 type CreateConnectionResult {
   success: Boolean!
   connection: Connection
   errors: [CreateConnectionError!]!
 }
 
+"""Errors that can occur when creating a dataset."""
 enum CreateDatasetError {
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Input for creating a dataset."""
 input CreateDatasetInput {
   workspaceSlug: String!
   name: String!
   description: String
 }
 
+"""Result of creating a dataset."""
 type CreateDatasetResult {
   link: DatasetLink
   dataset: Dataset
@@ -577,12 +608,14 @@ type CreateDatasetResult {
   errors: [CreateDatasetError!]!
 }
 
+"""Errors that can occur when creating a dataset version."""
 enum CreateDatasetVersionError {
   DATASET_NOT_FOUND
   DUPLICATE_NAME
   PERMISSION_DENIED
 }
 
+"""Errors that can occur when creating a dataset version file."""
 enum CreateDatasetVersionFileError {
   VERSION_NOT_FOUND
   LOCKED_VERSION
@@ -591,49 +624,85 @@ enum CreateDatasetVersionFileError {
   PERMISSION_DENIED
 }
 
+"""Input for creating a dataset version file."""
 input CreateDatasetVersionFileInput {
   versionId: ID!
   contentType: String!
   uri: String!
 }
 
+"""Result of creating a dataset version file."""
 type CreateDatasetVersionFileResult {
+  """The created file object"""
   file: DatasetVersionFile
+
+  """The URL to upload the file to"""
   uploadUrl: String
   success: Boolean!
   errors: [CreateDatasetVersionFileError!]!
 }
 
+"""Input for creating a dataset version."""
 input CreateDatasetVersionInput {
   datasetId: ID!
   name: String!
   description: String
 }
 
+"""Result of creating a dataset version."""
 type CreateDatasetVersionResult {
   version: DatasetVersion
   success: Boolean!
   errors: [CreateDatasetVersionError!]!
 }
 
+"""
+The CreateMembershipError enum represents the possible errors that can occur during the createMembership mutation.
+"""
 enum CreateMembershipError {
+  """
+  Indicates that a membership with the same user and team already exists.
+  """
   ALREADY_EXISTS
+
+  """
+  Indicates that the user does not have permission to create a membership in the team.
+  """
   PERMISSION_DENIED
+
+  """Indicates that the team or user was not found."""
   NOT_FOUND
 }
 
+"""
+The CreateMembershipInput type represents the input for the createMembership mutation.
+"""
 input CreateMembershipInput {
+  """The email address of the user to add to the team."""
   userEmail: String!
+
+  """The unique identifier of the team."""
   teamId: UUID!
+
+  """The role of the user in the team."""
   role: MembershipRole!
 }
 
+"""
+The CreateMembershipResult type represents the result of the createMembership mutation.
+"""
 type CreateMembershipResult {
+  """Indicates whether the createMembership mutation was successful."""
   success: Boolean!
+
+  """The created membership object."""
   membership: Membership
+
+  """The list of errors that occurred during the createMembership mutation."""
   errors: [CreateMembershipError!]!
 }
 
+"""Represents the input for creating a pipeline."""
 input CreatePipelineInput {
   code: String!
   name: String
@@ -641,32 +710,55 @@ input CreatePipelineInput {
   notebookPath: String
 }
 
+"""Represents the result of creating a pipeline."""
 type CreatePipelineResult {
   success: Boolean!
   errors: [PipelineError!]!
   pipeline: Pipeline
 }
 
+"""
+The CreateTeamError enum represents the possible errors that can occur during the createTeam mutation.
+"""
 enum CreateTeamError {
+  """Indicates that the user does not have permission to create a team."""
   PERMISSION_DENIED
+
+  """Indicates that a team with the same name already exists."""
   NAME_DUPLICATE
 }
 
+"""
+The CreateTeamInput type represents the input for the createTeam mutation.
+"""
 input CreateTeamInput {
+  """The name of the team."""
   name: String!
 }
 
+"""
+The CreateTeamResult type represents the result of the createTeam mutation.
+"""
 type CreateTeamResult {
+  """The created team object."""
   team: Team
+
+  """Indicates whether the createTeam mutation was successful."""
   success: Boolean!
+
+  """The list of errors that occurred during the createTeam mutation."""
   errors: [CreateTeamError!]!
 }
 
+"""
+Enum representing the possible errors that can occur when creating a workspace.
+"""
 enum CreateWorkspaceError {
   PERMISSION_DENIED
   INVALID_SLUG
 }
 
+"""Represents the input for creating a workspace."""
 input CreateWorkspaceInput {
   name: String!
   slug: String
@@ -675,6 +767,7 @@ input CreateWorkspaceInput {
   loadSampleData: Boolean
 }
 
+"""Represents the result of creating a workspace."""
 type CreateWorkspaceResult {
   success: Boolean!
   errors: [CreateWorkspaceError!]!
@@ -780,21 +873,54 @@ type DatabaseCredentials {
   url: String!
 }
 
+"""Represents a database table."""
 type DatabaseTable {
+  """The name of the table."""
   name: String!
+
+  """The number of rows in the table."""
   count: Int
+
+  """The columns of the table."""
   columns: [TableColumn!]!
+
+  """A sample row from the table."""
   sample: JSON!
-  rows(orderBy: String!, direction: OrderByDirection!, page: Int!, perPage: Int = 15): TableRowsPage!
+
+  """Retrieves a paginated list of rows from the table."""
+  rows(
+    """The column to order the rows by."""
+    orderBy: String!
+
+    """The direction to order the rows in."""
+    direction: OrderByDirection!
+
+    """The page number to retrieve."""
+    page: Int!
+
+    """The number of rows per page."""
+    perPage: Int = 15
+  ): TableRowsPage!
 }
 
+"""Represents a paginated list of database tables."""
 type DatabaseTablePage {
+  """The page number of the result."""
   pageNumber: Int!
+
+  """The total number of pages."""
   totalPages: Int!
+
+  """The total number of items."""
   totalItems: Int!
+
+  """The tables in the current page."""
   items: [DatabaseTable!]!
 }
 
+"""
+Dataset is a collection of files that are related to each other and are versioned.
+"""
 type Dataset {
   id: ID!
   slug: String!
@@ -811,6 +937,7 @@ type Dataset {
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
 }
 
+"""A link of a dataset with a workspace."""
 type DatasetLink {
   id: ID!
   isPinned: Boolean!
@@ -821,6 +948,7 @@ type DatasetLink {
   permissions: DatasetLinkPermissions!
 }
 
+"""A page of dataset links."""
 type DatasetLinkPage {
   totalPages: Int!
   totalItems: Int!
@@ -828,11 +956,16 @@ type DatasetLinkPage {
   items: [DatasetLink!]!
 }
 
+"""Permissions of a dataset link."""
 type DatasetLinkPermissions {
+  """Permissions to delete the link between the workspace and the dataset"""
   delete: Boolean!
+
+  """Permissions to pin the dataset for the workspace"""
   pin: Boolean!
 }
 
+"""A page of datasets."""
 type DatasetPage {
   totalPages: Int!
   totalItems: Int!
@@ -840,12 +973,21 @@ type DatasetPage {
   items: [Dataset!]!
 }
 
+"""Permissions of a dataset."""
 type DatasetPermissions {
+  """Permissions to edit the dataset"""
   update: Boolean!
+
+  """Permissions to delete the dataset"""
   delete: Boolean!
+
+  """Permissions to create a new version of the dataset"""
   createVersion: Boolean!
 }
 
+"""
+A version of a dataset. A version is a snapshot of the dataset at a point in time.
+"""
 type DatasetVersion {
   id: ID!
   name: String!
@@ -858,6 +1000,7 @@ type DatasetVersion {
   files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!
 }
 
+"""A file in a dataset version."""
 type DatasetVersionFile {
   id: ID!
   uri: String!
@@ -867,6 +1010,7 @@ type DatasetVersionFile {
   contentType: String!
 }
 
+"""A page of dataset version files."""
 type DatasetVersionFilePage {
   totalPages: Int!
   totalItems: Int!
@@ -874,6 +1018,7 @@ type DatasetVersionFilePage {
   items: [DatasetVersionFile!]!
 }
 
+"""A page of dataset versions."""
 type DatasetVersionPage {
   totalPages: Int!
   totalItems: Int!
@@ -881,9 +1026,15 @@ type DatasetVersionPage {
   items: [DatasetVersion!]!
 }
 
+"""Permissions of a dataset version."""
 type DatasetVersionPermissions {
+  """Permissions to update the dataset version"""
   update: Boolean!
+
+  """Permissions to delete the dataset version"""
   delete: Boolean!
+
+  """Permissions to download the content of the dataset version"""
   download: Boolean!
 }
 
@@ -891,15 +1042,18 @@ scalar Date
 
 scalar DateTime
 
+"""Represents the error types for declining a workspace invitation."""
 enum DeclineWorkspaceInvitationError {
   INVITATION_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Represents the input for declining a workspace invitation."""
 input DeclineWorkspaceInvitationInput {
   invitationId: UUID!
 }
 
+"""Represents the result of declining a workspace invitation."""
 type DeclineWorkspaceInvitationResult {
   success: Boolean!
   invitation: WorkspaceInvitation
@@ -963,95 +1117,132 @@ type DeleteAccessmodProjectResult {
   errors: [DeleteAccessmodProjectError!]!
 }
 
+"""
+Errors that can occur when deleting an object from a workspace's bucket.
+"""
 enum DeleteBucketObjectError {
   NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Input for deleting an object from a workspace's bucket."""
 input DeleteBucketObjectInput {
   workspaceSlug: String!
   objectKey: String!
 }
 
+"""The result of deleting an object from a workspace's bucket."""
 type DeleteBucketObjectResult {
   success: Boolean!
   errors: [DeleteBucketObjectError!]!
 }
 
+"""Represents the error types for deleting a connection."""
 enum DeleteConnectionError {
   NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Represents the input for deleting a connection."""
 input DeleteConnectionInput {
   id: String!
 }
 
+"""Represents the result of deleting a connection."""
 type DeleteConnectionResult {
   success: Boolean!
   errors: [DeleteConnectionError!]!
 }
 
+"""Errors that can occur when deleting a dataset."""
 enum DeleteDatasetError {
   DATASET_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Input for deleting a dataset."""
 input DeleteDatasetInput {
   id: ID!
 }
 
+"""Errors that can occur when deleting a dataset link."""
 enum DeleteDatasetLinkError {
   NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Input for deleting a dataset link."""
 input DeleteDatasetLinkInput {
   id: ID!
 }
 
+"""Result of deleting a dataset link."""
 type DeleteDatasetLinkResult {
   success: Boolean!
   errors: [DeleteDatasetLinkError!]!
 }
 
+"""Result of deleting a dataset."""
 type DeleteDatasetResult {
   success: Boolean!
   errors: [DeleteDatasetError!]!
 }
 
+"""Errors that can occur when deleting a dataset version."""
 enum DeleteDatasetVersionError {
   VERSION_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Input for deleting a dataset version."""
 input DeleteDatasetVersionInput {
   versionId: ID!
 }
 
+"""Result of deleting a dataset version."""
 type DeleteDatasetVersionResult {
   success: Boolean!
   errors: [DeleteDatasetVersionError!]!
 }
 
+"""
+The DeleteMembershipError enum represents the possible errors that can occur during the deleteMembership mutation.
+"""
 enum DeleteMembershipError {
+  """
+  Indicates that the user does not have permission to delete the membership.
+  """
   PERMISSION_DENIED
+
+  """Indicates that the membership was not found."""
   NOT_FOUND
 }
 
+"""
+The DeleteMembershipInput type represents the input for the deleteMembership mutation.
+"""
 input DeleteMembershipInput {
+  """The unique identifier of the membership to delete."""
   id: UUID!
 }
 
+"""
+The DeleteMembershipResult type represents the result of the deleteMembership mutation.
+"""
 type DeleteMembershipResult {
+  """Indicates whether the deleteMembership mutation was successful."""
   success: Boolean!
+
+  """The list of errors that occurred during the deleteMembership mutation."""
   errors: [DeleteMembershipError!]!
 }
 
+"""Represents the input for deleting a pipeline."""
 input DeletePipelineInput {
   id: UUID!
 }
 
+"""Represents the result of deleting a pipeline."""
 type DeletePipelineResult {
   success: Boolean!
   errors: [PipelineError!]!
@@ -1063,26 +1254,44 @@ enum DeletePipelineVersionError {
   PIPELINE_NOT_FOUND
 }
 
+"""Represents the input for deleting a pipeline version."""
 input DeletePipelineVersionInput {
   id: UUID!
 }
 
+"""Represents the result of deleting a pipeline version."""
 type DeletePipelineVersionResult {
   success: Boolean!
   errors: [DeletePipelineVersionError!]!
 }
 
+"""
+The DeleteTeamError enum represents the possible errors that can occur during the deleteTeam mutation.
+"""
 enum DeleteTeamError {
+  """Indicates that the team was not found."""
   NOT_FOUND
+
+  """Indicates that the user does not have permission to delete the team."""
   PERMISSION_DENIED
 }
 
+"""
+The DeleteTeamInput type represents the input for the deleteTeam mutation.
+"""
 input DeleteTeamInput {
+  """The unique identifier of the team to delete."""
   id: UUID!
 }
 
+"""
+The DeleteTeamResult type represents the result of the deleteTeam mutation.
+"""
 type DeleteTeamResult {
+  """Indicates whether the deleteTeam mutation was successful."""
   success: Boolean!
+
+  """The list of errors that occurred during the deleteTeam mutation."""
   errors: [DeleteTeamError!]!
 }
 
@@ -1092,53 +1301,68 @@ enum DeleteWorkspaceDatabaseTableError {
   WORKSPACE_NOT_FOUND
 }
 
+"""Represents the input for deleting a database table in a workspace."""
 input DeleteWorkspaceDatabaseTableInput {
   workspaceSlug: String!
   table: String!
 }
 
+"""Represents the result of deleting a database table in a workspace."""
 type DeleteWorkspaceDatabaseTableResult {
   success: Boolean!
   errors: [DeleteWorkspaceDatabaseTableError!]!
 }
 
+"""
+Enum representing the possible errors that can occur when deleting a workspace.
+"""
 enum DeleteWorkspaceError {
   PERMISSION_DENIED
   NOT_FOUND
 }
 
+"""Represents the input for deleting a workspace."""
 input DeleteWorkspaceInput {
   slug: String!
 }
 
+"""Represents the error types for deleting a workspace invitation."""
 enum DeleteWorkspaceInvitationError {
   INVITATION_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Represents the input for deleting a workspace invitation."""
 input DeleteWorkspaceInvitationInput {
   invitationId: UUID!
 }
 
+"""Represents the result of deleting a workspace invitation."""
 type DeleteWorkspaceInvitationResult {
   success: Boolean!
   errors: [DeleteWorkspaceInvitationError!]!
 }
 
+"""
+Enum representing the possible errors that can occur when deleting a workspace member.
+"""
 enum DeleteWorkspaceMemberError {
   MEMBERSHIP_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Represents the input for deleting a workspace member."""
 input DeleteWorkspaceMemberInput {
   membershipId: UUID!
 }
 
+"""Represents the result of deleting a workspace member."""
 type DeleteWorkspaceMemberResult {
   success: Boolean!
   errors: [DeleteWorkspaceMemberError!]!
 }
 
+"""Represents the result of deleting a workspace."""
 type DeleteWorkspaceResult {
   success: Boolean!
   errors: [DeleteWorkspaceError!]!
@@ -1179,74 +1403,133 @@ type DHIS2Instance {
   url: String
 }
 
+"""
+The DisableTwoFactorError enum represents the possible errors that can occur during the disableTwoFactor mutation.
+"""
 enum DisableTwoFactorError {
   INVALID_OTP
   NOT_ENABLED
 }
 
+"""
+The DisableTwoFactorInput type represents the input for the disableTwoFactor mutation.
+"""
 input DisableTwoFactorInput {
   token: String!
 }
 
+"""
+The DisableTwoFactorResult type represents the result of the disableTwoFactor mutation.
+"""
 type DisableTwoFactorResult {
   success: Boolean!
   errors: [DisableTwoFactorError!]
 }
 
+"""
+The EnableTwoFactorError enum represents the possible errors that can occur during the enableTwoFactor mutation.
+"""
 enum EnableTwoFactorError {
   ALREADY_ENABLED
   EMAIL_MISMATCH
 }
 
+"""
+The EnableTwoFactorInput type represents the input for the enableTwoFactor mutation.
+"""
 input EnableTwoFactorInput {
   email: String
 }
 
+"""
+The EnableTwoFactorResult type represents the result of the enableTwoFactor mutation.
+"""
 type EnableTwoFactorResult {
   success: Boolean!
   verified: Boolean
   errors: [EnableTwoFactorError!]
 }
 
+"""The FeatureFlag type represents a feature flag in the system."""
 type FeatureFlag {
+  """The code of the feature flag."""
   code: String!
+
+  """The configuration of the feature flag."""
   config: JSON!
 }
 
+"""
+The GenerateChallengeError enum represents the possible errors that can occur during the generateChallenge mutation.
+"""
 enum GenerateChallengeError {
   DEVICE_NOT_FOUND
   CHALLENGE_ERROR
 }
 
+"""
+The GenerateChallengeResult type represents the result of the generateChallenge mutation.
+"""
 type GenerateChallengeResult {
   success: Boolean!
   errors: [GenerateChallengeError!]
 }
 
+"""Possible errors when generating a new database password."""
 enum GenerateNewDatabasePasswordError {
+  """The user does not have permission to generate a new password."""
   PERMISSION_DENIED
+
+  """The database was not found."""
   NOT_FOUND
 }
 
+"""Input for generating a new database password."""
 input GenerateNewDatabasePasswordInput {
+  """The slug of the workspace."""
   workspaceSlug: String!
 }
 
+"""The result of generating a new database password."""
 type GenerateNewDatabasePasswordResult {
+  """Indicates if the password generation was successful."""
   success: Boolean!
+
+  """The errors that occurred during password generation."""
   errors: [GenerateNewDatabasePasswordError!]!
+
+  """The workspace associated with the generated password."""
   workspace: Workspace
 }
 
+enum GeneratePipelineWebhookUrlError {
+  PIPELINE_NOT_FOUND
+  WEBHOOK_NOT_ENABLED
+  PERMISSION_DENIED
+}
+
+input GeneratePipelineWebhookUrlInput {
+  id: UUID!
+}
+
+type GeneratePipelineWebhookUrlResult {
+  success: Boolean!
+  errors: [GeneratePipelineWebhookUrlError!]!
+  pipeline: Pipeline
+}
+
+"""Represents the error types for generating a workspace token."""
 enum GenerateWorkspaceTokenError {
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Represents the input for generating a workspace token."""
 input GenerateWorkspaceTokenInput {
   slug: String!
 }
 
+"""Represents the result of generating a workspace token."""
 type GenerateWorkspaceTokenResult {
   success: Boolean!
   token: String
@@ -1255,24 +1538,30 @@ type GenerateWorkspaceTokenResult {
 
 scalar Generic
 
+"""Represents a generic output of a pipeline run."""
 type GenericOutput {
   name: String
   type: String!
   uri: String!
 }
 
+"""Represents the input for inviting a member to a workspace."""
 input InviteWorkspaceMemberInput {
   workspaceSlug: String!
   userEmail: String!
   role: WorkspaceMembershipRole!
 }
 
+"""Represents the result of inviting a member to a workspace."""
 type InviteWorkspaceMemberResult {
   success: Boolean!
   errors: [InviteWorkspaceMembershipError!]!
   workspaceMembership: WorkspaceMembership
 }
 
+"""
+Enum representing the possible errors that can occur when inviting a user to a workspace.
+"""
 enum InviteWorkspaceMembershipError {
   ALREADY_EXISTS
   PERMISSION_DENIED
@@ -1280,6 +1569,7 @@ enum InviteWorkspaceMembershipError {
   WORKSPACE_NOT_FOUND
 }
 
+"""Represents the error types for joining a workspace."""
 enum JoinWorkspaceError {
   ALREADY_EXISTS
   ALREADY_ACCEPTED
@@ -1287,10 +1577,12 @@ enum JoinWorkspaceError {
   INVITATION_NOT_FOUND
 }
 
+"""Represents the input for joining a workspace."""
 input JoinWorkspaceInput {
   invitationId: UUID!
 }
 
+"""Represents the result of joining a workspace."""
 type JoinWorkspaceResult {
   success: Boolean!
   workspace: Workspace
@@ -1329,6 +1621,7 @@ type LaunchNotebookServerResult {
   errors: [LaunchNotebookServerError!]!
 }
 
+"""Errors that can occur when linking a dataset with a workspace."""
 enum LinkDatasetError {
   DATASET_NOT_FOUND
   WORKSPACE_NOT_FOUND
@@ -1336,91 +1629,162 @@ enum LinkDatasetError {
   ALREADY_LINKED
 }
 
+"""Input for linking a dataset with a workspace."""
 input LinkDatasetInput {
   datasetId: ID!
   workspaceSlug: String!
 }
 
+"""Result of linking a dataset with a workspace."""
 type LinkDatasetResult {
   link: DatasetLink
   success: Boolean!
   errors: [LinkDatasetError!]!
 }
 
+"""
+The LoginError enum represents the possible errors that can occur during the login process.
+"""
 enum LoginError {
+  """Indicates that an OTP (one-time password) is required for login."""
   OTP_REQUIRED
+
+  """Indicates that the provided credentials are invalid."""
   INVALID_CREDENTIALS
+
+  """Indicates that the provided OTP is invalid."""
   INVALID_OTP
 }
 
+"""The LoginInput type represents the input for the login mutation."""
 input LoginInput {
+  """The email address of the user."""
   email: String!
+
+  """The password of the user."""
   password: String!
+
+  """The token for two-factor authentication."""
   token: String
 }
 
+"""The LoginResult type represents the result of the login mutation."""
 type LoginResult {
+  """Indicates whether the login was successful."""
   success: Boolean!
+
+  """The list of errors that occurred during the login process."""
   errors: [LoginError!]
 }
 
+"""The LogoutResult type represents the result of the logout mutation."""
 type LogoutResult {
+  """Indicates whether the logout was successful."""
   success: Boolean!
 }
 
+"""Represents the input for logging a pipeline message."""
 input LogPipelineMessageInput {
   priority: MessagePriority!
   message: String!
 }
 
+"""Represents the result of logging a pipeline message."""
 type LogPipelineMessageResult {
   success: Boolean!
   errors: [PipelineError!]!
 }
 
+"""The Me type represents the currently authenticated user."""
 type Me {
+  """The user object representing the currently authenticated user."""
   user: User
+
+  """The feature flags assigned to the currently authenticated user."""
   features: [FeatureFlag!]!
+
+  """The permissions assigned to the currently authenticated user."""
   permissions: MePermissions!
   hasTwoFactorEnabled: Boolean!
 }
 
+"""The Membership type represents a membership of a user in a team."""
 type Membership {
+  """The unique identifier of the membership."""
   id: UUID!
+
+  """The user associated with the membership."""
   user: User!
+
+  """The team associated with the membership."""
   team: Team!
+
+  """The permissions assigned to the membership."""
   permissions: MembershipPermissions!
+
+  """The role of the user in the team."""
   role: MembershipRole!
+
+  """The date when the membership was created."""
   createdAt: DateTime!
+
+  """The date when the membership was last updated."""
   updatedAt: DateTime!
 }
 
+"""The MembershipPage type represents a paginated list of memberships."""
 type MembershipPage {
+  """The current page number."""
   pageNumber: Int!
+
+  """The total number of pages."""
   totalPages: Int!
+
+  """The total number of items."""
   totalItems: Int!
+
+  """The list of memberships on the current page."""
   items: [Membership!]!
 }
 
+"""
+The MembershipPermissions type represents the permissions of a membership.
+"""
 type MembershipPermissions {
+  """Indicates whether the user has permission to update the membership."""
   update: Boolean!
+
+  """Indicates whether the user has permission to delete the membership."""
   delete: Boolean!
 }
 
+"""The MembershipRole enum represents the role of a user in a team."""
 enum MembershipRole {
+  """Indicates that the user is an admin of the team."""
   ADMIN
+
+  """Indicates that the user is a regular member of the team."""
   REGULAR
 }
 
+"""
+The MePermissions type represents the permissions of the currently authenticated user.
+"""
 type MePermissions {
+  """Indicates whether the user has permission to create a team."""
   createTeam: Boolean!
+
+  """Indicates whether the user has permission to access the admin panel."""
   adminPanel: Boolean!
+
+  """Indicates whether the user has superuser privileges."""
   superUser: Boolean!
   createAccessmodProject: Boolean!
   manageAccessmodAccessRequests: Boolean!
   createWorkspace: Boolean!
 }
 
+"""An enumeration representing the priority levels of a message."""
 enum MessagePriority {
   DEBUG
   INFO
@@ -1432,15 +1796,38 @@ enum MessagePriority {
 scalar MovingSpeeds
 
 type Mutation {
+  """Registers a new user."""
   register(input: RegisterInput!): RegisterResult!
+
+  """Authenticates a user and generates an access token."""
   login(input: LoginInput!): LoginResult!
+
+  """Logs out the currently authenticated user."""
   logout: LogoutResult!
+
+  """Sends a password reset email to the user."""
   resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
+
+  """Sets a new password for the user."""
   setPassword(input: SetPasswordInput!): SetPasswordResult!
+
+  """Updates the profile of the currently authenticated user."""
   updateUser(input: UpdateUserInput!): UpdateUserResult!
+
+  """Verifies a device for two-factor authentication."""
   verifyDevice(input: VerifyDeviceInput!): VerifyDeviceResult!
+
+  """Generates a challenge for two-factor authentication."""
   generateChallenge: GenerateChallengeResult!
+
+  """
+  Enables two-factor authentication for the currently authenticated user.
+  """
   enableTwoFactor(input: EnableTwoFactorInput): EnableTwoFactorResult!
+
+  """
+  Disables two-factor authentication for the currently authenticated user.
+  """
   disableTwoFactor(input: DisableTwoFactorInput): DisableTwoFactorResult!
   createTeam(input: CreateTeamInput!): CreateTeamResult!
   updateTeam(input: UpdateTeamInput!): UpdateTeamResult!
@@ -1475,18 +1862,43 @@ type Mutation {
   approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
   denyAccessmodAccessRequest(input: DenyAccessmodAccessRequestInput!): DenyAccessmodAccessRequestResult!
   launchNotebookServer(input: LaunchNotebookServerInput!): LaunchNotebookServerResult!
+
+  """Creates a new pipeline."""
   createPipeline(input: CreatePipelineInput!): CreatePipelineResult!
+
+  """Updates an existing pipeline."""
   updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult!
+
+  """Deletes a pipeline."""
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult!
+
+  """Runs a pipeline."""
   runPipeline(input: RunPipelineInput): RunPipelineResult!
+
+  """Stops a pipeline."""
   stopPipeline(input: StopPipelineInput!): StopPipelineResult!
+
+  """Retrieves a token for a pipeline."""
   pipelineToken(input: PipelineTokenInput!): PipelineTokenResult!
+
+  """Uploads a pipeline."""
   uploadPipeline(input: UploadPipelineInput!): UploadPipelineResult!
+
+  """Updates a pipeline version."""
   updatePipelineVersion(input: UpdatePipelineVersionInput!): UpdatePipelineVersionResult!
+
+  """Logs a message for a pipeline."""
   logPipelineMessage(input: LogPipelineMessageInput!): LogPipelineMessageResult!
+
+  """Updates the progress of a pipeline."""
   updatePipelineProgress(input: UpdatePipelineProgressInput!): UpdatePipelineProgressResult!
+
+  """Adds an output to a pipeline."""
   addPipelineOutput(input: AddPipelineOutputInput!): AddPipelineOutputResult!
+
+  """Deletes a pipeline version."""
   deletePipelineVersion(input: DeletePipelineVersionInput!): DeletePipelineVersionResult!
+  generatePipelineWebhookUrl(input: GeneratePipelineWebhookUrlInput!): GeneratePipelineWebhookUrlResult!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
@@ -1503,20 +1915,50 @@ type Mutation {
   createConnection(input: CreateConnectionInput!): CreateConnectionResult!
   updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult!
   deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult!
+
+  """Generates a new password for a database."""
   generateNewDatabasePassword(input: GenerateNewDatabasePasswordInput!): GenerateNewDatabasePasswordResult!
+
+  """Delete an object from a workspace's bucket."""
   deleteBucketObject(input: DeleteBucketObjectInput!): DeleteBucketObjectResult!
+
+  """Prepare to download an object from a workspace's bucket."""
   prepareObjectDownload(input: PrepareObjectDownloadInput!): PrepareObjectDownloadResult!
+
+  """Prepare to upload an object to a workspace's bucket."""
   prepareObjectUpload(input: PrepareObjectUploadInput!): PrepareObjectUploadResult!
+
+  """Create a folder in a workspace's bucket."""
   createBucketFolder(input: CreateBucketFolderInput!): CreateBucketFolderResult!
+
+  """Create a new dataset."""
   createDataset(input: CreateDatasetInput!): CreateDatasetResult!
+
+  """Update a dataset."""
   updateDataset(input: UpdateDatasetInput!): UpdateDatasetResult!
+
+  """Delete a dataset."""
   deleteDataset(input: DeleteDatasetInput!): DeleteDatasetResult!
+
+  """Create a new dataset version."""
   createDatasetVersion(input: CreateDatasetVersionInput!): CreateDatasetVersionResult!
+
+  """Delete a dataset version."""
   deleteDatasetVersion(input: DeleteDatasetVersionInput!): DeleteDatasetVersionResult!
+
+  """Create a new file in a dataset version."""
   createDatasetVersionFile(input: CreateDatasetVersionFileInput!): CreateDatasetVersionFileResult!
+
+  """Prepare to download a file in a dataset version."""
   prepareVersionFileDownload(input: PrepareVersionFileDownloadInput!): PrepareVersionFileDownloadResult!
+
+  """Link a dataset with a workspace."""
   linkDataset(input: LinkDatasetInput!): LinkDatasetResult!
+
+  """Delete a dataset link."""
   deleteDatasetLink(input: DeleteDatasetLinkInput!): DeleteDatasetLinkResult!
+
+  """Pin or unpin a dataset for a workspace."""
   pinDataset(input: PinDatasetInput!): PinDatasetResult!
 }
 
@@ -1526,27 +1968,51 @@ type NotebookServer {
   ready: Boolean!
 }
 
+"""The direction in which to order a list of items."""
 enum OrderByDirection {
   ASC
   DESC
 }
 
+"""The Organization type represents an organization in the system."""
 type Organization {
+  """The unique identifier of the organization."""
   id: UUID!
+
+  """The name of the organization."""
   name: String!
+
+  """The type of the organization."""
   type: String!
+
+  """The URL of the organization."""
   url: String!
+
+  """The contact information of the organization."""
   contactInfo: String!
 }
 
+"""
+The OrganizationInput type represents the input for creating or updating an organization.
+"""
 input OrganizationInput {
+  """The unique identifier of the organization."""
   id: UUID!
+
+  """The updated name of the organization."""
   name: String
+
+  """The updated type of the organization."""
   type: String
+
+  """The updated URL of the organization."""
   url: String
+
+  """The updated contact information of the organization."""
   contactInfo: String
 }
 
+"""Represents an input parameter of a pipeline."""
 input ParameterInput {
   code: String!
   type: String!
@@ -1558,29 +2024,56 @@ input ParameterInput {
   choices: [Generic!]
 }
 
+"""Enum representing the type of a parameter."""
+enum ParameterType {
+  bool
+  int
+  str
+  float
+  dataset
+  dhis2
+  postgresql
+  iaso
+  s3
+  gcs
+  custom
+}
+
+"""The PermissionMode enum represents the mode of permissions for a team."""
 enum PermissionMode {
+  """Indicates that the user is the owner of the team."""
   OWNER
+
+  """Indicates that the user is an editor of the team."""
   EDITOR
+
+  """Indicates that the user is a viewer of the team."""
   VIEWER
 }
 
+"""
+Errors that can occur when pinning or unpinning a dataset for a workspace.
+"""
 enum PinDatasetError {
   LINK_NOT_FOUND
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Input for pinning or unpinning a dataset for a workspace."""
 input PinDatasetInput {
   linkId: ID!
   pinned: Boolean!
 }
 
+"""Result of pinning or unpinning a dataset for a workspace."""
 type PinDatasetResult {
   link: DatasetLink
   success: Boolean!
   errors: [PinDatasetError!]!
 }
 
+"""Represents a pipeline."""
 type Pipeline {
   id: UUID!
   name: String
@@ -1618,10 +2111,11 @@ enum PipelineError {
   CANNOT_UPDATE_NOTEBOOK_PIPELINE
 }
 
+"""Represents a parameter of a pipeline."""
 type PipelineParameter {
   code: String!
   name: String!
-  type: String!
+  type: ParameterType!
   multiple: Boolean!
   required: Boolean!
   default: Generic
@@ -1629,6 +2123,7 @@ type PipelineParameter {
   choices: [Generic!]
 }
 
+"""Represents the permissions for a pipeline."""
 type PipelinePermissions {
   update: Boolean!
   delete: Boolean!
@@ -1638,11 +2133,13 @@ type PipelinePermissions {
   stopPipeline: Boolean!
 }
 
+"""Represents a recipient of a pipeline."""
 type PipelineRecipient {
   user: User!
   pipeline: Pipeline!
 }
 
+"""Represents a pipeline run."""
 type PipelineRun {
   id: UUID!
   run_id: UUID!
@@ -1665,19 +2162,25 @@ type PipelineRun {
   stoppedBy: User
 }
 
+"""Represents a message associated with a pipeline run."""
 type PipelineRunMessage {
   message: String!
   priority: MessagePriority!
   timestamp: DateTime
 }
 
+"""Enum representing the possible orderings for pipeline runs."""
 enum PipelineRunOrderBy {
   EXECUTION_DATE_DESC
   EXECUTION_DATE_ASC
 }
 
+"""
+Represents an output of a pipeline run, which can be either a BucketObject, GenericOutput, or DatabaseTable.
+"""
 union PipelineRunOutput = BucketObject | GenericOutput | DatabaseTable
 
+"""Represents a page of pipeline runs."""
 type PipelineRunPage {
   items: [PipelineRun!]!
   pageNumber: Int!
@@ -1685,6 +2188,7 @@ type PipelineRunPage {
   totalItems: Int!
 }
 
+"""Enum representing the status of a pipeline run."""
 enum PipelineRunStatus {
   success
   running
@@ -1700,6 +2204,7 @@ enum PipelineRunTrigger {
   webhook
 }
 
+"""Represents a page of pipelines."""
 type PipelinesPage {
   items: [Pipeline!]!
   pageNumber: Int!
@@ -1707,22 +2212,26 @@ type PipelinesPage {
   totalItems: Int!
 }
 
+"""Represents the input for retrieving a pipeline token."""
 input PipelineTokenInput {
   workspaceSlug: String!
   pipelineCode: String!
 }
 
+"""Represents the result of retrieving a pipeline token."""
 type PipelineTokenResult {
   success: Boolean!
   errors: [PipelineError!]!
   token: String
 }
 
+"""Represents the type of a pipeline."""
 enum PipelineType {
   zipFile
   notebook
 }
 
+"""Represents a version of a pipeline."""
 type PipelineVersion {
   id: UUID!
   user: User
@@ -1739,6 +2248,7 @@ type PipelineVersion {
   permissions: PipelineVersionPermissions!
 }
 
+"""Represents a page of pipeline versions."""
 type PipelineVersionPage {
   items: [PipelineVersion!]!
   pageNumber: Int!
@@ -1746,6 +2256,7 @@ type PipelineVersionPage {
   totalItems: Int!
 }
 
+"""Represents the permissions for a pipeline version."""
 type PipelineVersionPermissions {
   update: Boolean!
   delete: Boolean!
@@ -1789,6 +2300,9 @@ type PrepareDownloadURLResult {
   url: URL
 }
 
+"""
+Errors that can occur when preparing to download an object from a workspace's bucket.
+"""
 enum PrepareObjectDownloadError {
   NOT_FOUND
   PERMISSION_DENIED
@@ -1799,38 +2313,58 @@ input PrepareObjectDownloadInput {
   objectKey: String!
 }
 
+"""
+The result of preparing to download an object from a workspace's bucket.
+"""
 type PrepareObjectDownloadResult {
   success: Boolean!
   downloadUrl: URL
   errors: [PrepareObjectDownloadError!]!
 }
 
+"""
+Errors that can occur when preparing to upload an object to a workspace's bucket.
+"""
 enum PrepareObjectUploadError {
   PERMISSION_DENIED
 }
 
+"""
+Input for preparing to upload an object to a workspace's bucket.
+The `contentType` 
+"""
 input PrepareObjectUploadInput {
   workspaceSlug: String!
   objectKey: String!
   contentType: String
 }
 
+"""
+The result of preparing to upload an object to a workspace's bucket. It contains
+a URL that can be used to upload the object using a PUT request.
+"""
 type PrepareObjectUploadResult {
+  """
+  Url to upload the object to. The contentType passed with the PUT request should match the one passed in the input.
+  """
   uploadUrl: URL
   success: Boolean!
   errors: [PrepareObjectUploadError!]!
 }
 
+"""Errors that can occur when preparing a dataset version file download."""
 enum PrepareVersionFileDownloadError {
   FILE_NOT_FOUND
   FILE_NOT_UPLOADED
   PERMISSION_DENIED
 }
 
+"""Input for preparing a dataset version file download."""
 input PrepareVersionFileDownloadInput {
   fileId: ID!
 }
 
+"""Result of preparing a dataset version file download."""
 type PrepareVersionFileDownloadResult {
   downloadUrl: String
   success: Boolean!
@@ -1838,9 +2372,12 @@ type PrepareVersionFileDownloadResult {
 }
 
 type Query {
+  """Retrieves the currently authenticated user."""
   me: Me!
   team(id: UUID!): Team
   teams(term: String, page: Int, perPage: Int): TeamPage!
+
+  """Retrieves a list of organizations."""
   organizations: [Organization!]!
   dags(page: Int, perPage: Int): DAGPage!
   dag(id: UUID!): DAG
@@ -1858,41 +2395,90 @@ type Query {
   boundaries(country_code: String!, level: String!): [WHOBoundary!]!
   countries: [Country!]!
   notebooksUrl: URL!
+
+  """Retrieves a page of pipelines."""
   pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage!
+
+  """Retrieves a pipeline by ID."""
   pipeline(id: UUID!): Pipeline
+
+  """Retrieves a pipeline version by ID."""
   pipelineVersion(id: UUID!): PipelineVersion
+
+  """Retrieves a pipeline by workspace slug and code."""
   pipelineByCode(workspaceSlug: String!, code: String!): Pipeline
+
+  """Retrieves a pipeline run by ID."""
   pipelineRun(id: UUID!): PipelineRun
   workspace(slug: String!): Workspace
   workspaces(query: String, page: Int, perPage: Int): WorkspacePage!
   pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
   databaseTable(id: String!): DatabaseTable
   connection(id: UUID!): Connection
+  connectionBySlug(slug: String!): Connection
+
+  """Get a dataset by its ID."""
   dataset(id: ID!): Dataset
+
+  """Get a dataset by its slug."""
   datasetVersion(id: ID!): DatasetVersion
+
+  """Get a dataset link by its id."""
   datasetLink(id: ID!): DatasetLink
+
+  """Get a dataset link by its slug."""
   datasetLinkBySlug(workspaceSlug: String!, datasetSlug: String!): DatasetLink
+
+  """Search datasets."""
   datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
 }
 
+"""
+The RegisterError enum represents the possible errors that can occur during the register mutation.
+"""
 enum RegisterError {
+  """Indicates that the user is already logged in."""
   ALREADY_LOGGED_IN
+
+  """Indicates that the email address is already taken."""
   EMAIL_TAKEN
+
+  """Indicates that the invitation token is invalid."""
   INVALID_TOKEN
+
+  """Indicates that the provided passwords do not match."""
   PASSWORD_MISMATCH
+
+  """Indicates that the provided password is invalid."""
   INVALID_PASSWORD
 }
 
+"""The RegisterInput type represents the input for the register mutation."""
 input RegisterInput {
+  """The first password for registration."""
   password1: String!
+
+  """The second password for registration (confirmation)."""
   password2: String!
+
+  """The first name of the user."""
   firstName: String!
+
+  """The last name of the user."""
   lastName: String!
+
+  """The invitation token for registration."""
   invitationToken: String!
 }
 
+"""
+The RegisterResult type represents the result of the register mutation.
+"""
 type RegisterResult {
+  """Indicates whether the registration was successful."""
   success: Boolean!
+
+  """The list of errors that occurred during the registration process."""
   errors: [RegisterError!]
 }
 
@@ -1914,25 +2500,36 @@ type RequestAccessmodAccessInputResult {
   errors: [RequestAccessmodAccessError!]!
 }
 
+"""Represents the error types for resending a workspace invitation."""
 enum ResendWorkspaceInvitationError {
   INVITATION_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Represents the input for resending a workspace invitation."""
 input ResendWorkspaceInvitationInput {
   invitationId: UUID!
 }
 
+"""Represents the result of resending a workspace invitation."""
 type ResendWorkspaceInvitationResult {
   success: Boolean!
   errors: [ResendWorkspaceInvitationError!]!
 }
 
+"""
+The ResetPasswordInput type represents the input for the resetPassword mutation.
+"""
 input ResetPasswordInput {
+  """The email address of the user."""
   email: String!
 }
 
+"""
+The ResetPasswordResult type represents the result of the resetPassword mutation.
+"""
 type ResetPasswordResult {
+  """Indicates whether the password reset was successful."""
   success: Boolean!
 }
 
@@ -1953,6 +2550,7 @@ type RunDAGResult {
   dag: DAG
 }
 
+"""Represents the input for running a pipeline."""
 input RunPipelineInput {
   id: UUID!
   versionId: UUID
@@ -1960,6 +2558,7 @@ input RunPipelineInput {
   sendMailNotifications: Boolean
 }
 
+"""Represents the result of running a pipeline."""
 type RunPipelineResult {
   success: Boolean!
   errors: [PipelineError!]!
@@ -2013,22 +2612,48 @@ type SetDAGRunFavoriteResult {
   dagRun: DAGRun
 }
 
+"""
+The SetPasswordError enum represents the possible errors that can occur during the setPassword mutation.
+"""
 enum SetPasswordError {
+  """Indicates that the user was not found."""
   USER_NOT_FOUND
+
+  """Indicates that the provided passwords do not match."""
   PASSWORD_MISMATCH
+
+  """Indicates that the provided token is invalid."""
   INVALID_TOKEN
+
+  """Indicates that the provided password is invalid."""
   INVALID_PASSWORD
 }
 
+"""
+The SetPasswordInput type represents the input for the setPassword mutation.
+"""
 input SetPasswordInput {
+  """The base64-encoded user ID."""
   uidb64: String!
+
+  """The token for password reset."""
   token: String!
+
+  """The new password."""
   password1: String!
+
+  """The confirmation of the new password."""
   password2: String!
 }
 
+"""
+The SetPasswordResult type represents the result of the setPassword mutation.
+"""
 type SetPasswordResult {
+  """Indicates whether the password was set successfully."""
   success: Boolean!
+
+  """The error that occurred during the setPassword mutation."""
   error: SetPasswordError
 }
 
@@ -2036,10 +2661,12 @@ scalar SimplifiedExtentType
 
 scalar StackPriorities
 
+"""Represents the input for stopping a pipeline."""
 input StopPipelineInput {
   runId: UUID!
 }
 
+"""Represents the result of stopping a pipeline."""
 type StopPipelineResult {
   success: Boolean!
   errors: [PipelineError!]!
@@ -2050,37 +2677,74 @@ type TableColumn {
   type: String!
 }
 
+"""Represents a paginated list of rows from a database table."""
 type TableRowsPage {
+  """The page number of the result."""
   pageNumber: Int!
+
+  """Indicates if there is a next page available."""
   hasNextPage: Boolean!
+
+  """Indicates if there is a previous page available."""
   hasPreviousPage: Boolean!
+
+  """The rows in the current page."""
   items: [JSON!]!
 }
 
+"""A tag is a label."""
 type Tag {
   id: String!
   name: String!
 }
 
+"""The Team type represents a team in the system."""
 type Team {
+  """The unique identifier of the team."""
   id: UUID!
+
+  """The name of the team."""
   name: String!
+
+  """Retrieves the memberships of the team."""
   memberships(page: Int, perPage: Int): MembershipPage!
+
+  """The permissions assigned to the team."""
   permissions: TeamPermissions!
+
+  """The date when the team was created."""
   createdAt: DateTime!
+
+  """The date when the team was last updated."""
   updatedAt: DateTime!
 }
 
+"""The TeamPage type represents a paginated list of teams."""
 type TeamPage {
+  """The current page number."""
   pageNumber: Int!
+
+  """The total number of pages."""
   totalPages: Int!
+
+  """The total number of items."""
   totalItems: Int!
+
+  """The list of teams on the current page."""
   items: [Team!]!
 }
 
+"""The TeamPermissions type represents the permissions of a team."""
 type TeamPermissions {
+  """Indicates whether the user has permission to update the team."""
   update: Boolean!
+
+  """
+  Indicates whether the user has permission to create a membership in the team.
+  """
   createMembership: Boolean!
+
+  """Indicates whether the user has permission to delete the team."""
   delete: Boolean!
 }
 
@@ -2189,12 +2853,14 @@ type UpdateAccessmodZonalStatisticsResult {
   errors: [UpdateAccessmodZonalStatisticsError!]!
 }
 
+"""Represents the error types for updating a connection."""
 enum UpdateConnectionError {
   NOT_FOUND
   PERMISSION_DENIED
   INVALID_SLUG
 }
 
+"""Represents the input for updating a connection."""
 input UpdateConnectionInput {
   id: String!
   name: String
@@ -2203,6 +2869,7 @@ input UpdateConnectionInput {
   fields: [ConnectionFieldInput!]
 }
 
+"""Represents the result of updating a connection."""
 type UpdateConnectionResult {
   success: Boolean!
   connection: Connection
@@ -2228,46 +2895,77 @@ type UpdateDAGResult {
   dag: DAG
 }
 
+"""Errors that can occur when updating a dataset."""
 enum UpdateDatasetError {
   DATASET_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Input for updating a dataset."""
 input UpdateDatasetInput {
   datasetId: ID!
   name: String
   description: String
 }
 
+"""Result of updating a dataset."""
 type UpdateDatasetResult {
   dataset: Dataset
   success: Boolean!
   errors: [UpdateDatasetError!]!
 }
 
+"""
+The UpdateMembershipError enum represents the possible errors that can occur during the updateMembership mutation.
+"""
 enum UpdateMembershipError {
+  """
+  Indicates that the user does not have permission to update the membership.
+  """
   PERMISSION_DENIED
+
+  """Indicates that the membership was not found."""
   NOT_FOUND
+
+  """Indicates that the provided role is invalid."""
   INVALID_ROLE
 }
 
+"""
+The UpdateMembershipInput type represents the input for the updateMembership mutation.
+"""
 input UpdateMembershipInput {
+  """The unique identifier of the membership to update."""
   id: UUID!
+
+  """The updated role of the user in the team."""
   role: MembershipRole!
 }
 
+"""
+The UpdateMembershipResult type represents the result of the updateMembership mutation.
+"""
 type UpdateMembershipResult {
+  """Indicates whether the updateMembership mutation was successful."""
   success: Boolean!
+
+  """The updated membership object."""
   membership: Membership
+
+  """The list of errors that occurred during the updateMembership mutation."""
   errors: [UpdateMembershipError!]!
 }
 
+"""
+Enum representing the possible errors that can occur when updating a pipeline.
+"""
 enum UpdatePipelineError {
   NOT_FOUND
   PERMISSION_DENIED
   INVALID_CONFIG
 }
 
+"""Represents the input for updating a pipeline."""
 input UpdatePipelineInput {
   id: UUID!
   name: String
@@ -2278,26 +2976,33 @@ input UpdatePipelineInput {
   webhookEnabled: Boolean
 }
 
+"""Represents the input for updating the progress of a pipeline."""
 input UpdatePipelineProgressInput {
   percent: Int!
 }
 
+"""Represents the result of updating the progress of a pipeline."""
 type UpdatePipelineProgressResult {
   success: Boolean!
   errors: [PipelineError!]!
 }
 
+"""Represents the result of updating a pipeline."""
 type UpdatePipelineResult {
   success: Boolean!
   errors: [UpdatePipelineError!]!
   pipeline: Pipeline
 }
 
+"""
+Enum representing the possible errors that can occur when updating a pipeline version.
+"""
 enum UpdatePipelineVersionError {
   NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Represents the input for updating a pipeline version."""
 input UpdatePipelineVersionInput {
   id: UUID!
   name: String
@@ -2305,51 +3010,102 @@ input UpdatePipelineVersionInput {
   externalLink: URL
 }
 
+"""Represents the result of updating a pipeline version."""
 type UpdatePipelineVersionResult {
   success: Boolean!
   errors: [UpdatePipelineVersionError!]!
   pipelineVersion: PipelineVersion
 }
 
+"""
+The UpdateTeamError enum represents the possible errors that can occur during the updateTeam mutation.
+"""
 enum UpdateTeamError {
+  """Indicates that the team was not found."""
   NOT_FOUND
+
+  """Indicates that the user does not have permission to update the team."""
   PERMISSION_DENIED
+
+  """Indicates that a team with the same name already exists."""
   NAME_DUPLICATE
 }
 
+"""
+The UpdateTeamInput type represents the input for the updateTeam mutation.
+"""
 input UpdateTeamInput {
+  """The unique identifier of the team to update."""
   id: UUID!
+
+  """The updated name of the team."""
   name: String
 }
 
+"""
+The UpdateTeamResult type represents the result of the updateTeam mutation.
+"""
 type UpdateTeamResult {
+  """The updated team object."""
   team: Team
+
+  """Indicates whether the updateTeam mutation was successful."""
   success: Boolean!
+
+  """The list of errors that occurred during the updateTeam mutation."""
   errors: [UpdateTeamError!]!
 }
 
+"""
+The UpdateUserError enum represents the possible errors that can occur during the updateUser mutation.
+"""
 enum UpdateUserError {
+  """
+  Indicates that the user does not have permission to update their profile.
+  """
   PERMISSION_DENIED
+
+  """Indicates that the provided language is invalid."""
   INVALID_LANGUAGE
 }
 
+"""
+The UpdateUserInput type represents the input for the updateUser mutation.
+"""
 input UpdateUserInput {
+  """The updated first name of the user."""
   firstName: String
+
+  """The updated last name of the user."""
   lastName: String
+
+  """The updated language preference of the user."""
   language: String
 }
 
+"""
+The UpdateUserResult type represents the result of the updateUser mutation.
+"""
 type UpdateUserResult {
+  """Indicates whether the user update was successful."""
   success: Boolean!
+
+  """The updated user object."""
   user: User
+
+  """The list of errors that occurred during the updateUser mutation."""
   errors: [UpdateUserError!]!
 }
 
+"""
+Enum representing the possible errors that can occur when updating a workspace.
+"""
 enum UpdateWorkspaceError {
   PERMISSION_DENIED
   NOT_FOUND
 }
 
+"""Represents the input for updating a workspace."""
 input UpdateWorkspaceInput {
   slug: String!
   name: String
@@ -2358,28 +3114,35 @@ input UpdateWorkspaceInput {
   dockerImage: String
 }
 
+"""
+Enum representing the possible errors that can occur when updating a workspace member.
+"""
 enum UpdateWorkspaceMemberError {
   MEMBERSHIP_NOT_FOUND
   PERMISSION_DENIED
 }
 
+"""Represents the input for updating a workspace member."""
 input UpdateWorkspaceMemberInput {
   membershipId: UUID!
   role: WorkspaceMembershipRole!
 }
 
+"""Represents the result of updating a workspace member."""
 type UpdateWorkspaceMemberResult {
   success: Boolean!
   errors: [UpdateWorkspaceMemberError!]!
   workspaceMembership: WorkspaceMembership
 }
 
+"""Represents the result of updating a workspace."""
 type UpdateWorkspaceResult {
   success: Boolean!
   errors: [UpdateWorkspaceError!]!
   workspace: Workspace
 }
 
+"""Represents the input for uploading a pipeline."""
 input UploadPipelineInput {
   workspaceSlug: String!
   pipelineCode: String
@@ -2391,6 +3154,7 @@ input UploadPipelineInput {
   timeout: Int
 }
 
+"""Represents the result of uploading a pipeline."""
 type UploadPipelineResult {
   success: Boolean!
   pipelineVersion: PipelineVersion
@@ -2400,29 +3164,56 @@ type UploadPipelineResult {
 
 scalar URL
 
+"""The User type represents a user in the system."""
 type User {
+  """The unique identifier of the user."""
   id: UUID!
+
+  """The email address of the user."""
   email: String!
+
+  """The first name of the user."""
   firstName: String
+
+  """The last name of the user."""
   lastName: String
+
+  """The display name of the user."""
   displayName: String!
+
+  """The language preference of the user."""
   language: String!
+
+  """The avatar of the user."""
   avatar: Avatar!
+
+  """The date when the user joined the system."""
   dateJoined: DateTime!
+
+  """The date of the user's last login."""
   lastLogin: DateTime
 }
 
 scalar UUID
 
+"""
+The VerifyDeviceError enum represents the possible errors that can occur during the verifyDevice mutation.
+"""
 enum VerifyDeviceError {
   NO_DEVICE
   INVALID_OTP
 }
 
+"""
+The VerifyDeviceInput type represents the input for the verifyDevice mutation.
+"""
 input VerifyDeviceInput {
   token: String
 }
 
+"""
+The VerifyDeviceResult type represents the result of the verifyDevice mutation.
+"""
 type VerifyDeviceResult {
   success: Boolean!
   errors: [VerifyDeviceError!]
@@ -2448,6 +3239,9 @@ type WHORegion {
   name: String!
 }
 
+"""
+Represents a workspace. A workspace is a shared environment where users can collaborate on data projects.
+"""
 type Workspace {
   slug: String!
   name: String!
@@ -2462,10 +3256,15 @@ type Workspace {
   connections: [Connection!]!
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
   database: Database!
+
+  """File storage of the workspace represented as a bucket"""
   bucket: Bucket!
+
+  """Linked datasets of the workspace"""
   datasets(pinned: Boolean, query: String, page: Int = 1, perPage: Int = 15): DatasetLinkPage!
 }
 
+"""Represents an invitation to join a workspace."""
 type WorkspaceInvitation {
   id: UUID!
   email: String!
@@ -2477,6 +3276,7 @@ type WorkspaceInvitation {
   updatedAt: DateTime
 }
 
+"""Represents a page of workspace invitations."""
 type WorkspaceInvitationPage {
   pageNumber: Int!
   totalPages: Int!
@@ -2484,12 +3284,14 @@ type WorkspaceInvitationPage {
   items: [WorkspaceInvitation!]!
 }
 
+"""Represents the status of a workspace invitation."""
 enum WorkspaceInvitationStatus {
   PENDING
   DECLINED
   ACCEPTED
 }
 
+"""Represents a membership in a workspace."""
 type WorkspaceMembership {
   id: UUID!
   user: User!
@@ -2499,6 +3301,7 @@ type WorkspaceMembership {
   updatedAt: DateTime
 }
 
+"""Represents a page of workspace memberships."""
 type WorkspaceMembershipPage {
   pageNumber: Int!
   totalPages: Int!
@@ -2506,12 +3309,14 @@ type WorkspaceMembershipPage {
   items: [WorkspaceMembership!]!
 }
 
+"""Represents the role of a workspace membership."""
 enum WorkspaceMembershipRole {
   ADMIN
   EDITOR
   VIEWER
 }
 
+"""Represents a page of workspaces."""
 type WorkspacePage {
   pageNumber: Int!
   totalPages: Int!
@@ -2519,6 +3324,7 @@ type WorkspacePage {
   items: [Workspace!]!
 }
 
+"""Represents the permissions of a workspace."""
 type WorkspacePermissions {
   update: Boolean!
   delete: Boolean!
@@ -2527,9 +3333,17 @@ type WorkspacePermissions {
   launchNotebookServer: Boolean!
   deleteDatabaseTable: Boolean!
   createPipeline: Boolean!
+
+  """User can create objects in the workspace's bucket."""
   createObject: Boolean!
+
+  """User can delete objects in the workspace's bucket."""
   deleteObject: Boolean!
+
+  """User can download objects from the workspace's bucket."""
   downloadObject: Boolean!
+
+  """Permissions to create a dataset in the workspace"""
   createDataset: Boolean!
 }
 
