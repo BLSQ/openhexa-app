@@ -159,7 +159,7 @@ class PipelineVersion(models.Model):
         return all(
             parameter.get("required") is False
             or parameter.get("default") is not None
-            or self.config.get(parameter.get("code"))
+            or self.config.get(parameter["code"]) is not None
             for parameter in self.parameters
         )
 
