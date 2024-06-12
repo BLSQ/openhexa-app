@@ -326,8 +326,9 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
     @classmethod
     @mock_gcp_storage
     def setUpTestData(cls):
-        get_storage().create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+        cls.storage = get_storage().create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
 
+    @mock_gcp_storage
     def test_create_dataset_version(self):
         superuser = self.create_user("superuser@blsq.com", is_superuser=True)
 
@@ -343,6 +344,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                 createDatasetVersion(input: $input) {
                     success
                     errors
+                    uploadUrl
                     version {
                         name
                         description
@@ -355,19 +357,21 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                     "datasetId": str(dataset.id),
                     "name": "Version 1",
                     "description": "Version 1 description",
+                    "filename": "test_version1.txt",
+                    "contentType": "text/plain",
                 }
             },
         )
         self.assertEqual(
             {
-                "success": True,
-                "errors": [],
-                "version": {
-                    "name": "Version 1",
-                    "description": "Version 1 description",
-                },
+                "name": "Version 1",
+                "description": "Version 1 description",
             },
-            r["data"]["createDatasetVersion"],
+            r["data"]["createDatasetVersion"]["version"],
+        )
+        self.assertTrue(
+            "test_version1.txt" in r["data"]["createDatasetVersion"]["uploadUrl"]
+            and "signed-url" in r["data"]["createDatasetVersion"]["uploadUrl"]
         )
 
     def test_create_duplicate(self):
@@ -375,7 +379,12 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         superuser = User.objects.get(email="superuser@blsq.com")
         dataset = Dataset.objects.get(name="Dataset")
         with self.assertRaises(IntegrityError):
-            dataset.create_version(principal=superuser, name="Version 1")
+            dataset.create_version(
+                principal=superuser,
+                name="Version 1",
+                content_type="text/plain",
+                filename="test_version1.txt",
+            )
 
     def test_get_file_by_name(self):
         self.test_create_dataset_version()

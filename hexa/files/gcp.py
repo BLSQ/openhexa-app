@@ -156,7 +156,7 @@ class GCPClient(BaseClient):
         client = get_storage_client()
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(file_name)
-        blob.upload_from_filename(source)
+        blob.upload_from_filename()
 
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
         client = get_storage_client()
@@ -197,9 +197,9 @@ class GCPClient(BaseClient):
     ):
         client = get_storage_client()
         gcs_bucket = client.get_bucket(bucket_name)
-        if raise_if_exists and gcs_bucket.get_blob(target_key) is not None:
-            raise ValidationError(f"GCS: Object {target_key} already exists!")
         blob = gcs_bucket.blob(target_key)
+        if raise_if_exists and blob.exists():
+            raise ValidationError(f"GCS: File {target_key} already exists!")
         return blob.generate_signed_url(
             expiration=3600, version="v4", method="PUT", content_type=content_type
         )

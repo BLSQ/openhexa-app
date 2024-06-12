@@ -54,12 +54,21 @@ class DatasetTestMixin:
 
     @staticmethod
     def create_dataset_version(
-        principal: User, *, dataset: Dataset, name="v1", description=None, **kwargs
+        principal: User,
+        *,
+        dataset: Dataset,
+        name="v1",
+        filename: str = "file.csv",
+        content_type: str = "text/csv",
+        description=None,
+        **kwargs,
     ) -> DatasetVersion:
         return DatasetVersion.objects.create_if_has_perm(
             principal=principal,
             dataset=dataset,
             name=name,
+            content_type=content_type,
+            filename=filename,
             description=description,
             **kwargs,
         )

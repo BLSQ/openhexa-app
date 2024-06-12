@@ -4,11 +4,11 @@ from google.api_core.exceptions import NotFound
 from hexa.files.api import get_storage
 
 
-def generate_upload_url(file):
+def generate_upload_url(uri: str, content_type: str) -> str:
     return get_storage().generate_upload_url(
         settings.WORKSPACE_DATASETS_BUCKET,
-        file.uri,
-        file.content_type,
+        uri,
+        content_type,
         raise_if_exists=True,
     )
 

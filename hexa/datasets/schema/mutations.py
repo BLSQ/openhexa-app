@@ -89,20 +89,27 @@ def resolve_delete_dataset(_, info, **kwargs):
 def resolve_create_dataset_version(_, info, **kwargs):
     request = info.context["request"]
     mutation_input = kwargs["input"]
-
     try:
         dataset = Dataset.objects.filter_for_user(request.user).get(
             id=mutation_input["datasetId"]
         )
-
         version = DatasetVersion.objects.create_if_has_perm(
             principal=request.user,
             dataset=dataset,
             name=mutation_input["name"],
             description=mutation_input.get("description"),
+            filename=mutation_input.get("filename"),
+            content_type=mutation_input.get("contentType"),
         )
+        full_uri = version.get_full_uri(file_uri=version.filename)
+        upload_url = generate_upload_url(full_uri, version.content_type)
 
-        return {"success": True, "errors": [], "version": version}
+        return {
+            "success": True,
+            "errors": [],
+            "version": version,
+            "upload_url": upload_url,
+        }
     except IntegrityError:
         return {"success": False, "errors": ["DUPLICATE_NAME"]}
     except Dataset.DoesNotExist:
@@ -195,8 +202,8 @@ def resolve_create_version_file(_, info, **kwargs):
             file = None
             try:
                 file = version.get_file_by_name(mutation_input["uri"])
-                if get_blob(file) is not None:
-                    return {"success": False, "errors": ["ALREADY_EXISTS"]}
+                if get_blob(version) is None:
+                    return {"success": False, "errors": ["FILE NOT FOUND"]}
             except DatasetVersionFile.DoesNotExist:
                 file = DatasetVersionFile.objects.create_if_has_perm(
                     principal=request.user,
@@ -204,12 +211,10 @@ def resolve_create_version_file(_, info, **kwargs):
                     uri=version.get_full_uri(mutation_input["uri"]),
                     content_type=mutation_input["contentType"],
                 )
-            upload_url = generate_upload_url(file)
             return {
                 "success": True,
                 "errors": [],
                 "file": file,
-                "upload_url": upload_url,
             }
     except ValidationError:
         return {"success": False, "errors": ["INVALID_URI"]}

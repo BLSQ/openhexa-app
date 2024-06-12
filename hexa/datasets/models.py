@@ -97,11 +97,21 @@ class Dataset(Base):
             raise PermissionDenied
         self.delete()
 
-    def create_version(self, *, principal: User, name: str, description: str = None):
+    def create_version(
+        self,
+        *,
+        principal: User,
+        filename: str,
+        content_type: str,
+        name: str,
+        description: str = None,
+    ):
         return DatasetVersion.objects.create_if_has_perm(
             principal=principal,
             dataset=self,
             name=name,
+            filename=filename,
+            content_type=content_type,
             description=description,
         )
 
@@ -125,7 +135,14 @@ class DatasetVersionQuerySet(BaseQuerySet):
 
 class DatasetVersionManager(models.Manager):
     def create_if_has_perm(
-        self, principal: User, dataset: Dataset, *, name: str, description: str
+        self,
+        principal: User,
+        dataset: Dataset,
+        *,
+        name: str,
+        filename: str,
+        content_type: str,
+        description: str,
     ):
         # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
         from hexa.pipelines.authentication import PipelineRunUser
@@ -144,6 +161,8 @@ class DatasetVersionManager(models.Manager):
             dataset=dataset,
             created_by=created_by,
             description=description,
+            filename=filename,
+            content_type=content_type,
             pipeline_run=pipeline_run,
         )
 
@@ -160,6 +179,8 @@ class DatasetVersion(Base):
     )
     name = models.TextField(null=False, blank=False)
     description = models.TextField(blank=True, null=True)
+    filename = models.TextField(null=True, blank=False)
+    content_type = models.TextField(null=True, blank=False)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     pipeline_run = models.ForeignKey(
         "pipelines.PipelineRun",

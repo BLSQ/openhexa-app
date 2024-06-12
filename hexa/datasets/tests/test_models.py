@@ -160,12 +160,16 @@ class DatasetVersionTest(BaseTestMixin, TestCase):
                 principal=self.USER_SERENA,
                 name="New name",
                 description="New description",
+                filename="file.txt",
+                content_type="text/plain",
             )
 
         version = self.DATASET.create_version(
             principal=self.USER_ADMIN,
             name=name,
             description=description,
+            filename="file.txt",
+            content_type="text/plain",
         )
 
         self.assertEqual(version.name, name)

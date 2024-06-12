@@ -41,6 +41,8 @@ type DatasetVersion {
   createdAt: DateTime!
   createdBy: User
   dataset: Dataset!
+  uri: String!
+  contentType: String!
   permissions: DatasetVersionPermissions!
   fileByName(name: String!): DatasetVersionFile
   files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!
@@ -227,6 +229,8 @@ input CreateDatasetVersionInput {
   datasetId: ID!
   name: String!
   description: String
+  filename: String!
+  contentType: String!
 }
 
 """
@@ -242,6 +246,8 @@ enum CreateDatasetVersionError {
 Result of creating a dataset version.
 """
 type CreateDatasetVersionResult {
+  "The URL to upload the file to"
+  uploadUrl: String
   version: DatasetVersion
   success: Boolean!
   errors: [CreateDatasetVersionError!]!
@@ -260,6 +266,8 @@ Errors that can occur when deleting a dataset version.
 enum DeleteDatasetVersionError {
   VERSION_NOT_FOUND
   PERMISSION_DENIED
+  INVALID_URI
+  ALREADY_EXISTS
 }
 
 """
@@ -285,10 +293,9 @@ Errors that can occur when creating a dataset version file.
 enum CreateDatasetVersionFileError {
   VERSION_NOT_FOUND
   LOCKED_VERSION
-  ALREADY_EXISTS
   INVALID_URI
   PERMISSION_DENIED
-
+  FILE_NOT_FOUND
 }
 
 """
@@ -297,8 +304,6 @@ Result of creating a dataset version file.
 type CreateDatasetVersionFileResult {
   "The created file object"
   file: DatasetVersionFile
-  "The URL to upload the file to"
-  uploadUrl: String
   success: Boolean!
   errors: [CreateDatasetVersionFileError!]!
 }
