@@ -355,18 +355,6 @@ class APITestCase:
         url = self.get_client().generate_upload_url("bucket", "demo.txt")
         assert "demo.txt" in url, f"Expected to be in '{url}'"
 
-    def test_generate_upload_url_raise_existing(self):
-        bucket = self.get_client().create_bucket("bucket")
-        bucket.blob(
-            "demo.txt",
-            size=123,
-            content_type="text/plain",
-        )
-        with self.assertRaises(ValidationError):
-            self.get_client().generate_upload_url(
-                bucket_name="bucket", target_key="demo.txt", raise_if_exists=True
-            )
-
 
 class OnlyGCP:
     @override_settings(WORKSPACE_BUCKET_VERSIONING_ENABLED="true")
@@ -401,6 +389,22 @@ class OnlyGCP:
         bucket = self.get_client().create_bucket("bucket", labels={"key": "value"})
         self.assertEqual(bucket.labels, {"key": "value"})
 
+    def test_generate_upload_url_raise_existing(self):
+        bucket = self.get_client().create_bucket("bucket")
+        blob = bucket.blob(
+            "demo.txt",
+            size=123,
+            content_type="text/plain",
+        )
+        blob.generate_signed_url(
+            bucket_name="bucket", target_key="demo.txt", raise_if_exists=True
+        )
+        blob.upload_from_filename("demo.txt")
+        with self.assertRaises(ValidationError):
+            blob.generate_signed_url(
+                bucket_name="bucket", target_key="demo.txt", raise_if_exists=True
+            )
+
 
 class OnlyS3:
     def test_generate_upload_url_raise_existing_dont_raise(self):
@@ -411,6 +415,18 @@ class OnlyS3:
         )
 
         assert "demo.txt" in url, f"Expected to be in '{url}'"
+
+    def test_generate_upload_url_raise_existing(self):
+        bucket = self.get_client().create_bucket("bucket")
+        bucket.blob(
+            "demo.txt",
+            size=123,
+            content_type="text/plain",
+        )
+        with self.assertRaises(ValidationError):
+            self.get_client().generate_upload_url(
+                bucket_name="bucket", target_key="demo.txt", raise_if_exists=True
+            )
 
     def test_load_bucket_sample_data(self):
         self.get_client().create_bucket("bucket")

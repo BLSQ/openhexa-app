@@ -38,6 +38,7 @@ def _blob_to_dict(blob: Blob):
         "updated": blob.updated,
         "size": blob.size,
         "type": "directory" if _is_dir(blob) else "file",
+        "file_exists": blob.exists(),
     }
 
 

@@ -1,6 +1,6 @@
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError
 
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.workspaces.models import Workspace
@@ -189,7 +189,6 @@ def resolve_delete_dataset_share(_, info, **kwargs):
 def resolve_create_version_file(_, info, **kwargs):
     request = info.context["request"]
     mutation_input = kwargs["input"]
-
     try:
         version = DatasetVersion.objects.filter_for_user(request.user).get(
             id=mutation_input["versionId"]
@@ -198,24 +197,20 @@ def resolve_create_version_file(_, info, **kwargs):
         if version.id != version.dataset.latest_version.id:
             return {"success": False, "errors": ["LOCKED_VERSION"]}
 
-        with transaction.atomic():
-            file = None
-            try:
-                file = version.get_file_by_name(mutation_input["uri"])
-                if get_blob(version) is None:
-                    return {"success": False, "errors": ["FILE NOT FOUND"]}
-            except DatasetVersionFile.DoesNotExist:
-                file = DatasetVersionFile.objects.create_if_has_perm(
-                    principal=request.user,
-                    dataset_version=version,
-                    uri=version.get_full_uri(mutation_input["uri"]),
-                    content_type=mutation_input["contentType"],
-                )
-            return {
-                "success": True,
-                "errors": [],
-                "file": file,
-            }
+        blob = get_blob(version.get_full_uri(mutation_input["uri"]))
+        if blob.get("file_exists") is False:
+            return {"success": False, "errors": ["FILE_NOT_FOUND"], "file": None}
+        file = DatasetVersionFile.objects.create_if_has_perm(
+            principal=request.user,
+            dataset_version=version,
+            uri=version.get_full_uri(mutation_input["uri"]),
+            content_type=mutation_input["contentType"],
+        )
+        return {
+            "success": True,
+            "errors": [],
+            "file": file,
+        }
     except ValidationError:
         return {"success": False, "errors": ["INVALID_URI"]}
     except DatasetVersion.DoesNotExist:

@@ -1,5 +1,6 @@
 from unittest.mock import Mock
 
+from django.core.exceptions import ValidationError
 from google.cloud._helpers import _bytes_to_unicode
 
 
@@ -15,6 +16,7 @@ class MockBlob:
         self.size = size
         self._content_type = content_type
         self.bucket = bucket
+        self.file_exists = False
 
         self.upload_from_string = Mock()
 
@@ -27,14 +29,16 @@ class MockBlob:
         return None
 
     def generate_signed_url(self, *args, **kwargs):
+        if self.file_exists:
+            raise ValidationError("File was already uploaded")
         return f"http://signed-url/{self.name}"
 
     def upload_from_filename(self, *args, **kwargs):
         self.bucket._blobs.append(self)
-        self.bucket.exists = True
+        self.file_exists = True
 
     def exists(self):
-        self.exists
+        return self.file_exists
 
     def __repr__(self) -> str:
         return f"<MockBlob: {self.name}>"

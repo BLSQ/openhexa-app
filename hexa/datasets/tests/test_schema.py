@@ -571,3 +571,54 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             },
             r["data"]["prepareVersionFileDownload"],
         )
+
+
+class DatasetVersionFileTest(GraphQLTestCase, DatasetTestMixin):
+    @classmethod
+    @mock_gcp_storage
+    def setUpTestData(cls):
+        cls.storage = get_storage().create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+
+    @mock_gcp_storage
+    def test_create_dataset_version_file(self):
+        superuser = self.create_user("superuser@blsq.com", is_superuser=True)
+
+        workspace = self.create_workspace(superuser, "Workspace", "Description")
+        dataset = self.create_dataset(
+            superuser, workspace, "Dataset", "Dataset's description"
+        )
+
+        self.client.force_login(superuser)
+        dataset_version = self.create_dataset_version(
+            principal=superuser,
+            dataset=dataset,
+            name="TestVersion1",
+            filename="TestFile1",
+            content_type="text/csv",
+        )
+
+        full_uri = dataset_version.get_full_uri(dataset_version.filename)
+        r = self.run_query(
+            """
+            mutation CreateDatasetVersionFile ($input: CreateDatasetVersionFileInput!) {
+            createDatasetVersionFile(input: $input) {
+                    success
+                    errors
+                    file {
+                        id
+                        uri
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "versionId": str(dataset_version.id),
+                    "contentType": dataset_version.content_type,
+                    "uri": full_uri,
+                }
+            },
+        )
+        self.assertEqual(
+            r["data"]["createDatasetVersionFile"]["errors"], ["FILE_NOT_FOUND"]
+        )

@@ -19,10 +19,8 @@ def generate_download_url(file):
     )
 
 
-def get_blob(file):
+def get_blob(uri: str) -> dict:
     try:
-        return get_storage().get_bucket_object(
-            settings.WORKSPACE_DATASETS_BUCKET, file.uri
-        )
+        return get_storage().get_bucket_object(settings.WORKSPACE_DATASETS_BUCKET, uri)
     except NotFound:
         return None

@@ -81,7 +81,7 @@ class S3BucketWrapper:
         self.name = bucket_name  # keep backward compat with gcp
 
     def blob(self, file_name, size=None, content_type="text/plain"):
-        get_storage_client().put_object(
+        return get_storage_client().put_object(
             Body="file_name",
             Bucket=self.bucket_name,
             Key=file_name,
