@@ -367,7 +367,6 @@ input AddPipelineOutputInput {
 type AddPipelineOutputResult {
   success: Boolean!
   errors: [PipelineError!]!
->>>>>>> e47d8e28 (test(Pipelines): test pipeline version config)
 }
 
 """
@@ -390,6 +389,7 @@ enum UpdatePipelineError {
   NOT_FOUND
   PERMISSION_DENIED
   INVALID_CONFIG
+  MISSING_VERSION_CONFIG
 }
 
 """

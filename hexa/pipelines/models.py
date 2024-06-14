@@ -43,6 +43,12 @@ class InvalidTimeoutValueError(Exception):
     pass
 
 
+class MissingPipelineConfiguration(Exception):
+    """The pipeline configuration is missing. This exception should be raised when trying to schedule a pipeline without a configuration for the required parameters."""
+
+    pass
+
+
 class Index(BaseIndex):
     class Meta:
         verbose_name = "Pipeline index"
@@ -236,7 +242,7 @@ class Pipeline(SoftDeletedModel):
         user: typing.Optional[User],
         pipeline_version: PipelineVersion,
         trigger_mode: PipelineRunTrigger,
-        config: typing.Mapping[typing.Dict, typing.Any] = None,
+        config: typing.Mapping[typing.Dict, typing.Any] | None = None,
         send_mail_notifications: bool = False,
     ):
         timeout = settings.PIPELINE_RUN_DEFAULT_TIMEOUT
@@ -269,13 +275,21 @@ class Pipeline(SoftDeletedModel):
         name: str,
         zipfile: str = None,
         description: str = None,
-        config: typing.Mapping[typing.Dict, typing.Any] = {},
+        config: typing.Mapping[typing.Dict, typing.Any] | None = None,
         external_link: str = None,
         timeout: int = None,
     ):
         if not user.has_perm("pipelines.update_pipeline", self):
             raise PermissionDenied
 
+        if config is None:
+            # No default configuration has been provided, let's take the default values from the parameters
+            # In the future, we'll use the one from the last version
+            config = {
+                parameter["code"]: parameter["default"]
+                for parameter in parameters
+                if parameter.get("default") is not None
+            }
         version = PipelineVersion(
             user=user,
             pipeline=self,
@@ -299,11 +313,12 @@ class Pipeline(SoftDeletedModel):
         if not principal.has_perm("pipelines.update_pipeline", self):
             raise PermissionDenied
         if (
-            kwargs.get("schedule") is not None
-            and self.last_version
+            self.last_version
             and self.last_version.is_schedulable is False
+            and not self.schedule
+            and kwargs.get("schedule")
         ):
-            raise PermissionDenied
+            raise MissingPipelineConfiguration
 
         for key in ["name", "description", "schedule", "config"]:
             if key in kwargs:
@@ -362,9 +377,12 @@ class Pipeline(SoftDeletedModel):
 
     def merge_pipeline_config(
         self,
-        provided_config: typing.Mapping[typing.Dict, typing.Any],
+        provided_config: typing.Mapping[typing.Dict, typing.Any] | None,
         pipeline_version_config: typing.Mapping[typing.Dict, typing.Any],
     ):
+        if provided_config is None:
+            return pipeline_version_config
+
         cleaned_provided_config = {
             key: value for key, value in provided_config.items() if value is not None
         }

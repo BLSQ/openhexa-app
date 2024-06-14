@@ -11,6 +11,7 @@ from hexa.files.api import NotFound, get_storage
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import (
     InvalidTimeoutValueError,
+    MissingPipelineConfiguration,
     Pipeline,
     PipelineDoesNotSupportParametersError,
     PipelineRun,
@@ -84,6 +85,11 @@ def resolve_update_pipeline(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["PERMISSION_DENIED"],
+        }
+    except MissingPipelineConfiguration:
+        return {
+            "success": False,
+            "errors": ["MISSING_VERSION_CONFIG"],
         }
     except Pipeline.DoesNotExist:
         return {
@@ -285,7 +291,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
             zipfile=base64.b64decode(input.get("zipfile").encode("ascii")),
             parameters=input["parameters"],
             timeout=input.get("timeout"),
-            config=input.get("config", {}),
+            config=input.get("config"),
         )
         return {
             "success": True,
