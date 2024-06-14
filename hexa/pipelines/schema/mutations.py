@@ -80,6 +80,11 @@ def resolve_update_pipeline(_, info, **kwargs):
         )
         pipeline.update_if_has_perm(request.user, **input)
         return {"pipeline": pipeline, "success": True, "errors": []}
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
     except Pipeline.DoesNotExist:
         return {
             "success": False,
