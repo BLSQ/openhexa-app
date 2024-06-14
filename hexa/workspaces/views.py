@@ -91,8 +91,6 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
 
     # Populate the environment variables with the connections of the workspace
     env = {}
-    for connection in workspace.connections.all():
-        env.update(connection.env_variables)
 
     # Database credentials
     db_credentials = get_db_server_credentials()
