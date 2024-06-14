@@ -277,97 +277,6 @@ type CreatePipelineResult {
   pipeline: Pipeline  # The created pipeline.
 }
 
-input DeletePipelineInput {
-  id: UUID!
-}
-
-type DeletePipelineResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-}
-
-input RunPipelineInput {
-  id: UUID!
-  versionId: UUID
-  config: JSON!
-  sendMailNotifications: Boolean
-}
-
-input StopPipelineInput {
-  runId: UUID!
-}
-
-type StopPipelineResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-}
-
-type RunPipelineResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-  run: PipelineRun
-}
-
-input PipelineTokenInput {
-  workspaceSlug: String!
-  pipelineCode: String!
-}
-
-type PipelineTokenResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-  token: String
-}
-
-input UploadPipelineInput {
-  workspaceSlug: String!
-  code: String @deprecated(reason: "Use 'pipelineCode' field instead")
-  pipelineCode: String
-  name: String!
-  description: String
-  externalLink: URL
-  parameters: [ParameterInput!]!
-  config: JSON
-  zipfile: String!
-  timeout: Int
-}
-
-type UploadPipelineResult {
-  success: Boolean!
-  pipelineVersion: PipelineVersion
-  version: String @deprecated(reason: "Use 'pipelineVersion' field instead")
-  errors: [PipelineError!]!
-}
-
-input LogPipelineMessageInput {
-  priority: MessagePriority!
-  message: String!
-}
-
-type LogPipelineMessageResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-}
-
-input UpdatePipelineProgressInput {
-  percent: Int!
-}
-
-type UpdatePipelineProgressResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-}
-
-input AddPipelineOutputInput {
-  uri: String!
-  type: String!
-  name: String
-}
-
-type AddPipelineOutputResult {
-  success: Boolean!
-  errors: [PipelineError!]!
-}
 
 """
 Represents the input for updating a pipeline.
@@ -479,6 +388,7 @@ input UploadPipelineInput {
   externalLink: URL  # The external link associated with the pipeline.
   parameters: [ParameterInput!]!  # The parameters of the pipeline.
   zipfile: String!  # The path to the ZIP file containing the pipeline.
+  config: JSON # The default configuration to set on newly created pipeline runs
   timeout: Int  # The timeout value for the pipeline.
 }
 
