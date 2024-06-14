@@ -216,7 +216,7 @@ type Pipeline {
   name: String  # The name of the pipeline.
   code: String!  # The code of the pipeline.
   permissions: PipelinePermissions!  # The permissions for the pipeline.
-  workspace: Workspace  # The workspace associated with the pipeline.
+  workspace: Workspace!  # The workspace associated with the pipeline.
   config: JSON!  # The configuration for the pipeline.
   schedule: String  # The schedule for running the pipeline.
   description: String  # The description of the pipeline.
