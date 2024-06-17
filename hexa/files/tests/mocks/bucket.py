@@ -34,7 +34,13 @@ class MockBucket:
         return self.client.list_blobs(self, *args, **kwargs)
 
     def get_blob(self, blob_name, *args, **kwargs):
-        return MockBlob(blob_name, self)
+        if any(
+            filename in blob_name
+            for filename in ["test", "demo", "mock", "data", "some-uri"]
+        ):
+            return MockBlob(blob_name, self)
+        else:
+            return None
 
     def blob(self, *args, **kwargs):
         b = MockBlob(*args, bucket=self, **kwargs)

@@ -303,7 +303,7 @@ enum CreateDatasetVersionFileError {
 Result of creating an upload url
 """
 type GenerateUploadUrlResult {
-  uploadUrl: String!
+  uploadUrl: String
   success: Boolean!
   errors: [CreateDatasetVersionFileError!]!
 }
