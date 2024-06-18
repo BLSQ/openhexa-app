@@ -120,6 +120,7 @@ type PipelineVersion {
   zipfile: String!  # The ZIP file base64 encoded.
   timeout: Int  # The timeout value for the pipeline version (in seconds).
   permissions: PipelineVersionPermissions!  # The permissions for the pipeline version.
+  config: JSON  # The default configuration to set on newly created pipeline runs
 }
 
 """
@@ -215,7 +216,7 @@ type Pipeline {
   name: String  # The name of the pipeline.
   code: String!  # The code of the pipeline.
   permissions: PipelinePermissions!  # The permissions for the pipeline.
-  workspace: Workspace  # The workspace associated with the pipeline.
+  workspace: Workspace!  # The workspace associated with the pipeline.
   config: JSON!  # The configuration for the pipeline.
   schedule: String  # The schedule for running the pipeline.
   description: String  # The description of the pipeline.
@@ -276,6 +277,7 @@ type CreatePipelineResult {
   pipeline: Pipeline  # The created pipeline.
 }
 
+
 """
 Represents the input for updating a pipeline.
 """
@@ -296,6 +298,7 @@ enum UpdatePipelineError {
   NOT_FOUND
   PERMISSION_DENIED
   INVALID_CONFIG
+  MISSING_VERSION_CONFIG
 }
 
 """
@@ -385,6 +388,7 @@ input UploadPipelineInput {
   externalLink: URL  # The external link associated with the pipeline.
   parameters: [ParameterInput!]!  # The parameters of the pipeline.
   zipfile: String!  # The path to the ZIP file containing the pipeline.
+  config: JSON # The default configuration to set on newly created pipeline runs
   timeout: Int  # The timeout value for the pipeline.
 }
 
@@ -491,6 +495,7 @@ input UpdatePipelineVersionInput {
   name: String  # The new name of the pipeline version.
   description: String  # The new description of the pipeline version.
   externalLink: URL  # The new external link associated with the pipeline version.
+  config: JSON  # The default configuration to set on newly created pipeline runs
 }
 
 """

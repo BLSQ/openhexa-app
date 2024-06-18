@@ -52,6 +52,5 @@ class GraphQLTestCase(TestCase):
             content_type="application/json",
             **headers,
         )
-
         content = json.loads(response.content)
         return content

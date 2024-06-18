@@ -43,6 +43,12 @@ class InvalidTimeoutValueError(Exception):
     pass
 
 
+class MissingPipelineConfiguration(Exception):
+    """The pipeline configuration is missing. This exception should be raised when trying to schedule a pipeline without a configuration for the required parameters."""
+
+    pass
+
+
 class Index(BaseIndex):
     class Meta:
         verbose_name = "Pipeline index"
@@ -121,6 +127,8 @@ class PipelineVersion(models.Model):
     description = models.TextField(null=True)
     zipfile = models.BinaryField(null=True)
     parameters = models.JSONField(blank=True, default=dict)
+    config = models.JSONField(blank=True, default=dict)
+
     timeout = models.IntegerField(
         null=True,
         help_text="Time (in seconds) after which the pipeline execution will be stopped (with a default value of 4 hours up to 12 max).",
@@ -132,16 +140,32 @@ class PipelineVersion(models.Model):
         if not principal.has_perm("pipelines.update_pipeline_version", self):
             raise PermissionDenied
 
-        for key in ["name", "description", "external_link"]:
+        if kwargs.get("config") and self.pipeline.schedule:
+            self.validate_new_config(kwargs.get("config"))
+
+        for key in ["name", "description", "external_link", "config"]:
             if key in kwargs and kwargs[key] is not None:
                 setattr(self, key, kwargs[key])
 
         return self.save()
 
+    def validate_new_config(self, new_config: dict):
+        for parameter in self.parameters:
+            if (
+                parameter.get("required")
+                and parameter.get("defaul") is None
+                and self.config.get(parameter.get("code"))
+            ) and new_config.get(parameter.get("code")) is None:
+                raise PipelineDoesNotSupportParametersError(
+                    "Cannot push an unschedulable new version for a scheduled pipeline."
+                )
+
     @property
     def is_schedulable(self):
         return all(
-            parameter.get("required") is False or parameter.get("default") is not None
+            parameter.get("required") is False
+            or parameter.get("default") is not None
+            or self.config.get(parameter["code"]) is not None
             for parameter in self.parameters
         )
 
@@ -218,7 +242,7 @@ class Pipeline(SoftDeletedModel):
         user: typing.Optional[User],
         pipeline_version: PipelineVersion,
         trigger_mode: PipelineRunTrigger,
-        config: typing.Mapping[typing.Dict, typing.Any] = None,
+        config: typing.Mapping[typing.Dict, typing.Any] | None = None,
         send_mail_notifications: bool = False,
     ):
         timeout = settings.PIPELINE_RUN_DEFAULT_TIMEOUT
@@ -232,7 +256,7 @@ class Pipeline(SoftDeletedModel):
             trigger_mode=trigger_mode,
             execution_date=timezone.now(),
             state=PipelineRunState.QUEUED,
-            config=config if config else self.config,
+            config=self.merge_pipeline_config(config, pipeline_version.config),
             access_token=str(uuid.uuid4()),
             send_mail_notifications=send_mail_notifications,
             timeout=timeout,
@@ -251,12 +275,21 @@ class Pipeline(SoftDeletedModel):
         name: str,
         zipfile: str = None,
         description: str = None,
+        config: typing.Mapping[typing.Dict, typing.Any] | None = None,
         external_link: str = None,
         timeout: int = None,
     ):
         if not user.has_perm("pipelines.update_pipeline", self):
             raise PermissionDenied
 
+        if config is None:
+            # No default configuration has been provided, let's take the default values from the parameters
+            # In the future, we'll use the one from the last version
+            config = {
+                parameter["code"]: parameter["default"]
+                for parameter in parameters
+                if parameter.get("default") is not None
+            }
         version = PipelineVersion(
             user=user,
             pipeline=self,
@@ -264,6 +297,7 @@ class Pipeline(SoftDeletedModel):
             description=description,
             external_link=external_link,
             zipfile=zipfile,
+            config=config,
             parameters=parameters,
             timeout=timeout,
         )
@@ -278,13 +312,13 @@ class Pipeline(SoftDeletedModel):
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("pipelines.update_pipeline", self):
             raise PermissionDenied
-
         if (
-            kwargs.get("schedule") is not None
-            and self.last_version
+            self.last_version
             and self.last_version.is_schedulable is False
+            and not self.schedule
+            and kwargs.get("schedule")
         ):
-            raise PermissionDenied
+            raise MissingPipelineConfiguration
 
         for key in ["name", "description", "schedule", "config"]:
             if key in kwargs:
@@ -340,6 +374,25 @@ class Pipeline(SoftDeletedModel):
             signer.sign(self.id).encode("utf-8")
         ).decode()
         self.save()
+
+    def merge_pipeline_config(
+        self,
+        provided_config: typing.Mapping[typing.Dict, typing.Any] | None,
+        pipeline_version_config: typing.Mapping[typing.Dict, typing.Any],
+    ):
+        if provided_config is None:
+            return pipeline_version_config
+
+        cleaned_provided_config = {
+            key: value for key, value in provided_config.items() if value is not None
+        }
+        cleaned_pipeline_version_config = {
+            key: value
+            for key, value in pipeline_version_config.items()
+            if value is not None
+        }
+        merged_config = {**cleaned_pipeline_version_config, **cleaned_provided_config}
+        return merged_config
 
     def __str__(self):
         if self.name is not None and self.name != "":

@@ -119,7 +119,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                         name
                         externalLink
                         description
-
+                        config
                     }
                 }
             }
@@ -130,6 +130,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                     "name": "New Version Name",
                     "externalLink": "https://example.com",
                     "description": "New Description",
+                    "config": {},
                 }
             },
         )
@@ -144,8 +145,85 @@ class PipelineVersionsTest(GraphQLTestCase):
                     "name": "New Version Name",
                     "externalLink": "https://example.com",
                     "description": "New Description",
+                    "config": {},
                 },
             },
+        )
+
+    def test_create_version_with_unschedulable_config(self):
+        self.test_create_version_with_parameters(version="Version 2 with parameters")
+
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation updatePipelineVersion($input: UpdatePipelineVersionInput!) {
+                updatePipelineVersion(input: $input) {
+                    success
+                    errors
+                    pipelineVersion {
+                        id
+                        name
+                        externalLink
+                        description
+                        config
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.PIPELINE.last_version.id),
+                    "name": "New Version Name",
+                    "externalLink": "https://example.com",
+                    "description": "New Description",
+                    "config": {"param_example": "example_value"},
+                }
+            },
+        )
+        self.assertEqual(
+            r["data"]["updatePipelineVersion"],
+            {
+                "success": True,
+                "errors": [],
+                "pipelineVersion": {
+                    "id": str(self.PIPELINE.last_version.id),
+                    "name": "New Version Name",
+                    "externalLink": "https://example.com",
+                    "description": "New Description",
+                    "config": {"param_example": "example_value"},
+                },
+            },
+        )
+
+        r = self.run_query(
+            """
+            mutation updatePipelineVersion($input: UpdatePipelineVersionInput!) {
+                updatePipelineVersion(input: $input) {
+                    success
+                    errors
+                    pipelineVersion {
+                        id
+                        name
+                        externalLink
+                        description
+                        config
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.PIPELINE.last_version.id),
+                    "name": "New Version Name",
+                    "externalLink": "https://example.com",
+                    "description": "New Description",
+                    "config": {"param_example": None},
+                }
+            },
+        )
+        self.assertEqual(
+            "Cannot push an unschedulable new version for a scheduled pipeline.",
+            r["errors"][0]["message"],
         )
 
     def test_create_version_not_admin(self):
@@ -216,3 +294,43 @@ class PipelineVersionsTest(GraphQLTestCase):
                 "pipelineVersion": None,
             },
         )
+
+    def test_create_version_with_parameters(self, version="Filler", user=None):
+        if user is None:
+            user = self.USER_ADMIN
+        self.client.force_login(user)
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "code": self.PIPELINE.code,
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "name": version,
+                    "parameters": [
+                        {
+                            "code": "param_example",
+                            "name": "Param Example",
+                            "type": "str",
+                            "help": "Param Example's Help",
+                            "default": None,
+                            "multiple": False,
+                            "required": True,
+                            "choices": [],
+                        }
+                    ],
+                    "zipfile": "",
+                }
+            },
+        )
+        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
+        pipeline.schedule = "0 15 * * *"
+        pipeline.save()
+        self.assertEqual(r["data"]["uploadPipeline"]["success"], True)

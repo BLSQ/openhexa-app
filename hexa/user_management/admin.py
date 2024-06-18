@@ -199,3 +199,4 @@ class FeatureAdmin(admin.ModelAdmin):
 @admin.register(FeatureFlag)
 class FeatureFlagAdmin(admin.ModelAdmin):
     list_display = ("feature", "user")
+    list_filter = ("feature", "user")

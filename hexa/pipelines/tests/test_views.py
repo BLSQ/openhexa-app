@@ -305,7 +305,7 @@ class ViewsTest(TestCase):
                 }
             ],
             {"send_mail_notifications": "1"},
-            {},
+            {"param": "foo"},
             content_type="application/x-www-form-urlencoded",
         )
 

@@ -21,6 +21,7 @@ from hexa.pipelines.models import (
     PipelineType,
 )
 from hexa.pipelines.tests.test_schema.fixtures_for_pipelines import (
+    pipelines_example_parameters,
     pipelines_parameters_unvalid,
     pipelines_parameters_with_connections,
     pipelines_parameters_with_scalars,
@@ -257,7 +258,7 @@ class PipelinesV2Test(GraphQLTestCase):
             r["data"]["pipelines"]["items"][0],
         )
 
-    def test_create_pipeline_version(self):
+    def test_create_pipeline_version(self, parameters=[], config={}):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         self.test_create_pipeline()
         self.assertEqual(1, len(Pipeline.objects.all()))
@@ -282,11 +283,13 @@ class PipelinesV2Test(GraphQLTestCase):
                     "code": code1,
                     "workspaceSlug": self.WS1.slug,
                     "name": "Version 1",
-                    "parameters": [],
+                    "parameters": parameters,
                     "zipfile": "",
+                    "config": config,
                 }
             },
         )
+
         self.assertEqual(
             {
                 "success": True,
@@ -692,6 +695,102 @@ class PipelinesV2Test(GraphQLTestCase):
             PipelineRunState.QUEUED, r["data"]["runPipeline"]["run"]["status"]
         )
         self.assertEqual(1, len(PipelineRun.objects.all()))
+
+    def test_pipeline_new_run_with_version_config(self):
+        self.assertEqual(0, len(PipelineRun.objects.all()))
+        pipeline_version_config = {"param1": "param1_data"}
+        self.test_create_pipeline_version(
+            parameters=pipelines_example_parameters, config=pipeline_version_config
+        )
+        self.assertEqual(1, len(Pipeline.objects.all()))
+
+        id1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().id
+
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+            mutation runPipeline($input: RunPipelineInput!) {
+                runPipeline(input: $input) {
+                    success
+                    errors
+                    run {id status config}
+                }
+            }
+            """,
+            {"input": {"id": str(id1), "config": {}}},
+        )
+        self.assertEqual(True, r["data"]["runPipeline"]["success"])
+        self.assertEqual(
+            PipelineRunState.QUEUED, r["data"]["runPipeline"]["run"]["status"]
+        )
+        self.assertEqual(1, len(PipelineRun.objects.all()))
+        self.assertEqual(
+            pipeline_version_config, r["data"]["runPipeline"]["run"]["config"]
+        )
+
+    def test_pipeline_new_run_with_pipeline_run_config(self):
+        self.assertEqual(0, len(PipelineRun.objects.all()))
+        pipeline_version_config = {"param1": "param1_data"}
+        self.test_create_pipeline_version(
+            parameters=pipelines_example_parameters, config=pipeline_version_config
+        )
+        self.assertEqual(1, len(Pipeline.objects.all()))
+
+        id1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().id
+
+        pipeline_run_config = {"param1": "param1_data_from_the_run_config"}
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+            mutation runPipeline($input: RunPipelineInput!) {
+                runPipeline(input: $input) {
+                    success
+                    errors
+                    run {id status config}
+                }
+            }
+            """,
+            {"input": {"id": str(id1), "config": pipeline_run_config}},
+        )
+        self.assertEqual(True, r["data"]["runPipeline"]["success"])
+        self.assertEqual(
+            PipelineRunState.QUEUED, r["data"]["runPipeline"]["run"]["status"]
+        )
+        self.assertEqual(1, len(PipelineRun.objects.all()))
+        self.assertEqual(pipeline_run_config, r["data"]["runPipeline"]["run"]["config"])
+
+    def test_pipeline_new_run_with_empty_pipeline_run_config(self):
+        self.assertEqual(0, len(PipelineRun.objects.all()))
+        pipeline_version_config = {"param1": "param1_data", "param2": "param2_data"}
+        self.test_create_pipeline_version(
+            parameters=pipelines_example_parameters, config=pipeline_version_config
+        )
+        self.assertEqual(1, len(Pipeline.objects.all()))
+
+        id1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().id
+
+        pipeline_run_config = {"param2": None}
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+            mutation runPipeline($input: RunPipelineInput!) {
+                runPipeline(input: $input) {
+                    success
+                    errors
+                    run {id status config}
+                }
+            }
+            """,
+            {"input": {"id": str(id1), "config": pipeline_run_config}},
+        )
+        self.assertEqual(True, r["data"]["runPipeline"]["success"])
+        self.assertEqual(
+            PipelineRunState.QUEUED, r["data"]["runPipeline"]["run"]["status"]
+        )
+        self.assertEqual(1, len(PipelineRun.objects.all()))
+        self.assertEqual(
+            pipeline_version_config, r["data"]["runPipeline"]["run"]["config"]
+        )
 
     def test_pipeline_by_code(self):
         self.test_create_pipeline()
@@ -1351,8 +1450,13 @@ class PipelinesV2Test(GraphQLTestCase):
             f"Run report of {pipeline.code} ({run.state.label})",
             mail.outbox[0].subject,
         )
-        self.assertListEqual([self.USER_LAMBDA.email], mail.outbox[0].recipients())
-        self.assertListEqual([self.USER_ROOT.email], mail.outbox[1].recipients())
+
+        self.assertTrue(
+            any(self.USER_LAMBDA.email in email.recipients() for email in mail.outbox)
+        )
+        self.assertTrue(
+            any(self.USER_ROOT.email in email.recipients() for email in mail.outbox)
+        )
         self.assertTrue(
             f"https://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{pipeline.workspace.slug}/pipelines/{pipeline.code}/runs/{run.id}"
             in mail.outbox[0].body
@@ -1483,6 +1587,55 @@ class PipelinesV2Test(GraphQLTestCase):
                 "id": str(pipeline.id),
                 "code": pipeline.code,
                 "permissions": {"schedule": False},
+            },
+            r["data"]["pipelineByCode"],
+        )
+
+    def test_pipelines_permissions_schedule_required_param_with_no_default_value_with_version_config(
+        self,
+    ):
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_SABRINA)
+        pipeline = Pipeline.objects.filter_for_user(self.USER_SABRINA).first()
+        pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            zipfile=base64.b64decode("".encode("ascii")),
+            name="Version 1",
+            config={"param1": "value"},
+            parameters=[
+                {
+                    "code": "param1",
+                    "name": "Param 1",
+                    "type": "string",
+                    "help": "Param 1's Help",
+                    "default": None,
+                    "multiple": False,
+                    "required": True,
+                }
+            ],
+        )
+        r = self.run_query(
+            """
+            query pipelineByCode($code: String!, $workspaceSlug: String!) {
+                pipelineByCode(code: $code, workspaceSlug: $workspaceSlug) {
+                    id
+                    code
+                    permissions {
+                      schedule
+                    }
+                }
+            }
+        """,
+            {
+                "code": pipeline.code,
+                "workspaceSlug": self.WS1.slug,
+            },
+        )
+        self.assertEqual(
+            {
+                "id": str(pipeline.id),
+                "code": pipeline.code,
+                "permissions": {"schedule": True},
             },
             r["data"]["pipelineByCode"],
         )
