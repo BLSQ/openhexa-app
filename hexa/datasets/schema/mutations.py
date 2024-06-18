@@ -8,6 +8,7 @@ from hexa.workspaces.models import Workspace
 
 from ..api import generate_download_url, generate_upload_url, get_blob
 from ..models import Dataset, DatasetLink, DatasetVersion, DatasetVersionFile
+from ..queue import dataset_snapshot_queue
 
 mutations = MutationType()
 
@@ -252,11 +253,19 @@ def resolve_create_version_file(_, info, **kwargs):
                     uri=version.get_full_uri(mutation_input["uri"]),
                     content_type=mutation_input["contentType"],
                 )
-                return {
-                    "success": True,
-                    "errors": [],
-                    "file": file,
+            return {
+                "success": True,
+                "errors": [],
+                "file": file,
+            }
+            dataset_snapshot_queue.enqueue(
+                {
+                    "create_snapshot",
+                    {
+                        "file_id": str(file.id),
+                    },
                 }
+            )
     except ValidationError:
         return {"success": False, "errors": ["INVALID_URI"]}
     except DatasetVersion.DoesNotExist:
