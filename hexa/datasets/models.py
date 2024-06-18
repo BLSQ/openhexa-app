@@ -10,6 +10,7 @@ from dpq.models import BaseJob
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
+from hexa.metadata.models import MetadataMixin
 from hexa.user_management.models import User
 
 logger = logging.getLogger(__name__)
@@ -72,7 +73,7 @@ class DatasetManager(models.Manager):
         return dataset
 
 
-class Dataset(Base):
+class Dataset(Base, MetadataMixin):
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -99,6 +100,13 @@ class Dataset(Base):
     @property
     def latest_version(self):
         return self.versions.order_by("-created_at").first()
+
+    @property
+    def previous_version(self):
+        all_version = self.versions.order_by("-created_at").all()
+        if all_version.count() > 1:
+            return all_version[1].id
+        return None
 
     def update_if_has_perm(self, *, principal: User, **kwargs):
         if not principal.has_perm("datasets.update_dataset", self):
@@ -129,6 +137,10 @@ class Dataset(Base):
             dataset=self,
             workspace=workspace,
         )
+
+    def can_delete_metadata(self, user: User):
+        if not user.has_perm("datasets.update_dataset", self):
+            raise PermissionDenied
 
 
 class DatasetVersionQuerySet(BaseQuerySet):
@@ -168,7 +180,7 @@ class DatasetVersionManager(models.Manager):
         return version
 
 
-class DatasetVersion(Base):
+class DatasetVersion(Base, MetadataMixin):
     dataset = models.ForeignKey(
         Dataset,
         null=False,
@@ -250,7 +262,7 @@ class DatasetVersionFileManager(models.Manager):
         )
 
 
-class DatasetVersionFile(Base):
+class DatasetVersionFile(Base, MetadataMixin):
     uri = models.TextField(null=False, blank=False, unique=True)
     content_type = models.TextField(null=False, blank=False)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
@@ -261,7 +273,6 @@ class DatasetVersionFile(Base):
         on_delete=models.CASCADE,
         related_name="files",
     )
-
     objects = DatasetVersionFileManager.from_queryset(DatasetVersionFileQuerySet)()
 
     @property
@@ -298,7 +309,7 @@ class DatasetVersionFile(Base):
         ordering = ["uri"]
 
 
-class DatasetFileMetadata(Base):
+class DatasetFileSample(Base):
     STATUS_PROCESSING = "PROCESSING"
     STATUS_FAILED = "FAILED"
     STATUS_FINISHED = "FINISHED"
@@ -308,7 +319,6 @@ class DatasetFileMetadata(Base):
         (STATUS_FAILED, _("Failed")),
         (STATUS_FINISHED, _("Finished")),
     ]
-
     sample = JSONField(blank=True, default=list, null=True)
     status = models.CharField(
         max_length=10,
@@ -321,7 +331,7 @@ class DatasetFileMetadata(Base):
         null=False,
         blank=False,
         on_delete=models.CASCADE,
-        related_name="metadata_entries",
+        related_name="samples",
     )
 
     class Meta:

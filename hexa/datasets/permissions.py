@@ -2,6 +2,7 @@ from hexa.datasets.models import (
     Dataset,
     DatasetLink,
     DatasetVersion,
+    DatasetVersionFile,
 )
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
@@ -109,3 +110,21 @@ def create_dataset_version_file(principal: User, dataset_version: DatasetVersion
         return False
 
     return create_dataset_version(principal, dataset_version.dataset)
+
+
+def delete_dataset_version_file(principal: User, version: DatasetVersionFile):
+    return delete_dataset_version(principal, version.dataset_version)
+
+
+def update_dataset_version_file(principal: User, dataset_version: DatasetVersionFile):
+    return update_dataset_version(principal, dataset_version.dataset_version)
+
+
+def view_dataset_version_file(
+    principal: User, dataset_version_file: DatasetVersionFile
+):
+    return view_dataset_version(principal, dataset_version_file.dataset_version)
+
+
+def view_dataset_version(principal: User, version: DatasetVersion):
+    return view_dataset(principal, version.dataset)

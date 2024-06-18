@@ -8,7 +8,7 @@ from hexa.core.graphql import result_page
 from hexa.datasets.api import generate_upload_url
 from hexa.datasets.models import (
     Dataset,
-    DatasetFileMetadata,
+    DatasetFileSample,
     DatasetLink,
     DatasetVersion,
     DatasetVersionFile,
@@ -219,11 +219,11 @@ def resolve_upload_url(obj, info, **kwargs):
         return None
 
 
-@dataset_version_file_object.field("fileMetadata")
+@dataset_version_file_object.field("fileSample")
 def resolve_version_file_metadata(obj: DatasetVersionFile, info, **kwargs):
     try:
-        return obj.sample_entry
-    except DatasetFileMetadata.DoesNotExist:
+        return obj.latest_sample
+    except DatasetFileSample.DoesNotExist:
         logging.error(f"No metadata found for file {obj.filename} with id {obj.id}")
         return None
 

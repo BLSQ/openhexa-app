@@ -12,6 +12,7 @@ from hexa.countries.schema import countries_bindables, countries_type_defs
 from hexa.databases.schema import databases_bindables, databases_types_def
 from hexa.datasets.schema import datasets_bindables, datasets_type_defs
 from hexa.files.schema import files_bindables, files_type_def
+from hexa.metadata.schema import metadata_bindables, metadata_type_def
 from hexa.notebooks.schema import notebooks_bindables, notebooks_type_defs
 from hexa.pipelines.schema import pipelines_bindables, pipelines_type_defs
 from hexa.plugins.connector_accessmod.schema import (
@@ -57,6 +58,7 @@ schema = make_executable_schema(
         notebooks_type_defs,
         pipelines_type_defs,
         workspaces_type_def,
+        metadata_type_def,
         databases_types_def,
         files_type_def,
         datasets_type_defs,
@@ -73,6 +75,7 @@ schema = make_executable_schema(
         *countries_bindables,
         *notebooks_bindables,
         *workspaces_bindables,
+        *metadata_bindables,
         *databases_bindables,
         *files_bindables,
         *datasets_bindables,

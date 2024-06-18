@@ -1,0 +1,107 @@
+"""
+Interface for type implementing metadata
+"""
+interface HasMetadata {
+  extendedId: String!   # Encoded concatenation of the class model type and the instance id
+  metadata: MetadataObject!
+}
+"""
+Generic metadata attribute
+"""
+type MetadataAttribute {
+  id: UUID!
+  key: String!
+  value: JSON
+  system: Boolean!
+}
+
+"""
+Union of all linked to metadata object types
+"""
+union LinkedObject = DatasetVersionFile | DatasetVersion | Dataset
+
+"""
+Generic metadata object
+"""
+type MetadataObject {
+  id: String!         # Encoded concatenation of the class model type and the instance id
+  object: LinkedObject!
+  attributes : [MetadataAttribute!]!
+}
+
+"""
+Input to add or edit a custom attribute, empty field for value is accepted
+"""
+input MetadataAttributeInput {
+  extendedId: String!     #Encoded ID of the instance for the linked object
+  key: String!
+  value: JSON
+}
+
+
+"""
+Input to delete custom attribute
+"""
+input DeleteMetadataAttributeInput {
+  extendedId: String!     #Encoded ID of the instance for the linked object
+  key: String!
+}
+
+"""
+Errors that can occur when creating an attribute.
+"""
+enum MetadataCreateAttributeError {
+  PERMISSION_DENIED
+  MODEL_TYPE_NOT_FOUND
+  MODEL_NOT_FOUND
+  DUPLICATE_KEY
+}
+
+"""
+Errors that can occur when deleting an attribute.
+"""
+enum MetadataDeleteAttributeError {
+  PERMISSION_DENIED
+  MODEL_TYPE_NOT_FOUND
+  MODEL_NOT_FOUND
+  METADATA_OBJECT_NOT_FOUND
+  METADATA_ATTRIBUTE_NOT_FOUND
+}
+
+"""
+Errors that can occur when editing an attribute.
+"""
+enum MetadataEditAttributeError {
+  PERMISSION_DENIED
+  MODEL_TYPE_NOT_FOUND
+  MODEL_NOT_FOUND
+  METADATA_OBJECT_NOT_FOUND
+}
+
+type CreateAttributeResult {
+  success: Boolean!
+  errors: [MetadataCreateAttributeError!]!
+}
+
+type DeleteAttributeResult {
+  success: Boolean!
+  errors: [MetadataDeleteAttributeError!]!
+}
+
+type EditAttributeResult {
+  success: Boolean!
+  errors: [MetadataEditAttributeError!]!
+}
+
+extend type Query {
+  metadata(extendedId: String!): MetadataObject!
+}
+
+extend type Mutation {
+  "Add a custom attribute to an object instane"
+  addMetadataToObject(input: MetadataAttributeInput!): CreateAttributeResult! @loginRequired
+  "Delete an attribute from an object instance"
+  deleteMetadataFromObject(input: DeleteMetadataAttributeInput!): DeleteAttributeResult! @loginRequired
+  "Edit metadata attribute for an object instance"
+  editMetadataForObject(input: MetadataAttributeInput!): EditAttributeResult! @loginRequired
+}
