@@ -5,7 +5,13 @@ import boto3
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from .basefs import BaseClient, NotFound, ObjectsPage, load_bucket_sample_data_with
+from .basefs import (
+    BaseClient,
+    BucketObjectAlreadyExists,
+    NotFound,
+    ObjectsPage,
+    load_bucket_sample_data_with,
+)
 
 default_region = "eu-central-1"
 
@@ -232,9 +238,7 @@ class S3Client(BaseClient):
         if raise_if_exists:
             try:
                 s3_client.head_object(Bucket=bucket_name, Key=target_key)
-                raise ValidationError(
-                    f"File already exists. Choose a different object key Object {target_key}."
-                )
+                raise BucketObjectAlreadyExists(target_key)
             except s3_client.exceptions.ClientError as e:
                 if e.response["Error"]["Code"] != "404":
                     # don't hide non "not found errors"

@@ -9,6 +9,7 @@ from moto import mock_s3
 from hexa.core.test import TestCase
 
 from ..api import NotFound, get_storage
+from ..basefs import BucketObjectAlreadyExists
 from .mocks.mockgcp import backend
 
 
@@ -362,7 +363,7 @@ class APITestCase:
             size=123,
             content_type="text/plain",
         )
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(BucketObjectAlreadyExists):
             self.get_client().generate_upload_url(
                 bucket_name="bucket", target_key="demo.txt", raise_if_exists=True
             )

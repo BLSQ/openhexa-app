@@ -11,7 +11,13 @@ from google.cloud.storage.blob import Blob
 from google.oauth2 import service_account
 from google.protobuf import duration_pb2
 
-from .basefs import BaseClient, NotFound, ObjectsPage, load_bucket_sample_data_with
+from .basefs import (
+    BaseClient,
+    BucketObjectAlreadyExists,
+    NotFound,
+    ObjectsPage,
+    load_bucket_sample_data_with,
+)
 
 
 def get_credentials():
@@ -198,7 +204,7 @@ class GCPClient(BaseClient):
         client = get_storage_client()
         gcs_bucket = client.get_bucket(bucket_name)
         if raise_if_exists and gcs_bucket.get_blob(target_key) is not None:
-            raise ValidationError(f"GCS: Object {target_key} already exists!")
+            raise BucketObjectAlreadyExists(target_key)
         blob = gcs_bucket.blob(target_key)
         return blob.generate_signed_url(
             expiration=3600, version="v4", method="PUT", content_type=content_type
