@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.71.0](https://github.com/BLSQ/openhexa-app/compare/0.70.1...0.71.0) (2024-06-18)
+
+
+### Features
+
+* **Pipelines:** add authentication to wehbook ([#714](https://github.com/BLSQ/openhexa-app/issues/714)) ([2a6b3ce](https://github.com/BLSQ/openhexa-app/commit/2a6b3ce45e543a9b005cda642d9668958b1dfa33))
+* **pipelines:** Configuration on pipeline's version ([acfa76b](https://github.com/BLSQ/openhexa-app/commit/acfa76bfb78d4e89f7823c5fa3b686e1160e5d19))
+* **Workspaces:** retrieve workspace connection by slug ([#711](https://github.com/BLSQ/openhexa-app/issues/711)) ([9617063](https://github.com/BLSQ/openhexa-app/commit/96170637fb8e1450bc6e42257ec80ee6b81c63af))
+
+
+### Miscellaneous
+
+* **Connections:** stop injecting connections creds in env var ([#715](https://github.com/BLSQ/openhexa-app/issues/715)) ([217f2c1](https://github.com/BLSQ/openhexa-app/commit/217f2c1212360a8f1e0cd65321bd85b35c4a6c31))
+* **GraphQL:** Update documentation of graphql files ([#712](https://github.com/BLSQ/openhexa-app/issues/712)) ([2be6c87](https://github.com/BLSQ/openhexa-app/commit/2be6c87961b7838c3170050be9db1ab693e92140))
+* Update database port in docker-compose.yaml ([#709](https://github.com/BLSQ/openhexa-app/issues/709)) ([1a5378b](https://github.com/BLSQ/openhexa-app/commit/1a5378b61320801babe5eb6d29c08872612ee4f1))
+
 ## [0.70.1](https://github.com/BLSQ/openhexa-app/compare/0.70.0...0.70.1) (2024-05-27)
 
 
