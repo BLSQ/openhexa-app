@@ -5,7 +5,6 @@ from django.db import IntegrityError, transaction
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.workspaces.models import Workspace
 
-from ...files.basefs import BucketObjectAlreadyExists
 from ..api import generate_download_url, generate_upload_url, get_blob
 from ..models import Dataset, DatasetLink, DatasetVersion, DatasetVersionFile
 
@@ -190,9 +189,11 @@ def resolve_generate_upload_url(_, info, **kwargs):
         )
         if version.id != version.dataset.latest_version.id:
             return {"success": False, "errors": ["LOCKED_VERSION"]}
+
         full_uri = version.get_full_uri(mutation_input["uri"])
         if get_blob(full_uri) is not None:
             return {"success": False, "errors": ["ALREADY_EXISTS"]}
+
         upload_url = generate_upload_url(full_uri, mutation_input["contentType"])
 
         return {"success": True, "errors": [], "upload_url": upload_url}
@@ -230,18 +231,11 @@ def resolve_create_version_file(_, info, **kwargs):
                     uri=version.get_full_uri(mutation_input["uri"]),
                     content_type=mutation_input["contentType"],
                 )
-            try:
-                upload_url = generate_upload_url(file.uri, file.content_type)
                 return {
                     "success": True,
                     "errors": [],
                     "file": file,
-                    "upload_url": upload_url,
                 }
-            # Try catch is needed to support deprecated flow - generating upload url after DatasetVersionFile creation
-            except BucketObjectAlreadyExists:
-                return {"success": True, "errors": [], "file": file}
-
     except ValidationError:
         return {"success": False, "errors": ["INVALID_URI"]}
     except DatasetVersion.DoesNotExist:
