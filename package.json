@@ -84,7 +84,7 @@
     "react-table": "^7.8.0",
     "typescript": "^5.0.4",
     "use-onclickoutside": "^0.4.1",
-    "uuid": "^9.0.1"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
