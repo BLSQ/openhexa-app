@@ -22,12 +22,9 @@ const DeleteDatabaseTableTrigger = (props: DeleteDatabaseTableTriggerProps) => {
     table,
     workspace,
     children,
-    confirmMessage = t(
-      'Are you sure you want to delete the connection "{{name}}"?',
-      {
-        name: table.name,
-      },
-    ),
+    confirmMessage = t('Are you sure you want to delete table "{{name}}"?', {
+      name: table.name,
+    }),
   } = props;
   const router = useRouter();
 

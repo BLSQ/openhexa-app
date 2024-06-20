@@ -53,6 +53,7 @@
   "Are you sure to remove this run from your favorites?": "Are you sure to remove this run from your favorites?",
   "Are you sure you want to decline this invitation?": "Are you sure you want to decline this invitation?",
   "Are you sure you want to delete pipeline <1>{pipeline.name}</1> ?": "Are you sure you want to delete pipeline <1>{pipeline.name}</1> ?",
+  "Are you sure you want to delete table \"{{name}}\"?": "Are you sure you want to delete table \"{{name}}\"?",
   "Are you sure you want to delete the access to \"{{name}}\" for this workspace?": "Are you sure you want to delete the access to \"{{name}}\" for this workspace?",
   "Are you sure you want to delete the connection \"{{name}}\"?": "Are you sure you want to delete the connection \"{{name}}\"?",
   "Are you sure you want to delete the dataset \"{{name}}\"? It will make it unavailable for all workspaces.": "Are you sure you want to delete the dataset \"{{name}}\"? It will make it unavailable for all workspaces.",
