@@ -1,6 +1,5 @@
 import {
   ExclamationCircleIcon,
-  InformationCircleIcon,
   PlayIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
@@ -18,7 +17,6 @@ import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
 import DataGrid from "core/components/DataGrid/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import UserColumn from "core/components/DataGrid/UserColumn";
-import DescriptionList from "core/components/DescriptionList/DescriptionList";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Spinner from "core/components/Spinner";
@@ -28,7 +26,6 @@ import Tooltip from "core/components/Tooltip";
 import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
-import useCacheKey from "core/hooks/useCacheKey";
 import {
   PipelineRecipient,
   PipelineRunTrigger,
@@ -39,10 +36,12 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import DownloadPipelineVersion from "pipelines/features/DownloadPipelineVersion/DownloadPipelineVersion";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
-import { useState } from "react";
+import PipelineVersionParametersTable from "pipelines/features/PipelineVersionParametersTable";
+import { useMemo, useState } from "react";
 import CronProperty from "workspaces/features/CronProperty";
 import DeletePipelineDialog from "workspaces/features/DeletePipelineDialog";
 import GeneratePipelineWebhookUrlDialog from "workspaces/features/GeneratePipelineWebhookUrlDialog";
+import PipelineVersionConfigDialog from "workspaces/features/PipelineVersionConfigDialog";
 import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import WorkspaceMemberProperty from "workspaces/features/WorkspaceMemberProperty/";
 import {
@@ -71,6 +70,8 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const [isDeletePipelineDialogOpen, setDeletePipelineDialogOpen] =
     useState(false);
 
+  const [isVersionConfigDialogOpen, setVersionConfigDialogOpen] =
+    useState(false);
   const [isGenerateWebhookUrlDialogOpen, setIsGenerateWebhookUrlDialogOpen] =
     useState(false);
   const [isWebhookFeatureEnabled] = useFeature("pipeline_webhook");
@@ -82,6 +83,24 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
       perPage,
     },
   });
+  const hasMissingConfiguration = useMemo(() => {
+    if (!data?.pipeline) {
+      return false;
+    }
+    const { pipeline } = data;
+    if (
+      pipeline.type !== PipelineType.ZipFile ||
+      !pipeline.currentVersion ||
+      !pipeline.schedule
+    ) {
+      return false;
+    }
+    for (const param of pipeline.currentVersion.parameters) {
+      if (param.required && !pipeline.currentVersion.config[param.code]) {
+        return true;
+      }
+    }
+  }, [data]);
 
   if (!data?.workspace || !data?.pipeline) {
     return null;
@@ -194,6 +213,16 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               collapsible={false}
             >
               <TextProperty
+                id="description"
+                accessor={"description"}
+                label={t("Description")}
+                defaultValue="-"
+                visible={(value, isEditing) => isEditing || value}
+                sm
+                hideLabel
+                markdown
+              />
+              <TextProperty
                 id="name"
                 accessor={"name"}
                 label={t("Name")}
@@ -208,6 +237,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 )}
                 readonly
               />
+
               <RenderProperty id="type" label={t("Type")} accessor="type">
                 {(property) => (
                   <Badge className="bg-gray-50">
@@ -215,15 +245,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                   </Badge>
                 )}
               </RenderProperty>
-              <TextProperty
-                id="description"
-                accessor={"description"}
-                label={t("Description")}
-                defaultValue="-"
-                visible={(value, isEditing) => isEditing || value}
-                hideLabel
-                markdown
-              />
+
               {pipeline.type === PipelineType.Notebook && (
                 <>
                   <RenderProperty
@@ -249,123 +271,123 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                   </RenderProperty>
                 </>
               )}
+              {pipeline.type === PipelineType.ZipFile && (
+                <RenderProperty
+                  id="version_name"
+                  accessor={"currentVersion"}
+                  label={t("Version")}
+                  readonly
+                >
+                  {(property) => (
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href={`/workspaces/${encodeURIComponent(
+                          workspace.slug,
+                        )}/pipelines/${encodeURIComponent(pipeline.code)}/versions`}
+                      >
+                        {property.displayValue.name}
+                      </Link>
+                    </div>
+                  )}
+                </RenderProperty>
+              )}
             </DataCard.FormSection>
-            {pipeline.type === PipelineType.ZipFile && (
-              <DataCard.Section
-                collapsible={false}
-                title={() => (
-                  <div className="flex flex-1 gap-2 items-center">
-                    <h4 className="font-medium">{t("Version")}</h4>
-                    <div className="flex-1"></div>
-                    <Link
-                      className="text-sm"
-                      href={{
-                        pathname:
-                          "/workspaces/[workspaceSlug]/pipelines/[pipelineCode]/versions",
-                        query: {
-                          workspaceSlug: workspace.slug,
-                          pipelineCode: pipeline.code,
-                        },
-                      }}
-                    >
-                      {t("View all versions")}
-                    </Link>
-                  </div>
-                )}
-              >
-                {pipeline.currentVersion ? (
-                  <>
-                    <DescriptionList>
-                      <DescriptionList.Item label={t("Name")}>
-                        {pipeline.currentVersion.name}
-                      </DescriptionList.Item>
-                      {pipeline.currentVersion.description && (
-                        <DescriptionList.Item
-                          label={t("Description")}
-                          fullWidth
-                        >
-                          {pipeline.currentVersion.description}
-                        </DescriptionList.Item>
-                      )}
-                      {pipeline.currentVersion.externalLink && (
-                        <DescriptionList.Item label={t("External link")}>
-                          <Link
-                            href={pipeline.currentVersion.externalLink}
-                            target={"_blank"}
+            {pipeline.type === PipelineType.ZipFile &&
+              pipeline.currentVersion && (
+                <DataCard.Section
+                  title={t("Parameters")}
+                  defaultOpen={false}
+                  collapsible
+                >
+                  {pipeline.currentVersion.parameters.length > 0 ? (
+                    <>
+                      <div className="flex justify-end">
+                        {pipeline.permissions.update && (
+                          <Button
+                            variant="white"
+                            className="mb-4"
+                            onClick={() => setVersionConfigDialogOpen(true)}
                           >
-                            {pipeline.currentVersion.externalLink}
-                          </Link>
-                        </DescriptionList.Item>
-                      )}
-                      <DescriptionList.Item label={t("Created at")}>
-                        <Time datetime={pipeline.currentVersion.createdAt} />
-                      </DescriptionList.Item>
-                      <DescriptionList.Item label={t("Created by")}>
-                        {pipeline.currentVersion.user?.displayName ?? "-"}
-                      </DescriptionList.Item>
-                    </DescriptionList>
-                  </>
-                ) : (
-                  <span className="italic text-sm text-gray-500">
-                    {t("This pipeline has no versions yet")}
-                  </span>
-                )}
-              </DataCard.Section>
-            )}
+                            {t("Set default values")}
+                          </Button>
+                        )}
+                      </div>
+                      <div className="rounded-md overflow-hidden border border-gray-100">
+                        <PipelineVersionParametersTable
+                          version={pipeline.currentVersion}
+                        />
+                      </div>
+                      <PipelineVersionConfigDialog
+                        version={pipeline.currentVersion}
+                        open={isVersionConfigDialogOpen}
+                        onClose={() => setVersionConfigDialogOpen(false)}
+                      />
+                    </>
+                  ) : (
+                    <div className="italic text-sm text-gray-500">
+                      {t("This pipeline has no parameters.")}
+                    </div>
+                  )}
+                </DataCard.Section>
+              )}
             <DataCard.FormSection
-              title={t("Scheduling")}
+              title={
+                <>
+                  <h4 className="font-medium">{t("Scheduling")}</h4>
+                  {pipeline.permissions.update && hasMissingConfiguration && (
+                    <Tooltip
+                      className="flex items-center"
+                      label={t(
+                        "Missing configuration: set default parameters to fix the problem.",
+                      )}
+                    >
+                      <ExclamationCircleIcon className="inline-block w-6 h-6 text-yellow-500 ml-1.5" />
+                    </Tooltip>
+                  )}
+                </>
+              }
               onSave={
                 pipeline.permissions.update && pipeline.permissions.schedule
                   ? onSaveScheduling
                   : undefined
               }
-              collapsible={false}
+              collapsible
+              defaultOpen={false}
             >
-              {pipeline.permissions.schedule ? (
-                <>
-                  <SwitchProperty
-                    id="enableScheduling"
-                    label={t("Enabled")}
-                    accessor={(item) => Boolean(item.schedule)}
-                  />
-                  <CronProperty
-                    id="schedule"
-                    accessor="schedule"
-                    label={t("Schedule")}
-                    help={t(
-                      "The schedule value should follow the CRON syntax.",
-                    )}
-                    placeholder="0 15 * * *"
-                    visible={(_, __, values) =>
-                      Boolean(values.enableScheduling || pipeline.schedule)
-                    }
-                    required={(_, __, values) =>
-                      Boolean(values.enableScheduling)
-                    }
-                  />
-                  <WorkspaceMemberProperty
-                    id="recipients"
-                    label={t("Notification Recipients")}
-                    accessor={(pipeline) => pipeline.recipients}
-                    slug={workspace.slug}
-                    multiple
-                    defaultValue="-"
-                    visible={(_, __, values) =>
-                      Boolean(values.enableScheduling || pipeline.schedule)
-                    }
-                  />
-                </>
-              ) : (
-                <p className="text-sm font-medium italic text-gray-500">
-                  {t(
-                    "Pipeline with parameters can be scheduled only if all parameters are optional or have default values.",
-                  )}
-                </p>
-              )}
+              <SwitchProperty
+                id="enableScheduling"
+                label={t("Enabled")}
+                accessor={(item) => {
+                  return Boolean(item.schedule);
+                }}
+              />
+              <CronProperty
+                id="schedule"
+                accessor="schedule"
+                label={t("Schedule")}
+                help={t("The schedule value should follow the CRON syntax.")}
+                placeholder="0 15 * * *"
+                visible={(_, __, values) =>
+                  Boolean(values.enableScheduling || pipeline.schedule)
+                }
+                required={(_, __, values) => Boolean(values.enableScheduling)}
+              />
+              <WorkspaceMemberProperty
+                id="recipients"
+                label={t("Notification Recipients")}
+                accessor={(pipeline) => pipeline.recipients}
+                slug={workspace.slug}
+                multiple
+                defaultValue="-"
+                visible={(_, __, values) =>
+                  Boolean(values.enableScheduling || pipeline.schedule)
+                }
+              />
             </DataCard.FormSection>
             {isWebhookFeatureEnabled ? (
               <DataCard.FormSection
                 title={t("Webhook")}
+                defaultOpen={false}
                 onSave={pipeline.permissions.update ? onSaveWebhook : undefined}
                 collapsible={false}
               >
@@ -483,7 +505,9 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 <BaseColumn label={t("Status")} id="status">
                   {(item) => <PipelineRunStatusBadge run={item} />}
                 </BaseColumn>
-                <TextColumn accessor="version.number" label={t("Version")} />
+                {pipeline.type === PipelineType.ZipFile ? (
+                  <TextColumn accessor="version.name" label={t("Version")} />
+                ) : null}
                 <BaseColumn label={t("Duration")} accessor="duration">
                   {(value) => (
                     <span suppressHydrationWarning>

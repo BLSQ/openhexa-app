@@ -1,4 +1,4 @@
-import { ReactElement, ReactNode } from "react";
+import { ReactNode } from "react";
 import DescriptionList from "../DescriptionList";
 import { useDataCardSection } from "./context";
 import { Property } from "./types";

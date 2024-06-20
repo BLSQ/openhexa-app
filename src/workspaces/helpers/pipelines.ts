@@ -5,17 +5,17 @@ import cronstrue from "cronstrue";
 import "cronstrue/locales/en";
 import "cronstrue/locales/fr";
 import {
+  ConnectionType,
+  PipelineParameter,
+  PipelineType,
+  UpdatePipelineError,
+} from "graphql/types";
+import { i18n } from "next-i18next";
+import {
   RunWorkspacePipelineMutation,
   UpdateWorkspacePipelineMutation,
   UpdateWorkspacePipelineMutationVariables,
 } from "./pipelines.generated";
-import {
-  ConnectionType,
-  PipelineParameter,
-  PipelineType,
-  PipelineVersion,
-} from "graphql/types";
-import { i18n } from "next-i18next";
 
 export async function updatePipeline(
   pipelineId: string,
@@ -55,6 +55,18 @@ export async function updatePipeline(
 
   if (data?.updatePipeline.success) {
     return data.updatePipeline.pipeline;
+  } else if (
+    data?.updatePipeline.errors.includes(UpdatePipelineError.PermissionDenied)
+  ) {
+    throw new Error("You are not authorized to perform this action");
+  } else if (
+    data?.updatePipeline.errors.includes(
+      UpdatePipelineError.MissingVersionConfig,
+    )
+  ) {
+    throw new Error(
+      "This pipeline has required parameters that have not been set. Edit the default parameters to fix this issue.",
+    );
   }
 
   throw new Error("Failed to update pipeline");
@@ -76,7 +88,7 @@ export const isConnectionParameter = (type: string) => {
 };
 
 export const convertParametersToPipelineInput = (
-  version: PipelineVersion,
+  version: { parameters: { code: string; type: string; multiple: boolean }[] },
   fields: { [key: string]: any },
 ): any => {
   const params: { [key: string]: any } = {};
@@ -88,7 +100,7 @@ export const convertParametersToPipelineInput = (
         params[parameter.code] = val
           .filter((v: string) => v !== "")
           .map((v: string) => parseInt(v, 10));
-      } else if (val !== null && val !== "") {
+      } else if (val !== undefined && val !== null && val !== "") {
         params[parameter.code] = parseInt(val, 10);
       }
     } else if (parameter.type === "float") {
@@ -96,7 +108,7 @@ export const convertParametersToPipelineInput = (
         params[parameter.code] = val
           .filter((v: string) => v !== "")
           .map((v: string) => parseFloat(v));
-      } else if (val !== null && val !== "") {
+      } else if (val !== undefined && val !== null && val !== "") {
         params[parameter.code] = parseFloat(val);
       }
     } else if (parameter.type === "str" && parameter.multiple && val) {
@@ -203,13 +215,11 @@ export function getPipelineRunConfig(run: {
 }) {
   const config = run.config || {};
   const parameters = run.version?.parameters || [];
-
   return parameters.map((param: any) => ({
     value: config[param.code],
     ...param,
   })) as (PipelineParameter & { value: any })[];
 }
-
 export function renderOutputType(typename: string | undefined) {
   switch (typename) {
     case "BucketObject":

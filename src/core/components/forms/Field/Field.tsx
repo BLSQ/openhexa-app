@@ -10,6 +10,7 @@ interface CommonProps {
   error?: string | null | false;
   required?: boolean;
   description?: ReactNode | string;
+  showOptional?: boolean;
   name: string;
   help?: ReactNode;
   className?: string;
@@ -31,6 +32,7 @@ const Field = (props: CustomField | InputField) => {
     required,
     name,
     help,
+    showOptional = true,
     className,
     labelColor,
     errorColor = "text-red-600",
@@ -64,7 +66,9 @@ const Field = (props: CustomField | InputField) => {
               />
             )}
           </Label>
-          {!required && <span className="text-sm text-gray-400">Optional</span>}
+          {!required && showOptional && (
+            <span className="text-sm text-gray-400">Optional</span>
+          )}
         </div>
       )}
       {children}

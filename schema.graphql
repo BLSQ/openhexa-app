@@ -2079,7 +2079,7 @@ type Pipeline {
   name: String
   code: String!
   permissions: PipelinePermissions!
-  workspace: Workspace
+  workspace: Workspace!
   config: JSON!
   schedule: String
   description: String
@@ -2246,6 +2246,7 @@ type PipelineVersion {
   zipfile: String!
   timeout: Int
   permissions: PipelineVersionPermissions!
+  config: JSON
 }
 
 """Represents a page of pipeline versions."""
@@ -2963,6 +2964,7 @@ enum UpdatePipelineError {
   NOT_FOUND
   PERMISSION_DENIED
   INVALID_CONFIG
+  MISSING_VERSION_CONFIG
 }
 
 """Represents the input for updating a pipeline."""
@@ -3008,6 +3010,7 @@ input UpdatePipelineVersionInput {
   name: String
   description: String
   externalLink: URL
+  config: JSON
 }
 
 """Represents the result of updating a pipeline version."""
@@ -3151,6 +3154,7 @@ input UploadPipelineInput {
   externalLink: URL
   parameters: [ParameterInput!]!
   zipfile: String!
+  config: JSON
   timeout: Int
 }
 

@@ -6,7 +6,6 @@ import { PipelineRunOutputEntry_OutputFragmentDoc } from '../PipelineRunOutputEn
 import { UserProperty_UserFragmentDoc } from '../../../core/components/DataCard/UserProperty.generated';
 import { RunMessages_DagRunFragmentDoc } from '../RunMessages/RunMessages.generated';
 import { RunLogs_DagRunFragmentDoc } from '../RunLogs/RunLogs.generated';
-import { PipelineRunStatusBadge_DagRunFragmentDoc } from '../PipelineRunStatusBadge.generated';
 import { PipelineRunFavoriteTrigger_RunFragmentDoc } from '../PipelineRunFavoriteTrigger/PipelineRunFavoriteTrigger.generated';
 export type PipelineRunDataCard_DagFragment = { __typename?: 'DAG', id: string, externalId: string, label: string, formCode?: string | null };
 
@@ -44,7 +43,6 @@ export const PipelineRunDataCard_DagRunFragmentDoc = gql`
   }
   ...RunMessages_dagRun
   ...RunLogs_dagRun
-  ...PipelineRunStatusBadge_dagRun
   ...PipelineRunReadonlyForm_dagRun
   ...PipelineRunFavoriteTrigger_run
 }
@@ -52,6 +50,5 @@ export const PipelineRunDataCard_DagRunFragmentDoc = gql`
 ${UserProperty_UserFragmentDoc}
 ${RunMessages_DagRunFragmentDoc}
 ${RunLogs_DagRunFragmentDoc}
-${PipelineRunStatusBadge_DagRunFragmentDoc}
 ${PipelineRunReadonlyForm_DagRunFragmentDoc}
 ${PipelineRunFavoriteTrigger_RunFragmentDoc}`;

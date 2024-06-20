@@ -23,9 +23,6 @@ exports[`DataCard renders 1`] = `
           data-headlessui-state="open"
           id="headlessui-disclosure-button-fbe024f2-3162-465a-b6e8-d65a837e308a"
         >
-          <h4
-            class="font-medium"
-          />
           <div
             class="flex flex-1 flex-shrink items-center justify-end"
           />

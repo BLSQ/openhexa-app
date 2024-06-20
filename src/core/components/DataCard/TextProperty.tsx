@@ -1,9 +1,9 @@
 import clsx from "clsx";
-import ReactMarkdown from "react-markdown";
+import MarkdownViewer from "../MarkdownViewer";
 import Input from "../forms/Input";
 import Textarea from "../forms/Textarea";
-import { useDataCardProperty } from "./context";
 import DataCard from "./DataCard";
+import { useDataCardProperty } from "./context";
 import { PropertyDefinition } from "./types";
 
 type TextPropertyProps = PropertyDefinition & {
@@ -35,6 +35,7 @@ const TextProperty = (props: TextPropertyProps) => {
           />
         ) : (
           <Input
+            fullWidth
             value={property.formValue ?? ""}
             onChange={(e) => property.setValue(e.target.value)}
             required={property.required}
@@ -47,15 +48,7 @@ const TextProperty = (props: TextPropertyProps) => {
     return (
       <DataCard.Property property={property}>
         {markdown && property.displayValue ? (
-          <ReactMarkdown
-            className={clsx(
-              "prose max-w-3xl text-sm",
-              sm &&
-                "prose-h1:font-bold prose-h1:text-xl prose-h2:text-lg prose-h3:text-md prose-h2:mt-0",
-            )}
-          >
-            {property.displayValue}
-          </ReactMarkdown>
+          <MarkdownViewer sm={sm}>{property.displayValue}</MarkdownViewer>
         ) : (
           <div className={clsx("prose text-sm text-gray-900", className)}>
             {property.displayValue ?? property.defaultValue}

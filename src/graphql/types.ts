@@ -2445,7 +2445,7 @@ export type Pipeline = {
   versions: PipelineVersionPage;
   webhookEnabled: Scalars["Boolean"]["output"];
   webhookUrl?: Maybe<Scalars["String"]["output"]>;
-  workspace?: Maybe<Workspace>;
+  workspace: Workspace;
 };
 
 /** Represents a pipeline. */
@@ -2597,6 +2597,7 @@ export enum PipelineType {
 /** Represents a version of a pipeline. */
 export type PipelineVersion = {
   __typename?: "PipelineVersion";
+  config?: Maybe<Scalars["JSON"]["output"]>;
   createdAt: Scalars["DateTime"]["output"];
   description?: Maybe<Scalars["String"]["output"]>;
   externalLink?: Maybe<Scalars["URL"]["output"]>;
@@ -3444,6 +3445,7 @@ export type UpdateMembershipResult = {
 /** Enum representing the possible errors that can occur when updating a pipeline. */
 export enum UpdatePipelineError {
   InvalidConfig = "INVALID_CONFIG",
+  MissingVersionConfig = "MISSING_VERSION_CONFIG",
   NotFound = "NOT_FOUND",
   PermissionDenied = "PERMISSION_DENIED",
 }
@@ -3487,6 +3489,7 @@ export enum UpdatePipelineVersionError {
 
 /** Represents the input for updating a pipeline version. */
 export type UpdatePipelineVersionInput = {
+  config?: InputMaybe<Scalars["JSON"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
   externalLink?: InputMaybe<Scalars["URL"]["input"]>;
   id: Scalars["UUID"]["input"];
@@ -3604,6 +3607,7 @@ export type UpdateWorkspaceResult = {
 
 /** Represents the input for uploading a pipeline. */
 export type UploadPipelineInput = {
+  config?: InputMaybe<Scalars["JSON"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
   externalLink?: InputMaybe<Scalars["URL"]["input"]>;
   name: Scalars["String"]["input"];

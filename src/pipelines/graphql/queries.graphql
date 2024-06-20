@@ -17,7 +17,6 @@ query PipelinesPage($page: Int, $perPage: Int = 15) {
           id
           status
           executionDate
-          ...PipelineRunStatusBadge_dagRun
         }
       }
     }
@@ -64,7 +63,6 @@ query PipelinePage($id: UUID!, $page: Int, $perPage: Int) {
         lastRefreshedAt
         duration
         ...PipelineRunFavoriteTrigger_run
-        ...PipelineRunStatusBadge_dagRun
       }
     }
   }

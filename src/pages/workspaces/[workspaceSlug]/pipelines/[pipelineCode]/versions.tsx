@@ -94,7 +94,7 @@ const PipelineVersionsPage: NextPageWithLayout<Props> = ({
             </Breadcrumbs.Part>
           </Breadcrumbs>
         </WorkspaceLayout.Header>
-        <WorkspaceLayout.PageContent className="grid grid-cols-1 2xl:grid-cols-2 gap-4">
+        <WorkspaceLayout.PageContent className="grid grid-cols-1 gap-4">
           {data.pipeline.versions.items.length === 0 && (
             <div className="text-center text-gray-500">
               <div>{t("This pipeline does not have any version.")}</div>

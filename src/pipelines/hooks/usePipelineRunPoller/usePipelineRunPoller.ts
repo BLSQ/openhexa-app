@@ -1,45 +1,61 @@
 import { gql, useLazyQuery } from "@apollo/client";
-import Backoff from "core/helpers/backoff";
-import { PipelineRun, PipelineRunStatus } from "graphql/types";
-import { useCallback, useEffect, useRef } from "react";
-import { PipelineRunPollerQuery } from "./usePipelineRunPoller.generated";
+import { PipelineRunStatus } from "graphql/types";
+import { useEffect } from "react";
+import {
+  PipelineRunPollerQuery,
+  UsePipelineRunPoller_RunFragment,
+} from "./usePipelineRunPoller.generated";
 
-export default function usePipelineRunPoller(runId: PipelineRun["id"] | null) {
-  const backoffRef = useRef(
-    new Backoff({ min: 400, max: 10000, factor: 2, jitter: 0.2 }),
-  );
-  const [fetch] = useLazyQuery<PipelineRunPollerQuery>(
-    gql`
-      query PipelineRunPoller($runId: UUID!) {
-        run: pipelineRun(id: $runId) {
-          id
-          status
-          duration
-          progress
-        }
+function usePipelineRunPoller(
+  run: UsePipelineRunPoller_RunFragment,
+  polling: boolean = true,
+) {
+  const [fetch] = useLazyQuery<PipelineRunPollerQuery>(gql`
+    query PipelineRunPoller($runId: UUID!) {
+      run: pipelineRun(id: $runId) {
+        ...usePipelineRunPoller_run
+        duration
+        progress
       }
-    `,
-    { variables: { runId } },
-  );
+    }
+    ${usePipelineRunPoller.fragments.run}
+  `);
 
-  const retry = useCallback(async () => {
-    const { data } = await fetch({ fetchPolicy: "network-only" });
+  useEffect(() => {
+    if (!polling) {
+      return;
+    }
+
+    let timeout: NodeJS.Timeout;
     if (
-      data?.run &&
       [
         PipelineRunStatus.Queued,
         PipelineRunStatus.Running,
         PipelineRunStatus.Terminating,
-      ].includes(data.run.status)
+      ].includes(run.status)
     ) {
-      setTimeout(() => retry(), backoffRef.current.duration());
+      timeout = setInterval(() => {
+        fetch({
+          variables: { runId: run.id },
+          fetchPolicy: "network-only",
+        });
+      }, 500);
     }
-  }, [fetch]);
 
-  useEffect(() => {
-    backoffRef.current.reset();
-    if (runId) {
-      retry();
-    }
-  }, [runId, retry]);
+    return () => {
+      clearInterval(timeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [run.status, polling]);
 }
+
+usePipelineRunPoller.fragments = {
+  run: gql`
+    fragment usePipelineRunPoller_run on PipelineRun {
+      id
+      status
+    }
+  `,
+};
+
+export default usePipelineRunPoller;

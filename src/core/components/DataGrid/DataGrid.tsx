@@ -111,6 +111,9 @@ function DataGrid(props: DataGridProps) {
   const columns = useMemo(() => {
     const cols: Column[] = [];
     React.Children.map(children, (column) => {
+      if (!column) {
+        return;
+      }
       if (!isValidElement<BaseColumnProps>(column)) {
         throw new Error("Invalid column");
       }

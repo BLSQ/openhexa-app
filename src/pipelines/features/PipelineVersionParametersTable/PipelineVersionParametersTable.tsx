@@ -11,52 +11,46 @@ import { PipelineVersionParametersTable_VersionFragment } from "./PipelineVersio
 
 type PipelineVersionParametersTableProps = {
   version: PipelineVersionParametersTable_VersionFragment;
+  className?: string;
 };
 
-const PipelineVersionParametersTable = (
-  props: PipelineVersionParametersTableProps,
-) => {
-  const { version } = props;
+const PipelineVersionParametersTable = ({
+  version,
+  className,
+}: PipelineVersionParametersTableProps) => {
   const { t } = useTranslation();
   return (
-    <Table>
+    <Table className={className}>
       <TableHead>
         <TableRow>
-          <TableCell spacing="tight" heading>
-            {t("Name")}
-          </TableCell>
-          <TableCell spacing="tight" heading>
-            {t("Code")}
-          </TableCell>
-          <TableCell spacing="tight" heading>
-            {t("Type")}
-          </TableCell>
-          <TableCell spacing="tight" heading>
-            {t("Required")}
-          </TableCell>
-          <TableCell spacing="tight" heading>
-            {t("Multiple")}
-          </TableCell>
+          <TableCell heading>{t("Name")}</TableCell>
+          <TableCell heading>{t("Code")}</TableCell>
+          <TableCell heading>{t("Type")}</TableCell>
+          <TableCell heading>{t("Required")}</TableCell>
+          <TableCell heading>{t("Multiple")}</TableCell>
+          <TableCell heading>{t("Default value")}</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
         {version.parameters.map((parameter, i) => (
           <TableRow key={i}>
-            <TableCell spacing="tight" className="py-1">
+            <TableCell className="py-1">
               {parameter.name}
               &nbsp;<span className="text-gray-400">{parameter.help}</span>
             </TableCell>
-            <TableCell spacing="tight" className="py-1">
-              {parameter.code}
-            </TableCell>
-            <TableCell spacing="tight" className="py-1">
+            <TableCell className="py-1">{parameter.code}</TableCell>
+            <TableCell className="py-1">
               <code>{parameter.type}</code>
             </TableCell>
-            <TableCell spacing="tight" className="py-1">
+            <TableCell className="py-1">
               {parameter.required ? t("Yes") : t("No")}
             </TableCell>
-            <TableCell spacing="tight" className="py-1">
+            <TableCell className="py-1">
               {parameter.multiple ? t("Yes") : t("No")}
+            </TableCell>
+            <TableCell className="py-1">
+              {(version.config && version.config[parameter.code]?.toString()) ||
+                "-"}
             </TableCell>
           </TableRow>
         ))}
@@ -78,6 +72,7 @@ PipelineVersionParametersTable.fragments = {
         required
         choices
       }
+      config
     }
   `,
 };

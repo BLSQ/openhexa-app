@@ -27,7 +27,6 @@ import { useTranslation } from "next-i18next";
 import PipelineRunFavoriteTrigger from "pipelines/features/PipelineRunFavoriteTrigger";
 import { PipelineRunFavoriteTrigger_RunFragment } from "pipelines/features/PipelineRunFavoriteTrigger/PipelineRunFavoriteTrigger.generated";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
-import { PipelineRunStatusBadge_DagRunFragment } from "pipelines/features/PipelineRunStatusBadge.generated";
 import { useUpdatePipelineMutation } from "pipelines/graphql/mutations.generated";
 import {
   PipelinePageDocument,
@@ -237,10 +236,7 @@ const PipelinePage = (props: Props) => {
                   format={DateTime.DATETIME_SHORT}
                   accessor="executionDate"
                 />
-                <BaseColumn<PipelineRunStatusBadge_DagRunFragment>
-                  label={t("Status")}
-                  id="status"
-                >
+                <BaseColumn<any> label={t("Status")} id="status">
                   {(item) => <PipelineRunStatusBadge run={item} />}
                 </BaseColumn>
                 <BaseColumn label={t("Duration")} accessor="duration">

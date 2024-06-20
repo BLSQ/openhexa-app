@@ -28,7 +28,11 @@ export const getValue = (item: any, accessor?: ValueAccessor) => {
   if (!accessor) {
     return item;
   } else if (typeof accessor === "string") {
-    return get(item, accessor);
+    try {
+      return get(item, accessor);
+    } catch (err) {
+      return null;
+    }
   } else {
     return accessor(item);
   }

@@ -119,6 +119,7 @@ const ParameterField = (props: ParameterFieldProps) => {
       return (
         <Input
           type="number"
+          fullWidth
           name={parameter.code}
           required={Boolean(parameter.required)}
           onChange={(event) => handleChange(event.target.value)}
@@ -130,6 +131,7 @@ const ParameterField = (props: ParameterFieldProps) => {
       return (
         <Input
           type="text"
+          fullWidth
           aria-label={parameter.code}
           name={parameter.code}
           required={Boolean(parameter.required)}

@@ -8,19 +8,25 @@ export type PipelineRunPollerQueryVariables = Types.Exact<{
 }>;
 
 
-export type PipelineRunPollerQuery = { __typename?: 'Query', run?: { __typename?: 'PipelineRun', id: string, status: Types.PipelineRunStatus, duration?: number | null, progress: number } | null };
+export type PipelineRunPollerQuery = { __typename?: 'Query', run?: { __typename?: 'PipelineRun', duration?: number | null, progress: number, id: string, status: Types.PipelineRunStatus } | null };
 
+export type UsePipelineRunPoller_RunFragment = { __typename?: 'PipelineRun', id: string, status: Types.PipelineRunStatus };
 
+export const UsePipelineRunPoller_RunFragmentDoc = gql`
+    fragment usePipelineRunPoller_run on PipelineRun {
+  id
+  status
+}
+    `;
 export const PipelineRunPollerDocument = gql`
     query PipelineRunPoller($runId: UUID!) {
   run: pipelineRun(id: $runId) {
-    id
-    status
+    ...usePipelineRunPoller_run
     duration
     progress
   }
 }
-    `;
+    ${UsePipelineRunPoller_RunFragmentDoc}`;
 
 /**
  * __usePipelineRunPollerQuery__

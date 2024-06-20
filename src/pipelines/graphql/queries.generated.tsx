@@ -3,7 +3,6 @@ import * as Types from '../../graphql/types';
 import { gql } from '@apollo/client';
 import { CountryBadge_CountryFragmentDoc } from '../../core/features/CountryBadge.generated';
 import { Tag_TagFragmentDoc } from '../../core/features/Tag.generated';
-import { PipelineRunStatusBadge_DagRunFragmentDoc } from '../features/PipelineRunStatusBadge.generated';
 import { UserProperty_UserFragmentDoc } from '../../core/components/DataCard/UserProperty.generated';
 import { UserColumn_UserFragmentDoc } from '../../core/components/DataGrid/UserColumn.generated';
 import { PipelineRunFavoriteTrigger_RunFragmentDoc } from '../features/PipelineRunFavoriteTrigger/PipelineRunFavoriteTrigger.generated';
@@ -64,15 +63,13 @@ export const PipelinesPageDocument = gql`
           id
           status
           executionDate
-          ...PipelineRunStatusBadge_dagRun
         }
       }
     }
   }
 }
     ${CountryBadge_CountryFragmentDoc}
-${Tag_TagFragmentDoc}
-${PipelineRunStatusBadge_DagRunFragmentDoc}`;
+${Tag_TagFragmentDoc}`;
 
 /**
  * __usePipelinesPageQuery__
@@ -148,7 +145,6 @@ export const PipelinePageDocument = gql`
         lastRefreshedAt
         duration
         ...PipelineRunFavoriteTrigger_run
-        ...PipelineRunStatusBadge_dagRun
       }
     }
   }
@@ -157,8 +153,7 @@ export const PipelinePageDocument = gql`
 ${Tag_TagFragmentDoc}
 ${UserProperty_UserFragmentDoc}
 ${UserColumn_UserFragmentDoc}
-${PipelineRunFavoriteTrigger_RunFragmentDoc}
-${PipelineRunStatusBadge_DagRunFragmentDoc}`;
+${PipelineRunFavoriteTrigger_RunFragmentDoc}`;
 
 /**
  * __usePipelinePageQuery__

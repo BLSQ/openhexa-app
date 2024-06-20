@@ -96,10 +96,12 @@ query WorkspacePipelinePage(
       id
       name
       description
+      config
       externalLink
       ...PipelineVersionPicker_version
       ...PipelineVersionParametersTable_version
       ...DownloadPipelineVersion_version
+      ...PipelineVersionConfigDialog_version
     }
     recipients {
       user {

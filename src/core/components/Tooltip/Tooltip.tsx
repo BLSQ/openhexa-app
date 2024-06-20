@@ -7,6 +7,7 @@ import styles from "./Tooltip.module.css";
 
 type Props = {
   label: ReactNode;
+  className?: string;
   as?: string;
 } & Config &
   (
@@ -15,7 +16,7 @@ type Props = {
   );
 
 const Tooltip = (props: Props) => {
-  const { label, as = "button", ...delegated } = props;
+  const { label, className, as = "button", ...delegated } = props;
   const {
     getArrowProps,
     getTooltipProps,
@@ -29,7 +30,7 @@ const Tooltip = (props: Props) => {
       {"children" in props
         ? React.createElement(
             as,
-            { type: "button", ref: setTriggerRef },
+            { type: "button", ref: setTriggerRef, className },
             props.children,
           )
         : props.renderTrigger(setTriggerRef)}

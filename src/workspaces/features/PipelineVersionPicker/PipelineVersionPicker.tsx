@@ -110,6 +110,7 @@ PipelineVersionPicker.fragments = {
       id
       name
       createdAt
+      config
       parameters {
         code
         name

@@ -13,14 +13,7 @@ import {
 } from "core/hooks/useItemContext";
 import isEqual from "lodash/isEqual";
 import { useTranslation } from "next-i18next";
-import {
-  ReactElement,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { ReactElement, ReactNode, useEffect, useRef, useState } from "react";
 import Button from "../Button/Button";
 import DescriptionList, { DescriptionListProps } from "../DescriptionList";
 import DisableClickPropagation from "../DisableClickPropagation";
@@ -37,7 +30,7 @@ type FormSectionProps = {
   editLabel?: string;
   editIcon?: ReactElement;
   onSave?: OnSaveFn;
-  title?: string;
+  title?: string | ReactElement;
   children: ReactNode;
 } & Pick<DescriptionListProps, "displayMode" | "columns"> &
   Omit<React.ComponentProps<typeof BlockSection>, "title" | "children">;
@@ -149,13 +142,14 @@ function FormSection<F extends { [key: string]: any }>(
       acc[def.id] = getProperty<F>(def, item, form, isEdited);
       return acc;
     }, {});
-    // form.validate();
-  }, [definitions, item, form, form.formData, isEdited]);
-
-  const toggleEdit = useCallback(() => {
     form.resetForm();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [definitions, item, isEdited]);
+
+  const toggleEdit = () => {
     setEdited((prev) => !prev);
-  }, [form]);
+  };
 
   const section = {
     item,
@@ -184,7 +178,11 @@ function FormSection<F extends { [key: string]: any }>(
         className={className}
         title={({ open }) => (
           <>
-            <h4 className="font-medium">{title}</h4>
+            {typeof title === "string" ? (
+              <h4 className="font-medium">{title}</h4>
+            ) : (
+              title
+            )}
             {onSave && open && !isEdited && (
               <DisableClickPropagation>
                 <button

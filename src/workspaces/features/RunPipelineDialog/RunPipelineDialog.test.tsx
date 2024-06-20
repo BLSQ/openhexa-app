@@ -68,13 +68,15 @@ describe("RunPipelineDialog", () => {
         multiple: false,
       },
     ]);
+    const mockFetch = jest
+      .fn()
+      .mockResolvedValue({ data: { pipelineByCode: pipeline } });
     useLazyQueryMock.mockReturnValue([
-      jest.fn(),
+      mockFetch,
       { loading: false, data: { pipelineByCode: pipeline } },
     ]);
 
     const user = userEvent.setup();
-
     render(
       <RunPipelineDialog pipeline={pipeline}>
         {(onClick) => (
@@ -88,16 +90,19 @@ describe("RunPipelineDialog", () => {
     await submitForm(user);
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
-      { is_ok: null },
+      { is_ok: undefined },
       pipeline.currentVersion.id,
       false,
     );
   });
 
-  it("configure the run to receive the result by mail", async () => {
+  it("configures the run to receive the result by mail", async () => {
     const pipeline = pipelineWithParameters([]);
+    const mockFetch = jest
+      .fn()
+      .mockResolvedValue({ data: { pipelineByCode: pipeline } });
     useLazyQueryMock.mockReturnValue([
-      jest.fn(),
+      mockFetch,
       { loading: false, data: { pipelineByCode: pipeline } },
     ]);
 
@@ -135,8 +140,11 @@ describe("RunPipelineDialog", () => {
         multiple: false,
       },
     ]);
+    const mockFetch = jest
+      .fn()
+      .mockResolvedValue({ data: { pipelineByCode: pipeline } });
     useLazyQueryMock.mockReturnValue([
-      jest.fn(),
+      mockFetch,
       { loading: false, data: { pipelineByCode: pipeline } },
     ]);
 
@@ -163,19 +171,20 @@ describe("RunPipelineDialog", () => {
         code: "int",
         name: "int",
         type: "int",
-        default: null,
         required: false,
         choices: null,
         multiple: false,
       },
     ]);
+    const mockFetch = jest
+      .fn()
+      .mockResolvedValue({ data: { pipelineByCode: pipeline } });
     useLazyQueryMock.mockReturnValue([
-      jest.fn(),
+      mockFetch,
       { loading: false, data: { pipelineByCode: pipeline } },
     ]);
 
     const user = userEvent.setup();
-
     render(
       <RunPipelineDialog pipeline={pipeline}>
         {(onClick) => (
@@ -218,11 +227,13 @@ describe("RunPipelineDialog", () => {
         multiple: false,
       },
     ]);
+    const mockFetch = jest
+      .fn()
+      .mockResolvedValue({ data: { pipelineByCode: pipeline } });
     useLazyQueryMock.mockReturnValue([
-      jest.fn(),
+      mockFetch,
       { loading: false, data: { pipelineByCode: pipeline } },
     ]);
-
     const user = userEvent.setup();
 
     render(
@@ -265,8 +276,11 @@ describe("RunPipelineDialog", () => {
         multiple: true,
       },
     ]);
+    const mockFetch = jest
+      .fn()
+      .mockResolvedValue({ data: { pipelineByCode: pipeline } });
     useLazyQueryMock.mockReturnValue([
-      jest.fn(),
+      mockFetch,
       { loading: false, data: { pipelineByCode: pipeline } },
     ]);
 
@@ -310,8 +324,11 @@ describe("RunPipelineDialog", () => {
         multiple: false,
       },
     ]);
+    const mockFetch = jest
+      .fn()
+      .mockResolvedValue({ data: { pipelineByCode: pipeline } });
     useLazyQueryMock.mockReturnValue([
-      jest.fn(),
+      mockFetch,
       { loading: false, data: { pipelineByCode: pipeline } },
     ]);
 
@@ -355,8 +372,11 @@ describe("RunPipelineDialog", () => {
         multiple: false,
       },
     ]);
+    const mockFetch = jest
+      .fn()
+      .mockResolvedValue({ data: { pipelineByCode: pipeline } });
     useLazyQueryMock.mockReturnValue([
-      jest.fn(),
+      mockFetch,
       { loading: false, data: { pipelineByCode: pipeline } },
     ]);
 

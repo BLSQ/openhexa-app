@@ -1,19 +1,21 @@
-import { DagRunStatus, PipelineRunStatus } from "graphql/types";
+import { PipelineRunStatus } from "graphql/types";
 import { i18n } from "next-i18next";
 
-export function formatDAGRunStatus(status: DagRunStatus | PipelineRunStatus) {
+export function formatPipelineRunStatus(
+  status: PipelineRunStatus | PipelineRunStatus,
+) {
   switch (status) {
-    case DagRunStatus.Failed:
+    case PipelineRunStatus.Failed:
       return i18n!.t("Failed");
-    case DagRunStatus.Queued:
+    case PipelineRunStatus.Queued:
       return i18n!.t("Queued");
-    case DagRunStatus.Running:
+    case PipelineRunStatus.Running:
       return i18n!.t("Running");
-    case DagRunStatus.Success:
+    case PipelineRunStatus.Success:
       return i18n!.t("Succeeded");
-    case DagRunStatus.Stopped:
+    case PipelineRunStatus.Stopped:
       return i18n!.t("Stopped");
-    case DagRunStatus.Terminating:
+    case PipelineRunStatus.Terminating:
       return i18n!.t("Terminating");
   }
 }

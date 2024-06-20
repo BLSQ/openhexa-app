@@ -22,7 +22,6 @@ import { useCallback, useMemo } from "react";
 import PipelineRunFavoriteTrigger from "../PipelineRunFavoriteTrigger";
 import PipelineRunReadonlyForm from "../PipelineRunForm/PipelineRunReadonlyForm";
 import PipelineRunOutputEntry from "../PipelineRunOutputEntry";
-import PipelineRunStatusBadge from "../PipelineRunStatusBadge";
 import RunLogs from "../RunLogs";
 import RunMessages from "../RunMessages";
 import {
@@ -139,9 +138,6 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
                     relativeTime: executionDateRelative,
                   })}
               </div>
-            </div>
-            <div className="flex items-center">
-              <PipelineRunStatusBadge run={dagRun} />
             </div>
           </div>
         )}
@@ -276,7 +272,6 @@ PipelineRunDataCard.fragments = {
       }
       ...RunMessages_dagRun
       ...RunLogs_dagRun
-      ...PipelineRunStatusBadge_dagRun
       ...PipelineRunReadonlyForm_dagRun
       ...PipelineRunFavoriteTrigger_run
     }
@@ -285,7 +280,6 @@ PipelineRunDataCard.fragments = {
     ${UserProperty.fragments.user}
     ${RunMessages.fragments.dagRun}
     ${RunLogs.fragments.dagRun}
-    ${PipelineRunStatusBadge.fragments.dagRun}
     ${PipelineRunFavoriteTrigger.fragments.run}
   `,
 };

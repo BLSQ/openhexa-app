@@ -7,10 +7,11 @@ type MarkdownViewerProps = {
   children: string;
   maxWidth?: string;
   className?: string;
+  sm?: boolean;
 };
 
 const MarkdownViewer = (props: MarkdownViewerProps) => {
-  const { children, maxWidth = "max-w-3xl", className } = props;
+  const { children, maxWidth = "max-w-3xl", className, sm = false } = props;
 
   const components = useMemo<
     React.ComponentProps<typeof ReactMarkdown>["components"]
@@ -29,7 +30,13 @@ const MarkdownViewer = (props: MarkdownViewerProps) => {
   );
   return (
     <ReactMarkdown
-      className={clsx("prose prose-headings:font-medium", maxWidth, className)}
+      className={clsx(
+        "prose prose-headings:font-medium prose-h1:font-medium",
+        maxWidth,
+        className,
+        sm &&
+          "prose-sm prose-h1:text-xl prose-h2:text-lg prose-h3:text-md prose-h2:mt-0",
+      )}
       components={components}
     >
       {children}

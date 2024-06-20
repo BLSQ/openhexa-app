@@ -11,9 +11,13 @@ import Link from "core/components/Link";
 import Spinner from "core/components/Spinner";
 import Time from "core/components/Time";
 import Input from "core/components/forms/Input";
+import { isValidUrl } from "core/helpers";
 import { ItemProvider } from "core/hooks/useItemContext";
+import { UpdatePipelineVersionError } from "graphql/types";
 import { DateTime } from "luxon";
 import { Trans, useTranslation } from "next-i18next";
+import { useState } from "react";
+import DeletePipelineVersionTrigger from "workspaces/features/DeletePipelineVersionTrigger";
 import DownloadPipelineVersion from "../DownloadPipelineVersion";
 import PipelineVersionParametersTable from "../PipelineVersionParametersTable";
 import {
@@ -21,17 +25,15 @@ import {
   UpdatePipelineVersionMutation,
   UpdatePipelineVersionMutationVariables,
 } from "./PipelineVersionCard.generated";
-import { UpdatePipelineVersionError } from "graphql/types";
-import { isValidUrl } from "core/helpers";
-import DeletePipelineVersionTrigger from "workspaces/features/DeletePipelineVersionTrigger";
 
 type PipelineVersionCardProps = {
   version: PipelineVersionCard_VersionFragment;
   onClickRun?: () => void;
 };
 
-const PipelineVersionCard = ({ version }: PipelineVersionCardProps) => {
+const PipelineVersionCard = (props: PipelineVersionCardProps) => {
   const { t } = useTranslation();
+  const { version } = props;
   const [updateVersion] = useMutation<
     UpdatePipelineVersionMutation,
     UpdatePipelineVersionMutationVariables
@@ -72,8 +74,8 @@ const PipelineVersionCard = ({ version }: PipelineVersionCardProps) => {
 
   return (
     <ItemProvider item={version}>
-      <Block>
-        <Block.Header className="flex gap-4 items-center border-gray-100 border-b-2">
+      <Block className="divide-y-2 divide-gray-100">
+        <Block.Header className="flex gap-4 items-center ">
           <div className="flex-1">
             <span className="font-bold text-xl">
               {t("Version")} {version.name}
@@ -121,6 +123,7 @@ const PipelineVersionCard = ({ version }: PipelineVersionCardProps) => {
                 {section.isEdited ? (
                   <Input
                     name="externalLink"
+                    fullWidth
                     type="url"
                     value={property.formValue}
                     onChange={(e) => property.setValue(e.target.value)}
@@ -142,13 +145,15 @@ const PipelineVersionCard = ({ version }: PipelineVersionCardProps) => {
           />
         </DataCard.FormSection>
         {version.parameters.length > 0 && (
-          <div className="border-gray-100 border-t-2">
-            <Block.Section title={t("Parameters")} collapsible={false}>
-              <div className="rounded-md overflow-hidden border border-gray-100">
-                <PipelineVersionParametersTable version={version} />
-              </div>
-            </Block.Section>
-          </div>
+          <Block.Section
+            title={t("Parameters")}
+            collapsible
+            defaultOpen={false}
+          >
+            <div className="rounded-md overflow-hidden border border-gray-100">
+              <PipelineVersionParametersTable version={version} />
+            </div>
+          </Block.Section>
         )}
         <Block.Section>
           <div className="flex justify-end items-center gap-2">
@@ -190,7 +195,6 @@ PipelineVersionCard.fragments = {
       externalLink
       isLatestVersion
       createdAt
-
       user {
         displayName
       }

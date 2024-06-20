@@ -26,25 +26,42 @@ import {
   PipelineCurrentVersionQuery,
   RunPipelineDialog_PipelineFragment,
   RunPipelineDialog_RunFragment,
+  RunPipelineDialog_VersionFragment,
 } from "./RunPipelineDialog.generated";
 
 type RunPipelineDialogProps = {
   children(onClick: () => void): React.ReactNode;
   pipeline: RunPipelineDialog_PipelineFragment;
-} & (
-  | {}
-  | { run: RunPipelineDialog_RunFragment }
-  | { version: PipelineVersion }
-);
+  run?: RunPipelineDialog_RunFragment;
+};
+
+const VERSION_FRAGMENT = gql`
+  fragment RunPipelineDialog_version on PipelineVersion {
+    id
+    name
+    createdAt
+    config
+    user {
+      displayName
+    }
+    parameters {
+      ...ParameterField_parameter
+    }
+  }
+  ${ParameterField.fragments.parameter}
+`;
 
 const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   const router = useRouter();
-  const { pipeline, children } = props;
+  const { pipeline, run, children } = props;
   const [showVersionPicker, setShowVersionPicker] = useState(false);
   const clearCache = useCacheKey(["pipelines", pipeline.code]);
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const onClose = () => setOpen(false);
+
+  const [activeVersion, setActiveVersion] =
+    useState<RunPipelineDialog_VersionFragment | null>(run?.version ?? null);
   const onClick = () => {
     if (pipeline.type === PipelineType.ZipFile) {
       setOpen(true);
@@ -70,11 +87,13 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       ) {
         pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
           currentVersion {
+            id
             name
             createdAt
             user {
               displayName
             }
+            config
             parameters {
               ...ParameterField_parameter
             }
@@ -86,13 +105,16 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     { fetchPolicy: "no-cache" },
   );
 
-  const form = useForm<{ version: PipelineVersion; [key: string]: any }>({
+  const form = useForm<{ [key: string]: any }>({
     async onSubmit(values) {
-      const { version, sendMailNotifications, ...params } = values;
+      const { sendMailNotifications, ...params } = values;
+      if (!activeVersion) {
+        throw new Error("No active version found");
+      }
       const run = await runPipeline(
         pipeline.id,
-        convertParametersToPipelineInput(version, params),
-        version?.id,
+        convertParametersToPipelineInput(activeVersion!, params),
+        activeVersion!.id,
         sendMailNotifications,
       );
       await router.push(
@@ -106,33 +128,28 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       onClose();
     },
     getInitialState() {
-      let state: any = {
-        version: null,
-        sendMailNotifications: false,
-      };
-      if ("run" in props && props.run.version) {
-        state = {
-          ...state,
-          ...props.run.config,
-          version: props.run.version,
+      if (run) {
+        return {
+          sendMailNotifications: false,
+          ...run.config,
         };
-      } else if ("version" in props) {
-        state.version = props.version;
+      } else if (activeVersion) {
+        return {
+          sendMailNotifications: false,
+          ...activeVersion.config,
+        };
       }
-
-      return state;
     },
     validate(values) {
       const errors = {} as any;
-      const { version, ...fields } = values;
-      if (!version) {
-        return { version: t("The version is required") };
+      if (!activeVersion) {
+        return errors;
       }
       const normalizedValues = convertParametersToPipelineInput(
-        version,
-        fields,
+        activeVersion,
+        values,
       );
-      for (const parameter of version.parameters) {
+      for (const parameter of activeVersion.parameters) {
         const val = normalizedValues[parameter.code];
         if (parameter.type === "int" || parameter.type === "float") {
           if (ensureArray(val).length === 0 && parameter.required) {
@@ -162,41 +179,29 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   });
 
   useEffect(() => {
-    if (open) {
-      form.resetForm();
-      setShowVersionPicker(false);
-    }
-    if (!("run" in props)) {
+    setShowVersionPicker(false);
+    if (!open) {
+      setActiveVersion(null);
+    } else if (run?.version) {
+      setActiveVersion(run.version);
+    } else {
       fetch({
         variables: {
           workspaceSlug: pipeline.workspace?.slug,
           pipelineCode: pipeline.code,
         },
-      });
-    }
-  }, [open, form, fetch, props, pipeline.code, pipeline.workspace]);
-
-  useEffect(() => {
-    if (!form.formData.version && open) {
-      form.setFieldValue("version", data?.pipelineByCode?.currentVersion);
-    }
-  }, [open, form, data]);
-
-  useEffect(() => {
-    const version = form.formData.version;
-    if (version) {
-      form.resetForm();
-      form.setFieldValue("version", version);
-      version.parameters.map((param) => {
-        if ("run" in props && props.run?.config[param.code] !== null) {
-          form.setFieldValue(param.code, props.run.config[param.code], false);
-        } else {
-          form.setFieldValue(param.code, param.default, false);
+      }).then(({ data }) => {
+        if (data?.pipelineByCode?.currentVersion) {
+          setActiveVersion(data.pipelineByCode.currentVersion);
         }
       });
     }
+  }, [open, form, fetch, run, pipeline.code, pipeline.workspace]);
+
+  useEffect(() => {
+    form.resetForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form, form.formData.version]);
+  }, [form, activeVersion]);
 
   if (!pipeline.permissions.run) {
     return null;
@@ -210,8 +215,6 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     );
   }
 
-  const parameters = form.formData.version?.parameters ?? [];
-
   return (
     <>
       {children(onClick)}
@@ -222,25 +225,20 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
           onClose={onClose}
           centered={false}
           onSubmit={form.handleSubmit}
-          maxWidth={parameters.length > 4 ? "max-w-3xl" : "max-w-2xl"}
+          maxWidth={"max-w-3xl"}
         >
           <Dialog.Title>{t("Run pipeline")}</Dialog.Title>
-          {!form.formData.version ? (
-            <Dialog.Content className="flex  items-center justify-center">
+          {!activeVersion ? (
+            <Dialog.Content className="flex items-center justify-center">
               <Spinner size="lg" />
             </Dialog.Content>
           ) : (
             <>
               <Dialog.Content>
-                {form.errors.version && (
-                  <div className="mt-3 text-sm text-red-600">
-                    {form.errors.version}
-                  </div>
-                )}
                 {!showVersionPicker ? (
                   <div className="mb-6 gap-x-1">
                     <p>
-                      {!("run" in props)
+                      {!props.run
                         ? t("This pipeline will run using the latest version.")
                         : t("This pipeline will run using the same version.")}
                       &nbsp;
@@ -265,8 +263,8 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                     <PipelineVersionPicker
                       required
                       pipeline={pipeline}
-                      value={form.formData.version ?? null}
-                      onChange={(value) => form.setFieldValue("version", value)}
+                      value={activeVersion}
+                      onChange={(value) => setActiveVersion(value)}
                     />
                   </Field>
                 )}
@@ -274,10 +272,11 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                 <div
                   className={clsx(
                     "grid gap-x-3 gap-y-4",
-                    parameters.length > 4 && "grid-cols-2 gap-x-5",
+                    activeVersion.parameters.length > 4 &&
+                      "grid-cols-2 gap-x-5",
                   )}
                 >
-                  {parameters.map((param, i) => (
+                  {activeVersion.parameters.map((param, i) => (
                     <Field
                       required={param.required || param.type === "bool"}
                       key={i}
@@ -351,19 +350,7 @@ RunPipelineDialog.fragments = {
       type
       currentVersion {
         id
-        name
-        createdAt
-        parameters {
-          name
-          code
-          required
-          ...ParameterField_parameter
-        }
-        user {
-          displayName
-        }
       }
-
       ...PipelineVersionPicker_pipeline
     }
     ${ParameterField.fragments.parameter}
@@ -383,20 +370,6 @@ RunPipelineDialog.fragments = {
         user {
           displayName
         }
-      }
-    }
-    ${ParameterField.fragments.parameter}
-  `,
-  version: gql`
-    fragment RunPipelineDialog_version on PipelineVersion {
-      id
-      name
-      createdAt
-      parameters {
-        ...ParameterField_parameter
-      }
-      user {
-        displayName
       }
     }
     ${ParameterField.fragments.parameter}

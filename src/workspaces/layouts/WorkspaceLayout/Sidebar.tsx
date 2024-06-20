@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import {
-  ArrowPathIcon,
+  BoltIcon,
   BookOpenIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -12,16 +12,16 @@ import {
   SwatchIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
+import Badge from "core/components/Badge";
 import Link from "core/components/Link";
 import { CustomApolloClient } from "core/helpers/apollo";
+import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useContext, useMemo } from "react";
 import SidebarMenu from "workspaces/features/SidebarMenu";
-import { LayoutContext } from "./WorkspaceLayout";
-import Badge from "core/components/Badge";
 import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
-import useFeature from "identity/hooks/useFeature";
+import { LayoutContext } from "./WorkspaceLayout";
 
 type SidebarProps = {
   workspace: Sidebar_WorkspaceFragment;
@@ -130,7 +130,7 @@ const Sidebar = (props: SidebarProps) => {
             />
             <NavItem
               href={`/workspaces/${encodeURIComponent(slug)}/pipelines`}
-              Icon={ArrowPathIcon}
+              Icon={BoltIcon}
               label={t("Pipelines")}
               compact={!isSidebarOpen}
             />

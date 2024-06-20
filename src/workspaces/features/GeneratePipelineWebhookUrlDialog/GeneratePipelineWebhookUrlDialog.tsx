@@ -58,13 +58,13 @@ const GeneratePipelineWebhookUrlDialog = (
       <Dialog.Content className="space-y-2 py-2">
         <p>{t("You are about to replace the pipeline webhook url.")}</p>
         <p>
-          <ExclamationCircleIcon className="inline-block h-6 w-6 text-amber-400" />
-          {t("This action cannot be undone.")}
-        </p>
-        <p>
           {t(
             "After creating a new url, you will have to update all the services/applications that are using the current webhook url.",
           )}
+        </p>
+        <p className="flex items-center gap-1 font-medium">
+          <ExclamationCircleIcon className="inline-block h-6 w-6 text-amber-400" />
+          {t("This action cannot be undone.")}
         </p>
       </Dialog.Content>
       <Dialog.Actions>
