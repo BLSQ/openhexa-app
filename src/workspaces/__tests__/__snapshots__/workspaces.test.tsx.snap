@@ -146,6 +146,40 @@ exports[`Workspaces renders the workspace page 1`] = `
               </a>
               <a
                 class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                href="/workspaces/test/datasets"
+                rel="noopener noreferrer"
+              >
+                <div
+                  class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+                />
+                <svg
+                  aria-hidden="true"
+                  class="h-7 w-7"
+                  data-slot="icon"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M16.5 8.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v8.25A2.25 2.25 0 0 0 6 16.5h2.25m8.25-8.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-7.5A2.25 2.25 0 0 1 8.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 0 0-2.25 2.25v6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <div
+                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
+                >
+                  <span
+                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
+                  >
+                    Datasets
+                  </span>
+                </div>
+              </a>
+              <a
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
                 href="/workspaces/test/connections"
                 rel="noopener noreferrer"
               >
@@ -493,6 +527,40 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                     class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
                   >
                     Database
+                  </span>
+                </div>
+              </a>
+              <a
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/datasets"
+                rel="noopener noreferrer"
+              >
+                <div
+                  class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+                />
+                <svg
+                  aria-hidden="true"
+                  class="h-7 w-7"
+                  data-slot="icon"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M16.5 8.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v8.25A2.25 2.25 0 0 0 6 16.5h2.25m8.25-8.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-7.5A2.25 2.25 0 0 1 8.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 0 0-2.25 2.25v6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <div
+                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
+                >
+                  <span
+                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
+                  >
+                    Datasets
                   </span>
                 </div>
               </a>

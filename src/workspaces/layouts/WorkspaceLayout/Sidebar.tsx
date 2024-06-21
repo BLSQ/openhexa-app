@@ -85,7 +85,6 @@ const Sidebar = (props: SidebarProps) => {
   const { t } = useTranslation();
   const { isSidebarOpen, setSidebarOpen } = useContext(LayoutContext);
 
-  const [hasDatasetsEnabled] = useFeature("datasets");
   const { slug } = workspace;
 
   return (
@@ -114,14 +113,12 @@ const Sidebar = (props: SidebarProps) => {
               label={t("Database")}
               compact={!isSidebarOpen}
             />
-            {hasDatasetsEnabled && (
-              <NavItem
-                href={`/workspaces/${encodeURIComponent(slug)}/datasets`}
-                Icon={Square2StackIcon}
-                label={t("Datasets")}
-                compact={!isSidebarOpen}
-              />
-            )}
+            <NavItem
+              href={`/workspaces/${encodeURIComponent(slug)}/datasets`}
+              Icon={Square2StackIcon}
+              label={t("Datasets")}
+              compact={!isSidebarOpen}
+            />
             <NavItem
               href={`/workspaces/${encodeURIComponent(slug)}/connections`}
               Icon={SwatchIcon}
