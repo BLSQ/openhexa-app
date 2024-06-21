@@ -433,7 +433,6 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         olivia = self.create_user(
             "olivia@blsq.org",
         )
-        self.create_feature_flag(code="datasets", user=olivia)
         self.join_workspace(
             olivia, workspace=workspace, role=WorkspaceMembershipRole.ADMIN
         )
@@ -441,7 +440,6 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         robert = self.create_user(
             "robert@blsq.org",
         )
-        self.create_feature_flag(code="datasets", user=robert)
         self.join_workspace(
             robert, workspace=workspace, role=WorkspaceMembershipRole.VIEWER
         )
@@ -505,7 +503,6 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         olivia = self.create_user(
             "olivia@blsq.org",
         )
-        self.create_feature_flag(code="datasets", user=olivia)
         self.join_workspace(
             olivia, workspace=tgt_workspace, role=WorkspaceMembershipRole.ADMIN
         )
