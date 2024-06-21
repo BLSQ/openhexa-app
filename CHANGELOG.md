@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.49.0](https://github.com/BLSQ/openhexa-frontend/compare/0.48.2...0.49.0) (2024-06-20)
+
+
+### Features
+
+* **pipelines:** Pipeline's version configuration ([c40d97d](https://github.com/BLSQ/openhexa-frontend/commit/c40d97d1e87e39a02377f44afbda81dc197ddf99))
+
+
+### Bug Fixes
+
+* delete table typo ([#622](https://github.com/BLSQ/openhexa-frontend/issues/622)) ([513d62a](https://github.com/BLSQ/openhexa-frontend/commit/513d62acdab77c83f61e3ad8c7243b64e324869a))
+* **Pipelines:** Remove the 'v' in front of the version's name in the PipelinePicker ([#617](https://github.com/BLSQ/openhexa-frontend/issues/617)) ([eb1f7a4](https://github.com/BLSQ/openhexa-frontend/commit/eb1f7a439b7776f71477779165e616f2a257c6df))
+* **Workspaces:** fix bar url on cron property ([#611](https://github.com/BLSQ/openhexa-frontend/issues/611)) ([3606ef8](https://github.com/BLSQ/openhexa-frontend/commit/3606ef876ef5ebac77234bfa35154b4a0838e2fb))
+
+
+### Miscellaneous
+
+* **deps:** bump clsx from 2.1.0 to 2.1.1 ([#614](https://github.com/BLSQ/openhexa-frontend/issues/614)) ([983e171](https://github.com/BLSQ/openhexa-frontend/commit/983e171c59bf99b0a6552cce4784879e34cbc632))
+* **Pipelines:** generate new webhook url ([#618](https://github.com/BLSQ/openhexa-frontend/issues/618)) ([eba26a1](https://github.com/BLSQ/openhexa-frontend/commit/eba26a12e09f326d9d2fd2c7c2601e3e61cc5912))
+
 ## [0.48.2](https://github.com/BLSQ/openhexa-frontend/compare/0.48.1...0.48.2) (2024-05-27)
 
 
