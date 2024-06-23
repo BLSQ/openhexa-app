@@ -532,3 +532,20 @@ class APIS3TestCase(APITestCase, OnlyS3, TestCase):
 class APIGcpTestCase(APITestCase, OnlyGCP, TestCase):
     def get_type(self):
         return "gcp"
+
+
+class TestDownloadFromCloudStorage(TestCase):
+    def test_get_from_gcp(self):
+        pass
+        # lines = get_storage("gcp").read_object_lines(
+        #    "hexa-test-datasets",
+        #    "3237e8c2-896d-4628-9054-59d69c785a11/add8469f-14d6-4081-8e02-adb53016f7bd/people.csv",
+        #    1,
+        # )
+        # print(f"Lines are : {lines}")
+        # self.assertEqual(
+        #    lines,
+        #    [
+        #        "3237e8c2-896d-4628-9054-59d69c785a11/add8469f-14d6-4081-8e02-adb53016f7bd/people.csv"
+        #    ],
+        # )
