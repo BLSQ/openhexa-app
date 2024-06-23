@@ -1,3 +1,6 @@
+from random import choice
+from string import ascii_lowercase, digits
+
 from google.api_core import page_iterator
 from google.cloud.exceptions import Conflict, NotFound
 
@@ -269,3 +272,8 @@ class MockClient:
         return MockHTTPIterator(
             items=buckets, max_results=max_results, page_size=page_size
         )
+
+    def read_object_lines(self, bucket: str, file_path: str, num_lines=None):
+        chars = ascii_lowercase + digits
+        lst = ["".join(choice(chars) for _ in range(2)) for _ in range(num_lines)]
+        return lst
