@@ -253,11 +253,6 @@ def resolve_create_version_file(_, info, **kwargs):
                     uri=version.get_full_uri(mutation_input["uri"]),
                     content_type=mutation_input["contentType"],
                 )
-            return {
-                "success": True,
-                "errors": [],
-                "file": file,
-            }
             dataset_snapshot_queue.enqueue(
                 {
                     "create_snapshot",
@@ -266,6 +261,11 @@ def resolve_create_version_file(_, info, **kwargs):
                     },
                 }
             )
+            return {
+                "success": True,
+                "errors": [],
+                "file": file,
+            }
     except ValidationError:
         return {"success": False, "errors": ["INVALID_URI"]}
     except DatasetVersion.DoesNotExist:
