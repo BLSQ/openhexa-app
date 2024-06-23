@@ -1,4 +1,5 @@
 import base64
+import io
 import json
 
 import requests
@@ -347,3 +348,18 @@ class GCPClient(BaseClient):
             "GCS_TOKEN": token,  # FIXME: Once we have deployed the new openhexa-bslq-environment image and upgraded the openhexa-app, we can remove this line
             "WORKSPACE_STORAGE_ENGINE_GCP_ACCESS_TOKEN": token,
         }
+
+    def read_object_lines(self, bucket_name: str, filename: str, lines_number: int):
+        client = get_storage_client()
+        bucket = client.get_bucket(bucket_name)
+        blob = bucket.get_blob(filename)
+
+        with io.BytesIO() as file_obj:
+            blob.download_to_file(file_obj)
+            file_obj.seek(0)
+            lines = file_obj.readlines()
+
+        max_lines = min(lines_number, len(lines))
+        print(max_lines, lines_number, len(lines))
+        specific_lines = [lines[i].decode("utf-8").strip() for i in range(max_lines)]
+        return specific_lines
