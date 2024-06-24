@@ -20,7 +20,7 @@ from hexa.app import get_hexa_app_configs
 from hexa.pipelines.models import Environment
 
 from .credentials import PipelinesCredentials
-from .models import Pipeline, PipelineRunTrigger, PipelineVersion
+from .models import Pipeline, PipelineRunTrigger, PipelineType, PipelineVersion
 from .queue import environment_sync_queue
 
 logger = getLogger(__name__)
@@ -126,17 +126,19 @@ def run_pipeline(
         return JsonResponse({"error": "Pipeline has no webhook enabled"}, status=400)
 
     # Get the pipeline version
-    try:
-        pipeline_version = pipeline.last_version
-        if version_id is not None:
-            pipeline_version = PipelineVersion.objects.get(
-                pipeline=pipeline, id=version_id
-            )
+    pipeline_version = None
+    if pipeline.type == PipelineType.ZIPFILE:
+        try:
+            pipeline_version = pipeline.last_version
+            if version_id is not None:
+                pipeline_version = PipelineVersion.objects.get(
+                    pipeline=pipeline, id=version_id
+                )
 
-        if pipeline_version is None:
-            return JsonResponse({"error": "Pipeline has no version"}, status=400)
-    except PipelineVersion.DoesNotExist:
-        return JsonResponse({"error": "Pipeline version not found"}, status=404)
+            if pipeline_version is None:
+                return JsonResponse({"error": "Pipeline has no version"}, status=400)
+        except PipelineVersion.DoesNotExist:
+            return JsonResponse({"error": "Pipeline version not found"}, status=404)
 
     # Get the data from the request
     content_type = request.META.get("CONTENT_TYPE")
