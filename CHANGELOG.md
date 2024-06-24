@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.71.2](https://github.com/BLSQ/openhexa-app/compare/0.71.1...0.71.2) (2024-06-24)
+
+
+### Bug Fixes
+
+* **Connections:** remove wrong 'archived' in the criteria ([1afedb3](https://github.com/BLSQ/openhexa-app/commit/1afedb3591179b6d1570c8ac9abc8a51c80dd125))
+
 ## [0.71.1](https://github.com/BLSQ/openhexa-app/compare/0.71.0...0.71.1) (2024-06-24)
 
 
