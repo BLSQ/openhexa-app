@@ -395,7 +395,7 @@ class ConnectionQuerySet(BaseQuerySet):
         if isinstance(user, PipelineRunUser):
             return self._filter_for_user_and_query_object(
                 user,
-                Q(workspace=user.pipeline_run.pipeline.workspace, archived=False),
+                Q(workspace=user.pipeline_run.pipeline.workspace),
                 return_all_if_superuser=False,
             )
         else:
