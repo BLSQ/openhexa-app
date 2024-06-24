@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.49.1](https://github.com/BLSQ/openhexa-frontend/compare/0.49.0...0.49.1) (2024-06-21)
+
+
+### Miscellaneous
+
+* remove datasets feature flag check ([#623](https://github.com/BLSQ/openhexa-frontend/issues/623)) ([de064f3](https://github.com/BLSQ/openhexa-frontend/commit/de064f3a0c497df4db4045c6a0ed4e7a6e0d76f0))
+
 ## [0.49.0](https://github.com/BLSQ/openhexa-frontend/compare/0.48.2...0.49.0) (2024-06-20)
 
 
