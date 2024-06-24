@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.71.1](https://github.com/BLSQ/openhexa-app/compare/0.71.0...0.71.1) (2024-06-24)
+
+
+### Bug Fixes
+
+* **Connections:** filter_for_user should be callable by a pipeline ([ce7d2fa](https://github.com/BLSQ/openhexa-app/commit/ce7d2fa9f4a885da1ca5dabc1325b64f6750797c))
+
 ## [0.71.0](https://github.com/BLSQ/openhexa-app/compare/0.70.1...0.71.0) (2024-06-18)
 
 
