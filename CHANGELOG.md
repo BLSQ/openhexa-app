@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.71.5](https://github.com/BLSQ/openhexa-app/compare/0.71.4...0.71.5) (2024-06-25)
+
+
+### Bug Fixes
+
+* **Connections:** specify connection workspace ([#727](https://github.com/BLSQ/openhexa-app/issues/727)) ([d1889dd](https://github.com/BLSQ/openhexa-app/commit/d1889dddc3ca1dfd2f4a192118daa0bacbeca4a1))
+
 ## [0.71.4](https://github.com/BLSQ/openhexa-app/compare/0.71.3...0.71.4) (2024-06-25)
 
 
