@@ -836,7 +836,8 @@ enum DeleteConnectionError {
 extend type Query {
   # Returns a connection by its unique identifier.
   connection(id: UUID!): Connection @loginRequired
-  connectionBySlug(slug: String!): Connection @loginRequired
+  # Returns a connection by its slug and the workspace slug.
+  connectionBySlug(workspaceSlug: String!, connectionSlug: String!): Connection @loginRequired
 }
 
 
