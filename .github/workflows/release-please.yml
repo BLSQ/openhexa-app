@@ -3,6 +3,12 @@ on:
     branches:
       - main
 name: release-please
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+
 jobs:
   release-please:
     runs-on: ubuntu-latest
