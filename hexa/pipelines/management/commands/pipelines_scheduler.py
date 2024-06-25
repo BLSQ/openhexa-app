@@ -22,7 +22,7 @@ class Command(BaseCommand):
                 if not croniter.is_valid(pipeline.schedule):
                     logger.warning("pipeline %s invalid schedule", pipeline.id)
                     continue
-                if pipeline.last_version.is_schedulable is False:
+                if pipeline.is_schedulable is False:
                     # A pipeline may have a schedule but not be schedulable because the configuration of the version has changed
                     logger.warning("pipeline %s not schedulable", pipeline.id)
                     continue

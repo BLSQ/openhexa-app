@@ -268,6 +268,13 @@ class Pipeline(SoftDeletedModel):
     def last_run(self) -> "PipelineRun":
         return self.pipelinerun_set.first()
 
+    @property
+    def is_schedulable(self):
+        if self.type == PipelineType.NOTEBOOK:
+            return True
+        elif self.type == PipelineType.ZIPFILE:
+            return self.last_version and self.last_version.is_schedulable
+
     def upload_new_version(
         self,
         user: User,

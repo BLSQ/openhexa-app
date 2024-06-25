@@ -1,4 +1,4 @@
-from hexa.pipelines.models import Pipeline, PipelineType, PipelineVersion
+from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 
@@ -52,10 +52,7 @@ def stop_pipeline(principal: User, pipeline: Pipeline):
 def schedule_pipeline(principal: User, pipeline: Pipeline):
     if principal.has_perm("pipelines.run_pipeline", pipeline) is False:
         return False
-    if pipeline.type == PipelineType.NOTEBOOK:
-        return True
-    elif pipeline.type == PipelineType.ZIPFILE:
-        return pipeline.last_version and pipeline.last_version.is_schedulable
+    return pipeline.is_schedulable
 
 
 def create_pipeline_version(principal: User, pipeline: Pipeline):
