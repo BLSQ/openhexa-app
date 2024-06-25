@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.71.4](https://github.com/BLSQ/openhexa-app/compare/0.71.3...0.71.4) (2024-06-25)
+
+
+### Bug Fixes
+
+* **Pipelines:** handle case of notebook pipeline ([#721](https://github.com/BLSQ/openhexa-app/issues/721)) ([9575292](https://github.com/BLSQ/openhexa-app/commit/957529238f528e7e805f3d8498cd2f7defd8fd6a))
+
 ## [0.71.3](https://github.com/BLSQ/openhexa-app/compare/0.71.2...0.71.3) (2024-06-25)
 
 
