@@ -472,7 +472,7 @@ class PipelineRun(Base, WithStatus):
     state = models.CharField(
         max_length=200, blank=False, choices=PipelineRunState.choices
     )
-    duration = models.DurationField(null=True)
+    duration = models.DurationField(null=True, blank=True)
     config = models.JSONField(blank=True, default=dict)
     access_token = models.CharField(max_length=200, blank=True)
     messages = models.JSONField(null=True, blank=True, default=list)
@@ -482,7 +482,11 @@ class PipelineRun(Base, WithStatus):
     send_mail_notifications = models.BooleanField(default=False)
     timeout = models.IntegerField(null=True)
     stopped_by = models.ForeignKey(
-        "user_management.User", null=True, on_delete=models.SET_NULL, related_name="+"
+        "user_management.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
     )
 
     objects = PipelineRunQuerySet.as_manager()
