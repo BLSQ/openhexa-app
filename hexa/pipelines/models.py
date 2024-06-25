@@ -256,7 +256,11 @@ class Pipeline(SoftDeletedModel):
             trigger_mode=trigger_mode,
             execution_date=timezone.now(),
             state=PipelineRunState.QUEUED,
-            config=self.merge_pipeline_config(config, pipeline_version.config),
+            config=(
+                self.merge_pipeline_config(config, pipeline_version.config)
+                if pipeline_version
+                else self.config
+            ),
             access_token=str(uuid.uuid4()),
             send_mail_notifications=send_mail_notifications,
             timeout=timeout,

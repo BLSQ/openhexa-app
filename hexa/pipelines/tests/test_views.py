@@ -9,7 +9,7 @@ from django.urls import reverse
 
 from hexa.core.test import TestCase
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
-from hexa.pipelines.models import Pipeline, PipelineRunTrigger
+from hexa.pipelines.models import Pipeline, PipelineRunTrigger, PipelineType
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Workspace,
@@ -96,6 +96,28 @@ class ViewsTest(TestCase):
         )
         self.assertEqual(r.status_code, 400)
         self.assertEqual(r.json(), {"error": "Pipeline has no webhook enabled"})
+
+    def test_run_pipeline_notebook_webhook(self):
+        pipeline = Pipeline.objects.create(
+            code="new_pipeline",
+            name="notebook.ipynb",
+            workspace=self.WORKSPACE,
+            type=PipelineType.NOTEBOOK,
+            notebook_path="notebook.ipynb",
+            webhook_enabled=True,
+        )
+        pipeline.generate_webhook_token()
+
+        response = self.client.post(
+            reverse(
+                "pipelines:run",
+                args=[pipeline.webhook_token],
+            ),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(str(pipeline.last_run.id), response.json()["run_id"])
+        self.assertEqual(pipeline.last_run.trigger_mode, PipelineRunTrigger.WEBHOOK)
 
     def test_run_pipeline_valid(self):
         self.assertEqual(self.PIPELINE.last_run, None)
