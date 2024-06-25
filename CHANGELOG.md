@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.71.3](https://github.com/BLSQ/openhexa-app/compare/0.71.2...0.71.3) (2024-06-25)
+
+
+### Bug Fixes
+
+* **pipelines:** Fix scheduler of pipelines ([fa9ec87](https://github.com/BLSQ/openhexa-app/commit/fa9ec876a794461c408fccc4dac65f6c366e6376))
+
 ## [0.71.2](https://github.com/BLSQ/openhexa-app/compare/0.71.1...0.71.2) (2024-06-24)
 
 
