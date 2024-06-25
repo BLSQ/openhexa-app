@@ -40,6 +40,7 @@ class ConnectionTest(GraphQLTestCase):
             description="This is a workspace for Senegal",
             countries=[{"code": "AL"}],
         )
+
         cls.WORKSPACE_MEMBERSHIP_SABRINA = WorkspaceMembership.objects.create(
             workspace=cls.WORKSPACE,
             user=cls.USER_SABRINA,
@@ -68,6 +69,14 @@ class ConnectionTest(GraphQLTestCase):
             name="Burundi Workspace",
             description="This is a workspace for Burundi",
             countries=[{"code": "AD"}],
+        )
+
+        cls.WORKSPACE_CONNECTION_2 = Connection.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            cls.WORKSPACE_2,
+            name="DB",
+            description="Connection's description",
+            connection_type=ConnectionType.CUSTOM,
         )
 
     def test_create_connection_non_member(self):
@@ -506,8 +515,8 @@ class ConnectionTest(GraphQLTestCase):
         )
         r = self.run_query(
             """
-            query getConnectionBySlug($slug: String!) {
-                connectionBySlug(slug: $slug) {
+            query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!) {
+                connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug) {
                     fields {
                         code
                         value
@@ -518,7 +527,8 @@ class ConnectionTest(GraphQLTestCase):
             }
             """,
             {
-                "slug": self.WORKSPACE_CONNECTION.slug,
+                "workspaceSlug": self.WORKSPACE.slug,
+                "connectionSlug": self.WORKSPACE_CONNECTION.slug,
             },
         )
         self.assertEqual(
@@ -560,8 +570,8 @@ class ConnectionTest(GraphQLTestCase):
         )
         r = self.run_query(
             """
-            query getConnectionBySlug($slug: String!) {
-                connectionBySlug(slug: $slug) {
+            query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!) {
+                connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug) {
                     fields {
                         code
                         value
@@ -571,9 +581,7 @@ class ConnectionTest(GraphQLTestCase):
                 }
             }
             """,
-            {
-                "slug": "random_slug",
-            },
+            {"workspaceSlug": self.WORKSPACE.slug, "connectionSlug": "random_slug"},
         )
         self.assertEqual(
             {
