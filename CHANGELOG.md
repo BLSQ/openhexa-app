@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.71.6](https://github.com/BLSQ/openhexa-app/compare/0.71.5...0.71.6) (2024-06-26)
+
+
+### Bug Fixes
+
+* Add missing migration ([b5b9da0](https://github.com/BLSQ/openhexa-app/commit/b5b9da046d438af4eadafa31c2e53525bced5b48))
+* **Pipelines:** Returns the secret value of the connection fields when in a pipeline environment ([4de283f](https://github.com/BLSQ/openhexa-app/commit/4de283f0d3c877def3165cc85c237fd7c1f56f02))
+
+
+### Miscellaneous
+
+* add blank=True on PipelineRun.duration & .stopped_by ([350238e](https://github.com/BLSQ/openhexa-app/commit/350238e70ab64476342a4860dcfffefaaf07cfa2))
+* Add renovate.json ([#729](https://github.com/BLSQ/openhexa-app/issues/729)) ([3e6f859](https://github.com/BLSQ/openhexa-app/commit/3e6f85951f9ed865e7c692b91bc2b5c816268c20))
+* **CI:** Add a concurrenty rule to avoid having multiple release-please runs at the same time ([24d9966](https://github.com/BLSQ/openhexa-app/commit/24d996669532d825894092f830be89f74ae37fb3))
+* Delete .github/dependabot.yml ([9cd4f9d](https://github.com/BLSQ/openhexa-app/commit/9cd4f9d2146ea8a9fa0f7d8bdba68285d4dd1c2b))
+* **deps:** bump urllib3 from 1.26.18 to 1.26.19 ([#718](https://github.com/BLSQ/openhexa-app/issues/718)) ([c21229e](https://github.com/BLSQ/openhexa-app/commit/c21229e3ff28e42ada4e1f99caf098eb90b6bf09))
+
 ## [0.71.5](https://github.com/BLSQ/openhexa-app/compare/0.71.4...0.71.5) (2024-06-25)
 
 
