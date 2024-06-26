@@ -531,3 +531,7 @@ class APIS3TestCase(APITestCase, OnlyS3, TestCase):
 class APIGcpTestCase(APITestCase, OnlyGCP, TestCase):
     def get_type(self):
         return "gcp"
+
+
+class TestDownloadThings:
+    lines = get_storage("gcp").read_object_lines("hexa-demo-dev", "untitled.txt", 10)
