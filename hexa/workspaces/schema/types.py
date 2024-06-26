@@ -2,6 +2,7 @@ from ariadne import ObjectType
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
+from hexa.pipelines.authentication import PipelineRunUser
 from hexa.user_management.schema import me_permissions_object
 
 from ..models import (
@@ -146,10 +147,14 @@ def resolve_connection_field_value(obj: ConnectionField, info, **kwargs):
     request: HttpRequest = info.context["request"]
     if obj.secret is False:
         return obj.value
-    elif request.user.has_perm("workspaces.update_connection", obj.connection):
+    # FIXME this is a temporary solution to allow pipelines to see the secrets
+    if (
+        isinstance(request.user, PipelineRunUser)
+        and request.user.pipeline_run.pipeline.workspace == obj.connection.workspace
+    ):
         return obj.value
-    else:
-        return None
+    if request.user.has_perm("workspaces.update_connection", obj.connection):
+        return obj.value
 
 
 connection_object.set_alias("type", "connection_type")
