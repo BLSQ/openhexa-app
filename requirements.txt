@@ -110,7 +110,7 @@ docker==7.0.0
     # via -r requirements.in
 fiona==1.9.5
     # via geopandas
-geopandas==0.14.1
+geopandas==0.14.4
     # via -r requirements.in
 google-api-core[grpc]==2.15.0
     # via
