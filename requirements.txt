@@ -154,7 +154,7 @@ googleapis-common-protos[grpc]==1.62.0
     #   grpcio-status
 graphql-core==3.2.3
     # via ariadne
-grpc-google-iam-v1==0.13.0
+grpc-google-iam-v1==0.13.1
     # via google-cloud-logging
 grpcio==1.60.0
     # via
