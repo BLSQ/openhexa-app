@@ -1,4 +1,4 @@
-FROM python:3.11-slim as deps
+FROM python:3.12-slim as deps
 
 RUN \
   --mount=type=cache,target=/var/cache/apt,sharing=locked \
