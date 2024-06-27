@@ -188,7 +188,7 @@ markupsafe==2.1.3
     #   werkzeug
 morecantile==5.0.2
     # via rio-cogeo
-moto[s3]==4.2.12
+moto[s3]==4.2.14
     # via -r requirements.in
 numpy==1.26.2
     # via
