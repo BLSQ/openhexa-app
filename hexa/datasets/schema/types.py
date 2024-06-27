@@ -101,6 +101,15 @@ def resolve_dataset_permissions(obj: Dataset, info, **kwargs):
     return obj
 
 
+@dataset_object.field("updatedAt")
+def resolve_dataset_updated_at(obj: Dataset, info, **kwargs):
+    return (
+        max(obj.updated_at, obj.latest_version.updated_at)
+        if obj.latest_version
+        else obj.updated_at
+    )
+
+
 @dataset_link_object.field("permissions")
 def resolve_dataset_link_permissions(obj: DatasetLink, info, **kwargs):
     return obj
