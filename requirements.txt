@@ -71,7 +71,7 @@ colorhash==2.0.0
     # via -r requirements.in
 coverage[toml]==7.3.4
     # via -r requirements.in
-croniter==2.0.1
+croniter==2.0.5
     # via -r requirements.in
 cryptography==42.0.4
     # via
