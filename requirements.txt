@@ -108,7 +108,7 @@ django-storages[google]==1.14.2
     # via -r requirements.in
 docker==7.0.0
     # via -r requirements.in
-fiona==1.9.5
+fiona==1.9.6
     # via geopandas
 geopandas==0.14.1
     # via -r requirements.in
