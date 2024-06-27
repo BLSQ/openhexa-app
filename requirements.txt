@@ -126,7 +126,7 @@ google-auth==2.25.2
     #   google-cloud-core
     #   google-cloud-storage
     #   kubernetes
-google-cloud-appengine-logging==1.4.0
+google-cloud-appengine-logging==1.4.3
     # via google-cloud-logging
 google-cloud-audit-log==0.2.5
     # via google-cloud-logging
