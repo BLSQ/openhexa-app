@@ -106,7 +106,7 @@ django-postgres-queue==1.0.0
     # via -r requirements.in
 django-storages[google]==1.14.2
     # via -r requirements.in
-docker==7.0.0
+docker==7.1.0
     # via -r requirements.in
 fiona==1.9.5
     # via geopandas
@@ -114,6 +114,7 @@ geopandas==0.14.1
     # via -r requirements.in
 google-api-core[grpc]==2.15.0
     # via
+    #   google-api-core
     #   google-cloud-appengine-logging
     #   google-cloud-core
     #   google-cloud-iam
@@ -204,7 +205,6 @@ oauthlib==3.2.2
 packaging==23.2
     # via
     #   build
-    #   docker
     #   geopandas
     #   gunicorn
 pandas==2.1.4
