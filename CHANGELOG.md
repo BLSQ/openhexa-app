@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.71.7](https://github.com/BLSQ/openhexa-app/compare/0.71.6...0.71.7) (2024-06-27)
+
+
+### Bug Fixes
+
+* **Datasets:** use dataset last version to track update ([#724](https://github.com/BLSQ/openhexa-app/issues/724)) ([9550577](https://github.com/BLSQ/openhexa-app/commit/95505770bcd0f1b53fd46ec63f110a2805a75fee))
+
+
+### Miscellaneous
+
+* **deps:** update dependency cachetools to v5.3.3 ([#731](https://github.com/BLSQ/openhexa-app/issues/731)) ([b0edacc](https://github.com/BLSQ/openhexa-app/commit/b0edaccc4de1016224f0d59c034d36aa07239564))
+* **deps:** update dependency croniter to v2.0.5 ([#732](https://github.com/BLSQ/openhexa-app/issues/732)) ([e08d4ad](https://github.com/BLSQ/openhexa-app/commit/e08d4ad3f94a02e7b4a68f0b617fac66d92ca92d))
+* **deps:** update dependency google-cloud-appengine-logging to v1.4.3 ([#739](https://github.com/BLSQ/openhexa-app/issues/739)) ([f90ae63](https://github.com/BLSQ/openhexa-app/commit/f90ae6396eff5db1cc2e372be7bfc483b2b61c9f))
+* remove datasets feature flag ([#720](https://github.com/BLSQ/openhexa-app/issues/720)) ([a6e7125](https://github.com/BLSQ/openhexa-app/commit/a6e7125d67814c04c52f281c33bbc4a43e52785b))
+
 ## [0.71.6](https://github.com/BLSQ/openhexa-app/compare/0.71.5...0.71.6) (2024-06-26)
 
 
