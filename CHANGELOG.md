@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.49.2](https://github.com/BLSQ/openhexa-frontend/compare/0.49.1...0.49.2) (2024-06-28)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @codemirror/lang-python to v6.1.6 ([#636](https://github.com/BLSQ/openhexa-frontend/issues/636)) ([97f0d2b](https://github.com/BLSQ/openhexa-frontend/commit/97f0d2b43bcb17fd3b240ab6128c5d7b519054c8))
+* **deps:** update dependency @heroicons/react to v2.1.4 ([#640](https://github.com/BLSQ/openhexa-frontend/issues/640)) ([0566b55](https://github.com/BLSQ/openhexa-frontend/commit/0566b55640be2711582a3654a977b2d446ad4835))
+* **deps:** update dependency @types/lodash to v4.17.6 ([#641](https://github.com/BLSQ/openhexa-frontend/issues/641)) ([4722874](https://github.com/BLSQ/openhexa-frontend/commit/4722874264b31b8ff98f8a110df531aae360a11f))
+* **deps:** update dependency filesize to v10.1.2 ([#642](https://github.com/BLSQ/openhexa-frontend/issues/642)) ([0dca094](https://github.com/BLSQ/openhexa-frontend/commit/0dca094c0cfec6385a8b12fa853ede4348e5b76c))
+* **Webhooks:** Improve ui ([cafaff0](https://github.com/BLSQ/openhexa-frontend/commit/cafaff098cf19926729ade99734aac246ad33340))
+* **Webhooks:** Improve UI ([#638](https://github.com/BLSQ/openhexa-frontend/issues/638)) ([cafaff0](https://github.com/BLSQ/openhexa-frontend/commit/cafaff098cf19926729ade99734aac246ad33340))
+
+
+### Miscellaneous
+
+* Configure Renovate ([#628](https://github.com/BLSQ/openhexa-frontend/issues/628)) ([c198295](https://github.com/BLSQ/openhexa-frontend/commit/c198295fce51b6f54f2a036a96b69b502839dd33))
+* Delete .github/dependabot.yml ([5c5cf13](https://github.com/BLSQ/openhexa-frontend/commit/5c5cf13eafb28d34887fe6a9ba59da9af4bea342))
+* **deps:** replace dependency npm-run-all with npm-run-all2 ^5.0.0 ([#630](https://github.com/BLSQ/openhexa-frontend/issues/630)) ([8dd8bec](https://github.com/BLSQ/openhexa-frontend/commit/8dd8bec29d5828a05cebf9c9fbbb163e043f408d))
+* **deps:** update dependency lint-staged to v15.2.7 ([#633](https://github.com/BLSQ/openhexa-frontend/issues/633)) ([ee03a3a](https://github.com/BLSQ/openhexa-frontend/commit/ee03a3a2588b1c46972f18ab0396a3edd2a3ed28))
+* **deps:** update dependency tailwindcss to v3.4.4 ([#634](https://github.com/BLSQ/openhexa-frontend/issues/634)) ([4018dbc](https://github.com/BLSQ/openhexa-frontend/commit/4018dbc4a2b76d3ba9b4735d6a4cf64979d0b5a9))
+
 ## [0.49.1](https://github.com/BLSQ/openhexa-frontend/compare/0.49.0...0.49.1) (2024-06-21)
 
 
