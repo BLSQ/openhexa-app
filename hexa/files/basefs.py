@@ -9,6 +9,14 @@ class NotFound(Exception):
     pass
 
 
+class BucketObjectAlreadyExists(Exception):
+    def __init__(self, target_key):
+        self.message = (
+            f"File already exists. Choose a different object key {target_key}."
+        )
+        super().__init__(self.message)
+
+
 @dataclass
 class ObjectsPage:
     items: typing.List[any]
