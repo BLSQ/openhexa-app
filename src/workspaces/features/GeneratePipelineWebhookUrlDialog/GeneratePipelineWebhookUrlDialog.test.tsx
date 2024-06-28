@@ -3,15 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { TestApp } from "core/helpers/testutils";
 import GeneratePipelineWebhookUrlDialog from ".";
 import { faker } from "@faker-js/faker";
-import {
-  GenerateNewDatabasePasswordDocument,
-  useGenerateWebhookPipelineWebhookUrlMutation,
-} from "workspaces/graphql/mutations.generated";
 
-jest.mock("workspaces/graphql/mutations.generated", () => ({
-  ...jest.requireActual("workspaces/graphql/mutations.generated"),
-  __esModule: true,
-  useGenerateWebhookPipelineWebhookUrlMutation: jest.fn().mockReturnValue([]),
+const mutationMock = jest.fn();
+
+jest.mock("@apollo/client", () => ({
+  ...jest.requireActual("@apollo/client"),
+  useMutation: jest.fn().mockImplementation(() => [mutationMock]),
 }));
 
 const PIPELINE = {
@@ -19,13 +16,10 @@ const PIPELINE = {
   code: faker.string.alphanumeric(),
 };
 
-const useGenerateWebhookPipelineWebhookUrlMutationMock =
-  useGenerateWebhookPipelineWebhookUrlMutation as jest.Mock;
-
 describe("GeneratePipelineWebhookUrlDialog", () => {
   const onClose = jest.fn();
   beforeEach(() => {
-    useGenerateWebhookPipelineWebhookUrlMutationMock.mockClear();
+    mutationMock.mockClear();
   });
 
   it("is displayed when open is true", async () => {
@@ -46,52 +40,23 @@ describe("GeneratePipelineWebhookUrlDialog", () => {
   });
 
   it("Generates new webhook url", async () => {
-    const { useGenerateNewDatabasePasswordMutation } = jest.requireActual(
-      "workspaces/graphql/mutations.generated",
-    );
-    useGenerateWebhookPipelineWebhookUrlMutationMock.mockImplementation(
-      useGenerateNewDatabasePasswordMutation,
-    );
+    mutationMock.mockReturnValue({
+      data: { generatePipelineWebhookUrl: { errors: [], success: true } },
+    });
 
     const user = userEvent.setup();
-    const mocks = [
-      {
-        request: {
-          query: GenerateNewDatabasePasswordDocument,
-          variables: {
-            input: {
-              id: PIPELINE.id,
-            },
-          },
-        },
-        result: {
-          data: {
-            generatePipelineWebhookUrl: {
-              success: true,
-              errors: [],
-              pipeline: {
-                webhookUrl:
-                  "http://app.openhexa.test/pipelines/random_string/run",
-              },
-            },
-          },
-        },
-      },
-    ];
 
     const { container } = render(
-      <TestApp mocks={mocks}>
-        <GeneratePipelineWebhookUrlDialog
-          pipeline={PIPELINE}
-          open={true}
-          onClose={() => {}}
-        />
-      </TestApp>,
+      <GeneratePipelineWebhookUrlDialog
+        pipeline={PIPELINE}
+        open={true}
+        onClose={() => {}}
+      />,
     );
 
-    const saveButton = screen.getByRole("button", { name: "Generate new url" });
+    const saveButton = screen.getByRole("button", { name: "Generate" });
     await user.click(saveButton);
 
-    expect(useGenerateWebhookPipelineWebhookUrlMutationMock).toHaveBeenCalled();
+    expect(mutationMock).toHaveBeenCalled();
   });
 });

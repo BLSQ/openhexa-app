@@ -189,14 +189,3 @@ mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
     errors
   }
 }
-
-mutation generateWebhookPipelineWebhookUrl($input: GeneratePipelineWebhookUrlInput!) {
-  generatePipelineWebhookUrl(input: $input) {
-    success
-    errors
-    pipeline {
-      id
-      webhookUrl
-    }
-  }
-}

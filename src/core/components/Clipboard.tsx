@@ -32,6 +32,7 @@ const Clipboard = (props: ClipboardProps) => {
   const icon = (
     <button
       title={t("Copy")}
+      type="button"
       onClick={handleClick}
       className="rounded opacity-90 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2"
     >
