@@ -11,6 +11,7 @@ import useForm from "core/hooks/useForm";
 import { PipelineParameter, UpdatePipelineVersionError } from "graphql/types";
 import ParameterField from "../RunPipelineDialog/ParameterField";
 import { PipelineVersionConfigDialog_VersionFragment } from "./PipelineVersionConfigDialog.generated";
+import Overflow from "core/components/Overflow";
 
 type PipelineVersionConfigProps = {
   version: PipelineVersionConfigDialog_VersionFragment;
@@ -88,67 +89,71 @@ const PipelineVersionConfigDialog = (props: PipelineVersionConfigProps) => {
   }, [form, version, open]);
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <form onSubmit={form.handleSubmit}>
-        <Dialog.Title onClose={onClose}>
-          {t("Set default configuration")}
-        </Dialog.Title>
-        <Dialog.Content className="space-y-4">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      onSubmit={form.handleSubmit}
+      maxWidth={"max-w-3xl"}
+    >
+      <Dialog.Title onClose={onClose}>
+        {t("Set default configuration")}
+      </Dialog.Title>
+      <Dialog.Content className="space-y-4 flex flex-col">
+        <p className="text-sm">
+          <Trans>
+            Set the default configuration for this version. These values will be
+            used when running the pipeline manually or via a schedule.
+            <br />
+            Users are able to change the values when running the pipeline
+            manually.
+            <br />
+          </Trans>
+        </p>
+        {version.pipeline.schedule && (
           <p className="text-sm">
             <Trans>
-              Set the default configuration for this version. These values will
-              be used when running the pipeline manually or via a schedule.
-              <br />
-              Users are able to change the values when running the pipeline
-              manually.
-              <br />
+              Fill in the required parameters to keep the scheduling of your
+              pipeline active.
             </Trans>
           </p>
-          {version.pipeline.schedule && (
-            <p className="text-sm">
-              <Trans>
-                Fill in the required parameters to keep the scheduling of your
-                pipeline active.
-              </Trans>
-            </p>
+        )}
+
+        <div
+          className={clsx(
+            "grid gap-x-3 gap-y-4",
+            version.parameters.length > 4 && "grid-cols-2 gap-x-5",
           )}
-          <div
-            className={clsx(
-              "grid gap-x-3 gap-y-4",
-              version.parameters.length > 4 && "grip-cols-2 gap-x-5",
-            )}
-          >
-            {version.parameters.map((param, i) => (
-              <Field
-                showOptional={Boolean(version.pipeline.schedule)}
-                key={i}
-                name={param.code}
-                label={param.name}
-                help={param.help}
-                required={isParameterRequired(param)}
-                error={form.touched[param.code] && form.errors[param.code]}
-              >
-                <ParameterField
-                  parameter={param}
-                  value={form.formData[param.code]}
-                  onChange={(value: any) => {
-                    form.setFieldValue(param.code, value);
-                  }}
-                  workspaceSlug={version.pipeline.workspace.slug}
-                />
-              </Field>
-            ))}
-          </div>
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onClick={onClose} variant={"outlined"}>
-            {t("Cancel")}
-          </Button>
-          <Button disabled={form.isSubmitting} type="submit">
-            {t("Save")}
-          </Button>
-        </Dialog.Actions>
-      </form>
+        >
+          {version.parameters.map((param, i) => (
+            <Field
+              showOptional={Boolean(version.pipeline.schedule)}
+              key={i}
+              name={param.code}
+              label={param.name}
+              help={param.help}
+              required={isParameterRequired(param)}
+              error={form.touched[param.code] && form.errors[param.code]}
+            >
+              <ParameterField
+                parameter={param}
+                value={form.formData[param.code]}
+                onChange={(value: any) => {
+                  form.setFieldValue(param.code, value);
+                }}
+                workspaceSlug={version.pipeline.workspace.slug}
+              />
+            </Field>
+          ))}
+        </div>
+      </Dialog.Content>
+      <Dialog.Actions>
+        <Button onClick={onClose} variant={"outlined"}>
+          {t("Cancel")}
+        </Button>
+        <Button disabled={form.isSubmitting} type="submit">
+          {t("Save")}
+        </Button>
+      </Dialog.Actions>
     </Dialog>
   );
 };

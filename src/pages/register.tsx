@@ -108,6 +108,7 @@ const RegisterPage: NextPageWithLayout = (props: {
             label={t("Email address")}
             required
             disabled
+            fullWidth
             help={t(
               "You cannot change your email address. It's the one you've been invited with",
             )}
@@ -117,6 +118,7 @@ const RegisterPage: NextPageWithLayout = (props: {
             name="firstName"
             label={t("First name")}
             required
+            fullWidth
             value={form.formData.firstName}
             onChange={form.handleInputChange}
             error={form.errors.firstName}
@@ -125,6 +127,7 @@ const RegisterPage: NextPageWithLayout = (props: {
             name="lastName"
             label={t("Last name")}
             required
+            fullWidth
             value={form.formData.lastName}
             onChange={form.handleInputChange}
             error={form.errors.lastName}
@@ -133,6 +136,7 @@ const RegisterPage: NextPageWithLayout = (props: {
             name="password1"
             type="password"
             required
+            fullWidth
             label={t("Password")}
             value={form.formData.password1}
             onChange={form.handleInputChange}
@@ -142,6 +146,7 @@ const RegisterPage: NextPageWithLayout = (props: {
             name="password2"
             type="password"
             required
+            fullWidth
             label={t("Confirm Password")}
             value={form.formData.password2}
             onChange={form.handleInputChange}
