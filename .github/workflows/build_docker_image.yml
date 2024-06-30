@@ -62,21 +62,21 @@ jobs:
           key: root-.cache-${{ hashFiles('Dockerfile') }}
 
       - name: inject var-cache-apt into docker
-        uses: reproducible-containers/buildkit-cache-dance@v2.1.4
+        uses: reproducible-containers/buildkit-cache-dance@v3.1.2
         with:
           cache-source: var-cache-apt
           cache-target: /var/cache/apt
           skip-extraction: ${{ steps.cache-var-cache-apt.outputs.cache-hit }}
 
       - name: inject var-lib-apt into docker
-        uses: reproducible-containers/buildkit-cache-dance@v2.1.4
+        uses: reproducible-containers/buildkit-cache-dance@v3.1.2
         with:
           cache-source: var-lib-apt
           cache-target: /var/lib/apt
           skip-extraction: ${{ steps.cache-var-lib-apt.outputs.cache-hit }}
       
       - name: inject root-.cache into docker
-        uses: reproducible-containers/buildkit-cache-dance@v2.1.4
+        uses: reproducible-containers/buildkit-cache-dance@v3.1.2
         with:
           cache-source: root-.cache
           cache-target: /root/.cache
