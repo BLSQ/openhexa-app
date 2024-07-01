@@ -53,3 +53,6 @@ docker==7.1.0
 # (unpin or update with great caution, subtle issues can arise with new versions)
 rasterio
 rio-cogeo
+
+# need to pin requests to < 2.32 to avoid breaking docker-py
+requests==2.31.0
