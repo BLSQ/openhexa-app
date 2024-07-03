@@ -1,6 +1,7 @@
 import binascii
 import logging
 import pathlib
+from datetime import datetime
 
 import django_otp
 from ariadne import (
@@ -26,6 +27,7 @@ from django_otp.plugins.otp_email.models import EmailDevice
 from graphql import default_field_resolver
 
 from hexa.core.graphql import result_page
+from hexa.core.mixpanel import create_event
 from hexa.core.templatetags.colors import hash_color
 from hexa.user_management.models import (
     AlreadyExists,
@@ -314,6 +316,14 @@ def resolve_login(_, info, **kwargs):
         user_candidate.otp_device = device
 
     login(request, user_candidate)
+    if user_candidate.has_feature_flag("analytics"):
+        create_event(
+            "user_login",
+            {
+                "timestamp": datetime.now().timestamp(),
+                # "app_version": ""
+            },
+        )
     return {"success": True}
 
 
