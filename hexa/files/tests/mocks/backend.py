@@ -29,7 +29,9 @@ class StorageBackend:
             return client
 
         def wrapper(*args, **kwargs):
-            with patch("hexa.files.gcp.get_storage_client", create_mock_client):
+            with patch(
+                "hexa.files.backends.gcp.get_storage_client", create_mock_client
+            ):
                 return func(*args, **kwargs)
 
         functools.update_wrapper(wrapper, func)
@@ -47,7 +49,7 @@ class StorageBackend:
             return client
 
         def wrapper(*args, **kwargs):
-            with patch("hexa.files.s3.get_storage_client", create_mock_client):
+            with patch("hexa.files.backends.s3.get_storage_client", create_mock_client):
                 return func(*args, **kwargs)
 
         functools.update_wrapper(wrapper, func)

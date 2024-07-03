@@ -7,14 +7,14 @@ from django.test import override_settings
 from moto import mock_s3
 
 from hexa.core.test import TestCase
+from hexa.files import storage
 
-from ..api import NotFound, get_storage
 from .mocks.mockgcp import backend
 
 
 class APITestCase:
     def get_client(self):
-        return get_storage(self.get_type())
+        return storage
 
     def to_keys(self, page):
         return [x["key"] for x in page.items]
@@ -26,7 +26,9 @@ class APITestCase:
             def create_mock_client(*args, **kwargs):
                 return MockClient(backend=backend, *args, **kwargs)
 
-            patcher = patch("hexa.files.gcp.get_storage_client", create_mock_client)
+            patcher = patch(
+                "hexa.files.backends.gcp.get_storage_client", create_mock_client
+            )
             self.mock_backend = patcher.start()
             self.addCleanup(patcher.stop)
 
@@ -340,7 +342,7 @@ class APITestCase:
 
     def test_delete_object_non_existing(self):
         bucket = self.get_client().create_bucket("bucket")
-        with self.assertRaises(NotFound):
+        with self.assertRaises(storage.exceptions.NotFound):
             self.get_client().delete_object(
                 bucket_name=bucket.name, file_name="test.txt"
             )
@@ -439,7 +441,7 @@ class OnlyS3:
         self.assertFalse(url.startswith("https://custom-s3.local"))
 
         with override_settings(
-            WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL="https://custom-s3.local"
+            WORKSPACE_STORAGE_BACKEND_AWS_PUBLIC_ENDPOINT_URL="https://custom-s3.local"
         ):
             url = self.get_client().generate_upload_url(
                 bucket_name="bucket", target_key="demo.txt"
@@ -454,7 +456,7 @@ class OnlyS3:
         self.assertFalse(url.startswith("https://custom-s3.local"))
 
         with override_settings(
-            WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL="https://custom-s3.local"
+            WORKSPACE_STORAGE_BACKEND_AWS_PUBLIC_ENDPOINT_URL="https://custom-s3.local"
         ):
             url = self.get_client().generate_download_url("bucket", "demo.txt")
             self.assertTrue(url.startswith("https://custom-s3.local"))
@@ -522,7 +524,7 @@ class OnlyOnline:
 
 
 # MOTO the lib to mock s3 doesn't work when you set and endpoint url
-@override_settings(WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL=None)
+@override_settings(WORKSPACE_STORAGE_BACKEND_AWS_ENDPOINT_URL=None)
 class APIS3TestCase(APITestCase, OnlyS3, TestCase):
     def get_type(self):
         return "s3"

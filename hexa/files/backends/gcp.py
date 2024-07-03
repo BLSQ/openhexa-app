@@ -11,11 +11,13 @@ from google.cloud.storage.blob import Blob
 from google.oauth2 import service_account
 from google.protobuf import duration_pb2
 
-from .basefs import BaseClient, NotFound, ObjectsPage, load_bucket_sample_data_with
+from .base import BaseClient, NotFound, ObjectsPage, load_bucket_sample_data_with
 
 
 def get_credentials():
-    decoded_creds = base64.b64decode(settings.GCS_SERVICE_ACCOUNT_KEY)
+    decoded_creds = base64.b64decode(
+        settings.WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY
+    )
     json_creds = json.loads(decoded_creds, strict=False)
     return service_account.Credentials.from_service_account_info(json_creds)
 

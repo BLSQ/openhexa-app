@@ -5,7 +5,7 @@ import boto3
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from .basefs import BaseClient, NotFound, ObjectsPage, load_bucket_sample_data_with
+from .base import BaseClient, NotFound, ObjectsPage, load_bucket_sample_data_with
 
 default_region = "eu-central-1"
 
@@ -13,14 +13,14 @@ default_region = "eu-central-1"
 def get_storage_client(type="s3", endpoint_url=None):
     """Type is the boto client type s3 by default but can be sts or other client api"""
     if endpoint_url is None:
-        endpoint_url = settings.WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL
+        endpoint_url = settings.WORKSPACE_STORAGE_BACKEND_AWS_ENDPOINT_URL
 
     s3 = boto3.client(
         type,
         endpoint_url=endpoint_url,
-        aws_access_key_id=settings.WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.WORKSPACE_STORAGE_ENGINE_AWS_SECRET_ACCESS_KEY,
-        region_name=settings.WORKSPACE_STORAGE_ENGINE_AWS_BUCKET_REGION,
+        aws_access_key_id=settings.WORKSPACE_STORAGE_BACKEND_AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.WORKSPACE_STORAGE_BACKEND_AWS_SECRET_ACCESS_KEY,
+        region_name=settings.WORKSPACE_STORAGE_BACKEND_AWS_BUCKET_REGION,
     )
     return s3
 
@@ -210,7 +210,7 @@ class S3Client(BaseClient):
     ):
         # Since this URL will be used by the client, we need to use the client endpoint
         s3_client = get_storage_client(
-            endpoint_url=settings.WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL
+            endpoint_url=settings.WORKSPACE_STORAGE_BACKEND_AWS_PUBLIC_ENDPOINT_URL
         )
         url = s3_client.generate_presigned_url(
             ClientMethod=ClientMethod,

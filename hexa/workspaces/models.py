@@ -29,7 +29,7 @@ from hexa.databases.api import (
     update_database_password,
 )
 from hexa.datasets.models import Dataset
-from hexa.files.api import get_storage
+from hexa.files import storage
 from hexa.user_management.models import User
 
 
@@ -53,7 +53,7 @@ def generate_database_name():
 
 # ease patching
 def load_bucket_sample_data(bucket_name):
-    get_storage().load_bucket_sample_data(bucket_name)
+    storage.load_bucket_sample_data(bucket_name)
 
 
 validate_workspace_slug = RegexValidator(
@@ -96,7 +96,7 @@ class WorkspaceManager(models.Manager):
         create_kwargs["db_name"] = db_name
         create_database(db_name, db_password)
 
-        bucket = get_storage().create_bucket(
+        bucket = storage.create_bucket(
             settings.WORKSPACE_BUCKET_PREFIX + slug, labels={"hexa-workspace": slug}
         )
         create_kwargs["bucket_name"] = bucket.name

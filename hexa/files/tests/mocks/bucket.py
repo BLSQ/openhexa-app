@@ -1,6 +1,6 @@
 from google.cloud.storage._helpers import _validate_name
 
-from hexa.files.api import NotFound
+from hexa.files.backends.exceptions import NotFound
 
 from .blob import MockBlob
 

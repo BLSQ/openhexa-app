@@ -186,7 +186,7 @@ SECURE_HSTS_SECONDS = os.environ.get(
 # by default users need to login every 2 weeks -> update to 1 year
 SESSION_COOKIE_AGE = 365 * 24 * 3600
 
-# Trust the X_FORWARDED_PROTO header from the GCP load balancer so Django is aware it is accessed by https
+# Trust the X_FORWARDED_PROTO header from the  load balancer so Django is aware it is accessed by https
 if "TRUST_FORWARDED_PROTO" in os.environ:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
@@ -346,45 +346,55 @@ WORKSPACES_DATABASE_HOST = os.environ.get("WORKSPACES_DATABASE_HOST")
 WORKSPACES_DATABASE_PORT = os.environ.get("WORKSPACES_DATABASE_PORT")
 WORKSPACES_DATABASE_DEFAULT_DB = os.environ.get("WORKSPACES_DATABASE_DEFAULT_DB")
 WORKSPACES_DATABASE_PROXY_HOST = os.environ.get("WORKSPACES_DATABASE_PROXY_HOST")
+# Datasets config
+WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET")
 
 # Filesystem configuration
 WORKSPACE_BUCKET_PREFIX = os.environ.get("WORKSPACE_BUCKET_PREFIX", "hexa-")
 WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION", "europe-west1")
-WORKSPACE_STORAGE_ENGINE = os.environ.get("WORKSPACE_STORAGE_ENGINE", "gcp")
-WORKSPACE_BUCKET_VERSIONING_ENABLED = (
-    os.environ.get("WORKSPACE_BUCKET_VERSIONING_ENABLED", "false") == "true"
+WORKSPACE_STORAGE_BACKEND = os.environ.get(
+    "WORKSPACE_STORAGE_BACKEND", "hexa.files.backends.gcp.GCPClient"
 )
+WORKSPACE_BUCKET_VERSIONING_ENABLED = True
 
-WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL = os.environ.get(
-    "WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL"
+
+### AWS S3 Settings if using AWS S3 as a storage backend ###
+WORKSPACE_STORAGE_BACKEND_AWS_ENDPOINT_URL = os.environ.get(
+    "WORKSPACE_STORAGE_BACKEND_AWS_ENDPOINT_URL"
 )
-
 # This is the endpoint URL used when generating presigned URLs called by the client since the client
 # does not have access to storage engine in local mode (http://minio:9000)
-WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL = os.environ.get(
-    "WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL"
+WORKSPACE_STORAGE_BACKEND_AWS_PUBLIC_ENDPOINT_URL = os.environ.get(
+    "WORKSPACE_STORAGE_BACKEND_AWS_PUBLIC_ENDPOINT_URL"
 )
-WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID = os.environ.get(
-    "WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID"
+WORKSPACE_STORAGE_BACKEND_AWS_ACCESS_KEY_ID = os.environ.get(
+    "WORKSPACE_STORAGE_BACKEND_AWS_ACCESS_KEY_ID"
 )
-WORKSPACE_STORAGE_ENGINE_AWS_SECRET_ACCESS_KEY = os.environ.get(
-    "WORKSPACE_STORAGE_ENGINE_AWS_SECRET_ACCESS_KEY"
+WORKSPACE_STORAGE_BACKEND_AWS_SECRET_ACCESS_KEY = os.environ.get(
+    "WORKSPACE_STORAGE_BACKEND_AWS_SECRET_ACCESS_KEY"
 )
-WORKSPACE_STORAGE_ENGINE_AWS_BUCKET_REGION = os.environ.get(
-    "WORKSPACE_STORAGE_ENGINE_AWS_BUCKET_REGION"
+WORKSPACE_STORAGE_BACKEND_AWS_BUCKET_REGION = os.environ.get(
+    "WORKSPACE_STORAGE_BACKEND_AWS_BUCKET_REGION"
 )
 
-# Datasets config
-WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET")
-
+### GCP Settings if using GCS as a storage backend ###
 # Base64 encoded service account key
 # To generate a service account key, follow the instructions here:
 # import base64
 # import json
 # base64.b64encode(json.dumps(service_account_key_content).encode("utf-8"))
-GCS_SERVICE_ACCOUNT_KEY = os.environ.get("GCS_SERVICE_ACCOUNT_KEY", "")
+WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY = os.environ.get(
+    "WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY", ""
+)
 
-# S3 settings
+
+### Local storage settings ###
+WORKSPACE_STORAGE_BACKEND_LOCAL_FOLDER = os.environ.get(
+    "WORKSPACE_STORAGE_BACKEND_LOCAL_FOLDER", "/data"
+)
+
+
+# S3 settings (Used by OpenHEXA Legacy)
 AWS_USERNAME = os.environ.get("AWS_USERNAME", "")
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "")

@@ -16,40 +16,24 @@ x-app: &common
       - DATABASE_NAME=hexa-app
       - DATABASE_USER=hexa-app
       - DATABASE_PASSWORD=hexa-app
-      - ACCESSMOD_BUCKET_NAME=s3://hexa-demo-accessmod
-      - ACCESSMOD_MANAGE_REQUESTS_URL=http://localhost:3000/admin/access-requests
-      - ACCESSMOD_SET_PASSWORD_URL=http://localhost:3000/account/set-password
       - NEW_FRONTEND_DOMAIN=localhost:3000
       - PIPELINE_SCHEDULER_SPAWNER=docker
       - PIPELINE_API_URL=http://app:8000
+      - NOTEBOOKS_HUB_URL=http://jupyterhub:8000/hub
+      - HUB_API_TOKEN=cbb352d6a412e266d7494fb014dd699373645ec8d353e00c7aa9dc79ca87800d
+      # Workspaces DB settings
       - DEFAULT_WORKSPACE_IMAGE
-      # The following variables are optional and can be set in your local .env file for testing purposes
-      - DEBUG_LOGGING
-      - DEBUG_TOOLBAR
-      - EMAIL_HOST
-      - EMAIL_PORT
-      - EMAIL_HOST_USER
-      - EMAIL_USE_TLS
-      - EMAIL_HOST_PASSWORD
       - WORKSPACES_DATABASE_ROLE=hexa-app
       - WORKSPACES_DATABASE_PASSWORD=hexa-app
       - WORKSPACES_DATABASE_HOST=db
       - WORKSPACES_DATABASE_PORT=5432
       - WORKSPACES_DATABASE_DEFAULT_DB=hexa-app
       - WORKSPACES_DATABASE_PROXY_HOST=db
+      # Workspaces storage settings
+      - WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY
       - WORKSPACE_DATASETS_BUCKET
-      - WORKSPACE_STORAGE_ENGINE=gcp
-      - WORKSPACE_BUCKET_VERSIONING_ENABLED
-      - WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL
-      - WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL
-      - WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID
-      - WORKSPACE_STORAGE_ENGINE_AWS_SECRET_ACCESS_KEY
-      - WORKSPACE_STORAGE_ENGINE_AWS_BUCKET_REGION           
-      - NOTEBOOKS_HUB_URL=http://jupyterhub:8000/hub
-      - HUB_API_TOKEN=cbb352d6a412e266d7494fb014dd699373645ec8d353e00c7aa9dc79ca87800d
-      - GCS_SERVICE_ACCOUNT_KEY
-      - WORKSPACE_BUCKET_PREFIX=hexa-test-
-      - WORKSPACE_BUCKET_REGION=europe-west1
+      - WORKSPACE_STORAGE_BACKEND
+      # AWS settings (for legacy connector "connector_s3")
       - AWS_USERNAME
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
@@ -58,8 +42,21 @@ x-app: &common
       - AWS_USER_ARN
       - AWS_APP_ROLE_ARN
       - AWS_PERMISSIONS_BOUNDARY_POLICY_ARN
+      # The following variables are optional and can be set in your local .env file for testing purposes
+      - DEBUG_LOGGING
+      - DEBUG_TOOLBAR
+      - EMAIL_HOST
+      - EMAIL_PORT
+      - EMAIL_HOST_USER
+      - EMAIL_USE_TLS
+      - EMAIL_HOST_PASSWORD
+      # Accessmod settings
+      - ACCESSMOD_BUCKET_NAME=s3://hexa-demo-accessmod
+      - ACCESSMOD_MANAGE_REQUESTS_URL=http://localhost:3000/admin/access-requests
+      - ACCESSMOD_SET_PASSWORD_URL=http://localhost:3000/account/set-password
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
+      - ./data:/data
     
 
 services:
@@ -142,22 +139,6 @@ services:
       - "pipelines"
     depends_on:
       - db
-
-  minio:
-    image: quay.io/minio/minio
-    command: server --address 0.0.0.0:9000 --console-address ":9001" /data
-    volumes:
-      - minio_data:/data
-    profiles:
-      - minio
-    ports:
-      - '9000:9000'
-      - '9001:9001'
-    networks:
-      - openhexa
-    environment:
-      - MINIO_ACCESS_KEY=${WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID}
-      - MINIO_SECRET_KEY=${WORKSPACE_STORAGE_ENGINE_AWS_SECRET_ACCESS_KEY}
 
 
 networks:
