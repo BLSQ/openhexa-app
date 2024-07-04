@@ -360,6 +360,5 @@ class GCPClient(BaseClient):
             lines = file_obj.readlines()
 
         max_lines = min(lines_number, len(lines))
-        print(max_lines, lines_number, len(lines))
         specific_lines = [lines[i].decode("utf-8").strip() for i in range(max_lines)]
         return specific_lines
