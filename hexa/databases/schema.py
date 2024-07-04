@@ -10,6 +10,7 @@ from ariadne import (
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
+from hexa.core.analytics import track
 from hexa.core.graphql import result_page
 from hexa.workspaces.models import Workspace
 
@@ -44,7 +45,15 @@ def resolve_database_tables(workspace, info, page=1, per_page=15, **kwargs):
 
 @database_object.field("table")
 def resolve_database_table(workspace, info, **kwargs):
-    return get_table_definition(workspace, kwargs.get("name"))
+    request: HttpRequest = info.context["request"]
+    table = get_table_definition(workspace, kwargs.get("name"))
+    track(
+        request.user,
+        "table_viewed",
+        {"table_name": kwargs.get("name"), "workspace": workspace.slug},
+    )
+
+    return table
 
 
 @database_object.field("credentials")

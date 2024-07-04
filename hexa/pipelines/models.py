@@ -16,7 +16,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
 
-from hexa.core.mixpanel import create_event
 from hexa.core.models import (
     Base,
     BaseIndex,
@@ -266,15 +265,6 @@ class Pipeline(SoftDeletedModel):
             send_mail_notifications=send_mail_notifications,
             timeout=timeout,
         )
-        if user.has_feature_flag("analytics"):
-            event_properties = {
-                "pipeline_id": str(self.id),
-                "timestamp": run.created_at.timestamp(),
-                "pipeline_trigger": run.trigger_mode,
-                "workspace": self.workspace.slug,
-                # "app_version": APP_VERSION,
-            }
-            create_event("pipeline_run", event_properties)
 
         return run
 

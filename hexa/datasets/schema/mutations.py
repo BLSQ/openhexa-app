@@ -2,6 +2,7 @@ from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 
+from hexa.core.analytics import track
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.workspaces.models import Workspace
 
@@ -31,6 +32,16 @@ def resolve_create_dataset(_, info, **kwargs):
             description=mutation_input["description"],
         )
         link = DatasetLink.objects.get(dataset=dataset, workspace=workspace)
+
+        # Register dataset creation event
+        event_properties = {
+            "dataset_id": str(dataset.id),
+            "creation_source": (
+                "SDK" if isinstance(request.user, PipelineRunUser) else "UI"
+            ),
+            "workspace": workspace.slug,
+        }
+        track(request.user, "dataset_created", event_properties, request)
 
         return {
             "success": True,

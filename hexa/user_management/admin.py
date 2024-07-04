@@ -87,6 +87,7 @@ class CustomUserAdmin(UserAdmin):
                     "first_name",
                     "last_name",
                     "password",
+                    "analytics_enabled",
                 )
             },
         ),

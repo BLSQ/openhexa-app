@@ -59,3 +59,4 @@ requests==2.31.0
 
 # analytics
 mixpanel
+ua-parser

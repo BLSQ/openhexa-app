@@ -6,7 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
 
-from hexa.core.mixpanel import create_event
+from hexa.core.analytics import track
 from hexa.databases.utils import get_table_definition
 from hexa.files.api import NotFound, get_storage
 from hexa.pipelines.authentication import PipelineRunUser
@@ -60,17 +60,14 @@ def resolve_create_pipeline(_, info, **kwargs):
             data["type"] = PipelineType.ZIPFILE
 
         pipeline = Pipeline.objects.create(**data)
-        if request.user.has_feature_flag("analytics"):
-            event_properties = {
-                "pipeline_id": str(pipeline.id),
-                "timestamp": pipeline.created_at.timestamp(),
-                "creation_source": (
-                    "CLI" if pipeline.type == PipelineType.ZIPFILE else "Notebook"
-                ),
-                "workspace": workspace.slug,
-                # "app_version": APP_VERSION,
-            }
-            create_event("pipeline_created", event_properties)
+        event_properties = {
+            "pipeline_id": str(pipeline.id),
+            "creation_source": (
+                "CLI" if pipeline.type == PipelineType.ZIPFILE else "Notebook"
+            ),
+            "workspace": workspace.slug,
+        }
+        track(request.user, "pipeline_created", event_properties, request)
 
     except NotFound:
         return {"success": False, "errors": ["FILE_NOT_FOUND"]}
@@ -211,6 +208,12 @@ def resolve_run_pipeline(_, info, **kwargs):
             config=input.get("config", {}),
             send_mail_notifications=input.get("sendMailNotifications", False),
         )
+        event_properties = {
+            "pipeline_id": str(pipeline.id),
+            "pipeline_trigger": PipelineRunTrigger.MANUAL,
+            "workspace": pipeline.workspace.slug,
+        }
+        track(request.user, "pipeline_run", event_properties, request=request)
         return {
             "success": True,
             "errors": [],
