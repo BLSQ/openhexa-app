@@ -220,7 +220,7 @@ class DatabaseTest(GraphQLTestCase):
         }
         with mock.patch(
             "hexa.databases.schema.get_table_definition"
-        ) as mocked_get_table_definition:
+        ) as mocked_get_table_definition, mock.patch("hexa.databases.schema.track"):
             mocked_get_table_definition.return_value = table
 
             with mock.patch(

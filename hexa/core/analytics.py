@@ -9,6 +9,7 @@ from ua_parser import user_agent_parser
 from config.settings.base import MIX_PANEL_BUFFER_SIZE, MIX_PANEL_TOKEN
 
 mixpanel_consumer = BufferedConsumer(max_size=MIX_PANEL_BUFFER_SIZE)
+mixpanel = Mixpanel(token=MIX_PANEL_TOKEN, consumer=mixpanel_consumer)
 
 
 def track(
@@ -30,13 +31,9 @@ def track(
     """
     from hexa.pipelines.authentication import PipelineRunUser
 
-    if not MIX_PANEL_TOKEN:
-        return None
-    mixpanel = Mixpanel(token=MIX_PANEL_TOKEN, consumer=mixpanel_consumer)
-
-    # to clarify  : for the case of scheduled pipeline we do not store the user (add a scheduled_by attribute?)
     if user is None:
-        return None
+        id = uuid4()
+        mixpanel.track(distinct_id=str(id), event_name=event, properties=properties)
 
     _user = user
     if isinstance(user, PipelineRunUser):
@@ -62,8 +59,7 @@ def track(
                     # "app_version": APP_VERSION
                 }
             )
-            print(f"Event - {event} - Properties {properties}", flush=True)
-            # in case the user is not defined (e.g: scheduled pipeline)
+
             id = _user.id if _user else uuid4()
             mixpanel.track(distinct_id=str(id), event_name=event, properties=properties)
         except MixpanelException as e:

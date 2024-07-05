@@ -33,16 +33,6 @@ def resolve_create_dataset(_, info, **kwargs):
         )
         link = DatasetLink.objects.get(dataset=dataset, workspace=workspace)
 
-        # Register dataset creation event
-        event_properties = {
-            "dataset_id": str(dataset.id),
-            "creation_source": (
-                "SDK" if isinstance(request.user, PipelineRunUser) else "UI"
-            ),
-            "workspace": workspace.slug,
-        }
-        track(request.user, "dataset_created", event_properties, request)
-
         return {
             "success": True,
             "errors": [],
@@ -112,6 +102,17 @@ def resolve_create_dataset_version(_, info, **kwargs):
             name=mutation_input["name"],
             description=mutation_input.get("description"),
         )
+
+        # Register dataset version creation event
+        event_properties = {
+            "dataset_version": version.name,
+            "dataset_id": str(dataset.id),
+            "creation_source": (
+                "SDK" if isinstance(request.user, PipelineRunUser) else "UI"
+            ),
+            "workspace": dataset.workspace.slug,
+        }
+        track(request.user, "dataset_created", event_properties, request)
 
         return {"success": True, "errors": [], "version": version}
     except IntegrityError:

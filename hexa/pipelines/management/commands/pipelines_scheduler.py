@@ -56,7 +56,7 @@ class Command(BaseCommand):
                 )
                 event_properties = {
                     "pipeline_id": str(pipeline.id),
-                    "creation_source": "CLI",
+                    "pipeline_version": pipeline.last_version.name,
                     "pipeline_trigger": PipelineRunTrigger.SCHEDULED,
                     "workspace": pipeline.workspace.slug,
                 }

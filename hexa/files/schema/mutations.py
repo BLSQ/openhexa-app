@@ -39,11 +39,11 @@ def resolve_prepare_download_object(_, info, **kwargs):
         download_url = get_storage().generate_download_url(
             workspace.bucket_name, object_key, force_attachment=True
         )
-        # file_id ?
         track(
             request.user,
             "file_downloaded",
             {"file_name": object_key, "workspace": workspace.slug},
+            request,
         )
 
         return {"success": True, "download_url": download_url, "errors": []}

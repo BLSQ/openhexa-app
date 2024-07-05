@@ -210,6 +210,7 @@ def resolve_run_pipeline(_, info, **kwargs):
         )
         event_properties = {
             "pipeline_id": str(pipeline.id),
+            "pipeline_version": version.name,
             "pipeline_trigger": PipelineRunTrigger.MANUAL,
             "workspace": pipeline.workspace.slug,
         }

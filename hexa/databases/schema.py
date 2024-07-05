@@ -51,6 +51,7 @@ def resolve_database_table(workspace, info, **kwargs):
         request.user,
         "table_viewed",
         {"table_name": kwargs.get("name"), "workspace": workspace.slug},
+        request,
     )
 
     return table
