@@ -23,7 +23,16 @@ def resolve_datasets(_, info, query=None, page=1, per_page=15):
 def resolve_dataset(_, info, **kwargs):
     request = info.context["request"]
     try:
-        return Dataset.objects.filter_for_user(request.user).get(id=kwargs["id"])
+        ds = Dataset.objects.filter_for_user(request.user).get(id=kwargs["id"])
+        # triggered multiple times
+        # if ds.latest_version:
+        #    properties = {
+        #        "dataset_id": kwargs["id"],
+        #        "workspace": ds.workspace.slug,
+        #        "dataset_version": ds.latest_version.name,
+        #    }
+        #    track(request.user, "dataset_open", properties, request)
+        return ds
     except Dataset.DoesNotExist:
         return None
 

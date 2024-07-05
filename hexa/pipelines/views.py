@@ -17,6 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from hexa.app import get_hexa_app_configs
+from hexa.core.analytics import track
 from hexa.pipelines.models import Environment
 
 from .credentials import PipelinesCredentials
@@ -187,6 +188,13 @@ def run_pipeline(
             config=config,
             send_mail_notifications=send_mail_notifications,
         )
+        event_properties = {
+            "pipeline_id": str(pipeline.id),
+            "pipeline_version": pipeline_version.name if pipeline_version else "",
+            "pipeline_trigger": PipelineRunTrigger.WEBHOOK,
+            "workspace": pipeline.workspace.slug,
+        }
+        track(None, "pipeline_run", event_properties, request=request)
         return JsonResponse({"run_id": run.id}, status=200)
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)

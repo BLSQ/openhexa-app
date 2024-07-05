@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.conf import settings
 from django.db import IntegrityError
 
@@ -328,7 +330,8 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
     def setUpTestData(cls):
         get_storage().create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
 
-    def test_create_dataset_version(self):
+    @mock.patch("hexa.datasets.schema.mutations.track")
+    def test_create_dataset_version(self, mocked_track):
         superuser = self.create_user("superuser@blsq.com", is_superuser=True)
 
         workspace = self.create_workspace(superuser, "Workspace", "Description")

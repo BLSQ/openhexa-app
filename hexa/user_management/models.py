@@ -81,6 +81,7 @@ class User(AbstractUser, UserInterface):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = EmailField(_("email address"), db_collation="case_insensitive", unique=True)
     language = models.CharField(max_length=10, default="en")
+    analytics_enabled = models.BooleanField(default=False)
 
     objects = UserManager()
 

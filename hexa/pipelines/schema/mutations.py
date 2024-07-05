@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
 
+from hexa.core.analytics import track
 from hexa.databases.utils import get_table_definition
 from hexa.files.api import NotFound, get_storage
 from hexa.pipelines.authentication import PipelineRunUser
@@ -199,6 +200,13 @@ def resolve_run_pipeline(_, info, **kwargs):
             config=input.get("config", {}),
             send_mail_notifications=input.get("sendMailNotifications", False),
         )
+        event_properties = {
+            "pipeline_id": str(pipeline.id),
+            "pipeline_version": version.name,
+            "pipeline_trigger": PipelineRunTrigger.MANUAL,
+            "workspace": pipeline.workspace.slug,
+        }
+        track(request.user, "pipeline_run", event_properties, request=request)
         return {
             "success": True,
             "errors": [],

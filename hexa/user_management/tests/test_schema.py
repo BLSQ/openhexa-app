@@ -150,9 +150,11 @@ class SchemaTest(GraphQLTestCase):
                     "displayName": self.USER_JIM.display_name,
                     "email": self.USER_JIM.email,
                     "dateJoined": graphql_datetime_format(self.USER_JIM.date_joined),
-                    "lastLogin": graphql_datetime_format(self.USER_JIM.last_login)
-                    if self.USER_JIM.last_login
-                    else None,
+                    "lastLogin": (
+                        graphql_datetime_format(self.USER_JIM.last_login)
+                        if self.USER_JIM.last_login
+                        else None
+                    ),
                 },
                 "features": [],
                 "permissions": {"createTeam": True, "adminPanel": False},
@@ -389,7 +391,8 @@ class SchemaTest(GraphQLTestCase):
             r["data"]["team"],
         )
 
-    def test_login_without_two_factor(self):
+    @patch("hexa.user_management.schema.track")
+    def test_login_without_two_factor(self, mock_track):
         r = self.run_query(
             """
               mutation login($input: LoginInput!) {
@@ -449,7 +452,8 @@ class SchemaTest(GraphQLTestCase):
         It should act as a normal login without two factor
         """
 
-    def test_login_valid_otp(self):
+    @patch("hexa.user_management.schema.track")
+    def test_login_valid_otp(self, mock_track):
         device = default_device(self.USER_JANE)
         device.generate_challenge()
         r = self.run_query(
