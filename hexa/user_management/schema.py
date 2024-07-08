@@ -315,7 +315,7 @@ def resolve_login(_, info, **kwargs):
         user_candidate.otp_device = device
 
     login(request, user_candidate)
-    track(user=user_candidate, event="user_login", request=request)
+    track(request, "user_logged_in")
     return {"success": True}
 
 

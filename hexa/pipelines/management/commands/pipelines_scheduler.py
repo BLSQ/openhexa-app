@@ -60,7 +60,7 @@ class Command(BaseCommand):
                     "pipeline_trigger": PipelineRunTrigger.SCHEDULED,
                     "workspace": pipeline.workspace.slug,
                 }
-                track(None, "pipeline_run", event_properties, None)
+                track(None, "pipeline_run", event_properties)
 
             empty_delay = cutoff - (timezone.now() - start_time).total_seconds()
             if empty_delay > 0:

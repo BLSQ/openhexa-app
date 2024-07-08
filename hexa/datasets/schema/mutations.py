@@ -112,7 +112,7 @@ def resolve_create_dataset_version(_, info, **kwargs):
             ),
             "workspace": dataset.workspace.slug,
         }
-        track(request.user, "dataset_version_created", event_properties, request)
+        track(request, "dataset_version_created", event_properties)
 
         return {"success": True, "errors": [], "version": version}
     except IntegrityError:

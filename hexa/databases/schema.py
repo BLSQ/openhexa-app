@@ -45,15 +45,6 @@ def resolve_database_tables(workspace, info, page=1, per_page=15, **kwargs):
 @database_object.field("table")
 def resolve_database_table(workspace, info, **kwargs):
     return get_table_definition(workspace, kwargs.get("name"))
-    # request: HttpRequest = info.context["request"]
-    # triggered multiple times
-    # track(
-    #    request.user,
-    #    "table_viewed",
-    #    {"table_name": kwargs.get("name"), "workspace": workspace.slug},
-    #    request,
-    # )
-    # return table
 
 
 @database_object.field("credentials")

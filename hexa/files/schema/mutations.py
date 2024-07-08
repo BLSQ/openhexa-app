@@ -40,10 +40,9 @@ def resolve_prepare_download_object(_, info, **kwargs):
             workspace.bucket_name, object_key, force_attachment=True
         )
         track(
-            request.user,
-            "file_downloaded",
-            {"file_name": object_key, "workspace": workspace.slug},
             request,
+            "files_download_url_generated",
+            {"file_name": object_key, "workspace": workspace.slug},
         )
 
         return {"success": True, "download_url": download_url, "errors": []}

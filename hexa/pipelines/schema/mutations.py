@@ -60,6 +60,14 @@ def resolve_create_pipeline(_, info, **kwargs):
             data["type"] = PipelineType.ZIPFILE
 
         pipeline = Pipeline.objects.create(**data)
+        event_properties = {
+            "pipeline_id": str(pipeline.id),
+            "creation_source": (
+                "CLI" if pipeline.type == PipelineType.ZIPFILE else "Notebook"
+            ),
+            "workspace": workspace.slug,
+        }
+        track(request, "pipeline_created", event_properties)
 
     except NotFound:
         return {"success": False, "errors": ["FILE_NOT_FOUND"]}
@@ -206,7 +214,7 @@ def resolve_run_pipeline(_, info, **kwargs):
             "pipeline_trigger": PipelineRunTrigger.MANUAL,
             "workspace": pipeline.workspace.slug,
         }
-        track(request.user, "pipeline_run", event_properties, request=request)
+        track(request, "pipeline_run", event_properties)
         return {
             "success": True,
             "errors": [],
