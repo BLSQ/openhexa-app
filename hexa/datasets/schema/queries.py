@@ -24,6 +24,7 @@ def resolve_dataset(_, info, **kwargs):
     request = info.context["request"]
     try:
         ds = Dataset.objects.filter_for_user(request.user).get(id=kwargs["id"])
+        print(f"DS {ds}", flush=True)
         # triggered multiple times
         # if ds.latest_version:
         #    properties = {
