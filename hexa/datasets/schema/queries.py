@@ -2,7 +2,12 @@ from ariadne import QueryType, convert_kwargs_to_snake_case
 
 from hexa.core.graphql import result_page
 
-from ..models import Dataset, DatasetLink, DatasetVersion
+from ..models import (
+    Dataset,
+    DatasetFileSnapshot,
+    DatasetLink,
+    DatasetVersion,
+)
 
 datasets_queries = QueryType()
 
@@ -34,6 +39,22 @@ def resolve_dataset_version(_, info, **kwargs):
     try:
         return DatasetVersion.objects.filter_for_user(request.user).get(id=kwargs["id"])
     except DatasetVersion.DoesNotExist:
+        return None
+
+
+@datasets_queries.field("datasetFileSnapshot")
+def resolve_dataset_file_snapshot(_, info, **kwargs):
+    request = info.context["request"]
+    try:
+        if kwargs.get("file_id"):
+            return DatasetFileSnapshot.objects.filter_for_user(request.user).get(
+                dataset_version_file=kwargs["file_id"]
+            )
+        else:
+            return DatasetFileSnapshot.objects.filter_for_user(request.user).get(
+                id=kwargs["id"]
+            )
+    except DatasetFileSnapshot.DoesNotExist:
         return None
 
 

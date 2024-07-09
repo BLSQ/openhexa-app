@@ -438,6 +438,10 @@ class S3Client(BaseClient):
             ).decode(),
         }
 
+    def upload_object_from_string(self, bucket_name: str, file_name: str, content: str):
+        s3 = get_storage_client()
+        s3.put_object(bucket_name, file_name, content)
+
     def read_object_lines(self, bucket_name: str, filename: str, lines_number: int):
         s3 = get_storage_client()
         object = s3.get_object(Bucket=bucket_name, Key=filename)
@@ -445,5 +449,6 @@ class S3Client(BaseClient):
         file_stream.seek(0)
         lines = file_stream.readlines()
 
-        specific_lines = [lines[i].decode("utf-8").strip() for i in range(lines_number)]
+        max_lines = min(lines_number, len(lines))
+        specific_lines = [lines[i].decode("utf-8").strip() for i in range(max_lines)]
         return specific_lines

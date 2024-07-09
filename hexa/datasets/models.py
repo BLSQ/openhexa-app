@@ -255,6 +255,66 @@ class DatasetVersionFile(Base):
         ordering = ["uri"]
 
 
+class DatasetFileSnapshotQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: AnonymousUser | User):
+        return self._filter_for_user_and_query_object(
+            user,
+            models.Q(
+                dataset_version_file__dataset_version__dataset__in=Dataset.objects.filter_for_user(
+                    user
+                ),
+                return_all_if_superuser=False,
+            ),
+        )
+
+
+class DatasetFileSnapshotManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        dataset_version_file: DatasetVersionFile,
+        *,
+        uri: str,
+    ):
+        from hexa.pipelines.authentication import PipelineRunUser
+
+        if isinstance(principal, PipelineRunUser):
+            if (
+                principal.pipeline_run.pipeline.workspace
+                != dataset_version_file.dataset_version.dataset.workspace
+            ):
+                raise PermissionDenied
+        elif not principal.has_perm(
+            "datasets.create_dataset_version_file_snapshot", dataset_version_file
+        ):
+            raise PermissionDenied
+
+        created_by = principal if not isinstance(principal, PipelineRunUser) else None
+        return self.create(
+            dataset_version_file=dataset_version_file,
+            uri=uri,
+            created_by=created_by,
+        )
+
+
+class DatasetFileSnapshot(Base):
+    uri = models.TextField(null=False, blank=False, unique=True)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    dataset_version_file = models.ForeignKey(
+        DatasetVersionFile,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="snapshots",
+    )
+
+    objects = DatasetFileSnapshotManager.from_queryset(DatasetFileSnapshotQuerySet)()
+
+    @property
+    def filename(self):
+        return self.uri.split("/")[-1]
+
+
 class DatasetLinkQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User):
         # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser

@@ -1,4 +1,9 @@
-from hexa.datasets.models import Dataset, DatasetLink, DatasetVersion
+from hexa.datasets.models import (
+    Dataset,
+    DatasetLink,
+    DatasetVersion,
+    DatasetVersionFile,
+)
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
@@ -105,3 +110,11 @@ def create_dataset_version_file(principal: User, dataset_version: DatasetVersion
         return False
 
     return create_dataset_version(principal, dataset_version.dataset)
+
+
+def create_dataset_version_file_snapshot(
+    principal: User, dataset_version_file: DatasetVersionFile
+):
+    if dataset_version_file != dataset_version_file.latest_version:
+        return False
+    return create_dataset_version_file(principal, dataset_version_file.dataset_version)

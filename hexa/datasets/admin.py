@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import Dataset, DatasetLink, DatasetVersion, DatasetVersionFile
+from .models import (
+    Dataset,
+    DatasetFileSnapshot,
+    DatasetLink,
+    DatasetVersion,
+    DatasetVersionFile,
+)
 
 
 @admin.register(Dataset)
@@ -24,6 +30,12 @@ class DatasetVersionObjectAdmin(admin.ModelAdmin):
         "dataset_version",
     )
     list_filter = ("dataset_version__dataset", "created_by")
+
+
+@admin.register(DatasetFileSnapshot)
+class DatasetFileSnapshotAdmin(admin.ModelAdmin):
+    list_display = ("filename", "dataset_version_file")
+    list_filter = ("dataset_version_file__dataset_version__dataset", "created_by")
 
 
 @admin.register(DatasetLink)

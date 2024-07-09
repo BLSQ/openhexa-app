@@ -424,11 +424,30 @@ type PinDatasetResult {
   errors: [PinDatasetError!]!
 }
 
+input CreateDatasetFileSnapshotInput {
+    fileId: String!
+}
+
+type DatasetFileSnapshot {
+    uri: String!
+    created_by: String!
+    dataset_version_file: DatasetVersionFile
+}
+
+type CreateDatasetFileSnapshotResult {
+    dataset_file_snapshot : DatasetFileSnapshot
+    success: Boolean!
+    errors: [PrepareVersionFileDownloadError!]!
+}
+
+
 extend type Query {
   "Get a dataset by its ID."
   dataset(id: ID!): Dataset
   "Get a dataset by its slug."
   datasetVersion(id: ID!): DatasetVersion
+  "Get a dataset file snapshot by fileId"
+  datasetFileSnapshot(id: ID, fileId: ID): DatasetFileSnapshot
   "Get a dataset link by its id."
   datasetLink(id: ID!): DatasetLink
   "Get a dataset link by its slug."
@@ -436,6 +455,7 @@ extend type Query {
   "Search datasets."
   datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
 }
+
 
 extend type Mutation {
   "Create a new dataset."
@@ -452,6 +472,8 @@ extend type Mutation {
   generateDatasetUploadUrl(input: GenerateDatasetUploadUrlInput!): GenerateDatasetUploadUrlResult! @loginRequired
   "Create a new file in a dataset version."
   createDatasetVersionFile(input: CreateDatasetVersionFileInput!): CreateDatasetVersionFileResult! @loginRequired
+  "Create dataset version snapshot."
+  createDatasetVersionFileSnapshot(input: CreateDatasetFileSnapshotInput!): CreateDatasetFileSnapshotResult! @loginRequired
   "Prepare to download a file in a dataset version."
   prepareVersionFileDownload(input: PrepareVersionFileDownloadInput!): PrepareVersionFileDownloadResult! @loginRequired
   "Link a dataset with a workspace."
@@ -461,3 +483,4 @@ extend type Mutation {
   "Pin or unpin a dataset for a workspace."
   pinDataset(input: PinDatasetInput!): PinDatasetResult! @loginRequired
 }
+
