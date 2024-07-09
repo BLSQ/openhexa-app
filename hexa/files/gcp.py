@@ -158,6 +158,12 @@ class GCPClient(BaseClient):
         blob = bucket.blob(file_name)
         blob.upload_from_filename(source)
 
+    def upload_object_from_string(self, bucket_name: str, file_name: str, content: str):
+        client = get_storage_client()
+        bucket = client.bucket(bucket_name)
+        blob = bucket.blob(file_name)
+        blob.upload_from_string(content)
+
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
         client = get_storage_client()
         bucket = client.get_bucket(bucket_name)
