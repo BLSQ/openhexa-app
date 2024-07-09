@@ -67,7 +67,12 @@ def resolve_create_pipeline(_, info, **kwargs):
             ),
             "workspace": workspace.slug,
         }
-        track(request, "pipeline_created", event_properties)
+        track(
+            request,
+            "pipeline_created",
+            event_properties,
+            user=request.user,
+        )
 
     except NotFound:
         return {"success": False, "errors": ["FILE_NOT_FOUND"]}
@@ -214,7 +219,7 @@ def resolve_run_pipeline(_, info, **kwargs):
             "pipeline_trigger": PipelineRunTrigger.MANUAL,
             "workspace": pipeline.workspace.slug,
         }
-        track(request, "pipeline_run", event_properties)
+        track(request, "pipeline_run", event_properties, user=request.user)
         return {
             "success": True,
             "errors": [],

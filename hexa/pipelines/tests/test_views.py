@@ -97,8 +97,7 @@ class ViewsTest(TestCase):
         self.assertEqual(r.status_code, 400)
         self.assertEqual(r.json(), {"error": "Pipeline has no webhook enabled"})
 
-    @patch("hexa.pipelines.views.track")
-    def test_run_pipeline_notebook_webhook(self, mocked_track):
+    def test_run_pipeline_notebook_webhook(self):
         pipeline = Pipeline.objects.create(
             code="new_pipeline",
             name="notebook.ipynb",
@@ -120,8 +119,7 @@ class ViewsTest(TestCase):
         self.assertEqual(str(pipeline.last_run.id), response.json()["run_id"])
         self.assertEqual(pipeline.last_run.trigger_mode, PipelineRunTrigger.WEBHOOK)
 
-    @patch("hexa.pipelines.views.track")
-    def test_run_pipeline_valid(self, mocked_track):
+    def test_run_pipeline_valid(self):
         self.assertEqual(self.PIPELINE.last_run, None)
         response = self.client.post(
             reverse(
@@ -136,8 +134,7 @@ class ViewsTest(TestCase):
             self.PIPELINE.last_run.trigger_mode, PipelineRunTrigger.WEBHOOK
         )
 
-    @patch("hexa.pipelines.views.track")
-    def test_run_pipeline_old_token(self, mocked_track):
+    def test_run_pipeline_old_token(self):
         self.assertEqual(self.PIPELINE.last_run, None)
         old_token = self.PIPELINE.webhook_token
 
@@ -164,8 +161,7 @@ class ViewsTest(TestCase):
             self.assertEqual(response.status_code, 404)
             self.assertEqual(response.json(), {"error": "Pipeline not found"})
 
-    @patch("hexa.pipelines.views.track")
-    def test_run_pipeline_specific_version(self, mocked_track):
+    def test_run_pipeline_specific_version(self):
         response = self.client.post(
             reverse(
                 "pipelines:run_with_version",
@@ -190,8 +186,7 @@ class ViewsTest(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json(), {"error": "Pipeline version not found"})
 
-    @patch("hexa.pipelines.views.track")
-    def test_run_pipeline_with_multiple_config(self, mocked_track):
+    def test_run_pipeline_with_multiple_config(self):
         self.assert200withConfig(
             [
                 {
@@ -226,28 +221,27 @@ class ViewsTest(TestCase):
         result_config,
         content_type="application/json",
     ):
-        with patch("hexa.pipelines.views.track"):
-            self.PIPELINE.upload_new_version(
-                self.USER_JULIA,
-                parameters,
-                zipfile=b"",
-                name=str(uuid.uuid4()),
-            )
-            endpoint_url = reverse(
-                "pipelines:run",
-                args=[self.PIPELINE.webhook_token],
-            )
-            r = self.client.post(
-                endpoint_url,
-                content_type=content_type,
-                data=(
-                    config
-                    if "application/json" == content_type
-                    else urlencode(config, doseq=True)
-                ),
-            )
-            self.assertEqual(r.status_code, 200)
-            self.assertEqual(self.PIPELINE.last_run.config, result_config)
+        self.PIPELINE.upload_new_version(
+            self.USER_JULIA,
+            parameters,
+            zipfile=b"",
+            name=str(uuid.uuid4()),
+        )
+        endpoint_url = reverse(
+            "pipelines:run",
+            args=[self.PIPELINE.webhook_token],
+        )
+        r = self.client.post(
+            endpoint_url,
+            content_type=content_type,
+            data=(
+                config
+                if "application/json" == content_type
+                else urlencode(config, doseq=True)
+            ),
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(self.PIPELINE.last_run.config, result_config)
 
     def test_run_multiple_form_urlencoded(self):
         self.assert200withConfig(
@@ -423,8 +417,7 @@ class ViewsTest(TestCase):
             content_type="application/x-www-form-urlencoded",
         )
 
-    @patch("hexa.pipelines.views.track")
-    def test_send_mail_notifications(self, mocked_track):
+    def test_send_mail_notifications(self):
         endpoint_url = reverse(
             "pipelines:run",
             args=[self.PIPELINE.webhook_token],

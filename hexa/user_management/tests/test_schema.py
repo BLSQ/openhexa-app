@@ -391,8 +391,7 @@ class SchemaTest(GraphQLTestCase):
             r["data"]["team"],
         )
 
-    @patch("hexa.user_management.schema.track")
-    def test_login_without_two_factor(self, mock_track):
+    def test_login_without_two_factor(self):
         r = self.run_query(
             """
               mutation login($input: LoginInput!) {
@@ -452,8 +451,7 @@ class SchemaTest(GraphQLTestCase):
         It should act as a normal login without two factor
         """
 
-    @patch("hexa.user_management.schema.track")
-    def test_login_valid_otp(self, mock_track):
+    def test_login_valid_otp(self):
         device = default_device(self.USER_JANE)
         device.generate_challenge()
         r = self.run_query(

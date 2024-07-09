@@ -194,7 +194,7 @@ def run_pipeline(
             "pipeline_trigger": PipelineRunTrigger.WEBHOOK,
             "workspace": pipeline.workspace.slug,
         }
-        track(request, "pipeline_run", event_properties)
+        track(request, "pipeline_run", event_properties, user=None)
         return JsonResponse({"run_id": run.id}, status=200)
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)

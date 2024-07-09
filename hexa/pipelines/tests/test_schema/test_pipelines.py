@@ -100,8 +100,7 @@ class PipelinesV2Test(GraphQLTestCase):
             role=WorkspaceMembershipRole.VIEWER,
         )
 
-    @patch("hexa.pipelines.schema.mutations.track")
-    def test_create_pipeline(self, mocked_track):
+    def test_create_pipeline(self):
         self.assertEqual(0, len(Pipeline.objects.all()))
 
         self.client.force_login(self.USER_ROOT)
@@ -671,8 +670,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.assertEqual(True, r["data"]["deletePipeline"]["success"])
         self.assertEqual(0, len(Pipeline.objects.filter_for_user(user=self.USER_ROOT)))
 
-    @patch("hexa.pipelines.schema.mutations.track")
-    def test_pipeline_new_run(self, mocked_track):
+    def test_pipeline_new_run(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         self.test_create_pipeline_version()
         self.assertEqual(1, len(Pipeline.objects.all()))
@@ -698,8 +696,7 @@ class PipelinesV2Test(GraphQLTestCase):
         )
         self.assertEqual(1, len(PipelineRun.objects.all()))
 
-    @patch("hexa.pipelines.schema.mutations.track")
-    def test_pipeline_new_run_with_version_config(self, mocked_track):
+    def test_pipeline_new_run_with_version_config(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         pipeline_version_config = {"param1": "param1_data"}
         self.test_create_pipeline_version(
@@ -731,8 +728,7 @@ class PipelinesV2Test(GraphQLTestCase):
             pipeline_version_config, r["data"]["runPipeline"]["run"]["config"]
         )
 
-    @patch("hexa.pipelines.schema.mutations.track")
-    def test_pipeline_new_run_with_pipeline_run_config(self, mocked_track):
+    def test_pipeline_new_run_with_pipeline_run_config(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         pipeline_version_config = {"param1": "param1_data"}
         self.test_create_pipeline_version(
@@ -763,8 +759,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.assertEqual(1, len(PipelineRun.objects.all()))
         self.assertEqual(pipeline_run_config, r["data"]["runPipeline"]["run"]["config"])
 
-    @patch("hexa.pipelines.schema.mutations.track")
-    def test_pipeline_new_run_with_empty_pipeline_run_config(self, mocked_track):
+    def test_pipeline_new_run_with_empty_pipeline_run_config(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         pipeline_version_config = {"param1": "param1_data", "param2": "param2_data"}
         self.test_create_pipeline_version(
@@ -1938,8 +1933,7 @@ class PipelinesV2Test(GraphQLTestCase):
             r["data"]["uploadPipeline"],
         )
 
-    @patch("hexa.pipelines.schema.mutations.track")
-    def test_pipeline_new_run_with_timeout(self, mocked_track):
+    def test_pipeline_new_run_with_timeout(self):
         self.test_create_pipeline()
 
         code1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().code
@@ -2001,8 +1995,7 @@ class PipelinesV2Test(GraphQLTestCase):
             r["data"]["runPipeline"],
         )
 
-    @patch("hexa.pipelines.schema.mutations.track")
-    def test_pipeline_new_run_default_timeout(self, mocked_track):
+    def test_pipeline_new_run_default_timeout(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         self.test_create_pipeline_version()
         self.assertEqual(1, len(Pipeline.objects.all()))

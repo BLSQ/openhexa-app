@@ -43,6 +43,7 @@ def resolve_prepare_download_object(_, info, **kwargs):
             request,
             "files_download_url_generated",
             {"file_name": object_key, "workspace": workspace.slug},
+            user=request.user,
         )
 
         return {"success": True, "download_url": download_url, "errors": []}

@@ -145,6 +145,9 @@ As an example, use the following command to run the migrations:
 docker compose run app migrate
 ```
 
+### Analytics
+We use [Mixpanel](https://mixpanel.com/home/) to track users and their actions. If you want to enable it, set the `MIXPANEL_TOKEN` environment variable with the token from your Mixpanel project and restart the application.
+
 ### Running the tests
 
 Running the tests is as simple as:
