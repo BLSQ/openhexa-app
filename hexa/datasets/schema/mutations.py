@@ -178,7 +178,7 @@ def resolve_delete_dataset_share(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
-@mutations.field("generateUploadUrl")
+@mutations.field("generateDatasetUploadUrl")
 def resolve_generate_upload_url(_, info, **kwargs):
     request = info.context["request"]
     mutation_input = kwargs["input"]

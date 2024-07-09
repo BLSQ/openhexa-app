@@ -282,7 +282,7 @@ input CreateDatasetVersionFileInput {
 """
 Input for creating un upload link for the file
 """
-input GenerateUploadUrlInput {
+input GenerateDatasetUploadUrlInput {
   versionId: ID!
   contentType: String!
   uri: String!
@@ -302,7 +302,7 @@ enum CreateDatasetVersionFileError {
 """
 Result of creating an upload url
 """
-type GenerateUploadUrlResult {
+type GenerateDatasetUploadUrlResult {
   uploadUrl: String
   success: Boolean!
   errors: [CreateDatasetVersionFileError!]!
@@ -315,7 +315,7 @@ type CreateDatasetVersionFileResult {
   "The created file object"
   file: DatasetVersionFile
   "The URL to upload the file to"
-  uploadUrl: String @deprecated(reason: "moved to dedicated generateUploadUrl mutation")
+  uploadUrl: String @deprecated(reason: "moved to dedicated generateDatasetUploadUrl mutation")
   success: Boolean!
   errors: [CreateDatasetVersionFileError!]!
 }
@@ -449,7 +449,7 @@ extend type Mutation {
   "Delete a dataset version."
   deleteDatasetVersion(input: DeleteDatasetVersionInput!): DeleteDatasetVersionResult! @loginRequired
   "Create dataset version file upload url."
-  generateUploadUrl(input: GenerateUploadUrlInput!): GenerateUploadUrlResult! @loginRequired
+  generateDatasetUploadUrl(input: GenerateDatasetUploadUrlInput!): GenerateDatasetUploadUrlResult! @loginRequired
   "Create a new file in a dataset version."
   createDatasetVersionFile(input: CreateDatasetVersionFileInput!): CreateDatasetVersionFileResult! @loginRequired
   "Prepare to download a file in a dataset version."

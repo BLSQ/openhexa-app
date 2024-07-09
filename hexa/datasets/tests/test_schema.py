@@ -378,7 +378,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             dataset.create_version(principal=superuser, name="Version 1")
 
     @mock_gcp_storage
-    def test_genarate_upload_url(self):
+    def test_generate_upload_url(self):
         superuser = self.create_user("superuser@blsq.com", is_superuser=True)
         workspace = self.create_workspace(
             superuser,
@@ -392,8 +392,8 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         self.client.force_login(superuser)
         r = self.run_query(
             """
-            mutation generateUploadUrl ($input: GenerateUploadUrlInput!) {
-                generateUploadUrl(input: $input) {
+            mutation generateDatasetUploadUrl ($input: GenerateDatasetUploadUrlInput!) {
+                generateDatasetUploadUrl(input: $input) {
                     uploadUrl
                     success
                     errors
@@ -409,7 +409,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             },
         )
         self.assertEqual(
-            r["data"]["generateUploadUrl"],
+            r["data"]["generateDatasetUploadUrl"],
             {
                 "uploadUrl": f"http://signed-url/{str(dataset.id)}/{str(dataset_version.id)}/uri_file.csv",
                 "success": True,
