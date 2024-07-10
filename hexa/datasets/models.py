@@ -3,6 +3,8 @@ import secrets
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.db import models
+from django.db.models import JSONField
+from django.forms import CharField
 from dpq.models import BaseJob
 from slugify import slugify
 
@@ -255,51 +257,23 @@ class DatasetVersionFile(Base):
         ordering = ["uri"]
 
 
-class DatasetFileSnapshotQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User):
-        return self._filter_for_user_and_query_object(
-            user,
-            models.Q(
-                dataset_version_file__dataset_version__dataset__in=Dataset.objects.filter_for_user(
-                    user
-                ),
-                return_all_if_superuser=False,
-            ),
-        )
-
-
-class DatasetFileSnapshotManager(models.Manager):
-    def create_if_has_perm(
-        self,
-        principal: User,
-        dataset_version_file: DatasetVersionFile,
-        *,
-        uri: str,
-    ):
-        from hexa.pipelines.authentication import PipelineRunUser
-
-        if isinstance(principal, PipelineRunUser):
-            if (
-                principal.pipeline_run.pipeline.workspace
-                != dataset_version_file.dataset_version.dataset.workspace
-            ):
-                raise PermissionDenied
-        elif not principal.has_perm(
-            "datasets.create_dataset_version_file_snapshot", dataset_version_file
-        ):
-            raise PermissionDenied
-
-        created_by = principal if not isinstance(principal, PipelineRunUser) else None
-        return self.create(
-            dataset_version_file=dataset_version_file,
-            uri=uri,
-            created_by=created_by,
-        )
-
-
 class DatasetFileSnapshot(Base):
-    uri = models.TextField(null=False, blank=False, unique=True)
-    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    STATUS_PROCESSING = "processing"
+    STATUS_FAILED = "failed"
+    STATUS_FINISHED = "finished"
+
+    STATUS_CHOICES = [
+        (STATUS_PROCESSING, "Processing"),
+        (STATUS_FAILED, "Failed"),
+        (STATUS_FINISHED, "Finished"),
+    ]
+
+    content = JSONField(blank=True, default=list, null=True)
+    status = CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default=STATUS_PROCESSING,
+    )
     dataset_version_file = models.ForeignKey(
         DatasetVersionFile,
         null=False,
@@ -307,12 +281,6 @@ class DatasetFileSnapshot(Base):
         on_delete=models.CASCADE,
         related_name="snapshots",
     )
-
-    objects = DatasetFileSnapshotManager.from_queryset(DatasetFileSnapshotQuerySet)()
-
-    @property
-    def filename(self):
-        return self.uri.split("/")[-1]
 
 
 class DatasetLinkQuerySet(BaseQuerySet):

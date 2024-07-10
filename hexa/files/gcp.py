@@ -1,5 +1,4 @@
 import base64
-import io
 import json
 
 import requests
@@ -12,13 +11,7 @@ from google.cloud.storage.blob import Blob
 from google.oauth2 import service_account
 from google.protobuf import duration_pb2
 
-from .basefs import (
-    BaseClient,
-    BucketObjectAlreadyExists,
-    NotFound,
-    ObjectsPage,
-    load_bucket_sample_data_with,
-)
+from .basefs import BaseClient, NotFound, ObjectsPage, load_bucket_sample_data_with
 
 
 def get_credentials():
@@ -158,12 +151,6 @@ class GCPClient(BaseClient):
         blob = bucket.blob(file_name)
         blob.upload_from_filename(source)
 
-    def upload_object_from_string(self, bucket_name: str, file_name: str, content: str):
-        client = get_storage_client()
-        bucket = client.bucket(bucket_name)
-        blob = bucket.blob(file_name)
-        blob.upload_from_string(content)
-
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
         client = get_storage_client()
         bucket = client.get_bucket(bucket_name)
@@ -204,7 +191,7 @@ class GCPClient(BaseClient):
         client = get_storage_client()
         gcs_bucket = client.get_bucket(bucket_name)
         if raise_if_exists and gcs_bucket.get_blob(target_key) is not None:
-            raise BucketObjectAlreadyExists(target_key)
+            raise ValidationError(f"GCS: Object {target_key} already exists!")
         blob = gcs_bucket.blob(target_key)
         return blob.generate_signed_url(
             expiration=3600, version="v4", method="PUT", content_type=content_type
@@ -354,19 +341,3 @@ class GCPClient(BaseClient):
             "GCS_TOKEN": token,  # FIXME: Once we have deployed the new openhexa-bslq-environment image and upgraded the openhexa-app, we can remove this line
             "WORKSPACE_STORAGE_ENGINE_GCP_ACCESS_TOKEN": token,
         }
-
-    def read_object_lines(self, bucket_name: str, filename: str, lines_number: int):
-        # TODO: redo with pandas with DownloadURL
-        client = get_storage_client()
-        bucket = client.get_bucket(bucket_name)
-        blob = bucket.get_blob(filename)
-
-        with io.BytesIO() as file_obj:
-            blob.download_to_file(file_obj)
-            file_obj.seek(0)
-            lines = file_obj.readlines()
-
-        max_lines = min(lines_number, len(lines))
-        print(max_lines, lines_number, len(lines))
-        specific_lines = [lines[i].decode("utf-8").strip() for i in range(max_lines)]
-        return specific_lines
