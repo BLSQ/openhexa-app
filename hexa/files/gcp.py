@@ -356,6 +356,7 @@ class GCPClient(BaseClient):
         }
 
     def read_object_lines(self, bucket_name: str, filename: str, lines_number: int):
+        # TODO: redo with pandas with DownloadURL
         client = get_storage_client()
         bucket = client.get_bucket(bucket_name)
         blob = bucket.get_blob(filename)
