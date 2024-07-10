@@ -205,7 +205,7 @@ class MockClient:
             )
         else:
             self.backend.buckets[bucket.name] = bucket
-        return bucket
+        return bucket.name
 
     def download_blob_to_file(self, blob_or_uri, file_obj, start=None, end=None):
         raise NotImplementedError

@@ -1,4 +1,5 @@
 import base64
+import io
 import json
 
 import requests
@@ -11,7 +12,13 @@ from google.cloud.storage.blob import Blob
 from google.oauth2 import service_account
 from google.protobuf import duration_pb2
 
-from .base import BaseClient, NotFound, ObjectsPage, load_bucket_sample_data_with
+from .base import (
+    NotFound,
+    ObjectsPage,
+    Storage,
+    StorageObject,
+    load_bucket_sample_data_with,
+)
 
 
 def get_credentials():
@@ -31,26 +38,25 @@ def _is_dir(blob):
     return blob.size == 0 and blob.name.endswith("/")
 
 
-def _blob_to_dict(blob: Blob):
-    return {
-        "name": blob.name.split("/")[-2] if _is_dir(blob) else blob.name.split("/")[-1],
-        "key": blob.name,
-        "path": "/".join([blob.bucket.name, blob.name]),
-        "content_type": blob.content_type,
-        "updated": blob.updated,
-        "size": blob.size,
-        "type": "directory" if _is_dir(blob) else "file",
-    }
+def _blob_to_obj(blob: Blob):
+    return StorageObject(
+        name=blob.name.split("/")[-2] if _is_dir(blob) else blob.name.split("/")[-1],
+        key=blob.name,
+        path="/".join([blob.bucket.name, blob.name]),
+        content_type=blob.content_type,
+        updated=blob.updated,
+        size=blob.size,
+        type="directory" if _is_dir(blob) else "file",
+    )
 
 
-def _prefix_to_dict(bucket_name, name: str):
-    return {
-        "name": name.split("/")[-2],
-        "key": name,
-        "path": "/".join([bucket_name, name]),
-        "size": 0,
-        "type": "directory",
-    }
+def _prefix_to_obj(bucket_name, name: str):
+    return StorageObject(
+        name=name.split("/")[-2],
+        key=name,
+        path="/".join([bucket_name, name]),
+        type="directory",
+    )
 
 
 def iter_request_results(bucket_name, request):
@@ -65,14 +71,14 @@ def iter_request_results(bucket_name, request):
     current_page = next(pages)
 
     for prefix in sorted(prefixes):
-        yield _prefix_to_dict(bucket_name, prefix)
+        yield _prefix_to_obj(bucket_name, prefix)
 
     while True:
         for blob in current_page:
             if not _is_dir(blob):
                 # We ignore objects that are directories (object with a size = 0 and ending with a /)
                 # because they are already listed in the prefixes
-                yield _blob_to_dict(blob)
+                yield _blob_to_obj(blob)
         try:
             current_page = next(pages)
         except StopIteration:
@@ -85,7 +91,7 @@ def ensure_is_folder(object_key: str):
     return object_key
 
 
-class GCPClient(BaseClient):
+class GoogleCloudStorage(Storage):
     def create_bucket(self, bucket_name: str, labels: dict = None, *args, **kwargs):
         client = get_storage_client()
         try:
@@ -150,15 +156,15 @@ class GCPClient(BaseClient):
             ]
             bucket.patch()
 
-            return bucket
+            return bucket.name
         except Conflict:
             raise ValidationError(f"GCS: Bucket {bucket_name} already exists!")
 
-    def upload_object(self, bucket_name: str, file_name: str, source: str):
+    def save_object(self, bucket_name: str, file_path: str, file: io.BufferedReader):
         client = get_storage_client()
         bucket = client.bucket(bucket_name)
-        blob = bucket.blob(file_name)
-        blob.upload_from_filename(source)
+        blob = bucket.blob(file_path)
+        blob.upload_from_file(file)
 
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
         client = get_storage_client()
@@ -168,7 +174,7 @@ class GCPClient(BaseClient):
             "", content_type="application/x-www-form-urlencoded;charset=UTF-8"
         )
 
-        return _blob_to_dict(object)
+        return _blob_to_obj(object)
 
     def generate_download_url(
         self, bucket_name: str, target_key: str, force_attachment=False
@@ -213,7 +219,7 @@ class GCPClient(BaseClient):
         if object is None:
             raise NotFound("Object not found")
 
-        return _blob_to_dict(object)
+        return _blob_to_obj(object)
 
     def list_bucket_objects(
         self,

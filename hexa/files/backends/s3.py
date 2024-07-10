@@ -1,11 +1,12 @@
 import base64
+import io
 import json
 
 import boto3
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from .base import BaseClient, NotFound, ObjectsPage, load_bucket_sample_data_with
+from .base import NotFound, ObjectsPage, Storage, load_bucket_sample_data_with
 
 default_region = "eu-central-1"
 
@@ -109,7 +110,7 @@ def _get_bucket_object(bucket_name: str, object_key: str):
     return _object_to_dict(object, bucket_name=bucket_name, object_key=object_key)
 
 
-class S3Client(BaseClient):
+class S3Storage(Storage):
     def create_bucket(self, bucket_name: str, *args, **kwargs):
         s3 = get_storage_client()
         try:
@@ -117,8 +118,17 @@ class S3Client(BaseClient):
                 Bucket=bucket_name,
                 CreateBucketConfiguration={"LocationConstraint": default_region},
             )
+        except s3.exceptions.ClientError as exc:
+            if "BucketAlreadyOwnedByYou" in str(exc):
+                raise ValidationError(f"{bucket_name} already exist")
+            else:
+                raise
+        except s3.exceptions.BucketAlreadyOwnedByYou:
+            # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
+            raise ValidationError(f"{bucket_name} already exist")
 
-            # Define the configuration rules
+        # Set CORS configuration
+        try:
             cors_configuration = {
                 "CORSRules": [
                     {
@@ -146,9 +156,7 @@ class S3Client(BaseClient):
                     }
                 ]
             }
-
             s3.put_bucket_cors(Bucket=bucket_name, CORSConfiguration=cors_configuration)
-            return S3BucketWrapper(bucket_name)
         except s3.exceptions.ClientError as exc:
             # https://github.com/VeemsHQ/veems/blob/3e2e75c3407bc1f98395fe94c0e03367a82852c9/veems/media/upload_manager.py#L51C1-L51C1
 
@@ -163,19 +171,12 @@ class S3Client(BaseClient):
                     stacklevel=2,
                 )
             else:
-                if "BucketAlreadyOwnedByYou" in str(exc):
-                    raise ValidationError(f"{bucket_name} already exist")
+                raise
 
-                raise exc
+        return bucket_name
 
-        except s3.exceptions.BucketAlreadyOwnedByYou:
-            # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
-            raise ValidationError(f"{bucket_name} already exist")
-
-        return S3BucketWrapper(bucket_name)
-
-    def upload_object(self, bucket_name: str, file_name: str, source: str):
-        return get_storage_client().upload_file(source, bucket_name, file_name)
+    def save_object(self, bucket_name: str, file_path: str, file: io.BufferedReader):
+        return get_storage_client().upload_fileobj(file, bucket_name, file_path)
 
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
         s3 = get_storage_client()

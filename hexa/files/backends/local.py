@@ -1,36 +1,83 @@
+import io
 import os
+import shutil
 from pathlib import Path
 
-from django.conf import settings
 from django.utils._os import safe_join
+from django.utils.text import get_valid_filename
 
-from .base import BaseClient
+from .base import Storage
 
 
-class FilesSystemStorage(BaseClient):
-    @property
-    def location(self):
-        if not settings.WORKSPACE_STORAGE_BACKEND_LOCAL_FOLDER:
-            raise ValueError("WORKSPACE_STORAGE_BACKEND_LOCAL_FOLDER is not set")
-        return Path(settings.WORKSPACE_STORAGE_BACKEND_LOCAL_FOLDER)
+class FileSystemStorage(Storage):
+    def __init__(self, location, prefix=""):
+        self.location = Path(location)
+        self.prefix = prefix  # TODO: Use the prefix here to create the bucket path and not in workspace model
+
+    def exists(self, name):
+        try:
+            exists = os.path.lexists(self.path(name))
+            return exists
+        except self.exceptions.SuspiciousFileOperation:
+            raise
 
     def path(self, name):
         return safe_join(self.location, name)
 
+    def bucket_path(self, bucket_name, name):
+        bucket_path = self.path(bucket_name)
+        return safe_join(bucket_path, name)
+
     def size(self, name):
         return os.path.getsize(self.path(name))
 
+    def get_valid_filepath(self, path: str | Path):
+        """Returns a path where all the directories and the filename are valid.
+
+        Args:
+            path (str|Path): A path
+        """
+        return "/".join(get_valid_filename(part) for part in path.split("/"))
+
+    def create_directory(self, name):
+        assert (
+            self.get_valid_filepath(name) == name
+        ), f"Invalid directory name: {name}. Please use a valid name."
+
+        if self.exists(name):
+            raise self.exceptions.AlreadyExists(f"Directory {name} already exists")
+        os.makedirs(self.path(name), exist_ok=True)
+
     def create_bucket(self, bucket_name: str, *args, **kwargs):
-        return super().create_bucket(bucket_name, *args, **kwargs)
+        if "/" in bucket_name:
+            raise self.exceptions.SuspiciousFileOperation(
+                "Bucket name cannot contain '/'"
+            )
+        valid_bucket_name = get_valid_filename(bucket_name)
+        self.create_directory(valid_bucket_name)
+        return valid_bucket_name
 
     def delete_bucket(self, bucket_name: str, fully: bool = False):
-        return super().delete_bucket(bucket_name, fully)
+        if not self.exists(bucket_name):
+            raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
+        return shutil.rmtree(self.path(bucket_name))
 
-    def upload_object(self, bucket_name: str, file_name: str, source: str):
-        return super().upload_object(bucket_name, file_name, source)
+    def save_object(
+        self, bucket_name: str, file_path: str, file: io.BufferedReader | bytes
+    ):
+        full_path = self.bucket_path(bucket_name, file_path)
+        with open(full_path, "wb") as f:
+            if isinstance(file, bytes):
+                f.write(file)
+            else:
+                f.write(file.read())
 
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
-        pass
+        if not self.exists(bucket_name):
+            raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
+        folder_key = self.get_valid_filepath(folder_key)
+        self.create_directory(f"{bucket_name}/{folder_key}")
+        return folder_key
 
     def generate_download_url(
         self, bucket_name: str, target_key: str, force_attachment=False
@@ -38,7 +85,7 @@ class FilesSystemStorage(BaseClient):
         return super().generate_download_url(bucket_name, target_key, force_attachment)
 
     def get_bucket_object(self, bucket_name: str, object_key: str):
-        return super().get_bucket_object(bucket_name, object_key)
+        pass
 
     def list_bucket_objects(
         self,

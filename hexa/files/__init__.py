@@ -1,6 +1,6 @@
 from django.utils.functional import SimpleLazyObject
 
 from .backends import get_storage_backend
-from .backends.base import BaseClient
+from .backends.base import Storage
 
-storage: BaseClient = SimpleLazyObject(get_storage_backend)
+storage: Storage = SimpleLazyObject(get_storage_backend)

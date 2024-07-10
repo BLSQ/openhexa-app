@@ -1,10 +1,11 @@
+import io
 import os
 import typing
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from os.path import dirname, isfile, join
 
-from .exceptions import NotFound
+from .exceptions import AlreadyExists, NotFound, SuspiciousFileOperation
 
 
 @dataclass
@@ -25,12 +26,31 @@ def load_bucket_sample_data_with(bucket_name: str, client_storage):
     ]
 
     for file in files:
-        client_storage.upload_object(bucket_name, file, join(static_files_dir, file))
+        client_storage.save_object(
+            bucket_name, file, open(join(static_files_dir, file), "rb")
+        )
 
 
-class BaseClient(ABC):
+@dataclass
+class StorageObject:
+    name: str
+    key: str
+    path: str
+    content_type: str
+    updated: str
+    type: str
+    size: int = 0
+
+
+class Storage(ABC):
     class exceptions:
         NotFound = NotFound
+        AlreadyExists = AlreadyExists
+        SuspiciousFileOperation = SuspiciousFileOperation
+
+    @abstractmethod
+    def __init__(self, *args, **kwargs):
+        pass
 
     @abstractmethod
     def create_bucket(self, bucket_name: str, *args, **kwargs):
@@ -41,7 +61,7 @@ class BaseClient(ABC):
         pass
 
     @abstractmethod
-    def upload_object(self, bucket_name: str, file_name: str, source: str):
+    def save_object(self, bucket_name: str, file_path: str, file: io.BufferedReader):
         pass
 
     @abstractmethod

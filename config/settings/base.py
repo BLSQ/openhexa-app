@@ -350,11 +350,17 @@ WORKSPACES_DATABASE_PROXY_HOST = os.environ.get("WORKSPACES_DATABASE_PROXY_HOST"
 WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET")
 
 # Filesystem configuration
-WORKSPACE_BUCKET_PREFIX = os.environ.get("WORKSPACE_BUCKET_PREFIX", "hexa-")
+WORKSPACE_STORAGE_BACKEND = {
+    "engine": "hexa.files.backends.local.FileSystemStorage",
+    "options": {
+        "prefix": os.environ.get("WORKSPACE_BUCKET_PREFIX", "hexa-"),
+        "folder": os.environ.get("WORKSPACE_BUCKET_FOLDER", "/data"),
+    },
+}
+
+
 WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION", "europe-west1")
-WORKSPACE_STORAGE_BACKEND = os.environ.get(
-    "WORKSPACE_STORAGE_BACKEND", "hexa.files.backends.gcp.GCPClient"
-)
+
 WORKSPACE_BUCKET_VERSIONING_ENABLED = True
 
 
