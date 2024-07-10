@@ -13,7 +13,8 @@ from hexa.user_management.models import User
 
 logger = getLogger(__name__)
 
-DEFAULT_SNAPSHOT_LINES = 500
+# qdd to settings
+DEFAULT_SNAPSHOT_LINES = 50
 
 
 def generate_dataset_file_sample_task(queue: AtLeastOnceQueue, job: DatasetSnapshotJob):
