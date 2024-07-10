@@ -55,10 +55,6 @@ class BaseClient(ABC):
         pass
 
     @abstractmethod
-    def upload_object_from_string(self, bucket_name: str, file_name: str, content: str):
-        pass
-
-    @abstractmethod
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
         pass
 
@@ -100,8 +96,4 @@ class BaseClient(ABC):
 
     @abstractmethod
     def get_token_as_env_variables(self, token):
-        pass
-
-    @abstractmethod
-    def read_object_lines(self, bucket_name: str, filename: str, lines_number: int):
         pass
