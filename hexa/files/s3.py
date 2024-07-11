@@ -117,31 +117,14 @@ class S3Client(BaseClient):
                 Bucket=bucket_name,
                 CreateBucketConfiguration={"LocationConstraint": default_region},
             )
-
             # Define the configuration rules
             cors_configuration = {
                 "CORSRules": [
                     {
-                        "AllowedHeaders": [
-                            "Authorization",
-                            "Content-Range",
-                            "Accept",
-                            "Content-Type",
-                            "Origin",
-                            "Range",
-                        ],
+                        "AllowedHeaders": ["*"],
                         "AllowedMethods": ["GET", "PUT"],
-                        "AllowedOrigins": settings.CORS_ALLOWED_ORIGINS,
-                        "ExposeHeaders": [
-                            "ETag",
-                            "x-amz-request-id",
-                            "Authorization",
-                            "Content-Range",
-                            "Accept",
-                            "Content-Type",
-                            "Origin",
-                            "Range",
-                        ],
+                        "AllowedOrigins": ["*"],
+                        "ExposeHeaders": ["*"],
                         "MaxAgeSeconds": 3000,
                     }
                 ]
