@@ -188,13 +188,17 @@ def run_pipeline(
             config=config,
             send_mail_notifications=send_mail_notifications,
         )
-        event_properties = {
-            "pipeline_id": str(pipeline.id),
-            "pipeline_version": pipeline_version.name if pipeline_version else "",
-            "pipeline_trigger": PipelineRunTrigger.WEBHOOK,
-            "workspace": pipeline.workspace.slug,
-        }
-        track(request, "pipeline_run", event_properties, user=None)
+        track(
+            request,
+            "pipelines.pipeline_run",
+            {
+                "pipeline_id": str(pipeline.id),
+                "version_name": pipeline_version.name if pipeline_version else None,
+                "version_id": pipeline_version.id if pipeline_version else None,
+                "trigger": PipelineRunTrigger.WEBHOOK,
+                "workspace": pipeline.workspace.slug,
+            },
+        )
         return JsonResponse({"run_id": run.id}, status=200)
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)

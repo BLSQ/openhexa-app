@@ -54,17 +54,16 @@ class Command(BaseCommand):
                     trigger_mode=PipelineRunTrigger.SCHEDULED,
                     send_mail_notifications=pipeline.recipients.count() > 0,
                 )
-                event_properties = {
-                    "pipeline_id": str(pipeline.id),
-                    "pipeline_version": pipeline.last_version.name,
-                    "pipeline_trigger": PipelineRunTrigger.SCHEDULED,
-                    "workspace": pipeline.workspace.slug,
-                }
                 track(
                     request=None,
-                    user=None,
-                    event="pipeline_run",
-                    properties=event_properties,
+                    event="pipelines.pipeline_run",
+                    properties={
+                        "pipeline_id": str(pipeline.id),
+                        "version_name": pipeline.last_version.name,
+                        "version_id": str(pipeline.last_version.id),
+                        "trigger": PipelineRunTrigger.SCHEDULED,
+                        "workspace": pipeline.workspace.slug,
+                    },
                 )
 
             empty_delay = cutoff - (timezone.now() - start_time).total_seconds()

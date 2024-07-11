@@ -158,7 +158,6 @@ class AnalyticsTest(TestCase):
                     "$name": self.USER.display_name,
                     "is_staff": self.USER.is_staff,
                     "is_superuser": self.USER.is_superuser,
-                    "email_domain": "bluesquarehub.com",
                     "features_flag": [],
                 },
             )

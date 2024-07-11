@@ -69,9 +69,8 @@ def resolve_create_pipeline(_, info, **kwargs):
         }
         track(
             request,
-            "pipeline_created",
+            "pipelines.pipeline_created",
             event_properties,
-            user=request.user,
         )
 
     except NotFound:
@@ -213,13 +212,17 @@ def resolve_run_pipeline(_, info, **kwargs):
             config=input.get("config", {}),
             send_mail_notifications=input.get("sendMailNotifications", False),
         )
-        event_properties = {
-            "pipeline_id": str(pipeline.id),
-            "pipeline_version": version.name,
-            "pipeline_trigger": PipelineRunTrigger.MANUAL,
-            "workspace": pipeline.workspace.slug,
-        }
-        track(request, "pipeline_run", event_properties, user=request.user)
+        track(
+            request,
+            "pipelines.pipeline_run",
+            {
+                "pipeline_id": str(pipeline.id),
+                "version_name": version.name,
+                "version_id": str(version.id),
+                "trigger": PipelineRunTrigger.MANUAL,
+                "workspace": pipeline.workspace.slug,
+            },
+        )
         return {
             "success": True,
             "errors": [],

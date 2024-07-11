@@ -104,20 +104,24 @@ def resolve_create_dataset_version(_, info, **kwargs):
         )
 
         # Register dataset version creation event
-        event_properties = {
-            "dataset_version": version.name,
-            "dataset_id": str(dataset.id),
-            "creation_source": (
-                "SDK" if isinstance(request.user, PipelineRunUser) else "UI"
-            ),
-            "workspace": dataset.workspace.slug,
-        }
         tracked_user = (
             request.user.pipeline_run.user
             if isinstance(request.user, PipelineRunUser)
             else request.user
         )
-        track(request, "dataset_version_created", event_properties, user=tracked_user)
+        track(
+            request,
+            "datasets.dataset_version_created",
+            {
+                "dataset_version": version.name,
+                "dataset_id": str(dataset.id),
+                "creation_source": (
+                    "SDK" if isinstance(request.user, PipelineRunUser) else "UI"
+                ),
+                "workspace": dataset.workspace.slug,
+            },
+            user=tracked_user,
+        )
 
         return {"success": True, "errors": [], "version": version}
     except IntegrityError:
