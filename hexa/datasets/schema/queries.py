@@ -44,16 +44,15 @@ def resolve_dataset_version(_, info, **kwargs):
 
 @datasets_queries.field("datasetFileSnapshot")
 def resolve_dataset_file_snapshot(_, info, **kwargs):
-    request = info.context["request"]
     try:
         if kwargs.get("file_id"):
-            return DatasetFileSnapshot.objects.filter_for_user(request.user).get(
+            return DatasetFileSnapshot.objects.get(
                 dataset_version_file=kwargs["file_id"]
             )
+        elif kwargs.get("id"):
+            return DatasetFileSnapshot.objects.get(id=kwargs["id"])
         else:
-            return DatasetFileSnapshot.objects.filter_for_user(request.user).get(
-                id=kwargs["id"]
-            )
+            return None
     except DatasetFileSnapshot.DoesNotExist:
         return None
 

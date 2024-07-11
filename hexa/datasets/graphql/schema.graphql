@@ -429,8 +429,7 @@ input CreateDatasetFileSnapshotInput {
 }
 
 type DatasetFileSnapshot {
-    uri: String!
-    created_by: String!
+    content: JSON!
     dataset_version_file: DatasetVersionFile
 }
 
@@ -446,7 +445,7 @@ extend type Query {
   dataset(id: ID!): Dataset
   "Get a dataset by its slug."
   datasetVersion(id: ID!): DatasetVersion
-  "Get a dataset file snapshot by fileId"
+  "Get a dataset file snapshot by fileSnapshot id or by fileId"
   datasetFileSnapshot(id: ID, fileId: ID): DatasetFileSnapshot
   "Get a dataset link by its id."
   datasetLink(id: ID!): DatasetLink

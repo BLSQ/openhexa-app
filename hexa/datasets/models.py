@@ -4,7 +4,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import JSONField
-from django.forms import CharField
 from dpq.models import BaseJob
 from slugify import slugify
 
@@ -269,7 +268,7 @@ class DatasetFileSnapshot(Base):
     ]
 
     content = JSONField(blank=True, default=list, null=True)
-    status = CharField(
+    status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
         default=STATUS_PROCESSING,
