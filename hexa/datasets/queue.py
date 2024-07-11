@@ -1,7 +1,10 @@
 from logging import getLogger
 
+import pandas as pd
+from django.conf import settings
 from dpq.queue import AtLeastOnceQueue
 
+from hexa.datasets.api import generate_download_url
 from hexa.datasets.models import DatasetFileMetadataJob
 from hexa.datasets.models import (
     DatasetFileSnapshot,
@@ -11,8 +14,21 @@ from hexa.files.api import get_storage
 
 logger = getLogger(__name__)
 
-# qdd to settings
-DEFAULT_SNAPSHOT_LINES = 50
+
+def read_file_content(download_url: str, content_type: str) -> pd.DataFrame:
+    try:
+        if content_type == "text/csv":
+            return pd.read_csv(download_url)
+        elif content_type == "application/octet-stream":
+            return pd.read_parquet(download_url)
+        else:
+            raise ValueError(f"Unsupported content type: {content_type}")
+    except pd.errors.ParserError as e:
+        print(f"Error parsing the file content: {e}")
+        return pd.DataFrame()
+    except ValueError as e:
+        print(f"Unsupported file content: {e}")
+        return pd.DataFrame()
 
 
 def generate_dataset_file_sample_task(queue: AtLeastOnceQueue, job: DatasetSnapshotJob):
@@ -29,11 +45,20 @@ def generate_dataset_file_sample_task(queue: AtLeastOnceQueue, job: DatasetSnaps
             status=DatasetFileSnapshot.STATUS_PROCESSING,
         )
 
-        storage = get_storage()
-        dataset_snapshot_content = storage.read_object_lines(
-            dataset_version_file, DEFAULT_SNAPSHOT_LINES
+        download_url = generate_download_url(dataset_version_file)
+        file_snapshot_df = read_file_content(
+            download_url, dataset_version_file.content_type
         )
-        dataset_file_snapshot.content = dataset_snapshot_content
+        if not file_snapshot_df.empty:
+            file_snapshot_content = file_snapshot_df.head(
+                settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE
+            )
+            dataset_file_snapshot.content = file_snapshot_content.to_json(
+                orient="records"
+            )
+            logger.info(f"Dataset snapshot saved for file {dataset_version_file_id}")
+        else:
+            logger.info(f"Dataset snapshot is empty for file {dataset_version_file_id}")
         dataset_file_snapshot.status = DatasetFileSnapshot.STATUS_FINISHED
         dataset_file_snapshot.save()
         logger.info("Dataset snapshot created for file {dataset_version_file_id}")
@@ -47,7 +72,9 @@ def generate_dataset_file_sample_task(queue: AtLeastOnceQueue, job: DatasetSnaps
         )
         dataset_file_snapshot.status = DatasetFileSnapshot.STATUS_FAILED
         dataset_file_snapshot.save()
-        logger.exception(f"Failed to create dataset snapshot: \n {e}")
+        logger.exception(
+            f"Dataset file snapshot creation failed for file {dataset_version_file_id}: {e}"
+        )
 
 
 class DatasetsFileMetadataQueue(AtLeastOnceQueue):
