@@ -42,7 +42,7 @@ def resolve_dataset_version(_, info, **kwargs):
         return None
 
 
-@datasets_queries.field("datasetFileMetadata")
+@datasets_queries.field("datasetFileSnapshot")
 def resolve_dataset_file_snapshot(_, info, **kwargs):
     try:
         if kwargs.get("file_id"):
