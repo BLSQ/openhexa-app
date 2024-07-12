@@ -1,5 +1,4 @@
 import base64
-import io
 import json
 
 import boto3
@@ -437,13 +436,3 @@ class S3Client(BaseClient):
                 json.dumps(json_config).encode()
             ).decode(),
         }
-
-    def read_object_lines(self, bucket_name: str, filename: str, lines_number: int):
-        s3 = get_storage_client()
-        object = s3.get_object(Bucket=bucket_name, Key=filename)
-        file_stream = io.BytesIO(object["Body"].read())
-        file_stream.seek(0)
-        lines = file_stream.readlines()
-
-        specific_lines = [lines[i].decode("utf-8").strip() for i in range(lines_number)]
-        return specific_lines
