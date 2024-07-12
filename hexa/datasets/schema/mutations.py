@@ -199,6 +199,33 @@ def resolve_delete_dataset_share(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
+@mutations.field("generateDatasetUploadUrl")
+def resolve_generate_upload_url(_, info, **kwargs):
+    request = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    try:
+        version = DatasetVersion.objects.filter_for_user(request.user).get(
+            id=mutation_input["versionId"]
+        )
+        if version.id != version.dataset.latest_version.id:
+            return {"success": False, "errors": ["LOCKED_VERSION"]}
+
+        full_uri = version.get_full_uri(mutation_input["uri"])
+        if get_blob(full_uri) is not None:
+            return {"success": False, "errors": ["ALREADY_EXISTS"]}
+
+        upload_url = generate_upload_url(full_uri, mutation_input["contentType"])
+
+        return {"success": True, "errors": [], "upload_url": upload_url}
+    except ValidationError:
+        return {"success": False, "errors": ["INVALID_URI"]}
+    except DatasetVersion.DoesNotExist:
+        return {"success": False, "errors": ["VERSION_NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
 @mutations.field("createDatasetVersionFile")
 def resolve_create_version_file(_, info, **kwargs):
     request = info.context["request"]
@@ -216,7 +243,7 @@ def resolve_create_version_file(_, info, **kwargs):
             file = None
             try:
                 file = version.get_file_by_name(mutation_input["uri"])
-                if get_blob(file) is not None:
+                if get_blob(file.uri) is not None:
                     return {"success": False, "errors": ["ALREADY_EXISTS"]}
             except DatasetVersionFile.DoesNotExist:
                 file = DatasetVersionFile.objects.create_if_has_perm(
@@ -225,13 +252,11 @@ def resolve_create_version_file(_, info, **kwargs):
                     uri=version.get_full_uri(mutation_input["uri"]),
                     content_type=mutation_input["contentType"],
                 )
-            upload_url = generate_upload_url(file)
-            return {
-                "success": True,
-                "errors": [],
-                "file": file,
-                "upload_url": upload_url,
-            }
+                return {
+                    "success": True,
+                    "errors": [],
+                    "file": file,
+                }
     except ValidationError:
         return {"success": False, "errors": ["INVALID_URI"]}
     except DatasetVersion.DoesNotExist:

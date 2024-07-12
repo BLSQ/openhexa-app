@@ -1,18 +1,27 @@
+import logging
+
 from ariadne import ObjectType
 from django.db.models import Q
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
+from hexa.datasets.api import generate_upload_url
+from hexa.datasets.models import (
+    Dataset,
+    DatasetLink,
+    DatasetVersion,
+    DatasetVersionFile,
+)
+from hexa.files.basefs import BucketObjectAlreadyExists
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
-
-from ..models import Dataset, DatasetLink, DatasetVersion, DatasetVersionFile
 
 dataset_object = ObjectType("Dataset")
 dataset_permissions = ObjectType("DatasetPermissions")
 dataset_version_object = ObjectType("DatasetVersion")
 dataset_version_permissions = ObjectType("DatasetVersionPermissions")
 dataset_version_file_object = ObjectType("DatasetVersionFile")
+dataset_version_file_result_object = ObjectType("CreateDatasetVersionFileResult")
 dataset_link_object = ObjectType("DatasetLink")
 dataset_link_permissions = ObjectType("DatasetLinkPermissions")
 
@@ -196,6 +205,16 @@ def resolve_version_permissions_delete(obj: DatasetVersion, info, **kwargs):
         if request.user.is_authenticated
         else False
     )
+
+
+@dataset_version_file_result_object.field("uploadUrl")
+def resolve_upload_url(obj, info, **kwargs):
+    try:
+        upload_url = generate_upload_url(obj.uri, obj.content_type)
+        return upload_url
+    except BucketObjectAlreadyExists as exc:
+        logging.error(f"Upload URL generation failed: {exc.message}")
+        return None
 
 
 bindables = [
