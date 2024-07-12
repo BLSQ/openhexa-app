@@ -23,6 +23,7 @@ x-app: &common
       - PIPELINE_SCHEDULER_SPAWNER=docker
       - PIPELINE_API_URL=http://app:8000
       - DEFAULT_WORKSPACE_IMAGE
+      - MIXPANEL_TOKEN
       # The following variables are optional and can be set in your local .env file for testing purposes
       - DEBUG_LOGGING
       - DEBUG_TOOLBAR

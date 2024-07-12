@@ -2,6 +2,7 @@ from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 
+from hexa.core.analytics import track
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.workspaces.models import Workspace
 
@@ -100,6 +101,26 @@ def resolve_create_dataset_version(_, info, **kwargs):
             dataset=dataset,
             name=mutation_input["name"],
             description=mutation_input.get("description"),
+        )
+
+        # Register dataset version creation event
+        tracked_user = (
+            request.user.pipeline_run.user
+            if isinstance(request.user, PipelineRunUser)
+            else request.user
+        )
+        track(
+            request,
+            "datasets.dataset_version_created",
+            {
+                "dataset_version": version.name,
+                "dataset_id": str(dataset.id),
+                "creation_source": (
+                    "SDK" if isinstance(request.user, PipelineRunUser) else "UI"
+                ),
+                "workspace": dataset.workspace.slug,
+            },
+            user=tracked_user,
         )
 
         return {"success": True, "errors": [], "version": version}

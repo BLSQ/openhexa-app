@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
 
+from hexa.core.analytics import track
 from hexa.databases.utils import get_table_definition
 from hexa.files.api import NotFound, get_storage
 from hexa.pipelines.authentication import PipelineRunUser
@@ -59,6 +60,18 @@ def resolve_create_pipeline(_, info, **kwargs):
             data["type"] = PipelineType.ZIPFILE
 
         pipeline = Pipeline.objects.create(**data)
+        event_properties = {
+            "pipeline_id": str(pipeline.id),
+            "creation_source": (
+                "CLI" if pipeline.type == PipelineType.ZIPFILE else "Notebook"
+            ),
+            "workspace": workspace.slug,
+        }
+        track(
+            request,
+            "pipelines.pipeline_created",
+            event_properties,
+        )
 
     except NotFound:
         return {"success": False, "errors": ["FILE_NOT_FOUND"]}
@@ -198,6 +211,17 @@ def resolve_run_pipeline(_, info, **kwargs):
             trigger_mode=PipelineRunTrigger.MANUAL,
             config=input.get("config", {}),
             send_mail_notifications=input.get("sendMailNotifications", False),
+        )
+        track(
+            request,
+            "pipelines.pipeline_run",
+            {
+                "pipeline_id": str(pipeline.id),
+                "version_name": version.name,
+                "version_id": str(version.id),
+                "trigger": PipelineRunTrigger.MANUAL,
+                "workspace": pipeline.workspace.slug,
+            },
         )
         return {
             "success": True,

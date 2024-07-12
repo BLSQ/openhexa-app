@@ -1,5 +1,6 @@
 from ariadne import MutationType
 
+from hexa.core.analytics import track
 from hexa.files.api import get_storage
 from hexa.workspaces.models import Workspace
 
@@ -37,6 +38,11 @@ def resolve_prepare_download_object(_, info, **kwargs):
         object_key = mutation_input["objectKey"]
         download_url = get_storage().generate_download_url(
             workspace.bucket_name, object_key, force_attachment=True
+        )
+        track(
+            request,
+            "files.download_url_generated",
+            {"filename": object_key, "workspace": workspace.slug},
         )
 
         return {"success": True, "download_url": download_url, "errors": []}
