@@ -2,24 +2,26 @@ from logging import getLogger
 
 from dpq.queue import AtLeastOnceQueue
 
-from hexa.datasets.models import DatasetSnapshotJob
+from hexa.datasets.models import DatasetFileMetadataJob
 
 logger = getLogger(__name__)
 
 
-def create_dataset_snnapshot_task(queue: AtLeastOnceQueue, job: DatasetSnapshotJob):
+def create_dataset_file_metadata_task(
+    queue: AtLeastOnceQueue, job: DatasetFileMetadataJob
+):
     # TODO: imlpement ticket PATHWAYS-98  - extract data in background task
     dataset_version_file_id = job.args["fileId"]
     logger.info(f"Creating dataset version file {dataset_version_file_id}")
 
 
-class DatasetSnapshotQueue(AtLeastOnceQueue):
-    job_model = DatasetSnapshotJob
+class DatasetsFileMetadataQueue(AtLeastOnceQueue):
+    job_model = DatasetFileMetadataJob
 
 
-dataset_snapshot_queue = DatasetSnapshotQueue(
+dataset_file_metadata_queue = DatasetsFileMetadataQueue(
     tasks={
-        "create_snapshot": create_dataset_snnapshot_task,
+        "generate_file_metadata": create_dataset_file_metadata_task,
     },
-    notify_channel="dataset_snapshot_queue",
+    notify_channel="dataset_file_metadata_queue",
 )

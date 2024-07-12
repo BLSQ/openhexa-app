@@ -8,7 +8,7 @@ from hexa.workspaces.models import Workspace
 
 from ..api import generate_download_url, generate_upload_url, get_blob
 from ..models import Dataset, DatasetLink, DatasetVersion, DatasetVersionFile
-from ..queue import dataset_snapshot_queue
+from ..queue import dataset_file_metadata_queue
 
 mutations = MutationType()
 
@@ -253,9 +253,9 @@ def resolve_create_version_file(_, info, **kwargs):
                     uri=version.get_full_uri(mutation_input["uri"]),
                     content_type=mutation_input["contentType"],
                 )
-            dataset_snapshot_queue.enqueue(
+            dataset_file_metadata_queue.enqueue(
                 {
-                    "create_snapshot",
+                    "generate_file_metadata",
                     {
                         "file_id": str(file.id),
                     },

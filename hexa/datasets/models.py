@@ -294,6 +294,6 @@ class DatasetLink(Base):
         unique_together = ("dataset", "workspace")
 
 
-class DatasetSnapshotJob(BaseJob):
+class DatasetFileMetadataJob(BaseJob):
     class Meta:
-        db_table = "catalog_datasetsnapshotjob"
+        db_table = "datasets_filemetadatajob"
