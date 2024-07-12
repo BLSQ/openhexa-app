@@ -281,7 +281,7 @@ rasterio==1.3.9
     # via
     #   -r requirements.in
     #   rio-cogeo
-requests==2.31.0
+requests==2.32.2
     # via
     #   -r requirements.in
     #   dhis2-py
