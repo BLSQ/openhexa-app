@@ -256,7 +256,7 @@ class DatasetVersionFile(Base):
         ordering = ["uri"]
 
 
-class DatasetFileSnapshot(Base):
+class DatasetFileMetadata(Base):
     STATUS_PROCESSING = "processing"
     STATUS_FAILED = "failed"
     STATUS_FINISHED = "finished"
@@ -278,7 +278,7 @@ class DatasetFileSnapshot(Base):
         null=False,
         blank=False,
         on_delete=models.CASCADE,
-        related_name="snapshots",
+        related_name="file_metadata",
     )
 
 

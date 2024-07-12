@@ -5,12 +5,11 @@ from django.conf import settings
 from dpq.queue import AtLeastOnceQueue
 
 from hexa.datasets.api import generate_download_url
-from hexa.datasets.models import DatasetFileMetadataJob
 from hexa.datasets.models import (
-    DatasetFileSnapshot,
+    DatasetFileMetadata,
+    DatasetFileMetadataJob,
     DatasetVersionFile,
 )
-from hexa.files.api import get_storage
 
 logger = getLogger(__name__)
 
@@ -31,7 +30,7 @@ def read_file_content(download_url: str, content_type: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 
-def generate_dataset_file_sample_task(queue: AtLeastOnceQueue, job: DatasetSnapshotJob):
+def generate_dataset_file_sample_task(queue: AtLeastOnceQueue, job: DatasetFileMetadataJob):
     try:
         dataset_version_file_id = job.args["file_id"]
         dataset_version_file = DatasetVersionFile.objects.get(
@@ -40,9 +39,9 @@ def generate_dataset_file_sample_task(queue: AtLeastOnceQueue, job: DatasetSnaps
         logger.info(
             f"Creating dataset snapshot for version file {dataset_version_file_id}"
         )
-        dataset_file_snapshot = DatasetFileSnapshot.objects.create(
+        dataset_file_metadata = DatasetFileMetadata.objects.create(
             dataset_version_file=dataset_version_file,
-            status=DatasetFileSnapshot.STATUS_PROCESSING,
+            status=DatasetFileMetadata.STATUS_PROCESSING,
         )
 
         download_url = generate_download_url(dataset_version_file)
@@ -53,25 +52,25 @@ def generate_dataset_file_sample_task(queue: AtLeastOnceQueue, job: DatasetSnaps
             file_snapshot_content = file_snapshot_df.head(
                 settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE
             )
-            dataset_file_snapshot.content = file_snapshot_content.to_json(
+            dataset_file_metadata.content = file_snapshot_content.to_json(
                 orient="records"
             )
             logger.info(f"Dataset snapshot saved for file {dataset_version_file_id}")
         else:
             logger.info(f"Dataset snapshot is empty for file {dataset_version_file_id}")
-        dataset_file_snapshot.status = DatasetFileSnapshot.STATUS_FINISHED
-        dataset_file_snapshot.save()
+        dataset_file_metadata.status = DatasetFileMetadata.STATUS_FINISHED
+        dataset_file_metadata.save()
         logger.info("Dataset snapshot created for file {dataset_version_file_id}")
     except Exception as e:
         dataset_version_file_id = job.args["file_id"]
         dataset_version_file = DatasetVersionFile.objects.get(
             id=dataset_version_file_id
         )
-        dataset_file_snapshot = DatasetFileSnapshot.objects.get(
+        dataset_file_metadata = DatasetFileMetadata.objects.get(
             dataset_version_file=dataset_version_file
         )
-        dataset_file_snapshot.status = DatasetFileSnapshot.STATUS_FAILED
-        dataset_file_snapshot.save()
+        dataset_file_metadata.status = DatasetFileMetadata.STATUS_FAILED
+        dataset_file_metadata.save()
         logger.exception(
             f"Dataset file snapshot creation failed for file {dataset_version_file_id}: {e}"
         )
