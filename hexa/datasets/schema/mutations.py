@@ -267,10 +267,18 @@ def resolve_create_version_file(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
-@mutations.field("createDatasetVersionFileSnapshot")
-def resolve_create_version_file_snapshot(_, info, **kwargs):
-    # TODO: implement flow to create snapshot via an API call
-    raise NotImplementedError
+@mutations.field("createDatasetVersionFileMetadata")
+def resolve_create_version_file_metadata(_, info, **kwargs):
+    mutation_input = kwargs["input"]
+
+    dataset_file_metadata_queue.enqueue(
+        {
+            "generate_file_metadata",
+            {
+                "file_id": mutation_input["file_id"],
+            },
+        }
+    )
 
 
 @mutations.field("prepareVersionFileDownload")

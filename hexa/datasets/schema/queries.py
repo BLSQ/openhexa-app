@@ -4,9 +4,9 @@ from hexa.core.graphql import result_page
 
 from ..models import (
     Dataset,
+    DatasetFileMetadata,
     DatasetLink,
     DatasetVersion,
-    DatasetVersionFile,
 )
 
 datasets_queries = QueryType()
@@ -42,14 +42,18 @@ def resolve_dataset_version(_, info, **kwargs):
         return None
 
 
-@datasets_queries.field("datasetVersionFile")
-def resolve_dataset_version_file(_, info, **kwargs):
-    request = info.context["request"]
+@datasets_queries.field("datasetFileMetadata")
+def resolve_dataset_file_snapshot(_, info, **kwargs):
     try:
-        return DatasetVersionFile.objects.filter_for_user(request.user).get(
-            id=kwargs["id"]
-        )
-    except DatasetVersionFile.DoesNotExist:
+        if kwargs.get("file_id"):
+            return DatasetFileMetadata.objects.get(
+                dataset_version_file=kwargs["file_id"]
+            )
+        elif kwargs.get("id"):
+            return DatasetFileMetadata.objects.get(id=kwargs["id"])
+        else:
+            return None
+    except DatasetFileMetadata.DoesNotExist:
         return None
 
 
