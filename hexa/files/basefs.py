@@ -97,7 +97,3 @@ class BaseClient(ABC):
     @abstractmethod
     def get_token_as_env_variables(self, token):
         pass
-
-    @abstractmethod
-    def read_object_lines(self, bucket_name: str, filename: str, lines_number: int):
-        pass
