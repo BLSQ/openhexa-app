@@ -111,8 +111,8 @@ mutation generateNewDatabasePassword(
   }
 }
 
-mutation createPipeline($input:CreatePipelineInput!){
-  createPipeline(input:$input){
+mutation createPipeline($input: CreatePipelineInput!) {
+  createPipeline(input: $input) {
     success
     errors
     pipeline {
@@ -128,8 +128,8 @@ mutation deletePipeline($input: DeletePipelineInput!) {
   }
 }
 
-mutation stopPipeline($input: StopPipelineInput!){
-  stopPipeline(input: $input){
+mutation stopPipeline($input: StopPipelineInput!) {
+  stopPipeline(input: $input) {
     success
     errors
   }

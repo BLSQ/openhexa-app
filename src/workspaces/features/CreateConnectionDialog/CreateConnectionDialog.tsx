@@ -110,11 +110,11 @@ export default function CreateConnectionDialog({
             fields:
               connectionType !== ConnectionType.Custom
                 ? convertFieldsToInput(connection, rest)
-                : rest.fields?.map((field: FieldForm) => ({
+                : (rest.fields?.map((field: FieldForm) => ({
                     code: field.code,
                     value: field.value,
                     secret: Boolean(field.secret),
-                  })) ?? [],
+                  })) ?? []),
           },
         },
       });

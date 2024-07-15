@@ -44,7 +44,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
         aria-invalid={Boolean(error)}
         aria-describedby={`${name}-description`}
         className={inputClassName}
-        value={defaultValue ? undefined : value ?? ""}
+        value={defaultValue ? undefined : (value ?? "")}
         defaultValue={defaultValue}
         {...delegated}
         ref={ref}
