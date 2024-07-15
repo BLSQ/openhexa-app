@@ -44,7 +44,7 @@ const ConnectionFieldsSection = (props: ConnectionFieldsSectionProps) => {
         </span>
       ) : (
         <DataGrid
-          className="rounded-md border 2xl:w-3/4"
+          className="rounded-md border 2xl:w-2/4"
           data={connection.fields}
           fixedLayout={false}
         >
@@ -53,15 +53,7 @@ const ConnectionFieldsSection = (props: ConnectionFieldsSectionProps) => {
             label={t("Name")}
             accessor={"code"}
           />
-          <BaseColumn label={t("Environment variable")} accessor={"code"}>
-            {(value) => (
-              <Clipboard value={slugify(connection.slug, value)}>
-                <code className="rounded-md bg-slate-100 p-1.5 font-mono text-xs font-medium  text-gray-600">
-                  {slugify(connection.slug, value)}
-                </code>
-              </Clipboard>
-            )}
-          </BaseColumn>
+
           <BaseColumn
             className="flex justify-start gap-x-2 font-mono text-gray-900"
             label={t("Value")}
