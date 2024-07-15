@@ -62,7 +62,7 @@ const DeletePipelineDialog = (props: DeletePipelineDialogProps) => {
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <Dialog.Title>{t("Delete version")}</Dialog.Title>
+      <Dialog.Title>{t("Delete pipeline")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
         <p>
           <Trans>
