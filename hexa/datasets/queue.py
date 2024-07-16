@@ -28,6 +28,8 @@ def download_file_as_dataframe(dataset_version_file: DatasetVersionFile) -> dict
             sample = pd.read_csv(download_url)
         elif file_format == "parquet":
             sample = pd.read_parquet(download_url)
+        elif file_format == "xlsx":
+            sample = pd.read_excel(download_url)
         else:
             raise ValueError(f"Unsupported file format: {file_format}")
         return {"success": True, "data": sample}
@@ -88,7 +90,6 @@ def generate_dataset_file_sample_task(
             dataset_file_metadata.status = DatasetFileMetadata.STATUS_FAILED
             dataset_file_metadata.status_reason = str(source_file["errors"])
             dataset_file_metadata.save()
-            print(str(source_file["errors"]))
             logger.info(
                 f'Dataset file sample creation failed for file {dataset_version_file_id} with error {source_file["errors"]}'
             )

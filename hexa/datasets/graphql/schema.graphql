@@ -92,6 +92,25 @@ type DatasetVersionPermissions {
 }
 
 """
+Statuses that can occur when generating file metadata
+"""
+enum FileMetadataStatus{
+    STATUS_PROCESSING,
+    STATUS_FAILED,
+    STATUS_FINISHED
+}
+
+"""
+Metadata for dataset file
+"""
+type DatasetFileMetadata {
+    content: JSON!
+    status: FileMetadataStatus!
+    statusReason: String
+    datasetVersionFile: DatasetVersionFile!
+}
+
+"""
 A file in a dataset version.
 """
 type DatasetVersionFile {
@@ -101,6 +120,7 @@ type DatasetVersionFile {
   createdAt: DateTime!
   createdBy: User
   contentType: String!
+  fileMetadata: DatasetFileMetadata
 }
 
 """
@@ -424,31 +444,11 @@ type PinDatasetResult {
   errors: [PinDatasetError!]!
 }
 
-"""
-Statuses that can occur when generating file metadata
-"""
-enum FileMetadataStatus{
-    STATUS_PROCESSING,
-    STATUS_FAILED,
-    STATUS_FINISHED
-}
-"""
-Metadata for dataset file
-"""
-type DatasetFileMetadata {
-    content: JSON
-    status: FileMetadataStatus!
-    datasetVersionFile: DatasetVersionFile!
-}
-
-
 extend type Query {
   "Get a dataset by its ID."
   dataset(id: ID!): Dataset
   "Get a dataset by its slug."
   datasetVersion(id: ID!): DatasetVersion
-  "Get a dataset file sample by fileSnapshot id or by fileId"
-  datasetFileSample(id: ID, fileId: ID): DatasetFileMetadata
   "Get a dataset link by its id."
   datasetLink(id: ID!): DatasetLink
   "Get a dataset link by its slug."
