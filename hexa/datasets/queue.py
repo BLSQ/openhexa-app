@@ -71,7 +71,9 @@ def generate_dataset_file_sample_task(
         source_file = download_file_as_dataframe(dataset_version_file)
         if source_file["success"]:
             file_sample = source_file["data"].sample(
-                settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE, random_state=22
+                settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
+                random_state=22,
+                replace=True,
             )
             dataset_file_metadata.sample = file_sample.to_json(orient="records")
             logger.info(f"Dataset sample saved for file {dataset_version_file_id}")
