@@ -51,11 +51,7 @@ class TestCreateDatasetFileMetadataTask(TestCase):
                 )
                 dataset_file_metadata.save.assert_called()
                 self.assertEqual(dataset_file_metadata.status, expected_status)
-                expected_content = (
-                    '[{"name":"Joe","surname":"Doe"},'
-                    '{"name":"Liam","surname":"Smith"},'
-                    '{"name":"Emma","surname":"Johnson"},'
-                )
+                expected_content = '[{"name":"Sofia","surname":"Walker"},{"name":"Aiden","surname":"Adams"},{"name":"Eleanor","surname":"H'
                 self.assertEqual(
                     dataset_file_metadata.sample[0 : len(expected_content)],
                     expected_content,

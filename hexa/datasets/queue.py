@@ -17,7 +17,7 @@ from hexa.files.api import get_storage
 logger = getLogger(__name__)
 
 
-def download_file_sample(dataset_version_file: DatasetVersionFile) -> dict:
+def download_file_as_dataframe(dataset_version_file: DatasetVersionFile) -> dict:
     filename = dataset_version_file.filename
     file_format = filename.split(".")[-1]
     try:
@@ -25,11 +25,11 @@ def download_file_sample(dataset_version_file: DatasetVersionFile) -> dict:
         if file_format == "csv":
             print(f"File {filename} format: {file_format}")
             csv_sample = pd.read_csv(download_url)
-            return {"success": True, "sample": csv_sample}
+            return {"success": True, "data": csv_sample}
         elif file_format == "parquet":
             print(f"File {filename} format: {file_format}")
             parquet_sample = pd.read_parquet(download_url)
-            return {"success": True, "sample": parquet_sample}
+            return {"success": True, "data": parquet_sample}
         else:
             raise ValueError(f"Unsupported file format: {file_format}")
     except pd.errors.ParserError as e:
@@ -48,9 +48,6 @@ def generate_dataset_file_sample_task(
 ):
     dataset_version_file_id = job.args["file_id"]
     try:
-        print(
-            f"Calling {DatasetVersionFile.objects.get} with id {dataset_version_file_id}"
-        )
         dataset_version_file = DatasetVersionFile.objects.get(
             id=dataset_version_file_id
         )
@@ -71,24 +68,22 @@ def generate_dataset_file_sample_task(
         return
 
     try:
-        file_sample = download_file_sample(dataset_version_file)
-        if file_sample["success"]:
-            file_snapshot_content = file_sample["sample"].head(
-                settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE
+        source_file = download_file_as_dataframe(dataset_version_file)
+        if source_file["success"]:
+            file_sample = source_file["data"].sample(
+                settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE, random_state=22
             )
-            dataset_file_metadata.sample = file_snapshot_content.to_json(
-                orient="records"
-            )
+            dataset_file_metadata.sample = file_sample.to_json(orient="records")
             logger.info(f"Dataset sample saved for file {dataset_version_file_id}")
             dataset_file_metadata.status = DatasetFileMetadata.STATUS_FINISHED
             dataset_file_metadata.save()
             logger.info(f"Dataset sample created for file {dataset_version_file_id}")
         else:
             dataset_file_metadata.status = DatasetFileMetadata.STATUS_FAILED
-            dataset_file_metadata.status_reason = file_sample["errors"]
+            dataset_file_metadata.status_reason = source_file["errors"]
             dataset_file_metadata.save()
             logger.info(
-                f'Dataset file sample creation failed for file {dataset_version_file_id} with error {file_sample["errors"]}'
+                f'Dataset file sample creation failed for file {dataset_version_file_id} with error {source_file["errors"]}'
             )
     except Exception as e:
         dataset_file_metadata.status = DatasetFileMetadata.STATUS_FAILED
