@@ -1,3 +1,4 @@
+import json
 from logging import getLogger
 
 import pandas as pd
@@ -22,22 +23,21 @@ def download_file_as_dataframe(dataset_version_file: DatasetVersionFile) -> dict
     file_format = filename.split(".")[-1]
     try:
         download_url = generate_download_url(dataset_version_file)
+        sample = None
         if file_format == "csv":
-            print(f"File {filename} format: {file_format}")
-            csv_sample = pd.read_csv(download_url)
-            return {"success": True, "data": csv_sample}
+            sample = pd.read_csv(download_url)
         elif file_format == "parquet":
-            print(f"File {filename} format: {file_format}")
-            parquet_sample = pd.read_parquet(download_url)
-            return {"success": True, "data": parquet_sample}
+            sample = pd.read_parquet(download_url)
         else:
             raise ValueError(f"Unsupported file format: {file_format}")
+        return {"success": True, "data": sample}
+
     except pd.errors.ParserError as e:
         logger.error(f"Error parsing the file {filename} content: {e}")
-        return {"success": False, "errors": ["FILE_PARSING_ERROR"]}
+        return {"success": False, "errors": [f"FILE_PARSING_ERROR: {str(e)}"]}
     except ValueError as e:
         logger.error(f"Cannot read file {filename}: {e}")
-        return {"success": False, "errors": ["FILE_FORMAT_NOT_SUPPORTED"]}
+        return {"success": False, "errors": [f"FILE_NOT_SUPPORTED : {str(e)}"]}
     except get_storage().exceptions.NotFound:
         logger.error(f"Cannot find file {filename}")
         return {"success": False, "errors": ["FILE_NOT_FOUND"]}
@@ -70,20 +70,25 @@ def generate_dataset_file_sample_task(
     try:
         source_file = download_file_as_dataframe(dataset_version_file)
         if source_file["success"]:
-            file_sample = source_file["data"].sample(
-                settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
-                random_state=22,
-                replace=True,
-            )
-            dataset_file_metadata.sample = file_sample.to_json(orient="records")
+            file_content = source_file["data"]
+            if not file_content.empty:
+                file_sample = file_content.sample(
+                    settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
+                    random_state=22,
+                    replace=True,
+                )
+                dataset_file_metadata.sample = file_sample.to_json(orient="records")
+            else:
+                dataset_file_metadata.sample = json.dumps([])
             logger.info(f"Dataset sample saved for file {dataset_version_file_id}")
             dataset_file_metadata.status = DatasetFileMetadata.STATUS_FINISHED
             dataset_file_metadata.save()
             logger.info(f"Dataset sample created for file {dataset_version_file_id}")
         else:
             dataset_file_metadata.status = DatasetFileMetadata.STATUS_FAILED
-            dataset_file_metadata.status_reason = source_file["errors"]
+            dataset_file_metadata.status_reason = str(source_file["errors"])
             dataset_file_metadata.save()
+            print(str(source_file["errors"]))
             logger.info(
                 f'Dataset file sample creation failed for file {dataset_version_file_id} with error {source_file["errors"]}'
             )
