@@ -14,14 +14,17 @@ from hexa.datasets.models import (
 logger = getLogger(__name__)
 
 
-def read_file_content(download_url: str, filename: str) -> pd.DataFrame:
+def download_file_sample(dataset_version_file: DatasetVersionFile) -> pd.DataFrame:
+    filename = dataset_version_file.filename
+    file_format = filename.split(".")[-1]
     try:
-        if filename.endswith("csv"):
+        download_url = generate_download_url(dataset_version_file)
+        if file_format == "csv":
             return pd.read_csv(download_url)
-        elif filename.endswith("parquet"):
+        elif file_format == "parquet":
             return pd.read_parquet(download_url, engine="pyarrow")
         else:
-            raise ValueError(f"Unsupported file format: {filename.split('.')[-1]}")
+            raise ValueError(f"Unsupported file format: {file_format}")
     except pd.errors.ParserError as e:
         print(f"Error parsing the file content: {e}")
         return pd.DataFrame()
@@ -42,10 +45,7 @@ def generate_dataset_file_sample_task(
     )
 
     try:
-        download_url = generate_download_url(dataset_version_file)
-        file_snapshot_df = read_file_content(
-            download_url, dataset_version_file.filename
-        )
+        file_snapshot_df = download_file_sample(dataset_version_file)
         if not file_snapshot_df.empty:
             file_snapshot_content = file_snapshot_df.head(
                 settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE
