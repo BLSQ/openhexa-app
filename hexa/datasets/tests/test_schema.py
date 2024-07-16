@@ -599,37 +599,3 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             },
             r["data"]["prepareVersionFileDownload"],
         )
-
-    @mock_gcp_storage
-    def test_prepare_version_file(self):
-        serena = self.create_user("sereba@blsq.org", is_superuser=True)
-        src_workspace = self.create_workspace(
-            serena,
-            name="Source Workspace",
-            description="Test workspace",
-        )
-        dataset = self.create_dataset(
-            serena, src_workspace, "Dataset", "Dataset description"
-        )
-        dataset_version = self.create_dataset_version(serena, dataset=dataset)
-        self.client.force_login(serena)
-
-        r = self.run_query(
-            """
-            mutation CreateDatasetVersionFile ($input: CreateDatasetVersionFileInput!) {
-                createDatasetVersionFile(input: $input) {
-                    success
-                    errors
-                }
-            }
-            """,
-            {
-                "input": {
-                    "versionId": str(dataset_version.id),
-                    "contentType": "text/csv",
-                    "uri": f"{dataset_version.id}/demo_file.csv",
-                }
-            },
-        )
-        print(r)
-        # while queue.run_once(): pass

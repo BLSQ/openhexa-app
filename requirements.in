@@ -60,3 +60,6 @@ requests==2.32.3
 # analytics
 mixpanel
 ua-parser
+
+#
+pyarrow

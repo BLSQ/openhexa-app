@@ -267,7 +267,7 @@ class DatasetFileMetadata(Base):
         (STATUS_FINISHED, "Finished"),
     ]
 
-    content = JSONField(blank=True, default=list, null=True)
+    sample = JSONField(blank=True, default=list, null=True)
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,

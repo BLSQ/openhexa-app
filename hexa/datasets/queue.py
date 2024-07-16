@@ -14,45 +14,43 @@ from hexa.datasets.models import (
 logger = getLogger(__name__)
 
 
-def read_file_content(download_url: str, content_type: str) -> pd.DataFrame:
+def read_file_content(download_url: str, filename: str) -> pd.DataFrame:
     try:
-        if content_type == "text/csv":
+        if filename.endswith("csv"):
             return pd.read_csv(download_url)
-        elif content_type == "application/octet-stream":
-            return pd.read_parquet(download_url)
+        elif filename.endswith("parquet"):
+            return pd.read_parquet(download_url, engine="pyarrow")
         else:
-            raise ValueError(f"Unsupported content type: {content_type}")
+            raise ValueError(f"Unsupported file format: {filename.split('.')[-1]}")
     except pd.errors.ParserError as e:
         print(f"Error parsing the file content: {e}")
         return pd.DataFrame()
     except ValueError as e:
-        print(f"Unsupported file content: {e}")
+        print(f"Cannot read file: {e}")
         return pd.DataFrame()
 
 
-def generate_dataset_file_sample_task(queue: AtLeastOnceQueue, job: DatasetFileMetadataJob):
-    try:
-        dataset_version_file_id = job.args["file_id"]
-        dataset_version_file = DatasetVersionFile.objects.get(
-            id=dataset_version_file_id
-        )
-        logger.info(
-            f"Creating dataset snapshot for version file {dataset_version_file_id}"
-        )
-        dataset_file_metadata = DatasetFileMetadata.objects.create(
-            dataset_version_file=dataset_version_file,
-            status=DatasetFileMetadata.STATUS_PROCESSING,
-        )
+def generate_dataset_file_sample_task(
+    queue: AtLeastOnceQueue, job: DatasetFileMetadataJob
+):
+    dataset_version_file_id = job.args["file_id"]
+    dataset_version_file = DatasetVersionFile.objects.get(id=dataset_version_file_id)
+    logger.info(f"Creating dataset snapshot for version file {dataset_version_file_id}")
+    dataset_file_metadata = DatasetFileMetadata.objects.create(
+        dataset_version_file=dataset_version_file,
+        status=DatasetFileMetadata.STATUS_PROCESSING,
+    )
 
+    try:
         download_url = generate_download_url(dataset_version_file)
         file_snapshot_df = read_file_content(
-            download_url, dataset_version_file.content_type
+            download_url, dataset_version_file.filename
         )
         if not file_snapshot_df.empty:
             file_snapshot_content = file_snapshot_df.head(
                 settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE
             )
-            dataset_file_metadata.content = file_snapshot_content.to_json(
+            dataset_file_metadata.sample = file_snapshot_content.to_json(
                 orient="records"
             )
             logger.info(f"Dataset snapshot saved for file {dataset_version_file_id}")
@@ -62,13 +60,7 @@ def generate_dataset_file_sample_task(queue: AtLeastOnceQueue, job: DatasetFileM
         dataset_file_metadata.save()
         logger.info("Dataset snapshot created for file {dataset_version_file_id}")
     except Exception as e:
-        dataset_version_file_id = job.args["file_id"]
-        dataset_version_file = DatasetVersionFile.objects.get(
-            id=dataset_version_file_id
-        )
-        dataset_file_metadata = DatasetFileMetadata.objects.get(
-            dataset_version_file=dataset_version_file
-        )
+        print(f"Fail : {e}")
         dataset_file_metadata.status = DatasetFileMetadata.STATUS_FAILED
         dataset_file_metadata.save()
         logger.exception(
