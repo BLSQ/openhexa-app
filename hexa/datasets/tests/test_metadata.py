@@ -1,11 +1,9 @@
 import os
 from unittest import mock
 
-import pandas
-
 from hexa.core.test import TestCase
 from hexa.datasets.models import DatasetFileMetadata
-from hexa.datasets.queue import create_dataset_file_metadata_task
+from hexa.datasets.queue import generate_dataset_file_metadata_task
 
 
 class TestCreateDatasetFileMetadataTask(TestCase):
@@ -28,7 +26,7 @@ class TestCreateDatasetFileMetadataTask(TestCase):
             with self.subTest(filename=filename):
                 dataset_version_file = mock.Mock()
                 dataset_version_file.id = 1
-                dataset_version_file.name = "example_names.csv"
+                dataset_version_file.filename = f"{filename}"
                 mock_DatasetVersionFile_get.return_value = dataset_version_file
 
                 dataset_file_metadata = mock.Mock()
@@ -42,7 +40,7 @@ class TestCreateDatasetFileMetadataTask(TestCase):
                 job = mock.Mock()
                 job.args = {"file_id": dataset_version_file.id}
 
-                create_dataset_file_metadata_task(mock.Mock(), job)
+                generate_dataset_file_metadata_task(mock.Mock(), job)
 
                 mock_generate_download_url.assert_called_once_with(dataset_version_file)
                 mock_DatasetVersionFile_get.assert_called_once_with(
@@ -54,12 +52,20 @@ class TestCreateDatasetFileMetadataTask(TestCase):
                 )
                 dataset_file_metadata.save.assert_called()
                 self.assertEqual(dataset_file_metadata.status, expected_status)
-                self.assertEqual(
-                    dataset_file_metadata.sample,
-                    pandas.read_csv(fixture_file_path)
-                    .head(50)
-                    .to_json(orient="records"),
+                expected_content = (
+                    '[{"name":"Joe","surname":"Doe"},'
+                    '{"name":"Liam","surname":"Smith"},'
+                    '{"name":"Emma","surname":"Johnson"},'
                 )
+                self.assertEqual(
+                    dataset_file_metadata.sample[0 : len(expected_content)],
+                    expected_content,
+                )
+
+                mock_generate_download_url.reset_mock()
+                mock_DatasetVersionFile_get.reset_mock()
+                mock_DatasetFileMetadata_create.reset_mock()
+                dataset_file_metadata.save.reset_mock()
 
     @mock.patch("hexa.datasets.models.DatasetVersionFile")
     @mock.patch("hexa.datasets.models.DatasetFileMetadata")
@@ -81,7 +87,7 @@ class TestCreateDatasetFileMetadataTask(TestCase):
 
         job = mock.Mock()
         job.args = {"file_id": dataset_version_file.id}
-        create_dataset_file_metadata_task(mock.Mock(), job)
+        generate_dataset_file_metadata_task(mock.Mock(), job)
 
         mock_DatasetVersionFile.objects.get.assert_called_with(
             id=dataset_version_file.id
