@@ -4,18 +4,17 @@ from unittest import mock
 from hexa.core.test import TestCase
 from hexa.datasets.models import DatasetFileMetadata
 from hexa.datasets.queue import generate_dataset_file_metadata_task
+from hexa.files.api import get_storage
 
 
 class TestCreateDatasetFileMetadataTask(TestCase):
     @mock.patch("hexa.datasets.queue.DatasetVersionFile.objects.get")
-    @mock.patch("hexa.datasets.queue.DatasetFileMetadata.objects.get")
     @mock.patch("hexa.datasets.queue.DatasetFileMetadata.objects.create")
     @mock.patch("hexa.datasets.queue.generate_download_url")
     def test_create_dataset_file_metadata_task_success(
         self,
         mock_generate_download_url,
         mock_DatasetFileMetadata_create,
-        mock_DatasetFileMetadata_get,
         mock_DatasetVersionFile_get,
     ):
         test_cases = [
@@ -67,34 +66,30 @@ class TestCreateDatasetFileMetadataTask(TestCase):
                 mock_DatasetFileMetadata_create.reset_mock()
                 dataset_file_metadata.save.reset_mock()
 
-    @mock.patch("hexa.datasets.models.DatasetVersionFile")
-    @mock.patch("hexa.datasets.models.DatasetFileMetadata")
-    @mock.patch("hexa.datasets.api.generate_download_url")
+    @mock.patch("hexa.datasets.queue.DatasetVersionFile.objects.get")
+    @mock.patch("hexa.datasets.queue.DatasetFileMetadata.objects.create")
+    @mock.patch("hexa.datasets.queue.generate_download_url")
     def test_create_dataset_file_metadata_task_failure(
         self,
         mock_generate_download_url,
-        mock_DatasetFileMetadata,
-        mock_DatasetVersionFile,
+        mock_DatasetFileMetadata_create,
+        mock_DatasetVersionFile_get,
     ):
-        # Mock dataset version file
         dataset_version_file = mock.Mock()
         dataset_version_file.id = 1
-        mock_DatasetVersionFile.objects.get.return_value = dataset_version_file
+        dataset_version_file.filename = "example_names.csv"
+        mock_DatasetVersionFile_get.return_value = dataset_version_file
 
         dataset_file_metadata = mock.Mock()
-        mock_DatasetFileMetadata.objects.get.return_value = dataset_file_metadata
-        mock_generate_download_url.side_effect = Exception("Failed to generate URL")
+        mock_DatasetFileMetadata_create.return_value = dataset_file_metadata
+
+        mock_generate_download_url.side_effect = get_storage().exceptions.NotFound
 
         job = mock.Mock()
         job.args = {"file_id": dataset_version_file.id}
         generate_dataset_file_metadata_task(mock.Mock(), job)
 
-        mock_DatasetVersionFile.objects.get.assert_called_with(
-            id=dataset_version_file.id
-        )
-        mock_DatasetFileMetadata.objects.get.assert_called_with(
-            dataset_version_file=dataset_version_file
-        )
+        mock_DatasetVersionFile_get.assert_called_with(id=dataset_version_file.id)
         dataset_file_metadata.save.assert_called()
         self.assertEqual(
             dataset_file_metadata.status, DatasetFileMetadata.STATUS_FAILED
