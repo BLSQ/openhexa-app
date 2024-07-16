@@ -40,6 +40,11 @@ class TestCreateDatasetFileMetadataTask(TestCase):
                 DatasetFileMetadata.STATUS_FINISHED,
                 '[{"name":"Jack","surname":"Howard"},{"name":"Olivia","surname":"Brown"},{"name":"Lily","surname":"Evan',
             ),
+            (
+                "example_names.xlsx",
+                DatasetFileMetadata.STATUS_FINISHED,
+                '[{"name":"Jack","surname":"Howard"},{"name":"Olivia","surname":"Brown"},{"name":"Lily","surname":"Evan',
+            ),
         ]
         for filename, expected_status, expected_content in test_cases:
             with self.subTest(filename=filename):
