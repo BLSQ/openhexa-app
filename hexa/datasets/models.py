@@ -273,6 +273,7 @@ class DatasetFileMetadata(Base):
         choices=STATUS_CHOICES,
         default=STATUS_PROCESSING,
     )
+    status_reason = models.TextField(blank=True, null=True)
     dataset_version_file = models.ForeignKey(
         DatasetVersionFile,
         null=False,

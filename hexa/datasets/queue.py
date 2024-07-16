@@ -2,6 +2,8 @@ from logging import getLogger
 
 import pandas as pd
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import DatabaseError, IntegrityError
 from dpq.queue import AtLeastOnceQueue
 
 from hexa.datasets.api import generate_download_url
@@ -10,61 +12,95 @@ from hexa.datasets.models import (
     DatasetFileMetadataJob,
     DatasetVersionFile,
 )
+from hexa.files.api import get_storage
 
 logger = getLogger(__name__)
 
 
-def download_file_sample(dataset_version_file: DatasetVersionFile) -> pd.DataFrame:
+def download_file_sample(dataset_version_file: DatasetVersionFile) -> dict:
     filename = dataset_version_file.filename
     file_format = filename.split(".")[-1]
     try:
         download_url = generate_download_url(dataset_version_file)
         if file_format == "csv":
-            return pd.read_csv(download_url)
+            print(f"File {filename} format: {file_format}")
+            csv_sample = pd.read_csv(download_url)
+            return {"success": True, "sample": csv_sample}
         elif file_format == "parquet":
-            return pd.read_parquet(download_url, engine="pyarrow")
+            print(f"File {filename} format: {file_format}")
+            parquet_sample = pd.read_parquet(download_url)
+            return {"success": True, "sample": parquet_sample}
         else:
             raise ValueError(f"Unsupported file format: {file_format}")
     except pd.errors.ParserError as e:
-        print(f"Error parsing the file content: {e}")
-        return pd.DataFrame()
+        logger.error(f"Error parsing the file {filename} content: {e}")
+        return {"success": False, "errors": ["FILE_PARSING_ERROR"]}
     except ValueError as e:
-        print(f"Cannot read file: {e}")
-        return pd.DataFrame()
+        logger.error(f"Cannot read file {filename}: {e}")
+        return {"success": False, "errors": ["FILE_FORMAT_NOT_SUPPORTED"]}
+    except get_storage().exceptions.NotFound:
+        logger.error(f"Cannot find file {filename}")
+        return {"success": False, "errors": ["FILE_NOT_FOUND"]}
 
 
 def generate_dataset_file_sample_task(
     queue: AtLeastOnceQueue, job: DatasetFileMetadataJob
 ):
     dataset_version_file_id = job.args["file_id"]
-    dataset_version_file = DatasetVersionFile.objects.get(id=dataset_version_file_id)
-    logger.info(f"Creating dataset snapshot for version file {dataset_version_file_id}")
-    dataset_file_metadata = DatasetFileMetadata.objects.create(
-        dataset_version_file=dataset_version_file,
-        status=DatasetFileMetadata.STATUS_PROCESSING,
-    )
+    try:
+        print(
+            f"Calling {DatasetVersionFile.objects.get} with id {dataset_version_file_id}"
+        )
+        dataset_version_file = DatasetVersionFile.objects.get(
+            id=dataset_version_file_id
+        )
+    except ObjectDoesNotExist as e:
+        logger.error(
+            f"DatasetVersionFile with id {dataset_version_file_id} does not exist: {e}"
+        )
+        return
+
+    logger.info(f"Creating dataset sample for version file {dataset_version_file_id}")
+    try:
+        dataset_file_metadata = DatasetFileMetadata.objects.create(
+            dataset_version_file=dataset_version_file,
+            status=DatasetFileMetadata.STATUS_PROCESSING,
+        )
+    except (IntegrityError, DatabaseError, ValidationError) as e:
+        logger.error(f"Error creating DatasetFileMetadata: {e}")
+        return
 
     try:
-        file_snapshot_df = download_file_sample(dataset_version_file)
-        if not file_snapshot_df.empty:
-            file_snapshot_content = file_snapshot_df.head(
+        file_sample = download_file_sample(dataset_version_file)
+        if file_sample["success"]:
+            file_snapshot_content = file_sample["sample"].head(
                 settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE
             )
             dataset_file_metadata.sample = file_snapshot_content.to_json(
                 orient="records"
             )
-            logger.info(f"Dataset snapshot saved for file {dataset_version_file_id}")
+            logger.info(f"Dataset sample saved for file {dataset_version_file_id}")
+            dataset_file_metadata.status = DatasetFileMetadata.STATUS_FINISHED
+            dataset_file_metadata.save()
+            logger.info(f"Dataset sample created for file {dataset_version_file_id}")
         else:
-            logger.info(f"Dataset snapshot is empty for file {dataset_version_file_id}")
-        dataset_file_metadata.status = DatasetFileMetadata.STATUS_FINISHED
-        dataset_file_metadata.save()
-        logger.info("Dataset snapshot created for file {dataset_version_file_id}")
+            dataset_file_metadata.status = DatasetFileMetadata.STATUS_FAILED
+            dataset_file_metadata.status_reason = file_sample["errors"]
+            dataset_file_metadata.save()
+            logger.info(
+                f'Dataset file sample creation failed for file {dataset_version_file_id} with error {file_sample["errors"]}'
+            )
     except Exception as e:
-        print(f"Fail : {e}")
         dataset_file_metadata.status = DatasetFileMetadata.STATUS_FAILED
-        dataset_file_metadata.save()
+        dataset_file_metadata.status_reason = str(e)
+        try:
+            dataset_file_metadata.save()
+        except (IntegrityError, DatabaseError, ValidationError) as save_error:
+            logger.error(
+                f"Error saving DatasetFileMetadata after failure: {save_error}"
+            )
         logger.exception(
-            f"Dataset file snapshot creation failed for file {dataset_version_file_id}: {e}"
+            f"Dataset file sample creation failed for file {dataset_version_file_id}: {e}"
         )
 
 
