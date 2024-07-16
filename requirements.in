@@ -61,5 +61,6 @@ requests==2.32.3
 mixpanel
 ua-parser
 
-#
+# dataset explorer
 pyarrow
+openpyxl

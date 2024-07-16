@@ -104,6 +104,8 @@ django-storages[google]==1.14.4
     # via -r requirements.in
 docker==7.1.0
     # via -r requirements.in
+et-xmlfile==1.1.0
+    # via openpyxl
 geopandas==1.0.1
     # via -r requirements.in
 google-api-core[grpc]==2.19.1
@@ -207,6 +209,8 @@ oauthlib==3.2.2
     # via
     #   kubernetes
     #   requests-oauthlib
+openpyxl==3.1.5
+    # via -r requirements.in
 opentelemetry-api==1.26.0
     # via google-cloud-logging
 packaging==24.1
