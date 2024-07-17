@@ -5,7 +5,7 @@ from pandas.errors import ParserError
 
 from hexa.core.test import TestCase
 from hexa.datasets.models import DatasetFileMetadata
-from hexa.datasets.queue import generate_dataset_file_metadata_task
+from hexa.datasets.queue import generate_dataset_file_sample_task
 from hexa.files.api import get_storage
 
 
@@ -64,7 +64,7 @@ class TestCreateDatasetFileMetadataTask(TestCase):
                 job = mock.Mock()
                 job.args = {"file_id": dataset_version_file.id}
 
-                generate_dataset_file_metadata_task(mock.Mock(), job)
+                generate_dataset_file_sample_task(mock.Mock(), job)
 
                 mock_generate_download_url.assert_called_once_with(dataset_version_file)
                 mock_DatasetVersionFile_get.assert_called_once_with(
@@ -114,7 +114,7 @@ class TestCreateDatasetFileMetadataTask(TestCase):
 
                 job = mock.Mock()
                 job.args = {"file_id": dataset_version_file.id}
-                generate_dataset_file_metadata_task(mock.Mock(), job)
+                generate_dataset_file_sample_task(mock.Mock(), job)
 
                 mock_DatasetVersionFile_get.assert_called_with(
                     id=dataset_version_file.id
@@ -152,7 +152,7 @@ class TestCreateDatasetFileMetadataTask(TestCase):
         job = mock.Mock()
         job.args = {"file_id": dataset_version_file.id}
 
-        generate_dataset_file_metadata_task(mock.Mock(), job)
+        generate_dataset_file_sample_task(mock.Mock(), job)
 
         mock_generate_download_url.assert_called_once_with(dataset_version_file)
         mock_DatasetVersionFile_get.assert_called_once_with(id=dataset_version_file.id)
