@@ -107,7 +107,6 @@ type DatasetFileMetadata {
     content: JSON!
     status: FileMetadataStatus!
     statusReason: String
-    datasetVersionFile: DatasetVersionFile!
 }
 
 """

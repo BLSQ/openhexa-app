@@ -23,16 +23,16 @@ def download_file_as_dataframe(dataset_version_file: DatasetVersionFile) -> dict
     file_format = filename.split(".")[-1]
     try:
         download_url = generate_download_url(dataset_version_file)
-        sample = None
+        file_content = None
         if file_format == "csv":
-            sample = pd.read_csv(download_url)
+            file_content = pd.read_csv(download_url)
         elif file_format == "parquet":
-            sample = pd.read_parquet(download_url)
+            file_content = pd.read_parquet(download_url)
         elif file_format == "xlsx":
-            sample = pd.read_excel(download_url)
+            file_content = pd.read_excel(download_url)
         else:
             raise ValueError(f"Unsupported file format: {file_format}")
-        return {"success": True, "data": sample}
+        return {"success": True, "data": file_content}
 
     except pd.errors.ParserError as e:
         logger.error(f"Error parsing the file {filename} content: {e}")
@@ -95,13 +95,8 @@ def generate_dataset_file_sample_task(
             )
     except Exception as e:
         dataset_file_metadata.status = DatasetFileMetadata.STATUS_FAILED
-        dataset_file_metadata.status_reason = str(e)
-        try:
-            dataset_file_metadata.save()
-        except (IntegrityError, DatabaseError, ValidationError) as save_error:
-            logger.error(
-                f"Error saving DatasetFileMetadata after failure: {save_error}"
-            )
+        dataset_file_metadata.status_reason = str([f"UNKNOWN_ERROR : {e}"])
+        dataset_file_metadata.save()
         logger.exception(
             f"Dataset file sample creation failed for file {dataset_version_file_id}: {e}"
         )
