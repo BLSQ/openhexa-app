@@ -296,4 +296,4 @@ class DatasetLink(Base):
 
 class DatasetFileMetadataJob(BaseJob):
     class Meta:
-        db_table = "datasets_filemetadatajob"
+        db_table = "datasets_filemetadata_job"

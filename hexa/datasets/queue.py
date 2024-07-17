@@ -7,7 +7,7 @@ from hexa.datasets.models import DatasetFileMetadataJob
 logger = getLogger(__name__)
 
 
-def create_dataset_file_metadata_task(
+def generate_dataset_file_sample_task(
     queue: AtLeastOnceQueue, job: DatasetFileMetadataJob
 ):
     # TODO: imlpement ticket PATHWAYS-98  - extract data in background task
@@ -21,7 +21,7 @@ class DatasetsFileMetadataQueue(AtLeastOnceQueue):
 
 dataset_file_metadata_queue = DatasetsFileMetadataQueue(
     tasks={
-        "generate_file_metadata": create_dataset_file_metadata_task,
+        "generate_file_sample": generate_dataset_file_sample_task,
     },
     notify_channel="dataset_file_metadata_queue",
 )

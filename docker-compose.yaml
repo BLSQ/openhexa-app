@@ -89,12 +89,12 @@ services:
     depends_on:
       - db
 
-  dataset_file_metadata:
+  dataset_worker:
     <<: *common
-    command: "manage dataset_file_metadata_worker"
+    command: "manage dataset_worker"
     restart: unless-stopped
     profiles:
-      - "dataset_file_metadata"
+      - "dataset_worker"
     depends_on:
       - db
 
