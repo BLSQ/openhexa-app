@@ -257,9 +257,9 @@ class DatasetVersionFile(Base):
 
 
 class DatasetFileMetadata(Base):
-    STATUS_PROCESSING = "processing"
-    STATUS_FAILED = "failed"
-    STATUS_FINISHED = "finished"
+    STATUS_PROCESSING = "PROCESSING"
+    STATUS_FAILED = "FAILED"
+    STATUS_FINISHED = "FINISHED"
 
     STATUS_CHOICES = [
         (STATUS_PROCESSING, "Processing"),
