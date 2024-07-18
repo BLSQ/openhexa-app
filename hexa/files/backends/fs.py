@@ -3,6 +3,7 @@ import os
 import shutil
 from pathlib import Path
 
+from django.core.files import locks
 from django.utils._os import safe_join
 from django.utils.text import get_valid_filename
 
@@ -66,11 +67,21 @@ class FileSystemStorage(Storage):
         self, bucket_name: str, file_path: str, file: io.BufferedReader | bytes
     ):
         full_path = self.bucket_path(bucket_name, file_path)
+
+        # Create any intermediate directories that do not exist.
+        directory = os.path.dirname(full_path)
+        try:
+            os.makedirs(directory, exist_ok=True)
+        except FileExistsError:
+            raise FileExistsError(f"{directory} exists and is not a directory.")
+
         with open(full_path, "wb") as f:
+            locks.lock(f, locks.LOCK_EX)
             if isinstance(file, bytes):
                 f.write(file)
             else:
                 f.write(file.read())
+            locks.unlock(f)
 
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
         if not self.exists(bucket_name):
@@ -96,9 +107,23 @@ class FileSystemStorage(Storage):
         query=None,
         ignore_hidden_files=True,
     ):
-        return super().list_bucket_objects(
-            bucket_name, prefix, page, per_page, query, ignore_hidden_files
-        )
+        full_path = self.bucket_path(bucket_name, prefix)
+        if not os.path.exists(full_path):
+            raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
+        if not os.path.isdir(full_path):
+            raise self.exceptions.NotFound(f"Bucket {bucket_name} is not a directory")
+
+        objects = []
+        root, dirs, files = next(os.walk(full_path))
+        if ignore_hidden_files:
+            files = [f for f in files if not f.startswith(".")]
+        for file in files:
+            objects.append(
+                {
+                    "key": os.path.relpath(os.path.join(root, file), full_path),
+                    "size": os.path.getsize(os.path.join(root, file)),
+                }
+            )
 
     def get_short_lived_downscoped_access_token(self, bucket_name):
         return super().get_short_lived_downscoped_access_token(bucket_name)

@@ -351,7 +351,7 @@ WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET")
 
 # Filesystem configuration
 WORKSPACE_STORAGE_BACKEND = {
-    "engine": "hexa.files.backends.local.FileSystemStorage",
+    "engine": "hexa.files.backends.fs.FileSystemStorage",
     "options": {
         "prefix": os.environ.get("WORKSPACE_BUCKET_PREFIX", "hexa-"),
         "folder": os.environ.get("WORKSPACE_BUCKET_FOLDER", "/data"),

@@ -4,7 +4,7 @@ from pathlib import Path
 from tempfile import mkdtemp
 
 from hexa.core.test import TestCase
-from hexa.files.backends.local import FileSystemStorage
+from hexa.files.backends.fs import FileSystemStorage
 
 
 class FileSystemStorageTest(TestCase):
@@ -95,4 +95,35 @@ class FileSystemStorageTest(TestCase):
         self.assertEqual(
             open(self.data_directory / "default-bucket/file.txt").read(),
             "Hello, world!",
+        )
+
+    def test_deep_save_object(self):
+        self.storage.create_bucket("default-bucket")
+        self.storage.save_object(
+            "default-bucket", "dir1/dir2/file.txt", b"Hello, world!"
+        )
+        self.assertTrue(
+            (self.data_directory / "default-bucket/dir1/dir2/file.txt").exists()
+        )
+
+        self.storage.save_object("default-bucket", "dir1/file2.txt", b"Hello, world!")
+        self.assertTrue(
+            (self.data_directory / "default-bucket/dir1/file2.txt").exists()
+        )
+
+    def test_overwrite_object(self):
+        self.storage.create_bucket("default-bucket")
+        self.storage.save_object("default-bucket", "file.txt", b"Hello, world!")
+
+        self.assertTrue((self.data_directory / "default-bucket/file.txt").exists())
+        self.assertEqual(
+            open(self.data_directory / "default-bucket/file.txt").read(),
+            "Hello, world!",
+        )
+
+        # Overwrite the file
+        self.storage.save_object("default-bucket", "file.txt", b"OVERWRITTEN")
+        self.assertEqual(
+            open(self.data_directory / "default-bucket/file.txt").read(),
+            "OVERWRITTEN",
         )
