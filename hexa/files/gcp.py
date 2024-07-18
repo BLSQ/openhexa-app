@@ -139,17 +139,10 @@ class GCPClient(BaseClient):
 
             bucket.cors = [
                 {
-                    "origin": settings.CORS_ALLOWED_ORIGINS,
-                    "responseHeader": [
-                        "Authorization",
-                        "Content-Range",
-                        "Accept",
-                        "Content-Type",
-                        "Origin",
-                        "Range",
-                    ],
-                    "method": ["GET", "PUT"],
+                    "origin": ["*"],
+                    "method": ["*"],
                     "maxAgeSeconds": 3600,
+                    "responseHeader": ["*"],
                 }
             ]
             bucket.patch()
