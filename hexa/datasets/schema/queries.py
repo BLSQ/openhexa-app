@@ -6,6 +6,7 @@ from ..models import (
     Dataset,
     DatasetLink,
     DatasetVersion,
+    DatasetVersionFile,
 )
 
 datasets_queries = QueryType()
@@ -38,6 +39,17 @@ def resolve_dataset_version(_, info, **kwargs):
     try:
         return DatasetVersion.objects.filter_for_user(request.user).get(id=kwargs["id"])
     except DatasetVersion.DoesNotExist:
+        return None
+
+
+@datasets_queries.field("datasetVersionFile")
+def resolve_dataset_version_file(_, info, **kwargs):
+    request = info.context["request"]
+    try:
+        return DatasetVersionFile.objects.filter_for_user(request.user).get(
+            id=kwargs["id"]
+        )
+    except DatasetVersionFile.DoesNotExist:
         return None
 
 

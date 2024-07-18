@@ -13,36 +13,24 @@ from hexa.datasets.models import (
     DatasetFileMetadataJob,
     DatasetVersionFile,
 )
-from hexa.files.api import get_storage
 
 logger = getLogger(__name__)
 
 
-def download_file_as_dataframe(dataset_version_file: DatasetVersionFile) -> dict:
+def download_file_as_dataframe(
+    dataset_version_file: DatasetVersionFile,
+) -> pd.DataFrame:
     filename = dataset_version_file.filename
     file_format = filename.split(".")[-1]
-    try:
-        download_url = generate_download_url(dataset_version_file)
-        file_content = None
-        if file_format == "csv":
-            file_content = pd.read_csv(download_url)
-        elif file_format == "parquet":
-            file_content = pd.read_parquet(download_url)
-        elif file_format == "xlsx":
-            file_content = pd.read_excel(download_url)
-        else:
-            raise ValueError(f"Unsupported file format: {file_format}")
-        return {"success": True, "data": file_content}
-
-    except pd.errors.ParserError as e:
-        logger.error(f"Error parsing the file {filename} content: {e}")
-        return {"success": False, "errors": [f"FILE_PARSING_ERROR: {str(e)}"]}
-    except ValueError as e:
-        logger.error(f"Cannot read file {filename}: {e}")
-        return {"success": False, "errors": [f"FILE_NOT_SUPPORTED : {str(e)}"]}
-    except get_storage().exceptions.NotFound:
-        logger.error(f"Cannot find file {filename}")
-        return {"success": False, "errors": ["FILE_NOT_FOUND"]}
+    download_url = generate_download_url(dataset_version_file)
+    if file_format == "csv":
+        return pd.read_csv(download_url)
+    elif file_format == "parquet":
+        return pd.read_parquet(download_url)
+    elif file_format == "xlsx":
+        return pd.read_excel(download_url)
+    else:
+        raise ValueError(f"Unsupported file format: {file_format}")
 
 
 def generate_dataset_file_sample_task(
@@ -70,32 +58,24 @@ def generate_dataset_file_sample_task(
         return
 
     try:
-        source_file = download_file_as_dataframe(dataset_version_file)
-        if source_file["success"]:
-            file_content = source_file["data"]
-            if not file_content.empty:
-                file_sample = file_content.sample(
-                    settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
-                    random_state=22,
-                    replace=True,
-                )
-                dataset_file_metadata.sample = file_sample.to_json(orient="records")
-            else:
-                dataset_file_metadata.sample = json.dumps([])
-            logger.info(f"Dataset sample saved for file {dataset_version_file_id}")
-            dataset_file_metadata.status = DatasetFileMetadata.STATUS_FINISHED
-            dataset_file_metadata.save()
-            logger.info(f"Dataset sample created for file {dataset_version_file_id}")
-        else:
-            dataset_file_metadata.status = DatasetFileMetadata.STATUS_FAILED
-            dataset_file_metadata.status_reason = str(source_file["errors"])
-            dataset_file_metadata.save()
-            logger.info(
-                f'Dataset file sample creation failed for file {dataset_version_file_id} with error {source_file["errors"]}'
+        file_content = download_file_as_dataframe(dataset_version_file)
+        if not file_content.empty:
+            random_seed = 22
+            file_sample = file_content.sample(
+                settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
+                random_state=random_seed,
+                replace=True,
             )
+            dataset_file_metadata.sample = file_sample.to_json(orient="records")
+        else:
+            dataset_file_metadata.sample = json.dumps([])
+        logger.info(f"Dataset sample saved for file {dataset_version_file_id}")
+        dataset_file_metadata.status = DatasetFileMetadata.STATUS_FINISHED
+        dataset_file_metadata.save()
+        logger.info(f"Dataset sample created for file {dataset_version_file_id}")
     except Exception as e:
         dataset_file_metadata.status = DatasetFileMetadata.STATUS_FAILED
-        dataset_file_metadata.status_reason = str([f"UNKNOWN_ERROR : {e}"])
+        dataset_file_metadata.status_reason = str(e)
         dataset_file_metadata.save()
         logger.exception(
             f"Dataset file sample creation failed for file {dataset_version_file_id}: {e}"

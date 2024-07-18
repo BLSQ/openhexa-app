@@ -165,6 +165,5 @@ class TestCreateDatasetFileMetadataTask(TestCase):
             dataset_file_metadata.status, DatasetFileMetadata.STATUS_FAILED
         )
         self.assertEqual(
-            dataset_file_metadata.status_reason,
-            "['FILE_NOT_SUPPORTED : No columns to parse from file']",
+            dataset_file_metadata.status_reason, "No columns to parse from file"
         )
