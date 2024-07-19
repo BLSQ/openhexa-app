@@ -55,7 +55,7 @@ rasterio
 rio-cogeo
 
 # need to pin requests to < 2.32 to avoid breaking docker-py
-requests==2.32.2
+requests==2.32.3
 
 # analytics
 mixpanel
