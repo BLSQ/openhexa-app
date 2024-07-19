@@ -1,7 +1,7 @@
 import boto3
 from django.core.exceptions import ValidationError
 from django.test import override_settings
-from moto import mock_s3, mock_sts
+from moto import mock_aws
 
 from hexa.catalog.models import Index
 from hexa.core.test import TestCase
@@ -153,8 +153,7 @@ class ModelTest(TestCase):
         bucket.delete()
         self.assertEqual(0, Index.objects.filter(object_id=bucket_id).count())
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_bucket_clean_ok(self):
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="some-bucket")
@@ -162,8 +161,7 @@ class ModelTest(TestCase):
 
         self.assertIsNone(bucket.clean())
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_bucket_clean_ko(self):
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="some-bucket")
