@@ -2,7 +2,7 @@ import boto3
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import override_settings
-from moto import mock_s3, mock_sts
+from moto import mock_aws
 
 from hexa.core.test import TestCase
 from hexa.plugins.connector_s3.models import Bucket, BucketPermission
@@ -101,8 +101,7 @@ class PermissionUpdateTest(TestCase):
         Membership.objects.create(team=cls.TEAM2, user=cls.USER_REGULAR_2)
         cls.BUCKET = Bucket.objects.create(name="test-bucket")
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_permission_update(self):
         # we start the test with one index: the bucket
         self.assertEqual(Index.objects.count(), 1)

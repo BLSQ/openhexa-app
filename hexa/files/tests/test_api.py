@@ -4,7 +4,7 @@ import boto3
 import botocore
 from django.core.exceptions import ValidationError
 from django.test import override_settings
-from moto import mock_s3
+from moto import mock_aws
 
 from hexa.core.test import TestCase
 
@@ -32,7 +32,7 @@ class APITestCase:
             self.addCleanup(patcher.stop)
 
         if self.get_type() == "s3":
-            mock = mock_s3()
+            mock = mock_aws()
 
             self.mock_backend = mock.start()
             self.addCleanup(mock.stop)

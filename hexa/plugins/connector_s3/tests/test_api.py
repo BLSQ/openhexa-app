@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import boto3
 from django.test import override_settings
-from moto import mock_iam, mock_s3, mock_sts
+from moto import mock_aws
 
 from hexa.core.test import TestCase
 from hexa.plugins.connector_s3.api import (
@@ -25,8 +25,7 @@ class ApiTest(TestCase):
     def setUp(self):
         self.bucket = Bucket.objects.create(name=self.bucket_name)
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_generate_download_url(self):
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
@@ -44,8 +43,7 @@ class ApiTest(TestCase):
             str,
         )
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_generate_upload_url(self):
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
@@ -57,7 +55,7 @@ class ApiTest(TestCase):
             str,
         )
 
-    @mock_sts
+    @mock_aws
     def test_generate_sts_app_s3_credentials(self):
         credentials = generate_sts_app_s3_credentials()
         self.assertIsInstance(credentials, dict)
@@ -65,14 +63,13 @@ class ApiTest(TestCase):
             self.assertIsInstance(credentials[key], str)
             self.assertGreater(len(credentials[key]), 0)
 
-    @mock_sts
+    @mock_aws
     def test_generate_sts_app_s3_credentials_with_bucket(self):
         bucket = Bucket.objects.create(name="hexa-test-bucket")
         credentials = generate_sts_app_s3_credentials(bucket=bucket)
         self.assertIsInstance(credentials, dict)
 
-    @mock_iam
-    @mock_sts
+    @mock_aws
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_generate_sts_app_team_credentials(self, _):
         bucket = Bucket.objects.create(name="hexa-test-bucket")
@@ -87,8 +84,7 @@ class ApiTest(TestCase):
             self.assertIsInstance(credentials[key], str)
             self.assertGreater(len(credentials[key]), 0)
 
-    @mock_iam
-    @mock_sts
+    @mock_aws
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_generate_sts_app_team_credentials_long_ident(self, _):
         bucket = Bucket.objects.create(name="hexa-test-bucket")

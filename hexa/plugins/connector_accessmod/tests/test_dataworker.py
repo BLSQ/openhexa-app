@@ -3,7 +3,7 @@ import os
 import boto3
 import rasterio
 from django.test import override_settings
-from moto import mock_s3, mock_sts
+from moto import mock_aws
 from rasterio import DatasetReader
 
 from hexa.core.test import TestCase
@@ -177,8 +177,7 @@ class AccessmodDataWorkerTest(TestCase):
         # S3 setup
         cls.BUCKET = Bucket.objects.create(name="test-bucket")
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_validate_no_file(self):
         validate_fileset_job(
             None, MockJob(args={"fileset_id": str(self.dem_empty_fs.id)})
@@ -186,8 +185,7 @@ class AccessmodDataWorkerTest(TestCase):
         self.dem_empty_fs.refresh_from_db()
         self.assertEqual(self.dem_empty_fs.status, FilesetStatus.INVALID)
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_validate_dem(self):
         dem_file = os.path.dirname(__file__) + "/data/dem.tif"
         dem_data = open(dem_file, "rb").read()
@@ -216,8 +214,7 @@ class AccessmodDataWorkerTest(TestCase):
         )
         self.assertEqual(self.dem_fs.status, FilesetStatus.VALID)
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_validate_dem_wrong(self):
         dem_file = os.path.dirname(__file__) + "/data/dem_invalid.tif"
         dem_data = open(dem_file, "rb").read()
@@ -235,8 +232,7 @@ class AccessmodDataWorkerTest(TestCase):
         )
         self.assertEqual(self.dem_fs.status, FilesetStatus.INVALID)
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_validate_facilities(self):
         facilities_file = os.path.dirname(__file__) + "/data/facilities.gpkg"
         facilities_data = open(facilities_file, "rb").read()
@@ -257,8 +253,7 @@ class AccessmodDataWorkerTest(TestCase):
         )
         self.assertEqual(self.facilities_fs.status, FilesetStatus.VALID)
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_validate_water(self):
         water_file = os.path.dirname(__file__) + "/data/water.gpkg"
         water_data = open(water_file, "rb").read()
@@ -277,8 +272,7 @@ class AccessmodDataWorkerTest(TestCase):
         self.assertEqual(self.water_fs.metadata, {"length": 3})
         self.assertEqual(self.water_fs.status, FilesetStatus.VALID)
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_validate_transport(self):
         transport_file = os.path.dirname(__file__) + "/data/transport.gpkg"
         transport_data = open(transport_file, "rb").read()
@@ -311,8 +305,7 @@ class AccessmodDataWorkerTest(TestCase):
         )
         self.assertEqual(self.transport_fs.status, FilesetStatus.VALID)
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_validate_landcover(self):
         landcover_file = os.path.dirname(__file__) + "/data/landcover.tif"
         landcover_data = open(landcover_file, "rb").read()
@@ -339,8 +332,7 @@ class AccessmodDataWorkerTest(TestCase):
         )
         self.assertEqual(self.landcover_fs.status, FilesetStatus.VALID)
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_validate_stack(self):
         stack_file = os.path.dirname(__file__) + "/data/stack.tif"
         stack_data = open(stack_file, "rb").read()
@@ -365,8 +357,7 @@ class AccessmodDataWorkerTest(TestCase):
         )
         self.assertEqual(self.stack_fs.status, FilesetStatus.VALID)
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_validate_travel_times(self):
         travel_times_file = os.path.dirname(__file__) + "/data/travel.tif"
         travel_times_data = open(travel_times_file, "rb").read()
@@ -400,8 +391,7 @@ class AccessmodDataWorkerTest(TestCase):
         )
         self.assertEqual(self.travel_times_fs.status, FilesetStatus.VALID)
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_validate_population(self):
         population_file = os.path.dirname(__file__) + "/data/population.tif"
         population_data = open(population_file, "rb").read()
@@ -515,8 +505,7 @@ class AccessmodAnalysisUpdateTest(TestCase):
             stack_priorities=[1, 2],
         )
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_update_analysis_status(self):
         landcover_file = os.path.dirname(__file__) + "/data/landcover.tif"
         landcover_data = open(landcover_file, "rb").read()

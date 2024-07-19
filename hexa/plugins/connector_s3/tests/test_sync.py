@@ -1,6 +1,6 @@
 import boto3
 from django.test import override_settings
-from moto import mock_s3, mock_sts
+from moto import mock_aws
 
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.test import TestCase
@@ -15,8 +15,7 @@ class SyncTest(TestCase):
     def setUpTestData(cls):
         cls.bucket = Bucket.objects.create(name="test-bucket")
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_empty_sync(self):
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
@@ -26,8 +25,7 @@ class SyncTest(TestCase):
 
         self.assertQuerysetEqual(self.bucket.object_set.all(), [])
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_base_sync(self):
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
@@ -59,8 +57,7 @@ class SyncTest(TestCase):
             self.bucket.object_set.all(), expected, lambda x: (x.key, x.type)
         )
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_metadata(self):
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
@@ -95,8 +92,7 @@ class SyncTest(TestCase):
             lambda x: (x.key, x.type, x.parent_key, x.size),
         )
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_sync_remove_add_edit(self):
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
@@ -167,8 +163,7 @@ class SyncTest(TestCase):
         result = sorted(result)
         self.assertEqual(result, expected)
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_double_etag(self):
         """
         Upload 2x the same file with different names
@@ -193,8 +188,7 @@ class SyncTest(TestCase):
         self.bucket.sync()
         self.assertEqual(self.bucket.object_set.exclude(type="directory").count(), 1)
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_slash_directory(self):
         """Objects with a key that start with / are valid - but S3 will consider this first slash as a directory
         named "/". It's not a big deal but our sync system has trouble processing them, due to an issue with s3fs
@@ -211,8 +205,7 @@ class SyncTest(TestCase):
 
         self.assertEqual(self.bucket.object_set.count(), 1)
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_dir_structure(self):
         """A list of files with different path should be indexed as a set of dir and files"""
         self.assertEqual(self.bucket.object_set.count(), 0)

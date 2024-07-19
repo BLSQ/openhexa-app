@@ -2,7 +2,7 @@ import uuid
 
 from django.conf import settings
 from django.test import override_settings
-from moto import mock_s3, mock_sts
+from moto import mock_aws
 
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import (
@@ -431,8 +431,7 @@ class FilesetTest(GraphQLTestCase):
             },
         )
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_full_accessmod_upload_workflow(self):
         self.client.force_login(self.USER_GREG)
 
@@ -853,8 +852,7 @@ class FilesetTest(GraphQLTestCase):
             r["data"]["accessmodFilesetRoles"][0],
         )
 
-    @mock_s3
-    @mock_sts
+    @mock_aws
     def test_prepare_fileset_visualization(self):
         self.client.force_login(self.USER_GREG)
 
