@@ -16,8 +16,8 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from hexa.analytics.api import track
 from hexa.app import get_hexa_app_configs
-from hexa.core.analytics import track
 from hexa.pipelines.models import Environment
 
 from .credentials import PipelinesCredentials

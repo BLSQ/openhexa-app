@@ -5,7 +5,7 @@ from ariadne import MutationType, QueryType, load_schema_from_path
 from django.conf import settings
 from django.http import HttpRequest
 
-from hexa.core.analytics import track
+from hexa.analytics.api import track
 from hexa.workspaces.models import Workspace
 
 from .api import create_server, create_user, get_user, server_ready

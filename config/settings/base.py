@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "ariadne_django",
     "dpq",
     "hexa.user_management",
+    "hexa.analytics",
     "hexa.core",
     "hexa.catalog",
     "hexa.countries",

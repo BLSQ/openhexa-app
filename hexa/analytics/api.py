@@ -27,7 +27,7 @@ def track(
         An identifier for the event to track.
     properties : dict
        A dictionary holding the event properties
-    user: User |
+    user: User
        User entity to track
     """
     if mixpanel is None:

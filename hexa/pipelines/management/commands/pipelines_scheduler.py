@@ -6,7 +6,7 @@ from croniter import croniter
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from hexa.core.analytics import track
+from hexa.analytics.api import track
 from hexa.pipelines.models import Pipeline, PipelineRunTrigger
 
 logger = getLogger(__name__)

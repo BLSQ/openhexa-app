@@ -2,7 +2,7 @@ from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
 from django.http import HttpRequest
 
-from hexa.core.analytics import set_user_properties
+from hexa.analytics.api import set_user_properties
 from hexa.user_management.models import User
 
 
