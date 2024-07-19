@@ -25,3 +25,14 @@ dataset_file_metadata_queue = DatasetsFileMetadataQueue(
     },
     notify_channel="dataset_file_metadata_queue",
 )
+
+
+def load_file_metadata(file_id: str):
+    dataset_file_metadata_queue.enqueue(
+        {
+            "generate_file_metadata",
+            {
+                "file_id": str(file_id),
+            },
+        }
+    )
