@@ -127,3 +127,12 @@ class FileSystemStorageTest(TestCase):
             open(self.data_directory / "default-bucket/file.txt").read(),
             "OVERWRITTEN",
         )
+
+    def test_list_bucket_objects(self):
+        self.storage.create_bucket("default-bucket")
+        for i in range(100):
+            self.storage.save_object(
+                "default-bucket", f"file-{i}.txt", b"Hello, world!"
+            )
+        res = self.storage.list_bucket_objects("default-bucket", page=1, per_page=30)
+        print(res)

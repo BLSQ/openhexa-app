@@ -1,13 +1,14 @@
 import io
 import os
 import shutil
+from mimetypes import guess_type
 from pathlib import Path
 
 from django.core.files import locks
 from django.utils._os import safe_join
 from django.utils.text import get_valid_filename
 
-from .base import Storage
+from .base import ObjectsPage, Storage, StorageObject
 
 
 class FileSystemStorage(Storage):
@@ -27,7 +28,7 @@ class FileSystemStorage(Storage):
 
     def bucket_path(self, bucket_name, name):
         bucket_path = self.path(bucket_name)
-        return safe_join(bucket_path, name)
+        return Path(safe_join(bucket_path, name))
 
     def size(self, name):
         return os.path.getsize(self.path(name))
@@ -101,10 +102,10 @@ class FileSystemStorage(Storage):
     def list_bucket_objects(
         self,
         bucket_name,
-        prefix=None,
+        prefix="",
         page: int = 1,
         per_page=30,
-        query=None,
+        query: str = None,
         ignore_hidden_files=True,
     ):
         full_path = self.bucket_path(bucket_name, prefix)
@@ -113,17 +114,48 @@ class FileSystemStorage(Storage):
         if not os.path.isdir(full_path):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} is not a directory")
 
+        def does_object_match(name):
+            if ignore_hidden_files and name.startswith("."):
+                return False
+            if query:
+                return query.lower() in name.lower()
+            return True
+
         objects = []
         root, dirs, files = next(os.walk(full_path))
-        if ignore_hidden_files:
-            files = [f for f in files if not f.startswith(".")]
-        for file in files:
+        for dir in dirs:
+            if does_object_match(dir) is False:
+                continue
             objects.append(
-                {
-                    "key": os.path.relpath(os.path.join(root, file), full_path),
-                    "size": os.path.getsize(os.path.join(root, file)),
-                }
+                StorageObject(
+                    name=dir,
+                    key=Path(prefix) / dir,
+                    path=Path(bucket_name) / prefix / dir,
+                    type="directory",
+                )
             )
+        for file in files:
+            if does_object_match(file) is False:
+                continue
+            object_key = Path(prefix) / file
+            objects.append(
+                StorageObject(
+                    name=file,
+                    key=object_key,
+                    path=Path(bucket_name) / object_key,
+                    type="file",
+                    size=os.path.getsize(full_path / object_key),
+                    content_type=guess_type(file)[0] or "application/octet-stream",
+                )
+            )
+
+        offset = (page - 1) * per_page
+        return ObjectsPage(
+            items=objects[offset : offset + per_page],
+            page_number=page,
+            has_previous_page=page > 1,
+            has_next_page=len(objects) > page * per_page,
+        )
 
     def get_short_lived_downscoped_access_token(self, bucket_name):
         return super().get_short_lived_downscoped_access_token(bucket_name)
