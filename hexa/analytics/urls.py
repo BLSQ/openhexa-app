@@ -5,5 +5,5 @@ from . import views
 app_name = "analytics"
 
 urlpatterns = [
-    path("events", views.track_event, name="track"),
+    path("track", views.track_event, name="track"),
 ]

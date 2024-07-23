@@ -13,7 +13,7 @@ if settings.MIXPANEL_TOKEN:
 
 
 def track(
-    request: HttpRequest,
+    request: HttpRequest | None,
     event: str,
     properties: dict = {},
     user: User = None,
@@ -35,7 +35,7 @@ def track(
 
     people = user if user else getattr(request, "user", None)
     can_track = (
-        people is None or isinstance(user, AnonymousUser) or people.analytics_enabled
+        people is None or isinstance(people, AnonymousUser) or people.analytics_enabled
     )
     if can_track is False:
         return
@@ -66,7 +66,7 @@ def set_user_properties(user: User):
         return
 
     try:
-        mixpanel.people_set_once(
+        mixpanel.people_set(
             distinct_id=str(user.id),
             properties={
                 "$email": user.email,
