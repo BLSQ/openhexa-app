@@ -151,7 +151,7 @@ class AnalyticsTest(TestCase):
         with self.settings(MIXPANEL_TOKEN=mixpanel_token):
             set_user_properties(self.USER)
 
-            mock_mixpanel.people_set_once.assert_called_once_with(
+            mock_mixpanel.people_set.assert_called_once_with(
                 distinct_id=str(self.USER.id),
                 properties={
                     "$email": self.USER.email,

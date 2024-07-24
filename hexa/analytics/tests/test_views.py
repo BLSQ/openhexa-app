@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.urls import reverse
 
 from hexa.core.test import TestCase
@@ -35,16 +37,18 @@ class AnalyticsTests(TestCase):
         )
         self.assertEqual(r.status_code, 200)
 
-    def test_track_event_analytics_not_enabled(self):
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_track_event_analytics_not_enabled(self, mixpanel_mock):
         self.USER.analytics_enabled = False
         self.USER.save()
         self.client.force_login(self.USER)
-        r = self.client.post(
-            reverse(
-                "analytics:track",
-            ),
-            {"event": "page_viewed", "properties": {"page": "database"}},
-            content_type="application/json",
-        )
-        self.assertEqual(r.status_code, 401)
-        self.assertEqual(r.json(), {"error": "Analytics not enabled."})
+        with self.settings(MIXPANEL_TOKEN="123"):
+            r = self.client.post(
+                reverse(
+                    "analytics:track",
+                ),
+                {"event": "page_viewed", "properties": {"page": "database"}},
+                content_type="application/json",
+            )
+            self.assertEqual(r.status_code, 200)
+            mixpanel_mock.track.assert_not_called()

@@ -40,7 +40,7 @@ def track(
     if can_track is False:
         return
 
-    if request:
+    if request and "User-Agent" in request.headers:
         # Add request related properties
         parsed = user_agent_parser.Parse(request.headers["User-Agent"])
         properties.update(
