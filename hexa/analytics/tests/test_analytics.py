@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from django.test import RequestFactory
 
-from hexa.core.analytics import set_user_properties, track
+from hexa.analytics.api import set_user_properties, track
 from hexa.core.test import TestCase
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.pipelines.models import Pipeline, PipelineRunTrigger
@@ -36,7 +36,7 @@ class AnalyticsTest(TestCase):
         )
         cls.factory = RequestFactory()
 
-    @mock.patch("hexa.core.analytics.Mixpanel")
+    @mock.patch("hexa.analytics.api.Mixpanel")
     def test_track_event_user_no_token(self, mock_mixpanel):
         with self.settings(
             MIXPANEL_TOKEN=None,
@@ -54,7 +54,7 @@ class AnalyticsTest(TestCase):
             track(request, event, properties, user=self.USER)
             mock_mixpanel.assert_not_called()
 
-    @mock.patch("hexa.core.analytics.Mixpanel")
+    @mock.patch("hexa.analytics.api.Mixpanel")
     def test_track_user_analytics_not_enabled(
         self,
         mock_mixpanel,
@@ -85,7 +85,7 @@ class AnalyticsTest(TestCase):
             track(request, event, properties, user=self.USER)
             mock_mixpanel_instance.assert_not_called()
 
-    @mock.patch("hexa.core.analytics.mixpanel")
+    @mock.patch("hexa.analytics.api.mixpanel")
     def test_track_user_analytics_enabled(
         self,
         mock_mixpanel,
@@ -113,7 +113,7 @@ class AnalyticsTest(TestCase):
                 },
             )
 
-    @mock.patch("hexa.core.analytics.mixpanel")
+    @mock.patch("hexa.analytics.api.mixpanel")
     def test_track_pipelinerun_no_user(
         self,
         mock_mixpanel,
@@ -141,7 +141,7 @@ class AnalyticsTest(TestCase):
                 distinct_id=None, event_name=event, properties=properties
             )
 
-    @mock.patch("hexa.core.analytics.mixpanel")
+    @mock.patch("hexa.analytics.api.mixpanel")
     def test_create_user_profile(
         self,
         mock_mixpanel,
@@ -151,7 +151,7 @@ class AnalyticsTest(TestCase):
         with self.settings(MIXPANEL_TOKEN=mixpanel_token):
             set_user_properties(self.USER)
 
-            mock_mixpanel.people_set_once.assert_called_once_with(
+            mock_mixpanel.people_set.assert_called_once_with(
                 distinct_id=str(self.USER.id),
                 properties={
                     "$email": self.USER.email,

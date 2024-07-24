@@ -2,7 +2,7 @@ from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 
-from hexa.core.analytics import track
+from hexa.analytics.api import track
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.workspaces.models import Workspace
 

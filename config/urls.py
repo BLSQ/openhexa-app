@@ -37,6 +37,7 @@ urlpatterns = [
     path("notebooks/", include("hexa.notebooks.urls", namespace="notebooks")),
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
     path("workspaces/", include("hexa.workspaces.urls", namespace="workspaces")),
+    path("analytics/", include("hexa.analytics.urls", namespace="analytics")),
     # Order matters, we override the default logout view defined later
     # We do this to logout the user from jupyterhub at the end of the openhexa
     # session. the jupyterhub will redirect to the openhexa login after it

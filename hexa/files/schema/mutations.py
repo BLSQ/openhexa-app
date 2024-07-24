@@ -1,6 +1,6 @@
 from ariadne import MutationType
 
-from hexa.core.analytics import track
+from hexa.analytics.api import track
 from hexa.files.api import get_storage
 from hexa.workspaces.models import Workspace
 

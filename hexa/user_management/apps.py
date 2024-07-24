@@ -14,6 +14,3 @@ class UserManagementConfig(CoreAppConfig):
         "password_reset_done",
         "password_reset_complete",
     ]
-
-    def ready(self):
-        from . import signals  # noqa

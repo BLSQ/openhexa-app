@@ -6,7 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
 
-from hexa.core.analytics import track
+from hexa.analytics.api import track
 from hexa.databases.utils import get_table_definition
 from hexa.files.api import NotFound, get_storage
 from hexa.pipelines.authentication import PipelineRunUser

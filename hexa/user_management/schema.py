@@ -25,7 +25,7 @@ from django_otp import devices_for_user
 from django_otp.plugins.otp_email.models import EmailDevice
 from graphql import default_field_resolver
 
-from hexa.core.analytics import track
+from hexa.analytics.api import track
 from hexa.core.graphql import result_page
 from hexa.core.templatetags.colors import hash_color
 from hexa.user_management.models import (

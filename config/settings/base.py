@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "ariadne_django",
     "dpq",
     "hexa.user_management",
+    "hexa.analytics",
     "hexa.core",
     "hexa.catalog",
     "hexa.countries",
@@ -92,6 +93,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
+    "hexa.analytics.middlewares.set_analytics_middleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -196,7 +198,7 @@ if "TRUST_FORWARDED_PROTO" in os.environ:
 RAW_CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS")
 if RAW_CORS_ALLOWED_ORIGINS is not None:
     CORS_ALLOWED_ORIGINS = RAW_CORS_ALLOWED_ORIGINS.split(",")
-    CORS_URLS_REGEX = r"^/graphql/(\w+\/)?$"
+    CORS_URLS_REGEX = r"^[/graphql/(\w+\/)?|/analytics/track]$"
     CORS_ALLOW_CREDENTIALS = True
 
 
