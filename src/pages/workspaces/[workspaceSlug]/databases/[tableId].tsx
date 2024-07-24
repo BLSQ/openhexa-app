@@ -5,12 +5,13 @@ import Button from "core/components/Button";
 import Page from "core/components/Page";
 import Popover from "core/components/Popover/Popover";
 import Checkbox from "core/components/forms/Checkbox/Checkbox";
+import { trackEvent } from "core/helpers/analytics";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { OrderByDirection } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DatabaseTableDataGrid from "workspaces/features/DatabaseTableDataGrid/DatabaseTableDataGrid";
 import DeleteDatabaseTableTrigger from "workspaces/features/DeleteDatabaseTableTrigger";
 import {
@@ -49,6 +50,15 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = ({
     arr.sort((a, b) => (a.name > b.name ? 1 : -1));
     return arr;
   }, [data]);
+
+  useEffect(() => {
+    if (data?.workspace) {
+      trackEvent("databases.table_viewed", {
+        workspace: data.workspace.slug,
+        table_name: table?.name,
+      });
+    }
+  }, []);
 
   if (!data?.workspace) {
     return null;

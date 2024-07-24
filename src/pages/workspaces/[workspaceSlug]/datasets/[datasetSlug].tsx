@@ -24,7 +24,7 @@ import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import DatasetLinksDataGrid from "../../../../datasets/features/DatasetLinksDataGrid";
 import UserProperty from "../../../../core/components/DataCard/UserProperty";
 import DateProperty from "../../../../core/components/DataCard/DateProperty";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { updateDataset } from "datasets/helpers/dataset";
 import UploadDatasetVersionDialog from "datasets/features/UploadDatasetVersionDialog";
 import DescriptionList from "core/components/DescriptionList";
@@ -36,6 +36,7 @@ import useCacheKey from "core/hooks/useCacheKey";
 import DeleteDatasetTrigger from "datasets/features/DeleteDatasetTrigger";
 import RenderProperty from "core/components/DataCard/RenderProperty";
 import Clipboard from "core/components/Clipboard";
+import { trackEvent } from "core/helpers/analytics";
 
 type Props = {
   datasetSlug: string;
@@ -60,6 +61,17 @@ const WorkspaceDatasetPage: NextPageWithLayout = (props: Props) => {
     },
   });
   useCacheKey(["datasets"], () => refetch());
+
+  useEffect(() => {
+    if (data?.datasetLink) {
+      const version = dataset.version || dataset.latestVersion || null;
+      trackEvent("datasets.dataset_open", {
+        workspace: workspaceSlug,
+        dataset_id: data.datasetLink.id,
+        dataset_version: version?.name,
+      });
+    }
+  }, []);
 
   const onChangeVersion: React.ComponentProps<
     typeof DatasetVersionPicker

@@ -1,19 +1,60 @@
+import { pageView } from "core/helpers/analytics";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import type { NextFetchEvent, NextRequest } from "next/server";
 
 // This middleware will rewrite the request to the fallback server
-export function middleware(request: NextRequest) {
-  const srcUrl = new URL(request.url);
-  return NextResponse.rewrite(
-    new URL(srcUrl.pathname + srcUrl.search, process.env.OPENHEXA_BACKEND_URL),
-  );
+export function middleware(request: NextRequest, event: NextFetchEvent) {
+  if (
+    [
+      "/graphql",
+      "/auth/logout",
+      "/static/",
+      "/admin/",
+      "/analytics/track",
+    ].some((path) => request.nextUrl.pathname.startsWith(path))
+  ) {
+    return NextResponse.rewrite(
+      new URL(
+        request.nextUrl.pathname + request.nextUrl.search,
+        process.env.OPENHEXA_BACKEND_URL,
+      ),
+    );
+  }
+
+  event.waitUntil(pageView(request));
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    "/graphql/:path*" /* GraphQL */,
-    "/admin/:path*" /* Django Admin */,
-    "/static/:path*" /* Static files of Django */,
-    "/auth/logout",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - images (image files)
+     */
+    {
+      source: "/((?!api|_next/static|_next/image|images|favicon.ico).*)",
+      missing: [
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "purpose", value: "prefetch" },
+      ],
+    },
+
+    {
+      source: "/((?!api|_next/static|_next/image|images|favicon.ico).*)",
+      has: [
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "purpose", value: "prefetch" },
+      ],
+    },
+
+    {
+      source: "/((?!api|_next/static|_next/image|images|favicon.ico).*)",
+      has: [{ type: "header", key: "x-present" }],
+      missing: [{ type: "header", key: "x-missing", value: "prefetch" }],
+    },
   ],
 };
