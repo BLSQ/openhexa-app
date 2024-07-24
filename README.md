@@ -123,6 +123,14 @@ You can now deploy your pipelines to your local OpenHEXA instance.
 Please refer to the [SDK documentation](https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#using-a-local-installation-of-openhexa-to-run-pipelines)
 for more information.
 
+### Dataset worker
+Generation of file samples and metadata calculation are done in separate worker, in order to run it locally you 
+can make use of `dataset_worker` by adding `dataset_worker` profile to the list of enabed profiles.
+
+````
+docker compose --profile dataset_worker up
+````
+
 ### Data worker
 
 If you need the optional services `dataworker`, you can run the following command **instead of** `docker compose up`:

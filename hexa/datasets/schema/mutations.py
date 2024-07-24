@@ -8,6 +8,7 @@ from hexa.workspaces.models import Workspace
 
 from ..api import generate_download_url, generate_upload_url, get_blob
 from ..models import Dataset, DatasetLink, DatasetVersion, DatasetVersionFile
+from ..queue import load_file_metadata
 
 mutations = MutationType()
 
@@ -59,7 +60,6 @@ def resolve_update_dataset(_, info, **kwargs):
             principal=request.user,
             **mutation_input,
         )
-
         return {"success": True, "errors": [], "dataset": dataset}
     except Dataset.DoesNotExist:
         return {"success": False, "errors": ["DATASET_NOT_FOUND"]}
@@ -252,11 +252,13 @@ def resolve_create_version_file(_, info, **kwargs):
                     uri=version.get_full_uri(mutation_input["uri"]),
                     content_type=mutation_input["contentType"],
                 )
-                return {
-                    "success": True,
-                    "errors": [],
-                    "file": file,
-                }
+
+            load_file_metadata(file_id=file.id)
+            return {
+                "success": True,
+                "errors": [],
+                "file": file,
+            }
     except ValidationError:
         return {"success": False, "errors": ["INVALID_URI"]}
     except DatasetVersion.DoesNotExist:

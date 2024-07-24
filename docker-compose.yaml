@@ -89,6 +89,15 @@ services:
     depends_on:
       - db
 
+  dataset_worker:
+    <<: *common
+    command: "manage dataset_worker"
+    restart: unless-stopped
+    profiles:
+      - "dataset_worker"
+    depends_on:
+      - db
+
   dataworker:
     <<: *common
     command: "manage validate_fileset_worker"
@@ -97,7 +106,7 @@ services:
       - "dataworker"
     depends_on:
       - db
-  
+
   frontend:
     image: "blsq/openhexa-frontend:${FRONTEND_VERSION:-main}"
     platform: linux/amd64
@@ -116,7 +125,6 @@ services:
 
   pipelines_runner:
     <<: *common
-    
     build:
       context: .
       dockerfile: Dockerfile

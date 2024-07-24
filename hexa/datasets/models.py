@@ -3,6 +3,7 @@ import secrets
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.db import models
+from dpq.models import BaseJob
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
@@ -291,3 +292,8 @@ class DatasetLink(Base):
 
     class Meta:
         unique_together = ("dataset", "workspace")
+
+
+class DatasetFileMetadataJob(BaseJob):
+    class Meta:
+        db_table = "datasets_filemetadata_job"
