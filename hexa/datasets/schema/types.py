@@ -221,8 +221,7 @@ def resolve_upload_url(obj, info, **kwargs):
 @dataset_version_file_object.field("fileMetadata")
 def resolve_version_file_metadata(obj: DatasetVersionFile, info, **kwargs):
     try:
-        file_metadata = DatasetFileMetadata.objects.get(dataset_version_file=obj)
-        return file_metadata
+        return obj.latest_metadata
     except DatasetFileMetadata.DoesNotExist:
         logging.error(f"No metadata found for file {obj.filename} with id {obj.id}")
         return None

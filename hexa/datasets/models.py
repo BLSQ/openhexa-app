@@ -253,6 +253,10 @@ class DatasetVersionFile(Base):
     def filename(self):
         return self.uri.split("/")[-1]
 
+    @property
+    def latest_metadata(self):
+        return self.file_metadata.order_by("-created_at").first()
+
     class Meta:
         ordering = ["uri"]
 

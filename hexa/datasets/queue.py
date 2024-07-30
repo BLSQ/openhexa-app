@@ -27,7 +27,10 @@ def download_file_as_dataframe(
     download_url = generate_download_url(dataset_version_file)
     if mime_type == "text/csv":
         return pd.read_csv(download_url)
-    elif mime_type == "application/vnd.ms-excel":
+    elif (
+        mime_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        or mime_type == "application/vnd.ms-excel"
+    ):
         return pd.read_excel(download_url)
     elif (
         mime_type == "application/vnd.apache.parquet"
