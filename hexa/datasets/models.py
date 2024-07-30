@@ -4,6 +4,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import JSONField
+from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
 from slugify import slugify
 
@@ -262,9 +263,9 @@ class DatasetFileMetadata(Base):
     STATUS_FINISHED = "FINISHED"
 
     STATUS_CHOICES = [
-        (STATUS_PROCESSING, "Processing"),
-        (STATUS_FAILED, "Failed"),
-        (STATUS_FINISHED, "Finished"),
+        (STATUS_PROCESSING, _("Processing")),
+        (STATUS_FAILED, _("Failed")),
+        (STATUS_FINISHED, _("Finished")),
     ]
 
     sample = JSONField(blank=True, default=list, null=True)

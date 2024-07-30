@@ -447,7 +447,7 @@ extend type Query {
   dataset(id: ID!): Dataset
   "Get a dataset by its slug."
   datasetVersion(id: ID!): DatasetVersion
-  "Get a dataset file bi its id "
+  "Get a dataset file by its id "
   datasetVersionFile(id: ID!): DatasetVersionFile
   "Get a dataset link by its id."
   datasetLink(id: ID!): DatasetLink

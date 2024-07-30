@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import DatabaseError, IntegrityError
 from dpq.queue import AtLeastOnceQueue
 
+from hexa.core import mimetypes
 from hexa.datasets.api import generate_download_url
 from hexa.datasets.models import (
     DatasetFileMetadata,
@@ -20,17 +21,21 @@ logger = getLogger(__name__)
 def download_file_as_dataframe(
     dataset_version_file: DatasetVersionFile,
 ) -> pd.DataFrame:
-    filename = dataset_version_file.filename
-    file_format = filename.split(".")[-1]
+    mime_type, encoding = mimetypes.guess_type(
+        dataset_version_file.filename, strict=False
+    )
     download_url = generate_download_url(dataset_version_file)
-    if file_format == "csv":
+    if mime_type == "text/csv":
         return pd.read_csv(download_url)
-    elif file_format == "parquet":
-        return pd.read_parquet(download_url)
-    elif file_format == "xlsx":
+    elif mime_type == "application/vnd.ms-excel":
         return pd.read_excel(download_url)
+    elif (
+        mime_type == "application/vnd.apache.parquet"
+        or dataset_version_file.filename.split(".")[-1] == "parquet"
+    ):
+        return pd.read_parquet(download_url)
     else:
-        raise ValueError(f"Unsupported file format: {file_format}")
+        raise ValueError(f"Unsupported file format: {dataset_version_file.filename}")
 
 
 def generate_dataset_file_sample_task(
