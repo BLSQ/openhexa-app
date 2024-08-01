@@ -1,5 +1,6 @@
 import enum
 from dataclasses import dataclass
+from typing import Dict, List, Tuple
 
 import psycopg2
 from psycopg2 import sql
@@ -9,6 +10,8 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from hexa.workspaces.models import Workspace
 
 from .api import get_db_server_credentials
+
+IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
 
 class TableNotFound(Exception):
@@ -45,15 +48,31 @@ def get_database_definition(workspace: Workspace):
                         FROM information_schema.tables
                         JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
                         WHERE
-                            table_schema = 'public' AND
-                            table_name NOT IN ('geography_columns', 'geometry_columns', 'spatial_ref_sys')
+                            table_schema = 'public'
                         ORDER BY table_name;
                 """
             )
-            tables = []
-            for row in cursor.fetchall():
-                tables.append({"workspace": workspace, **row})
-        return tables
+
+            response: List[Tuple[str, str, int]] = cursor.fetchall()
+            tables: Dict[str, Dict] = {
+                x["name"]: x for x in response if x["name"] not in IGNORE_TABLES
+            }
+
+            result = []
+            for name, data in tables.items():
+                # For the sake of performance we only run SELECT COUNT(*) for relatively small tables N_row < 10000 entries)
+                # due to the fact PostgreSQL will need to scan either the entire table or the entirety of an index which includes all rows in the table.
+                if data["count"] < 10_000:
+                    cursor.execute(
+                        sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
+                            sql.Identifier(name)
+                        ),
+                    )
+                    response = cursor.fetchone()
+                    tables[name]["count"] = response["row_count"]
+
+                result.append({"workspace": workspace, **data})
+            return result
     finally:
         if conn:
             conn.close()
