@@ -19,7 +19,7 @@ jobs:
       - name: Build docker app image
         env:
           DOCKER_BUILDKIT: 1
-        run: docker-compose build
+        run: docker compose build
 
       - name: Run Django tests
-        run: docker-compose run -e DEBUG=false app coveraged-test
+        run: docker compose run -e DEBUG=false app coveraged-test
