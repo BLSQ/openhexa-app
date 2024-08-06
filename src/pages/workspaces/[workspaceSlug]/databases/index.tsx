@@ -121,9 +121,9 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
             >
               {(value) => (
                 <span>
-                  {t("Approx. {{count}} row", {
+                  {t("{{count}} row", {
                     count: value,
-                    plural: "Approx. {{count}} rows",
+                    plural: "{{count}} rows",
                   })}
                 </span>
               )}

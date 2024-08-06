@@ -1,4 +1,6 @@
 {
+  "{{count}} row___one": "{{count}} row",
+  "{{count}} row___other": "{{count}} rows",
   "{{files}} is not a valid file___one": "{{files}} is not a valid file",
   "{{files}} is not a valid file___other": "{{files}} is not a valid file",
   "{{value}}d": "{{value}}d",
@@ -43,9 +45,6 @@
   "An error occurred while linking this dataset": "An error occurred while linking this dataset",
   "An unexpected error ocurred.": "An unexpected error ocurred.",
   "Anyone with the URL will be able to trigger this pipeline": "Anyone with the URL will be able to trigger this pipeline",
-  "Approx. {{count}} row___one": "Approx. {{count}} row",
-  "Approx. {{count}} row___many": "Approx. {{count}} rows",
-  "Approx. {{count}} row___other": "Approx. {{count}} row",
   "Archive": "Archive",
   "Archive {{name}}": "Archive {{name}}",
   "Are you sure to delete this directory ? It will delete all its content.": "Are you sure to delete this directory ? It will delete all its content.",
