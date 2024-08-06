@@ -39,7 +39,7 @@ def download_file_as_dataframe(
     )
     download_url = generate_download_url(dataset_version_file)
     if mime_type == "text/csv":
-        return pd.read_csv(download_url)
+        return pd.read_csv(download_url, low_memory=False)
     elif (
         mime_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         or mime_type == "application/vnd.ms-excel"
@@ -50,6 +50,33 @@ def download_file_as_dataframe(
         or dataset_version_file.filename.split(".")[-1] == "parquet"
     ):
         return pd.read_parquet(download_url)
+
+
+def normalize_data(data):
+    for key, value in data.items():
+        for i, item in enumerate(value):
+            if isinstance(item, list):
+                data[key][i] = {f"item_{j}": item[j] for j in range(len(item))}
+    return data
+
+
+def metadata_profiling(file_content: pd.DataFrame) -> dict[str, str]:
+    file_content[
+        file_content.select_dtypes(["object"]).columns
+    ] = file_content.select_dtypes(["object"]).astype("string")
+
+    profiling = {
+        "column_names": file_content.columns.to_series(),
+        "data_types": file_content.dtypes.apply(str),
+        "missing_values": file_content.isnull().sum(),
+        "unique_values": file_content.nunique(),
+        "distinct_values": file_content.apply(lambda x: x.nunique(dropna=False)),
+        "constant_values": file_content.apply(lambda x: x.nunique() == 1).astype(
+            "bool"
+        ),
+    }
+    profiling_as_json = {key: val.to_json() for key, val in profiling.items()}
+    return profiling_as_json
 
 
 def generate_dataset_file_sample_task(
@@ -90,6 +117,9 @@ def generate_dataset_file_sample_task(
                 replace=True,
             )
             dataset_file_metadata.sample = file_sample.to_json(orient="records")
+            dataset_file_metadata.profiling = json.dumps(
+                metadata_profiling(file_content)
+            )
         else:
             dataset_file_metadata.sample = json.dumps([])
         logger.info(f"Dataset sample saved for file {dataset_version_file_id}")

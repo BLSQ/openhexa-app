@@ -1,6 +1,8 @@
+import json
 import os
 from unittest import mock
 
+import pandas as pd
 from pandas.errors import ParserError
 
 from hexa.core.test import TestCase
@@ -167,3 +169,59 @@ class TestCreateDatasetFileMetadataTask(TestCase):
         self.assertEqual(
             dataset_file_metadata.status_reason, "No columns to parse from file"
         )
+
+
+class TestFileFillMetadata(TestCase):
+    @mock.patch("hexa.datasets.queue.DatasetVersionFile.objects.get")
+    @mock.patch("hexa.datasets.queue.DatasetFileMetadata.objects.create")
+    @mock.patch("hexa.datasets.queue.generate_download_url")
+    def test_fill_in_metadata(
+        self,
+        mock_generate_download_url,
+        mock_DatasetFileMetadata_create,
+        mock_DatasetVersionFile_get,
+    ):
+        filename = "example_names.csv"
+        dataset_version_file = mock.Mock()
+        dataset_version_file.id = 1
+        dataset_version_file.filename = f"{filename}"
+        mock_DatasetVersionFile_get.return_value = dataset_version_file
+
+        dataset_file_metadata = mock.Mock()
+        mock_DatasetFileMetadata_create.return_value = dataset_file_metadata
+
+        fixture_file_path = os.path.join(
+            os.path.dirname(__file__), f"./fixtures/{filename}"
+        )
+        mock_generate_download_url.return_value = fixture_file_path
+
+        job = mock.Mock()
+        job.args = {"file_id": dataset_version_file.id}
+
+        generate_dataset_file_sample_task(mock.Mock(), job)
+        print(
+            f"status: {dataset_file_metadata.status} : reason: {dataset_file_metadata.status_reason}"
+        )
+        data = json.loads(dataset_file_metadata.profiling)
+        decoded_profiling = {key: json.loads(value) for key, value in data.items()}
+        data_pd = pd.DataFrame(decoded_profiling)
+        dtype_spec = {
+            "column_names": "string",
+            "data_types": "string",
+            "missing_values": "int",
+            "unique_values": "int",
+            "distinct_values": "int",
+            "constant_values": "string",
+        }
+        data_pd.to_csv(fixture_file_path.replace(".csv", "_result.csv"), index=False)
+        expected_profiling = pd.read_csv(
+            fixture_file_path.replace(".csv", "_result.csv"), dtype=dtype_spec
+        )
+
+        data_pd, expected_data_pd = data_pd.align(
+            expected_profiling, join="outer", axis=1
+        )
+        data_pd = data_pd.sort_index(axis=1)
+        expected_data_pd = expected_data_pd.sort_index(axis=1)
+
+        self.assertEqual(data_pd.equals(expected_data_pd), True)
