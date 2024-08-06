@@ -104,10 +104,8 @@ dataset_file_metadata_queue = DatasetsFileMetadataQueue(
 
 def load_file_metadata(file_id: str):
     dataset_file_metadata_queue.enqueue(
+        "generate_file_metadata",
         {
-            "generate_file_metadata",
-            {
-                "file_id": str(file_id),
-            },
-        }
+            "file_id": str(file_id),
+        },
     )
