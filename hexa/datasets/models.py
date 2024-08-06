@@ -255,7 +255,7 @@ class DatasetVersionFile(Base):
 
     @property
     def latest_metadata(self):
-        return self.file_metadata.order_by("-created_at").first()
+        return self.metadata_entries.order_by("-created_at").first()
 
     class Meta:
         ordering = ["uri"]
@@ -284,7 +284,7 @@ class DatasetFileMetadata(Base):
         null=False,
         blank=False,
         on_delete=models.CASCADE,
-        related_name="file_metadata",
+        related_name="metadata_entries",
     )
 
 
