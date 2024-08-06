@@ -174,6 +174,33 @@ describe("ParameterField", () => {
     expect(onChange).toHaveBeenCalledWith(["2"]);
   });
 
+  it("renders a select if param have choices and multiple with default value", async () => {
+    const onChange = jest.fn();
+    const user = userEvent.setup();
+    const param = {
+      code: "choice_param",
+      name: "choice__param",
+      type: "str",
+      default: "a",
+      required: false,
+      choices: ["a", "b", "c"],
+      multiple: true,
+    };
+
+    render(
+      <ParameterField
+        parameter={param}
+        value={param.default}
+        onChange={onChange}
+      />,
+    );
+
+    await user.click(await screen.findByTestId("combobox-button"));
+    await user.click(await screen.findByText("b"));
+
+    expect(onChange).toHaveBeenCalledWith(["a", "b"]);
+  });
+
   it("renders a textarea for param multiple", async () => {
     const onChange = jest.fn();
     const param = {

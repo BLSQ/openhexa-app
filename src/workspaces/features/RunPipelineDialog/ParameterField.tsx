@@ -8,6 +8,7 @@ import { useTranslation } from "next-i18next";
 import WorkspaceConnectionPicker from "../WorkspaceConnectionPicker/WorkspaceConnectionPicker";
 import { isConnectionParameter } from "workspaces/helpers/pipelines";
 import DatasetPicker from "datasets/features/DatasetPicker";
+import { ensureArray } from "core/helpers/array";
 
 type ParameterFieldProps = {
   parameter: any;
@@ -74,7 +75,7 @@ const ParameterField = (props: ParameterFieldProps) => {
     return (
       <Select
         onChange={handleChange}
-        value={value || []}
+        value={parameter.multiple ? ensureArray(value) : value}
         required={Boolean(parameter.required)}
         multiple={parameter.multiple}
         options={choices ?? []}
