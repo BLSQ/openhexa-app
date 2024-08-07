@@ -48,13 +48,21 @@ class FileSystemStorageTest(TestCase):
     def test_bucket_path(self):
         self.assertEqual(
             self.storage.bucket_path("my-bucket", "my-dir/my-subdir/my-file.png"),
-            os.path.join(self.data_directory, "my-bucket/my-dir/my-subdir/my-file.png"),
+            Path(
+                os.path.join(
+                    self.data_directory, "my-bucket/my-dir/my-subdir/my-file.png"
+                )
+            ),
         )
         self.assertEqual(
             self.storage.bucket_path(
                 "my-bucket", "my-dir/../my-dir/my-subdir/my-file.png"
             ),
-            os.path.join(self.data_directory, "my-bucket/my-dir/my-subdir/my-file.png"),
+            Path(
+                os.path.join(
+                    self.data_directory, "my-bucket/my-dir/my-subdir/my-file.png"
+                )
+            ),
         )
 
         with self.assertRaises(self.storage.exceptions.SuspiciousFileOperation):
@@ -134,5 +142,62 @@ class FileSystemStorageTest(TestCase):
             self.storage.save_object(
                 "default-bucket", f"file-{i}.txt", b"Hello, world!"
             )
-        res = self.storage.list_bucket_objects("default-bucket", page=1, per_page=30)
-        print(res)
+        res = self.storage.list_bucket_objects("default-bucket", page=1, per_page=5)
+        self.assertEqual(len(res.items), 5)
+        self.assertEqual(res.has_next_page, True)
+        self.assertEqual(res.has_previous_page, False)
+        self.assertEqual(res.page_number, 1)
+
+        first_item = res.items[0]
+        self.assertEqual(first_item.name, "file-0.txt")
+        self.assertEqual(first_item.type, "file")
+        self.assertEqual(first_item.size, 13)
+        self.assertEqual(first_item.content_type, "text/plain")
+        self.assertEqual(
+            first_item.updated,
+            os.path.getmtime(self.storage.bucket_path("default-bucket", "file-0.txt")),
+        )
+
+        res = self.storage.list_bucket_objects("default-bucket", page=2, per_page=100)
+        self.assertEqual(len(res.items), 0)
+        self.assertEqual(res.has_next_page, False)
+        self.assertEqual(res.has_previous_page, True)
+
+    def test_list_bucket_objects_with_query(self):
+        self.storage.create_bucket("default-bucket")
+        for i in range(100):
+            self.storage.save_object(
+                "default-bucket", f"file-{i}.txt", b"Hello, world!"
+            )
+        self.storage.save_object("default-bucket", "found.txt", b"Hello, world!")
+
+        res_found = self.storage.list_bucket_objects(
+            "default-bucket", query="found", per_page=100
+        )
+
+        self.assertEqual(len(res_found.items), 1)
+        self.assertEqual(res_found.items[0].name, "found.txt")
+
+    def test_list_bucket_objects_with_prefix_and_query(self):
+        self.storage.create_bucket("default-bucket")
+        self.storage.save_object("default-bucket", "prefix/found.txt", b"Hello, world!")
+        self.storage.save_object("default-bucket", "tada/found-2.txt", b"Hello, world!")
+
+        self.assertEqual(
+            0,
+            len(
+                self.storage.list_bucket_objects("default-bucket", query="found").items
+            ),
+        )
+
+        res = self.storage.list_bucket_objects(
+            "default-bucket", prefix="prefix", query="found"
+        )
+        self.assertEqual(len(res.items), 1)
+        self.assertEqual(res.items[0].name, "found.txt")
+
+        res = self.storage.list_bucket_objects(
+            "default-bucket", prefix="tada", query="found"
+        )
+        self.assertEqual(len(res.items), 1)
+        self.assertEqual(res.items[0].name, "found-2.txt")

@@ -31,7 +31,30 @@ class FileSystemStorage(Storage):
         return Path(safe_join(bucket_path, name))
 
     def size(self, name):
-        return os.path.getsize(self.path(name))
+        return os.path.getsize(name)
+
+    def to_storage_object(self, bucket_name: str, object_key: Path):
+        full_path = self.bucket_path(bucket_name, object_key)
+        if not self.exists(full_path):
+            raise self.exceptions.NotFound(f"Object {object_key} not found")
+        if full_path.is_file():
+            return StorageObject(
+                name=object_key.name,
+                key=object_key,
+                updated=os.path.getmtime(full_path),
+                size=self.size(full_path),
+                path=Path(bucket_name) / object_key,
+                type="file",
+                content_type=guess_type(full_path)[0] or "application/octet-stream",
+            )
+        else:
+            return StorageObject(
+                name=object_key.name,
+                key=object_key,
+                updated=os.path.getmtime(full_path),
+                path=Path(bucket_name) / object_key,
+                type="directory",
+            )
 
     def get_valid_filepath(self, path: str | Path):
         """Returns a path where all the directories and the filename are valid.
@@ -97,7 +120,12 @@ class FileSystemStorage(Storage):
         return super().generate_download_url(bucket_name, target_key, force_attachment)
 
     def get_bucket_object(self, bucket_name: str, object_key: str):
-        pass
+        if not self.exists(bucket_name):
+            raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
+        full_path = self.bucket_path(bucket_name, object_key)
+        if not self.exists(full_path):
+            raise self.exceptions.NotFound(f"Object {object_key} not found")
+        return self.to_storage_object(bucket_name, object_key)
 
     def list_bucket_objects(
         self,
@@ -126,28 +154,13 @@ class FileSystemStorage(Storage):
         for dir in dirs:
             if does_object_match(dir) is False:
                 continue
-            objects.append(
-                StorageObject(
-                    name=dir,
-                    key=Path(prefix) / dir,
-                    path=Path(bucket_name) / prefix / dir,
-                    type="directory",
-                )
-            )
+            dir_key = Path(prefix) / dir
+            objects.append(self.to_storage_object(bucket_name, dir_key))
         for file in files:
             if does_object_match(file) is False:
                 continue
             object_key = Path(prefix) / file
-            objects.append(
-                StorageObject(
-                    name=file,
-                    key=object_key,
-                    path=Path(bucket_name) / object_key,
-                    type="file",
-                    size=os.path.getsize(full_path / object_key),
-                    content_type=guess_type(file)[0] or "application/octet-stream",
-                )
-            )
+            objects.append(self.to_storage_object(bucket_name, object_key))
 
         offset = (page - 1) * per_page
         return ObjectsPage(
