@@ -20,11 +20,14 @@ logger = getLogger(__name__)
 
 def download_file_as_dataframe(
     dataset_version_file: DatasetVersionFile,
-) -> pd.DataFrame:
+) -> pd.DataFrame | None:
     mime_type, encoding = mimetypes.guess_type(
         dataset_version_file.filename, strict=False
     )
     download_url = generate_download_url(dataset_version_file)
+    print(
+        f"Downloading file {download_url} for filename : {dataset_version_file.filename}"
+    )
     if mime_type == "text/csv":
         return pd.read_csv(download_url)
     elif (
@@ -38,7 +41,8 @@ def download_file_as_dataframe(
     ):
         return pd.read_parquet(download_url)
     else:
-        raise ValueError(f"Unsupported file format: {dataset_version_file.filename}")
+        logger.info(f"Unsupported file format: {dataset_version_file.filename}")
+        return None
 
 
 def generate_dataset_file_sample_task(
@@ -55,7 +59,7 @@ def generate_dataset_file_sample_task(
         )
         return
 
-    logger.info(f"Creating dataset sample for version file {dataset_version_file_id}")
+    logger.info(f"Creating dataset sample for version file {dataset_version_file.id}")
     try:
         dataset_file_metadata = DatasetFileMetadata.objects.create(
             dataset_version_file=dataset_version_file,
@@ -67,16 +71,19 @@ def generate_dataset_file_sample_task(
 
     try:
         file_content = download_file_as_dataframe(dataset_version_file)
-        if not file_content.empty:
-            random_seed = 22
-            file_sample = file_content.sample(
-                settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
-                random_state=random_seed,
-                replace=True,
-            )
-            dataset_file_metadata.sample = file_sample.to_json(orient="records")
-        else:
+        if file_content is None:
             dataset_file_metadata.sample = json.dumps([])
+        else:
+            if not file_content.empty:
+                random_seed = 22
+                file_sample = file_content.sample(
+                    settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
+                    random_state=random_seed,
+                    replace=True,
+                )
+                dataset_file_metadata.sample = file_sample.to_json(orient="records")
+            else:
+                dataset_file_metadata.sample = json.dumps([])
         logger.info(f"Dataset sample saved for file {dataset_version_file_id}")
         dataset_file_metadata.status = DatasetFileMetadata.STATUS_FINISHED
         dataset_file_metadata.save()
