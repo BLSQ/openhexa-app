@@ -18,6 +18,19 @@ from hexa.datasets.models import (
 logger = getLogger(__name__)
 
 
+def is_supported_mimetype(filename: str) -> bool:
+    supported_mimetypes = [
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel",
+        "application/vnd.apache.parquet",
+        "text/csv",
+    ]
+    supported_extensions = ["parquet"]
+    suffix = filename.split(".")[-1]
+    mime_type, encoding = mimetypes.guess_type(filename, strict=False)
+    return mime_type in supported_mimetypes or suffix in supported_extensions
+
+
 def download_file_as_dataframe(
     dataset_version_file: DatasetVersionFile,
 ) -> pd.DataFrame | None:
@@ -25,9 +38,6 @@ def download_file_as_dataframe(
         dataset_version_file.filename, strict=False
     )
     download_url = generate_download_url(dataset_version_file)
-    print(
-        f"Downloading file {download_url} for filename : {dataset_version_file.filename}"
-    )
     if mime_type == "text/csv":
         return pd.read_csv(download_url)
     elif (
@@ -40,9 +50,6 @@ def download_file_as_dataframe(
         or dataset_version_file.filename.split(".")[-1] == "parquet"
     ):
         return pd.read_parquet(download_url)
-    else:
-        logger.info(f"Unsupported file format: {dataset_version_file.filename}")
-        return None
 
 
 def generate_dataset_file_sample_task(
@@ -59,6 +66,10 @@ def generate_dataset_file_sample_task(
         )
         return
 
+    if not is_supported_mimetype(dataset_version_file.filename):
+        logger.info(f"Unsupported file format: {dataset_version_file.filename}")
+        return
+
     logger.info(f"Creating dataset sample for version file {dataset_version_file.id}")
     try:
         dataset_file_metadata = DatasetFileMetadata.objects.create(
@@ -71,19 +82,16 @@ def generate_dataset_file_sample_task(
 
     try:
         file_content = download_file_as_dataframe(dataset_version_file)
-        if file_content is None:
-            dataset_file_metadata.sample = json.dumps([])
+        if not file_content.empty:
+            random_seed = 22
+            file_sample = file_content.sample(
+                settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
+                random_state=random_seed,
+                replace=True,
+            )
+            dataset_file_metadata.sample = file_sample.to_json(orient="records")
         else:
-            if not file_content.empty:
-                random_seed = 22
-                file_sample = file_content.sample(
-                    settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
-                    random_state=random_seed,
-                    replace=True,
-                )
-                dataset_file_metadata.sample = file_sample.to_json(orient="records")
-            else:
-                dataset_file_metadata.sample = json.dumps([])
+            dataset_file_metadata.sample = json.dumps([])
         logger.info(f"Dataset sample saved for file {dataset_version_file_id}")
         dataset_file_metadata.status = DatasetFileMetadata.STATUS_FINISHED
         dataset_file_metadata.save()
