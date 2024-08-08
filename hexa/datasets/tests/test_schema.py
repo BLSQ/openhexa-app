@@ -477,15 +477,17 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             dataset_version_file=file,
             sample=json.dumps({"key": "value"}),
             profiling=json.dumps(
-                {
-                    "column_names": "key",
-                    "data_types": "float64",
-                    "missing_values": 0,
-                    "null_values": 0,
-                    "distinct_values": 1,
-                    "unique_values": 1,
-                    "constant_values": False,
-                }
+                [
+                    {
+                        "column_names": "key",
+                        "data_types": "float64",
+                        "missing_values": 0,
+                        "null_values": 0,
+                        "distinct_values": 1,
+                        "unique_values": 1,
+                        "constant_values": False,
+                    }
+                ]
             ),
             status=DatasetFileMetadata.STATUS_PROCESSING,
         )
@@ -512,6 +514,50 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                         "status": metadata.status,
                         "sample": metadata.sample,
                         "profiling": metadata.profiling,
+                    },
+                }
+            },
+            r["data"],
+        )
+
+    def test_get_file_metadata_fail(self):
+        self.test_create_dataset_version()
+        superuser = User.objects.get(email="superuser@blsq.com")
+        dataset = Dataset.objects.get(name="Dataset")
+        self.client.force_login(superuser)
+        file = DatasetVersionFile.objects.create(
+            dataset_version=dataset.latest_version,
+            uri=dataset.latest_version.get_full_uri("file.csv"),
+            created_by=superuser,
+        )
+        metadata = DatasetFileMetadata.objects.create(
+            dataset_version_file=file,
+            sample=json.dumps({}),
+            profiling=json.dumps([]),
+            status=DatasetFileMetadata.STATUS_FAILED,
+            status_reason="ParserError: Error tokenizing data",
+        )
+        r = self.run_query(
+            """
+                    query GetDatasetVersionFile($id: ID!) {
+                      datasetVersionFile(id: $id) {
+                        filename
+                        fileMetadata {
+                          status
+                          status_reason
+                        }
+                      }
+                    }
+        """,
+            {"id": str(file.id)},
+        )
+        self.assertEqual(
+            {
+                "datasetVersionFile": {
+                    "filename": file.filename,
+                    "fileMetadata": {
+                        "status": metadata.status,
+                        "status_reason": metadata.status_reason,
                     },
                 }
             },
