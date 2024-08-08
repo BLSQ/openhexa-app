@@ -211,7 +211,8 @@ def resolve_version_permissions_delete(obj: DatasetVersion, info, **kwargs):
 @dataset_version_file_result_object.field("uploadUrl")
 def resolve_upload_url(obj, info, **kwargs):
     try:
-        upload_url = generate_upload_url(obj.uri, obj.content_type)
+        file = obj["file"]
+        upload_url = generate_upload_url(file.uri, file.content_type)
         return upload_url
     except BucketObjectAlreadyExists as exc:
         logging.error(f"Upload URL generation failed: {exc.message}")
@@ -234,5 +235,6 @@ bindables = [
     dataset_version_permissions,
     dataset_link_permissions,
     dataset_version_file_object,
+    dataset_version_file_result_object,
     dataset_link_object,
 ]
