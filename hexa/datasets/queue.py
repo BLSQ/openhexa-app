@@ -52,31 +52,31 @@ def download_file_as_dataframe(
         return pd.read_parquet(download_url)
 
 
-def normalize_data(data):
-    for key, value in data.items():
-        for i, item in enumerate(value):
-            if isinstance(item, list):
-                data[key][i] = {f"item_{j}": item[j] for j in range(len(item))}
-    return data
+def metadata_profiling(file_content: pd.DataFrame) -> list:
+    for col in file_content.select_dtypes(include=["object"]).columns:
+        file_content[col] = file_content[col].astype("string")
 
+    data_types = file_content.dtypes.apply(str).to_dict()
+    missing_values = file_content.isnull().sum().to_dict()
+    unique_values = file_content.nunique().to_dict()
+    distinct_values = file_content.apply(lambda x: x.nunique(dropna=False)).to_dict()
+    constant_values = (
+        file_content.apply(lambda x: x.nunique() == 1).astype("bool").to_dict()
+    )
 
-def metadata_profiling(file_content: pd.DataFrame) -> dict[str, str]:
-    file_content[
-        file_content.select_dtypes(["object"]).columns
-    ] = file_content.select_dtypes(["object"]).astype("string")
+    metadata_per_column = [
+        {
+            "column_names": column,
+            "data_types": data_types.get(column, "-"),
+            "missing_values": missing_values.get(column, "-"),
+            "unique_values": unique_values.get(column, "-"),
+            "distinct_values": distinct_values.get(column, "-"),
+            "constant_values": constant_values.get(column, "-"),
+        }
+        for column in file_content.columns
+    ]
 
-    profiling = {
-        "column_names": file_content.columns.to_series(),
-        "data_types": file_content.dtypes.apply(str),
-        "missing_values": file_content.isnull().sum(),
-        "unique_values": file_content.nunique(),
-        "distinct_values": file_content.apply(lambda x: x.nunique(dropna=False)),
-        "constant_values": file_content.apply(lambda x: x.nunique() == 1).astype(
-            "bool"
-        ),
-    }
-    profiling_as_json = {key: val.to_json() for key, val in profiling.items()}
-    return profiling_as_json
+    return metadata_per_column
 
 
 def generate_dataset_file_sample_task(
