@@ -25,11 +25,11 @@ attrs==24.2.0
     # via
     #   morecantile
     #   rasterio
-boto3==1.34.155
+boto3==1.34.156
     # via
     #   -r requirements.in
     #   moto
-botocore==1.34.155
+botocore==1.34.156
     # via
     #   boto3
     #   moto
@@ -108,7 +108,6 @@ geopandas==1.0.1
     # via -r requirements.in
 google-api-core[grpc]==2.19.1
     # via
-    #   google-api-core
     #   google-cloud-appengine-logging
     #   google-cloud-core
     #   google-cloud-iam
