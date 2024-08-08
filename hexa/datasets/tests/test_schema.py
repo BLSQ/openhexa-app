@@ -476,6 +476,17 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         metadata = DatasetFileMetadata.objects.create(
             dataset_version_file=file,
             sample=json.dumps({"key": "value"}),
+            profiling=json.dumps(
+                {
+                    "column_names": "key",
+                    "data_types": "float64",
+                    "missing_values": 0,
+                    "null_values": 0,
+                    "distinct_values": 1,
+                    "unique_values": 1,
+                    "constant_values": False,
+                }
+            ),
             status=DatasetFileMetadata.STATUS_PROCESSING,
         )
         r = self.run_query(
@@ -486,6 +497,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                         fileMetadata {
                           status
                           sample
+                          profiling
                         }
                       }
                     }
@@ -499,6 +511,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                     "fileMetadata": {
                         "status": metadata.status,
                         "sample": metadata.sample,
+                        "profiling": metadata.profiling,
                     },
                 }
             },

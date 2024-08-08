@@ -104,8 +104,10 @@ enum FileMetadataStatus{
 Metadata for dataset file
 """
 type DatasetFileMetadata {
-    sample: JSON!
+    sample: JSON
+    profiling: JSON
     status: FileMetadataStatus!
+    status_reason: String
 }
 
 """
