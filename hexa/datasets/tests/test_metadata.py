@@ -181,7 +181,7 @@ class TestFileFillMetadata(TestCase):
         mock_DatasetFileMetadata_create,
         mock_DatasetVersionFile_get,
     ):
-        filenames = ["example_names.csv", "senegal_rural_raw.csv"]
+        filenames = ["example_names_with_age.csv", "senegal_rural_raw.csv"]
         for filename in filenames:
             dataset_version_file = mock.Mock()
             dataset_version_file.id = 1
