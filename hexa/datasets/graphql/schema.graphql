@@ -333,7 +333,7 @@ type CreateDatasetVersionFileResult {
   "The created file object"
   file: DatasetVersionFile
   "The URL to upload the file to"
-  uploadUrl: String @deprecated(reason: "moved to dedicated generateDatasetUploadUrl mutation")
+  uploadUrl: String! @deprecated(reason: "moved to dedicated generateDatasetUploadUrl mutation")
   success: Boolean!
   errors: [CreateDatasetVersionFileError!]!
 }
