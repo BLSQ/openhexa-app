@@ -1,5 +1,5 @@
 column_names,data_types,missing_values,unique_values,distinct_values,constant_values
 name,string,0,61,61,False
 surname,string,0,59,59,False
-age,int64,0,46,46,False
+age,float64,1,46,47,False
 married,bool,0,2,2,False

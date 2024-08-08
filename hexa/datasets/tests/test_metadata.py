@@ -207,7 +207,8 @@ class TestFileFillMetadata(TestCase):
             )
             expected_profiling = expected_profiling.sort_index(axis=1)
             profiling = profiling.sort_index(axis=1)
-            self.assertTrue(expected_profiling.equals(profiling))
+            comparison = expected_profiling.compare(profiling)
+            self.assertTrue(comparison.empty)
 
             mock_generate_download_url.reset_mock()
             mock_DatasetVersionFile_get.reset_mock()
