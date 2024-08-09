@@ -5,6 +5,8 @@ from mimetypes import guess_type
 from pathlib import Path
 
 from django.core.files import locks
+from django.core.signing import BadSignature, TimestampSigner
+from django.urls import reverse
 from django.utils._os import safe_join
 from django.utils.text import get_valid_filename
 
@@ -87,6 +89,26 @@ class FileSystemStorage(Storage):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
         return shutil.rmtree(self.path(bucket_name))
 
+    def get_bucket_object_by_token(self, token: str):
+        try:
+            signer = TimestampSigner()
+            decoded_value = signer.unsign(token, max_age=60 * 60)
+            return self.get_bucket_object(
+                decoded_value["bucket_name"], decoded_value["target_key"]
+            )
+        except (UnicodeDecodeError, BadSignature):
+            raise self.exceptions.BadRequest("Invalid token")
+
+    def save_object_by_token(self, token: str, file: io.BufferedReader):
+        try:
+            signer = TimestampSigner()
+            decoded_value = signer.unsign(token, max_age=60 * 60)
+            self.save_object(
+                decoded_value["bucket_name"], decoded_value["target_key"], file
+            )
+        except (UnicodeDecodeError, BadSignature):
+            raise self.exceptions.BadRequest("Invalid token")
+
     def save_object(
         self, bucket_name: str, file_path: str, file: io.BufferedReader | bytes
     ):
@@ -117,7 +139,18 @@ class FileSystemStorage(Storage):
     def generate_download_url(
         self, bucket_name: str, target_key: str, force_attachment=False
     ):
-        return super().generate_download_url(bucket_name, target_key, force_attachment)
+        if not self.exists(bucket_name):
+            raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
+        full_path = self.bucket_path(bucket_name, target_key)
+        if not self.exists(full_path):
+            raise self.exceptions.NotFound(f"Object {target_key} not found")
+
+        signer = TimestampSigner()
+        token = signer.sign_object(
+            {"bucket_name": bucket_name, "target_key": target_key}
+        )
+        b64_token = signer.signature(token)
+        return reverse("files:download_file", token=b64_token)
 
     def get_bucket_object(self, bucket_name: str, object_key: str):
         if not self.exists(bucket_name):

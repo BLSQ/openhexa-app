@@ -8,6 +8,10 @@ from os.path import dirname, isfile, join
 from .exceptions import AlreadyExists, NotFound, SuspiciousFileOperation
 
 
+class BadRequest(Exception):
+    pass
+
+
 @dataclass
 class ObjectsPage:
     items: typing.List[any]
@@ -44,6 +48,7 @@ class StorageObject:
 
 class Storage(ABC):
     class exceptions:
+        BadRequest = BadRequest
         NotFound = NotFound
         AlreadyExists = AlreadyExists
         SuspiciousFileOperation = SuspiciousFileOperation
