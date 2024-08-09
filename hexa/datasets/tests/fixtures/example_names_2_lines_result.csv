@@ -1,3 +1,0 @@
-column_names,data_types,missing_values,unique_values,distinct_values,constant_values
-name,string,0,2,2,False
-surname,string,0,2,2,False

@@ -544,7 +544,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                         filename
                         fileMetadata {
                           status
-                          status_reason
+                          statusReason
                         }
                       }
                     }
@@ -557,7 +557,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                     "filename": file.filename,
                     "fileMetadata": {
                         "status": metadata.status,
-                        "status_reason": metadata.status_reason,
+                        "statusReason": metadata.status_reason,
                     },
                 }
             },

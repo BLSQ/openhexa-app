@@ -1,4 +1,4 @@
-column_names,data_types,missing_values,unique_values,distinct_values,constant_values
+column_name,data_type,missing_values,unique_values,distinct_values,constant_values
 caseid,string,0,3141,3141,False
 survey,string,0,2,2,False
 strata,string,0,1,1,True

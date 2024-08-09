@@ -107,7 +107,7 @@ type DatasetFileMetadata {
     sample: JSON
     profiling: JSON
     status: FileMetadataStatus!
-    status_reason: String
+    statusReason: String
 }
 
 """

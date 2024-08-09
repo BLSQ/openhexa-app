@@ -39,6 +39,7 @@ def download_file_as_dataframe(
     )
     download_url = generate_download_url(dataset_version_file)
     if mime_type == "text/csv":
+        # low_memory is set to False for datatype guessing
         return pd.read_csv(download_url, low_memory=False)
     elif (
         mime_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -52,28 +53,28 @@ def download_file_as_dataframe(
         return pd.read_parquet(download_url)
 
 
-def metadata_profiling(file_content: pd.DataFrame) -> list:
-    for col in file_content.select_dtypes(include=["object"]).columns:
-        file_content[col] = file_content[col].astype("string")
+def metadata_profiling(dataframe: pd.DataFrame) -> list:
+    for col in dataframe.select_dtypes(include=["object"]).columns:
+        dataframe[col] = dataframe[col].astype("string")
 
-    data_types = file_content.dtypes.apply(str).to_dict()
-    missing_values = file_content.isnull().sum().to_dict()
-    unique_values = file_content.nunique().to_dict()
-    distinct_values = file_content.apply(lambda x: x.nunique(dropna=False)).to_dict()
+    data_types = dataframe.dtypes.apply(str).to_dict()
+    missing_values = dataframe.isnull().sum().to_dict()
+    unique_values = dataframe.nunique().to_dict()
+    distinct_values = dataframe.apply(lambda x: x.nunique(dropna=False)).to_dict()
     constant_values = (
-        file_content.apply(lambda x: x.nunique() == 1).astype("bool").to_dict()
+        dataframe.apply(lambda x: x.nunique() == 1).astype("bool").to_dict()
     )
 
     metadata_per_column = [
         {
-            "column_names": column,
-            "data_types": data_types.get(column, "-"),
-            "missing_values": missing_values.get(column, "-"),
-            "unique_values": unique_values.get(column, "-"),
-            "distinct_values": distinct_values.get(column, "-"),
-            "constant_values": constant_values.get(column, "-"),
+            "column_name": column,
+            "data_type": data_types.get(column),
+            "missing_values": missing_values.get(column),
+            "unique_values": unique_values.get(column),
+            "distinct_values": distinct_values.get(column),
+            "constant_values": constant_values.get(column),
         }
-        for column in file_content.columns
+        for column in dataframe.columns
     ]
 
     return metadata_per_column

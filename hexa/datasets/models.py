@@ -271,7 +271,7 @@ class DatasetFileMetadata(Base):
         (STATUS_FAILED, _("Failed")),
         (STATUS_FINISHED, _("Finished")),
     ]
-    profiling = JSONField(default=dict, null=True, blank=True)
+    profiling = JSONField(default=None, null=True, blank=True)
     sample = JSONField(blank=True, default=list, null=True)
     status = models.CharField(
         max_length=10,
