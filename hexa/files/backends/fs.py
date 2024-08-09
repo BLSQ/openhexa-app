@@ -14,8 +14,8 @@ from .base import ObjectsPage, Storage, StorageObject
 
 
 class FileSystemStorage(Storage):
-    def __init__(self, location, prefix=""):
-        self.location = Path(location)
+    def __init__(self, folder, prefix=""):
+        self.location = Path(folder)
         self.prefix = prefix  # TODO: Use the prefix here to create the bucket path and not in workspace model
 
     def exists(self, name):
@@ -136,22 +136,6 @@ class FileSystemStorage(Storage):
         self.create_directory(f"{bucket_name}/{folder_key}")
         return folder_key
 
-    def generate_download_url(
-        self, bucket_name: str, target_key: str, force_attachment=False
-    ):
-        if not self.exists(bucket_name):
-            raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
-        full_path = self.bucket_path(bucket_name, target_key)
-        if not self.exists(full_path):
-            raise self.exceptions.NotFound(f"Object {target_key} not found")
-
-        signer = TimestampSigner()
-        token = signer.sign_object(
-            {"bucket_name": bucket_name, "target_key": target_key}
-        )
-        b64_token = signer.signature(token)
-        return reverse("files:download_file", token=b64_token)
-
     def get_bucket_object(self, bucket_name: str, object_key: str):
         if not self.exists(bucket_name):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
@@ -213,9 +197,34 @@ class FileSystemStorage(Storage):
         content_type: str,
         raise_if_exists=False,
     ):
-        return super().generate_upload_url(
-            bucket_name, target_key, content_type, raise_if_exists
+        if not self.exists(bucket_name):
+            raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
+        full_path = self.bucket_path(bucket_name, target_key)
+        if self.exists(full_path) and raise_if_exists:
+            raise self.exceptions.AlreadyExists(f"Object {target_key} already exist")
+
+        signer = TimestampSigner()
+        token = signer.sign_object(
+            {"bucket_name": bucket_name, "target_key": target_key}
         )
+        b64_token = signer.signature(token)
+        return reverse("files:upload_file", args=(b64_token,))
+
+    def generate_download_url(
+        self, bucket_name: str, target_key: str, force_attachment=False
+    ):
+        if not self.exists(bucket_name):
+            raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
+        full_path = self.bucket_path(bucket_name, target_key)
+        if not self.exists(full_path):
+            raise self.exceptions.NotFound(f"Object {target_key} not found")
+
+        signer = TimestampSigner()
+        token = signer.sign_object(
+            {"bucket_name": bucket_name, "target_key": target_key}
+        )
+        b64_token = signer.signature(token)
+        return reverse("files:download_file", args=(b64_token,))
 
     def get_token_as_env_variables(self, token):
         return super().get_token_as_env_variables(token)
