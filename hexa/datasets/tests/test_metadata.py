@@ -1,6 +1,8 @@
+import json
 import os
 from unittest import mock
 
+import pandas as pd
 from pandas.errors import ParserError
 
 from hexa.core.test import TestCase
@@ -167,3 +169,48 @@ class TestCreateDatasetFileMetadataTask(TestCase):
         self.assertEqual(
             dataset_file_metadata.status_reason, "No columns to parse from file"
         )
+
+
+class TestFileFillMetadata(TestCase):
+    @mock.patch("hexa.datasets.queue.DatasetVersionFile.objects.get")
+    @mock.patch("hexa.datasets.queue.DatasetFileMetadata.objects.create")
+    @mock.patch("hexa.datasets.queue.generate_download_url")
+    def test_fill_in_metadata(
+        self,
+        mock_generate_download_url,
+        mock_DatasetFileMetadata_create,
+        mock_DatasetVersionFile_get,
+    ):
+        filenames = ["example_names_with_age.csv", "senegal_rural_raw.csv"]
+        for filename in filenames:
+            dataset_version_file = mock.Mock()
+            dataset_version_file.id = 1
+            dataset_version_file.filename = f"{filename}"
+            mock_DatasetVersionFile_get.return_value = dataset_version_file
+
+            dataset_file_metadata = mock.Mock()
+            mock_DatasetFileMetadata_create.return_value = dataset_file_metadata
+
+            fixture_file_path = os.path.join(
+                os.path.dirname(__file__), f"./fixtures/{filename}"
+            )
+            mock_generate_download_url.return_value = fixture_file_path
+
+            job = mock.Mock()
+            job.args = {"file_id": dataset_version_file.id}
+
+            generate_dataset_file_sample_task(mock.Mock(), job)
+            metadata_profiling = json.loads(dataset_file_metadata.profiling)
+            profiling = pd.DataFrame(metadata_profiling)
+            expected_profiling = pd.read_csv(
+                fixture_file_path.replace(".csv", "_profiling.csv")
+            )
+            expected_profiling = expected_profiling.sort_index(axis=1)
+            profiling = profiling.sort_index(axis=1)
+            comparison = expected_profiling.compare(profiling)
+            self.assertTrue(comparison.empty)
+
+            mock_generate_download_url.reset_mock()
+            mock_DatasetVersionFile_get.reset_mock()
+            mock_DatasetFileMetadata_create.reset_mock()
+            dataset_file_metadata.save.reset_mock()

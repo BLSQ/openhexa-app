@@ -39,7 +39,8 @@ def download_file_as_dataframe(
     )
     download_url = generate_download_url(dataset_version_file)
     if mime_type == "text/csv":
-        return pd.read_csv(download_url)
+        # low_memory is set to False for datatype guessing
+        return pd.read_csv(download_url, low_memory=False)
     elif (
         mime_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         or mime_type == "application/vnd.ms-excel"
@@ -50,6 +51,33 @@ def download_file_as_dataframe(
         or dataset_version_file.filename.split(".")[-1] == "parquet"
     ):
         return pd.read_parquet(download_url)
+
+
+def metadata_profiling(dataframe: pd.DataFrame) -> list:
+    for col in dataframe.select_dtypes(include=["object"]).columns:
+        dataframe[col] = dataframe[col].astype("string")
+
+    data_types = dataframe.dtypes.apply(str).to_dict()
+    missing_values = dataframe.isnull().sum().to_dict()
+    unique_values = dataframe.nunique().to_dict()
+    distinct_values = dataframe.apply(lambda x: x.nunique(dropna=False)).to_dict()
+    constant_values = (
+        dataframe.apply(lambda x: x.nunique() == 1).astype("bool").to_dict()
+    )
+
+    metadata_per_column = [
+        {
+            "column_name": column,
+            "data_type": data_types.get(column),
+            "missing_values": missing_values.get(column),
+            "unique_values": unique_values.get(column),
+            "distinct_values": distinct_values.get(column),
+            "constant_values": constant_values.get(column),
+        }
+        for column in dataframe.columns
+    ]
+
+    return metadata_per_column
 
 
 def generate_dataset_file_sample_task(
@@ -90,6 +118,9 @@ def generate_dataset_file_sample_task(
                 replace=True,
             )
             dataset_file_metadata.sample = file_sample.to_json(orient="records")
+            dataset_file_metadata.profiling = json.dumps(
+                metadata_profiling(file_content)
+            )
         else:
             dataset_file_metadata.sample = json.dumps([])
         logger.info(f"Dataset sample saved for file {dataset_version_file_id}")
