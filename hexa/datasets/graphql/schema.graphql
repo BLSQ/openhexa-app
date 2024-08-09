@@ -92,6 +92,23 @@ type DatasetVersionPermissions {
 }
 
 """
+Statuses that can occur when generating file metadata
+"""
+enum FileMetadataStatus{
+    PROCESSING,
+    FAILED,
+    FINISHED
+}
+
+"""
+Metadata for dataset file
+"""
+type DatasetFileMetadata {
+    sample: JSON!
+    status: FileMetadataStatus!
+}
+
+"""
 A file in a dataset version.
 """
 type DatasetVersionFile {
@@ -101,6 +118,7 @@ type DatasetVersionFile {
   createdAt: DateTime!
   createdBy: User
   contentType: String!
+  fileMetadata: DatasetFileMetadata
 }
 
 """
@@ -315,7 +333,7 @@ type CreateDatasetVersionFileResult {
   "The created file object"
   file: DatasetVersionFile
   "The URL to upload the file to"
-  uploadUrl: String @deprecated(reason: "moved to dedicated generateDatasetUploadUrl mutation")
+  uploadUrl: String! @deprecated(reason: "moved to dedicated generateDatasetUploadUrl mutation")
   success: Boolean!
   errors: [CreateDatasetVersionFileError!]!
 }
@@ -429,6 +447,8 @@ extend type Query {
   dataset(id: ID!): Dataset
   "Get a dataset by its slug."
   datasetVersion(id: ID!): DatasetVersion
+  "Get a dataset file by its id "
+  datasetVersionFile(id: ID!): DatasetVersionFile
   "Get a dataset link by its id."
   datasetLink(id: ID!): DatasetLink
   "Get a dataset link by its slug."
@@ -436,6 +456,7 @@ extend type Query {
   "Search datasets."
   datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
 }
+
 
 extend type Mutation {
   "Create a new dataset."
@@ -461,3 +482,4 @@ extend type Mutation {
   "Pin or unpin a dataset for a workspace."
   pinDataset(input: PinDatasetInput!): PinDatasetResult! @loginRequired
 }
+

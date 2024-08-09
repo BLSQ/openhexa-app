@@ -378,6 +378,9 @@ WORKSPACE_STORAGE_ENGINE_AWS_BUCKET_REGION = os.environ.get(
 
 # Datasets config
 WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET")
+WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE = os.environ.get(
+    "WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE", 50
+)
 
 # Base64 encoded service account key
 # To generate a service account key, follow the instructions here:
