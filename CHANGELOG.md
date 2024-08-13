@@ -1,5 +1,58 @@
 # Changelog
 
+## 0.71.8 (2024-08-13)
+
+## What's Changed
+* chore: remove datasets feature flag by @cheikhgwane in https://github.com/BLSQ/openhexa-app/pull/720
+* fix(Datasets): use dataset last version to track update by @cheikhgwane in https://github.com/BLSQ/openhexa-app/pull/724
+* chore(deps): update dependency cachetools to v5.3.3 by @renovate in https://github.com/BLSQ/openhexa-app/pull/731
+* chore(deps): update dependency croniter to v2.0.5 by @renovate in https://github.com/BLSQ/openhexa-app/pull/732
+* chore(deps): update dependency google-cloud-appengine-logging to v1.4.3 by @renovate in https://github.com/BLSQ/openhexa-app/pull/739
+* chore(main): release 0.71.7 by @qgerome in https://github.com/BLSQ/openhexa-app/pull/740
+* chore(deps): update dependency moto to v4.2.14 by @renovate in https://github.com/BLSQ/openhexa-app/pull/745
+* chore(deps): update dependency markupsafe to v2.1.5 by @renovate in https://github.com/BLSQ/openhexa-app/pull/744
+* chore(deps): update dependency fiona to v1.9.6 by @renovate in https://github.com/BLSQ/openhexa-app/pull/737
+* chore(deps): update dependency cryptography to v42.0.8 - autoclosed by @renovate in https://github.com/BLSQ/openhexa-app/pull/734
+* chore(deps): update dependency django to v5.0.6 by @renovate in https://github.com/BLSQ/openhexa-app/pull/735
+* chore(deps): update dependency grpc-google-iam-v1 to v0.13.1 by @renovate in https://github.com/BLSQ/openhexa-app/pull/742
+* fix(Dev): Upgrade dockerpy to fix the pipelines runner in dev by @qgerome in https://github.com/BLSQ/openhexa-app/pull/743
+* chore(deps): update actions/cache action to v4 by @renovate in https://github.com/BLSQ/openhexa-app/pull/750
+* chore(deps): update docker/setup-buildx-action action to v3 by @renovate in https://github.com/BLSQ/openhexa-app/pull/755
+* chore(deps): update docker/build-push-action action to v6 by @renovate in https://github.com/BLSQ/openhexa-app/pull/753
+* chore(deps): update docker/login-action action to v3 by @renovate in https://github.com/BLSQ/openhexa-app/pull/754
+* chore(deps): update actions/setup-python action to v5 by @renovate in https://github.com/BLSQ/openhexa-app/pull/752
+* fix(Dev): pin requests version to 2.31.0 by @cheikhgwane in https://github.com/BLSQ/openhexa-app/pull/759
+* chore(deps): update docker/setup-qemu-action action to v3 by @renovate in https://github.com/BLSQ/openhexa-app/pull/756
+* chore(deps): update pre-commit/action action to v3.0.1 by @renovate in https://github.com/BLSQ/openhexa-app/pull/746
+* chore(deps): bump certifi from 2023.11.17 to 2024.7.4 by @dependabot in https://github.com/BLSQ/openhexa-app/pull/763
+* chore(deps): update reproducible-containers/buildkit-cache-dance action to v3 by @renovate in https://github.com/BLSQ/openhexa-app/pull/758
+* feat : add mixpanel tracking by @cheikhgwane in https://github.com/BLSQ/openhexa-app/pull/764
+* feat(Dataset): generate upload url independetly by @nazarfil in https://github.com/BLSQ/openhexa-app/pull/717
+* chore(deps): update dependency django to v5.0.7 [security] by @renovate in https://github.com/BLSQ/openhexa-app/pull/767
+* fix(CORS): Allow objects to be uploaded & download from everywhere by @qgerome in https://github.com/BLSQ/openhexa-app/pull/768
+* chore(deps): update dependency requests to v2.32.2 [security] by @renovate in https://github.com/BLSQ/openhexa-app/pull/760
+* chore(deps): update actions/checkout action to v4 by @renovate in https://github.com/BLSQ/openhexa-app/pull/751
+* chore(deps): update dependency boto3 to v1.34.144 by @renovate in https://github.com/BLSQ/openhexa-app/pull/747
+* chore(deps): update dependency requests to v2.32.3 by @renovate in https://github.com/BLSQ/openhexa-app/pull/769
+* chore(deps): refresh pip-compile outputs by @renovate in https://github.com/BLSQ/openhexa-app/pull/748
+* chore(deps): update dependency boto3 to v1.34.145 by @renovate in https://github.com/BLSQ/openhexa-app/pull/772
+* chore(deps): update python docker tag to v3.12 by @renovate in https://github.com/BLSQ/openhexa-app/pull/749
+* feat(Analytics): add an analytics module by @cheikhgwane in https://github.com/BLSQ/openhexa-app/pull/773
+* feat(Dataset): add initial background queue, task, work and trigger t… by @nazarfil in https://github.com/BLSQ/openhexa-app/pull/719
+* chore(deps): update dependency boto3 to v1.34.151 by @renovate in https://github.com/BLSQ/openhexa-app/pull/775
+* chore(deps): refresh pip-compile outputs by @renovate in https://github.com/BLSQ/openhexa-app/pull/774
+* feat(Databases): better count of databases tables rows by @cheikhgwane in https://github.com/BLSQ/openhexa-app/pull/777
+* chore(deps): update dependency boto3 to v1.34.155 by @renovate in https://github.com/BLSQ/openhexa-app/pull/778
+* chore(deps): refresh pip-compile outputs by @renovate in https://github.com/BLSQ/openhexa-app/pull/779
+* chore(deps): update dependency boto3 to v1.34.156 by @renovate in https://github.com/BLSQ/openhexa-app/pull/780
+* Feat background task nf by @nazarfil in https://github.com/BLSQ/openhexa-app/pull/765
+* chore(deps): update dependency boto3 to v1.34.157 by @renovate in https://github.com/BLSQ/openhexa-app/pull/782
+* chore(deps): update dependency boto3 to v1.34.158 by @renovate in https://github.com/BLSQ/openhexa-app/pull/783
+* chore(deps): update dependency boto3 to v1.34.159 by @renovate in https://github.com/BLSQ/openhexa-app/pull/785
+
+
+**Full Changelog**: https://github.com/BLSQ/openhexa-app/compare/0.71.6...0.71.8
+
 ## [0.71.7](https://github.com/BLSQ/openhexa-app/compare/0.71.6...0.71.7) (2024-06-27)
 
 
