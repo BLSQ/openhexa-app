@@ -3,6 +3,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 
 from hexa.files import storage
+from hexa.files.backends.base import StorageObject
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
@@ -79,8 +80,8 @@ bucket_object_object.set_alias("updatedAt", "updated")
 
 
 @bucket_object_object.field("type")
-def resolve_object_type(obj, info):
-    return obj["type"].upper()
+def resolve_object_type(obj: StorageObject, info):
+    return obj.type.upper()
 
 
 bindables = [bucket_object, bucket_object_object]

@@ -6,19 +6,13 @@ import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from google.cloud import storage
-from google.cloud.exceptions import Conflict
+from google.cloud.exceptions import Conflict, NotFound
 from google.cloud.iam_credentials_v1 import IAMCredentialsClient
 from google.cloud.storage.blob import Blob
 from google.oauth2 import service_account
 from google.protobuf import duration_pb2
 
-from .base import (
-    NotFound,
-    ObjectsPage,
-    Storage,
-    StorageObject,
-    load_bucket_sample_data_with,
-)
+from .base import ObjectsPage, Storage, StorageObject, load_bucket_sample_data_with
 
 
 def get_credentials():
@@ -92,8 +86,20 @@ def ensure_is_folder(object_key: str):
 
 
 class GoogleCloudStorage(Storage):
+    def bucket_exists(self, bucket_name: str):
+        try:
+            get_storage_client().get_bucket(bucket_name)
+            return True
+        except NotFound:
+            return False
+
     def create_bucket(self, bucket_name: str, labels: dict = None, *args, **kwargs):
         client = get_storage_client()
+
+        if self.bucket_exists(bucket_name):
+            raise self.exception.AlreadyExists(
+                f"GCS: Bucket {bucket_name} already exists!"
+            )
         try:
             bucket = client.create_bucket(
                 bucket_name, location=settings.WORKSPACE_BUCKET_REGION
@@ -217,7 +223,7 @@ class GoogleCloudStorage(Storage):
         bucket = client.get_bucket(bucket_name)
         object = bucket.get_blob(object_key)
         if object is None:
-            raise NotFound("Object not found")
+            raise self.exceptions.NotFound("Object not found")
 
         return _blob_to_obj(object)
 

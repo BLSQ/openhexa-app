@@ -1,6 +1,7 @@
 import io
 import os
 import shutil
+from datetime import datetime
 from mimetypes import guess_type
 from pathlib import Path
 
@@ -10,13 +11,19 @@ from django.urls import reverse
 from django.utils._os import safe_join
 from django.utils.text import get_valid_filename
 
-from .base import ObjectsPage, Storage, StorageObject
+from .base import ObjectsPage, Storage, StorageObject, load_bucket_sample_data_with
 
 
 class FileSystemStorage(Storage):
     def __init__(self, folder, prefix=""):
         self.location = Path(folder)
         self.prefix = prefix  # TODO: Use the prefix here to create the bucket path and not in workspace model
+
+    def load_bucket_sample_data(self, bucket_name: str):
+        load_bucket_sample_data_with(bucket_name, self)
+
+    def bucket_exists(self, bucket_name: str):
+        return self.exists(bucket_name)
 
     def exists(self, name):
         try:
@@ -43,17 +50,21 @@ class FileSystemStorage(Storage):
             return StorageObject(
                 name=object_key.name,
                 key=object_key,
-                updated=os.path.getmtime(full_path),
+                updated=datetime.fromtimestamp(
+                    os.path.getmtime(str(full_path))
+                ).isoformat(),
                 size=self.size(full_path),
                 path=Path(bucket_name) / object_key,
                 type="file",
                 content_type=guess_type(full_path)[0] or "application/octet-stream",
             )
         else:
+            print("THIS IS A DIR", flush=True)
+            print(object_key, full_path, flush=True)
             return StorageObject(
                 name=object_key.name,
                 key=object_key,
-                updated=os.path.getmtime(full_path),
+                updated=datetime.fromtimestamp(os.path.getmtime(str(full_path))),
                 path=Path(bucket_name) / object_key,
                 type="directory",
             )
@@ -134,7 +145,7 @@ class FileSystemStorage(Storage):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
         folder_key = self.get_valid_filepath(folder_key)
         self.create_directory(f"{bucket_name}/{folder_key}")
-        return folder_key
+        return self.get_bucket_object(bucket_name, folder_key)
 
     def get_bucket_object(self, bucket_name: str, object_key: str):
         if not self.exists(bucket_name):
@@ -142,7 +153,7 @@ class FileSystemStorage(Storage):
         full_path = self.bucket_path(bucket_name, object_key)
         if not self.exists(full_path):
             raise self.exceptions.NotFound(f"Object {object_key} not found")
-        return self.to_storage_object(bucket_name, object_key)
+        return self.to_storage_object(bucket_name, Path(object_key))
 
     def list_bucket_objects(
         self,
@@ -186,6 +197,16 @@ class FileSystemStorage(Storage):
             has_previous_page=page > 1,
             has_next_page=len(objects) > page * per_page,
         )
+
+    def delete_object(self, bucket_name: str, object_key: str):
+        full_path = self.bucket_path(bucket_name, object_key)
+        if not self.exists(full_path):
+            raise self.exceptions.NotFound(f"Object {object_key} not found")
+        obj = self.get_bucket_object(bucket_name, object_key)
+        if obj.type == "directory":
+            shutil.rmtree(full_path)
+        else:
+            os.remove(full_path)
 
     def get_short_lived_downscoped_access_token(self, bucket_name):
         return super().get_short_lived_downscoped_access_token(bucket_name)

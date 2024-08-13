@@ -24,7 +24,7 @@ def load_bucket_sample_data_with(bucket_name: str, client_storage):
     """
     Init bucket with default content
     """
-    static_files_dir = join(dirname(__file__), "static")
+    static_files_dir = join(dirname(__file__), "..", "static")
     files = [
         f for f in os.listdir(static_files_dir) if isfile(join(static_files_dir, f))
     ]
@@ -40,10 +40,10 @@ class StorageObject:
     name: str
     key: str
     path: str
-    content_type: str
     updated: str
     type: str
     size: int = 0
+    content_type: str = None
 
 
 class Storage(ABC):
@@ -58,7 +58,15 @@ class Storage(ABC):
         pass
 
     @abstractmethod
+    def bucket_exists(self, bucket_name: str):
+        pass
+
+    @abstractmethod
     def create_bucket(self, bucket_name: str, *args, **kwargs):
+        pass
+
+    @abstractmethod
+    def delete_object(self, bucket_name: str, object_key: str):
         pass
 
     @abstractmethod
