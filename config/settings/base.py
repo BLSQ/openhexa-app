@@ -394,12 +394,6 @@ WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY = os.environ.get(
 )
 
 
-### Local storage settings ###
-WORKSPACE_STORAGE_BACKEND_LOCAL_FOLDER = os.environ.get(
-    "WORKSPACE_STORAGE_BACKEND_LOCAL_FOLDER", "/data"
-)
-
-
 # S3 settings (Used by OpenHEXA Legacy)
 AWS_USERNAME = os.environ.get("AWS_USERNAME", "")
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "")

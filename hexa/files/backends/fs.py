@@ -7,8 +7,11 @@ from pathlib import Path
 
 from django.core.files import locks
 from django.core.signing import BadSignature, TimestampSigner
+from django.http import HttpRequest
 from django.urls import reverse
 from django.utils._os import safe_join
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.text import get_valid_filename
 
 from .base import ObjectsPage, Storage, StorageObject, load_bucket_sample_data_with
@@ -18,6 +21,7 @@ class FileSystemStorage(Storage):
     def __init__(self, folder, prefix=""):
         self.location = Path(folder)
         self.prefix = prefix  # TODO: Use the prefix here to create the bucket path and not in workspace model
+        self._token_max_age = 60 * 60  # 1 hour
 
     def load_bucket_sample_data(self, bucket_name: str):
         load_bucket_sample_data_with(bucket_name, self)
@@ -42,6 +46,20 @@ class FileSystemStorage(Storage):
     def size(self, name):
         return os.path.getsize(name)
 
+    def _get_payload_from_token(self, token):
+        try:
+            signer = TimestampSigner()
+            decoded_token = force_str(urlsafe_base64_decode(token))
+            payload = signer.unsign_object(decoded_token, max_age=self._token_max_age)
+            return payload
+        except (UnicodeDecodeError, BadSignature, ValueError):
+            raise self.exceptions.BadRequest("Invalid token")
+
+    def _create_token_for_payload(self, payload: dict):
+        signer = TimestampSigner()
+        signed_payload = signer.sign_object(payload)
+        return urlsafe_base64_encode(force_bytes(signed_payload))
+
     def to_storage_object(self, bucket_name: str, object_key: Path):
         full_path = self.bucket_path(bucket_name, object_key)
         if not self.exists(full_path):
@@ -59,8 +77,6 @@ class FileSystemStorage(Storage):
                 content_type=guess_type(full_path)[0] or "application/octet-stream",
             )
         else:
-            print("THIS IS A DIR", flush=True)
-            print(object_key, full_path, flush=True)
             return StorageObject(
                 name=object_key.name,
                 key=object_key,
@@ -101,24 +117,12 @@ class FileSystemStorage(Storage):
         return shutil.rmtree(self.path(bucket_name))
 
     def get_bucket_object_by_token(self, token: str):
-        try:
-            signer = TimestampSigner()
-            decoded_value = signer.unsign(token, max_age=60 * 60)
-            return self.get_bucket_object(
-                decoded_value["bucket_name"], decoded_value["target_key"]
-            )
-        except (UnicodeDecodeError, BadSignature):
-            raise self.exceptions.BadRequest("Invalid token")
+        payload = self._get_payload_from_token(token)
+        return self.get_bucket_object(payload["bucket_name"], payload["target_key"])
 
     def save_object_by_token(self, token: str, file: io.BufferedReader):
-        try:
-            signer = TimestampSigner()
-            decoded_value = signer.unsign(token, max_age=60 * 60)
-            self.save_object(
-                decoded_value["bucket_name"], decoded_value["target_key"], file
-            )
-        except (UnicodeDecodeError, BadSignature):
-            raise self.exceptions.BadRequest("Invalid token")
+        payload = self._get_payload_from_token(token)
+        return self.save_object(payload["bucket_name"], payload["target_key"], file)
 
     def save_object(
         self, bucket_name: str, file_path: str, file: io.BufferedReader | bytes
@@ -131,7 +135,6 @@ class FileSystemStorage(Storage):
             os.makedirs(directory, exist_ok=True)
         except FileExistsError:
             raise FileExistsError(f"{directory} exists and is not a directory.")
-
         with open(full_path, "wb") as f:
             locks.lock(f, locks.LOCK_EX)
             if isinstance(file, bytes):
@@ -216,6 +219,7 @@ class FileSystemStorage(Storage):
         bucket_name: str,
         target_key: str,
         content_type: str,
+        request: HttpRequest = None,
         raise_if_exists=False,
     ):
         if not self.exists(bucket_name):
@@ -224,12 +228,13 @@ class FileSystemStorage(Storage):
         if self.exists(full_path) and raise_if_exists:
             raise self.exceptions.AlreadyExists(f"Object {target_key} already exist")
 
-        signer = TimestampSigner()
-        token = signer.sign_object(
+        token = self._create_token_for_payload(
             {"bucket_name": bucket_name, "target_key": target_key}
         )
-        b64_token = signer.signature(token)
-        return reverse("files:upload_file", args=(b64_token,))
+        internal_url = reverse("files:upload_file", args=(token,))
+        if request is not None:
+            return request.build_absolute_uri(internal_url)
+        return internal_url
 
     def generate_download_url(
         self, bucket_name: str, target_key: str, force_attachment=False
@@ -240,12 +245,10 @@ class FileSystemStorage(Storage):
         if not self.exists(full_path):
             raise self.exceptions.NotFound(f"Object {target_key} not found")
 
-        signer = TimestampSigner()
-        token = signer.sign_object(
+        token = self._create_token_for_payload(
             {"bucket_name": bucket_name, "target_key": target_key}
         )
-        b64_token = signer.signature(token)
-        return reverse("files:download_file", args=(b64_token,))
+        return reverse("files:download_file", args=(token,))
 
     def get_token_as_env_variables(self, token):
         return super().get_token_as_env_variables(token)

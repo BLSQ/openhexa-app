@@ -1,7 +1,12 @@
 import os
 import shutil
+from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 from tempfile import mkdtemp
+from unittest.mock import patch
+
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from hexa.core.test import TestCase
 from hexa.files.backends.fs import FileSystemStorage
@@ -13,7 +18,7 @@ class FileSystemStorageTest(TestCase):
     def setUp(self):
         super().setUp()
         self.data_directory = Path(mkdtemp())
-        self.storage = FileSystemStorage(location=self.data_directory)
+        self.storage = FileSystemStorage(folder=self.data_directory)
 
     def tearDown(self) -> None:
         super().tearDown()
@@ -92,8 +97,8 @@ class FileSystemStorageTest(TestCase):
 
     def test_valid_filenames(self):
         self.storage.create_bucket("default-bucket")
-        dir = self.storage.create_bucket_folder("default-bucket", "éà_?_d 1")
-        self.assertEqual(dir, "éà__d_1")
+        dir_obj = self.storage.create_bucket_folder("default-bucket", "éà_?_d 1")
+        self.assertEqual(dir_obj.name, "éà__d_1")
 
     def test_save_object(self):
         self.storage.create_bucket("default-bucket")
@@ -155,7 +160,11 @@ class FileSystemStorageTest(TestCase):
         self.assertEqual(first_item.content_type, "text/plain")
         self.assertEqual(
             first_item.updated,
-            os.path.getmtime(self.storage.bucket_path("default-bucket", "file-0.txt")),
+            datetime.fromtimestamp(
+                os.path.getmtime(
+                    self.storage.bucket_path("default-bucket", "file-0.txt")
+                )
+            ).isoformat(),
         )
 
         res = self.storage.list_bucket_objects("default-bucket", page=2, per_page=100)
@@ -201,3 +210,82 @@ class FileSystemStorageTest(TestCase):
         )
         self.assertEqual(len(res.items), 1)
         self.assertEqual(res.items[0].name, "found-2.txt")
+
+    def test_generate_upload_url(self):
+        self.storage.create_bucket("default-bucket")
+        url = self.storage.generate_upload_url(
+            "default-bucket", "file.txt", content_type="text/plain"
+        )
+        self.assertTrue(url.startswith("/files/up/"))
+        token = url.split("/")[-1]
+
+        self.assertEqual(
+            self.storage._get_payload_from_token(token),
+            {"bucket_name": "default-bucket", "target_key": "file.txt"},
+        )
+
+    def test_upload_file(self):
+        self.storage.create_bucket("default-bucket")
+
+        file_data = BytesIO(b"This is a test file2.")
+        uploaded_file = SimpleUploadedFile(
+            "test_file.txt", file_data.getvalue(), content_type="text/plain"
+        )
+
+        url = self.storage.generate_upload_url(
+            "default-bucket", "test_file.txt", "text/plain"
+        )
+        with patch("hexa.files.views.storage", self.storage):
+            resp = self.client.post(
+                url,
+                data={"file": uploaded_file},
+                format="multipart",
+                HTTP_X_METHOD_OVERRIDE="PUT",
+            )
+        self.assertEqual(resp.status_code, 201)
+
+    def test_upload_file_missing_file(self):
+        self.storage.create_bucket("default-bucket")
+
+        url = self.storage.generate_upload_url(
+            "default-bucket", "test_file.txt", "text/plain"
+        )
+        with patch("hexa.files.views.storage", self.storage):
+            resp = self.client.post(
+                url, data={}, format="multipart", HTTP_X_METHOD_OVERRIDE="PUT"
+            )
+        self.assertEqual(resp.status_code, 400)
+
+    def test_upload_file_expired_token(self):
+        self.storage.create_bucket("default-bucket")
+
+        file_data = BytesIO(b"This is a test file.")
+        uploaded_file = SimpleUploadedFile(
+            "test_file.txt", file_data.getvalue(), content_type="text/plain"
+        )
+
+        # Expire the token
+        self.storage._token_max_age = 0
+
+        url = self.storage.generate_upload_url(
+            "default-bucket", "test_file.txt", "text/plain"
+        )
+        with patch("hexa.files.views.storage", self.storage):
+            resp = self.client.post(
+                url,
+                data={"file": uploaded_file},
+                format="multipart",
+                HTTP_X_METHOD_OVERRIDE="PUT",
+            )
+        self.assertEqual(resp.status_code, 400)
+
+        # Put back a greater expiration time
+        self.storage._token_max_age = 60 * 60
+        with patch("hexa.files.views.storage", self.storage):
+            resp = self.client.post(
+                url,
+                data={"file": uploaded_file},
+                format="multipart",
+                HTTP_X_METHOD_OVERRIDE="PUT",
+            )
+        self.assertEqual(resp.status_code, 201)
