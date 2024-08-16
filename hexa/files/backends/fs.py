@@ -57,7 +57,8 @@ class FileSystemStorage(Storage):
 
     def _create_token_for_payload(self, payload: dict):
         signer = TimestampSigner()
-        signed_payload = signer.sign_object(payload)
+        signed_payload = signer.sign_object(payload, compress=True)
+        print(signed_payload, len(signed_payload), flush=True)
         return urlsafe_base64_encode(force_bytes(signed_payload))
 
     def to_storage_object(self, bucket_name: str, object_key: Path):
@@ -219,7 +220,7 @@ class FileSystemStorage(Storage):
         bucket_name: str,
         target_key: str,
         content_type: str,
-        request: HttpRequest = None,
+        request: HttpRequest | None = None,
         raise_if_exists=False,
     ):
         if not self.exists(bucket_name):
@@ -237,7 +238,11 @@ class FileSystemStorage(Storage):
         return internal_url
 
     def generate_download_url(
-        self, bucket_name: str, target_key: str, force_attachment=False
+        self,
+        bucket_name: str,
+        target_key: str,
+        force_attachment=False,
+        request: HttpRequest | None = None,
     ):
         if not self.exists(bucket_name):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
@@ -248,7 +253,13 @@ class FileSystemStorage(Storage):
         token = self._create_token_for_payload(
             {"bucket_name": bucket_name, "target_key": target_key}
         )
-        return reverse("files:download_file", args=(token,))
+        internal_url = reverse("files:download_file", args=(token,))
+
+        if request is not None:
+            return request.build_absolute_uri(internal_url)
+        return internal_url
 
     def get_token_as_env_variables(self, token):
-        return super().get_token_as_env_variables(token)
+        raise NotImplementedError(
+            "This method is not implemented for FileSystemStorage"
+        )
