@@ -377,7 +377,7 @@ class S3Storage(Storage):
             DurationSeconds=token_lifetime,
         )
 
-        return [
+        return (
             {
                 "endpoint_url": sts_service.__dict__["meta"].__dict__["_endpoint_url"],
                 "aws_access_key_id": response["Credentials"]["AccessKeyId"],
@@ -385,8 +385,7 @@ class S3Storage(Storage):
                 "aws_session_token": response["Credentials"]["SessionToken"],
             },
             response["Credentials"]["Expiration"],
-            "s3",
-        ]
+        )
 
     def delete_bucket(self, bucket_name: str, fully: bool = False):
         s3 = get_storage_client()

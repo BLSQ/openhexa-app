@@ -338,7 +338,7 @@ class GoogleCloudStorage(Storage):
             },
         )
         payload = response.json()
-        return [payload["access_token"], payload["expires_in"], "gcp"]
+        return payload["access_token"], payload["expires_in"]
 
     def delete_bucket(self, bucket_name: str, fully: bool = False):
         return get_storage_client().delete_bucket(bucket_name)
@@ -357,8 +357,10 @@ class GoogleCloudStorage(Storage):
     def load_bucket_sample_data(self, bucket_name: str):
         return load_bucket_sample_data_with(bucket_name, self)
 
-    def get_token_as_env_variables(self, token):
+    def get_bucket_mount_config(self, bucket_name):
+        token, _ = self.get_short_lived_downscoped_access_token(bucket_name)
         return {
-            "GCS_TOKEN": token,  # FIXME: Once we have deployed the new openhexa-bslq-environment image and upgraded the openhexa-app, we can remove this line
+            "WORKSPACE_STORAGE_ENGINE": "gcp",
+            "WORKSPACE_STORAGE_ENGINE_GCP_BUCKET_NAME": bucket_name,
             "WORKSPACE_STORAGE_ENGINE_GCP_ACCESS_TOKEN": token,
         }

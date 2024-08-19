@@ -349,11 +349,16 @@ WORKSPACES_DATABASE_PROXY_HOST = os.environ.get("WORKSPACES_DATABASE_PROXY_HOST"
 # Datasets config
 WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET")
 
+# Disabling the check on the size of the request body when using the file system storage backend
+# This is needed to allow the upload of large files when they are not stored by an external storage backend
+if os.environ.get("DISABLE_UPLOAD_MAX_SIZE_CHECK", "false") == "true":
+    DATA_UPLOAD_MAX_MEMORY_SIZE = None
+
+
 # Filesystem configuration
 WORKSPACE_STORAGE_BACKEND = {
     "engine": "hexa.files.backends.fs.FileSystemStorage",
     "options": {
-        "prefix": os.environ.get("WORKSPACE_BUCKET_PREFIX", "hexa-"),
         "folder": os.environ.get("WORKSPACE_BUCKET_FOLDER", "/data"),
     },
 }

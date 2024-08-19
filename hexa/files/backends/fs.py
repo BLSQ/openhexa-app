@@ -18,9 +18,8 @@ from .base import ObjectsPage, Storage, StorageObject, load_bucket_sample_data_w
 
 
 class FileSystemStorage(Storage):
-    def __init__(self, folder, prefix=""):
+    def __init__(self, folder):
         self.location = Path(folder)
-        self.prefix = prefix  # TODO: Use the prefix here to create the bucket path and not in workspace model
         self._token_max_age = 60 * 60  # 1 hour
 
     def load_bucket_sample_data(self, bucket_name: str):
@@ -58,7 +57,6 @@ class FileSystemStorage(Storage):
     def _create_token_for_payload(self, payload: dict):
         signer = TimestampSigner()
         signed_payload = signer.sign_object(payload, compress=True)
-        print(signed_payload, len(signed_payload), flush=True)
         return urlsafe_base64_encode(force_bytes(signed_payload))
 
     def to_storage_object(self, bucket_name: str, object_key: Path):
@@ -212,14 +210,11 @@ class FileSystemStorage(Storage):
         else:
             os.remove(full_path)
 
-    def get_short_lived_downscoped_access_token(self, bucket_name):
-        return super().get_short_lived_downscoped_access_token(bucket_name)
-
     def generate_upload_url(
         self,
         bucket_name: str,
         target_key: str,
-        content_type: str,
+        content_type: str | None = None,
         request: HttpRequest | None = None,
         raise_if_exists=False,
     ):
@@ -253,11 +248,13 @@ class FileSystemStorage(Storage):
         token = self._create_token_for_payload(
             {"bucket_name": bucket_name, "target_key": target_key}
         )
-        internal_url = reverse("files:download_file", args=(token,))
+        url = reverse("files:download_file", args=(token,))
 
         if request is not None:
-            return request.build_absolute_uri(internal_url)
-        return internal_url
+            url = request.build_absolute_uri(url)
+        if force_attachment:
+            url += "?attachment=true"
+        return url
 
     def get_token_as_env_variables(self, token):
         raise NotImplementedError(

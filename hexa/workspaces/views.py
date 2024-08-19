@@ -12,8 +12,8 @@ from hexa.workspaces.models import Workspace, WorkspaceMembership
 # ease patching
 
 
-def get_short_lived_downscoped_access_token(bucket_name):
-    return storage.get_short_lived_downscoped_access_token(bucket_name=bucket_name)
+def get_bucket_mount_config(bucket_name):
+    return storage.get_bucket_mount_config(bucket_name=bucket_name)
 
 
 def get_token_as_env_variables(token):
@@ -88,7 +88,9 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
         )
 
     # Populate the environment variables with the connections of the workspace
-    env = {}
+    env = {
+        "WORKSPACE_BUCKET_NAME": workspace.bucket_name,
+    }
 
     # Database credentials
     db_credentials = get_db_server_credentials()
@@ -104,16 +106,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
     )
 
     # Bucket credentials
-    token, _expires_in, engine_key = get_short_lived_downscoped_access_token(
-        workspace.bucket_name
-    )
-    env.update(get_token_as_env_variables(token))
-    env.update(
-        {
-            "WORKSPACE_STORAGE_ENGINE": engine_key,
-            "WORKSPACE_BUCKET_NAME": workspace.bucket_name,
-        }
-    )
+    env.update(storage.get_bucket_mount_config(workspace.bucket_name))
 
     # Custom Docker image for the workspace if appropriate
     image = (
