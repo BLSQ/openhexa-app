@@ -104,10 +104,6 @@ class Storage(ABC):
         pass
 
     @abstractmethod
-    def get_short_lived_downscoped_access_token(self, bucket_name):
-        pass
-
-    @abstractmethod
     def generate_upload_url(
         self,
         bucket_name: str,

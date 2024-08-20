@@ -260,3 +260,9 @@ class FileSystemStorage(Storage):
         raise NotImplementedError(
             "This method is not implemented for FileSystemStorage"
         )
+
+    def get_bucket_mount_config(self, bucket_name):
+        return {
+            "WORKSPACE_STORAGE_ENGINE": "local",
+            "WORKSPACE_STORAGE_BUCKET_NAME": bucket_name,
+        }

@@ -55,9 +55,10 @@ x-app: &common
       - ACCESSMOD_BUCKET_NAME=s3://hexa-demo-accessmod
       - ACCESSMOD_MANAGE_REQUESTS_URL=http://localhost:3000/admin/access-requests
       - ACCESSMOD_SET_PASSWORD_URL=http://localhost:3000/account/set-password
+      
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
-      - ./data:/data
+      - ../data:/data
     
 
 services:
