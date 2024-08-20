@@ -141,7 +141,7 @@ class S3Client(BaseClient):
         except s3.exceptions.ClientError as exc:
             # https://github.com/VeemsHQ/veems/blob/3e2e75c3407bc1f98395fe94c0e03367a82852c9/veems/media/upload_manager.py#L51C1-L51C1
 
-            if "MalformedXML" in str(exc):
+            if "NotImplemented" in str(exc):
                 from warnings import warn
 
                 warn(
