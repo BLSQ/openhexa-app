@@ -186,10 +186,6 @@ SECURE_HSTS_SECONDS = os.environ.get(
 # by default users need to login every 2 weeks -> update to 1 year
 SESSION_COOKIE_AGE = 365 * 24 * 3600
 
-# Trust the X_FORWARDED_PROTO header from the  load balancer so Django is aware it is accessed by https
-if "TRUST_FORWARDED_PROTO" in os.environ:
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
 # CORS (For GraphQL)
 # https://github.com/adamchainz/django-cors-headers
 
@@ -228,10 +224,23 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 STATICFILES_DIRS = [BASE_DIR / "hexa" / "static"]
+MEDIA_ROOT = BASE_DIR / "static" / "uploads"
+
 
 # Whitenoise
 # http://whitenoise.evans.io/en/stable/django.html#add-compression-and-caching-support
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+if os.environ.get("DEBUG_TOOLBAR", "false") == "true":
+    INSTALLED_APPS.append("debug_toolbar")  # noqa: F405
+    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")  # noqa: F405
+    # Django Debug Toolbar specifically ask for INTERNAL_IPS to be set
+    INTERNAL_IPS = ["127.0.0.1"]
+
+    DEBUG_TOOLBAR_CONFIG = {
+        "SHOW_TOOLBAR_CALLBACK": lambda request: request.user.is_staff,
+    }
+
 
 # Notebooks component
 NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")
@@ -259,6 +268,12 @@ if os.environ.get("DEBUG_LOGGING", "false") == "true":
         },
     }
 
+# Disabling the check on the size of the request body when using the file system storage backend
+# This is needed to allow the upload of large files when they are not stored by an external storage backend
+if os.environ.get("DISABLE_UPLOAD_MAX_SIZE_CHECK", "false") == "true":
+    DATA_UPLOAD_MAX_MEMORY_SIZE = None
+
+
 # Email settings
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
 EMAIL_PORT = os.environ.get("EMAIL_PORT")
@@ -278,43 +293,18 @@ else:
 EXTERNAL_ASYNC_REFRESH = os.environ.get("EXTERNAL_ASYNC_REFRESH") == "true"
 
 
-if os.environ.get("DEBUG_TOOLBAR", "false") == "true":
-    INSTALLED_APPS.append("debug_toolbar")
-    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
-    # Django Debug Toolbar specifically ask for INTERNAL_IPS to be set
-    INTERNAL_IPS = ["127.0.0.1"]
-
-    DEBUG_TOOLBAR_CONFIG = {
-        "SHOW_TOOLBAR_CALLBACK": lambda request: request.user.is_staff,
-    }
-
-if os.environ.get("STORAGE", "local") == "google-cloud":
-    # activate google cloud storage, used for dashboard screenshot, ...
-    # user generated content
-    DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
-    GS_BUCKET_NAME = os.environ.get("STORAGE_BUCKET")
-    GS_FILE_OVERWRITE = False
-else:
-    MEDIA_ROOT = BASE_DIR / "static" / "uploads"
-
-# Accessmod settings
-ACCESSMOD_BUCKET_NAME = os.environ.get("ACCESSMOD_BUCKET_NAME")
-ACCESSMOD_MANAGE_REQUESTS_URL = os.environ.get("ACCESSMOD_MANAGE_REQUESTS_URL")
-ACCESSMOD_SET_PASSWORD_URL = os.environ.get("ACCESSMOD_SET_PASSWORD_URL")
-
-# Specific settings for airflow plugins
+## Specific settings for airflow plugins
 
 # number of second of airflow dag reloading setting
 AIRFLOW_SYNC_WAIT = 61
-GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME")
+GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME", 3600)
 
 # Needed so that external component know how to hit us back
 # Do not add a trailing slash
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
 
-
 # Pipeline settings
-PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kubernetes")
+PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "docker")
 PIPELINE_API_URL = os.environ.get("PIPELINE_API_URL", BASE_URL)
 DEFAULT_WORKSPACE_IMAGE = os.environ.get(
     "DEFAULT_WORKSPACE_IMAGE", "blsq/openhexa-blsq-environment:latest"
@@ -346,13 +336,9 @@ WORKSPACES_DATABASE_HOST = os.environ.get("WORKSPACES_DATABASE_HOST")
 WORKSPACES_DATABASE_PORT = os.environ.get("WORKSPACES_DATABASE_PORT")
 WORKSPACES_DATABASE_DEFAULT_DB = os.environ.get("WORKSPACES_DATABASE_DEFAULT_DB")
 WORKSPACES_DATABASE_PROXY_HOST = os.environ.get("WORKSPACES_DATABASE_PROXY_HOST")
-# Datasets config
-WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET")
 
-# Disabling the check on the size of the request body when using the file system storage backend
-# This is needed to allow the upload of large files when they are not stored by an external storage backend
-if os.environ.get("DISABLE_UPLOAD_MAX_SIZE_CHECK", "false") == "true":
-    DATA_UPLOAD_MAX_MEMORY_SIZE = None
+# Datasets config
+WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET", "hexa-datasets")
 
 
 # Filesystem configuration
@@ -363,10 +349,9 @@ WORKSPACE_STORAGE_BACKEND = {
     },
 }
 
-
+WORKSPACE_BUCKET_PREFIX = os.environ.get("WORKSPACE_BUCKET_PREFIX", "")
 WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION", "europe-west1")
-
-WORKSPACE_BUCKET_VERSIONING_ENABLED = True
+WORKSPACE_BUCKET_VERSIONING_ENABLED = False
 
 
 ### AWS S3 Settings if using AWS S3 as a storage backend ###
@@ -387,17 +372,6 @@ WORKSPACE_STORAGE_BACKEND_AWS_SECRET_ACCESS_KEY = os.environ.get(
 WORKSPACE_STORAGE_BACKEND_AWS_BUCKET_REGION = os.environ.get(
     "WORKSPACE_STORAGE_BACKEND_AWS_BUCKET_REGION"
 )
-
-### GCP Settings if using GCS as a storage backend ###
-# Base64 encoded service account key
-# To generate a service account key, follow the instructions here:
-# import base64
-# import json
-# base64.b64encode(json.dumps(service_account_key_content).encode("utf-8"))
-WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY = os.environ.get(
-    "WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY", ""
-)
-
 
 # S3 settings (Used by OpenHEXA Legacy)
 AWS_USERNAME = os.environ.get("AWS_USERNAME", "")

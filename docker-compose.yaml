@@ -6,32 +6,13 @@ x-app: &common
       context: .
       dockerfile: Dockerfile
       target: app
+    env_file:
+      - path: ./.env
+        required: true
     networks:
       - openhexa
     environment:
-      - DEBUG=true
-      - DJANGO_SETTINGS_MODULE=config.settings.dev
-      - DISABLE_UPLOAD_MAX_SIZE_CHECK=true
-      - DATABASE_HOST=db
-      - DATABASE_PORT=5432
-      - DATABASE_NAME=hexa-app
-      - DATABASE_USER=hexa-app
-      - DATABASE_PASSWORD=hexa-app
-      - NEW_FRONTEND_DOMAIN=localhost:3000
-      - PIPELINE_SCHEDULER_SPAWNER=docker
-      - PIPELINE_API_URL=http://app:8000
-      - NOTEBOOKS_HUB_URL=http://jupyterhub:8000/hub
-      - HUB_API_TOKEN=cbb352d6a412e266d7494fb014dd699373645ec8d353e00c7aa9dc79ca87800d
-      # Workspaces DB settings
-      - DEFAULT_WORKSPACE_IMAGE
-      - WORKSPACES_DATABASE_ROLE=hexa-app
-      - WORKSPACES_DATABASE_PASSWORD=hexa-app
-      - WORKSPACES_DATABASE_HOST=db
-      - WORKSPACES_DATABASE_PORT=5432
-      - WORKSPACES_DATABASE_DEFAULT_DB=hexa-app
-      - WORKSPACES_DATABASE_PROXY_HOST=db
       # Workspaces storage settings
-      - WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY
       - WORKSPACE_DATASETS_BUCKET
       - WORKSPACE_STORAGE_BACKEND
       # AWS settings (for legacy connector "connector_s3")
@@ -46,11 +27,6 @@ x-app: &common
       # The following variables are optional and can be set in your local .env file for testing purposes
       - DEBUG_LOGGING
       - DEBUG_TOOLBAR
-      - EMAIL_HOST
-      - EMAIL_PORT
-      - EMAIL_HOST_USER
-      - EMAIL_USE_TLS
-      - EMAIL_HOST_PASSWORD
       # Accessmod settings
       - ACCESSMOD_BUCKET_NAME=s3://hexa-demo-accessmod
       - ACCESSMOD_MANAGE_REQUESTS_URL=http://localhost:3000/admin/access-requests
@@ -58,7 +34,7 @@ x-app: &common
       
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
-      - ../data:/data
+      - "${WORKSPACE_STORAGE_LOCATION:-../data}:/data"
     
 
 services:

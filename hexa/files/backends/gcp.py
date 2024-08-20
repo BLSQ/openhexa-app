@@ -15,16 +15,13 @@ from google.protobuf import duration_pb2
 from .base import ObjectsPage, Storage, StorageObject, load_bucket_sample_data_with
 
 
-def get_credentials():
-    decoded_creds = base64.b64decode(
-        settings.WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY
-    )
+def get_credentials(service_account_key):
+    decoded_creds = base64.b64decode(service_account_key)
     json_creds = json.loads(decoded_creds, strict=False)
     return service_account.Credentials.from_service_account_info(json_creds)
 
 
-def get_storage_client():
-    credentials = get_credentials()
+def get_storage_client(credentials):
     return storage.Client(credentials=credentials)
 
 
@@ -86,28 +83,30 @@ def ensure_is_folder(object_key: str):
 
 
 class GoogleCloudStorage(Storage):
+    def __init__(self, service_account_key: str, region: str, enable_versioning=False):
+        super().__init__()
+        self._credentials = get_credentials(service_account_key)
+        self.client = get_storage_client(self._credentials)
+        self.region = region
+        self.enable_versioning = enable_versioning
+
     def bucket_exists(self, bucket_name: str):
         try:
-            get_storage_client().get_bucket(bucket_name)
+            self.client.get_bucket(bucket_name)
             return True
         except NotFound:
             return False
 
     def create_bucket(self, bucket_name: str, labels: dict = None, *args, **kwargs):
-        client = get_storage_client()
-
         if self.bucket_exists(bucket_name):
             raise self.exception.AlreadyExists(
                 f"GCS: Bucket {bucket_name} already exists!"
             )
         try:
-            bucket = client.create_bucket(
-                bucket_name, location=settings.WORKSPACE_BUCKET_REGION
-            )
+            bucket = self.client.create_bucket(bucket_name, location=self.region)
             bucket.storage_class = "STANDARD"  # Default storage class
 
-            if settings.WORKSPACE_BUCKET_VERSIONING_ENABLED:
-                bucket.versioning_enabled = True
+            bucket.versioning_enabled = self.enable_versioning
 
             # Set lifecycle rules
             # 1. Transition to "Nearline" Storage: Objects that haven't been accessed for 30 days can be moved to "Nearline" storage, which is cost-effective for data accessed less than once a month.
@@ -167,14 +166,12 @@ class GoogleCloudStorage(Storage):
             raise ValidationError(f"GCS: Bucket {bucket_name} already exists!")
 
     def save_object(self, bucket_name: str, file_path: str, file: io.BufferedReader):
-        client = get_storage_client()
-        bucket = client.bucket(bucket_name)
+        bucket = self.client.bucket(bucket_name)
         blob = bucket.blob(file_path)
         blob.upload_from_file(file)
 
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
-        client = get_storage_client()
-        bucket = client.get_bucket(bucket_name)
+        bucket = self.client.get_bucket(bucket_name)
         object = bucket.blob(ensure_is_folder(folder_key))
         object.upload_from_string(
             "", content_type="application/x-www-form-urlencoded;charset=UTF-8"
@@ -185,9 +182,8 @@ class GoogleCloudStorage(Storage):
     def generate_download_url(
         self, bucket_name: str, target_key: str, force_attachment=False
     ):
-        client = get_storage_client()
-        gcs_bucket = client.get_bucket(bucket_name)
-        blob: Blob = gcs_bucket.get_blob(target_key)
+        gcs_bucket = self.client.get_bucket(bucket_name)
+        blob = gcs_bucket.get_blob(target_key)
 
         if blob is None:
             return None
@@ -209,8 +205,7 @@ class GoogleCloudStorage(Storage):
         content_type: str = None,
         raise_if_exists: bool = False,
     ):
-        client = get_storage_client()
-        gcs_bucket = client.get_bucket(bucket_name)
+        gcs_bucket = self.client.get_bucket(bucket_name)
         if raise_if_exists and gcs_bucket.get_blob(target_key) is not None:
             raise ValidationError(f"GCS: Object {target_key} already exists!")
         blob = gcs_bucket.blob(target_key)
@@ -219,8 +214,7 @@ class GoogleCloudStorage(Storage):
         )
 
     def get_bucket_object(self, bucket_name: str, object_key: str):
-        client = get_storage_client()
-        bucket = client.get_bucket(bucket_name)
+        bucket = self.client.get_bucket(bucket_name)
         object = bucket.get_blob(object_key)
         if object is None:
             raise self.exceptions.NotFound("Object not found")
@@ -248,9 +242,7 @@ class GoogleCloudStorage(Storage):
             ignore_hidden_files (bool, optional): Returns the hidden files and directories if `False`. Defaults to True.
 
         """
-        client = get_storage_client()
-
-        request = client.list_blobs(
+        request = self.client.list_blobs(
             bucket_name,
             prefix=prefix,
             # We take twice the number of items to be sure to have enough
@@ -341,11 +333,10 @@ class GoogleCloudStorage(Storage):
         return payload["access_token"], payload["expires_in"]
 
     def delete_bucket(self, bucket_name: str, fully: bool = False):
-        return get_storage_client().delete_bucket(bucket_name)
+        return self.client.delete_bucket(bucket_name)
 
     def delete_object(self, bucket_name: str, file_name: str):
-        client = get_storage_client()
-        bucket = client.get_bucket(bucket_name)
+        bucket = self.client.get_bucket(bucket_name)
         blob = bucket.get_blob(file_name)
         if _is_dir(blob):
             blobs = list(bucket.list_blobs(prefix=file_name))

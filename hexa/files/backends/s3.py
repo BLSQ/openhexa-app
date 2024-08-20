@@ -396,7 +396,6 @@ class S3Storage(Storage):
 
             if fully:
                 while response["KeyCount"] > 0:
-                    # print("Deleting %d objects from bucket %s" % (len(response["Contents"]), bucket_name))
                     response = s3.delete_objects(
                         Bucket=bucket_name,
                         Delete={

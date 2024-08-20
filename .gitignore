@@ -3,6 +3,7 @@
 htmlcov/
 venv
 k8s/*
+data/
 !k8s/sample_app.yaml
 
 # TODO: remove
