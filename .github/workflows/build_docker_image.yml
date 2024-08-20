@@ -40,47 +40,27 @@ jobs:
 
 
       # Caches
-      - name: Cache var-cache-apt
-        id: cache-var-cache-apt
+      - name: Cache
+        id: cache
         uses: actions/cache@v4
         with:
-          path: var-cache-apt
-          key: var-cache-apt-${{ hashFiles('Dockerfile') }}
+          path: |
+            var-cache-apt
+            var-lib-apt
+            root-.cache
+          key: cache-${{ hashFiles('Dockerfile') }}
 
-      - name: Cache var-lib-apt
-        id: cache-var-lib-apt
-        uses: actions/cache@v4
-        with:
-          path: var-lib-apt
-          key: var-lib-apt-${{ hashFiles('Dockerfile') }}
-      
-      - name: Cache root-.cache
-        id: cache-root-cache
-        uses: actions/cache@v4
-        with:
-          path: root-.cache
-          key: root-.cache-${{ hashFiles('Dockerfile') }}
-
-      - name: inject var-cache-apt into docker
+      - name: inject cache into docker
         uses: reproducible-containers/buildkit-cache-dance@v3.1.2
         with:
-          cache-source: var-cache-apt
-          cache-target: /var/cache/apt
-          skip-extraction: ${{ steps.cache-var-cache-apt.outputs.cache-hit }}
-
-      - name: inject var-lib-apt into docker
-        uses: reproducible-containers/buildkit-cache-dance@v3.1.2
-        with:
-          cache-source: var-lib-apt
-          cache-target: /var/lib/apt
-          skip-extraction: ${{ steps.cache-var-lib-apt.outputs.cache-hit }}
-      
-      - name: inject root-.cache into docker
-        uses: reproducible-containers/buildkit-cache-dance@v3.1.2
-        with:
-          cache-source: root-.cache
-          cache-target: /root/.cache
-          skip-extraction: ${{ steps.cache-root-cache.outputs.cache-hit }}
+          cache-map: |
+            {
+              "var-cache-apt": "/var/cache/apt",
+              "var-lib-apt": "/var/lib/apt",
+              "root-.cache": "/root/.cache"
+            }
+    
+          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
 
       # Release push (with a tag)
       - name: Build and push (on release)
@@ -95,7 +75,6 @@ jobs:
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
           tags: |
             blsq/openhexa-app:${{ steps.version.outputs.number }}
-            blsq/openhexa-app:latest
 
       # Manual push
       - name: Build and push (manual)
@@ -110,4 +89,6 @@ jobs:
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
           tags: |
             blsq/openhexa-app:${{ github.event.inputs.tag }}
-            blsq/openhexa-app:latest
+        
+        
+
