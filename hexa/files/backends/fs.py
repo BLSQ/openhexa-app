@@ -256,11 +256,6 @@ class FileSystemStorage(Storage):
             url += "?attachment=true"
         return url
 
-    def get_token_as_env_variables(self, token):
-        raise NotImplementedError(
-            "This method is not implemented for FileSystemStorage"
-        )
-
     def get_bucket_mount_config(self, bucket_name):
         return {
             "WORKSPACE_STORAGE_ENGINE": "local",

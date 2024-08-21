@@ -114,9 +114,5 @@ class Storage(ABC):
         pass
 
     @abstractmethod
-    def get_token_as_env_variables(self, token):
-        pass
-
-    @abstractmethod
     def get_bucket_mount_config(self, bucket_name):
         pass
