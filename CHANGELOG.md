@@ -1,5 +1,50 @@
 # Changelog
 
+## [0.50.0](https://github.com/BLSQ/openhexa-frontend/compare/0.49.2...0.50.0) (2024-08-21)
+
+
+### Features
+
+* **Analytics:** track events  and viewed page ([#665](https://github.com/BLSQ/openhexa-frontend/issues/665)) ([c967a98](https://github.com/BLSQ/openhexa-frontend/commit/c967a98a5487fbfd96152ea75767dd1301600eb7))
+* **Databases:** better count of  tables rows ([#668](https://github.com/BLSQ/openhexa-frontend/issues/668)) ([6599d63](https://github.com/BLSQ/openhexa-frontend/commit/6599d63fd568b23a304e8ac9181fc6bb976db002))
+* **Databases:** display better count of rows ([6599d63](https://github.com/BLSQ/openhexa-frontend/commit/6599d63fd568b23a304e8ac9181fc6bb976db002))
+
+
+### Bug Fixes
+
+* **analytics:** Remove last trailing slash in /analytics/track endpoint ([b4224fa](https://github.com/BLSQ/openhexa-frontend/commit/b4224facbf0840bae16b8290b85fd30d14e81bf0))
+* **analytics:** Remove trailing slash to the analytics endpoint ([b89903b](https://github.com/BLSQ/openhexa-frontend/commit/b89903bd79446059247d637b244f2d99d9b0c7c9))
+* **Connections:** check if connection fields is defined ([#637](https://github.com/BLSQ/openhexa-frontend/issues/637)) ([9f1234b](https://github.com/BLSQ/openhexa-frontend/commit/9f1234b3b06633a54298d62e9742839d329369ef))
+* **deps:** update dependency @apollo/client to v3.10.8 ([#649](https://github.com/BLSQ/openhexa-frontend/issues/649)) ([64aad8d](https://github.com/BLSQ/openhexa-frontend/commit/64aad8db92d490e470ae97682b9043f198e394e5))
+* **deps:** update dependency @heroicons/react to v2.1.5 ([#656](https://github.com/BLSQ/openhexa-frontend/issues/656)) ([57a7a5d](https://github.com/BLSQ/openhexa-frontend/commit/57a7a5de069ab6a7c15896928b057a148c09ff0e))
+* **deps:** update dependency @sentry/nextjs to v7.118.0 ([#650](https://github.com/BLSQ/openhexa-frontend/issues/650)) ([dc1874d](https://github.com/BLSQ/openhexa-frontend/commit/dc1874dc7e94f44f8523f6819ca7e71328d84eaa))
+* **deps:** update dependency @tanstack/react-table to v8.19.3 ([#651](https://github.com/BLSQ/openhexa-frontend/issues/651)) ([be27e36](https://github.com/BLSQ/openhexa-frontend/commit/be27e369b87cce19c06be4b9ee9a9d5067d4279b))
+* **deps:** update dependency @types/lodash to v4.17.7 ([#662](https://github.com/BLSQ/openhexa-frontend/issues/662)) ([b31835b](https://github.com/BLSQ/openhexa-frontend/commit/b31835b976e8864547258ad5880cf5ba08a29e50))
+* **deps:** update dependency @types/node to v20.14.14 ([#659](https://github.com/BLSQ/openhexa-frontend/issues/659)) ([7f14d76](https://github.com/BLSQ/openhexa-frontend/commit/7f14d76cbf24b2ce22b70b69ad4f10093075ff8d))
+* **deps:** update dependency @uiw/react-codemirror to v4.23.0 ([#660](https://github.com/BLSQ/openhexa-frontend/issues/660)) ([eb84f93](https://github.com/BLSQ/openhexa-frontend/commit/eb84f9321f9fe4e57249c35f31bf39679d70d1b5))
+* **deps:** update dependency cookies-next to v4.2.1 ([#661](https://github.com/BLSQ/openhexa-frontend/issues/661)) ([68fe428](https://github.com/BLSQ/openhexa-frontend/commit/68fe4282681e4ce6535cf7d4dd6fed99e024935b))
+* **deps:** update dependency cronstrue to v2.50.0 ([#663](https://github.com/BLSQ/openhexa-frontend/issues/663)) ([9be2683](https://github.com/BLSQ/openhexa-frontend/commit/9be2683a8332b09f81108a41a15909fd511dcd76))
+* **deps:** update dependency filesize to v10.1.4 ([#657](https://github.com/BLSQ/openhexa-frontend/issues/657)) ([40a2155](https://github.com/BLSQ/openhexa-frontend/commit/40a21551535afb78769179115c39aa4f67a34931))
+* **deps:** update dependency graphql to v16.9.0 ([#664](https://github.com/BLSQ/openhexa-frontend/issues/664)) ([02d187a](https://github.com/BLSQ/openhexa-frontend/commit/02d187a09bdad80f647c3235f18fb75aeedf8f93))
+* **deps:** update dependency react-i18next to v14.1.2 ([#643](https://github.com/BLSQ/openhexa-frontend/issues/643)) ([415c79c](https://github.com/BLSQ/openhexa-frontend/commit/415c79c298921f5e07add9fbb36a01d25dc2d5c9))
+* **deps:** update dependency react-i18next to v14.1.3 ([#658](https://github.com/BLSQ/openhexa-frontend/issues/658)) ([72144b6](https://github.com/BLSQ/openhexa-frontend/commit/72144b690ca0dd4feca2ff0bfbb9cbb477135bc0))
+* **Pipelines:** ensure default value is an array for multiple choices param ([2085272](https://github.com/BLSQ/openhexa-frontend/commit/2085272eeeb0ba6f3ccdaeec7f04d41332eadc90))
+* **Pipelines:** fix typo on delete pipeline ([#652](https://github.com/BLSQ/openhexa-frontend/issues/652)) ([c771f48](https://github.com/BLSQ/openhexa-frontend/commit/c771f487dcf088dc3681178fa429b4f3e9e296f5))
+* **Pipelines:** set default value as array for multi choices param ([#667](https://github.com/BLSQ/openhexa-frontend/issues/667)) ([2085272](https://github.com/BLSQ/openhexa-frontend/commit/2085272eeeb0ba6f3ccdaeec7f04d41332eadc90))
+
+
+### Miscellaneous
+
+* **deps:** update dependency autoprefixer to v10.4.20 ([#670](https://github.com/BLSQ/openhexa-frontend/issues/670)) ([3b7ea53](https://github.com/BLSQ/openhexa-frontend/commit/3b7ea53507f6f35037d86277050785ca726c98f6))
+* **deps:** update dependency deepl-node to v1.13.0 ([#644](https://github.com/BLSQ/openhexa-frontend/issues/644)) ([566657c](https://github.com/BLSQ/openhexa-frontend/commit/566657c5928ffa878f7e5fb6fc4de1e6e66c4106))
+* **deps:** update dependency postcss to v8.4.39 ([#654](https://github.com/BLSQ/openhexa-frontend/issues/654)) ([2ea63d2](https://github.com/BLSQ/openhexa-frontend/commit/2ea63d21bdabafc6e5c05881346c2623e681c8b9))
+* **deps:** update dependency postcss to v8.4.41 ([#672](https://github.com/BLSQ/openhexa-frontend/issues/672)) ([1f05756](https://github.com/BLSQ/openhexa-frontend/commit/1f05756d37439801bdf60a28bad401c5031a101f))
+* **deps:** update dependency prettier to v3.3.3 ([#646](https://github.com/BLSQ/openhexa-frontend/issues/646)) ([640012a](https://github.com/BLSQ/openhexa-frontend/commit/640012a0a558883ee849a7dba319e71f18ef1d59))
+* **deps:** update dependency prettier-plugin-tailwindcss to ^0.6.0 ([#647](https://github.com/BLSQ/openhexa-frontend/issues/647)) ([3a334a3](https://github.com/BLSQ/openhexa-frontend/commit/3a334a3b6f9a0058fc24c3052e7626feface14c2))
+* **deps:** update dependency tailwindcss to v3.4.5 ([#655](https://github.com/BLSQ/openhexa-frontend/issues/655)) ([f49141f](https://github.com/BLSQ/openhexa-frontend/commit/f49141f38034cc2a2324853870f134b7d4aa8f7c))
+* **deps:** update graphqlcodegenerator monorepo ([#631](https://github.com/BLSQ/openhexa-frontend/issues/631)) ([937287c](https://github.com/BLSQ/openhexa-frontend/commit/937287c109180fd383df7ce4b24324fe6307cba4))
+* **deps:** update testing-library monorepo ([#635](https://github.com/BLSQ/openhexa-frontend/issues/635)) ([0c719b8](https://github.com/BLSQ/openhexa-frontend/commit/0c719b8f999387cbba22771aca6b372eb796b794))
+
 ## [0.49.2](https://github.com/BLSQ/openhexa-frontend/compare/0.49.1...0.49.2) (2024-06-28)
 
 
