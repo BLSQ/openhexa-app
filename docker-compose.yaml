@@ -11,43 +11,22 @@ x-app: &common
         required: true
     networks:
       - openhexa
-    environment:
-      # Workspaces storage settings
-      - WORKSPACE_DATASETS_BUCKET
-      - WORKSPACE_STORAGE_BACKEND
-      # AWS settings (for legacy connector "connector_s3")
-      - AWS_USERNAME
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_ENDPOINT_URL
-      - AWS_DEFAULT_REGION
-      - AWS_USER_ARN
-      - AWS_APP_ROLE_ARN
-      - AWS_PERMISSIONS_BOUNDARY_POLICY_ARN
-      # The following variables are optional and can be set in your local .env file for testing purposes
-      - DEBUG_LOGGING
-      - DEBUG_TOOLBAR
-      # Accessmod settings
-      - ACCESSMOD_BUCKET_NAME=s3://hexa-demo-accessmod
-      - ACCESSMOD_MANAGE_REQUESTS_URL=http://localhost:3000/admin/access-requests
-      - ACCESSMOD_SET_PASSWORD_URL=http://localhost:3000/account/set-password
       
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
-      - "${WORKSPACE_STORAGE_LOCATION:-../data}:/data"
+      - "${WORKSPACE_STORAGE_LOCATION:-../workspaces-data}:/data"
     
 
 services:
   db:
     image: postgis/postgis:12-3.2
+    env_file:
+      - path: ./.env
+        required: true
     networks:
       - openhexa
     volumes:
       - pgdata:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=hexa-app
-      - POSTGRES_USER=hexa-app
-      - POSTGRES_PASSWORD=hexa-app
     ports:
       - "5434:5432"
 
@@ -74,14 +53,15 @@ services:
   
   frontend:
     image: "blsq/openhexa-frontend:${FRONTEND_VERSION:-main}"
+    env_file:
+      - path: ./.env
+        required: true
     platform: linux/amd64
     networks:
       - openhexa
     container_name: frontend
     ports:
       - "3000:3000"
-    environment:
-      - OPENHEXA_BACKEND_URL=http://app:8000
     profiles:
       - frontend
     restart: unless-stopped

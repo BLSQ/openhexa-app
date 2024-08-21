@@ -1,10 +1,6 @@
 from django.conf import settings
 from django.utils.module_loading import import_string
 
-from .s3 import S3Storage
-
-__all__ = ["get_storage_backend", "GoogleCloudStorage", "S3Storage"]
-
 
 def get_storage_backend():
     try:
