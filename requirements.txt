@@ -110,6 +110,7 @@ geopandas==1.0.1
     # via -r requirements.in
 google-api-core[grpc]==2.19.1
     # via
+    #   google-api-core
     #   google-cloud-appengine-logging
     #   google-cloud-core
     #   google-cloud-iam
