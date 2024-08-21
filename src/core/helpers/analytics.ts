@@ -13,7 +13,7 @@ export async function trackEvent(
     return;
   }
   try {
-    const res = await fetch("/analytics/track/", {
+    const res = await fetch("/analytics/track", {
       method: "POST",
       priority: "low",
       headers: {
