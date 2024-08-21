@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.72.0 (2024-08-21)
+
+## What's Changed
+* Cors pipelines webhook by @qgerome in https://github.com/BLSQ/openhexa-app/pull/762
+
+
+**Full Changelog**: https://github.com/BLSQ/openhexa-app/compare/0.71.9...0.72.0
+
 ## 0.71.9 (2024-08-20)
 
 **Full Changelog**: https://github.com/BLSQ/openhexa-app/compare/0.71.8...0.71.9
