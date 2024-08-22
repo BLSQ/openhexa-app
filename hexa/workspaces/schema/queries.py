@@ -2,6 +2,7 @@ from ariadne import QueryType, convert_kwargs_to_snake_case
 
 from hexa.core.graphql import result_page
 
+from ...pipelines.authentication import PipelineRunUser
 from ..models import (
     Connection,
     Workspace,
@@ -25,7 +26,13 @@ def resolve_workspaces(_, info, query=None, page=1, perPage=15):
 def resolve_workspace(_, info, **kwargs):
     request = info.context["request"]
     try:
-        return Workspace.objects.filter_for_user(request.user).get(slug=kwargs["slug"])
+        # TODO: add pipeline user permission check
+        if isinstance(request.user, PipelineRunUser):
+            return request.user.pipeline_run.pipeline.workspace
+        else:
+            return Workspace.objects.filter_for_user(request.user).get(
+                slug=kwargs["slug"]
+            )
     except Workspace.DoesNotExist:
         return None
 
