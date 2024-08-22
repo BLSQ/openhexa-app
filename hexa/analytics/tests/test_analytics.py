@@ -66,7 +66,7 @@ class AnalyticsTest(TestCase):
         self.USER.save()
 
         mixpanel_token = "token"
-        # mock the flush method of the BufferedConsumer
+
         with self.settings(MIXPANEL_TOKEN=mixpanel_token):
             request = self.factory.post("/dataset")
             request.headers = {
@@ -119,7 +119,7 @@ class AnalyticsTest(TestCase):
         mock_mixpanel,
     ):
         mixpanel_token = "token"
-        # mock the flush method of the BufferedConsumer
+
         with self.settings(MIXPANEL_TOKEN=mixpanel_token):
             self.PIPELINE.run(
                 user=None,
@@ -147,8 +147,11 @@ class AnalyticsTest(TestCase):
         mock_mixpanel,
     ):
         mixpanel_token = "token"
-        # mock the flush method of the BufferedConsumer
+
         with self.settings(MIXPANEL_TOKEN=mixpanel_token):
+            self.USER.analytics_enabled = True
+            self.USER.save()
+
             set_user_properties(self.USER)
 
             mock_mixpanel.people_set.assert_called_once_with(
@@ -161,3 +164,27 @@ class AnalyticsTest(TestCase):
                     "features_flag": [],
                 },
             )
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_create_user_profile_none(
+        self,
+        mock_mixpanel,
+    ):
+        mixpanel_token = "token"
+
+        with self.settings(MIXPANEL_TOKEN=mixpanel_token):
+            set_user_properties(None)
+            mock_mixpanel.assert_not_called()
+
+    @mock.patch("hexa.analytics.api.mixpanel")
+    def test_create_user_profile_analytics_disabled(
+        self,
+        mock_mixpanel,
+    ):
+        mixpanel_token = "token"
+        self.USER.analytics_enabled = False
+        self.USER.save()
+
+        with self.settings(MIXPANEL_TOKEN=mixpanel_token):
+            set_user_properties(self.USER)
+            mock_mixpanel.assert_not_called()

@@ -62,7 +62,7 @@ def track(
 
 
 def set_user_properties(user: User):
-    if mixpanel is None or user.analytics_enabled is False:
+    if mixpanel is None or user is None or user.analytics_enabled is False:
         return
 
     try:
