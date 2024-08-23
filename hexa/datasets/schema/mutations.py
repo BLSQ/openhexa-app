@@ -19,13 +19,9 @@ def resolve_create_dataset(_, info, **kwargs):
     mutation_input = kwargs["input"]
 
     try:
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        if isinstance(request.user, PipelineRunUser):
-            workspace = request.user.pipeline_run.pipeline.workspace
-        else:
-            workspace = Workspace.objects.filter_for_user(request.user).get(
-                slug=mutation_input["workspaceSlug"]
-            )
+        workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=mutation_input["workspaceSlug"]
+        )
         dataset = Dataset.objects.create_if_has_perm(
             principal=request.user,
             workspace=workspace,
