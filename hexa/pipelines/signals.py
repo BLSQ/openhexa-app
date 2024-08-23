@@ -1,7 +1,7 @@
 from corsheaders.signals import check_request_enabled
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
-from django.urls import ResolverMatch, resolve
+from django.urls import NoReverseMatch, resolve
 
 from hexa.workspaces.models import WorkspaceMembership
 
@@ -27,5 +27,5 @@ def cors_allow_pipeline_run(sender, request, **kwargs):
     try:
         match = resolve(request.path)
         return match.view_name in ("pipelines:run", "pipelines:run_with_version")
-    except ResolverMatch:
+    except NoReverseMatch:
         return False
