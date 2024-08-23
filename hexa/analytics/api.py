@@ -33,39 +33,43 @@ def track(
     if mixpanel is None:
         return
 
-    people = user if user else getattr(request, "user", None)
-    can_track = (
-        people is None or isinstance(people, AnonymousUser) or people.analytics_enabled
-    )
-    if can_track is False:
-        return
-
-    if request and "User-Agent" in request.headers:
-        # Add request related properties
-        parsed = user_agent_parser.Parse(request.headers["User-Agent"])
-        properties.update(
-            {
-                "$browser": parsed["user_agent"]["family"],
-                "$device": parsed["device"]["family"],
-                "$os": parsed["os"]["family"],
-                "ip": request.META["REMOTE_ADDR"],
-            }
-        )
     try:
-        mixpanel.track(
-            distinct_id=str(people.id) if people else None,
-            event_name=event,
-            properties=properties,
+        people = user if user else getattr(request, "user", None)
+        can_track = (
+            people is None
+            or isinstance(people, AnonymousUser)
+            or getattr(people, "analytics_enabled", False)
         )
+        if can_track is False:
+            return
+
+        if request and "User-Agent" in request.headers:
+            # Add request related properties
+            parsed = user_agent_parser.Parse(request.headers["User-Agent"])
+            properties.update(
+                {
+                    "$browser": parsed["user_agent"]["family"],
+                    "$device": parsed["device"]["family"],
+                    "$os": parsed["os"]["family"],
+                    "ip": request.META["REMOTE_ADDR"],
+                }
+            )
+            mixpanel.track(
+                distinct_id=str(people.id) if people else None,
+                event_name=event,
+                properties=properties,
+            )
     except Exception as e:
         capture_exception(e)
 
 
 def set_user_properties(user: User):
-    if mixpanel is None or user.analytics_enabled is False:
+    if mixpanel is None:
         return
 
     try:
+        if getattr(user, "analytics_enabled", False) is False:
+            return
         mixpanel.people_set(
             distinct_id=str(user.id),
             properties={
