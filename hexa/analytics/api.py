@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.http import HttpRequest
-from mixpanel import BufferedConsumer, Mixpanel
+from mixpanel import Mixpanel
 from sentry_sdk import capture_exception
 from ua_parser import user_agent_parser
 
@@ -8,7 +8,8 @@ from hexa.user_management.models import AnonymousUser, User
 
 mixpanel = None
 if settings.MIXPANEL_TOKEN:
-    consumer = BufferedConsumer() if settings.DEBUG is False else None
+    # consumer = BufferedConsumer() if settings.DEBUG is False else None
+    consumer = None  # FIXME: Remove this line once mixpanel is working
     mixpanel = Mixpanel(token=settings.MIXPANEL_TOKEN, consumer=consumer)
 
 
