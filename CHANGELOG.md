@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.72.2 (2024-08-23)
+
+## What's Changed
+* Fix pipeline run user perms by @qgerome in https://github.com/BLSQ/openhexa-app/pull/795
+
+
+**Full Changelog**: https://github.com/BLSQ/openhexa-app/compare/0.72.1...0.72.2
+
 ## 0.72.1 (2024-08-23)
 
 ## What's Changed
