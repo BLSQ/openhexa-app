@@ -60,7 +60,8 @@ jobs:
         run: docker compose build --build-arg DJANGO_SETTINGS_MODULE="config.settings.dev"
 
       - name: Run Django tests
-        run: docker compose run -e DEBUG=false app coveraged-test
+        run: |
+          docker compose run -e DEBUG=false -u $(id -u):$(id -g) app coveraged-test
 
       # Push on main
       - name: Build and push (on main)
