@@ -137,9 +137,7 @@ class AnalyticsTest(TestCase):
             }
 
             track(None, event, properties)
-            mock_mixpanel.track.assert_called_once_with(
-                distinct_id=None, event_name=event, properties=properties
-            )
+            mock_mixpanel.track.assert_not_called()
 
     @mock.patch("hexa.analytics.api.mixpanel")
     def test_create_user_profile(
