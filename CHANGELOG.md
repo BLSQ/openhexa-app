@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.50.2](https://github.com/BLSQ/openhexa-frontend/compare/0.50.1...0.50.2) (2024-08-23)
+
+
+### Bug Fixes
+
+* **analytics:** Remove the last / in the rewritten requests for the backend ([83b1ce9](https://github.com/BLSQ/openhexa-frontend/commit/83b1ce98d602f1f5ad32d0f4d142c34adc7aba87))
+
 ## [0.50.1](https://github.com/BLSQ/openhexa-frontend/compare/0.50.0...0.50.1) (2024-08-23)
 
 
