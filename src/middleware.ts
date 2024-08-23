@@ -10,13 +10,12 @@ export function middleware(request: NextRequest, event: NextFetchEvent) {
       "/auth/logout",
       "/static/",
       "/admin/",
-      "/analytics/track",
+      "/analytics/track/",
     ].some((path) => request.nextUrl.pathname.startsWith(path))
   ) {
-    const pathname = request.nextUrl.pathname.replace(/\/$/, "");
     return NextResponse.rewrite(
       new URL(
-        pathname + request.nextUrl.search,
+        request.nextUrl.pathname + request.nextUrl.search,
         process.env.OPENHEXA_BACKEND_URL,
       ),
     );
