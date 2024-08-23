@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.50.3](https://github.com/BLSQ/openhexa-frontend/compare/0.50.2...0.50.3) (2024-08-23)
+
+
+### Bug Fixes
+
+* **analytics:** Change the url in the backend to end with a slash ([39b2d78](https://github.com/BLSQ/openhexa-frontend/commit/39b2d78624eb478425edfb76eaf90daa255835d7))
+
 ## [0.50.2](https://github.com/BLSQ/openhexa-frontend/compare/0.50.1...0.50.2) (2024-08-23)
 
 
