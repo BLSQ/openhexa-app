@@ -344,15 +344,14 @@ WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET", "hexa-da
 # Filesystem configuration
 WORKSPACE_STORAGE_BACKEND = {
     "engine": "hexa.files.backends.fs.FileSystemStorage",
-    "options": {
-        "folder": os.environ.get("WORKSPACE_BUCKET_FOLDER", "/data"),
-    },
+    "options": {"folder": "/data"},
 }
 
 WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION", "europe-west1")
 WORKSPACE_BUCKET_PREFIX = os.environ.get("WORKSPACE_BUCKET_PREFIX", "")
 WORKSPACE_BUCKET_VERSIONING_ENABLED = False
 
+WORKSPACE_STORAGE_LOCATION = os.environ.get("WORKSPACE_STORAGE_LOCATION")
 
 ### AWS S3 Settings if using AWS S3 as a storage backend ###
 WORKSPACE_STORAGE_BACKEND_AWS_ENDPOINT_URL = os.environ.get(

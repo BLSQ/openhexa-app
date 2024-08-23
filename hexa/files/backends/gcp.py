@@ -83,6 +83,8 @@ def ensure_is_folder(object_key: str):
 
 
 class GoogleCloudStorage(Storage):
+    storage_type = "gcp"
+
     def __init__(self, service_account_key: str, region: str, enable_versioning=False):
         super().__init__()
         self._credentials = get_credentials(service_account_key)
@@ -351,7 +353,6 @@ class GoogleCloudStorage(Storage):
     def get_bucket_mount_config(self, bucket_name):
         token, _ = self.get_short_lived_downscoped_access_token(bucket_name)
         return {
-            "WORKSPACE_STORAGE_ENGINE": "gcp",
             "WORKSPACE_STORAGE_ENGINE_GCP_BUCKET_NAME": bucket_name,
             "WORKSPACE_STORAGE_ENGINE_GCP_ACCESS_TOKEN": token,
         }

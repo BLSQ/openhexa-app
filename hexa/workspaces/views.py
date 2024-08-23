@@ -106,7 +106,12 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
     )
 
     # Bucket credentials
-    env.update(storage.get_bucket_mount_config(workspace.bucket_name))
+    env.update(
+        {
+            "WORKSPACE_STORAGE_ENGINE": storage.storage_type,
+            **storage.get_bucket_mount_config(workspace.bucket_name),
+        }
+    )
 
     # Custom Docker image for the workspace if appropriate
     image = (

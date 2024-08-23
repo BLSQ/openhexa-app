@@ -18,6 +18,8 @@ from .base import ObjectsPage, Storage, StorageObject, load_bucket_sample_data_w
 
 
 class FileSystemStorage(Storage):
+    storage_type = "local"
+
     def __init__(self, folder):
         self.location = Path(folder)
         self._token_max_age = 60 * 60  # 1 hour
@@ -258,6 +260,5 @@ class FileSystemStorage(Storage):
 
     def get_bucket_mount_config(self, bucket_name):
         return {
-            "WORKSPACE_STORAGE_ENGINE": "local",
             "WORKSPACE_STORAGE_BUCKET_NAME": bucket_name,
         }

@@ -5,6 +5,7 @@ import sys
 from datetime import timedelta
 from enum import Enum
 from logging import getLogger
+from pathlib import Path
 from time import sleep
 
 import requests
@@ -14,6 +15,7 @@ from django.core.management.base import BaseCommand
 from django.core.signing import Signer
 from django.utils import timezone
 
+from hexa.files import storage
 from hexa.pipelines.models import PipelineRun, PipelineRunState, PipelineType
 from hexa.pipelines.utils import generate_pipeline_container_name, mail_run_recipients
 
@@ -244,6 +246,19 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
             "HEXA_RUN_ID": str(run.id),
         }
     )
+    volumes = None
+    if storage.storage_type == "local":
+        workspace_folder = (
+            Path(settings.WORKSPACE_STORAGE_LOCATION)
+            / run.pipeline.workspace.bucket_name
+        )
+        volumes = {
+            workspace_folder: {
+                "bind": "/home/hexa/workspace",
+                "mode": "rw",
+            }
+        }
+
     container = docker_client.containers.run(
         image=image,
         command=cmd,
@@ -251,6 +266,7 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
         network="openhexa",
         platform="linux/amd64",
         environment=env_vars,
+        volumes=volumes,
         detach=True,
     )
     logger.debug("Container %s started", container.id)

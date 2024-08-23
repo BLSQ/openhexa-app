@@ -47,6 +47,8 @@ class StorageObject:
 
 
 class Storage(ABC):
+    storage_type = None
+
     class exceptions:
         BadRequest = BadRequest
         NotFound = NotFound
