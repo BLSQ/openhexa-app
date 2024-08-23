@@ -13,7 +13,7 @@ export async function trackEvent(
     return;
   }
   try {
-    const res = await fetch("/analytics/track", {
+    const res = await fetch("/analytics/track/", {
       method: "POST",
       priority: "low",
       headers: {
@@ -40,7 +40,7 @@ export async function pageView(request: NextRequest) {
     const headers = request.headers;
     headers.set("content-type", "application/json");
     const res = await fetch(
-      `${process.env.OPENHEXA_BACKEND_URL ?? ""}/analytics/track`,
+      `${process.env.OPENHEXA_BACKEND_URL ?? ""}/analytics/track/`,
       {
         method: "POST",
         headers,
