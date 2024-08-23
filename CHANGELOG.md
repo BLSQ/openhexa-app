@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.50.1](https://github.com/BLSQ/openhexa-frontend/compare/0.50.0...0.50.1) (2024-08-23)
+
+
+### Miscellaneous
+
+* Remove Plausible ([#681](https://github.com/BLSQ/openhexa-frontend/issues/681)) ([308f816](https://github.com/BLSQ/openhexa-frontend/commit/308f816995eb3886b1210e30f9552d5e6bbaaaab))
+
 ## [0.50.0](https://github.com/BLSQ/openhexa-frontend/compare/0.49.2...0.50.0) (2024-08-21)
 
 
