@@ -8,9 +8,7 @@ from hexa.user_management.models import AnonymousUser, User
 
 mixpanel = None
 if settings.MIXPANEL_TOKEN:
-    # consumer = BufferedConsumer() if settings.DEBUG is False else None
-    consumer = None  # FIXME: Remove this line once mixpanel is working
-    mixpanel = Mixpanel(token=settings.MIXPANEL_TOKEN, consumer=consumer)
+    mixpanel = Mixpanel(token=settings.MIXPANEL_TOKEN)
 
 
 def track(
