@@ -11,6 +11,8 @@ export function middleware(request: NextRequest, event: NextFetchEvent) {
       "/static/",
       "/admin/",
       "/analytics/track/",
+      "/files/up",
+      "/files/dl",
     ].some((path) => request.nextUrl.pathname.startsWith(path))
   ) {
     return NextResponse.rewrite(
