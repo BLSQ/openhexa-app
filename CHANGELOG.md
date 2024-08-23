@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.72.1 (2024-08-23)
+
+## What's Changed
+* Make configurable the DB hostname in the container by @toch in https://github.com/BLSQ/openhexa-app/pull/791
+* fix(analytics): PipelineRunUser should be excluded by @qgerome in https://github.com/BLSQ/openhexa-app/pull/794
+
+
+**Full Changelog**: https://github.com/BLSQ/openhexa-app/compare/0.72.0...0.72.1
+
 ## 0.72.0 (2024-08-21)
 
 ## What's Changed
