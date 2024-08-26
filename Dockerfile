@@ -21,17 +21,20 @@ RUN \
 COPY . /code/
 
 ENV SECRET_KEY="collectstatic"
-ENV DJANGO_SETTINGS_MODULE config.settings.production
+ARG DJANGO_SETTINGS_MODULE
+ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
 ENTRYPOINT ["/code/docker-entrypoint.sh"]
 CMD start
 
 FROM deps as app
-ENV DJANGO_SETTINGS_MODULE config.settings.production
+ARG DJANGO_SETTINGS_MODULE
+ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
 RUN python manage.py collectstatic --noinput
 
 # Staged used to run the pipelines scheduler and runner
 FROM app as pipelines
-ENV DJANGO_SETTINGS_MODULE config.settings.production
+ARG DJANGO_SETTINGS_MODULE
+ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
 RUN mkdir -m 0755 -p /etc/apt/keyrings
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 RUN echo \

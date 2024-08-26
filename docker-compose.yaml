@@ -6,6 +6,8 @@ x-app: &common
       context: .
       dockerfile: Dockerfile
       target: app
+      args:
+        - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
     env_file:
       - path: ./.env
         required: true
@@ -75,6 +77,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: pipelines
+      args:
+        - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
     command: "manage pipelines_runner"
     restart: unless-stopped
     profiles:
@@ -91,6 +95,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: pipelines
+      args:
+        - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
     command: "manage pipelines_scheduler"
     restart: unless-stopped
     profiles:
