@@ -248,12 +248,14 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
     )
     volumes = None
     if storage.storage_type == "local":
+        print(f"LOCAL STORAGE {settings.WORKSPACE_STORAGE_LOCATION}", flush=True)
         workspace_folder = (
             Path(settings.WORKSPACE_STORAGE_LOCATION)
             / run.pipeline.workspace.bucket_name
         )
+        print(f"FULL PATH: {workspace_folder}", flush=True)
         volumes = {
-            workspace_folder: {
+            str(workspace_folder): {
                 "bind": "/home/hexa/workspace",
                 "mode": "rw",
             }
@@ -268,6 +270,7 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
         environment=env_vars,
         volumes=volumes,
         detach=True,
+        remove=False,
     )
     logger.debug("Container %s started", container.id)
 
@@ -277,7 +280,7 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
         run.save()
         # we stop the running process when the run state is a terminating
         if run.state == PipelineRunState.TERMINATING:
-            container.kill()
+            # container.kill()
             return False, container.logs().decode("UTF-8")
 
         try:
@@ -285,7 +288,7 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
             r = container.wait(timeout=1)
             status_code = r["StatusCode"] == 0
             logs = container.logs().decode("UTF-8")
-            container.remove()
+            # container.remove()
             return status_code, logs
         except (
             urllib3.exceptions.ReadTimeoutError,

@@ -37,12 +37,8 @@ class FileSystemStorage(Storage):
         except self.exceptions.SuspiciousFileOperation:
             raise
 
-    def path(self, name):
-        return safe_join(self.location, name)
-
-    def bucket_path(self, bucket_name, name):
-        bucket_path = self.path(bucket_name)
-        return Path(safe_join(bucket_path, name))
+    def path(self, *names):
+        return Path(safe_join(self.location, *names))
 
     def size(self, name):
         return os.path.getsize(name)
@@ -62,7 +58,7 @@ class FileSystemStorage(Storage):
         return urlsafe_base64_encode(force_bytes(signed_payload))
 
     def to_storage_object(self, bucket_name: str, object_key: Path):
-        full_path = self.bucket_path(bucket_name, object_key)
+        full_path = self.path(bucket_name, object_key)
         if not self.exists(full_path):
             raise self.exceptions.NotFound(f"Object {object_key} not found")
         if full_path.is_file():
@@ -128,7 +124,7 @@ class FileSystemStorage(Storage):
     def save_object(
         self, bucket_name: str, file_path: str, file: io.BufferedReader | bytes
     ):
-        full_path = self.bucket_path(bucket_name, file_path)
+        full_path = self.path(bucket_name, file_path)
 
         # Create any intermediate directories that do not exist.
         directory = os.path.dirname(full_path)
@@ -154,7 +150,7 @@ class FileSystemStorage(Storage):
     def get_bucket_object(self, bucket_name: str, object_key: str):
         if not self.exists(bucket_name):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
-        full_path = self.bucket_path(bucket_name, object_key)
+        full_path = self.path(bucket_name, object_key)
         if not self.exists(full_path):
             raise self.exceptions.NotFound(f"Object {object_key} not found")
         return self.to_storage_object(bucket_name, Path(object_key))
@@ -168,7 +164,9 @@ class FileSystemStorage(Storage):
         query: str = None,
         ignore_hidden_files=True,
     ):
-        full_path = self.bucket_path(bucket_name, prefix)
+        if prefix is None:
+            prefix = ""
+        full_path = self.path(bucket_name, prefix)
         if not os.path.exists(full_path):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
         if not os.path.isdir(full_path):
@@ -203,7 +201,7 @@ class FileSystemStorage(Storage):
         )
 
     def delete_object(self, bucket_name: str, object_key: str):
-        full_path = self.bucket_path(bucket_name, object_key)
+        full_path = self.path(bucket_name, object_key)
         if not self.exists(full_path):
             raise self.exceptions.NotFound(f"Object {object_key} not found")
         obj = self.get_bucket_object(bucket_name, object_key)
@@ -222,7 +220,7 @@ class FileSystemStorage(Storage):
     ):
         if not self.exists(bucket_name):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
-        full_path = self.bucket_path(bucket_name, target_key)
+        full_path = self.path(bucket_name, target_key)
         if self.exists(full_path) and raise_if_exists:
             raise self.exceptions.AlreadyExists(f"Object {target_key} already exist")
 
@@ -243,7 +241,7 @@ class FileSystemStorage(Storage):
     ):
         if not self.exists(bucket_name):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
-        full_path = self.bucket_path(bucket_name, target_key)
+        full_path = self.path(bucket_name, target_key)
         if not self.exists(full_path):
             raise self.exceptions.NotFound(f"Object {target_key} not found")
 
