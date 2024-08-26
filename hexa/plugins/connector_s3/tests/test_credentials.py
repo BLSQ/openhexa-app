@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import boto3
 from django.test import override_settings
-from moto import mock_iam, mock_sts
+from moto import mock_aws
 
 from hexa.core.test import TestCase
 from hexa.notebooks.credentials import NotebooksCredentials
@@ -83,8 +83,7 @@ class NotebooksCredentialsTest(TestCase):
             bucket=b2, team=cls.TEAM_SECRET, mode=PermissionMode.VIEWER
         )
 
-    @mock_iam
-    @mock_sts
+    @mock_aws
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_credentials(self, _):
         """John is a regular user, should have access to 2 buckets"""
@@ -142,8 +141,7 @@ class NotebooksCredentialsTest(TestCase):
         self.assertEqual(1, len(role_policies_data["PolicyNames"]))
         self.assertEqual("s3-access", role_policies_data["PolicyNames"][0])
 
-    @mock_iam
-    @mock_sts
+    @mock_aws
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_credentials_superuser(self, _):
         """Jane is a superuser, should have access to 3 buckets"""
@@ -177,8 +175,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
         cls.CREDENTIALS = _get_app_s3_credentials()
         cls.BUCKET = Bucket.objects.create(name="hexa-test-bucket-1")
 
-    @mock_iam
-    @mock_sts
+    @mock_aws
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_new_role(self, _):
         iam_client = boto3.client(
@@ -270,8 +267,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
             credentials.env,
         )
 
-    @mock_iam
-    @mock_sts
+    @mock_aws
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_existing_role(self, _):
         """
@@ -337,8 +333,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
             parse_arn(response["Arn"])["resource"].split("/")[0], expected_role_name
         )
 
-    @mock_iam
-    @mock_sts
+    @mock_aws
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_slug(self, _):
         DAGAuthorizedDatasource.objects.create(

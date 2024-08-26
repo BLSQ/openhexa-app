@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.db import IntegrityError
 
@@ -7,7 +9,7 @@ from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.user_management.models import User
 from hexa.workspaces.models import WorkspaceMembershipRole
 
-from ..models import Dataset, DatasetVersionFile
+from ..models import Dataset, DatasetFileMetadata, DatasetVersionFile
 from .testutils import DatasetTestMixin
 
 
@@ -377,6 +379,46 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         with self.assertRaises(IntegrityError):
             dataset.create_version(principal=superuser, name="Version 1")
 
+    @mock_gcp_storage
+    def test_generate_upload_url(self):
+        superuser = self.create_user("superuser@blsq.com", is_superuser=True)
+        workspace = self.create_workspace(
+            superuser,
+            name="My Workspace",
+            description="Test workspace",
+        )
+        dataset = self.create_dataset(
+            superuser, workspace, "Dataset", "Dataset description"
+        )
+        dataset_version = self.create_dataset_version(superuser, dataset=dataset)
+        self.client.force_login(superuser)
+        r = self.run_query(
+            """
+            mutation generateDatasetUploadUrl ($input: GenerateDatasetUploadUrlInput!) {
+                generateDatasetUploadUrl(input: $input) {
+                    uploadUrl
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "versionId": str(dataset_version.id),
+                    "uri": "uri_file.csv",
+                    "contentType": "text/csv",
+                }
+            },
+        )
+        self.assertEqual(
+            r["data"]["generateDatasetUploadUrl"],
+            {
+                "uploadUrl": f"http://signed-url/{str(dataset.id)}/{str(dataset_version.id)}/uri_file.csv",
+                "success": True,
+                "errors": [],
+            },
+        )
+
     def test_get_file_by_name(self):
         self.test_create_dataset_version()
         superuser = User.objects.get(email="superuser@blsq.com")
@@ -419,6 +461,48 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
 
         self.assertEqual(
             {"datasetVersion": {"fileByName": {"filename": file.filename}}}, r["data"]
+        )
+
+    def test_get_file_metadata(self):
+        self.test_create_dataset_version()
+        superuser = User.objects.get(email="superuser@blsq.com")
+        dataset = Dataset.objects.get(name="Dataset")
+        self.client.force_login(superuser)
+        file = DatasetVersionFile.objects.create(
+            dataset_version=dataset.latest_version,
+            uri=dataset.latest_version.get_full_uri("file.csv"),
+            created_by=superuser,
+        )
+        metadata = DatasetFileMetadata.objects.create(
+            dataset_version_file=file,
+            sample=json.dumps({"key": "value"}),
+            status=DatasetFileMetadata.STATUS_PROCESSING,
+        )
+        r = self.run_query(
+            """
+                    query GetDatasetVersionFile($id: ID!) {
+                      datasetVersionFile(id: $id) {
+                        filename
+                        fileMetadata {
+                          status
+                          sample
+                        }
+                      }
+                    }
+        """,
+            {"id": str(file.id)},
+        )
+        self.assertEqual(
+            {
+                "datasetVersionFile": {
+                    "filename": file.filename,
+                    "fileMetadata": {
+                        "status": metadata.status,
+                        "sample": metadata.sample,
+                    },
+                }
+            },
+            r["data"],
         )
 
     @mock_gcp_storage

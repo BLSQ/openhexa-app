@@ -4,10 +4,11 @@ import boto3
 import botocore
 from django.core.exceptions import ValidationError
 from django.test import override_settings
-from moto import mock_s3
+from moto import mock_aws
 
 from hexa.core.test import TestCase
 from hexa.files import storage
+from hexa.user_management.models import AlreadyExists
 
 from .mocks.mockgcp import backend
 
@@ -33,7 +34,7 @@ class APITestCase:
             self.addCleanup(patcher.stop)
 
         if self.get_type() == "s3":
-            mock = mock_s3()
+            mock = mock_aws()
 
             self.mock_backend = mock.start()
             self.addCleanup(mock.stop)
@@ -364,7 +365,7 @@ class APITestCase:
             size=123,
             content_type="text/plain",
         )
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(AlreadyExists):
             self.get_client().generate_upload_url(
                 bucket_name="bucket", target_key="demo.txt", raise_if_exists=True
             )

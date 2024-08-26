@@ -3,6 +3,9 @@ import secrets
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.db import models
+from django.db.models import JSONField
+from django.utils.translation import gettext_lazy as _
+from dpq.models import BaseJob
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
@@ -250,8 +253,39 @@ class DatasetVersionFile(Base):
     def filename(self):
         return self.uri.split("/")[-1]
 
+    @property
+    def latest_metadata(self):
+        return self.metadata_entries.order_by("-created_at").first()
+
     class Meta:
         ordering = ["uri"]
+
+
+class DatasetFileMetadata(Base):
+    STATUS_PROCESSING = "PROCESSING"
+    STATUS_FAILED = "FAILED"
+    STATUS_FINISHED = "FINISHED"
+
+    STATUS_CHOICES = [
+        (STATUS_PROCESSING, _("Processing")),
+        (STATUS_FAILED, _("Failed")),
+        (STATUS_FINISHED, _("Finished")),
+    ]
+
+    sample = JSONField(blank=True, default=list, null=True)
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default=STATUS_PROCESSING,
+    )
+    status_reason = models.TextField(blank=True, null=True)
+    dataset_version_file = models.ForeignKey(
+        DatasetVersionFile,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="metadata_entries",
+    )
 
 
 class DatasetLinkQuerySet(BaseQuerySet):
@@ -291,3 +325,8 @@ class DatasetLink(Base):
 
     class Meta:
         unique_together = ("dataset", "workspace")
+
+
+class DatasetFileMetadataJob(BaseJob):
+    class Meta:
+        db_table = "datasets_filemetadata_job"

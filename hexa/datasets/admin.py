@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from .models import Dataset, DatasetLink, DatasetVersion, DatasetVersionFile
+from .models import (
+    Dataset,
+    DatasetLink,
+    DatasetVersion,
+    DatasetVersionFile,
+)
 
 
 @admin.register(Dataset)

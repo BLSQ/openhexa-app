@@ -5,6 +5,7 @@ from ariadne import MutationType, QueryType, load_schema_from_path
 from django.conf import settings
 from django.http import HttpRequest
 
+from hexa.analytics.api import track
 from hexa.workspaces.models import Workspace
 
 from .api import create_server, create_user, get_user, server_ready
@@ -62,6 +63,8 @@ def resolve_launch_notebook_server(_, info, input, **kwargs):
     # a not found error because the return URL and the generated one doesn't match
     email_prefix = parse.quote(request.user.email.split("@")[0])
     encoded_username = "@".join([email_prefix, request.user.email.split("@")[1]])
+    track(request, "notebooks.notebook_launched", {"workspace": workspace_slug})
+
     return {
         "success": True,
         "server": {

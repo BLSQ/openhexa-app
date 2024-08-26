@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "ariadne_django",
     "dpq",
     "hexa.user_management",
+    "hexa.analytics",
     "hexa.core",
     "hexa.catalog",
     "hexa.countries",
@@ -92,6 +93,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
+    "hexa.analytics.middlewares.set_analytics_middleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -192,7 +194,7 @@ SESSION_COOKIE_AGE = 365 * 24 * 3600
 RAW_CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS")
 if RAW_CORS_ALLOWED_ORIGINS is not None:
     CORS_ALLOWED_ORIGINS = RAW_CORS_ALLOWED_ORIGINS.split(",")
-    CORS_URLS_REGEX = r"^/graphql/(\w+\/)?$"
+    CORS_URLS_REGEX = r"^[/graphql/(\w+\/)?|/analytics/track]$"
     CORS_ALLOW_CREDENTIALS = True
 
 
@@ -372,7 +374,20 @@ WORKSPACE_STORAGE_BACKEND_AWS_BUCKET_REGION = os.environ.get(
     "WORKSPACE_STORAGE_BACKEND_AWS_BUCKET_REGION"
 )
 
-# S3 settings (Used by OpenHEXA Legacy)
+# Datasets config
+WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET")
+WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE = os.environ.get(
+    "WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE", 50
+)
+
+# Base64 encoded service account key
+# To generate a service account key, follow the instructions here:
+# import base64
+# import json
+# base64.b64encode(json.dumps(service_account_key_content).encode("utf-8"))
+GCS_SERVICE_ACCOUNT_KEY = os.environ.get("GCS_SERVICE_ACCOUNT_KEY", "")
+
+# S3 settings
 AWS_USERNAME = os.environ.get("AWS_USERNAME", "")
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
@@ -383,3 +398,6 @@ AWS_APP_ROLE_ARN = os.environ.get("AWS_APP_ROLE_ARN", "")
 AWS_PERMISSIONS_BOUNDARY_POLICY_ARN = os.environ.get(
     "AWS_PERMISSIONS_BOUNDARY_POLICY_ARN", ""
 )
+
+# MIXPANEL
+MIXPANEL_TOKEN = os.environ.get("MIXPANEL_TOKEN")

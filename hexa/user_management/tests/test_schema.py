@@ -150,9 +150,11 @@ class SchemaTest(GraphQLTestCase):
                     "displayName": self.USER_JIM.display_name,
                     "email": self.USER_JIM.email,
                     "dateJoined": graphql_datetime_format(self.USER_JIM.date_joined),
-                    "lastLogin": graphql_datetime_format(self.USER_JIM.last_login)
-                    if self.USER_JIM.last_login
-                    else None,
+                    "lastLogin": (
+                        graphql_datetime_format(self.USER_JIM.last_login)
+                        if self.USER_JIM.last_login
+                        else None
+                    ),
                 },
                 "features": [],
                 "permissions": {"createTeam": True, "adminPanel": False},

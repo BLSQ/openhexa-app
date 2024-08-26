@@ -134,26 +134,10 @@ class S3Storage(Storage):
             cors_configuration = {
                 "CORSRules": [
                     {
-                        "AllowedHeaders": [
-                            "Authorization",
-                            "Content-Range",
-                            "Accept",
-                            "Content-Type",
-                            "Origin",
-                            "Range",
-                        ],
+                        "AllowedHeaders": ["*"],
                         "AllowedMethods": ["GET", "PUT"],
-                        "AllowedOrigins": settings.CORS_ALLOWED_ORIGINS,
-                        "ExposeHeaders": [
-                            "ETag",
-                            "x-amz-request-id",
-                            "Authorization",
-                            "Content-Range",
-                            "Accept",
-                            "Content-Type",
-                            "Origin",
-                            "Range",
-                        ],
+                        "AllowedOrigins": ["*"],
+                        "ExposeHeaders": ["*"],
                         "MaxAgeSeconds": 3000,
                     }
                 ]
@@ -162,7 +146,7 @@ class S3Storage(Storage):
         except s3.exceptions.ClientError as exc:
             # https://github.com/VeemsHQ/veems/blob/3e2e75c3407bc1f98395fe94c0e03367a82852c9/veems/media/upload_manager.py#L51C1-L51C1
 
-            if "MalformedXML" in str(exc):
+            if "NotImplemented" in str(exc):
                 from warnings import warn
 
                 warn(
@@ -235,9 +219,7 @@ class S3Storage(Storage):
         if raise_if_exists:
             try:
                 s3_client.head_object(Bucket=bucket_name, Key=target_key)
-                raise ValidationError(
-                    f"File already exists. Choose a different object key Object {target_key}."
-                )
+                raise self.exceptions.AlreadyExists(target_key)
             except s3_client.exceptions.ClientError as e:
                 if e.response["Error"]["Code"] != "404":
                     # don't hide non "not found errors"

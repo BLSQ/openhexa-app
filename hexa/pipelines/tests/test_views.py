@@ -215,7 +215,11 @@ class ViewsTest(TestCase):
         )
 
     def assert200withConfig(
-        self, parameters, config, result_config, content_type="application/json"
+        self,
+        parameters,
+        config,
+        result_config,
+        content_type="application/json",
     ):
         self.PIPELINE.upload_new_version(
             self.USER_JULIA,

@@ -148,17 +148,10 @@ class GoogleCloudStorage(Storage):
 
             bucket.cors = [
                 {
-                    "origin": settings.CORS_ALLOWED_ORIGINS,
-                    "responseHeader": [
-                        "Authorization",
-                        "Content-Range",
-                        "Accept",
-                        "Content-Type",
-                        "Origin",
-                        "Range",
-                    ],
-                    "method": ["GET", "PUT"],
+                    "origin": ["*"],
+                    "method": ["*"],
                     "maxAgeSeconds": 3600,
+                    "responseHeader": ["*"],
                 }
             ]
             bucket.patch()
@@ -209,7 +202,7 @@ class GoogleCloudStorage(Storage):
     ):
         gcs_bucket = self.client.get_bucket(bucket_name)
         if raise_if_exists and gcs_bucket.get_blob(target_key) is not None:
-            raise ValidationError(f"GCS: Object {target_key} already exists!")
+            raise self.exceptions.AlreadyExists(target_key)
         blob = gcs_bucket.blob(target_key)
         return blob.generate_signed_url(
             expiration=3600, version="v4", method="PUT", content_type=content_type

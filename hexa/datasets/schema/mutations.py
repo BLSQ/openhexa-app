@@ -2,11 +2,13 @@ from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 
+from hexa.analytics.api import track
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.workspaces.models import Workspace
 
 from ..api import generate_download_url, generate_upload_url, get_blob
 from ..models import Dataset, DatasetLink, DatasetVersion, DatasetVersionFile
+from ..queue import load_file_metadata
 
 mutations = MutationType()
 
@@ -17,13 +19,9 @@ def resolve_create_dataset(_, info, **kwargs):
     mutation_input = kwargs["input"]
 
     try:
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        if isinstance(request.user, PipelineRunUser):
-            workspace = request.user.pipeline_run.pipeline.workspace
-        else:
-            workspace = Workspace.objects.filter_for_user(request.user).get(
-                slug=mutation_input["workspaceSlug"]
-            )
+        workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=mutation_input["workspaceSlug"]
+        )
         dataset = Dataset.objects.create_if_has_perm(
             principal=request.user,
             workspace=workspace,
@@ -58,7 +56,6 @@ def resolve_update_dataset(_, info, **kwargs):
             principal=request.user,
             **mutation_input,
         )
-
         return {"success": True, "errors": [], "dataset": dataset}
     except Dataset.DoesNotExist:
         return {"success": False, "errors": ["DATASET_NOT_FOUND"]}
@@ -100,6 +97,26 @@ def resolve_create_dataset_version(_, info, **kwargs):
             dataset=dataset,
             name=mutation_input["name"],
             description=mutation_input.get("description"),
+        )
+
+        # Register dataset version creation event
+        tracked_user = (
+            request.user.pipeline_run.user
+            if isinstance(request.user, PipelineRunUser)
+            else request.user
+        )
+        track(
+            request,
+            "datasets.dataset_version_created",
+            {
+                "dataset_version": version.name,
+                "dataset_id": str(dataset.id),
+                "creation_source": (
+                    "SDK" if isinstance(request.user, PipelineRunUser) else "UI"
+                ),
+                "workspace": dataset.workspace.slug,
+            },
+            user=tracked_user,
         )
 
         return {"success": True, "errors": [], "version": version}
@@ -178,6 +195,33 @@ def resolve_delete_dataset_share(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
+@mutations.field("generateDatasetUploadUrl")
+def resolve_generate_upload_url(_, info, **kwargs):
+    request = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    try:
+        version = DatasetVersion.objects.filter_for_user(request.user).get(
+            id=mutation_input["versionId"]
+        )
+        if version.id != version.dataset.latest_version.id:
+            return {"success": False, "errors": ["LOCKED_VERSION"]}
+
+        full_uri = version.get_full_uri(mutation_input["uri"])
+        if get_blob(full_uri) is not None:
+            return {"success": False, "errors": ["ALREADY_EXISTS"]}
+
+        upload_url = generate_upload_url(full_uri, mutation_input["contentType"])
+
+        return {"success": True, "errors": [], "upload_url": upload_url}
+    except ValidationError:
+        return {"success": False, "errors": ["INVALID_URI"]}
+    except DatasetVersion.DoesNotExist:
+        return {"success": False, "errors": ["VERSION_NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
 @mutations.field("createDatasetVersionFile")
 def resolve_create_version_file(_, info, **kwargs):
     request = info.context["request"]
@@ -195,7 +239,7 @@ def resolve_create_version_file(_, info, **kwargs):
             file = None
             try:
                 file = version.get_file_by_name(mutation_input["uri"])
-                if get_blob(file) is not None:
+                if get_blob(file.uri) is not None:
                     return {"success": False, "errors": ["ALREADY_EXISTS"]}
             except DatasetVersionFile.DoesNotExist:
                 file = DatasetVersionFile.objects.create_if_has_perm(
@@ -204,12 +248,12 @@ def resolve_create_version_file(_, info, **kwargs):
                     uri=version.get_full_uri(mutation_input["uri"]),
                     content_type=mutation_input["contentType"],
                 )
-            upload_url = generate_upload_url(file)
+
+            load_file_metadata(file_id=file.id)
             return {
                 "success": True,
                 "errors": [],
                 "file": file,
-                "upload_url": upload_url,
             }
     except ValidationError:
         return {"success": False, "errors": ["INVALID_URI"]}

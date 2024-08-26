@@ -6,6 +6,9 @@ k8s/*
 data/
 !k8s/sample_app.yaml
 
+#for mac and idea
+*.DS_Store
+.idea/
 # TODO: remove
 credentials
 .terraform*

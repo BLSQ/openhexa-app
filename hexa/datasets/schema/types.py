@@ -1,18 +1,28 @@
+import logging
+
 from ariadne import ObjectType
 from django.db.models import Q
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
+from hexa.datasets.api import generate_upload_url
+from hexa.datasets.models import (
+    Dataset,
+    DatasetFileMetadata,
+    DatasetLink,
+    DatasetVersion,
+    DatasetVersionFile,
+)
+from hexa.files import storage
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
-
-from ..models import Dataset, DatasetLink, DatasetVersion, DatasetVersionFile
 
 dataset_object = ObjectType("Dataset")
 dataset_permissions = ObjectType("DatasetPermissions")
 dataset_version_object = ObjectType("DatasetVersion")
 dataset_version_permissions = ObjectType("DatasetVersionPermissions")
 dataset_version_file_object = ObjectType("DatasetVersionFile")
+dataset_version_file_result_object = ObjectType("CreateDatasetVersionFileResult")
 dataset_link_object = ObjectType("DatasetLink")
 dataset_link_permissions = ObjectType("DatasetLinkPermissions")
 
@@ -198,6 +208,26 @@ def resolve_version_permissions_delete(obj: DatasetVersion, info, **kwargs):
     )
 
 
+@dataset_version_file_result_object.field("uploadUrl")
+def resolve_upload_url(obj, info, **kwargs):
+    try:
+        file = obj["file"]
+        upload_url = generate_upload_url(file.uri, file.content_type)
+        return upload_url
+    except storage.exceptions.AlreadyExists as exc:
+        logging.error(f"Upload URL generation failed: {exc.message}")
+        return None
+
+
+@dataset_version_file_object.field("fileMetadata")
+def resolve_version_file_metadata(obj: DatasetVersionFile, info, **kwargs):
+    try:
+        return obj.latest_metadata
+    except DatasetFileMetadata.DoesNotExist:
+        logging.error(f"No metadata found for file {obj.filename} with id {obj.id}")
+        return None
+
+
 bindables = [
     dataset_object,
     dataset_permissions,
@@ -205,5 +235,6 @@ bindables = [
     dataset_version_permissions,
     dataset_link_permissions,
     dataset_version_file_object,
+    dataset_version_file_result_object,
     dataset_link_object,
 ]

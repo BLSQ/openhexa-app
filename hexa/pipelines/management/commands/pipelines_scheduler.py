@@ -6,6 +6,7 @@ from croniter import croniter
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from hexa.analytics.api import track
 from hexa.pipelines.models import Pipeline, PipelineRunTrigger
 
 logger = getLogger(__name__)
@@ -52,6 +53,17 @@ class Command(BaseCommand):
                     pipeline_version=pipeline.last_version,
                     trigger_mode=PipelineRunTrigger.SCHEDULED,
                     send_mail_notifications=pipeline.recipients.count() > 0,
+                )
+                track(
+                    request=None,
+                    event="pipelines.pipeline_run",
+                    properties={
+                        "pipeline_id": str(pipeline.id),
+                        "version_name": pipeline.last_version.name,
+                        "version_id": str(pipeline.last_version.id),
+                        "trigger": PipelineRunTrigger.SCHEDULED,
+                        "workspace": pipeline.workspace.slug,
+                    },
                 )
 
             empty_delay = cutoff - (timezone.now() - start_time).total_seconds()

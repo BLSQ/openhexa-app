@@ -1,4 +1,4 @@
-FROM python:3.11-slim as deps
+FROM python:3.12-slim as deps
 
 RUN \
   --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -16,7 +16,7 @@ WORKDIR /code
 RUN \
   --mount=type=cache,target=/root/.cache \ 
   --mount=type=bind,source=requirements.txt,target=/code/requirements.txt \
-  pip install setuptools==57.5.0 && pip install -r requirements.txt
+  pip install setuptools==68.0.0 && pip install -r requirements.txt
 
 COPY . /code/
 
