@@ -53,11 +53,11 @@ def track(
                     "ip": request.META["REMOTE_ADDR"],
                 }
             )
-            mixpanel.track(
-                distinct_id=str(people.id) if people else None,
-                event_name=event,
-                properties=properties,
-            )
+        mixpanel.track(
+            distinct_id=str(people.id) if people else None,
+            event_name=event,
+            properties=properties,
+        )
     except Exception as e:
         capture_exception(e)
 
