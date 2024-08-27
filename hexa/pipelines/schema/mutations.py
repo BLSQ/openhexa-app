@@ -216,7 +216,7 @@ def resolve_run_pipeline(_, info, **kwargs):
             request,
             "pipelines.pipeline_run",
             {
-                "pipeline_id": str(pipeline.id),
+                "pipeline_id": pipeline.code,
                 "version_name": version.name,
                 "version_id": str(version.id),
                 "trigger": PipelineRunTrigger.MANUAL,

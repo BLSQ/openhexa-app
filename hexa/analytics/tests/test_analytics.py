@@ -1,5 +1,4 @@
 from unittest import mock
-from uuid import uuid4
 
 from django.test import RequestFactory
 
@@ -66,7 +65,7 @@ class AnalyticsTest(TestCase):
         self.USER.save()
 
         mixpanel_token = "token"
-        # mock the flush method of the BufferedConsumer
+
         with self.settings(MIXPANEL_TOKEN=mixpanel_token):
             request = self.factory.post("/dataset")
             request.headers = {
@@ -77,7 +76,7 @@ class AnalyticsTest(TestCase):
             event = "dataset_version_created"
             properties = {
                 "dataset_version": "version",
-                "dataset_id": str(uuid4()),
+                "dataset_id": "slug",
                 "creation_source": "SDK",
                 "workspace": self.WORKSPACE.slug,
             }
@@ -119,7 +118,7 @@ class AnalyticsTest(TestCase):
         mock_mixpanel,
     ):
         mixpanel_token = "token"
-        # mock the flush method of the BufferedConsumer
+
         with self.settings(MIXPANEL_TOKEN=mixpanel_token):
             self.PIPELINE.run(
                 user=None,
@@ -131,13 +130,22 @@ class AnalyticsTest(TestCase):
             event = "dataset_version_created"
             properties = {
                 "dataset_version": "version",
-                "dataset_id": str(uuid4()),
+                "dataset_id": "slug",
                 "creation_source": "SDK",
                 "workspace": self.WORKSPACE.slug,
             }
 
             track(None, event, properties)
-            mock_mixpanel.track.assert_not_called()
+            mock_mixpanel.track.assert_called_once_with(
+                distinct_id=None,
+                event_name="dataset_version_created",
+                properties={
+                    "dataset_version": "version",
+                    "dataset_id": "slug",
+                    "creation_source": "SDK",
+                    "workspace": self.WORKSPACE.slug,
+                },
+            )
 
     @mock.patch("hexa.analytics.api.mixpanel")
     def test_create_user_profile(
@@ -145,7 +153,7 @@ class AnalyticsTest(TestCase):
         mock_mixpanel,
     ):
         mixpanel_token = "token"
-        # mock the flush method of the BufferedConsumer
+
         with self.settings(MIXPANEL_TOKEN=mixpanel_token):
             set_user_properties(self.USER)
 
