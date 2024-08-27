@@ -342,11 +342,13 @@ WORKSPACES_DATABASE_PROXY_HOST = os.environ.get("WORKSPACES_DATABASE_PROXY_HOST"
 # Datasets config
 WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET", "hexa-datasets")
 
-
 # Filesystem configuration
 WORKSPACE_STORAGE_BACKEND = {
     "engine": "hexa.files.backends.fs.FileSystemStorage",
-    "options": {"folder": "/data"},
+    "options": {
+        "source_dir": os.environ.get("WORKSPACE_STORAGE_LOCATION"),
+        "dest_dir": "/data",
+    },
 }
 
 WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION", "europe-west1")

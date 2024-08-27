@@ -37,7 +37,11 @@ LOGGING = {
 if os.environ.get("WORKSPACE_STORAGE_LOCATION") is None:
     raise Exception("WORKSPACE_STORAGE_LOCATION is not set")
 
+# Filesystem configuration
 WORKSPACE_STORAGE_BACKEND = {
     "engine": "hexa.files.backends.fs.FileSystemStorage",
-    "options": {"folder": "/data"},
+    "options": {
+        "source_dir": os.environ.get("WORKSPACE_STORAGE_LOCATION"),
+        "dest_dir": "/data",
+    },
 }

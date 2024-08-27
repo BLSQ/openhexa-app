@@ -9,7 +9,7 @@ from django.core.files import locks
 from django.core.signing import BadSignature, TimestampSigner
 from django.http import HttpRequest
 from django.urls import reverse
-from django.utils._os import safe_join
+from django.utils._os import safe_join as django_safe_join
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.text import get_valid_filename
@@ -17,11 +17,19 @@ from django.utils.text import get_valid_filename
 from .base import ObjectsPage, Storage, StorageObject, load_bucket_sample_data_with
 
 
+def safe_join(base, *paths):
+    """
+    A version of django.utils._os.safe_join that returns a Path object.
+    """
+    return Path(django_safe_join(base, *paths))
+
+
 class FileSystemStorage(Storage):
     storage_type = "local"
 
-    def __init__(self, folder):
-        self.location = Path(folder)
+    def __init__(self, dest_dir: str, source_dir: str):
+        self.location = Path(dest_dir)
+        self.source_dir = Path(source_dir)
         self._token_max_age = 60 * 60  # 1 hour
 
     def load_bucket_sample_data(self, bucket_name: str):
@@ -37,8 +45,8 @@ class FileSystemStorage(Storage):
         except self.exceptions.SuspiciousFileOperation:
             raise
 
-    def path(self, *names):
-        return Path(safe_join(self.location, *names))
+    def path(self, *paths):
+        return safe_join(self.location, *paths)
 
     def size(self, name):
         return os.path.getsize(name)
@@ -258,5 +266,7 @@ class FileSystemStorage(Storage):
 
     def get_bucket_mount_config(self, bucket_name):
         return {
-            "WORKSPACE_STORAGE_BUCKET_NAME": bucket_name,
+            "WORKSPACE_STORAGE_MOUNT_PATH": str(
+                safe_join(self.source_dir, bucket_name)
+            ),
         }
