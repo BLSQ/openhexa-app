@@ -6,6 +6,7 @@ x-app: &common
       target: app
       args:
         - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+        - WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
     env_file:
       - path: ./.env
         required: true
@@ -13,7 +14,7 @@ x-app: &common
       - openhexa
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
-      - "${WORKSPACE_STORAGE_LOCATION:-../workspaces-data}:/data"
+      - "${WORKSPACE_STORAGE_LOCATION}:/data"
     
 
 services:

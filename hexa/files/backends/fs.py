@@ -27,9 +27,9 @@ def safe_join(base, *paths):
 class FileSystemStorage(Storage):
     storage_type = "local"
 
-    def __init__(self, dest_dir: str, source_dir: str):
+    def __init__(self, dest_dir: str, source_dir: str = None):
         self.location = Path(dest_dir)
-        self.source_dir = Path(source_dir)
+        self.source_dir = Path(source_dir) if source_dir is not None else None
         self._token_max_age = 60 * 60  # 1 hour
 
     def load_bucket_sample_data(self, bucket_name: str):
@@ -265,6 +265,10 @@ class FileSystemStorage(Storage):
         return url
 
     def get_bucket_mount_config(self, bucket_name):
+        if self.source_dir is None:
+            raise self.exceptions.ImproperlyConfigured(
+                "Source directory is not set for the storage backend"
+            )
         return {
             "WORKSPACE_STORAGE_MOUNT_PATH": str(
                 safe_join(self.source_dir, bucket_name)
