@@ -95,13 +95,7 @@ class ViewsTest(TestCase):
         )
         self.assertEqual(response.status_code, 401)
 
-    @patch(
-        "hexa.workspaces.views.get_short_lived_downscoped_access_token",
-        return_value=("gcs-token", 3600, "gcp"),
-    )
-    def test_workspace_credentials_200(
-        self, mock_get_short_lived_downscoped_access_token
-    ):
+    def test_workspace_credentials_200(self):
         self.client.force_login(self.USER_JULIA)
         response = self.client.post(
             reverse("workspaces:credentials"),
@@ -125,8 +119,6 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
                 "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
                 "WORKSPACE_STORAGE_ENGINE": "gcp",
-                "WORKSPACE_STORAGE_ENGINE_GCP_ACCESS_TOKEN": "gcs-token",
-                "GCS_TOKEN": "gcs-token",
                 "HEXA_TOKEN": Signer().sign_object(
                     self.WORKSPACE_MEMBERSHIP_JULIA.access_token
                 ),
@@ -139,12 +131,8 @@ class ViewsTest(TestCase):
             ).notebooks_server_hash,
         )
 
-    @patch(
-        "hexa.workspaces.views.get_short_lived_downscoped_access_token",
-        return_value=("gcs-token", 3600, "gcp"),
-    )
     def test_pipeline_invalid_credentials_404(
-        self, mock_get_short_lived_downscoped_access_token
+        self,
     ):
         run = self.PIPELINE.run(
             self.USER_JULIA, self.PIPELINE.last_version, PipelineRunTrigger.MANUAL, {}

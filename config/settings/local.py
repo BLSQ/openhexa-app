@@ -25,8 +25,8 @@ LOGGING = {
             "propagate": True,
         },
         "": {
-            "handlers": ["fluentd"],
-            "level": "DEBUG",
+            "handlers": ["console"],
+            "level": "INFO",
             "propagate": False,
         },
     },
