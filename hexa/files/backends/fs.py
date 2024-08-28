@@ -27,9 +27,15 @@ def safe_join(base, *paths):
 class FileSystemStorage(Storage):
     storage_type = "local"
 
-    def __init__(self, dest_dir: str, source_dir: str = None):
-        self.location = Path(dest_dir)
-        self.source_dir = Path(source_dir) if source_dir is not None else None
+    def __init__(self, data_dir: str, ext_bind_path: str = None):
+        """Initialises the FileSystemStorage backend.
+
+        Args:
+            data_dir (str): Directory where the data will be stored.
+            bind_abs_path (str, optional): When running in a docker container, it represents the path to the data_dir from context of the docker engine. Defaults to None.
+        """
+        self.data_dir = Path(data_dir)
+        self.ext_bind_path = Path(ext_bind_path) if ext_bind_path is not None else None
         self._token_max_age = 60 * 60  # 1 hour
 
     def load_bucket_sample_data(self, bucket_name: str):
@@ -46,7 +52,7 @@ class FileSystemStorage(Storage):
             raise
 
     def path(self, *paths):
-        return safe_join(self.location, *paths)
+        return safe_join(self.data_dir, *paths)
 
     def size(self, name):
         return os.path.getsize(name)
@@ -123,11 +129,11 @@ class FileSystemStorage(Storage):
 
     def get_bucket_object_by_token(self, token: str):
         payload = self._get_payload_from_token(token)
-        return self.get_bucket_object(payload["bucket_name"], payload["target_key"])
+        return self.get_bucket_object(payload["bucket_name"], payload["file_path"])
 
     def save_object_by_token(self, token: str, file: io.BufferedReader):
         payload = self._get_payload_from_token(token)
-        return self.save_object(payload["bucket_name"], payload["target_key"], file)
+        return self.save_object(payload["bucket_name"], payload["file_path"], file)
 
     def save_object(
         self, bucket_name: str, file_path: str, file: io.BufferedReader | bytes
@@ -140,13 +146,18 @@ class FileSystemStorage(Storage):
             os.makedirs(directory, exist_ok=True)
         except FileExistsError:
             raise FileExistsError(f"{directory} exists and is not a directory.")
-        with open(full_path, "wb") as f:
-            locks.lock(f, locks.LOCK_EX)
+        f = open(full_path, "wb")
+        locks.lock(f, locks.LOCK_EX)
+        try:
             if isinstance(file, bytes):
                 f.write(file)
             else:
                 f.write(file.read())
+        except:
+            raise
+        finally:
             locks.unlock(f)
+            f.close()
 
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
         if not self.exists(bucket_name):
@@ -233,7 +244,7 @@ class FileSystemStorage(Storage):
             raise self.exceptions.AlreadyExists(f"Object {target_key} already exist")
 
         token = self._create_token_for_payload(
-            {"bucket_name": bucket_name, "target_key": target_key}
+            {"bucket_name": bucket_name, "file_path": target_key}
         )
         internal_url = reverse("files:upload_file", args=(token,))
         if request is not None:
@@ -254,7 +265,7 @@ class FileSystemStorage(Storage):
             raise self.exceptions.NotFound(f"Object {target_key} not found")
 
         token = self._create_token_for_payload(
-            {"bucket_name": bucket_name, "target_key": target_key}
+            {"bucket_name": bucket_name, "file_path": target_key}
         )
         url = reverse("files:download_file", args=(token,))
 
@@ -265,12 +276,11 @@ class FileSystemStorage(Storage):
         return url
 
     def get_bucket_mount_config(self, bucket_name):
-        if self.source_dir is None:
-            raise self.exceptions.ImproperlyConfigured(
-                "Source directory is not set for the storage backend"
-            )
         return {
             "WORKSPACE_STORAGE_MOUNT_PATH": str(
-                safe_join(self.source_dir, bucket_name)
+                safe_join(
+                    self.ext_bind_path if self.ext_bind_path else self.data_dir,
+                    bucket_name,
+                )
             ),
         }

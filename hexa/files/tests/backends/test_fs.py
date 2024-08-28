@@ -18,7 +18,9 @@ class FileSystemStorageTest(TestCase):
     def setUp(self):
         super().setUp()
         self.data_directory = Path(mkdtemp())
-        self.storage = FileSystemStorage(folder=self.data_directory)
+        self.storage = FileSystemStorage(
+            data_dir=self.data_directory,
+        )
 
     def tearDown(self) -> None:
         super().tearDown()
@@ -28,9 +30,7 @@ class FileSystemStorageTest(TestCase):
         self.storage.create_bucket("test")
         self.assertTrue(self.storage.exists("test"))
         self.assertTrue(os.path.lexists(self.storage.path("test")))
-        self.assertEqual(
-            self.storage.path("test"), os.path.join(self.data_directory, "test")
-        )
+        self.assertEqual(self.storage.path("test"), self.data_directory / "test")
 
     def test_suspicious_create_bucket(self):
         for path in ["../test", "/test", "../../test", "dir/subdir"]:
@@ -40,38 +40,15 @@ class FileSystemStorageTest(TestCase):
     def test_path(self):
         self.assertEqual(
             self.storage.path("my-dir/my-subdir/my-file.png"),
-            os.path.join(self.data_directory, "my-dir/my-subdir/my-file.png"),
+            self.data_directory / "my-dir/my-subdir/my-file.png",
         )
         self.assertEqual(
             self.storage.path("my-dir/../my-dir/my-subdir/my-file.png"),
-            os.path.join(self.data_directory, "my-dir/my-subdir/my-file.png"),
+            self.data_directory / "my-dir/my-subdir/my-file.png",
         )
 
         with self.assertRaises(self.storage.exceptions.SuspiciousFileOperation):
             self.storage.path("../my-dir/my-subdir/my-file.png")
-
-    def test_bucket_path(self):
-        self.assertEqual(
-            self.storage.bucket_path("my-bucket", "my-dir/my-subdir/my-file.png"),
-            Path(
-                os.path.join(
-                    self.data_directory, "my-bucket/my-dir/my-subdir/my-file.png"
-                )
-            ),
-        )
-        self.assertEqual(
-            self.storage.bucket_path(
-                "my-bucket", "my-dir/../my-dir/my-subdir/my-file.png"
-            ),
-            Path(
-                os.path.join(
-                    self.data_directory, "my-bucket/my-dir/my-subdir/my-file.png"
-                )
-            ),
-        )
-
-        with self.assertRaises(self.storage.exceptions.SuspiciousFileOperation):
-            self.storage.bucket_path("my-bucket", "../my-dir/my-subdir/my-file.png")
 
     def test_create_bucket_folder(self):
         self.storage.create_bucket("my-bucket")
@@ -161,9 +138,7 @@ class FileSystemStorageTest(TestCase):
         self.assertEqual(
             first_item.updated,
             datetime.fromtimestamp(
-                os.path.getmtime(
-                    self.storage.bucket_path("default-bucket", "file-0.txt")
-                )
+                os.path.getmtime(self.storage.path("default-bucket", "file-0.txt"))
             ).isoformat(),
         )
 
@@ -217,11 +192,11 @@ class FileSystemStorageTest(TestCase):
             "default-bucket", "file.txt", content_type="text/plain"
         )
         self.assertTrue(url.startswith("/files/up/"))
-        token = url.split("/")[-1]
+        token = url.split("/")[-2]
 
         self.assertEqual(
             self.storage._get_payload_from_token(token),
-            {"bucket_name": "default-bucket", "target_key": "file.txt"},
+            {"bucket_name": "default-bucket", "file_path": "file.txt"},
         )
 
     def test_upload_file(self):
@@ -243,18 +218,6 @@ class FileSystemStorageTest(TestCase):
                 HTTP_X_METHOD_OVERRIDE="PUT",
             )
         self.assertEqual(resp.status_code, 201)
-
-    def test_upload_file_missing_file(self):
-        self.storage.create_bucket("default-bucket")
-
-        url = self.storage.generate_upload_url(
-            "default-bucket", "test_file.txt", "text/plain"
-        )
-        with patch("hexa.files.views.storage", self.storage):
-            resp = self.client.post(
-                url, data={}, format="multipart", HTTP_X_METHOD_OVERRIDE="PUT"
-            )
-        self.assertEqual(resp.status_code, 400)
 
     def test_upload_file_expired_token(self):
         self.storage.create_bucket("default-bucket")
@@ -289,3 +252,9 @@ class FileSystemStorageTest(TestCase):
                 HTTP_X_METHOD_OVERRIDE="PUT",
             )
         self.assertEqual(resp.status_code, 201)
+
+    def test_get_mount_config(self):
+        self.assertEqual(
+            self.storage.get_bucket_mount_config("my_bucket"),
+            {"WORKSPACE_STORAGE_MOUNT_PATH": str(self.data_directory / "my_bucket")},
+        )

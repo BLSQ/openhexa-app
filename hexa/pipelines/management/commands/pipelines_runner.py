@@ -247,6 +247,7 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
     )
     volumes = None
     if storage.storage_type == "local":
+        # FIXME Get this from the storage directly
         workspace_folder = os.path.join(
             settings.WORKSPACE_STORAGE_LOCATION, run.pipeline.workspace.bucket_name
         )

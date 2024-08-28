@@ -347,8 +347,8 @@ WORKSPACE_STORAGE_LOCATION = os.environ.get("WORKSPACE_STORAGE_LOCATION")
 WORKSPACE_STORAGE_BACKEND = {
     "engine": "hexa.files.backends.fs.FileSystemStorage",
     "options": {
-        "source_dir": WORKSPACE_STORAGE_LOCATION,
-        "dest_dir": "/data",
+        "data_dir": "/data",
+        "ext_bind_path": WORKSPACE_STORAGE_LOCATION,
     },
 }
 

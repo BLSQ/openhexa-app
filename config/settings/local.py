@@ -41,7 +41,7 @@ if os.environ.get("WORKSPACE_STORAGE_LOCATION") is None:
 WORKSPACE_STORAGE_BACKEND = {
     "engine": "hexa.files.backends.fs.FileSystemStorage",
     "options": {
-        "source_dir": os.environ.get("WORKSPACE_STORAGE_LOCATION"),
-        "dest_dir": "/data",
+        "data_dir": "/data",
+        "ext_bind_path": os.environ.get("WORKSPACE_STORAGE_LOCATION"),
     },
 }

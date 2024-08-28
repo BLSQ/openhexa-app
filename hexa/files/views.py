@@ -19,7 +19,6 @@ def download_file(request: HttpRequest, token: str) -> HttpResponse:
 def upload_file(request: HttpRequest, token: str) -> HttpResponse:
     if hasattr(storage, "save_object_by_token") is False:
         return HttpResponseBadRequest("Storage does not support token-based access")
-
     try:
         storage.save_object_by_token(token, request.body)
         return HttpResponse(status=201)
