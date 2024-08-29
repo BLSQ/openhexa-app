@@ -67,7 +67,7 @@ const WorkspaceDatasetPage: NextPageWithLayout = (props: Props) => {
       const version = dataset.version || dataset.latestVersion || null;
       trackEvent("datasets.dataset_open", {
         workspace: workspaceSlug,
-        dataset_id: data.datasetLink.id,
+        dataset_id: datasetSlug,
         dataset_version: version?.name,
       });
     }
