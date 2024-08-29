@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.50.4](https://github.com/BLSQ/openhexa-frontend/compare/0.50.3...0.50.4) (2024-08-29)
+
+
+### Bug Fixes
+
+* **Analytics:** use slug for dataset_id properties ([#687](https://github.com/BLSQ/openhexa-frontend/issues/687)) ([1eb0a2d](https://github.com/BLSQ/openhexa-frontend/commit/1eb0a2dd018be08e8909b77410cfa379cde62638))
+
+
+### Miscellaneous
+
+* **localhosting:** Add /files to middleware bypass ([#685](https://github.com/BLSQ/openhexa-frontend/issues/685)) ([98db559](https://github.com/BLSQ/openhexa-frontend/commit/98db5592f9fd818472943ce0302c2b97880bc50a))
+
 ## [0.50.3](https://github.com/BLSQ/openhexa-frontend/compare/0.50.2...0.50.3) (2024-08-23)
 
 
