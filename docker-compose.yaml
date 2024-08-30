@@ -10,6 +10,8 @@ x-app: &common
     env_file:
       - path: ./.env
         required: true
+    environment:
+      - WORKSPACE_STORAGE_LOCATION=/data/openhexa
     networks:
       - openhexa
     volumes:  # only used for Github Codespaces

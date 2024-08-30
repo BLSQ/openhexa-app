@@ -12,9 +12,11 @@ def generate_upload_url(target_key, content_type: str):
     )
 
 
-def generate_download_url(target_key):
+def generate_download_url(version_file):
     return storage.generate_download_url(
-        settings.WORKSPACE_DATASETS_BUCKET, target_key, force_attachment=True
+        settings.WORKSPACE_DATASETS_BUCKET,
+        version_file.full_uri,
+        force_attachment=True,
     )
 
 
