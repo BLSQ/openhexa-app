@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.core.signing import Signer
 from django.urls import reverse
 
@@ -108,6 +106,7 @@ class ViewsTest(TestCase):
 
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
+        self.maxDiff = None
         self.assertEqual(
             response_data["env"],
             {
@@ -118,7 +117,7 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
                 "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
-                "WORKSPACE_STORAGE_ENGINE": "gcp",
+                "WORKSPACE_STORAGE_ENGINE": "dummy",
                 "HEXA_TOKEN": Signer().sign_object(
                     self.WORKSPACE_MEMBERSHIP_JULIA.access_token
                 ),
@@ -147,13 +146,7 @@ class ViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
-    @patch(
-        "hexa.workspaces.views.get_short_lived_downscoped_access_token",
-        return_value=("gcs-token", 3600, "gcp"),
-    )
-    def test_pipeline_credentials_200(
-        self, mock_get_short_lived_downscoped_access_token
-    ):
+    def test_pipeline_credentials_200(self):
         run = self.PIPELINE.run(
             self.USER_JULIA, self.PIPELINE.last_version, PipelineRunTrigger.MANUAL, {}
         )
@@ -168,6 +161,7 @@ class ViewsTest(TestCase):
 
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
+        self.maxDiff = None
         self.assertEqual(
             response_data["env"],
             {
@@ -178,9 +172,7 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
                 "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
-                "WORKSPACE_STORAGE_ENGINE": "gcp",
-                "WORKSPACE_STORAGE_ENGINE_GCP_ACCESS_TOKEN": "gcs-token",
-                "GCS_TOKEN": "gcs-token",
+                "WORKSPACE_STORAGE_ENGINE": "dummy",
                 "HEXA_TOKEN": token,
             },
         )

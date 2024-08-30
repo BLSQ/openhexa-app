@@ -12,14 +12,6 @@ from hexa.workspaces.models import Workspace, WorkspaceMembership
 # ease patching
 
 
-def get_bucket_mount_config(bucket_name):
-    return storage.get_bucket_mount_config(bucket_name=bucket_name)
-
-
-def get_token_as_env_variables(token):
-    return storage.get_token_as_env_variables(token)
-
-
 @require_POST
 @csrf_exempt
 def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpResponse:

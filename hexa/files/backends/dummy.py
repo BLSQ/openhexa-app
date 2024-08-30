@@ -24,6 +24,7 @@ class DummyStorageClient(Storage):
                 f"Bucket '{bucket_name}' already exists."
             )
         self.buckets[bucket_name] = {}
+        return bucket_name
 
     def delete_object(self, bucket_name: str, object_key: str):
         # Mock object deletion
