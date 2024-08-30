@@ -21,7 +21,8 @@ def get_credentials(service_account_key):
     return service_account.Credentials.from_service_account_info(json_creds)
 
 
-def get_storage_client(credentials):
+def get_storage_client(service_account_key):
+    credentials = get_credentials(service_account_key)
     return storage.Client(credentials=credentials)
 
 
@@ -84,13 +85,19 @@ def ensure_is_folder(object_key: str):
 
 class GoogleCloudStorage(Storage):
     storage_type = "gcp"
+    _client = None
 
     def __init__(self, service_account_key: str, region: str, enable_versioning=False):
         super().__init__()
-        self._credentials = get_credentials(service_account_key)
-        self.client = get_storage_client(self._credentials)
+        self._service_account_key = service_account_key
         self.region = region
         self.enable_versioning = enable_versioning
+
+    @property
+    def client(self):
+        if self._client is None:
+            self._client = get_storage_client(self._service_account_key)
+        return self._client
 
     def bucket_exists(self, bucket_name: str):
         try:
@@ -101,7 +108,7 @@ class GoogleCloudStorage(Storage):
 
     def create_bucket(self, bucket_name: str, labels: dict = None, *args, **kwargs):
         if self.bucket_exists(bucket_name):
-            raise self.exception.AlreadyExists(
+            raise self.exceptions.AlreadyExists(
                 f"GCS: Bucket {bucket_name} already exists!"
             )
         try:
@@ -252,11 +259,11 @@ class GoogleCloudStorage(Storage):
         objects = []
 
         def is_object_match_query(obj):
-            if ignore_hidden_files and obj["name"].startswith("."):
+            if ignore_hidden_files and obj.name.startswith("."):
                 return False
             if not query:
                 return True
-            return query.lower() in obj["name"].lower()
+            return query.lower() in obj.name.lower()
 
         iterator = iter_request_results(bucket_name, request)
         while True:
@@ -290,7 +297,7 @@ class GoogleCloudStorage(Storage):
         token_lifetime = 3600
         if settings.GCS_TOKEN_LIFETIME is not None:
             token_lifetime = int(settings.GCS_TOKEN_LIFETIME)
-        source_credentials = get_credentials()
+        source_credentials = get_credentials(self._service_account_key)
 
         iam_credentials = IAMCredentialsClient(credentials=source_credentials)
         iam_token = iam_credentials.generate_access_token(
@@ -333,12 +340,13 @@ class GoogleCloudStorage(Storage):
     def delete_object(self, bucket_name: str, file_name: str):
         bucket = self.client.get_bucket(bucket_name)
         blob = bucket.get_blob(file_name)
+        if blob is None:
+            raise self.exceptions.NotFound("Object not found")
         if _is_dir(blob):
             blobs = list(bucket.list_blobs(prefix=file_name))
             bucket.delete_blobs(blobs)
         else:
             bucket.delete_blob(file_name)
-        return
 
     def load_bucket_sample_data(self, bucket_name: str):
         return load_bucket_sample_data_with(bucket_name, self)

@@ -15,7 +15,6 @@ class ConnectionTest(GraphQLTestCase):
     USER_ADMIN = None
 
     @classmethod
-    @backend.mock_storage
     def setUpTestData(cls):
         backend.reset()
         cls.USER_SABRINA = User.objects.create_user(
