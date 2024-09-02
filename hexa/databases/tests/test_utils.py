@@ -13,7 +13,6 @@ from hexa.databases.utils import (
     get_table_definition,
     get_table_rows,
 )
-from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import Workspace
@@ -45,7 +44,6 @@ class DatabaseUtilsTest(TestCase):
     USER_SABRINA = None
 
     @classmethod
-    @mock_gcp_storage
     def setUpTestData(cls):
         cls.DB1 = Database.objects.create(
             hostname="host", username="user", password="pwd", database="db1"

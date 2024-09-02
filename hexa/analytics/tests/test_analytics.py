@@ -5,7 +5,6 @@ from django.test import RequestFactory
 
 from hexa.analytics.api import set_user_properties, track
 from hexa.core.test import TestCase
-from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.pipelines.models import Pipeline, PipelineRunTrigger
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
@@ -13,7 +12,6 @@ from hexa.workspaces.models import Workspace
 
 class AnalyticsTest(TestCase):
     @classmethod
-    @mock_gcp_storage
     def setUpTestData(cls):
         cls.USER: User = User.objects.create_user(
             "user@bluesquarehub.com", "user", analytics_enabled=True, is_superuser=True

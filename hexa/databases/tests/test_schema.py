@@ -5,7 +5,6 @@ from django.conf import settings
 
 from hexa.core.test import GraphQLTestCase
 from hexa.databases.utils import TableRowsPage
-from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
@@ -19,7 +18,6 @@ class DatabaseTest(GraphQLTestCase):
     USER_SABRINA = None
 
     @classmethod
-    @mock_gcp_storage
     def setUpTestData(cls):
         cls.USER_SABRINA = User.objects.create_user(
             "sabrina@bluesquarehub.com", "standardpassword"

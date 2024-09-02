@@ -3,7 +3,6 @@ from django.urls import reverse
 
 from hexa.core.test import TestCase
 from hexa.databases.api import get_db_server_credentials
-from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.pipelines.models import Pipeline, PipelineRunTrigger
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
@@ -15,7 +14,6 @@ from hexa.workspaces.models import (
 
 class ViewsTest(TestCase):
     @classmethod
-    @mock_gcp_storage
     def setUpTestData(cls):
         cls.USER_JANE = User.objects.create_user(
             "jane@bluesquarehub.com",
@@ -150,7 +148,9 @@ class ViewsTest(TestCase):
         run = self.PIPELINE.run(
             self.USER_JULIA, self.PIPELINE.last_version, PipelineRunTrigger.MANUAL, {}
         )
+
         token = Signer().sign_object(run.access_token)
+
         response = self.client.post(
             reverse("workspaces:credentials"),
             data={"workspace": self.WORKSPACE.slug},

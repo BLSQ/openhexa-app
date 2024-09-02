@@ -5,7 +5,6 @@ from django import test
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpRequest
 
-from hexa.files import storage
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.plugins.connector_airflow.authentication import DAGRunUser
 from hexa.user_management.models import User
@@ -26,7 +25,6 @@ class TestCase(test.TestCase):
 
     def setUp(self):
         super().setUp()
-        storage.reset()
 
     @staticmethod
     def mock_request(

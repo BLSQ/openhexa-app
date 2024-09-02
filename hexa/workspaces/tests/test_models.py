@@ -6,7 +6,6 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 from hexa.core.test import TestCase
 from hexa.files import storage
-from hexa.files.tests.mocks.mockgcp import backend
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Connection,
@@ -53,7 +52,7 @@ class WorkspaceTest(TestCase):
                 description="This is test for creating workspace",
             )
             workspace.save()
-            self.assertTrue("hexa-test-senegal-workspace" in backend.buckets)
+            self.assertTrue("hexa-test-senegal-workspace" in storage.buckets)
 
     def test_create_workspace_no_slug(self):
         with patch("secrets.token_hex", lambda _: "mock"), patch(
