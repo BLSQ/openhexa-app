@@ -111,7 +111,7 @@ def resolve_create_dataset_version(_, info, **kwargs):
             "datasets.dataset_version_created",
             {
                 "dataset_version": version.name,
-                "dataset_id": str(dataset.id),
+                "dataset_id": dataset.slug,
                 "creation_source": (
                     "SDK" if isinstance(request.user, PipelineRunUser) else "UI"
                 ),

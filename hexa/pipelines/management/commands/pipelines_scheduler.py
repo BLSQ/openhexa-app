@@ -58,7 +58,7 @@ class Command(BaseCommand):
                     request=None,
                     event="pipelines.pipeline_run",
                     properties={
-                        "pipeline_id": str(pipeline.id),
+                        "pipeline_id": pipeline.code,
                         "version_name": pipeline.last_version.name,
                         "version_id": str(pipeline.last_version.id),
                         "trigger": PipelineRunTrigger.SCHEDULED,
