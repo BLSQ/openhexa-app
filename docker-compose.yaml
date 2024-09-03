@@ -16,7 +16,7 @@ x-app: &common
       - openhexa
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
-      - "${WORKSPACE_STORAGE_LOCATION}:/data"
+      - "${WORKSPACE_STORAGE_LOCATION:-/data/openhexa}:/data"
     
 
 services:
