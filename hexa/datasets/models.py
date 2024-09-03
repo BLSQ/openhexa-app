@@ -12,10 +12,13 @@ from hexa.core.models.base import Base, BaseQuerySet
 from hexa.user_management.models import User
 
 
-def create_dataset_slug(name: str):
-    suffix = secrets.token_hex(3)
+def create_dataset_slug(name: str, with_suffix: bool = True):
+    suffix = ""
+    if with_suffix:
+        suffix = "-" + secrets.token_hex(3)
+
     prefix = slugify(name[: 64 - 3])
-    return prefix[:23].rstrip("-") + "-" + suffix
+    return prefix[:23].rstrip("-") + suffix
 
 
 class DatasetQuerySet(BaseQuerySet):
@@ -53,9 +56,12 @@ class DatasetManager(models.Manager):
             raise PermissionDenied
 
         created_by = principal if not isinstance(principal, PipelineRunUser) else None
+        # Before adding a random suffix, check if the couple (workspace,dataset_name) exists before
+        with_suffix = Dataset.objects.filter(workspace=workspace, slug=name).exists()
+
         dataset = self.create(
             workspace=workspace,
-            slug=create_dataset_slug(name),
+            slug=create_dataset_slug(name, with_suffix),
             created_by=created_by,
             name=name,
             description=description,
@@ -67,6 +73,15 @@ class DatasetManager(models.Manager):
 
 
 class Dataset(Base):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                "workspace_id",
+                "slug",
+                name="unique_dataset_slug_per_workspace",
+            )
+        ]
+
     workspace = models.ForeignKey(
         "workspaces.Workspace",
         null=True,
@@ -76,7 +91,7 @@ class Dataset(Base):
 
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     name = models.TextField(max_length=64, null=False, blank=False)
-    slug = models.TextField(null=False, blank=False, unique=True)
+    slug = models.TextField(null=False, blank=False, max_length=255)
     description = models.TextField(blank=True, null=True)
 
     objects = DatasetManager.from_queryset(DatasetQuerySet)()

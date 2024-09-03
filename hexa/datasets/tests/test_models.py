@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.test import override_settings
@@ -65,9 +63,14 @@ class BaseTestMixin:
 
 class DatasetTest(BaseTestMixin, TestCase):
     def test_create_dataset(
-        self, workspace=None, name="My dataset", description="Description of dataset"
+        self,
+        workspace=None,
+        user=None,
+        name="My dataset",
+        description="Description of dataset",
     ):
         workspace = workspace or self.WORKSPACE
+        user = user or self.USER_ADMIN
         with self.assertRaises(PermissionDenied):
             Dataset.objects.create_if_has_perm(
                 self.USER_SERENA,
@@ -76,22 +79,30 @@ class DatasetTest(BaseTestMixin, TestCase):
                 description=description,
             )
         dataset = Dataset.objects.create_if_has_perm(
-            self.USER_EDITOR,
-            self.WORKSPACE,
+            user,
+            workspace,
             name=name,
             description=description,
         )
 
         self.assertEqual(dataset.name, name)
         self.assertEqual(dataset.description, description)
-        self.assertEqual(dataset.created_by, self.USER_EDITOR)
+        self.assertEqual(dataset.created_by, user)
 
         return dataset
 
+    def test_create_dataset_duplicate_slug(self):
+        dataset_1 = self.test_create_dataset(
+            workspace=self.WORKSPACE, name="dataset_1", description="description_1"
+        )
+        dataset_2 = self.test_create_dataset(
+            workspace=self.WORKSPACE_2, name="dataset_1", description="description_1"
+        )
+        self.assertEqual(dataset_1.slug, dataset_2.slug)
+
     def test_create_dataset_with_double_dash(self):
-        with patch("secrets.token_hex", return_value="123"):
-            dataset = self.test_create_dataset(name="My dataset -- test-")
-        self.assertEqual(dataset.slug, "my-dataset-test-123")
+        dataset = self.test_create_dataset(name="My dataset -- test-")
+        self.assertEqual(dataset.slug, "my-dataset-test")
 
     def test_workspace_datasets(self):
         self.test_create_dataset(name="dataset_1", description="description_1")
