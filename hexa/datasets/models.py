@@ -12,13 +12,16 @@ from hexa.core.models.base import Base, BaseQuerySet
 from hexa.user_management.models import User
 
 
-def create_dataset_slug(name: str, with_suffix: bool = True):
+def create_dataset_slug(name: str, workspace):
     suffix = ""
-    if with_suffix:
+    name = name[:255]
+    if Dataset.objects.filter(workspace=workspace, slug=slugify(name)).exists():
         suffix = "-" + secrets.token_hex(3)
+        prefix = slugify(name[: 255 - len(suffix)]) + suffix
+    else:
+        prefix = slugify(name)
 
-    prefix = slugify(name[: 64 - 3])
-    return prefix[:23].rstrip("-") + suffix
+    return prefix.rstrip("-")
 
 
 class DatasetQuerySet(BaseQuerySet):
@@ -56,12 +59,9 @@ class DatasetManager(models.Manager):
             raise PermissionDenied
 
         created_by = principal if not isinstance(principal, PipelineRunUser) else None
-        # Before adding a random suffix, check if the couple (workspace,dataset_name) exists before
-        with_suffix = Dataset.objects.filter(workspace=workspace, slug=name).exists()
-
         dataset = self.create(
             workspace=workspace,
-            slug=create_dataset_slug(name, with_suffix),
+            slug=create_dataset_slug(name, workspace),
             created_by=created_by,
             name=name,
             description=description,
