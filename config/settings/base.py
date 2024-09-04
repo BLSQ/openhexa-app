@@ -309,7 +309,7 @@ BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
 PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "docker")
 PIPELINE_API_URL = os.environ.get("PIPELINE_API_URL", BASE_URL)
 DEFAULT_WORKSPACE_IMAGE = os.environ.get(
-    "DEFAULT_WORKSPACE_IMAGE", "blsq/openhexa-blsq-environment:latest"
+    "DEFAULT_WORKSPACE_IMAGE", "blsq/openhexa-base-environment:latest"
 )
 PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT = os.environ.get(
     "PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT", "2"
