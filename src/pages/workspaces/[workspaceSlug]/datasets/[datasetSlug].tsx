@@ -128,7 +128,7 @@ const WorkspaceDatasetPage: NextPageWithLayout = (props: Props) => {
               isLast
               href={`/workspaces/${encodeURIComponent(
                 workspace.slug,
-              )}/datasets/${encodeURIComponent(datasetLink.id)}`}
+              )}/datasets/${encodeURIComponent(datasetLink.dataset.slug)}`}
             >
               {datasetLink.dataset.name}
             </Breadcrumbs.Part>
