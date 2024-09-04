@@ -43,5 +43,7 @@ WORKSPACE_STORAGE_BACKEND = {
     "options": {
         "data_dir": "/data",
         "ext_bind_path": os.environ.get("WORKSPACE_STORAGE_LOCATION"),
+        "file_permissions_mode": 0o777,
+        "directory_permissions_mode": 0o777,
     },
 }

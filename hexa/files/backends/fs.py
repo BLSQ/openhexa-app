@@ -27,7 +27,13 @@ def safe_join(base, *paths):
 class FileSystemStorage(Storage):
     storage_type = "local"
 
-    def __init__(self, data_dir: str, ext_bind_path: str = None):
+    def __init__(
+        self,
+        data_dir: str,
+        ext_bind_path: str = None,
+        file_permissions_mode=None,
+        directory_permissions_mode=None,
+    ):
         """Initialises the FileSystemStorage backend.
 
         Args:
@@ -36,7 +42,19 @@ class FileSystemStorage(Storage):
         """
         self.data_dir = Path(data_dir)
         self.ext_bind_path = Path(ext_bind_path) if ext_bind_path is not None else None
+        self.file_permissions_mode = file_permissions_mode
+        self.directory_permissions_mode = directory_permissions_mode
         self._token_max_age = 60 * 60  # 1 hour
+
+    def _ensure_location_group_id(self, full_path):
+        if os.name == "posix":
+            file_gid = os.stat(full_path).st_gid
+            data_dir_gid = os.stat(self.data_dir).st_gid
+            if file_gid != data_dir_gid:
+                try:
+                    os.chown(full_path, uid=-1, gid=data_dir_gid)
+                except PermissionError:
+                    pass
 
     def load_bucket_sample_data(self, bucket_name: str):
         load_bucket_sample_data_with(bucket_name, self)
@@ -102,16 +120,28 @@ class FileSystemStorage(Storage):
         Args:
             path (str|Path): A path
         """
-        return "/".join(get_valid_filename(part) for part in path.split("/"))
+        return "/".join(get_valid_filename(part) for part in str(path).split("/"))
 
-    def create_directory(self, name):
-        assert (
-            self.get_valid_filepath(name) == name
-        ), f"Invalid directory name: {name}. Please use a valid name."
+    def create_directory(self, directory_path: str):
+        if self.exists(directory_path):
+            raise self.exceptions.AlreadyExists("Directory already exists")
+        directory = self.path(directory_path)
 
-        if self.exists(name):
-            raise self.exceptions.AlreadyExists(f"Directory {name} already exists")
-        os.makedirs(self.path(name), exist_ok=True)
+        try:
+            if self.directory_permissions_mode is not None:
+                # Set the umask because os.makedirs() doesn't apply the "mode"
+                # argument to intermediate-level directories.
+                old_umask = os.umask(0o777 & ~self.directory_permissions_mode)
+                try:
+                    os.makedirs(
+                        directory, self.directory_permissions_mode, exist_ok=True
+                    )
+                finally:
+                    os.umask(old_umask)
+            else:
+                os.makedirs(directory, exist_ok=True)
+        except FileExistsError:
+            raise FileExistsError("%s exists and is not a directory." % directory)
 
     def create_bucket(self, bucket_name: str, *args, **kwargs):
         if "/" in bucket_name:
@@ -141,11 +171,9 @@ class FileSystemStorage(Storage):
         full_path = self.path(bucket_name, file_path)
 
         # Create any intermediate directories that do not exist.
-        directory = os.path.dirname(full_path)
-        try:
-            os.makedirs(directory, exist_ok=True)
-        except FileExistsError:
-            raise FileExistsError(f"{directory} exists and is not a directory.")
+        if not self.exists(full_path.parent):
+            self.create_directory(full_path)
+
         f = open(full_path, "wb")
         locks.lock(f, locks.LOCK_EX)
         try:
@@ -158,6 +186,12 @@ class FileSystemStorage(Storage):
         finally:
             locks.unlock(f)
             f.close()
+
+        if self.file_permissions_mode is not None:
+            os.chmod(full_path, self.file_permissions_mode)
+
+        # Ensure the moved file has the same gid as the storage root.
+        self._ensure_location_group_id(full_path)
 
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
         if not self.exists(bucket_name):

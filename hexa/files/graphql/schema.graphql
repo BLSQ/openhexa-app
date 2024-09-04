@@ -131,6 +131,7 @@ Errors that can occur when creating a folder in a workspace's bucket.
 """
 enum CreateBucketFolderError {
   ALREADY_EXISTS
+  NOT_FOUND
   PERMISSION_DENIED
 }
 
