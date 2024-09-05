@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.72.6 (2024-09-05)
+
+**Full Changelog**: https://github.com/BLSQ/openhexa-app/compare/0.72.5...0.72.6
+
 ## 0.72.5 (2024-09-04)
 
 **Full Changelog**: https://github.com/BLSQ/openhexa-app/compare/0.72.4...0.72.5
