@@ -194,7 +194,7 @@ def run_pipeline(
             {
                 "pipeline_id": pipeline.code,
                 "version_name": pipeline_version.name if pipeline_version else None,
-                "version_id": pipeline_version.id if pipeline_version else None,
+                "version_id": str(pipeline_version.id) if pipeline_version else None,
                 "trigger": PipelineRunTrigger.WEBHOOK,
                 "workspace": pipeline.workspace.slug,
             },
