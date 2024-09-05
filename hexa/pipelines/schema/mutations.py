@@ -218,7 +218,6 @@ def resolve_run_pipeline(_, info, **kwargs):
             {
                 "pipeline_id": pipeline.code,
                 "version_name": version.name if version else None,
-                "version_id": str(version.id),
                 "trigger": PipelineRunTrigger.MANUAL,
                 "workspace": pipeline.workspace.slug,
             },
