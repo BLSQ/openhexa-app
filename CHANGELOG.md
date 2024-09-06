@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.72.7 (2024-09-05)
+
+**Full Changelog**: https://github.com/BLSQ/openhexa-app/compare/0.72.6...0.72.7
+
+## 0.72.6 (2024-09-05)
+
+**Full Changelog**: https://github.com/BLSQ/openhexa-app/compare/0.72.5...0.72.6
+
+## 0.72.5 (2024-09-04)
+
+**Full Changelog**: https://github.com/BLSQ/openhexa-app/compare/0.72.4...0.72.5
+
+## 0.72.4 (2024-09-03)
+
+## What's Changed
+* fix(Analytics): use pipeline code for id by @cheikhgwane in https://github.com/BLSQ/openhexa-app/pull/801
+
+
+**Full Changelog**: https://github.com/BLSQ/openhexa-app/compare/0.72.3...0.72.4
+
 ## 0.72.3 (2024-08-23)
 
 **Full Changelog**: https://github.com/BLSQ/openhexa-app/compare/0.72.2...0.72.3
