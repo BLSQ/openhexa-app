@@ -63,8 +63,8 @@ class WorkspaceTest(TestCase):
                 name="this is a very long workspace name",
                 description="Description",
             )
-        self.assertEqual(workspace.slug, "this-is-a-very-long-wor-mock")
-        self.assertTrue(len(workspace.slug) <= 30)
+        self.assertEqual(workspace.slug, "this-is-a-very-long-workspace-name")
+        self.assertTrue(len(workspace.slug) <= 63)
 
     def test_create_workspace_with_underscore(self):
         with patch("secrets.token_hex", lambda _: "mock"), patch(
@@ -75,8 +75,8 @@ class WorkspaceTest(TestCase):
                 name="Worksp?ace_wi😱th_und~ersc!/ore",
                 description="Description",
             )
-        self.assertEqual(workspace.slug, "worksp-ace-with-und-er-mock")
-        self.assertTrue(storage.bucket_exists("worksp-ace-with-und-er-mock"))
+        self.assertEqual(workspace.slug, "worksp-ace-with-und-ersc-ore")
+        self.assertTrue(storage.bucket_exists(workspace.bucket_name))
 
     def test_create_workspace_with_random_characters(self):
         with patch("secrets.token_hex", lambda _: "mock"), patch(
@@ -87,7 +87,7 @@ class WorkspaceTest(TestCase):
                 name="1workspace_with#_random$_char*",
                 description="Description",
             )
-        self.assertEqual(workspace.slug, "1workspace-with-random-mock")
+        self.assertEqual(workspace.slug, "1workspace-with-random-char")
         self.assertEqual(16, len(workspace.db_name))
 
     def test_create_workspace_admin_user(self):
@@ -115,6 +115,25 @@ class WorkspaceTest(TestCase):
     def test_get_workspace_by_id_failed(self):
         with self.assertRaises(ObjectDoesNotExist):
             Workspace.objects.get(pk="7bf4c750-f74b-4ed6-b7f7-b23e4cac4e2c")
+
+    def test_create_workspaces_same_name(self):
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ), patch("secrets.token_hex", lambda _: "mock"):
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="My workspace",
+                description="This is my workspace",
+            )
+            self.assertEqual(workspace.slug, "my-workspace")
+
+            workspace_2 = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="My workspace",
+                description="This is my workspace",
+            )
+
+            self.assertEqual(workspace_2.slug, "my-workspace-mock")
 
     def test_add_member(self):
         with patch("hexa.workspaces.models.create_database"), patch(

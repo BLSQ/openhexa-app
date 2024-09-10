@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.test import override_settings
+from django.utils.crypto import get_random_string
 
 from hexa.core.test import TestCase
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
@@ -63,9 +64,14 @@ class BaseTestMixin:
 
 class DatasetTest(BaseTestMixin, TestCase):
     def test_create_dataset(
-        self, workspace=None, name="My dataset", description="Description of dataset"
+        self,
+        workspace=None,
+        user=None,
+        name="My dataset",
+        description="Description of dataset",
     ):
         workspace = workspace or self.WORKSPACE
+        user = user or self.USER_ADMIN
         with self.assertRaises(PermissionDenied):
             Dataset.objects.create_if_has_perm(
                 self.USER_SERENA,
@@ -74,22 +80,57 @@ class DatasetTest(BaseTestMixin, TestCase):
                 description=description,
             )
         dataset = Dataset.objects.create_if_has_perm(
-            self.USER_EDITOR,
-            self.WORKSPACE,
+            user,
+            workspace,
             name=name,
             description=description,
         )
 
         self.assertEqual(dataset.name, name)
         self.assertEqual(dataset.description, description)
-        self.assertEqual(dataset.created_by, self.USER_EDITOR)
+        self.assertEqual(dataset.created_by, user)
 
         return dataset
 
-    def test_create_dataset_with_double_dash(self):
+    def test_create_dataset_long_slug(self):
+        name = get_random_string(300)
+
+        dataset_1 = self.test_create_dataset(
+            workspace=self.WORKSPACE, name=name, description="description_1"
+        )
         with patch("secrets.token_hex", return_value="123"):
-            dataset = self.test_create_dataset(name="My dataset -- test-")
-        self.assertEqual(dataset.slug, "my-dataset-test-123")
+            dataset_2 = self.test_create_dataset(
+                workspace=self.WORKSPACE, name=name, description="description_1"
+            )
+        self.assertTrue(len(dataset_1.slug) <= 255)
+        self.assertTrue(len(dataset_2.slug) <= 255)
+
+        self.assertNotEqual(dataset_1.slug, dataset_2.slug)
+        self.assertTrue(dataset_2.slug.endswith("-123"))
+
+    def test_create_dataset_duplicate_slug_same_workspace(self):
+        dataset_1 = self.test_create_dataset(
+            workspace=self.WORKSPACE, name="my-slug", description="description_1"
+        )
+        with patch("secrets.token_hex", return_value="123"):
+            dataset_2 = self.test_create_dataset(
+                workspace=self.WORKSPACE, name="my-slug", description="description_1"
+            )
+        self.assertNotEqual(dataset_1.slug, dataset_2.slug)
+        self.assertEqual(dataset_2.slug, "my-slug-123")
+
+    def test_create_dataset_duplicate_slug(self):
+        dataset_1 = self.test_create_dataset(
+            workspace=self.WORKSPACE, name="dataset_1", description="description_1"
+        )
+        dataset_2 = self.test_create_dataset(
+            workspace=self.WORKSPACE_2, name="dataset_1", description="description_1"
+        )
+        self.assertEqual(dataset_1.slug, dataset_2.slug)
+
+    def test_create_dataset_with_double_dash(self):
+        dataset = self.test_create_dataset(name="My dataset -- test-")
+        self.assertEqual(dataset.slug, "my-dataset-test")
 
     def test_workspace_datasets(self):
         self.test_create_dataset(name="dataset_1", description="description_1")

@@ -13,6 +13,7 @@ from django.core.signing import TimestampSigner
 from django.core.validators import RegexValidator, validate_slug
 from django.db import models
 from django.db.models import EmailField, Q
+from django.forms import ValidationError
 from django.utils.crypto import get_random_string
 from django.utils.regex_helper import _lazy_re_compile
 from django.utils.translation import gettext_lazy as _
@@ -38,9 +39,12 @@ class AlreadyExists(Exception):
 
 
 def create_workspace_slug(name):
-    suffix = secrets.token_hex(3)
-    prefix = slugify(name[:23])
-    return prefix[:23].rstrip("-") + "-" + suffix
+    suffix = ""
+    while True:
+        slug = slugify(name[: 63 - len(suffix)] + suffix)
+        if not Workspace.objects.filter(slug=slug).exists():
+            return slug
+        suffix = "-" + secrets.token_hex(3)
 
 
 def generate_database_name():
@@ -64,13 +68,29 @@ validate_workspace_slug = RegexValidator(
 )
 
 
+def create_workspace_bucket(workspace_slug: str):
+    while True:
+        suffix = get_random_string(
+            4, allowed_chars=string.ascii_lowercase + string.digits
+        )
+        try:
+            # Bucket names must be unique across all of Google Cloud, so we add a suffix to the workspace slug
+            # When separated by a dot, each segment can be up to 63 characters long
+            return storage.create_bucket(
+                f"{(settings.WORKSPACE_BUCKET_PREFIX + workspace_slug)[:63]}.{suffix}",
+                labels={"hexa-workspace": workspace_slug},
+            )
+        except ValidationError:
+            continue
+
+
 class WorkspaceManager(models.Manager):
     def create_if_has_perm(
         self,
         principal: User,
         name: str,
-        description: str = None,
-        countries: typing.Sequence[Country] = None,
+        description: str | None = None,
+        countries: typing.Sequence[Country] | None = None,
         load_sample_data: bool = False,
     ):
         if not principal.has_perm("workspaces.create_workspace"):
@@ -96,9 +116,7 @@ class WorkspaceManager(models.Manager):
         create_kwargs["db_name"] = db_name
         create_database(db_name, db_password)
 
-        bucket_name = storage.create_bucket(
-            settings.WORKSPACE_BUCKET_PREFIX + slug, labels={"hexa-workspace": slug}
-        )
+        bucket_name = create_workspace_bucket(slug)
         create_kwargs["bucket_name"] = bucket_name
 
         if load_sample_data:
