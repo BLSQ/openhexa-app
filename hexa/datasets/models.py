@@ -12,10 +12,13 @@ from hexa.core.models.base import Base, BaseQuerySet
 from hexa.user_management.models import User
 
 
-def create_dataset_slug(name: str):
-    suffix = secrets.token_hex(3)
-    prefix = slugify(name[: 64 - 3])
-    return prefix[:23].rstrip("-") + "-" + suffix
+def create_dataset_slug(name: str, workspace):
+    suffix = ""
+    while True:
+        slug = slugify(name[: 255 - len(suffix)] + suffix)
+        if not Dataset.objects.filter(workspace=workspace, slug=slug).exists():
+            return slug
+        suffix = "-" + secrets.token_hex(3)
 
 
 class DatasetQuerySet(BaseQuerySet):
@@ -55,7 +58,7 @@ class DatasetManager(models.Manager):
         created_by = principal if not isinstance(principal, PipelineRunUser) else None
         dataset = self.create(
             workspace=workspace,
-            slug=create_dataset_slug(name),
+            slug=create_dataset_slug(name, workspace),
             created_by=created_by,
             name=name,
             description=description,
@@ -67,6 +70,15 @@ class DatasetManager(models.Manager):
 
 
 class Dataset(Base):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                "workspace_id",
+                "slug",
+                name="unique_dataset_slug_per_workspace",
+            )
+        ]
+
     workspace = models.ForeignKey(
         "workspaces.Workspace",
         null=True,
@@ -76,7 +88,7 @@ class Dataset(Base):
 
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     name = models.TextField(max_length=64, null=False, blank=False)
-    slug = models.TextField(null=False, blank=False, unique=True)
+    slug = models.TextField(null=False, blank=False, max_length=255)
     description = models.TextField(blank=True, null=True)
 
     objects = DatasetManager.from_queryset(DatasetQuerySet)()
