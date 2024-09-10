@@ -7,7 +7,7 @@ RUN \
   apt-get install -y build-essential mdbtools wait-for-it gdal-bin libgdal-dev proj-bin gettext lsb-release procps && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-  
+
   # Set up work directory
 RUN mkdir /code
 WORKDIR /code
@@ -28,21 +28,27 @@ RUN --mount=type=cache,target=/root/.cache \
 COPY . /code/
 
 ARG DJANGO_SETTINGS_MODULE
-ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-config.settings.local}
 
 # Entry point
+ARG WORKSPACE_STORAGE_LOCATION
+ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+ENV WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
 ENTRYPOINT ["/code/docker-entrypoint.sh"]
 CMD start
 
 FROM deps AS app
 ARG DJANGO_SETTINGS_MODULE
-ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-config.settings.local}
+ARG WORKSPACE_STORAGE_LOCATION
+ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+ENV WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
 RUN python manage.py collectstatic --noinput
 
 # Staged used to run the pipelines scheduler and runner
 FROM app AS pipelines
 ARG DJANGO_SETTINGS_MODULE
-ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-config.settings.local}
+ARG WORKSPACE_STORAGE_LOCATION
+ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+ENV WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && \
     apt-get install -y --no-install-recommends \
