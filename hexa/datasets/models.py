@@ -14,14 +14,11 @@ from hexa.user_management.models import User
 
 def create_dataset_slug(name: str, workspace):
     suffix = ""
-    name = name[:255]
-    if Dataset.objects.filter(workspace=workspace, slug=slugify(name)).exists():
+    while True:
+        slug = slugify(name[: 255 - len(suffix)] + suffix)
+        if not Dataset.objects.filter(workspace=workspace, slug=slug).exists():
+            return slug
         suffix = "-" + secrets.token_hex(3)
-        prefix = slugify(name[: 255 - len(suffix)]) + suffix
-    else:
-        prefix = slugify(name)
-
-    return prefix.rstrip("-")
 
 
 class DatasetQuerySet(BaseQuerySet):
