@@ -172,7 +172,7 @@ class FileSystemStorage(Storage):
 
         # Create any intermediate directories that do not exist.
         if not self.exists(full_path.parent):
-            self.create_directory(full_path)
+            self.create_directory(full_path.parent)
 
         f = open(full_path, "wb")
         locks.lock(f, locks.LOCK_EX)
