@@ -50,6 +50,9 @@ jobs:
 
       - name: Create docker network
         run: docker network create openhexa
+      
+      - name: Copy .env file
+        run: cp .env.dist .env
 
       - name: Build docker app image
         env:
