@@ -4,6 +4,7 @@ x-app: &common
       context: .
       dockerfile: Dockerfile
       target: app
+    platform: linux/amd64
     networks:
       - openhexa
     environment:
