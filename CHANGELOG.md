@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.72.8](https://github.com/BLSQ/openhexa-app/compare/0.72.7...0.72.8) (2024-09-11)
+
+
+### Bug Fixes
+
+* **Datasets:** increase slug size and only add suffix if needed ([#802](https://github.com/BLSQ/openhexa-app/issues/802)) ([93d4954](https://github.com/BLSQ/openhexa-app/commit/93d4954ddd8a10e3a6cfe4c9afd4625120b4aa5f))
+* replaces dot with dash for bucket creation ([bd19d4d](https://github.com/BLSQ/openhexa-app/commit/bd19d4dcd3f3a895c2859192d0f6b8a75fa40eba))
+* **Statics:** Remove cors decorator ([#809](https://github.com/BLSQ/openhexa-app/issues/809)) ([39d5ed6](https://github.com/BLSQ/openhexa-app/commit/39d5ed6cb600ee5485dedadb59c84a4d6e935358))
+
 ## 0.72.7 (2024-09-05)
 
 **Full Changelog**: https://github.com/BLSQ/openhexa-app/compare/0.72.6...0.72.7
