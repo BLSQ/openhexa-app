@@ -18,6 +18,7 @@ from django.views.decorators.http import require_POST
 
 from hexa.analytics.api import track
 from hexa.app import get_hexa_app_configs
+from hexa.core.views_utils import disable_cors
 from hexa.pipelines.models import Environment
 
 from .credentials import PipelinesCredentials
@@ -94,6 +95,7 @@ def credentials(request: HttpRequest) -> HttpResponse:
 
 @require_POST
 @csrf_exempt
+@disable_cors
 def run_pipeline(
     request: HttpRequest, token: str, version_id: uuid.UUID = None
 ) -> HttpResponse:

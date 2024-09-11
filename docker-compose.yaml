@@ -13,6 +13,7 @@ x-app: &common
         required: true
     environment:
       - WORKSPACE_STORAGE_LOCATION=/data/openhexa
+    platform: linux/amd64
     networks:
       - openhexa
     volumes:  # only used for Github Codespaces
