@@ -1,5 +1,6 @@
 # Defines a service that can be reused multiple times later
 x-app: &common
+    platform: linux/amd64
     build:
       context: .
       dockerfile: Dockerfile
@@ -17,7 +18,6 @@ x-app: &common
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
       - "${WORKSPACE_STORAGE_LOCATION:-/data/openhexa}:/data"
-    
 
 services:
   db:

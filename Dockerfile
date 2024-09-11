@@ -4,41 +4,58 @@ RUN \
   --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
   apt-get update && \
-  apt-get install -y build-essential mdbtools wait-for-it gdal-bin libgdal-dev proj-bin gettext lsb-releASe procps && \
+  apt-get install -y build-essential mdbtools wait-for-it gdal-bin libgdal-dev proj-bin gettext lsb-release procps && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-RUN pip install --upgrade pip
-
+  
+  # Set up work directory
 RUN mkdir /code
 WORKDIR /code
 
-RUN \
-  --mount=type=cache,target=/root/.cache \ 
-  --mount=type=bind,source=requirements.txt,target=/code/requirements.txt \
-  pip install setuptools==68.0.0 && pip install -r requirements.txt
+# Upgrade pip and install requirements
+RUN --mount=type=cache,target=/root/.cache \
+    pip install --upgrade pip setuptools==68.0.0
 
+# Install project dependencies from requirements.txt
+COPY requirements.txt /code/
+
+RUN --mount=type=cache,target=/root/.cache \
+    pip install -r requirements.txt  && \ 
+    apt-get remove -y build-essential && \
+    apt-get autoremove -y
+
+# Copy the rest of the application
 COPY . /code/
 
 ENV SECRET_KEY="collectstatic"
-ARG DJANGO_SETTINGS_MODULE
+ARG DJANGO_SETTINGS_MODULE="config.settings.local"
 ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+
+# Entry point
 ENTRYPOINT ["/code/docker-entrypoint.sh"]
 CMD start
 
 FROM deps AS app
 ENV SECRET_KEY="collectstatic"
-ARG DJANGO_SETTINGS_MODULE
+ARG DJANGO_SETTINGS_MODULE="config.settings.local"
 ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
 RUN python manage.py collectstatic --noinput
 
 # Staged used to run the pipelines scheduler and runner
 FROM app AS pipelines
-ARG DJANGO_SETTINGS_MODULE
+ARG DJANGO_SETTINGS_MODULE="config.settings.local"
 ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
-RUN mkdir -m 0755 -p /etc/apt/keyrings
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-RUN echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
-  $(lsb_releASe -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-RUN apt-get update && apt-get install -y docker-ce-cli
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        gnupg && \
+    mkdir -m 0755 -p /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+        $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends docker-ce-cli && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
