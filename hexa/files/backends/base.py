@@ -1,20 +1,15 @@
+import io
 import os
 import typing
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from os.path import dirname, isfile, join
 
+from .exceptions import AlreadyExists, NotFound, SuspiciousFileOperation
 
-class NotFound(Exception):
+
+class BadRequest(Exception):
     pass
-
-
-class BucketObjectAlreadyExists(Exception):
-    def __init__(self, target_key):
-        self.message = (
-            f"File already exists. Choose a different object key {target_key}."
-        )
-        super().__init__(self.message)
 
 
 @dataclass
@@ -29,21 +24,51 @@ def load_bucket_sample_data_with(bucket_name: str, client_storage):
     """
     Init bucket with default content
     """
-    static_files_dir = join(dirname(__file__), "static")
+    static_files_dir = join(dirname(__file__), "..", "static")
     files = [
         f for f in os.listdir(static_files_dir) if isfile(join(static_files_dir, f))
     ]
 
     for file in files:
-        client_storage.upload_object(bucket_name, file, join(static_files_dir, file))
+        client_storage.save_object(
+            bucket_name, file, open(join(static_files_dir, file), "rb")
+        )
 
 
-class BaseClient(ABC):
+@dataclass
+class StorageObject:
+    name: str
+    key: str
+    path: str
+    updated: str
+    type: str
+    size: int = 0
+    content_type: str = None
+
+
+class Storage(ABC):
+    storage_type = None
+
     class exceptions:
+        BadRequest = BadRequest
         NotFound = NotFound
+        AlreadyExists = AlreadyExists
+        SuspiciousFileOperation = SuspiciousFileOperation
+
+    @abstractmethod
+    def __init__(self, *args, **kwargs):
+        pass
+
+    @abstractmethod
+    def bucket_exists(self, bucket_name: str):
+        pass
 
     @abstractmethod
     def create_bucket(self, bucket_name: str, *args, **kwargs):
+        pass
+
+    @abstractmethod
+    def delete_object(self, bucket_name: str, object_key: str):
         pass
 
     @abstractmethod
@@ -51,7 +76,7 @@ class BaseClient(ABC):
         pass
 
     @abstractmethod
-    def upload_object(self, bucket_name: str, file_name: str, source: str):
+    def save_object(self, bucket_name: str, file_path: str, file: io.BufferedReader):
         pass
 
     @abstractmethod
@@ -81,10 +106,6 @@ class BaseClient(ABC):
         pass
 
     @abstractmethod
-    def get_short_lived_downscoped_access_token(self, bucket_name):
-        pass
-
-    @abstractmethod
     def generate_upload_url(
         self,
         bucket_name: str,
@@ -95,5 +116,5 @@ class BaseClient(ABC):
         pass
 
     @abstractmethod
-    def get_token_as_env_variables(self, token):
+    def get_bucket_mount_config(self, bucket_name):
         pass

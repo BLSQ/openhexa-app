@@ -1,11 +1,8 @@
-from unittest.mock import patch
-
 from django.core.signing import Signer
 from django.urls import reverse
 
 from hexa.core.test import TestCase
 from hexa.databases.api import get_db_server_credentials
-from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.pipelines.models import Pipeline, PipelineRunTrigger
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
@@ -17,7 +14,6 @@ from hexa.workspaces.models import (
 
 class ViewsTest(TestCase):
     @classmethod
-    @mock_gcp_storage
     def setUpTestData(cls):
         cls.USER_JANE = User.objects.create_user(
             "jane@bluesquarehub.com",
@@ -95,13 +91,7 @@ class ViewsTest(TestCase):
         )
         self.assertEqual(response.status_code, 401)
 
-    @patch(
-        "hexa.workspaces.views.get_short_lived_downscoped_access_token",
-        return_value=("gcs-token", 3600, "gcp"),
-    )
-    def test_workspace_credentials_200(
-        self, mock_get_short_lived_downscoped_access_token
-    ):
+    def test_workspace_credentials_200(self):
         self.client.force_login(self.USER_JULIA)
         response = self.client.post(
             reverse("workspaces:credentials"),
@@ -114,6 +104,7 @@ class ViewsTest(TestCase):
 
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
+        self.maxDiff = None
         self.assertEqual(
             response_data["env"],
             {
@@ -124,9 +115,7 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
                 "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
-                "WORKSPACE_STORAGE_ENGINE": "gcp",
-                "WORKSPACE_STORAGE_ENGINE_GCP_ACCESS_TOKEN": "gcs-token",
-                "GCS_TOKEN": "gcs-token",
+                "WORKSPACE_STORAGE_ENGINE": "dummy",
                 "HEXA_TOKEN": Signer().sign_object(
                     self.WORKSPACE_MEMBERSHIP_JULIA.access_token
                 ),
@@ -139,12 +128,8 @@ class ViewsTest(TestCase):
             ).notebooks_server_hash,
         )
 
-    @patch(
-        "hexa.workspaces.views.get_short_lived_downscoped_access_token",
-        return_value=("gcs-token", 3600, "gcp"),
-    )
     def test_pipeline_invalid_credentials_404(
-        self, mock_get_short_lived_downscoped_access_token
+        self,
     ):
         run = self.PIPELINE.run(
             self.USER_JULIA, self.PIPELINE.last_version, PipelineRunTrigger.MANUAL, {}
@@ -159,17 +144,13 @@ class ViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
-    @patch(
-        "hexa.workspaces.views.get_short_lived_downscoped_access_token",
-        return_value=("gcs-token", 3600, "gcp"),
-    )
-    def test_pipeline_credentials_200(
-        self, mock_get_short_lived_downscoped_access_token
-    ):
+    def test_pipeline_credentials_200(self):
         run = self.PIPELINE.run(
             self.USER_JULIA, self.PIPELINE.last_version, PipelineRunTrigger.MANUAL, {}
         )
+
         token = Signer().sign_object(run.access_token)
+
         response = self.client.post(
             reverse("workspaces:credentials"),
             data={"workspace": self.WORKSPACE.slug},
@@ -180,6 +161,7 @@ class ViewsTest(TestCase):
 
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
+        self.maxDiff = None
         self.assertEqual(
             response_data["env"],
             {
@@ -190,9 +172,7 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
                 "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
-                "WORKSPACE_STORAGE_ENGINE": "gcp",
-                "WORKSPACE_STORAGE_ENGINE_GCP_ACCESS_TOKEN": "gcs-token",
-                "GCS_TOKEN": "gcs-token",
+                "WORKSPACE_STORAGE_ENGINE": "dummy",
                 "HEXA_TOKEN": token,
             },
         )

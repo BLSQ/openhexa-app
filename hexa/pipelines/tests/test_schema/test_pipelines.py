@@ -10,8 +10,7 @@ from django.core import mail
 from django.core.signing import Signer
 
 from hexa.core.test import GraphQLTestCase
-from hexa.files.api import NotFound
-from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
+from hexa.files.backends.exceptions import NotFound
 from hexa.pipelines.models import (
     Pipeline,
     PipelineRecipient,
@@ -42,7 +41,6 @@ class PipelinesV2Test(GraphQLTestCase):
     WS2 = None
 
     @classmethod
-    @mock_gcp_storage
     def setUpTestData(cls):
         cls.USER_ROOT = User.objects.create_user(
             "root@bluesquarehub.com",

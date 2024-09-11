@@ -6,8 +6,7 @@ from sentry_sdk import capture_exception
 
 from hexa.core.graphql import result_page
 from hexa.databases.utils import get_table_definition
-from hexa.files.api import get_storage
-from hexa.files.basefs import NotFound
+from hexa.files import storage
 from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_permissions
@@ -30,7 +29,7 @@ pipeline_run_output_union = UnionType("PipelineRunOutput")
 
 
 def get_bucket_object(bucket_name, file):
-    return get_storage().get_bucket_object(bucket_name, file)
+    return storage.get_bucket_object(bucket_name, file)
 
 
 @workspace_permissions.field("createPipeline")
@@ -255,7 +254,7 @@ def resolve_pipeline_run_outputs(run: PipelineRun, info, **kwargs):
                     )
             else:
                 result.append(output)
-        except NotFound:
+        except storage.exceptions.NotFound:
             # File object might be deleted
             continue
         except Exception as e:

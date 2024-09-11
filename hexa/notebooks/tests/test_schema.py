@@ -2,7 +2,6 @@ import responses
 from django.conf import settings
 
 from hexa.core.test import GraphQLTestCase
-from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Workspace,
@@ -13,7 +12,6 @@ from hexa.workspaces.models import (
 
 class NotebooksTest(GraphQLTestCase):
     @classmethod
-    @mock_gcp_storage
     def setUpTestData(cls):
         cls.USER_SABRINA = User.objects.create_user(
             "sabrina@bluesquarehub.com",

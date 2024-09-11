@@ -13,7 +13,7 @@ from hexa.datasets.models import (
     DatasetVersion,
     DatasetVersionFile,
 )
-from hexa.files.basefs import BucketObjectAlreadyExists
+from hexa.files import storage
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
@@ -214,7 +214,7 @@ def resolve_upload_url(obj, info, **kwargs):
         file = obj["file"]
         upload_url = generate_upload_url(file.uri, file.content_type)
         return upload_url
-    except BucketObjectAlreadyExists as exc:
+    except storage.exceptions.AlreadyExists as exc:
         logging.error(f"Upload URL generation failed: {exc.message}")
         return None
 

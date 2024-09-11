@@ -269,6 +269,10 @@ class DatasetVersionFile(Base):
     def latest_metadata(self):
         return self.metadata_entries.order_by("-created_at").first()
 
+    @property
+    def full_uri(self):
+        return self.dataset_version.get_full_uri(self.uri)
+
     class Meta:
         ordering = ["uri"]
 

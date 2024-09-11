@@ -6,7 +6,7 @@ from pandas.errors import ParserError
 from hexa.core.test import TestCase
 from hexa.datasets.models import DatasetFileMetadata
 from hexa.datasets.queue import generate_dataset_file_sample_task
-from hexa.files.api import get_storage
+from hexa.files import storage
 
 
 class TestCreateDatasetFileMetadataTask(TestCase):
@@ -96,7 +96,7 @@ class TestCreateDatasetFileMetadataTask(TestCase):
         mock_DatasetVersionFile_get,
     ):
         test_cases = [
-            (get_storage().exceptions.NotFound, DatasetFileMetadata.STATUS_FAILED),
+            (storage.exceptions.NotFound, DatasetFileMetadata.STATUS_FAILED),
             (ValueError, DatasetFileMetadata.STATUS_FAILED),
             (ParserError, DatasetFileMetadata.STATUS_FAILED),
         ]
