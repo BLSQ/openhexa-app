@@ -20,12 +20,12 @@ def send_workspace_invitation_email(
             title = gettext_lazy(
                 f"You've been added to the workspace {invitation.workspace.name}"
             )
-            action_url = f"https://{settings.NEW_FRONTEND_DOMAIN}/user/account"
+            action_url = f"{settings.NEW_FRONTEND_DOMAIN}/user/account"
         else:
             title = gettext_lazy(
                 f"You've been invited to join the workspace {invitation.workspace.name} on OpenHEXA"
             )
-            action_url = f"https://{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
+            action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
 
         send_mail(
             title=title,

@@ -309,7 +309,7 @@ def run_pipeline(run: PipelineRun):
     run.refresh_from_db()
 
     env_vars = {
-        "HEXA_SERVER_URL": f"{settings.PIPELINE_API_URL}",
+        "HEXA_SERVER_URL": f"{settings.INTERNAL_BASE_URL}",
         "HEXA_TOKEN": Signer().sign_object(run.access_token),
         "HEXA_WORKSPACE": run.pipeline.workspace.slug,
         "HEXA_RUN_ID": str(run.id),

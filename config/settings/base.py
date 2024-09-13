@@ -304,10 +304,10 @@ GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME", 3600)
 # Needed so that external component know how to hit us back
 # Do not add a trailing slash
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
+INTERNAL_BASE_URL = os.environ.get("INTERNAL_BASE_URL", BASE_URL)
 
 # Pipeline settings
 PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "docker")
-PIPELINE_API_URL = os.environ.get("PIPELINE_API_URL", BASE_URL)
 DEFAULT_WORKSPACE_IMAGE = os.environ.get(
     "DEFAULT_WORKSPACE_IMAGE", "blsq/openhexa-base-environment:latest"
 )
@@ -341,6 +341,9 @@ WORKSPACES_DATABASE_PROXY_HOST = os.environ.get("WORKSPACES_DATABASE_PROXY_HOST"
 
 # Datasets config
 WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET", "hexa-datasets")
+WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE = os.environ.get(
+    "WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE", 50
+)
 
 # Filesystem configuration
 WORKSPACE_STORAGE_LOCATION = os.environ.get("WORKSPACE_STORAGE_LOCATION")

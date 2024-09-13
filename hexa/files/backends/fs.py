@@ -5,9 +5,9 @@ from datetime import datetime
 from mimetypes import guess_type
 from pathlib import Path
 
+from django.conf import settings
 from django.core.files import locks
 from django.core.signing import BadSignature, TimestampSigner
-from django.http import HttpRequest
 from django.urls import reverse
 from django.utils._os import safe_join as django_safe_join
 from django.utils.encoding import force_bytes, force_str
@@ -267,9 +267,10 @@ class FileSystemStorage(Storage):
         self,
         bucket_name: str,
         target_key: str,
-        content_type: str | None = None,
-        request: HttpRequest | None = None,
         raise_if_exists=False,
+        host: str | None = None,
+        *args,
+        **kwargs,
     ):
         if not self.exists(bucket_name):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
@@ -281,16 +282,19 @@ class FileSystemStorage(Storage):
             {"bucket_name": bucket_name, "file_path": target_key}
         )
         internal_url = reverse("files:upload_file", args=(token,))
-        if request is not None:
-            return request.build_absolute_uri(internal_url)
-        return internal_url
+        if host is None:
+            host = settings.NEW_FRONTEND_DOMAIN
+
+        return f"{host}{internal_url}"
 
     def generate_download_url(
         self,
         bucket_name: str,
         target_key: str,
         force_attachment=False,
-        request: HttpRequest | None = None,
+        host: str | None = None,
+        *args,
+        **kwargs,
     ):
         if not self.exists(bucket_name):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
@@ -301,13 +305,14 @@ class FileSystemStorage(Storage):
         token = self._create_token_for_payload(
             {"bucket_name": bucket_name, "file_path": target_key}
         )
-        url = reverse("files:download_file", args=(token,))
-
-        if request is not None:
-            url = request.build_absolute_uri(url)
+        endpoint = reverse("files:download_file", args=(token,))
         if force_attachment:
-            url += "?attachment=true"
-        return url
+            endpoint += "?attachment=true"
+
+        if host is None:
+            host = settings.BASE_URL
+
+        return f"{host}{endpoint}"
 
     def get_bucket_mount_config(self, bucket_name):
         return {

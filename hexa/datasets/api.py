@@ -3,20 +3,22 @@ from django.conf import settings
 from hexa.files import storage
 
 
-def generate_upload_url(file_uri, content_type: str):
+def generate_upload_url(file_uri, content_type: str, host: str | None = None):
     return storage.generate_upload_url(
         settings.WORKSPACE_DATASETS_BUCKET,
         file_uri,
-        content_type,
+        content_type=content_type,
+        host=host,
         raise_if_exists=True,
     )
 
 
-def generate_download_url(version_file):
+def generate_download_url(version_file, host: str | None = None):
     return storage.generate_download_url(
         settings.WORKSPACE_DATASETS_BUCKET,
         version_file.uri,
         force_attachment=True,
+        host=host,
     )
 
 

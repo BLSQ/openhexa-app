@@ -1,10 +1,7 @@
-import json
 from logging import getLogger
 
 import pandas as pd
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import DatabaseError, IntegrityError
 from dpq.queue import AtLeastOnceQueue
 
 from hexa.core import mimetypes
@@ -17,8 +14,10 @@ from hexa.datasets.models import (
 
 logger = getLogger(__name__)
 
+SAMPLING_SEED = 22
 
-def is_supported_mimetype(filename: str) -> bool:
+
+def is_sample_supported(filename: str) -> bool:
     supported_mimetypes = [
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "application/vnd.ms-excel",
@@ -27,17 +26,20 @@ def is_supported_mimetype(filename: str) -> bool:
     ]
     supported_extensions = ["parquet"]
     suffix = filename.split(".")[-1]
-    mime_type, encoding = mimetypes.guess_type(filename, strict=False)
+    mime_type, _ = mimetypes.guess_type(filename, strict=False)
     return mime_type in supported_mimetypes or suffix in supported_extensions
 
 
-def download_file_as_dataframe(
-    dataset_version_file: DatasetVersionFile,
-) -> pd.DataFrame | None:
-    mime_type, encoding = mimetypes.guess_type(
-        dataset_version_file.filename, strict=False
-    )
-    download_url = generate_download_url(dataset_version_file)
+def get_df(dataset_version_file: DatasetVersionFile) -> pd.DataFrame:
+    mime_type, _ = mimetypes.guess_type(dataset_version_file.filename, strict=False)
+    try:
+        download_url = generate_download_url(
+            dataset_version_file, host=settings.INTERNAL_BASE_URL
+        )
+    except Exception as e:
+        logger.error(e)
+        raise e
+
     if mime_type == "text/csv":
         return pd.read_csv(download_url)
     elif (
@@ -50,59 +52,38 @@ def download_file_as_dataframe(
         or dataset_version_file.filename.split(".")[-1] == "parquet"
     ):
         return pd.read_parquet(download_url)
+    else:
+        raise ValueError(f"Unsupported file format: {dataset_version_file.filename}")
 
 
-def generate_dataset_file_sample_task(
-    queue: AtLeastOnceQueue, job: DatasetFileMetadataJob
-):
-    dataset_version_file_id = job.args["file_id"]
-    try:
-        dataset_version_file = DatasetVersionFile.objects.get(
-            id=dataset_version_file_id
-        )
-    except ObjectDoesNotExist as e:
-        logger.error(
-            f"DatasetVersionFile with id {dataset_version_file_id} does not exist: {e}"
-        )
-        return
+def generate_sample(version_file: DatasetVersionFile) -> DatasetFileMetadata:
+    if not is_sample_supported(version_file.filename):
+        raise ValueError(f"Unsupported file format: {version_file.filename}")
 
-    if not is_supported_mimetype(dataset_version_file.filename):
-        logger.info(f"Unsupported file format: {dataset_version_file.filename}")
-        return
-
-    logger.info(f"Creating dataset sample for version file {dataset_version_file.id}")
-    try:
-        dataset_file_metadata = DatasetFileMetadata.objects.create(
-            dataset_version_file=dataset_version_file,
-            status=DatasetFileMetadata.STATUS_PROCESSING,
-        )
-    except (IntegrityError, DatabaseError, ValidationError) as e:
-        logger.error(f"Error creating DatasetFileMetadata: {e}")
-        return
+    logger.info(f"Creating dataset sample for version file {version_file.id}")
+    dataset_file_metadata = DatasetFileMetadata.objects.create(
+        dataset_version_file=version_file,
+        status=DatasetFileMetadata.STATUS_PROCESSING,
+    )
 
     try:
-        file_content = download_file_as_dataframe(dataset_version_file)
-        if not file_content.empty:
-            random_seed = 22
-            file_sample = file_content.sample(
+        df = get_df(version_file)
+        if df.empty is False:
+            sample = df.sample(
                 settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
-                random_state=random_seed,
+                random_state=SAMPLING_SEED,
                 replace=True,
             )
-            dataset_file_metadata.sample = file_sample.to_json(orient="records")
-        else:
-            dataset_file_metadata.sample = json.dumps([])
-        logger.info(f"Dataset sample saved for file {dataset_version_file_id}")
+            dataset_file_metadata.sample = sample.to_dict(orient="records")
         dataset_file_metadata.status = DatasetFileMetadata.STATUS_FINISHED
-        dataset_file_metadata.save()
-        logger.info(f"Dataset sample created for file {dataset_version_file_id}")
+        logger.info(f"Sample saved for file {version_file.id}")
     except Exception as e:
+        logger.exception(f"Sample creation failed for file {version_file.id}: {e}")
         dataset_file_metadata.status = DatasetFileMetadata.STATUS_FAILED
         dataset_file_metadata.status_reason = str(e)
+    finally:
         dataset_file_metadata.save()
-        logger.exception(
-            f"Dataset file sample creation failed for file {dataset_version_file_id}: {e}"
-        )
+        return dataset_file_metadata
 
 
 class DatasetsFileMetadataQueue(AtLeastOnceQueue):
@@ -111,16 +92,9 @@ class DatasetsFileMetadataQueue(AtLeastOnceQueue):
 
 dataset_file_metadata_queue = DatasetsFileMetadataQueue(
     tasks={
-        "generate_file_metadata": generate_dataset_file_sample_task,
+        "generate_file_metadata": lambda _, job: generate_sample(
+            DatasetVersionFile.objects.get(id=job.args["file_id"])
+        ),
     },
     notify_channel="dataset_file_metadata_queue",
 )
-
-
-def load_file_metadata(file_id: str):
-    dataset_file_metadata_queue.enqueue(
-        "generate_file_metadata",
-        {
-            "file_id": str(file_id),
-        },
-    )

@@ -85,7 +85,7 @@ class Storage(ABC):
 
     @abstractmethod
     def generate_download_url(
-        self, bucket_name: str, target_key: str, force_attachment=False
+        self, bucket_name: str, target_key: str, force_attachment=False, *args, **kwargs
     ):
         pass
 
@@ -112,6 +112,8 @@ class Storage(ABC):
         target_key: str,
         content_type: str,
         raise_if_exists=False,
+        *args,
+        **kwargs,
     ):
         pass
 

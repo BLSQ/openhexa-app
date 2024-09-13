@@ -988,7 +988,7 @@ class WorkspaceTest(GraphQLTestCase):
             )
             self.assertListEqual([user_email], mail.outbox[0].recipients())
             self.assertIn(
-                f"https://{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
+                f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
                 mail.outbox[0].body,
             )
 
@@ -1571,7 +1571,7 @@ class WorkspaceTest(GraphQLTestCase):
             )
             self.assertListEqual([user_email], mail.outbox[0].recipients())
             self.assertIn(
-                f"https://{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
+                f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
                 mail.outbox[0].body,
             )
 

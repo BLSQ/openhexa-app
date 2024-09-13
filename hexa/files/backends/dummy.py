@@ -67,7 +67,7 @@ class DummyStorageClient(Storage):
         dummy_buckets[bucket_name][folder_key] = {}
 
     def generate_download_url(
-        self, bucket_name: str, target_key: str, force_attachment=False
+        self, bucket_name: str, target_key: str, force_attachment=False, *args, **kwargs
     ):
         # Mock generating a download URL
         if (
@@ -151,6 +151,8 @@ class DummyStorageClient(Storage):
         target_key: str,
         content_type: str,
         raise_if_exists=False,
+        *args,
+        **kwargs,
     ):
         # Mock generating an upload URL
         if bucket_name not in dummy_buckets:

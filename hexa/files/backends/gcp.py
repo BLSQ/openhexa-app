@@ -182,7 +182,7 @@ class GoogleCloudStorage(Storage):
         return _blob_to_obj(object)
 
     def generate_download_url(
-        self, bucket_name: str, target_key: str, force_attachment=False
+        self, bucket_name: str, target_key: str, force_attachment=False, *args, **kwargs
     ):
         gcs_bucket = self.client.get_bucket(bucket_name)
         blob = gcs_bucket.get_blob(target_key)
@@ -206,6 +206,8 @@ class GoogleCloudStorage(Storage):
         target_key: str,
         content_type: str = None,
         raise_if_exists: bool = False,
+        *args,
+        **kwargs,
     ):
         gcs_bucket = self.client.get_bucket(bucket_name)
         if raise_if_exists and gcs_bucket.get_blob(target_key) is not None:
