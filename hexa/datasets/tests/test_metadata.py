@@ -4,12 +4,32 @@ from unittest import mock
 from pandas.errors import ParserError
 
 from hexa.core.test import TestCase
-from hexa.datasets.models import DatasetFileMetadata
+from hexa.datasets.models import Dataset, DatasetFileMetadata
 from hexa.datasets.queue import generate_dataset_file_sample_task
 from hexa.files import storage
+from hexa.user_management.models import User
+from hexa.workspaces.models import Workspace
 
 
 class TestCreateDatasetFileMetadataTask(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        storage.reset()
+        cls.USER_SERENA = User.objects.create_user(
+            "serena@bluesquarehub.com",
+            "serena's password",
+        )
+        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.USER_SERENA, name="My Workspace", description="Test workspace"
+        )
+
+        cls.DATASET = Dataset.objects.create_if_has_perm(
+            cls.USER_SERENA,
+            cls.WORKSPACE,
+            name="Dataset",
+            description="Dataset's description",
+        )
+
     @mock.patch("hexa.datasets.queue.DatasetVersionFile.objects.get")
     @mock.patch("hexa.datasets.queue.DatasetFileMetadata.objects.create")
     @mock.patch("hexa.datasets.queue.generate_download_url")
