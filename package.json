@@ -14,7 +14,7 @@
     "test:ci": "jest --ci",
     "lint": "next lint --dir src",
     "format": "prettier --write src",
-    "prepare": "husky install",
+    "prepare": "husky",
     "schema": "npx -y get-graphql-schema http://localhost:8000/graphql/ > schema.graphql",
     "codegen": "find ./src -type f -name \"*.generated.tsx\" -delete && graphql-codegen --config codegen.yml",
     "i18n:extract": "i18next",
