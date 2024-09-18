@@ -69,8 +69,8 @@ export function useDatasetLinksDataGridLazyQuery(baseOptions?: Apollo.LazyQueryH
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<DatasetLinksDataGridQuery, DatasetLinksDataGridQueryVariables>(DatasetLinksDataGridDocument, options);
         }
-export function useDatasetLinksDataGridSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DatasetLinksDataGridQuery, DatasetLinksDataGridQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useDatasetLinksDataGridSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DatasetLinksDataGridQuery, DatasetLinksDataGridQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<DatasetLinksDataGridQuery, DatasetLinksDataGridQueryVariables>(DatasetLinksDataGridDocument, options);
         }
 export type DatasetLinksDataGridQueryHookResult = ReturnType<typeof useDatasetLinksDataGridQuery>;

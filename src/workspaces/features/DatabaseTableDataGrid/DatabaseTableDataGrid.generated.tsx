@@ -77,8 +77,8 @@ export function useDatabaseTableDataGridLazyQuery(baseOptions?: Apollo.LazyQuery
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<DatabaseTableDataGridQuery, DatabaseTableDataGridQueryVariables>(DatabaseTableDataGridDocument, options);
         }
-export function useDatabaseTableDataGridSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DatabaseTableDataGridQuery, DatabaseTableDataGridQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useDatabaseTableDataGridSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DatabaseTableDataGridQuery, DatabaseTableDataGridQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<DatabaseTableDataGridQuery, DatabaseTableDataGridQueryVariables>(DatabaseTableDataGridDocument, options);
         }
 export type DatabaseTableDataGridQueryHookResult = ReturnType<typeof useDatabaseTableDataGridQuery>;

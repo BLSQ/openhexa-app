@@ -65,8 +65,8 @@ export function useDatasetVersionPickerLazyQuery(baseOptions?: Apollo.LazyQueryH
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<DatasetVersionPickerQuery, DatasetVersionPickerQueryVariables>(DatasetVersionPickerDocument, options);
         }
-export function useDatasetVersionPickerSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DatasetVersionPickerQuery, DatasetVersionPickerQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useDatasetVersionPickerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DatasetVersionPickerQuery, DatasetVersionPickerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<DatasetVersionPickerQuery, DatasetVersionPickerQueryVariables>(DatasetVersionPickerDocument, options);
         }
 export type DatasetVersionPickerQueryHookResult = ReturnType<typeof useDatasetVersionPickerQuery>;

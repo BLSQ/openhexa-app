@@ -58,8 +58,8 @@ export function useDatasetPickerLazyQuery(baseOptions?: Apollo.LazyQueryHookOpti
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<DatasetPickerQuery, DatasetPickerQueryVariables>(DatasetPickerDocument, options);
         }
-export function useDatasetPickerSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DatasetPickerQuery, DatasetPickerQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useDatasetPickerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DatasetPickerQuery, DatasetPickerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<DatasetPickerQuery, DatasetPickerQueryVariables>(DatasetPickerDocument, options);
         }
 export type DatasetPickerQueryHookResult = ReturnType<typeof useDatasetPickerQuery>;

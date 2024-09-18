@@ -76,8 +76,8 @@ export function usePipelineVersionPickerLazyQuery(baseOptions?: Apollo.LazyQuery
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables>(PipelineVersionPickerDocument, options);
         }
-export function usePipelineVersionPickerSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function usePipelineVersionPickerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables>(PipelineVersionPickerDocument, options);
         }
 export type PipelineVersionPickerQueryHookResult = ReturnType<typeof usePipelineVersionPickerQuery>;

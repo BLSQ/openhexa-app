@@ -56,8 +56,8 @@ export function useWorkspaceConnectionPickerLazyQuery(baseOptions?: Apollo.LazyQ
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>(WorkspaceConnectionPickerDocument, options);
         }
-export function useWorkspaceConnectionPickerSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useWorkspaceConnectionPickerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>(WorkspaceConnectionPickerDocument, options);
         }
 export type WorkspaceConnectionPickerQueryHookResult = ReturnType<typeof useWorkspaceConnectionPickerQuery>;

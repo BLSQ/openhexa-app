@@ -63,8 +63,8 @@ export function useWorskspaceMembersLazyQuery(baseOptions?: Apollo.LazyQueryHook
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<WorskspaceMembersQuery, WorskspaceMembersQueryVariables>(WorskspaceMembersDocument, options);
         }
-export function useWorskspaceMembersSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<WorskspaceMembersQuery, WorskspaceMembersQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useWorskspaceMembersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorskspaceMembersQuery, WorskspaceMembersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<WorskspaceMembersQuery, WorskspaceMembersQueryVariables>(WorskspaceMembersDocument, options);
         }
 export type WorskspaceMembersQueryHookResult = ReturnType<typeof useWorskspaceMembersQuery>;

@@ -383,6 +383,7 @@ exports[`Workspaces renders the workspace page 1`] = `
         </button>
       </div>
       <div
+        hidden=""
         style="position: fixed; top: 1px; left: 1px; width: 1px; height: 0px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border-width: 0px; display: none;"
       />
     </div>
@@ -803,6 +804,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
         </button>
       </div>
       <div
+        hidden=""
         style="position: fixed; top: 1px; left: 1px; width: 1px; height: 0px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border-width: 0px; display: none;"
       />
     </div>

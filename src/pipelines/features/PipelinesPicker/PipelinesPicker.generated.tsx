@@ -49,8 +49,8 @@ export function usePipelinesPickerLazyQuery(baseOptions?: Apollo.LazyQueryHookOp
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<PipelinesPickerQuery, PipelinesPickerQueryVariables>(PipelinesPickerDocument, options);
         }
-export function usePipelinesPickerSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<PipelinesPickerQuery, PipelinesPickerQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function usePipelinesPickerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PipelinesPickerQuery, PipelinesPickerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<PipelinesPickerQuery, PipelinesPickerQueryVariables>(PipelinesPickerDocument, options);
         }
 export type PipelinesPickerQueryHookResult = ReturnType<typeof usePipelinesPickerQuery>;

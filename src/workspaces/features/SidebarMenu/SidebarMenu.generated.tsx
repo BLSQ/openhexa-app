@@ -67,8 +67,8 @@ export function useSidebarMenuLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<SidebarMenuQuery, SidebarMenuQueryVariables>(SidebarMenuDocument, options);
         }
-export function useSidebarMenuSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SidebarMenuQuery, SidebarMenuQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useSidebarMenuSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SidebarMenuQuery, SidebarMenuQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<SidebarMenuQuery, SidebarMenuQueryVariables>(SidebarMenuDocument, options);
         }
 export type SidebarMenuQueryHookResult = ReturnType<typeof useSidebarMenuQuery>;

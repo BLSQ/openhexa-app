@@ -69,8 +69,8 @@ export function useGetUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Ge
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<GetUserQuery, GetUserQueryVariables>(GetUserDocument, options);
         }
-export function useGetUserSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetUserQuery, GetUserQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useGetUserSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetUserQuery, GetUserQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<GetUserQuery, GetUserQueryVariables>(GetUserDocument, options);
         }
 export type GetUserQueryHookResult = ReturnType<typeof useGetUserQuery>;
@@ -134,8 +134,8 @@ export function useAccountPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AccountPageQuery, AccountPageQueryVariables>(AccountPageDocument, options);
         }
-export function useAccountPageSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AccountPageQuery, AccountPageQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useAccountPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AccountPageQuery, AccountPageQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<AccountPageQuery, AccountPageQueryVariables>(AccountPageDocument, options);
         }
 export type AccountPageQueryHookResult = ReturnType<typeof useAccountPageQuery>;

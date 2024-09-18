@@ -68,8 +68,8 @@ export function useObjectPickerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptio
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<ObjectPickerQuery, ObjectPickerQueryVariables>(ObjectPickerDocument, options);
         }
-export function useObjectPickerSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ObjectPickerQuery, ObjectPickerQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useObjectPickerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ObjectPickerQuery, ObjectPickerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<ObjectPickerQuery, ObjectPickerQueryVariables>(ObjectPickerDocument, options);
         }
 export type ObjectPickerQueryHookResult = ReturnType<typeof useObjectPickerQuery>;

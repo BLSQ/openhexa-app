@@ -49,8 +49,8 @@ export function useCountryPickerLazyQuery(baseOptions?: Apollo.LazyQueryHookOpti
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<CountryPickerQuery, CountryPickerQueryVariables>(CountryPickerDocument, options);
         }
-export function useCountryPickerSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CountryPickerQuery, CountryPickerQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useCountryPickerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CountryPickerQuery, CountryPickerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<CountryPickerQuery, CountryPickerQueryVariables>(CountryPickerDocument, options);
         }
 export type CountryPickerQueryHookResult = ReturnType<typeof useCountryPickerQuery>;

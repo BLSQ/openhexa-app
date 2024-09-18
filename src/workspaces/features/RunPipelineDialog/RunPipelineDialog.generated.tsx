@@ -111,8 +111,8 @@ export function usePipelineCurrentVersionLazyQuery(baseOptions?: Apollo.LazyQuer
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<PipelineCurrentVersionQuery, PipelineCurrentVersionQueryVariables>(PipelineCurrentVersionDocument, options);
         }
-export function usePipelineCurrentVersionSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<PipelineCurrentVersionQuery, PipelineCurrentVersionQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function usePipelineCurrentVersionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PipelineCurrentVersionQuery, PipelineCurrentVersionQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<PipelineCurrentVersionQuery, PipelineCurrentVersionQueryVariables>(PipelineCurrentVersionDocument, options);
         }
 export type PipelineCurrentVersionQueryHookResult = ReturnType<typeof usePipelineCurrentVersionQuery>;
