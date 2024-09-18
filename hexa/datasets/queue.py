@@ -89,9 +89,11 @@ def generate_dataset_file_sample_task(
                 random_state=random_seed,
                 replace=True,
             )
-            dataset_file_metadata.sample = file_sample.to_json(orient="records")
+            dataset_file_metadata.sample = json.loads(
+                file_sample.to_json(orient="records")
+            )
         else:
-            dataset_file_metadata.sample = json.dumps([])
+            dataset_file_metadata.sample = []
         logger.info(f"Dataset sample saved for file {dataset_version_file_id}")
         dataset_file_metadata.status = DatasetFileMetadata.STATUS_FINISHED
         dataset_file_metadata.save()
