@@ -4,6 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError
 from django.db.models.functions import Collate
 from django.utils.crypto import get_random_string
 
@@ -31,9 +32,14 @@ class UserCreationForm(BaseUserCreationForm):
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
-        password2 = super().clean_password2()
+        password2 = self.cleaned_data.get("password2")
         if bool(password1) ^ bool(password2):
             raise forms.ValidationError("Fill out both fields")
+        if password1 and password2 and password1 != password2:
+            raise ValidationError(
+                self.error_messages["password_mismatch"],
+                code="password_mismatch",
+            )
         return password2
 
 
