@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.72.9](https://github.com/BLSQ/openhexa-app/compare/0.72.8...0.72.9) (2024-09-18)
+
+
+### Bug Fixes
+
+* **Dataset:** save sample as JSON instead of JSON string ([54e5214](https://github.com/BLSQ/openhexa-app/commit/54e5214eeeb323858e11a13e9dcc18833185d445))
+
 ## [0.72.8](https://github.com/BLSQ/openhexa-app/compare/0.72.7...0.72.8) (2024-09-11)
 
 
