@@ -32,6 +32,7 @@ from hexa.databases.api import (
 from hexa.datasets.models import Dataset
 from hexa.files.api import get_storage
 from hexa.user_management.models import User
+from hexa.workspaces.utils import make_random_password
 
 
 class AlreadyExists(Exception):
@@ -111,7 +112,7 @@ class WorkspaceManager(models.Manager):
                 workspace_name=name, workspace_slug=slug
             )
 
-        db_password = User.objects.make_random_password(length=16)
+        db_password = make_random_password(len(16))
         db_name = generate_database_name()
         create_kwargs["db_password"] = db_password
         create_kwargs["db_name"] = db_name
@@ -226,7 +227,7 @@ class Workspace(Base):
         if not principal.has_perm("workspaces.update_workspace", self):
             raise PermissionDenied
 
-        new_password = User.objects.make_random_password(length=16)
+        new_password = make_random_password(length=16)
         update_database_password(self.db_name, new_password)
 
         setattr(self, "db_password", new_password)
