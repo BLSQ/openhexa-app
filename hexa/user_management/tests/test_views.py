@@ -91,5 +91,6 @@ class InviteUserAdminTest(TestCase):
                 "_save": "Save",
             },
         )
+        print(f"Response: {response.__dict__}")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(User.objects.all().count(), 2)
