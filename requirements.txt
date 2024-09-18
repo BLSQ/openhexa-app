@@ -67,7 +67,7 @@ coverage[toml]==7.6.1
     # via -r requirements.in
 croniter==3.0.3
     # via -r requirements.in
-cryptography==43.0.0
+cryptography==43.0.1
     # via
     #   -r requirements.in
     #   moto
@@ -110,7 +110,6 @@ geopandas==1.0.1
     # via -r requirements.in
 google-api-core[grpc]==2.19.1
     # via
-    #   google-api-core
     #   google-cloud-appengine-logging
     #   google-cloud-core
     #   google-cloud-iam
