@@ -1,4 +1,3 @@
-import secrets
 from typing import Optional
 from urllib.parse import urlencode
 
@@ -9,12 +8,6 @@ from hexa.core.utils import send_mail
 from hexa.user_management.models import User
 
 from .models import WorkspaceInvitation
-
-
-def make_random_password(
-    length=10, allowed_chars="abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-):
-    return "".join(secrets.choice(allowed_chars) for i in range(length))
 
 
 def send_workspace_invitation_email(

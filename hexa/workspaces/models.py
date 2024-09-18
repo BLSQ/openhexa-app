@@ -32,11 +32,16 @@ from hexa.databases.api import (
 from hexa.datasets.models import Dataset
 from hexa.files.api import get_storage
 from hexa.user_management.models import User
-from hexa.workspaces.utils import make_random_password
 
 
 class AlreadyExists(Exception):
     pass
+
+
+def make_random_password(
+    length=10, allowed_chars="abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+):
+    return "".join(secrets.choice(allowed_chars) for i in range(length))
 
 
 def create_workspace_slug(name):
@@ -112,7 +117,7 @@ class WorkspaceManager(models.Manager):
                 workspace_name=name, workspace_slug=slug
             )
 
-        db_password = make_random_password(len(16))
+        db_password = make_random_password(length=16)
         db_name = generate_database_name()
         create_kwargs["db_password"] = db_password
         create_kwargs["db_name"] = db_name
