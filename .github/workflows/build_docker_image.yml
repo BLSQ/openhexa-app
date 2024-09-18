@@ -39,21 +39,21 @@ jobs:
       # Caches
       - name: Cache var-cache-apk
         id: cache-var-cache-apk
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: var-cache-apk
           key: var-cache-apk-${{ hashFiles('Dockerfile') }}
       
       - name: Cache code-.next-cache
         id: cache-code-next-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: code-next-cache
           key: code-.next-cache-${{ hashFiles('Dockerfile') }}
       
       - name: Cache ~.npm
         id: cache-home-npm-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: code-.npm-cache
           key: code-.npm-cache-${{ hashFiles('Dockerfile') }}
