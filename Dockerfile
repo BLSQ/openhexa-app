@@ -69,6 +69,8 @@ ENV NEXT_PUBLIC_SENTRY_DSN=${SENTRY_DSN}
 ENV NEXT_PUBLIC_SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT}
 ENV NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE=${SENTRY_TRACES_SAMPLE_RATE}
 
+ENV NEXT_PUBLIC_DISABLE_ANALYTICS=${DISABLE_ANALYTICS}
+
 COPY --from=builder --chown=${APP_USER}:${APP_USER} /code/public ./public
 COPY --from=builder --chown=${APP_USER}:${APP_USER} /code/.next/standalone ./
 COPY --from=builder --chown=${APP_USER}:${APP_USER} /code/.next/static ./.next/static

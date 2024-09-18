@@ -105,6 +105,7 @@ The following environment variables should be provided at run time:
 - `SENTRY_TRACES_SAMPLE_RATE`: the [Sentry](https://sentry.io/) sampling rate of traces
 - `SENTRY_DSN`: the [Sentry](https://sentry.io/) DSN
 - `SENTRY_ENVIRONMENT`: the [Sentry](https://sentry.io/) environment tag
+- `DISABLE_ANALYTICS`: set to `true` to disable analytics tracking (only prevent the requests to be sent to the backend)
 
 ### Code style
 
