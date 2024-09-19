@@ -1,33 +1,28 @@
 import base64
+import io
 import json
 
 import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from google.cloud import storage
-from google.cloud.exceptions import Conflict
+from google.cloud.exceptions import Conflict, NotFound
 from google.cloud.iam_credentials_v1 import IAMCredentialsClient
 from google.cloud.storage.blob import Blob
 from google.oauth2 import service_account
 from google.protobuf import duration_pb2
 
-from .basefs import (
-    BaseClient,
-    BucketObjectAlreadyExists,
-    NotFound,
-    ObjectsPage,
-    load_bucket_sample_data_with,
-)
+from .base import ObjectsPage, Storage, StorageObject, load_bucket_sample_data_with
 
 
-def get_credentials():
-    decoded_creds = base64.b64decode(settings.GCS_SERVICE_ACCOUNT_KEY)
+def get_credentials(service_account_key):
+    decoded_creds = base64.b64decode(service_account_key)
     json_creds = json.loads(decoded_creds, strict=False)
     return service_account.Credentials.from_service_account_info(json_creds)
 
 
-def get_storage_client():
-    credentials = get_credentials()
+def get_storage_client(service_account_key):
+    credentials = get_credentials(service_account_key)
     return storage.Client(credentials=credentials)
 
 
@@ -35,26 +30,25 @@ def _is_dir(blob):
     return blob.size == 0 and blob.name.endswith("/")
 
 
-def _blob_to_dict(blob: Blob):
-    return {
-        "name": blob.name.split("/")[-2] if _is_dir(blob) else blob.name.split("/")[-1],
-        "key": blob.name,
-        "path": "/".join([blob.bucket.name, blob.name]),
-        "content_type": blob.content_type,
-        "updated": blob.updated,
-        "size": blob.size,
-        "type": "directory" if _is_dir(blob) else "file",
-    }
+def _blob_to_obj(blob: Blob):
+    return StorageObject(
+        name=blob.name.split("/")[-2] if _is_dir(blob) else blob.name.split("/")[-1],
+        key=blob.name,
+        path="/".join([blob.bucket.name, blob.name]),
+        content_type=blob.content_type,
+        updated=blob.updated,
+        size=blob.size,
+        type="directory" if _is_dir(blob) else "file",
+    )
 
 
-def _prefix_to_dict(bucket_name, name: str):
-    return {
-        "name": name.split("/")[-2],
-        "key": name,
-        "path": "/".join([bucket_name, name]),
-        "size": 0,
-        "type": "directory",
-    }
+def _prefix_to_obj(bucket_name, name: str):
+    return StorageObject(
+        name=name.split("/")[-2],
+        key=name,
+        path="/".join([bucket_name, name]),
+        type="directory",
+    )
 
 
 def iter_request_results(bucket_name, request):
@@ -69,14 +63,14 @@ def iter_request_results(bucket_name, request):
     current_page = next(pages)
 
     for prefix in sorted(prefixes):
-        yield _prefix_to_dict(bucket_name, prefix)
+        yield _prefix_to_obj(bucket_name, prefix)
 
     while True:
         for blob in current_page:
             if not _is_dir(blob):
                 # We ignore objects that are directories (object with a size = 0 and ending with a /)
                 # because they are already listed in the prefixes
-                yield _blob_to_dict(blob)
+                yield _blob_to_obj(blob)
         try:
             current_page = next(pages)
         except StopIteration:
@@ -89,17 +83,39 @@ def ensure_is_folder(object_key: str):
     return object_key
 
 
-class GCPClient(BaseClient):
-    def create_bucket(self, bucket_name: str, labels: dict = None, *args, **kwargs):
-        client = get_storage_client()
+class GoogleCloudStorage(Storage):
+    storage_type = "gcp"
+    _client = None
+
+    def __init__(self, service_account_key: str, region: str, enable_versioning=False):
+        super().__init__()
+        self._service_account_key = service_account_key
+        self.region = region
+        self.enable_versioning = enable_versioning
+
+    @property
+    def client(self):
+        if self._client is None:
+            self._client = get_storage_client(self._service_account_key)
+        return self._client
+
+    def bucket_exists(self, bucket_name: str):
         try:
-            bucket = client.create_bucket(
-                bucket_name, location=settings.WORKSPACE_BUCKET_REGION
+            self.client.get_bucket(bucket_name)
+            return True
+        except NotFound:
+            return False
+
+    def create_bucket(self, bucket_name: str, labels: dict = None, *args, **kwargs):
+        if self.bucket_exists(bucket_name):
+            raise self.exceptions.AlreadyExists(
+                f"GCS: Bucket {bucket_name} already exists!"
             )
+        try:
+            bucket = self.client.create_bucket(bucket_name, location=self.region)
             bucket.storage_class = "STANDARD"  # Default storage class
 
-            if settings.WORKSPACE_BUCKET_VERSIONING_ENABLED:
-                bucket.versioning_enabled = True
+            bucket.versioning_enabled = self.enable_versioning
 
             # Set lifecycle rules
             # 1. Transition to "Nearline" Storage: Objects that haven't been accessed for 30 days can be moved to "Nearline" storage, which is cost-effective for data accessed less than once a month.
@@ -147,32 +163,29 @@ class GCPClient(BaseClient):
             ]
             bucket.patch()
 
-            return bucket
+            return bucket.name
         except Conflict:
             raise ValidationError(f"GCS: Bucket {bucket_name} already exists!")
 
-    def upload_object(self, bucket_name: str, file_name: str, source: str):
-        client = get_storage_client()
-        bucket = client.bucket(bucket_name)
-        blob = bucket.blob(file_name)
-        blob.upload_from_filename(source)
+    def save_object(self, bucket_name: str, file_path: str, file: io.BufferedReader):
+        bucket = self.client.bucket(bucket_name)
+        blob = bucket.blob(file_path)
+        blob.upload_from_file(file)
 
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
-        client = get_storage_client()
-        bucket = client.get_bucket(bucket_name)
+        bucket = self.client.get_bucket(bucket_name)
         object = bucket.blob(ensure_is_folder(folder_key))
         object.upload_from_string(
             "", content_type="application/x-www-form-urlencoded;charset=UTF-8"
         )
 
-        return _blob_to_dict(object)
+        return _blob_to_obj(object)
 
     def generate_download_url(
-        self, bucket_name: str, target_key: str, force_attachment=False
+        self, bucket_name: str, target_key: str, force_attachment=False, *args, **kwargs
     ):
-        client = get_storage_client()
-        gcs_bucket = client.get_bucket(bucket_name)
-        blob: Blob = gcs_bucket.get_blob(target_key)
+        gcs_bucket = self.client.get_bucket(bucket_name)
+        blob = gcs_bucket.get_blob(target_key)
 
         if blob is None:
             return None
@@ -193,24 +206,24 @@ class GCPClient(BaseClient):
         target_key: str,
         content_type: str = None,
         raise_if_exists: bool = False,
+        *args,
+        **kwargs,
     ):
-        client = get_storage_client()
-        gcs_bucket = client.get_bucket(bucket_name)
+        gcs_bucket = self.client.get_bucket(bucket_name)
         if raise_if_exists and gcs_bucket.get_blob(target_key) is not None:
-            raise BucketObjectAlreadyExists(target_key)
+            raise self.exceptions.AlreadyExists(target_key)
         blob = gcs_bucket.blob(target_key)
         return blob.generate_signed_url(
             expiration=3600, version="v4", method="PUT", content_type=content_type
         )
 
     def get_bucket_object(self, bucket_name: str, object_key: str):
-        client = get_storage_client()
-        bucket = client.get_bucket(bucket_name)
+        bucket = self.client.get_bucket(bucket_name)
         object = bucket.get_blob(object_key)
         if object is None:
-            raise NotFound("Object not found")
+            raise self.exceptions.NotFound("Object not found")
 
-        return _blob_to_dict(object)
+        return _blob_to_obj(object)
 
     def list_bucket_objects(
         self,
@@ -233,9 +246,7 @@ class GCPClient(BaseClient):
             ignore_hidden_files (bool, optional): Returns the hidden files and directories if `False`. Defaults to True.
 
         """
-        client = get_storage_client()
-
-        request = client.list_blobs(
+        request = self.client.list_blobs(
             bucket_name,
             prefix=prefix,
             # We take twice the number of items to be sure to have enough
@@ -250,11 +261,11 @@ class GCPClient(BaseClient):
         objects = []
 
         def is_object_match_query(obj):
-            if ignore_hidden_files and obj["name"].startswith("."):
+            if ignore_hidden_files and obj.name.startswith("."):
                 return False
             if not query:
                 return True
-            return query.lower() in obj["name"].lower()
+            return query.lower() in obj.name.lower()
 
         iterator = iter_request_results(bucket_name, request)
         while True:
@@ -288,7 +299,7 @@ class GCPClient(BaseClient):
         token_lifetime = 3600
         if settings.GCS_TOKEN_LIFETIME is not None:
             token_lifetime = int(settings.GCS_TOKEN_LIFETIME)
-        source_credentials = get_credentials()
+        source_credentials = get_credentials(self._service_account_key)
 
         iam_credentials = IAMCredentialsClient(credentials=source_credentials)
         iam_token = iam_credentials.generate_access_token(
@@ -323,27 +334,28 @@ class GCPClient(BaseClient):
             },
         )
         payload = response.json()
-        return [payload["access_token"], payload["expires_in"], "gcp"]
+        return payload["access_token"], payload["expires_in"]
 
-    def delete_bucket(self, bucket_name: str, fully: bool = False):
-        return get_storage_client().delete_bucket(bucket_name)
+    def delete_bucket(self, bucket_name: str, force: bool = False):
+        return self.client.delete_bucket(bucket_name)
 
     def delete_object(self, bucket_name: str, file_name: str):
-        client = get_storage_client()
-        bucket = client.get_bucket(bucket_name)
+        bucket = self.client.get_bucket(bucket_name)
         blob = bucket.get_blob(file_name)
+        if blob is None:
+            raise self.exceptions.NotFound("Object not found")
         if _is_dir(blob):
             blobs = list(bucket.list_blobs(prefix=file_name))
             bucket.delete_blobs(blobs)
         else:
             bucket.delete_blob(file_name)
-        return
 
     def load_bucket_sample_data(self, bucket_name: str):
         return load_bucket_sample_data_with(bucket_name, self)
 
-    def get_token_as_env_variables(self, token):
+    def get_bucket_mount_config(self, bucket_name):
+        token, _ = self.get_short_lived_downscoped_access_token(bucket_name)
         return {
-            "GCS_TOKEN": token,  # FIXME: Once we have deployed the new openhexa-bslq-environment image and upgraded the openhexa-app, we can remove this line
+            "WORKSPACE_STORAGE_ENGINE_GCP_BUCKET_NAME": bucket_name,
             "WORKSPACE_STORAGE_ENGINE_GCP_ACCESS_TOKEN": token,
         }

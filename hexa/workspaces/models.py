@@ -30,7 +30,7 @@ from hexa.databases.api import (
     update_database_password,
 )
 from hexa.datasets.models import Dataset
-from hexa.files.api import get_storage
+from hexa.files import storage
 from hexa.user_management.models import User
 
 
@@ -63,7 +63,7 @@ def generate_database_name():
 
 # ease patching
 def load_bucket_sample_data(bucket_name):
-    get_storage().load_bucket_sample_data(bucket_name)
+    storage.load_bucket_sample_data(bucket_name)
 
 
 validate_workspace_slug = RegexValidator(
@@ -75,7 +75,6 @@ validate_workspace_slug = RegexValidator(
 
 
 def create_workspace_bucket(workspace_slug: str):
-    storage = get_storage()
     while True:
         suffix = get_random_string(
             4, allowed_chars=string.ascii_lowercase + string.digits
@@ -84,7 +83,7 @@ def create_workspace_bucket(workspace_slug: str):
             # Bucket names must be unique across all of Google Cloud, so we add a suffix to the workspace slug
             # When separated by a dot, each segment can be up to 63 characters long
             return storage.create_bucket(
-                f"{(settings.WORKSPACE_BUCKET_PREFIX + workspace_slug)[:63]}-{suffix}",
+                f"{(settings.WORKSPACE_BUCKET_PREFIX + workspace_slug)[:63]}.{suffix}",
                 labels={"hexa-workspace": workspace_slug},
             )
         except ValidationError:
@@ -123,12 +122,12 @@ class WorkspaceManager(models.Manager):
         create_kwargs["db_name"] = db_name
         create_database(db_name, db_password)
 
-        bucket = create_workspace_bucket(slug)
-        create_kwargs["bucket_name"] = bucket.name
+        bucket_name = create_workspace_bucket(slug)
+        create_kwargs["bucket_name"] = bucket_name
 
         if load_sample_data:
             load_database_sample_data(db_name)
-            load_bucket_sample_data(bucket.name)
+            load_bucket_sample_data(bucket_name)
 
         workspace = self.create(**create_kwargs)
 

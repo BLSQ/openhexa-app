@@ -2,17 +2,13 @@ from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import Feature, User
 from hexa.workspaces.models import Workspace
 
-from .mocks.mockgcp import backend, mock_gcp_storage
-
 
 class FilesTest(GraphQLTestCase):
     USER_WORKSPACE_ADMIN = None
     WORKSPACE = None
 
     @classmethod
-    @mock_gcp_storage
     def setUpTestData(cls):
-        backend.reset()
         Feature.objects.create(code="workspaces", force_activate=True)
 
         cls.USER_WORKSPACE_ADMIN = User.objects.create_user(
@@ -33,7 +29,6 @@ class FilesTest(GraphQLTestCase):
             countries=[{"code": "AD"}],
         )
 
-    @mock_gcp_storage
     def test_workspace_objects_authorized(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
 

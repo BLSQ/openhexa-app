@@ -1,3 +1,4 @@
+import logging
 import secrets
 
 from django.contrib.auth.models import AnonymousUser
@@ -10,6 +11,8 @@ from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.user_management.models import User
+
+logger = logging.getLogger(__name__)
 
 
 def create_dataset_slug(name: str, workspace):
@@ -266,8 +269,30 @@ class DatasetVersionFile(Base):
         return self.uri.split("/")[-1]
 
     @property
-    def latest_metadata(self):
-        return self.metadata_entries.order_by("-created_at").first()
+    def sample_entry(self):
+        entry = self.metadata_entries.first()
+        if entry is None:
+            logger.info("No sample found for file %s, generating one", self.uri)
+            self.generate_sample()
+        return entry
+
+    @property
+    def full_uri(self):
+        return self.dataset_version.get_full_uri(self.uri)
+
+    def generate_sample(self):
+        from hexa.datasets.queue import dataset_file_metadata_queue, is_sample_supported
+
+        if not is_sample_supported(self.filename):
+            logger.info("Sample generation not supported for file %s", self.uri)
+            return
+        logger.info("Generating sample for file %s", self.uri)
+        dataset_file_metadata_queue.enqueue(
+            "generate_file_metadata",
+            {
+                "file_id": str(self.id),
+            },
+        )
 
     class Meta:
         ordering = ["uri"]
@@ -298,6 +323,9 @@ class DatasetFileMetadata(Base):
         on_delete=models.CASCADE,
         related_name="metadata_entries",
     )
+
+    class Meta:
+        ordering = ["-created_at"]
 
 
 class DatasetLinkQuerySet(BaseQuerySet):

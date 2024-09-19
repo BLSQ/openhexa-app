@@ -71,6 +71,8 @@ jobs:
           context: .
           target: app
           file: Dockerfile
+          build-args: |
+            DJANGO_SETTINGS_MODULE=config.settings.dev
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
           tags: |
@@ -85,6 +87,8 @@ jobs:
           context: .
           target: app
           file: Dockerfile
+          build-args: |
+            DJANGO_SETTINGS_MODULE=config.settings.dev
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
           tags: |

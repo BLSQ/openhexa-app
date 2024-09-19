@@ -1,10 +1,16 @@
 from .dev import *  # noqa: F403, F401
-from .dev import INSTALLED_APPS
 
 DEBUG = False
-WORKSPACE_STORAGE_ENGINE = "gcp"
 
 # Custom test runner
 TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"
+WORKSPACE_STORAGE_BACKEND = {"engine": "hexa.files.backends.dummy.DummyStorageClient"}
 
-INSTALLED_APPS += ["hexa", "hexa.core.tests.soft_delete"]
+if "hexa.plugins.connector_accessmod" in INSTALLED_APPS:  # noqa: F405
+    # Accessmod settings
+    ACCESSMOD_BUCKET_NAME = "s3://hexa-demo-accessmod"
+    ACCESSMOD_MANAGE_REQUESTS_URL = "http://localhost:3000/admin/access-requests"
+    ACCESSMOD_SET_PASSWORD_URL = "http://localhost:3000/account/set-password"
+
+NEW_FRONTEND_DOMAIN = "http://localhost:3000"
+NOTEBOOKS_URL = "http://localhost:8001"

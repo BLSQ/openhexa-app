@@ -3,7 +3,8 @@
 .idea
 .devcontainer
 .env
-
+.ruff_cache
+.venv
 Dockerfile
 docker-compose.yml
 .dockerignore

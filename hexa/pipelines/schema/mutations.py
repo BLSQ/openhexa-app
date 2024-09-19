@@ -8,7 +8,7 @@ from django.http import HttpRequest
 
 from hexa.analytics.api import track
 from hexa.databases.utils import get_table_definition
-from hexa.files.api import NotFound, get_storage
+from hexa.files import storage
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import (
     InvalidTimeoutValueError,
@@ -28,7 +28,7 @@ pipelines_mutations = MutationType()
 
 # ease mocking
 def get_bucket_object(bucket_name, file):
-    return get_storage().get_bucket_object(bucket_name, file)
+    return storage.get_bucket_object(bucket_name, file)
 
 
 @pipelines_mutations.field("createPipeline")
@@ -73,7 +73,7 @@ def resolve_create_pipeline(_, info, **kwargs):
             event_properties,
         )
 
-    except NotFound:
+    except storage.exceptions.NotFound:
         return {"success": False, "errors": ["FILE_NOT_FOUND"]}
 
     except IntegrityError:
@@ -466,7 +466,7 @@ def resolve_add_pipeline_output(_, info, **kwargs):
                 workspace.bucket_name,
                 input["uri"][len(f"gs://{workspace.bucket_name}/") :],
             )
-        except NotFound:
+        except storage.exceptions.NotFound:
             return {"success": False, "errors": ["FILE_NOT_FOUND"]}
     elif input.get("type") == "db" and not get_table_definition(
         workspace, input.get("name")

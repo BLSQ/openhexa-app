@@ -3,12 +3,12 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 
 from hexa.analytics.api import track
+from hexa.files import storage
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.workspaces.models import Workspace
 
 from ..api import generate_download_url, generate_upload_url, get_blob
 from ..models import Dataset, DatasetLink, DatasetVersion, DatasetVersionFile
-from ..queue import load_file_metadata
 
 mutations = MutationType()
 
@@ -249,7 +249,7 @@ def resolve_create_version_file(_, info, **kwargs):
                     content_type=mutation_input["contentType"],
                 )
 
-            load_file_metadata(file_id=file.id)
+            file.generate_sample()
             return {
                 "success": True,
                 "errors": [],
@@ -284,7 +284,7 @@ def resolve_version_file_download(_, info, **kwargs):
             return {"success": False, "errors": ["FILE_NOT_UPLOADED"]}
 
         return {"success": True, "errors": [], "download_url": download_url}
-    except DatasetVersionFile.DoesNotExist:
+    except (DatasetVersionFile.DoesNotExist, storage.exceptions.NotFound):
         return {"success": False, "errors": ["FILE_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}

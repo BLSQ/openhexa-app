@@ -14,6 +14,7 @@ from django.core.management.base import BaseCommand
 from django.core.signing import Signer
 from django.utils import timezone
 
+from hexa.files import storage
 from hexa.pipelines.models import PipelineRun, PipelineRunState, PipelineType
 from hexa.pipelines.utils import generate_pipeline_container_name, mail_run_recipients
 
@@ -244,6 +245,18 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
             "HEXA_RUN_ID": str(run.id),
         }
     )
+    volumes = None
+    if storage.storage_type == "local":
+        # FIXME Get this from the storage directly
+        workspace_folder = os.path.join(
+            settings.WORKSPACE_STORAGE_LOCATION, run.pipeline.workspace.bucket_name
+        )
+        volumes = {
+            workspace_folder: {
+                "bind": "/home/hexa/workspace",
+                "mode": "rw",
+            }
+        }
     container = docker_client.containers.run(
         image=image,
         command=cmd,
@@ -251,6 +264,7 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
         network="openhexa",
         platform="linux/amd64",
         environment=env_vars,
+        volumes=volumes,
         detach=True,
     )
     logger.debug("Container %s started", container.id)
@@ -295,7 +309,7 @@ def run_pipeline(run: PipelineRun):
     run.refresh_from_db()
 
     env_vars = {
-        "HEXA_SERVER_URL": f"{settings.PIPELINE_API_URL}",
+        "HEXA_SERVER_URL": f"{settings.INTERNAL_BASE_URL}",
         "HEXA_TOKEN": Signer().sign_object(run.access_token),
         "HEXA_WORKSPACE": run.pipeline.workspace.slug,
         "HEXA_RUN_ID": str(run.id),

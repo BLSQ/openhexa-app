@@ -1,6 +1,6 @@
 from google.cloud.storage._helpers import _validate_name
 
-from hexa.files.api import NotFound
+from hexa.files.backends.exceptions import NotFound
 
 from .blob import MockBlob
 
@@ -33,14 +33,12 @@ class MockBucket:
     def list_blobs(self, *args, **kwargs):
         return self.client.list_blobs(self, *args, **kwargs)
 
-    def get_blob(self, blob_name, *args, **kwargs):
-        if any(
-            filename in blob_name
-            for filename in ["test", "demo", "mock", "data", "some-uri"]
-        ):
-            return MockBlob(blob_name, self)
-        else:
-            return None
+    def get_blob(self, name, *args, **kwargs):
+        existing = [b for b in self._blobs if b.name == name]
+        if len(existing) == 0:
+            raise NotFound("key not found")
+
+        return existing[0]
 
     def blob(self, *args, **kwargs):
         b = MockBlob(*args, bucket=self, **kwargs)
@@ -50,9 +48,9 @@ class MockBucket:
     def patch(self):
         pass
 
-    def delete_blob(self, key):
-        existing = [b for b in self._blobs if b.name == key]
+    def delete_blob(self, name):
+        existing = [b for b in self._blobs if b.name == name]
         if len(existing) == 0:
             raise NotFound("key not found")
 
-        self._blobs = [b for b in self._blobs if b.name != key]
+        self._blobs = [b for b in self._blobs if b.name != name]

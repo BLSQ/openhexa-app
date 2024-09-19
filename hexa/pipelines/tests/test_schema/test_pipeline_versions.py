@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
-from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.pipelines.models import Pipeline
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
@@ -18,7 +17,6 @@ class PipelineVersionsTest(GraphQLTestCase):
     PIPELINE = None
 
     @classmethod
-    @mock_gcp_storage
     def setUpTestData(cls):
         cls.USER_ROOT = User.objects.create_user(
             "root@bluesquarehub.com",

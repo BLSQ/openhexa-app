@@ -2,7 +2,8 @@ from ariadne import ObjectType, convert_kwargs_to_snake_case
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 
-from hexa.files.api import NotFound, get_storage
+from hexa.files import storage
+from hexa.files.backends.base import StorageObject
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
@@ -53,7 +54,7 @@ def resolve_bucket_objects(
 ):
     if workspace.bucket_name is None:
         raise ImproperlyConfigured("Workspace does not have a bucket")
-    page = get_storage().list_bucket_objects(
+    page = storage.list_bucket_objects(
         workspace.bucket_name,
         prefix=prefix,
         page=page,
@@ -70,8 +71,8 @@ def resolve_bucket_object(workspace, info, key, **kwargs):
     if workspace.bucket_name is None:
         raise ImproperlyConfigured("Workspace does not have a bucket")
     try:
-        return get_storage().get_bucket_object(workspace.bucket_name, key)
-    except NotFound:
+        return storage.get_bucket_object(workspace.bucket_name, key)
+    except storage.exceptions.NotFound:
         return None
 
 
@@ -79,8 +80,8 @@ bucket_object_object.set_alias("updatedAt", "updated")
 
 
 @bucket_object_object.field("type")
-def resolve_object_type(obj, info):
-    return obj["type"].upper()
+def resolve_object_type(obj: StorageObject, info):
+    return obj.type.upper()
 
 
 bindables = [bucket_object, bucket_object_object]
