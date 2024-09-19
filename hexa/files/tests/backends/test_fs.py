@@ -251,3 +251,21 @@ class FileSystemStorageTest(TestCase):
             self.storage.get_bucket_mount_config("my_bucket"),
             {"WORKSPACE_STORAGE_MOUNT_PATH": str(self.data_directory / "my_bucket")},
         )
+
+    def test_delete_bucket(self):
+        self.storage.create_bucket("default-bucket")
+        self.assertTrue((self.data_directory / "default-bucket").exists())
+        self.storage.delete_bucket(
+            "default-bucket",
+        )
+        self.assertFalse(self.storage.exists("default-bucket"))
+
+    def test_delete_bucket_not_empty(self):
+        self.storage.create_bucket("default-bucket")
+        self.storage.save_object("default-bucket", "file.txt", b"Hello, world!")
+        with self.assertRaises(self.storage.exceptions.BadRequest):
+            self.storage.delete_bucket("default-bucket")
+        self.assertTrue(self.storage.exists("default-bucket"))
+
+        self.storage.delete_bucket("default-bucket", force=True)
+        self.assertFalse(self.storage.exists("default-bucket"))

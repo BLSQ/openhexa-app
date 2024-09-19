@@ -31,14 +31,16 @@ class FileSystemStorage(Storage):
         self,
         data_dir: str,
         ext_bind_path: str = None,
-        file_permissions_mode=None,
-        directory_permissions_mode=None,
+        file_permissions_mode: int | None = None,
+        directory_permissions_mode: int | None = None,
     ):
         """Initialises the FileSystemStorage backend.
 
         Args:
             data_dir (str): Directory where the data will be stored.
-            bind_abs_path (str, optional): When running in a docker container, it represents the path to the data_dir from context of the docker engine. Defaults to None.
+            ext_bing_path (str, optional): When running in a docker container, it represents the path to the data_dir from context of the docker engine. Defaults to None.
+            file_permissions_mode (int, optional): File permissions mode. Defaults to None.
+            directory_permissions_mode (int, optional): Directory permissions mode. Defaults to None.
         """
         self.data_dir = Path(data_dir)
         self.ext_bind_path = Path(ext_bind_path) if ext_bind_path is not None else None
@@ -61,6 +63,9 @@ class FileSystemStorage(Storage):
 
     def bucket_exists(self, bucket_name: str):
         return self.exists(bucket_name)
+
+    def is_directory_empty(self, bucket_name: str, *paths):
+        return not bool(next(os.scandir(self.path(bucket_name, *paths)), None))
 
     def exists(self, name):
         try:
@@ -152,9 +157,11 @@ class FileSystemStorage(Storage):
         self.create_directory(valid_bucket_name)
         return valid_bucket_name
 
-    def delete_bucket(self, bucket_name: str, fully: bool = False):
+    def delete_bucket(self, bucket_name: str, force: bool = False):
         if not self.exists(bucket_name):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
+        if not force and not self.is_directory_empty(bucket_name):
+            raise self.exceptions.BadRequest("Bucket is not empty")
         return shutil.rmtree(self.path(bucket_name))
 
     def get_bucket_object_by_token(self, token: str):
@@ -181,8 +188,6 @@ class FileSystemStorage(Storage):
                 f.write(file)
             else:
                 f.write(file.read())
-        except:
-            raise
         finally:
             locks.unlock(f)
             f.close()

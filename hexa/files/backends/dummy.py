@@ -42,11 +42,11 @@ class DummyStorageClient(Storage):
             )
         del dummy_buckets[bucket_name][object_key]
 
-    def delete_bucket(self, bucket_name: str, fully: bool = False):
+    def delete_bucket(self, bucket_name: str, force: bool = False):
         # Mock bucket deletion
         if bucket_name not in dummy_buckets:
             raise self.exceptions.NotFound(f"Bucket '{bucket_name}' not found.")
-        if fully and dummy_buckets[bucket_name]:
+        if force is False and dummy_buckets[bucket_name]:
             raise self.exceptions.BadRequest(f"Bucket '{bucket_name}' is not empty.")
         del dummy_buckets[bucket_name]
 

@@ -72,7 +72,7 @@ class Storage(ABC):
         pass
 
     @abstractmethod
-    def delete_bucket(self, bucket_name: str, fully: bool = False):
+    def delete_bucket(self, bucket_name: str, force: bool = False):
         pass
 
     @abstractmethod

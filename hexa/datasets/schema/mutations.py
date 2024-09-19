@@ -284,8 +284,7 @@ def resolve_version_file_download(_, info, **kwargs):
             return {"success": False, "errors": ["FILE_NOT_UPLOADED"]}
 
         return {"success": True, "errors": [], "download_url": download_url}
-    except (DatasetVersionFile.DoesNotExist, storage.exceptions.NotFound) as exc:
-        print(exc, flush=True)
+    except (DatasetVersionFile.DoesNotExist, storage.exceptions.NotFound):
         return {"success": False, "errors": ["FILE_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}

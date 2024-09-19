@@ -336,7 +336,7 @@ class GoogleCloudStorage(Storage):
         payload = response.json()
         return payload["access_token"], payload["expires_in"]
 
-    def delete_bucket(self, bucket_name: str, fully: bool = False):
+    def delete_bucket(self, bucket_name: str, force: bool = False):
         return self.client.delete_bucket(bucket_name)
 
     def delete_object(self, bucket_name: str, file_name: str):
