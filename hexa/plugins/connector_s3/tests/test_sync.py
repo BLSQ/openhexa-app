@@ -23,7 +23,7 @@ class SyncTest(TestCase):
 
         self.bucket.sync()
 
-        self.assertQuerysetEqual(self.bucket.object_set.all(), [])
+        self.assertQuerySetEqual(self.bucket.object_set.all(), [])
 
     @mock_aws
     def test_base_sync(self):
@@ -46,14 +46,14 @@ class SyncTest(TestCase):
             ("a_dir/without_extension", "file"),
             ("base.csv", "file"),
         ]
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             self.bucket.object_set.all(), expected, lambda x: (x.key, x.type)
         )
 
         # Sync again, should not differ
         result = self.bucket.sync()
         result.identical = 5
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             self.bucket.object_set.all(), expected, lambda x: (x.key, x.type)
         )
 
@@ -86,7 +86,7 @@ class SyncTest(TestCase):
             ("another_dir/without_extension", "file", "another_dir/", 4),
             ("metadata.csv", "file", "/", 4),
         ]
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             self.bucket.object_set.all(),
             expected,
             lambda x: (x.key, x.type, x.parent_key, x.size),
