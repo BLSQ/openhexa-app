@@ -12,7 +12,7 @@ x-app: &common
       - path: ./.env
         required: true
     environment:
-      - WORKSPACE_STORAGE_LOCATION=/data/openhexa
+      - ADDITIONAL_ALLOWED_HOSTS=app,frontend
     networks:
       - openhexa
     volumes:  # only used for Github Codespaces
@@ -73,7 +73,7 @@ services:
       - openhexa
     container_name: frontend
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3000}:3000"
     profiles:
       - frontend
     restart: unless-stopped
