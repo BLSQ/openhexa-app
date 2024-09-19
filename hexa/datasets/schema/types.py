@@ -13,7 +13,7 @@ from hexa.datasets.models import (
     DatasetVersion,
     DatasetVersionFile,
 )
-from hexa.files.basefs import BucketObjectAlreadyExists
+from hexa.files import storage
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
@@ -214,7 +214,7 @@ def resolve_upload_url(obj, info, **kwargs):
         file = obj["file"]
         upload_url = generate_upload_url(file.uri, file.content_type)
         return upload_url
-    except BucketObjectAlreadyExists as exc:
+    except storage.exceptions.AlreadyExists as exc:
         logging.error(f"Upload URL generation failed: {exc.message}")
         return None
 
@@ -222,7 +222,7 @@ def resolve_upload_url(obj, info, **kwargs):
 @dataset_version_file_object.field("fileMetadata")
 def resolve_version_file_metadata(obj: DatasetVersionFile, info, **kwargs):
     try:
-        return obj.latest_metadata
+        return obj.sample_entry
     except DatasetFileMetadata.DoesNotExist:
         logging.error(f"No metadata found for file {obj.filename} with id {obj.id}")
         return None

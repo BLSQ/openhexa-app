@@ -112,7 +112,6 @@ class MockHTTPIterator:
 class MockClient:
     def __init__(
         self,
-        backend,
         credentials=None,
         _http=None,
         client_info=None,
@@ -120,24 +119,11 @@ class MockClient:
         *args,
         **kwargs,
     ):
-        self.backend = backend
-        self.project = backend.project
+        self.buckets = {}
         self.credentials = credentials
         self._http = _http
         self.client_info = client_info
         self.client_options = client_options
-
-    @classmethod
-    def create_anonymous_client(cls):
-        raise NotImplementedError
-
-    @property
-    def _connection(self):
-        raise NotImplementedError
-
-    @_connection.setter
-    def _connection(self, value):
-        raise NotImplementedError
 
     def _push_batch(self, batch):
         raise NotImplementedError
@@ -149,7 +135,7 @@ class MockClient:
         if isinstance(bucket_or_name, MockBucket):
             bucket = bucket_or_name
         else:
-            bucket = self.backend.buckets.get(bucket_or_name)
+            bucket = self.buckets.get(bucket_or_name)
         return bucket
 
     @property
@@ -163,7 +149,12 @@ class MockClient:
         return MockBucket(client=self, name=bucket_name, user_project=user_project)
 
     def delete_bucket(self, bucket_name):
-        self.backend.delete_bucket(bucket_name)
+        if bucket_name in self.buckets:
+            del self.buckets[bucket_name]
+        else:
+            raise NotFound(
+                f"404 DELETE https://storage.googleapis.com/storage/v1/b/{bucket_name}"
+            )
 
     def batch(self):
         raise NotImplementedError
@@ -171,13 +162,12 @@ class MockClient:
     def get_bucket(self, bucket_or_name):
         bucket = self._bucket_arg_to_bucket(bucket_or_name)
 
-        # TODO: Use bucket.reload(client=self) when MockBucket class is implemented
-        if bucket.name in self.backend.buckets.keys():
-            return self.backend.buckets[bucket.name]
-        else:
+        if bucket is None or bucket.name not in self.buckets.keys():
             raise NotFound(
-                f"404 GET https://storage.googleapis.com/storage/v1/b/{bucket.name}?projection=noAcl"
+                f"404 GET https://storage.googleapis.com/storage/v1/b/{bucket_or_name}?projection=noAcl"
             )
+        else:
+            return self.buckets[bucket.name]
 
     def lookup_bucket(self, bucket_name):
         try:
@@ -197,14 +187,14 @@ class MockClient:
                 labels=labels,
             )
 
-        if bucket.name in self.backend.buckets.keys():
+        if bucket.name in self.buckets.keys():
             raise Conflict(
                 "409 POST https://storage.googleapis.com/storage/v1/b?project={}: You already own this bucket. Please select another name.".format(
                     self.project
                 )
             )
         else:
-            self.backend.buckets[bucket.name] = bucket
+            self.buckets[bucket.name] = bucket
         return bucket
 
     def download_blob_to_file(self, blob_or_uri, file_obj, start=None, end=None):
@@ -256,9 +246,9 @@ class MockClient:
         **kwargs,
     ):
         if isinstance(max_results, int):
-            buckets = list(self.backend.buckets.values())[:max_results]
+            buckets = list(self.buckets.values())[:max_results]
         else:
-            buckets = list(self.backend.buckets.values())
+            buckets = list(self.buckets.values())
 
         if isinstance(prefix, str):
             buckets = [bucket for bucket in buckets if bucket.name.startswith(prefix)]

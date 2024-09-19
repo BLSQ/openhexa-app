@@ -9,7 +9,7 @@ def redirect_to_new_frontend(request: HttpRequest, *_, **__):
     if settings.NEW_FRONTEND_DOMAIN is not None:
         return redirect(
             request.build_absolute_uri(
-                f"//{settings.NEW_FRONTEND_DOMAIN}{request.get_full_path()}"
+                f"{settings.NEW_FRONTEND_DOMAIN}{request.get_full_path()}"
             )
         )
     raise Http404("Page not found")

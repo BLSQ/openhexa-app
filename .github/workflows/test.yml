@@ -50,11 +50,14 @@ jobs:
 
       - name: Create docker network
         run: docker network create openhexa
+      
+      - name: Copy .env file
+        run: cp .env.dist .env
 
       - name: Build docker app image
         env:
           DOCKER_BUILDKIT: 1
-        run: docker compose build
+        run: docker compose build --build-arg DJANGO_SETTINGS_MODULE="config.settings.dev"
 
       - name: Run Django tests
         run: docker compose run -e DEBUG=false app coveraged-test
@@ -63,10 +66,12 @@ jobs:
       - name: Build and push (on main)
         uses: docker/build-push-action@v6
         with:
-          push: true
+          push: ${{ github.event_name != 'pull_request' }} 
           context: .
           target: app
           file: Dockerfile
+          build-args: |
+            DJANGO_SETTINGS_MODULE=config.settings.dev
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
           tags: |

@@ -1,11 +1,11 @@
 import json
+from io import BytesIO
 
 from django.conf import settings
 from django.db import IntegrityError
 
 from hexa.core.test import GraphQLTestCase
-from hexa.files.api import get_storage
-from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
+from hexa.files import storage
 from hexa.user_management.models import User
 from hexa.workspaces.models import WorkspaceMembershipRole
 
@@ -326,9 +326,9 @@ class DatasetTest(GraphQLTestCase, DatasetTestMixin):
 
 class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
     @classmethod
-    @mock_gcp_storage
     def setUpTestData(cls):
-        get_storage().create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+        storage.reset()
+        storage.create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
 
     def test_create_dataset_version(self):
         superuser = self.create_user("superuser@blsq.com", is_superuser=True)
@@ -379,7 +379,6 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         with self.assertRaises(IntegrityError):
             dataset.create_version(principal=superuser, name="Version 1")
 
-    @mock_gcp_storage
     def test_generate_upload_url(self):
         superuser = self.create_user("superuser@blsq.com", is_superuser=True)
         workspace = self.create_workspace(
@@ -413,7 +412,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         self.assertEqual(
             r["data"]["generateDatasetUploadUrl"],
             {
-                "uploadUrl": f"http://signed-url/{str(dataset.id)}/{str(dataset_version.id)}/uri_file.csv",
+                "uploadUrl": f"http://mockstorage.com/{settings.WORKSPACE_DATASETS_BUCKET}/{str(dataset.id)}/{str(dataset_version.id)}/uri_file.csv/upload",
                 "success": True,
                 "errors": [],
             },
@@ -505,7 +504,6 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             r["data"],
         )
 
-    @mock_gcp_storage
     def test_prepare_version_file_download(self):
         serena = self.create_user("sereba@blsq.org", is_superuser=True)
         workspace = self.create_workspace(
@@ -535,6 +533,11 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         version_file = self.create_dataset_version_file(
             olivia, dataset_version=dataset_version
         )
+        storage.save_object(
+            settings.WORKSPACE_DATASETS_BUCKET,
+            version_file.uri,
+            BytesIO(b"some content"),
+        )
 
         for user in [robert, olivia]:
             self.client.force_login(user)
@@ -554,17 +557,15 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                     }
                 },
             )
-
             self.assertEqual(
                 {
                     "success": True,
                     "errors": [],
-                    "downloadUrl": "http://signed-url/some-uri.csv",
+                    "downloadUrl": f"http://mockstorage.com/{settings.WORKSPACE_DATASETS_BUCKET}/{version_file.uri}",
                 },
                 r["data"]["prepareVersionFileDownload"],
             )
 
-    @mock_gcp_storage
     def test_prepare_version_file_download_linked_dataset(self):
         serena = self.create_user("sereba@blsq.org", is_superuser=True)
         src_workspace = self.create_workspace(
@@ -579,6 +580,11 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         dataset_version = self.create_dataset_version(serena, dataset=dataset)
         version_file = self.create_dataset_version_file(
             serena, dataset_version=dataset_version
+        )
+        storage.save_object(
+            settings.WORKSPACE_DATASETS_BUCKET,
+            version_file.uri,
+            BytesIO(b"some content"),
         )
 
         tgt_workspace = self.create_workspace(
@@ -639,7 +645,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             {
                 "success": True,
                 "errors": [],
-                "downloadUrl": "http://signed-url/some-uri.csv",
+                "downloadUrl": f"http://mockstorage.com/{settings.WORKSPACE_DATASETS_BUCKET}/{version_file.uri}",
             },
             r["data"]["prepareVersionFileDownload"],
         )

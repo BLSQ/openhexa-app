@@ -542,7 +542,9 @@ class SchemaTest(GraphQLTestCase):
         )
 
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].subject, "Password reset on localhost:3000")
+        self.assertEqual(
+            mail.outbox[0].subject, "Password reset on http://localhost:3000"
+        )
 
     def test_reset_password_wrong_email(self):
         r = self.run_query(

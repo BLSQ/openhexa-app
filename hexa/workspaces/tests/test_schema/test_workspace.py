@@ -9,7 +9,6 @@ from django.core.signing import Signer
 
 from hexa.core.test import GraphQLTestCase
 from hexa.databases.utils import TableNotFound
-from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Workspace,
@@ -29,7 +28,6 @@ class WorkspaceTest(GraphQLTestCase):
     WORKSPACE = None
 
     @classmethod
-    @mock_gcp_storage
     def setUpTestData(cls):
         cls.USER_SABRINA = User.objects.create_user(
             "sabrina@bluesquarehub.com",
@@ -124,7 +122,6 @@ class WorkspaceTest(GraphQLTestCase):
             status=WorkspaceInvitationStatus.ACCEPTED,
         )
 
-    @mock_gcp_storage
     def test_create_workspace_denied(self):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
@@ -152,7 +149,6 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["createWorkspace"],
         )
 
-    @mock_gcp_storage
     def test_create_workspace_if_feature_flag_enabled(self):
         self.client.force_login(self.USER_JOE)
         r = self.run_query(
@@ -217,7 +213,6 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["createWorkspace"],
         )
 
-    @mock_gcp_storage
     def test_create_workspace_with_demo_data(self):
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
@@ -264,7 +259,6 @@ class WorkspaceTest(GraphQLTestCase):
             self.assertTrue(mocked_load_bucket_sample.called)
             self.assertTrue(mocked_load_database_sample.called)
 
-    @mock_gcp_storage
     def test_create_workspace_without_demo_data(self):
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
@@ -310,7 +304,6 @@ class WorkspaceTest(GraphQLTestCase):
             self.assertFalse(mocked_load_bucket_sample.called)
             self.assertFalse(mocked_load_database_sample.called)
 
-    @mock_gcp_storage
     def test_create_workspace_with_country(self):
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
@@ -354,7 +347,6 @@ class WorkspaceTest(GraphQLTestCase):
                 r["data"]["createWorkspace"],
             )
 
-    @mock_gcp_storage
     def test_get_workspace_not_member(self):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
@@ -996,7 +988,7 @@ class WorkspaceTest(GraphQLTestCase):
             )
             self.assertListEqual([user_email], mail.outbox[0].recipients())
             self.assertIn(
-                f"https://{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
+                f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
                 mail.outbox[0].body,
             )
 
@@ -1579,7 +1571,7 @@ class WorkspaceTest(GraphQLTestCase):
             )
             self.assertListEqual([user_email], mail.outbox[0].recipients())
             self.assertIn(
-                f"https://{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
+                f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
                 mail.outbox[0].body,
             )
 

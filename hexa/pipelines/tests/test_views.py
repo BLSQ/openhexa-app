@@ -8,7 +8,6 @@ from urllib.parse import urlencode
 from django.urls import reverse
 
 from hexa.core.test import TestCase
-from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.pipelines.models import Pipeline, PipelineRunTrigger, PipelineType
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
@@ -20,7 +19,6 @@ from hexa.workspaces.models import (
 
 class ViewsTest(TestCase):
     @classmethod
-    @mock_gcp_storage
     def setUpTestData(cls):
         cls.WORKSPACE_FEATURE = Feature.objects.create(code="workspaces")
         cls.USER_JANE = User.objects.create_user(

@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 import os
+import re
 from pathlib import Path
+from urllib.parse import urlparse
 
 from corsheaders.defaults import default_headers
 from django.utils.translation import gettext_lazy as _
@@ -31,10 +33,89 @@ ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "false") == "true"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+# Trust the X_FORWARDED_PROTO header from the proxy or load balancer so Django is aware it is accessed by https
+if "TRUST_FORWARDED_PROTO" in os.environ:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Domain of the new frontend (it is used to redirect the user to new pages not implemented in Django)
-NEW_FRONTEND_DOMAIN = os.environ.get("NEW_FRONTEND_DOMAIN")
+TLS = os.environ.get("TLS", "false") == "true"
+SCHEME = "https" if TLS else "http"
+
+SECURE_REDIRECT_EXEMPT = [r"^ready$"]
+if TLS or "TRUST_FORWARDED_PROTO" in os.environ:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = TLS
+else:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_SSL_REDIRECT = False
+
+BASE_HOSTNAME = os.environ.get("BASE_HOSTNAME", "localhost")
+BASE_PORT = os.environ.get("BASE_PORT", 8000)
+
+# Needed so that external component know how to hit us back
+# Do not add a trailing slash
+BASE_URL = os.environ.get("BASE_URL", f"{SCHEME}://{BASE_HOSTNAME}:{BASE_PORT}")
+INTERNAL_BASE_URL = os.environ.get("INTERNAL_BASE_URL", BASE_URL)
+
+ALLOWED_HOSTS = (
+    os.environ.get("ADDITIONAL_ALLOWED_HOSTS").split(",")
+    if "ADDITIONAL_ALLOWED_HOSTS" in os.environ
+    else []
+)
+
+CORS_ALLOWED_ORIGINS = []
+CSRF_TRUSTED_ORIGINS = []
+if "PROXY_HOSTNAME_AND_PORT" in os.environ:
+    SCHEME = "https" if "TRUST_FORWARDED_PROTO" in os.environ else SCHEME
+    PROXY_URL = f'{SCHEME}://{os.environ.get("PROXY_HOSTNAME_AND_PORT")}'
+    NEW_FRONTEND_DOMAIN = os.environ.get(
+        "NEW_FRONTEND_DOMAIN", os.environ.get("PROXY_HOSTNAME_AND_PORT")
+    )
+    if not re.match(r"^https?://", NEW_FRONTEND_DOMAIN, re.IGNORECASE):
+        # Add the scheme if it is missing
+        NEW_FRONTEND_DOMAIN = f"{SCHEME}://{NEW_FRONTEND_DOMAIN}"
+    NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", PROXY_URL)
+    CORS_ALLOWED_ORIGINS = [PROXY_URL]
+    CSRF_TRUSTED_ORIGINS = [PROXY_URL]
+    ALLOWED_HOSTS += [urlparse(NEW_FRONTEND_DOMAIN).netloc.split(":")[0]]
+else:
+    NEW_FRONTEND_DOMAIN = os.environ.get(
+        "NEW_FRONTEND_DOMAIN",
+        f'{BASE_HOSTNAME}:{os.environ.get("FRONTEND_PORT", 3000)}',
+    )
+    NOTEBOOKS_URL = os.environ.get(
+        "NOTEBOOKS_URL",
+        f'{SCHEME}://{BASE_HOSTNAME}:{os.environ.get("JUPYTERHUB_PORT", 8001)}',
+    )
+    if not re.match(r"^https?://", NEW_FRONTEND_DOMAIN, re.IGNORECASE):
+        # Add the scheme if it is missing
+        NEW_FRONTEND_DOMAIN = f"{SCHEME}://{NEW_FRONTEND_DOMAIN}"
+    CORS_ALLOWED_ORIGINS = [NEW_FRONTEND_DOMAIN]
+    CSRF_TRUSTED_ORIGINS = [NEW_FRONTEND_DOMAIN]
+    ALLOWED_HOSTS += [BASE_HOSTNAME]
+
+# CORS (For GraphQL)
+# https://github.com/adamchainz/django-cors-headers
+if "CORS_ALLOWED_ORIGINS" in os.environ:
+    CORS_ALLOWED_ORIGINS += os.environ.get("CORS_ALLOWED_ORIGINS").split(",")
+
+CORS_URLS_REGEX = r"^[/graphql/(\w+\/)?|/analytics/track]$"
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "sentry-trace",
+]
+
+# CSRF
+if "CSRF_TRUSTED_ORIGINS" in os.environ:
+    CSRF_TRUSTED_ORIGINS += os.environ.get("CSRF_TRUSTED_ORIGINS").split(",")
+
+SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
+CSRF_COOKIE_DOMAIN = os.environ.get("CSRF_COOKIE_DOMAIN", None)
+SECURE_HSTS_SECONDS = os.environ.get(
+    "SECURE_HSTS_SECONDS", 60 * 60
+)  # TODO: increase to one year if ok
 
 # Application definition
 INSTALLED_APPS = [
@@ -131,7 +212,6 @@ DATABASES = {
     }
 }
 
-
 # Auth settings
 LOGIN_URL = "core:login"
 LOGOUT_REDIRECT_URL = "core:login"
@@ -167,44 +247,8 @@ AUTHENTICATION_BACKENDS = [
     "hexa.user_management.backends.PermissionsBackend",
 ]
 
-
-# Additional security settings
-SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true") != "false"
-CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "true") != "false"
-SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true") != "false"
-SECURE_REDIRECT_EXEMPT = [r"^ready$"]
-
-RAW_CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS")
-if RAW_CSRF_TRUSTED_ORIGINS is not None:
-    CSRF_TRUSTED_ORIGINS = RAW_CSRF_TRUSTED_ORIGINS.split(",")
-
-SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
-CSRF_COOKIE_DOMAIN = os.environ.get("CSRF_COOKIE_DOMAIN", None)
-SECURE_HSTS_SECONDS = os.environ.get(
-    "SECURE_HSTS_SECONDS", 60 * 60
-)  # TODO: increase to one year if ok
-
-
 # by default users need to login every 2 weeks -> update to 1 year
 SESSION_COOKIE_AGE = 365 * 24 * 3600
-
-# Trust the X_FORWARDED_PROTO header from the GCP load balancer so Django is aware it is accessed by https
-if "TRUST_FORWARDED_PROTO" in os.environ:
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-# CORS (For GraphQL)
-# https://github.com/adamchainz/django-cors-headers
-
-RAW_CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS")
-if RAW_CORS_ALLOWED_ORIGINS is not None:
-    CORS_ALLOWED_ORIGINS = RAW_CORS_ALLOWED_ORIGINS.split(",")
-    CORS_URLS_REGEX = r"^[/graphql/(\w+\/)?|/analytics/track]$"
-    CORS_ALLOW_CREDENTIALS = True
-
-
-CORS_ALLOW_HEADERS = list(default_headers) + [
-    "sentry-trace",
-]
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
@@ -230,13 +274,23 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 STATICFILES_DIRS = [BASE_DIR / "hexa" / "static"]
+MEDIA_ROOT = BASE_DIR / "static" / "uploads"
 
 # Whitenoise
 # http://whitenoise.evans.io/en/stable/django.html#add-compression-and-caching-support
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+if os.environ.get("DEBUG_TOOLBAR", "false") == "true":
+    INSTALLED_APPS.append("debug_toolbar")  # noqa: F405
+    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")  # noqa: F405
+    # Django Debug Toolbar specifically ask for INTERNAL_IPS to be set
+    INTERNAL_IPS = ["127.0.0.1"]
+
+    DEBUG_TOOLBAR_CONFIG = {
+        "SHOW_TOOLBAR_CALLBACK": lambda request: request.user.is_staff,
+    }
+
 # Notebooks component
-NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")
 NOTEBOOKS_HUB_URL = os.environ.get("NOTEBOOKS_HUB_URL", "http://jupyterhub:8000/hub")
 HUB_API_TOKEN = os.environ.get("HUB_API_TOKEN", "")
 
@@ -256,10 +310,15 @@ if os.environ.get("DEBUG_LOGGING", "false") == "true":
         "loggers": {
             "": {
                 "handlers": ["console"],
-                "level": "INFO",
+                "level": "DEBUG",
             },
         },
     }
+
+# Disabling the check on the size of the request body when using the file system storage backend
+# This is needed to allow the upload of large files when they are not stored by an external storage backend
+if os.environ.get("DISABLE_UPLOAD_MAX_SIZE_CHECK", "false") == "true":
+    DATA_UPLOAD_MAX_MEMORY_SIZE = None
 
 # Email settings
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
@@ -279,47 +338,16 @@ else:
 # Sync settings: sync datasource with a worker (good for scaling) or in the web serv (good for dev)
 EXTERNAL_ASYNC_REFRESH = os.environ.get("EXTERNAL_ASYNC_REFRESH") == "true"
 
-
-if os.environ.get("DEBUG_TOOLBAR", "false") == "true":
-    INSTALLED_APPS.append("debug_toolbar")
-    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
-    # Django Debug Toolbar specifically ask for INTERNAL_IPS to be set
-    INTERNAL_IPS = ["127.0.0.1"]
-
-    DEBUG_TOOLBAR_CONFIG = {
-        "SHOW_TOOLBAR_CALLBACK": lambda request: request.user.is_staff,
-    }
-
-if os.environ.get("STORAGE", "local") == "google-cloud":
-    # activate google cloud storage, used for dashboard screenshot, ...
-    # user generated content
-    DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
-    GS_BUCKET_NAME = os.environ.get("STORAGE_BUCKET")
-    GS_FILE_OVERWRITE = False
-else:
-    MEDIA_ROOT = BASE_DIR / "static" / "uploads"
-
-# Accessmod settings
-ACCESSMOD_BUCKET_NAME = os.environ.get("ACCESSMOD_BUCKET_NAME")
-ACCESSMOD_MANAGE_REQUESTS_URL = os.environ.get("ACCESSMOD_MANAGE_REQUESTS_URL")
-ACCESSMOD_SET_PASSWORD_URL = os.environ.get("ACCESSMOD_SET_PASSWORD_URL")
-
-# Specific settings for airflow plugins
+## Specific settings for airflow plugins
 
 # number of second of airflow dag reloading setting
 AIRFLOW_SYNC_WAIT = 61
-GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME")
-
-# Needed so that external component know how to hit us back
-# Do not add a trailing slash
-BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
-
+GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME", 3600)
 
 # Pipeline settings
-PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kubernetes")
-PIPELINE_API_URL = os.environ.get("PIPELINE_API_URL", BASE_URL)
+PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "docker")
 DEFAULT_WORKSPACE_IMAGE = os.environ.get(
-    "DEFAULT_WORKSPACE_IMAGE", "blsq/openhexa-blsq-environment:latest"
+    "DEFAULT_WORKSPACE_IMAGE", "blsq/openhexa-base-environment:latest"
 )
 PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT = os.environ.get(
     "PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT", "2"
@@ -349,47 +377,47 @@ WORKSPACES_DATABASE_PORT = os.environ.get("WORKSPACES_DATABASE_PORT")
 WORKSPACES_DATABASE_DEFAULT_DB = os.environ.get("WORKSPACES_DATABASE_DEFAULT_DB")
 WORKSPACES_DATABASE_PROXY_HOST = os.environ.get("WORKSPACES_DATABASE_PROXY_HOST")
 
+# Datasets config
+WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET", "hexa-datasets")
+WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE = int(
+    os.environ.get("WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE", 50)
+)
 # Filesystem configuration
-WORKSPACE_BUCKET_PREFIX = os.environ.get("WORKSPACE_BUCKET_PREFIX", "hexa-")
+WORKSPACE_STORAGE_LOCATION = os.environ.get("WORKSPACE_STORAGE_LOCATION")
+WORKSPACE_STORAGE_BACKEND = {
+    "engine": "hexa.files.backends.fs.FileSystemStorage",
+    "options": {
+        "data_dir": "/data",
+        "ext_bind_path": WORKSPACE_STORAGE_LOCATION,
+        "file_permissions_mode": 0o777,
+        "directory_permissions_mode": 0o777,
+    },
+}
+
 WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION", "europe-west1")
-WORKSPACE_STORAGE_ENGINE = os.environ.get("WORKSPACE_STORAGE_ENGINE", "gcp")
-WORKSPACE_BUCKET_VERSIONING_ENABLED = (
-    os.environ.get("WORKSPACE_BUCKET_VERSIONING_ENABLED", "false") == "true"
-)
+WORKSPACE_BUCKET_PREFIX = os.environ.get("WORKSPACE_BUCKET_PREFIX", "")
+WORKSPACE_BUCKET_VERSIONING_ENABLED = False
 
-WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL = os.environ.get(
-    "WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL"
+### AWS S3 Settings if using AWS S3 as a storage backend ###
+WORKSPACE_STORAGE_BACKEND_AWS_ENDPOINT_URL = os.environ.get(
+    "WORKSPACE_STORAGE_BACKEND_AWS_ENDPOINT_URL"
 )
-
 # This is the endpoint URL used when generating presigned URLs called by the client since the client
 # does not have access to storage engine in local mode (http://minio:9000)
-WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL = os.environ.get(
-    "WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL"
+WORKSPACE_STORAGE_BACKEND_AWS_PUBLIC_ENDPOINT_URL = os.environ.get(
+    "WORKSPACE_STORAGE_BACKEND_AWS_PUBLIC_ENDPOINT_URL"
 )
-WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID = os.environ.get(
-    "WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID"
+WORKSPACE_STORAGE_BACKEND_AWS_ACCESS_KEY_ID = os.environ.get(
+    "WORKSPACE_STORAGE_BACKEND_AWS_ACCESS_KEY_ID"
 )
-WORKSPACE_STORAGE_ENGINE_AWS_SECRET_ACCESS_KEY = os.environ.get(
-    "WORKSPACE_STORAGE_ENGINE_AWS_SECRET_ACCESS_KEY"
+WORKSPACE_STORAGE_BACKEND_AWS_SECRET_ACCESS_KEY = os.environ.get(
+    "WORKSPACE_STORAGE_BACKEND_AWS_SECRET_ACCESS_KEY"
 )
-WORKSPACE_STORAGE_ENGINE_AWS_BUCKET_REGION = os.environ.get(
-    "WORKSPACE_STORAGE_ENGINE_AWS_BUCKET_REGION"
-)
-
-# Datasets config
-WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET")
-WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE = os.environ.get(
-    "WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE", 50
+WORKSPACE_STORAGE_BACKEND_AWS_BUCKET_REGION = os.environ.get(
+    "WORKSPACE_STORAGE_BACKEND_AWS_BUCKET_REGION"
 )
 
-# Base64 encoded service account key
-# To generate a service account key, follow the instructions here:
-# import base64
-# import json
-# base64.b64encode(json.dumps(service_account_key_content).encode("utf-8"))
-GCS_SERVICE_ACCOUNT_KEY = os.environ.get("GCS_SERVICE_ACCOUNT_KEY", "")
-
-# S3 settings
+# S3 settings (Used by OpenHEXA Legacy)
 AWS_USERNAME = os.environ.get("AWS_USERNAME", "")
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "")

@@ -7,8 +7,7 @@ from django.utils.crypto import get_random_string
 
 from hexa.core.test import TestCase
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
-from hexa.files.api import get_storage
-from hexa.files.tests.mocks.mockgcp import backend
+from hexa.files import storage
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Workspace,
@@ -23,9 +22,8 @@ class BaseTestMixin:
     WORKSPACE = None
 
     @classmethod
-    @backend.mock_storage
     def setUpTestData(cls):
-        backend.reset()
+        storage.reset()
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com",
             "serena's password",
@@ -180,7 +178,6 @@ class DatasetVersionTest(BaseTestMixin, TestCase):
     DATASET = None
 
     @classmethod
-    @backend.mock_storage
     def setUpTestData(cls):
         BaseTestMixin.setUpTestData()
         cls.DATASET = Dataset.objects.create_if_has_perm(
@@ -190,9 +187,8 @@ class DatasetVersionTest(BaseTestMixin, TestCase):
             description="Description of dataset",
         )
 
-        get_storage().create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+        storage.create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
 
-    @backend.mock_storage
     def test_create_dataset_version(
         self, name="Dataset's version", description="Version's description"
     ):
@@ -246,10 +242,9 @@ class DatasetVersionTest(BaseTestMixin, TestCase):
 @override_settings(WORKSPACE_DATASETS_BUCKET="hexa-datasets")
 class DatasetLinkTest(BaseTestMixin, TestCase):
     @classmethod
-    @backend.mock_storage
     def setUpTestData(cls):
         BaseTestMixin.setUpTestData()
-        get_storage().create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+        storage.create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
 
         cls.DATASET = Dataset.objects.create_if_has_perm(
             cls.USER_ADMIN,
