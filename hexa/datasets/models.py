@@ -281,7 +281,7 @@ class DatasetVersionFile(Base, MetadataMixin):
 
     @property
     def sample_entry(self):
-        entry = self.metadata_entries.first()
+        entry = self.samples.first()
         if entry is None:
             logger.info("No sample found for file %s, generating one", self.uri)
             self.generate_sample()

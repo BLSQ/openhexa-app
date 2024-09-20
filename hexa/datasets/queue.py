@@ -81,6 +81,8 @@ def generate_sample(
             )
             dataset_file_sample.sample = sample.to_dict(orient="records")
             add_system_attributes(version_file, df, previous_version_file)
+        else:
+            dataframe_to_sample.sample = []
         dataset_file_sample.status = DatasetFileSample.STATUS_FINISHED
         logger.info(f"Sample saved for file {version_file.id}")
     except Exception as e:
