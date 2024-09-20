@@ -4,14 +4,14 @@ from unittest.mock import patch
 from django.test import override_settings
 
 from hexa.core.test import TestCase
-from hexa.datasets.models import Dataset, DatasetFileMetadata, DatasetVersionFile
+from hexa.datasets.models import Dataset, DatasetFileSample, DatasetVersionFile
 from hexa.datasets.queue import generate_sample
 from hexa.files import storage
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 
-class TestCreateDatasetFileMetadataTask(TestCase):
+class TestCreateDatasetFileSampleTask(TestCase):
     @classmethod
     def setUpTestData(cls):
         storage.reset()
@@ -40,13 +40,13 @@ class TestCreateDatasetFileMetadataTask(TestCase):
             # It fails because the file is empty (no columns to parse)
             (
                 "example_empty_file.csv",
-                DatasetFileMetadata.STATUS_FAILED,
+                DatasetFileSample.STATUS_FAILED,
                 [],
                 "No columns to parse from file",
             ),
             (
                 "example_names.csv",
-                DatasetFileMetadata.STATUS_FINISHED,
+                DatasetFileSample.STATUS_FINISHED,
                 [
                     {"name": "Jack", "surname": "Howard"},
                     {"name": "Olivia", "surname": "Brown"},
@@ -57,7 +57,7 @@ class TestCreateDatasetFileMetadataTask(TestCase):
             # The CSV only contains 2 lines so it's going to add existing lines to achieve the desired sample size
             (
                 "example_names_2_lines.csv",
-                DatasetFileMetadata.STATUS_FINISHED,
+                DatasetFileSample.STATUS_FINISHED,
                 [
                     {"name": "Liam", "surname": "Smith"},
                     {"name": "Joe", "surname": "Doe"},
@@ -67,13 +67,13 @@ class TestCreateDatasetFileMetadataTask(TestCase):
             ),
             (
                 "example_names_0_lines.csv",
-                DatasetFileMetadata.STATUS_FINISHED,
+                DatasetFileSample.STATUS_FINISHED,
                 [],
                 None,
             ),
             (
                 "example_names.parquet",
-                DatasetFileMetadata.STATUS_FINISHED,
+                DatasetFileSample.STATUS_FINISHED,
                 [
                     {"name": "Jack", "surname": "Howard"},
                     {"name": "Olivia", "surname": "Brown"},
@@ -83,7 +83,7 @@ class TestCreateDatasetFileMetadataTask(TestCase):
             ),
             (
                 "example_names.xlsx",
-                DatasetFileMetadata.STATUS_FINISHED,
+                DatasetFileSample.STATUS_FINISHED,
                 [
                     {"name": "Jack", "surname": "Howard"},
                     {"name": "Olivia", "surname": "Brown"},
@@ -113,7 +113,7 @@ class TestCreateDatasetFileMetadataTask(TestCase):
                     "hexa.datasets.queue.generate_download_url"
                 ) as mock_generate_download_url:
                     mock_generate_download_url.return_value = fixture_file_path
-                    sample_entry = generate_sample(version_file)
+                    sample_entry = generate_sample(version_file, None)
                     self.assertEqual(sample_entry.status, expected_status)
                     self.assertEqual(sample_entry.sample, expected_sample)
 

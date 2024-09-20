@@ -505,6 +505,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         """,
             {"id": str(file.id)},
         )
+        print(r)
         self.assertEqual(
             {
                 "datasetVersionFile": {

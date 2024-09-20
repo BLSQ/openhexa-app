@@ -57,7 +57,9 @@ def get_df(dataset_version_file: DatasetVersionFile) -> pd.DataFrame:
         raise ValueError(f"Unsupported file format: {dataset_version_file.filename}")
 
 
-def generate_sample(version_file: DatasetVersionFile, previous_version_id : str) -> DatasetFileSample:
+def generate_sample(
+    version_file: DatasetVersionFile, previous_version_id: str | None
+) -> DatasetFileSample:
     if not is_sample_supported(version_file.filename):
         raise ValueError(f"Unsupported file format: {version_file.filename}")
 
@@ -78,9 +80,7 @@ def generate_sample(version_file: DatasetVersionFile, previous_version_id : str)
                 replace=True,
             )
             dataset_file_sample.sample = sample.to_dict(orient="records")
-            add_system_attributes(
-                version_file, df, previous_version_file
-            )
+            add_system_attributes(version_file, df, previous_version_file)
         dataset_file_sample.status = DatasetFileSample.STATUS_FINISHED
         logger.info(f"Sample saved for file {version_file.id}")
     except Exception as e:
@@ -99,6 +99,7 @@ def dataframe_to_sample(data: pd.DataFrame):
         random_state=random_seed,
         replace=True,
     )
+
 
 def calculate_profiling_per_column(dataframe: pd.DataFrame) -> list:
     logger.info("Calculating profiling per column")
@@ -141,6 +142,7 @@ def file_from_previous_version(
             return file
     return None
 
+
 def add_system_attributes(
     version_file: DatasetVersionFile,
     file_content: pd.DataFrame,
@@ -181,7 +183,8 @@ class DatasetsFileMetadataQueue(AtLeastOnceQueue):
 dataset_file_metadata_queue = DatasetsFileMetadataQueue(
     tasks={
         "generate_file_metadata": lambda _, job: generate_sample(
-            DatasetVersionFile.objects.get(id=job.args["file_id"])
+            DatasetVersionFile.objects.get(id=job.args["file_id"]),
+            job.args["previous_version_id"],
         ),
     },
     notify_channel="dataset_file_metadata_queue",
