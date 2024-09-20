@@ -17,12 +17,19 @@ export type CreateDatasetVersionMutationVariables = Types.Exact<{
 
 export type CreateDatasetVersionMutation = { __typename?: 'Mutation', createDatasetVersion: { __typename?: 'CreateDatasetVersionResult', success: boolean, errors: Array<Types.CreateDatasetVersionError>, version?: { __typename?: 'DatasetVersion', id: string, name: string } | null } };
 
+export type GenerateDatasetUploadUrlMutationVariables = Types.Exact<{
+  input: Types.GenerateDatasetUploadUrlInput;
+}>;
+
+
+export type GenerateDatasetUploadUrlMutation = { __typename?: 'Mutation', generateDatasetUploadUrl: { __typename?: 'GenerateDatasetUploadUrlResult', success: boolean, errors: Array<Types.CreateDatasetVersionFileError>, uploadUrl?: string | null } };
+
 export type CreateDatasetVersionFileMutationVariables = Types.Exact<{
   input: Types.CreateDatasetVersionFileInput;
 }>;
 
 
-export type CreateDatasetVersionFileMutation = { __typename?: 'Mutation', createDatasetVersionFile: { __typename?: 'CreateDatasetVersionFileResult', uploadUrl?: string | null, success: boolean, errors: Array<Types.CreateDatasetVersionFileError> } };
+export type CreateDatasetVersionFileMutation = { __typename?: 'Mutation', createDatasetVersionFile: { __typename?: 'CreateDatasetVersionFileResult', success: boolean, errors: Array<Types.CreateDatasetVersionFileError>, file?: { __typename?: 'DatasetVersionFile', id: string, uri: string } | null } };
 
 export type DeleteDatasetLinkMutationVariables = Types.Exact<{
   input: Types.DeleteDatasetLinkInput;
@@ -117,12 +124,50 @@ export function useCreateDatasetVersionMutation(baseOptions?: Apollo.MutationHoo
 export type CreateDatasetVersionMutationHookResult = ReturnType<typeof useCreateDatasetVersionMutation>;
 export type CreateDatasetVersionMutationResult = Apollo.MutationResult<CreateDatasetVersionMutation>;
 export type CreateDatasetVersionMutationOptions = Apollo.BaseMutationOptions<CreateDatasetVersionMutation, CreateDatasetVersionMutationVariables>;
+export const GenerateDatasetUploadUrlDocument = gql`
+    mutation generateDatasetUploadUrl($input: GenerateDatasetUploadUrlInput!) {
+  generateDatasetUploadUrl(input: $input) {
+    success
+    errors
+    uploadUrl
+  }
+}
+    `;
+export type GenerateDatasetUploadUrlMutationFn = Apollo.MutationFunction<GenerateDatasetUploadUrlMutation, GenerateDatasetUploadUrlMutationVariables>;
+
+/**
+ * __useGenerateDatasetUploadUrlMutation__
+ *
+ * To run a mutation, you first call `useGenerateDatasetUploadUrlMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGenerateDatasetUploadUrlMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [generateDatasetUploadUrlMutation, { data, loading, error }] = useGenerateDatasetUploadUrlMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useGenerateDatasetUploadUrlMutation(baseOptions?: Apollo.MutationHookOptions<GenerateDatasetUploadUrlMutation, GenerateDatasetUploadUrlMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateDatasetUploadUrlMutation, GenerateDatasetUploadUrlMutationVariables>(GenerateDatasetUploadUrlDocument, options);
+      }
+export type GenerateDatasetUploadUrlMutationHookResult = ReturnType<typeof useGenerateDatasetUploadUrlMutation>;
+export type GenerateDatasetUploadUrlMutationResult = Apollo.MutationResult<GenerateDatasetUploadUrlMutation>;
+export type GenerateDatasetUploadUrlMutationOptions = Apollo.BaseMutationOptions<GenerateDatasetUploadUrlMutation, GenerateDatasetUploadUrlMutationVariables>;
 export const CreateDatasetVersionFileDocument = gql`
     mutation CreateDatasetVersionFile($input: CreateDatasetVersionFileInput!) {
   createDatasetVersionFile(input: $input) {
-    uploadUrl
     success
     errors
+    file {
+      id
+      uri
+    }
   }
 }
     `;

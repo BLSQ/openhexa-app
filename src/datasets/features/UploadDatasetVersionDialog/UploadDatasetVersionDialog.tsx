@@ -12,6 +12,7 @@ import { uploader } from "core/helpers/files";
 import {
   createDatasetVersion,
   createVersionFile,
+  generateDatasetUploadUrl,
 } from "datasets/helpers/dataset";
 import Spinner from "core/components/Spinner";
 import { useRouter } from "next/router";
@@ -46,10 +47,10 @@ const UploadDatasetVersionDialog = ({
         files: values.files,
         async getXHROptions(file) {
           const contentType = file.type || "application/octet-stream";
-          const url = await createVersionFile(
+          const url = await generateDatasetUploadUrl(
             version.id,
-            contentType,
             file.name,
+            contentType,
           );
 
           return {
@@ -60,6 +61,15 @@ const UploadDatasetVersionDialog = ({
         },
         onProgress: setProgress,
       });
+      await Promise.all(
+        values.files.map((file) =>
+          createVersionFile(
+            version.id,
+            file.type || "application/octet-stream",
+            file.name,
+          ),
+        ),
+      );
       if (datasetLink.workspace) {
         await router.push({
           pathname: "/workspaces/[workspaceSlug]/datasets/[datasetSlug]",

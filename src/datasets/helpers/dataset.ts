@@ -9,6 +9,8 @@ import {
   DeleteDatasetLinkMutationVariables,
   DeleteDatasetMutation,
   DeleteDatasetMutationVariables,
+  GenerateDatasetUploadUrlMutation,
+  GenerateDatasetUploadUrlMutationVariables,
   UpdateDatasetMutation,
   UpdateDatasetMutationVariables,
 } from "./dataset.generated";
@@ -114,6 +116,46 @@ export async function createDatasetVersion(datasetId: string, name: string) {
   }
 }
 
+export async function generateDatasetUploadUrl(
+  versionId: string,
+  uri: string,
+  contentType: string,
+) {
+  const client = getApolloClient();
+
+  const { data } = await client.mutate<
+    GenerateDatasetUploadUrlMutation,
+    GenerateDatasetUploadUrlMutationVariables
+  >({
+    mutation: gql`
+      mutation generateDatasetUploadUrl(
+        $input: GenerateDatasetUploadUrlInput!
+      ) {
+        generateDatasetUploadUrl(input: $input) {
+          success
+          errors
+          uploadUrl
+        }
+      }
+    `,
+    variables: {
+      input: {
+        versionId,
+        contentType,
+        uri,
+      },
+    },
+  });
+
+  if (data?.generateDatasetUploadUrl.success) {
+    return data.generateDatasetUploadUrl.uploadUrl!;
+  } else {
+    throw new Error(
+      `An unknown error occurred: ${data?.generateDatasetUploadUrl.errors}`,
+    );
+  }
+}
+
 export async function createVersionFile(
   versionId: string,
   contentType: string,
@@ -130,9 +172,12 @@ export async function createVersionFile(
         $input: CreateDatasetVersionFileInput!
       ) {
         createDatasetVersionFile(input: $input) {
-          uploadUrl
           success
           errors
+          file {
+            id
+            uri
+          }
         }
       }
     `,
@@ -146,7 +191,7 @@ export async function createVersionFile(
   });
 
   if (data?.createDatasetVersionFile.success) {
-    return data.createDatasetVersionFile.uploadUrl!;
+    return data.createDatasetVersionFile.file;
   } else {
     throw new Error("An unknown error occurred");
   }

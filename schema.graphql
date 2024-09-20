@@ -637,7 +637,7 @@ type CreateDatasetVersionFileResult {
   file: DatasetVersionFile
 
   """The URL to upload the file to"""
-  uploadUrl: String
+  uploadUrl: String! @deprecated(reason: "moved to dedicated generateDatasetUploadUrl mutation")
   success: Boolean!
   errors: [CreateDatasetVersionFileError!]!
 }
@@ -937,6 +937,12 @@ type Dataset {
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
 }
 
+"""Metadata for dataset file"""
+type DatasetFileMetadata {
+  sample: JSON!
+  status: FileMetadataStatus!
+}
+
 """A link of a dataset with a workspace."""
 type DatasetLink {
   id: ID!
@@ -1008,6 +1014,7 @@ type DatasetVersionFile {
   createdAt: DateTime!
   createdBy: User
   contentType: String!
+  fileMetadata: DatasetFileMetadata
 }
 
 """A page of dataset version files."""
@@ -1459,6 +1466,13 @@ type FeatureFlag {
   config: JSON!
 }
 
+"""Statuses that can occur when generating file metadata"""
+enum FileMetadataStatus {
+  PROCESSING
+  FAILED
+  FINISHED
+}
+
 """
 The GenerateChallengeError enum represents the possible errors that can occur during the generateChallenge mutation.
 """
@@ -1473,6 +1487,20 @@ The GenerateChallengeResult type represents the result of the generateChallenge 
 type GenerateChallengeResult {
   success: Boolean!
   errors: [GenerateChallengeError!]
+}
+
+"""Input for creating un upload link for the file"""
+input GenerateDatasetUploadUrlInput {
+  versionId: ID!
+  contentType: String!
+  uri: String!
+}
+
+"""Result of creating an upload url"""
+type GenerateDatasetUploadUrlResult {
+  uploadUrl: String
+  success: Boolean!
+  errors: [CreateDatasetVersionFileError!]!
 }
 
 """Possible errors when generating a new database password."""
@@ -1946,6 +1974,9 @@ type Mutation {
   """Delete a dataset version."""
   deleteDatasetVersion(input: DeleteDatasetVersionInput!): DeleteDatasetVersionResult!
 
+  """Create dataset version file upload url."""
+  generateDatasetUploadUrl(input: GenerateDatasetUploadUrlInput!): GenerateDatasetUploadUrlResult!
+
   """Create a new file in a dataset version."""
   createDatasetVersionFile(input: CreateDatasetVersionFileInput!): CreateDatasetVersionFileResult!
 
@@ -2416,13 +2447,16 @@ type Query {
   pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
   databaseTable(id: String!): DatabaseTable
   connection(id: UUID!): Connection
-  connectionBySlug(slug: String!): Connection
+  connectionBySlug(workspaceSlug: String!, connectionSlug: String!): Connection
 
   """Get a dataset by its ID."""
   dataset(id: ID!): Dataset
 
   """Get a dataset by its slug."""
   datasetVersion(id: ID!): DatasetVersion
+
+  """Get a dataset file by its id """
+  datasetVersionFile(id: ID!): DatasetVersionFile
 
   """Get a dataset link by its id."""
   datasetLink(id: ID!): DatasetLink
