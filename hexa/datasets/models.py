@@ -298,10 +298,14 @@ class DatasetVersionFile(Base, MetadataMixin):
             logger.info("Sample generation not supported for file %s", self.uri)
             return
         logger.info("Generating sample for file %s", self.uri)
+
         dataset_file_metadata_queue.enqueue(
             "generate_file_metadata",
             {
                 "file_id": str(self.id),
+                "previous_version_id": str(
+                    self.dataset_version.dataset.previous_version
+                ),
             },
         )
 

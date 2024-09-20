@@ -1,5 +1,4 @@
 from hexa.datasets.models import Dataset, DatasetVersion
-from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Workspace,
@@ -21,7 +20,6 @@ class MetadataTestMixin:
         feature, _ = Feature.objects.get_or_create(code=code)
         FeatureFlag.objects.create(feature=feature, user=user)
 
-    @mock_gcp_storage
     def create_workspace(self, principal: User, name, description, *args, **kwargs):
         workspace = Workspace.objects.create_if_has_perm(
             principal=principal, name=name, description=description, *args, **kwargs
