@@ -8,7 +8,7 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 const { withSentryConfig } = require("@sentry/nextjs");
 const { i18n } = require("./next-i18next.config");
 
-const config = {
+let config = {
   output: "standalone",
   experimental: {
     optimizePackageImports: ["next-i18next", "luxon"],
@@ -45,35 +45,33 @@ const config = {
     ];
   },
 
-  sentry: {
-    hideSourceMaps: true,
-  },
-
   poweredByHeader: false, // Disable 'x-powered-by' header
   reactStrictMode: true,
   trailingSlash: true,
   i18n,
 };
 
-const sentryWebpackPluginOptions = {
-  // Additional config options for the Sentry Webpack plugin. Keep in mind that
-  // the following options are set automatically, and overriding them is not
-  // recommended:
-  //   release, url, org, project, authToken, configFile, stripPrefix,
-  //   urlPrefix, include, ignore
-  org: "bluesquareorg",
-  project: "openhexa",
-  silent: true, // Suppresses all logs
-  dryRun: process.env.NODE_ENV !== "production" || Boolean(process.env.CI),
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options.
+if (process.env.ANALYZE) {
+  // @ts-ignore
+  config = withBundleAnalyzer(config);
+}
 
-  widenClientFileUpload: true,
-  automaticVercelMonitors: false, // Disable automatic Vercel monitors
-};
+if (process.env.SENTRY_DSN) {
+  config = withSentryConfig(config, {
+    // Additional config options for the Sentry Webpack plugin. Keep in mind that
+    // the following options are set automatically, and overriding them is not
+    // recommended:
+    //   release, url, org, project, authToken, configFile, stripPrefix,
+    //   urlPrefix, include, ignore
+    org: "bluesquareorg",
+    project: "openhexa",
+    silent: true, // Suppresses all logs
+    // For all available options, see:
+    // https://github.com/getsentry/sentry-webpack-plugin#options.
 
-// Make sure adding Sentry options is the last code to run before exporting, to
-// ensure that your source maps include changes from all other Webpack plugins
-module.exports = withBundleAnalyzer(
-  withSentryConfig(config, sentryWebpackPluginOptions),
-);
+    widenClientFileUpload: true,
+    automaticVercelMonitors: false, // Disable automatic Vercel monitors
+  });
+}
+
+module.exports = config;

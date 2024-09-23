@@ -2,7 +2,6 @@ import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import MarkdownViewer from "core/components/MarkdownViewer";
-import Overflow from "core/components/Overflow/Overflow";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
@@ -38,7 +37,6 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
   }
 
   const { workspace } = data;
-
   return (
     <Page title={workspace.name}>
       <WorkspaceLayout

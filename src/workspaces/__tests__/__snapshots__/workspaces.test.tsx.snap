@@ -10,7 +10,7 @@ exports[`Workspaces renders the workspace page 1`] = `
     class="flex min-h-screen w-screen"
   >
     <div
-      class="fixed h-screen bg-gray-800 transition-all duration-75 z-20 w-16"
+      class="fixed h-screen bg-gray-800 transition-all duration-75 z-20 w-64 2xl:w-72"
     >
       <div
         class="relative z-20 flex h-full flex-col"
@@ -24,16 +24,29 @@ exports[`Workspaces renders the workspace page 1`] = `
             <button
               class="group flex h-16 w-full items-center justify-center bg-gray-800 px-2 text-left hover:bg-gray-600"
             >
-              <span
-                class="inline-flex flex-shrink-0 items-center justify-center rounded-full bg-gray-500 text-sm h-8 w-8"
-                style="background: red;"
+              <div
+                class="line-clamp-2 flex-1 text-sm tracking-tight text-gray-50"
+                title="Rwanda Workspace"
               >
-                <span
-                  class="font-medium leading-none text-white"
-                >
-                  AE
-                </span>
-              </span>
+                Rwanda Workspace
+                <div
+                  class="text-xs tracking-tighter text-gray-500 group-hover:text-gray-400"
+                />
+              </div>
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-4 w-4 text-gray-500 group-hover:text-gray-100"
+                data-slot="icon"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  clip-rule="evenodd"
+                  d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                  fill-rule="evenodd"
+                />
+              </svg>
             </button>
           </div>
           <div
@@ -43,7 +56,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               class="flex-1 space-y-1 px-0 pb-4"
             >
               <a
-                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/test"
                 rel="noopener noreferrer"
               >
@@ -52,7 +65,7 @@ exports[`Workspaces renders the workspace page 1`] = `
                 />
                 <svg
                   aria-hidden="true"
-                  class="h-7 w-7"
+                  class="ml-1 h-5 w-5"
                   data-slot="icon"
                   fill="none"
                   stroke="currentColor"
@@ -66,18 +79,10 @@ exports[`Workspaces renders the workspace page 1`] = `
                     stroke-linejoin="round"
                   />
                 </svg>
-                <div
-                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
-                >
-                  <span
-                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
-                  >
-                    Home
-                  </span>
-                </div>
+                Home
               </a>
               <a
-                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/test/files"
                 rel="noopener noreferrer"
               >
@@ -86,7 +91,7 @@ exports[`Workspaces renders the workspace page 1`] = `
                 />
                 <svg
                   aria-hidden="true"
-                  class="h-7 w-7"
+                  class="ml-1 h-5 w-5"
                   data-slot="icon"
                   fill="none"
                   stroke="currentColor"
@@ -100,18 +105,10 @@ exports[`Workspaces renders the workspace page 1`] = `
                     stroke-linejoin="round"
                   />
                 </svg>
-                <div
-                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
-                >
-                  <span
-                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
-                  >
-                    Files
-                  </span>
-                </div>
+                Files
               </a>
               <a
-                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/test/databases"
                 rel="noopener noreferrer"
               >
@@ -120,7 +117,7 @@ exports[`Workspaces renders the workspace page 1`] = `
                 />
                 <svg
                   aria-hidden="true"
-                  class="h-7 w-7"
+                  class="ml-1 h-5 w-5"
                   data-slot="icon"
                   fill="none"
                   stroke="currentColor"
@@ -134,18 +131,10 @@ exports[`Workspaces renders the workspace page 1`] = `
                     stroke-linejoin="round"
                   />
                 </svg>
-                <div
-                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
-                >
-                  <span
-                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
-                  >
-                    Database
-                  </span>
-                </div>
+                Database
               </a>
               <a
-                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/test/datasets"
                 rel="noopener noreferrer"
               >
@@ -154,7 +143,7 @@ exports[`Workspaces renders the workspace page 1`] = `
                 />
                 <svg
                   aria-hidden="true"
-                  class="h-7 w-7"
+                  class="ml-1 h-5 w-5"
                   data-slot="icon"
                   fill="none"
                   stroke="currentColor"
@@ -168,18 +157,10 @@ exports[`Workspaces renders the workspace page 1`] = `
                     stroke-linejoin="round"
                   />
                 </svg>
-                <div
-                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
-                >
-                  <span
-                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
-                  >
-                    Datasets
-                  </span>
-                </div>
+                Datasets
               </a>
               <a
-                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/test/connections"
                 rel="noopener noreferrer"
               >
@@ -188,7 +169,7 @@ exports[`Workspaces renders the workspace page 1`] = `
                 />
                 <svg
                   aria-hidden="true"
-                  class="h-7 w-7"
+                  class="ml-1 h-5 w-5"
                   data-slot="icon"
                   fill="none"
                   stroke="currentColor"
@@ -202,18 +183,10 @@ exports[`Workspaces renders the workspace page 1`] = `
                     stroke-linejoin="round"
                   />
                 </svg>
-                <div
-                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
-                >
-                  <span
-                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
-                  >
-                    Connections
-                  </span>
-                </div>
+                Connections
               </a>
               <a
-                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/test/pipelines"
                 rel="noopener noreferrer"
               >
@@ -222,7 +195,7 @@ exports[`Workspaces renders the workspace page 1`] = `
                 />
                 <svg
                   aria-hidden="true"
-                  class="h-7 w-7"
+                  class="ml-1 h-5 w-5"
                   data-slot="icon"
                   fill="none"
                   stroke="currentColor"
@@ -236,15 +209,7 @@ exports[`Workspaces renders the workspace page 1`] = `
                     stroke-linejoin="round"
                   />
                 </svg>
-                <div
-                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
-                >
-                  <span
-                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
-                  >
-                    Pipelines
-                  </span>
-                </div>
+                Pipelines
               </a>
             </nav>
           </div>
@@ -259,7 +224,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               <img
                 alt="OpenHEXA logo"
                 class="h-full"
-                src="/images/logo.svg"
+                src="/images/logo_with_text_white.svg"
               />
             </a>
           </div>
@@ -287,7 +252,7 @@ exports[`Workspaces renders the workspace page 1`] = `
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                    d="M15.75 19.5 8.25 12l7.5-7.5"
                     stroke-linecap="round"
                     stroke-linejoin="round"
                   />
@@ -299,7 +264,7 @@ exports[`Workspaces renders the workspace page 1`] = `
       </div>
     </div>
     <div
-      class="w-full transition-all duration-75 pl-16"
+      class="w-full transition-all duration-75 pl-64 2xl:pl-72"
     >
       <main
         class="flex flex-1 flex-col transition-all mb-12"
@@ -372,7 +337,7 @@ exports[`Workspaces renders the workspace page 1`] = `
           aria-expanded="false"
           class="flex items-center outline-none"
           data-headlessui-state=""
-          id="headlessui-popover-button-6fbe024f-2316-4265-aa6e-8d65a837e308"
+          id="headlessui-popover-button-6b042125-686a-43e0-8a68-23cf5bee102e"
           type="button"
         >
           <div
@@ -397,7 +362,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
     class="flex min-h-screen w-screen"
   >
     <div
-      class="fixed h-screen bg-gray-800 transition-all duration-75 z-20 w-16"
+      class="fixed h-screen bg-gray-800 transition-all duration-75 z-20 w-64 2xl:w-72"
     >
       <div
         class="relative z-20 flex h-full flex-col"
@@ -411,16 +376,29 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
             <button
               class="group flex h-16 w-full items-center justify-center bg-gray-800 px-2 text-left hover:bg-gray-600"
             >
-              <span
-                class="inline-flex flex-shrink-0 items-center justify-center rounded-full bg-gray-500 text-sm h-8 w-8"
-                style="background: red;"
+              <div
+                class="line-clamp-2 flex-1 text-sm tracking-tight text-gray-50"
+                title="Rwanda Workspace"
               >
-                <span
-                  class="font-medium leading-none text-white"
-                >
-                  AE
-                </span>
-              </span>
+                Rwanda Workspace
+                <div
+                  class="text-xs tracking-tighter text-gray-500 group-hover:text-gray-400"
+                />
+              </div>
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-4 w-4 text-gray-500 group-hover:text-gray-100"
+                data-slot="icon"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  clip-rule="evenodd"
+                  d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                  fill-rule="evenodd"
+                />
+              </svg>
             </button>
           </div>
           <div
@@ -430,7 +408,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               class="flex-1 space-y-1 px-0 pb-4"
             >
               <a
-                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63"
                 rel="noopener noreferrer"
               >
@@ -439,7 +417,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
                 <svg
                   aria-hidden="true"
-                  class="h-7 w-7"
+                  class="ml-1 h-5 w-5"
                   data-slot="icon"
                   fill="none"
                   stroke="currentColor"
@@ -453,18 +431,10 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                     stroke-linejoin="round"
                   />
                 </svg>
-                <div
-                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
-                >
-                  <span
-                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
-                  >
-                    Home
-                  </span>
-                </div>
+                Home
               </a>
               <a
-                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/files"
                 rel="noopener noreferrer"
               >
@@ -473,7 +443,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
                 <svg
                   aria-hidden="true"
-                  class="h-7 w-7"
+                  class="ml-1 h-5 w-5"
                   data-slot="icon"
                   fill="none"
                   stroke="currentColor"
@@ -487,18 +457,10 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                     stroke-linejoin="round"
                   />
                 </svg>
-                <div
-                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
-                >
-                  <span
-                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
-                  >
-                    Files
-                  </span>
-                </div>
+                Files
               </a>
               <a
-                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/databases"
                 rel="noopener noreferrer"
               >
@@ -507,7 +469,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
                 <svg
                   aria-hidden="true"
-                  class="h-7 w-7"
+                  class="ml-1 h-5 w-5"
                   data-slot="icon"
                   fill="none"
                   stroke="currentColor"
@@ -521,18 +483,10 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                     stroke-linejoin="round"
                   />
                 </svg>
-                <div
-                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
-                >
-                  <span
-                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
-                  >
-                    Database
-                  </span>
-                </div>
+                Database
               </a>
               <a
-                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/datasets"
                 rel="noopener noreferrer"
               >
@@ -541,7 +495,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
                 <svg
                   aria-hidden="true"
-                  class="h-7 w-7"
+                  class="ml-1 h-5 w-5"
                   data-slot="icon"
                   fill="none"
                   stroke="currentColor"
@@ -555,18 +509,10 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                     stroke-linejoin="round"
                   />
                 </svg>
-                <div
-                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
-                >
-                  <span
-                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
-                  >
-                    Datasets
-                  </span>
-                </div>
+                Datasets
               </a>
               <a
-                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/connections"
                 rel="noopener noreferrer"
               >
@@ -575,7 +521,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
                 <svg
                   aria-hidden="true"
-                  class="h-7 w-7"
+                  class="ml-1 h-5 w-5"
                   data-slot="icon"
                   fill="none"
                   stroke="currentColor"
@@ -589,18 +535,10 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                     stroke-linejoin="round"
                   />
                 </svg>
-                <div
-                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
-                >
-                  <span
-                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
-                  >
-                    Connections
-                  </span>
-                </div>
+                Connections
               </a>
               <a
-                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/pipelines"
                 rel="noopener noreferrer"
               >
@@ -609,7 +547,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
                 <svg
                   aria-hidden="true"
-                  class="h-7 w-7"
+                  class="ml-1 h-5 w-5"
                   data-slot="icon"
                   fill="none"
                   stroke="currentColor"
@@ -623,18 +561,10 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                     stroke-linejoin="round"
                   />
                 </svg>
-                <div
-                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
-                >
-                  <span
-                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
-                  >
-                    Pipelines
-                  </span>
-                </div>
+                Pipelines
               </a>
               <a
-                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white justify-center "
+                class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/notebooks"
                 rel="noopener noreferrer"
               >
@@ -643,7 +573,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
                 <svg
                   aria-hidden="true"
-                  class="h-7 w-7"
+                  class="ml-1 h-5 w-5"
                   data-slot="icon"
                   fill="none"
                   stroke="currentColor"
@@ -657,15 +587,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                     stroke-linejoin="round"
                   />
                 </svg>
-                <div
-                  class="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100"
-                >
-                  <span
-                    class="inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium px-2 py-0.5 text-xs border-gray-500 border-opacity-10 bg-gray-800 "
-                  >
-                    JupyterHub
-                  </span>
-                </div>
+                JupyterHub
               </a>
             </nav>
           </div>
@@ -680,7 +602,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               <img
                 alt="OpenHEXA logo"
                 class="h-full"
-                src="/images/logo.svg"
+                src="/images/logo_with_text_white.svg"
               />
             </a>
           </div>
@@ -708,7 +630,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                    d="M15.75 19.5 8.25 12l7.5-7.5"
                     stroke-linecap="round"
                     stroke-linejoin="round"
                   />
@@ -720,7 +642,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
       </div>
     </div>
     <div
-      class="w-full transition-all duration-75 pl-16"
+      class="w-full transition-all duration-75 pl-64 2xl:pl-72"
     >
       <main
         class="flex flex-1 flex-col transition-all mb-12"
@@ -793,7 +715,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
           aria-expanded="false"
           class="flex items-center outline-none"
           data-headlessui-state=""
-          id="headlessui-popover-button-6fbe024f-2316-4265-aa6e-8d65a837e308"
+          id="headlessui-popover-button-6b042125-686a-43e0-8a68-23cf5bee102e"
           type="button"
         >
           <div

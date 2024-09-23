@@ -14,6 +14,7 @@
         "allowLiteral": false,
         "allowObject": true
       }
-    ]
+    ],
+    "react-hooks/exhaustive-deps": "off"
   }
 }

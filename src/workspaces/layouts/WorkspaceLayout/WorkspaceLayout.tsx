@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import clsx from "clsx";
-import { getCookie, setCookie } from "cookies-next";
+import { getCookie, hasCookie, setCookie } from "cookies-next";
 import { CustomApolloClient } from "core/helpers/apollo";
 import useLocalStorage from "core/hooks/useLocalStorage";
 import { GetServerSidePropsContext } from "next";
@@ -37,8 +37,10 @@ export let cookieSidebarOpenState = true;
 function getDefaultSidebarOpen() {
   if (typeof window === "undefined") {
     return cookieSidebarOpenState;
+  } else if (hasCookie("sidebar-open")) {
+    return getCookie("sidebar-open") === "true";
   } else {
-    return getCookie("sidebar-open") == "true" ?? true;
+    return true;
   }
 }
 
@@ -53,9 +55,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
   const [_, setLastWorkspace] = useLocalStorage("last-visited-workspace");
   const defaultSidebarOpen = getDefaultSidebarOpen();
 
-  const [isSidebarOpen, setSidebarOpen] = useState(
-    !forceCompactSidebar && defaultSidebarOpen,
-  );
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     setLastWorkspace(workspace.slug);
@@ -127,7 +127,9 @@ WorkspaceLayout.prefetch = async (
   client: CustomApolloClient,
 ) => {
   // Load the cookie value from the request to render it correctly on the server
-  cookieSidebarOpenState = getCookie("sidebar-open", ctx) === "true" ?? true;
+  cookieSidebarOpenState = hasCookie("sidebar-open", ctx)
+    ? getCookie("sidebar-open", ctx) === "true"
+    : true;
   await Sidebar.prefetch(client);
 };
 

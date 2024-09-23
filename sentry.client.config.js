@@ -46,16 +46,10 @@ Sentry.init({
   ],
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
-  integrations: [
-    new Sentry.BrowserTracing({
-      // Set `tracePropagationTargets` to control for which URLs distributed tracing should be enabled
-      tracePropagationTargets: ["localhost", /^\//],
-      // Add additional custom options here
-    }),
-  ],
+  integrations: [Sentry.browserTracingIntegration()],
   // Adjust this value in production, or use tracesSampler for greater control
-  tracesSampler({ transactionContext }) {
-    if (transactionContext.metadata?.requestPath?.startsWith("/ready")) {
+  tracesSampler({ request }) {
+    if (request?.requestPath?.startsWith("/ready")) {
       return 0;
     }
     if (process.env.SENTRY_TRACES_SAMPLE_RATE) {

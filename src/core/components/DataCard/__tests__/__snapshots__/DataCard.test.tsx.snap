@@ -17,11 +17,11 @@ exports[`DataCard renders 1`] = `
     >
       <div>
         <div
-          aria-controls="headlessui-disclosure-panel-67862f3c-cbfc-451b-98ed-ed1d0420ea19"
+          aria-controls="headlessui-disclosure-panel-f8b5ad0c-fb4c-417e-a442-0a3470929b16"
           aria-expanded="true"
           class="-my-7 flex items-center py-7"
           data-headlessui-state="open"
-          id="headlessui-disclosure-button-fbe024f2-3162-465a-b6e8-d65a837e308a"
+          id="headlessui-disclosure-button-b0421256-86a3-4e0a-9682-3cf5bee102e1"
         >
           <div
             class="flex flex-1 flex-shrink items-center justify-end"
@@ -31,7 +31,7 @@ exports[`DataCard renders 1`] = `
           <div
             class="mt-6"
             data-headlessui-state="open"
-            id="headlessui-disclosure-panel-67862f3c-cbfc-451b-98ed-ed1d0420ea19"
+            id="headlessui-disclosure-panel-f8b5ad0c-fb4c-417e-a442-0a3470929b16"
           >
             <dl
               class="grid gap-4"
