@@ -34,6 +34,10 @@ LOGGING = {
 
 
 # Filesystem configuration
+DATA_UPLOAD_MAX_MEMORY_SIZE = (
+    None  # Disable limit for file uploads (used for the FS backend)
+)
+
 WORKSPACE_STORAGE_BACKEND = {
     "engine": "hexa.files.backends.fs.FileSystemStorage",
     "options": {
