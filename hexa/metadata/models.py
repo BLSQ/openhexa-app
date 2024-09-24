@@ -12,33 +12,34 @@ from hexa.user_management.models import User
 
 
 class MetadataAttributeManager(models.Manager):
-    def get_for_instance(self, instance):
+    def filter_for_instance(self, instance):
         content_type = ContentType.objects.get_for_model(instance)
         return self.filter(content_type=content_type, object_id=instance.pk)
 
 
 class MetadataAttribute(Base):
-    content_type = models.ForeignKey(
+    object_content_type = models.ForeignKey(
         ContentType, null=True, blank=True, on_delete=models.CASCADE
     )
     object_id = models.UUIDField(default=uuid.uuid4, editable=False)
-    data_object = GenericForeignKey("content_type", "object_id")
+    target = GenericForeignKey("object_content_type", "object_id")
 
     key = models.CharField(max_length=255)
     value = models.CharField(max_length=255, null=True, blank=True)
     system = models.BooleanField(default=False)
+
     objects = MetadataAttributeManager()
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["content_type", "object_id", "key"],
+                fields=["object_content_type", "object_id", "key"],
                 name="unique_key_per_data_object",
             )
         ]
 
     def __str__(self):
-        return f"<MetadataAttribute key={self.key} object_id={self.object_id} content_type={self.content_type}>"
+        return f"<MetadataAttribute key={self.key} object_id={self.object_id} content_type={self.object_content_type}>"
 
 
 class MetadataMixin:
@@ -119,7 +120,7 @@ class MetadataMixin:
 
     def delete_attribute(self, key):
         content_type = ContentType.objects.get_for_model(self)
-        return self.objects.filter(
+        return MetadataAttribute.objects.filter(
             content_type=content_type, object_id=self.pk, key=key
         ).delete()
 
@@ -129,7 +130,7 @@ class MetadataMixin:
 
     def get_attributes(self, **kwargs):
         content_type = ContentType.objects.get_for_model(self)
-        metadata_attr = self.objects.filter(
+        metadata_attr = MetadataAttribute.objects.filter(
             content_type=content_type,
             object_id=self.pk,
             **kwargs,

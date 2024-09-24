@@ -10,6 +10,7 @@ interface MetadataObject {
 Generic metadata attribute
 """
 type MetadataAttribute {
+  target: MetadataObject!
   id: UUID!
   key: String!
   value: JSON

@@ -14,10 +14,10 @@ class IndexAdmin(admin.ModelAdmin):
     search_fields = ("external_name",)
 
     def app_label(self, obj):
-        return obj.content_type.app_label
+        return obj.object_content_type.app_label
 
     def model(self, obj):
-        return obj.content_type.model
+        return obj.object_content_type.model
 
 
 @admin.register(IndexPermission)
