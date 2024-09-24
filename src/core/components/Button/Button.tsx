@@ -19,6 +19,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: ButtonSize;
   className?: string;
   leadingIcon?: ReactElement;
+  type?: "button" | "submit" | "reset";
 }
 
 export const Classes: { [key: string]: string } = {
@@ -54,6 +55,7 @@ const Button = (props: ButtonProps) => {
     children,
     leadingIcon,
     disabled,
+    type = "button",
     ...delegated
   } = props;
 
@@ -64,7 +66,7 @@ const Button = (props: ButtonProps) => {
     className,
   );
   return (
-    <button className={classes} disabled={disabled} {...delegated}>
+    <button className={classes} disabled={disabled} type={type} {...delegated}>
       {leadingIcon ? (
         <LeadingIcon size={size}>{leadingIcon}</LeadingIcon>
       ) : null}

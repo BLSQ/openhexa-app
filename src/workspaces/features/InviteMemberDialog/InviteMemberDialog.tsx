@@ -101,7 +101,6 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
   return (
     <Dialog open={open} onClose={handleClose} onSubmit={form.handleSubmit}>
       <Dialog.Title>{t("Invite member")}</Dialog.Title>
-
       <Dialog.Content className="space-y-4">
         <Field name="email" label={t("Email address")} type="email" required>
           <Input
@@ -137,9 +136,8 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
           <div className="text-danger mt-3 text-sm">{form.submitError}</div>
         )}
       </Dialog.Content>
-
       <Dialog.Actions>
-        <Button type="button" onClick={handleClose} variant="white">
+        <Button onClick={handleClose} variant="white">
           {t("Cancel")}
         </Button>
         <Button

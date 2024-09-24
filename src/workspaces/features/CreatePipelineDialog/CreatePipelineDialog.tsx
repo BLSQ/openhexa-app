@@ -214,7 +214,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
           )}
         </Dialog.Content>
         <Dialog.Actions>
-          <Button onClick={onClose} type="button" variant="outlined">
+          <Button onClick={onClose} variant="outlined">
             {t("Close")}
           </Button>
           {tabIndex === 0 && (

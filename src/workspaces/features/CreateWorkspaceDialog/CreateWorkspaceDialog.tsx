@@ -125,7 +125,7 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
           />
         </div>
         {showCancel && (
-          <Button variant="white" type="button" onClick={onClose}>
+          <Button variant="white" onClick={onClose}>
             {t("Cancel")}
           </Button>
         )}

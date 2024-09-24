@@ -447,7 +447,6 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                       {section.isEdited && (
                         <>
                           <Button
-                            type="button"
                             className="whitespace-nowrap"
                             variant="secondary"
                             size="sm"

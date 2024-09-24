@@ -316,7 +316,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                     )}
                   />
                 </div>
-                <Button type="button" variant="white" onClick={onClose}>
+                <Button variant="white" onClick={onClose}>
                   {t("Cancel")}
                 </Button>
                 <Button

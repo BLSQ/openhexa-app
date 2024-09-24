@@ -111,7 +111,7 @@ const LinkDatasetDialog = ({
           )}
         </Dialog.Content>
         <Dialog.Actions>
-          <Button variant={"outlined"} onClick={onClose} type="button">
+          <Button variant={"outlined"} onClick={onClose}>
             {t("Cancel")}
           </Button>
           <Button disabled={form.isSubmitting} type="submit">

@@ -251,7 +251,7 @@ export default function CreateConnectionDialog({
                 ]}
               />
             </div>
-            <Button type="button" variant="white" onClick={onClose}>
+            <Button variant="white" onClick={onClose}>
               {t("Cancel")}
             </Button>
             <Button
@@ -280,7 +280,7 @@ export default function CreateConnectionDialog({
                 ]}
               />
             </div>
-            <Button type="button" variant="white" onClick={onClose}>
+            <Button variant="white" onClick={onClose}>
               {t("Cancel")}
             </Button>
           </Dialog.Actions>

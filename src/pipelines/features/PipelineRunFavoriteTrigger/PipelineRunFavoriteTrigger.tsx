@@ -115,7 +115,7 @@ const PipelineRunFavoriteTrigger = (props: PipelineRunFavoriteTriggerProps) => {
               />
             </Dialog.Content>
             <Dialog.Actions>
-              <Button type="button" variant="white" onClick={setFalse}>
+              <Button variant="white" onClick={setFalse}>
                 {t("Cancel")}
               </Button>
               <Button type="submit" disabled={!label}>

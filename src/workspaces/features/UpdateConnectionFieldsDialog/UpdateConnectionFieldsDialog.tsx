@@ -97,7 +97,7 @@ const UpdateConnectionFieldsDialog = (
           />
         </div>
 
-        <Button type="button" variant="white" onClick={onClose}>
+        <Button variant="white" onClick={onClose}>
           {t("Cancel")}
         </Button>
         <Button type="submit">{t("Save")}</Button>

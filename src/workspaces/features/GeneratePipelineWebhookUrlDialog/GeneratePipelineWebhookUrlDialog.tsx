@@ -81,7 +81,7 @@ const GeneratePipelineWebhookUrlDialog = (
         </p>
       </Dialog.Content>
       <Dialog.Actions>
-        <Button variant="white" type="button" onClick={onClose}>
+        <Button variant="white" onClick={onClose}>
           {t("Cancel")}
         </Button>
         <Button onClick={onSubmit}>

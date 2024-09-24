@@ -87,7 +87,7 @@ const UpdateDescriptionDialog = (props: UpdateDescriptionDialogProps) => {
         )}
       </Dialog.Content>
       <Dialog.Actions>
-        <Button variant="white" type="button" onClick={onClose}>
+        <Button variant="white" onClick={onClose}>
           {t("Cancel")}
         </Button>
         <Button disabled={form.isSubmitting} type="submit">
