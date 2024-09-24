@@ -38,7 +38,7 @@ class MetadataAttribute(Base):
         ]
 
     def __str__(self):
-        return f"{self.key}: {self.value}"
+        return f"<MetadataAttribute key={self.key} object_id={self.object_id} content_type={self.content_type}>"
 
 
 class MetadataMixin:
@@ -119,7 +119,7 @@ class MetadataMixin:
 
     def delete_attribute(self, key):
         content_type = ContentType.objects.get_for_model(self)
-        return MetadataAttribute.objects.filter(
+        return self.objects.filter(
             content_type=content_type, object_id=self.pk, key=key
         ).delete()
 
@@ -129,7 +129,7 @@ class MetadataMixin:
 
     def get_attributes(self, **kwargs):
         content_type = ContentType.objects.get_for_model(self)
-        metadata_attr = MetadataAttribute.objects.filter(
+        metadata_attr = self.objects.filter(
             content_type=content_type,
             object_id=self.pk,
             **kwargs,

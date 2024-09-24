@@ -80,7 +80,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             },
         )
         self.assertEqual(
-            r_add["data"], {"addMetadataToObject": {"success": True, "errors": []}}
+            r_add["data"], {"addMetadata": {"success": True, "errors": []}}
         )
 
         r_after = self.run_query(
@@ -164,7 +164,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
         )
         self.assertEqual(
             r_delete["data"],
-            {"deleteMetadataFromObject": {"success": True, "errors": []}},
+            {"deleteMetadata": {"success": True, "errors": []}},
         )
         r_after = self.run_query(
             self.queries["get_metadata_for_file"], {"id": str(file.id)}
@@ -249,7 +249,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             },
         )
         self.assertEqual(
-            r_edit["data"], {"editMetadataForObject": {"success": True, "errors": []}}
+            r_edit["data"], {"editMetadata": {"success": True, "errors": []}}
         )
         r_after = self.run_query(
             self.queries["get_metadata_for_file"], {"id": str(file.id)}
@@ -324,7 +324,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             },
         )
         self.assertEqual(
-            r_add["data"], {"addMetadataToObject": {"success": True, "errors": []}}
+            r_add["data"], {"addMetadata": {"success": True, "errors": []}}
         )
 
         r_after = self.run_query(
@@ -411,7 +411,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
         """,
         "add_metadata_attribute": """
             mutation AddMetadataToFile($input: MetadataAttributeInput!){
-              addMetadataToObject(input: $input) {
+              addMetadata(input: $input) {
                 success
                 errors
               }
@@ -419,7 +419,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             """,
         "delete_metadata_attribute": """
             mutation DeleteMetadataFromFile($input: DeleteMetadataAttributeInput!){
-              deleteMetadataFromObject(input: $input) {
+              deleteMetadata(input: $input) {
                 success
                 errors
               }
@@ -427,7 +427,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             """,
         "edit_metadata_attribute": """
             mutation editMetadataOnFile($input: MetadataAttributeInput!){
-              editMetadataForObject(input: $input) {
+              editMetadata(input: $input) {
                 success
                 errors
               }

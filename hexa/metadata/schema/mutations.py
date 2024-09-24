@@ -8,7 +8,7 @@ from hexa.metadata.schema.utils import get_model_instance
 mutations = MutationType()
 
 
-@mutations.field("addMetadataToObject")
+@mutations.field("addMetadata")
 def resolve_add_metadata(_, info, **kwargs):
     mutation_input = kwargs["input"]
     user = info.context["request"].user
@@ -37,7 +37,7 @@ def resolve_add_metadata(_, info, **kwargs):
         return {"success": False, "errors": ["MODEL_NOT_FOUND"]}
 
 
-@mutations.field("deleteMetadataFromObject")
+@mutations.field("deleteMetadata")
 def resolve_delete_metadata(_, info, **kwargs):
     mutation_input = kwargs["input"]
     user = info.context["request"].user
@@ -63,7 +63,7 @@ def resolve_delete_metadata(_, info, **kwargs):
         return {"success": False, "errors": ["MODEL_NOT_FOUND"]}
 
 
-@mutations.field("editMetadataForObject")
+@mutations.field("editMetadata")
 def resolve_edit_metadata(_, info, **kwargs):
     mutation_input = kwargs["input"]
     user = info.context["request"].user

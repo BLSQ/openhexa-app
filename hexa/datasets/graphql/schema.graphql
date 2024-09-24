@@ -2,7 +2,7 @@
 """
 Dataset is a collection of files that are related to each other and are versioned.
 """
-type Dataset implements HasMetadata{
+type Dataset implements MetadataObject{
   id: ID!
   slug: String!
   name: String!
@@ -16,7 +16,7 @@ type Dataset implements HasMetadata{
   version(id: ID!): DatasetVersion
   latestVersion: DatasetVersion
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
-  metadata: MetadataObject!
+  attributes : [MetadataAttribute!]!
   extendedId: String!
 }
 
@@ -36,7 +36,7 @@ type DatasetPermissions {
 A version of a dataset. A version is a snapshot of the dataset at a point in time.
 
 """
-type DatasetVersion implements HasMetadata{
+type DatasetVersion implements MetadataObject{
   id: ID!
   name: String!
   description: String
@@ -46,7 +46,7 @@ type DatasetVersion implements HasMetadata{
   permissions: DatasetVersionPermissions!
   fileByName(name: String!): DatasetVersionFile
   files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!
-  metadata: MetadataObject!
+  attributes : [MetadataAttribute!]!
   extendedId: String!
 }
 
@@ -116,7 +116,7 @@ type DatasetFileSample {
 """
 A file in a dataset version.
 """
-type DatasetVersionFile implements HasMetadata{
+type DatasetVersionFile implements MetadataObject{
   id: ID!
   uri: String!
   filename: String!
@@ -124,7 +124,7 @@ type DatasetVersionFile implements HasMetadata{
   createdBy: User
   contentType: String!
   fileSample: DatasetFileSample
-  metadata: MetadataObject!
+  attributes : [MetadataAttribute!]!
   extendedId: String!
 }
 

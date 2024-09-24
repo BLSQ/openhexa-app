@@ -8,7 +8,7 @@ from hexa.metadata.schema.utils import get_model_instance
 metadata_queries = QueryType()
 
 
-@metadata_queries.field("metadata")
+@metadata_queries.field("metadataAttributes")
 def resolve_metadata_query(_, info, **kwargs):
     request = info.context["request"]
     user = request.user
@@ -16,17 +16,8 @@ def resolve_metadata_query(_, info, **kwargs):
         model_class, instance = get_model_instance(kwargs.get("extendedId"))
         metadata_attributes = instance.get_attributes_if_has_permission(user)
         if not metadata_attributes.exists():
-            return {
-                "id": instance.extended_id,
-                "object": instance,
-                "attributes": [],
-            }
-
-        return {
-            "id": instance.extended_id,
-            "object": instance,
-            "attributes": instance.get_attributes_if_has_permission(user),
-        }
+            return []
+        return instance.get_attributes_if_has_permission(user)
     except ContentType.DoesNotExist:
         logging.exception("Content type does not exist")
         return None

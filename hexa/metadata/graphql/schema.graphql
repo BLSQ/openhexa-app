@@ -1,10 +1,11 @@
 """
 Interface for type implementing metadata
 """
-interface HasMetadata {
+interface MetadataObject {
   extendedId: String!   # Encoded concatenation of the class model type and the instance id
-  metadata: MetadataObject!
+  attributes : [MetadataAttribute!]!
 }
+
 """
 Generic metadata attribute
 """
@@ -13,20 +14,6 @@ type MetadataAttribute {
   key: String!
   value: JSON
   system: Boolean!
-}
-
-"""
-Union of all linked to metadata object types
-"""
-union LinkedObject = DatasetVersionFile | DatasetVersion | Dataset
-
-"""
-Generic metadata object
-"""
-type MetadataObject {
-  id: String!         # Encoded concatenation of the class model type and the instance id
-  object: LinkedObject!
-  attributes : [MetadataAttribute!]!
 }
 
 """
@@ -94,14 +81,14 @@ type EditAttributeResult {
 }
 
 extend type Query {
-  metadata(extendedId: String!): MetadataObject!
+  metadataAttributes(extendedId: String!): [MetadataAttribute]!
 }
 
 extend type Mutation {
   "Add a custom attribute to an object instane"
-  addMetadataToObject(input: MetadataAttributeInput!): CreateAttributeResult! @loginRequired
+  addMetadata(input: MetadataAttributeInput!): CreateAttributeResult! @loginRequired
   "Delete an attribute from an object instance"
-  deleteMetadataFromObject(input: DeleteMetadataAttributeInput!): DeleteAttributeResult! @loginRequired
+  deleteMetadata(input: DeleteMetadataAttributeInput!): DeleteAttributeResult! @loginRequired
   "Edit metadata attribute for an object instance"
-  editMetadataForObject(input: MetadataAttributeInput!): EditAttributeResult! @loginRequired
+  editMetadata(input: MetadataAttributeInput!): EditAttributeResult! @loginRequired
 }
