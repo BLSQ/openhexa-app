@@ -72,19 +72,16 @@ case "$command" in
   ;;
 "fixtures")
   wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
-  if [[ $DEBUG == "true" ]]; then
-    export DJANGO_SUPERUSER_USERNAME=root@openhexa.org
-    export DJANGO_SUPERUSER_PASSWORD=root
-    export DJANGO_SUPERUSER_EMAIL=root@openhexa.org
-    python manage.py migrate
-    python manage.py createsuperuser --no-input || true
-    python manage.py loaddata base.json
-    python manage.py loaddata demo.json
-    python manage.py loaddata live.json
-    python manage.py datasource_index
-  else
-    echo "The \"fixtures\" command can only be executed in dev mode"
-  fi
+  export DJANGO_SUPERUSER_USERNAME=root@openhexa.org
+  export DJANGO_SUPERUSER_PASSWORD=root
+  export DJANGO_SUPERUSER_EMAIL=root@openhexa.org
+  python manage.py migrate
+  python manage.py createsuperuser --no-input || true
+  python manage.py loaddata base.json
+  python manage.py loaddata demo.json
+  python manage.py loaddata live.json
+  python manage.py datasource_index
+  python manage.py prepare_datasets
   ;;
 "python")
   python $arguments
