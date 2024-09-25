@@ -8,11 +8,12 @@ has_metadata = InterfaceType("MetadataObject")
 def resolve_metadata(parent, info):
     user = info.context["request"].user
     try:
-        metadata_attributes = parent.get_attributes_if_has_permission(user)
-        if not metadata_attributes.exists():
-            return []
-        else:
-            return metadata_attributes
+        if not parent.can_view_metadata(user):
+            metadata_attributes = parent.get_attributes()
+            if not metadata_attributes.exists():
+                return []
+            else:
+                return metadata_attributes
     except PermissionDenied:
         return None
 

@@ -14,10 +14,11 @@ def resolve_metadata_query(_, info, **kwargs):
     user = request.user
     try:
         model_class, instance = get_model_instance(kwargs.get("extendedId"))
-        metadata_attributes = instance.get_attributes_if_has_permission(user)
-        if not metadata_attributes.exists():
-            return []
-        return instance.get_attributes_if_has_permission(user)
+        if instance.can_view_metadata(user):
+            metadata_attributes = instance.get_attributes()
+            if not metadata_attributes.exists():
+                return []
+            return metadata_attributes
     except ContentType.DoesNotExist:
         logging.exception("Content type does not exist")
         return None

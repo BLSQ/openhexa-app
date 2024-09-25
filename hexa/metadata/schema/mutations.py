@@ -18,12 +18,13 @@ def resolve_add_metadata(_, info, **kwargs):
             mutation_input.get("extendedId")
         )
 
-        model_instance.add_attribute_if_has_permission(
-            user=user,
-            key=mutation_input["key"],
-            value=mutation_input.get("value", None),
-            system=False,
-        )
+        if model_instance.can_add_metadata:
+            model_instance.add_attribute(
+                user=user,
+                key=mutation_input["key"],
+                value=mutation_input.get("value", None),
+                system=False,
+            )
 
         return {"success": True, "errors": []}
 
@@ -47,9 +48,11 @@ def resolve_delete_metadata(_, info, **kwargs):
             mutation_input.get("extendedId")
         )
 
-        deleted, _ = model_instance.delete_attribute_if_has_permission(
-            user=user, key=mutation_input["key"]
-        )
+        if model_instance.can_delete_metadata:
+            deleted, _ = model_instance.delete_attribute(
+                user=user, key=mutation_input["key"]
+            )
+
         if deleted > 0:
             return {"success": True, "errors": []}
         else:
@@ -73,9 +76,13 @@ def resolve_edit_metadata(_, info, **kwargs):
             mutation_input.get("extendedId")
         )
 
-        model_instance.update_attribute_if_has_permission(
-            user, key=mutation_input["key"], value=mutation_input["value"], system=False
-        )
+        if model_instance.can_update_metadata:
+            model_instance.update_attribute(
+                user,
+                key=mutation_input["key"],
+                value=mutation_input["value"],
+                system=False,
+            )
 
         return {"success": True, "errors": []}
 

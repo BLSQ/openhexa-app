@@ -37,6 +37,12 @@ class MetadataAttribute(Base):
                 name="unique_key_per_data_object",
             )
         ]
+        indexes = [
+            models.Index(
+                fields=["object_content_type", "object_id", "key"],
+                name="index_object_key",
+            ),
+        ]
 
     def __str__(self):
         return f"<MetadataAttribute key={self.key} object_id={self.object_id} content_type={self.object_content_type}>"
@@ -65,47 +71,38 @@ class MetadataMixin:
         return encoded
 
     @staticmethod
-    def decode_base64_id(encoded_id):
+    def decode_base64_id(encoded_id: str) -> (str, str):
         decoded_bytes = base64.b64decode(encoded_id)
         decoded_str = decoded_bytes.decode("utf-8")
         id, model_type = decoded_str.split(":")
         return id, model_type
 
     def can_view_metadata(self, user: User):
-        permission = f"{self._meta.app_label}.view_{self.class_name}"
-        if not user.has_perm(permission, self):
-            raise PermissionDenied
+        self._user_has_permission_to(user, "view")
 
     def can_update_metadata(self, user: User):
-        permission = f"{self._meta.app_label}.update_{self.class_name}"
-        if not user.has_perm(permission, self):
-            raise PermissionDenied
+        self._user_has_permission_to(user, "update")
 
     def can_delete_metadata(self, user: User):
-        permission = f"{self._meta.app_label}.delete_{self.class_name}"
+        self._user_has_permission_to(user, "delete")
+
+    def _user_has_permission_to(self, user: User, permission: str):
+        permission = f"{self._meta.app_label}.{permission}_{self.class_name}"
         if not user.has_perm(permission, self):
             raise PermissionDenied
 
     def add_attribute(self, key, value, system):
-        content_type = ContentType.objects.get_for_model(self)
         created = MetadataAttribute.objects.create(
-            content_type=content_type,
-            object_id=self.pk,
+            target=self,
             key=key,
             value=value,
             system=system,
         )
         return created
 
-    def add_attribute_if_has_permission(self, user, key, value=None, system=False):
-        self.can_update_metadata(user)
-        return self.add_attribute(key, value, system)
-
     def update_attribute(self, key, system, value):
-        content_type = ContentType.objects.get_for_model(self)
         metadata_attr, created = MetadataAttribute.objects.update_or_create(
-            content_type=content_type,
-            object_id=self.pk,
+            target=self,
             key=key,
             defaults={
                 "value": value,
@@ -114,31 +111,11 @@ class MetadataMixin:
         )
         return metadata_attr
 
-    def update_attribute_if_has_permission(self, user, key, value=None, system=False):
-        self.can_update_metadata(user)
-        return self.update_attribute(key, system, value)
-
     def delete_attribute(self, key):
-        content_type = ContentType.objects.get_for_model(self)
-        return MetadataAttribute.objects.filter(
-            content_type=content_type, object_id=self.pk, key=key
-        ).delete()
-
-    def delete_attribute_if_has_permission(self, user, key):
-        self.can_delete_metadata(user)
-        return self.delete_attribute(key)
+        return MetadataAttribute.objects.filter(target=self, key=key).delete()
 
     def get_attributes(self, **kwargs):
-        content_type = ContentType.objects.get_for_model(self)
         metadata_attr = MetadataAttribute.objects.filter(
-            content_type=content_type,
-            object_id=self.pk,
-            **kwargs,
+            target=self**kwargs,
         )
         return metadata_attr
-
-    def get_attributes_if_has_permission(
-        self, user: User, **kwargs
-    ) -> [MetadataAttribute]:
-        self.can_view_metadata(user)
-        return self.get_attributes(**kwargs).all()
