@@ -1,13 +1,13 @@
 from django.contrib.contenttypes.models import ContentType
 
-from hexa.metadata.models import MetadataMixin
+from hexa.metadata.models import OpaqueID
 
 
 def get_model_instance(id: str):
     """
     Get a model instance by its id.
     """
-    instance_id, model_type = MetadataMixin.decode_base64_id(id)
+    instance_id, model_type = OpaqueID.decode_base64_id(id)
     app_label, model = model_type.split(".")
     content_type = ContentType.objects.get(
         app_label=app_label.lower(), model=model.lower()

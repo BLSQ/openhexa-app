@@ -1,26 +1,23 @@
 from ariadne import InterfaceType
 from django.core.exceptions import PermissionDenied
 
-has_metadata = InterfaceType("MetadataObject")
+metadata_object = InterfaceType("MetadataObject")
 
 
-@has_metadata.field("attributes")
+@metadata_object.field("attributes")
 def resolve_metadata(parent, info):
     user = info.context["request"].user
     try:
-        if not parent.can_view_metadata(user):
+        if parent.can_view_metadata(user):
             metadata_attributes = parent.get_attributes()
-            if not metadata_attributes.exists():
-                return []
-            else:
-                return metadata_attributes
+            return metadata_attributes if metadata_attributes.exists() else []
     except PermissionDenied:
         return None
 
 
-@has_metadata.field("OpaqueId")
+@metadata_object.field("OpaqueId")
 def resolve_opaque_id(parent, info):
-    return parent.opaque_id
+    return parent.opaque_id.value
 
 
-bindables = [has_metadata]
+bindables = [metadata_object]

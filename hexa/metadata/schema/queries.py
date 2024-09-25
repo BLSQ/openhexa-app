@@ -15,10 +15,7 @@ def resolve_metadata_query(_, info, **kwargs):
     try:
         model_class, instance = get_model_instance(kwargs.get("OpaqueId"))
         if instance.can_view_metadata(user):
-            metadata_attributes = instance.get_attributes()
-            if not metadata_attributes.exists():
-                return []
-            return metadata_attributes
+            return list(instance.get_attributes())
     except ContentType.DoesNotExist:
         logging.exception("Content type does not exist")
         return None

@@ -10,7 +10,7 @@ from dpq.models import BaseJob
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
-from hexa.metadata.models import MetadataMixin
+from hexa.metadata.models import MetadataMixin, OpaqueID
 from hexa.user_management.models import User
 
 logger = logging.getLogger(__name__)
@@ -96,6 +96,13 @@ class Dataset(Base, MetadataMixin):
     description = models.TextField(blank=True, null=True)
 
     objects = DatasetManager.from_queryset(DatasetQuerySet)()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        app_label = self._meta.app_label
+        class_name = self._meta.object_name
+        self.opaque_id = OpaqueID(self.id, f"{app_label}.{class_name}")
 
     @property
     def latest_version(self):
@@ -204,6 +211,13 @@ class DatasetVersion(Base, MetadataMixin):
         ordering = ["-created_at"]
         unique_together = ("dataset", "name")
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        app_label = self._meta.app_label
+        class_name = self._meta.object_name
+        self.opaque_id = OpaqueID(self.id, f"{app_label}.{class_name}")
+
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("datasets.delete_dataset_version", self):
             raise PermissionDenied
@@ -274,6 +288,13 @@ class DatasetVersionFile(Base, MetadataMixin):
         related_name="files",
     )
     objects = DatasetVersionFileManager.from_queryset(DatasetVersionFileQuerySet)()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        app_label = self._meta.app_label
+        class_name = self._meta.object_name
+        self.opaque_id = OpaqueID(self.id, f"{app_label}.{class_name}")
 
     @property
     def filename(self):

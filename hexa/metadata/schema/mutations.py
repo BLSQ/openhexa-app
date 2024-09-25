@@ -48,9 +48,8 @@ def resolve_delete_metadata(_, info, **kwargs):
             deleted, _ = model_instance.delete_attribute(
                 user=user, key=mutation_input["key"]
             )
-
-        if deleted > 0:
-            return {"success": True, "errors": []}
+            if deleted > 0:
+                return {"success": True, "errors": []}
         else:
             return {"success": False, "errors": ["METADATA_ATTRIBUTE_NOT_FOUND"]}
 

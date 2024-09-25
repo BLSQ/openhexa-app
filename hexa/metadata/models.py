@@ -2,19 +2,13 @@ import base64
 import re
 import uuid
 
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db import models
 
 from hexa.core.models.base import Base
 from hexa.user_management.models import User
-
-
-class MetadataAttributeManager(models.Manager):
-    def filter_for_instance(self, instance):
-        content_type = ContentType.objects.get_for_model(instance)
-        return self.filter(content_type=content_type, object_id=instance.pk)
 
 
 class MetadataAttribute(Base):
@@ -27,8 +21,6 @@ class MetadataAttribute(Base):
     key = models.CharField(max_length=255)
     value = models.CharField(max_length=255, null=True, blank=True)
     system = models.BooleanField(default=False)
-
-    objects = MetadataAttributeManager()
 
     class Meta:
         constraints = [
@@ -48,21 +40,11 @@ class MetadataAttribute(Base):
         return f"<MetadataAttribute key={self.key} object_id={self.object_id} content_type={self.object_content_type}>"
 
 
-class MetadataMixin:
-    """
-    Mixin to add metadata functionality to models.
-    This mixin allows the model to associate key-value metadata attributes.
-    """
+class OpaqueID:
+    value: str = None
 
-    @property
-    def opaque_id(self) -> str:
-        app_label = self._meta.app_label
-        class_name = self._meta.object_name
-        return self.encode_base64_id(str(self.id), f"{app_label}.{class_name}")
-
-    @property
-    def class_name(self):
-        return re.sub(r"(?<!^)(?=[A-Z])", "_", self.__class__.__name__).lower()
+    def __init__(self, id: uuid.UUID, model: str):
+        self.value = self.encode_base64_id(str(id), model)
 
     @staticmethod
     def encode_base64_id(id: str, model: str) -> str:
@@ -77,6 +59,32 @@ class MetadataMixin:
         id, model_type = decoded_str.split(":")
         return id, model_type
 
+    def get_decoded_value(self):
+        return self.decode_base64_id(self.value)
+
+
+class MetadataMixin:
+    """
+    Mixin to add metadata functionality to models.
+    This mixin allows the model to associate key-value metadata attributes.
+    """
+
+    opaque_id: OpaqueID = None
+    attributes = GenericRelation(
+        "MetadataAttribute",
+        content_type_field="object_content_type",
+        object_id_field="object_id",
+    )
+
+    @property
+    def class_name(self):
+        return re.sub(r"(?<!^)(?=[A-Z])", "_", self.__class__.__name__).lower()
+
+    def _user_has_permission_to(self, user: User, permission: str):
+        permission = f"{self._meta.app_label}.{permission}_{self.class_name}"
+        if not user.has_perm(permission, self):
+            raise PermissionDenied
+
     def can_view_metadata(self, user: User):
         self._user_has_permission_to(user, "view")
 
@@ -86,23 +94,15 @@ class MetadataMixin:
     def can_delete_metadata(self, user: User):
         self._user_has_permission_to(user, "delete")
 
-    def _user_has_permission_to(self, user: User, permission: str):
-        permission = f"{self._meta.app_label}.{permission}_{self.class_name}"
-        if not user.has_perm(permission, self):
-            raise PermissionDenied
-
     def add_attribute(self, key, value, system):
-        created = MetadataAttribute.objects.create(
-            target=self,
+        return self.attributes.create(
             key=key,
             value=value,
             system=system,
         )
-        return created
 
     def update_attribute(self, key, system, value):
-        metadata_attr, created = MetadataAttribute.objects.update_or_create(
-            target=self,
+        metadata_attr, _ = self.attributes.update_or_create(
             key=key,
             defaults={
                 "value": value,
@@ -112,10 +112,11 @@ class MetadataMixin:
         return metadata_attr
 
     def delete_attribute(self, key):
-        return MetadataAttribute.objects.filter(target=self, key=key).delete()
+        return self.attributes.filter(key=key).delete()
 
     def get_attributes(self, **kwargs):
-        metadata_attr = MetadataAttribute.objects.filter(
-            target=self**kwargs,
-        )
-        return metadata_attr
+        if not self.pk:
+            raise ValueError(
+                "Instance must be saved before adding metadata attributes."
+            )
+        return self.attributes.filter(**kwargs).all()
