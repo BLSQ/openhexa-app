@@ -13,7 +13,7 @@ def resolve_metadata_query(_, info, **kwargs):
     request = info.context["request"]
     user = request.user
     try:
-        model_class, instance = get_model_instance(kwargs.get("extendedId"))
+        model_class, instance = get_model_instance(kwargs.get("OpaqueId"))
         if instance.can_view_metadata(user):
             metadata_attributes = instance.get_attributes()
             if not metadata_attributes.exists():

@@ -14,9 +14,7 @@ def resolve_add_metadata(_, info, **kwargs):
     user = info.context["request"].user
 
     try:
-        model_class, model_instance = get_model_instance(
-            mutation_input.get("extendedId")
-        )
+        model_class, model_instance = get_model_instance(mutation_input.get("OpaqueId"))
 
         if model_instance.can_add_metadata:
             model_instance.add_attribute(
@@ -44,9 +42,7 @@ def resolve_delete_metadata(_, info, **kwargs):
     user = info.context["request"].user
 
     try:
-        model_class, model_instance = get_model_instance(
-            mutation_input.get("extendedId")
-        )
+        model_class, model_instance = get_model_instance(mutation_input.get("OpaqueId"))
 
         if model_instance.can_delete_metadata:
             deleted, _ = model_instance.delete_attribute(
@@ -72,9 +68,7 @@ def resolve_edit_metadata(_, info, **kwargs):
     user = info.context["request"].user
 
     try:
-        model_class, model_instance = get_model_instance(
-            mutation_input.get("extendedId")
-        )
+        model_class, model_instance = get_model_instance(mutation_input.get("OpaqueId"))
 
         if model_instance.can_update_metadata:
             model_instance.update_attribute(

@@ -18,9 +18,9 @@ def resolve_metadata(parent, info):
         return None
 
 
-@has_metadata.field("extendedId")
-def resolve_extended_id(parent, info):
-    return parent.extended_id
+@has_metadata.field("OpaqueId")
+def resolve_opaque_id(parent, info):
+    return parent.opaque_id
 
 
 bindables = [has_metadata]

@@ -55,7 +55,7 @@ class MetadataMixin:
     """
 
     @property
-    def extended_id(self) -> str:
+    def opaque_id(self) -> str:
         app_label = self._meta.app_label
         class_name = self._meta.object_name
         return self.encode_base64_id(str(self.id), f"{app_label}.{class_name}")

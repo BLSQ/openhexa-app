@@ -2,7 +2,7 @@
 Interface for type implementing metadata
 """
 interface MetadataObject {
-  extendedId: String!   # Encoded concatenation of the class model type and the instance id
+  OpaqueId: String!   # Encoded concatenation of the class model type and the instance id
   attributes : [MetadataAttribute!]!
 }
 
@@ -21,7 +21,7 @@ type MetadataAttribute {
 Input to add or edit a custom attribute, empty field for value is accepted
 """
 input MetadataAttributeInput {
-  extendedId: String!     #Encoded ID of the instance for the linked object
+  OpaqueId: String!     #Encoded ID of the instance for the linked object
   key: String!
   value: JSON
 }
@@ -31,7 +31,7 @@ input MetadataAttributeInput {
 Input to delete custom attribute
 """
 input DeleteMetadataAttributeInput {
-  extendedId: String!     #Encoded ID of the instance for the linked object
+  OpaqueId: String!     #Encoded ID of the instance for the linked object
   key: String!
 }
 
@@ -82,7 +82,7 @@ type EditAttributeResult {
 }
 
 extend type Query {
-  metadataAttributes(extendedId: String!): [MetadataAttribute]!
+  metadataAttributes(OpaqueId: String!): [MetadataAttribute]!
 }
 
 extend type Mutation {

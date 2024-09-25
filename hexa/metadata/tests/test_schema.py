@@ -58,7 +58,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
                 "datasetVersionFile": {
                     "filename": "file.csv",
                     "metadata": {
-                        "id": file.extended_id,
+                        "id": file.opaque_id,
                         "attributes": [],
                         "object": {
                             "__typename": "DatasetVersionFile",
@@ -73,7 +73,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["add_metadata_attribute"],
             {
                 "input": {
-                    "extendedId": file.extended_id,
+                    "OpaqueId": file.opaque_id,
                     "key": "descriptions",
                     "value": "test",
                 }
@@ -92,7 +92,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
                 "datasetVersionFile": {
                     "filename": "file.csv",
                     "metadata": {
-                        "id": file.extended_id,
+                        "id": file.opaque_id,
                         "object": {
                             "__typename": "DatasetVersionFile",
                             "id": str(file.id),
@@ -140,7 +140,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
                 "datasetVersionFile": {
                     "filename": "file.csv",
                     "metadata": {
-                        "id": file.extended_id,
+                        "id": file.opaque_id,
                         "object": {
                             "__typename": "DatasetVersionFile",
                             "id": str(file.id),
@@ -157,7 +157,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["delete_metadata_attribute"],
             {
                 "input": {
-                    "extendedId": file.extended_id,
+                    "OpaqueId": file.opaque_id,
                     "key": metadataAttribute.key,
                 }
             },
@@ -175,7 +175,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
                 "datasetVersionFile": {
                     "filename": "file.csv",
                     "metadata": {
-                        "id": file.extended_id,
+                        "id": file.opaque_id,
                         "object": {
                             "__typename": "DatasetVersionFile",
                             "id": str(file.id),
@@ -221,7 +221,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
                 "datasetVersionFile": {
                     "filename": "file.csv",
                     "metadata": {
-                        "id": file.extended_id,
+                        "id": file.opaque_id,
                         "object": {
                             "__typename": "DatasetVersionFile",
                             "id": str(file.id),
@@ -242,7 +242,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["edit_metadata_attribute"],
             {
                 "input": {
-                    "extendedId": file.extended_id,
+                    "OpaqueId": file.opaque_id,
                     "key": metadataAttribute.key,
                     "value": "anotherValue",
                 }
@@ -260,7 +260,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
                 "datasetVersionFile": {
                     "filename": "file.csv",
                     "metadata": {
-                        "id": file.extended_id,
+                        "id": file.opaque_id,
                         "object": {
                             "__typename": "DatasetVersionFile",
                             "id": str(file.id),
@@ -299,9 +299,9 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "dataset": {
                     "id": str(dataset.id),
-                    "extendedId": dataset.extended_id,
+                    "OpaqueId": dataset.opaque_id,
                     "metadata": {
-                        "id": dataset.extended_id,
+                        "id": dataset.opaque_id,
                         "attributes": [],
                         "object": {
                             "__typename": "Dataset",
@@ -317,7 +317,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["add_metadata_attribute"],
             {
                 "input": {
-                    "extendedId": dataset.extended_id,
+                    "OpaqueId": dataset.opaque_id,
                     "key": "descriptions",
                     "value": "test",
                 }
@@ -335,9 +335,9 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "dataset": {
                     "id": str(dataset.id),
-                    "extendedId": dataset.extended_id,
+                    "OpaqueId": dataset.opaque_id,
                     "metadata": {
-                        "id": dataset.extended_id,
+                        "id": dataset.opaque_id,
                         "object": {
                             "__typename": "Dataset",
                             "id": str(dataset.id),
@@ -384,7 +384,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
         query GetObjectMetadata($id: ID!) {
               dataset(id: $id) {
                 id
-                extendedId
+                OpaqueId
                 metadata
                     {
                     id
