@@ -95,11 +95,13 @@ class Dataset(Base, MetadataMixin):
     name = models.TextField(max_length=64, null=False, blank=False)
     slug = models.TextField(null=False, blank=False, max_length=255)
     description = models.TextField(blank=True, null=True)
+
     attributes = GenericRelation(
         MetadataAttribute,
         content_type_field="object_content_type",
         object_id_field="object_id",
     )
+
     objects = DatasetManager.from_queryset(DatasetQuerySet)()
 
     def save(self, *args, **kwargs):

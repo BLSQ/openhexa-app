@@ -71,6 +71,9 @@ class MetadataMixin:
 
     opaque_id: OpaqueID = None
 
+    class Meta:
+        abstract = True
+
     @property
     def class_name(self):
         return re.sub(r"(?<!^)(?=[A-Z])", "_", self.__class__.__name__).lower()
@@ -110,9 +113,4 @@ class MetadataMixin:
         return self.attributes.filter(key=key).delete()
 
     def get_attributes(self, **kwargs):
-        if not self.pk:
-            raise ValueError(
-                "Instance must be saved before adding metadata attributes."
-            )
-        # return self.attributes.filter(**kwargs).all()
-        return self.attributes.all()
+        return self.attributes.filter(**kwargs).all()
