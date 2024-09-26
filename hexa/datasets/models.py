@@ -2,6 +2,7 @@ import logging
 import secrets
 
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import JSONField
@@ -10,7 +11,7 @@ from dpq.models import BaseJob
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
-from hexa.metadata.models import MetadataMixin, OpaqueID
+from hexa.metadata.models import MetadataAttribute, MetadataMixin, OpaqueID
 from hexa.user_management.models import User
 
 logger = logging.getLogger(__name__)
@@ -94,7 +95,11 @@ class Dataset(Base, MetadataMixin):
     name = models.TextField(max_length=64, null=False, blank=False)
     slug = models.TextField(null=False, blank=False, max_length=255)
     description = models.TextField(blank=True, null=True)
-
+    attributes = GenericRelation(
+        MetadataAttribute,
+        content_type_field="object_content_type",
+        object_id_field="object_id",
+    )
     objects = DatasetManager.from_queryset(DatasetQuerySet)()
 
     def save(self, *args, **kwargs):
@@ -204,7 +209,11 @@ class DatasetVersion(Base, MetadataMixin):
         on_delete=models.SET_NULL,
         related_name="dataset_versions",
     )
-
+    attributes = GenericRelation(
+        MetadataAttribute,
+        content_type_field="object_content_type",
+        object_id_field="object_id",
+    )
     objects = DatasetVersionManager.from_queryset(DatasetVersionQuerySet)()
 
     class Meta:
@@ -287,6 +296,13 @@ class DatasetVersionFile(Base, MetadataMixin):
         on_delete=models.CASCADE,
         related_name="files",
     )
+
+    attributes = GenericRelation(
+        MetadataAttribute,
+        content_type_field="object_content_type",
+        object_id_field="object_id",
+    )
+
     objects = DatasetVersionFileManager.from_queryset(DatasetVersionFileQuerySet)()
 
     def save(self, *args, **kwargs):

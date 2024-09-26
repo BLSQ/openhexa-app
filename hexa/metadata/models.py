@@ -2,7 +2,7 @@ import base64
 import re
 import uuid
 
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db import models
@@ -70,11 +70,6 @@ class MetadataMixin:
     """
 
     opaque_id: OpaqueID = None
-    attributes = GenericRelation(
-        "MetadataAttribute",
-        content_type_field="object_content_type",
-        object_id_field="object_id",
-    )
 
     @property
     def class_name(self):
@@ -119,4 +114,5 @@ class MetadataMixin:
             raise ValueError(
                 "Instance must be saved before adding metadata attributes."
             )
-        return self.attributes.filter(**kwargs).all()
+        # return self.attributes.filter(**kwargs).all()
+        return self.attributes.all()

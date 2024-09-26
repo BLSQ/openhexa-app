@@ -51,7 +51,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
         r_before = self.run_query(
             self.queries["get_metadata_for_file"], {"id": str(file.id)}
         )
-
+        print(r_before)
         self.assertEqual(
             r_before["data"],
             {
@@ -356,27 +356,9 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             query GetObjectMetadata($id: ID!) {
                   datasetVersionFile(id: $id) {
                     filename
-                    metadata
-                        {
-                        id
-                        object{
-                          __typename
-                          ... on DatasetVersionFile {
-                            id
-                            uri
-                          }
-                          ... on Dataset {
-                            id
-                            name
-                          }
-                          ... on DatasetVersion {
-                            id
-                          }
-                        }
-                        attributes {
+                    attributes {
                           key, value, system
                         }
-                      }
                   }
                 }
             """,
@@ -388,20 +370,6 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
                 metadata
                     {
                     id
-                    object{
-                      __typename
-                      ... on DatasetVersionFile {
-                        id
-                        uri
-                      }
-                      ... on Dataset {
-                        id
-                        name
-                      }
-                      ... on DatasetVersion {
-                        id
-                      }
-                    }
                     attributes {
                       key, value, system
                     }
