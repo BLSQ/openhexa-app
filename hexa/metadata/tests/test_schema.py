@@ -73,7 +73,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["add_metadata_attribute"],
             {
                 "input": {
-                    "OpaqueId": file.opaque_id,
+                    "opaqueId": file.opaque_id,
                     "key": "descriptions",
                     "value": "test",
                 }
@@ -157,7 +157,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["delete_metadata_attribute"],
             {
                 "input": {
-                    "OpaqueId": file.opaque_id,
+                    "opaqueId": file.opaque_id,
                     "key": metadataAttribute.key,
                 }
             },
@@ -242,7 +242,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["edit_metadata_attribute"],
             {
                 "input": {
-                    "OpaqueId": file.opaque_id,
+                    "opaqueId": file.opaque_id,
                     "key": metadataAttribute.key,
                     "value": "anotherValue",
                 }
@@ -299,7 +299,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "dataset": {
                     "id": str(dataset.id),
-                    "OpaqueId": dataset.opaque_id,
+                    "opaqueId": dataset.opaque_id,
                     "metadata": {
                         "id": dataset.opaque_id,
                         "attributes": [],
@@ -317,7 +317,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["add_metadata_attribute"],
             {
                 "input": {
-                    "OpaqueId": dataset.opaque_id,
+                    "opaqueId": dataset.opaque_id,
                     "key": "descriptions",
                     "value": "test",
                 }
@@ -335,7 +335,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "dataset": {
                     "id": str(dataset.id),
-                    "OpaqueId": dataset.opaque_id,
+                    "opaqueId": dataset.opaque_id,
                     "metadata": {
                         "id": dataset.opaque_id,
                         "object": {
@@ -366,7 +366,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
         query GetObjectMetadata($id: ID!) {
               dataset(id: $id) {
                 id
-                OpaqueId
+                opaqueId
                 metadata
                     {
                     id

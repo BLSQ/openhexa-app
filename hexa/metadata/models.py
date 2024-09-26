@@ -2,7 +2,7 @@ import base64
 import re
 import uuid
 
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db import models
@@ -40,7 +40,7 @@ class MetadataAttribute(Base):
         return f"<MetadataAttribute key={self.key} object_id={self.object_id} content_type={self.object_content_type}>"
 
 
-class OpaqueID:
+class OpaqueId:
     value: str = None
 
     def __init__(self, id: uuid.UUID, model: str):
@@ -69,7 +69,12 @@ class MetadataMixin:
     This mixin allows the model to associate key-value metadata attributes.
     """
 
-    opaque_id: OpaqueID = None
+    opaque_id: OpaqueId = None
+    attributes = GenericRelation(
+        MetadataAttribute,
+        content_type_field="object_content_type",
+        object_id_field="object_id",
+    )
 
     class Meta:
         abstract = True
@@ -78,6 +83,7 @@ class MetadataMixin:
     def class_name(self):
         return re.sub(r"(?<!^)(?=[A-Z])", "_", self.__class__.__name__).lower()
 
+    # TOOD. move to model
     def _user_has_permission_to(self, user: User, permission: str):
         permission = f"{self._meta.app_label}.{permission}_{self.class_name}"
         if not user.has_perm(permission, self):
@@ -85,12 +91,15 @@ class MetadataMixin:
 
     def can_view_metadata(self, user: User):
         self._user_has_permission_to(user, "view")
+        return True
 
     def can_update_metadata(self, user: User):
         self._user_has_permission_to(user, "update")
+        return True
 
     def can_delete_metadata(self, user: User):
         self._user_has_permission_to(user, "delete")
+        return True
 
     def add_attribute(self, key, value, system):
         return self.attributes.create(

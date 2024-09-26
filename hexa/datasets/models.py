@@ -11,7 +11,7 @@ from dpq.models import BaseJob
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
-from hexa.metadata.models import MetadataAttribute, MetadataMixin, OpaqueID
+from hexa.metadata.models import MetadataAttribute, MetadataMixin, OpaqueId
 from hexa.user_management.models import User
 
 logger = logging.getLogger(__name__)
@@ -109,7 +109,7 @@ class Dataset(Base, MetadataMixin):
 
         app_label = self._meta.app_label
         class_name = self._meta.object_name
-        self.opaque_id = OpaqueID(self.id, f"{app_label}.{class_name}")
+        self.opaque_id = OpaqueId(self.id, f"{app_label}.{class_name}")
 
     @property
     def latest_version(self):
@@ -227,7 +227,7 @@ class DatasetVersion(Base, MetadataMixin):
 
         app_label = self._meta.app_label
         class_name = self._meta.object_name
-        self.opaque_id = OpaqueID(self.id, f"{app_label}.{class_name}")
+        self.opaque_id = OpaqueId(self.id, f"{app_label}.{class_name}")
 
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("datasets.delete_dataset_version", self):
@@ -299,12 +299,6 @@ class DatasetVersionFile(Base, MetadataMixin):
         related_name="files",
     )
 
-    attributes = GenericRelation(
-        MetadataAttribute,
-        content_type_field="object_content_type",
-        object_id_field="object_id",
-    )
-
     objects = DatasetVersionFileManager.from_queryset(DatasetVersionFileQuerySet)()
 
     def save(self, *args, **kwargs):
@@ -312,7 +306,7 @@ class DatasetVersionFile(Base, MetadataMixin):
 
         app_label = self._meta.app_label
         class_name = self._meta.object_name
-        self.opaque_id = OpaqueID(self.id, f"{app_label}.{class_name}")
+        self.opaque_id = OpaqueId(self.id, f"{app_label}.{class_name}")
 
     @property
     def filename(self):
