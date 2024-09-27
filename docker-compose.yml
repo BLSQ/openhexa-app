@@ -10,7 +10,6 @@ services:
     environment:
       - NODE_ENV=development
       - OPENHEXA_BACKEND_URL=http://app:8000
-      - NEXT_PUBLIC_OPENHEXA_BACKEND_URL=http://localhost:8000
     ports:
       - "3000:3000"
     volumes:  # only used for Github Codespaces

@@ -1,4 +1,7 @@
 import { NextRequest } from "next/server";
+import getConfig from "next/config";
+
+const { publicRuntimeConfig } = getConfig();
 
 interface TrackEventProperties {
   [key: string]: any;
@@ -9,11 +12,11 @@ async function sendEvent(
   properties: TrackEventProperties,
   headers?: Headers,
 ): Promise<void> {
-  if (process.env.NEXT_PUBLIC_DISABLE_ANALYTICS === "true") {
+  if (publicRuntimeConfig.DISABLE_ANALYTICS === "true") {
     return;
   }
   const res = await fetch(
-    `${process.env.OPENHEXA_BACKEND_URL ?? ""}/analytics/track/`,
+    `${publicRuntimeConfig.OPENHEXA_BACKEND_URL ?? ""}/analytics/track/`,
     {
       method: "POST",
       priority: "low",

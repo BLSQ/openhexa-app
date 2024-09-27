@@ -5,21 +5,22 @@
     "node": ">= 20"
   },
   "scripts": {
-    "dev": "npm-run-all --parallel 'next -- --turbo' 'codegen -- --watch'",
-    "next": "next",
-    "build": "next build",
     "build:ci": "CI=1 next build",
-    "start": "next start",
-    "test": "jest --watch",
-    "test:ci": "jest --ci",
-    "lint": "next lint --dir src",
-    "format": "prettier --write src",
-    "prepare": "husky",
-    "schema": "npx -y get-graphql-schema http://localhost:8000/graphql/ > schema.graphql",
+    "build": "next build",
     "codegen": "find ./src -type f -name \"*.generated.tsx\" -delete && graphql-codegen --config codegen.yml",
+    "dev:server": "node server/index.mjs",
+    "dev": "npm-run-all --parallel 'dev:server' 'codegen -- --watch'",
+    "format": "prettier --write src",
     "i18n:extract": "i18next",
     "i18n:translate": "node ./scripts/translate.mjs ./public/locales",
-    "i18n:validate": "i18next && node ./scripts/validate-i18n.mjs"
+    "i18n:validate": "i18next && node ./scripts/validate-i18n.mjs",
+    "lint": "next lint --dir src",
+    "next": "next",
+    "prepare": "husky",
+    "schema": "npx -y get-graphql-schema http://localhost:8000/graphql/ > schema.graphql",
+    "start": "next start",
+    "test:ci": "jest --ci",
+    "test": "jest --watch"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

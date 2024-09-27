@@ -13,7 +13,9 @@ import fetch from "isomorphic-unfetch";
 import isEqual from "lodash/isEqual";
 import type { AppProps } from "next/app";
 import { useMemo } from "react";
+import getConfig from "next/config";
 
+const { publicRuntimeConfig } = getConfig();
 const APOLLO_STATE_PROP_NAME = "__APOLLO_STATE__";
 
 export type CustomApolloClient = ApolloClient<NormalizedCacheObject>;
@@ -112,15 +114,10 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
     }),
     createHttpLink({
       uri: (operation) => {
-        let apiUrl = "";
-
-        if (typeof window === "undefined" && process.env.OPENHEXA_BACKEND_URL) {
-          apiUrl += process.env.OPENHEXA_BACKEND_URL;
-        } else if (process.env.NEXT_PUBLIC_OPENHEXA_BACKEND_URL) {
-          apiUrl += process.env.NEXT_PUBLIC_OPENHEXA_BACKEND_URL;
-        }
-
-        apiUrl += "/graphql/";
+        let apiUrl =
+          typeof window === "undefined"
+            ? `${publicRuntimeConfig.OPENHEXA_BACKEND_URL}/graphql/`
+            : "/graphql/";
         if (operation.operationName) {
           apiUrl += `${operation.operationName}/`;
         }

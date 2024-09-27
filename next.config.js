@@ -9,9 +9,18 @@ const { withSentryConfig } = require("@sentry/nextjs");
 const { i18n } = require("./next-i18next.config");
 
 let config = {
-  output: "standalone",
   experimental: {
     optimizePackageImports: ["next-i18next", "luxon"],
+  },
+
+  publicRuntimeConfig: {
+    OPENHEXA_BACKEND_URL: process.env.OPENHEXA_BACKEND_URL,
+    SENTRY_TRACES_SAMPLE_RATE: parseFloat(
+      process.env.SENTRY_TRACES_SAMPLE_RATE || "1",
+    ),
+    SENTRY_DSN: process.env.SENTRY_DSN,
+    SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT,
+    DISABLE_ANALYTICS: process.env.DISABLE_ANALYTICS === "true",
   },
 
   // Sentry tree shaking configuration
@@ -51,27 +60,21 @@ let config = {
   i18n,
 };
 
+const SENTRY_CONFIG = {
+  org: "bluesquareorg",
+  project: "openhexa",
+  silent: true,
+  widenClientFileUpload: true,
+  automaticVercelMonitors: false,
+};
+
 if (process.env.ANALYZE) {
   // @ts-ignore
   config = withBundleAnalyzer(config);
 }
 
 if (process.env.SENTRY_DSN) {
-  config = withSentryConfig(config, {
-    // Additional config options for the Sentry Webpack plugin. Keep in mind that
-    // the following options are set automatically, and overriding them is not
-    // recommended:
-    //   release, url, org, project, authToken, configFile, stripPrefix,
-    //   urlPrefix, include, ignore
-    org: "bluesquareorg",
-    project: "openhexa",
-    silent: true, // Suppresses all logs
-    // For all available options, see:
-    // https://github.com/getsentry/sentry-webpack-plugin#options.
-
-    widenClientFileUpload: true,
-    automaticVercelMonitors: false, // Disable automatic Vercel monitors
-  });
+  config = withSentryConfig(config, SENTRY_CONFIG);
 }
 
 module.exports = config;

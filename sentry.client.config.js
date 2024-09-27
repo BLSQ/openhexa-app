@@ -3,6 +3,9 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import getConfig from "next/config";
+
+const { publicRuntimeConfig } = getConfig();
 
 Sentry.init({
   ignoreErrors: [
@@ -44,18 +47,15 @@ Sentry.init({
     /webappstoolbarba\.texthelp\.com\//i,
     /metrics\.itunes\.apple\.com\.edgesuite\.net\//i,
   ],
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+  dsn: publicRuntimeConfig.SENTRY_DSN,
+  environment: publicRuntimeConfig.SENTRY_ENVIRONMENT,
   integrations: [Sentry.browserTracingIntegration()],
   // Adjust this value in production, or use tracesSampler for greater control
   tracesSampler({ request }) {
     if (request?.requestPath?.startsWith("/ready")) {
       return 0;
     }
-    if (process.env.SENTRY_TRACES_SAMPLE_RATE) {
-      return parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE);
-    }
-    return 1;
+    return publicRuntimeConfig.SENTRY_TRACES_SAMPLE_RATE;
   },
   // ...
   // Note: if you want to override the automatic release value, do not set a
