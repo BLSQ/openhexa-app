@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.50.7](https://github.com/BLSQ/openhexa-frontend/compare/0.50.6...0.50.7) (2024-09-27)
+
+
+### Bug Fixes
+
+* npm start was using the wrong command ([c826984](https://github.com/BLSQ/openhexa-frontend/commit/c8269842a86a62cde15dd89419b0ea36a5698440))
+
 ## [0.50.6](https://github.com/BLSQ/openhexa-frontend/compare/v0.50.5...0.50.6) (2024-09-27)
 
 
