@@ -12,7 +12,6 @@ import { IncomingHttpHeaders } from "http";
 import fetch from "isomorphic-unfetch";
 import isEqual from "lodash/isEqual";
 import type { AppProps } from "next/app";
-import getConfig from "next/config";
 import { useMemo } from "react";
 
 const APOLLO_STATE_PROP_NAME = "__APOLLO_STATE__";
@@ -20,8 +19,6 @@ const APOLLO_STATE_PROP_NAME = "__APOLLO_STATE__";
 export type CustomApolloClient = ApolloClient<NormalizedCacheObject>;
 
 let apolloClient: CustomApolloClient | undefined;
-
-const { publicRuntimeConfig } = getConfig();
 
 const CACHE_CONFIG: InMemoryCacheConfig = {
   // possibleTypes must be provided to cache correctly unions and interfaces
@@ -115,17 +112,22 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
     }),
     createHttpLink({
       uri: (operation) => {
-        let uri = (process.env.OPENHEXA_BACKEND_URL ?? "") + "/graphql/";
-        if (operation.operationName) {
-          uri = `${uri}${operation.operationName}/`;
+        let apiUrl = "";
+
+        if (typeof window === "undefined" && process.env.OPENHEXA_BACKEND_URL) {
+          apiUrl += process.env.OPENHEXA_BACKEND_URL;
+        } else if (process.env.NEXT_PUBLIC_OPENHEXA_BACKEND_URL) {
+          apiUrl += process.env.NEXT_PUBLIC_OPENHEXA_BACKEND_URL;
         }
-        return uri;
+
+        apiUrl += "/graphql/";
+        if (operation.operationName) {
+          apiUrl += `${operation.operationName}/`;
+        }
+        return apiUrl;
       },
       fetch: enhancedFetch,
       credentials: "include",
-      fetchOptions: {
-        mode: "cors",
-      },
     }),
   ]);
 

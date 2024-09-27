@@ -101,11 +101,15 @@ The following environment variables should be provided at build time
 - `SENTRY_AUTH_TOKEN`: A valid Sentry authentication token
 
 The following environment variables should be provided at run time:
-- `OPENHEXA_BACKEND_URL`: the URL of the backend API
+- `OPENHEXA_BACKEND_URL`: the URL of the backend API (used by the nextjs server)
+- `NEXT_PUBLIC_OPENHEXA_BACKEND_URL`: the URL of the backend API (used by the frontend)
 - `SENTRY_TRACES_SAMPLE_RATE`: the [Sentry](https://sentry.io/) sampling rate of traces
 - `SENTRY_DSN`: the [Sentry](https://sentry.io/) DSN
 - `SENTRY_ENVIRONMENT`: the [Sentry](https://sentry.io/) environment tag
 - `DISABLE_ANALYTICS`: set to `true` to disable analytics tracking (only prevent the requests to be sent to the backend)
+
+
+Not providing `NEXT_PUBLIC_OPENHEXA_BACKEND_URL` will default the endpoint to `/graphql/` on the same host.
 
 ### Code style
 

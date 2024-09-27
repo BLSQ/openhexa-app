@@ -6,7 +6,6 @@ import type { NextFetchEvent, NextRequest } from "next/server";
 export function middleware(request: NextRequest, event: NextFetchEvent) {
   if (
     [
-      "/graphql",
       "/auth/logout",
       "/static/",
       "/admin/",
