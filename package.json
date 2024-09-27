@@ -18,7 +18,7 @@
     "next": "next",
     "prepare": "husky",
     "schema": "npx -y get-graphql-schema http://localhost:8000/graphql/ > schema.graphql",
-    "start": "next start",
+    "start": "NODE_ENV=production node server/index.mjs",
     "test:ci": "jest --ci",
     "test": "jest --watch"
   },
