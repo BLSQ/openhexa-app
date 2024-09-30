@@ -1,0 +1,13 @@
+type Config {
+    """
+    List of requirements for the password.
+    """
+    passwordRequirements: [String!]
+}
+
+extend type Query {
+    """
+    Retrieves the configuration of the system.
+    """
+    config: Config!
+}
