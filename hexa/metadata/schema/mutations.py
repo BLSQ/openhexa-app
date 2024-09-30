@@ -44,7 +44,6 @@ def resolve_delete_metadata(_, info, **kwargs):
                 return {"success": True, "errors": []}
         else:
             return {"success": False, "errors": ["METADATA_ATTRIBUTE_NOT_FOUND"]}
-
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
     except ContentType.DoesNotExist:

@@ -49,26 +49,17 @@ def parse_uuid_value(value):
 def parse_opaque_id_value(value):
     """Decodes base64 value and returns its object instance"""
     base64_decoded_id = base64.b64decode(value).decode("utf-8")
-    instance_id, model_type = base64_decoded_id.split(":")
-    app_label, model = model_type.split(".")
-    content_type = ContentType.objects.get(
-        app_label=app_label.lower(), model=model.lower()
-    )
+    instance_id, content_type_id = base64_decoded_id.split(":")
+    content_type = ContentType.objects.get_for_id(content_type_id)
     model_instance = content_type.model_class().objects.get(id=instance_id)
     return model_instance
-
-
-"""
-try:
-    return base64.b64decode(value.encode()).decode("utf-8")
-except (ValueError, TypeError):
-    raise ValueError(f"Invalid OpaqueID value: {value}")
-"""
 
 
 @opaque_id_scalar.serializer
 def serialize_opaque_id(value):
     """Encodes object to base64"""
+    content_type = ContentType.objects.get_for_model(value)
+    value = f"{value.id}:{content_type.id}"
     return base64.b64encode(value.encode("utf-8")).decode("utf-8")
 
 

@@ -10,7 +10,6 @@ interface MetadataObject {
 Generic metadata attribute
 """
 type MetadataAttribute {
-  target: MetadataObject!
   id: UUID!
   key: String!
   value: JSON
@@ -82,7 +81,7 @@ type EditAttributeResult {
 }
 
 extend type Query {
-  metadataAttributes(opaqueId: String!): [MetadataAttribute]!
+  metadataAttributes(opaqueId: OpaqueID!): [MetadataAttribute]!
 }
 
 extend type Mutation {
