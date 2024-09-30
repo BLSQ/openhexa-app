@@ -3,8 +3,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 
-from hexa.metadata.schema.utils import get_model_instance
-
 mutations = MutationType()
 
 
@@ -14,11 +12,9 @@ def resolve_add_metadata(_, info, **kwargs):
     user = info.context["request"].user
 
     try:
-        model_class, model_instance = get_model_instance(mutation_input.get("opaqueId"))
-
-        if model_instance.can_add_metadata:
+        model_instance = mutation_input.get("opaqueId")
+        if model_instance.can_update_metadata(user):
             model_instance.add_attribute(
-                user=user,
                 key=mutation_input["key"],
                 value=mutation_input.get("value", None),
                 system=False,
@@ -32,8 +28,6 @@ def resolve_add_metadata(_, info, **kwargs):
         return {"success": False, "errors": ["MODEL_TYPE_NOT_FOUND"]}
     except IntegrityError:
         return {"success": False, "errors": ["DUPLICATE_KEY"]}
-    except model_class.DoesNotExist:
-        return {"success": False, "errors": ["MODEL_NOT_FOUND"]}
 
 
 @mutations.field("deleteMetadata")
@@ -42,12 +36,10 @@ def resolve_delete_metadata(_, info, **kwargs):
     user = info.context["request"].user
 
     try:
-        model_class, model_instance = get_model_instance(mutation_input.get("opaqueId"))
+        model_instance = mutation_input.get("opaqueId")
 
-        if model_instance.can_delete_metadata:
-            deleted, _ = model_instance.delete_attribute(
-                user=user, key=mutation_input["key"]
-            )
+        if model_instance.can_delete_metadata(user):
+            deleted, _ = model_instance.delete_attribute(key=mutation_input["key"])
             if deleted > 0:
                 return {"success": True, "errors": []}
         else:
@@ -57,8 +49,6 @@ def resolve_delete_metadata(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
     except ContentType.DoesNotExist:
         return {"success": False, "errors": ["MODEL_TYPE_NOT_FOUND"]}
-    except model_class.DoesNotExist:
-        return {"success": False, "errors": ["MODEL_NOT_FOUND"]}
 
 
 @mutations.field("editMetadata")
@@ -67,11 +57,10 @@ def resolve_edit_metadata(_, info, **kwargs):
     user = info.context["request"].user
 
     try:
-        model_class, model_instance = get_model_instance(mutation_input.get("opaqueId"))
+        model_instance = mutation_input.get("opaqueId")
 
-        if model_instance.can_update_metadata:
+        if model_instance.can_update_metadata(user):
             model_instance.update_attribute(
-                user,
                 key=mutation_input["key"],
                 value=mutation_input["value"],
                 system=False,

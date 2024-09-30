@@ -1,3 +1,4 @@
+import base64
 import pathlib
 from uuid import UUID
 
@@ -7,6 +8,7 @@ from ariadne import (
     make_executable_schema,
     snake_case_fallback_resolvers,
 )
+from django.contrib.contenttypes.models import ContentType
 
 from hexa.countries.schema import countries_bindables, countries_type_defs
 from hexa.databases.schema import databases_bindables, databases_types_def
@@ -31,6 +33,7 @@ from hexa.user_management.schema import (
 from hexa.workspaces.schema import workspaces_bindables, workspaces_type_def
 
 uuid_scalar = ScalarType("UUID")
+opaque_id_scalar = ScalarType("OpaqueID")
 
 
 @uuid_scalar.value_parser
@@ -40,6 +43,33 @@ def parse_uuid_value(value):
         return str(value).upper()
     except (ValueError, TypeError):
         raise ValueError(f'"{value}" is not a valid uuid')
+
+
+@opaque_id_scalar.value_parser
+def parse_opaque_id_value(value):
+    """Decodes base64 value and returns its object instance"""
+    base64_decoded_id = base64.b64decode(value).decode("utf-8")
+    instance_id, model_type = base64_decoded_id.split(":")
+    app_label, model = model_type.split(".")
+    content_type = ContentType.objects.get(
+        app_label=app_label.lower(), model=model.lower()
+    )
+    model_instance = content_type.model_class().objects.get(id=instance_id)
+    return model_instance
+
+
+"""
+try:
+    return base64.b64decode(value.encode()).decode("utf-8")
+except (ValueError, TypeError):
+    raise ValueError(f"Invalid OpaqueID value: {value}")
+"""
+
+
+@opaque_id_scalar.serializer
+def serialize_opaque_id(value):
+    """Encodes object to base64"""
+    return base64.b64encode(value.encode("utf-8")).decode("utf-8")
 
 
 type_defs = load_schema_from_path(
@@ -65,6 +95,7 @@ schema = make_executable_schema(
     ],
     [
         uuid_scalar,
+        opaque_id_scalar,
         *pipelines_bindables,
         *identity_bindables,
         *tags_bindables,

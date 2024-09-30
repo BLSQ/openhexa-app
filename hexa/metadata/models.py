@@ -1,7 +1,6 @@
-import base64
 import uuid
 
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
@@ -38,44 +37,11 @@ class MetadataAttribute(Base):
         return f"<MetadataAttribute key={self.key} object_id={self.object_id} content_type={self.object_content_type}>"
 
 
-class OpaqueId:
-    value: str = None
-
-    def __init__(self, id: uuid.UUID, model: str):
-        self.value = self.encode_base64_id(str(id), model)
-
-    @staticmethod
-    def encode_base64_id(id: str, model: str) -> str:
-        combined = f"{id}:{model}"
-        encoded = base64.b64encode(combined.encode("utf-8")).decode("utf-8")
-        return encoded
-
-    @staticmethod
-    def decode_base64_id(encoded_id: str) -> (str, str):
-        decoded_bytes = base64.b64decode(encoded_id)
-        decoded_str = decoded_bytes.decode("utf-8")
-        id, model_type = decoded_str.split(":")
-        return id, model_type
-
-    def get_decoded_value(self):
-        return self.decode_base64_id(self.value)
-
-
 class MetadataMixin:
     """
     Mixin to add metadata functionality to models.
     This mixin allows the model to associate key-value metadata attributes.
     """
-
-    opaque_id: OpaqueId = None
-    attributes = GenericRelation(
-        MetadataAttribute,
-        content_type_field="object_content_type",
-        object_id_field="object_id",
-    )
-
-    class Meta:
-        abstract = True
 
     def can_view_metadata(self, user: User):
         raise NotImplementedError

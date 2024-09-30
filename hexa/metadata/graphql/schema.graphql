@@ -1,7 +1,6 @@
 """
 Interface for type implementing metadata
 """
-# TODO: resolve opaque ID from graphQL to the actual object
 interface MetadataObject {
   opaqueId: OpaqueID!   # Encoded concatenation of the class model type and the instance id -
   attributes : [MetadataAttribute!]!
@@ -22,7 +21,7 @@ type MetadataAttribute {
 Input to add or edit a custom attribute, empty field for value is accepted
 """
 input MetadataAttributeInput {
-  opaqueId: String!     #Encoded ID of the instance for the linked object
+  opaqueId: OpaqueID!     #Encoded ID of the instance for the linked object
   key: String!
   value: JSON
 }
@@ -32,7 +31,7 @@ input MetadataAttributeInput {
 Input to delete custom attribute
 """
 input DeleteMetadataAttributeInput {
-  opaqueId: String!     #Encoded ID of the instance for the linked object
+  opaqueId: OpaqueID!     #Encoded ID of the instance for the linked object
   key: String!
 }
 
