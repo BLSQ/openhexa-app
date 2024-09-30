@@ -145,16 +145,27 @@ class Dataset(Base, MetadataMixin):
             description=description,
         )
 
+    def can_view_metadata(self, user: User):
+        if not user.has_perm("datasets.view_dataset", self):
+            raise PermissionDenied
+        return True
+
+    def can_update_metadata(self, user: User):
+        if not user.has_perm("datasets.update_dataset", self):
+            raise PermissionDenied
+        return True
+
+    def can_delete_metadata(self, user: User):
+        if not user.has_perm("datasets.update_dataset", self):
+            raise PermissionDenied
+        return True
+
     def link(self, principal: User, workspace: any):
         return DatasetLink.objects.create(
             created_by=principal,
             dataset=self,
             workspace=workspace,
         )
-
-    def can_delete_metadata(self, user: User):
-        if not user.has_perm("datasets.update_dataset", self):
-            raise PermissionDenied
 
 
 class DatasetVersionQuerySet(BaseQuerySet):
@@ -234,6 +245,21 @@ class DatasetVersion(Base, MetadataMixin):
             raise PermissionDenied
         self.delete()
 
+    def can_view_metadata(self, user: User):
+        if not user.has_perm("datasets.view_dataset_version", self):
+            raise PermissionDenied
+        return True
+
+    def can_update_metadata(self, user: User):
+        if not user.has_perm("datasets.update_dataset_version", self):
+            raise PermissionDenied
+        return True
+
+    def can_delete_metadata(self, user: User):
+        if not user.has_perm("datasets.delete_dataset_version", self):
+            raise PermissionDenied
+        return True
+
     def get_full_uri(self, file_uri):
         return f"{self.dataset.id}/{self.id}/{file_uri.lstrip('/')}"
 
@@ -307,6 +333,21 @@ class DatasetVersionFile(Base, MetadataMixin):
         app_label = self._meta.app_label
         class_name = self._meta.object_name
         self.opaque_id = OpaqueId(self.id, f"{app_label}.{class_name}")
+
+    def can_view_metadata(self, user: User):
+        if not user.has_perm("datasets.view_dataset_version_file", self):
+            raise PermissionDenied
+        return True
+
+    def can_update_metadata(self, user: User):
+        if not user.has_perm("datasets.update_dataset_version_file", self):
+            raise PermissionDenied
+        return True
+
+    def can_delete_metadata(self, user: User):
+        if not user.has_perm("datasets.delete_dataset_version_file", self):
+            raise PermissionDenied
+        return True
 
     @property
     def filename(self):

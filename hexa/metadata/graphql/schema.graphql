@@ -1,7 +1,7 @@
 """
 Interface for type implementing metadata
 """
-# TODO:
+# TODO: resolve opaque ID from graphQL to the actual object
 interface MetadataObject {
   opaqueId: OpaqueID!   # Encoded concatenation of the class model type and the instance id -
   attributes : [MetadataAttribute!]!

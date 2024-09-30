@@ -1,10 +1,8 @@
 import base64
-import re
 import uuid
 
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import PermissionDenied
 from django.db import models
 
 from hexa.core.models.base import Base
@@ -79,27 +77,14 @@ class MetadataMixin:
     class Meta:
         abstract = True
 
-    @property
-    def class_name(self):
-        return re.sub(r"(?<!^)(?=[A-Z])", "_", self.__class__.__name__).lower()
-
-    # TOOD. move to model
-    def _user_has_permission_to(self, user: User, permission: str):
-        permission = f"{self._meta.app_label}.{permission}_{self.class_name}"
-        if not user.has_perm(permission, self):
-            raise PermissionDenied
-
     def can_view_metadata(self, user: User):
-        self._user_has_permission_to(user, "view")
-        return True
+        raise NotImplementedError
 
     def can_update_metadata(self, user: User):
-        self._user_has_permission_to(user, "update")
-        return True
+        raise NotImplementedError
 
     def can_delete_metadata(self, user: User):
-        self._user_has_permission_to(user, "delete")
-        return True
+        raise NotImplementedError
 
     def add_attribute(self, key, value, system):
         return self.attributes.create(
