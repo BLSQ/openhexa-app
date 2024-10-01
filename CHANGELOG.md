@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.73.0](https://github.com/BLSQ/openhexa-app/compare/0.72.8...0.73.0) (2024-10-01)
+
+
+### Features
+
+* **Core:** add query to return password requirements ([#817](https://github.com/BLSQ/openhexa-app/issues/817)) ([8b8d5d9](https://github.com/BLSQ/openhexa-app/commit/8b8d5d90819e0154873407a9fa26d7d383c3103e))
+* **Storage:** Filesystem-based storage backend for files ([d9d7159](https://github.com/BLSQ/openhexa-app/commit/d9d7159d6fc6d1982ca6f4067fb04c878dda3ceb))
+
+
+### Bug Fixes
+
+* **Dataset:** save sample as JSON instead of JSON string ([54e5214](https://github.com/BLSQ/openhexa-app/commit/54e5214eeeb323858e11a13e9dcc18833185d445))
+
 ## [0.72.8](https://github.com/BLSQ/openhexa-app/compare/0.72.7...0.72.8) (2024-09-11)
 
 
