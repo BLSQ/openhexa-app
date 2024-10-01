@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.73.1](https://github.com/BLSQ/openhexa-app/compare/0.73.0...0.73.1) (2024-10-01)
+
+
+### Bug Fixes
+
+* Fix wrong mgt of env var TRUST_FORWARDED_PROTO ([#816](https://github.com/BLSQ/openhexa-app/issues/816)) ([21f47b0](https://github.com/BLSQ/openhexa-app/commit/21f47b0d9711f525012524c041714620e023b574))
+
 ## [0.73.0](https://github.com/BLSQ/openhexa-app/compare/0.72.8...0.73.0) (2024-10-01)
 
 
