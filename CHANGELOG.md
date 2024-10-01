@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.73.3](https://github.com/BLSQ/openhexa-app/compare/0.73.2...0.73.3) (2024-10-01)
+
+
+### Bug Fixes
+
+* **GCP:** Bucket cannot contain '.' or be a recognized top-level domain ([#820](https://github.com/BLSQ/openhexa-app/issues/820)) ([11da44d](https://github.com/BLSQ/openhexa-app/commit/11da44d974bebe3ed7cfecf0a1d814196aebb174))
+
 ## [0.73.2](https://github.com/BLSQ/openhexa-app/compare/0.73.1...0.73.2) (2024-10-01)
 
 
