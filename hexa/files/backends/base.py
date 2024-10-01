@@ -40,8 +40,8 @@ class StorageObject:
     name: str
     key: str
     path: str
-    updated: str
     type: str
+    updated: str = None
     size: int = 0
     content_type: str = None
 
