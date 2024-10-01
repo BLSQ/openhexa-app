@@ -46,6 +46,7 @@ interface IDataGridProps {
   manualSortBy?: boolean;
   extraTableProps?: object;
   fixedLayout?: boolean;
+  defaultPageIndex?: number;
   onSelectionChange?: (
     pageRows: object[],
     allIds: Record<string, boolean>,
@@ -89,6 +90,7 @@ function DataGrid(props: DataGridProps) {
     extraTableProps = {},
     defaultSortBy = [],
     defaultPageSize = 10,
+    defaultPageIndex = 0,
   } = props;
 
   const [loading, setLoading] = useState(false);
@@ -187,6 +189,7 @@ function DataGrid(props: DataGridProps) {
       initialState: {
         sortBy: defaultSortBy,
         pageSize: defaultPageSize,
+        pageIndex: defaultPageIndex,
       },
 
       ...extraTableProps,
@@ -242,6 +245,11 @@ function DataGrid(props: DataGridProps) {
     }
     onFetchData({ page: pageIndex + 1, pageIndex, pageSize, sortBy });
   }, [onFetchData, pageIndex, pageSize, sortBy, prevVariables]);
+
+  // to trigger the update of the current page for the pagination component
+  useEffect(() => {
+    gotoPage(defaultPageIndex);
+  }, [defaultPageIndex, gotoPage]);
 
   return (
     <div className={className}>
