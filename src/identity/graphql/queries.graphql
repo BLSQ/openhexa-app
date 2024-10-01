@@ -58,3 +58,9 @@ query AccountPage {
     }
   }
 }
+
+query RegisterPage{
+  config {
+    passwordRequirements
+  }
+}

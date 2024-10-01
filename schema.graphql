@@ -378,6 +378,11 @@ enum BucketObjectType {
   DIRECTORY
 }
 
+type Config {
+  """List of requirements for the password."""
+  passwordRequirements: [String!]
+}
+
 """Represents a connection to an external data source or service."""
 type Connection {
   id: String!
@@ -547,6 +552,7 @@ type CreateAccessmodZonalStatisticsResult {
 """Errors that can occur when creating a folder in a workspace's bucket."""
 enum CreateBucketFolderError {
   ALREADY_EXISTS
+  NOT_FOUND
   PERMISSION_DENIED
 }
 
@@ -2448,6 +2454,9 @@ type Query {
   databaseTable(id: String!): DatabaseTable
   connection(id: UUID!): Connection
   connectionBySlug(workspaceSlug: String!, connectionSlug: String!): Connection
+
+  """Retrieves the configuration of the system."""
+  config: Config!
 
   """Get a dataset by its ID."""
   dataset(id: ID!): Dataset

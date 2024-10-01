@@ -15,6 +15,11 @@ export type AccountPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, user?: { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, displayName: string, id: string, email: string, language: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }, pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, status: Types.WorkspaceInvitationStatus, role: Types.WorkspaceMembershipRole, createdAt: any, invitedBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
 
+export type RegisterPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
+
+
+export type RegisterPageQuery = { __typename?: 'Query', config: { __typename?: 'Config', passwordRequirements?: Array<string> | null } };
+
 
 export const GetUserDocument = gql`
     query GetUser {
@@ -142,3 +147,42 @@ export type AccountPageQueryHookResult = ReturnType<typeof useAccountPageQuery>;
 export type AccountPageLazyQueryHookResult = ReturnType<typeof useAccountPageLazyQuery>;
 export type AccountPageSuspenseQueryHookResult = ReturnType<typeof useAccountPageSuspenseQuery>;
 export type AccountPageQueryResult = Apollo.QueryResult<AccountPageQuery, AccountPageQueryVariables>;
+export const RegisterPageDocument = gql`
+    query RegisterPage {
+  config {
+    passwordRequirements
+  }
+}
+    `;
+
+/**
+ * __useRegisterPageQuery__
+ *
+ * To run a query within a React component, call `useRegisterPageQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRegisterPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRegisterPageQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useRegisterPageQuery(baseOptions?: Apollo.QueryHookOptions<RegisterPageQuery, RegisterPageQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RegisterPageQuery, RegisterPageQueryVariables>(RegisterPageDocument, options);
+      }
+export function useRegisterPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RegisterPageQuery, RegisterPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RegisterPageQuery, RegisterPageQueryVariables>(RegisterPageDocument, options);
+        }
+export function useRegisterPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RegisterPageQuery, RegisterPageQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RegisterPageQuery, RegisterPageQueryVariables>(RegisterPageDocument, options);
+        }
+export type RegisterPageQueryHookResult = ReturnType<typeof useRegisterPageQuery>;
+export type RegisterPageLazyQueryHookResult = ReturnType<typeof useRegisterPageLazyQuery>;
+export type RegisterPageSuspenseQueryHookResult = ReturnType<typeof useRegisterPageSuspenseQuery>;
+export type RegisterPageQueryResult = Apollo.QueryResult<RegisterPageQuery, RegisterPageQueryVariables>;

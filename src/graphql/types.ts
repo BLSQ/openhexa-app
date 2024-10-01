@@ -429,6 +429,12 @@ export enum BucketObjectType {
   File = 'FILE'
 }
 
+export type Config = {
+  __typename?: 'Config';
+  /** List of requirements for the password. */
+  passwordRequirements?: Maybe<Array<Scalars['String']['output']>>;
+};
+
 /** Represents a connection to an external data source or service. */
 export type Connection = {
   __typename?: 'Connection';
@@ -608,6 +614,7 @@ export type CreateAccessmodZonalStatisticsResult = {
 /** Errors that can occur when creating a folder in a workspace's bucket. */
 export enum CreateBucketFolderError {
   AlreadyExists = 'ALREADY_EXISTS',
+  NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 
@@ -2881,6 +2888,8 @@ export type Query = {
   accessmodProject?: Maybe<AccessmodProject>;
   accessmodProjects: AccessmodProjectPage;
   boundaries: Array<WhoBoundary>;
+  /** Retrieves the configuration of the system. */
+  config: Config;
   connection?: Maybe<Connection>;
   connectionBySlug?: Maybe<Connection>;
   countries: Array<Country>;

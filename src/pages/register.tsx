@@ -10,6 +10,7 @@ import useForm from "core/hooks/useForm";
 import CenteredLayout from "core/layouts/centered";
 import { RegisterError } from "graphql/types";
 import { useRegisterMutation } from "identity/graphql/mutations.generated";
+import { useRegisterPageQuery } from "identity/graphql/queries.generated";
 import { useTranslation } from "next-i18next";
 import Image from "next/legacy/image";
 import { useRouter } from "next/router";
@@ -30,6 +31,8 @@ const RegisterPage: NextPageWithLayout = (props: {
   const router = useRouter();
   const [register] = useRegisterMutation();
   const { t } = useTranslation();
+
+  const { data } = useRegisterPageQuery();
 
   const form = useForm<RegisterForm>({
     onSubmit: async (values) => {
@@ -140,6 +143,13 @@ const RegisterPage: NextPageWithLayout = (props: {
             label={t("Password")}
             value={form.formData.password1}
             onChange={form.handleInputChange}
+            help={
+              <ul>
+                {data?.config?.passwordRequirements?.map((el, i) => (
+                  <li key={i}>{el}</li>
+                ))}
+              </ul>
+            }
             error={form.errors.password1}
           />
           <Field
@@ -152,7 +162,6 @@ const RegisterPage: NextPageWithLayout = (props: {
             onChange={form.handleInputChange}
             error={form.errors.password2}
           />
-
           <div className="text-red-500">{form.submitError}</div>
         </div>
         <div className="space-y-2">
