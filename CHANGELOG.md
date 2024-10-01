@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.50.8](https://github.com/BLSQ/openhexa-frontend/compare/0.50.7...0.50.8) (2024-10-01)
+
+
+### Bug Fixes
+
+* **Account:** display password requirements on register ([#768](https://github.com/BLSQ/openhexa-frontend/issues/768)) ([2887c59](https://github.com/BLSQ/openhexa-frontend/commit/2887c591f82de1ff0175505cebfebc90c3e80db4))
+* **deps:** update dependency @types/node to v22.7.4 ([50e0310](https://github.com/BLSQ/openhexa-frontend/commit/50e031061b75c81296970aa19c78b22d603d2f29))
+* **deps:** update dependency @types/react to v18.3.10 ([7f61810](https://github.com/BLSQ/openhexa-frontend/commit/7f6181074124880cfef2bb5954eab662ff074833))
+* **deps:** update nextjs monorepo to v14.2.14 ([b96bbcf](https://github.com/BLSQ/openhexa-frontend/commit/b96bbcf05c6632f72b04c8b80b826cb3f132069b))
+* **PipelineRun:** sync datagrid page number when navigating back ([#741](https://github.com/BLSQ/openhexa-frontend/issues/741)) ([f8bbe33](https://github.com/BLSQ/openhexa-frontend/commit/f8bbe33404f36ce44bc5a8cd1778eb567bfae69e))
+
 ## [0.50.7](https://github.com/BLSQ/openhexa-frontend/compare/0.50.6...0.50.7) (2024-09-27)
 
 
