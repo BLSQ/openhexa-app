@@ -34,14 +34,14 @@ ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
 DEBUG = os.environ.get("DEBUG", "false") == "true"
 
 # Trust the X_FORWARDED_PROTO header from the proxy or load balancer so Django is aware it is accessed by https
-if "TRUST_FORWARDED_PROTO" in os.environ:
+if os.environ.get("TRUST_FORWARDED_PROTO", "false") == "true":
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 TLS = os.environ.get("TLS", "false") == "true"
 SCHEME = "https" if TLS else "http"
 
 SECURE_REDIRECT_EXEMPT = [r"^ready$"]
-if TLS or "TRUST_FORWARDED_PROTO" in os.environ:
+if TLS or os.environ.get("TRUST_FORWARDED_PROTO", "false") == "true":
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = TLS
@@ -67,7 +67,11 @@ ALLOWED_HOSTS = (
 CORS_ALLOWED_ORIGINS = []
 CSRF_TRUSTED_ORIGINS = []
 if "PROXY_HOSTNAME_AND_PORT" in os.environ:
-    SCHEME = "https" if "TRUST_FORWARDED_PROTO" in os.environ else SCHEME
+    SCHEME = (
+        "https"
+        if os.environ.get("TRUST_FORWARDED_PROTO", "false") == "true"
+        else SCHEME
+    )
     PROXY_URL = f'{SCHEME}://{os.environ.get("PROXY_HOSTNAME_AND_PORT")}'
     NEW_FRONTEND_DOMAIN = os.environ.get(
         "NEW_FRONTEND_DOMAIN", os.environ.get("PROXY_HOSTNAME_AND_PORT")
