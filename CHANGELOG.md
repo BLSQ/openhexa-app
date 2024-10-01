@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.73.2](https://github.com/BLSQ/openhexa-app/compare/0.73.1...0.73.2) (2024-10-01)
+
+
+### Bug Fixes
+
+* **GCP:** 'updated' was not passed to StorageObject for the prefixes ([b535c87](https://github.com/BLSQ/openhexa-app/commit/b535c87013bdae873d756a14273c56a1d01029d9))
+
 ## [0.73.1](https://github.com/BLSQ/openhexa-app/compare/0.73.0...0.73.1) (2024-10-01)
 
 
