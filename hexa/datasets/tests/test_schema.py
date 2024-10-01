@@ -483,7 +483,9 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             key="key1",
             value="value1",
             system=True,
-            content_type=ContentType.objects.get_for_model(DatasetVersionFile),
+            object_content_type_id=ContentType.objects.get_for_model(
+                DatasetVersionFile
+            ).id,
             object_id=file.id,
         )
         r = self.run_query(
@@ -491,11 +493,9 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                     query GetDatasetVersionFile($id: ID!) {
                       datasetVersionFile(id: $id) {
                         filename
-                        metadata {
-                            attributes {
+                         attributes {
                                         key, value, system
                                         }
-                        }
                         fileSample {
                           status
                           sample
@@ -509,15 +509,13 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             {
                 "datasetVersionFile": {
                     "filename": file.filename,
-                    "metadata": {
-                        "attributes": [
-                            {
-                                "key": metadataAttribute.key,
-                                "value": metadataAttribute.value,
-                                "system": metadataAttribute.system,
-                            }
-                        ]
-                    },
+                    "attributes": [
+                        {
+                            "key": metadataAttribute.key,
+                            "value": metadataAttribute.value,
+                            "system": metadataAttribute.system,
+                        }
+                    ],
                     "fileSample": {"status": sample.status, "sample": sample.sample},
                 }
             },
@@ -534,7 +532,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             uri=dataset.latest_version.get_full_uri("file.csv"),
             created_by=superuser,
         )
-        metadata = DatasetFileSample.objects.create(
+        sample = DatasetFileSample.objects.create(
             dataset_version_file=file,
             sample=json.dumps({}),
             status=DatasetFileSample.STATUS_FAILED,
@@ -559,8 +557,8 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                 "datasetVersionFile": {
                     "filename": file.filename,
                     "fileSample": {
-                        "status": metadata.status,
-                        "statusReason": metadata.status_reason,
+                        "status": sample.status,
+                        "statusReason": sample.status_reason,
                     },
                 }
             },
