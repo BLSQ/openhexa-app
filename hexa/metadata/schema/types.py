@@ -15,4 +15,9 @@ def resolve_metadata(parent, info):
         return None
 
 
+@metadata_object.field("opaqueId")
+def resolve_opaque_id(parent, _):
+    return parent
+
+
 bindables = [metadata_object]

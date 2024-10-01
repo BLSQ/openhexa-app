@@ -1,3 +1,5 @@
+import base64
+
 from hexa.datasets.models import Dataset, DatasetVersion
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
@@ -60,3 +62,11 @@ class MetadataTestMixin:
             description=description,
             **kwargs,
         )
+
+
+def encode_base_64(data):
+    return base64.b64encode(data.encode("utf-8")).decode("utf-8")
+
+
+def decode_base_64(data):
+    return base64.b64decode(data.encode("utf-8")).decode("utf-8")

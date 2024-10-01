@@ -1,9 +1,9 @@
 from django.contrib.contenttypes.models import ContentType
 
 from hexa.core.test import GraphQLTestCase
-from hexa.datasets.models import DatasetVersionFile
+from hexa.datasets.models import Dataset, DatasetVersionFile
 from hexa.metadata.models import MetadataAttribute
-from hexa.metadata.tests.testutils import MetadataTestMixin
+from hexa.metadata.tests.testutils import MetadataTestMixin, encode_base_64
 from hexa.workspaces.models import WorkspaceMembershipRole
 
 
@@ -51,21 +51,19 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
         r_before = self.run_query(
             self.queries["get_metadata_for_file"], {"id": str(file.id)}
         )
-        print(r_before)
+        opaque_id = encode_base_64(
+            str(file.id)
+            + ":"
+            + str(ContentType.objects.get_for_model(DatasetVersionFile).id)
+        )
+
         self.assertEqual(
             r_before["data"],
             {
                 "datasetVersionFile": {
                     "filename": "file.csv",
-                    "metadata": {
-                        "id": file.opaque_id,
-                        "attributes": [],
-                        "object": {
-                            "__typename": "DatasetVersionFile",
-                            "id": str(file.id),
-                            "uri": str(file.uri),
-                        },
-                    },
+                    "opaqueId": opaque_id,
+                    "attributes": [],
                 }
             },
         )
@@ -73,7 +71,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["add_metadata_attribute"],
             {
                 "input": {
-                    "opaqueId": file.opaque_id,
+                    "opaqueId": opaque_id,
                     "key": "descriptions",
                     "value": "test",
                 }
@@ -91,17 +89,10 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "datasetVersionFile": {
                     "filename": "file.csv",
-                    "metadata": {
-                        "id": file.opaque_id,
-                        "object": {
-                            "__typename": "DatasetVersionFile",
-                            "id": str(file.id),
-                            "uri": str(file.uri),
-                        },
-                        "attributes": [
-                            {"key": "descriptions", "value": "test", "system": False}
-                        ],
-                    },
+                    "opaqueId": opaque_id,
+                    "attributes": [
+                        {"key": "descriptions", "value": "test", "system": False}
+                    ],
                 }
             },
         )
@@ -128,8 +119,15 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             key="key1",
             value="value1",
             system=True,
-            content_type=ContentType.objects.get_for_model(DatasetVersionFile),
+            object_content_type_id=ContentType.objects.get_for_model(
+                DatasetVersionFile
+            ).id,
             object_id=file.id,
+        )
+        opaque_id = encode_base_64(
+            str(file.id)
+            + ":"
+            + str(ContentType.objects.get_for_model(DatasetVersionFile).id)
         )
         r_before = self.run_query(
             self.queries["get_metadata_for_file"], {"id": str(file.id)}
@@ -139,17 +137,8 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "datasetVersionFile": {
                     "filename": "file.csv",
-                    "metadata": {
-                        "id": file.opaque_id,
-                        "object": {
-                            "__typename": "DatasetVersionFile",
-                            "id": str(file.id),
-                            "uri": str(file.uri),
-                        },
-                        "attributes": [
-                            {"key": "key1", "value": "value1", "system": True}
-                        ],
-                    },
+                    "opaqueId": opaque_id,
+                    "attributes": [{"key": "key1", "value": "value1", "system": True}],
                 }
             },
         )
@@ -157,7 +146,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["delete_metadata_attribute"],
             {
                 "input": {
-                    "opaqueId": file.opaque_id,
+                    "opaqueId": opaque_id,
                     "key": metadataAttribute.key,
                 }
             },
@@ -174,15 +163,8 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "datasetVersionFile": {
                     "filename": "file.csv",
-                    "metadata": {
-                        "id": file.opaque_id,
-                        "object": {
-                            "__typename": "DatasetVersionFile",
-                            "id": str(file.id),
-                            "uri": str(file.uri),
-                        },
-                        "attributes": [],
-                    },
+                    "opaqueId": opaque_id,
+                    "attributes": [],
                 }
             },
         )
@@ -204,11 +186,18 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             uri=dataset.latest_version.get_full_uri("file.csv"),
             created_by=user,
         )
+        opaque_id = encode_base_64(
+            str(file.id)
+            + ":"
+            + str(ContentType.objects.get_for_model(DatasetVersionFile).id)
+        )
         metadataAttribute = MetadataAttribute.objects.create(
             key="key1",
-            value="originalValue",
+            value="value1",
             system=True,
-            content_type=ContentType.objects.get_for_model(DatasetVersionFile),
+            object_content_type_id=ContentType.objects.get_for_model(
+                DatasetVersionFile
+            ).id,
             object_id=file.id,
         )
 
@@ -220,21 +209,14 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "datasetVersionFile": {
                     "filename": "file.csv",
-                    "metadata": {
-                        "id": file.opaque_id,
-                        "object": {
-                            "__typename": "DatasetVersionFile",
-                            "id": str(file.id),
-                            "uri": str(file.uri),
-                        },
-                        "attributes": [
-                            {
-                                "key": metadataAttribute.key,
-                                "value": metadataAttribute.value,
-                                "system": metadataAttribute.system,
-                            }
-                        ],
-                    },
+                    "opaqueId": opaque_id,
+                    "attributes": [
+                        {
+                            "key": metadataAttribute.key,
+                            "value": metadataAttribute.value,
+                            "system": metadataAttribute.system,
+                        }
+                    ],
                 }
             },
         )
@@ -242,7 +224,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["edit_metadata_attribute"],
             {
                 "input": {
-                    "opaqueId": file.opaque_id,
+                    "opaqueId": opaque_id,
                     "key": metadataAttribute.key,
                     "value": "anotherValue",
                 }
@@ -259,21 +241,14 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "datasetVersionFile": {
                     "filename": "file.csv",
-                    "metadata": {
-                        "id": file.opaque_id,
-                        "object": {
-                            "__typename": "DatasetVersionFile",
-                            "id": str(file.id),
-                            "uri": str(file.uri),
-                        },
-                        "attributes": [
-                            {
-                                "key": metadataAttribute.key,
-                                "value": "anotherValue",
-                                "system": False,
-                            }
-                        ],
-                    },
+                    "opaqueId": opaque_id,
+                    "attributes": [
+                        {
+                            "key": metadataAttribute.key,
+                            "value": "anotherValue",
+                            "system": False,
+                        }
+                    ],
                 }
             },
         )
@@ -291,6 +266,10 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
         self.create_dataset_version(principal=user, dataset=dataset)
         self.client.force_login(user)
 
+        opaque_id = encode_base_64(
+            str(dataset.id) + ":" + str(ContentType.objects.get_for_model(Dataset).id)
+        )
+
         r_before = self.run_query(
             self.queries["get_metadata_for_dataset"], {"id": str(dataset.id)}
         )
@@ -298,17 +277,8 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             r_before["data"],
             {
                 "dataset": {
-                    "id": str(dataset.id),
-                    "opaqueId": dataset.opaque_id,
-                    "metadata": {
-                        "id": dataset.opaque_id,
-                        "attributes": [],
-                        "object": {
-                            "__typename": "Dataset",
-                            "id": str(dataset.id),
-                            "name": "Dataset",
-                        },
-                    },
+                    "opaqueId": opaque_id,
+                    "attributes": [],
                 }
             },
         )
@@ -317,7 +287,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["add_metadata_attribute"],
             {
                 "input": {
-                    "opaqueId": dataset.opaque_id,
+                    "opaqueId": opaque_id,
                     "key": "descriptions",
                     "value": "test",
                 }
@@ -334,19 +304,10 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             r_after["data"],
             {
                 "dataset": {
-                    "id": str(dataset.id),
-                    "opaqueId": dataset.opaque_id,
-                    "metadata": {
-                        "id": dataset.opaque_id,
-                        "object": {
-                            "__typename": "Dataset",
-                            "id": str(dataset.id),
-                            "name": dataset.name,
-                        },
-                        "attributes": [
-                            {"key": "descriptions", "value": "test", "system": False}
-                        ],
-                    },
+                    "opaqueId": opaque_id,
+                    "attributes": [
+                        {"key": "descriptions", "value": "test", "system": False}
+                    ],
                 }
             },
         )
@@ -356,6 +317,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             query GetObjectMetadata($id: ID!) {
                   datasetVersionFile(id: $id) {
                     filename
+                    opaqueId
                     attributes {
                           key, value, system
                         }
@@ -365,15 +327,10 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
         "get_metadata_for_dataset": """
         query GetObjectMetadata($id: ID!) {
               dataset(id: $id) {
-                id
                 opaqueId
-                metadata
-                    {
-                    id
-                    attributes {
+                attributes {
                       key, value, system
-                    }
-                  }
+                }
               }
             }
         """,

@@ -57,7 +57,7 @@ def parse_opaque_id_value(value):
 
 @opaque_id_scalar.serializer
 def serialize_opaque_id(value):
-    """Encodes object to base64"""
+    """Encodes object instance id and content type to base64"""
     content_type = ContentType.objects.get_for_model(value)
     value = f"{value.id}:{content_type.id}"
     return base64.b64encode(value.encode("utf-8")).decode("utf-8")
