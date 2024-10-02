@@ -23,7 +23,7 @@ ARG SENTRY_AUTH_TOKEN
 ENV SENTRY_RELEASE=${RELEASE}
 ENV NEXT_PUBLIC_RELEASE=${RELEASE}
 ENV CI=1
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY --link . /code/
 RUN --mount=type=bind,from=deps,source=/code/node_modules,target=/code/node_modules \
@@ -39,9 +39,9 @@ FROM builder AS dev
 
 WORKDIR /code
 
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=development
-ENV PORT 3000
+ENV PORT=3000
 
 COPY . /code/
 
@@ -57,7 +57,7 @@ WORKDIR /code
 ARG APP=/code
 ENV APP_USER=runner
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 $APP_USER \
     && adduser --system --uid 1001 $APP_USER \
     && mkdir .next \
@@ -72,7 +72,7 @@ COPY --from=builder --chown=${APP_USER}:${APP_USER} /code/next-i18next.config.js
 COPY --from=builder --chown=${APP_USER}:${APP_USER} /code/.next ./.next
 COPY --from=builder --chown=${APP_USER}:${APP_USER} /code/server ./server
 
-ENV PORT 3000
+ENV PORT=3000
 EXPOSE ${PORT}
 
 CMD [ "npm", "start" ]
