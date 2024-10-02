@@ -1,13 +1,39 @@
-// This file configures the initialization of Sentry on the browser.
-// The config you add here will be used whenever a page is visited.
+// This file configures the initialization of Sentry on the client.
+// The config you add here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
 import getConfig from "next/config";
 
-const { publicRuntimeConfig } = getConfig();
+/* 
+Sentry will only be initialized on the client side if the page use getServersideProps or getStaticProps! This is a limitation of `getConfig`
+*/
 
+const { publicRuntimeConfig } = getConfig();
 Sentry.init({
+  dsn: publicRuntimeConfig.SENTRY_DSN,
+  environment: publicRuntimeConfig.SENTRY_ENVIRONMENT,
+  // Add optional integrations for additional features
+  integrations: [Sentry.replayIntegration()],
+
+  tracesSampler({ request }) {
+    if (request?.requestPath?.startsWith("/ready")) {
+      return 0;
+    }
+    return publicRuntimeConfig.SENTRY_TRACES_SAMPLE_RATE;
+  },
+
+  // Define how likely Replay events are sampled.
+  // This sets the sample rate to be 1%. You may want this to be 100% while
+  // in development and sample at a lower rate in production
+  replaysSessionSampleRate: 0.01,
+
+  // Define how likely Replay events are sampled when an error occurs.
+  replaysOnErrorSampleRate: 0.5,
+
+  // Setting this option to true will print useful information to the console while you're setting up Sentry.
+  debug: false,
+
   ignoreErrors: [
     // Random plugins/extensions
     "top.GLOBALS",
@@ -47,18 +73,4 @@ Sentry.init({
     /webappstoolbarba\.texthelp\.com\//i,
     /metrics\.itunes\.apple\.com\.edgesuite\.net\//i,
   ],
-  dsn: publicRuntimeConfig.SENTRY_DSN,
-  environment: publicRuntimeConfig.SENTRY_ENVIRONMENT,
-  integrations: [Sentry.browserTracingIntegration()],
-  // Adjust this value in production, or use tracesSampler for greater control
-  tracesSampler({ request }) {
-    if (request?.requestPath?.startsWith("/ready")) {
-      return 0;
-    }
-    return publicRuntimeConfig.SENTRY_TRACES_SAMPLE_RATE;
-  },
-  // ...
-  // Note: if you want to override the automatic release value, do not set a
-  // `release` value here - use the environment variable `SENTRY_RELEASE`, so
-  // that it will also get attached to your source maps
 });

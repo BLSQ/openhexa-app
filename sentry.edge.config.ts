@@ -9,7 +9,13 @@ const { publicRuntimeConfig } = getConfig();
 
 Sentry.init({
   dsn: publicRuntimeConfig.SENTRY_DSN,
-  environment: publicRuntimeConfig.SENTRY_ENVIRONMENT,
+
+  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
+  tracesSampleRate: 1,
+
+  // Setting this option to true will print useful information to the console while you're setting up Sentry.
+  debug: false,
+
   tracePropagationTargets: ["localhost"],
   // Adjust this value in production, or use tracesSampler for greater control
   tracesSampler({ request }) {
@@ -18,8 +24,4 @@ Sentry.init({
     }
     return publicRuntimeConfig.SENTRY_TRACES_SAMPLE_RATE;
   },
-  // ...
-  // Note: if you want to override the automatic release value, do not set a
-  // `release` value here - use the environment variable `SENTRY_RELEASE`, so
-  // that it will also get attached to your source maps
 });

@@ -40,3 +40,6 @@ yarn-error.log*
 # Sentry
 .sentryclirc
 
+
+# Sentry Config File
+.env.sentry-build-plugin
