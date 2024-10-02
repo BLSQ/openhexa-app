@@ -245,12 +245,6 @@ function AccountPage() {
                       WorkspaceInvitationStatus.Pending && (
                       <>
                         <Button
-                          onClick={() => doJoinWorkspace(invitation)}
-                          size="sm"
-                        >
-                          {t("Accept")}
-                        </Button>
-                        <Button
                           onClick={() =>
                             doDeclineWorkspaceInvitation(invitation)
                           }
@@ -258,6 +252,12 @@ function AccountPage() {
                           variant="danger"
                         >
                           {t("Decline")}
+                        </Button>
+                        <Button
+                          onClick={() => doJoinWorkspace(invitation)}
+                          size="sm"
+                        >
+                          {t("Accept")}
                         </Button>
                       </>
                     )}
