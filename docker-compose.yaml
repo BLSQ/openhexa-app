@@ -113,6 +113,30 @@ services:
     depends_on:
       - db
 
+  backup:
+    image: ghcr.io/tecnativa/docker-duplicity-postgres
+    hostname: my.postgres.backup
+    env_file:
+      - path: ./.env
+        required: true
+    environment:
+      - PASSPHRASE=${BACKUP_PASSPHRASE}
+      - EMAIL_FROM=${BACKUP_EMAIL_FROM}
+      - EMAIL_TO={$BACKUP_EMAIL_TO}
+      - PGHOST=${DATABASE_HOST}
+      - PGUSER=${POSTGRES_USER}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - DST=file:///mnt/backup/dst
+    volumes:
+      - "${WORKSPACE_STORAGE_LOCATION:-/data/openhexa}:/mnt/backup/src/data"
+      - /var/backup:/mnt/backup/dst
+    networks:
+      - openhexa
+    restart: unless-stopped
+    depends_on:
+      - db
+      - app
+
 
 networks:
   openhexa:
