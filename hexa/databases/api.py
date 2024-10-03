@@ -84,8 +84,16 @@ def create_database(db_name: str, pwd: str):
                     role=sql.Identifier(db_name),
                 )
             )
-            cursor.execute("create extension postgis;")
-            cursor.execute("create extension postgis_topology;")
+            # Starting from PostgreSQL 15+, we need to grand all access to the public schema to the role when creating a database
+            # No changes are needed for existing databases, the default behavior is kept
+            # More info on https://www.postgresql.org/docs/release/15.0/
+            cursor.execute(
+                sql.SQL("GRANT ALL ON SCHEMA public TO {role}").format(
+                    role=sql.Identifier(db_name)
+                )
+            )
+            cursor.execute("CREATE EXTENSION POSTGIS;")
+            cursor.execute("CREATE EXTENSION POSTGIS_TOPOLOGY;")
     finally:
         if conn:
             conn.close()
