@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.51.0](https://github.com/BLSQ/openhexa-frontend/compare/0.50.8...0.51.0) (2024-10-03)
+
+
+### Features
+
+* **Account:** Switch action buttons position ([#769](https://github.com/BLSQ/openhexa-frontend/issues/769)) ([cdd459c](https://github.com/BLSQ/openhexa-frontend/commit/cdd459c1ee1d99b5f0bbe5a02a15800d25a1ae43))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @sentry/nextjs to v8.33.0 ([b399d13](https://github.com/BLSQ/openhexa-frontend/commit/b399d130d56f1d551420fc82c855ad1a231f18bb))
+* **deps:** update dependency @types/lodash to v4.17.10 ([1137300](https://github.com/BLSQ/openhexa-frontend/commit/1137300fe431fd5bee2fd742070dab47f1c4b7d4))
+* **deps:** update dependency @types/react to v18.3.11 ([72a352f](https://github.com/BLSQ/openhexa-frontend/commit/72a352febe9e7fcb9b64229d4997cae6ec087eef))
+* **deps:** update dependency @uiw/react-codemirror to v4.23.4 ([424702a](https://github.com/BLSQ/openhexa-frontend/commit/424702ab2b90578a888c8a18469ac630854d3dc0))
+* **deps:** update dependency react-dropzone to v14.2.4 ([27d6aed](https://github.com/BLSQ/openhexa-frontend/commit/27d6aed5522893be6e757a4920f2d6ea0a2dc7b0))
+* **deps:** update dependency react-dropzone to v14.2.6 ([f168ec3](https://github.com/BLSQ/openhexa-frontend/commit/f168ec31e8103d6be8e9a1be7a85fb3730c45b72))
+* **deps:** update dependency react-dropzone to v14.2.9 ([2ebae74](https://github.com/BLSQ/openhexa-frontend/commit/2ebae74d9a26978b1326e9f770d9b3b5d8fbaed5))
+* **dev:** OPENHEXA_BACKEND_URL do not takes a trailing slash ([e8a8391](https://github.com/BLSQ/openhexa-frontend/commit/e8a839158e360468555407fe809b5218cad8a7e9))
+* **Sentry:** Fix sentry configuration for the client ([fe4b0db](https://github.com/BLSQ/openhexa-frontend/commit/fe4b0db7e8bbd9ddda9f517c1e7fe10624546320))
+* **Sentry:** Fix sentry configuration for the client ([bfadf8e](https://github.com/BLSQ/openhexa-frontend/commit/bfadf8e1d29eb77bf203e65c8aebae446d6cf386))
+
 ## [0.50.8](https://github.com/BLSQ/openhexa-frontend/compare/0.50.7...0.50.8) (2024-10-01)
 
 
