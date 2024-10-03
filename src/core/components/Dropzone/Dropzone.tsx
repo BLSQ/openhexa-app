@@ -18,8 +18,8 @@ export type DropzoneProps = {
   children?: ReactNode;
   maxFiles?: number;
   onChange: <T extends File>(
-    acceptedFiles: T[],
-    rejectedFiles: FileRejection[],
+    acceptedFiles: readonly T[],
+    rejectedFiles: readonly FileRejection[],
   ) => void;
   validator?: <T extends File>(file: T) => FileError | FileError[] | null;
 };
