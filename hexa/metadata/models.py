@@ -1,6 +1,7 @@
+import typing
 import uuid
 
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
@@ -16,7 +17,7 @@ class MetadataAttribute(Base):
     target = GenericForeignKey("object_content_type", "object_id")
 
     key = models.CharField(max_length=255)
-    value = models.CharField(max_length=255, null=True, blank=True)
+    value = models.JSONField(default=dict)
     system = models.BooleanField(default=False)
 
     class Meta:
@@ -37,29 +38,42 @@ class MetadataAttribute(Base):
         return f"<MetadataAttribute key={self.key} object_id={self.object_id} content_type={self.object_content_type}>"
 
 
-class MetadataMixin:
+class MetadataMixin(models.Model):
     """
     Mixin to add metadata functionality to models.
     This mixin allows the model to associate key-value metadata attributes.
     """
 
-    def can_view_metadata(self, user: User):
+    attributes = GenericRelation(
+        MetadataAttribute,
+        content_type_field="object_content_type",
+        object_id_field="object_id",
+    )
+
+    class Meta:
+        abstract = True
+
+    def can_view_metadata(self, user: User) -> bool:
         raise NotImplementedError
 
-    def can_update_metadata(self, user: User):
+    def can_update_metadata(self, user: User) -> bool:
         raise NotImplementedError
 
-    def can_delete_metadata(self, user: User):
+    def can_delete_metadata(self, user: User) -> bool:
         raise NotImplementedError
 
-    def add_attribute(self, key, value, system):
+    def add_attribute(
+        self, key: str, value: typing.Any, system: bool = False
+    ) -> MetadataAttribute:
         return self.attributes.create(
             key=key,
             value=value,
             system=system,
         )
 
-    def update_attribute(self, key, system, value):
+    def update_or_create_attribute(
+        self, key: str, system: bool, value: typing.Any
+    ) -> MetadataAttribute:
         metadata_attr, _ = self.attributes.update_or_create(
             key=key,
             defaults={
@@ -69,8 +83,6 @@ class MetadataMixin:
         )
         return metadata_attr
 
-    def delete_attribute(self, key):
-        return self.attributes.filter(key=key).delete()
-
-    def get_attributes(self, **kwargs):
-        return self.attributes.filter(**kwargs).all()
+    def delete_attribute(self, key: str) -> None:
+        attr: MetadataAttribute = self.attributes.get(key=key)
+        attr.delete()

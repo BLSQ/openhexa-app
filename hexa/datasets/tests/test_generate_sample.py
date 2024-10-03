@@ -106,14 +106,14 @@ class TestCreateDatasetFileSampleTask(TestCase):
                     self.USER_SERENA,
                     self.DATASET_VERSION,
                     uri=fixture_file_path,
-                    content_type="application/octect-stream",
+                    content_type="application/octet-stream",
                 )
 
                 with patch(
                     "hexa.datasets.queue.generate_download_url"
                 ) as mock_generate_download_url:
                     mock_generate_download_url.return_value = fixture_file_path
-                    sample_entry = generate_sample(version_file, None)
+                    sample_entry = generate_sample(version_file)
                     self.assertEqual(sample_entry.status, expected_status)
                     self.assertEqual(sample_entry.sample, expected_sample)
 

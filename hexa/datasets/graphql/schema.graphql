@@ -16,7 +16,7 @@ type Dataset implements MetadataObject{
   version(id: ID!): DatasetVersion
   latestVersion: DatasetVersion
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
-  attributes : [MetadataAttribute!]!
+  attributes: [MetadataAttribute!]!
   opaqueId: OpaqueID!
 }
 
@@ -46,7 +46,7 @@ type DatasetVersion implements MetadataObject{
   permissions: DatasetVersionPermissions!
   fileByName(name: String!): DatasetVersionFile
   files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!
-  attributes : [MetadataAttribute!]!
+  attributes: [MetadataAttribute!]!
   opaqueId: OpaqueID!
 }
 
@@ -124,7 +124,7 @@ type DatasetVersionFile implements MetadataObject{
   createdBy: User
   contentType: String!
   fileSample: DatasetFileSample
-  attributes : [MetadataAttribute!]!
+  attributes: [MetadataAttribute!]!
   opaqueId: OpaqueID!
 }
 

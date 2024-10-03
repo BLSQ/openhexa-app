@@ -2,8 +2,8 @@
 Interface for type implementing metadata
 """
 interface MetadataObject {
-  opaqueId: OpaqueID!   # Encoded concatenation of the class model type and the instance id -
-  attributes : [MetadataAttribute!]!
+  opaqueId: OpaqueID!
+  attributes: [MetadataAttribute!]!
 }
 
 """
@@ -17,10 +17,19 @@ type MetadataAttribute {
 }
 
 """
-Input to add or edit a custom attribute, empty field for value is accepted
+Input to add a custom attribute, empty field for value is accepted
 """
-input MetadataAttributeInput {
-  opaqueId: OpaqueID!     #Encoded ID of the instance for the linked object
+input CreateMetadataAttributeInput {
+  targetId: OpaqueID!
+  key: String!
+  value: JSON
+}
+
+"""
+Input to edit a custom attribute, empty field for value is accepted
+"""
+input EditMetadataAttributeInput {
+  targetId: OpaqueID!
   key: String!
   value: JSON
 }
@@ -30,67 +39,62 @@ input MetadataAttributeInput {
 Input to delete custom attribute
 """
 input DeleteMetadataAttributeInput {
-  opaqueId: OpaqueID!     #Encoded ID of the instance for the linked object
+  targetId: OpaqueID!
   key: String!
 }
 
 """
 Errors that can occur when creating an attribute.
 """
-enum MetadataCreateAttributeError {
+enum CreateMetadataAttributeError {
   PERMISSION_DENIED
-  MODEL_TYPE_NOT_FOUND
-  MODEL_NOT_FOUND
+  TARGET_NOT_FOUND
   DUPLICATE_KEY
 }
 
 """
 Errors that can occur when deleting an attribute.
 """
-enum MetadataDeleteAttributeError {
+enum DeleteMetadataAttributeError {
   PERMISSION_DENIED
-  MODEL_TYPE_NOT_FOUND
-  MODEL_NOT_FOUND
-  METADATA_OBJECT_NOT_FOUND
+  TARGET_NOT_FOUND
   METADATA_ATTRIBUTE_NOT_FOUND
 }
 
 """
 Errors that can occur when editing an attribute.
 """
-enum MetadataEditAttributeError {
+enum EditMetadataAttributeError {
   PERMISSION_DENIED
-  MODEL_TYPE_NOT_FOUND
-  MODEL_NOT_FOUND
-  METADATA_OBJECT_NOT_FOUND
+  TARGET_NOT_FOUND
 }
 
-type CreateAttributeResult {
+type CreateMetadataAttributeResult {
   success: Boolean!
-  errors: [MetadataCreateAttributeError!]!
+  errors: [CreateMetadataAttributeError!]!
 }
 
-type DeleteAttributeResult {
+type DeleteMetadataAttributeResult {
   success: Boolean!
-  errors: [MetadataDeleteAttributeError!]!
+  errors: [DeleteMetadataAttributeError!]!
 }
 
-type EditAttributeResult {
+type EditMetadataAttributeResult {
   success: Boolean!
-  errors: [MetadataEditAttributeError!]!
+  errors: [EditMetadataAttributeError!]!
 }
 
 extend type Query {
-  metadataAttributes(opaqueId: OpaqueID!): [MetadataAttribute]!
+  metadataAttributes(targetId: OpaqueID!): [MetadataAttribute]!
 }
 
 extend type Mutation {
-  "Add a custom attribute to an object instane"
-  addMetadata(input: MetadataAttributeInput!): CreateAttributeResult! @loginRequired
-  "Delete an attribute from an object instance"
-  deleteMetadata(input: DeleteMetadataAttributeInput!): DeleteAttributeResult! @loginRequired
+  "Add a custom metadata attribute to an object instance"
+  addMetadataAttribute(input: CreateMetadataAttributeInput!): CreateMetadataAttributeResult! @loginRequired
+  "Delete an metadata attribute from an object instance"
+  deleteMetadataAttribute(input: DeleteMetadataAttributeInput!): DeleteMetadataAttributeResult! @loginRequired
   "Edit metadata attribute for an object instance"
-  editMetadata(input: MetadataAttributeInput!): EditAttributeResult! @loginRequired
+  editMetadataAttribute(input: EditMetadataAttributeInput!): EditMetadataAttributeResult! @loginRequired
 }
 
 

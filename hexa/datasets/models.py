@@ -2,7 +2,6 @@ import logging
 import secrets
 
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import JSONField
@@ -11,7 +10,7 @@ from dpq.models import BaseJob
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
-from hexa.metadata.models import MetadataAttribute, MetadataMixin
+from hexa.metadata.models import MetadataMixin
 from hexa.user_management.models import User
 
 logger = logging.getLogger(__name__)
@@ -74,7 +73,7 @@ class DatasetManager(models.Manager):
         return dataset
 
 
-class Dataset(Base, MetadataMixin):
+class Dataset(MetadataMixin, Base):
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -96,24 +95,11 @@ class Dataset(Base, MetadataMixin):
     slug = models.TextField(null=False, blank=False, max_length=255)
     description = models.TextField(blank=True, null=True)
 
-    attributes = GenericRelation(
-        MetadataAttribute,
-        content_type_field="object_content_type",
-        object_id_field="object_id",
-    )
-
     objects = DatasetManager.from_queryset(DatasetQuerySet)()
 
     @property
     def latest_version(self):
         return self.versions.order_by("-created_at").first()
-
-    @property
-    def previous_version(self):
-        all_version = self.versions.order_by("-created_at").all()
-        if all_version.count() > 1:
-            return all_version[1].id
-        return None
 
     def update_if_has_perm(self, *, principal: User, **kwargs):
         if not principal.has_perm("datasets.update_dataset", self):
@@ -198,7 +184,7 @@ class DatasetVersionManager(models.Manager):
         return version
 
 
-class DatasetVersion(Base, MetadataMixin):
+class DatasetVersion(MetadataMixin, Base):
     dataset = models.ForeignKey(
         Dataset,
         null=False,
@@ -216,11 +202,6 @@ class DatasetVersion(Base, MetadataMixin):
         related_name="dataset_versions",
     )
 
-    attributes = GenericRelation(
-        MetadataAttribute,
-        content_type_field="object_content_type",
-        object_id_field="object_id",
-    )
     objects = DatasetVersionManager.from_queryset(DatasetVersionQuerySet)()
 
     class Meta:
@@ -266,6 +247,9 @@ class DatasetVersionFileQuerySet(BaseQuerySet):
             return_all_if_superuser=False,
         )
 
+    def filter_by_filename(self, filename: str):
+        return self.filter(uri__endswith=f"/{filename}")
+
 
 class DatasetVersionFileManager(models.Manager):
     def create_if_has_perm(
@@ -300,7 +284,7 @@ class DatasetVersionFileManager(models.Manager):
         )
 
 
-class DatasetVersionFile(Base, MetadataMixin):
+class DatasetVersionFile(MetadataMixin, Base):
     uri = models.TextField(null=False, blank=False, unique=True)
     content_type = models.TextField(null=False, blank=False)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
@@ -313,12 +297,6 @@ class DatasetVersionFile(Base, MetadataMixin):
     )
 
     objects = DatasetVersionFileManager.from_queryset(DatasetVersionFileQuerySet)()
-
-    attributes = GenericRelation(
-        MetadataAttribute,
-        content_type_field="object_content_type",
-        object_id_field="object_id",
-    )
 
     def can_view_metadata(self, user: User):
         if not user.has_perm("datasets.view_dataset_version_file", self):
@@ -341,31 +319,19 @@ class DatasetVersionFile(Base, MetadataMixin):
 
     @property
     def sample_entry(self):
-        entry = self.samples.first()
-        if entry is None:
-            logger.info("No sample found for file %s, generating one", self.uri)
-            self.generate_sample()
-        return entry
+        return self.samples.first()
 
     @property
     def full_uri(self):
         return self.dataset_version.get_full_uri(self.uri)
 
-    def generate_sample(self):
-        from hexa.datasets.queue import dataset_file_metadata_queue, is_sample_supported
-
-        if not is_sample_supported(self.filename):
-            logger.info("Sample generation not supported for file %s", self.uri)
-            return
-        logger.info("Generating sample for file %s", self.uri)
+    def generate_metadata(self):
+        from hexa.datasets.queue import dataset_file_metadata_queue
 
         dataset_file_metadata_queue.enqueue(
             "generate_file_metadata",
             {
                 "file_id": str(self.id),
-                "previous_version_id": str(
-                    self.dataset_version.dataset.previous_version
-                ),
             },
         )
 

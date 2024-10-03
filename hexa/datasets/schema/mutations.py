@@ -249,7 +249,7 @@ def resolve_create_version_file(_, info, **kwargs):
                     content_type=mutation_input["contentType"],
                 )
 
-            file.generate_sample()
+            file.generate_metadata()
             return {
                 "success": True,
                 "errors": [],

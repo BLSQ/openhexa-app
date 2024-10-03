@@ -54,7 +54,7 @@ services:
       - db
 
   # This service is only used for the connector_accessmod app.
-  dataworker:
+  accessmod_dataworker:
     <<: *common
     command: "manage validate_fileset_worker"
     restart: unless-stopped

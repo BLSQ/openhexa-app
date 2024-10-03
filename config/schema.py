@@ -47,7 +47,12 @@ def parse_uuid_value(value):
 
 @opaque_id_scalar.value_parser
 def parse_opaque_id_value(value):
-    """Decodes base64 value and returns its object instance"""
+    """Decodes base64 value and returns its object instance
+
+    Raises
+    ------
+        ObjectDoesNotExist: If the object instance or the content type does not exist
+    """
     base64_decoded_id = base64.b64decode(value).decode("utf-8")
     instance_id, content_type_id = base64_decoded_id.split(":")
     content_type = ContentType.objects.get_for_id(content_type_id)
