@@ -2,10 +2,11 @@ import os
 from unittest.mock import patch
 
 from django.test import override_settings
+from pandas.errors import EmptyDataError
 
 from hexa.core.test import TestCase
 from hexa.datasets.models import Dataset, DatasetFileSample, DatasetVersionFile
-from hexa.datasets.queue import generate_sample
+from hexa.datasets.queue import generate_sample, load_df
 from hexa.files import storage
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
@@ -37,13 +38,6 @@ class TestCreateDatasetFileSampleTask(TestCase):
         self,
     ):
         CASES = [
-            # It fails because the file is empty (no columns to parse)
-            (
-                "example_empty_file.csv",
-                DatasetFileSample.STATUS_FAILED,
-                [],
-                "No columns to parse from file",
-            ),
             (
                 "example_names.csv",
                 DatasetFileSample.STATUS_FINISHED,
@@ -113,7 +107,8 @@ class TestCreateDatasetFileSampleTask(TestCase):
                     "hexa.datasets.queue.generate_download_url"
                 ) as mock_generate_download_url:
                     mock_generate_download_url.return_value = fixture_file_path
-                    sample_entry = generate_sample(version_file)
+                    df = load_df(version_file)
+                    sample_entry = generate_sample(version_file, df)
                     self.assertEqual(sample_entry.status, expected_status)
                     self.assertEqual(sample_entry.sample, expected_sample)
 
@@ -121,3 +116,23 @@ class TestCreateDatasetFileSampleTask(TestCase):
                         self.assertEqual(
                             sample_entry.status_reason, expected_status_reason
                         )
+
+    def test_generate_sample_fails(self):
+        fixture_name = "example_empty_file.csv"
+        fixture_file_path = os.path.join(
+            os.path.dirname(__file__), f"fixtures/{fixture_name}"
+        )
+        version_file = DatasetVersionFile.objects.create_if_has_perm(
+            self.USER_SERENA,
+            self.DATASET_VERSION,
+            uri=fixture_file_path,
+            content_type="application/octet-stream",
+        )
+
+        with patch(
+            "hexa.datasets.queue.generate_download_url"
+        ) as mock_generate_download_url:
+            mock_generate_download_url.return_value = fixture_file_path
+
+        with self.assertRaises(EmptyDataError):
+            load_df(version_file)
