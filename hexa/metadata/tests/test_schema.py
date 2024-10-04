@@ -56,7 +56,6 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             + ":"
             + str(ContentType.objects.get_for_model(DatasetVersionFile).id)
         )
-
         self.assertEqual(
             r_before["data"],
             {
@@ -71,14 +70,14 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["add_metadata_attribute"],
             {
                 "input": {
-                    "opaqueId": opaque_id,
+                    "targetId": opaque_id,
                     "key": "descriptions",
                     "value": "test",
                 }
             },
         )
         self.assertEqual(
-            r_add["data"], {"addMetadata": {"success": True, "errors": []}}
+            r_add["data"], {"addMetadataAttribute": {"success": True, "errors": []}}
         )
 
         r_after = self.run_query(
@@ -146,14 +145,14 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["delete_metadata_attribute"],
             {
                 "input": {
-                    "opaqueId": opaque_id,
+                    "targetId": opaque_id,
                     "key": metadataAttribute.key,
                 }
             },
         )
         self.assertEqual(
             r_delete["data"],
-            {"deleteMetadata": {"success": True, "errors": []}},
+            {"deleteMetadataAttribute": {"success": True, "errors": []}},
         )
         r_after = self.run_query(
             self.queries["get_metadata_for_file"], {"id": str(file.id)}
@@ -224,14 +223,14 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["edit_metadata_attribute"],
             {
                 "input": {
-                    "opaqueId": opaque_id,
+                    "targetId": opaque_id,
                     "key": metadataAttribute.key,
                     "value": "anotherValue",
                 }
             },
         )
         self.assertEqual(
-            r_edit["data"], {"editMetadata": {"success": True, "errors": []}}
+            r_edit["data"], {"editMetadataAttribute": {"success": True, "errors": []}}
         )
         r_after = self.run_query(
             self.queries["get_metadata_for_file"], {"id": str(file.id)}
@@ -287,14 +286,14 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             self.queries["add_metadata_attribute"],
             {
                 "input": {
-                    "opaqueId": opaque_id,
+                    "targetId": opaque_id,
                     "key": "descriptions",
                     "value": "test",
                 }
             },
         )
         self.assertEqual(
-            r_add["data"], {"addMetadata": {"success": True, "errors": []}}
+            r_add["data"], {"addMetadataAttribute": {"success": True, "errors": []}}
         )
 
         r_after = self.run_query(
@@ -335,8 +334,8 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             }
         """,
         "add_metadata_attribute": """
-            mutation AddMetadataToFile($input: MetadataAttributeInput!){
-              addMetadata(input: $input) {
+            mutation AddMetadataToFile($input: CreateMetadataAttributeInput!){
+              addMetadataAttribute(input: $input) {
                 success
                 errors
               }
@@ -344,15 +343,15 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             """,
         "delete_metadata_attribute": """
             mutation DeleteMetadataFromFile($input: DeleteMetadataAttributeInput!){
-              deleteMetadata(input: $input) {
+              deleteMetadataAttribute(input: $input) {
                 success
                 errors
               }
             }
             """,
         "edit_metadata_attribute": """
-            mutation editMetadataOnFile($input: MetadataAttributeInput!){
-              editMetadata(input: $input) {
+            mutation editMetadataOnFile($input: EditMetadataAttributeInput!){
+              editMetadataAttribute(input: $input) {
                 success
                 errors
               }

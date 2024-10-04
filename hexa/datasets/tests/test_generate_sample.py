@@ -134,5 +134,5 @@ class TestCreateDatasetFileSampleTask(TestCase):
         ) as mock_generate_download_url:
             mock_generate_download_url.return_value = fixture_file_path
 
-        with self.assertRaises(EmptyDataError):
-            load_df(version_file)
+            with self.assertRaises(EmptyDataError):
+                load_df(version_file)
