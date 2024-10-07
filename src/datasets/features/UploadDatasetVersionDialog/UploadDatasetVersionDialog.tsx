@@ -155,6 +155,9 @@ version.add_file("/path/to/file.csv")`}
               </Field>
             </Tabs.Tab>
           </Tabs>
+          {form.submitError && (
+            <p className={"my-2 text-sm text-red-600"}>{form.submitError}</p>
+          )}
         </Dialog.Content>
         <Dialog.Actions>
           <Button

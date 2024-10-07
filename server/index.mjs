@@ -1,6 +1,7 @@
 import express from "express";
 import next from "next";
 import proxy from "express-http-proxy";
+import "dotenv/config";
 const port = process.env.PORT ?? 3000;
 const dev = process.env.NODE_ENV !== "production";
 const api_url = process.env.OPENHEXA_BACKEND_URL ?? "localhost:8000";
