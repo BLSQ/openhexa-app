@@ -2,7 +2,7 @@
 Interface for type implementing metadata
 """
 interface MetadataObject {
-  opaqueId: OpaqueID!
+  targetId: OpaqueID!
   attributes: [MetadataAttribute!]!
 }
 

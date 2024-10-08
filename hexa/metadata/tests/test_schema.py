@@ -61,7 +61,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "datasetVersionFile": {
                     "filename": "file.csv",
-                    "opaqueId": opaque_id,
+                    "targetId": opaque_id,
                     "attributes": [],
                 }
             },
@@ -88,7 +88,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "datasetVersionFile": {
                     "filename": "file.csv",
-                    "opaqueId": opaque_id,
+                    "targetId": opaque_id,
                     "attributes": [
                         {"key": "descriptions", "value": "test", "system": False}
                     ],
@@ -136,7 +136,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "datasetVersionFile": {
                     "filename": "file.csv",
-                    "opaqueId": opaque_id,
+                    "targetId": opaque_id,
                     "attributes": [{"key": "key1", "value": "value1", "system": True}],
                 }
             },
@@ -162,7 +162,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "datasetVersionFile": {
                     "filename": "file.csv",
-                    "opaqueId": opaque_id,
+                    "targetId": opaque_id,
                     "attributes": [],
                 }
             },
@@ -208,7 +208,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "datasetVersionFile": {
                     "filename": "file.csv",
-                    "opaqueId": opaque_id,
+                    "targetId": opaque_id,
                     "attributes": [
                         {
                             "key": metadataAttribute.key,
@@ -240,7 +240,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             {
                 "datasetVersionFile": {
                     "filename": "file.csv",
-                    "opaqueId": opaque_id,
+                    "targetId": opaque_id,
                     "attributes": [
                         {
                             "key": metadataAttribute.key,
@@ -276,7 +276,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             r_before["data"],
             {
                 "dataset": {
-                    "opaqueId": opaque_id,
+                    "targetId": opaque_id,
                     "attributes": [],
                 }
             },
@@ -303,7 +303,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             r_after["data"],
             {
                 "dataset": {
-                    "opaqueId": opaque_id,
+                    "targetId": opaque_id,
                     "attributes": [
                         {"key": "descriptions", "value": "test", "system": False}
                     ],

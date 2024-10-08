@@ -14,7 +14,7 @@ def resolve_metadata(obj, info):
         return None
 
 
-@metadata_object.field("opaqueId")
+@metadata_object.field("targetId")
 def resolve_opaque_id(obj, _):
     return obj
 
