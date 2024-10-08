@@ -51,6 +51,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
         r_before = self.run_query(
             self.queries["get_metadata_for_file"], {"id": str(file.id)}
         )
+
         opaque_id = encode_base_64(
             str(file.id)
             + ":"
@@ -316,7 +317,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             query GetObjectMetadata($id: ID!) {
                   datasetVersionFile(id: $id) {
                     filename
-                    opaqueId
+                    targetId
                     attributes {
                           key, value, system
                         }
@@ -326,7 +327,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
         "get_metadata_for_dataset": """
         query GetObjectMetadata($id: ID!) {
               dataset(id: $id) {
-                opaqueId
+                targetId
                 attributes {
                       key, value, system
                 }

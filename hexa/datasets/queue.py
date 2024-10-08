@@ -1,3 +1,4 @@
+import base64
 from logging import getLogger
 
 import pandas as pd
@@ -158,8 +159,11 @@ def add_system_attributes(version_file: DatasetVersionFile, df: pd.DataFrame | N
     profiling = generate_profile(df)
     for column_profile in profiling:
         for key, value in column_profile.items():
+            base64_encoded_key = base64.b64encode(
+                column_profile["column_name"].encode()
+            ).decode()
             version_file.update_or_create_attribute(
-                key=f'{column_profile["column_name"]}.{key}',
+                key=f"{base64_encoded_key}.{key}",
                 value=value,
                 system=True,
             )
