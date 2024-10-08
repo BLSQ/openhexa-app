@@ -19,7 +19,8 @@ const Tabs = (props: TabsProps) => {
   const { children, defaultIndex = 0, onChange, className } = props;
   const { t } = useTranslation();
   return (
-    <HeadlessTab.Group defaultIndex={defaultIndex} onChange={onChange}>
+    // HeadlessTab.Group is a wrapper for the tabs and panels. To not break Sentry, we need to add the as="div" prop.
+    <HeadlessTab.Group as="div" defaultIndex={defaultIndex} onChange={onChange}>
       <HeadlessTab.List
         className={clsx(
           "border-b border-gray-200 text-sm font-medium ",
