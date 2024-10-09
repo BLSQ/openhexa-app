@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.74.0](https://github.com/BLSQ/openhexa-app/compare/0.73.3...0.74.0) (2024-10-09)
+
+
+### Features
+
+* **Metadata:** add generic metadata and link with dataset, version, files ([#800](https://github.com/BLSQ/openhexa-app/issues/800)) ([c1955ef](https://github.com/BLSQ/openhexa-app/commit/c1955efd076bc1404a1d44bf08269c3c8ad4b284))
+
+
+### Bug Fixes
+
+* **DB:** Starting from PostgreSQL 15+ it's needed to grant all on the public schema to allow creation and deletion of tables by the user ([#822](https://github.com/BLSQ/openhexa-app/issues/822)) ([e8b5ce2](https://github.com/BLSQ/openhexa-app/commit/e8b5ce28b4b5efde5fe634b42436af448a349f2f))
+
 ## [0.73.3](https://github.com/BLSQ/openhexa-app/compare/0.73.2...0.73.3) (2024-10-01)
 
 
