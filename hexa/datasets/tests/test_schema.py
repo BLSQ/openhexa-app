@@ -2,6 +2,7 @@ import json
 from io import BytesIO
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.db import IntegrityError
 
 from hexa.core.test import GraphQLTestCase
@@ -9,7 +10,8 @@ from hexa.files import storage
 from hexa.user_management.models import User
 from hexa.workspaces.models import WorkspaceMembershipRole
 
-from ..models import Dataset, DatasetFileMetadata, DatasetVersionFile
+from ...metadata.models import MetadataAttribute
+from ..models import Dataset, DatasetFileSample, DatasetVersionFile
 from .testutils import DatasetTestMixin
 
 
@@ -472,17 +474,29 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             uri=dataset.latest_version.get_full_uri("file.csv"),
             created_by=superuser,
         )
-        metadata = DatasetFileMetadata.objects.create(
+        sample = DatasetFileSample.objects.create(
             dataset_version_file=file,
             sample=json.dumps({"key": "value"}),
-            status=DatasetFileMetadata.STATUS_PROCESSING,
+            status=DatasetFileSample.STATUS_PROCESSING,
+        )
+        metadataAttribute = MetadataAttribute.objects.create(
+            key="key1",
+            value="value1",
+            system=True,
+            object_content_type_id=ContentType.objects.get_for_model(
+                DatasetVersionFile
+            ).id,
+            object_id=file.id,
         )
         r = self.run_query(
             """
                     query GetDatasetVersionFile($id: ID!) {
                       datasetVersionFile(id: $id) {
                         filename
-                        fileMetadata {
+                         attributes {
+                                        key, value, system
+                                        }
+                        fileSample {
                           status
                           sample
                         }
@@ -495,9 +509,56 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             {
                 "datasetVersionFile": {
                     "filename": file.filename,
-                    "fileMetadata": {
-                        "status": metadata.status,
-                        "sample": metadata.sample,
+                    "attributes": [
+                        {
+                            "key": metadataAttribute.key,
+                            "value": metadataAttribute.value,
+                            "system": metadataAttribute.system,
+                        }
+                    ],
+                    "fileSample": {"status": sample.status, "sample": sample.sample},
+                }
+            },
+            r["data"],
+        )
+
+    def test_get_file_metadata_fail(self):
+        self.test_create_dataset_version()
+        superuser = User.objects.get(email="superuser@blsq.com")
+        dataset = Dataset.objects.get(name="Dataset")
+        self.client.force_login(superuser)
+        file = DatasetVersionFile.objects.create(
+            dataset_version=dataset.latest_version,
+            uri=dataset.latest_version.get_full_uri("file.csv"),
+            created_by=superuser,
+        )
+        sample = DatasetFileSample.objects.create(
+            dataset_version_file=file,
+            sample=json.dumps({}),
+            status=DatasetFileSample.STATUS_FAILED,
+            status_reason="ParserError: Error tokenizing data",
+        )
+        r = self.run_query(
+            """
+                    query GetDatasetVersionFile($id: ID!) {
+                      datasetVersionFile(id: $id) {
+                        filename
+                        fileSample {
+                          status
+                          statusReason
+                        }
+                      }
+                    }
+        """,
+            {"id": str(file.id)},
+        )
+        self.assertEqual(
+            {
+                "datasetVersionFile": {
+                    "filename": file.filename,
+                    "fileSample": {
+                        "status": sample.status,
+                        "statusReason": sample.status_reason,
                     },
                 }
             },

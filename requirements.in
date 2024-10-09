@@ -64,3 +64,6 @@ ua-parser
 # dataset explorer
 pyarrow
 openpyxl
+
+#
+regex
