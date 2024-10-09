@@ -52,7 +52,7 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
         onProgress: setProgress,
       });
       clearCache();
-      onClose();
+      handleClose();
     },
   });
 
@@ -62,9 +62,14 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
     }
   }, [open]);
 
+  const handleClose = () => {
+    form.resetForm();
+    onClose();
+  };
+
   return (
-    <Dialog onSubmit={form.handleSubmit} open={open} onClose={onClose}>
-      <Dialog.Title onClose={onClose}>
+    <Dialog onSubmit={form.handleSubmit} open={open} onClose={handleClose}>
+      <Dialog.Title onClose={handleClose}>
         {t("Upload files in workspace")}
       </Dialog.Title>
       <Dialog.Content>
@@ -82,14 +87,14 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
         <div className="flex items-center justify-between gap-3">
           <Button
             variant="white"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={form.isSubmitting}
           >
             {t("Cancel")}
           </Button>
           <Button
             type="submit"
-            disabled={form.isSubmitting}
+            disabled={!form.isDirty || form.isSubmitting}
             leadingIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
           >
             {form.isSubmitting
