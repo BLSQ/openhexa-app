@@ -143,14 +143,28 @@ class TestCreateDatasetFileSampleTask(TestCase):
         CASES = [
             (
                 "example_names_with_age.csv",
-                "example_name_with_age_profiling.csv",
+                [
+                    "data_type",
+                    "missing_values",
+                    "unique_values",
+                    "distinct_values",
+                    "constant_values",
+                ],
+                "example_names_with_age_profiling.csv",
             ),
             (
                 "senegal_rural_raw.csv",
-                "senegal_rural_profiling.csv",
+                [
+                    "data_type",
+                    "missing_values",
+                    "unique_values",
+                    "distinct_values",
+                    "constant_values",
+                ],
+                "senegal_rural_raw_profiling.csv",
             ),
         ]
-        for case, exptected_result in CASES:
+        for case, expected_values, expected_result in CASES:
             with self.subTest(case=case):
                 fixture_name = case
                 fixture_file_path = os.path.join(
@@ -172,13 +186,19 @@ class TestCreateDatasetFileSampleTask(TestCase):
 
                     # Check if attributes are added correctly
                     attributes = version_file.attributes.all()
-                    attributes = version_file.attributes.all()
-                    attributes_df = pd.DataFrame.from_records(
-                        attributes.values("key", "value", "system")
+                    # Load expected results
+                    expected_result_file_path = os.path.join(
+                        os.path.dirname(__file__), f"./fixtures/{expected_result}"
                     )
+                    expected_df = pd.read_csv(expected_result_file_path)
 
-                    expected_file_path = os.path.join(
-                        os.path.dirname(__file__), f"./fixtures/{exptected_result}"
-                    )
-                    expected_df = pd.read_csv(expected_file_path)
-                    pd.testing.assert_frame_equal(attributes_df, expected_df)
+                    # Compare the values
+                    for original_key, hashed_key in version_file.properties[
+                        "column_name_map"
+                    ].items():
+                        for value in expected_values:
+                            attribute = attributes.get(key=f"{hashed_key}.{value}")
+                            expected_value = expected_df.loc[
+                                expected_df["column_name"] == original_key, value
+                            ].values[0]
+                            self.assertEqual(attribute.value, expected_value)
