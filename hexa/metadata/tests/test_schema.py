@@ -312,6 +312,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             },
         )
 
+    # Queries to interact with metadata attributes on files and datasets
     queries = {
         "get_metadata_for_file": """
             query GetObjectMetadata($id: ID!) {

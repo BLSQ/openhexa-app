@@ -2,18 +2,26 @@ import os
 from unittest.mock import patch
 
 import pandas as pd
+from django.contrib.contenttypes.models import ContentType
 from django.test import override_settings
 from pandas.errors import EmptyDataError
 
 from hexa.core.test import TestCase
 from hexa.datasets.models import Dataset, DatasetFileSample, DatasetVersionFile
-from hexa.datasets.queue import add_system_attributes, generate_sample, load_df
+from hexa.datasets.queue import (
+    add_system_attributes,
+    generate_sample,
+    get_previous_version_file,
+    load_df,
+)
+from hexa.datasets.tests.testutils import DatasetTestMixin
 from hexa.files import storage
+from hexa.metadata.models import MetadataAttribute
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 
 
-class TestCreateDatasetFileSampleTask(TestCase):
+class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
     @classmethod
     def setUpTestData(cls):
         storage.reset()
@@ -138,7 +146,6 @@ class TestCreateDatasetFileSampleTask(TestCase):
             with self.assertRaises(EmptyDataError):
                 load_df(version_file)
 
-    @override_settings(WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE=3)
     def test_add_system_attributes(self):
         CASES = [
             (
@@ -202,3 +209,78 @@ class TestCreateDatasetFileSampleTask(TestCase):
                                 expected_df["column_name"] == original_key, value
                             ].values[0]
                             self.assertEqual(attribute.value, expected_value)
+
+    def test_copy_attributes_with_no_previous_version(self):
+        user = self.create_user(email="superuser@blsq.com", is_superuser=True)
+        user2 = self.create_user(email="notsu@blsq.com")
+        workspace = self.create_workspace(
+            principal=user, name="workspace", description="desc"
+        )
+        self.join_workspace(user2, workspace, WorkspaceMembershipRole.EDITOR)
+        dataset = self.create_dataset(
+            principal=user, description="ds", name="Dataset", workspace=workspace
+        )
+        self.create_dataset_version(principal=user, dataset=dataset)
+        self.client.force_login(user)
+        file = DatasetVersionFile.objects.create(
+            dataset_version=dataset.latest_version,
+            uri=dataset.latest_version.get_full_uri("file.csv"),
+            created_by=user,
+        )
+        # No previous version
+        previous_version = get_previous_version_file(file)
+        self.assertIsNone(previous_version)
+
+        # Copy attributes from previous version
+        add_system_attributes(file, None)
+
+        self.assertEqual(file.attributes.count(), 0)
+
+    def test_copy_attributes_from_previous_version(self):
+        user = self.create_user(email="superuser@blsq.com", is_superuser=True)
+        user2 = self.create_user(email="notsu@blsq.com")
+        workspace = self.create_workspace(
+            principal=user, name="workspace", description="desc"
+        )
+        self.join_workspace(user2, workspace, WorkspaceMembershipRole.EDITOR)
+        dataset = self.create_dataset(
+            principal=user, description="ds", name="Dataset", workspace=workspace
+        )
+        self.create_dataset_version(principal=user, dataset=dataset)
+        self.client.force_login(user)
+        file = DatasetVersionFile.objects.create(
+            dataset_version=dataset.latest_version,
+            uri=dataset.latest_version.get_full_uri("file.csv"),
+            created_by=user,
+        )
+
+        metadataAttribute = MetadataAttribute.objects.create(
+            key="key1",
+            value="value1",
+            system=False,
+            object_content_type_id=ContentType.objects.get_for_model(
+                DatasetVersionFile
+            ).id,
+            object_id=file.id,
+        )
+        # No previous version
+        previous_version = get_previous_version_file(file)
+        self.assertIsNone(previous_version)
+        # Create previous version
+        self.create_dataset_version(principal=user, dataset=dataset, name="v2")
+        file2 = DatasetVersionFile.objects.create(
+            dataset_version=dataset.latest_version,
+            uri=dataset.latest_version.get_full_uri("file.csv"),
+            created_by=user,
+        )
+
+        # Create new version with the same file
+        previous_version_2 = get_previous_version_file(file2)
+        self.assertEqual(previous_version_2.id, file.id)
+
+        # Copy attributes from previous version
+        add_system_attributes(file2, None)
+
+        self.assertEqual(file2.attributes.all().count(), 1)
+        self.assertEqual(file2.attributes.first().key, metadataAttribute.key)
+        self.assertEqual(file2.attributes.first().value, metadataAttribute.value)
