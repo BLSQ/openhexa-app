@@ -10,6 +10,7 @@ from ariadne import (
 )
 from django.contrib.contenttypes.models import ContentType
 
+from hexa.core.schema import config_bindables, config_type_defs
 from hexa.countries.schema import countries_bindables, countries_type_defs
 from hexa.databases.schema import databases_bindables, databases_types_def
 from hexa.datasets.schema import datasets_bindables, datasets_type_defs
@@ -87,6 +88,7 @@ schema = make_executable_schema(
         metadata_type_def,
         databases_types_def,
         files_type_def,
+        config_type_defs,
         datasets_type_defs,
     ],
     [
@@ -106,6 +108,7 @@ schema = make_executable_schema(
         *databases_bindables,
         *files_bindables,
         *datasets_bindables,
+        *config_bindables,
         snake_case_fallback_resolvers,
     ],
     directives=identity_directives,

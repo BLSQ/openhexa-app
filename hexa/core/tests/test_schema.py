@@ -1,3 +1,5 @@
+from django.contrib.auth.password_validation import password_validators_help_texts
+
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_airflow.models import (
     DAG,
@@ -46,3 +48,19 @@ class CoreDashboardTest(GraphQLTestCase):
         cls.DAG = DAG.objects.create(template=template, dag_id="Test DAG 1 ")
 
         DAGPermission.objects.create(dag=cls.DAG, team=cls.TEAM_1)
+
+    def test_get_password_requirements_config(self):
+        response = self.run_query(
+            """
+            query {
+                config {
+                    passwordRequirements
+                }
+            }
+            """
+        )
+
+        self.assertEqual(
+            response["data"]["config"]["passwordRequirements"],
+            password_validators_help_texts(),
+        )

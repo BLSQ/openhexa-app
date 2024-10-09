@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.73.3](https://github.com/BLSQ/openhexa-app/compare/0.73.2...0.73.3) (2024-10-01)
+
+
+### Bug Fixes
+
+* **GCP:** Bucket cannot contain '.' or be a recognized top-level domain ([#820](https://github.com/BLSQ/openhexa-app/issues/820)) ([11da44d](https://github.com/BLSQ/openhexa-app/commit/11da44d974bebe3ed7cfecf0a1d814196aebb174))
+
+## [0.73.2](https://github.com/BLSQ/openhexa-app/compare/0.73.1...0.73.2) (2024-10-01)
+
+
+### Bug Fixes
+
+* **GCP:** 'updated' was not passed to StorageObject for the prefixes ([b535c87](https://github.com/BLSQ/openhexa-app/commit/b535c87013bdae873d756a14273c56a1d01029d9))
+
+## [0.73.1](https://github.com/BLSQ/openhexa-app/compare/0.73.0...0.73.1) (2024-10-01)
+
+
+### Bug Fixes
+
+* Fix wrong mgt of env var TRUST_FORWARDED_PROTO ([#816](https://github.com/BLSQ/openhexa-app/issues/816)) ([21f47b0](https://github.com/BLSQ/openhexa-app/commit/21f47b0d9711f525012524c041714620e023b574))
+
+## [0.73.0](https://github.com/BLSQ/openhexa-app/compare/0.72.8...0.73.0) (2024-10-01)
+
+
+### Features
+
+* **Core:** add query to return password requirements ([#817](https://github.com/BLSQ/openhexa-app/issues/817)) ([8b8d5d9](https://github.com/BLSQ/openhexa-app/commit/8b8d5d90819e0154873407a9fa26d7d383c3103e))
+* **Storage:** Filesystem-based storage backend for files ([d9d7159](https://github.com/BLSQ/openhexa-app/commit/d9d7159d6fc6d1982ca6f4067fb04c878dda3ceb))
+
+
+### Bug Fixes
+
+* **Dataset:** save sample as JSON instead of JSON string ([54e5214](https://github.com/BLSQ/openhexa-app/commit/54e5214eeeb323858e11a13e9dcc18833185d445))
+
 ## [0.72.8](https://github.com/BLSQ/openhexa-app/compare/0.72.7...0.72.8) (2024-09-11)
 
 
