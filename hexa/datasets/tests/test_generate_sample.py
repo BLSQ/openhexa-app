@@ -6,7 +6,7 @@ from pandas.errors import EmptyDataError
 
 from hexa.core.test import TestCase
 from hexa.datasets.models import Dataset, DatasetFileSample, DatasetVersionFile
-from hexa.datasets.queue import generate_sample, load_df
+from hexa.datasets.queue import add_system_attributes, generate_sample, load_df
 from hexa.files import storage
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
@@ -136,3 +136,40 @@ class TestCreateDatasetFileSampleTask(TestCase):
 
             with self.assertRaises(EmptyDataError):
                 load_df(version_file)
+
+    @override_settings(WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE=3)
+    def test_add_system_attributes(self):
+        fixture_name = "example_names.csv"
+        fixture_file_path = os.path.join(
+            os.path.dirname(__file__), f"./fixtures/{fixture_name}"
+        )
+        version_file = DatasetVersionFile.objects.create_if_has_perm(
+            self.USER_SERENA,
+            self.DATASET_VERSION,
+            uri=fixture_file_path,
+            content_type="application/octet-stream",
+        )
+
+        with patch(
+            "hexa.datasets.queue.generate_download_url"
+        ) as mock_generate_download_url:
+            mock_generate_download_url.return_value = fixture_file_path
+            df = load_df(version_file)
+            add_system_attributes(version_file, df)
+
+            # Check if attributes are added correctly
+            attributes = version_file.attributes.all()
+            for attr in attributes:
+                print(attr)
+            self.assertTrue(
+                any(
+                    attr.key == "c3VybmFtZQ==.data_type" and attr.value == "string"
+                    for attr in attributes
+                )
+            )
+            self.assertTrue(
+                any(
+                    attr.key == "c3VybmFtZQ==.missing_values" and attr.value == 0
+                    for attr in attributes
+                )
+            )

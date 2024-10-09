@@ -35,7 +35,7 @@ class MetadataAttribute(Base):
         ]
 
     def __str__(self):
-        return f"<MetadataAttribute key={self.key} object_id={self.object_id} content_type={self.object_content_type}>"
+        return f"key={self.key}:value{self.value} object_id={self.object_id} content_type={self.object_content_type}"
 
 
 class MetadataMixin(models.Model):
