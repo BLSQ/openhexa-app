@@ -1,6 +1,7 @@
 import os
 from unittest.mock import patch
 
+import pandas as pd
 from django.test import override_settings
 from pandas.errors import EmptyDataError
 
@@ -139,37 +140,45 @@ class TestCreateDatasetFileSampleTask(TestCase):
 
     @override_settings(WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE=3)
     def test_add_system_attributes(self):
-        fixture_name = "example_names.csv"
-        fixture_file_path = os.path.join(
-            os.path.dirname(__file__), f"./fixtures/{fixture_name}"
-        )
-        version_file = DatasetVersionFile.objects.create_if_has_perm(
-            self.USER_SERENA,
-            self.DATASET_VERSION,
-            uri=fixture_file_path,
-            content_type="application/octet-stream",
-        )
-
-        with patch(
-            "hexa.datasets.queue.generate_download_url"
-        ) as mock_generate_download_url:
-            mock_generate_download_url.return_value = fixture_file_path
-            df = load_df(version_file)
-            add_system_attributes(version_file, df)
-
-            # Check if attributes are added correctly
-            attributes = version_file.attributes.all()
-            for attr in attributes:
-                print(attr)
-            self.assertTrue(
-                any(
-                    attr.key == "c3VybmFtZQ==.data_type" and attr.value == "string"
-                    for attr in attributes
+        CASES = [
+            (
+                "example_names_with_age.csv",
+                "example_name_with_age_profiling.csv",
+            ),
+            (
+                "senegal_rural_raw.csv",
+                "senegal_rural_profiling.csv",
+            ),
+        ]
+        for case, exptected_result in CASES:
+            with self.subTest(case=case):
+                fixture_name = case
+                fixture_file_path = os.path.join(
+                    os.path.dirname(__file__), f"./fixtures/{fixture_name}"
                 )
-            )
-            self.assertTrue(
-                any(
-                    attr.key == "c3VybmFtZQ==.missing_values" and attr.value == 0
-                    for attr in attributes
+                version_file = DatasetVersionFile.objects.create_if_has_perm(
+                    self.USER_SERENA,
+                    self.DATASET_VERSION,
+                    uri=fixture_file_path,
+                    content_type="application/octet-stream",
                 )
-            )
+
+                with patch(
+                    "hexa.datasets.queue.generate_download_url"
+                ) as mock_generate_download_url:
+                    mock_generate_download_url.return_value = fixture_file_path
+                    df = load_df(version_file)
+                    add_system_attributes(version_file, df)
+
+                    # Check if attributes are added correctly
+                    attributes = version_file.attributes.all()
+                    attributes = version_file.attributes.all()
+                    attributes_df = pd.DataFrame.from_records(
+                        attributes.values("key", "value", "system")
+                    )
+
+                    expected_file_path = os.path.join(
+                        os.path.dirname(__file__), f"./fixtures/{exptected_result}"
+                    )
+                    expected_df = pd.read_csv(expected_file_path)
+                    pd.testing.assert_frame_equal(attributes_df, expected_df)
