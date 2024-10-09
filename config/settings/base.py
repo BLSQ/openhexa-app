@@ -155,6 +155,7 @@ INSTALLED_APPS = [
     "hexa.plugins.connector_accessmod",
     "hexa.workspaces",
     "hexa.databases",
+    "hexa.metadata",
     "hexa.files",
     "hexa.datasets",
     "django_otp",

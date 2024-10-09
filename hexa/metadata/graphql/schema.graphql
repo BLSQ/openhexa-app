@@ -1,0 +1,101 @@
+"""
+Interface for type implementing metadata
+"""
+interface MetadataObject {
+  targetId: OpaqueID!
+  attributes: [MetadataAttribute!]!
+}
+
+"""
+Generic metadata attribute
+"""
+type MetadataAttribute {
+  id: UUID!
+  key: String!
+  value: JSON
+  system: Boolean!
+}
+
+"""
+Input to add a custom attribute, empty field for value is accepted
+"""
+input CreateMetadataAttributeInput {
+  targetId: OpaqueID!
+  key: String!
+  value: JSON
+}
+
+"""
+Input to edit a custom attribute, empty field for value is accepted
+"""
+input EditMetadataAttributeInput {
+  targetId: OpaqueID!
+  key: String!
+  value: JSON
+}
+
+
+"""
+Input to delete custom attribute
+"""
+input DeleteMetadataAttributeInput {
+  targetId: OpaqueID!
+  key: String!
+}
+
+"""
+Errors that can occur when creating an attribute.
+"""
+enum CreateMetadataAttributeError {
+  PERMISSION_DENIED
+  TARGET_NOT_FOUND
+  DUPLICATE_KEY
+}
+
+"""
+Errors that can occur when deleting an attribute.
+"""
+enum DeleteMetadataAttributeError {
+  PERMISSION_DENIED
+  TARGET_NOT_FOUND
+  METADATA_ATTRIBUTE_NOT_FOUND
+}
+
+"""
+Errors that can occur when editing an attribute.
+"""
+enum EditMetadataAttributeError {
+  PERMISSION_DENIED
+  TARGET_NOT_FOUND
+}
+
+type CreateMetadataAttributeResult {
+  success: Boolean!
+  errors: [CreateMetadataAttributeError!]!
+}
+
+type DeleteMetadataAttributeResult {
+  success: Boolean!
+  errors: [DeleteMetadataAttributeError!]!
+}
+
+type EditMetadataAttributeResult {
+  success: Boolean!
+  errors: [EditMetadataAttributeError!]!
+}
+
+extend type Query {
+  metadataAttributes(targetId: OpaqueID!): [MetadataAttribute]!
+}
+
+extend type Mutation {
+  "Add a custom metadata attribute to an object instance"
+  addMetadataAttribute(input: CreateMetadataAttributeInput!): CreateMetadataAttributeResult! @loginRequired
+  "Delete an metadata attribute from an object instance"
+  deleteMetadataAttribute(input: DeleteMetadataAttributeInput!): DeleteMetadataAttributeResult! @loginRequired
+  "Edit metadata attribute for an object instance"
+  editMetadataAttribute(input: EditMetadataAttributeInput!): EditMetadataAttributeResult! @loginRequired
+}
+
+
+

@@ -2,7 +2,7 @@
 """
 Dataset is a collection of files that are related to each other and are versioned.
 """
-type Dataset {
+type Dataset implements MetadataObject{
   id: ID!
   slug: String!
   name: String!
@@ -16,6 +16,8 @@ type Dataset {
   version(id: ID!): DatasetVersion
   latestVersion: DatasetVersion
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+  attributes: [MetadataAttribute!]!
+  targetId: OpaqueID!
 }
 
 """
@@ -34,7 +36,7 @@ type DatasetPermissions {
 A version of a dataset. A version is a snapshot of the dataset at a point in time.
 
 """
-type DatasetVersion {
+type DatasetVersion implements MetadataObject{
   id: ID!
   name: String!
   description: String
@@ -44,6 +46,8 @@ type DatasetVersion {
   permissions: DatasetVersionPermissions!
   fileByName(name: String!): DatasetVersionFile
   files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!
+  attributes: [MetadataAttribute!]!
+  targetId: OpaqueID!
 }
 
 """
@@ -92,33 +96,37 @@ type DatasetVersionPermissions {
 }
 
 """
-Statuses that can occur when generating file metadata
+Statuses that can occur when generating file sample
 """
-enum FileMetadataStatus{
+enum FileSampleStatus{
     PROCESSING,
     FAILED,
     FINISHED
 }
 
 """
-Metadata for dataset file
+File sample for dataset file
 """
-type DatasetFileMetadata {
-    sample: JSON!
-    status: FileMetadataStatus!
+type DatasetFileSample {
+    sample: JSON
+    status: FileSampleStatus!
+    statusReason: String
 }
 
 """
 A file in a dataset version.
 """
-type DatasetVersionFile {
+type DatasetVersionFile implements MetadataObject{
   id: ID!
   uri: String!
   filename: String!
   createdAt: DateTime!
   createdBy: User
   contentType: String!
-  fileMetadata: DatasetFileMetadata
+  fileSample: DatasetFileSample
+  properties: JSON
+  attributes: [MetadataAttribute!]!
+  targetId: OpaqueID!
 }
 
 """
@@ -160,7 +168,6 @@ extend type WorkspacePermissions {
   "Permissions to create a dataset in the workspace"
   createDataset: Boolean!
 }
-
 
 """
 Input for creating a dataset.

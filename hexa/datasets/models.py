@@ -10,6 +10,7 @@ from dpq.models import BaseJob
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
+from hexa.metadata.models import MetadataMixin
 from hexa.user_management.models import User
 
 logger = logging.getLogger(__name__)
@@ -72,7 +73,7 @@ class DatasetManager(models.Manager):
         return dataset
 
 
-class Dataset(Base):
+class Dataset(MetadataMixin, Base):
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -123,6 +124,21 @@ class Dataset(Base):
             description=description,
         )
 
+    def can_view_metadata(self, user: User):
+        if not user.has_perm("datasets.view_dataset", self):
+            raise PermissionDenied
+        return True
+
+    def can_update_metadata(self, user: User):
+        if not user.has_perm("datasets.update_dataset", self):
+            raise PermissionDenied
+        return True
+
+    def can_delete_metadata(self, user: User):
+        if not user.has_perm("datasets.update_dataset", self):
+            raise PermissionDenied
+        return True
+
     def link(self, principal: User, workspace: any):
         return DatasetLink.objects.create(
             created_by=principal,
@@ -168,7 +184,7 @@ class DatasetVersionManager(models.Manager):
         return version
 
 
-class DatasetVersion(Base):
+class DatasetVersion(MetadataMixin, Base):
     dataset = models.ForeignKey(
         Dataset,
         null=False,
@@ -197,6 +213,21 @@ class DatasetVersion(Base):
             raise PermissionDenied
         self.delete()
 
+    def can_view_metadata(self, user: User):
+        if not user.has_perm("datasets.view_dataset_version", self):
+            raise PermissionDenied
+        return True
+
+    def can_update_metadata(self, user: User):
+        if not user.has_perm("datasets.update_dataset_version", self):
+            raise PermissionDenied
+        return True
+
+    def can_delete_metadata(self, user: User):
+        if not user.has_perm("datasets.delete_dataset_version", self):
+            raise PermissionDenied
+        return True
+
     def get_full_uri(self, file_uri):
         return f"{self.dataset.id}/{self.id}/{file_uri.lstrip('/')}"
 
@@ -215,6 +246,9 @@ class DatasetVersionFileQuerySet(BaseQuerySet):
             ),
             return_all_if_superuser=False,
         )
+
+    def filter_by_filename(self, filename: str):
+        return self.filter(uri__endswith=f"/{filename}")
 
 
 class DatasetVersionFileManager(models.Manager):
@@ -250,10 +284,12 @@ class DatasetVersionFileManager(models.Manager):
         )
 
 
-class DatasetVersionFile(Base):
+class DatasetVersionFile(MetadataMixin, Base):
     uri = models.TextField(null=False, blank=False, unique=True)
     content_type = models.TextField(null=False, blank=False)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    properties = JSONField(default=dict)
+
     dataset_version = models.ForeignKey(
         DatasetVersion,
         null=False,
@@ -264,29 +300,36 @@ class DatasetVersionFile(Base):
 
     objects = DatasetVersionFileManager.from_queryset(DatasetVersionFileQuerySet)()
 
+    def can_view_metadata(self, user: User):
+        if not user.has_perm("datasets.view_dataset_version_file", self):
+            raise PermissionDenied
+        return True
+
+    def can_update_metadata(self, user: User):
+        if not user.has_perm("datasets.update_dataset_version_file", self):
+            raise PermissionDenied
+        return True
+
+    def can_delete_metadata(self, user: User):
+        if not user.has_perm("datasets.delete_dataset_version_file", self):
+            raise PermissionDenied
+        return True
+
     @property
     def filename(self):
         return self.uri.split("/")[-1]
 
     @property
     def sample_entry(self):
-        entry = self.metadata_entries.first()
-        if entry is None:
-            logger.info("No sample found for file %s, generating one", self.uri)
-            self.generate_sample()
-        return entry
+        return self.samples.first()
 
     @property
     def full_uri(self):
         return self.dataset_version.get_full_uri(self.uri)
 
-    def generate_sample(self):
-        from hexa.datasets.queue import dataset_file_metadata_queue, is_sample_supported
+    def generate_metadata(self):
+        from hexa.datasets.queue import dataset_file_metadata_queue
 
-        if not is_sample_supported(self.filename):
-            logger.info("Sample generation not supported for file %s", self.uri)
-            return
-        logger.info("Generating sample for file %s", self.uri)
         dataset_file_metadata_queue.enqueue(
             "generate_file_metadata",
             {
@@ -298,7 +341,7 @@ class DatasetVersionFile(Base):
         ordering = ["uri"]
 
 
-class DatasetFileMetadata(Base):
+class DatasetFileSample(Base):
     STATUS_PROCESSING = "PROCESSING"
     STATUS_FAILED = "FAILED"
     STATUS_FINISHED = "FINISHED"
@@ -308,7 +351,6 @@ class DatasetFileMetadata(Base):
         (STATUS_FAILED, _("Failed")),
         (STATUS_FINISHED, _("Finished")),
     ]
-
     sample = JSONField(blank=True, default=list, null=True)
     status = models.CharField(
         max_length=10,
@@ -321,7 +363,7 @@ class DatasetFileMetadata(Base):
         null=False,
         blank=False,
         on_delete=models.CASCADE,
-        related_name="metadata_entries",
+        related_name="samples",
     )
 
     class Meta:
