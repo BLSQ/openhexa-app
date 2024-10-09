@@ -124,6 +124,7 @@ type DatasetVersionFile implements MetadataObject{
   createdBy: User
   contentType: String!
   fileSample: DatasetFileSample
+  properties: JSON
   attributes: [MetadataAttribute!]!
   targetId: OpaqueID!
 }

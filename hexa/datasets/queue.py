@@ -1,4 +1,4 @@
-import base64
+import hashlib
 from logging import getLogger
 
 import pandas as pd
@@ -157,16 +157,20 @@ def add_system_attributes(version_file: DatasetVersionFile, df: pd.DataFrame | N
     if df is None:
         return
     profiling = generate_profile(df)
+    column_name_map = {}
     for column_profile in profiling:
         for key, value in column_profile.items():
-            base64_encoded_key = base64.b64encode(
+            hashed_column_name = hashlib.md5(
                 column_profile["column_name"].encode()
-            ).decode()
+            ).hexdigest()
+            column_name_map[column_profile["column_name"]] = hashed_column_name
             version_file.update_or_create_attribute(
-                key=f"{base64_encoded_key}.{key}",
+                key=f"{hashed_column_name}.{key}",
                 value=value,
                 system=True,
             )
+    version_file.properties["column_name_map"] = column_name_map
+    # Set properties map
 
 
 def generate_file_metadata_task(version_file: DatasetVersionFile) -> None:

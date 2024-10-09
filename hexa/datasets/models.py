@@ -288,6 +288,8 @@ class DatasetVersionFile(MetadataMixin, Base):
     uri = models.TextField(null=False, blank=False, unique=True)
     content_type = models.TextField(null=False, blank=False)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    properties = JSONField(default=dict)
+
     dataset_version = models.ForeignKey(
         DatasetVersion,
         null=False,
