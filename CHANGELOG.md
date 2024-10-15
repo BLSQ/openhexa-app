@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.52.0](https://github.com/BLSQ/openhexa-frontend/compare/0.51.0...0.52.0) (2024-10-13)
+
+
+### Features
+
+* **FileUploader:** prevent user to inadvertently click on upload ([#784](https://github.com/BLSQ/openhexa-frontend/issues/784)) ([90447aa](https://github.com/BLSQ/openhexa-frontend/commit/90447aac5510ae037ccfa66499000173cd64009c))
+
+
+### Bug Fixes
+
+* **Datasets:** Display an error when there is an error for creating a version ([05a8550](https://github.com/BLSQ/openhexa-frontend/commit/05a8550b5ad993934325e0fcd277731002f5d041))
+* **deps:** update dependency @sentry/nextjs to v8.33.1 ([fdf54ae](https://github.com/BLSQ/openhexa-frontend/commit/fdf54ae5ad096766dc2d9404c959922f9bf56762))
+* **deps:** update dependency @sentry/nextjs to v8.34.0 ([63e1e0a](https://github.com/BLSQ/openhexa-frontend/commit/63e1e0a7866309261ad73479ee1fe52b13c91e12))
+* **deps:** update dependency @types/node to v22.7.5 ([005317d](https://github.com/BLSQ/openhexa-frontend/commit/005317d252879791558cfe5fa1977467d39e0955))
+* **deps:** update dependency @uiw/react-codemirror to v4.23.5 ([b49953f](https://github.com/BLSQ/openhexa-frontend/commit/b49953f4ebbeb014371903d061f5d0dbb7c2fce6))
+* **deps:** update dependency cookies-next to v4.3.0 ([77603bc](https://github.com/BLSQ/openhexa-frontend/commit/77603bc68412ec7ca42933c366b569a022e1a5d9))
+* **deps:** update dependency express to v4.21.1 ([2330893](https://github.com/BLSQ/openhexa-frontend/commit/233089300b80efe5eea1072b36487658cc64d28a))
+* **deps:** update dependency i18next to v23.15.2 ([3cf299a](https://github.com/BLSQ/openhexa-frontend/commit/3cf299ab74e056e46294daea82609339cf596457))
+* **deps:** update dependency i18next to v23.16.0 ([44301ee](https://github.com/BLSQ/openhexa-frontend/commit/44301ee60fa1d5d52a11af1f5a5ae205821a5d79))
+* **deps:** update dependency react-i18next to v15.0.3 ([980a968](https://github.com/BLSQ/openhexa-frontend/commit/980a968827a434f1a3398ae451702297511e6b0b))
+* **deps:** update dependency typescript to v5.6.3 ([dfdfaa4](https://github.com/BLSQ/openhexa-frontend/commit/dfdfaa41aa983b8dfa0b35f954ba3f5249dcc5ec))
+* **deps:** update nextjs monorepo to v14.2.15 ([42cd7ce](https://github.com/BLSQ/openhexa-frontend/commit/42cd7ce72387e75d33d5a8d2fe8e96a1de6165c3))
+* **Sentry:** Tabs should render a div and not a Fragment (otherwise Sentry breaks everything) ([6c5e489](https://github.com/BLSQ/openhexa-frontend/commit/6c5e489623adb15f5b0bbc77be85396f824e8ad9))
+
 ## [0.51.0](https://github.com/BLSQ/openhexa-frontend/compare/0.50.8...0.51.0) (2024-10-03)
 
 
