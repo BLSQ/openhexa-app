@@ -8,6 +8,12 @@ import {
   PipelineCard_PipelineFragment,
   PipelineCard_WorkspaceFragment,
 } from "./PipelineCard.generated";
+import Tooltip from "core/components/Tooltip";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import Avatar from "core/components/Avatar";
+import User from "core/features/User";
+import UserAvatar from "identity/features/UserAvatar";
+import { DateTime } from "luxon";
 
 interface PipelineCardProps {
   workspace: PipelineCard_WorkspaceFragment;
@@ -38,14 +44,26 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
         </div>
       }
     >
-      <Card.Content
-        className={clsx(
-          "line-clamp-3",
-          !pipeline.description && "italic text-gray-300",
+      <Card.Content className="space-y-4" title={pipeline.description ?? ""}>
+        <div
+          className={clsx("line-clamp-3", !pipeline.description && "italic")}
+        >
+          {pipeline.description || t("No description")}
+        </div>
+        {pipeline.currentVersion?.user && (
+          <div className="flex justify-end">
+            <Tooltip
+              label={t("Last version uploaded on {{date}} by {{name}}", {
+                date: DateTime.fromISO(
+                  pipeline.currentVersion.createdAt,
+                ).toLocaleString(DateTime.DATE_FULL),
+                name: pipeline.currentVersion.user.displayName,
+              })}
+            >
+              <UserAvatar user={pipeline.currentVersion.user} size="sm" />
+            </Tooltip>
+          </div>
         )}
-        title={pipeline.description ?? ""}
-      >
-        {pipeline.description || t("No description")}
       </Card.Content>
     </Card>
   );
@@ -60,6 +78,12 @@ PipelineCard.fragments = {
       schedule
       description
       type
+      currentVersion {
+        user {
+          ...User_user
+        }
+        createdAt
+      }
       lastRuns: runs(orderBy: EXECUTION_DATE_DESC, page: 1, perPage: 1) {
         items {
           ...PipelineRunStatusBadge_run

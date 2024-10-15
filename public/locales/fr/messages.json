@@ -215,6 +215,7 @@
   "Last run": "Dernière course",
   "Last status": "Dernier statut",
   "Last updated": "Dernière mise à jour",
+  "Last version uploaded on {{date}} by {{name}}": "Dernière version téléchargée le {{date}} par {{name}}",
   "Latest version": "Dernière version",
   "Link": "Lien",
   "Linking this dataset with a workspace is going to make it visible from the workspace's members.": "Le fait de lier ce jeu de données à un workspace le rendra visible par les membres de ce workspace.",

@@ -213,6 +213,7 @@
   "Last run": "Last run",
   "Last status": "Last status",
   "Last updated": "Last updated",
+  "Last version uploaded on {{date}} by {{name}}": "Last version uploaded on {{date}} by {{name}}",
   "Latest version": "Latest version",
   "Link": "Link",
   "Linking this dataset with a workspace is going to make it visible from the workspace's members.": "Linking this dataset with a workspace is going to make it visible from the workspace's members.",
