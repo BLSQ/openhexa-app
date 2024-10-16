@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.74.1](https://github.com/BLSQ/openhexa-app/compare/0.74.0...0.74.1) (2024-10-16)
+
+
+### Bug Fixes
+
+* **cors:** CORS_URL_PREFIXES was invalid since we added the analytics ([844eef4](https://github.com/BLSQ/openhexa-app/commit/844eef462dbbce6064adf29e1bee23cdb34d214a))
+
 ## [0.74.0](https://github.com/BLSQ/openhexa-app/compare/0.73.3...0.74.0) (2024-10-09)
 
 
