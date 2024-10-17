@@ -208,11 +208,12 @@ def resolve_version_permissions_delete(obj: DatasetVersion, info, **kwargs):
     )
 
 
+# We define specifically this field for backward compatibility with the old API
 @dataset_version_file_result_object.field("uploadUrl")
 def resolve_upload_url(obj, info, **kwargs):
     try:
         file = obj["file"]
-        upload_url = generate_upload_url(file.uri, file.object_content_type)
+        upload_url = generate_upload_url(file.uri, file.content_type)
         return upload_url
     except storage.exceptions.AlreadyExists as exc:
         logging.error(f"Upload URL generation failed: {exc.message}")
