@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.74.2](https://github.com/BLSQ/openhexa-app/compare/0.74.1...0.74.2) (2024-10-17)
+
+
+### Bug Fixes
+
+* CORS regex was not correct and the dev configuration was redefining unnecessary variables ([5192426](https://github.com/BLSQ/openhexa-app/commit/51924265f89ba07c3703a6bcaebdd5a9edbe59a1))
+* Move removed variable from dev to the test configuration ([10894b2](https://github.com/BLSQ/openhexa-app/commit/10894b2bf69de79d6499aa10b48df73cd2983afa))
+* **Pipelines:** Run outputs can be a StorageObject instance ([#830](https://github.com/BLSQ/openhexa-app/issues/830)) ([688ab7d](https://github.com/BLSQ/openhexa-app/commit/688ab7dc403b95e69e9eb009a436416b93e6d1a0))
+
 ## [0.74.1](https://github.com/BLSQ/openhexa-app/compare/0.74.0...0.74.1) (2024-10-16)
 
 
