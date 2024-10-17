@@ -29,6 +29,17 @@ COPY . /code/
 
 ARG DJANGO_SETTINGS_MODULE
 
+# Rootless
+ARG USER=openhexa
+ARG GROUP=openhexa
+RUN groupadd --gid 1000 $GROUP &&\
+  useradd --gid 1000 --uid 1000 --no-create-home --home-dir /code --no-log-init --shell /bin/bash $USER &&\
+  passwd -d $USER
+
+RUN chown -R $USER:$GROUP /code/
+RUN mkdir /data && chown $USER:$GROUP /data
+USER $USER:$GROUP
+
 # Entry point
 ARG WORKSPACE_STORAGE_LOCATION
 ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
@@ -49,6 +60,9 @@ ARG DJANGO_SETTINGS_MODULE
 ARG WORKSPACE_STORAGE_LOCATION
 ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
 ENV WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
+
+USER root:root
+
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -63,3 +77,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get install -y --no-install-recommends docker-ce-cli && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Rootless
+RUN groupadd --gid 999 docker
+RUN usermod -aG docker $USER
+USER $USER:$GROUP
