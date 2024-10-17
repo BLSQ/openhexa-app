@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.74.3](https://github.com/BLSQ/openhexa-app/compare/0.74.2...0.74.3) (2024-10-17)
+
+
+### Bug Fixes
+
+* **datasets:** fix the backward compatibility field 'uploadUrl' on CreateDatasetVersionFileResult ([#831](https://github.com/BLSQ/openhexa-app/issues/831)) ([a227658](https://github.com/BLSQ/openhexa-app/commit/a227658fcc607b774d57c344c669e5d1731005a8))
+
 ## [0.74.2](https://github.com/BLSQ/openhexa-app/compare/0.74.1...0.74.2) (2024-10-17)
 
 
