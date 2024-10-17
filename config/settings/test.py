@@ -2,6 +2,11 @@ from .dev import *  # noqa: F403, F401
 
 DEBUG = False
 
+ALLOWED_HOSTS = ["*"]
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
+
 # Custom test runner
 TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"
 WORKSPACE_STORAGE_BACKEND = {"engine": "hexa.files.backends.dummy.DummyStorageClient"}
