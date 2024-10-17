@@ -2,6 +2,7 @@ import base64
 import random
 import string
 import uuid
+from io import StringIO
 from unittest.mock import MagicMock, patch
 
 from django import test
@@ -10,6 +11,7 @@ from django.core import mail
 from django.core.signing import Signer
 
 from hexa.core.test import GraphQLTestCase
+from hexa.files import storage
 from hexa.files.backends.exceptions import NotFound
 from hexa.pipelines.models import (
     Pipeline,
@@ -852,16 +854,12 @@ class PipelinesV2Test(GraphQLTestCase):
             f"gs://{pipeline.workspace.bucket_name}/my_file", "file", "my_file"
         )
         run.add_output("uri2", "db", "my_table")
-        run.add_output("uri3", "link", "my_link")
-
+        storage.save_object(pipeline.workspace.bucket_name, "my_file", StringIO(""))
         with patch(
-            "hexa.pipelines.schema.types.get_bucket_object",
-            MagicMock(),
-        ) as bucket_mock, patch(
             "hexa.pipelines.schema.types.get_table_definition",
-            MagicMock(),
-        ) as table_mock:
-            self.run_query(
+            return_value={"columns": [], "count": 0, "name": "my_table"},
+        ):
+            r = self.run_query(
                 """
                 query pipelineRunOutputs($id: UUID!) {
                     pipelineRun(id: $id) {
@@ -873,10 +871,13 @@ class PipelinesV2Test(GraphQLTestCase):
             """,
                 {"id": str(run.id)},
             )
-            bucket_mock.assert_called_once_with(
-                pipeline.workspace.bucket_name, "my_file"
+            self.assertEqual(
+                r["data"]["pipelineRun"]["outputs"],
+                [
+                    {"__typename": "BucketObject"},
+                    {"__typename": "DatabaseTable"},
+                ],
             )
-            table_mock.assert_called_once_with(pipeline.workspace, "my_table")
 
     def test_pipeline_run_file_output_failed(self):
         self.test_create_pipeline_version()
