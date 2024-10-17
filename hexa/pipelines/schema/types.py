@@ -7,6 +7,7 @@ from sentry_sdk import capture_exception
 from hexa.core.graphql import result_page
 from hexa.databases.utils import get_table_definition
 from hexa.files import storage
+from hexa.files.backends.base import StorageObject
 from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_permissions
@@ -28,10 +29,6 @@ generic_output_object = ObjectType("GenericOutput")
 pipeline_run_output_union = UnionType("PipelineRunOutput")
 
 
-def get_bucket_object(bucket_name, file):
-    return storage.get_bucket_object(bucket_name, file)
-
-
 @workspace_permissions.field("createPipeline")
 def resolve_workspace_permissions_create_pipeline(obj: Workspace, info, **kwargs):
     request = info.context["request"]
@@ -43,12 +40,12 @@ def resolve_workspace_permissions_create_pipeline(obj: Workspace, info, **kwargs
 
 @pipeline_run_output_union.type_resolver
 def resolve_run_output_type(obj, *_):
-    if "columns" in obj:
-        return "DatabaseTable"
-    elif obj["type"] == "file" or obj["type"] == "directory":
+    if isinstance(obj, StorageObject):
         return "BucketObject"
-
-    return "GenericOutput"
+    elif "columns" in obj:
+        return "DatabaseTable"
+    else:
+        return "GenericOutput"
 
 
 @pipeline_parameter.field("name")
@@ -239,7 +236,7 @@ def resolve_pipeline_run_outputs(run: PipelineRun, info, **kwargs):
         try:
             if output["type"] == "file":
                 result.append(
-                    get_bucket_object(
+                    storage.get_bucket_object(
                         workspace.bucket_name,
                         output["uri"][len(f"gs://{workspace.bucket_name}/") :],
                     )

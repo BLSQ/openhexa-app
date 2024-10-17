@@ -114,7 +114,7 @@ class DummyStorageClient(Storage):
             raise self.exceptions.NotFound(
                 f"Object '{object_key}' not found in bucket '{bucket_name}'."
             )
-        return self.to_storage_object(bucket_name, object_key)
+        return self._to_storage_object(bucket_name, object_key)
 
     def list_bucket_objects(
         self,
