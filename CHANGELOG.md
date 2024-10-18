@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.74.4](https://github.com/BLSQ/openhexa-app/compare/0.74.3...0.74.4) (2024-10-18)
+
+
+### Bug Fixes
+
+* **datasets:** move the save() in its own try..except ([43bcd1e](https://github.com/BLSQ/openhexa-app/commit/43bcd1e0553ab9f727e1acbc97a70d24f469ef39))
+
 ## [0.74.3](https://github.com/BLSQ/openhexa-app/compare/0.74.2...0.74.3) (2024-10-17)
 
 
