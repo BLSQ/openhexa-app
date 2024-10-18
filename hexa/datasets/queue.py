@@ -78,16 +78,19 @@ def generate_sample(
             )
             dataset_file_sample.sample = sample.to_dict(orient="records")
         dataset_file_sample.status = DatasetFileSample.STATUS_FINISHED
-        logger.info(f"Sample saved for file {version_file.id}")
     except Exception as e:
         logger.exception(
             f"Sample creation failed for file {version_file.id}: {e}", exc_info=e
         )
         dataset_file_sample.status = DatasetFileSample.STATUS_FAILED
         dataset_file_sample.status_reason = str(e)
-    finally:
+
+    try:
         dataset_file_sample.save()
-        return dataset_file_sample
+    except Exception as e:
+        logger.exception(
+            f"Sample creation failed for file {version_file.id}: {e}", exc_info=e
+        )
 
 
 def generate_profile(df: pd.DataFrame) -> list:
