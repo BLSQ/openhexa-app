@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.74.4](https://github.com/BLSQ/openhexa-app/compare/0.74.3...0.74.4) (2024-10-21)
+
+
+### Bug Fixes
+
+* **datasets:** move the save() in its own try..except ([43bcd1e](https://github.com/BLSQ/openhexa-app/commit/43bcd1e0553ab9f727e1acbc97a70d24f469ef39))
+* **datasets:** return the dataset_file_sample to not break tests ([1da48bd](https://github.com/BLSQ/openhexa-app/commit/1da48bdd29b2d2e65df4b401c4957929a90cd1cf))
+* **datasets:** When saving the sample in DB, we need a custom encoder that supports dates & uuids ([#836](https://github.com/BLSQ/openhexa-app/issues/836)) ([88c0e39](https://github.com/BLSQ/openhexa-app/commit/88c0e396062ebc0ff4833c56dc0defdee42b3029))
+
 ## [0.74.3](https://github.com/BLSQ/openhexa-app/compare/0.74.2...0.74.3) (2024-10-17)
 
 
