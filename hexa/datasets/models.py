@@ -3,6 +3,7 @@ import secrets
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models import JSONField
 from django.utils.translation import gettext_lazy as _
@@ -351,7 +352,7 @@ class DatasetFileSample(Base):
         (STATUS_FAILED, _("Failed")),
         (STATUS_FINISHED, _("Finished")),
     ]
-    sample = JSONField(blank=True, default=list, null=True)
+    sample = JSONField(blank=True, default=list, null=True, encoder=DjangoJSONEncoder)
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
