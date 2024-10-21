@@ -91,6 +91,8 @@ def generate_sample(
         logger.exception(
             f"Sample creation failed for file {version_file.id}: {e}", exc_info=e
         )
+    finally:
+        return dataset_file_sample
 
 
 def generate_profile(df: pd.DataFrame) -> list:
