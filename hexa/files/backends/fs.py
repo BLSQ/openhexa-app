@@ -288,7 +288,7 @@ class FileSystemStorage(Storage):
         )
         internal_url = reverse("files:upload_file", args=(token,))
         if host is None:
-            host = settings.NEW_FRONTEND_DOMAIN
+            host = settings.BASE_URL
 
         return f"{host}{internal_url}"
 

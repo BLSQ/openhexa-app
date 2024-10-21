@@ -6,7 +6,6 @@ from tempfile import mkdtemp
 from unittest.mock import patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
 
 from hexa.core.test import TestCase
 from hexa.files.backends.fs import FileSystemStorage
@@ -178,13 +177,12 @@ class FileSystemStorageTest(TestCase):
         self.assertEqual(len(res.items), 1)
         self.assertEqual(res.items[0].name, "found-2.txt")
 
-    @override_settings(NEW_FRONTEND_DOMAIN="http://localhost")
     def test_generate_upload_url(self):
         self.storage.create_bucket("default-bucket")
         url = self.storage.generate_upload_url(
             "default-bucket", "file.txt", content_type="text/plain"
         )
-        self.assertTrue(url.startswith("http://localhost/files/up/"))
+        self.assertTrue(url.startswith("http://localhost:8000/files/up/"))
         token = url.split("/")[-2]
 
         self.assertEqual(
