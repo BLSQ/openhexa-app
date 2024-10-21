@@ -94,6 +94,28 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 ],
                 None,
             ),
+            (
+                "example_uuid_dates.csv",
+                DatasetFileSample.STATUS_FINISHED,
+                [
+                    {
+                        "created_at": "2023-10-05T12:00:00Z",
+                        "id": "5i1f1g0h-2g3h-8i7h-3d4e-5f6g7h8i9j0k",
+                        "label": "Bos taurus",
+                    },
+                    {
+                        "created_at": "2023-11-14T12:00:00Z",
+                        "id": "5w1t1u0v-2u3v-8w7v-3r4s-5t6u7v8w9x0y",
+                        "label": "Panthera leo bleyenberghi",
+                    },
+                    {
+                        "created_at": "2023-10-01T12:00:00Z",
+                        "id": "1e7b7e6e-8c9d-4f3e-9c1f-1a2b3c4d5e6f",
+                        "label": "Panthera leo",
+                    },
+                ],
+                None,
+            ),
         ]
         for (
             fixture_name,
@@ -117,7 +139,8 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 ) as mock_generate_download_url:
                     mock_generate_download_url.return_value = fixture_file_path
                     df = load_df(version_file)
-                    sample_entry = generate_sample(version_file, df)
+                    generate_sample(version_file, df)
+                    sample_entry = version_file.sample_entry
                     self.assertEqual(sample_entry.status, expected_status)
                     self.assertEqual(sample_entry.sample, expected_sample)
 
