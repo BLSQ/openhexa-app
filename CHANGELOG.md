@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.53.2](https://github.com/BLSQ/openhexa-frontend/compare/0.53.1...0.53.2) (2024-10-22)
+
+
+### Miscellaneous Chores
+
+* Release 0.53.2 ([4f271d2](https://github.com/BLSQ/openhexa-frontend/commit/4f271d215ac49c06cab92a7337056f824e9375b3))
+
 ## [0.53.1](https://github.com/BLSQ/openhexa-frontend/compare/0.53.0...0.53.1) (2024-10-22)
 
 
