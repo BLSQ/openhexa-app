@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.53.1](https://github.com/BLSQ/openhexa-frontend/compare/0.53.0...0.53.1) (2024-10-22)
+
+
+### Bug Fixes
+
+* **Nextjs:** Remove instrumentationHook from config & fix 'as' props for the Tabs ([cedb3a3](https://github.com/BLSQ/openhexa-frontend/commit/cedb3a386b104c1b7e6b94baa88b17c6f188b9d2))
+* **tests:** Update snapshot ([45120fa](https://github.com/BLSQ/openhexa-frontend/commit/45120fafde36a56da0d414a601e9f7bc4857df5a))
+
 ## [0.53.0](https://github.com/BLSQ/openhexa-frontend/compare/0.52.0...0.53.0) (2024-10-22)
 
 
