@@ -1,0 +1,4 @@
+name,surname,age,married
+Joe,Doe,10,True
+Liam,Smith,,False
+Emma,Johnson,,False
