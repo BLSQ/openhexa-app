@@ -13,11 +13,13 @@ def generate_upload_url(file_uri, content_type: str, host: str | None = None):
     )
 
 
-def generate_download_url(version_file, host: str | None = None):
+def generate_download_url(
+    version_file, host: str | None = None, force_attachment: bool = True
+):
     return storage.generate_download_url(
         settings.WORKSPACE_DATASETS_BUCKET,
         version_file.uri,
-        force_attachment=True,
+        force_attachment=force_attachment,
         host=host,
     )
 

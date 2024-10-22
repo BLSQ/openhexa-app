@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.datasets.api import generate_upload_url
+from hexa.datasets.api import generate_download_url, generate_upload_url
 from hexa.datasets.models import (
     Dataset,
     DatasetFileSample,
@@ -227,6 +227,15 @@ def resolve_version_file_metadata(obj: DatasetVersionFile, info, **kwargs):
     except DatasetFileSample.DoesNotExist:
         logging.error(f"No sample found for file {obj.filename} with id {obj.id}")
         return None
+
+
+@dataset_version_file_object.field("downloadUrl")
+def resolve_version_file_download_url(
+    obj: DatasetVersionFile, info, attachment: bool = True, **kwargs
+):
+    request: HttpRequest = info.context["request"]
+    if request.user.has_perm("datasets.download_dataset_version", obj.dataset_version):
+        return generate_download_url(obj, force_attachment=attachment)
 
 
 bindables = [

@@ -1,10 +1,12 @@
 from django.http import FileResponse, HttpRequest, HttpResponse, HttpResponseBadRequest
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from hexa.files import storage
 
 
+@xframe_options_exempt
 def download_file(request: HttpRequest, token: str) -> HttpResponse:
     if hasattr(storage, "get_bucket_object_by_token") is False:
         return HttpResponseBadRequest("Storage does not support token-based access")
