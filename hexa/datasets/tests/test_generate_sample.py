@@ -7,7 +7,12 @@ from django.test import override_settings
 from pandas.errors import EmptyDataError
 
 from hexa.core.test import TestCase
-from hexa.datasets.models import Dataset, DatasetFileSample, DatasetVersionFile
+from hexa.datasets.models import (
+    DataframeJsonEncoder,
+    Dataset,
+    DatasetFileSample,
+    DatasetVersionFile,
+)
 from hexa.datasets.queue import (
     add_system_attributes,
     generate_sample,
@@ -19,6 +24,12 @@ from hexa.files import storage
 from hexa.metadata.models import MetadataAttribute
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
+
+
+class TestDataframeJsonEncoder(TestCase):
+    def test_default(self):
+        encoder = DataframeJsonEncoder()
+        self.assertEqual(encoder.encode({"a": float("nan")}), '{"a": null}')
 
 
 class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
@@ -113,6 +124,21 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                         "id": "1e7b7e6e-8c9d-4f3e-9c1f-1a2b3c4d5e6f",
                         "label": "Panthera leo",
                     },
+                ],
+                None,
+            ),
+            (
+                "example_with_nan.csv",
+                DatasetFileSample.STATUS_FINISHED,
+                [
+                    {
+                        "age": None,
+                        "name": "Liam",
+                        "married": False,
+                        "surname": "Smith",
+                    },
+                    {"age": 10.0, "name": "Joe", "married": True, "surname": "Doe"},
+                    {"age": 10.0, "name": "Joe", "married": True, "surname": "Doe"},
                 ],
                 None,
             ),
