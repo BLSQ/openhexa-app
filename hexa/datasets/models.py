@@ -1,4 +1,5 @@
 import logging
+import math
 import secrets
 from functools import cached_property
 
@@ -350,6 +351,24 @@ class DatasetVersionFile(MetadataMixin, Base):
         ordering = ["uri"]
 
 
+class DataframeJsonEncoder(DjangoJSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+            return None
+        elif isinstance(obj, (list, dict)):
+            return self.clean_nan_values(obj)
+        return super().default(obj)
+
+    def clean_nan_values(self, data):
+        if isinstance(data, dict):
+            return {k: self.clean_nan_values(v) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [self.clean_nan_values(i) for i in data]
+        elif isinstance(data, float) and (math.isnan(data) or math.isinf(data)):
+            return None
+        return data
+
+
 class DatasetFileSample(Base):
     STATUS_PROCESSING = "PROCESSING"
     STATUS_FAILED = "FAILED"
@@ -360,7 +379,9 @@ class DatasetFileSample(Base):
         (STATUS_FAILED, _("Failed")),
         (STATUS_FINISHED, _("Finished")),
     ]
-    sample = JSONField(blank=True, default=list, null=True, encoder=DjangoJSONEncoder)
+    sample = JSONField(
+        blank=True, default=list, null=True, encoder=DataframeJsonEncoder
+    )
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
