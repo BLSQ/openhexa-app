@@ -352,21 +352,21 @@ class DatasetVersionFile(MetadataMixin, Base):
 
 
 class DataframeJsonEncoder(DjangoJSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
-            return None
-        elif isinstance(obj, (list, dict)):
-            return self.clean_nan_values(obj)
-        return super().default(obj)
+    def encode(self, obj):
+        # Recursively replace NaN with None (since it's a float, it does not call 'default' method)
+        def replace_nan(item):
+            if isinstance(item, float) and math.isnan(item):
+                return None
+            elif isinstance(item, dict):
+                return {key: replace_nan(value) for key, value in item.items()}
+            elif isinstance(item, list):
+                return [replace_nan(element) for element in item]
+            return item
 
-    def clean_nan_values(self, data):
-        if isinstance(data, dict):
-            return {k: self.clean_nan_values(v) for k, v in data.items()}
-        elif isinstance(data, list):
-            return [self.clean_nan_values(i) for i in data]
-        elif isinstance(data, float) and (math.isnan(data) or math.isinf(data)):
-            return None
-        return data
+        # Preprocess the object to replace NaN values
+        obj = replace_nan(obj)
+        # Use the superclass's encode method to serialize the preprocessed object
+        return super().encode(obj)
 
 
 class DatasetFileSample(Base):
@@ -380,7 +380,10 @@ class DatasetFileSample(Base):
         (STATUS_FINISHED, _("Finished")),
     ]
     sample = JSONField(
-        blank=True, default=list, null=True, encoder=DataframeJsonEncoder
+        blank=True,
+        default=list,
+        null=True,
+        encoder=DataframeJsonEncoder,
     )
     status = models.CharField(
         max_length=10,

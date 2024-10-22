@@ -7,7 +7,12 @@ from django.test import override_settings
 from pandas.errors import EmptyDataError
 
 from hexa.core.test import TestCase
-from hexa.datasets.models import Dataset, DatasetFileSample, DatasetVersionFile
+from hexa.datasets.models import (
+    DataframeJsonEncoder,
+    Dataset,
+    DatasetFileSample,
+    DatasetVersionFile,
+)
 from hexa.datasets.queue import (
     add_system_attributes,
     generate_sample,
@@ -19,6 +24,12 @@ from hexa.files import storage
 from hexa.metadata.models import MetadataAttribute
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
+
+
+class TestDataframeJsonEncoder(TestCase):
+    def test_default(self):
+        encoder = DataframeJsonEncoder()
+        self.assertEqual(encoder.encode({"a": float("nan")}), '{"a": null}')
 
 
 class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
@@ -121,7 +132,7 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 DatasetFileSample.STATUS_FINISHED,
                 [
                     {
-                        "age": "NaN",
+                        "age": None,
                         "name": "Liam",
                         "married": False,
                         "surname": "Smith",
