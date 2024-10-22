@@ -31,7 +31,7 @@ const Tabs = (props: TabsProps) => {
   return (
     // HeadlessTab.Group is a wrapper for the tabs and panels. To not break Sentry, we need to add the as="div" prop.
     <HeadlessTab.Group
-      as={Fragment}
+      as={"div"}
       defaultIndex={defaultIndex}
       onChange={onChange}
     >
