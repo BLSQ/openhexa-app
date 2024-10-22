@@ -75,7 +75,7 @@ deprecated==1.2.14
     # via opentelemetry-api
 dhis2-py==2.3.0
     # via -r requirements.in
-django==5.0.9
+django==4.2.16
     # via
     #   -r requirements.in
     #   ariadne-django
@@ -347,7 +347,7 @@ sqlparse==0.5.1
     # via
     #   django
     #   django-debug-toolbar
-starlette==0.38.2
+starlette==0.40.0
     # via ariadne
 stringcase==1.2.0
     # via -r requirements.in
