@@ -20,6 +20,7 @@ import DisableClickPropagation from "../DisableClickPropagation";
 import Spinner from "../Spinner";
 import { DataCardSectionContext } from "./context";
 import { Property, PropertyDefinition, PropertyFlag } from "./types";
+import clsx from "clsx";
 
 export type OnSaveFn = (
   values: { [key: string]: any },
@@ -170,72 +171,88 @@ function FormSection<F extends { [key: string]: any }>(
     },
   };
 
+  const renderEditButton = () => {
+    if (!onSave || isEdited) {
+      return null;
+    }
+    return (
+      <DisableClickPropagation>
+        <button
+          className="ml-4 inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-400"
+          onClick={section.toggleEdit}
+        >
+          {editLabel ?? t("Edit")}
+          {editIcon ?? <PencilIcon className="h-4" />}
+        </button>
+      </DisableClickPropagation>
+    );
+  };
+
+  const renderTitle = ({ open }: { open: boolean }) => (
+    <>
+      {typeof title === "string" ? (
+        <h4 className="font-medium">{title}</h4>
+      ) : (
+        title
+      )}
+      {open && renderEditButton()}
+      <div className="flex flex-1 flex-shrink items-center justify-end">
+        {collapsible && (
+          <button title={open ? t("Hide") : t("Show")}>
+            {open ? (
+              <ChevronDownIcon className="h-5 w-5" />
+            ) : (
+              <ChevronRightIcon className="h-5 w-5" />
+            )}
+          </button>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <DataCardSectionContext.Provider value={section}>
       <BlockSection
         collapsible={collapsible && !isEdited}
         defaultOpen={defaultOpen}
-        className={className}
-        title={({ open }) => (
-          <>
-            {typeof title === "string" ? (
-              <h4 className="font-medium">{title}</h4>
-            ) : (
-              title
-            )}
-            {onSave && open && !isEdited && (
-              <DisableClickPropagation>
-                <button
-                  className="ml-4 inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-400"
-                  onClick={section.toggleEdit}
-                >
-                  {editLabel ?? t("Edit")}
-                  {editIcon ?? <PencilIcon className="h-4" />}
-                </button>
-              </DisableClickPropagation>
-            )}
-            <div className="flex flex-1 flex-shrink items-center justify-end">
-              {collapsible && (
-                <button title={open ? t("Hide") : t("Show")}>
-                  {open ? (
-                    <ChevronDownIcon className="h-5 w-5" />
-                  ) : (
-                    <ChevronRightIcon className="h-5 w-5" />
-                  )}
-                </button>
-              )}
-            </div>
-          </>
-        )}
+        className={clsx("relative", className)}
+        title={title && renderTitle}
       >
-        {() =>
-          isEdited ? (
-            <form onSubmit={form.handleSubmit}>
+        {() => (
+          <>
+            {!title && (
+              <div className="absolute top-0 right-0">{renderEditButton()}</div>
+            )}
+            {isEdited ? (
+              <form onSubmit={form.handleSubmit}>
+                <DescriptionList columns={columns} displayMode={displayMode}>
+                  {children}
+                </DescriptionList>
+
+                {form.submitError && (
+                  <p className={"my-2 text-sm text-red-600"}>
+                    {form.submitError}
+                  </p>
+                )}
+                <div className="mt-6 flex items-center justify-end gap-2">
+                  <Button type="submit" disabled={form.isSubmitting}>
+                    {form.isSubmitting && (
+                      <Spinner size="xs" className="mr-1" />
+                    )}
+                    {t("Save")}
+                  </Button>
+                  <Button onClick={toggleEdit} variant="white">
+                    {t("Cancel")}
+                  </Button>
+                </div>
+              </form>
+            ) : (
               <DescriptionList columns={columns} displayMode={displayMode}>
                 {children}
               </DescriptionList>
-
-              {form.submitError && (
-                <p className={"my-2 text-sm text-red-600"}>
-                  {form.submitError}
-                </p>
-              )}
-              <div className="mt-6 flex items-center justify-end gap-2">
-                <Button type="submit" disabled={form.isSubmitting}>
-                  {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
-                  {t("Save")}
-                </Button>
-                <Button onClick={toggleEdit} variant="white">
-                  {t("Cancel")}
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <DescriptionList columns={columns} displayMode={displayMode}>
-              {children}
-            </DescriptionList>
-          )
-        }
+            )}
+          </>
+        )}
       </BlockSection>
     </DataCardSectionContext.Provider>
   );

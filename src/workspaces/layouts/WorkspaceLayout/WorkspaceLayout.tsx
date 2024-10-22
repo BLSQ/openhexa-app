@@ -16,7 +16,8 @@ import Help from "./Help";
 import PageContent from "./PageContent";
 import Sidebar from "./Sidebar";
 import { WorkspaceLayout_WorkspaceFragment } from "./WorkspaceLayout.generated";
-type WorkspaceLayoutProps = {
+
+export type WorkspaceLayoutProps = {
   children: ReactElement | ReactElement[];
   className?: string;
   workspace: WorkspaceLayout_WorkspaceFragment;

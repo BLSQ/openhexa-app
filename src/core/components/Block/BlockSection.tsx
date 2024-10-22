@@ -16,7 +16,7 @@ type BlockSectionProps = {
     | ReactNode;
   defaultOpen?: boolean;
   loading?: boolean;
-  title?: string | (({ open }: { open: boolean }) => ReactElement);
+  title?: string | (({ open }: { open: boolean }) => ReactElement | null);
 };
 
 function BlockSection(props: BlockSectionProps) {
@@ -51,7 +51,6 @@ function BlockSection(props: BlockSectionProps) {
           </div>
         </>
       );
-
     return collapsible ? (
       <Disclosure.Button as="div" className="-my-7 flex items-center py-7">
         {header}

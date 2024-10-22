@@ -38,15 +38,15 @@ export const TableRow = (props: HTMLAttributes<HTMLTableRowElement>) => (
   <tr className={props.className ?? TableClasses.tr} {...props} />
 );
 
-export const TableCell = (
-  props: HTMLAttributes<HTMLTableCellElement> & {
-    width?: string;
-    heading?: boolean;
-    wrap?: boolean;
-    spacing?: "tight" | "loose";
-    overrideStyle?: boolean;
-  },
-) => {
+export type TableCellProps = HTMLAttributes<HTMLTableCellElement> & {
+  width?: string;
+  heading?: boolean;
+  wrap?: boolean;
+  spacing?: "tight" | "loose";
+  overrideStyle?: boolean;
+};
+
+export const TableCell = (props: TableCellProps) => {
   const {
     heading = false,
     wrap = false,

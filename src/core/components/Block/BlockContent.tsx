@@ -8,7 +8,7 @@ const BlockContent = ({
 }: HTMLAttributes<HTMLDivElement> & { title?: ReactNode | string }) => {
   return (
     <section className="px-4 py-5 sm:px-6">
-      {title && <h4 className="pb-4  font-medium">{title}</h4>}
+      {title && <h4 className="pb-4 font-medium">{title}</h4>}
       <div className={className}>{children}</div>
     </section>
   );

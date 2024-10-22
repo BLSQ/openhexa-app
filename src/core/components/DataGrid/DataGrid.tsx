@@ -28,7 +28,14 @@ import {
   useTable,
 } from "react-table";
 import Pagination from "../Pagination";
-import { Table, TableBody, TableCell, TableHead, TableRow } from "../Table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableCellProps,
+  TableHead,
+  TableRow,
+} from "../Table";
 import { BaseColumnProps } from "./BaseColumn";
 import { CellContextProvider } from "./helpers";
 import Overflow from "../Overflow";
@@ -67,6 +74,7 @@ interface IDataGridProps {
   defaultSortBy?: SortingRule<object>[];
   pageSizeOptions?: number[];
   rowClassName?: string;
+  spacing?: TableCellProps["spacing"];
 }
 
 type DataGridProps = IDataGridProps;
@@ -91,6 +99,7 @@ function DataGrid(props: DataGridProps) {
     defaultSortBy = [],
     defaultPageSize = 10,
     defaultPageIndex = 0,
+    spacing,
   } = props;
 
   const [loading, setLoading] = useState(false);
@@ -266,6 +275,7 @@ function DataGrid(props: DataGridProps) {
                     heading
                     className={column.headerClassName}
                     {...column.getHeaderProps(column.getSortByToggleProps())}
+                    spacing={spacing}
                   >
                     {column.hideLabel ? (
                       <span className="sr-only">{column.render("Header")}</span>
@@ -308,6 +318,7 @@ function DataGrid(props: DataGridProps) {
                       {...cell.getCellProps({
                         className: cell.column.className,
                       })}
+                      spacing={spacing}
                     >
                       <CellContextProvider cell={cell}>
                         {cell.render("Cell")}

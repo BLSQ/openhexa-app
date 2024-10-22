@@ -15,24 +15,18 @@ exports[`DataCard renders 1`] = `
     <section
       class="px-4 py-5 sm:px-6"
     >
-      <div>
-        <div
-          aria-controls="headlessui-disclosure-panel-f8b5ad0c-fb4c-417e-a442-0a3470929b16"
-          aria-expanded="true"
-          class="-my-7 flex items-center py-7"
-          data-headlessui-state="open"
-          id="headlessui-disclosure-button-b0421256-86a3-4e0a-9682-3cf5bee102e1"
-        >
-          <div
-            class="flex flex-1 flex-shrink items-center justify-end"
-          />
-        </div>
+      <div
+        class="relative"
+      >
         <div>
           <div
-            class="mt-6"
+            class=""
             data-headlessui-state="open"
-            id="headlessui-disclosure-panel-f8b5ad0c-fb4c-417e-a442-0a3470929b16"
+            id="headlessui-disclosure-panel-b0421256-86a3-4e0a-9682-3cf5bee102e1"
           >
+            <div
+              class="absolute top-0 right-0"
+            />
             <dl
               class="grid gap-4"
             >

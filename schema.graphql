@@ -708,6 +708,25 @@ type CreateMembershipResult {
   errors: [CreateMembershipError!]!
 }
 
+"""Errors that can occur when creating an attribute."""
+enum CreateMetadataAttributeError {
+  PERMISSION_DENIED
+  TARGET_NOT_FOUND
+  DUPLICATE_KEY
+}
+
+"""Input to add a custom attribute, empty field for value is accepted"""
+input CreateMetadataAttributeInput {
+  targetId: OpaqueID!
+  key: String!
+  value: JSON
+}
+
+type CreateMetadataAttributeResult {
+  success: Boolean!
+  errors: [CreateMetadataAttributeError!]!
+}
+
 """Represents the input for creating a pipeline."""
 input CreatePipelineInput {
   code: String!
@@ -927,7 +946,7 @@ type DatabaseTablePage {
 """
 Dataset is a collection of files that are related to each other and are versioned.
 """
-type Dataset {
+type Dataset implements MetadataObject {
   id: ID!
   slug: String!
   name: String!
@@ -941,12 +960,15 @@ type Dataset {
   version(id: ID!): DatasetVersion
   latestVersion: DatasetVersion
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+  attributes: [MetadataAttribute!]!
+  targetId: OpaqueID!
 }
 
-"""Metadata for dataset file"""
-type DatasetFileMetadata {
-  sample: JSON!
-  status: FileMetadataStatus!
+"""File sample for dataset file"""
+type DatasetFileSample {
+  sample: JSON
+  status: FileSampleStatus!
+  statusReason: String
 }
 
 """A link of a dataset with a workspace."""
@@ -1000,7 +1022,7 @@ type DatasetPermissions {
 """
 A version of a dataset. A version is a snapshot of the dataset at a point in time.
 """
-type DatasetVersion {
+type DatasetVersion implements MetadataObject {
   id: ID!
   name: String!
   description: String
@@ -1010,17 +1032,24 @@ type DatasetVersion {
   permissions: DatasetVersionPermissions!
   fileByName(name: String!): DatasetVersionFile
   files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!
+  attributes: [MetadataAttribute!]!
+  targetId: OpaqueID!
 }
 
 """A file in a dataset version."""
-type DatasetVersionFile {
+type DatasetVersionFile implements MetadataObject {
   id: ID!
   uri: String!
   filename: String!
   createdAt: DateTime!
   createdBy: User
   contentType: String!
-  fileMetadata: DatasetFileMetadata
+  size: BigInt!
+  fileSample: DatasetFileSample
+  properties: JSON
+  attributes: [MetadataAttribute!]!
+  targetId: OpaqueID!
+  downloadUrl(attachment: Boolean): String
 }
 
 """A page of dataset version files."""
@@ -1250,6 +1279,24 @@ type DeleteMembershipResult {
   errors: [DeleteMembershipError!]!
 }
 
+"""Errors that can occur when deleting an attribute."""
+enum DeleteMetadataAttributeError {
+  PERMISSION_DENIED
+  TARGET_NOT_FOUND
+  METADATA_ATTRIBUTE_NOT_FOUND
+}
+
+"""Input to delete custom attribute"""
+input DeleteMetadataAttributeInput {
+  targetId: OpaqueID!
+  key: String!
+}
+
+type DeleteMetadataAttributeResult {
+  success: Boolean!
+  errors: [DeleteMetadataAttributeError!]!
+}
+
 """Represents the input for deleting a pipeline."""
 input DeletePipelineInput {
   id: UUID!
@@ -1439,6 +1486,24 @@ type DisableTwoFactorResult {
   errors: [DisableTwoFactorError!]
 }
 
+"""Errors that can occur when editing an attribute."""
+enum EditMetadataAttributeError {
+  PERMISSION_DENIED
+  TARGET_NOT_FOUND
+}
+
+"""Input to edit a custom attribute, empty field for value is accepted"""
+input EditMetadataAttributeInput {
+  targetId: OpaqueID!
+  key: String!
+  value: JSON
+}
+
+type EditMetadataAttributeResult {
+  success: Boolean!
+  errors: [EditMetadataAttributeError!]!
+}
+
 """
 The EnableTwoFactorError enum represents the possible errors that can occur during the enableTwoFactor mutation.
 """
@@ -1472,8 +1537,8 @@ type FeatureFlag {
   config: JSON!
 }
 
-"""Statuses that can occur when generating file metadata"""
-enum FileMetadataStatus {
+"""Statuses that can occur when generating file sample"""
+enum FileSampleStatus {
   PROCESSING
   FAILED
   FINISHED
@@ -1827,6 +1892,20 @@ enum MessagePriority {
   CRITICAL
 }
 
+"""Generic metadata attribute"""
+type MetadataAttribute {
+  id: UUID!
+  key: String!
+  value: JSON
+  system: Boolean!
+}
+
+"""Interface for type implementing metadata"""
+interface MetadataObject {
+  targetId: OpaqueID!
+  attributes: [MetadataAttribute!]!
+}
+
 scalar MovingSpeeds
 
 type Mutation {
@@ -1950,6 +2029,15 @@ type Mutation {
   updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult!
   deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult!
 
+  """Add a custom metadata attribute to an object instance"""
+  addMetadataAttribute(input: CreateMetadataAttributeInput!): CreateMetadataAttributeResult!
+
+  """Delete an metadata attribute from an object instance"""
+  deleteMetadataAttribute(input: DeleteMetadataAttributeInput!): DeleteMetadataAttributeResult!
+
+  """Edit metadata attribute for an object instance"""
+  editMetadataAttribute(input: EditMetadataAttributeInput!): EditMetadataAttributeResult!
+
   """Generates a new password for a database."""
   generateNewDatabasePassword(input: GenerateNewDatabasePasswordInput!): GenerateNewDatabasePasswordResult!
 
@@ -2004,6 +2092,8 @@ type NotebookServer {
   url: String!
   ready: Boolean!
 }
+
+scalar OpaqueID
 
 """The direction in which to order a list of items."""
 enum OrderByDirection {
@@ -2454,6 +2544,7 @@ type Query {
   databaseTable(id: String!): DatabaseTable
   connection(id: UUID!): Connection
   connectionBySlug(workspaceSlug: String!, connectionSlug: String!): Connection
+  metadataAttributes(targetId: OpaqueID!): [MetadataAttribute]!
 
   """Retrieves the configuration of the system."""
   config: Config!

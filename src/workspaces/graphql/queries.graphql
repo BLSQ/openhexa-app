@@ -275,66 +275,128 @@ query WorkspaceDatasetsPage(
   }
 }
 
-query WorkspaceDatasetPage(
+
+query WorkspaceDatasetIndexPage(
   $workspaceSlug: String!
   $datasetSlug: String!
   $versionId: ID!
   $isSpecificVersion: Boolean!
 ) {
+  workspace(slug:$workspaceSlug) {
+    slug
+    ...DatasetLayout_workspace
+  }
   datasetLink: datasetLinkBySlug(
     workspaceSlug: $workspaceSlug
     datasetSlug: $datasetSlug
   ) {
+    
+    ...DatasetLayout_datasetLink
     id
-    ...PinDatasetButton_link
-    ...UploadDatasetVersionDialog_datasetLink
-    workspace {
-      slug
-      name
-      ...WorkspaceLayout_workspace
-    }
     dataset {
-      id
-      name
-      slug
+      permissions {update}
       description
       updatedAt
+      createdAt
       workspace {
-        slug
         name
+        slug
       }
-      ...DeleteDatasetTrigger_dataset
-      ...DatasetLinksDataGrid_dataset
-      ...DatasetVersionPicker_dataset
       createdBy {
         ...User_user
       }
-      createdAt
-      latestVersion {
-        createdBy {
-          displayName
-        }
-        createdAt
-        ...DatasetVersionFilesDataGrid_version
-        ...DatasetVersionPicker_version
-      }
+      # If we have a specific version, fetch it
       version(id: $versionId) @include(if: $isSpecificVersion) {
+        id
+        createdAt
         createdBy {
           displayName
         }
-        createdAt
-        ...DatasetVersionFilesDataGrid_version
-        ...DatasetVersionPicker_version
+        name
+        ...DatasetLayout_version
       }
-
-      permissions {
-        update
-        delete
-        createVersion
+      # Or the last version
+      latestVersion @skip(if: $isSpecificVersion) {
+        id
+        createdAt
+        createdBy {
+          displayName
+        }
+        name
+        ...DatasetLayout_version
       }
     }
   }
 }
+
+query WorkspaceDatasetAccessPage(
+  $workspaceSlug: String!
+  $datasetSlug: String!
+  $versionId: ID!
+  $isSpecificVersion: Boolean!
+) {
+  workspace(slug:$workspaceSlug) {
+    slug
+    ...DatasetLayout_workspace
+  }
+  datasetLink: datasetLinkBySlug(
+    workspaceSlug: $workspaceSlug
+    datasetSlug: $datasetSlug
+  ) {
+    
+    ...DatasetLayout_datasetLink
+    id
+    dataset {
+      name
+      permissions {update}
+      ...DatasetLinksDataGrid_dataset
+      # If we have a specific version, fetch it
+      version(id: $versionId) @include(if: $isSpecificVersion) {
+        ...DatasetLayout_version
+      }
+      # Or the last version
+      latestVersion @skip(if: $isSpecificVersion) {
+        ...DatasetLayout_version
+      }
+    }
+  }
+}
+
+query WorkspaceDatasetFilesPage(
+  $workspaceSlug: String!
+  $datasetSlug: String!
+  $versionId: ID!
+  $isSpecificVersion: Boolean!
+) {
+  workspace(slug:$workspaceSlug) {
+    slug
+    ...DatasetLayout_workspace
+  }
+  datasetLink: datasetLinkBySlug(
+    workspaceSlug: $workspaceSlug
+    datasetSlug: $datasetSlug
+  ) {
+    ...DatasetLayout_datasetLink
+    id
+    dataset {
+      name
+      ...DatasetLinksDataGrid_dataset
+      # If we have a specific version, fetch it
+      version(id: $versionId) @include(if: $isSpecificVersion) {
+        ...DatasetLayout_version
+        ...DatasetExplorer_version
+      }
+      # Or the last version
+      latestVersion @skip(if: $isSpecificVersion) {
+        ...DatasetLayout_version
+        ...DatasetExplorer_version
+      }
+    }
+  }
+}
+
+
+
 
 query WorkspaceFilesPage(
   $workspaceSlug: String!

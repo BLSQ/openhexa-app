@@ -14,17 +14,26 @@ const COLUMNS = {
 export type DescriptionListProps = React.HTMLAttributes<HTMLDataListElement> & {
   displayMode?: DescriptionListDisplayMode;
   columns?: keyof typeof COLUMNS;
+  compact?: boolean;
 };
 
 const DescriptionList = ({
   children,
   className,
   columns = 1,
+  compact = false,
   displayMode = DescriptionListDisplayMode.LABEL_LEFT,
 }: DescriptionListProps) => {
   return (
-    <ctx.Provider value={{ displayMode }}>
-      <dl className={clsx("grid gap-4", COLUMNS[columns], className)}>
+    <ctx.Provider value={{ displayMode, compact }}>
+      <dl
+        className={clsx(
+          "grid",
+          compact ? "gap-2" : "gap-4",
+          COLUMNS[columns],
+          className,
+        )}
+      >
         {children}
       </dl>
     </ctx.Provider>

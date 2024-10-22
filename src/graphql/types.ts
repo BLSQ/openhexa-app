@@ -19,6 +19,7 @@ export type Scalars = {
   Generic: { input: any; output: any; }
   JSON: { input: any; output: any; }
   MovingSpeeds: { input: any; output: any; }
+  OpaqueID: { input: any; output: any; }
   SimplifiedExtentType: { input: any; output: any; }
   StackPriorities: { input: any; output: any; }
   TimeThresholds: { input: any; output: any; }
@@ -762,6 +763,26 @@ export type CreateMembershipResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Errors that can occur when creating an attribute. */
+export enum CreateMetadataAttributeError {
+  DuplicateKey = 'DUPLICATE_KEY',
+  PermissionDenied = 'PERMISSION_DENIED',
+  TargetNotFound = 'TARGET_NOT_FOUND'
+}
+
+/** Input to add a custom attribute, empty field for value is accepted */
+export type CreateMetadataAttributeInput = {
+  key: Scalars['String']['input'];
+  targetId: Scalars['OpaqueID']['input'];
+  value?: InputMaybe<Scalars['JSON']['input']>;
+};
+
+export type CreateMetadataAttributeResult = {
+  __typename?: 'CreateMetadataAttributeResult';
+  errors: Array<CreateMetadataAttributeError>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** Represents the input for creating a pipeline. */
 export type CreatePipelineInput = {
   code: Scalars['String']['input'];
@@ -1015,8 +1036,9 @@ export type DatabaseTablePage = {
 };
 
 /** Dataset is a collection of files that are related to each other and are versioned. */
-export type Dataset = {
+export type Dataset = MetadataObject & {
   __typename?: 'Dataset';
+  attributes: Array<MetadataAttribute>;
   createdAt: Scalars['DateTime']['output'];
   createdBy?: Maybe<User>;
   description?: Maybe<Scalars['String']['output']>;
@@ -1026,6 +1048,7 @@ export type Dataset = {
   name: Scalars['String']['output'];
   permissions: DatasetPermissions;
   slug: Scalars['String']['output'];
+  targetId: Scalars['OpaqueID']['output'];
   updatedAt: Scalars['DateTime']['output'];
   version?: Maybe<DatasetVersion>;
   versions: DatasetVersionPage;
@@ -1052,11 +1075,12 @@ export type DatasetVersionsArgs = {
   perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
-/** Metadata for dataset file */
-export type DatasetFileMetadata = {
-  __typename?: 'DatasetFileMetadata';
-  sample: Scalars['JSON']['output'];
-  status: FileMetadataStatus;
+/** File sample for dataset file */
+export type DatasetFileSample = {
+  __typename?: 'DatasetFileSample';
+  sample?: Maybe<Scalars['JSON']['output']>;
+  status: FileSampleStatus;
+  statusReason?: Maybe<Scalars['String']['output']>;
 };
 
 /** A link of a dataset with a workspace. */
@@ -1110,8 +1134,9 @@ export type DatasetPermissions = {
 };
 
 /** A version of a dataset. A version is a snapshot of the dataset at a point in time. */
-export type DatasetVersion = {
+export type DatasetVersion = MetadataObject & {
   __typename?: 'DatasetVersion';
+  attributes: Array<MetadataAttribute>;
   createdAt: Scalars['DateTime']['output'];
   createdBy?: Maybe<User>;
   dataset: Dataset;
@@ -1121,6 +1146,7 @@ export type DatasetVersion = {
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   permissions: DatasetVersionPermissions;
+  targetId: Scalars['OpaqueID']['output'];
 };
 
 
@@ -1137,14 +1163,18 @@ export type DatasetVersionFilesArgs = {
 };
 
 /** A file in a dataset version. */
-export type DatasetVersionFile = {
+export type DatasetVersionFile = MetadataObject & {
   __typename?: 'DatasetVersionFile';
+  attributes: Array<MetadataAttribute>;
   contentType: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   createdBy?: Maybe<User>;
-  fileMetadata?: Maybe<DatasetFileMetadata>;
+  fileSample?: Maybe<DatasetFileSample>;
   filename: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  properties?: Maybe<Scalars['JSON']['output']>;
+  size: Scalars['BigInt']['output'];
+  targetId: Scalars['OpaqueID']['output'];
   uri: Scalars['String']['output'];
 };
 
@@ -1371,6 +1401,25 @@ export type DeleteMembershipResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Errors that can occur when deleting an attribute. */
+export enum DeleteMetadataAttributeError {
+  MetadataAttributeNotFound = 'METADATA_ATTRIBUTE_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED',
+  TargetNotFound = 'TARGET_NOT_FOUND'
+}
+
+/** Input to delete custom attribute */
+export type DeleteMetadataAttributeInput = {
+  key: Scalars['String']['input'];
+  targetId: Scalars['OpaqueID']['input'];
+};
+
+export type DeleteMetadataAttributeResult = {
+  __typename?: 'DeleteMetadataAttributeResult';
+  errors: Array<DeleteMetadataAttributeError>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** Represents the input for deleting a pipeline. */
 export type DeletePipelineInput = {
   id: Scalars['UUID']['input'];
@@ -1529,6 +1578,25 @@ export type DisableTwoFactorResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Errors that can occur when editing an attribute. */
+export enum EditMetadataAttributeError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  TargetNotFound = 'TARGET_NOT_FOUND'
+}
+
+/** Input to edit a custom attribute, empty field for value is accepted */
+export type EditMetadataAttributeInput = {
+  key: Scalars['String']['input'];
+  targetId: Scalars['OpaqueID']['input'];
+  value?: InputMaybe<Scalars['JSON']['input']>;
+};
+
+export type EditMetadataAttributeResult = {
+  __typename?: 'EditMetadataAttributeResult';
+  errors: Array<EditMetadataAttributeError>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** The EnableTwoFactorError enum represents the possible errors that can occur during the enableTwoFactor mutation. */
 export enum EnableTwoFactorError {
   AlreadyEnabled = 'ALREADY_ENABLED',
@@ -1557,8 +1625,8 @@ export type FeatureFlag = {
   config: Scalars['JSON']['output'];
 };
 
-/** Statuses that can occur when generating file metadata */
-export enum FileMetadataStatus {
+/** Statuses that can occur when generating file sample */
+export enum FileSampleStatus {
   Failed = 'FAILED',
   Finished = 'FINISHED',
   Processing = 'PROCESSING'
@@ -1892,8 +1960,25 @@ export enum MessagePriority {
   Warning = 'WARNING'
 }
 
+/** Generic metadata attribute */
+export type MetadataAttribute = {
+  __typename?: 'MetadataAttribute';
+  id: Scalars['UUID']['output'];
+  key: Scalars['String']['output'];
+  system: Scalars['Boolean']['output'];
+  value?: Maybe<Scalars['JSON']['output']>;
+};
+
+/** Interface for type implementing metadata */
+export type MetadataObject = {
+  attributes: Array<MetadataAttribute>;
+  targetId: Scalars['OpaqueID']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
+  /** Add a custom metadata attribute to an object instance */
+  addMetadataAttribute: CreateMetadataAttributeResult;
   /** Adds an output to a pipeline. */
   addPipelineOutput: AddPipelineOutputResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
@@ -1933,6 +2018,8 @@ export type Mutation = {
   /** Delete a dataset version. */
   deleteDatasetVersion: DeleteDatasetVersionResult;
   deleteMembership: DeleteMembershipResult;
+  /** Delete an metadata attribute from an object instance */
+  deleteMetadataAttribute: DeleteMetadataAttributeResult;
   /** Deletes a pipeline. */
   deletePipeline: DeletePipelineResult;
   /** Deletes a pipeline version. */
@@ -1945,6 +2032,8 @@ export type Mutation = {
   denyAccessmodAccessRequest: DenyAccessmodAccessRequestResult;
   /** Disables two-factor authentication for the currently authenticated user. */
   disableTwoFactor: DisableTwoFactorResult;
+  /** Edit metadata attribute for an object instance */
+  editMetadataAttribute: EditMetadataAttributeResult;
   /** Enables two-factor authentication for the currently authenticated user. */
   enableTwoFactor: EnableTwoFactorResult;
   /** Generates a challenge for two-factor authentication. */
@@ -2020,6 +2109,11 @@ export type Mutation = {
   uploadPipeline: UploadPipelineResult;
   /** Verifies a device for two-factor authentication. */
   verifyDevice: VerifyDeviceResult;
+};
+
+
+export type MutationAddMetadataAttributeArgs = {
+  input: CreateMetadataAttributeInput;
 };
 
 
@@ -2168,6 +2262,11 @@ export type MutationDeleteMembershipArgs = {
 };
 
 
+export type MutationDeleteMetadataAttributeArgs = {
+  input: DeleteMetadataAttributeInput;
+};
+
+
 export type MutationDeletePipelineArgs = {
   input?: InputMaybe<DeletePipelineInput>;
 };
@@ -2210,6 +2309,11 @@ export type MutationDenyAccessmodAccessRequestArgs = {
 
 export type MutationDisableTwoFactorArgs = {
   input?: InputMaybe<DisableTwoFactorInput>;
+};
+
+
+export type MutationEditMetadataAttributeArgs = {
+  input: EditMetadataAttributeInput;
 };
 
 
@@ -2912,6 +3016,7 @@ export type Query = {
   datasets: DatasetPage;
   /** Retrieves the currently authenticated user. */
   me: Me;
+  metadataAttributes: Array<Maybe<MetadataAttribute>>;
   notebooksUrl: Scalars['URL']['output'];
   /** Retrieves a list of organizations. */
   organizations: Array<Organization>;
@@ -3060,6 +3165,11 @@ export type QueryDatasetsArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryMetadataAttributesArgs = {
+  targetId: Scalars['OpaqueID']['input'];
 };
 
 

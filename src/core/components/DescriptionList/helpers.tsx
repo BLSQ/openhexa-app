@@ -7,6 +7,7 @@ export enum DescriptionListDisplayMode {
 
 export type DescriptionListContext = {
   displayMode: DescriptionListDisplayMode;
+  compact: boolean;
 };
 
 export const ctx = createContext<DescriptionListContext | null>(null);

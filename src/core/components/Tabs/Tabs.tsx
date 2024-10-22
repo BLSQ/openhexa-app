@@ -6,6 +6,7 @@ import React, {
   isValidElement,
   ReactElement,
   ReactNode,
+  useMemo,
 } from "react";
 
 export type TabsProps = {
@@ -18,9 +19,22 @@ export type TabsProps = {
 const Tabs = (props: TabsProps) => {
   const { children, defaultIndex = 0, onChange, className } = props;
   const { t } = useTranslation();
+
+  const validChildren: React.ReactNode[] = useMemo(
+    () =>
+      React.Children.toArray(children).filter((child: React.ReactNode) =>
+        isValidElement(child),
+      ),
+    [children],
+  );
+
   return (
     // HeadlessTab.Group is a wrapper for the tabs and panels. To not break Sentry, we need to add the as="div" prop.
-    <HeadlessTab.Group as="div" defaultIndex={defaultIndex} onChange={onChange}>
+    <HeadlessTab.Group
+      as={Fragment}
+      defaultIndex={defaultIndex}
+      onChange={onChange}
+    >
       <HeadlessTab.List
         className={clsx(
           "border-b border-gray-200 text-sm font-medium ",
@@ -28,28 +42,30 @@ const Tabs = (props: TabsProps) => {
         )}
       >
         <nav className="-mb-px flex space-x-8" aria-label={t("Tabs")}>
-          {React.Children.map(children, (child, idx) =>
-            isValidElement(child) ? (
-              <HeadlessTab as={Fragment} key={idx}>
-                {({ selected }) => (
-                  <a
-                    className={clsx(
-                      "cursor-pointer whitespace-nowrap border-b-2 px-1.5 py-2.5 tracking-wide",
-                      selected
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
-                    )}
-                  >
-                    {child.props.label}
-                  </a>
-                )}
-              </HeadlessTab>
-            ) : null,
+          {React.Children.map(
+            validChildren,
+            (child, idx) =>
+              isValidElement(child) && (
+                <HeadlessTab as={Fragment} key={idx}>
+                  {({ selected }) => (
+                    <a
+                      className={clsx(
+                        "cursor-pointer whitespace-nowrap border-b-2 px-1.5 py-2.5 hover:text-gray-900 tracking-wide",
+                        selected
+                          ? "border-pink-500 "
+                          : "border-transparent text-gray-500 hover:border-gray-400",
+                      )}
+                    >
+                      {child.props.label}
+                    </a>
+                  )}
+                </HeadlessTab>
+              ),
           )}
         </nav>
       </HeadlessTab.List>
       <HeadlessTab.Panels>
-        {React.Children.map(children, (child) => (
+        {React.Children.map(validChildren, (child) => (
           <HeadlessTab.Panel>{child}</HeadlessTab.Panel>
         ))}
       </HeadlessTab.Panels>

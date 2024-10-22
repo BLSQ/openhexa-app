@@ -12,7 +12,7 @@ async function sendEvent(
   properties: TrackEventProperties,
   headers?: Headers,
 ): Promise<void> {
-  if (publicRuntimeConfig.DISABLE_ANALYTICS === "true") {
+  if (publicRuntimeConfig.DISABLE_ANALYTICS) {
     return;
   }
   const res = await fetch(
