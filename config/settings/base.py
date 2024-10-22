@@ -30,6 +30,9 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: keep the encryption key used in production secret!
 ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
 
+# X Frame Options
+X_FRAME_OPTIONS = "DENY"
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "false") == "true"
 

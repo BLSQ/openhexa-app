@@ -123,10 +123,12 @@ type DatasetVersionFile implements MetadataObject{
   createdAt: DateTime!
   createdBy: User
   contentType: String!
+  size: BigInt!
   fileSample: DatasetFileSample
   properties: JSON
   attributes: [MetadataAttribute!]!
   targetId: OpaqueID!
+  downloadUrl(attachment: Boolean): String
 }
 
 """

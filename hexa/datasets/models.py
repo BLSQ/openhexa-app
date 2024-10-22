@@ -1,5 +1,6 @@
 import logging
 import secrets
+from functools import cached_property
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
@@ -11,6 +12,7 @@ from dpq.models import BaseJob
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
+from hexa.datasets.api import get_blob
 from hexa.metadata.models import MetadataMixin
 from hexa.user_management.models import User
 
@@ -290,7 +292,6 @@ class DatasetVersionFile(MetadataMixin, Base):
     content_type = models.TextField(null=False, blank=False)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     properties = JSONField(default=dict)
-
     dataset_version = models.ForeignKey(
         DatasetVersion,
         null=False,
@@ -327,6 +328,13 @@ class DatasetVersionFile(MetadataMixin, Base):
     @property
     def full_uri(self):
         return self.dataset_version.get_full_uri(self.uri)
+
+    @cached_property
+    def size(self):
+        blob = get_blob(self.uri)
+        if blob is None:
+            return 0
+        return blob.size
 
     def generate_metadata(self):
         from hexa.datasets.queue import dataset_file_metadata_queue
