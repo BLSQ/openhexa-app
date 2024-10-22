@@ -116,6 +116,21 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 ],
                 None,
             ),
+            (
+                "example_with_nan.csv",
+                DatasetFileSample.STATUS_FINISHED,
+                [
+                    {
+                        "age": "NaN",
+                        "name": "Liam",
+                        "married": False,
+                        "surname": "Smith",
+                    },
+                    {"age": 10.0, "name": "Joe", "married": True, "surname": "Doe"},
+                    {"age": 10.0, "name": "Joe", "married": True, "surname": "Doe"},
+                ],
+                None,
+            ),
         ]
         for (
             fixture_name,
