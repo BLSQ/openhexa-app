@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.74.5](https://github.com/BLSQ/openhexa-app/compare/0.74.4...0.74.5) (2024-10-22)
+
+
+### Bug Fixes
+
+* **CORS:** Include the files/up & files/dl to the cors exempted urls ([#835](https://github.com/BLSQ/openhexa-app/issues/835)) ([ea2d76b](https://github.com/BLSQ/openhexa-app/commit/ea2d76b26e6a08b87b70812ca746393fa7346540))
+
 ## [0.74.4](https://github.com/BLSQ/openhexa-app/compare/0.74.3...0.74.4) (2024-10-21)
 
 
