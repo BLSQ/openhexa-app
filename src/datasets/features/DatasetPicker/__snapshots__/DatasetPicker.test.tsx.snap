@@ -6,17 +6,19 @@ exports[`DatasetPicker display all dataset 1`] = `
     class="relative"
   >
     <div
-      class="form-input flex w-full items-center rounded-md border-gray-300 shadow-sm disabled:border-gray-300 focus-within:outline-none focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed  sm:text-sm hover:border-gray-400"
+      class="form-input flex w-full items-center rounded-md border-gray-300 shadow-sm disabled:border-gray-300 focus-within:outline-none focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed  sm:text-sm border-blue-500"
     >
       <div
         class="mr-1 flex flex-1 items-center truncate"
       >
         <input
+          aria-activedescendant="headlessui-combobox-option-ee4137b3-3d69-4318-b729-8a2c38c05dd8"
           aria-autocomplete="list"
-          aria-expanded="false"
+          aria-controls="headlessui-combobox-options-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
+          aria-expanded="true"
           autocomplete="off"
           class="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-none"
-          data-headlessui-state=""
+          data-headlessui-state="open"
           data-testid="combobox-input"
           id="headlessui-combobox-input-6b042125-686a-43e0-8a68-23cf5bee102e"
           placeholder="Select dataset"
@@ -25,9 +27,10 @@ exports[`DatasetPicker display all dataset 1`] = `
         />
       </div>
       <button
-        aria-expanded="false"
+        aria-controls="headlessui-combobox-options-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
+        aria-expanded="true"
         aria-haspopup="listbox"
-        data-headlessui-state=""
+        data-headlessui-state="open"
         data-testid="combobox-button"
         id="headlessui-combobox-button-6f8b5ad0-cfb4-4c17-9e44-20a3470929b1"
         tabindex="-1"
@@ -60,6 +63,98 @@ exports[`DatasetPicker display all dataset 1`] = `
         </div>
       </button>
     </div>
+    <ul
+      aria-labelledby="headlessui-combobox-button-6f8b5ad0-cfb4-4c17-9e44-20a3470929b1"
+      class="max-h-60 z-10 w-full rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm flex flex-col"
+      data-headlessui-state="open"
+      data-popper-escaped="true"
+      data-popper-placement="bottom-start"
+      data-popper-reference-hidden="true"
+      data-testid="combobox-options"
+      id="headlessui-combobox-options-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
+      role="listbox"
+      style="position: absolute; left: 0px; top: 0px; transform: translate(0px, 4px);"
+    >
+      <div
+        class="overflow-auto flex-1"
+        role="none"
+      >
+        <li
+          class="relative cursor-default select-none px-2 py-2 bg-blue-500 text-white"
+          data-headlessui-state="active"
+          id="headlessui-combobox-option-ee4137b3-3d69-4318-b729-8a2c38c05dd8"
+          role="option"
+          tabindex="-1"
+        >
+          <div
+            class="group flex w-full items-center"
+          >
+            <span
+              class="flex items-center pr-4 invisible text-white"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m4.5 12.75 6 6 9-13.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <span
+              class="flex-1 truncate"
+            >
+              Dataset 1
+            </span>
+          </div>
+        </li>
+        <li
+          class="relative cursor-default select-none px-2 py-2 text-gray-900"
+          data-headlessui-state=""
+          id="headlessui-combobox-option-fdd1ab9c-0cb4-44a5-8c7c-f42e8faf8825"
+          role="option"
+          tabindex="-1"
+        >
+          <div
+            class="group flex w-full items-center"
+          >
+            <span
+              class="flex items-center pr-4 invisible text-gray-900"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m4.5 12.75 6 6 9-13.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <span
+              class="flex-1 truncate"
+            >
+              Dataset 2
+            </span>
+          </div>
+        </li>
+      </div>
+    </ul>
   </div>
 </div>
 `;
