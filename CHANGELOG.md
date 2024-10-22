@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.74.6](https://github.com/BLSQ/openhexa-app/compare/0.74.5...0.74.6) (2024-10-22)
+
+
+### Bug Fixes
+
+* fills in empty fields with NaN ([#840](https://github.com/BLSQ/openhexa-app/issues/840)) ([7ad7803](https://github.com/BLSQ/openhexa-app/commit/7ad78034ddad54f32a9baae516a66a396b6372bc))
+
 ## [0.74.5](https://github.com/BLSQ/openhexa-app/compare/0.74.4...0.74.5) (2024-10-22)
 
 
