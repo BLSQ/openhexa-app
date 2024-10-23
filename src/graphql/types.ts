@@ -1169,6 +1169,7 @@ export type DatasetVersionFile = MetadataObject & {
   contentType: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   createdBy?: Maybe<User>;
+  downloadUrl?: Maybe<Scalars['String']['output']>;
   fileSample?: Maybe<DatasetFileSample>;
   filename: Scalars['String']['output'];
   id: Scalars['ID']['output'];
@@ -1176,6 +1177,12 @@ export type DatasetVersionFile = MetadataObject & {
   size: Scalars['BigInt']['output'];
   targetId: Scalars['OpaqueID']['output'];
   uri: Scalars['String']['output'];
+};
+
+
+/** A file in a dataset version. */
+export type DatasetVersionFileDownloadUrlArgs = {
+  attachment?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 /** A page of dataset version files. */
