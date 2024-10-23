@@ -41,7 +41,7 @@ const DatasetExplorer = ({
               onClick={() => onClickFile(file)}
               title={file.filename}
               className={clsx(
-                "pl-6 pr-3 py-2 text-xs font-mono tracking-tighter hover:bg-gray-100 hover:text-gray-900 cursor-pointer truncate text-ellipsis max-w-[50ch]",
+                "pl-6 pr-3 py-2 text-xs font-mono tracking-tight hover:bg-gray-100 hover:text-gray-900 cursor-pointer truncate text-ellipsis max-w-[50ch]",
                 currentFile?.id === file.id &&
                   "bg-gray-100 text-gray-800 font-semibold",
               )}
@@ -55,7 +55,7 @@ const DatasetExplorer = ({
         {currentFile && (
           <div className="px-4 py-1 space-y-6">
             <Title level={3} className="flex justify-between">
-              <span className="font-mono tracking-tighter">
+              <span className="font-mono tracking-tight">
                 {currentFile.filename}
               </span>
               <DownloadVersionFile
