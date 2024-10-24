@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.54.2](https://github.com/BLSQ/openhexa-frontend/compare/0.54.1...0.54.2) (2024-10-24)
+
+
+### Bug Fixes
+
+* **i18n:** Move the language picker inside the sidebar ([49843c1](https://github.com/BLSQ/openhexa-frontend/commit/49843c1f18431be3b7ac6a012e12c96cd6e07250))
+
 ## [0.54.1](https://github.com/BLSQ/openhexa-frontend/compare/0.54.0...0.54.1) (2024-10-24)
 
 
