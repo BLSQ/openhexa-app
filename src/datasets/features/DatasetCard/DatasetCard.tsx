@@ -2,6 +2,7 @@ import { gql } from "@apollo/client";
 import Card from "core/components/Card";
 import Time from "core/components/Time";
 import { DatasetCard_LinkFragment } from "datasets/features/DatasetCard/DatasetCard.generated";
+import { Trans } from "next-i18next";
 
 type DatasetCardProps = {
   link: DatasetCard_LinkFragment;
@@ -20,7 +21,9 @@ const DatasetCard = ({ link }: DatasetCardProps) => {
     >
       <div className={"text-sm text-gray-400 mt-2 flex justify-between"}>
         <span>
-          Updated <Time datetime={dataset.updatedAt} relative />
+          <Trans>
+            Updated <Time datetime={dataset.updatedAt} relative />
+          </Trans>
         </span>
       </div>
     </Card>

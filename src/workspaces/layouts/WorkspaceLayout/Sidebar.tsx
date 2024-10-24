@@ -15,7 +15,6 @@ import clsx from "clsx";
 import Badge from "core/components/Badge";
 import Link from "core/components/Link";
 import { CustomApolloClient } from "core/helpers/apollo";
-import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useContext, useMemo } from "react";

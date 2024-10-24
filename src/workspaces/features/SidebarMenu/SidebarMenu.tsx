@@ -33,6 +33,8 @@ import {
 } from "./SidebarMenu.generated";
 import { logout } from "identity/helpers/auth";
 import Tooltip from "core/components/Tooltip";
+import UILanguagePicker from "identity/features/UILanguagePicker";
+import Field from "core/components/forms/Field";
 
 interface SidebarMenuProps {
   workspace: SidebarMenu_WorkspaceFragment;
@@ -311,9 +313,21 @@ const SidebarMenu = (props: SidebarMenuProps) => {
           )}
 
           {me.user && (
-            <section className="bg-gray-100 px-3 py-3">
-              <User textColor="text-gray-600" user={me.user} subtext />
-            </section>
+            <>
+              <section className=" px-3 py-3">
+                <Field
+                  name="language"
+                  labelColor="text-gray-400 font-normal"
+                  label={t("Interface language")}
+                  showOptional={false}
+                >
+                  <UILanguagePicker className="w-2/" />
+                </Field>
+              </section>
+              <section className="bg-gray-100 px-3 py-3">
+                <User textColor="text-gray-600" user={me.user} subtext />
+              </section>
+            </>
           )}
         </div>
       </Transition>

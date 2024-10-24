@@ -4,7 +4,6 @@ import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import DateProperty from "core/components/DataCard/DateProperty";
 import { OnSaveFn } from "core/components/DataCard/FormSection";
-import RenderProperty from "core/components/DataCard/RenderProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
 import { BaseColumn } from "core/components/DataGrid";
 import DataGrid from "core/components/DataGrid/DataGrid";
@@ -14,9 +13,7 @@ import DescriptionList, {
 } from "core/components/DescriptionList";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
-import SimpleSelect from "core/components/forms/SimpleSelect";
 import { AlertType, displayAlert } from "core/helpers/alert";
-import { LANGUAGES } from "core/helpers/i18n";
 import { createGetServerSideProps } from "core/helpers/page";
 import useToggle from "core/hooks/useToggle";
 import BackLayout from "core/layouts/back";
@@ -32,7 +29,6 @@ import {
 import { logout } from "identity/helpers/auth";
 import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 import {
   useDeclineWorkspaceInvitationMutation,
   useJoinWorkspaceMutation,
@@ -44,7 +40,6 @@ function AccountPage() {
   const { data } = useAccountPageQuery();
   const [twoFactorEnabled] = useFeature("two_factor");
   const [showTwoFactorDialog, { toggle: toggleTwoFactorDialog }] = useToggle();
-  const router = useRouter();
   const [updateUser] = useUpdateUserMutation();
 
   const [joinWorkspace] = useJoinWorkspaceMutation();
@@ -78,19 +73,14 @@ function AccountPage() {
   }
 
   const onSave: OnSaveFn = async (values) => {
-    const prevLanguage = data.me.user!.language;
     await updateUser({
       variables: {
         input: {
           firstName: values.firstName,
           lastName: values.lastName,
-          language: values.language,
         },
       },
     });
-    if (prevLanguage !== values.language) {
-      router.reload();
-    }
   };
 
   const { user } = data.me;
@@ -131,31 +121,6 @@ function AccountPage() {
               required
               id="lastName"
             />
-            <RenderProperty<keyof typeof LANGUAGES>
-              id="language"
-              accessor={"language"}
-              label={t("Language")}
-            >
-              {(property, section) =>
-                section.isEdited ? (
-                  <SimpleSelect
-                    value={property.formValue}
-                    required
-                    onChange={(e) =>
-                      property.setValue(e.target.value as "en" | "fr")
-                    }
-                  >
-                    {Object.entries(LANGUAGES).map(([key, value]) => (
-                      <option key={key} value={key}>
-                        {value}
-                      </option>
-                    ))}
-                  </SimpleSelect>
-                ) : (
-                  <span>{LANGUAGES[property.displayValue]}</span>
-                )
-              }
-            </RenderProperty>
             <TextProperty
               label={t("Email")}
               accessor="email"

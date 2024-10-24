@@ -145,7 +145,7 @@ const WorkspaceDatasetsPage: NextPageWithLayout = (props: Props) => {
               fixedLayout={false}
               rowClassName={"items-center"}
             >
-              <BaseColumn className="py-3" id="name" label="Name">
+              <BaseColumn className="py-3" id="name" label={t("Name")}>
                 {(value) => (
                   <div className={"min-w-0 flex items-center gap-2"}>
                     <PinDatasetButton link={value} />
