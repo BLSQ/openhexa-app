@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.54.0](https://github.com/BLSQ/openhexa-frontend/compare/0.53.2...0.54.0) (2024-10-24)
+
+
+### Features
+
+* **datasets:** Smart previewer ([9056016](https://github.com/BLSQ/openhexa-frontend/commit/9056016a258d43d98e78aab9862eb22811bcb8ea))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @types/jest to v29.5.14 ([e0943e3](https://github.com/BLSQ/openhexa-frontend/commit/e0943e3173ed8fece237778d3b415cea3bacec57))
+* **deps:** update dependency @types/node to v22.7.9 ([6c7ce82](https://github.com/BLSQ/openhexa-frontend/commit/6c7ce82b289875a7e9a3771b3036af2a8ef23dde))
+* **deps:** update dependency @types/react to v18.3.12 ([65c54f2](https://github.com/BLSQ/openhexa-frontend/commit/65c54f26ebfd33a10bd7c24efa3068f47da9cd39))
+* **deps:** update nextjs monorepo to v14.2.16 ([9ab5511](https://github.com/BLSQ/openhexa-frontend/commit/9ab5511093cbc1323c9540751d9c09f937d71311))
+
 ## [0.53.2](https://github.com/BLSQ/openhexa-frontend/compare/0.53.1...0.53.2) (2024-10-22)
 
 
