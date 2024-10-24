@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.74.7](https://github.com/BLSQ/openhexa-app/compare/0.74.6...0.74.7) (2024-10-24)
+
+
+### Miscellaneous Chores
+
+* Release 0.74.7 ([3b24cca](https://github.com/BLSQ/openhexa-app/commit/3b24ccad21b3d3afd9601b078bce0ff72d4f6df0))
+
 ## [0.74.6](https://github.com/BLSQ/openhexa-app/compare/0.74.5...0.74.6) (2024-10-22)
 
 
