@@ -53,9 +53,11 @@ jobs:
         uses: reproducible-containers/buildkit-cache-dance@v3.1.2
         with:
           cache-map: |
-            var-cache-apk:/var/cache/apk
-            code-next-cache:/code/.next/cache
-            code-.npm-cache:~/.npm
+            {
+            "var-cache-apk": "/var/cache/apk",
+            "code-next-cache": "/code/.next/cache",
+              "code-.npm-cache": "~/.npm"
+            }
           skip-extraction: ${{ steps.cache-docker-deps.outputs.cache-hit }}
 
       - name: Build and push (release)
