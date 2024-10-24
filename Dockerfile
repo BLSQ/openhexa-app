@@ -11,7 +11,7 @@ RUN --mount=type=cache,target=/var/cache/apk/ \
 COPY package.json package-lock.json /code/
 RUN --mount=type=cache,target=~/.npm \
     npm set progress=false && npm config set depth 0 && \
-    npm ci --ignore-scripts --no-audit --no-fund
+    npm install --no-audit --no-fund
 
 ## ----------- Builder -----------
 FROM base AS builder
