@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.54.1](https://github.com/BLSQ/openhexa-frontend/compare/0.54.0...0.54.1) (2024-10-24)
+
+
+### Bug Fixes
+
+* **ci:** cache-map is a json ([b56f64a](https://github.com/BLSQ/openhexa-frontend/commit/b56f64ac3afd34f71988a4796227529623018407))
+* **Docker:** Optional deps are not installed for Sentry ([1895b7a](https://github.com/BLSQ/openhexa-frontend/commit/1895b7a2235cdf0c5adb48e884e30e21b7ee903e))
+* **Sentry:** Add missing 'authToken' parameter' ([8f924bf](https://github.com/BLSQ/openhexa-frontend/commit/8f924bf3d5eae75c36b1aeb25686b9f86fe4805f))
+
 ## [0.54.0](https://github.com/BLSQ/openhexa-frontend/compare/0.53.2...0.54.0) (2024-10-24)
 
 
