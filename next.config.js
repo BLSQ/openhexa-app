@@ -9,7 +9,7 @@ const { i18n } = require("./next-i18next.config");
 
 let config = {
   experimental: {
-    optimizePackageImports: ["next-i18next", "luxon"],
+    optimizePackageImports: ["luxon"],
   },
 
   publicRuntimeConfig: {

@@ -37,6 +37,7 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
     ctx: GetServerSidePropsContextWithUser,
   ): Promise<GetServerSidePropsResult<ServerSideProps>> {
     ctx.me = await getMe(ctx);
+
     const translations = await serverSideTranslations(
       ctx.me?.user?.language ??
         getAcceptPreferredLocale(ctx.req.headers) ??
