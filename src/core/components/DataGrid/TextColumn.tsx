@@ -57,7 +57,7 @@ export function TextColumn(props: TextColumnProps) {
       )}
       <div className="truncate">
         <div
-          title={text}
+          title={text?.toString()}
           className={clsx("truncate lg:whitespace-nowrap", textClassName)}
         >
           {text ?? defaultValue}

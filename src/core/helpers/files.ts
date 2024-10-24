@@ -178,7 +178,7 @@ class UploadManager<T extends JobFile = JobFile> {
         this.process();
       },
       (err) => {
-        console.log("onJobFailure", job, err);
+        console.error("onJobFailure", job, err);
         this.removeRunningJob(job);
         if (job.runs >= 3) {
           err.job = job;
@@ -208,4 +208,6 @@ class UploadManager<T extends JobFile = JobFile> {
   }
 }
 
-export const uploader = new UploadManager();
+export const uploader = new UploadManager(
+  parseInt(process.env.MAX_CONCURRENT_UPLOADS ?? "10", 10),
+);

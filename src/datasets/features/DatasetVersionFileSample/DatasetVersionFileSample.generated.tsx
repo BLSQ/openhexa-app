@@ -10,12 +10,15 @@ export type GetDatasetVersionFileSampleQueryVariables = Types.Exact<{
 
 export type GetDatasetVersionFileSampleQuery = { __typename?: 'Query', datasetVersionFile?: { __typename?: 'DatasetVersionFile', id: string, properties?: any | null, fileSample?: { __typename?: 'DatasetFileSample', sample?: any | null, status: Types.FileSampleStatus, statusReason?: string | null } | null } | null };
 
-export type DatasetVersionFileSample_FileFragment = { __typename?: 'DatasetVersionFile', id: string, contentType: string };
+export type DatasetVersionFileSample_FileFragment = { __typename?: 'DatasetVersionFile', id: string, filename: string, contentType: string, size: any, downloadUrl?: string | null };
 
 export const DatasetVersionFileSample_FileFragmentDoc = gql`
     fragment DatasetVersionFileSample_file on DatasetVersionFile {
   id
+  filename
   contentType
+  size
+  downloadUrl(attachment: false)
 }
     `;
 export const GetDatasetVersionFileSampleDocument = gql`

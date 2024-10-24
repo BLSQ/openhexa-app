@@ -1,18 +1,14 @@
-import { gql, useMutation } from "@apollo/client";
+import { gql } from "@apollo/client";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import { ButtonProps } from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
 import { AlertType, displayAlert } from "core/helpers/alert";
-import { ReactElement, useState } from "react";
+import { prepareVersionFileDownload } from "datasets/helpers/dataset";
 import { useTranslation } from "next-i18next";
+import { ReactElement, useState } from "react";
 import { downloadURL } from "workspaces/helpers/bucket";
-import {
-  DownloadVersionFileMutation,
-  DownloadVersionFileMutationVariables,
-  DownloadVersionFile_FileFragment,
-} from "./DownloadVersionFile.generated";
-import { PrepareVersionFileDownloadError } from "graphql/types";
-import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { DownloadVersionFile_FileFragment } from "./DownloadVersionFile.generated";
 
 type DownloadVersionFileProps = {
   children?({
@@ -29,48 +25,17 @@ const DownloadVersionFile = (props: DownloadVersionFileProps) => {
   const { file, children, ...delegated } = props;
   const [isPreparing, setIsPreparing] = useState(false);
   const { t } = useTranslation();
-  const [prepareDownload] = useMutation<
-    DownloadVersionFileMutation,
-    DownloadVersionFileMutationVariables
-  >(gql`
-    mutation DownloadVersionFile($input: PrepareVersionFileDownloadInput!) {
-      prepareVersionFileDownload(input: $input) {
-        success
-        downloadUrl
-        errors
-      }
-    }
-  `);
 
   const onClick = async () => {
     setIsPreparing(true);
     try {
-      const { data } = await prepareDownload({
-        variables: { input: { fileId: file.id } },
-      });
-      if (data?.prepareVersionFileDownload.downloadUrl) {
-        await downloadURL(data.prepareVersionFileDownload.downloadUrl);
-      } else if (
-        data?.prepareVersionFileDownload.errors.includes(
-          PrepareVersionFileDownloadError.FileNotFound,
-        )
-      ) {
-        displayAlert(t("This file is not yet uploaded"), AlertType.warning);
-      } else if (
-        data?.prepareVersionFileDownload.errors.includes(
-          PrepareVersionFileDownloadError.PermissionDenied,
-        )
-      ) {
-        displayAlert(
-          t("You don't have permission to download this file"),
-          AlertType.error,
-        );
-      } else {
-        displayAlert(
-          t("We were not able to generate a download url for this file"),
-          AlertType.error,
-        );
-      }
+      const downloadUrl = await prepareVersionFileDownload(file.id);
+      await downloadURL(downloadUrl);
+    } catch (exc) {
+      displayAlert(
+        t("We were not able to generate a download url for this file"),
+        AlertType.error,
+      );
     } finally {
       setIsPreparing(false);
     }

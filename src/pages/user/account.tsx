@@ -33,7 +33,6 @@ import { logout } from "identity/helpers/auth";
 import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
 import {
   useDeclineWorkspaceInvitationMutation,
   useJoinWorkspaceMutation,

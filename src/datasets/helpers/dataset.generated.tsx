@@ -24,6 +24,13 @@ export type GenerateDatasetUploadUrlMutationVariables = Types.Exact<{
 
 export type GenerateDatasetUploadUrlMutation = { __typename?: 'Mutation', generateDatasetUploadUrl: { __typename?: 'GenerateDatasetUploadUrlResult', success: boolean, errors: Array<Types.CreateDatasetVersionFileError>, uploadUrl?: string | null } };
 
+export type PrepareVersionFileDownloadMutationVariables = Types.Exact<{
+  input: Types.PrepareVersionFileDownloadInput;
+}>;
+
+
+export type PrepareVersionFileDownloadMutation = { __typename?: 'Mutation', prepareVersionFileDownload: { __typename?: 'PrepareVersionFileDownloadResult', success: boolean, downloadUrl?: string | null, errors: Array<Types.PrepareVersionFileDownloadError> } };
+
 export type CreateDatasetVersionFileMutationVariables = Types.Exact<{
   input: Types.CreateDatasetVersionFileInput;
 }>;
@@ -159,6 +166,41 @@ export function useGenerateDatasetUploadUrlMutation(baseOptions?: Apollo.Mutatio
 export type GenerateDatasetUploadUrlMutationHookResult = ReturnType<typeof useGenerateDatasetUploadUrlMutation>;
 export type GenerateDatasetUploadUrlMutationResult = Apollo.MutationResult<GenerateDatasetUploadUrlMutation>;
 export type GenerateDatasetUploadUrlMutationOptions = Apollo.BaseMutationOptions<GenerateDatasetUploadUrlMutation, GenerateDatasetUploadUrlMutationVariables>;
+export const PrepareVersionFileDownloadDocument = gql`
+    mutation PrepareVersionFileDownload($input: PrepareVersionFileDownloadInput!) {
+  prepareVersionFileDownload(input: $input) {
+    success
+    downloadUrl
+    errors
+  }
+}
+    `;
+export type PrepareVersionFileDownloadMutationFn = Apollo.MutationFunction<PrepareVersionFileDownloadMutation, PrepareVersionFileDownloadMutationVariables>;
+
+/**
+ * __usePrepareVersionFileDownloadMutation__
+ *
+ * To run a mutation, you first call `usePrepareVersionFileDownloadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePrepareVersionFileDownloadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [prepareVersionFileDownloadMutation, { data, loading, error }] = usePrepareVersionFileDownloadMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function usePrepareVersionFileDownloadMutation(baseOptions?: Apollo.MutationHookOptions<PrepareVersionFileDownloadMutation, PrepareVersionFileDownloadMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PrepareVersionFileDownloadMutation, PrepareVersionFileDownloadMutationVariables>(PrepareVersionFileDownloadDocument, options);
+      }
+export type PrepareVersionFileDownloadMutationHookResult = ReturnType<typeof usePrepareVersionFileDownloadMutation>;
+export type PrepareVersionFileDownloadMutationResult = Apollo.MutationResult<PrepareVersionFileDownloadMutation>;
+export type PrepareVersionFileDownloadMutationOptions = Apollo.BaseMutationOptions<PrepareVersionFileDownloadMutation, PrepareVersionFileDownloadMutationVariables>;
 export const CreateDatasetVersionFileDocument = gql`
     mutation CreateDatasetVersionFile($input: CreateDatasetVersionFileInput!) {
   createDatasetVersionFile(input: $input) {

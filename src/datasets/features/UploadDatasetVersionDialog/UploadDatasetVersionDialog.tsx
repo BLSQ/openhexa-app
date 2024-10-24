@@ -61,15 +61,13 @@ const UploadDatasetVersionDialog = ({
         },
         onProgress: setProgress,
       });
-      await Promise.all(
-        values.files.map((file) =>
-          createVersionFile(
-            version.id,
-            file.type || "application/octet-stream",
-            file.name,
-          ),
-        ),
-      );
+      for (const file of values.files) {
+        await createVersionFile(
+          version.id,
+          file.type || "application/octet-stream",
+          file.name,
+        );
+      }
       if (datasetLink.workspace) {
         await router.push({
           pathname: "/workspaces/[workspaceSlug]/datasets/[datasetSlug]",

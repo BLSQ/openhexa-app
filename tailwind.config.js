@@ -11,6 +11,7 @@ module.exports = {
 
       screens: {
         tall: { raw: "(min-height: 901px)" },
+        xtall: { raw: "(min-height: 1201px)" },
         // => @media (min-height: 901px) { ... }
       },
     },

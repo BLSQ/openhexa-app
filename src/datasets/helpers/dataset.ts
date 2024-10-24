@@ -11,6 +11,8 @@ import {
   DeleteDatasetMutationVariables,
   GenerateDatasetUploadUrlMutation,
   GenerateDatasetUploadUrlMutationVariables,
+  PrepareVersionFileDownloadMutation,
+  PrepareVersionFileDownloadMutationVariables,
   UpdateDatasetMutation,
   UpdateDatasetMutationVariables,
 } from "./dataset.generated";
@@ -152,6 +154,40 @@ export async function generateDatasetUploadUrl(
   } else {
     throw new Error(
       `An unknown error occurred: ${data?.generateDatasetUploadUrl.errors}`,
+    );
+  }
+}
+
+export async function prepareVersionFileDownload(fileId: string) {
+  const client = getApolloClient();
+
+  const { data } = await client.mutate<
+    PrepareVersionFileDownloadMutation,
+    PrepareVersionFileDownloadMutationVariables
+  >({
+    mutation: gql`
+      mutation PrepareVersionFileDownload(
+        $input: PrepareVersionFileDownloadInput!
+      ) {
+        prepareVersionFileDownload(input: $input) {
+          success
+          downloadUrl
+          errors
+        }
+      }
+    `,
+    variables: {
+      input: {
+        fileId,
+      },
+    },
+  });
+
+  if (data?.prepareVersionFileDownload.success) {
+    return data.prepareVersionFileDownload.downloadUrl!;
+  } else {
+    throw new Error(
+      `An unknown error occurred: ${data?.prepareVersionFileDownload.errors}`,
     );
   }
 }
