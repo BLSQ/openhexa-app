@@ -9,6 +9,7 @@ from django.http import HttpRequest
 from hexa.analytics.api import track
 from hexa.databases.utils import get_table_definition
 from hexa.files import storage
+from hexa.user_management.models import User
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import (
     InvalidTimeoutValueError,
@@ -20,6 +21,7 @@ from hexa.pipelines.models import (
     PipelineRunTrigger,
     PipelineType,
     PipelineVersion,
+    PipelineRecipient,
 )
 from hexa.workspaces.models import Workspace
 
@@ -210,7 +212,6 @@ def resolve_run_pipeline(_, info, **kwargs):
             pipeline_version=version,
             trigger_mode=PipelineRunTrigger.MANUAL,
             config=input.get("config", {}),
-            send_mail_notifications=input.get("sendMailNotifications", False),
         )
         track(
             request,
@@ -375,6 +376,49 @@ def resolve_delete_pipeline_version(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["PIPELINE_VERSION_NOT_FOUND"],
+        }
+
+
+@pipelines_mutations.field("addPipelineRecipient")
+def resolve_add_pipeline_recipient(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            id=input.get("pipelineId")
+        )
+        user = User.objects.get(id=input.get("userId"))
+
+        recipient = PipelineRecipient.objects.create_if_has_perm(
+            principal=request.user,
+            pipeline=pipeline,
+            user=user,
+            event=input.get("notificationEvent"),
+        )
+        return {
+            "success": True,
+            "errors": [],
+            "recipient": recipient,
+        }
+    except Pipeline.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+    except User.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["USER_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+    except IntegrityError:
+        return {
+            "success": False,
+            "errors": ["ALREADY_EXISTS"],
         }
 
 
