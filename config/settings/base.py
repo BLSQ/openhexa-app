@@ -76,6 +76,7 @@ if "PROXY_HOSTNAME_AND_PORT" in os.environ:
         else SCHEME
     )
     PROXY_URL = f'{SCHEME}://{os.environ.get("PROXY_HOSTNAME_AND_PORT")}'
+    BASE_URL = PROXY_URL
     NEW_FRONTEND_DOMAIN = os.environ.get(
         "NEW_FRONTEND_DOMAIN", os.environ.get("PROXY_HOSTNAME_AND_PORT")
     )
