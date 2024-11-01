@@ -9,20 +9,20 @@ from django.http import HttpRequest
 from hexa.analytics.api import track
 from hexa.databases.utils import get_table_definition
 from hexa.files import storage
-from hexa.user_management.models import User
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import (
     InvalidTimeoutValueError,
     MissingPipelineConfiguration,
     Pipeline,
     PipelineDoesNotSupportParametersError,
+    PipelineRecipient,
     PipelineRun,
     PipelineRunState,
     PipelineRunTrigger,
     PipelineType,
     PipelineVersion,
-    PipelineRecipient,
 )
+from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 pipelines_mutations = MutationType()
@@ -429,7 +429,7 @@ def resolve_update_pipeline_recipient(_, info, **kwargs):
 
     try:
         recipient = PipelineRecipient.objects.get(
-            pipeline=input.get("pipelineId"), user=input.get("userId")
+            id=input.get("recipientId"),
         )
         recipient.update_if_has_perm(
             principal=request.user, event=input.get("notificationEvent")
@@ -438,6 +438,32 @@ def resolve_update_pipeline_recipient(_, info, **kwargs):
             "success": True,
             "errors": [],
             "recipient": recipient,
+        }
+    except PipelineRecipient.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["RECIPIENT_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+
+
+@pipelines_mutations.field("deletePipelineRecipient")
+def resolve_delete_pipeline_recipient(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        recipient = PipelineRecipient.objects.get(
+            id=input.get("recipientId"),
+        )
+        recipient.delete_if_has_perm(principal=request.user)
+        return {
+            "success": True,
+            "errors": [],
         }
     except PipelineRecipient.DoesNotExist:
         return {

@@ -10,10 +10,9 @@ from hexa.core.utils import send_mail
 
 from .models import (
     PipelineNotificationEvent,
+    PipelineRecipient,
     PipelineRun,
     PipelineRunState,
-    PipelineRunTrigger,
-    PipelineRecipient,
 )
 
 

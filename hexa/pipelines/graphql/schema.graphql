@@ -196,6 +196,7 @@ type PipelineVersionPage {
 Represents a recipient of a pipeline.
 """
 type PipelineRecipient {
+  id: UUID!  # The ID of the recipient.
   user: User!  # The user who is a recipient of the pipeline.
   pipeline: Pipeline!  # The pipeline associated with the recipient.
   notificationEvent: PipelineNotificationEvent!  # The event that triggers the notification.
@@ -293,20 +294,26 @@ enum PipelineRecipientError {
 }
 
 """
-Represents the input for adding/updating a recipient to a pipeline.
+Represents the input for adding a recipient to a pipeline.
 """
-input PipelineRecipientInput {
+input CreatePipelineRecipientInput {
   pipelineId: UUID!
   userId: UUID!
   notificationEvent: PipelineNotificationEvent!
 }
 
 """
+Represents the input for updating a recipient.
+"""
+input UpdatePipelineRecipientInput {
+  recipientId: UUID!
+  notificationEvent: PipelineNotificationEvent!
+}
+"""
 Represents the input for deleting a pipeline recipient.
 """
 input DeletePipelineRecipientInput {
-  pipelineId: UUID!
-  userId: UUID!
+  recipientId: UUID!
 }
 
 """
@@ -318,7 +325,6 @@ input UpdatePipelineInput {
   config: JSON  # The new configuration for the pipeline.
   schedule: String  # The new schedule for running the pipeline.
   description: String  # The new description of the pipeline.
-  recipients: [PipelineRecipientInput!]  # The recipients of the pipeline notification.
   webhookEnabled: Boolean  # Indicates if the webhook should be enabled for the pipeline.
 }
 
@@ -655,9 +661,9 @@ extend type Mutation {
   """
   generatePipelineWebhookUrl(input: GeneratePipelineWebhookUrlInput!): GeneratePipelineWebhookUrlResult!
 
-  addPipelineRecipient(input: PipelineRecipientInput!): AddPipelineRecipientResult! 
+  addPipelineRecipient(input: CreatePipelineRecipientInput!): AddPipelineRecipientResult! 
 
-  updatePipelineRecipient(input: PipelineRecipientInput!): UpdatePipelineRecipientResult!
+  updatePipelineRecipient(input: UpdatePipelineRecipientInput!): UpdatePipelineRecipientResult!
 
   deletePipelineRecipient(input: DeletePipelineRecipientInput!): DeletePipelineRecipientResult!
 }

@@ -15,12 +15,12 @@ from hexa.files import storage
 from hexa.files.backends.exceptions import NotFound
 from hexa.pipelines.models import (
     Pipeline,
+    PipelineNotificationEvent,
     PipelineRecipient,
     PipelineRun,
     PipelineRunState,
     PipelineRunTrigger,
     PipelineType,
-    PipelineNotificationEvent,
 )
 from hexa.pipelines.tests.test_schema.fixtures_for_pipelines import (
     pipelines_example_parameters,
@@ -2210,7 +2210,7 @@ class PipelinesV2Test(GraphQLTestCase):
 
         r = self.run_query(
             """
-            mutation addPipelineRecipient($input: PipelineRecipientInput!) {
+            mutation addPipelineRecipient($input: CreatePipelineRecipientInput!) {
                 addPipelineRecipient(input: $input) {
                     success
                     errors
@@ -2238,7 +2238,7 @@ class PipelinesV2Test(GraphQLTestCase):
 
         r = self.run_query(
             """
-            mutation addPipelineRecipient($input: PipelineRecipientInput!) {
+            mutation addPipelineRecipient($input: CreatePipelineRecipientInput!) {
                 addPipelineRecipient(input: $input) {
                     success
                     errors
@@ -2266,7 +2266,7 @@ class PipelinesV2Test(GraphQLTestCase):
 
         r = self.run_query(
             """
-            mutation addPipelineRecipient($input: PipelineRecipientInput!) {
+            mutation addPipelineRecipient($input: CreatePipelineRecipientInput!) {
                 addPipelineRecipient(input: $input) {
                     success
                     errors
@@ -2300,7 +2300,7 @@ class PipelinesV2Test(GraphQLTestCase):
 
         r = self.run_query(
             """
-            mutation addPipelineRecipient($input: PipelineRecipientInput!) {
+            mutation addPipelineRecipient($input: CreatePipelineRecipientInput!) {
                 addPipelineRecipient(input: $input) {
                     success
                     errors
@@ -2327,7 +2327,7 @@ class PipelinesV2Test(GraphQLTestCase):
 
         r = self.run_query(
             """
-            mutation addPipelineRecipient($input: PipelineRecipientInput!) {
+            mutation addPipelineRecipient($input: CreatePipelineRecipientInput!) {
                 addPipelineRecipient(input: $input) {
                     success
                     errors
@@ -2353,7 +2353,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.client.force_login(self.USER_ROOT)
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_SABRINA).first()
 
-        PipelineRecipient.objects.create(
+        recipient = PipelineRecipient.objects.create(
             pipeline=pipeline,
             user=self.USER_SABRINA,
             notification_event=PipelineNotificationEvent.PIPELINE_FAILED,
@@ -2361,7 +2361,7 @@ class PipelinesV2Test(GraphQLTestCase):
 
         r = self.run_query(
             """
-            mutation updatePipelineRecipient($input: PipelineRecipientInput!) {
+            mutation updatePipelineRecipient($input: UpdatePipelineRecipientInput!) {
                 updatePipelineRecipient(input: $input) {
                     success
                     errors
@@ -2373,8 +2373,7 @@ class PipelinesV2Test(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "pipelineId": str(pipeline.id),
-                    "userId": str(self.USER_SABRINA.id),
+                    "recipientId": str(recipient.id),
                     "notificationEvent": PipelineNotificationEvent.ALL_EVENTS,
                 }
             },
@@ -2403,7 +2402,7 @@ class PipelinesV2Test(GraphQLTestCase):
 
         r = self.run_query(
             """
-            mutation updatePipelineRecipient($input: PipelineRecipientInput!) {
+            mutation updatePipelineRecipient($input: UpdatePipelineRecipientInput!) {
                 updatePipelineRecipient(input: $input) {
                     success
                     errors
@@ -2412,34 +2411,7 @@ class PipelinesV2Test(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "pipelineId": str(uuid.uuid4()),
-                    "userId": str(self.USER_SABRINA.id),
-                    "notificationEvent": PipelineNotificationEvent.ALL_EVENTS,
-                }
-            },
-        )
-
-        self.assertEqual(
-            {
-                "success": False,
-                "errors": ["RECIPIENT_NOT_FOUND"],
-            },
-            r["data"]["updatePipelineRecipient"],
-        )
-
-        r = self.run_query(
-            """
-            mutation updatePipelineRecipient($input: PipelineRecipientInput!) {
-                updatePipelineRecipient(input: $input) {
-                    success
-                    errors
-                }
-            }
-            """,
-            {
-                "input": {
-                    "pipelineId": str(pipeline.id),
-                    "userId": str(uuid.uuid4()),
+                    "recipientId": str(uuid.uuid4()),
                     "notificationEvent": PipelineNotificationEvent.ALL_EVENTS,
                 }
             },
@@ -2458,7 +2430,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.client.force_login(self.USER_SABRINA)
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_SABRINA).first()
 
-        PipelineRecipient.objects.create(
+        recipient = PipelineRecipient.objects.create(
             pipeline=pipeline,
             user=self.USER_SABRINA,
             notification_event=PipelineNotificationEvent.PIPELINE_FAILED,
@@ -2466,7 +2438,7 @@ class PipelinesV2Test(GraphQLTestCase):
 
         r = self.run_query(
             """
-            mutation updatePipelineRecipient($input: PipelineRecipientInput!) {
+            mutation updatePipelineRecipient($input: UpdatePipelineRecipientInput!) {
                 updatePipelineRecipient(input: $input) {
                     success
                     errors
@@ -2475,8 +2447,7 @@ class PipelinesV2Test(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "pipelineId": str(pipeline.id),
-                    "userId": str(self.USER_SABRINA.id),
+                    "recipientId": str(recipient.id),
                     "notificationEvent": PipelineNotificationEvent.ALL_EVENTS,
                 }
             },
@@ -2487,4 +2458,109 @@ class PipelinesV2Test(GraphQLTestCase):
                 "errors": ["PERMISSION_DENIED"],
             },
             r["data"]["updatePipelineRecipient"],
+        )
+
+    def test_delete_pipeline_recipient_not_found(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_SABRINA).first()
+
+        PipelineRecipient.objects.create(
+            pipeline=pipeline,
+            user=self.USER_SABRINA,
+            notification_event=PipelineNotificationEvent.PIPELINE_FAILED,
+        )
+
+        r = self.run_query(
+            """
+            mutation deletePipelineRecipient($input: DeletePipelineRecipientInput!) {
+                deletePipelineRecipient(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "recipientId": str(uuid.uuid4()),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["RECIPIENT_NOT_FOUND"],
+            },
+            r["data"]["deletePipelineRecipient"],
+        )
+
+    def test_delete_pipeline_recipient_permission_denied(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_SABRINA)
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_SABRINA).first()
+
+        recipient = PipelineRecipient.objects.create(
+            pipeline=pipeline,
+            user=self.USER_SABRINA,
+            notification_event=PipelineNotificationEvent.PIPELINE_FAILED,
+        )
+
+        r = self.run_query(
+            """
+            mutation deletePipelineRecipient($input: DeletePipelineRecipientInput!) {
+                deletePipelineRecipient(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "recipientId": str(recipient.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+            },
+            r["data"]["deletePipelineRecipient"],
+        )
+
+    def test_delete_pipeline_recipient(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_SABRINA).first()
+
+        recipient = PipelineRecipient.objects.create(
+            pipeline=pipeline,
+            user=self.USER_SABRINA,
+            notification_event=PipelineNotificationEvent.PIPELINE_FAILED,
+        )
+
+        r = self.run_query(
+            """
+            mutation deletePipelineRecipient($input: DeletePipelineRecipientInput!) {
+                deletePipelineRecipient(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "recipientId": str(recipient.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+            },
+            r["data"]["deletePipelineRecipient"],
         )

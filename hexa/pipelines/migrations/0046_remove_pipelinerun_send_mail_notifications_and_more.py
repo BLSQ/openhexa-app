@@ -4,19 +4,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('pipelines', '0045_alter_pipelinerun_duration_and_more'),
+        ("pipelines", "0045_alter_pipelinerun_duration_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='pipelinerun',
-            name='send_mail_notifications',
+            model_name="pipelinerun",
+            name="send_mail_notifications",
         ),
         migrations.AddField(
-            model_name='pipelinerecipient',
-            name='notification_event',
-            field=models.CharField(choices=[('ALL_EVENTS', 'All events'), ('PIPELINE_FAILED', 'Pipeline failed')], default='ALL_EVENTS', max_length=200),
+            model_name="pipelinerecipient",
+            name="notification_event",
+            field=models.CharField(
+                choices=[
+                    ("ALL_EVENTS", "All events"),
+                    ("PIPELINE_FAILED", "Pipeline failed"),
+                ],
+                default="ALL_EVENTS",
+                max_length=200,
+            ),
         ),
     ]

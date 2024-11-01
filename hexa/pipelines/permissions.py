@@ -86,13 +86,3 @@ def view_pipeline_version(principal: User, pipeline_version: PipelineVersion):
     return pipeline_version.pipeline.workspace.workspacemembership_set.filter(
         user=principal,
     ).exists()
-
-
-def manage_recipients(principal: User, pipeline: Pipeline):
-    return (
-        pipeline.workspace
-        and pipeline.workspace.workspacemembership_set.filter(
-            user=principal,
-            role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-        ).exists()
-    )

@@ -32,7 +32,7 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace, WorkspaceMembership
+from hexa.workspaces.models import Workspace
 
 
 class PipelineDoesNotSupportParametersError(Exception):
@@ -424,7 +424,7 @@ class PipelineRecipientManager(models.Manager):
         user: User,
         event: PipelineNotificationEvent,
     ):
-        if not principal.has_perm("pipelines.manage_recipients", pipeline):
+        if not principal.has_perm("pipelines.update_pipeline", pipeline):
             raise PermissionDenied
 
         return self.create(pipeline=pipeline, user=user, notification_event=event)
@@ -441,6 +441,7 @@ class PipelineRecipient(Base):
             )
         ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
         "user_management.User", null=False, on_delete=models.CASCADE
     )
@@ -454,14 +455,14 @@ class PipelineRecipient(Base):
     objects = PipelineRecipientManager()
 
     def update_if_has_perm(self, *, principal: User, event: PipelineNotificationEvent):
-        if not principal.has_perm("pipelines.manage_recipients", self.pipeline):
+        if not principal.has_perm("pipelines.update_pipeline", self.pipeline):
             raise PermissionDenied
 
         self.notification_event = event
         return self.save()
 
     def delete_if_has_perm(self, *, principal: User):
-        if not principal.has_perm("pipelines.manage_recipients", self.pipeline):
+        if not principal.has_perm("pipelines.update_pipeline", self.pipeline):
             raise PermissionDenied
 
         return self.delete()

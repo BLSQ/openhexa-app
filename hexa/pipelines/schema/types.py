@@ -10,9 +10,9 @@ from hexa.files import storage
 from hexa.files.backends.base import StorageObject
 from hexa.pipelines.models import (
     Pipeline,
+    PipelineNotificationEvent,
     PipelineRun,
     PipelineVersion,
-    PipelineNotificationEvent,
 )
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_permissions
