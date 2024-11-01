@@ -422,6 +422,35 @@ def resolve_add_pipeline_recipient(_, info, **kwargs):
         }
 
 
+@pipelines_mutations.field("updatePipelineRecipient")
+def resolve_update_pipeline_recipient(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        recipient = PipelineRecipient.objects.get(
+            pipeline=input.get("pipelineId"), user=input.get("userId")
+        )
+        recipient.update_if_has_perm(
+            principal=request.user, event=input.get("notificationEvent")
+        )
+        return {
+            "success": True,
+            "errors": [],
+            "recipient": recipient,
+        }
+    except PipelineRecipient.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["RECIPIENT_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+
+
 @pipelines_mutations.field("logPipelineMessage")
 def resolve_pipeline_log_message(_, info, **kwargs):
     request: HttpRequest = info.context["request"]

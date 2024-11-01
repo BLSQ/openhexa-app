@@ -198,7 +198,7 @@ Represents a recipient of a pipeline.
 type PipelineRecipient {
   user: User!  # The user who is a recipient of the pipeline.
   pipeline: Pipeline!  # The pipeline associated with the recipient.
-  event: PipelineNotificationEvent!  # The event that triggers the notification.
+  notificationEvent: PipelineNotificationEvent!  # The event that triggers the notification.
 }
 
 """
