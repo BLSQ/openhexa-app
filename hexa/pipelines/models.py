@@ -351,13 +351,7 @@ class Pipeline(SoftDeletedModel):
 
     @property
     def send_mail_notifications(self):
-        return PipelineRecipient.objects.filter(
-            pipeline=self,
-            event__in=[
-                PipelineNotificationEvent.ALL_EVENTS,
-                PipelineNotificationEvent.PIPELINE_FAILED,
-            ],
-        ).exists()
+        return self.recipients.exists()
 
     @property
     def last_version(self) -> "PipelineVersion":

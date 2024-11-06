@@ -661,9 +661,17 @@ extend type Mutation {
   """
   generatePipelineWebhookUrl(input: GeneratePipelineWebhookUrlInput!): GeneratePipelineWebhookUrlResult!
 
+  """
+  Adds a recipient to a pipeline.
+  """
   addPipelineRecipient(input: CreatePipelineRecipientInput!): AddPipelineRecipientResult! 
-
+  """
+  Updates a pipeline recipient.
+  """
   updatePipelineRecipient(input: UpdatePipelineRecipientInput!): UpdatePipelineRecipientResult!
-
+  
+  """
+  Deletes a pipeline recipient.
+  """
   deletePipelineRecipient(input: DeletePipelineRecipientInput!): DeletePipelineRecipientResult!
 }
