@@ -55,7 +55,7 @@ const SmartPreviewer = ({
   } else if (file.contentType.startsWith("text/html")) {
     return (
       <iframe
-        sandbox="allow-scripts allow-forms allow-popups allow-presentation allow-modals allow-popups-to-escape-sandbox"
+        sandbox="allow-presentation allow-modals allow-popups-to-escape-sandbox"
         src={file.downloadUrl}
         className="w-full h-full"
       ></iframe>
