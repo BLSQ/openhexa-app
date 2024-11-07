@@ -387,13 +387,13 @@ def resolve_add_pipeline_recipient(_, info, **kwargs):
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
             id=input.get("pipelineId")
         )
-        user = User.objects.get(id=input.get("userId"))
+        user = User.objects.get(id=input["userId"])
 
         recipient = PipelineRecipient.objects.create_if_has_perm(
             principal=request.user,
             pipeline=pipeline,
             user=user,
-            event=input.get("notificationEvent"),
+            level=input["notificationLevel"],
         )
         return {
             "success": True,
@@ -429,10 +429,10 @@ def resolve_update_pipeline_recipient(_, info, **kwargs):
 
     try:
         recipient = PipelineRecipient.objects.get(
-            id=input.get("recipientId"),
+            id=input["recipientId"],
         )
         recipient.update_if_has_perm(
-            principal=request.user, event=input.get("notificationEvent")
+            principal=request.user, level=input["notificationLevel"]
         )
         return {
             "success": True,
@@ -458,7 +458,7 @@ def resolve_delete_pipeline_recipient(_, info, **kwargs):
 
     try:
         recipient = PipelineRecipient.objects.get(
-            id=input.get("recipientId"),
+            id=input["recipientId"],
         )
         recipient.delete_if_has_perm(principal=request.user)
         return {

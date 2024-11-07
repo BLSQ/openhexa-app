@@ -350,10 +350,6 @@ class Pipeline(SoftDeletedModel):
         self.delete()
 
     @property
-    def send_mail_notifications(self):
-        return self.recipients.exists()
-
-    @property
     def last_version(self) -> "PipelineVersion":
         return self.versions.first()
 
@@ -405,9 +401,9 @@ class Pipeline(SoftDeletedModel):
         return self.code
 
 
-class PipelineNotificationEvent(models.TextChoices):
-    ALL_EVENTS = "ALL_EVENTS", _("All events")
-    PIPELINE_FAILED = "PIPELINE_FAILED", _("Pipeline failed")
+class PipelineNotificationLevel(models.TextChoices):
+    ALL = "ALL", _("All")
+    ERROR = "ERROR", _("Error")
 
 
 class PipelineRecipientManager(models.Manager):
@@ -416,12 +412,12 @@ class PipelineRecipientManager(models.Manager):
         principal: User,
         pipeline: Pipeline,
         user: User,
-        event: PipelineNotificationEvent,
+        level: PipelineNotificationLevel,
     ):
         if not principal.has_perm("pipelines.update_pipeline", pipeline):
             raise PermissionDenied
 
-        return self.create(pipeline=pipeline, user=user, notification_event=event)
+        return self.create(pipeline=pipeline, user=user, notification_level=level)
 
 
 class PipelineRecipient(Base):
@@ -435,24 +431,23 @@ class PipelineRecipient(Base):
             )
         ]
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
         "user_management.User", null=False, on_delete=models.CASCADE
     )
     pipeline = models.ForeignKey(Pipeline, null=False, on_delete=models.CASCADE)
-    notification_event = models.CharField(
+    notification_level = models.CharField(
         max_length=200,
         blank=False,
-        default=PipelineNotificationEvent.ALL_EVENTS,
-        choices=PipelineNotificationEvent.choices,
+        default=PipelineNotificationLevel.ALL,
+        choices=PipelineNotificationLevel.choices,
     )
     objects = PipelineRecipientManager()
 
-    def update_if_has_perm(self, *, principal: User, event: PipelineNotificationEvent):
+    def update_if_has_perm(self, *, principal: User, level: PipelineNotificationLevel):
         if not principal.has_perm("pipelines.update_pipeline", self.pipeline):
             raise PermissionDenied
 
-        self.notification_event = event
+        self.notification_level = level
         return self.save()
 
     def delete_if_has_perm(self, *, principal: User):

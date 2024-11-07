@@ -10,7 +10,7 @@ from hexa.files import storage
 from hexa.files.backends.base import StorageObject
 from hexa.pipelines.models import (
     Pipeline,
-    PipelineNotificationEvent,
+    PipelineNotificationLevel,
     PipelineRun,
     PipelineVersion,
 )
@@ -21,8 +21,8 @@ pipeline_permissions = ObjectType("PipelinePermissions")
 pipeline_version_permissions = ObjectType("PipelineVersionPermissions")
 pipeline_parameter = ObjectType("PipelineParameter")
 pipeline_run_status_enum = EnumType("PipelineRunStatus", PipelineRun.STATUS_MAPPINGS)
-pipeline_notification_event_enum = EnumType(
-    "PipelineNotificationEvent", PipelineNotificationEvent
+pipeline_notification_level_enum = EnumType(
+    "PipelineNotificationLevel", PipelineNotificationLevel
 )
 pipeline_run_order_by_enum = EnumType(
     "PipelineRunOrderBy",
@@ -284,7 +284,7 @@ bindables = [
     pipeline_object,
     pipeline_run_object,
     pipeline_run_status_enum,
-    pipeline_notification_event_enum,
+    pipeline_notification_level_enum,
     pipeline_run_order_by_enum,
     pipeline_version_object,
     pipeline_version_permissions,

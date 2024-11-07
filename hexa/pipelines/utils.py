@@ -9,27 +9,19 @@ from slugify import slugify
 from hexa.core.utils import send_mail
 
 from .models import (
-    PipelineNotificationEvent,
-    PipelineRecipient,
+    PipelineNotificationLevel,
     PipelineRun,
     PipelineRunState,
 )
 
 
 def mail_run_recipients(run: PipelineRun):
-    recipients = PipelineRecipient.objects.filter(pipeline=run.pipeline)
     workspace_slug = run.pipeline.workspace.slug
-
-    for recipient in recipients:
-        can_send_mail = any(
-            [
-                recipient.notification_event
-                == PipelineNotificationEvent.PIPELINE_FAILED
-                and run.state == PipelineRunState.FAILED,
-                recipient.notification_event == PipelineNotificationEvent.ALL_EVENTS,
-            ]
-        )
-        if not can_send_mail:
+    for recipient in run.pipeline.recipients.through.objects.all():
+        if (
+            run.state == PipelineRunState.SUCCESS
+            and recipient.notification_level == PipelineNotificationLevel.ERROR
+        ):
             continue
 
         with override(recipient.user.language):

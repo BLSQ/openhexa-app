@@ -193,13 +193,22 @@ type PipelineVersionPage {
 }
 
 """
+Represents the notification level for a pipeline recipient.
+"""
+enum PipelineNotificationLevel {
+  ALL
+  ERROR
+}
+
+
+"""
 Represents a recipient of a pipeline.
 """
 type PipelineRecipient {
   id: UUID!  # The ID of the recipient.
   user: User!  # The user who is a recipient of the pipeline.
   pipeline: Pipeline!  # The pipeline associated with the recipient.
-  notificationEvent: PipelineNotificationEvent!  # The event that triggers the notification.
+  notificationLevel: PipelineNotificationLevel!  # The event that triggers the notification.
 }
 
 """
@@ -279,10 +288,6 @@ type CreatePipelineResult {
   pipeline: Pipeline  # The created pipeline.
 }
 
-enum PipelineNotificationEvent {
-  ALL_EVENTS
-  PIPELINE_FAILED
-}
 
 
 enum PipelineRecipientError {
@@ -299,7 +304,7 @@ Represents the input for adding a recipient to a pipeline.
 input CreatePipelineRecipientInput {
   pipelineId: UUID!
   userId: UUID!
-  notificationEvent: PipelineNotificationEvent!
+  notificationLevel: PipelineNotificationLevel!
 }
 
 """
@@ -307,7 +312,7 @@ Represents the input for updating a recipient.
 """
 input UpdatePipelineRecipientInput {
   recipientId: UUID!
-  notificationEvent: PipelineNotificationEvent!
+  notificationLevel: PipelineNotificationLevel!
 }
 """
 Represents the input for deleting a pipeline recipient.

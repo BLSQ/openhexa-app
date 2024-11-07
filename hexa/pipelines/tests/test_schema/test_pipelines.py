@@ -15,7 +15,7 @@ from hexa.files import storage
 from hexa.files.backends.exceptions import NotFound
 from hexa.pipelines.models import (
     Pipeline,
-    PipelineNotificationEvent,
+    PipelineNotificationLevel,
     PipelineRecipient,
     PipelineRun,
     PipelineRunState,
@@ -1286,7 +1286,7 @@ class PipelinesV2Test(GraphQLTestCase):
         PipelineRecipient.objects.create(
             pipeline=pipeline,
             user=self.USER_SABRINA,
-            notification_event=PipelineNotificationEvent.ALL_EVENTS,
+            notification_level=PipelineNotificationLevel.ALL,
         )
 
         run = pipeline.run(
@@ -1318,12 +1318,12 @@ class PipelinesV2Test(GraphQLTestCase):
         PipelineRecipient.objects.create(
             pipeline=pipeline,
             user=self.USER_ROOT,
-            notification_event=PipelineNotificationEvent.ALL_EVENTS,
+            notification_level=PipelineNotificationLevel.ALL,
         )
         PipelineRecipient.objects.create(
             pipeline=pipeline,
             user=self.USER_LAMBDA,
-            notification_event=PipelineNotificationEvent.ALL_EVENTS,
+            notification_level=PipelineNotificationLevel.ALL,
         )
 
         run = pipeline.run(
@@ -2221,7 +2221,7 @@ class PipelinesV2Test(GraphQLTestCase):
                 "input": {
                     "pipelineId": str(uuid.uuid4()),
                     "userId": str(self.USER_ROOT.id),
-                    "notificationEvent": PipelineNotificationEvent.ALL_EVENTS,
+                    "notificationLevel": PipelineNotificationLevel.ALL,
                 }
             },
         )
@@ -2249,7 +2249,7 @@ class PipelinesV2Test(GraphQLTestCase):
                 "input": {
                     "pipelineId": str(pipeline.id),
                     "userId": str(uuid.uuid4()),
-                    "notificationEvent": PipelineNotificationEvent.ALL_EVENTS,
+                    "notificationLevel": PipelineNotificationLevel.ALL,
                 }
             },
         )
@@ -2277,7 +2277,7 @@ class PipelinesV2Test(GraphQLTestCase):
                 "input": {
                     "pipelineId": str(pipeline.id),
                     "userId": str(self.USER_SABRINA.id),
-                    "notificationEvent": PipelineNotificationEvent.ALL_EVENTS,
+                    "notificationLevel": PipelineNotificationLevel.ALL,
                 }
             },
         )
@@ -2295,7 +2295,7 @@ class PipelinesV2Test(GraphQLTestCase):
         PipelineRecipient.objects.create(
             pipeline=pipeline,
             user=self.USER_SABRINA,
-            notification_event=PipelineNotificationEvent.PIPELINE_FAILED,
+            notification_level=PipelineNotificationLevel.ERROR,
         )
 
         r = self.run_query(
@@ -2311,7 +2311,7 @@ class PipelinesV2Test(GraphQLTestCase):
                 "input": {
                     "pipelineId": str(pipeline.id),
                     "userId": str(self.USER_SABRINA.id),
-                    "notificationEvent": PipelineNotificationEvent.ALL_EVENTS,
+                    "notificationLevel": PipelineNotificationLevel.ALL,
                 }
             },
         )
@@ -2338,11 +2338,10 @@ class PipelinesV2Test(GraphQLTestCase):
                 "input": {
                     "pipelineId": str(pipeline.id),
                     "userId": str(self.USER_SABRINA.id),
-                    "notificationEvent": PipelineNotificationEvent.ALL_EVENTS,
+                    "notificationLevel": PipelineNotificationLevel.ALL,
                 }
             },
         )
-
         self.assertEqual(
             {"success": True, "errors": []},
             r["data"]["addPipelineRecipient"],
@@ -2356,7 +2355,7 @@ class PipelinesV2Test(GraphQLTestCase):
         recipient = PipelineRecipient.objects.create(
             pipeline=pipeline,
             user=self.USER_SABRINA,
-            notification_event=PipelineNotificationEvent.PIPELINE_FAILED,
+            notification_level=PipelineNotificationLevel.ERROR,
         )
 
         r = self.run_query(
@@ -2366,7 +2365,7 @@ class PipelinesV2Test(GraphQLTestCase):
                     success
                     errors
                     recipient {
-                        notificationEvent
+                        notificationLevel
                     }
                 }
             }
@@ -2374,7 +2373,7 @@ class PipelinesV2Test(GraphQLTestCase):
             {
                 "input": {
                     "recipientId": str(recipient.id),
-                    "notificationEvent": PipelineNotificationEvent.ALL_EVENTS,
+                    "notificationLevel": PipelineNotificationLevel.ALL,
                 }
             },
         )
@@ -2382,9 +2381,7 @@ class PipelinesV2Test(GraphQLTestCase):
             {
                 "success": True,
                 "errors": [],
-                "recipient": {
-                    "notificationEvent": PipelineNotificationEvent.ALL_EVENTS
-                },
+                "recipient": {"notificationLevel": PipelineNotificationLevel.ALL},
             },
             r["data"]["updatePipelineRecipient"],
         )
@@ -2397,7 +2394,7 @@ class PipelinesV2Test(GraphQLTestCase):
         PipelineRecipient.objects.create(
             pipeline=pipeline,
             user=self.USER_SABRINA,
-            notification_event=PipelineNotificationEvent.PIPELINE_FAILED,
+            notification_level=PipelineNotificationLevel.ERROR,
         )
 
         r = self.run_query(
@@ -2412,7 +2409,7 @@ class PipelinesV2Test(GraphQLTestCase):
             {
                 "input": {
                     "recipientId": str(uuid.uuid4()),
-                    "notificationEvent": PipelineNotificationEvent.ALL_EVENTS,
+                    "notificationLevel": PipelineNotificationLevel.ALL,
                 }
             },
         )
@@ -2433,7 +2430,7 @@ class PipelinesV2Test(GraphQLTestCase):
         recipient = PipelineRecipient.objects.create(
             pipeline=pipeline,
             user=self.USER_SABRINA,
-            notification_event=PipelineNotificationEvent.PIPELINE_FAILED,
+            notification_level=PipelineNotificationLevel.ERROR,
         )
 
         r = self.run_query(
@@ -2448,7 +2445,7 @@ class PipelinesV2Test(GraphQLTestCase):
             {
                 "input": {
                     "recipientId": str(recipient.id),
-                    "notificationEvent": PipelineNotificationEvent.ALL_EVENTS,
+                    "notificationLevel": PipelineNotificationLevel.ALL,
                 }
             },
         )
@@ -2468,7 +2465,7 @@ class PipelinesV2Test(GraphQLTestCase):
         PipelineRecipient.objects.create(
             pipeline=pipeline,
             user=self.USER_SABRINA,
-            notification_event=PipelineNotificationEvent.PIPELINE_FAILED,
+            notification_level=PipelineNotificationLevel.ERROR,
         )
 
         r = self.run_query(
@@ -2503,7 +2500,7 @@ class PipelinesV2Test(GraphQLTestCase):
         recipient = PipelineRecipient.objects.create(
             pipeline=pipeline,
             user=self.USER_SABRINA,
-            notification_event=PipelineNotificationEvent.PIPELINE_FAILED,
+            notification_level=PipelineNotificationLevel.ERROR,
         )
 
         r = self.run_query(
@@ -2538,7 +2535,7 @@ class PipelinesV2Test(GraphQLTestCase):
         recipient = PipelineRecipient.objects.create(
             pipeline=pipeline,
             user=self.USER_SABRINA,
-            notification_event=PipelineNotificationEvent.PIPELINE_FAILED,
+            notification_level=PipelineNotificationLevel.ERROR,
         )
 
         r = self.run_query(
