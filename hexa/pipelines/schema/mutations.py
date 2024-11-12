@@ -212,6 +212,7 @@ def resolve_run_pipeline(_, info, **kwargs):
             pipeline_version=version,
             trigger_mode=PipelineRunTrigger.MANUAL,
             config=input.get("config", {}),
+            send_mail_notifications=input.get("sendMailNotifications", False),
         )
         track(
             request,

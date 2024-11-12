@@ -414,3 +414,41 @@ class ViewsTest(TestCase):
             {"param": False},
             content_type="application/x-www-form-urlencoded",
         )
+
+    def test_send_mail_notifications(self):
+        endpoint_url = reverse(
+            "pipelines:run",
+            args=[self.PIPELINE.webhook_token],
+        )
+        r = self.client.post(
+            endpoint_url,
+            data=urlencode({"send_mail_notifications": True}),
+            content_type="application/x-www-form-urlencoded",
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(self.PIPELINE.last_run.send_mail_notifications, True)
+
+        r = self.client.post(
+            endpoint_url,
+            data=urlencode({"send_mail_notifications": False}),
+            content_type="application/x-www-form-urlencoded",
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(self.PIPELINE.last_run.send_mail_notifications, False)
+
+        r = self.client.post(
+            endpoint_url,
+            data=urlencode({"send_mail_notifications": 0}),
+            content_type="application/x-www-form-urlencoded",
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(self.PIPELINE.last_run.send_mail_notifications, False)
+
+        # And in application/json
+        r = self.client.post(
+            endpoint_url + "?send_mail_notifications=1",
+            data={},
+            content_type="application/json",
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(self.PIPELINE.last_run.send_mail_notifications, True)

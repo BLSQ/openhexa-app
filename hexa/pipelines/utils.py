@@ -17,7 +17,7 @@ from .models import (
 
 def mail_run_recipients(run: PipelineRun):
     workspace_slug = run.pipeline.workspace.slug
-    for recipient in run.pipeline.recipients.through.objects.all():
+    for recipient in run.pipeline.pipelinerecipient_set.all():
         if (
             run.state == PipelineRunState.SUCCESS
             and recipient.notification_level == PipelineNotificationLevel.ERROR

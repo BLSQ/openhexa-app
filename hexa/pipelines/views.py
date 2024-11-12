@@ -147,6 +147,7 @@ def run_pipeline(
     content_type = request.META.get("CONTENT_TYPE")
     config = {}
     if content_type == "application/x-www-form-urlencoded":
+        send_mail_notifications = request.POST.get("send_mail_notifications", False)
         for parameter in pipeline_version.parameters:
             if parameter["code"] not in request.POST:
                 continue
@@ -171,6 +172,7 @@ def run_pipeline(
                 config[parameter["code"]] = values[0]
 
     elif content_type == "application/json":
+        send_mail_notifications = request.GET.get("send_mail_notifications", False)
         try:
             config = json.loads(request.body)
         except json.JSONDecodeError:
@@ -186,6 +188,7 @@ def run_pipeline(
             pipeline_version=pipeline_version,
             trigger_mode=PipelineRunTrigger.WEBHOOK,
             config=config,
+            send_mail_notifications=send_mail_notifications,
         )
         track(
             request,

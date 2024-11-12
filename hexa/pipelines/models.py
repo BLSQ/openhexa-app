@@ -243,6 +243,7 @@ class Pipeline(SoftDeletedModel):
         pipeline_version: PipelineVersion,
         trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[typing.Dict, typing.Any] | None = None,
+        send_mail_notifications: bool = True,
     ):
         timeout = settings.PIPELINE_RUN_DEFAULT_TIMEOUT
         if pipeline_version and pipeline_version.timeout:
@@ -261,6 +262,7 @@ class Pipeline(SoftDeletedModel):
                 else self.config
             ),
             access_token=str(uuid.uuid4()),
+            send_mail_notifications=send_mail_notifications,
             timeout=timeout,
         )
 
@@ -508,6 +510,7 @@ class PipelineRun(Base, WithStatus):
     run_logs = models.TextField(null=True, blank=True)
     current_progress = models.PositiveSmallIntegerField(default=0)
     timeout = models.IntegerField(null=True)
+    send_mail_notifications = models.BooleanField(default=True)
     stopped_by = models.ForeignKey(
         "user_management.User",
         null=True,
