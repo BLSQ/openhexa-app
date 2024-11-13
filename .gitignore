@@ -16,3 +16,5 @@ static/uploads/*
 .venv
 .vscode
 __pycache__
+
+docker-compose.debug.yaml
