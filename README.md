@@ -48,6 +48,7 @@ The following steps will get you up and running:
 
 ```bash
 cp .env.dist .env  # adapt the .env file with the required configuration values
+# Set WORKSPACE_STORAGE_LOCATION to a local directory to use a local storage backend for workspaces
 docker network create openhexa
 docker compose build
 docker compose run app fixtures
@@ -68,16 +69,91 @@ Python requirements are handled with [pip-tools](https://github.com/jazzband/pip
 When you want to add a requirement, simply update `requirements.in` and run `pip-compile` in the root directory. You
 can then rebuild the Docker image.
 
-### Storage
-By default, the app will use GCP as the storage backend for workspaces. If you want to use a local storage backend, you
-can use the `minio` profile:
+### Debugging
 
-```bash
-docker compose --profile minio up
+If you want to run the app in debugger mode, you can override the default command to execute by adding a 
+`docker-compose.debug.yaml` file in order to use the your favorite debugger package and wait for a debugger to attach.
+
+#### Using `debugpy` for **VSCode**
+
+```yaml
+# docker-compose.debug.yaml
+
+services:
+  app:
+    entrypoint: []
+    command:
+      - "sh"
+      - "-c"
+      # If you want to wait for the debugger client to be attached before running the server
+      # - |
+      #   pip install debugpy \
+      #   && python -m debugpy --listen 0.0.0.0:5678 --wait-for-client /code/manage.py runserver 0.0.0.0:8000
+      - |
+        pip install debugpy \
+        && python -m debugpy --listen 0.0.0.0:5678 /code/manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+      - "5678:5678"
 ```
 
-You also have to set the `WORKSPACE_STORAGE_ENGINE` environment variable to `s3`.
+You can then add a new configuration in VSCode to run the app in debugger mode:
 
+
+```json
+# .vscode/launch.json
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach OpenHEXA Debugger",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5678
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "/code"
+                }
+            ],
+            "django": true,
+            "justMyCode": false
+        }
+    ]
+}
+```
+
+Run the app with `docker compose -f docker-compose.yaml -f docker-compose.debug.yaml up` & start the debugger from VSCode.
+
+
+#### Using **Pycharm**
+
+```yaml
+# docker-compose.debug.yaml
+
+services:
+  app:
+    entrypoint: []
+    # Used when running in normal mode.
+    command: ["/code/docker-entrypoint.sh", "manage", "runserver", "0.0.0.0:8000"]
+    ports:
+      - "8000:8000"
+```
+
+Create a new interpreter configuration in Pycharm with the following settings:
+
+![Pycharm Interpreter Configuration](docs/images/pycharm-interpreter-configuration.png)
+
+
+Create a new django server run configuration by setting the following options:
+- Python interpreter: The one you just created
+- In "Docker Compose" section; Command and options: `-f docker-compose.yaml -f docker-compose.debug.yaml up`
+
+Run the configuration in debug mode.
 
 ### Running with the frontend
 
