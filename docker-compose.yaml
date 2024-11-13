@@ -12,7 +12,7 @@ x-app: &common
       - path: ./.env
         required: true
     environment:
-      - ADDITIONAL_ALLOWED_HOSTS=app,frontend
+      - ADDITIONAL_ALLOWED_HOSTS=*
     networks:
       - openhexa
     volumes:  # only used for Github Codespaces
