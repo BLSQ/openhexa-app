@@ -112,6 +112,11 @@ class PipelineVersionQuerySet(BaseQuerySet):
 class PipelineVersion(models.Model):
     class Meta:
         ordering = ("-created_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["pipeline", "name"], name="unique_pipeline_version_name"
+            )
+        ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)

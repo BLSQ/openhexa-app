@@ -328,6 +328,10 @@ def resolve_upload_pipeline(_, info, **kwargs):
         return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except IntegrityError as e:
+        if "unique_pipeline_version_name" in str(e):
+            return {"success": False, "errors": ["DUPLICATE_PIPELINE_VERSION_NAME"]}
+        raise
 
 
 @pipelines_mutations.field("updatePipelineVersion")
