@@ -297,7 +297,6 @@ def resolve_delete_team(_, info, **kwargs):
 def resolve_login(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     mutation_input = kwargs["input"]
-
     user_candidate = authenticate(
         request, email=mutation_input["email"], password=mutation_input["password"]
     )
