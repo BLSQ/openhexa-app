@@ -193,11 +193,22 @@ type PipelineVersionPage {
 }
 
 """
+Represents the notification level for a pipeline recipient.
+"""
+enum PipelineNotificationLevel {
+  ALL
+  ERROR
+}
+
+
+"""
 Represents a recipient of a pipeline.
 """
 type PipelineRecipient {
+  id: UUID!  # The ID of the recipient.
   user: User!  # The user who is a recipient of the pipeline.
   pipeline: Pipeline!  # The pipeline associated with the recipient.
+  notificationLevel: PipelineNotificationLevel!  # The event that triggers the notification.
 }
 
 """
@@ -278,6 +289,38 @@ type CreatePipelineResult {
 }
 
 
+
+enum PipelineRecipientError {
+  PIPELINE_NOT_FOUND
+  USER_NOT_FOUND
+  RECIPIENT_NOT_FOUND
+  PERMISSION_DENIED
+  ALREADY_EXISTS
+}
+
+"""
+Represents the input for adding a recipient to a pipeline.
+"""
+input CreatePipelineRecipientInput {
+  pipelineId: UUID!
+  userId: UUID!
+  notificationLevel: PipelineNotificationLevel!
+}
+
+"""
+Represents the input for updating a recipient.
+"""
+input UpdatePipelineRecipientInput {
+  recipientId: UUID!
+  notificationLevel: PipelineNotificationLevel!
+}
+"""
+Represents the input for deleting a pipeline recipient.
+"""
+input DeletePipelineRecipientInput {
+  recipientId: UUID!
+}
+
 """
 Represents the input for updating a pipeline.
 """
@@ -287,7 +330,6 @@ input UpdatePipelineInput {
   config: JSON  # The new configuration for the pipeline.
   schedule: String  # The new schedule for running the pipeline.
   description: String  # The new description of the pipeline.
-  recipientIds: [UUID!]  # The IDs of the recipients of the pipeline.
   webhookEnabled: Boolean  # Indicates if the webhook should be enabled for the pipeline.
 }
 
@@ -390,6 +432,23 @@ input UploadPipelineInput {
   zipfile: String!  # The path to the ZIP file containing the pipeline.
   config: JSON # The default configuration to set on newly created pipeline runs
   timeout: Int  # The timeout value for the pipeline.
+}
+
+type AddPipelineRecipientResult {
+  success: Boolean!
+  errors: [PipelineRecipientError!]!
+  recipient: PipelineRecipient
+}
+
+type UpdatePipelineRecipientResult {
+  success: Boolean!
+  errors: [PipelineRecipientError!]!
+  recipient: PipelineRecipient
+}
+
+type DeletePipelineRecipientResult {
+  success: Boolean!
+  errors: [PipelineRecipientError!]!
 }
 
 """
@@ -602,5 +661,23 @@ extend type Mutation {
   Deletes a pipeline version.
   """
   deletePipelineVersion(input: DeletePipelineVersionInput!): DeletePipelineVersionResult!
+
+  """
+  Generates a webhook URL for a pipeline.
+  """
   generatePipelineWebhookUrl(input: GeneratePipelineWebhookUrlInput!): GeneratePipelineWebhookUrlResult!
+
+  """
+  Adds a recipient to a pipeline.
+  """
+  addPipelineRecipient(input: CreatePipelineRecipientInput!): AddPipelineRecipientResult! 
+  """
+  Updates a pipeline recipient.
+  """
+  updatePipelineRecipient(input: UpdatePipelineRecipientInput!): UpdatePipelineRecipientResult!
+  
+  """
+  Deletes a pipeline recipient.
+  """
+  deletePipelineRecipient(input: DeletePipelineRecipientInput!): DeletePipelineRecipientResult!
 }
