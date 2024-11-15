@@ -13,7 +13,6 @@ import { ReactElement, useState } from "react";
 import Page from "core/components/Page";
 import { useTranslation } from "next-i18next";
 import { LoginError } from "graphql/types";
-import { generateChallenge } from "identity/helpers/auth";
 import Field from "core/components/forms/Field";
 import clsx from "clsx";
 import { AlertType, displayAlert } from "core/helpers/alert";
@@ -42,7 +41,7 @@ const LoginPage: NextPageWithLayout = () => {
         },
       });
       if (!data) {
-        throw new Error(t("An unexpected error ocurred."));
+        throw new Error(t("An unexpected error occurred."));
       }
       if (data.login.success) {
         await router.push((router.query.next as string) ?? "/");

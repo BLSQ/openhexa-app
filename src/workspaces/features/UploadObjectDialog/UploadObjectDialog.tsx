@@ -68,13 +68,18 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
   };
 
   return (
-    <Dialog onSubmit={form.handleSubmit} open={open} onClose={handleClose}>
+    <Dialog
+      maxWidth="max-w-3xl"
+      onSubmit={form.handleSubmit}
+      open={open}
+      onClose={handleClose}
+    >
       <Dialog.Title onClose={handleClose}>
         {t("Upload files in workspace")}
       </Dialog.Title>
       <Dialog.Content>
         <Dropzone
-          className="h-48"
+          className="h-80"
           onChange={(files) => form.setFieldValue("files", files)}
           disabled={form.isSubmitting}
           label={t("Drop files here or click to select")}

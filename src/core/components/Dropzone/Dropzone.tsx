@@ -4,10 +4,16 @@ import {
 } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
-import { ReactNode, useEffect, useState } from "react";
-import type { Accept, FileError, FileRejection } from "react-dropzone";
+import { ReactNode, useState } from "react";
+import type {
+  Accept,
+  FileError,
+  FileRejection,
+  FileWithPath,
+} from "react-dropzone";
 import { useDropzone } from "react-dropzone";
-import Button from "../Button";
+import Filesize from "../Filesize";
+import pluralize from "pluralize";
 
 export type DropzoneProps = {
   className?: string;
@@ -36,9 +42,12 @@ const Dropzone = (props: DropzoneProps) => {
     onChange,
   } = props;
   const { t } = useTranslation();
-  const [isMounted, setMounted] = useState(false);
-  const [inputKey, setInputKey] = useState("");
-  const { getInputProps, getRootProps, acceptedFiles, fileRejections } =
+  const [inputKey] = useState("");
+  const [acceptedFilesMap, setAcceptedFilesMap] = useState<
+    Map<string, FileWithPath>
+  >(new Map());
+  const acceptedFiles = acceptedFilesMap.values().toArray();
+  const { getInputProps, getRootProps, fileRejections, isDragAccept } =
     useDropzone({
       validator,
       accept,
@@ -46,18 +55,15 @@ const Dropzone = (props: DropzoneProps) => {
       disabled,
       useFsAccessApi: false,
       multiple: maxFiles !== 1,
+      onDrop: (newAcceptedFiles, fileRejections) => {
+        const newAcceptedFilesMap = new Map(acceptedFilesMap);
+        newAcceptedFiles.forEach(
+          (file) => newAcceptedFilesMap.set(file.name, file), //  Ignore duplicates by names
+        );
+        setAcceptedFilesMap(newAcceptedFilesMap);
+        onChange(newAcceptedFilesMap.values().toArray(), fileRejections);
+      },
     });
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted) {
-      onChange(acceptedFiles, fileRejections);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [acceptedFiles, fileRejections]);
 
   const children = props.children ?? (
     <>
@@ -73,6 +79,7 @@ const Dropzone = (props: DropzoneProps) => {
     <div
       className={clsx(
         "flex w-full cursor-pointer items-center justify-center gap-3 rounded-md border-2 border-dashed border-blue-500 px-5 py-5 text-sm text-gray-500 shadow-sm hover:border-blue-700",
+        isDragAccept && "bg-blue-100",
         className,
       )}
       {...getRootProps()}
@@ -80,8 +87,19 @@ const Dropzone = (props: DropzoneProps) => {
       <input key={inputKey} {...getInputProps()} />
       {fileRejections.length + acceptedFiles.length === 0 && children}
       {acceptedFiles.length > 0 && (
-        <span className="line-clamp-3 text-xs">
-          {acceptedFiles?.map((f) => f.name).join(", ")}
+        <span className="line-clamp-4 text-xs">
+          <p>
+            {acceptedFiles.length} {pluralize("file", acceptedFiles.length)}{" "}
+            selected:{" "}
+          </p>
+          <ul>
+            {acceptedFiles.map((f) => (
+              <li key={f.name}>
+                <p className="inline">{f.name} - </p>
+                <Filesize className="inline" size={f.size} />
+              </li>
+            ))}
+          </ul>
         </span>
       )}
       {fileRejections?.length > 0 && (

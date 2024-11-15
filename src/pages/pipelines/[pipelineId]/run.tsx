@@ -1,8 +1,6 @@
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Page from "core/components/Page";
-import DefaultLayout from "core/layouts/default";
-import Title from "core/components/Title";
 import { AlertType, displayAlert } from "core/helpers/alert";
 import { createGetServerSideProps } from "core/helpers/page";
 import { useTranslation } from "next-i18next";
@@ -40,7 +38,7 @@ const PipelineConfigureRunPage = (props: Props) => {
       });
     } catch (err) {
       displayAlert(
-        (err as Error).message ?? "An unexpected error ocurred.",
+        (err as Error).message ?? t("An unexpected error occurred."),
         AlertType.error,
       );
     }

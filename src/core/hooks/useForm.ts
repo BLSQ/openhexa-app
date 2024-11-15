@@ -181,7 +181,7 @@ function useForm<T = FormData, TData = void>(
           return result;
         } catch (err: any) {
           setSubmitError(
-            err.message ?? (t("An unexpected error ocurred.") as string),
+            err.message ?? (t("An unexpected error occurred.") as string),
           );
         } finally {
           setSubmitting(false);
