@@ -32,7 +32,7 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace, WorkspaceMembership
+from hexa.workspaces.models import Workspace
 
 
 class PipelineDoesNotSupportParametersError(Exception):
@@ -243,7 +243,7 @@ class Pipeline(SoftDeletedModel):
         pipeline_version: PipelineVersion,
         trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[typing.Dict, typing.Any] | None = None,
-        send_mail_notifications: bool = False,
+        send_mail_notifications: bool = True,
     ):
         timeout = settings.PIPELINE_RUN_DEFAULT_TIMEOUT
         if pipeline_version and pipeline_version.timeout:
@@ -338,15 +338,6 @@ class Pipeline(SoftDeletedModel):
         if "webhook_enabled" in kwargs:
             self.set_webhook_state(kwargs["webhook_enabled"])
 
-        if "recipient_ids" in kwargs:
-            PipelineRecipient.objects.filter(
-                Q(pipeline=self) & ~Q(user_id__in=kwargs["recipient_ids"])
-            ).delete()
-            for member in WorkspaceMembership.objects.filter(
-                workspace=self.workspace, user_id__in=kwargs["recipient_ids"]
-            ):
-                PipelineRecipient.objects.get_or_create(user=member.user, pipeline=self)
-
         return self.save()
 
     def delete_if_has_perm(self, *, principal: User):
@@ -412,6 +403,25 @@ class Pipeline(SoftDeletedModel):
         return self.code
 
 
+class PipelineNotificationLevel(models.TextChoices):
+    ALL = "ALL", _("All")
+    ERROR = "ERROR", _("Error")
+
+
+class PipelineRecipientManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        pipeline: Pipeline,
+        user: User,
+        level: PipelineNotificationLevel,
+    ):
+        if not principal.has_perm("pipelines.update_pipeline", pipeline):
+            raise PermissionDenied
+
+        return self.create(pipeline=pipeline, user=user, notification_level=level)
+
+
 class PipelineRecipient(Base):
     class Meta:
         ordering = ("-updated_at",)
@@ -427,6 +437,26 @@ class PipelineRecipient(Base):
         "user_management.User", null=False, on_delete=models.CASCADE
     )
     pipeline = models.ForeignKey(Pipeline, null=False, on_delete=models.CASCADE)
+    notification_level = models.CharField(
+        max_length=200,
+        blank=False,
+        default=PipelineNotificationLevel.ALL,
+        choices=PipelineNotificationLevel.choices,
+    )
+    objects = PipelineRecipientManager()
+
+    def update_if_has_perm(self, *, principal: User, level: PipelineNotificationLevel):
+        if not principal.has_perm("pipelines.update_pipeline", self.pipeline):
+            raise PermissionDenied
+
+        self.notification_level = level
+        return self.save()
+
+    def delete_if_has_perm(self, *, principal: User):
+        if not principal.has_perm("pipelines.update_pipeline", self.pipeline):
+            raise PermissionDenied
+
+        return self.delete()
 
 
 class PipelineRunQuerySet(BaseQuerySet):
@@ -479,8 +509,8 @@ class PipelineRun(Base, WithStatus):
     outputs = models.JSONField(null=True, blank=True, default=list)
     run_logs = models.TextField(null=True, blank=True)
     current_progress = models.PositiveSmallIntegerField(default=0)
-    send_mail_notifications = models.BooleanField(default=False)
     timeout = models.IntegerField(null=True)
+    send_mail_notifications = models.BooleanField(default=True)
     stopped_by = models.ForeignKey(
         "user_management.User",
         null=True,
