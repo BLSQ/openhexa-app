@@ -1,5 +1,4 @@
 import logging
-import re
 
 from django.db import migrations, models
 
@@ -30,33 +29,17 @@ def add_timestamp_to_duplicates(apps, schema_editor):
             )
 
 
-def revert_timestamp_from_duplicates(apps, schema_editor):
-    PipelineVersion = apps.get_model("pipelines", "PipelineVersion")
-    versions = PipelineVersion.objects.all()
-
-    version_pattern = re.compile(r" \(v\d+\)$")
-
-    for version in versions:
-        if version_pattern.search(version.name):
-            original_name = version.name
-            version.name = version_pattern.sub("", version.name)
-            version.save()
-            logger.info(
-                f"Reverted version name from {original_name} to {version.name} for {version.pipeline}"
-            )
-
-
 class Migration(migrations.Migration):
-    dependencies = [("pipelines", "0045_alter_pipelinerun_duration_and_more")]
+    dependencies = [("pipelines", "0046_pipelinerecipient_notification_level_and_more")]
 
     operations = [
         migrations.RunPython(
-            add_timestamp_to_duplicates, reverse_code=revert_timestamp_from_duplicates
+            add_timestamp_to_duplicates, reverse_code=migrations.RunPython.noop
         ),
-        migrations.AddConstraint(
-            model_name="pipelineversion",
-            constraint=models.UniqueConstraint(
-                fields=("pipeline", "name"), name="unique_pipeline_version_name"
-            ),
-        ),
+        # migrations.AddConstraint(
+        #     model_name="pipelineversion",
+        #     constraint=models.UniqueConstraint(
+        #         fields=("pipeline", "name"), name="unique_pipeline_version_name"
+        #     ),
+        # ),
     ]
