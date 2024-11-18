@@ -1,51 +1,39 @@
-from django.db import connection
-from django.db.migrations.executor import MigrationExecutor
 from django.test import TestCase
 
-
-class Migrator:
-    def __init__(self, connection=connection):
-        self.executor = MigrationExecutor(connection)
-        self.apps = None
-
-    def migrate(self, app_label: str, migration: str):
-        target = [(app_label, migration)]
-        self.executor.loader.build_graph()
-        self.executor.migrate(target)
-        self.apps = self.executor.loader.project_state(target).apps
+from hexa.core.test.migrator import Migrator
 
 
-class MigrationTest(TestCase):  # TODO : rename
+class Migration0047Test(TestCase):
     def setUp(self):
         self.migrator = Migrator()
         self.migrator.migrate(
             "pipelines", "0046_pipelinerecipient_notification_level_and_more"
         )
+        self.pipeline_code = "simple-etl"
 
-    def test_populate_usernames(self):  # TODO : rename
-        pipeline_code = "simple-etl"
-        Pipeline = self.migrator.apps.get_model("pipelines", "Pipeline")
-        PipelineVersion = self.migrator.apps.get_model("pipelines", "PipelineVersion")
-        pipeline = Pipeline.objects.create(code=pipeline_code)
-        PipelineVersion.objects.create(
-            pipeline=pipeline, name="version1", created_at="2023-01-01"
-        )
-        PipelineVersion.objects.create(
-            pipeline=pipeline, name="version1", created_at="2023-01-02"
-        )
-        PipelineVersion.objects.create(
-            pipeline=pipeline, name="version1", created_at="2023-01-03"
-        )
+    def get_pipeline_model(self):
+        return self.migrator.apps.get_model("pipelines", "Pipeline")
+
+    def get_pipeline_version_model(self):
+        return self.migrator.apps.get_model("pipelines", "PipelineVersion")
+
+    def test_unique_pipelineversion_names(self):
+        PipelineVersion = self.get_pipeline_version_model()
+        pipeline = self.get_pipeline_model().objects.create(code=self.pipeline_code)
+        for date in ["2023-01-01", "2023-01-02", "2023-01-03"]:
+            PipelineVersion.objects.create(
+                pipeline=pipeline, name="version1", created_at=date
+            )
 
         self.migrator.migrate(
             "pipelines", "0047_pipelineversion_unique_pipeline_version_name"
         )
 
-        Pipeline = self.migrator.apps.get_model("pipelines", "Pipeline")
-        PipelineVersion = self.migrator.apps.get_model("pipelines", "PipelineVersion")
-        pipeline = Pipeline.objects.get(code=pipeline_code)
-        versions = PipelineVersion.objects.filter(pipeline=pipeline).order_by(
-            "created_at"
+        pipeline = self.get_pipeline_model().objects.get(code=self.pipeline_code)
+        versions = (
+            self.get_pipeline_version_model()
+            .objects.filter(pipeline=pipeline)
+            .order_by("created_at")
         )
 
         self.assertEqual(versions[0].name, "version1 (v1)")
