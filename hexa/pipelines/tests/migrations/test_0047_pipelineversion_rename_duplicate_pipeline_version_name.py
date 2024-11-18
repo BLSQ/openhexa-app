@@ -26,7 +26,7 @@ class Migration0047Test(TestCase):
             )
 
         self.migrator.migrate(
-            "pipelines", "0047_pipelineversion_unique_pipeline_version_name"
+            "pipelines", "0047_pipelineversion_rename_duplicate_pipeline_version_name"
         )
 
         pipeline = self.get_pipeline_model().objects.get(code=self.pipeline_code)

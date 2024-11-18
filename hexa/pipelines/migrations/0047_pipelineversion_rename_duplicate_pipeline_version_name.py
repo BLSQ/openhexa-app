@@ -33,19 +33,7 @@ class Migration(migrations.Migration):
     dependencies = [("pipelines", "0046_pipelinerecipient_notification_level_and_more")]
 
     operations = [
-        migrations.RunSQL(
-            "SET CONSTRAINTS ALL IMMEDIATE", reverse_sql="SET CONSTRAINTS ALL DEFERRED"
-        ),
         migrations.RunPython(
             add_timestamp_to_duplicates, reverse_code=migrations.RunPython.noop
-        ),
-        migrations.AddConstraint(
-            model_name="pipelineversion",
-            constraint=models.UniqueConstraint(
-                fields=("pipeline", "name"), name="unique_pipeline_version_name"
-            ),
-        ),
-        migrations.RunSQL(
-            "SET CONSTRAINTS ALL DEFERRED", reverse_sql="SET CONSTRAINTS ALL IMMEDIATE"
-        ),
+        )
     ]
