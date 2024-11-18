@@ -68,9 +68,8 @@ class PipelineVersionsTest(GraphQLTestCase):
             code="pipeline", name="My Pipeline", workspace=cls.WORKSPACE
         )
 
-    def create_version(self, version="First Version", user=None):
-        if user is None:
-            user = self.USER_ADMIN
+    def create_version(self, version, user=None):
+        user = user or self.USER_ADMIN
         self.client.force_login(user)
         return self.run_query(
             """
@@ -92,7 +91,7 @@ class PipelineVersionsTest(GraphQLTestCase):
             },
         )
 
-    def test_create_version(self, version, user):
+    def test_create_version(self, version="First Version", user=None):
         r = self.create_version(version, user)
         self.assertEqual(r["data"]["uploadPipeline"]["success"], True)
 
