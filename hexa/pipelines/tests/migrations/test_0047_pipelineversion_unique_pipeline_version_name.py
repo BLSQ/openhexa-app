@@ -1,4 +1,4 @@
-from django.db import connection, transaction
+from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 from django.test import TestCase
 
@@ -6,6 +6,7 @@ from django.test import TestCase
 class Migrator:
     def __init__(self, connection=connection):
         self.executor = MigrationExecutor(connection)
+        self.apps = None
 
     def migrate(self, app_label: str, migration: str):
         target = [(app_label, migration)]
@@ -14,14 +15,14 @@ class Migrator:
         self.apps = self.executor.loader.project_state(target).apps
 
 
-class MigrationTest(TestCase):
+class MigrationTest(TestCase):  # TODO : rename
     def setUp(self):
         self.migrator = Migrator()
         self.migrator.migrate(
             "pipelines", "0046_pipelinerecipient_notification_level_and_more"
         )
 
-    def test_populate_usernames(self):
+    def test_populate_usernames(self):  # TODO : rename
         pipeline_code = "simple-etl"
         Pipeline = self.migrator.apps.get_model("pipelines", "Pipeline")
         PipelineVersion = self.migrator.apps.get_model("pipelines", "PipelineVersion")
@@ -36,10 +37,9 @@ class MigrationTest(TestCase):
             pipeline=pipeline, name="version1", created_at="2023-01-03"
         )
 
-        with transaction.atomic():
-            self.migrator.migrate(
-                "pipelines", "0047_pipelineversion_unique_pipeline_version_name"
-            )
+        self.migrator.migrate(
+            "pipelines", "0047_pipelineversion_unique_pipeline_version_name"
+        )
 
         Pipeline = self.migrator.apps.get_model("pipelines", "Pipeline")
         PipelineVersion = self.migrator.apps.get_model("pipelines", "PipelineVersion")
