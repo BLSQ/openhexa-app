@@ -337,7 +337,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
             e.__cause__, UniqueViolation
         ) and UNIQUE_PIPELINE_VERSION_NAME in str(e):
             return {"success": False, "errors": ["DUPLICATE_PIPELINE_VERSION_NAME"]}
-        return {"success": False, "errors": ["INTEGRITY_ERROR"]}
+        raise
 
 
 @pipelines_mutations.field("updatePipelineVersion")
