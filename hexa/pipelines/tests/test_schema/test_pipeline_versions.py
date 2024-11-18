@@ -92,7 +92,7 @@ class PipelineVersionsTest(GraphQLTestCase):
             },
         )
 
-    def test_create_version(self, version="First Version", user=None):
+    def test_create_version(self, version, user):
         r = self.create_version(version, user)
         self.assertEqual(r["data"]["uploadPipeline"]["success"], True)
 
