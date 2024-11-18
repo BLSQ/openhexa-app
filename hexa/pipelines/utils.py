@@ -8,19 +8,23 @@ from slugify import slugify
 
 from hexa.core.utils import send_mail
 
-from .models import PipelineRun, PipelineRunTrigger
+from .models import (
+    PipelineNotificationLevel,
+    PipelineRun,
+    PipelineRunState,
+)
 
 
 def mail_run_recipients(run: PipelineRun):
-    recipient_list = []
-    if run.trigger_mode == PipelineRunTrigger.MANUAL and run.user is not None:
-        recipient_list = [run.user]
-    else:
-        recipient_list = run.pipeline.recipients.all()
-
     workspace_slug = run.pipeline.workspace.slug
-    for recipient in recipient_list:
-        with override(recipient.language):
+    for recipient in run.pipeline.pipelinerecipient_set.all():
+        if (
+            run.state == PipelineRunState.SUCCESS
+            and recipient.notification_level == PipelineNotificationLevel.ERROR
+        ):
+            continue
+
+        with override(recipient.user.language):
             send_mail(
                 title=gettext_lazy("Run report of {code} ({state})").format(
                     code=run.pipeline.code, state=run.state.label
@@ -37,7 +41,7 @@ def mail_run_recipients(run: PipelineRun):
                     ),
                     "run_url": f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace_slug}/pipelines/{run.pipeline.code}/runs/{run.id}",
                 },
-                recipient_list=[recipient.email],
+                recipient_list=[recipient.user.email],
             )
 
 

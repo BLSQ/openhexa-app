@@ -15,12 +15,14 @@ from hexa.pipelines.models import (
     MissingPipelineConfiguration,
     Pipeline,
     PipelineDoesNotSupportParametersError,
+    PipelineRecipient,
     PipelineRun,
     PipelineRunState,
     PipelineRunTrigger,
     PipelineType,
     PipelineVersion,
 )
+from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 pipelines_mutations = MutationType()
@@ -379,6 +381,104 @@ def resolve_delete_pipeline_version(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["PIPELINE_VERSION_NOT_FOUND"],
+        }
+
+
+@pipelines_mutations.field("addPipelineRecipient")
+def resolve_add_pipeline_recipient(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            id=input.get("pipelineId")
+        )
+        user = User.objects.get(id=input["userId"])
+
+        recipient = PipelineRecipient.objects.create_if_has_perm(
+            principal=request.user,
+            pipeline=pipeline,
+            user=user,
+            level=input["notificationLevel"],
+        )
+        return {
+            "success": True,
+            "errors": [],
+            "recipient": recipient,
+        }
+    except Pipeline.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+    except User.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["USER_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+    except IntegrityError:
+        return {
+            "success": False,
+            "errors": ["ALREADY_EXISTS"],
+        }
+
+
+@pipelines_mutations.field("updatePipelineRecipient")
+def resolve_update_pipeline_recipient(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        recipient = PipelineRecipient.objects.get(
+            id=input["recipientId"],
+        )
+        recipient.update_if_has_perm(
+            principal=request.user, level=input["notificationLevel"]
+        )
+        return {
+            "success": True,
+            "errors": [],
+            "recipient": recipient,
+        }
+    except PipelineRecipient.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["RECIPIENT_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+
+
+@pipelines_mutations.field("deletePipelineRecipient")
+def resolve_delete_pipeline_recipient(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        recipient = PipelineRecipient.objects.get(
+            id=input["recipientId"],
+        )
+        recipient.delete_if_has_perm(principal=request.user)
+        return {
+            "success": True,
+            "errors": [],
+        }
+    except PipelineRecipient.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["RECIPIENT_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
         }
 
 

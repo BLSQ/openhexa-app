@@ -8,7 +8,12 @@ from hexa.core.graphql import result_page
 from hexa.databases.utils import get_table_definition
 from hexa.files import storage
 from hexa.files.backends.base import StorageObject
-from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineNotificationLevel,
+    PipelineRun,
+    PipelineVersion,
+)
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_permissions
 
@@ -16,6 +21,9 @@ pipeline_permissions = ObjectType("PipelinePermissions")
 pipeline_version_permissions = ObjectType("PipelineVersionPermissions")
 pipeline_parameter = ObjectType("PipelineParameter")
 pipeline_run_status_enum = EnumType("PipelineRunStatus", PipelineRun.STATUS_MAPPINGS)
+pipeline_notification_level_enum = EnumType(
+    "PipelineNotificationLevel", PipelineNotificationLevel
+)
 pipeline_run_order_by_enum = EnumType(
     "PipelineRunOrderBy",
     {
@@ -276,6 +284,7 @@ bindables = [
     pipeline_object,
     pipeline_run_object,
     pipeline_run_status_enum,
+    pipeline_notification_level_enum,
     pipeline_run_order_by_enum,
     pipeline_version_object,
     pipeline_version_permissions,
