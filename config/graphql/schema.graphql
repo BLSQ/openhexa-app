@@ -6,6 +6,5 @@ scalar UUID
 scalar Generic
 scalar BigInt
 scalar OpaqueID
-scalar TrimmedString
 type Query
 type Mutation

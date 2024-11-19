@@ -110,7 +110,7 @@ input LoginInput {
     """
     The email address of the user.
     """
-    email: TrimmedString
+    email: String!
 
     """
     The password of the user.

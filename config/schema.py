@@ -37,6 +37,7 @@ uuid_scalar = ScalarType("UUID")
 opaque_id_scalar = ScalarType("OpaqueID")
 trimmed_string_scalar = ScalarType("TrimmedString")
 
+
 @uuid_scalar.value_parser
 def parse_uuid_value(value):
     try:
@@ -69,14 +70,6 @@ def serialize_opaque_id(value):
     return base64.b64encode(value.encode("utf-8")).decode("utf-8")
 
 
-@trimmed_string_scalar.value_parser
-def parse_trimmed_string(value):
-    try:
-        return value.strip()
-    except (ValueError, TypeError):
-        raise ValueError(f'"{value}" is not a valid string')
-
-
 type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
 )
@@ -102,7 +95,6 @@ schema = make_executable_schema(
     [
         uuid_scalar,
         opaque_id_scalar,
-        trimmed_string_scalar,
         *pipelines_bindables,
         *identity_bindables,
         *tags_bindables,

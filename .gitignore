@@ -18,3 +18,4 @@ static/uploads/*
 __pycache__
 
 docker-compose.debug.yaml
+docker-compose.dev.yaml
