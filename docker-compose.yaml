@@ -113,11 +113,11 @@ services:
     depends_on:
       - db
 
-
 networks:
   openhexa:
     name: openhexa
     external: true
+
 volumes:
   pgdata:
   minio_data:
