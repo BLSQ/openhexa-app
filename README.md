@@ -185,7 +185,7 @@ Next run the following command:
 docker compose -f docker-compose.yaml -f docker-compose.dev.yaml [-f docker-compose.debug.yaml] up
 ```
 
-In the browser, go to http://localhost:5050 and log in using credentials defined in your *docker-compose file*.
+In the browser, go to http://localhost:5050 and log in using credentials defined in the *docker-compose.dev.yaml* file.
 
 ![PgAdmin dev tool](docs/images/pg-admin-dashboard.png)
 
