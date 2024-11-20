@@ -1,3 +1,4 @@
+import base64
 import logging
 import math
 import secrets
@@ -357,6 +358,8 @@ class DataframeJsonEncoder(DjangoJSONEncoder):
         def replace_nan(item):
             if isinstance(item, float) and math.isnan(item):
                 return None
+            elif isinstance(item, bytes):
+                return base64.b64encode(item).decode("utf-8")
             elif isinstance(item, dict):
                 return {key: replace_nan(value) for key, value in item.items()}
             elif isinstance(item, list):
