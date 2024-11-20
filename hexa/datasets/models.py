@@ -358,16 +358,21 @@ class DataframeJsonEncoder(DjangoJSONEncoder):
         def replace_nan(item):
             if isinstance(item, float) and math.isnan(item):
                 return None
-            elif isinstance(item, bytes):
-                return base64.b64encode(item).decode("utf-8")
             elif isinstance(item, dict):
                 return {key: replace_nan(value) for key, value in item.items()}
             elif isinstance(item, list):
                 return [replace_nan(element) for element in item]
             return item
 
-        # Preprocess the object to replace NaN values
+        def encode_byte_value(item):
+            if isinstance(item, bytes):
+                return base64.b64encode(item).decode("utf-8")
+            else:
+                return item
+
+        # Preprocess the object to replace NaN values and encode bytes
         obj = replace_nan(obj)
+        obj = encode_byte_value(obj)
         # Use the superclass's encode method to serialize the preprocessed object
         return super().encode(obj)
 
