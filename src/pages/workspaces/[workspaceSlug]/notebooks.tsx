@@ -1,9 +1,7 @@
 import { useApolloClient } from "@apollo/client";
-import Alert from "core/components/Alert";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Page from "core/components/Page";
 import Spinner from "core/components/Spinner";
-import { AlertType } from "core/helpers/alert";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { NotebookServer } from "graphql/types";
@@ -17,6 +15,7 @@ import {
 } from "workspaces/graphql/queries.generated";
 import { launchNotebookServer } from "workspaces/helpers/notebooks";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import { ErrorAlert } from "core/components/Alert";
 
 type Props = {
   server: NotebookServer;
@@ -49,17 +48,16 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
 
   if (!server) {
     return (
-      <Alert
+      <ErrorAlert
         onClose={() => {
           router.push({
             pathname: "/workspaces/[workspaceSlug]",
             query: { workspaceSlug: workspaceSlug },
           });
         }}
-        type={AlertType.error}
       >
         {t("Unable to start JupytherHub for this workspace.")}
-      </Alert>
+      </ErrorAlert>
     );
   }
 

@@ -3,12 +3,12 @@ import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
 import Input from "core/components/forms/Input";
-import { AlertType, displayAlert } from "core/helpers/alert";
 import { useRouter } from "next/router";
 import { FormEvent, useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { createBucketFolder } from "workspaces/helpers/bucket";
 import { CreateBucketFolderDialog_WorkspaceFragment } from "./CreateBucketFolderDialog.generated";
+import { toast } from "react-toastify";
 
 type CreateBucketFolderDialogProps = {
   workspace: CreateBucketFolderDialog_WorkspaceFragment;
@@ -33,10 +33,7 @@ const CreateBucketFolderDialog = (props: CreateBucketFolderDialogProps) => {
       await router.push(`/workspaces/${workspace.slug}/files/${folder.key}`);
       onClose();
     } catch (err) {
-      displayAlert(
-        t("An error occurred while creating the folder"),
-        AlertType.error,
-      );
+      toast.error(t("An error occurred while creating the folder"));
     }
   };
 

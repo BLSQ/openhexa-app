@@ -22,10 +22,7 @@ import {
 } from "./BucketExplorer.generated";
 import SimpleSelect from "core/components/forms/SimpleSelect";
 import DropzoneOverlay from "core/components/DropzoneOverlay";
-import { uploader } from "core/helpers/files";
-import { getBucketObjectUploadUrl } from "workspaces/helpers/bucket";
-import useCacheKey from "core/hooks/useCacheKey";
-import { AlertType, displayAlert } from "core/helpers/alert";
+import { useUploadFiles } from "workspaces/hooks/useUploadFiles";
 
 type BucketExplorerProps = {
   workspace: BucketExplorer_WorkspaceFragment;
@@ -38,35 +35,9 @@ type BucketExplorerProps = {
 const BucketExplorer = (props: BucketExplorerProps) => {
   const { t } = useTranslation();
   const { workspace, objects, prefix, perPage, onChangePage } = props;
-  const clearCache = useCacheKey(["workspace", "files", prefix]);
-  const onDroppingFiles = (files: File[]) =>
-    uploader
-      .createUploadJob({
-        files: files,
-        async getXHROptions(file) {
-          const contentType = file.type || "application/octet-stream";
-          const url = await getBucketObjectUploadUrl(
-            workspace.slug,
-            (prefix ?? "") + file.name,
-            contentType,
-          );
-
-          return {
-            url,
-            method: "PUT",
-            headers: { "Content-Type": contentType },
-          };
-        },
-      })
-      .then(() => clearCache())
-      .catch((error) =>
-        displayAlert(
-          (error as Error).message ?? t("An unexpected error occurred."),
-          AlertType.error,
-        ),
-      );
+  const uploadFiles = useUploadFiles({ workspace, prefix });
   return (
-    <DropzoneOverlay onDroppingFiles={onDroppingFiles}>
+    <DropzoneOverlay onDroppingFiles={uploadFiles}>
       <DataGrid
         data={objects.items}
         defaultPageSize={perPage}

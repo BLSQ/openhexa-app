@@ -3,9 +3,9 @@ import useCacheKey from "core/hooks/useCacheKey";
 import { useRouter } from "next/router";
 import { ReactElement } from "react";
 import { useTranslation } from "next-i18next";
-import { AlertType, displayAlert } from "core/helpers/alert";
 import { deleteDataset } from "datasets/helpers/dataset";
 import { DeleteDatasetTrigger_DatasetFragment } from "datasets/features/DeleteDatasetTrigger/DeleteDatasetTrigger.generated";
+import { toast } from "react-toastify";
 
 type DeleteDatasetTriggerProps = {
   children: ({ onClick }: { onClick: () => void }) => ReactElement;
@@ -27,7 +27,7 @@ const DeleteDatasetTrigger = (props: DeleteDatasetTriggerProps) => {
       },
     ),
   } = props;
-  const router = useRouter();
+
   const clearCache = useCacheKey("datasets");
 
   const onClick = async () => {
@@ -41,7 +41,7 @@ const DeleteDatasetTrigger = (props: DeleteDatasetTriggerProps) => {
       }
       clearCache();
     } catch (err: any) {
-      displayAlert(err.message, AlertType.error);
+      toast.error(err.message);
     }
   };
 

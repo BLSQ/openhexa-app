@@ -1,6 +1,5 @@
 import { gql } from "@apollo/client";
 import { TrashIcon } from "@heroicons/react/24/outline";
-import { AlertType, displayAlert } from "core/helpers/alert";
 import { ReactElement } from "react";
 import { useTranslation } from "next-i18next";
 import { deleteBucketObject } from "workspaces/helpers/bucket";
@@ -11,6 +10,7 @@ import {
   DeleteBucketObject_WorkspaceFragment,
 } from "./DeleteBucketObject.generated";
 import { BucketObjectType } from "graphql/types";
+import { toast } from "react-toastify";
 
 type DeleteBucketObjectProps = {
   children?({ onClick }: { onClick(): void }): ReactElement;
@@ -35,7 +35,7 @@ const DeleteBucketObject = (props: DeleteBucketObjectProps) => {
       try {
         await deleteBucketObject(workspace.slug, object.key);
       } catch (err) {
-        displayAlert(t("Unexpected error"), AlertType.error);
+        toast.error(t("Unexpected error"));
       }
   };
 

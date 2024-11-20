@@ -7,8 +7,8 @@ import { useGenerateNewDatabasePasswordMutation } from "workspaces/graphql/mutat
 import { gql } from "@apollo/client";
 import { GenerateWorkspaceDatabasePasswordDialog_WorkspaceFragment } from "./GenerateDatabasePasswordDialog.generated";
 import { GenerateNewDatabasePasswordError } from "graphql/types";
-import { AlertType, displayAlert } from "core/helpers/alert";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import { toast } from "react-toastify";
 
 type GenerateDatabasePasswordDialogProps = {
   onClose(): void;
@@ -38,7 +38,7 @@ const GenerateWorkspaceDatabasePasswordDialog = (
     }
 
     if (data.generateNewDatabasePassword.success) {
-      displayAlert(t("Password successfully changed"), AlertType.info);
+      toast.info(t("Password successfully changed"));
       onClose();
       setIsSubmitting(false);
     }

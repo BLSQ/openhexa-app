@@ -1,4 +1,3 @@
-import Alert from "core/components/Alert";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import useLocalStorage from "core/hooks/useLocalStorage";
@@ -14,7 +13,7 @@ import {
   WorkspacesPageQueryVariables,
   useCheckWorkspaceAvailabilityLazyQuery,
 } from "workspaces/graphql/queries.generated";
-import { AlertType } from "core/helpers/alert";
+import { WarningAlert } from "core/components/Alert";
 
 type WorkspacesHomeProps = {
   workspaceSlug: string | null;
@@ -58,9 +57,9 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
 
   if (!isChecking && !me.permissions.createWorkspace) {
     return (
-      <Alert onClose={() => router.push("/")} type={AlertType.warning}>
+      <WarningAlert onClose={() => router.push("/")}>
         {t("No workspace available at the moment")}
-      </Alert>
+      </WarningAlert>
     );
   }
   if (typeof window === "undefined") {

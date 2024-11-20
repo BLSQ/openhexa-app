@@ -1,17 +1,15 @@
 import { gql, useLazyQuery } from "@apollo/client";
 import { PlayIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
-import Alert from "core/components/Alert";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Spinner from "core/components/Spinner";
 import Checkbox from "core/components/forms/Checkbox/Checkbox";
 import Field from "core/components/forms/Field";
-import { AlertType } from "core/helpers/alert";
 import { ensureArray } from "core/helpers/array";
 import useCacheKey from "core/hooks/useCacheKey";
 import useForm from "core/hooks/useForm";
-import { PipelineType, PipelineVersion } from "graphql/types";
+import { PipelineType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -28,6 +26,7 @@ import {
   RunPipelineDialog_RunFragment,
   RunPipelineDialog_VersionFragment,
 } from "./RunPipelineDialog.generated";
+import { ErrorAlert } from "core/components/Alert";
 
 type RunPipelineDialogProps = {
   children(onClick: () => void): React.ReactNode;
@@ -209,9 +208,9 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
 
   if (!pipeline.currentVersion && open) {
     return (
-      <Alert onClose={onClose} type={AlertType.error}>
+      <ErrorAlert onClose={onClose}>
         {t("This pipeline has not been uploaded yet")}
-      </Alert>
+      </ErrorAlert>
     );
   }
 

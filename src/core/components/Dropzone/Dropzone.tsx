@@ -46,7 +46,7 @@ const Dropzone = (props: DropzoneProps) => {
   const [acceptedFilesMap, setAcceptedFilesMap] = useState<
     Map<string, FileWithPath>
   >(new Map());
-  const acceptedFiles = acceptedFilesMap.values().toArray();
+  const acceptedFiles = Array.from<File>(acceptedFilesMap.values());
   const { getInputProps, getRootProps, fileRejections, isDragAccept } =
     useDropzone({
       validator,
@@ -61,7 +61,10 @@ const Dropzone = (props: DropzoneProps) => {
           (file) => newAcceptedFilesMap.set(file.name, file), //  Ignore duplicates by names
         );
         setAcceptedFilesMap(newAcceptedFilesMap);
-        onChange(newAcceptedFilesMap.values().toArray(), fileRejections);
+        onChange(
+          Array.from<File>(newAcceptedFilesMap.values()),
+          fileRejections,
+        );
       },
     });
 

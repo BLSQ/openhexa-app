@@ -433,6 +433,8 @@
   "Upload a new version": "Upload a new version",
   "Upload files": "Upload files",
   "Upload files in workspace": "Upload files in workspace",
+  "Upload in progress...": "Upload in progress...",
+  "Upload successful !": "Upload successful !",
   "Uploading: {{progress}}%": "Uploading: {{progress}}%",
   "URL": "URL",
   "User": "User",

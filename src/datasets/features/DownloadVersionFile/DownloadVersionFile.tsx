@@ -3,12 +3,12 @@ import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import { ButtonProps } from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
-import { AlertType, displayAlert } from "core/helpers/alert";
 import { prepareVersionFileDownload } from "datasets/helpers/dataset";
 import { useTranslation } from "next-i18next";
 import { ReactElement, useState } from "react";
 import { downloadURL } from "workspaces/helpers/bucket";
 import { DownloadVersionFile_FileFragment } from "./DownloadVersionFile.generated";
+import { toast } from "react-toastify";
 
 type DownloadVersionFileProps = {
   children?({
@@ -32,9 +32,8 @@ const DownloadVersionFile = (props: DownloadVersionFileProps) => {
       const downloadUrl = await prepareVersionFileDownload(file.id);
       await downloadURL(downloadUrl);
     } catch (exc) {
-      displayAlert(
+      toast.error(
         t("We were not able to generate a download url for this file"),
-        AlertType.error,
       );
     } finally {
       setIsPreparing(false);

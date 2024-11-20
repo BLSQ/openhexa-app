@@ -435,6 +435,8 @@
   "Upload a new version": "Télécharger une nouvelle version",
   "Upload files": "Télécharger des fichiers",
   "Upload files in workspace": "Télécharger des fichiers dans le workspace",
+  "Upload in progress...": "Téléchargement en cours...",
+  "Upload successful !": "Téléchargement réussi !",
   "Uploading: {{progress}}%": "Téléchargement : {{progress}}%",
   "URL": "URL",
   "User": "Utilisateur",

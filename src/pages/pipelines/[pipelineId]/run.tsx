@@ -1,7 +1,6 @@
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Page from "core/components/Page";
-import { AlertType, displayAlert } from "core/helpers/alert";
 import { createGetServerSideProps } from "core/helpers/page";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
@@ -15,6 +14,7 @@ import { getPipelineRun } from "pipelines/helpers/runs";
 import { useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import BackLayout from "core/layouts/back/BackLayout";
+import { toast } from "react-toastify";
 
 type Props = {
   run: Awaited<ReturnType<typeof getPipelineRun>>;
@@ -37,10 +37,7 @@ const PipelineConfigureRunPage = (props: Props) => {
         query: { pipelineId: dag.id, runId: dagRun.id },
       });
     } catch (err) {
-      displayAlert(
-        (err as Error).message ?? t("An unexpected error occurred."),
-        AlertType.error,
-      );
+      toast.error((err as Error).message ?? t("An unexpected error occurred."));
     }
   };
   const description = useMemo(

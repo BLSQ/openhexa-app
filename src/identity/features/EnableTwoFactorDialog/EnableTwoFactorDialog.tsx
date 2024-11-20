@@ -1,4 +1,3 @@
-import Alert from "core/components/Alert";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import {
@@ -12,7 +11,7 @@ import useMe from "identity/hooks/useMe";
 import { useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 import Input from "core/components/forms/Input";
-import { AlertType } from "core/helpers/alert";
+import { ErrorAlert } from "core/components/Alert";
 
 type EnableTwoFactorDialogProps = {
   open: boolean;
@@ -58,9 +57,9 @@ const EnableTwoFactorDialog = (props: EnableTwoFactorDialogProps) => {
 
   if (me?.hasTwoFactorEnabled && open) {
     return (
-      <Alert onClose={() => router.reload()} type={AlertType.error}>
+      <ErrorAlert onClose={() => router.reload()}>
         {t("Two-Factor Authentication is already enabled for your account.")}
-      </Alert>
+      </ErrorAlert>
     );
   }
 

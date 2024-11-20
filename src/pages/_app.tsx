@@ -6,12 +6,13 @@ import { AppPropsWithLayout } from "core/helpers/types";
 import { appWithTranslation } from "next-i18next";
 import NavigationProgress from "nextjs-progressbar";
 import "../styles/globals.css";
-import AlertManager from "core/components/AlertManager";
 import { useEffect } from "react";
 import { setUser } from "@sentry/nextjs";
 import { Settings } from "luxon";
 import { MeProvider } from "identity/hooks/useMe";
 import ErrorBoundary from "core/components/ErrorBoundary/ErrorBoundary";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Set the default locale & timezone to be used on server and client.
 // This should be changed to use the correct lang and tz of the user when it's available.
@@ -42,7 +43,11 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
             <meta name="description" content="" />
           </Head>
           {getLayout(<Component {...pageProps} />, pageProps)}
-          <AlertManager />
+          <ToastContainer
+            pauseOnFocusLoss={false}
+            pauseOnHover={false}
+            hideProgressBar={true}
+          />
         </ApolloProvider>
       </MeProvider>
     </ErrorBoundary>

@@ -2,11 +2,11 @@ import { gql } from "@apollo/client";
 import { PaperClipIcon } from "@heroicons/react/24/outline";
 import Anchor from "core/components/Anchor";
 import Spinner from "core/components/Spinner";
-import { AlertType, displayAlert } from "core/helpers/alert";
 import { useTranslation } from "next-i18next";
 import { getRunOutputDownloadURL } from "pipelines/helpers/runs";
 import { useState } from "react";
 import { PipelineRunOutputEntry_OutputFragment } from "./PipelineRunOutputEntry.generated";
+import { toast } from "react-toastify";
 
 type PipelineRunOutputEntryProps = {
   output: PipelineRunOutputEntry_OutputFragment;
@@ -22,10 +22,7 @@ const PipelineRunOutputEntry = (props: PipelineRunOutputEntryProps) => {
     const url = await getRunOutputDownloadURL(output.uri);
     if (!url) {
       setLoading(false);
-      displayAlert(
-        t("We were unable to create a link for this output."),
-        AlertType.warning,
-      );
+      toast.warning(t("We were unable to create a link for this output."));
       return;
     }
 

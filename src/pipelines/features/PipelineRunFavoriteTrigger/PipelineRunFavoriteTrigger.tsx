@@ -2,7 +2,6 @@ import { gql, useMutation } from "@apollo/client";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
-import { AlertType, displayAlert } from "core/helpers/alert";
 import useToggle from "core/hooks/useToggle";
 import { useTranslation } from "next-i18next";
 import { ReactElement, useState } from "react";
@@ -12,6 +11,7 @@ import {
   SetFavoriteRunMutation,
   SetFavoriteRunMutationVariables,
 } from "./PipelineRunFavoriteTrigger.generated";
+import { toast } from "react-toastify";
 
 type PipelineRunFavoriteTriggerProps = {
   run: PipelineRunFavoriteTrigger_RunFragment;
@@ -54,10 +54,7 @@ const PipelineRunFavoriteTrigger = (props: PipelineRunFavoriteTriggerProps) => {
           variables: { input: { id: run.id, isFavorite: false } },
         });
         if (!data?.setDAGRunFavorite?.success) {
-          displayAlert(
-            t("We were not able to remove it from your favorites"),
-            AlertType.error,
-          );
+          toast.error(t("We were not able to remove it from your favorites"));
         }
       }
     } else {
@@ -72,10 +69,7 @@ const PipelineRunFavoriteTrigger = (props: PipelineRunFavoriteTriggerProps) => {
       variables: { input: { id: run.id, isFavorite: true, label } },
     });
     if (!data?.setDAGRunFavorite?.success) {
-      displayAlert(
-        t("We were not able to add this run to your favorites"),
-        AlertType.error,
-      );
+      toast.error(t("We were not able to add this run to your favorites"));
     }
     setFalse();
     setLabel("");

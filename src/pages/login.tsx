@@ -15,7 +15,7 @@ import { useTranslation } from "next-i18next";
 import { LoginError } from "graphql/types";
 import Field from "core/components/forms/Field";
 import clsx from "clsx";
-import { AlertType, displayAlert } from "core/helpers/alert";
+import { toast } from "react-toastify";
 
 interface LoginForm {
   email: string;
@@ -89,10 +89,7 @@ const LoginPage: NextPageWithLayout = () => {
           },
         },
       });
-      displayAlert(
-        t("A new code has been sent to your mailbox."),
-        AlertType.success,
-      );
+      toast.success(t("A new code has been sent to your mailbox."));
     }
   };
 

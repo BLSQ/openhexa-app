@@ -13,7 +13,6 @@ import DescriptionList, {
 } from "core/components/DescriptionList";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
-import { AlertType, displayAlert } from "core/helpers/alert";
 import { createGetServerSideProps } from "core/helpers/page";
 import useToggle from "core/hooks/useToggle";
 import BackLayout from "core/layouts/back";
@@ -34,6 +33,7 @@ import {
   useJoinWorkspaceMutation,
 } from "workspaces/graphql/mutations.generated";
 import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
+import { toast } from "react-toastify";
 
 function AccountPage() {
   const { t } = useTranslation();
@@ -50,7 +50,7 @@ function AccountPage() {
       variables: { input: { invitationId: invitation.id } },
     });
     if (!data?.joinWorkspace.success) {
-      displayAlert(t("Failed to accept invitation"), AlertType.error);
+      toast.error(t("Failed to accept invitation"));
     }
   }
 
@@ -64,7 +64,7 @@ function AccountPage() {
       variables: { input: { invitationId: invitation.id } },
     });
     if (!data?.declineWorkspaceInvitation.success) {
-      displayAlert(t("Failed to decline invitation"), AlertType.error);
+      toast.error(t("Failed to decline invitation"));
     }
   }
 
