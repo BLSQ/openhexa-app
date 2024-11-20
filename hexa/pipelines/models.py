@@ -31,6 +31,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -112,6 +113,11 @@ class PipelineVersionQuerySet(BaseQuerySet):
 class PipelineVersion(models.Model):
     class Meta:
         ordering = ("-created_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["pipeline", "name"], name=UNIQUE_PIPELINE_VERSION_NAME
+            )
+        ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)

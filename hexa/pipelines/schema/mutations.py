@@ -5,11 +5,13 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
+from psycopg2.errors import UniqueViolation
 
 from hexa.analytics.api import track
 from hexa.databases.utils import get_table_definition
 from hexa.files import storage
 from hexa.pipelines.authentication import PipelineRunUser
+from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
 from hexa.pipelines.models import (
     InvalidTimeoutValueError,
     MissingPipelineConfiguration,
@@ -330,6 +332,12 @@ def resolve_upload_pipeline(_, info, **kwargs):
         return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except IntegrityError as e:
+        if isinstance(
+            e.__cause__, UniqueViolation
+        ) and UNIQUE_PIPELINE_VERSION_NAME in str(e):
+            return {"success": False, "errors": ["DUPLICATE_PIPELINE_VERSION_NAME"]}
+        raise
 
 
 @pipelines_mutations.field("updatePipelineVersion")
