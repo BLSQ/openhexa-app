@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.75.0](https://github.com/BLSQ/openhexa-app/compare/0.74.7...0.75.0) (2024-11-20)
+
+
+### Features
+
+* **Pipelines:** Pipeline notifications v2 ([#846](https://github.com/BLSQ/openhexa-app/issues/846)) ([d576777](https://github.com/BLSQ/openhexa-app/commit/d576777fad0a3d1c9c267acfb50868ea2dd060e8))
+
+
+### Bug Fixes
+
+* Remove and prevent saving pipeline versions with the same name ([#849](https://github.com/BLSQ/openhexa-app/issues/849)) ([0c6c0f6](https://github.com/BLSQ/openhexa-app/commit/0c6c0f6e2cc6589a99f832cc980f60a9f2a95551))
+* **settings:** In case of local hosting with a proxy, set the proxy url as the base_url as well ([68cb06a](https://github.com/BLSQ/openhexa-app/commit/68cb06a3a305a5a218af634a7bc475f1ff54fb19))
+
 ## [0.74.7](https://github.com/BLSQ/openhexa-app/compare/0.74.6...0.74.7) (2024-10-24)
 
 
