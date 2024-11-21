@@ -324,7 +324,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
             "success": True,
             "errors": [],
             "pipeline_version": version,
-            "version": version.name,  # FIXME: This is a temporary fix to not break the SDK before 1.0.43
+            "version": version.version_number,
         }
     except PipelineDoesNotSupportParametersError:
         return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
