@@ -4,6 +4,7 @@ from mixpanel import Mixpanel
 from sentry_sdk import capture_exception
 from ua_parser import user_agent_parser
 
+from hexa.analytics.utils import get_ip_address
 from hexa.user_management.models import AnonymousUser, User
 
 mixpanel = None
@@ -50,7 +51,7 @@ def track(
                     "$browser": parsed["user_agent"]["family"],
                     "$device": parsed["device"]["family"],
                     "$os": parsed["os"]["family"],
-                    "ip": request.META["REMOTE_ADDR"],
+                    "ip": get_ip_address(request),
                 }
             )
         mixpanel.track(

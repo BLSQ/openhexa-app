@@ -111,6 +111,37 @@ class AnalyticsTest(TestCase):
             )
 
     @mock.patch("hexa.analytics.api.mixpanel")
+    def test_track_user_analytics_enabled_x_forwarded(
+        self,
+        mock_mixpanel,
+    ):
+        mixpanel_token = "token"
+
+        self.USER.analytics_enabled = True
+        self.USER.save()
+        with self.settings(MIXPANEL_TOKEN=mixpanel_token):
+            request = self.factory.post("/login")
+            request.headers = {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36"
+            }
+            request.META["REMOTE_ADDR"] = "127.0.0.1"
+            request.META[
+                "HTTP_X_FORWARDED_FOR"
+            ] = "203.0.113.195, 192.168.1.1, 192.168.1.2"
+
+            track(request, "login", user=self.USER)
+            mock_mixpanel.track.assert_called_once_with(
+                distinct_id=str(self.USER.id),
+                event_name="login",
+                properties={
+                    "$browser": "Chrome",
+                    "$device": "Mac",
+                    "$os": "Mac OS X",
+                    "ip": "203.0.113.195",
+                },
+            )
+
+    @mock.patch("hexa.analytics.api.mixpanel")
     def test_track_pipelinerun_no_user(
         self,
         mock_mixpanel,
