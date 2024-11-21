@@ -118,6 +118,9 @@ class PipelineVersion(models.Model):
                 fields=["pipeline", "name"], name=UNIQUE_PIPELINE_VERSION_NAME
             )
         ]
+        indexes = [
+            models.Index(fields=["pipeline", "version_number"]),
+        ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -128,7 +131,8 @@ class PipelineVersion(models.Model):
     pipeline = models.ForeignKey(
         "Pipeline", on_delete=models.CASCADE, related_name="versions"
     )
-    name = models.CharField(max_length=250)
+    version_number = models.PositiveIntegerField(editable=False)
+    name = models.CharField(max_length=250, null=False, blank=False)
     external_link = models.URLField(blank=True, null=True)
     description = models.TextField(null=True)
     zipfile = models.BinaryField(null=True)
@@ -141,6 +145,24 @@ class PipelineVersion(models.Model):
     )
 
     objects = PipelineVersionQuerySet.as_manager()
+
+    # TODO : migration for new version_number field + index
+    # TODO : graphql query for pipeline versions
+    # TODO : webapp
+    # TODO : sdk
+    def _increment_version_number(self):
+        previous_version = (
+            PipelineVersion.objects.filter(pipeline=self.pipeline)
+            .order_by("-version_number")
+            .first()
+        )
+        self.version_number = (
+            (previous_version.version_number + 1) if previous_version else 1
+        )
+
+    def save(self, *args, **kwargs):
+        self._increment_version_number()
+        super().save(*args, **kwargs)
 
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("pipelines.update_pipeline_version", self):
