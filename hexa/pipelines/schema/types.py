@@ -236,6 +236,11 @@ def resolve_pipeline_version_permissions(version: PipelineVersion, info, **kwarg
     return version
 
 
+@pipeline_version_object.field("displayName")
+def resolve_pipeline_version_display_name(version: PipelineVersion, info, **kwargs):
+    return version.display_name
+
+
 @pipeline_run_object.field("outputs")
 def resolve_pipeline_run_outputs(run: PipelineRun, info, **kwargs):
     result = []
