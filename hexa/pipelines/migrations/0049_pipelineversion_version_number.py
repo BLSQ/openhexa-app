@@ -17,4 +17,9 @@ class Migration(migrations.Migration):
             model_name="pipelineversion",
             index=models.Index(fields=["pipeline", "version_number"]),
         ),
+        migrations.AlterField(
+            model_name="pipelineversion",
+            name="name",
+            field=models.CharField(max_length=250, null=False, blank=False),
+        ),
     ]
