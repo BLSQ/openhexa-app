@@ -33,7 +33,7 @@ class PipelineRunAdmin(admin.ModelAdmin):
 
 @admin.register(PipelineVersion)
 class PipelineVersionAdmin(admin.ModelAdmin):
-    list_display = ("name", "version_number", "pipeline", "created_at")
+    list_display = ("version_number", "name", "pipeline", "created_at")
     list_filter = ("pipeline", "pipeline__workspace")
     search_fields = ("name", "pipeline__name", "pipeline__code", "pipeline__id")
 

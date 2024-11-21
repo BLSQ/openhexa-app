@@ -274,10 +274,6 @@ def resolve_pipeline_run_dataset_version(run: PipelineRun, info, **kwargs):
     return run.dataset_versions.all()
 
 
-# FIXME: This is an alias to still support the deprecated "number" field
-pipeline_version_object.set_alias("number", "name")
-
-
 bindables = [
     pipeline_permissions,
     pipeline_parameter,

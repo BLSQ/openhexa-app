@@ -146,8 +146,6 @@ class PipelineVersion(models.Model):
 
     objects = PipelineVersionQuerySet.as_manager()
 
-    # TODO : graphql
-    # TODO : what happens when deleting a pipeline version ?
     # TODO : webapp
     # TODO : sdk
     def _increment_version_number(self):
@@ -203,7 +201,8 @@ class PipelineVersion(models.Model):
 
     @property
     def display_name(self):
-        return f"{self.pipeline.name} - {self.name}"
+        base_name = f"{self.pipeline.name} v{self.version_number}"
+        return f"{base_name} - {self.name}" if self.name else base_name
 
     def __str__(self):
         return self.display_name

@@ -110,8 +110,8 @@ type PipelineVersion {
   id: UUID!  # The ID of the pipeline version.
   user: User  # The user who created the pipeline version.
   pipeline: Pipeline!  # The pipeline associated with the version.
-  name: String!  # The name of the pipeline version.
-  number: String @deprecated(reason: "Use name field instead")  # The version number of the pipeline (deprecated).
+  name: String  # The name of the pipeline version.
+  versionNumber: Int!  # The version number of the pipeline version.
   description: String  # The description of the pipeline version.
   externalLink: URL  # The external link associated with the pipeline version.
   createdAt: DateTime!  # The timestamp when the pipeline version was created.
