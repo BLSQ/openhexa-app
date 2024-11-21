@@ -221,6 +221,11 @@ pipeline_run_object.set_alias("version", "pipeline_version")
 pipeline_version_object = ObjectType("PipelineVersion")
 
 
+@pipeline_version_object.field("versionName")
+def resolve_pipeline_version_version_name(version: PipelineVersion, info, **kwargs):
+    return version.version_name
+
+
 @pipeline_version_object.field("isLatestVersion")
 def resolve_pipeline_version_is_latest(version: PipelineVersion, info, **kwargs):
     return version.is_latest_version
@@ -234,11 +239,6 @@ def resolve_pipeline_version_zipfile(version: PipelineVersion, info, **kwargs):
 @pipeline_version_object.field("permissions")
 def resolve_pipeline_version_permissions(version: PipelineVersion, info, **kwargs):
     return version
-
-
-@pipeline_version_object.field("displayName")
-def resolve_pipeline_version_display_name(version: PipelineVersion, info, **kwargs):
-    return version.display_name
 
 
 @pipeline_run_object.field("outputs")
