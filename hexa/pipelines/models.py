@@ -146,7 +146,6 @@ class PipelineVersion(models.Model):
 
     objects = PipelineVersionQuerySet.as_manager()
 
-    # TODO : replace usage of name with version_number
     # TODO : graphql query for pipeline versions
     # TODO : webapp
     # TODO : sdk
