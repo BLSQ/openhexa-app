@@ -146,8 +146,6 @@ class PipelineVersion(models.Model):
 
     objects = PipelineVersionQuerySet.as_manager()
 
-    # TODO : webapp
-    # TODO : sdk
     def _increment_version_number(self):
         previous_version = (
             PipelineVersion.objects.filter(pipeline=self.pipeline)
