@@ -9,7 +9,7 @@ def set_version_numbers(apps, _):
         versions = PipelineVersion.objects.filter(pipeline=pipeline).order_by(
             "created_at"
         )
-        for version_number, version in enumerate(versions):
+        for version_number, version in enumerate(versions, start=1):
             version.version_number = version_number
             version.save(update_fields=["version_number"])
 

@@ -132,7 +132,7 @@ class PipelineVersion(models.Model):
         "Pipeline", on_delete=models.CASCADE, related_name="versions"
     )
     version_number = models.PositiveIntegerField(editable=False)
-    name = models.CharField(max_length=250, null=False, blank=False)
+    name = models.CharField(max_length=250, null=True, blank=True)
     external_link = models.URLField(blank=True, null=True)
     description = models.TextField(null=True)
     zipfile = models.BinaryField(null=True)
@@ -146,6 +146,8 @@ class PipelineVersion(models.Model):
 
     objects = PipelineVersionQuerySet.as_manager()
 
+    # TODO : graphql
+    # TODO : what happens when deleting a pipeline version ?
     # TODO : webapp
     # TODO : sdk
     def _increment_version_number(self):

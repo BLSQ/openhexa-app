@@ -23,6 +23,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="pipelineversion",
             name="name",
-            field=models.CharField(max_length=250, null=False, blank=False),
+            field=models.CharField(max_length=250, null=True, blank=True),
         ),
     ]
