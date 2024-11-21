@@ -1,3 +1,4 @@
+import base64
 import logging
 import math
 import secrets
@@ -354,17 +355,19 @@ class DatasetVersionFile(MetadataMixin, Base):
 class DataframeJsonEncoder(DjangoJSONEncoder):
     def encode(self, obj):
         # Recursively replace NaN with None (since it's a float, it does not call 'default' method)
-        def replace_nan(item):
+        def custom_encoding(item):
             if isinstance(item, float) and math.isnan(item):
                 return None
             elif isinstance(item, dict):
-                return {key: replace_nan(value) for key, value in item.items()}
+                return {key: custom_encoding(value) for key, value in item.items()}
             elif isinstance(item, list):
-                return [replace_nan(element) for element in item]
+                return [custom_encoding(element) for element in item]
+            elif isinstance(item, bytes):
+                return base64.b64encode(item).decode("utf-8")
             return item
 
-        # Preprocess the object to replace NaN values
-        obj = replace_nan(obj)
+        # Preprocess the object to replace NaN values with None and encode bytes to base64
+        obj = custom_encoding(obj)
         # Use the superclass's encode method to serialize the preprocessed object
         return super().encode(obj)
 
