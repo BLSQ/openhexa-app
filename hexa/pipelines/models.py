@@ -147,6 +147,8 @@ class PipelineVersion(models.Model):
     objects = PipelineVersionQuerySet.as_manager()
 
     # TODO : migration for new version_number field + index
+    # TODO : test migration
+    # TODO : test auto increment
     # TODO : graphql query for pipeline versions
     # TODO : webapp
     # TODO : sdk
