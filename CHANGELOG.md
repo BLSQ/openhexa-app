@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.75.2](https://github.com/BLSQ/openhexa-app/compare/0.75.1...0.75.2) (2024-11-21)
+
+
+### Miscellaneous Chores
+
+* Release 0.75.2 ([81f1d84](https://github.com/BLSQ/openhexa-app/commit/81f1d8428fd090311fd67e7d06ae53a3d90bded3))
+
 ## [0.75.1](https://github.com/BLSQ/openhexa-app/compare/0.75.0...0.75.1) (2024-11-21)
 
 
