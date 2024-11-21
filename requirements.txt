@@ -75,7 +75,7 @@ deprecated==1.2.14
     # via opentelemetry-api
 dhis2-py==2.3.0
     # via -r requirements.in
-django==5.0.9
+django==4.2.16
     # via
     #   -r requirements.in
     #   ariadne-django
@@ -386,7 +386,7 @@ urllib3==1.26.20
     #   sentry-sdk
 websocket-client==1.8.0
     # via kubernetes
-werkzeug==3.0.3
+werkzeug==3.0.6
     # via moto
 wheel==0.44.0
     # via pip-tools
