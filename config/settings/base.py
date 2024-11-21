@@ -175,6 +175,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "hexa.core.middlewares.set_remote_addr_from_forwarded_for",
     "hexa.user_management.middlewares.TwoFactorMiddleware",
     "hexa.user_management.middlewares.UserLanguageMiddleware",
     "hexa.plugins.connector_airflow.middlewares.dag_run_authentication_middleware",
