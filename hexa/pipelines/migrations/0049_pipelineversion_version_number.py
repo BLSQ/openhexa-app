@@ -15,7 +15,10 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="pipelineversion",
-            index=models.Index(fields=["pipeline", "version_number"]),
+            index=models.Index(
+                fields=["pipeline", "version_number"],
+                name="index_pipeline_version_number",
+            ),
         ),
         migrations.AlterField(
             model_name="pipelineversion",
