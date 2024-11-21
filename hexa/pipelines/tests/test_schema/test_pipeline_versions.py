@@ -351,5 +351,5 @@ class PipelineVersionsTest(GraphQLTestCase):
             pipeline.versions.filter(name="First version").first().version_number, 1
         )
         self.assertEqual(
-            pipeline.versions.filter(name="Second version").first().version_number, 1
+            pipeline.versions.filter(name="Second version").first().version_number, 2
         )
