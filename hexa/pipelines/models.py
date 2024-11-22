@@ -10,7 +10,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.core.exceptions import PermissionDenied
 from django.core.signing import Signer, TimestampSigner
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -116,7 +116,11 @@ class PipelineVersion(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["pipeline", "name"], name=UNIQUE_PIPELINE_VERSION_NAME
-            )
+            ),
+            models.UniqueConstraint(
+                fields=["pipeline", "version_number"],
+                name="unique_pipeline_version_number",
+            ),
         ]
         indexes = [
             models.Index(fields=["pipeline", "version_number"]),
@@ -147,17 +151,19 @@ class PipelineVersion(models.Model):
     objects = PipelineVersionQuerySet.as_manager()
 
     def _increment_version_number(self):
-        previous_version = (
-            PipelineVersion.objects.filter(pipeline=self.pipeline)
-            .order_by("-version_number")
-            .first()
-        )
-        self.version_number = (
-            (previous_version.version_number + 1) if previous_version else 1
-        )
+        with transaction.atomic():
+            previous_version = (
+                PipelineVersion.objects.filter(pipeline=self.pipeline)
+                .order_by("-version_number")
+                .first()
+            )
+            self.version_number = (
+                (previous_version.version_number + 1) if previous_version else 1
+            )
 
     def save(self, *args, **kwargs):
-        self._increment_version_number()
+        if not self.version_number:  # Increment for new records only
+            self._increment_version_number()
         super().save(*args, **kwargs)
 
     def update_if_has_perm(self, principal: User, **kwargs):
