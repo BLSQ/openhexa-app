@@ -273,7 +273,6 @@ class PipelinesV2Test(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
-                    version
                     pipelineVersion {
                         name
                     }
