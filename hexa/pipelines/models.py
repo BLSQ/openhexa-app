@@ -123,7 +123,10 @@ class PipelineVersion(models.Model):
             ),
         ]
         indexes = [
-            models.Index(fields=["pipeline", "version_number"]),
+            models.Index(
+                fields=["pipeline", "version_number"],
+                name="index_pipeline_version_number",
+            ),
         ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
