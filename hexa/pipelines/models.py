@@ -208,7 +208,7 @@ class PipelineVersion(models.Model):
 
     @property
     def version_name(self):
-        return str(self.version_number) + f" [{self.name}]" if self.name else ""
+        return str(self.version_number) + (f" [{self.name}]" if self.name else "")
 
     @property
     def display_name(self):
