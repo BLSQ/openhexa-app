@@ -324,7 +324,6 @@ def resolve_upload_pipeline(_, info, **kwargs):
             "success": True,
             "errors": [],
             "pipeline_version": version,
-            "version": version.version_number,
         }
     except PipelineDoesNotSupportParametersError:
         return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}

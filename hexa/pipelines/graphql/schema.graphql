@@ -459,7 +459,6 @@ Represents the result of uploading a pipeline.
 type UploadPipelineResult {
   success: Boolean!  # Indicates if the pipeline was uploaded successfully.
   pipelineVersion: PipelineVersion  # The uploaded pipeline version.
-  version: String @deprecated(reason: "Use 'pipelineVersion' field instead")  # The version of the uploaded pipeline (deprecated).
   errors: [PipelineError!]!  # The list of errors that occurred during the upload of the pipeline.
 }
 
