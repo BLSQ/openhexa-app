@@ -203,7 +203,7 @@ class PipelineVersion(models.Model):
 
     @property
     def display_name(self):
-        return f"{self.pipeline.name} - {self.version_name}"
+        return f"{self.pipeline.name} - v{self.version_name}"
 
     def __str__(self):
         return self.display_name
