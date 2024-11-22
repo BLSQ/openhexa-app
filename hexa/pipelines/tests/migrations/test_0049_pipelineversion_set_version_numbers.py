@@ -18,8 +18,17 @@ class Migration0049Test(TestCase):
     def test_set_version_numbers(self):
         PipelineVersion = self.get_pipeline_version_model()
         pipeline = self.get_pipeline_model().objects.create(code=self.pipeline_code)
-        for date in ["2023-01-01", "2023-01-02", "2023-01-03"]:
-            PipelineVersion.objects.create(pipeline=pipeline, created_at=date)
+        for version_number, name, date in [
+            (3, "3", "2023-01-01"),
+            (10, "10", "2023-01-02"),
+            (20, "20", "2023-01-03"),
+        ]:
+            PipelineVersion.objects.create(
+                pipeline=pipeline,
+                version_number=version_number,
+                name=name,
+                created_at=date,
+            )
 
         self.migrator.migrate("pipelines", "0050_pipelineversion_set_version_numbers")
 
