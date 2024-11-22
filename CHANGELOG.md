@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.75.2](https://github.com/BLSQ/openhexa-app/compare/0.75.1...0.75.2) (2024-11-21)
+
+
+### Miscellaneous Chores
+
+* Release 0.75.2 ([81f1d84](https://github.com/BLSQ/openhexa-app/commit/81f1d8428fd090311fd67e7d06ae53a3d90bded3))
+
+## [0.75.1](https://github.com/BLSQ/openhexa-app/compare/0.75.0...0.75.1) (2024-11-21)
+
+
+### Bug Fixes
+
+* adds byte field to json serialzer ([#851](https://github.com/BLSQ/openhexa-app/issues/851)) ([c92649e](https://github.com/BLSQ/openhexa-app/commit/c92649ec9ddf2cb32f8f146d5e8b14fe34944509))
+
 ## [0.75.0](https://github.com/BLSQ/openhexa-app/compare/0.74.7...0.75.0) (2024-11-20)
 
 

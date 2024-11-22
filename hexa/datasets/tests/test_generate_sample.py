@@ -142,6 +142,31 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 ],
                 None,
             ),
+            (
+                "example_with_byte.parquet",
+                DatasetFileSample.STATUS_FINISHED,
+                [
+                    {
+                        "geometry": "AQMAAAACAAAAoQEAAQ==",
+                        "id": "2",
+                        "name": "District B",
+                        "value": 2.5,
+                    },
+                    {
+                        "geometry": "AQMAAAABAAAAoAAAAA==",
+                        "id": "1",
+                        "name": "District A",
+                        "value": None,
+                    },
+                    {
+                        "geometry": "AQMAAAABAAAAoAAAAA==",
+                        "id": "1",
+                        "name": "District A",
+                        "value": None,
+                    },
+                ],
+                None,
+            ),
         ]
         for (
             fixture_name,
