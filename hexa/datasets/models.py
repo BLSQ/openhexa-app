@@ -4,6 +4,7 @@ import math
 import secrets
 from functools import cached_property
 
+import shapely.wkb
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
@@ -11,6 +12,7 @@ from django.db import models
 from django.db.models import JSONField
 from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
+from shapely import wkb
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
@@ -363,13 +365,24 @@ class DataframeJsonEncoder(DjangoJSONEncoder):
             elif isinstance(item, list):
                 return [custom_encoding(element) for element in item]
             elif isinstance(item, bytes):
-                return base64.b64encode(item).decode("utf-8")
+                return self._encode_bytes(item)
             return item
 
         # Preprocess the object to replace NaN values with None and encode bytes to base64
         obj = custom_encoding(obj)
         # Use the superclass's encode method to serialize the preprocessed object
         return super().encode(obj)
+
+    def _encode_bytes(self, item):
+        try:
+            return base64.b64encode(item).decode("utf-8")
+        except Exception:
+            try:
+                polygone = wkb.loads(item, hex=True)
+                geo_json = shapely.geometry.mapping(polygone)
+                return geo_json
+            except Exception:
+                return None
 
 
 class DatasetFileSample(Base):
