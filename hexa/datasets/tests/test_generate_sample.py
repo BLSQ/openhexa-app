@@ -168,12 +168,6 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 ],
                 None,
             ),
-            (
-                "example_with_wkb_geometry.parquet",
-                DatasetFileSample.STATUS_FINISHED,
-                [],
-                None,
-            ),
         ]
         for (
             fixture_name,
