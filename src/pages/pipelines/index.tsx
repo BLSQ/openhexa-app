@@ -20,6 +20,7 @@ import {
 } from "pipelines/graphql/queries.generated";
 import { useMemo } from "react";
 import BackLayout from "core/layouts/back/BackLayout";
+import Button from "core/components/Button";
 
 type Props = {
   page: number;
@@ -58,7 +59,22 @@ const PipelinesPage = (props: Props) => {
 
   return (
     <Page title={t("Airflow Pipelines")}>
-      <BackLayout title={t("Airflow Pipelines")}>
+      <BackLayout
+        title={
+          <div className="flex gap-2">
+            <Button onClick={() => router.push("/pipelines")} size="sm">
+              {t("Airflow Pipelines")}
+            </Button>
+            <Button
+              onClick={() => router.push("/notebooks")}
+              variant="white"
+              size="sm"
+            >
+              {t("Notebooks")}
+            </Button>
+          </div>
+        }
+      >
         <Block>
           <DataGrid
             defaultPageSize={props.perPage}

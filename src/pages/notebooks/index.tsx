@@ -1,3 +1,4 @@
+import Button from "core/components/Button";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import BackLayout from "core/layouts/back/BackLayout";
@@ -28,7 +29,23 @@ const NotebooksPage = () => {
   return (
     <Page title={t("Notebooks")}>
       <div className="w-screen min-h-screen flex flex-col">
-        <BackLayoutHeader onBack={handleBack} title={t("Notebooks")} />
+        <BackLayoutHeader
+          onBack={handleBack}
+          title={
+            <div className="flex gap-2">
+              <Button
+                variant="white"
+                onClick={() => router.push("/pipelines")}
+                size="sm"
+              >
+                {t("Airflow Pipelines")}
+              </Button>
+              <Button onClick={() => router.push("/notebooks")} size="sm">
+                {t("Notebooks")}
+              </Button>
+            </div>
+          }
+        />
         <iframe className="w-full flex-1" src={data.notebooksUrl}></iframe>
       </div>
     </Page>
