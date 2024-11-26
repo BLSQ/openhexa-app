@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.55.0](https://github.com/BLSQ/openhexa-frontend/compare/0.54.3...0.55.0) (2024-11-26)
+
+
+### Features
+
+* Pipelines notifications ([#865](https://github.com/BLSQ/openhexa-frontend/issues/865)) ([c18503b](https://github.com/BLSQ/openhexa-frontend/commit/c18503b5503c0a4514b452ffd0c112b77d43f63f))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @sentry/nextjs to v8.40.0 ([#884](https://github.com/BLSQ/openhexa-frontend/issues/884)) ([e5e837c](https://github.com/BLSQ/openhexa-frontend/commit/e5e837cb91e5538d002bb28d2b4306f9022ef959))
+* **deps:** update dependency @types/node to v22.10.0 ([#895](https://github.com/BLSQ/openhexa-frontend/issues/895)) ([cd9fc48](https://github.com/BLSQ/openhexa-frontend/commit/cd9fc4862f16552137a135175a97e40883e3f458))
+* **deps:** update dependency @types/node to v22.9.2 ([#890](https://github.com/BLSQ/openhexa-frontend/issues/890)) ([aeec8e0](https://github.com/BLSQ/openhexa-frontend/commit/aeec8e0b90c5b270d0a6f50ec0732cae6589991e))
+* **deps:** update dependency @types/node to v22.9.3 ([#891](https://github.com/BLSQ/openhexa-frontend/issues/891)) ([1779d53](https://github.com/BLSQ/openhexa-frontend/commit/1779d53b36fc8da641e466b016e19822fb5e0dff))
+* **deps:** update dependency @types/node to v22.9.4 ([#894](https://github.com/BLSQ/openhexa-frontend/issues/894)) ([d469cc5](https://github.com/BLSQ/openhexa-frontend/commit/d469cc56d47f4b80916ad51ba7779b788e193556))
+* **deps:** update dependency cronstrue to v2.52.0 ([#883](https://github.com/BLSQ/openhexa-frontend/issues/883)) ([a925cf3](https://github.com/BLSQ/openhexa-frontend/commit/a925cf364a40ba5c46a208c3e61711d0a4144f79))
+* **deps:** update dependency i18next to v23.16.7 ([#880](https://github.com/BLSQ/openhexa-frontend/issues/880)) ([d48bcd7](https://github.com/BLSQ/openhexa-frontend/commit/d48bcd734fb703f89cab0ca3e991752b8a4f2eeb))
+* **deps:** update dependency i18next to v23.16.8 ([#882](https://github.com/BLSQ/openhexa-frontend/issues/882)) ([db39382](https://github.com/BLSQ/openhexa-frontend/commit/db39382a8509b76dd0969461d3f6835ed57732a2))
+* **deps:** update dependency i18next to v24 ([#888](https://github.com/BLSQ/openhexa-frontend/issues/888)) ([16be047](https://github.com/BLSQ/openhexa-frontend/commit/16be0473bc3f54a2780133fde32af390a3e75d30))
+* **deps:** update dependency i18next to v24.0.2 ([#892](https://github.com/BLSQ/openhexa-frontend/issues/892)) ([2b5dd51](https://github.com/BLSQ/openhexa-frontend/commit/2b5dd51a2f2ecb5d1c07bcaba456ace50682dfcd))
+* **deps:** update dependency next-i18next to v15.4.0 ([#885](https://github.com/BLSQ/openhexa-frontend/issues/885)) ([867501b](https://github.com/BLSQ/openhexa-frontend/commit/867501b039e343e2664ab6239c467c5d2d2171f0))
+* **deps:** update dependency react-i18next to v15.1.2 ([#898](https://github.com/BLSQ/openhexa-frontend/issues/898)) ([17468a3](https://github.com/BLSQ/openhexa-frontend/commit/17468a3a19c26620f19485f47214862e44e0f597))
+* **deps:** update dependency typescript to v5.7.2 ([#887](https://github.com/BLSQ/openhexa-frontend/issues/887)) ([abf79ba](https://github.com/BLSQ/openhexa-frontend/commit/abf79ba5669a49c56b53e77de3815768195436dc))
+* **Legacy:** The redirection when user had not the workpaces flag was wrong and the two pages were not exposed ([ff61a15](https://github.com/BLSQ/openhexa-frontend/commit/ff61a15a9538502228e5b697a99a2d08132d2a46))
+
 ## [0.54.3](https://github.com/BLSQ/openhexa-frontend/compare/0.54.2...0.54.3) (2024-11-19)
 
 
