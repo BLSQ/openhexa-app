@@ -189,3 +189,10 @@ mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
     errors
   }
 }
+
+mutation addPipelineRecipient($input: CreatePipelineRecipientInput!) {
+  addPipelineRecipient(input: $input) {
+    success
+    errors
+  }
+}

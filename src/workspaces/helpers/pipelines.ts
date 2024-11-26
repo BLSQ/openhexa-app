@@ -6,6 +6,7 @@ import "cronstrue/locales/en";
 import "cronstrue/locales/fr";
 import {
   ConnectionType,
+  PipelineNotificationLevel,
   PipelineParameter,
   PipelineType,
   UpdatePipelineError,
@@ -274,4 +275,92 @@ export function formatPipelineType(pipelineType: PipelineType) {
     default:
       return i18n!.t("Pipeline");
   }
+}
+
+export async function createPipelineRecipient(
+  pipelineId: string,
+  userId: string,
+  notificationLevel: string,
+) {
+  const client = getApolloClient();
+
+  const { data } = await client.mutate({
+    mutation: gql`
+      mutation addPipelineRecipient($input: CreatePipelineRecipientInput!) {
+        addPipelineRecipient(input: $input) {
+          success
+          errors
+        }
+      }
+    `,
+    variables: { input: { userId, pipelineId, notificationLevel } },
+  });
+
+  if (data.addPipelineRecipient.success) {
+    return true;
+  }
+
+  if (data.addPipelineRecipient.errors.includes("PERMISSION_DENIED")) {
+    throw new Error("You are not authorized to perform this action");
+  }
+
+  throw new Error("Failed to create recipient.");
+}
+
+export async function updatePipelineRecipient(
+  recipientId: string,
+  notificationLevel: PipelineNotificationLevel,
+) {
+  const client = getApolloClient();
+
+  const { data } = await client.mutate({
+    mutation: gql`
+      mutation updatePipelineRecipient($input: UpdatePipelineRecipientInput!) {
+        updatePipelineRecipient(input: $input) {
+          success
+          errors
+          recipient {
+            id
+            notificationLevel
+          }
+        }
+      }
+    `,
+    variables: { input: { recipientId, notificationLevel } },
+  });
+
+  if (data.updatePipelineRecipient.success) {
+    return true;
+  }
+
+  if (data.updatePipelineRecipient.errors.includes("PERMISSION_DENIED")) {
+    throw new Error("You are not authorized to perform this action");
+  }
+
+  throw new Error("Failed to update recipient");
+}
+
+export async function deletePipelineRecipient(recipientId: string) {
+  const client = getApolloClient();
+  const { data } = await client.mutate({
+    mutation: gql`
+      mutation deletePipelineRecipient($input: DeletePipelineRecipientInput!) {
+        deletePipelineRecipient(input: $input) {
+          success
+          errors
+        }
+      }
+    `,
+    variables: { input: { recipientId } },
+  });
+
+  if (data.deletePipelineRecipient.success) {
+    return true;
+  }
+
+  if (data.deletePipelineRecipient.errors.includes("PERMISSION_DENIED")) {
+    throw new Error("You are not authorized to perform this action");
+  }
+
+  throw new Error("Failed to delete recipient");
 }

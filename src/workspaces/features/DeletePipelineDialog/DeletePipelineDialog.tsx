@@ -8,12 +8,9 @@ import { useRouter } from "next/router";
 import Button from "core/components/Button";
 import Spinner from "core/components/Spinner";
 import useCacheKey from "core/hooks/useCacheKey";
-import { DeletePipelineVersionError, PipelineError } from "graphql/types";
-import { useState, version } from "react";
-import {
-  useDeletePipelineMutation,
-  useDeletePipelineVersionMutation,
-} from "workspaces/graphql/mutations.generated";
+import { PipelineError } from "graphql/types";
+import { useState } from "react";
+import { useDeletePipelineMutation } from "workspaces/graphql/mutations.generated";
 import Dialog from "core/components/Dialog";
 
 type DeletePipelineDialogProps = {

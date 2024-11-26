@@ -92,7 +92,7 @@ describe("RunPipelineDialog", () => {
       pipeline.id,
       { is_ok: undefined },
       pipeline.currentVersion.id,
-      false,
+      true,
     );
   });
 
@@ -118,13 +118,13 @@ describe("RunPipelineDialog", () => {
       </RunPipelineDialog>,
     );
     await user.click(await screen.findByTestId("trigger"));
-    await user.click(await screen.findByLabelText("Receive mail notification"));
+    await user.click(await screen.findByLabelText("Mute notifications"));
     await submitForm(user);
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       {},
       pipeline.currentVersion.id,
-      true,
+      false,
     );
   });
 
@@ -201,7 +201,7 @@ describe("RunPipelineDialog", () => {
       pipeline.id,
       {},
       pipeline.currentVersion.id,
-      false,
+      true,
     );
   });
 
@@ -260,7 +260,7 @@ describe("RunPipelineDialog", () => {
       pipeline.id,
       { int_param: 0, float_param: 2.2 },
       pipeline.currentVersion.id,
-      false,
+      true,
     );
   });
 
@@ -308,7 +308,7 @@ describe("RunPipelineDialog", () => {
       pipeline.id,
       { multi: ["0", "1", "2"] },
       pipeline.currentVersion.id,
-      false,
+      true,
     );
   });
 
@@ -356,7 +356,7 @@ describe("RunPipelineDialog", () => {
       pipeline.id,
       { string: "coucou" },
       pipeline.currentVersion.id,
-      false,
+      true,
     );
   });
 
@@ -405,7 +405,7 @@ describe("RunPipelineDialog", () => {
       pipeline.id,
       { choices_param: 2 },
       pipeline.currentVersion.id,
-      false,
+      true,
     );
   });
 });

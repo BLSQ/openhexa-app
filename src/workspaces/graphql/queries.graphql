@@ -64,18 +64,15 @@ query WorkspaceNotebooksPage($workspaceSlug: String!) {
 query WorkspacePipelinePage(
   $workspaceSlug: String!
   $pipelineCode: String!
-  $page: Int = 1
-  $perPage: Int = 10
 ) {
   workspace(slug: $workspaceSlug) {
     slug
     name
-    ...WorkspaceLayout_workspace
+    ...PipelineLayout_workspace
   }
-
   pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
     ...RunPipelineDialog_pipeline
-    ...PipelineVersionPicker_pipeline
+    ...PipelineLayout_pipeline
     permissions {
       run
       update
@@ -98,9 +95,7 @@ query WorkspacePipelinePage(
       description
       config
       externalLink
-      ...PipelineVersionPicker_version
       ...PipelineVersionParametersTable_version
-      ...DownloadPipelineVersion_version
       ...PipelineVersionConfigDialog_version
     }
     recipients {
@@ -109,6 +104,24 @@ query WorkspacePipelinePage(
         displayName
       }
     }
+  }
+}
+
+query WorkspacePipelineRunsPage(
+  $workspaceSlug: String!
+  $pipelineCode: String!
+  $page: Int = 1
+  $perPage: Int = 10
+) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...PipelineLayout_workspace
+  }
+  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+    ...PipelineLayout_pipeline
+    id
+    type
     runs(page: $page, perPage: $perPage) {
       items {
         id
@@ -131,6 +144,27 @@ query WorkspacePipelinePage(
       totalItems
       totalPages
       pageNumber
+    }
+  }
+}
+
+query WorkspacePipelineNotificationsPage(
+  $workspaceSlug: String!
+  $pipelineCode: String!
+) {
+  workspace(slug: $workspaceSlug) {
+    ...PipelineLayout_workspace
+  }
+  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+    ...PipelineLayout_pipeline
+    ...PipelineRecipients_pipeline
+    id
+    code
+    type
+    schedule
+    permissions{
+      schedule
+      update
     }
   }
 }
@@ -200,7 +234,6 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: UUID!) {
     executionDate
     duration
     triggerMode
-    sendMailNotifications
     pipeline {
       id
       code

@@ -1,4 +1,4 @@
-import { Trans, useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import Button from "core/components/Button";
 import Spinner from "core/components/Spinner";

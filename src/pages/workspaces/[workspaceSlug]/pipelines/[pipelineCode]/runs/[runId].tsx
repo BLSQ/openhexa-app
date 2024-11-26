@@ -29,7 +29,7 @@ import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import RunLogs from "pipelines/features/RunLogs";
 import RunMessages from "pipelines/features/RunMessages";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import RunOutputsTable from "workspaces/features/RunOutputsTable";
 import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import StopPipelineDialog from "workspaces/features/StopPipelineDialog";
@@ -160,6 +160,13 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
               )}/pipelines/${encodeURIComponent(run.pipeline.code)}`}
             >
               {run.pipeline.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/pipelines/${encodeURIComponent(run.pipeline.code)}/runs`}
+            >
+              {t("Runs")}
             </Breadcrumbs.Part>
             <Breadcrumbs.Part
               isLast
@@ -303,9 +310,6 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                   help={t("See documentation for more info.")}
                 >
                   {run.timeout ? formatDuration(run.timeout) : "-"}
-                </DescriptionList.Item>
-                <DescriptionList.Item label={t("Notifications")}>
-                  <Checkbox checked={run.sendMailNotifications} disabled />
                 </DescriptionList.Item>
               </DescriptionList>
             </Block.Section>

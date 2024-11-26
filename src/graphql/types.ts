@@ -339,6 +339,13 @@ export type AddPipelineOutputResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export type AddPipelineRecipientResult = {
+  __typename?: 'AddPipelineRecipientResult';
+  errors: Array<PipelineRecipientError>;
+  recipient?: Maybe<PipelineRecipient>;
+  success: Scalars['Boolean']['output'];
+};
+
 export enum ApproveAccessmodAccessRequestError {
   Invalid = 'INVALID'
 }
@@ -789,6 +796,13 @@ export type CreatePipelineInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   notebookPath?: InputMaybe<Scalars['String']['input']>;
   workspaceSlug: Scalars['String']['input'];
+};
+
+/** Represents the input for adding a recipient to a pipeline. */
+export type CreatePipelineRecipientInput = {
+  notificationLevel: PipelineNotificationLevel;
+  pipelineId: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
 };
 
 /** Represents the result of creating a pipeline. */
@@ -1432,6 +1446,17 @@ export type DeletePipelineInput = {
   id: Scalars['UUID']['input'];
 };
 
+/** Represents the input for deleting a pipeline recipient. */
+export type DeletePipelineRecipientInput = {
+  recipientId: Scalars['UUID']['input'];
+};
+
+export type DeletePipelineRecipientResult = {
+  __typename?: 'DeletePipelineRecipientResult';
+  errors: Array<PipelineRecipientError>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** Represents the result of deleting a pipeline. */
 export type DeletePipelineResult = {
   __typename?: 'DeletePipelineResult';
@@ -1988,6 +2013,8 @@ export type Mutation = {
   addMetadataAttribute: CreateMetadataAttributeResult;
   /** Adds an output to a pipeline. */
   addPipelineOutput: AddPipelineOutputResult;
+  /** Adds a recipient to a pipeline. */
+  addPipelineRecipient: AddPipelineRecipientResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
   archiveWorkspace: ArchiveWorkspaceResult;
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
@@ -2029,6 +2056,8 @@ export type Mutation = {
   deleteMetadataAttribute: DeleteMetadataAttributeResult;
   /** Deletes a pipeline. */
   deletePipeline: DeletePipelineResult;
+  /** Deletes a pipeline recipient. */
+  deletePipelineRecipient: DeletePipelineRecipientResult;
   /** Deletes a pipeline version. */
   deletePipelineVersion: DeletePipelineVersionResult;
   deleteTeam: DeleteTeamResult;
@@ -2049,6 +2078,7 @@ export type Mutation = {
   generateDatasetUploadUrl: GenerateDatasetUploadUrlResult;
   /** Generates a new password for a database. */
   generateNewDatabasePassword: GenerateNewDatabasePasswordResult;
+  /** Generates a webhook URL for a pipeline. */
   generatePipelineWebhookUrl: GeneratePipelineWebhookUrlResult;
   generateWorkspaceToken: GenerateWorkspaceTokenResult;
   inviteWorkspaceMember: InviteWorkspaceMemberResult;
@@ -2105,6 +2135,8 @@ export type Mutation = {
   updatePipeline: UpdatePipelineResult;
   /** Updates the progress of a pipeline. */
   updatePipelineProgress: UpdatePipelineProgressResult;
+  /** Updates a pipeline recipient. */
+  updatePipelineRecipient: UpdatePipelineRecipientResult;
   /** Updates a pipeline version. */
   updatePipelineVersion: UpdatePipelineVersionResult;
   updateTeam: UpdateTeamResult;
@@ -2126,6 +2158,11 @@ export type MutationAddMetadataAttributeArgs = {
 
 export type MutationAddPipelineOutputArgs = {
   input: AddPipelineOutputInput;
+};
+
+
+export type MutationAddPipelineRecipientArgs = {
+  input: CreatePipelineRecipientInput;
 };
 
 
@@ -2276,6 +2313,11 @@ export type MutationDeleteMetadataAttributeArgs = {
 
 export type MutationDeletePipelineArgs = {
   input?: InputMaybe<DeletePipelineInput>;
+};
+
+
+export type MutationDeletePipelineRecipientArgs = {
+  input: DeletePipelineRecipientInput;
 };
 
 
@@ -2529,6 +2571,11 @@ export type MutationUpdatePipelineProgressArgs = {
 };
 
 
+export type MutationUpdatePipelineRecipientArgs = {
+  input: UpdatePipelineRecipientInput;
+};
+
+
 export type MutationUpdatePipelineVersionArgs = {
   input: UpdatePipelineVersionInput;
 };
@@ -2717,6 +2764,12 @@ export enum PipelineError {
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
+/** Represents the notification level for a pipeline recipient. */
+export enum PipelineNotificationLevel {
+  All = 'ALL',
+  Error = 'ERROR'
+}
+
 /** Represents a parameter of a pipeline. */
 export type PipelineParameter = {
   __typename?: 'PipelineParameter';
@@ -2744,9 +2797,19 @@ export type PipelinePermissions = {
 /** Represents a recipient of a pipeline. */
 export type PipelineRecipient = {
   __typename?: 'PipelineRecipient';
+  id: Scalars['UUID']['output'];
+  notificationLevel: PipelineNotificationLevel;
   pipeline: Pipeline;
   user: User;
 };
+
+export enum PipelineRecipientError {
+  AlreadyExists = 'ALREADY_EXISTS',
+  PermissionDenied = 'PERMISSION_DENIED',
+  PipelineNotFound = 'PIPELINE_NOT_FOUND',
+  RecipientNotFound = 'RECIPIENT_NOT_FOUND',
+  UserNotFound = 'USER_NOT_FOUND'
+}
 
 /** Represents a pipeline run. */
 export type PipelineRun = {
@@ -3346,7 +3409,6 @@ export type RunDagResult = {
 export type RunPipelineInput = {
   config: Scalars['JSON']['input'];
   id: Scalars['UUID']['input'];
-  sendMailNotifications?: InputMaybe<Scalars['Boolean']['input']>;
   versionId?: InputMaybe<Scalars['UUID']['input']>;
 };
 
@@ -3744,7 +3806,6 @@ export type UpdatePipelineInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
-  recipientIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
   schedule?: InputMaybe<Scalars['String']['input']>;
   webhookEnabled?: InputMaybe<Scalars['Boolean']['input']>;
 };
@@ -3758,6 +3819,19 @@ export type UpdatePipelineProgressInput = {
 export type UpdatePipelineProgressResult = {
   __typename?: 'UpdatePipelineProgressResult';
   errors: Array<PipelineError>;
+  success: Scalars['Boolean']['output'];
+};
+
+/** Represents the input for updating a recipient. */
+export type UpdatePipelineRecipientInput = {
+  notificationLevel: PipelineNotificationLevel;
+  recipientId: Scalars['UUID']['input'];
+};
+
+export type UpdatePipelineRecipientResult = {
+  __typename?: 'UpdatePipelineRecipientResult';
+  errors: Array<PipelineRecipientError>;
+  recipient?: Maybe<PipelineRecipient>;
   success: Scalars['Boolean']['output'];
 };
 

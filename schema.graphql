@@ -302,6 +302,12 @@ type AddPipelineOutputResult {
   errors: [PipelineError!]!
 }
 
+type AddPipelineRecipientResult {
+  success: Boolean!
+  errors: [PipelineRecipientError!]!
+  recipient: PipelineRecipient
+}
+
 enum ApproveAccessmodAccessRequestError {
   INVALID
 }
@@ -733,6 +739,13 @@ input CreatePipelineInput {
   name: String
   workspaceSlug: String!
   notebookPath: String
+}
+
+"""Represents the input for adding a recipient to a pipeline."""
+input CreatePipelineRecipientInput {
+  pipelineId: UUID!
+  userId: UUID!
+  notificationLevel: PipelineNotificationLevel!
 }
 
 """Represents the result of creating a pipeline."""
@@ -1300,6 +1313,16 @@ type DeleteMetadataAttributeResult {
 """Represents the input for deleting a pipeline."""
 input DeletePipelineInput {
   id: UUID!
+}
+
+"""Represents the input for deleting a pipeline recipient."""
+input DeletePipelineRecipientInput {
+  recipientId: UUID!
+}
+
+type DeletePipelineRecipientResult {
+  success: Boolean!
+  errors: [PipelineRecipientError!]!
 }
 
 """Represents the result of deleting a pipeline."""
@@ -2011,7 +2034,18 @@ type Mutation {
 
   """Deletes a pipeline version."""
   deletePipelineVersion(input: DeletePipelineVersionInput!): DeletePipelineVersionResult!
+
+  """Generates a webhook URL for a pipeline."""
   generatePipelineWebhookUrl(input: GeneratePipelineWebhookUrlInput!): GeneratePipelineWebhookUrlResult!
+
+  """Adds a recipient to a pipeline."""
+  addPipelineRecipient(input: CreatePipelineRecipientInput!): AddPipelineRecipientResult!
+
+  """Updates a pipeline recipient."""
+  updatePipelineRecipient(input: UpdatePipelineRecipientInput!): UpdatePipelineRecipientResult!
+
+  """Deletes a pipeline recipient."""
+  deletePipelineRecipient(input: DeletePipelineRecipientInput!): DeletePipelineRecipientResult!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
@@ -2238,6 +2272,12 @@ enum PipelineError {
   CANNOT_UPDATE_NOTEBOOK_PIPELINE
 }
 
+"""Represents the notification level for a pipeline recipient."""
+enum PipelineNotificationLevel {
+  ALL
+  ERROR
+}
+
 """Represents a parameter of a pipeline."""
 type PipelineParameter {
   code: String!
@@ -2262,8 +2302,18 @@ type PipelinePermissions {
 
 """Represents a recipient of a pipeline."""
 type PipelineRecipient {
+  id: UUID!
   user: User!
   pipeline: Pipeline!
+  notificationLevel: PipelineNotificationLevel!
+}
+
+enum PipelineRecipientError {
+  PIPELINE_NOT_FOUND
+  USER_NOT_FOUND
+  RECIPIENT_NOT_FOUND
+  PERMISSION_DENIED
+  ALREADY_EXISTS
 }
 
 """Represents a pipeline run."""
@@ -2690,7 +2740,6 @@ input RunPipelineInput {
   id: UUID!
   versionId: UUID
   config: JSON!
-  sendMailNotifications: Boolean
 }
 
 """Represents the result of running a pipeline."""
@@ -3108,7 +3157,6 @@ input UpdatePipelineInput {
   config: JSON
   schedule: String
   description: String
-  recipientIds: [UUID!]
   webhookEnabled: Boolean
 }
 
@@ -3121,6 +3169,18 @@ input UpdatePipelineProgressInput {
 type UpdatePipelineProgressResult {
   success: Boolean!
   errors: [PipelineError!]!
+}
+
+"""Represents the input for updating a recipient."""
+input UpdatePipelineRecipientInput {
+  recipientId: UUID!
+  notificationLevel: PipelineNotificationLevel!
+}
+
+type UpdatePipelineRecipientResult {
+  success: Boolean!
+  errors: [PipelineRecipientError!]!
+  recipient: PipelineRecipient
 }
 
 """Represents the result of updating a pipeline."""

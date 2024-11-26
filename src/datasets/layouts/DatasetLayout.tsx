@@ -1,14 +1,12 @@
 import { gql } from "@apollo/client";
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
-import clsx from "clsx";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
-import Link from "core/components/Link";
 import Title from "core/components/Title";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import DatasetVersionPicker from "../features/DatasetVersionPicker";
 import DeleteDatasetTrigger from "../features/DeleteDatasetTrigger";
@@ -19,35 +17,8 @@ import {
   DatasetLayout_VersionFragment,
   DatasetLayout_WorkspaceFragment,
 } from "./DatasetLayout.generated";
+import LinkTabs from "core/components/Tabs/LinkTabs";
 import { trackEvent } from "core/helpers/analytics";
-
-type TabsProps = {
-  selected?: string;
-  tabs: { label: string; href: string; id: string }[];
-  className?: string;
-};
-const Tabs = ({ tabs, selected, className }: TabsProps) => {
-  return (
-    <div
-      className={clsx("flex space-x-8 -mb-px text-sm font-medium", className)}
-    >
-      {tabs.map((tab) => (
-        <Link
-          key={tab.id}
-          href={tab.href}
-          className={clsx(
-            "whitespace-nowrap cursor-pointer border-b-2 px-1.5 pt-2.5 pb-2 tracking-wide first:pl-0  first:ml-1.5 hover:text-gray-900",
-            tab.id === selected
-              ? "border-pink-500 text-gray-900 font-medium"
-              : "border-transparent text-gray-500 hover:border-gray-400",
-          )}
-        >
-          {tab.label}
-        </Link>
-      ))}
-    </div>
-  );
-};
 
 type DatasetLayoutProps = {
   datasetLink: DatasetLayout_DatasetLinkFragment;
@@ -187,7 +158,7 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
           )}
         </Title>
         <DataCard item={dataset} className="">
-          <Tabs
+          <LinkTabs
             className="mx-4 mt-2"
             tabs={[
               {

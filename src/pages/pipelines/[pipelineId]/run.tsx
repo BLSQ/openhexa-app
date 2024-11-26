@@ -81,7 +81,7 @@ const PipelineConfigureRunPage = (props: Props) => {
                 externalId: dag.externalId,
               })}
             </Block.Header>
-            <Block.Content className="">
+            <Block.Content>
               <PipelineRunForm
                 fromConfig={run?.config}
                 dag={dag}

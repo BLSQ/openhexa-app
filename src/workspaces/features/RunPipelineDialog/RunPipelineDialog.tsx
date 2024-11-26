@@ -129,12 +129,12 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     getInitialState() {
       if (run) {
         return {
-          sendMailNotifications: false,
+          sendMailNotifications: true,
           ...run.config,
         };
       } else if (activeVersion) {
         return {
-          sendMailNotifications: false,
+          sendMailNotifications: true,
           ...activeVersion.config,
         };
       }
@@ -306,13 +306,16 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
               <Dialog.Actions className="flex-1 items-center">
                 <div className="flex flex-1 items-center">
                   <Checkbox
-                    checked={form.formData.sendMailNotifications}
+                    checked={!form.formData.sendMailNotifications}
                     name="sendMailNotifications"
-                    onChange={form.handleInputChange}
-                    label={t("Receive mail notification")}
-                    help={t(
-                      "You will receive an email when the pipeline is done",
-                    )}
+                    onChange={(event) =>
+                      form.setFieldValue(
+                        "sendMailNotifications",
+                        !event.target.checked,
+                      )
+                    }
+                    label={t("Mute notifications")}
+                    help={t("Notifications will be disabled for this run.")}
                   />
                 </div>
                 <Button variant="white" onClick={onClose}>
