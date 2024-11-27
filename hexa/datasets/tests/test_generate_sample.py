@@ -148,19 +148,19 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 DatasetFileSample.STATUS_FINISHED,
                 [
                     {
-                        "geometry": "AQMAAAACAAAAoQEAAQ==",
+                        "geometry": "<SKIPPED_BYTES>",
                         "id": "2",
                         "name": "District B",
                         "value": 2.5,
                     },
                     {
-                        "geometry": "AQMAAAABAAAAoAAAAA==",
+                        "geometry": "<SKIPPED_BYTES>",
                         "id": "1",
                         "name": "District A",
                         "value": None,
                     },
                     {
-                        "geometry": "AQMAAAABAAAAoAAAAA==",
+                        "geometry": "<SKIPPED_BYTES>",
                         "id": "1",
                         "name": "District A",
                         "value": None,
