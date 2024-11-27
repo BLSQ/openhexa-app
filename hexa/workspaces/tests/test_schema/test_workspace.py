@@ -1674,3 +1674,163 @@ class WorkspaceTest(GraphQLTestCase):
                 },
                 r["data"]["deleteWorkspaceDatabaseTable"],
             )
+
+    def test_search_workspace_candidates_should_returns_empty_array_when_not_admin_of_the_workspace(
+        self,
+    ):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+            query workspaceCandidates($query: String!, $workspace: String!) {
+                workspaceCandidates(query: $query, workspace: $workspace) {
+                    items {
+                        displayName
+                        email
+                    }
+                }
+            }
+            """,
+            {"query": "improbable", "workspace": self.WORKSPACE.slug},
+        )
+        self.assertEqual(
+            {
+                "items": [],
+            },
+            r["data"]["workspaceCandidates"],
+        )
+
+    def test_search_workspace_candidates_should_returns_empty_array_when_an_unexpected_error_happens(
+        self,
+    ):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+            query workspaceCandidates($query: String!, $workspace: String!) {
+                workspaceCandidates(query: $query, workspace: $workspace) {
+                    items {
+                        displayName
+                        email
+                    }
+                }
+            }
+            """,
+            {"query": "improbable", "workspace": "improbable"},
+        )
+        self.assertEqual(
+            {
+                "items": [],
+            },
+            r["data"]["workspaceCandidates"],
+        )
+
+    def test_search_workspace_candidates_should_returns_expected_items(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            query workspaceCandidates($query: String!, $workspace: String!) {
+                workspaceCandidates(query: $query, workspace: $workspace) {
+                    items {
+                        displayName
+                        email
+                    }
+                }
+            }
+            """,
+            {"query": self.USER_JOE.email, "workspace": self.WORKSPACE.slug},
+        )
+        self.assertEqual(
+            {
+                "items": [
+                    {
+                        "displayName": "joe@bluesquarehub.com",
+                        "email": "joe@bluesquarehub.com",
+                    }
+                ],
+            },
+            r["data"]["workspaceCandidates"],
+        )
+
+    def test_add_workspace_member_should_returns_a_server_error_when_user_is_not_found(
+        self,
+    ):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation insertWorkspaceMember($input: InsertWorkspaceMemberInput!) {
+                insertWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userEmail": "improbable",
+                    "role": WorkspaceMembershipRole.EDITOR,
+                    "workspaceSlug": self.WORKSPACE.slug,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["SERVER_ERROR"],
+            },
+            r["data"]["insertWorkspaceMember"],
+        )
+
+    def test_add_workspace_member_should_returns_a_workspace_not_found_error_when_workspace_is_not_found(
+        self,
+    ):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation insertWorkspaceMember($input: InsertWorkspaceMemberInput!) {
+                insertWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userEmail": self.USER_JOE.email,
+                    "role": WorkspaceMembershipRole.EDITOR,
+                    "workspaceSlug": "notfound",
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["WORKSPACE_NOT_FOUND"],
+            },
+            r["data"]["insertWorkspaceMember"],
+        )
+
+    def test_add_workspace_member_successfuly(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation insertWorkspaceMember($input: InsertWorkspaceMemberInput!) {
+                insertWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userEmail": self.USER_JOE.email,
+                    "role": WorkspaceMembershipRole.EDITOR,
+                    "workspaceSlug": self.WORKSPACE.slug,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+            },
+            r["data"]["insertWorkspaceMember"],
+        )

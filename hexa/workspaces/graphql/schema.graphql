@@ -177,7 +177,9 @@ enum WorkspaceMembershipRole {
   VIEWER  # The user can view the workspace and its contents.
 }
 
-
+type WorkspaceCandidatesResult {
+    items: [User!]!
+}
 
 extend type Query {
   # Returns a workspace by its unique identifier.
@@ -186,9 +188,10 @@ extend type Query {
   workspaces(query: String, page: Int, perPage: Int): WorkspacePage! @loginRequired
   # Returns the invitations to workspaces of the current user.
   pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
-
   # Returns a database table by its identifier.
   databaseTable(id:String!): DatabaseTable @loginRequired
+  # Returns a list of registered users not yet members of the workspace.
+  workspaceCandidates(query: String, workspace: String): WorkspaceCandidatesResult! @loginRequired
 }
 
 
@@ -233,6 +236,16 @@ enum InviteWorkspaceMembershipError {
   USER_NOT_FOUND
   WORKSPACE_NOT_FOUND
 }
+
+  """
+  Enum representing the possible errors that can occur when inviting a user to a workspace.
+  """
+  enum InsertWorkspaceMembershipError {
+    ALREADY_EXISTS
+    PERMISSION_DENIED
+    WORKSPACE_NOT_FOUND
+    SERVER_ERROR
+  }
 
 """
 Enum representing the possible errors that can occur when deleting a workspace member.
@@ -299,6 +312,20 @@ type ArchiveWorkspaceResult {
   # The errors that occurred during the archiving.
   errors: [ArchiveWorkspaceError!]!
 }
+
+  """
+  Represents the result of inserting a member to a workspace.
+  """
+  type InsertWorkspaceMemberResult {
+    # Indicates whether the invitation was successful.
+    success: Boolean!    
+    
+    # The errors that occurred during the insertion.
+    errors: [InsertWorkspaceMembershipError!]!
+
+    # The workspace membership associated with the invitation.
+    workspaceMembership: WorkspaceMembership
+  }
 
 """
 Represents the result of inviting a member to a workspace.
@@ -386,6 +413,20 @@ input DeleteWorkspaceInput {
   # The slug of the workspace to delete.
   slug: String!
 }
+
+  """
+  Represents the input for inserting a member to a workspace.
+  """
+  input InsertWorkspaceMemberInput {
+    # The slug of the workspace.
+    workspaceSlug: String!
+
+    # The email address of the user to invite.
+    userEmail: String!
+
+    # The role of the user in the workspace.
+    role: WorkspaceMembershipRole!
+  }
 
 """
 Represents the input for inviting a member to a workspace.
@@ -613,6 +654,7 @@ extend type Mutation {
   deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult! @loginRequired
   archiveWorkspace(input: ArchiveWorkspaceInput!): ArchiveWorkspaceResult! @loginRequired
   inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult! @loginRequired
+  insertWorkspaceMember(input: InsertWorkspaceMemberInput!): InsertWorkspaceMemberResult! @loginRequired
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult! @loginRequired
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult! @loginRequired
   generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult! @loginRequired

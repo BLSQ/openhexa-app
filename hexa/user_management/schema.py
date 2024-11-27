@@ -39,7 +39,11 @@ from hexa.user_management.models import (
     Team,
     User,
 )
-from hexa.workspaces.models import WorkspaceInvitation, WorkspaceInvitationStatus
+from hexa.workspaces.models import (
+    WorkspaceInvitation,
+    WorkspaceInvitationStatus,
+    WorkspaceMembership,
+)
 
 from .utils import DEVICE_DEFAULT_NAME, default_device, has_configured_two_factor
 
@@ -375,11 +379,27 @@ def resolve_register(_, info, **kwargs):
         authenticated_user = authenticate(
             username=user.email, password=mutation_input["password1"]
         )
+
         login(request, authenticated_user)
-        return {"success": True, "errors": []}
 
     except ValidationError:
         return {"success": False, "errors": ["INVALID_PASSWORD"]}
+
+    try:
+        # Automate the invitation acceptance
+        invitation.status = WorkspaceInvitationStatus.ACCEPTED
+        invitation.save()
+
+        # Create the membership
+        WorkspaceMembership.objects.create(
+            workspace=invitation.workspace,
+            user=request.user,
+            role=invitation.role,
+        )
+
+        return {"success": True, "errors": []}
+    except Exception:
+        return {"success": False, "errors": ["INTERNAL_ERROR"]}
 
 
 @identity_mutations.field("resetPassword")

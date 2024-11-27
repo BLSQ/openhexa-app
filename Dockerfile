@@ -37,7 +37,7 @@ RUN groupadd --gid 1000 $GROUP &&\
   passwd -d $USER
 
 RUN chown -R $USER:$GROUP /code/
-RUN mkdir /data && chown $USER:$GROUP /data
+RUN mkdir /data && chown -R $USER:$GROUP /data && chmod 777 -R /data
 USER $USER:$GROUP
 
 # Entry point

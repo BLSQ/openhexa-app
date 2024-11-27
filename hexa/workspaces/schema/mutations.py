@@ -19,7 +19,7 @@ from ..models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
-from ..utils import send_workspace_invitation_email
+from ..utils import send_workspace_insertion_email, send_workspace_invitation_email
 
 workspace_mutations = MutationType()
 
@@ -112,6 +112,72 @@ def resolve_archive_workspace(_, info, **kwargs):
         return {"success": False, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
+@workspace_mutations.field("insertWorkspaceMember")
+def resolve_insert_workspace_member(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=input["workspaceSlug"]
+        )
+        user = User.objects.filter(email=input["userEmail"]).first()
+        role = input["role"]
+
+        if user is None:
+            raise Exception("User not found")
+
+        is_workspace_member = (
+            user
+            and WorkspaceMembership.objects.filter(
+                user=user, workspace=workspace
+            ).exists()
+        )
+
+        is_already_invited = WorkspaceInvitation.objects.filter(
+            workspace=workspace,
+            email=user.email,
+            status=WorkspaceInvitationStatus.PENDING,
+        ).exists()
+
+        if is_workspace_member or is_already_invited:
+            raise AlreadyExists
+
+        WorkspaceMembership.objects.create_if_has_perm(
+            principal=request.user,
+            workspace=workspace,
+            user=user,
+            role=role,
+        )
+
+        send_workspace_insertion_email(workspace, request.user, user)
+
+        return {
+            "success": True,
+            "errors": [],
+        }
+    except Workspace.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["WORKSPACE_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+    except AlreadyExists:
+        return {
+            "success": False,
+            "errors": ["ALREADY_EXISTS"],
+        }
+    except Exception:
+        return {
+            "success": False,
+            "errors": ["SERVER_ERROR"],
+        }
 
 
 @workspace_mutations.field("inviteWorkspaceMember")

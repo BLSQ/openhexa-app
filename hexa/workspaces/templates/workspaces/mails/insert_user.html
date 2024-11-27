@@ -1,0 +1,22 @@
+{% load i18n %}
+{% autoescape off %}
+
+{% blocktranslate %}Dear,{% endblocktranslate %}
+
+<br/>
+<br/>
+
+{% blocktranslate %}
+    <p>You have been added to the workspace <b>{{workspace}}</b> by {{owner}}.</p>
+{% endblocktranslate %}
+
+{% blocktranslate %}
+    <p>Please go to the following page to access to the workspace: {{ url }}.</p>
+{% endblocktranslate %}
+
+<br/>
+<br/>
+
+{% blocktranslate %}The OpenHEXA team{% endblocktranslate %}
+
+{% endautoescape %}
