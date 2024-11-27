@@ -177,7 +177,7 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
         ) in CASES:
             with self.subTest(fixture_name=fixture_name):
                 fixture_file_path = os.path.join(
-                    os.path.dirname(__file__), f"./fixtures/{fixture_name}"
+                    os.path.dirname(__file__), "fixtures", fixture_name
                 )
                 version_file = DatasetVersionFile.objects.create_if_has_perm(
                     self.USER_SERENA,
@@ -221,7 +221,7 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
         ) in CASES:
             with self.subTest(fixture_name=fixture_name):
                 fixture_file_path = os.path.join(
-                    os.path.dirname(__file__), f"./fixtures/{fixture_name}"
+                    os.path.dirname(__file__), "fixtures", fixture_name
                 )
                 version_file = DatasetVersionFile.objects.create_if_has_perm(
                     self.USER_SERENA,
