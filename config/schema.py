@@ -35,7 +35,6 @@ from hexa.workspaces.schema import workspaces_bindables, workspaces_type_def
 
 uuid_scalar = ScalarType("UUID")
 opaque_id_scalar = ScalarType("OpaqueID")
-trimmed_string_scalar = ScalarType("TrimmedString")
 
 
 @uuid_scalar.value_parser

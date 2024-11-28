@@ -300,13 +300,11 @@ def resolve_login(_, info, **kwargs):
     mutation_input = kwargs["input"]
 
     trimmed_email = remove_whitespace(mutation_input["email"])
-    # trimmed_email = mutation_input["email"].strip()
 
     user_candidate = authenticate(
         request,
         email=trimmed_email,
         password=mutation_input["password"],
-        # request, email=mutation_input["email"], password=mutation_input["password"]
     )
 
     if user_candidate is None:
