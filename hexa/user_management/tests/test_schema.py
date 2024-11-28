@@ -408,6 +408,23 @@ class SchemaTest(GraphQLTestCase):
             r["data"]["login"],
         )
 
+    def test_login_with_whitespace(self):
+        r = self.run_query(
+            """
+              mutation login($input: LoginInput!) {
+                login(input: $input) {
+                  success
+                }
+              }
+            """,
+            {"input": {"email": " jim@bluesquarehub.com", "password": "jimspassword"}},
+        )
+
+        self.assertEqual(
+            {"success": True},
+            r["data"]["login"],
+        )
+
     def test_login_invalid_credentials(self):
         r = self.run_query(
             """

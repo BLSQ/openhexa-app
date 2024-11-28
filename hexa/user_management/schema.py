@@ -27,6 +27,7 @@ from graphql import default_field_resolver
 
 from hexa.analytics.api import track
 from hexa.core.graphql import result_page
+from hexa.core.string import remove_whitespace
 from hexa.core.templatetags.colors import hash_color
 from hexa.user_management.models import (
     AlreadyExists,
@@ -298,8 +299,12 @@ def resolve_login(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     mutation_input = kwargs["input"]
 
+    trimmed_email = remove_whitespace(mutation_input["email"])
+
     user_candidate = authenticate(
-        request, email=mutation_input["email"], password=mutation_input["password"]
+        request,
+        email=trimmed_email,
+        password=mutation_input["password"],
     )
 
     if user_candidate is None:
