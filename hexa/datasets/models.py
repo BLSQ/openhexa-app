@@ -1,4 +1,3 @@
-import base64
 import logging
 import math
 import secrets
@@ -356,6 +355,8 @@ class DataframeJsonEncoder(DjangoJSONEncoder):
     def encode(self, obj):
         # Recursively replace NaN with None (since it's a float, it does not call 'default' method)
         def custom_encoding(item):
+            SKIPPED_FIELD = "<SKIPPED_BYTES>"
+
             if isinstance(item, float) and math.isnan(item):
                 return None
             elif isinstance(item, dict):
@@ -363,7 +364,7 @@ class DataframeJsonEncoder(DjangoJSONEncoder):
             elif isinstance(item, list):
                 return [custom_encoding(element) for element in item]
             elif isinstance(item, bytes):
-                return base64.b64encode(item).decode("utf-8")
+                return SKIPPED_FIELD
             return item
 
         # Preprocess the object to replace NaN values with None and encode bytes to base64
