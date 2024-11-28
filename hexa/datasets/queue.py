@@ -97,28 +97,38 @@ def generate_sample(
 
 def generate_profile(df: pd.DataFrame) -> list:
     logger.info("Calculating profiling per column")
-    for col in df.select_dtypes(include=["object"]).columns:
-        df[col] = df[col].astype("string")
+    try:
+        if "geometry" in df.columns:
+            logger.warning("Skipping the 'geometry' column from profiling.")
+            df = df.drop(columns=["geometry"])
+        for col in df.select_dtypes(include=["object"]).columns:
+            try:
+                df[col] = df[col].astype("string")
+            except Exception as e:
+                logger.warning(f"Failed to convert column '{col}' to string: {e}")
 
-    data_types = df.dtypes.apply(str).to_dict()
-    missing_values = df.isnull().sum().to_dict()
-    unique_values = df.nunique().to_dict()
-    distinct_values = df.apply(lambda x: x.nunique(dropna=False)).to_dict()
-    constant_values = df.apply(lambda x: x.nunique() == 1).astype("bool").to_dict()
+        data_types = df.dtypes.apply(str).to_dict()
+        missing_values = df.isnull().sum().to_dict()
+        unique_values = df.nunique().to_dict()
+        distinct_values = df.apply(lambda x: x.nunique(dropna=False)).to_dict()
+        constant_values = df.apply(lambda x: x.nunique() == 1).astype("bool").to_dict()
 
-    metadata_per_column = [
-        {
-            "column_name": column,
-            "data_type": data_types.get(column),
-            "missing_values": missing_values.get(column),
-            "unique_values": unique_values.get(column),
-            "distinct_values": distinct_values.get(column),
-            "constant_values": constant_values.get(column),
-        }
-        for column in df.columns
-    ]
+        metadata_per_column = [
+            {
+                "column_name": column,
+                "data_type": data_types.get(column),
+                "missing_values": missing_values.get(column),
+                "unique_values": unique_values.get(column),
+                "distinct_values": distinct_values.get(column),
+                "constant_values": constant_values.get(column),
+            }
+            for column in df.columns
+        ]
+        return metadata_per_column
 
-    return metadata_per_column
+    except Exception as e:
+        logger.exception("Failed to calculate profiling", exc_info=e)
+        return []
 
 
 def get_previous_version_file(
@@ -192,7 +202,7 @@ def generate_file_metadata_task(version_file: DatasetVersionFile) -> None:
             f"Failed to load dataframe for file {version_file.id}", exc_info=e
         )
         return
-
+    logger.info("Finished sample generation, calculating profiling")
     add_system_attributes(version_file, df)
 
 
