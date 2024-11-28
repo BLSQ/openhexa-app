@@ -347,13 +347,19 @@ class PipelineVersionsTest(GraphQLTestCase):
         self.test_create_version("First version")
         self.test_create_version("Second version")
         self.create_version(None)
+
         pipeline = Pipeline.objects.filter(code=self.PIPELINE.code).first()
-        self.assertEqual(
-            pipeline.versions.filter(name="First version").first().version_number, 1
-        )
+
+        first_version = pipeline.versions.filter(name="First version").first()
+        self.assertEqual(first_version.version_number, 1)
+        self.assertEqual(first_version.version_name, "First version [v1]")
+        self.assertEqual(first_version.display_name, "My Pipeline - First version [v1]")
+
         self.assertEqual(
             pipeline.versions.filter(name="Second version").first().version_number, 2
         )
-        self.assertTrue(
-            pipeline.versions.filter(name__isnull=True, version_number=3).exists()
-        )
+
+        third_version = pipeline.versions.filter(name__isnull=True).first()
+        self.assertEqual(third_version.version_number, 3)
+        self.assertEqual(third_version.version_name, "v3")
+        self.assertEqual(third_version.display_name, "My Pipeline - v3")
