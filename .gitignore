@@ -1,5 +1,7 @@
 *.env
 .coverage
+#.local/
+#.cache/
 htmlcov/
 venv
 k8s/*
