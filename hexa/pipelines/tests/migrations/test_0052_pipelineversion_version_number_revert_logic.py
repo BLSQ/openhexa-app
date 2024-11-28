@@ -34,4 +34,4 @@ class ReverseMigration0052Test(TestCase):
         pipeline = self.get_pipeline_model().objects.get(code=self.pipeline_code)
         version = self.get_pipeline_version_model().objects.get(pipeline=pipeline)
 
-        self.assertEqual("Version 123 (auto-generated name)", version.name)
+        self.assertEqual("v123 (auto-generated name)", version.name)
