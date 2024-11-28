@@ -4,9 +4,12 @@ from hexa.core.graphql import result_page
 
 from ..models import (
     Connection,
+    User,
     Workspace,
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
 )
 
 workspace_queries = QueryType()
@@ -60,6 +63,44 @@ def resolve_pending_workspace_invitations(_, info, page=1, per_page=10):
         email=request.user.email, status=WorkspaceInvitationStatus.PENDING
     ).order_by("-created_at")
     return result_page(qs, page=page, per_page=per_page)
+
+
+@workspace_queries.field("workspaceCandidates")
+def resolve_users(_, info, **kwargs):
+    request = info.context["request"]
+    query = kwargs["query"].strip()
+    workspaceSlug = kwargs["workspace"].strip()
+
+    try:
+        workspace = Workspace.objects.get(slug=workspaceSlug)
+        members = WorkspaceMembership.objects.all().filter(workspace=workspace)
+
+        is_admin = (
+            members.filter(user=request.user).first().role
+            == WorkspaceMembershipRole.ADMIN
+        )
+
+        if not is_admin:
+            return {
+                "items": [],
+            }
+
+        queryset = User.objects.all()
+
+        if query is not None:
+            queryset = (
+                queryset.filter(email__icontains=query)
+                .exclude(email__in=members.values_list("user__email", flat=True))
+                .order_by("email")[:10:1]
+            )
+
+        return {
+            "items": queryset,
+        }
+    except Exception:
+        return {
+            "items": [],
+        }
 
 
 bindables = [

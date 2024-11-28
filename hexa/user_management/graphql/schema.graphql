@@ -662,12 +662,14 @@ enum DeleteTeamError {
     PERMISSION_DENIED
 }
 
+
 extend type Query {
     # Retrieves a team by its unique identifier.
     team(id: UUID!): Team
     # Search for teams.
     teams(term: String, page: Int, perPage: Int): TeamPage!
 }
+
 extend type Mutation {
     # Creates a new team.
     createTeam(input: CreateTeamInput!): CreateTeamResult! @loginRequired

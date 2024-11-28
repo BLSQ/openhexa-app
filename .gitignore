@@ -1,5 +1,7 @@
 *.env
 .coverage
+.cache/
+.local/
 htmlcov/
 venv
 k8s/*
@@ -18,3 +20,4 @@ static/uploads/*
 __pycache__
 
 docker-compose.debug.yaml
+docker-compose.dev.yaml

@@ -1,0 +1,11 @@
+{% load i18n %}
+
+{% blocktranslate %}
+Dear,
+
+Your have been added to the workspace {{workspace}} by {{owner}}.
+
+Please go to the following page to access to the workspace: {{ url }}
+{% endblocktranslate %}
+
+{% blocktranslate %}The OpenHEXA team{% endblocktranslate %}
