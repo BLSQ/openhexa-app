@@ -6,9 +6,7 @@ from django.db.models.functions import Concat
 def fill_empty_names(apps, _):
     PipelineVersion = apps.get_model("pipelines", "PipelineVersion")
     PipelineVersion.objects.filter(name__isnull=True).update(
-        name=Concat(
-            Value("Version "), F("version_number"), Value(" (auto-generated name)")
-        )
+        name=Concat(Value("v"), F("version_number"), Value(" (auto-generated name)"))
     )
 
 
