@@ -1,6 +1,6 @@
 [tool.ruff]
 ignore = ["E501"]
-exclude =[".git",".eggs","node_modules"] # exclude a few common directories in the root of the project
+exclude =[".git",".eggs","node_modules", ".local", ".vscode", ".cache"] # exclude a few common directories in the root of the project
 
 [tool.ruff.lint]
 extend-select = [
