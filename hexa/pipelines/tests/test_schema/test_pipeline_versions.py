@@ -346,10 +346,14 @@ class PipelineVersionsTest(GraphQLTestCase):
     def test_increment_version_number_on_save(self):
         self.test_create_version("First version")
         self.test_create_version("Second version")
+        self.create_version(None)
         pipeline = Pipeline.objects.filter(code=self.PIPELINE.code).first()
         self.assertEqual(
             pipeline.versions.filter(name="First version").first().version_number, 1
         )
         self.assertEqual(
             pipeline.versions.filter(name="Second version").first().version_number, 2
+        )
+        self.assertTrue(
+            pipeline.versions.filter(name__isnull=True, version_number=3).exists()
         )
