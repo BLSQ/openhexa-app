@@ -19,6 +19,7 @@ from hexa.datasets.queue import (
     get_previous_version_file,
     load_df,
 )
+from hexa.datasets.tests.fixtures.wkb_geometry_encoded import wkb_geometry
 from hexa.datasets.tests.testutils import DatasetTestMixin
 from hexa.files import storage
 from hexa.metadata.models import MetadataAttribute
@@ -147,19 +148,19 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 DatasetFileSample.STATUS_FINISHED,
                 [
                     {
-                        "geometry": "AQMAAAACAAAAoQEAAQ==",
+                        "geometry": "<SKIPPED_BYTES>",
                         "id": "2",
                         "name": "District B",
                         "value": 2.5,
                     },
                     {
-                        "geometry": "AQMAAAABAAAAoAAAAA==",
+                        "geometry": "<SKIPPED_BYTES>",
                         "id": "1",
                         "name": "District A",
                         "value": None,
                     },
                     {
-                        "geometry": "AQMAAAABAAAAoAAAAA==",
+                        "geometry": "<SKIPPED_BYTES>",
                         "id": "1",
                         "name": "District A",
                         "value": None,
@@ -176,7 +177,51 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
         ) in CASES:
             with self.subTest(fixture_name=fixture_name):
                 fixture_file_path = os.path.join(
-                    os.path.dirname(__file__), f"./fixtures/{fixture_name}"
+                    os.path.dirname(__file__), "fixtures", fixture_name
+                )
+                version_file = DatasetVersionFile.objects.create_if_has_perm(
+                    self.USER_SERENA,
+                    self.DATASET_VERSION,
+                    uri=fixture_file_path,
+                    content_type="application/octet-stream",
+                )
+
+                with patch(
+                    "hexa.datasets.queue.generate_download_url"
+                ) as mock_generate_download_url:
+                    mock_generate_download_url.return_value = fixture_file_path
+                    df = load_df(version_file)
+                    generate_sample(version_file, df)
+                    sample_entry = version_file.sample_entry
+                    self.assertEqual(sample_entry.status, expected_status)
+                    self.assertEqual(sample_entry.sample, expected_sample)
+
+                    if expected_status_reason:
+                        self.assertEqual(
+                            sample_entry.status_reason, expected_status_reason
+                        )
+
+    @override_settings(WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE=1)
+    def test_generate_sample_wkb(
+        self,
+    ):
+        CASES = [
+            (
+                "example_with_wkb_geometry.parquet",
+                DatasetFileSample.STATUS_FINISHED,
+                [wkb_geometry],
+                None,
+            ),
+        ]
+        for (
+            fixture_name,
+            expected_status,
+            expected_sample,
+            expected_status_reason,
+        ) in CASES:
+            with self.subTest(fixture_name=fixture_name):
+                fixture_file_path = os.path.join(
+                    os.path.dirname(__file__), "fixtures", fixture_name
                 )
                 version_file = DatasetVersionFile.objects.create_if_has_perm(
                     self.USER_SERENA,
