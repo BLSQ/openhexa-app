@@ -149,7 +149,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                       workspace.slug,
                     )}/pipelines/${encodeURIComponent(pipeline.code)}/versions`}
                   >
-                    {property.displayValue.name}
+                    {property.displayValue.versionName}
                   </Link>
                 </div>
               )}

@@ -1,6 +1,6 @@
 import { gql, useMutation } from "@apollo/client";
 import { Trans, useTranslation } from "next-i18next";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { convertParametersToPipelineInput } from "workspaces/helpers/pipelines";
 
 import clsx from "clsx";
@@ -11,7 +11,6 @@ import useForm from "core/hooks/useForm";
 import { PipelineParameter, UpdatePipelineVersionError } from "graphql/types";
 import ParameterField from "../RunPipelineDialog/ParameterField";
 import { PipelineVersionConfigDialog_VersionFragment } from "./PipelineVersionConfigDialog.generated";
-import Overflow from "core/components/Overflow";
 
 type PipelineVersionConfigProps = {
   version: PipelineVersionConfigDialog_VersionFragment;

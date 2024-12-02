@@ -12,7 +12,7 @@ import {
 
 type Option = {
   id: string;
-  name: string;
+  versionName: string;
   createdAt: string;
   user?: { displayName: string } | null;
 };
@@ -49,16 +49,18 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
   const displayValue = useCallback(
     (option: Option) =>
       option
-        ? `${option.name} - ${DateTime.fromISO(option.createdAt).toLocaleString(
-            DateTime.DATETIME_MED,
-          )}`
+        ? `${option.versionName} - ${DateTime.fromISO(
+            option.createdAt,
+          ).toLocaleString(DateTime.DATETIME_MED)}`
         : "",
     [],
   );
   const filterOptions = useCallback(
     (options: Option[], query: string) => {
       return options.filter((option) =>
-        `V${option.name} - ${DateTime.fromISO(option.createdAt).toLocaleString(
+        `V${option.versionName} - ${DateTime.fromISO(
+          option.createdAt,
+        ).toLocaleString(
           DateTime.DATETIME_MED,
         )} - ${option.user?.displayName ?? t("Unknown")}}`
           .toLowerCase()
@@ -108,7 +110,7 @@ PipelineVersionPicker.fragments = {
   version: gql`
     fragment PipelineVersionPicker_version on PipelineVersion {
       id
-      name
+      versionName
       createdAt
       config
       parameters {

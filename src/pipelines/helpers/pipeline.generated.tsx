@@ -15,7 +15,7 @@ export type GetPipelineVersionQueryVariables = Types.Exact<{
 }>;
 
 
-export type GetPipelineVersionQuery = { __typename?: 'Query', pipelineVersion?: { __typename?: 'PipelineVersion', id: string, name: string, zipfile: string, pipeline: { __typename?: 'Pipeline', code: string } } | null };
+export type GetPipelineVersionQuery = { __typename?: 'Query', pipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, zipfile: string, pipeline: { __typename?: 'Pipeline', code: string } } | null };
 
 
 export const RunPipelineDocument = gql`
@@ -64,7 +64,7 @@ export const GetPipelineVersionDocument = gql`
     query GetPipelineVersion($versionId: UUID!) {
   pipelineVersion(id: $versionId) {
     id
-    name
+    versionName
     pipeline {
       code
     }

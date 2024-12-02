@@ -13,10 +13,10 @@ import { useTranslation } from "next-i18next";
 import router from "next/router";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import {
+  useWorkspacePipelineRunsPageQuery,
   WorkspacePipelineRunsPageDocument,
   WorkspacePipelineRunsPageQuery,
   WorkspacePipelineRunsPageQueryVariables,
-  useWorkspacePipelineRunsPageQuery,
 } from "workspaces/graphql/queries.generated";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
 
@@ -111,7 +111,7 @@ const WorkspacePipelineRunsPage: NextPageWithLayout = (props: Props) => {
             {(item) => <PipelineRunStatusBadge run={item} />}
           </BaseColumn>
           {pipeline.type === PipelineType.ZipFile ? (
-            <TextColumn accessor="version.name" label={t("Version")} />
+            <TextColumn accessor="version.versionName" label={t("Version")} />
           ) : null}
           <BaseColumn label={t("Duration")} accessor="duration">
             {(value) => (

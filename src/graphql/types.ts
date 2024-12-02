@@ -2906,14 +2906,14 @@ export type PipelineVersion = {
   externalLink?: Maybe<Scalars['URL']['output']>;
   id: Scalars['UUID']['output'];
   isLatestVersion: Scalars['Boolean']['output'];
-  name: Scalars['String']['output'];
-  /** @deprecated Use name field instead */
-  number?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
   parameters: Array<PipelineParameter>;
   permissions: PipelineVersionPermissions;
   pipeline: Pipeline;
   timeout?: Maybe<Scalars['Int']['output']>;
   user?: Maybe<User>;
+  versionName: Scalars['String']['output'];
+  versionNumber: Scalars['Int']['output'];
   zipfile: Scalars['String']['output'];
 };
 
@@ -3986,8 +3986,6 @@ export type UploadPipelineResult = {
   errors: Array<PipelineError>;
   pipelineVersion?: Maybe<PipelineVersion>;
   success: Scalars['Boolean']['output'];
-  /** @deprecated Use 'pipelineVersion' field instead */
-  version?: Maybe<Scalars['String']['output']>;
 };
 
 /** The User type represents a user in the system. */

@@ -59,7 +59,7 @@ query AccountPage {
   }
 }
 
-query RegisterPage{
+query RegisterPage {
   config {
     passwordRequirements
   }

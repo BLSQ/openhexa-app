@@ -2413,8 +2413,9 @@ type PipelineVersion {
   id: UUID!
   user: User
   pipeline: Pipeline!
-  name: String!
-  number: String @deprecated(reason: "Use name field instead")
+  name: String
+  versionNumber: Int!
+  versionName: String!
   description: String
   externalLink: URL
   createdAt: DateTime!
@@ -3356,7 +3357,6 @@ input UploadPipelineInput {
 type UploadPipelineResult {
   success: Boolean!
   pipelineVersion: PipelineVersion
-  version: String @deprecated(reason: "Use 'pipelineVersion' field instead")
   errors: [PipelineError!]!
 }
 

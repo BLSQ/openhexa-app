@@ -11,7 +11,6 @@ import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Switch from "core/components/Switch";
 import Time from "core/components/Time";
-import Checkbox from "core/components/forms/Checkbox";
 import User from "core/features/User";
 import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
@@ -34,10 +33,10 @@ import RunOutputsTable from "workspaces/features/RunOutputsTable";
 import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import StopPipelineDialog from "workspaces/features/StopPipelineDialog";
 import {
+  useWorkspacePipelineRunPageQuery,
   WorkspacePipelineRunPageDocument,
   WorkspacePipelineRunPageQuery,
   WorkspacePipelineRunPageQueryVariables,
-  useWorkspacePipelineRunPageQuery,
 } from "workspaces/graphql/queries.generated";
 import {
   formatPipelineType,
@@ -302,7 +301,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                 )}
                 {run.version && (
                   <DescriptionList.Item label={t("Version")}>
-                    {run.version.name}
+                    {run.version.versionName}
                   </DescriptionList.Item>
                 )}
                 <DescriptionList.Item

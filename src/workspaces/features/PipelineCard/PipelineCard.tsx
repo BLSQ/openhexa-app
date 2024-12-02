@@ -9,9 +9,6 @@ import {
   PipelineCard_WorkspaceFragment,
 } from "./PipelineCard.generated";
 import Tooltip from "core/components/Tooltip";
-import { InformationCircleIcon } from "@heroicons/react/24/outline";
-import Avatar from "core/components/Avatar";
-import User from "core/features/User";
 import UserAvatar from "identity/features/UserAvatar";
 import { DateTime } from "luxon";
 

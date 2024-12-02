@@ -37,7 +37,7 @@ type RunPipelineDialogProps = {
 const VERSION_FRAGMENT = gql`
   fragment RunPipelineDialog_version on PipelineVersion {
     id
-    name
+    versionName
     createdAt
     config
     user {
@@ -78,7 +78,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     }
   };
 
-  const [fetch, { data }] = useLazyQuery<PipelineCurrentVersionQuery>(
+  const [fetch] = useLazyQuery<PipelineCurrentVersionQuery>(
     gql`
       query PipelineCurrentVersion(
         $workspaceSlug: String!
@@ -87,7 +87,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
         pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
           currentVersion {
             id
-            name
+            versionName
             createdAt
             user {
               displayName
@@ -364,7 +364,7 @@ RunPipelineDialog.fragments = {
       config
       version {
         id
-        name
+        versionName
         createdAt
         parameters {
           ...ParameterField_parameter

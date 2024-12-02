@@ -1,7 +1,6 @@
 import Button from "core/components/Button";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
-import BackLayout from "core/layouts/back/BackLayout";
 import BackLayoutHeader from "core/layouts/back/BackLayoutHeader";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
