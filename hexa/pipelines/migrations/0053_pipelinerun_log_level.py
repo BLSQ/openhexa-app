@@ -13,7 +13,13 @@ class Migration(migrations.Migration):
             model_name="pipelinerun",
             name="log_level",
             field=models.IntegerField(
-                choices=[(0, "Debug"), (1, "Info"), (2, "Warning"), (3, "Error")],
+                choices=[
+                    (0, "DEBUG"),
+                    (1, "INFO"),
+                    (2, "WARNING"),
+                    (3, "ERROR"),
+                    (4, "CRITICAL"),
+                ],
                 default=1,
             ),
         ),
