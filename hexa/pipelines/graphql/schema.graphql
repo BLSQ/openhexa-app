@@ -377,7 +377,7 @@ input RunPipelineInput {
   versionId: UUID  # The ID of the pipeline version to use for the run.
   config: JSON!  # The configuration for the pipeline run.
   sendMailNotifications: Boolean  # Indicates if email notifications should be sent for the pipeline run.
-  enabledDebugLogs: Boolean  # Indicates if debug logs should be stored for the pipeline run.
+  enableDebugLogs: Boolean  # Indicates if debug logs should be stored for the pipeline run.
 }
 
 """
