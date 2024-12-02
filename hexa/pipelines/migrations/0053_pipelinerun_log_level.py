@@ -14,11 +14,11 @@ class Migration(migrations.Migration):
             name="log_level",
             field=models.IntegerField(
                 choices=[
-                    (0, "DEBUG"),
-                    (1, "INFO"),
-                    (2, "WARNING"),
-                    (3, "ERROR"),
-                    (4, "CRITICAL"),
+                    (0, "Debug"),
+                    (1, "Info"),
+                    (2, "Warning"),
+                    (3, "Error"),
+                    (4, "Critical"),
                 ],
                 default=1,
             ),
