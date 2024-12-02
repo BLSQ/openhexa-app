@@ -1,4 +1,10 @@
-import { Combobox as UICombobox, Portal } from "@headlessui/react";
+import {
+  Combobox as UICombobox,
+  ComboboxButton as UIComboboxButton,
+  ComboboxInput as UIComboboxInput,
+  ComboboxOptions as UIComboboxOptions,
+  Portal,
+} from "@headlessui/react";
 import { ChevronUpDownIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Modifier } from "@popperjs/core";
 import clsx from "clsx";
@@ -93,7 +99,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
   const close = useCallback(() => btnRef.current?.click(), [btnRef]);
 
   const optionsElement = (
-    <UICombobox.Options
+    <UIComboboxOptions
       className={Classes.Options}
       ref={setPopperElement}
       style={styles.popper}
@@ -106,7 +112,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
         </OptionsWrapper>
       </div>
       {footer && footer({ close, clear: () => onClear })}
-    </UICombobox.Options>
+    </UIComboboxOptions>
   );
 
   return (
@@ -115,7 +121,6 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
       value={value}
       multiple={false}
       disabled={disabled}
-      nullable
       by={by as any /* Otherwise typescript is not happy */}
       {...delegated}
     >
@@ -131,7 +136,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
             )}
           >
             <div className="mr-1 flex flex-1 items-center truncate">
-              <UICombobox.Input
+              <UIComboboxInput
                 as={Fragment}
                 onChange={onInputChange}
                 displayValue={displayValue}
@@ -142,10 +147,10 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
                   autoComplete="off"
                   placeholder={placeholder}
                 />
-              </UICombobox.Input>
+              </UIComboboxInput>
             </div>
             {value && renderIcon && renderIcon(value)}
-            <UICombobox.Button ref={btnRef} data-testid="combobox-button">
+            <UIComboboxButton ref={btnRef} data-testid="combobox-button">
               <div className="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-none">
                 {value && !required && !disabled && (
                   <XMarkIcon
@@ -163,7 +168,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
                   />
                 )}
               </div>
-            </UICombobox.Button>
+            </UIComboboxButton>
           </div>
 
           {withPortal ? <Portal>{optionsElement}</Portal> : optionsElement}

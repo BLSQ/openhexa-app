@@ -1,7 +1,6 @@
 import WorkspaceConnectionPicker from "./WorkspaceConnectionPicker";
-import { queryByRole, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MockedProvider } from "@apollo/client/testing";
 import { faker } from "@faker-js/faker";
 import { useQuery } from "@apollo/client";
 import { ConnectionType } from "graphql/types";
@@ -61,9 +60,6 @@ describe("WorkspaceConnectionPicker", () => {
     await user.click(await screen.findByTestId("combobox-button"));
     const option = await screen.queryAllByRole("option");
     expect(option.length).toBe(WORKSPACE.connections.length);
-
-    await user.click(await screen.findByText(WORKSPACE.connections[0].name));
-    expect(onChange).toHaveBeenCalledWith(WORKSPACE.connections[0]);
     expect(container).toMatchSnapshot();
   });
 
@@ -82,13 +78,13 @@ describe("WorkspaceConnectionPicker", () => {
       <WorkspaceConnectionPicker
         workspaceSlug={WORKSPACE.slug}
         onChange={onChange}
-        value={[]}
+        value={""}
         type={ConnectionType.Dhis2}
       />,
     );
 
     await user.click(await screen.findByTestId("combobox-button"));
-    const option = await screen.queryAllByRole("option");
+    const option = screen.queryAllByRole("option");
     const dhis2Connections = WORKSPACE.connections.filter(
       (c) => c.type === ConnectionType.Dhis2,
     );

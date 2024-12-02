@@ -1,4 +1,4 @@
-import { Switch as HeadlessSwitch } from "@headlessui/react";
+import { Field, Label, Switch as HeadlessSwitch } from "@headlessui/react";
 import clsx from "clsx";
 
 export type SwitchProps = {
@@ -23,16 +23,16 @@ const Switch = (props: SwitchProps) => {
     ...delegated
   } = props;
   return (
-    <HeadlessSwitch.Group>
+    <Field>
       <div className="flex items-center">
         {label && (
-          <HeadlessSwitch.Label
+          <Label
             title={label}
             className={clsx("mr-4  text-gray-600", labelClassName)}
             passive={passive}
           >
             {label}
-          </HeadlessSwitch.Label>
+          </Label>
         )}
         <HeadlessSwitch
           onChange={onChange}
@@ -53,7 +53,7 @@ const Switch = (props: SwitchProps) => {
           />
         </HeadlessSwitch>
       </div>
-    </HeadlessSwitch.Group>
+    </Field>
   );
 };
 

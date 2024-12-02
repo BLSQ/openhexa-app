@@ -22,6 +22,7 @@ exports[`DataCard renders 1`] = `
           <div
             class=""
             data-headlessui-state="open"
+            data-open=""
             id="headlessui-disclosure-panel-b0421256-86a3-4e0a-9682-3cf5bee102e1"
           >
             <div

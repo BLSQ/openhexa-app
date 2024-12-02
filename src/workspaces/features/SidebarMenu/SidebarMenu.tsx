@@ -1,7 +1,6 @@
 import { gql, useQuery } from "@apollo/client";
 import { Transition } from "@headlessui/react";
 import {
-  ArrowLeftCircleIcon,
   ArrowRightOnRectangleIcon,
   Cog6ToothIcon,
   GlobeAltIcon,
@@ -26,10 +25,10 @@ import useOnClickOutside from "use-onclickoutside";
 import UserAvatar from "identity/features/UserAvatar";
 import CreateWorkspaceDialog from "../CreateWorkspaceDialog";
 import {
+  SidebarMenu_WorkspaceFragment,
   SidebarMenuDocument,
   SidebarMenuQuery,
   SidebarMenuQueryVariables,
-  SidebarMenu_WorkspaceFragment,
 } from "./SidebarMenu.generated";
 import { logout } from "identity/helpers/auth";
 import Tooltip from "core/components/Tooltip";

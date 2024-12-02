@@ -1,4 +1,9 @@
-import { Disclosure, Transition } from "@headlessui/react";
+import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+  Transition,
+} from "@headlessui/react";
 import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 
@@ -52,9 +57,9 @@ function BlockSection(props: BlockSectionProps) {
         </>
       );
     return collapsible ? (
-      <Disclosure.Button as="div" className="-my-7 flex items-center py-7">
+      <DisclosureButton as="div" className="-my-7 flex items-center py-7">
         {header}
-      </Disclosure.Button>
+      </DisclosureButton>
     ) : (
       <div className="-my-7 flex items-center py-7">{header}</div>
     );
@@ -75,12 +80,13 @@ function BlockSection(props: BlockSectionProps) {
                 leave="transition duration-50 ease-out"
                 leaveFrom="transform opacity-100"
                 leaveTo="transform opacity-0"
+                as="div"
               >
-                <Disclosure.Panel static className={clsx(title && "mt-6")}>
+                <DisclosurePanel static className={clsx(title && "mt-6")}>
                   {typeof children === "function"
                     ? children({ open })
                     : children}
-                </Disclosure.Panel>
+                </DisclosurePanel>
               </Transition>
             )}
           </>

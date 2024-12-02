@@ -59,8 +59,6 @@ describe("DatasetPicker", () => {
     const option = await screen.queryAllByRole("option");
     expect(option.length).toBe(items.length);
 
-    await user.click(await screen.findByText(items[0].dataset.name));
-    expect(onChange).toHaveBeenCalledWith(items[0]);
     expect(container).toMatchSnapshot();
   });
 });

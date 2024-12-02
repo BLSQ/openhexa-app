@@ -337,7 +337,7 @@ exports[`Workspaces renders the workspace page 1`] = `
           aria-expanded="false"
           class="flex items-center outline-none"
           data-headlessui-state=""
-          id="headlessui-popover-button-6b042125-686a-43e0-8a68-23cf5bee102e"
+          id="headlessui-popover-button-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
           type="button"
         >
           <div
@@ -347,10 +347,6 @@ exports[`Workspaces renders the workspace page 1`] = `
           </div>
         </button>
       </div>
-      <div
-        hidden=""
-        style="position: fixed; top: 1px; left: 1px; width: 1px; height: 0px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border-width: 0px; display: none;"
-      />
     </div>
   </div>
 </div>
@@ -715,7 +711,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
           aria-expanded="false"
           class="flex items-center outline-none"
           data-headlessui-state=""
-          id="headlessui-popover-button-6b042125-686a-43e0-8a68-23cf5bee102e"
+          id="headlessui-popover-button-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
           type="button"
         >
           <div
@@ -725,10 +721,6 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
           </div>
         </button>
       </div>
-      <div
-        hidden=""
-        style="position: fixed; top: 1px; left: 1px; width: 1px; height: 0px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border-width: 0px; display: none;"
-      />
     </div>
   </div>
 </div>

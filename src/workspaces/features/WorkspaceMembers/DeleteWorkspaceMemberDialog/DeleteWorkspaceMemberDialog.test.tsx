@@ -59,7 +59,7 @@ describe("DeleteWorkspaceMemberDialog", () => {
       </TestApp>,
     );
 
-    const dialog = await screen.queryByRole("dialog");
+    const dialog = screen.queryByRole("dialog");
     expect(dialog).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
     expect(container).toMatchSnapshot();

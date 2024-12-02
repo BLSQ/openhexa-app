@@ -1,9 +1,12 @@
 import Combobox from "./Combobox";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
-const ComboboxWrapper = (props: React.ComponentProps<typeof Combobox>) => {
+const ComboboxWrapper = ({
+  children,
+  ...props
+}: React.ComponentProps<typeof Combobox>) => {
   const [value, setValue] = useState<any>(props.value);
 
   const onChange = (value: any) => {
@@ -12,7 +15,11 @@ const ComboboxWrapper = (props: React.ComponentProps<typeof Combobox>) => {
   };
 
   useEffect(() => setValue(props.value), [props.value]);
-  return <Combobox {...props} value={value} onChange={onChange} />;
+  return (
+    <Combobox {...props} value={value} onChange={onChange}>
+      {children}
+    </Combobox>
+  );
 };
 
 const options = [
@@ -36,7 +43,7 @@ describe("Combobox", () => {
     const onInputChange = jest.fn();
     const displayValue = jest.fn().mockReturnValue("<display value>");
 
-    const { container, debug } = render(
+    render(
       <ComboboxWrapper
         onChange={onChange}
         value={null}
@@ -58,14 +65,18 @@ describe("Combobox", () => {
 
     expect(onInputChange).not.toHaveBeenCalled();
     expect(onChange).not.toHaveBeenCalled();
-    expect(await screen.queryByTestId("combobox-options")).toBe(null);
+    expect(screen.queryByTestId("combobox-options")).toBe(null);
 
-    await waitFor(async () => {
-      await fireEvent.click(comboboxButton);
+    await userEvent.click(comboboxButton);
+    await waitFor(() => {
       expect(screen.getByTestId("combobox-options")).toBeInTheDocument();
-      const allOptions = container.getElementsByTagName("li");
-      expect(allOptions.length === 3).toBeTruthy();
-      await userEvent.click(allOptions[1]);
+    });
+    const allOptions = screen.getAllByRole("option");
+    expect(allOptions).toHaveLength(3);
+
+    await userEvent.click(allOptions[1]);
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith(options[1]);
     });
 
     expect(onChange).toHaveBeenCalledWith(options[1]);
@@ -76,7 +87,7 @@ describe("Combobox", () => {
     const onInputChange = jest.fn();
     const displayValue = jest.fn().mockReturnValue("<display value>");
 
-    const { container, debug } = render(
+    render(
       <ComboboxWrapper
         onChange={onChange}
         value={undefined}
@@ -101,7 +112,7 @@ describe("Combobox", () => {
     const displayValue = jest.fn().mockReturnValue("<display value>");
     const renderIcon = jest.fn().mockReturnValue(null);
 
-    const { container, debug } = render(
+    render(
       <ComboboxWrapper
         onChange={onChange}
         value={options[0]}

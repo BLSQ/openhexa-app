@@ -40,7 +40,7 @@ describe("CreateWorkspaceDialog", () => {
       </TestApp>,
     );
 
-    const dialog = await screen.queryByRole("dialog");
+    const dialog = screen.queryByRole("dialog");
     expect(dialog).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
     expect(container).toMatchSnapshot();
@@ -61,7 +61,7 @@ describe("CreateWorkspaceDialog", () => {
     await user.click(createButton);
     expect(createWorkspace).not.toHaveBeenCalled();
 
-    const workspaceName = await screen.getByTestId("name");
+    const workspaceName = screen.getByTestId("name");
     await user.type(workspaceName, "Test Burundi");
     await user.click(createButton);
 

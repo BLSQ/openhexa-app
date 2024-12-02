@@ -35,7 +35,7 @@ describe("EditWorkspaceDescriptionDialog", () => {
         onClose={() => {}}
       />,
     );
-    const dialog = await screen.queryByRole("dialog");
+    const dialog = screen.queryByRole("dialog");
     expect(dialog).not.toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
     expect(container).toMatchSnapshot();
@@ -52,7 +52,7 @@ describe("EditWorkspaceDescriptionDialog", () => {
       </TestApp>,
     );
 
-    const dialog = await screen.queryByRole("dialog");
+    const dialog = screen.queryByRole("dialog");
     expect(dialog).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
     expect(container).toMatchSnapshot();
@@ -98,7 +98,7 @@ describe("EditWorkspaceDescriptionDialog", () => {
       </TestApp>,
     );
 
-    const descriptionInput = await screen.getByTestId("description");
+    const descriptionInput = screen.getByTestId("description");
     await user.clear(descriptionInput);
 
     const saveButton = screen.getByRole("button", { name: "Save" });

@@ -1,6 +1,6 @@
 import { CheckIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
-import { Combobox as UICombobox } from "@headlessui/react";
+import { ComboboxOption as UIComboboxOption } from "@headlessui/react";
 import { ReactNode } from "react";
 
 type CheckOptionsProps = {
@@ -29,30 +29,30 @@ function CheckOption(props: CheckOptionsProps) {
   } = props;
 
   return (
-    <UICombobox.Option
+    <UIComboboxOption
       value={value}
       disabled={disabled}
-      className={({ active }) =>
+      className={({ focus }) =>
         clsx(
           "relative cursor-default select-none px-2 py-2",
-          active ? "bg-blue-500 text-white" : "text-gray-900",
+          focus ? "bg-blue-500 text-white" : "text-gray-900",
           className,
         )
       }
     >
-      {({ active, selected }) => (
+      {({ focus, selected }) => (
         <div className="group flex w-full items-center">
           <span
             className={clsx(
               "flex items-center pr-4",
               !selected && !forceSelected && "invisible",
-              active ? "text-white" : "text-gray-900",
+              focus ? "text-white" : "text-gray-900",
             )}
           >
             <CheckIcon
               className={clsx(
                 "h-5 w-5",
-                (selected || forceSelected) && !active && "text-blue-500",
+                (selected || forceSelected) && !focus && "text-blue-500",
               )}
               aria-hidden="true"
             />
@@ -64,12 +64,12 @@ function CheckOption(props: CheckOptionsProps) {
             )}
           >
             {typeof children === "function"
-              ? children({ active, selected: selected || forceSelected })
+              ? children({ active: focus, selected: selected || forceSelected })
               : children}
           </span>
         </div>
       )}
-    </UICombobox.Option>
+    </UIComboboxOption>
   );
 }
 

@@ -1,4 +1,9 @@
-import { Menu as HeadlessMenu, Transition } from "@headlessui/react";
+import {
+  Button as HeadlessMenuButton,
+  Menu as HeadlessMenu,
+  MenuItem as HeadlessMenuItem,
+  MenuItems as HeadlessMenuItems,
+} from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { Classes as ButtonClasses } from "./Button/Button";
@@ -30,19 +35,19 @@ const Menu = ({ label, trigger, className, children }: MenuProps) => {
   return (
     <HeadlessMenu as="div" className={clsx(MenuClasses.Menu, className)}>
       {trigger ? (
-        <HeadlessMenu.Button>{trigger}</HeadlessMenu.Button>
+        <HeadlessMenuButton>{trigger}</HeadlessMenuButton>
       ) : (
-        <HeadlessMenu.Button className={MenuClasses.TriggerButton}>
+        <HeadlessMenuButton className={MenuClasses.TriggerButton}>
           {label}
           <ChevronDownIcon
             className="-mr-1 ml-2 h-4 w-4 text-gray-500 group-hover:text-gray-700"
             aria-hidden="true"
           />
-        </HeadlessMenu.Button>
+        </HeadlessMenuButton>
       )}
-      <HeadlessMenu.Items className={MenuClasses.Items}>
+      <HeadlessMenuItems className={MenuClasses.Items}>
         <div className="px-1 py-1">{children}</div>
-      </HeadlessMenu.Items>
+      </HeadlessMenuItems>
     </HeadlessMenu>
   );
 };
@@ -66,25 +71,22 @@ const Item = ({
   className = MenuClasses.Item,
   href,
 }: ItemProps) => (
-  <HeadlessMenu.Item>
-    {({ active }) =>
+  <HeadlessMenuItem>
+    {({ focus }) =>
       onClick ? (
         <button
           onClick={onClick}
-          className={clsx(className, active && activeClassName)}
+          className={clsx(className, focus && activeClassName)}
         >
           {children}
         </button>
       ) : (
-        <Link
-          href={href}
-          className={clsx(className, active && activeClassName)}
-        >
+        <Link href={href} className={clsx(className, focus && activeClassName)}>
           {children}
         </Link>
       )
     }
-  </HeadlessMenu.Item>
+  </HeadlessMenuItem>
 );
 
 Menu.Item = Item;

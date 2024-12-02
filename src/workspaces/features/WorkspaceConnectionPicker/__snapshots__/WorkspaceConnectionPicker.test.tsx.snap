@@ -4,6 +4,8 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
 <div>
   <div
     class="relative"
+    data-headlessui-state="open"
+    data-open=""
   >
     <div
       class="form-input flex w-full items-center rounded-md border-gray-300 shadow-sm disabled:border-gray-300 focus-within:outline-none focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed  sm:text-sm border-blue-500"
@@ -12,27 +14,32 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
         class="mr-1 flex flex-1 items-center truncate"
       >
         <input
-          aria-activedescendant="headlessui-combobox-option-ee4137b3-3d69-4318-b729-8a2c38c05dd8"
+          aria-activedescendant="headlessui-combobox-option-ae7c7a26-e9c8-47d1-b9f8-3d4b8f9d0f15"
           aria-autocomplete="list"
-          aria-controls="headlessui-combobox-options-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
+          aria-controls="headlessui-combobox-options-d88d149f-80c3-4c6d-9b82-01013b801f93"
           aria-expanded="true"
           autocomplete="off"
           class="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-none"
-          data-headlessui-state="open"
+          data-focus=""
+          data-headlessui-state="open focus"
+          data-open=""
           data-testid="combobox-input"
-          id="headlessui-combobox-input-6b042125-686a-43e0-8a68-23cf5bee102e"
+          id="headlessui-combobox-input-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
           placeholder="Select connection"
           role="combobox"
           type="text"
         />
       </div>
       <button
-        aria-controls="headlessui-combobox-options-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
+        aria-controls="headlessui-combobox-options-d88d149f-80c3-4c6d-9b82-01013b801f93"
         aria-expanded="true"
         aria-haspopup="listbox"
-        data-headlessui-state="open"
+        data-active=""
+        data-headlessui-state="open active hover"
+        data-hover=""
+        data-open=""
         data-testid="combobox-button"
-        id="headlessui-combobox-button-6f8b5ad0-cfb4-4c17-9e44-20a3470929b1"
+        id="headlessui-combobox-button-963e9095-8e5e-490e-8bf2-2eb1cceb1000"
         tabindex="-1"
         type="button"
       >
@@ -63,27 +70,30 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
         </div>
       </button>
     </div>
-    <ul
-      aria-labelledby="headlessui-combobox-button-6f8b5ad0-cfb4-4c17-9e44-20a3470929b1"
+    <div
+      aria-labelledby="headlessui-combobox-button-963e9095-8e5e-490e-8bf2-2eb1cceb1000"
       class="max-h-60 z-10 w-full rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm flex flex-col"
       data-headlessui-state="open"
+      data-open=""
       data-popper-escaped="true"
       data-popper-placement="bottom-start"
       data-popper-reference-hidden="true"
       data-testid="combobox-options"
-      id="headlessui-combobox-options-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
+      id="headlessui-combobox-options-d88d149f-80c3-4c6d-9b82-01013b801f93"
       role="listbox"
-      style="position: absolute; left: 0px; top: 0px; transform: translate(0px, 4px);"
+      style="position: absolute; left: 0px; top: 0px; --input-width: 0px; --button-width: 0px; transform: translate(0px, 4px);"
     >
       <div
         class="overflow-auto flex-1"
         role="none"
       >
-        <li
+        <div
           aria-selected="false"
           class="relative cursor-default select-none px-2 py-2 bg-blue-500 text-white"
-          data-headlessui-state="active"
-          id="headlessui-combobox-option-ee4137b3-3d69-4318-b729-8a2c38c05dd8"
+          data-active=""
+          data-focus=""
+          data-headlessui-state="active focus"
+          id="headlessui-combobox-option-ae7c7a26-e9c8-47d1-b9f8-3d4b8f9d0f15"
           role="option"
           tabindex="-1"
         >
@@ -128,12 +138,12 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
               </div>
             </span>
           </div>
-        </li>
-        <li
+        </div>
+        <div
           aria-selected="false"
           class="relative cursor-default select-none px-2 py-2 text-gray-900"
           data-headlessui-state=""
-          id="headlessui-combobox-option-fdd1ab9c-0cb4-44a5-8c7c-f42e8faf8825"
+          id="headlessui-combobox-option-0dd74c72-ee7d-46a6-a83f-4120b9c8cbc6"
           role="option"
           tabindex="-1"
         >
@@ -178,12 +188,12 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
               </div>
             </span>
           </div>
-        </li>
-        <li
+        </div>
+        <div
           aria-selected="false"
           class="relative cursor-default select-none px-2 py-2 text-gray-900"
           data-headlessui-state=""
-          id="headlessui-combobox-option-2b05dbb3-79f3-434c-8708-3c409d6b88fc"
+          id="headlessui-combobox-option-252636f5-fa6d-494c-b655-b4c487de29e7"
           role="option"
           tabindex="-1"
         >
@@ -228,9 +238,9 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
               </div>
             </span>
           </div>
-        </li>
+        </div>
       </div>
-    </ul>
+    </div>
   </div>
 </div>
 `;

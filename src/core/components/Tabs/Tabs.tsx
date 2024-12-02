@@ -1,4 +1,10 @@
-import { Tab as HeadlessTab } from "@headlessui/react";
+import {
+  Tab as HeadlessTab,
+  TabGroup as HeadlessTabGroup,
+  TabList as HeadlessTabList,
+  TabPanel as HeadlessTabPanel,
+  TabPanels as HeadlessTabPanels,
+} from "@headlessui/react";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
 import React, {
@@ -29,13 +35,13 @@ const Tabs = (props: TabsProps) => {
   );
 
   return (
-    // HeadlessTab.Group is a wrapper for the tabs and panels. To not break Sentry, we need to add the as="div" prop.
-    <HeadlessTab.Group
+    // HeadlessTabGroup is a wrapper for the tabs and panels. To not break Sentry, we need to add the as="div" prop.
+    <HeadlessTabGroup
       as={"div"}
       defaultIndex={defaultIndex}
       onChange={onChange}
     >
-      <HeadlessTab.List
+      <HeadlessTabList
         className={clsx(
           "border-b border-gray-200 text-sm font-medium ",
           className,
@@ -63,13 +69,13 @@ const Tabs = (props: TabsProps) => {
               ),
           )}
         </nav>
-      </HeadlessTab.List>
-      <HeadlessTab.Panels>
+      </HeadlessTabList>
+      <HeadlessTabPanels>
         {React.Children.map(validChildren, (child) => (
-          <HeadlessTab.Panel>{child}</HeadlessTab.Panel>
+          <HeadlessTabPanel>{child}</HeadlessTabPanel>
         ))}
-      </HeadlessTab.Panels>
-    </HeadlessTab.Group>
+      </HeadlessTabPanels>
+    </HeadlessTabGroup>
   );
 };
 

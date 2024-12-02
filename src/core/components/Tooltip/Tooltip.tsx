@@ -44,6 +44,7 @@ const Tooltip = (props: Props) => {
             leave="transition-opacity duration-150"
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
+            as="div"
           >
             <div
               ref={setTooltipRef}

@@ -1,4 +1,10 @@
-import { Listbox as UIListbox, Portal } from "@headlessui/react";
+import {
+  Listbox as UIListbox,
+  ListboxButton as UIListboxButton,
+  ListboxOption as UIListboxOption,
+  ListboxOptions as UIListboxOptions,
+  Portal,
+} from "@headlessui/react";
 import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
@@ -58,7 +64,7 @@ const Listbox = (props: ListboxProps) => {
     <UIListbox value={value} onChange={onChange} by={by}>
       {({ open }) => (
         <div ref={setReferenceElement}>
-          <UIListbox.Button
+          <UIListboxButton
             className={clsx(
               "form-input relative w-full  cursor-default rounded-md bg-white px-3 py-2 pr-10 text-left disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm",
               "focus:ring-blue-500",
@@ -76,9 +82,9 @@ const Listbox = (props: ListboxProps) => {
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 hover:text-gray-600">
               <ChevronUpDownIcon className="h-5 w-5" aria-hidden="true" />
             </span>
-          </UIListbox.Button>
+          </UIListboxButton>
           <Portal>
-            <UIListbox.Options
+            <UIListboxOptions
               ref={setPopperElement}
               className={
                 "z-10 flex max-h-72 w-full flex-col rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
@@ -88,17 +94,17 @@ const Listbox = (props: ListboxProps) => {
             >
               <div className="flex-1 overflow-auto">
                 {options.map((option) => (
-                  <UIListbox.Option
+                  <UIListboxOption
                     key={option[by]}
                     value={option}
-                    className={({ active }) =>
+                    className={({ focus }) =>
                       clsx(
                         "relative cursor-default select-none px-2 py-2",
-                        active ? "bg-blue-500 text-white" : "text-gray-900",
+                        focus ? "bg-blue-500 text-white" : "text-gray-900",
                       )
                     }
                   >
-                    {({ active, selected }) => (
+                    {({ focus, selected }) => (
                       <span
                         className={clsx(
                           "flex-1 truncate",
@@ -108,11 +114,11 @@ const Listbox = (props: ListboxProps) => {
                         {getOptionLabel(option)}
                       </span>
                     )}
-                  </UIListbox.Option>
+                  </UIListboxOption>
                 ))}
                 {onScrollBottom && <div ref={endRef}></div>}
               </div>
-            </UIListbox.Options>
+            </UIListboxOptions>
           </Portal>
         </div>
       )}
