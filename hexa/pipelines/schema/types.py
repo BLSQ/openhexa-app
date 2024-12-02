@@ -221,6 +221,11 @@ pipeline_run_object.set_alias("version", "pipeline_version")
 pipeline_version_object = ObjectType("PipelineVersion")
 
 
+@pipeline_version_object.field("versionName")
+def resolve_pipeline_version_version_name(version: PipelineVersion, info, **kwargs):
+    return version.version_name
+
+
 @pipeline_version_object.field("isLatestVersion")
 def resolve_pipeline_version_is_latest(version: PipelineVersion, info, **kwargs):
     return version.is_latest_version
@@ -272,10 +277,6 @@ def resolve_pipeline_run_outputs(run: PipelineRun, info, **kwargs):
 @pipeline_run_object.field("datasetVersions")
 def resolve_pipeline_run_dataset_version(run: PipelineRun, info, **kwargs):
     return run.dataset_versions.all()
-
-
-# FIXME: This is an alias to still support the deprecated "number" field
-pipeline_version_object.set_alias("number", "name")
 
 
 bindables = [
