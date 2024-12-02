@@ -110,8 +110,9 @@ type PipelineVersion {
   id: UUID!  # The ID of the pipeline version.
   user: User  # The user who created the pipeline version.
   pipeline: Pipeline!  # The pipeline associated with the version.
-  name: String!  # The name of the pipeline version.
-  number: String @deprecated(reason: "Use name field instead")  # The version number of the pipeline (deprecated).
+  name: String  # The optional name of the pipeline version.
+  versionNumber: Int!  # The version number of the pipeline version.
+  versionName: String!  # The version name of the pipeline version including the versionNumber and the optional name.
   description: String  # The description of the pipeline version.
   externalLink: URL  # The external link associated with the pipeline version.
   createdAt: DateTime!  # The timestamp when the pipeline version was created.
@@ -426,7 +427,7 @@ input UploadPipelineInput {
   workspaceSlug: String!  # The slug of the workspace where the pipeline will be uploaded.
   code: String @deprecated(reason: "Use 'pipelineCode' field instead")  # The code of the pipeline (deprecated).
   pipelineCode: String  # The code of the pipeline.
-  name: String!  # The name of the pipeline.
+  name: String  # The name of the pipeline version.
   description: String  # The description of the pipeline.
   externalLink: URL  # The external link associated with the pipeline.
   parameters: [ParameterInput!]!  # The parameters of the pipeline.
@@ -458,7 +459,6 @@ Represents the result of uploading a pipeline.
 type UploadPipelineResult {
   success: Boolean!  # Indicates if the pipeline was uploaded successfully.
   pipelineVersion: PipelineVersion  # The uploaded pipeline version.
-  version: String @deprecated(reason: "Use 'pipelineVersion' field instead")  # The version of the uploaded pipeline (deprecated).
   errors: [PipelineError!]!  # The list of errors that occurred during the upload of the pipeline.
 }
 

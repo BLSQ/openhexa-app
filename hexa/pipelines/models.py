@@ -10,7 +10,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.core.exceptions import PermissionDenied
 from django.core.signing import Signer, TimestampSigner
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -116,7 +116,17 @@ class PipelineVersion(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["pipeline", "name"], name=UNIQUE_PIPELINE_VERSION_NAME
-            )
+            ),
+            models.UniqueConstraint(
+                fields=["pipeline", "version_number"],
+                name="unique_pipeline_version_number",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["pipeline", "version_number"],
+                name="index_pipeline_version_number",
+            ),
         ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -128,7 +138,8 @@ class PipelineVersion(models.Model):
     pipeline = models.ForeignKey(
         "Pipeline", on_delete=models.CASCADE, related_name="versions"
     )
-    name = models.CharField(max_length=250)
+    version_number = models.PositiveIntegerField(editable=False)
+    name = models.CharField(max_length=250, null=True, blank=True)
     external_link = models.URLField(blank=True, null=True)
     description = models.TextField(null=True)
     zipfile = models.BinaryField(null=True)
@@ -141,6 +152,22 @@ class PipelineVersion(models.Model):
     )
 
     objects = PipelineVersionQuerySet.as_manager()
+
+    def _increment_version_number(self):
+        with transaction.atomic():
+            previous_version = (
+                PipelineVersion.objects.filter(pipeline=self.pipeline)
+                .order_by("-version_number")
+                .first()
+            )
+            self.version_number = (
+                (previous_version.version_number + 1) if previous_version else 1
+            )
+
+    def save(self, *args, **kwargs):
+        if not self.version_number:  # Increment for new records only
+            self._increment_version_number()
+        super().save(*args, **kwargs)
 
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("pipelines.update_pipeline_version", self):
@@ -180,8 +207,14 @@ class PipelineVersion(models.Model):
         return self == self.pipeline.last_version
 
     @property
+    def version_name(self):
+        if self.name:
+            return self.name + f" [v{self.version_number}]"
+        return f"v{self.version_number}"
+
+    @property
     def display_name(self):
-        return f"{self.pipeline.name} - {self.name}"
+        return f"{self.pipeline.name} - {self.version_name}"
 
     def __str__(self):
         return self.display_name

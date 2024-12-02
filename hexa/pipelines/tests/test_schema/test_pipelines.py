@@ -273,7 +273,6 @@ class PipelinesV2Test(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
-                    version
                     pipelineVersion {
                         name
                     }
@@ -294,7 +293,6 @@ class PipelinesV2Test(GraphQLTestCase):
         self.assertEqual(
             {
                 "success": True,
-                "version": "Version 1",
                 "pipelineVersion": {"name": "Version 1"},
                 "errors": [],
             },
