@@ -234,6 +234,14 @@ class PipelineType(models.TextChoices):
     ZIPFILE = "zipFile", _("ZipFile")
 
 
+class PipelineRunLogLevel(models.IntegerChoices):
+    DEBUG = 0
+    INFO = 1
+    WARNING = 2
+    ERROR = 3
+    CRITICAL = 4
+
+
 class Pipeline(SoftDeletedModel):
     class Meta:
         verbose_name = "Pipeline"
@@ -283,6 +291,7 @@ class Pipeline(SoftDeletedModel):
         trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[typing.Dict, typing.Any] | None = None,
         send_mail_notifications: bool = True,
+        log_level: PipelineRunLogLevel = PipelineRunLogLevel.INFO,
     ):
         timeout = settings.PIPELINE_RUN_DEFAULT_TIMEOUT
         if pipeline_version and pipeline_version.timeout:
@@ -303,6 +312,7 @@ class Pipeline(SoftDeletedModel):
             access_token=str(uuid.uuid4()),
             send_mail_notifications=send_mail_notifications,
             timeout=timeout,
+            log_level=log_level,
         )
 
         return run
@@ -510,14 +520,6 @@ class PipelineRunState(models.TextChoices):
     QUEUED = "queued", _("Queued")
     TERMINATING = "terminating", _("terminating")
     STOPPED = "stopped", _("Stopped")
-
-
-class PipelineRunLogLevel(models.IntegerChoices):
-    DEBUG = 0
-    INFO = 1
-    WARNING = 2
-    ERROR = 3
-    CRITICAL = 4
 
 
 class PipelineRun(Base, WithStatus):
