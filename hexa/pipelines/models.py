@@ -479,6 +479,14 @@ class PipelineRunState(models.TextChoices):
     STOPPED = "stopped", _("Stopped")
 
 
+class PipelineRunLogLevel(models.IntegerChoices):
+    DEBUG = 0
+    INFO = 1
+    WARNING = 2
+    ERROR = 3
+    CRITICAL = 4
+
+
 class PipelineRun(Base, WithStatus):
     STATUS_MAPPINGS = {
         PipelineRunState.SUCCESS: Status.SUCCESS,
@@ -524,7 +532,9 @@ class PipelineRun(Base, WithStatus):
         on_delete=models.SET_NULL,
         related_name="+",
     )
-
+    log_level = models.IntegerField(
+        choices=PipelineRunLogLevel.choices, default=PipelineRunLogLevel.INFO
+    )
     objects = PipelineRunQuerySet.as_manager()
 
     @property

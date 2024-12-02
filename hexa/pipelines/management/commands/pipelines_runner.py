@@ -297,6 +297,7 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
             return False, str(e)
 
 
+# TODO : in FE show the button + show the log level
 def run_pipeline(run: PipelineRun):
     logger.info("Run pipeline: %s", run)
 
@@ -315,6 +316,7 @@ def run_pipeline(run: PipelineRun):
         "HEXA_RUN_ID": str(run.id),
         "HEXA_PIPELINE_NAME": run.pipeline.name,
         "HEXA_PIPELINE_TYPE": run.pipeline.type,
+        "HEXA_LOG_LEVEL": run.log_level,
     }
     if run.pipeline.type == PipelineType.NOTEBOOK:
         env_vars.update({"HEXA_NOTEBOOK_PATH": run.pipeline.notebook_path})
