@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("pipelines", "0048_pipelineversion_unique_pipeline_version_name"),
+        ("pipelines", "0052_pipelineversion_version_number_revert_logic"),
     ]
 
     operations = [
