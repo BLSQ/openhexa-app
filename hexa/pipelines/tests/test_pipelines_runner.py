@@ -1,4 +1,4 @@
-# TODO : change view and test
+# TODO : test view
 # TODO : rename in SDK
 from unittest.mock import MagicMock, patch
 
