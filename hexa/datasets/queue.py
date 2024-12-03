@@ -96,16 +96,14 @@ def generate_sample(
 
 
 def generate_profile(df: pd.DataFrame) -> list:
-    logger.info("Calculating profiling per column")
+    logger.info("Starting profiling calculation per column")
     try:
-        if "geometry" in df.columns:
-            logger.warning("Skipping the 'geometry' column from profiling.")
-            df = df.drop(columns=["geometry"])
         for col in df.select_dtypes(include=["object"]).columns:
             try:
                 df[col] = df[col].astype("string")
             except Exception as e:
                 logger.warning(f"Failed to convert column '{col}' to string: {e}")
+                df.drop(columns=[col], inplace=True)
 
         data_types = df.dtypes.apply(str).to_dict()
         missing_values = df.isnull().sum().to_dict()
@@ -116,6 +114,7 @@ def generate_profile(df: pd.DataFrame) -> list:
         metadata_per_column = [
             {
                 "column_name": column,
+                "number_of_rows": len(df),
                 "data_type": data_types.get(column),
                 "missing_values": missing_values.get(column),
                 "unique_values": unique_values.get(column),
@@ -124,6 +123,7 @@ def generate_profile(df: pd.DataFrame) -> list:
             }
             for column in df.columns
         ]
+        logger.info("Finished profiling calculation per column")
         return metadata_per_column
 
     except Exception as e:
