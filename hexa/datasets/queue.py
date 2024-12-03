@@ -110,11 +110,12 @@ def generate_profile(df: pd.DataFrame) -> list:
         unique_values = df.nunique().to_dict()
         distinct_values = df.apply(lambda x: x.nunique(dropna=False)).to_dict()
         constant_values = df.apply(lambda x: x.nunique() == 1).astype("bool").to_dict()
+        count = df.count().to_dict()
 
         metadata_per_column = [
             {
                 "column_name": column,
-                "number_of_rows": len(df),
+                "count": count.get(column),
                 "data_type": data_types.get(column),
                 "missing_values": missing_values.get(column),
                 "unique_values": unique_values.get(column),
