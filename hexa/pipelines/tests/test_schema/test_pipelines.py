@@ -18,6 +18,7 @@ from hexa.pipelines.models import (
     PipelineNotificationLevel,
     PipelineRecipient,
     PipelineRun,
+    PipelineRunLogLevel,
     PipelineRunState,
     PipelineRunTrigger,
     PipelineType,
@@ -1880,6 +1881,10 @@ class PipelinesV2Test(GraphQLTestCase):
             },
             r["data"]["runPipeline"],
         )
+        self.assertEqual(1, len(PipelineRun.objects.all()))
+        pipeline_run = PipelineRun.objects.first()
+        self.assertEqual(pipeline_run.log_level, PipelineRunLogLevel.INFO)
+        self.assertFalse(pipeline_run.send_mail_notifications)
 
     def test_pipeline_new_run_default_timeout(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
@@ -1902,7 +1907,14 @@ class PipelinesV2Test(GraphQLTestCase):
                 }
             }
             """,
-            {"input": {"id": str(id1), "config": {}}},
+            {
+                "input": {
+                    "id": str(id1),
+                    "config": {},
+                    "sendMailNotifications": True,
+                    "enableDebugLogs": True,
+                }
+            },
         )
         self.assertEqual(
             {
@@ -1913,6 +1925,9 @@ class PipelinesV2Test(GraphQLTestCase):
             r["data"]["runPipeline"],
         )
         self.assertEqual(1, len(PipelineRun.objects.all()))
+        pipeline_run = PipelineRun.objects.first()
+        self.assertEqual(pipeline_run.log_level, PipelineRunLogLevel.DEBUG)
+        self.assertTrue(pipeline_run.send_mail_notifications)
 
     def test_stop_running_pipeline(self):
         self.test_create_pipeline_version()
