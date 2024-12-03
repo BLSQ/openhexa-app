@@ -241,6 +241,18 @@ class PipelineRunLogLevel(models.IntegerChoices):
     ERROR = 3
     CRITICAL = 4
 
+    @classmethod
+    def parse_log_level(cls, value):
+        if isinstance(value, int) and 0 <= value <= 4:
+            return value
+        if isinstance(value, str):
+            if value.isdigit():
+                return cls.parse_log_level(int(value))
+            value = value.upper()
+            if hasattr(cls, value):
+                return getattr(cls, value)
+        return cls.INFO
+
 
 class Pipeline(SoftDeletedModel):
     class Meta:

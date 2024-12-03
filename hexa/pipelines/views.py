@@ -148,7 +148,7 @@ def run_pipeline(
     config = {}
     if content_type == "application/x-www-form-urlencoded":
         send_mail_notifications = request.POST.get("send_mail_notifications", False)
-        log_level = request.POST.get("log_level", PipelineRunLogLevel.INFO)
+        log_level = PipelineRunLogLevel.parse_log_level(request.POST.get("log_level"))
         for parameter in pipeline_version.parameters:
             if parameter["code"] not in request.POST:
                 continue
@@ -174,7 +174,7 @@ def run_pipeline(
 
     elif content_type == "application/json":
         send_mail_notifications = request.GET.get("send_mail_notifications", False)
-        log_level = request.GET.get("log_level", PipelineRunLogLevel.INFO)
+        log_level = PipelineRunLogLevel.parse_log_level(request.GET.get("log_level"))
         try:
             config = json.loads(request.body)
         except json.JSONDecodeError:

@@ -5,6 +5,7 @@ from hexa.pipelines.models import (
     Pipeline,
     PipelineNotificationLevel,
     PipelineRecipient,
+    PipelineRunLogLevel,
     PipelineRunState,
     PipelineRunTrigger,
 )
@@ -13,6 +14,71 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
 )
+
+
+class TestPipelineRunLogLevel(TestCase):
+    def test_parse_log_level_with_int(self):
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level(0), PipelineRunLogLevel.DEBUG
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level(1), PipelineRunLogLevel.INFO
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level(2), PipelineRunLogLevel.WARNING
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level(3), PipelineRunLogLevel.ERROR
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level(4), PipelineRunLogLevel.CRITICAL
+        )
+
+    def test_parse_log_level_with_str_number(self):
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level("0"), PipelineRunLogLevel.DEBUG
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level("1"), PipelineRunLogLevel.INFO
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level("2"), PipelineRunLogLevel.WARNING
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level("3"), PipelineRunLogLevel.ERROR
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level("4"), PipelineRunLogLevel.CRITICAL
+        )
+
+    def test_parse_log_level_with_str_name(self):
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level("DEBUG"), PipelineRunLogLevel.DEBUG
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level("INFO"), PipelineRunLogLevel.INFO
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level("WARNING"), PipelineRunLogLevel.WARNING
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level("ERROR"), PipelineRunLogLevel.ERROR
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level("CRITICAL"),
+            PipelineRunLogLevel.CRITICAL,
+        )
+
+    def test_parse_log_level_with_invalid_value(self):
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level("invalid"), PipelineRunLogLevel.INFO
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level(5), PipelineRunLogLevel.INFO
+        )
+        self.assertEqual(
+            PipelineRunLogLevel.parse_log_level(-1), PipelineRunLogLevel.INFO
+        )
 
 
 class PipelineTest(TestCase):
