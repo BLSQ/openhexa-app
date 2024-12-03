@@ -9,21 +9,14 @@ from hexa.pipelines.models import PipelineRun, PipelineRunLogLevel, PipelineType
 
 
 class TestRunPipeline(TestCase):
-    @patch(
-        "hexa.pipelines.management.commands.pipelines_runner.Signer.sign_object",
-        return_value="signed_token",
-    )
     @patch("hexa.pipelines.management.commands.pipelines_runner.run_pipeline_docker")
-    @patch("django.db.connections.close_all")
-    @patch("os.fork", return_value=0)
     @override_settings(
         INTERNAL_BASE_URL="http://testserver",
         DEFAULT_WORKSPACE_IMAGE="default_workspace_image",
         PIPELINE_SCHEDULER_SPAWNER="docker",
     )
-    def test_env_vars(
-        self, mock_fork, mock_close_all, mock_run_pipeline_docker, mock_signer
-    ):
+    @patch("os.fork", return_value=0)
+    def test_env_vars(self, _, mock_run_pipeline_docker):
         mock_run = MagicMock(spec=PipelineRun)
         mock_run.id = 123
         mock_run.access_token = "someAccessToken"
@@ -43,7 +36,7 @@ class TestRunPipeline(TestCase):
 
         expected_env_vars = {
             "HEXA_SERVER_URL": "http://testserver",
-            "HEXA_TOKEN": "signed_token",
+            "HEXA_TOKEN": "InNvbWVBY2Nlc3NUb2tlbiI:6jqo7CX79O6IOh7lgqpwOXBBYSxzNOBtXeSNb4ry9EM",
             "HEXA_WORKSPACE": "test_workspace",
             "HEXA_RUN_ID": "123",
             "HEXA_PIPELINE_NAME": "test_pipeline",
