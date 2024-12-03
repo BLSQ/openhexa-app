@@ -9,12 +9,12 @@ from hexa.pipelines.models import PipelineRun, PipelineRunLogLevel, PipelineType
 
 
 class TestRunPipeline(TestCase):
-    @patch("hexa.pipelines.management.commands.pipelines_runner.run_pipeline_docker")
     @override_settings(
         INTERNAL_BASE_URL="http://testserver",
         DEFAULT_WORKSPACE_IMAGE="default_workspace_image",
         PIPELINE_SCHEDULER_SPAWNER="docker",
     )
+    @patch("hexa.pipelines.management.commands.pipelines_runner.run_pipeline_docker")
     @patch("os.fork", return_value=0)
     def test_env_vars(self, _, mock_run_pipeline_docker):
         mock_run = MagicMock(spec=PipelineRun)
