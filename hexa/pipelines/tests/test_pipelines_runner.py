@@ -1,0 +1,56 @@
+# TODO : change view and test
+# TODO : rename in SDK
+from unittest.mock import MagicMock, patch
+
+from django.test import TestCase, override_settings
+
+from hexa.pipelines.management.commands.pipelines_runner import run_pipeline
+from hexa.pipelines.models import PipelineRun, PipelineRunLogLevel, PipelineType
+
+
+class TestRunPipeline(TestCase):
+    @patch(
+        "hexa.pipelines.management.commands.pipelines_runner.Signer.sign_object",
+        return_value="signed_token",
+    )
+    @patch("hexa.pipelines.management.commands.pipelines_runner.run_pipeline_docker")
+    @patch("django.db.connections.close_all")
+    @patch("os.fork", return_value=0)
+    @override_settings(
+        INTERNAL_BASE_URL="http://testserver",
+        DEFAULT_WORKSPACE_IMAGE="default_workspace_image",
+        PIPELINE_SCHEDULER_SPAWNER="docker",
+    )
+    def test_env_vars(
+        self, mock_fork, mock_close_all, mock_run_pipeline_docker, mock_signer
+    ):
+        mock_run = MagicMock(spec=PipelineRun)
+        mock_run.id = 123
+        mock_run.access_token = "someAccessToken"
+        mock_run.log_level = PipelineRunLogLevel.DEBUG
+        mock_run.pipeline.workspace.slug = "test_workspace"
+        mock_run.pipeline.workspace.docker_image = "docker_image"
+        mock_run.pipeline.name = "test_pipeline"
+        mock_run.pipeline.type = PipelineType.NOTEBOOK
+        mock_run.pipeline.notebook_path = "/path/to/notebook"
+        mock_run.pipeline.code = "pipeline_code"
+        mock_run.send_mail_notifications = False
+
+        mock_run_pipeline_docker.return_value = (True, "SomeLogs")
+
+        with self.assertRaises(SystemExit):
+            run_pipeline(mock_run)
+
+        expected_env_vars = {
+            "HEXA_SERVER_URL": "http://testserver",
+            "HEXA_TOKEN": "signed_token",
+            "HEXA_WORKSPACE": "test_workspace",
+            "HEXA_RUN_ID": "123",
+            "HEXA_PIPELINE_NAME": "test_pipeline",
+            "HEXA_PIPELINE_TYPE": PipelineType.NOTEBOOK,
+            "HEXA_LOG_LEVEL": PipelineRunLogLevel.DEBUG,
+            "HEXA_NOTEBOOK_PATH": "/path/to/notebook",
+        }
+        mock_run_pipeline_docker.assert_called_once_with(
+            mock_run, "docker_image", expected_env_vars
+        )
