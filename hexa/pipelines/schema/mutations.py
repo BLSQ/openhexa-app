@@ -216,9 +216,9 @@ def resolve_run_pipeline(_, info, **kwargs):
             trigger_mode=PipelineRunTrigger.MANUAL,
             config=input.get("config", {}),
             send_mail_notifications=input.get("sendMailNotifications", False),
-            log_level=input.get("enableDebugLogs", False)
-            and PipelineRunLogLevel.DEBUG
-            or PipelineRunLogLevel.INFO,
+            log_level=PipelineRunLogLevel.DEBUG
+            if input.get("enableDebugLogs", False)
+            else PipelineRunLogLevel.INFO,
         )
         track(
             request,
