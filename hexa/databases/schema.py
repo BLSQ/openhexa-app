@@ -107,7 +107,7 @@ def resolve_generate_new_database_password(_, info, **kwargs):
     input = kwargs["input"]
     try:
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=input["workspaceSlug"]
+            slug=input["workspace_slug"]
         )
 
         workspace.generate_new_database_password(principal=request.user)

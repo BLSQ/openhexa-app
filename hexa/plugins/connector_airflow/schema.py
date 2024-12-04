@@ -71,14 +71,14 @@ def resolve_dag_runs(dag: DAG, info, **kwargs):
     request: HttpRequest = info.context["request"]
     qs = DAGRun.objects.filter(dag=dag).with_favorite(request.user)
 
-    order_by = kwargs.get("orderBy", None)
+    order_by = kwargs.get("order_by", None)
     if order_by is not None:
         qs = qs.order_by("favorite", order_by)
     else:
         qs = qs.order_by("favorite", "-execution_date")
 
     return result_page(
-        queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
+        queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
     )
 
 
@@ -192,7 +192,7 @@ def resolve_run_dag(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
-        dag: DAG = DAG.objects.filter_for_user(request.user).get(id=input.get("dagId"))
+        dag: DAG = DAG.objects.filter_for_user(request.user).get(id=input.get("dag_id"))
         dag_run = dag.run(request=request, conf=input.get("config"))
 
         return {"dag": dag, "dag_run": dag_run, "success": True, "errors": []}
@@ -270,7 +270,7 @@ def resolve_set_dag_run_favorite(_, info, **kwargs):
             id=input["id"]
         )
 
-        if not input["isFavorite"]:
+        if not input["is_favorite"]:
             dagRun.remove_from_favorites(user=request.user)
         elif input.get("label"):
             dagRun.add_to_favorites(name=input["label"], user=request.user)

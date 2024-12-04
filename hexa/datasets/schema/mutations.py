@@ -20,7 +20,7 @@ def resolve_create_dataset(_, info, **kwargs):
 
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=mutation_input["workspaceSlug"]
+            slug=mutation_input["workspace_slug"]
         )
         dataset = Dataset.objects.create_if_has_perm(
             principal=request.user,
@@ -135,7 +135,7 @@ def resolve_delete_dataset_version(_, info, **kwargs):
 
     try:
         version = DatasetVersion.objects.filter_for_user(request.user).get(
-            id=mutation_input["versionId"]
+            id=mutation_input["version_id"]
         )
 
         version.delete_if_has_perm(principal=request.user)
@@ -157,7 +157,7 @@ def resolve_link_dataset(_, info, **kwargs):
             id=mutation_input["datasetId"]
         )
         workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=mutation_input["workspaceSlug"]
+            slug=mutation_input["workspace_slug"]
         )
 
         if not request.user.has_perm("datasets.link_dataset", (dataset, workspace)):
@@ -202,7 +202,7 @@ def resolve_generate_upload_url(_, info, **kwargs):
 
     try:
         version = DatasetVersion.objects.filter_for_user(request.user).get(
-            id=mutation_input["versionId"]
+            id=mutation_input["version_id"]
         )
         if version.id != version.dataset.latest_version.id:
             return {"success": False, "errors": ["LOCKED_VERSION"]}
@@ -211,7 +211,7 @@ def resolve_generate_upload_url(_, info, **kwargs):
         if get_blob(full_uri) is not None:
             return {"success": False, "errors": ["ALREADY_EXISTS"]}
 
-        upload_url = generate_upload_url(full_uri, mutation_input["contentType"])
+        upload_url = generate_upload_url(full_uri, mutation_input["content_type"])
 
         return {"success": True, "errors": [], "upload_url": upload_url}
     except ValidationError:
@@ -229,7 +229,7 @@ def resolve_create_version_file(_, info, **kwargs):
 
     try:
         version = DatasetVersion.objects.filter_for_user(request.user).get(
-            id=mutation_input["versionId"]
+            id=mutation_input["version_id"]
         )
 
         if version.id != version.dataset.latest_version.id:
@@ -246,7 +246,7 @@ def resolve_create_version_file(_, info, **kwargs):
                     principal=request.user,
                     dataset_version=version,
                     uri=version.get_full_uri(mutation_input["uri"]),
-                    content_type=mutation_input["contentType"],
+                    content_type=mutation_input["content_type"],
                 )
 
             file.generate_metadata()

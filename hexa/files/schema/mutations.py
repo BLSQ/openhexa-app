@@ -13,12 +13,12 @@ def resolve_delete_bucket_object(_, info, **kwargs):
     mutation_input = kwargs["input"]
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=mutation_input["workspaceSlug"]
+            slug=mutation_input["workspace_slug"]
         )
         if not request.user.has_perm("files.delete_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
-        storage.delete_object(workspace.bucket_name, mutation_input["objectKey"])
+        storage.delete_object(workspace.bucket_name, mutation_input["object_key"])
         return {"success": True, "errors": []}
     except (storage.exceptions.NotFound, Workspace.DoesNotExist):
         return {"success": False, "errors": ["NOT_FOUND"]}
@@ -31,11 +31,11 @@ def resolve_prepare_download_object(_, info, **kwargs):
 
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=mutation_input["workspaceSlug"]
+            slug=mutation_input["workspace_slug"]
         )
         if not request.user.has_perm("files.download_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
-        object_key = mutation_input["objectKey"]
+        object_key = mutation_input["object_key"]
         download_url = storage.generate_download_url(
             workspace.bucket_name, object_key, force_attachment=True
         )
@@ -57,13 +57,13 @@ def resolve_prepare_upload_object(_, info, **kwargs):
 
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=mutation_input["workspaceSlug"]
+            slug=mutation_input["workspace_slug"]
         )
         if not request.user.has_perm("files.create_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
-        object_key = mutation_input["objectKey"]
+        object_key = mutation_input["object_key"]
         upload_url = storage.generate_upload_url(
-            workspace.bucket_name, object_key, mutation_input.get("contentType")
+            workspace.bucket_name, object_key, mutation_input.get("content_type")
         )
 
         return {"success": True, "upload_url": upload_url, "errors": []}
@@ -78,7 +78,7 @@ def resolve_create_bucket_folder(_, info, **kwargs):
 
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=mutation_input["workspaceSlug"]
+            slug=mutation_input["workspace_slug"]
         )
         if not request.user.has_perm("files.create_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}

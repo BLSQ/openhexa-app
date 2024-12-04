@@ -120,9 +120,9 @@ def resolve_invite_workspace_member(_, info, **kwargs):
     input = kwargs["input"]
     try:
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=input["workspaceSlug"]
+            slug=input["workspace_slug"]
         )
-        user = User.objects.filter(email=input["userEmail"]).first()
+        user = User.objects.filter(email=input["user_email"]).first()
 
         is_workspace_member = (
             user
@@ -132,7 +132,7 @@ def resolve_invite_workspace_member(_, info, **kwargs):
         )
         is_already_invited = WorkspaceInvitation.objects.filter(
             workspace=workspace,
-            email=input["userEmail"],
+            email=input["user_email"],
             status=WorkspaceInvitationStatus.PENDING,
         ).exists()
 
@@ -142,7 +142,7 @@ def resolve_invite_workspace_member(_, info, **kwargs):
         invitation = WorkspaceInvitation.objects.create_if_has_perm(
             principal=request.user,
             workspace=workspace,
-            email=input["userEmail"],
+            email=input["user_email"],
             role=input["role"],
         )
 
@@ -175,7 +175,7 @@ def resolve_join_workspace(_, info, **kwargs):
     input = kwargs["input"]
 
     try:
-        invitation = WorkspaceInvitation.objects.get(id=input["invitationId"])
+        invitation = WorkspaceInvitation.objects.get(id=input["invitation_id"])
         if invitation.status == WorkspaceInvitationStatus.ACCEPTED:
             return {"success": False, "errors": ["ALREADY_ACCEPTED"]}
         if request.user.email != invitation.email:
@@ -232,7 +232,7 @@ def resolve_decline_workspace_invitation(_, info, **kwargs):
     input = kwargs["input"]
 
     try:
-        invitation = WorkspaceInvitation.objects.get(id=input["invitationId"])
+        invitation = WorkspaceInvitation.objects.get(id=input["invitation_id"])
 
         if request.user.email != invitation.email:
             raise PermissionDenied("You cannot decline an invitation for another user.")
@@ -268,7 +268,7 @@ def resolve_resend_workspace_invitation(_, info, **kwargs):
     try:
         invitation = WorkspaceInvitation.objects.exclude(
             status=WorkspaceInvitationStatus.ACCEPTED
-        ).get(id=input["invitationId"])
+        ).get(id=input["invitation_id"])
 
         if not request.user.has_perm("workspaces.manage_members", invitation.workspace):
             raise PermissionDenied
@@ -350,7 +350,7 @@ def resolve_create_workspace_connection(_, info, **kwargs):
 
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=mutation_input.pop("workspaceSlug")
+            slug=mutation_input.pop("workspace_slug")
         )
         mutation_input["connection_type"] = mutation_input.pop("type")
         with transaction.atomic():
@@ -434,7 +434,7 @@ def resolve_delete_workspace_invitation(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
-        invitation = WorkspaceInvitation.objects.get(id=input["invitationId"])
+        invitation = WorkspaceInvitation.objects.get(id=input["invitation_id"])
         if invitation.status == WorkspaceInvitationStatus.ACCEPTED:
             raise PermissionDenied(
                 "Cannot delete an invitation that has already been accepted."
@@ -461,7 +461,7 @@ def resolve_delete_workspace_database_table(_, info, **kwargs):
 
     try:
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=input["workspaceSlug"]
+            slug=input["workspace_slug"]
         )
         if not request.user.has_perm("workspaces.delete_database_table", workspace):
             return {

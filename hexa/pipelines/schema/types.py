@@ -174,7 +174,7 @@ def resolve_pipeline_versions(pipeline: Pipeline, info, **kwargs):
 def resolve_pipeline_runs(pipeline: Pipeline, info, **kwargs):
     qs = PipelineRun.objects.filter(pipeline=pipeline)
 
-    order_by = kwargs.get("orderBy", None)
+    order_by = kwargs.get("order_by", None)
     if order_by is not None:
         qs = qs.order_by(order_by)
     else:

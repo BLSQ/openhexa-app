@@ -181,12 +181,12 @@ def resolve_accessmod_projects(
     if teams is not None and len(teams) > 0:
         queryset = queryset.filter(projectpermission__team__id__in=teams)
 
-    order_by = kwargs.get("orderBy", None)
+    order_by = kwargs.get("order_by", None)
     if order_by is not None:
         queryset = queryset.order_by(order_by)
 
     return result_page(
-        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
+        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
     )
 
 
@@ -208,7 +208,7 @@ def resolve_create_accessmod_project(_, info, **kwargs):
             principal,
             name=create_input["name"],
             country=country.code,
-            spatial_resolution=create_input["spatialResolution"],
+            spatial_resolution=create_input["spatial_resolution"],
             crs=create_input["crs"],
             description=create_input.get("description", ""),
             extent=extent,
@@ -404,18 +404,18 @@ def resolve_accessmod_filesets(_, info, **kwargs):
 
     queryset = (
         Fileset.objects.filter_for_user(request.user)
-        .filter(project_id=kwargs["projectId"])
+        .filter(project_id=kwargs["project_id"])
         .order_by("-created_at")
     )
-    if "roleId" in kwargs:
-        queryset = queryset.filter(role__id=kwargs["roleId"])
+    if "role_id" in kwargs:
+        queryset = queryset.filter(role__id=kwargs["role_id"])
     if "term" in kwargs:
         queryset = queryset.filter(name__icontains=kwargs["term"])
     if "mode" in kwargs:
         queryset = queryset.filter(mode=kwargs["mode"])
 
     return result_page(
-        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
+        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
     )
 
 
@@ -429,13 +429,13 @@ def resolve_create_accessmod_fileset(_, info, **kwargs):
     try:
         kwargs = {
             "name": create_input["name"],
-            "role": FilesetRole.objects.get(id=create_input["roleId"]),
+            "role": FilesetRole.objects.get(id=create_input["role_id"]),
             "metadata": create_input.get("metadata", {}),
         }
         fileset = Fileset.objects.create_if_has_perm(
             principal,
             project=Project.objects.filter_for_user(request.user).get(
-                id=create_input["projectId"]
+                id=create_input["project_id"]
             ),
             automatic_acquisition=create_input.get("automatic", False),
             **kwargs,

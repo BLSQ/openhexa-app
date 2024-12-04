@@ -16,11 +16,11 @@ countries_query = QueryType()
 def resolve_country(_, info, **kwargs):
     # FIXME how to manage 404?
     code = kwargs.get("code")
-    alpha3 = kwargs.get("alpha3")
+    alpha_3 = kwargs.get("alpha_3")
     if code is not None:
         return Country.objects.get(code=code)
-    elif alpha3 is not None:
-        return Country.objects.get(alpha3=alpha3)
+    elif alpha_3 is not None:
+        return Country.objects.get(alpha3=alpha_3)
     else:
         raise ValueError("Please provide either code or alpha3")
 

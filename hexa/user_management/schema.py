@@ -451,7 +451,7 @@ def resolve_create_membership(_, info, **kwargs):
     create_input = kwargs["input"]
 
     try:
-        user = User.objects.get(email=create_input["userEmail"])
+        user = User.objects.get(email=create_input["user_email"])
         team = Team.objects.get(id=create_input["teamId"])
 
         try:
