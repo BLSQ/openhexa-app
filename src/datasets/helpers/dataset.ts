@@ -317,3 +317,10 @@ export async function deleteDataset(datasetId: string) {
     throw new Error("An unknown error occurred");
   }
 }
+
+export function percentage(part: number, total: number): number {
+  if (total <= 0 || isNaN(total)) {
+    throw new Error("Total must be a valid positive number");
+  }
+  return Number(((part / total) * 100).toFixed(2));
+}

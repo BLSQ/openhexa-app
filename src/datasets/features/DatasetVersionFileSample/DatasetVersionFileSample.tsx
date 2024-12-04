@@ -158,16 +158,18 @@ export const DatasetVersionFileSample: ApolloComponent<
     case "FINISHED":
       return (
         <div className="space-y-4 mt-4">
-          <code>
-            <DescriptionList>
-              <DescriptionList.Item label={t("Columns")}>
+          <DescriptionList>
+            <DescriptionList.Item label={t("Columns")}>
+              <code className="font-mono text-sm text-gray-600">
                 {columns.length}
-              </DescriptionList.Item>
-              <DescriptionList.Item label={t("Rows in sample")}>
+              </code>
+            </DescriptionList.Item>
+            <DescriptionList.Item label={t("Rows in sample")}>
+              <code className="font-mono text-sm text-gray-600">
                 {sample.length}
-              </DescriptionList.Item>
-            </DescriptionList>
-          </code>
+              </code>
+            </DescriptionList.Item>
+          </DescriptionList>
 
           <DataGrid
             data={sample}

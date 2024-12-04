@@ -14,7 +14,7 @@ const LinkTabs = ({
   selected,
   className,
   selectedStyle = "text-gray-900 font-medium",
-  style = "text-gray-500 hover:border-gray-400",
+  style = "text-gray-500 hover:border-gray-400 hover:text-gray-900",
 }: LinkTabProps) => {
   return (
     <div

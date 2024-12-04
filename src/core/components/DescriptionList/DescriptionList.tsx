@@ -46,12 +46,16 @@ DescriptionList.Item = function Item({
   help,
   className,
   fullWidth,
+  titleClassName,
+  contentClassName,
 }: {
   label: ReactNode;
   children: ReactNode;
   help?: ReactNode;
   className?: string;
   fullWidth?: boolean;
+  titleClassName?: string;
+  contentClassName?: string;
 }) {
   const { displayMode } = useDescriptionList();
   return (
@@ -61,6 +65,7 @@ DescriptionList.Item = function Item({
           "grid grid-cols-5 gap-2 sm:gap-4",
         displayMode === DescriptionListDisplayMode.LABEL_ABOVE && "space-y-1",
         fullWidth && "col-span-full",
+        className,
       )}
     >
       <dt
@@ -70,6 +75,7 @@ DescriptionList.Item = function Item({
             "col-span-1 items-center",
           displayMode === DescriptionListDisplayMode.LABEL_ABOVE &&
             "col-span-5",
+          titleClassName,
         )}
       >
         <span className="inline">{label}</span>
@@ -85,7 +91,9 @@ DescriptionList.Item = function Item({
           />
         )}
       </dt>
-      <dd className={clsx("col-span-4 text-sm text-gray-900", className)}>
+      <dd
+        className={clsx("col-span-4 text-sm text-gray-900", contentClassName)}
+      >
         {children}
       </dd>
     </div>
