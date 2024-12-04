@@ -51,7 +51,7 @@ def load_df(dataset_version_file: DatasetVersionFile) -> pd.DataFrame:
         mime_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         or mime_type == "application/vnd.ms-excel"
     ):
-        return pd.read_excel(download_url)
+        return pd.read_excel(download_url, engine="openpyxl")
     elif (
         mime_type == "application/vnd.apache.parquet"
         or dataset_version_file.filename.split(".")[-1] == "parquet"
@@ -189,8 +189,14 @@ def add_system_attributes(version_file: DatasetVersionFile, df: pd.DataFrame | N
     # Set properties map
 
 
-def generate_file_metadata_task(version_file: DatasetVersionFile) -> None:
+def generate_file_metadata_task(file_id: str) -> None:
     """Task to extract a sample of tabular files, generate profiling metadata when possible and copy user defined attributes."""
+    try:
+        version_file = DatasetVersionFile.objects.get(id=file_id)
+    except DatasetVersionFile.DoesNotExist:
+        logger.info(f"Dataset file {file_id} not found.")
+        return
+
     logger.info("Generating metadata for file %s", version_file.id)
     df = None
     try:
@@ -214,7 +220,7 @@ class DatasetsFileMetadataQueue(AtLeastOnceQueue):
 dataset_file_metadata_queue = DatasetsFileMetadataQueue(
     tasks={
         "generate_file_metadata": lambda _, job: generate_file_metadata_task(
-            DatasetVersionFile.objects.get(id=job.args["file_id"])
+            job.args["file_id"]
         ),
     },
     notify_channel="dataset_file_metadata_queue",
