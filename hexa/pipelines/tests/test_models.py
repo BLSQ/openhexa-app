@@ -5,6 +5,7 @@ from hexa.pipelines.models import (
     Pipeline,
     PipelineNotificationLevel,
     PipelineRecipient,
+    PipelineRunLogLevel,
     PipelineRunState,
     PipelineRunTrigger,
 )
@@ -13,6 +14,33 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
 )
+
+
+class TestPipelineRunLogLevel(TestCase):
+    def test_parse_log_level(self):
+        test_cases = [
+            (0, PipelineRunLogLevel.DEBUG),
+            (1, PipelineRunLogLevel.INFO),
+            (2, PipelineRunLogLevel.WARNING),
+            (3, PipelineRunLogLevel.ERROR),
+            (4, PipelineRunLogLevel.CRITICAL),
+            ("0", PipelineRunLogLevel.DEBUG),
+            ("1", PipelineRunLogLevel.INFO),
+            ("2", PipelineRunLogLevel.WARNING),
+            ("3", PipelineRunLogLevel.ERROR),
+            ("4", PipelineRunLogLevel.CRITICAL),
+            ("DEBUG", PipelineRunLogLevel.DEBUG),
+            ("INFO", PipelineRunLogLevel.INFO),
+            ("WARNING", PipelineRunLogLevel.WARNING),
+            ("ERROR", PipelineRunLogLevel.ERROR),
+            ("CRITICAL", PipelineRunLogLevel.CRITICAL),
+            ("invalid", PipelineRunLogLevel.INFO),
+            (5, PipelineRunLogLevel.INFO),
+            (-1, PipelineRunLogLevel.INFO),
+        ]
+        for value, expected in test_cases:
+            with self.subTest(value=value):
+                self.assertEqual(PipelineRunLogLevel.parse_log_level(value), expected)
 
 
 class PipelineTest(TestCase):
