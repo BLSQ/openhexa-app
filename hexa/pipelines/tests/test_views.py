@@ -267,7 +267,7 @@ class ViewsTest(TestCase):
                     "required": False,
                 }
             ],
-            {"send_mail_notifications": True},
+            {"send_mail_notifications": True, "log_level": "INFO"},
             {},
             content_type="application/x-www-form-urlencoded",
         )

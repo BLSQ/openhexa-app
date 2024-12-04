@@ -234,6 +234,26 @@ class PipelineType(models.TextChoices):
     ZIPFILE = "zipFile", _("ZipFile")
 
 
+class PipelineRunLogLevel(models.IntegerChoices):
+    DEBUG = 0
+    INFO = 1
+    WARNING = 2
+    ERROR = 3
+    CRITICAL = 4
+
+    @classmethod
+    def parse_log_level(cls, value):
+        if isinstance(value, int) and 0 <= value <= 4:
+            return value
+        if isinstance(value, str):
+            if value.isdigit():
+                return cls.parse_log_level(int(value))
+            value = value.upper()
+            if hasattr(cls, value):
+                return getattr(cls, value)
+        return cls.INFO
+
+
 class Pipeline(SoftDeletedModel):
     class Meta:
         verbose_name = "Pipeline"
@@ -283,6 +303,7 @@ class Pipeline(SoftDeletedModel):
         trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[typing.Dict, typing.Any] | None = None,
         send_mail_notifications: bool = True,
+        log_level: PipelineRunLogLevel = PipelineRunLogLevel.INFO,
     ):
         timeout = settings.PIPELINE_RUN_DEFAULT_TIMEOUT
         if pipeline_version and pipeline_version.timeout:
@@ -303,6 +324,7 @@ class Pipeline(SoftDeletedModel):
             access_token=str(uuid.uuid4()),
             send_mail_notifications=send_mail_notifications,
             timeout=timeout,
+            log_level=log_level,
         )
 
         return run
@@ -557,7 +579,9 @@ class PipelineRun(Base, WithStatus):
         on_delete=models.SET_NULL,
         related_name="+",
     )
-
+    log_level = models.IntegerField(
+        choices=PipelineRunLogLevel.choices, default=PipelineRunLogLevel.INFO
+    )
     objects = PipelineRunQuerySet.as_manager()
 
     @property
