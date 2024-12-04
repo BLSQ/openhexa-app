@@ -19,7 +19,7 @@ from django.views.decorators.http import require_POST
 from hexa.analytics.api import track
 from hexa.app import get_hexa_app_configs
 from hexa.core.views_utils import disable_cors
-from hexa.pipelines.models import Environment
+from hexa.pipelines.models import Environment, PipelineRunLogLevel
 
 from .credentials import PipelinesCredentials
 from .models import Pipeline, PipelineRunTrigger, PipelineType, PipelineVersion
@@ -148,6 +148,7 @@ def run_pipeline(
     config = {}
     if content_type == "application/x-www-form-urlencoded":
         send_mail_notifications = request.POST.get("send_mail_notifications", False)
+        log_level = PipelineRunLogLevel.parse_log_level(request.POST.get("log_level"))
         for parameter in pipeline_version.parameters:
             if parameter["code"] not in request.POST:
                 continue
@@ -173,6 +174,7 @@ def run_pipeline(
 
     elif content_type == "application/json":
         send_mail_notifications = request.GET.get("send_mail_notifications", False)
+        log_level = PipelineRunLogLevel.parse_log_level(request.GET.get("log_level"))
         try:
             config = json.loads(request.body)
         except json.JSONDecodeError:
@@ -189,6 +191,7 @@ def run_pipeline(
             trigger_mode=PipelineRunTrigger.WEBHOOK,
             config=config,
             send_mail_notifications=send_mail_notifications,
+            log_level=log_level,
         )
         track(
             request,
