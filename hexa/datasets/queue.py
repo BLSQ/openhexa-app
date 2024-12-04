@@ -51,7 +51,7 @@ def load_df(dataset_version_file: DatasetVersionFile) -> pd.DataFrame:
         mime_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         or mime_type == "application/vnd.ms-excel"
     ):
-        return pd.read_excel(download_url)
+        return pd.read_excel(download_url, engine="openpyxl")
     elif (
         mime_type == "application/vnd.apache.parquet"
         or dataset_version_file.filename.split(".")[-1] == "parquet"
