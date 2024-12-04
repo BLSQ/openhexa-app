@@ -51,7 +51,7 @@ def resolve_pipeline_by_code(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     try:
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
-            workspace__slug=kwargs["workspaceSlug"], code=kwargs["code"]
+            workspace__slug=kwargs["workspace_slug"], code=kwargs["code"]
         )
     except Pipeline.DoesNotExist:
         pipeline = None
