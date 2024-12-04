@@ -1,6 +1,6 @@
 import base64
 
-from ariadne import MutationType, convert_kwargs_to_snake_case
+from ariadne import MutationType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
@@ -87,7 +87,6 @@ def resolve_create_pipeline(_, info, **kwargs):
 
 
 @pipelines_mutations.field("updatePipeline")
-@convert_kwargs_to_snake_case
 def resolve_update_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]

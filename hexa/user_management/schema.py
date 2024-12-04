@@ -8,7 +8,6 @@ from ariadne import (
     ObjectType,
     QueryType,
     SchemaDirectiveVisitor,
-    convert_kwargs_to_snake_case,
     load_schema_from_path,
 )
 from django.conf import settings
@@ -608,7 +607,6 @@ def resolve_enable_two_factor(_, info, **kwargs):
 
 
 @identity_mutations.field("updateUser")
-@convert_kwargs_to_snake_case
 def resolve_update_user(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     mutation_input = kwargs["input"]

@@ -1,4 +1,4 @@
-from ariadne import QueryType, convert_kwargs_to_snake_case
+from ariadne import QueryType
 
 from hexa.core.graphql import result_page
 
@@ -13,7 +13,6 @@ datasets_queries = QueryType()
 
 
 @datasets_queries.field("datasets")
-@convert_kwargs_to_snake_case
 def resolve_datasets(_, info, query=None, page=1, per_page=15):
     request = info.context["request"]
     qs = Dataset.objects.filter_for_user(request.user).order_by("-updated_at")
