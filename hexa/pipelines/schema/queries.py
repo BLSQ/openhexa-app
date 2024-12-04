@@ -17,10 +17,10 @@ pipelines_query = QueryType()
 @pipelines_query.field("pipelines")
 def resolve_pipelines(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    if kwargs.get("workspaceSlug", None):
+    if kwargs.get("workspace_slug", None):
         try:
             ws = Workspace.objects.filter_for_user(request.user).get(
-                slug=kwargs.get("workspaceSlug")
+                slug=kwargs.get("workspace_slug")
             )
             qs = (
                 Pipeline.objects.filter_for_user(request.user)
@@ -33,7 +33,7 @@ def resolve_pipelines(_, info, **kwargs):
         qs = Pipeline.objects.filter_for_user(request.user).order_by("name", "id")
 
     return result_page(
-        queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
+        queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
     )
 
 
