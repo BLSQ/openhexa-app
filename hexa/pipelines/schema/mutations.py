@@ -340,7 +340,6 @@ def resolve_upload_pipeline(_, info, **kwargs):
 
 
 @pipelines_mutations.field("updatePipelineVersion")
-@convert_kwargs_to_snake_case
 def resolve_update_pipeline_version(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
