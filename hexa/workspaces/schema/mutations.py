@@ -40,7 +40,7 @@ def resolve_create_workspace(_, info, **kwargs):
                 if "countries" in create_input
                 else None
             ),
-            load_sample_data=create_input.get("loadSampleData"),
+            load_sample_data=create_input.get("load_sample_data"),
         )
 
         return {"success": True, "workspace": workspace, "errors": []}
@@ -62,8 +62,8 @@ def resolve_update_workspace(_, info, **kwargs):
         if input.get("description", None):
             args["description"] = input["description"]
 
-        if input.get("dockerImage", None) is not None:
-            args["docker_image"] = input["dockerImage"]
+        if input.get("docker_image", None) is not None:
+            args["docker_image"] = input["docker_image"]
 
         if "countries" in input:
             countries = [
@@ -302,7 +302,7 @@ def resolve_update_workspace_member(_, info, **kwargs):
     try:
         workspace_membership = WorkspaceMembership.objects.filter_for_user(
             request.user
-        ).get(id=input["membershipId"])
+        ).get(id=input["membership_id"])
         workspace_membership.update_if_has_perm(
             principal=request.user, role=input["role"]
         )
@@ -328,7 +328,9 @@ def resolve_delete_workspace_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
-        workspace_membership = WorkspaceMembership.objects.get(id=input["membershipId"])
+        workspace_membership = WorkspaceMembership.objects.get(
+            id=input["membership_id"]
+        )
         workspace_membership.delete_if_has_perm(principal=request.user)
         return {"success": True, "errors": []}
     except WorkspaceMembership.DoesNotExist:

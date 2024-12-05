@@ -109,7 +109,7 @@ def resolve_workspace_members(workspace: Workspace, info, **kwargs):
     return result_page(
         queryset=qs,
         page=kwargs.get("page", 1),
-        per_page=kwargs.get("perPage", qs.count()),
+        per_page=kwargs.get("per_page", qs.count()),
     )
 
 
@@ -122,13 +122,13 @@ def resolve_workspace_invitations(workspace: Workspace, info, **kwargs):
         .filter(workspace=workspace)
         .order_by("-updated_at")
     )
-    if not kwargs.get("includeAccepted"):
+    if not kwargs.get("include_accepted"):
         qs = qs.exclude(status=WorkspaceInvitationStatus.ACCEPTED)
 
     return result_page(
         queryset=qs,
         page=kwargs.get("page", 1),
-        per_page=kwargs.get("perPage", 5),
+        per_page=kwargs.get("per_page", 5),
     )
 
 

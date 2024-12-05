@@ -176,7 +176,7 @@ def resolve_version_files(obj: DatasetVersion, info, **kwargs):
     return result_page(
         obj.files.all(),
         page=kwargs.get("page", 1),
-        per_page=kwargs.get("perPage", 15),
+        per_page=kwargs.get("per_page", 15),
     )
 
 

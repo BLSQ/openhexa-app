@@ -216,7 +216,7 @@ def resolve_run_pipeline(_, info, **kwargs):
             config=input.get("config", {}),
             send_mail_notifications=input.get("send_mail_notifications", False),
             log_level=PipelineRunLogLevel.DEBUG
-            if input.get("enableDebugLogs", False)
+            if input.get("enable_debug_logs", False)
             else PipelineRunLogLevel.INFO,
         )
         track(
@@ -439,7 +439,7 @@ def resolve_update_pipeline_recipient(_, info, **kwargs):
 
     try:
         recipient = PipelineRecipient.objects.get(
-            id=input["recipientId"],
+            id=input["recipient_id"],
         )
         recipient.update_if_has_perm(
             principal=request.user, level=input["notification_level"]
@@ -468,7 +468,7 @@ def resolve_delete_pipeline_recipient(_, info, **kwargs):
 
     try:
         recipient = PipelineRecipient.objects.get(
-            id=input["recipientId"],
+            id=input["recipient_id"],
         )
         recipient.delete_if_has_perm(principal=request.user)
         return {

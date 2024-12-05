@@ -49,7 +49,7 @@ def resolve_update_dataset(_, info, **kwargs):
 
     try:
         dataset = Dataset.objects.filter_for_user(request.user).get(
-            id=mutation_input["datasetId"]
+            id=mutation_input["dataset_id"]
         )
 
         dataset.update_if_has_perm(
@@ -89,7 +89,7 @@ def resolve_create_dataset_version(_, info, **kwargs):
 
     try:
         dataset = Dataset.objects.filter_for_user(request.user).get(
-            id=mutation_input["datasetId"]
+            id=mutation_input["dataset_id"]
         )
 
         version = DatasetVersion.objects.create_if_has_perm(
@@ -154,7 +154,7 @@ def resolve_link_dataset(_, info, **kwargs):
 
     try:
         dataset = Dataset.objects.filter_for_user(request.user).get(
-            id=mutation_input["datasetId"]
+            id=mutation_input["dataset_id"]
         )
         workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=mutation_input["workspace_slug"]
@@ -270,7 +270,7 @@ def resolve_version_file_download(_, info, **kwargs):
 
     try:
         file = DatasetVersionFile.objects.filter_for_user(request.user).get(
-            id=mutation_input["fileId"]
+            id=mutation_input["file_id"]
         )
         # We only get the file if the user or pipeline can see the dataset either by direct access or via a link.
         # FIXME: Implement a better permission system to be able to check if the pipeline can download the file.

@@ -303,16 +303,16 @@ def resolve_create_accessmod_project_member(_, info, **kwargs):
 
     try:
         user = (
-            User.objects.get(id=create_input["userId"])
+            User.objects.get(id=create_input["user_id"])
             if "userId" in create_input
             else None
         )
         team = (
-            Team.objects.get(id=create_input["teamId"])
-            if "teamId" in create_input
+            Team.objects.get(id=create_input["team_id"])
+            if "team_id" in create_input
             else None
         )
-        project = Project.objects.get(pk=create_input["projectId"])
+        project = Project.objects.get(pk=create_input["project_id"])
         member = ProjectPermission.objects.create_if_has_perm(
             principal,
             project=project,
@@ -517,7 +517,7 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
     principal = request.user
     prepare_input = kwargs["input"]
     fileset = Fileset.objects.filter_for_user(principal).get(
-        id=prepare_input["filesetId"]
+        id=prepare_input["fileset_id"]
     )
 
     # This is a temporary solution until we figure out storage requirements
@@ -536,7 +536,7 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
     except Bucket.DoesNotExist:
         raise ValueError(f"The {settings.ACCESSMOD_BUCKET_NAME} bucket does not exist")
     target_slug = slugify(fileset.name, separator="_")
-    target_key = f"{fileset.project.id}/{target_slug}{mimetypes.guess_extension(prepare_input['mimeType'])}"
+    target_key = f"{fileset.project.id}/{target_slug}{mimetypes.guess_extension(prepare_input['mime_type'])}"
 
     if uri_protocol == "s3":
         upload_url = s3_api.generate_upload_url(
@@ -559,7 +559,7 @@ def resolve_prepare_accessmod_file_download(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     prepare_input = kwargs["input"]
-    file = File.objects.filter_for_user(principal).get(id=prepare_input["fileId"])
+    file = File.objects.filter_for_user(principal).get(id=prepare_input["file_id"])
 
     # This is a temporary solution until we figure out storage requirements
     if settings.ACCESSMOD_BUCKET_NAME is None:
@@ -650,13 +650,13 @@ def resolve_create_accessmod_file(_, info, **kwargs):
     create_input = kwargs["input"]
 
     fileset = Fileset.objects.filter_for_user(principal).get(
-        id=create_input["filesetId"]
+        id=create_input["fileset_id"]
     )
     try:
         file = File.objects.create_if_has_perm(
             principal,
             uri=create_input["uri"],
-            mime_type=create_input["mimeType"],
+            mime_type=create_input["mime_type"],
             fileset=fileset,
         )
         fileset.save()  # Will update updated_at
@@ -751,13 +751,13 @@ def resolve_accessmod_analyses(_, info, **kwargs):
 
     queryset = (
         Analysis.objects.filter_for_user(request.user)
-        .filter(project_id=kwargs["projectId"])
+        .filter(project_id=kwargs["project_id"])
         .order_by("-created_at")
         .select_subclasses()
     )
 
     return result_page(
-        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
+        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
     )
 
 
@@ -772,7 +772,7 @@ def resolve_create_accessmod_accessibility_analysis(_, info, **kwargs):
         analysis = AccessibilityAnalysis.objects.create_if_has_perm(
             principal,
             project=Project.objects.filter_for_user(request.user).get(
-                id=create_input["projectId"]
+                id=create_input["project_id"]
             ),
             name=create_input["name"],
         )
@@ -794,7 +794,7 @@ def resolve_create_accessmod_zonal_statistics(_, info, **kwargs):
         analysis = ZonalStatisticsAnalysis.objects.create_if_has_perm(
             principal,
             project=Project.objects.filter_for_user(request.user).get(
-                id=create_input["projectId"]
+                id=create_input["project_id"]
             ),
             name=create_input["name"],
         )
@@ -820,29 +820,29 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
         changes = {}
         for scalar_field in [
             "name",
-            "invertDirection",
-            "maxTravelTime",
-            "movingSpeeds",
-            "waterAllTouched",
+            "invert_direction",
+            "max_travel_time",
+            "moving_speeds",
+            "water_all_touched",
             "algorithm",
-            "knightMove",
-            "stackPriorities",
-            "timeThresholds",
+            "knight_move",
+            "stack_priorities",
+            "time_thresholds",
         ]:
             if scalar_field in update_input:
-                changes[snakecase(scalar_field)] = update_input[scalar_field]
+                changes[scalar_field] = update_input[scalar_field]
 
         for fileset_field in [
-            "landCoverId",
-            "demId",
-            "stackId",
-            "transportNetworkId",
-            "waterId",
-            "barrierId",
-            "healthFacilitiesId",
-            "populationId",
-            "travelTimesId",
-            "boundariesId",
+            "land_cover_id",
+            "dem_id",
+            "stack_id",
+            "transport_network_id",
+            "water_id",
+            "barrier_id",
+            "health_facilities_id",
+            "population_id",
+            "travel_times_id",
+            "boundaries_id",
         ]:
             if fileset_field in update_input:
                 fileset = (
@@ -853,7 +853,7 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
                     else None
                 )
 
-                changes[snakecase(fileset_field)] = fileset.id if fileset else None
+                changes[fileset_field] = fileset.id if fileset else None
         if len(changes) > 0:
             try:
                 analysis.update_if_has_perm(principal, **changes)
@@ -928,7 +928,7 @@ def resolve_accessmod_access_requests(_, info, **kwargs):
     )
 
     return result_page(
-        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
+        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
     )
 
 
@@ -941,10 +941,10 @@ def resolve_request_accessmod_access(_, info, **kwargs):
     try:
         access_request = AccessRequest.objects.create_if_has_perm(
             request.user,
-            first_name=request_input["firstName"],
-            last_name=request_input["lastName"],
+            first_name=request_input["first_name"],
+            last_name=request_input["last_name"],
             email=request_input["email"],
-            accepted_tos=request_input["acceptTos"],
+            accepted_tos=request_input["accept_tos"],
         )
     except (ValidationError, PermissionDenied):
         return {"success": False, "errors": ["INVALID"]}
