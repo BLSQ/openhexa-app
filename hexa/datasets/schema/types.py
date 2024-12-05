@@ -60,7 +60,7 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
     return result_page(
         queryset=qs,
         page=kwargs.get("page", 1),
-        per_page=kwargs.get("perPage", 15),
+        per_page=kwargs.get("per_page", 15),
     )
 
 
@@ -80,7 +80,7 @@ def resolve_dataset_versions(obj: Dataset, info, **kwargs):
     return result_page(
         obj.versions.all(),
         page=kwargs.get("page", 1),
-        per_page=kwargs.get("perPage", 15),
+        per_page=kwargs.get("per_page", 15),
     )
 
 
@@ -102,7 +102,7 @@ def resolve_dataset_links(obj: Dataset, info, **kwargs):
     return result_page(
         obj.links.filter(~Q(workspace=obj.workspace)).order_by("-updated_at"),
         page=kwargs.get("page", 1),
-        per_page=kwargs.get("perPage", 15),
+        per_page=kwargs.get("per_page", 15),
     )
 
 
@@ -176,7 +176,7 @@ def resolve_version_files(obj: DatasetVersion, info, **kwargs):
     return result_page(
         obj.files.all(),
         page=kwargs.get("page", 1),
-        per_page=kwargs.get("perPage", 15),
+        per_page=kwargs.get("per_page", 15),
     )
 
 

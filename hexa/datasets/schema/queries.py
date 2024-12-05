@@ -1,4 +1,4 @@
-from ariadne import QueryType, convert_kwargs_to_snake_case
+from ariadne import QueryType
 
 from hexa.core.graphql import result_page
 
@@ -13,7 +13,6 @@ datasets_queries = QueryType()
 
 
 @datasets_queries.field("datasets")
-@convert_kwargs_to_snake_case
 def resolve_datasets(_, info, query=None, page=1, per_page=15):
     request = info.context["request"]
     qs = Dataset.objects.filter_for_user(request.user).order_by("-updated_at")
@@ -67,7 +66,8 @@ def resolve_dataset_link_by_slug(_, info, **kwargs):
     request = info.context["request"]
     try:
         return DatasetLink.objects.filter_for_user(request.user).get(
-            dataset__slug=kwargs["datasetSlug"], workspace__slug=kwargs["workspaceSlug"]
+            dataset__slug=kwargs["dataset_slug"],
+            workspace__slug=kwargs["workspace_slug"],
         )
     except DatasetLink.DoesNotExist:
         return None

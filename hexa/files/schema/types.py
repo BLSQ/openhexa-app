@@ -1,4 +1,4 @@
-from ariadne import ObjectType, convert_kwargs_to_snake_case
+from ariadne import ObjectType
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 
@@ -41,7 +41,6 @@ def resolve_bucket_name(workspace, info, **kwargs):
 
 
 @bucket_object.field("objects")
-@convert_kwargs_to_snake_case
 def resolve_bucket_objects(
     workspace,
     info,
