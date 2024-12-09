@@ -52,7 +52,7 @@ const DatasetExplorer = ({
           ))}
         </ul>
       </Overflow>
-      <div className="flex-1 py-2 space-y-4">
+      <div className="flex-1 py-2 space-y-4 min-w-0">
         {currentFile && (
           <div className="px-4 py-1 space-y-6">
             <Title level={3} className="flex justify-between gap-4">
@@ -86,7 +86,7 @@ const DatasetExplorer = ({
             <Tabs>
               <Tabs.Tab
                 label={t("Preview")}
-                className="space-y-2 mt-2 h-[560px] xtall:h-[700px] relative"
+                className="mt-2 min-h-[560px] xtall:min-h-[780px] relative"
               >
                 <ErrorBoundary fullScreen={false}>
                   <DatasetVersionFileSample file={currentFile} />
@@ -94,7 +94,7 @@ const DatasetExplorer = ({
               </Tabs.Tab>
               <Tabs.Tab
                 label={t("Columns")}
-                className="space-y-2 mt-2 h-[560px] xtall:h-[700px] relative"
+                className="mt-2 min-h-[560px] xtall:min-h-[780px] relative"
               >
                 <DatasetVersionFileColumns file={currentFile} />
               </Tabs.Tab>

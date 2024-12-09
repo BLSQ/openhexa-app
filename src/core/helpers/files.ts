@@ -104,7 +104,9 @@ class Job<T extends JobFile = JobFile> {
           });
 
           xhr.addEventListener("loadend", () => {
-            resolve(xhr.readyState === 4 && xhr.status === 200);
+            resolve(
+              xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 300,
+            );
           });
 
           xhr.open(options.method, options.url, true);
@@ -118,6 +120,8 @@ class Job<T extends JobFile = JobFile> {
         if (success) {
           console.log(`Upload of "${file.name}" completed.`);
           file.isUploaded = true;
+        } else {
+          throw new Error(`Upload failed: ${xhr.statusText}`);
         }
       } catch (err: any) {
         this._error = err;

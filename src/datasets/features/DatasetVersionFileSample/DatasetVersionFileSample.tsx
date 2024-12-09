@@ -4,10 +4,11 @@ import { TextColumn } from "core/components/DataGrid/TextColumn";
 import DescriptionList from "core/components/DescriptionList";
 import Spinner from "core/components/Spinner";
 import { ApolloComponent } from "core/helpers/types";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import useFeature from "identity/hooks/useFeature";
 import { DatasetVersionFileSample_FileFragment } from "./DatasetVersionFileSample.generated";
+import { Iframe } from "core/components/Iframe";
 
 interface DatasetVersionFileSampleProps {
   file: DatasetVersionFileSample_FileFragment;
@@ -54,14 +55,22 @@ const SmartPreviewer = ({
     );
   } else if (file.contentType.startsWith("text/html")) {
     return (
-      <iframe
-        sandbox="allow-presentation allow-modals allow-popups-to-escape-sandbox"
+      <Iframe
+        autoResize
+        sandbox="allow-presentation allow-modals allow-scripts allow-popups-to-escape-sandbox"
         src={file.downloadUrl}
-        className="w-full h-full"
-      ></iframe>
+        width="100%"
+      ></Iframe>
     );
   } else if (file.contentType.startsWith("text")) {
-    return <iframe src={file.downloadUrl} className="w-full h-full"></iframe>;
+    return (
+      <Iframe
+        autoResize
+        sandbox="allow-presentation allow-modals allow-popups-to-escape-sandbox"
+        src={file.downloadUrl}
+        width="100%"
+      ></Iframe>
+    );
   } else if (file.contentType.startsWith("application/pdf")) {
     return (
       <embed
@@ -176,6 +185,8 @@ export const DatasetVersionFileSample: ApolloComponent<
             sortable
             spacing="tight"
             className="border border-gray-100 rounded-md overflow-hidden font-mono tracking-tight"
+            totalItems={sample.length}
+            fixedLayout={false}
           >
             {columns.map((col) => (
               <TextColumn id={col} label={col} accessor={col} key={col} />
