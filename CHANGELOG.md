@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.76.0](https://github.com/BLSQ/openhexa-app/compare/0.75.2...0.76.0) (2024-12-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* Set a default version number for each pipeline version, make version name optional ([#857](https://github.com/BLSQ/openhexa-app/issues/857))
+
+### Features
+
+* conditionally run pipelines in debug mode ([#862](https://github.com/BLSQ/openhexa-app/issues/862)) ([5120d50](https://github.com/BLSQ/openhexa-app/commit/5120d509accce9f38a6b91cce7f87726bcc6fd79))
+* Set a default version number for each pipeline version, make version name optional ([#857](https://github.com/BLSQ/openhexa-app/issues/857)) ([168dd66](https://github.com/BLSQ/openhexa-app/commit/168dd660bd8b5c77ed0ec28093833e583dad3928))
+
+
+### Bug Fixes
+
+* **datasets:** Set the correct engine for xls files & do not crash when DatasetVersionFile do not exist anymore ([#864](https://github.com/BLSQ/openhexa-app/issues/864)) ([bb61395](https://github.com/BLSQ/openhexa-app/commit/bb6139541d872d3960967b318b38aed93f53f0a5))
+* Set CMD command as json arguments ([41c6d95](https://github.com/BLSQ/openhexa-app/commit/41c6d959cfa734a8877363ae10ff8d67bcd4653b))
+* silent email address trim ([#848](https://github.com/BLSQ/openhexa-app/issues/848)) ([87779c8](https://github.com/BLSQ/openhexa-app/commit/87779c8e161b83a6ad805ae3a49007c4a77216be))
+* skips geometry and processes wkb ([#858](https://github.com/BLSQ/openhexa-app/issues/858)) ([eb31445](https://github.com/BLSQ/openhexa-app/commit/eb31445c1ae9095b5c73dd5f9b195789382fc6bf))
+
 ## [0.75.2](https://github.com/BLSQ/openhexa-app/compare/0.75.1...0.75.2) (2024-11-21)
 
 
