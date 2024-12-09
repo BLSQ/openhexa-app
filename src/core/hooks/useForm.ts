@@ -71,7 +71,7 @@ function useForm<T = FormData, TData = void>(
 
   // This is intended to always return the same object to avoid to have side-effect in useEffect because of a object ref change
   const uniqueRef = useRef<{}>({});
-  const internalInitialState = useRef<Partial<T>>(null);
+  const internalInitialState = useRef<Partial<T>>();
 
   const setInitialState = useCallback(() => {
     if (getInitialState) {

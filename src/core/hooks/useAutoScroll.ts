@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 const useAutoScroll = (
-  scrollableContentRef: React.RefObject<HTMLElement | null>,
+  scrollableContentRef: React.RefObject<HTMLElement>,
   scrollBehavior: "auto" | "smooth" = "auto",
 ) => {
   const isAutoScrollActive = useRef<boolean>(true);

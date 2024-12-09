@@ -5,7 +5,7 @@ interface Args extends IntersectionObserverInit {
 }
 
 export default function useIntersectionObserver(
-  elementRef: RefObject<Element | null>,
+  elementRef: RefObject<Element>,
   {
     threshold = 0,
     root = null,

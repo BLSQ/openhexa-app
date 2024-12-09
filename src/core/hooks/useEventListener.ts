@@ -10,7 +10,7 @@ function useEventListener<
 >(
   eventName: K,
   handler: (event: HTMLElementEventMap[K]) => void,
-  element: RefObject<T | null>,
+  element: RefObject<T>,
 ): void;
 
 function useEventListener<
@@ -25,7 +25,7 @@ function useEventListener<
   element?: RefObject<T>,
 ) {
   // Create a ref that stores handler
-  const savedHandler = useRef<typeof handler>(null);
+  const savedHandler = useRef<typeof handler>();
 
   useEffect(() => {
     // Define the listening target
