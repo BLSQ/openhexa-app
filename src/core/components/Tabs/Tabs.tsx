@@ -26,10 +26,11 @@ const Tabs = (props: TabsProps) => {
   const { children, defaultIndex = 0, onChange, className } = props;
   const { t } = useTranslation();
 
-  const validChildren: React.ReactNode[] = useMemo(
+  const validChildren = useMemo(
     () =>
-      React.Children.toArray(children).filter((child: React.ReactNode) =>
-        isValidElement(child),
+      React.Children.toArray(children).filter(
+        (child): child is ReactElement<TabProps> =>
+          isValidElement<TabProps>(child) && "label" in child.props,
       ),
     [children],
   );
@@ -48,26 +49,22 @@ const Tabs = (props: TabsProps) => {
         )}
       >
         <nav className="-mb-px flex space-x-8" aria-label={t("Tabs")}>
-          {React.Children.map(
-            validChildren,
-            (child, idx) =>
-              isValidElement(child) && (
-                <HeadlessTab as={Fragment} key={idx}>
-                  {({ selected }) => (
-                    <a
-                      className={clsx(
-                        "cursor-pointer whitespace-nowrap border-b-2 px-1.5 py-2.5 hover:text-gray-900 tracking-wide",
-                        selected
-                          ? "border-pink-500 "
-                          : "border-transparent text-gray-500 hover:border-gray-400",
-                      )}
-                    >
-                      {child.props.label}
-                    </a>
+          {React.Children.map(validChildren, (child, idx) => (
+            <HeadlessTab as={Fragment} key={idx}>
+              {({ selected }) => (
+                <a
+                  className={clsx(
+                    "cursor-pointer whitespace-nowrap border-b-2 px-1.5 py-2.5 hover:text-gray-900 tracking-wide",
+                    selected
+                      ? "border-pink-500 "
+                      : "border-transparent text-gray-500 hover:border-gray-400",
                   )}
-                </HeadlessTab>
-              ),
-          )}
+                >
+                  {child.props.label}
+                </a>
+              )}
+            </HeadlessTab>
+          ))}
         </nav>
       </HeadlessTabList>
       <HeadlessTabPanels>
