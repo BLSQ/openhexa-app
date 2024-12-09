@@ -13,7 +13,7 @@ def resolve_add_metadata(_, info, **kwargs):
     user = info.context["request"].user
 
     try:
-        model_instance = mutation_input.get("targetId")
+        model_instance = mutation_input.get("target_id")
         if model_instance.can_update_metadata(user):
             model_instance.add_attribute(
                 key=mutation_input["key"],
@@ -36,7 +36,7 @@ def resolve_delete_metadata(_, info, **kwargs):
     user = info.context["request"].user
 
     try:
-        model_instance = mutation_input.get("targetId")
+        model_instance = mutation_input.get("target_id")
         if model_instance.can_delete_metadata(user):
             model_instance.delete_attribute(key=mutation_input["key"])
             return {"success": True, "errors": []}
@@ -56,7 +56,7 @@ def resolve_edit_metadata(_, info, **kwargs):
     user = info.context["request"].user
 
     try:
-        model_instance = mutation_input.get("targetId")
+        model_instance = mutation_input.get("target_id")
 
         if model_instance.can_update_metadata(user):
             model_instance.update_or_create_attribute(

@@ -4,7 +4,6 @@ from ariadne import (
     EnumType,
     MutationType,
     ObjectType,
-    convert_kwargs_to_snake_case,
     load_schema_from_path,
 )
 from django.core.exceptions import PermissionDenied
@@ -34,7 +33,6 @@ order_by_direction_enum = EnumType("OrderByDirection", OrderByDirectionEnum)
 
 
 @database_object.field("tables")
-@convert_kwargs_to_snake_case
 def resolve_database_tables(workspace, info, page=1, per_page=15, **kwargs):
     tables = get_database_definition(
         workspace=workspace,
@@ -78,7 +76,6 @@ def resolve_database_table_sample(table, info, **kwargs):
 
 
 @database_table_object.field("rows")
-@convert_kwargs_to_snake_case
 def resolve_workspace_table_rows(
     table,
     info,
@@ -110,7 +107,7 @@ def resolve_generate_new_database_password(_, info, **kwargs):
     input = kwargs["input"]
     try:
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=input["workspaceSlug"]
+            slug=input["workspace_slug"]
         )
 
         workspace.generate_new_database_password(principal=request.user)

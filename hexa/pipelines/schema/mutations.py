@@ -1,6 +1,6 @@
 import base64
 
-from ariadne import MutationType, convert_kwargs_to_snake_case
+from ariadne import MutationType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
@@ -42,7 +42,7 @@ def resolve_create_pipeline(_, info, **kwargs):
     input = kwargs["input"]
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=input.get("workspaceSlug")
+            slug=input.get("workspace_slug")
         )
     except Workspace.DoesNotExist:
         return {
@@ -56,9 +56,9 @@ def resolve_create_pipeline(_, info, **kwargs):
             "name": input.get("name"),
             "workspace": workspace,
         }
-        if input.get("notebookPath", None) is not None:
+        if input.get("notebook_path", None) is not None:
             data["type"] = PipelineType.NOTEBOOK
-            data["notebook_path"] = input["notebookPath"]
+            data["notebook_path"] = input["notebook_path"]
             # we need to check if the notebook path exist in the workspace bucket
             get_bucket_object(workspace.bucket_name, data["notebook_path"])
         else:
@@ -88,7 +88,6 @@ def resolve_create_pipeline(_, info, **kwargs):
 
 
 @pipelines_mutations.field("updatePipeline")
-@convert_kwargs_to_snake_case
 def resolve_update_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
@@ -147,7 +146,7 @@ def resolve_stop_pipeline(_, info, **kwargs):
     input = kwargs["input"]
 
     try:
-        pipeline_run = PipelineRun.objects.get(id=input.get("runId"))
+        pipeline_run = PipelineRun.objects.get(id=input.get("run_id"))
         if pipeline_run.state in [PipelineRunState.SUCCESS, PipelineRunState.FAILED]:
             return {
                 "success": False,
@@ -196,8 +195,8 @@ def resolve_run_pipeline(_, info, **kwargs):
         }
 
     try:
-        if input.get("versionId"):
-            version = pipeline.versions.get(id=input.get("versionId"))
+        if input.get("version_id"):
+            version = pipeline.versions.get(id=input.get("version_id"))
         else:
             version = pipeline.last_version
     except PipelineVersion.DoesNotExist:
@@ -215,9 +214,9 @@ def resolve_run_pipeline(_, info, **kwargs):
             pipeline_version=version,
             trigger_mode=PipelineRunTrigger.MANUAL,
             config=input.get("config", {}),
-            send_mail_notifications=input.get("sendMailNotifications", False),
+            send_mail_notifications=input.get("send_mail_notifications", False),
             log_level=PipelineRunLogLevel.DEBUG
-            if input.get("enableDebugLogs", False)
+            if input.get("enable_debug_logs", False)
             else PipelineRunLogLevel.INFO,
         )
         track(
@@ -245,7 +244,7 @@ def resolve_pipelineToken(_, info, **kwargs):
     input = kwargs["input"]
     try:
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
-            code=input.get("pipelineCode"), workspace__slug=input.get("workspaceSlug")
+            code=input.get("pipeline_code"), workspace__slug=input.get("workspace_slug")
         )
         return {"success": True, "errors": [], "token": pipeline.get_token()}
     except Pipeline.DoesNotExist:
@@ -291,9 +290,9 @@ def resolve_upload_pipeline(_, info, **kwargs):
     input = kwargs["input"]
 
     try:
-        pipeline_code = input.get("pipelineCode", input.get("code"))
+        pipeline_code = input.get("pipeline_code", input.get("code"))
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
-            code=pipeline_code, workspace__slug=input["workspaceSlug"]
+            code=pipeline_code, workspace__slug=input["workspace_slug"]
         )
         if pipeline.type == PipelineType.NOTEBOOK:
             return {
@@ -318,7 +317,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
             user=request.user,
             name=input.get("name"),
             description=input.get("description"),
-            external_link=input.get("externalLink"),
+            external_link=input.get("external_link"),
             zipfile=base64.b64decode(input.get("zipfile").encode("ascii")),
             parameters=input["parameters"],
             timeout=input.get("timeout"),
@@ -344,7 +343,6 @@ def resolve_upload_pipeline(_, info, **kwargs):
 
 
 @pipelines_mutations.field("updatePipelineVersion")
-@convert_kwargs_to_snake_case
 def resolve_update_pipeline_version(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
@@ -397,15 +395,15 @@ def resolve_add_pipeline_recipient(_, info, **kwargs):
     input = kwargs["input"]
     try:
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
-            id=input.get("pipelineId")
+            id=input.get("pipeline_id")
         )
-        user = User.objects.get(id=input["userId"])
+        user = User.objects.get(id=input["user_id"])
 
         recipient = PipelineRecipient.objects.create_if_has_perm(
             principal=request.user,
             pipeline=pipeline,
             user=user,
-            level=input["notificationLevel"],
+            level=input["notification_level"],
         )
         return {
             "success": True,
@@ -441,10 +439,10 @@ def resolve_update_pipeline_recipient(_, info, **kwargs):
 
     try:
         recipient = PipelineRecipient.objects.get(
-            id=input["recipientId"],
+            id=input["recipient_id"],
         )
         recipient.update_if_has_perm(
-            principal=request.user, level=input["notificationLevel"]
+            principal=request.user, level=input["notification_level"]
         )
         return {
             "success": True,
@@ -470,7 +468,7 @@ def resolve_delete_pipeline_recipient(_, info, **kwargs):
 
     try:
         recipient = PipelineRecipient.objects.get(
-            id=input["recipientId"],
+            id=input["recipient_id"],
         )
         recipient.delete_if_has_perm(principal=request.user)
         return {
