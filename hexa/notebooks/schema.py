@@ -29,7 +29,7 @@ def resolve_launch_notebook_server(_, info, input, **kwargs):
     Jupyterhub.
     """
     request: HttpRequest = info.context["request"]
-    workspace_slug = input["workspaceSlug"]
+    workspace_slug = input["workspace_slug"]
 
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(

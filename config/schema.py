@@ -111,5 +111,6 @@ schema = make_executable_schema(
         *config_bindables,
         snake_case_fallback_resolvers,
     ],
+    convert_names_case=True,
     directives=identity_directives,
 )

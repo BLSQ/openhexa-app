@@ -138,7 +138,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                     "name": "New Version Name",
                     "externalLink": "https://example.com",
                     "description": "New Description",
-                    "config": {},
+                    "config": {"dhis2_connection": "abcd"},
                 }
             },
         )
@@ -153,7 +153,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                     "name": "New Version Name",
                     "externalLink": "https://example.com",
                     "description": "New Description",
-                    "config": {},
+                    "config": {"dhis2_connection": "abcd"},
                 },
             },
         )

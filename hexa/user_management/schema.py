@@ -8,7 +8,6 @@ from ariadne import (
     ObjectType,
     QueryType,
     SchemaDirectiveVisitor,
-    convert_kwargs_to_snake_case,
     load_schema_from_path,
 )
 from django.conf import settings
@@ -177,7 +176,7 @@ def resolve_teams(_, info, term=None, **kwargs):
     return result_page(
         queryset=queryset,
         page=kwargs.get("page", 1),
-        per_page=kwargs.get("perPage"),
+        per_page=kwargs.get("per_page"),
     )
 
 
@@ -189,7 +188,7 @@ def resolve_team_memberships(team: Team, *_, **kwargs):
     return result_page(
         queryset=team.membership_set.all(),
         page=kwargs.get("page", 1),
-        per_page=kwargs.get("perPage"),
+        per_page=kwargs.get("per_page"),
     )
 
 
@@ -346,7 +345,7 @@ def resolve_register(_, info, **kwargs):
     # the user is redirected to the list of all his invitations where he can accept or decline them.
     try:
         invitation = WorkspaceInvitation.objects.get_by_token(
-            token=mutation_input["invitationToken"]
+            token=mutation_input["invitation_token"]
         )
         if invitation.status != WorkspaceInvitationStatus.PENDING:
             return {"success": False, "errors": ["INVALID_TOKEN"]}
@@ -369,8 +368,8 @@ def resolve_register(_, info, **kwargs):
         user = User.objects.create_user(
             email=invitation.email,
             password=mutation_input["password1"],
-            first_name=mutation_input["firstName"],
-            last_name=mutation_input["lastName"],
+            first_name=mutation_input["first_name"],
+            last_name=mutation_input["last_name"],
         )
         FeatureFlag.objects.create(
             feature=Feature.objects.get(code="workspaces"), user=user
@@ -452,8 +451,8 @@ def resolve_create_membership(_, info, **kwargs):
     create_input = kwargs["input"]
 
     try:
-        user = User.objects.get(email=create_input["userEmail"])
-        team = Team.objects.get(id=create_input["teamId"])
+        user = User.objects.get(email=create_input["user_email"])
+        team = Team.objects.get(id=create_input["team_id"])
 
         try:
             membership = Membership.objects.create_if_has_perm(
@@ -608,7 +607,6 @@ def resolve_enable_two_factor(_, info, **kwargs):
 
 
 @identity_mutations.field("updateUser")
-@convert_kwargs_to_snake_case
 def resolve_update_user(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     mutation_input = kwargs["input"]
