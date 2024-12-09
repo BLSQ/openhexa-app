@@ -2334,6 +2334,7 @@ type PipelineRun {
   outputs: [PipelineRunOutput!]!
   code: String!
   sendMailNotifications: Boolean!
+  enableDebugLogs: Boolean!
   timeout: Int
   datasetVersions: [DatasetVersion!]!
   stoppedBy: User

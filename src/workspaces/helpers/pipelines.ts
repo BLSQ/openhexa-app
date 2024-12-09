@@ -142,6 +142,7 @@ export async function runPipeline(
   config: any = {},
   versionId?: string,
   sendMailNotifications?: boolean,
+  enableDebugLogs?: boolean,
 ) {
   const client = getApolloClient();
 
@@ -163,7 +164,13 @@ export async function runPipeline(
       }
     `,
     variables: {
-      input: { id: pipelineId, config, versionId, sendMailNotifications },
+      input: {
+        id: pipelineId,
+        config,
+        versionId,
+        sendMailNotifications,
+        enableDebugLogs,
+      },
     },
     update: (cache, { data }) => {
       if (!data || !data.runPipeline.run) {

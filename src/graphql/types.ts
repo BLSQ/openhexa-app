@@ -2818,6 +2818,7 @@ export type PipelineRun = {
   config: Scalars['JSON']['output'];
   datasetVersions: Array<DatasetVersion>;
   duration?: Maybe<Scalars['Int']['output']>;
+  enableDebugLogs: Scalars['Boolean']['output'];
   executionDate?: Maybe<Scalars['DateTime']['output']>;
   id: Scalars['UUID']['output'];
   logs?: Maybe<Scalars['String']['output']>;

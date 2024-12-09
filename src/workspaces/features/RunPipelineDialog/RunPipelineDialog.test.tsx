@@ -93,6 +93,7 @@ describe("RunPipelineDialog", () => {
       { is_ok: undefined },
       pipeline.currentVersion.id,
       true,
+      false,
     );
   });
 
@@ -118,13 +119,16 @@ describe("RunPipelineDialog", () => {
       </RunPipelineDialog>,
     );
     await user.click(await screen.findByTestId("trigger"));
-    await user.click(await screen.findByLabelText("Mute notifications"));
+    await user.click(await screen.findByText("Advanced settings"));
+    await user.click(await screen.findByLabelText("Send notifications"));
+    await user.click(await screen.findByLabelText("Show debug messages"));
     await submitForm(user);
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       {},
       pipeline.currentVersion.id,
       false,
+      true,
     );
   });
 
@@ -202,6 +206,7 @@ describe("RunPipelineDialog", () => {
       {},
       pipeline.currentVersion.id,
       true,
+      false,
     );
   });
 
@@ -261,6 +266,7 @@ describe("RunPipelineDialog", () => {
       { int_param: 0, float_param: 2.2 },
       pipeline.currentVersion.id,
       true,
+      false,
     );
   });
 
@@ -309,6 +315,7 @@ describe("RunPipelineDialog", () => {
       { multi: ["0", "1", "2"] },
       pipeline.currentVersion.id,
       true,
+      false,
     );
   });
 
@@ -357,6 +364,7 @@ describe("RunPipelineDialog", () => {
       { string: "coucou" },
       pipeline.currentVersion.id,
       true,
+      false,
     );
   });
 
@@ -397,7 +405,8 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).not.toHaveBeenCalled();
 
     // Fill in the form
-    await user.click(await screen.findByTestId("combobox-button"));
+    const comboboxButtons = await screen.findAllByTestId("combobox-button");
+    await user.click(comboboxButtons[0]);
     await user.click(await screen.findByText("2"));
 
     await submitForm(user);
@@ -406,6 +415,7 @@ describe("RunPipelineDialog", () => {
       { choices_param: 2 },
       pipeline.currentVersion.id,
       true,
+      false,
     );
   });
 });
