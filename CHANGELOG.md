@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.56.0](https://github.com/BLSQ/openhexa-frontend/compare/0.55.0...0.56.0) (2024-12-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* Set a default version number for each pipeline version, make version name optional ([#886](https://github.com/BLSQ/openhexa-frontend/issues/886))
+
+### Features
+
+* conditionally run pipelines in debug mode ([#908](https://github.com/BLSQ/openhexa-frontend/issues/908)) ([665b386](https://github.com/BLSQ/openhexa-frontend/commit/665b386b489e9610c977f8cce7f60cdb1adf27ed))
+* **Datasets:** Add tab to display datasetversionfile columns ([#910](https://github.com/BLSQ/openhexa-frontend/issues/910)) ([9226340](https://github.com/BLSQ/openhexa-frontend/commit/922634023bda865d61a7679ed77a505d14eee711))
+* Set a default version number for each pipeline version, make version name optional ([#886](https://github.com/BLSQ/openhexa-frontend/issues/886)) ([d090da6](https://github.com/BLSQ/openhexa-frontend/commit/d090da6208f3173e69138e0eb0316f3c24850f04))
+
+
+### Bug Fixes
+
+* **Datasets:** prevent overflow, add pagination ([#920](https://github.com/BLSQ/openhexa-frontend/issues/920)) ([82dc3e1](https://github.com/BLSQ/openhexa-frontend/commit/82dc3e19b17f9a36c6eb611722a238b3f6d2f017))
+* deps & tests ([78de9a3](https://github.com/BLSQ/openhexa-frontend/commit/78de9a31756b84f59462930f4e9845a4f81c36bb))
+* **deps:** update dependency @apollo/client to v3.12.0 ([#918](https://github.com/BLSQ/openhexa-frontend/issues/918)) ([990eae8](https://github.com/BLSQ/openhexa-frontend/commit/990eae8c975d721ce11f821c43e5039df5cac0b2))
+* **deps:** update dependency @apollo/client to v3.12.1 ([#919](https://github.com/BLSQ/openhexa-frontend/issues/919)) ([844b999](https://github.com/BLSQ/openhexa-frontend/commit/844b999df122b95354d60d6f946cb4c2a190f451))
+* **deps:** update dependency @apollo/client to v3.12.2 ([#921](https://github.com/BLSQ/openhexa-frontend/issues/921)) ([2fa9149](https://github.com/BLSQ/openhexa-frontend/commit/2fa91499819f21ee52a67f950121ae05bfbad81a))
+* **deps:** update dependency @sentry/nextjs to v8.41.0 ([#900](https://github.com/BLSQ/openhexa-frontend/issues/900)) ([6826463](https://github.com/BLSQ/openhexa-frontend/commit/68264631c54cc92a7d7410c697a20dbd15d7b4c6))
+* **deps:** update dependency @sentry/nextjs to v8.42.0 ([#905](https://github.com/BLSQ/openhexa-frontend/issues/905)) ([a88344b](https://github.com/BLSQ/openhexa-frontend/commit/a88344b18c2720ddf85dbbc640862482513f8f44))
+* **deps:** update dependency @types/node to v22.10.1 ([#903](https://github.com/BLSQ/openhexa-frontend/issues/903)) ([0da5201](https://github.com/BLSQ/openhexa-frontend/commit/0da520146ec8f049c78932d9842688faff9b8ff9))
+* **deps:** update dependency @types/react to v18.3.13 ([#917](https://github.com/BLSQ/openhexa-frontend/issues/917)) ([3e3af2c](https://github.com/BLSQ/openhexa-frontend/commit/3e3af2cd7588e3a49427fa8091d0e5a8f305c424))
+* **deps:** update dependency @types/react to v18.3.14 ([#922](https://github.com/BLSQ/openhexa-frontend/issues/922)) ([854da4f](https://github.com/BLSQ/openhexa-frontend/commit/854da4fd57fbaf8f7568395a39f3bea3a198ee03))
+* **deps:** update dependency dotenv to v16.4.6 ([#906](https://github.com/BLSQ/openhexa-frontend/issues/906)) ([972479d](https://github.com/BLSQ/openhexa-frontend/commit/972479d9f6f795c6750e704d41d099b17b1d97dd))
+* **deps:** update dependency dotenv to v16.4.7 ([#913](https://github.com/BLSQ/openhexa-frontend/issues/913)) ([7a60d4a](https://github.com/BLSQ/openhexa-frontend/commit/7a60d4a0c2dc300f824b7c42e48538c6198d2fb5))
+* **deps:** update dependency express to v4.21.2 ([#924](https://github.com/BLSQ/openhexa-frontend/issues/924)) ([6b7dd2b](https://github.com/BLSQ/openhexa-frontend/commit/6b7dd2b0b51676de8f16fb5378d9821cc035409e))
+* **deps:** update dependency i18next to v24.0.4 ([#907](https://github.com/BLSQ/openhexa-frontend/issues/907)) ([9553daf](https://github.com/BLSQ/openhexa-frontend/commit/9553dafbb7c0ac0567d99282ef4adffbd89fab5f))
+* **deps:** update dependency i18next to v24.0.5 ([#909](https://github.com/BLSQ/openhexa-frontend/issues/909)) ([a71b7cf](https://github.com/BLSQ/openhexa-frontend/commit/a71b7cf6ed98b84deb51314b9ec5424ef7e774e9))
+* **deps:** update dependency linkify-react to v4.2.0 ([#915](https://github.com/BLSQ/openhexa-frontend/issues/915)) ([224f20b](https://github.com/BLSQ/openhexa-frontend/commit/224f20b982d1c636121e03a20bb6af48e5db7004))
+* **deps:** update dependency linkifyjs to v4.2.0 ([#916](https://github.com/BLSQ/openhexa-frontend/issues/916)) ([3b595d4](https://github.com/BLSQ/openhexa-frontend/commit/3b595d45e671398c04e25ba2c4079b32ceebb9ca))
+* **deps:** update dependency react-i18next to v15.1.3 ([#904](https://github.com/BLSQ/openhexa-frontend/issues/904)) ([704c7ad](https://github.com/BLSQ/openhexa-frontend/commit/704c7ad7b2c879c369dababcf948cca74e959cd4))
+* **deps:** update nextjs monorepo to v15.0.4 ([#925](https://github.com/BLSQ/openhexa-frontend/issues/925)) ([830c11e](https://github.com/BLSQ/openhexa-frontend/commit/830c11e1f0c841061e6f0ff9e52a6a62404fd101))
+* **deps:** update react monorepo to v19 ([7bfc0c0](https://github.com/BLSQ/openhexa-frontend/commit/7bfc0c0b37398b220340247fa24fe7781d7b1081))
+* **deps:** update react monorepo to v19 (major) ([#927](https://github.com/BLSQ/openhexa-frontend/issues/927)) ([7bfc0c0](https://github.com/BLSQ/openhexa-frontend/commit/7bfc0c0b37398b220340247fa24fe7781d7b1081))
+* Tests & npm i were invalid due to packages update ([03aa412](https://github.com/BLSQ/openhexa-frontend/commit/03aa412fd17fa631762429801fc0fafb36599d85))
+
 ## [0.55.0](https://github.com/BLSQ/openhexa-frontend/compare/0.54.3...0.55.0) (2024-11-26)
 
 
