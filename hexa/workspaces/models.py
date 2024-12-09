@@ -38,6 +38,12 @@ class AlreadyExists(Exception):
     pass
 
 
+def make_random_password(
+    length=10, allowed_chars="abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+):
+    return "".join(secrets.choice(allowed_chars) for i in range(length))
+
+
 def create_workspace_slug(name):
     suffix = ""
     while True:
@@ -110,7 +116,7 @@ class WorkspaceManager(models.Manager):
                 workspace_name=name, workspace_slug=slug
             )
 
-        db_password = User.objects.make_random_password(length=16)
+        db_password = make_random_password(length=16)
         db_name = generate_database_name()
         create_kwargs["db_password"] = db_password
         create_kwargs["db_name"] = db_name
@@ -225,7 +231,7 @@ class Workspace(Base):
         if not principal.has_perm("workspaces.update_workspace", self):
             raise PermissionDenied
 
-        new_password = User.objects.make_random_password(length=16)
+        new_password = make_random_password(length=16)
         update_database_password(self.db_name, new_password)
 
         setattr(self, "db_password", new_password)
