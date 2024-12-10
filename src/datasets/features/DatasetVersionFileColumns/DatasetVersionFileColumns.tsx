@@ -114,12 +114,12 @@ const DatasetVersionFileColumns = (props: DatasetVersionFileColumnsProps) => {
             <DescriptionList compact>
               <DescriptionList.Item label={t("Distinct")}>
                 <code className="font-mono text-sm text-gray-600">
-                  {`${column.distinctValues} (${percentage(column.distinctValues, total)}%)`}
+                  {`${column.distinctValues} (${total ? `${percentage(column.distinctValues, total)}%` : "-"})`}
                 </code>
               </DescriptionList.Item>
               <DescriptionList.Item label={t("Missing")} className="gap-4">
                 <code className="font-mono text-sm text-gray-600 ">
-                  {`${column.missingValues} (${percentage(column.missingValues, total)}%)`}
+                  {`${column.missingValues} (${total ? `${percentage(column.missingValues, total)}%` : "-"})`}
                 </code>
               </DescriptionList.Item>
             </DescriptionList>
