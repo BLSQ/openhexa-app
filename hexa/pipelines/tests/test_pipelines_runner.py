@@ -39,7 +39,7 @@ class TestRunPipeline(TestCase):
             "HEXA_RUN_ID": "123",
             "HEXA_PIPELINE_NAME": "test_pipeline",
             "HEXA_PIPELINE_TYPE": PipelineType.NOTEBOOK,
-            "HEXA_LOG_LEVEL": PipelineRunLogLevel.DEBUG,
+            "HEXA_LOG_LEVEL": str(PipelineRunLogLevel.DEBUG),
             "HEXA_NOTEBOOK_PATH": "/path/to/notebook",
         }
         mock_run_pipeline_docker.assert_called_once_with(
