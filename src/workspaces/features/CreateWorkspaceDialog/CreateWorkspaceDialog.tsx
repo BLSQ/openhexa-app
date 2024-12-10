@@ -11,6 +11,7 @@ import { useCreateWorkspaceMutation } from "workspaces/graphql/mutations.generat
 import { useRouter } from "next/router";
 import { CreateWorkspaceError } from "graphql/types";
 import Checkbox from "core/components/forms/Checkbox/Checkbox";
+import useCacheKey from "core/hooks/useCacheKey";
 
 type CreateWorkspaceDialogProps = {
   onClose(): void;
@@ -27,6 +28,7 @@ type Form = {
 const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
   const router = useRouter();
   const [mutate] = useCreateWorkspaceMutation();
+  const clearCache = useCacheKey(["workspaces"]);
 
   const { t } = useTranslation();
   const { open, onClose, showCancel = true } = props;
@@ -55,6 +57,7 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
       ) {
         throw new Error("You are not authorized to perform this action");
       } else {
+        clearCache();
         onClose();
         await router.push({
           pathname: "/workspaces/[workspaceSlug]",

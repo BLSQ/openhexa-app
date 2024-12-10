@@ -6,11 +6,7 @@ import { useTranslation } from "next-i18next";
 
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Button from "core/components/Button";
-import {
-  ExclamationCircleIcon,
-  PlusCircleIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
+import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import {
   useWorkspacePageQuery,
@@ -105,8 +101,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           </Breadcrumbs>
           {workspace.permissions.delete && (
             <Button
-              size="sm"
-              className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
+              className="bg-red-700 hover:bg-red-800 focus:ring-red-500"
               onClick={() => setIsArchiveDialogOpen(true)}
               leadingIcon={<TrashIcon className="w-4" />}
             >

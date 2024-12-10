@@ -288,6 +288,7 @@
   "Pipeline version, notifications and logs": "Pipeline version, notifications and logs",
   "Pipelines": "Pipelines",
   "Please enter an email address": "Please enter an email address",
+  "Please enter the workspace name to confirm:": "Please enter the workspace name to confirm:",
   "Port": "Port",
   "Port of the PostgreSQL server": "Port of the PostgreSQL server",
   "Preview": "Preview",
@@ -499,7 +500,7 @@
   "You don't have permission to link this dataset": "You don't have permission to link this dataset",
   "You have to select a notebook": "You have to select a notebook",
   "You have to select a workspace": "You have to select a workspace",
-  "You're about to archive this workspace and all its content.": "You're about to archive this workspace and all its content.",
+  "You're about to archive the {{workspaceName}} workspace and all its content.": "You're about to archive the {{workspaceName}} workspace and all its content.",
   "You're about to remove {{name}} from this workspace.": "You're about to remove {{name}} from this workspace.",
   "Your account": "Your account",
   "Your workspaces": "Your workspaces"
