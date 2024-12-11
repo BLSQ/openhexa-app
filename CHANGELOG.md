@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.76.1](https://github.com/BLSQ/openhexa-app/compare/0.76.0...0.76.1) (2024-12-11)
+
+
+### Bug Fixes
+
+* **pipeline:** comment env var requirement ([#870](https://github.com/BLSQ/openhexa-app/issues/870)) ([baf2d9f](https://github.com/BLSQ/openhexa-app/commit/baf2d9f1aed9b72fa3b97d11118511179b53f716))
+
 ## [0.76.0](https://github.com/BLSQ/openhexa-app/compare/0.75.2...0.76.0) (2024-12-09)
 
 
