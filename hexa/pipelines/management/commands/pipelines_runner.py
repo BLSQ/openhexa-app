@@ -308,6 +308,7 @@ def run_pipeline(run: PipelineRun):
     db.connections.close_all()
     run.refresh_from_db()
 
+    # stringify env vars for kubernetes deployment
     env_vars = {
         "HEXA_SERVER_URL": f"{settings.INTERNAL_BASE_URL}",
         "HEXA_TOKEN": Signer().sign_object(run.access_token),
