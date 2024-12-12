@@ -2,10 +2,8 @@ from ariadne import MutationType
 from django.http import HttpRequest
 
 from hexa.analytics.api import track
-from hexa.pipelines.models import (
-    Pipeline,
-    PipelineType,
-)
+from hexa.pipelines.models import Pipeline
+from hexa.template_pipelines.models import Template
 from hexa.workspaces.models import Workspace
 
 template_pipelines_mutations = MutationType()
@@ -24,27 +22,37 @@ def resolve_create_template(_, info, **kwargs):
             "success": False,
             "errors": ["WORKSPACE_NOT_FOUND"],
         }
+    try:
+        source_pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            id=input.get("pipeline_id")
+        )
+    except Pipeline.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+
+    # TODO : permission
 
     data = {
-        "code": input["code"],
         "name": input.get("name"),
+        "code": input.get("code"),
+        "description": input.get("description"),
+        "config": input.get("config"),
         "workspace": workspace,
+        "source_pipeline": source_pipeline,
     }
-    pipeline = Pipeline.objects.create(**data)
-    event_properties = {
-        "pipeline_id": str(pipeline.id),
-        "creation_source": (
-            "CLI" if pipeline.type == PipelineType.ZIPFILE else "Notebook"
-        ),
-        "workspace": workspace.slug,
-    }
+    template = Template.objects.create(**data)
+    source_pipeline.template = template
     track(
         request,
-        "pipelines.pipeline_created",
-        event_properties,
+        "templates.template_created",
+        {
+            "template_id": str(template.id),
+            "workspace": workspace.slug,
+        },
     )
-
-    return {"pipeline": pipeline, "success": True, "errors": []}
+    return {"template": template, "success": True, "errors": []}
 
 
 bindables = [template_pipelines_mutations]
