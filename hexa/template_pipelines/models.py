@@ -60,6 +60,9 @@ class Template(SoftDeletedModel):
         )
         return template_version
 
+    def __str__(self):
+        return self.name
+
 
 class TemplateVersionQuerySet(BaseQuerySet):
     pass
@@ -92,3 +95,6 @@ class TemplateVersion(models.Model):
     )
 
     objects = TemplateVersionQuerySet.as_manager()
+
+    def __str__(self):
+        return f"v{self.version_number} of {self.template.name}"
