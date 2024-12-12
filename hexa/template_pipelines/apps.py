@@ -1,6 +1,9 @@
-from django.apps import AppConfig
+from hexa.app import CoreAppConfig
 
 
-class TemplatePipelinesConfig(AppConfig):
-    default_auto_field = "django.db.models.BigAutoField"
-    name = "template_pipelines"
+class TemplatePipelinesConfig(CoreAppConfig):
+    name = "hexa.template_pipelines"
+    label = "template_pipelines"
+
+    def ready(self):
+        from . import signals  # noqa
