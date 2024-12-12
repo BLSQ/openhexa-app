@@ -1,35 +1,60 @@
-type Mutation {
-  createTemplateVersion(input: CreateTemplateVersionInput!): CreateTemplateVersionOutput
+extend type Mutation {
+  """
+  Creates a new template version.
+  """
+  createTemplateVersion(input: CreateTemplateVersionInput!): CreateTemplateVersionResult! @loginRequired
 }
 
+"""
+Represents the input for creating a new template version.
+"""
 input CreateTemplateVersionInput {
-  name: String!
-  code: String!
-  description: String
-  config: String
-  workspace_slug: String!
-  pipeline_id: ID!
-  pipeline_version_id: ID!
+  name: String!  # The name of the template.
+  code: String!  # The code of the template.
+  description: String  # The description of the template.
+  config: String  # The configuration of the template.
+  workspace_slug: String!  # The slug of the workspace.
+  pipeline_id: ID!  # The ID of the pipeline.
+  pipeline_version_id: ID!  # The ID of the pipeline version.
 }
 
-type CreateTemplateVersionOutput {
-  template: Template
-  success: Boolean!
-  errors: [String!]
+"""
+Represents the result of creating a new template version.
+"""
+type CreateTemplateVersionResult {
+  template: Template  # The created template.
+  success: Boolean!  # Indicates if the template version was created successfully.
+  errors: [CreateTemplateVersionError!]  # The list of errors that occurred during the creation of the template version.
 }
 
+"""
+Enum representing the possible errors that can occur when creating a template version.
+"""
+enum CreateTemplateVersionError {
+  PERMISSION_DENIED
+  WORKSPACE_NOT_FOUND
+  PIPELINE_NOT_FOUND
+  PIPELINE_VERSION_NOT_FOUND
+}
+
+"""
+Represents a template.
+"""
 type Template {
-  id: ID!
-  name: String!
-  code: String!
-  description: String
-  config: String
-  versions: [TemplateVersion!]
+  id: ID!  # The ID of the template.
+  name: String!  # The name of the template.
+  code: String!  # The code of the template.
+  description: String  # The description of the template.
+  config: String  # The configuration of the template.
+  versions: [TemplateVersion!]  # The list of versions of the template.
 }
 
+"""
+Represents a version of a template.
+"""
 type TemplateVersion {
-  id: ID!
-  version_number: Int!
-  created_at: String!
-  template: Template!
+  id: ID!  # The ID of the template version.
+  version_number: Int!  # The version number of the template version.
+  created_at: String!  # The creation date of the template version.
+  template: Template!  # The template associated with the version.
 }
