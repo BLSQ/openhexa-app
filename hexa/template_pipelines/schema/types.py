@@ -7,12 +7,14 @@ template_permissions = ObjectType("TemplatePermissions")
 template_version_permissions = ObjectType("TemplateVersionPermissions")
 
 
-@workspace_permissions.field("createTemplate")
-def resolve_workspace_permissions_create_template(obj: Workspace, info, **kwargs):
+@workspace_permissions.field("createTemplateVersion")
+def resolve_workspace_permissions_create_template_version(
+    obj: Workspace, info, **kwargs
+):
     request = info.context["request"]
 
     return request.user.is_authenticated and request.user.has_perm(
-        "templates.create_template", obj
+        "templates.create_template_version", obj
     )
 
 

@@ -39,7 +39,7 @@ def resolve_create_template_version(_, info, **kwargs):
     if not workspace:
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
 
-    if not request.user.has_perm("templates.create_template", workspace):
+    if not request.user.has_perm("templates.create_template_version", workspace):
         raise PermissionDenied()
 
     source_pipeline = get_source_pipeline(request.user, input.get("pipeline_id"))
