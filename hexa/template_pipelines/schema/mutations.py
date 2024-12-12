@@ -52,7 +52,13 @@ def resolve_create_template(_, info, **kwargs):
     if not source_pipeline_version:
         return {"success": False, "errors": ["PIPELINE_VERSION_NOT_FOUND"]}
 
-    template = source_pipeline.get_or_create_template(input, workspace, source_pipeline)
+    template = source_pipeline.get_or_create_template(
+        input.get("name"),
+        input.get("code"),
+        input.get("description"),
+        input.get("config"),
+        workspace,
+    )
     template_version = template.create_version(source_pipeline_version)
     track(
         request,
