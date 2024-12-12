@@ -67,7 +67,7 @@ class TemplatesTest(GraphQLTestCase):
                 "template": {
                     "name": "Template1",
                     "code": "template_code",
-                    "versions": None,
+                    "versions": [{"version_number": 1}],
                 },
             },
             r["data"]["createTemplateVersion"],
