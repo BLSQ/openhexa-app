@@ -3,21 +3,18 @@ from unittest.mock import patch
 from hexa.core.test import GraphQLTestCase
 from hexa.pipelines.models import (
     Pipeline,
-    PipelineType,
+    PipelineVersion,
 )
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
-    WorkspaceMembership,
-    WorkspaceMembershipRole,
 )
 
 
 class TemplatesTest(GraphQLTestCase):
     USER_ROOT = None
-    USER_NOOB = None
-    WS1 = None
-    WS2 = None
+    PIPELINE = None
+    PIPELINE_VERSION = None
 
     @classmethod
     def setUpTestData(cls):
@@ -26,28 +23,6 @@ class TemplatesTest(GraphQLTestCase):
             "standardpassword",
             is_superuser=True,
         )
-        cls.USER_NOOB = User.objects.create_user(
-            "noob@bluesquarehub.com",
-            "standardpassword",
-        )
-        cls.USER_LAMBDA = User.objects.create_user(
-            "viewer@bluesquarehub.com",
-            "standardpassword",
-        )
-        cls.USER_SABRINA = User.objects.create_user(
-            "sabrina@bluesquarehub.com",
-            "standardpassword",
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="pipeline_webhook"), user=cls.USER_ROOT
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces"), user=cls.USER_NOOB
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces"), user=cls.USER_SABRINA
-        )
-
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
         ):
@@ -56,44 +31,32 @@ class TemplatesTest(GraphQLTestCase):
                 name="WS1",
                 description="Workspace 1",
             )
-            cls.WS2 = Workspace.objects.create_if_has_perm(
-                cls.USER_ROOT,
-                name="WS2",
-                description="Workspace 2",
-            )
-        cls.WORKSPACE2_MEMBERSHIP_1 = WorkspaceMembership.objects.create(
-            workspace=cls.WS2,
-            user=cls.USER_NOOB,
-            role=WorkspaceMembershipRole.EDITOR,
-        )
-        cls.WORKSPACE1_MEMBERSHIP_2 = WorkspaceMembership.objects.create(
-            workspace=cls.WS1,
-            user=cls.USER_LAMBDA,
-            role=WorkspaceMembershipRole.EDITOR,
-        )
-        cls.WORKSPACE1_MEMBERSHIP_3 = WorkspaceMembership.objects.create(
-            workspace=cls.WS1,
-            user=cls.USER_SABRINA,
-            role=WorkspaceMembershipRole.VIEWER,
+        cls.PIPELINE = Pipeline.objects.create(name="Test Pipeline", workspace=cls.WS1)
+        cls.PIPELINE_VERSION = PipelineVersion.objects.create(
+            pipeline=cls.PIPELINE,
+            version="v1.0",
+            description="Initial version",
         )
 
-    def test_create_pipeline(self):
-        self.assertEqual(0, len(Pipeline.objects.all()))
-
+    def test_create_template_version(self):
         self.client.force_login(self.USER_ROOT)
         r = self.run_query(
             """
-                mutation createPipeline($input: CreatePipelineInput!) {
-                    createPipeline(input: $input) {
-                        success errors pipeline {name code}
+                mutation createTemplateVersion($input: CreateTemplateVersionInput!) {
+                    createTemplateVersion(input: $input) {
+                        success errors template {name code version {version_number}}
                     }
                 }
             """,
             {
                 "input": {
-                    "code": "new_pipeline",
-                    "name": "MonBeauPipeline",
-                    "workspaceSlug": self.WS1.slug,
+                    "name": "Template1",
+                    "code": "template_code",
+                    "description": "A test template",
+                    "config": "{}",
+                    "workspace_slug": self.WS1.slug,
+                    "pipeline_id": self.PIPELINE.id,
+                    "pipeline_version_id": self.PIPELINE_VERSION.id,
                 }
             },
         )
@@ -101,14 +64,7 @@ class TemplatesTest(GraphQLTestCase):
             {
                 "success": True,
                 "errors": [],
-                "pipeline": {"name": "MonBeauPipeline", "code": "new_pipeline"},
+                "template": {"name": "Template1", "code": "template_code"},
             },
-            r["data"]["createPipeline"],
+            r["data"]["createTemplateVersion"],
         )
-        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).get()
-
-        self.assertEqual(1, len(Pipeline.objects.all()))
-        self.assertEqual(1, len(Pipeline.objects.filter_for_user(self.USER_ROOT)))
-        self.assertEqual(pipeline.type, PipelineType.ZIPFILE)
-
-        return pipeline
