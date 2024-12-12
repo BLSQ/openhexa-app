@@ -68,3 +68,27 @@ class TemplatesTest(GraphQLTestCase):
             },
             r["data"]["createTemplateVersion"],
         )
+        r = self.run_query(
+            """
+                mutation createTemplateVersion($input: CreateTemplateVersionInput!) {
+                    createTemplateVersion(input: $input) {
+                        success errors template {name code version {version_number}}
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "workspace_slug": self.WS1.slug,
+                    "pipeline_id": self.PIPELINE.id,
+                    "pipeline_version_id": self.PIPELINE_VERSION.id,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "template": {"name": "Template1", "code": "template_code"},
+            },
+            r["data"]["createTemplateVersion"],
+        )
