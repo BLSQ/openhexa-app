@@ -2,24 +2,41 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
-from hexa.catalog.queue import logger
+from config import logging
 
 
-class DHIS2Connection:
-    url: str = None
-    username: str = None
-    password: str = None
+class DHIS2ClientException(Exception):
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
+        self.log_error()
+
+    def __str__(self):
+        return self.message
+
+    def log_error(self):
+        logging.error(f"DHIS2 Cient Error : {self.message}")
 
 
-class DHIS2Exception(Exception):
-    pass
+class DHIS2Client(requests.Session):
+    def __init__(self, url: str, username: str, password: str):
+        super().__init__()
+        self.url = self.parse_api_url(url)
+        self.username = username
+        self.password = password
 
+        self.authenticate()
 
-class DHIS2Client:
-    def __init__(self, connection: DHIS2Connection):
-        self.url = connection.url
+    @staticmethod
+    def parse_api_url(url: str) -> str:
+        """Ensure that API URL is correctly formatted."""
+        url = url.rstrip("/")
+        if "/api" not in url:
+            url += "/api"
+        return url
 
-        self.session = requests.Session()
+    def authenticate(self):
+        self.auth = requests.auth.HTTPBasicAuth(self.username, self.password)
         adapter = HTTPAdapter(
             max_retries=Retry(
                 total=3,
@@ -28,43 +45,23 @@ class DHIS2Client:
                 status_forcelist=[429, 500, 502, 503, 504],
             )
         )
-        self.session.mount("https://", adapter)
-        self.session.mount("http://", adapter)
+        self.mount("https://", adapter)
+        self.mount("http://", adapter)
 
-        self.session = self.authenticate(connection.username, connection.password)
-        self.PAGE_SIZE = 1000
-
-        self.DEFAULT_EXPIRE_TIME = 86400
-        self.EXPIRE_TIMES = {
-            "dataValueSets": 604800,
-            "analytics": 604800,
-            "system": 60,
-        }
-
-    def authenticate(self, username: str, password: str) -> requests.Session():
-        s = requests.Session()
-        s.auth = requests.auth.HTTPBasicAuth(username, password)
-        r = s.get(f"{self.url}/system/ping")
-
-        if r.status_code in [200, 406]:
-            logger.info(f"Logged in to '{self.url}' as '{username}'")
-        else:
-            self.raise_if_error(r)
-        return s
-
-    def request(
-        self, method: str, endpoint: str, params: dict = None, data: dict = None
-    ) -> requests.Response:
-        url = f"{self.url}/{endpoint}"
-        response = self.session.request(method, url, params=params, json=data)
-        response.raise_for_status()
-        return response
+    def request(self, method: str, url: str, *args, **kwargs) -> requests.Response:
+        try:
+            resp = super().request(method, url, *args, **kwargs)
+            self.raise_if_error(resp)
+            return resp
+        except requests.RequestException as exc:
+            logging.exception(exc)
+            raise
 
     def raise_if_error(self, r: requests.Response) -> None:
         if r.status_code != 200 and "json" in r.headers["content-type"]:
             msg = r.json()
             if msg.get("status") == "ERROR":
-                raise DHIS2Exception(
+                raise DHIS2ClientException(
                     f"{msg.get('status')} {msg.get('httpStatusCode')}: {msg.get('message')}"
                 )
 
