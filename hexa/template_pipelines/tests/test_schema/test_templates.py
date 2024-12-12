@@ -14,7 +14,8 @@ from hexa.workspaces.models import (
 class TemplatesTest(GraphQLTestCase):
     USER_ROOT = None
     PIPELINE = None
-    PIPELINE_VERSION = None
+    PIPELINE_VERSION1 = None
+    PIPELINE_VERSION2 = None
 
     @classmethod
     def setUpTestData(cls):
@@ -32,14 +33,18 @@ class TemplatesTest(GraphQLTestCase):
                 description="Workspace 1",
             )
         cls.PIPELINE = Pipeline.objects.create(name="Test Pipeline", workspace=cls.WS1)
-        cls.PIPELINE_VERSION = PipelineVersion.objects.create(
+        cls.PIPELINE_VERSION1 = PipelineVersion.objects.create(
             pipeline=cls.PIPELINE,
             version_number=1,
             description="Initial version",
         )
+        cls.PIPELINE_VERSION2 = PipelineVersion.objects.create(
+            pipeline=cls.PIPELINE,
+            version_number=2,
+            description="Second version",
+        )
 
-    def test_create_template_version(self):
-        self.client.force_login(self.USER_ROOT)
+    def create_template_version(self, pipeline_version_id, expected_versions):
         r = self.run_query(
             """
                 mutation createTemplateVersion($input: CreateTemplateVersionInput!) {
@@ -56,7 +61,7 @@ class TemplatesTest(GraphQLTestCase):
                     "config": "{}",
                     "workspace_slug": self.WS1.slug,
                     "pipeline_id": str(self.PIPELINE.id),
-                    "pipeline_version_id": str(self.PIPELINE_VERSION.id),
+                    "pipeline_version_id": str(pipeline_version_id),
                 }
             },
         )
@@ -67,11 +72,15 @@ class TemplatesTest(GraphQLTestCase):
                 "template": {
                     "name": "Template1",
                     "code": "template_code",
-                    "versions": [{"version_number": 1}],
+                    "versions": expected_versions,
                 },
             },
             r["data"]["createTemplateVersion"],
         )
-        # TODO : add subsequent version
-        # TODO : verify admin
-        # TODO : review doc
+
+    def test_create_template_version(self):
+        self.client.force_login(self.USER_ROOT)
+        self.create_template_version(self.PIPELINE_VERSION1.id, [{"version_number": 1}])
+        self.create_template_version(
+            self.PIPELINE_VERSION2.id, [{"version_number": 1}, {"version_number": 2}]
+        )

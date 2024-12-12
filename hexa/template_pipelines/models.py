@@ -70,7 +70,7 @@ class TemplateVersionQuerySet(BaseQuerySet):
 
 class TemplateVersion(models.Model):
     class Meta:
-        ordering = ("-created_at",)
+        ordering = ("created_at",)
         constraints = [
             models.UniqueConstraint(
                 fields=["template", "version_number"],
