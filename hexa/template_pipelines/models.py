@@ -29,8 +29,12 @@ class Template(SoftDeletedModel):
                 "code",
                 name="unique_template_code_per_workspace",
                 condition=Q(deleted_at__isnull=True),
-            )
-            # TODO : one title per instance
+            ),
+            models.UniqueConstraint(
+                fields=["name"],
+                name="unique_template_name",
+                condition=Q(deleted_at__isnull=True),
+            ),
         ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
