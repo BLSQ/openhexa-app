@@ -89,6 +89,8 @@ class TemplateModelTest(TestCase):
             template_version2.source_pipeline_version, self.pipeline_version3
         )
 
+        self.assertEqual(template.versions.count(), 2)
+
 
 class TemplateVersionModelTest(TestCase):
     def setUp(self):
