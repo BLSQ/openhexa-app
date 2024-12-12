@@ -1,5 +1,5 @@
 type Mutation {
-  createTemplateVersion(input: CreateTemplateVersionInput!): CreateTemplateVersionPayload
+  createTemplateVersion(input: CreateTemplateVersionInput!): CreateTemplateVersionOutput
 }
 
 input CreateTemplateVersionInput {
@@ -12,7 +12,7 @@ input CreateTemplateVersionInput {
   pipeline_version_id: ID!
 }
 
-type CreateTemplateVersionPayload {
+type CreateTemplateVersionOutput {
   template: Template
   success: Boolean!
   errors: [String!]
