@@ -1,0 +1,8 @@
+responses:
+- response:
+    auto_calculate_content_length: false
+    body: pong
+    content_type: text/plain
+    method: GET
+    status: 200
+    url: http://localhost:8080/api/system/ping

@@ -1,0 +1,1030 @@
+responses:
+- response:
+    auto_calculate_content_length: false
+    body: '{"pager":{"page":1,"pageCount":2,"total":1035,"pageSize":1000,"nextPage":"http://localhost:8080/api/dataElements?page=2&pageSize=1000&fields=id%2Cname%2CaggregationType%2CzeroIsSignificant"},"dataElements":[{"name":"Accute
+      Flaccid Paralysis (Deaths < 5 yrs)","id":"FTRrcoaog83","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Acute
+      Flaccid Paralysis (AFP) follow-up","id":"P3jJH5Tu5VC","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Acute
+      Flaccid Paralysis (AFP) new","id":"FQ2o8UBlcrS","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Acute
+      Flaccid Paralysis (AFP) referrals","id":"M62VHgYT2n0","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Additional
+      medication","id":"WO8yRIZb7nb","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Additional
+      notes related to facility","id":"uF1DLnZNlWe","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Admission
+      Date","id":"eMyVanycQSC","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"Age
+      in years","id":"qrur9Dvnyt5","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"Age
+      of LLINs","id":"JuTpJ2Ywq5b","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Albendazole
+      given at ANC (2nd trimester)","id":"hCVSHjcml9g","aggregationType":"SUM","zeroIsSignificant":false},{"name":"All
+      access routes are clearly marked and safe","id":"rxt7nvPyRUi","aggregationType":"SUM","zeroIsSignificant":false},{"name":"All
+      other follow-ups","id":"RUv0hqER0zV","aggregationType":"SUM","zeroIsSignificant":false},{"name":"All
+      other new","id":"A2VfEfPflHV","aggregationType":"SUM","zeroIsSignificant":false},{"name":"All
+      other referrals","id":"laZLQdnucV1","aggregationType":"SUM","zeroIsSignificant":false},{"name":"All
+      sterilisation equipment is validated / licensed","id":"U7v0q0amJqi","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Anaemia
+      follow-up","id":"jmWyJFtE7Af","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Anaemia
+      new","id":"HLPuaFB7Frw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Anaemia
+      referrals","id":"yqBkn9CWKih","aggregationType":"SUM","zeroIsSignificant":false},{"name":"An
+      alternative to communicate if telephone line is off is always available","id":"sPQgYGhXnXI","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ANC
+      1st visit","id":"fbfJHSPpUQD","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ANC
+      2nd visit","id":"cYeuwXTCPkU","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ANC
+      3rd visit","id":"Jtf34kNZhzP","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ANC
+      4th or more visits","id":"hfdmMSPBgLG","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Animal
+      Bites - Rabid (Deaths < 5 yrs)","id":"LjNlMTl9Nq9","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Appropriate
+      hand washing facilities are available","id":"a57FmdPj3Zl","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ARI
+      treated with antibiotics (pneumonia) follow-up","id":"FHD3wiSM7Sn","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ARI
+      treated with antibiotics (pneumonia) new","id":"iKGjnOOaPlE","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ARI
+      treated with antibiotics (pneumonia) referrals","id":"XTqOHygxDj5","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ARI
+      treated without antibiotics (cough) follow-up","id":"RF4VFVGdFRO","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ARI
+      treated without antibiotics (cough) new","id":"Cm4XUw6VAxv","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ARI
+      treated without antibiotics (cough) referrals","id":"oLfWYAJhZb2","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      clients with new adverse clinical event","id":"NJnhOzjaLYk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      defaulters","id":"aIJZ2d2QgVV","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      enrollment stage 1","id":"BOSZApCrBni","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      enrollment stage 2","id":"dGdeotKpRed","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      enrollment stage 3","id":"eRwOwCpMzyP","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      enrollment stage 4","id":"zYkwbCBALhn","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      entry point: No diagnostic testing","id":"I5MLuG16arn","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      entry point: No old patients","id":"LVaUdM3CERi","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      entry point: No other","id":"vJSPn2R6gVe","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      entry point: No PMTCT","id":"kVOiLDV4OC6","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      entry point: No transfer in","id":"HDZOFvdXsqE","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      entry point: No transfer out","id":"soACnRV9gOI","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      entry point: No walk in","id":"FTy5pcJZ3yX","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      entry point: TB","id":"Yf4u4QOIdsi","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      new clients started on ARV","id":"QrhlrvV6Xs8","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      No clients who stopped TRT due to adverse clinical status/event","id":"wfKKFhBn0Q0","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      No clients who stopped TRT due to TRT failure","id":"GMd99K8gVut","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      No clients with change of regimen due to drug toxicity","id":"F53rTVTmSuF","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      No clients with new adverse drug reaction","id":"rNEpbBxSyu7","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      No started Opportunist Infection prophylaxis","id":"CxlYcbqio4v","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      treatment stopped due to death","id":"ibL7BD2vn2C","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ART
+      treatment stopped due to loss to follow-up","id":"TyQ1vOHM6JO","aggregationType":"SUM","zeroIsSignificant":false},{"name":"BCG
+      doses given","id":"s46m5MS0hxu","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Birth
+      certificate","id":"uf3svrmp8Oj","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Blood
+      pressure monitor, electronic or manual available","id":"nzl75uHiWQO","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Blood
+      transfusion within 3 months before onset of symptoms","id":"yO0ZIegEsDk","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"Burns
+      follow-up","id":"QYBJk7sqc1I","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Burns
+      new","id":"zMGEd921xd3","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Burns
+      referrals","id":"BHvVPwWrrLC","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Cabin
+      fever","id":"A21lT9x7pmc","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Case
+      detection","id":"fazCI2ygYkq","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"Case
+      Investigation Conducted By","id":"eYApmORDKgx","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Case
+      species classification","id":"lvx6qda7SN0","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Children
+      from Gen.Paed. ward tested for HIV","id":"hhevl49MXyA","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Children
+      from Gen.Paed. ward with positive HIV result","id":"HL77Pems4Cv","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Children
+      from TB ward tested for HIV","id":"ydvyXLhIbTn","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Children
+      from TB ward with positive HIV result","id":"AKJvJehDSb6","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Children
+      from TFC tested for HIV","id":"xFpppWvT43s","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Children
+      from TFC with positive HIV result","id":"KWzP8OWYQL7","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Children
+      getting therapeutic feeding","id":"qw2sIef52Fu","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Children
+      HIV 1&2 positive test","id":"e73QxJpd88B","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Children
+      HIV 1 positive test","id":"EnsFXKU7LEW","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Children
+      HIV 2 positive test","id":"GhsYeB89HaL","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Children
+      initiated ARV treatment","id":"MWEGBw0pmgU","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Children
+      on exclusive breastfeeding (HIV Paed.)","id":"SMrE2ByiyZp","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Children
+      on replacement feeding (HIV Paed.)","id":"UMexg4VGfaY","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Children
+      supplied with food supplemements","id":"Y53Jcc9LBYh","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CHO","id":"LSJ5mKpyEv1","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Cholera
+      (Deaths < 5 yrs)","id":"eY5ehpbEsB7","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Cholera
+      (Deaths < 5 yrs) Narrative","id":"mxc1T932aWM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Clinical
+      Malnutrition follow-up","id":"HJulLfnIAE3","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Clinical
+      Malnutrition new","id":"TBbCcJfZ91x","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Clinical
+      Malnutrition referrals","id":"oNyB0VOXIM8","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Clinical
+      status","id":"SzVk2KvkSSd","aggregationType":"NONE","zeroIsSignificant":false},{"name":"CMC
+      Clients offered information on range of methods exist","id":"LHXqz53TmPe","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      COPE has been introduced at the facility and staff conducted a COPE exercise
+      during the past quarter","id":"OJSkJXzhdU1","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Counseling rooms in FP and CAC service units ensure client privacy and confidentiality","id":"DF0B07U2lPZ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Date of clinical monitoring visit","id":"rkAZZFGFEQ7","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Facility part of health care finance (HCF) board scheme","id":"wokFPoIO3NK","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Facility receives FP referrals from community health workers","id":"rTYZHPHVULr","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      FP and CAC commodity requests correctly based on previous consumption / stock
+      at hand","id":"rZiGA1lv7Ah","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      FP and CAC procedure rooms have adequate lighting for the performance of all
+      procedures","id":"EonDTYTVXxM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      FP and CAC service units have dedicated hours or space for youth clients","id":"LadMythncw2","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      FP services available - Contraceptive pills","id":"UysSLXGhwrC","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      FP services available - Female condoms","id":"ZVqZ600pgzC","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      FP services available - Female Sterilization","id":"X4SRfUAnrHD","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      FP services available - Implanon","id":"xqlapchAEVR","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      FP services available - Injectables (DMPA)","id":"NKoGfjnFWcE","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      FP services available - IUD","id":"XPyixxRoRFF","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      FP services available - Jadelle or Sino-Implant","id":"k7vxGJER2SH","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      FP services available - Male condoms","id":"FNa6RHwtpuV","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      FP services available - Male Sterilization","id":"dupnnRrJB9g","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Functioning set-up for decontamination in both FP and CAC service units exist","id":"tY33H1Xmbiq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      IMPLANT INSERTION KITS (functional and in good condition) available","id":"VEsHW11Ee9u","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      IMPLANT REMOVAL KITS (functional and in good condition) available","id":"x7UR3a7PnFC","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Incentives for staff in the FP or CAC service units to provide FP exist","id":"eDO63WfftUO","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Infection prevention protocol charts are posted in both FP and CAC service units","id":"e4r6eLK76M9","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      IUD KITS (functional and in good condition) available","id":"jhz73zxjuuy","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      IUD REMOVAL KITS (functional and in good condition) available","id":"ozL7F7k4l0S","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Leak-proof and puncture-proof containers in FP and CAC exist","id":"ShRC4KSdfcw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      MINILAPAROTOMY KITS (functional and in good condition) available","id":"W87PJK0RlJa","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Most recent delivery of FP and CAC commodities match the request made through
+      the RRF","id":"sjir9Ki2vuA","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      MVA KITS (functional and in good condition) available","id":"Els0dBuHtWJ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      National guidelines and standards for FP and CAC service provision available","id":"AX2JjzrU0oU","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      NSV KITS (functional and in good condition) available","id":"KKEYwCcGvfl","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided in CAC unit - Contraceptive pills","id":"A4R8Ns0wtJk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided in CAC unit - Female condoms","id":"H5q0J5EeytP","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided in CAC unit - Implanon","id":"lLl7dD5jRhg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided in CAC unit - Injectables (DMPA)","id":"R8X9WHD6Ta9","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided in CAC unit - IUD","id":"J6KG9poh1WL","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided in CAC unit - Jadelle or Sino-Implant","id":"HcQqfCPHC79","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided in CAC unit - Male condoms","id":"MqeQ222wxN8","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided in CAC unit - Other (specify)","id":"otxWZ2s0Iyg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided through referrals - Contraceptive pills","id":"aEgcSZrUD1j","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided through referrals - Female condoms","id":"wpEO1pvc4oS","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided through referrals - Implanon","id":"yEPjrf4pvLF","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided through referrals - Injectables (DMPA)","id":"weKxnsPrnTB","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided through referrals - IUD","id":"sIZsJrOtJ8S","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided through referrals - Jadelle or Sino-Implant","id":"aponpM6fnJe","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided through referrals - Male condoms","id":"VX6qaS9JEGv","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP methods provided through referrals - Other (specify)","id":"XktwbHEcOZ5","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP referred other facility - Contraceptive pills","id":"TD9EmYHnJcZ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP referred other facility - Female condoms","id":"nECT8BcbdF6","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP referred other facility - Implanon","id":"A1wdvOOktNI","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP referred other facility - Injectables (DMPA)","id":"OutJUTjR21E","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP referred other facility - IUD","id":"PNAudHvnC29","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP referred other facility - Jadelle or Sino-Implant","id":"GvSDEPwzn1l","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP referred other facility - Male condoms","id":"aPRMs8ZWoQe","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post-abortion FP referred other facility - Other (specify)","id":"x6Cc96XcRjT","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post abortion related services available - E&C/D&C Abortion","id":"XcP6HTlP7Nt","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post abortion related services available - E&C/D&C Post-abortion","id":"x3cG1nQrV0d","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post abortion related services available - MA Abortion","id":"FAZsjrqfaYk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post abortion related services available - MA Post-abortion","id":"GaDscQKVYrw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post abortion related services available - MVA Abortion","id":"lFEc4Weo8Uw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Post abortion related services available - MVA Post-abortion","id":"Fo8lG6JORup","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Procedure rooms in FP and CAC service units ensure client privacy and confidentiality","id":"ylTxB8pDdW6","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Providers trained and certified both CAC and CC","id":"mrCQ760kGUu","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Providers trained and certified comprehensive abortion care (CAC)","id":"mU3ywrD2d24","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Providers trained and certified comprehensive contraception (CC)","id":"c30icyuh08j","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Providers trained and certified postpartum IUD insertion","id":"J6hufb5lO0k","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Providers trained in youth-friendly services in addition to CC or CAC services","id":"ILtncREADfd","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Provider teams trained and certified PMs","id":"OZGgl38Z7tC","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Safe abortion related services available - E&C/D&C Abortion","id":"xN2F50KrWOs","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Safe abortion related services available - E&C/D&C Post-abortion","id":"edTAupzSt8B","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Safe abortion related services available - MA Abortion","id":"MYVHFFkdTYi","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Safe abortion related services available - MA Post-abortion","id":"fmQ8ORZ0eaz","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Safe abortion related services available - MVA Abortion","id":"EQbayB0ysYj","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Safe abortion related services available - MVA Post-abortion","id":"QxYJoKrJTZx","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Signed consent forms for all PM and CAC procedures conducted during the past
+      two months","id":"nC6ZrPp6F7B","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Staff in FP/CAC units received a facilitative supervision visit from supervisor
+      past six months","id":"s5gk8w06vif","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Staff in the FP, CAC and pharmacy units have been oriented on use of the IPLS
+      for FP and CAC","id":"P7jdTXzh4ut","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Sterilization/HLD mechanism in place, such as sterilizer, boiler, autoclave
+      available in FP and CAC","id":"iyLG1s9EAQ8","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Stock-out - Contraceptive pills","id":"bZgd4FWFsQI","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Stock-out - Female condoms","id":"SDQMvEIFZJH","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Stock-out - Implanon","id":"CsORyrmcScJ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Stock-out - Injectables (DMPA)","id":"lZEg2kLmHnz","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Stock-out - IUD","id":"wwh5ng6o81Z","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Stock-out - Jadelle or Sino-Implant","id":"fuhMFSpMGzx","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Stock-out - Male condoms","id":"h0RS9WyBGPh","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Stock-out - Other (specify)","id":"es9P4K9xRCF","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Support provided ABRI III - CC and CAC support","id":"xV8nAovXuOF","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Support provided ABRI III - Community referral linkages","id":"KPxUIT1OtGW","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Support provided ABRI III - Others, specify","id":"heGCGPwVxfU","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Support provided ABRI III - PM (FS & NSV)","id":"xxgP9Pbe70o","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Support provided ABRI III - PPIUD","id":"uCSDy69GLVl","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Support provided ABRI III - Service integration","id":"sgcewfdjRRq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Support provided ABRI III - Youth-friendly services","id":"drDdShUJJzi","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Targets or quotas for service providers in the FP or CAC exist","id":"k5YaukDVwcu","aggregationType":"SUM","zeroIsSignificant":false},{"name":"CMC
+      Visiting team members (name and organization)","id":"o5USc1zH5mA","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Commodities
+      - Amoxicillin","id":"Boy3QwztgeZ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Commodities
+      - Antenatal Corticosteroids","id":"d9vZ3HOlzAd","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Commodities
+      - Chlorhexidine","id":"WjDoIR27f31","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Commodities
+      - Emergency Contraception","id":"BXgDHhPdFVU","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Commodities
+      - Female Condoms","id":"dY4OCwl0Y7Y","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Commodities
+      - Implants","id":"Dkapzovo8Ll","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Commodities
+      - Injectable Antibiotics","id":"JIazHXNSnFJ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Commodities
+      - Magnesium Sulfate","id":"o15CyZiTvxa","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Commodities
+      - Misoprostol","id":"f27B1G7B3m3","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Commodities
+      - Oral Rehydration Salts","id":"Lz8MM2Y9DNh","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Commodities
+      - Oxytocin","id":"hJNC4Bu2Mkv","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Commodities
+      - Resuscitation Equipment","id":"W1XtQhP6BGd","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Commodities
+      - Zinc","id":"TCfIC3NDgQK","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Community
+      Health Assistant (CHA)","id":"vBu1MTGwcZh","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Complicated
+      deliveries in community live birth","id":"tn3p7vIxoKY","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Complicated
+      deliveries in community still births","id":"FE82N2sA0YI","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Complicated
+      deliveries in PHU live birth","id":"R1WAv9bVXff","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Complicated
+      deliveries in PHU still births","id":"ncEnqRPHFvk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Country
+      traveled to","id":"f9xYwUwrHq9","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Coverage
+      (Response to clear/interrupt transmission and prevent onward infection)","id":"gomyQh3Z4Uy","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Date
+      carried out","id":"A2iV932tYAo","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Date
+      of assessment","id":"zDDHyXrJkCi","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Date
+      of previous classification","id":"Ah29MGrnVjJ","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Date
+      of previous malaria episode","id":"Urz28endlF6","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"Date
+      onset of Symptoms","id":"AZLp9Shoab9","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"Deaths
+      due to tuberculosis among HIV-negative people (per 100 000 population)","id":"V9bT6YUTrMZ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Debriefing
+      sessions are part of each resuscitation protocol","id":"DgnwZliJuh5","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Development
+      activity present","id":"Tj642rK34Qf","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Development
+      activity type","id":"jzksn7lA2ac","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Diagnosis
+      (ICD-10)","id":"K6uUAvq500H","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"Diarrhoea
+      with blood (Dysentery) follow-up","id":"vLA3KVFcZIw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Diarrhoea
+      with blood (Dysentery) new","id":"nymNRxmnj4z","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Diarrhoea
+      with blood (Dysentery) referrals","id":"HQv1p570ldT","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Diarrhoea
+      without severe dehydration follow-up","id":"nvkbuPrYmDd","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Diarrhoea
+      without severe dehydration new","id":"U3jd8zVFKxY","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Diarrhoea
+      with severe dehydration follow-up","id":"ndb4fIRrQbM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Diarrhoea
+      with severe dehydration new","id":"UfZcabJUVcZ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Diarrhoea
+      with severe dehydration referrals","id":"HpM1I5qc3Pb","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Discharge
+      Date","id":"msodh3rEMJa","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"Dispenser","id":"EzR5Y2V0JF9","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Distance
+      of inhabitants (with malaria) from breeding site","id":"okV7juK4t4M","aggregationType":"NONE","zeroIsSignificant":false},{"name":"District/block/sub-block","id":"xPs1qQeCRmq","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Doctor","id":"nlQztbooKAj","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Documentation","id":"ulD2zW0TIy2","aggregationType":"SUM","zeroIsSignificant":false},{"name":"DOT
+      3 days","id":"iI24WVP95js","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"Dysentery
+      (Deaths < 5 yrs)","id":"Ix2HsbDMLea","aggregationType":"SUM","zeroIsSignificant":false},{"name":"EDC
+      Unit Assitant","id":"zSl1hUZBDHY","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Effectiveness
+      of response","id":"NiF6K3MXHsi","aggregationType":"NONE","zeroIsSignificant":false},{"name":"EHO","id":"kFmyXB7IYrK","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Equipment
+      is placed in appropriate reachable areas","id":"uZJkd96hYCm","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ER
+      Census reports produced","id":"w1G4l0cSxOi","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ER
+      Children trained on key survival skills","id":"KFnFpbqDqji","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ER
+      Teacher accommodation constructed","id":"AcXiLSABIOe","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ER
+      Teachers trained","id":"EX2jDbKe4Yq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ER
+      Teacher training programs designed","id":"zFFb3bar4Ct","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ER
+      Teaching materials improved","id":"l8gZXKhwawK","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ER
+      Technical support visits","id":"DCSDJH4IFUG","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ER
+      Visits in schools","id":"oI6YtDaVFcw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ER
+      Vulnerable families receiving follow-up visits","id":"LCmAJHuXaoG","aggregationType":"SUM","zeroIsSignificant":false},{"name":"ER
+      Workshops conducted","id":"qiaHMoI3bjA","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Evidence","id":"PILB3GtIwiJ","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Examination
+      table with pad","id":"cG4A76jrZmp","aggregationType":"SUM","zeroIsSignificant":false},{"name":"EXP
+      Cars Expense","id":"BDuY694ZAFa","aggregationType":"SUM","zeroIsSignificant":false},{"name":"EXP
+      Drugs Expense","id":"ixDKJGrGtFg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Expected
+      pregnancies","id":"h0xKKjijTdI","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"EXP
+      Salary Expense","id":"M3anTdbJ7iJ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"EXP
+      Security Expense","id":"dHrtL2a4EcD","aggregationType":"SUM","zeroIsSignificant":false},{"name":"EXP
+      Sheets Expense","id":"RR538iV9G1X","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Eye
+      infection follow-up","id":"QV7HsRncdCz","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Eye
+      infection new","id":"BQI18TPLR7W","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Eye
+      infection referrals","id":"XfsVSt4zciP","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Facility
+      has access to running water","id":"TLSChlBcw7L","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Facility
+      has access to stable electrical power","id":"UMJym1vYPSu","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Facility
+      has access to stable Internet connectivity","id":"MJYalhqFsHK","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Fever","id":"rzhHSqK3lQq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Foci
+      malaria positive","id":"JmZ0m8Q3gwh","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Foci
+      malaria test","id":"rFQNCGMYud2","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Focus
+      date of classification","id":"bl7EMKxJIIT","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Focus
+      final classification","id":"fjdU9F6EngS","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Foetal
+      heart recorded hourly","id":"BbE5wGi3gZl","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Follow-up
+      diagnosis actions","id":"UfCjMVB4gFT","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Follow-up
+      treatment actions","id":"ErApFcbWNtV","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Follow-up
+      vector control action details","id":"zgnTlAH4ZOk","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Follow-up
+      vector control action details 2","id":"Y14cBKFUsg4","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Follow-up
+      vector control action details 3","id":"pKj8YrNKVda","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Follow-up
+      vector control action details 4","id":"E09G4giWspB","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Follow-up
+      vector control action details 5","id":"nrVAe60NnBJ","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Follow-up
+      vector control actions","id":"TOxArSXVv3E","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Follow-up
+      vector control actions 2","id":"wNvEmaLLGE2","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Follow-up
+      vector control actions 3","id":"h0w2rWQVRsQ","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Follow-up
+      vector control actions 4","id":"fHRsTEml7pq","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Follow-up
+      vector control actions 5","id":"Qvb7NExMqjZ","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Fully
+      Immunized child","id":"UOlfIjgN8X6","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Gender","id":"oZg33kd9taw","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"General
+      state of facility","id":"sJWqKsx0ghX","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Geographical
+      features","id":"SaHE38QFFwZ","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Glucometer
+      is present","id":"y3S3a9e4ugi","aggregationType":"SUM","zeroIsSignificant":false},{"name":"GPS
+      DataElement","id":"GyJHQUWZ9Rl","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Grounds
+      are maintained and are safe and clean","id":"Kjvr9TNOmC1","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Height
+      in cm","id":"GieVkTxp4HH","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"HIV:
+      counseling","id":"o0fOD1HLuv8","aggregationType":"SUM","zeroIsSignificant":false},{"name":"HIV:
+      currently on care","id":"ZwrIPRUiHEB","aggregationType":"SUM","zeroIsSignificant":false},{"name":"HIV
+      exposed children tested at 12 months","id":"ESGq1GV8YEE","aggregationType":"SUM","zeroIsSignificant":false},{"name":"HIV
+      exposed children tested at 18 months","id":"ECYnLIh3IdU","aggregationType":"SUM","zeroIsSignificant":false},{"name":"HIV
+      exposed children with positive result at 12 months","id":"ifTgszmp25q","aggregationType":"SUM","zeroIsSignificant":false},{"name":"HIV
+      exposed children with positive result at 18 months","id":"cxkB6Csdae7","aggregationType":"SUM","zeroIsSignificant":false},{"name":"HIV
+      exposed infants initiated cotrim from age 6 wks","id":"dL7MKVOSCUf","aggregationType":"SUM","zeroIsSignificant":false},{"name":"HIV
+      infected children given cotrim prophylaxis (18m-18y)","id":"ofqavN7bUXQ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"HIV:
+      new on care","id":"veW7w0xDDOQ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"HIV
+      positive children lost to follow-up","id":"PwAOGo407Kq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"HIV
+      positive women assessed for ART eligibility by CD4 counting","id":"u6yhzgWPIsj","aggregationType":"SUM","zeroIsSignificant":false},{"name":"HIV
+      positive women assessed for ART eligibility by clinical staging","id":"CwnEqKR0ebt","aggregationType":"SUM","zeroIsSignificant":false},{"name":"HIV
+      related deaths (children)","id":"pN3V4jZeCmU","aggregationType":"SUM","zeroIsSignificant":false},{"name":"HIV:
+      testing","id":"R4KStuS8qt7","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Household
+      Investigation Conducted By","id":"VGASkvkD2Vf","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Household
+      location","id":"F3ogKBuviRA","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Household
+      members fever past month","id":"rIjZnxmjGpg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Household
+      members malaria positive","id":"qxWAgIAfZAh","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Household
+      members tested for malaria","id":"y57kkdyw35d","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Households","id":"VNM6zoPECqd","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Households
+      included","id":"k0rev4WSffi","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Households
+      in neighbourhood","id":"fPPOb4St6ea","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Households
+      in neighbourhood where a case was detected","id":"VOIXEuqBTBI","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Household
+      sprayed in the past 6 months","id":"AeVEKN0zwJJ","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"Households
+      screened","id":"p2NvDm7mWM3","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Hypertension
+      follow-up","id":"h0BwBQO9XUf","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Hypertension
+      new","id":"UXW5hWW8dE1","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Hypertension
+      referrals","id":"X5GbcxQCasr","aggregationType":"SUM","zeroIsSignificant":false},{"name":"IC
+      Activity","id":"f3Rn9XPEQuv","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"IC
+      Age","id":"Dv7iIitX44Y","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"IC
+      Group Type","id":"UuL3eX8KJHY","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"IC
+      People reached","id":"lsJCUffec9h","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"IC
+      Topic","id":"deQEw93Vr4j","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"IC
+      Venue","id":"DvrjjquRrvF","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"IDSR
+      Cholera","id":"UsSUX0cpKsH","aggregationType":"SUM","zeroIsSignificant":false},{"name":"IDSR
+      Malaria","id":"vq2qO3eTrNi","aggregationType":"SUM","zeroIsSignificant":false},{"name":"IDSR
+      Measles","id":"YazgqXbizv1","aggregationType":"SUM","zeroIsSignificant":false},{"name":"IDSR
+      Plague","id":"HS9zqaBdOQ4","aggregationType":"SUM","zeroIsSignificant":false},{"name":"IDSR
+      Yellow fever","id":"noIzB569hTM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Index
+      case","id":"QBrhoanBAV5","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Infants
+      born to HIV Positive mothers (exposed)","id":"XB4uzhs4Is4","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Infants
+      delivered in the health facility female","id":"avs8Dhz3OoG","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Infants
+      delivered in the health facility male","id":"N9vniUuCcqY","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Inpatient
+      cases","id":"WHBtsCMZVAE","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Inpatient
+      deaths","id":"ZRVfMoPKK05","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Inpatient
+      malaria cases","id":"p4K11MFEWtw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Inpatient
+      malaria deaths","id":"wWy5TE9cQ0V","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Inpatient
+      Place of Infection","id":"S33cRBsnXPo","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Insured
+      patient","id":"IyAKwL6Zjkl","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"IPT
+      1st dose given at PHU","id":"bqK6eSIwo3h","aggregationType":"SUM","zeroIsSignificant":false},{"name":"IPT
+      1st dose given by TBA","id":"yTHydhurQQU","aggregationType":"SUM","zeroIsSignificant":false},{"name":"IPT
+      2nd dose given at PHU","id":"V37YqbqpEhV","aggregationType":"SUM","zeroIsSignificant":false},{"name":"IPT
+      2nd dose given by TBA","id":"SA7WeFZnUci","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Iron
+      Folate given at ANC 3rd","id":"rbkr8PL0rwM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"IRS
+      coverage (%)","id":"Pm5sXfeRbzp","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"Laboratory
+      Assistant","id":"eizakNwF2ep","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Laboratory
+      Technician","id":"v0Shu9zrSh0","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Lassa
+      fever follow-up","id":"dVdxnTNL2jZ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Lassa
+      fever new","id":"NCteyX2xpMf","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Lassa
+      fever referrals","id":"uz8dqEzuxyc","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Leprosy
+      follow-up","id":"kqqgh0EOlcA","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Leprosy
+      new","id":"zAW6b5Owalk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Leprosy
+      referrals","id":"KAXjpSLFlhB","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Lighting
+      and ventilation is observed to be adequate","id":"X0rTbbFpRTO","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Live
+      births","id":"gQNFkFkObU8","aggregationType":"SUM","zeroIsSignificant":false},{"name":"LLIN
+      coverage (%)","id":"fADIatyOu2g","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"LLINs
+      displayed","id":"JhpYDsTUfi2","aggregationType":"SUM","zeroIsSignificant":false},{"name":"LLIN
+      usage (%)","id":"g6tH05ItHEm","aggregationType":"NONE","zeroIsSignificant":false},{"name":"LLITN
+      given after delivery","id":"ntzmpYRSKGg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"LLITN
+      given at ANC 1st","id":"ybzlGLjWwnK","aggregationType":"SUM","zeroIsSignificant":false},{"name":"LLITN
+      given at Penta3","id":"z7duEFcpApd","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Local
+      Case Classification","id":"doBYriW7P5a","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Louse
+      Borne Typhus - Relapsing fever (Deaths < 5 yrs)","id":"NpJtsQkMTm3","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Low
+      birth weight in community","id":"Ce6kAvaHsxR","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Low
+      birth weight in PHU","id":"DvEF1SdMORa","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Main
+      breeding site","id":"bW5ZTqkCTHy","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Main
+      breeding sites","id":"Vbv4EDAeXJl","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Malaria
+      case classification","id":"ElxhP9pTTP6","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Malaria
+      confirmed mixed (CI)","id":"HUPFagklWaN","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      confirmed mixed (foci)","id":"vYH71AeWNQK","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      confirmed Pf (CI)","id":"jt8mzqlDEjd","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      confirmed Pf (foci)","id":"Xh63x0mfF5o","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      confirmed Pk (CI)","id":"ZB8ZUUsxqsd","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      confirmed Pk (foci)","id":"NMtyvCDiGxh","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      confirmed Pm (CI)","id":"sJ23PICb6Fy","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      confirmed Pm (foci)","id":"qYaI3TszPET","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      confirmed Po (CI)","id":"E2K6KluoF7L","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      confirmed Po (foci)","id":"PaliV83bIb9","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      confirmed Pv (CI)","id":"ImgnHPhcNYE","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      confirmed Pv (foci)","id":"XjcDg2kOmqf","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      (Deaths < 5 yrs)","id":"r6nrJANOqMw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      (Deaths < 5 yrs) Narrative","id":"a0WhmKHnZ6J","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      history","id":"cpXwLgQTLeO","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"Malaria
+      inpatient/outpatient","id":"E0W0ZTTosXK","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Malaria
+      Medication","id":"nTMP8Aj1rYA","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Malaria
+      medication completed","id":"uYreHlUd6RL","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"Malaria
+      Outbreak Threshold","id":"nXJJZNVAy0Y","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      positive (people in neighbourhood)","id":"LvJ1d1ytjfb","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      positive species","id":"vGxpKVMkmaW","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Malaria
+      referrals","id":"hnwWyM4gDSg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      test","id":"qdjVZojEK8S","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Malaria
+      tested (people in neighbourhood)","id":"r9O7yJrA41g","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      test result","id":"aY4kB8kS521","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Malaria
+      treated at PHU with ACT < 24 hrs f-up","id":"CecywZWejT3","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      treated at PHU with ACT > 24 hrs f-up","id":"bVkFujnp3F2","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      treated at PHU with ACT < 24 hrs new","id":"AFM5H0wNq3t","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      treated at PHU with ACT > 24 hrs new","id":"d92E7cpMvdl","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      treated at PHU without ACT < 24 hrs f-up","id":"iIBbZPAqnMt","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      treated at PHU without ACT > 24 hrs f-up","id":"pgi981WXhas","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      treated at PHU without ACT < 24 hrs new","id":"nmh0BSu3vaV","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      treated at PHU without ACT > 24 hrs new","id":"EGUJY3jQdJ6","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      treated in community with ACT <24 hrs f-up","id":"TQnDEASFsVH","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      treated in community with ACT >24 hrs f-up","id":"vzcahelbU5s","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      treated in community with ACT <24 hrs new","id":"x8gsvCKjGdZ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Malaria
+      treated in community with ACT >24 hrs new","id":"kcbTUfABUck","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Maternal
+      death","id":"FUrCpcvMAmC","aggregationType":"SUM","zeroIsSignificant":false},{"name":"MCH
+      Aide","id":"q7QXzNnSstn","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"MCH
+      ANC Visit","id":"g9eOBujte1U","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Apgar comment","id":"H6uSAMO5WLD","aggregationType":"SUM","zeroIsSignificant":false},{"name":"MCH
+      Apgar Score","id":"a3kGcGDCuk6","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      ARV at birth","id":"wQLfBvPrXqq","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      ARVs","id":"NALlPhMmMTQ","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      BCG dose","id":"bx6fsa0t90x","aggregationType":"SUM","zeroIsSignificant":false},{"name":"MCH
+      Blood Pressure","id":"KVQpGEjHluk","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Breast Status","id":"thO0LN2i2OJ","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      CD4 count","id":"XorIxxprsOp","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Cervix Status","id":"DWcWXE0xO2b","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Child ARVs","id":"sj3j9Hwc7so","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Condition of baby on discharge","id":"PuakB9BOtIV","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Condition of mother on discharge","id":"Rbv6wcblbxe","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      CTX","id":"ihOp58eRcG3","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Date of Delivery","id":"uxRgo9bGWhX","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Delivery Comment","id":"tLn2UVJJ9kO","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      DPT dose","id":"pOe0ogW4OWd","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Family Planning","id":"DBFcMGod0Wy","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      HB","id":"xjTklbpY6oG","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      HIV Test Type","id":"hDZbpskhqDd","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Infant Feeding","id":"X8zyunlgUfM","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Infant HIV Test Result","id":"cYGaxwK615G","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Infant Weight  (g)","id":"GQY2lXrypjO","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      IPT dose","id":"lNNb3truQoi","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Iron/Folic","id":"EzMxXuVww2z","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      ITN","id":"sMspMpbvDYI","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Mabendazole","id":"pB5sL7Ts4fb","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Management of 3rd stage","id":"gvrK6CxWTcp","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Measles dose","id":"FqlgKAG8HOu","aggregationType":"SUM","zeroIsSignificant":false},{"name":"MCH
+      Mode of Delivery","id":"fIy3fOtkbdS","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      MUAC","id":"utliJZmDeeC","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      OPV dose","id":"ebaJjqltK5N","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Penta dose","id":"vTUhAUZFoys","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      PMTCT P","id":"SMo8UtuSF5p","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      PMTCT W","id":"jkKCVlLRsFD","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Polio dose","id":"uRYRt4fs52Q","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Results given to caretaker","id":"BeynU4L6VCQ","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Septrin Given","id":"aei1xRjSU2l","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Status of the Baby (PNC)","id":"L9G6ZtxbfjG","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Syphilis Test","id":"r0VOslrt2RP","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      TB Status","id":"wpKRnvM14KO","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Tetatus","id":"gAbD3uDVHHh","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Visit Comment","id":"OuJ6sgPyAbC","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Vit A","id":"HLmTEmupdX0","aggregationType":"SUM","zeroIsSignificant":false},{"name":"MCH
+      Weight (g)","id":"UXz7xuGCEhU","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      WHO Stage","id":"DRGELgdyWk9","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"MCH
+      Yellow fever dose","id":"rxBfISxXS2U","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Measles
+      (Deaths < 5 yrs)","id":"f7n9E0hX8qk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Measles
+      (Deaths < 5 yrs) Narrative","id":"FaVPxpiCab5","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Measles
+      doses given","id":"YtbsuPPo010","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Measles
+      follow-up","id":"uCVKV6PGGNB","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Measles
+      new","id":"GCvqIM3IzN0","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Measles
+      referrals","id":"eomLLbWJfcx","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Mebendazole/Albendazole
+      (for children 12-59 months)","id":"d5xTg3WR3DP","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Meningitis
+      (Deaths < 5 yrs)","id":"MSZuQ1mTsia","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Meningitis/severe
+      bacterial infection follow-up","id":"bBiAGF9UhUy","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Meningitis/severe
+      bacterial infection new","id":"JFFUt8yR2iW","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Meningitis/severe
+      bacterial infection referrals","id":"hfuTiKOkuKs","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Microscopy
+      Result","id":"UheAxQgiyyE","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Micro
+      +ve species","id":"BRqksRYCj8a","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Midwife","id":"OKj6vV8hmTP","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"MNCH
+      ANC Attendance","id":"WQSdEl9xUMA","aggregationType":"SUM","zeroIsSignificant":false},{"name":"MNCH
+      ANC registrants","id":"iYCGteGcr6Q","aggregationType":"SUM","zeroIsSignificant":false},{"name":"MNCH
+      Breech/shoulder delivery","id":"ijIsjbvXFJL","aggregationType":"SUM","zeroIsSignificant":false},{"name":"MNCH
+      Caesarean section deliveries","id":"DosHq4vnsYv","aggregationType":"SUM","zeroIsSignificant":false},{"name":"MNCH
+      Cases of anaemia during ANC","id":"QhKQD2wHowC","aggregationType":"SUM","zeroIsSignificant":false},{"name":"MNCH
+      Destructive operations delivery","id":"Q8lOv2CAUjf","aggregationType":"SUM","zeroIsSignificant":false},{"name":"MNCH
+      Heamoglobin checks performed during ANC","id":"aLF5wmCZrKF","aggregationType":"SUM","zeroIsSignificant":false},{"name":"MNCH
+      Normal deliveries","id":"SqvCDfGBFzM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"MNCH
+      vacuum/forceps delivery","id":"g9Tso8plX88","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Mode
+      of Discharge","id":"fWIAEtYVEGk","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"Months
+      pregnant","id":"Y4EkaFzzGLY","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Neonatal
+      Tetanus follow-up","id":"sFMVaj1mHBk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Neonatal
+      Tetanus new","id":"wcwbN1jR0ar","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Neonatal
+      Tetanus referrals","id":"HFw6q0jUFKI","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Newborn
+      protected at birth against tetanus (TT2+)","id":"DUSpd8Jq3M7","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on ABC 300mg + ddI 200mg + IDV 400mg + r 100mg","id":"PxT44IblPCq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on ABC 300mg + ddI 200mg + LPV/r 133.3/33.3mg","id":"la1f7sqY9sb","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on ART other regimen","id":"lmj0xtl5P6C","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on AZT 10mg/ml + 3TC 10mg/ml + NVP 10mg/ml","id":"xrbIG3L9DdO","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on AZT 300mg + 3TC 150mg + ABC 300mg ","id":"xETRo03ZfOM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on AZT 300mg /  3TC 150mg + EFV 600mg","id":"tZLjsE0VXrL","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on AZT 300mg / 3TC 150mg + NVP 200mg","id":"YX1MQLgAD92","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on AZT 300mg + 3TC 150mg + TDF 300mg ","id":"wIQ5ugpWYUH","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on AZT 300mg at 28 wks","id":"GgsWqA0YETj","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on AZT + 3TC 300mg + 150mg for 7 days","id":"GNY9KvEmRjy","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on AZT + 3TC 300mg + 150mg for 7 days after 36 weeks","id":"nvsNqhfSSxd","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on AZT + 3TC 300mg + 150mg on labour","id":"ozmEltb5V8d","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on AZT + 3TC + NVP 300mg + 150mg + 200mg","id":"pVImQlMAla4","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on d4T 30mg + 3TC 100mg + ABC 300mg","id":"hoj1wTJT6ZW","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on d4T 30mg + 3TC 100mg + TDF 300mg ","id":"SLcj0Swq8rD","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on d4T 30mg + 3TC 150mg + EFV 600mg","id":"x98jMXibptT","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on d4T 30mg / 3TC 150mg / NVP 200mg","id":"o44j6gPqFlA","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on d4T / 3TC / NVP 12mg/60mg/100mg","id":"YIDKw3om85t","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on d4T / 3TC / NVP 6mg/30mg/50mg","id":"pq4msirdtpr","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on d4T 40mg + 3TC 150mg + EFV 600mg","id":"fDkcJaO15aQ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on d4T 40mg / 3TC 150mg / NVP 200mg","id":"xUNvvqqhNwz","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on Infant NVP 10mg/ml (2mg/kg)","id":"uN64b5MivTO","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on NVP + AZT + 3TC 10mg/ml (2mg/kg) + 10mg/ml + 10mg/ml for 7 days","id":"D4PywWuIwy0","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on TDF 300mg + ddI 200mg + IDV 400mg + r 100mg","id":"tnDQ80ycQus","aggregationType":"SUM","zeroIsSignificant":false},{"name":"New
+      on TDF 300mg + ddI 200mg + LPV/r 133.3mg/33.3mg","id":"w1554hhXNcq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Non-active
+      malaria foci classification","id":"ai8q3uo44rl","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Non-resident
+      district and country","id":"OAVNZb2venY","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Number
+      of deaths due to tuberculosis excluding HIV","id":"oUlFoAVdLgB","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Number
+      of prevalent tuberculosis cases","id":"LseeuddA4Fp","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Nursing
+      Aide","id":"DUtltDE5ma1","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Onchocerciasis
+      follow-up","id":"BvuQnfq1C4J","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Onchocerciasis
+      new","id":"DrEOxW8mbbh","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Onchocerciasis
+      referrals","id":"q9AIeFQD7zj","aggregationType":"SUM","zeroIsSignificant":false},{"name":"OPV0
+      doses given","id":"x3Do5e7g4Qo","aggregationType":"SUM","zeroIsSignificant":false},{"name":"OPV1
+      doses given","id":"pikOziyCXbM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"OPV2
+      doses given","id":"O05mAByOgAv","aggregationType":"SUM","zeroIsSignificant":false},{"name":"OPV3
+      doses given","id":"vI2csg55S9C","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Other
+      additional medication (please specify)","id":"QjBlbVQ8QR8","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Other
+      breeding site","id":"efvdFsY1dme","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Other
+      diagnosis method (please specify)","id":"FxYWTORW4mT","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Other
+      staff","id":"viFyEk7JmVd","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Other
+      Symptoms","id":"VUUio5uEiyZ","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"Otitis
+      media follow-up","id":"ArS7VyuL95f","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Otitis
+      media new","id":"DWLCM68Q7Zl","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Otitis
+      media referrals","id":"j73ScVBTyP0","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Outcome
+      of illness","id":"zXNfOKXRBA9","aggregationType":"NONE","zeroIsSignificant":false},{"name":"PCV1
+      doses given","id":"xc8gmAKfO95","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PCV2
+      doses given","id":"mGN1az8Xub6","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PCV3
+      doses given","id":"L2kxa2IA2cs","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Penta1
+      doses given","id":"fClA2Erf6IO","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Penta2
+      doses given","id":"I78gJm4KBo7","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Penta3
+      doses given","id":"n6aMJNLdvep","aggregationType":"SUM","zeroIsSignificant":false},{"name":"People
+      included","id":"DX4LVYeP7bw","aggregationType":"NONE","zeroIsSignificant":false},{"name":"PFS
+      Date of training (end of training)","id":"qpQinIDQ6Uy","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      End-of-training assessment - CAC counseling","id":"zNXca47AaTh","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      End-of-training assessment - CAC MVA","id":"fQMBEt42CSl","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      End-of-training assessment - CC FP counseling","id":"PfSefJQpg5g","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      End-of-training assessment - CC Implanon insertion","id":"f2MduVqwPXO","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      End-of-training assessment - CC IUCD insertion","id":"GXNUsigphqK","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      End-of-training assessment - CC Jadelle insertion","id":"ROEGWNaasDP","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      End-of-training assessment - PM FP counseling","id":"Lh9x3J6EF0g","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      End-of-training assessment - PM NSV","id":"BLNHqFdGFRv","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      End-of-training assessment - PM Suprapubic minilap","id":"Y35b9mKPwgz","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      End-of-training assessment - PPIUD FP counseling","id":"CtpjtJOlix1","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      End-of-training assessment - PPUID Postplacental IUCD","id":"Kdj9bEhmtER","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Inadequate client recovery area","id":"bTWjEduOv4P","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Inadequate client recovery area - Discussion off-site management","id":"uYrt6Rjh0q2","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Inadequate client recovery area - Discussion on-site management","id":"lsPerCow7QG","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Inadequate client recovery area - Discussion with provider","id":"qlzHqClWAsG","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Inadequate counseling room","id":"D795f7Ftl5Z","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Inadequate counseling room - Discussion with off-site management","id":"msiehvzdkh0","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Inadequate counseling room - Discussion with on-site management","id":"qv3Ivgr7qA8","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Inadequate counseling room - Discussion with provider","id":"OjGY9phCVkF","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Inadequate procedure room","id":"hFbuuBkjut3","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Inadequate procedure room - Discussion with off-site management","id":"kSDiqFhUP8P","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Inadequate procedure room - Discussion with on-site management","id":"zJer0XIW5fV","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of clinical knowledge","id":"zF6StgsGthD","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of clinical knowledge - Clinical coaching","id":"DgluqT5CbIp","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of clinical knowledge - Knowledge update/orientation","id":"OKN6ZG1z7pq","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of clinical knowledge - Provision of reference materials","id":"ZpvFqxRhFuP","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of clinical skill","id":"Q6vysZzUoPl","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of clinical skill - Arrangement exchange visit high caseload site","id":"ogBU5CfbAUZ","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of clinical skill - Arrangement for peer mentoring on-site","id":"z8Ay2GaaqpC","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of clinical skill - Clinical coaching","id":"lJSMLN5WRDF","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of clinical standards","id":"LDEqL9GokCM","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of clinical standards - Discussion with off-site management","id":"dGdEEpNb7GW","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of clinical standards - Discussion with on-site management","id":"uHkibfGqtXg","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of clinical standards - Provision of job aids/guidelines","id":"HpC2iqyoMR8","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of confidence","id":"fgPOFbi37BM","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of confidence - Arrangement for peer mentoring on-site","id":"VDxTE7l7sc7","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of confidence - Clinical coaching","id":"Ws36Dp6gHA1","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Lack of confidence - Encouragement","id":"KRJeVOPBy6t","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Method of contact","id":"GFDKf2idXLV","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Name of person conducting follow-up","id":"e4EMaGSEyV9","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Provider provision challenges - CAC","id":"IgkWhfPryqt","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Provider provision challenges - FS","id":"Q5725FPinzH","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Provider provision challenges - Implant","id":"ihgI4dDwUQT","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Provider provision challenges - IUD","id":"AVC7oJYrZrk","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Provider provision challenges - NSV","id":"WMhpzP6czRF","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Provider provision challenges - PAFP","id":"ZhGKg3ssbmX","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Provider provision challenges - PPIUD","id":"UoRMWhj2YIy","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 0 - CAC","id":"pharIEKZNo0","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 0 - FS","id":"IZSvH4lOb1h","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 0 - Implant","id":"DcsUXIcK8IJ","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 0 - IUD","id":"rxTX7yNs8Ph","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 0 - NSV","id":"ypvDEOvkjTx","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 0 - PA FP","id":"SayYGlKyPCa","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 0 - PPIUD","id":"ASvofuem7Oa","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 1 - CAC","id":"M3H9NEMuBix","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 1 - FS","id":"hca8vQ6jEST","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 1 - Implant","id":"SKh80FGIVKI","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 1 - IUD","id":"MUOpAoXRVX9","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 1 - NSV","id":"bCBiRLqLjQl","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 1 - PA FP","id":"vsKP6aojcqL","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 1 - PPIUD","id":"njV5usO9oNl","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 2 - CAC","id":"t9NU3SqPvcN","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 2 - FS","id":"zff1i2Iwk8S","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 2 - Implant","id":"PKBFrGgUy26","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 2 - IUD","id":"pWpQ69deqiv","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 2 - NSV","id":"QKujt9JlJfn","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 2 - PA FP","id":"JSovKG6FZNW","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Service provision 2 - PPIUD","id":"cOXBak6pilm","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Type of training - CAC","id":"yqiAt2vL2Oe","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Type of training - CC","id":"wqH05wytdJH","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Type of training - CC (OJT)","id":"Ef3ueStqxJj","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Type of training - PM","id":"gtYt3KpQpW8","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Type of training - PPIUD","id":"suMqFd2seuA","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PFS
+      Visit number","id":"Mnkodq2wzlV","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"PH
+      Aide","id":"dIqx7rdnVc9","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Place
+      where transmission occurs","id":"Kx7SANA8K1z","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Plague
+      (Deaths < 5 yrs)","id":"lXolhoWewYH","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Plague
+      (Deaths < 5 yrs) Narrative","id":"iT8n0tI3nRW","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PLHIVs
+      referred for TB screening","id":"srXmZTeJxxT","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PLHIVs
+      referred for TB test (Sputum/CXRay)","id":"ZydlV51mGuj","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PLHIVs
+      with a positive TB result","id":"oxht1VLqF6x","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      discordant partners or couples","id":"yMtFhLsbZaL","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      expected delivery among HIV+ women","id":"ZFC9MdnFHFJ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      HIV exposed children registered during the course of the month","id":"x0PshcPLSk1","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      HIV positive Women received ZDV and 3TC during labor","id":"hxh8X16Gvip","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      HIV positive women received ZDV at ANC","id":"dWqQVwKJTSu","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      HIV positive w. received ART for own health","id":"gnKnwQbY3UK","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      infant who received NVP within 72hrs","id":"wZqi8EXN5x4","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      infant who received ZDV & Lamivudine","id":"HdQ2QsgMtCc","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      male partners tested for HIV","id":"WqbXHjN95Xw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      male partners tested HIV positive","id":"MIKpDxt5ZvE","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      No HIV women who delivered in the health facility (CS)","id":"RoCtZpDLVS7","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      No HIV women who delivered in the health facility (Normal)","id":"tAQe5dZ6wRv","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      No of expected HIV exposed children","id":"rFTnRXMFgxC","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      positive w. offered FP during ANC/Post natal","id":"L4G4X567SeK","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      positive w. referred for FP from ANC","id":"zCPMzMGWyHU","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      reported mother death","id":"FGdTDgQrsBy","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      total expected preg. women for the month","id":"aO5TCNZ4OOr","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      women counselled for infant feeding","id":"kfSFuD4Q8rF","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      women HIV1","id":"fQ46YRJj7Yq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      women HIV1 and HIV2","id":"yhrP2vizKlf","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      women HIV2","id":"hQkv3NaAjqv","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      women HIV positve","id":"TvQ1myd6oTE","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      women lost to contact","id":"f3vP3dSjUrS","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      women received complete ARV for PMTCT","id":"WQqSx9H0RDf","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      women received NVP during labour","id":"e87Gl0315MV","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      women received post test counselling and result","id":"OCU92ttHmic","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      women received pre- test counselling","id":"CJKrsPzuY8R","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      women received ZDV & 3CT after delivery","id":"HPZd1WtTArI","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      women seen for 1st ANC","id":"ONgKakbp7wR","aggregationType":"SUM","zeroIsSignificant":false},{"name":"PMTCT
+      women tested for HIV","id":"fxOM6VBQhBy","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Population","id":"HDRons6AfbL","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Population
+      of women of child bearing age (WRA)","id":"vg6pdjObxsm","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Porter","id":"zgeAdnpSY5K","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Postnatal
+      1st contact (within 1 week)","id":"LhoRsqtRn4r","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Postnatal
+      2nd contact (at 6 weeks)","id":"k1vnEuKnRYE","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Pregnancy-related
+      complications","id":"h8vtacmZL5j","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Pregnancy-related
+      deaths (6 weeks of birth) 10-19y at PHU","id":"d6GUgNWCDfl","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Pregnancy-related
+      deaths (6 weeks of birth) 10-19y in comm.","id":"z1q4VpzJvEh","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Pregnancy-related
+      deaths (6 weeks of birth) 20-35y at PHU","id":"pnMGI9pJTxH","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Pregnancy-related
+      deaths (6 weeks of birth) 20-35y in comm.","id":"ZuAqHa7ekka","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Pregnancy-related
+      deaths (6 weeks of birth) 35+ y at PHU","id":"ZjLFpnq46QF","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Pregnancy-related
+      deaths (6 weeks of birth) 35+ y in comm.","id":"GHvwvsJzV4x","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Pregnancy
+      status","id":"DweoXDLChlg","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Pregnant","id":"SWfdB5lX0fk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prevalence
+      of tuberculosis (per 100 000 population)","id":"sTzxtq72Moq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Previous
+      classification","id":"V1OnhZYfSa2","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Previous
+      vector control intervention","id":"iSxGIwA3ZrV","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Prev.
+      month on ABC 300mg + ddI 200mg + IDV 400mg + r 100mg","id":"D33rH8UHKlZ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on ABC 300mg + ddI 200mg + LPV/r 133.3/33.3mg","id":"obbSEvaKTyW","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on ART other regimen","id":"VZPWjoT6Iyb","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on AZT 10mg/ml + 3TC 10mg/ml + NVP 10mg/ml","id":"yXZd6HTew4q","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on AZT 300mg + 3TC 150mg + ABC 300mg ","id":"BVU4XA3aL0Y","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on AZT 300mg /  3TC 150mg + EFV 600mg","id":"rFkRvm5Ns4a","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on AZT 300mg / 3TC 150mg + NVP 200mg","id":"pgzNTiQwMES","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on AZT 300mg + 3TC 150mg + TDF 300mg ","id":"FOWABOOZtPg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on AZT 300mg at 28 wks","id":"ReljOufQV11","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on AZT + 3TC 300mg + 150mg for 7 days","id":"FDpeT1lFQMM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on AZT + 3TC 300mg + 150mg for 7 days after 36w","id":"deGkTqbpTlS","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on AZT + 3TC 300mg + 150mg on labour","id":"BI5CBuRJVSV","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on AZT + 3TC + NVP 300mg + 150mg + 200mg","id":"e1eDe6JsE9j","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on d4T 30mg + 3TC 100mg + ABC 300mg","id":"oYZug9IEm3Q","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on d4T 30mg + 3TC 100mg + TDF 300mg ","id":"KD5UjA5V16r","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on d4T 30mg + 3TC 150mg + EFV 600mg","id":"FQhY9n5Ft7t","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on d4T 30mg / 3TC 150mg / NVP 200mg","id":"ZecQS9lx4j9","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on d4T / 3TC / NVP 12mg/60mg/100mg","id":"gyudBBtgGCv","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on d4T / 3TC / NVP 6mg/30mg/50mg","id":"YknvQAH4LnL","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on d4T 40mg + 3TC 150mg + EFV 600mg","id":"XVzfK55tu7h","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on d4T 40mg / 3TC 150mg / NVP 200mg","id":"Sdfo0RBu1W3","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on Infant NVP 10mg/ml (2mg/kg)","id":"iri7NSiuRc3","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on NVP + AZT + 3TC 10mg/ml (2mg/kg) + 10mg/ml + 10mg/ml for 7 days","id":"CUVDjGzRmmU","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on TDF 300mg + ddI 200mg + IDV 400mg + r 100mg","id":"n91IylSb1JQ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Prev.
+      month on TDF 300mg + ddI 200mg + LPV/r 133.3mg/33.3mg","id":"cQxY2T8GenX","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Project:
+      Activity Report","id":"xPTAT98T2Jd","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Project:
+      Comments","id":"yiAhmn4q7wJ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Project:
+      Communications plan","id":"xk0krAO2KfJ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Project:
+      Feasibility study","id":"okVqga4sADb","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Project:
+      Goals and achievables","id":"JXwI2RLVRwa","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Project:
+      Narrative","id":"qF555AXehEn","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Project:
+      Plan","id":"b65EIDnbjXf","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Project:
+      Procurement plans","id":"seNDI6rguib","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Project:
+      Review","id":"hA2cfVJL4fp","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Proven
+      insecticide resistance","id":"fyjPqlHE7Dn","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Q_Early
+      breastfeeding (within 1 hr after delivery) at BCG","id":"dU0GquGkGQr","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Q_Exclusive
+      breastfeeding at time of Penta 3","id":"pEOVd4Z3TAS","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Q_LLITN
+      given at time of 2nd Vit A dose","id":"Rmixc9wJl0G","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Q_Slept
+      under LLIN last night Measles","id":"GCGfEY82Wz6","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Q_Vitamin
+      A received 4-6 months ago at 12-59 dose","id":"ca8lfO062zg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Rabies
+      (Deaths < 5 yrs)","id":"jVDAvs6kIAP","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Rapid
+      diagnostic test for Malaria negative","id":"Qk9nnX0i7lZ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Rapid
+      diagnostic test for Malaria positive","id":"wZwzzRnr9N4","aggregationType":"SUM","zeroIsSignificant":false},{"name":"RDT
+      test result","id":"hKZh1et5n7v","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Reason
+      for conducting case investigation","id":"zFiMMpGyBgr","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Reason
+      for conducting household investigation","id":"M2EsgTm4JHu","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Reason
+      for referral","id":"Zlro25GTcNK","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Received
+      treatment for both TB and HIV","id":"gVfwyHBGWec","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Receiving
+      ART","id":"A3FR1rkz9D8","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Referral
+      protocol is described","id":"qgwWv33YaBj","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Referred","id":"MKMyvXshCdB","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Relationship
+      of cases to residence and breeding site","id":"Ue0g4Ii4oM8","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Remark","id":"RYXVmlXoFb6","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Residence
+      of the malaria case/s  that prompted the current case investigation","id":"DanTR5x0WDK","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Residents
+      had malaria past month","id":"ECjafwJrxL5","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Residents
+      in household","id":"lezQpdvvGjY","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Residents
+      in household who slept under a net the previous night","id":"KA6RY4BB41F","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Results
+      of case investigation (parasite prevalence among tested)","id":"AscpjfkjEks","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Results
+      post-response","id":"xb5oJFjopGD","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Schistosomiasis
+      follow-up","id":"GYm08KsVDOz","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Schistosomiasis
+      new","id":"Y7Oq71I3ASg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Schistosomiasis
+      referrals","id":"l76gpVSWoSE","aggregationType":"SUM","zeroIsSignificant":false},{"name":"SECHN","id":"hkfMucdRMQG","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Security
+      worker","id":"iVla5mEZiZo","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Shift
+      from ABC 300mg + ddI 200mg + IDV 400mg + r 100mg","id":"hI7NM78r3Rg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from ABC 300mg + ddI 200mg + LPV/r 133.3/33.3mg","id":"lznF009R6XI","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from ART other regimen","id":"Jw8BIUYVMGE","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from AZT 10mg/ml + 3TC 10mg/ml + NVP 10mg/ml","id":"t6YgakIbFif","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from AZT 300mg + 3TC 150mg + ABC 300mg ","id":"gSD3Znye1hY","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from AZT 300mg /  3TC 150mg + EFV 600mg","id":"jHxFwWMbXT2","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from AZT 300mg / 3TC 150mg + NVP 200mg","id":"pSHgU0Wf4ir","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from AZT 300mg + 3TC 150mg + TDF 300mg ","id":"MeAvt39JtqN","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from AZT 300mg at 28 wks","id":"LJBV91hapop","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from AZT + 3TC 300mg + 150mg for 7 days","id":"Mow8dnhE6FJ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from AZT + 3TC 300mg + 150mg for 7 days after 36w","id":"supsI55QU7E","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from AZT + 3TC 300mg + 150mg on labour","id":"q9CskFaFGE6","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from AZT + 3TC + NVP 300mg + 150mg + 200mg","id":"AzwEuYfWAtN","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from d4T 30mg + 3TC 100mg + ABC 300mg","id":"ZGKUt190yEn","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from d4T 30mg + 3TC 100mg + TDF 300mg ","id":"a7Pue4ht1n1","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from d4T 30mg + 3TC 150mg + EFV 600mg","id":"ksGURIlASZB","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from d4T 30mg / 3TC 150mg / NVP 200mg","id":"mmHNj6THZNH","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from d4T / 3TC / NVP 12mg/60mg/100mg","id":"iCGDtgPA28k","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from d4T / 3TC / NVP 6mg/30mg/50mg","id":"tlSucW8wn23","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from d4T 40mg + 3TC 150mg + EFV 600mg","id":"BtXmKYNBc3k","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from d4T 40mg / 3TC 150mg / NVP 200mg","id":"dAnZOL5kxlK","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from Infant NVP 10mg/ml (2mg/kg)","id":"Z5uEjG9zJNK","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from NVP + AZT + 3TC 10mg/ml (2mg/kg) + 10mg/ml + 10mg/ml for 7 days","id":"HmBwa7GWGRG","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from TDF 300mg + ddI 200mg + IDV 400mg + r 100mg","id":"y6noHe7ltxY","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      from TDF 300mg + ddI 200mg + LPV/r 133.3mg/33.3mg","id":"oJLoUSMs3Ud","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to ABC 300mg + ddI 200mg + IDV 400mg + r 100mg","id":"hUSSNufoUQz","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to ABC 300mg + ddI 200mg + LPV/r 133.3/33.3mg","id":"PBXQFnb2AOk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to ART other regimen","id":"DlZORv7kWSl","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to AZT 10mg/ml + 3TC 10mg/ml + NVP 10mg/ml","id":"vhT3YzTev3B","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to AZT 300mg + 3TC 150mg + ABC 300mg ","id":"PNlOOplRNOp","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to AZT 300mg /  3TC 150mg + EFV 600mg","id":"XMsORYe4ZcA","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to AZT 300mg / 3TC 150mg + NVP 200mg","id":"kxcIr99QcAO","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to AZT 300mg + 3TC 150mg + TDF 300mg ","id":"NV0OXpHu6x4","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to AZT 300mg at 28 wks","id":"AyLbN9fhY4W","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to AZT + 3TC 300mg + 150mg for 7 days","id":"zTWitarSrae","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to AZT + 3TC 300mg + 150mg for 7 days after 36w","id":"jYYxzqd1dqM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to AZT + 3TC 300mg + 150mg on labour","id":"IJ4yZ027EmK","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to AZT + 3TC + NVP 300mg + 150mg + 200mg","id":"YgsAnqU3I7B","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to d4T 30mg + 3TC 100mg + ABC 300mg","id":"YTmhoGBxE2m","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to d4T 30mg + 3TC 100mg + TDF 300mg ","id":"yB3qDR4Mlqk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to d4T 30mg + 3TC 150mg + EFV 600mg","id":"qUY0i7PnaLS","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to d4T 30mg / 3TC 150mg / NVP 200mg","id":"V651s5yIbnR","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to d4T / 3TC / NVP 12mg/60mg/100mg","id":"EEEu3r8z1Rg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to d4T / 3TC / NVP 6mg/30mg/50mg","id":"eCIPNNYj9ZM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to d4T 40mg + 3TC 150mg + EFV 600mg","id":"a5MxE5H7d3q","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to d4T 40mg / 3TC 150mg / NVP 200mg","id":"C6yhZddXLCX","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to Infant NVP 10mg/ml (2mg/kg)","id":"E7QJ0voitk7","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to NVP + AZT + 3TC 10mg/ml (2mg/kg) + 10mg/ml + 10mg/ml for 7 days","id":"un5mkYkVKqV","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to TDF 300mg + ddI 200mg + IDV 400mg + r 100mg","id":"ZgIaamZjBjz","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Shift
+      to TDF 300mg + ddI 200mg + LPV/r 133.3mg/33.3mg","id":"aJ9oon0aJ87","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Skin
+      infection follow-up","id":"i0vXh1P92m3","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Skin
+      infection new","id":"Y4cFzB4A9ZQ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Skin
+      infection referrals","id":"AoVvYq5mtLL","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Sleeping
+      places","id":"QtZBHQORAvK","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Slept
+      away from usual residence before first symptoms","id":"dHwY9LwU21J","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"SRN","id":"nu3vYkWgl2x","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"STI
+      - Genital Discharge follow-up","id":"tl03DMc49UT","aggregationType":"SUM","zeroIsSignificant":false},{"name":"STI
+      - Genital Discharge new","id":"CN9Oxawn7bD","aggregationType":"SUM","zeroIsSignificant":false},{"name":"STI
+      - Genital Discharge referrals","id":"bcxWMsa1ZwU","aggregationType":"SUM","zeroIsSignificant":false},{"name":"STI
+      - Genital Ulcer follow-up","id":"RZNJFsg7fQp","aggregationType":"SUM","zeroIsSignificant":false},{"name":"STI
+      - Genital Ulcer new","id":"IeO1sWXVyp6","aggregationType":"SUM","zeroIsSignificant":false},{"name":"STI
+      - Genital Ulcer referrals","id":"saMXNnGMaBw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Still
+      births","id":"HZSdnO5fCUc","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Stock
+      PHU discarded BCG","id":"cZnQDuF3IDz","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Stock
+      PHU discarded Measles","id":"FvKdfA2SuWI","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Stock
+      PHU discarded OPV","id":"WVrH6j3Wfye","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Stock
+      PHU dispensed  BCG","id":"p1MDHOT6ENy","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Stock
+      PHU dispensed Measles","id":"lVknokmR4Ip","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Stock
+      PHU dispensed OPV","id":"FTINmL2lehN","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Stock
+      PHU received  BCG","id":"axVhq1itoQD","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Stock
+      PHU received Measles","id":"XNrjXqZrHD8","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Stock
+      PHU received OPV","id":"nGCLjZDn0Q4","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Stock
+      PHU start balance BCG","id":"t99PL3gUxIl","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Stock
+      PHU start balance Measles","id":"vEAo4KwsAzl","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Stock
+      PHU start balance OPV","id":"iuSIObmKutb","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Symptoms","id":"XCMLePzaZiL","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TB
+      Case Definition","id":"HmkXnHJxcD1","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TB
+      Cohort new SS+ completed","id":"JFJfrQRwKUH","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Cohort new SS+ cured","id":"LwqtuNuXzMO","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Cohort new SS+ defaulted","id":"iGWmygJhJ0W","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Cohort new SS+ died","id":"iwKQb6AzcyA","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Cohort new SS+ failed","id":"iM7agdDyMAv","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Cohort new SS+ registered","id":"ax9QMVVaWzT","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Cohort new SS+ trans. in","id":"LvVagpDFHVd","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Cohort new SS+ trans out","id":"zg2HS37R0S0","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Disease Classification","id":"D7m8vpzxHDJ","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"TB
+      Extra pulmonary TB","id":"tHFKyPb1db7","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      HIV testing done","id":"U5ubm6PPYrM","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TB
+      Known MDR-TB contact","id":"cVs0TJQDBwT","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TB
+      lab CD4","id":"Vk1tzSQxvOR","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TB
+      lab Creatinine","id":"fCXKBdc27Bt","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Tb
+      lab Glucose","id":"lJTx9EZ1dk1","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TB
+      lab Hemoglobin","id":"fTZFU8cWvb3","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TB
+      New SS+ cases","id":"PcdVnX3EthS","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      No. of suspects screened","id":"sVDDqpaKwBH","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Previous use of second-line drugs","id":"vAzDOljIN1o","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TB
+      Referred by community member","id":"Vacgoqzb0a9","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Referred by other","id":"x4KonEdVrf4","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Referred by private provider","id":"BexcJLSBmoI","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Referred by public facility","id":"HihtAAbmIKd","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      registration group","id":"V7IfAfgOH9c","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TB
+      Self referral","id":"DfxIW8gECPb","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      smear microscopy number of specimen","id":"yLIPuJHRgey","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TB
+      smear microscopy test outcome","id":"zocHNQIQBIN","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TB
+      Smear Negative","id":"NzUztyjtUm2","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Smear not done","id":"QmqSvR8y1VP","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Smear Positive T.A.I","id":"NRmkLQkTbHw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Smear Positve Failure","id":"auVPuAdFCmY","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Smear Positve Relapse","id":"uwbLjPhducc","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TB
+      Started on ART","id":"zJbnrm3kUAk","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TB
+      Started on CPT","id":"P6hgV2tSIvi","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TB
+      treatment card","id":"lpHeSOA8GUV","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Temperature","id":"J7hdx5FCJvG","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Tetanus
+      Neonatal (Deaths < 5 yrs)","id":"Vp12ncSU1Av","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Tetanus
+      (not incl. 0-28 days) follow-up","id":"nG0tBc37z0q","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Tetanus
+      (not incl. 0-28 days) new","id":"Uoj2wmnr5Dw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Tetanus
+      (not incl. 0-28 days) referrals","id":"Bc7pt6MgY0j","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Tetanus
+      Other (Deaths < 5 yrs)","id":"hM4ya5T2AqX","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Time
+      of assessment","id":"bOTcPezfyYk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Timing
+      of case/s with and local transmission ","id":"IFgKaK8mSpD","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Total
+      Population","id":"WUg3MYWQ7pt","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Total
+      population < 1 year","id":"DTVRnCGamkV","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Total
+      population < 5 years","id":"DTtCy7Nx5jH","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"Travel
+      comment","id":"i7JwJXVEl2C","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Travel
+      in last 12 months","id":"hiymQVgVG2v","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Travel
+      outside province","id":"OhU3RfPlQGR","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"Travel
+      to (last 12 months)","id":"ISRUNdE4K1Q","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Travel
+      to (last 2 weeks)","id":"xoDfSuukvZ9","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Travel
+      to (last 6 weeks)","id":"B1zbtdPXMRk","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Treatment
+      Malaria","id":"O7OiONht8T3","aggregationType":"NONE","zeroIsSignificant":false},{"name":"TrueOnly","id":"ROz7HjmtxIg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TT1
+      doses given","id":"zzHwXqxKYy1","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TT2
+      doses given","id":"DUTSJE8MGCw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TT3
+      doses given","id":"jWaNoH0X0Am","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TT4
+      doses given","id":"tbudfYMNFS5","aggregationType":"SUM","zeroIsSignificant":false},{"name":"TT5
+      doses given","id":"B2ocYtYkPBD","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Tuberculosis
+      follow-up","id":"madOetOj4Ye","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Tuberculosis
+      new","id":"z9dYcQ2DlBG","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Tuberculosis
+      referrals","id":"hdHLjKFmxB4","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Type
+      of population","id":"mtzLOpBltII","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Typhoid
+      (Deaths < 5 yrs)","id":"Yy9NtNfwYZJ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Typhoid
+      fever follow-up","id":"rNi710XHPXY","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Typhoid
+      fever new","id":"Cj5rTc9nEvl","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Typhoid
+      fever referrals","id":"LaTxwutQILW","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Vaccinator","id":"Nz5YtOpDyuV","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"VCCT
+      No positive test HIV1 and HIV2","id":"ZjILYaYGEBM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"VCCT
+      No positive test HIV1 only","id":"LicY0q8cagk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"VCCT
+      No positive test HIV2 only","id":"LgYtBqVkADK","aggregationType":"SUM","zeroIsSignificant":false},{"name":"VCCT
+      No receiving positive test results","id":"EASG4IZChNr","aggregationType":"SUM","zeroIsSignificant":false},{"name":"VCCT
+      No receiving Pre-test counselling","id":"IpwsH1GUjCs","aggregationType":"SUM","zeroIsSignificant":false},{"name":"VCCT
+      No reiciving result & post-test counselling","id":"CjLP7zAhlP4","aggregationType":"SUM","zeroIsSignificant":false},{"name":"VCCT
+      No Test","id":"bmW8ktueArb","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Vector
+      behavior (based on study)","id":"RKJ08MlK5kr","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Vitamin
+      A given at postnatal","id":"btSSE4w61kd","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Vitamin
+      A given to < 5y","id":"tU7GixyHhsv","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Voucher
+      HTC","id":"b6dOUjAarHD","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Voucher
+      IMCI","id":"W7aC8jLASW8","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Voucher
+      Implants","id":"fqnXmRYo5Cz","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Voucher
+      Injections","id":"HrJmqlBqTFG","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Voucher
+      IUCD","id":"Qz3kfeKgLgL","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Voucher
+      Pills","id":"UwCXONyUtGs","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Voucher
+      VMMC","id":"HyJL2Lt37jN","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Vulnerability","id":"yugu3uQNOg7","aggregationType":"NONE","zeroIsSignificant":false},{"name":"Weight","id":"JINgGHgqzSN","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Weight
+      for age below lower line (red)","id":"bTcRDVjC66S","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Weight
+      for age between middle and lower line (yellow)","id":"ldGXl6SEdqf","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Weight
+      for age on or above middle line (green)","id":"NLnXLV5YpZF","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Weight
+      for height 70-79 percent","id":"pnL2VG8Bn7N","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Weight
+      for height 80 percent and above","id":"qPVDd87kS9Z","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Weight
+      for height below 70 percent","id":"lVsbKXoF0zX","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Weight
+      in kg","id":"vV9UWAZohSf","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"WHOMCH
+      Allergies (drugs and/or severe food allergies)","id":"QFX1FLWBwtq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Antihypertensive drug given","id":"cKBSkBB3Mt4","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Autoimmune disease","id":"zzGNbeMnTd6","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Blood transfusion","id":"ez86AhQ5cqp","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Body temperature","id":"L6Toy2TrHHq","aggregationType":"AVERAGE","zeroIsSignificant":false},{"name":"WHOMCH
+      Calcium supplements given ","id":"PKZPVfAJfHD","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      CD4 count","id":"B3bDhNpCcEM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Chronic conditions","id":"de0FEHSIoxh","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Chronic hypertension","id":"UQ2Zo8CruPB","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Clinical estimate of due date","id":"YKXci7Sm0Zq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Clinical impression of eclampsia","id":"ALfOm7aaH6b","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Clinical impression of pre-eclampsia","id":"Mfq2Y9N21KZ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Commencement of labour","id":"mGHBXrtqSut","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"WHOMCH
+      Conditions in previous pregnancy","id":"suhLG4CrzUw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Confirmed or suspected infection","id":"klEz81wXFoU","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"WHOMCH
+      Continuous supportive presence during labour and birth ","id":"z8m3llJYuh9","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Contraceptive counselling provided","id":"QWVRukwa83h","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Corticostereoid exposure","id":"awGGBWPT5yv","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"WHOMCH
+      Date of birth/End of pregnancy","id":"u3TE34T4KH0","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Date of birth of most recent newborn","id":"cwgQnkamM2j","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Date of induction of labor","id":"MH33VLmOOqm","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Date of last TT dose","id":"r3BqzOPxAjp","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Delivery method","id":"spkG704sTh6","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Diabetes","id":"Q1x1HIhuwFN","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Diastolic blood pressure","id":"dyYdfamSY2Z","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"WHOMCH
+      Eclamptic convulsions","id":"w7enwqzx90I","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      ECV conversion remaining","id":"yTDoF5b1OhI","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      ECV offered","id":"QM5d0hfSbKk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      ECV performed","id":"DCUDZxqOxUo","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Erythromycin given for PPROM","id":"rHgrmXfa57b","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Erythromycin given for syphillis","id":"Js57E09s9fh","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Estimated blood loss (ml)","id":"hib4oz2sOLw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Extreme pallor","id":"EyfTU3ibMmJ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Fetal heart rate on admission","id":"u7aAPS8OgLw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Fetal presentation","id":"vPdXnmGWzfy","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Gestational age at visit","id":"roKuXYfw1BW","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Gravidity(previous pregnancies)","id":"PuiTfPfSf86","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Haematocrit value","id":"X8HbdaoS9LN","aggregationType":"SUM","zeroIsSignificant":true},{"name":"WHOMCH
+      Heart rate","id":"pwfdgeE21Os","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Hemoglobin value","id":"vANAXwtLwcT","aggregationType":"SUM","zeroIsSignificant":true},{"name":"WHOMCH
+      HIV counselling provided - negative","id":"jRo4KlnCKeX","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      HIV counselling provided - positive","id":"yEmfXF9HJ1M","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      HIV rapid test","id":"Itl05OEupgQ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      HIV test results provided to patient","id":"yq1qT0NdjYQ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Indication for induction of labour","id":"D1EHM01p454","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Induction of labor","id":"MVIV2RGWhUq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Induction of labour with vaginal prostaglandin performed at term","id":"oQgcj7kV1c3","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Insecticide treated bednet promoted","id":"NPZPVg2rVh4","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Iron and folic acid supplements given","id":"Kb6kZzUCJi1","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      LMP date","id":"w4ky6EkVahL","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Low-dose acetylsalicylic acid given","id":"OSuxnldV4Ug","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Malaria prophylaxis given in second trimester","id":"MHW5v2Iljtw","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Malaria prophylaxis given in third trimester","id":"zsWyjzmBLGz","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Maternal near-miss","id":"FIHEeJwfhZH","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Maternal near-miss by coagulation/haematological dysfunction","id":"i9mEM7ZW7yV","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Maternal near-miss by other reason","id":"SojR4V7A8u2","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Maternal near-miss by uterine dysfunction","id":"PQlndpI05Bb","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Meconium stained liquor","id":"YsVHgzQCwmr","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Medication","id":"fNnOPQj83jz","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      MgSO4 injection given","id":"lcaG1Pnh27I","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Moderate aneamia","id":"FYLMjPQ0wmo","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Mohammads point","id":"EnalHZFesIv","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Offered a choice of induction of labour or expectant management","id":"SeXllT5ypsh","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Ongoing or initiated ARV regimen","id":"nhW3SZX9JaN","aggregationType":"COUNT","zeroIsSignificant":false},{"name":"WHOMCH
+      Onset of symptoms in current pregnancy","id":"WY9LjaUQI1q","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Other chronic condition","id":"xPTngRLQTnu","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Other chronic condition specified","id":"Mh7nK8UKoZP","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Other medicine allergy","id":"dpOtt7HUQXa","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Other medicine allergy specified","id":"VSmOcdK3v7y","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Other severe allergy","id":"ZbDPeYzWsh2","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Other severe allergy specified","id":"zk4Eui7Jhtr","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Oxytocin given","id":"BmaBjPQX8ME","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Pain medication given","id":"HUfKCOou7de","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Parity (previous deliveries)","id":"hisxuZstYJM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Partograph used","id":"VXdfPQRXKiA","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Penicillin allergy","id":"E6QaDtrQP5e","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Penicillin given","id":"OhcR0fpFcWa","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Plurality assessed","id":"PN6HcGjTraL","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Pregnancy outcome","id":"V5PR8Kw8ZnC","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Previously known HIV-positive","id":"VFffa31SKjH","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Previous modes of delivery","id":"W4zW3aPyS0G","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Previous pregnacy birthweight","id":"iwNXUX6KYX0","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Previous pregnancy gest.age at birth","id":"wqpUVEeJR3D","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Previous pregnancy outcomes","id":"mrVkW9h2Rdp","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Proteinuria (concentration mg/dL)","id":"dpiyZz8bkVE","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Proteinuria (urinstix)","id":"a7XjFEuZuKE","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"WHOMCH
+      Recurrent eclamptic seizures","id":"vTEkiy8F3yj","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Renal disease","id":"sdchiIXIcCf","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Respiratory rate","id":"Spl22QJsWeu","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Retained placenta","id":"PCiOYWXZq2E","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      RPR test","id":"AAaJGnWR5js","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Screening for autoimmune disease performed","id":"xoji9tjIrIj","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Screening for chronic hypertension performed","id":"kRVjK1hrUCe","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Screening for diabetes performed","id":"jTtAqN1pMTY","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Screening for pre-eclampsia risk factors performed","id":"YrtUVQtPngs","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Screening for previous pre-eclampsia performed","id":"rIwYLa8kox3","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Screening for renal disease performed ","id":"hH1izHeUNrQ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Severe anaemia","id":"AXuzjgLsBy3","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Slept under ITN (insecticide treated bednet)","id":"ytV9rX4ADnn","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Smoking","id":"sWoqcoByYmD","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Smoking cessation counselling provided ","id":"Ok9OQpitjQr","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Speculum examination test result for suspected pPROM","id":"z9auvNRRWQJ","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Speculum examination test result for suspected PROM","id":"yV91JsUXuju","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Suspected pPROM","id":"cF0XbuZkUcC","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Suspected PROM","id":"DwWIh6D3fSr","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Systolic blood pressure","id":"M4HEOoEFTAT","aggregationType":"AVERAGE_SUM_ORG_UNIT","zeroIsSignificant":false},{"name":"WHOMCH
+      Tetanus vaccination status","id":"sUX4i7QqbXF","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Third or fourth degree perineal tear","id":"cz5DN6BVVeW","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Treatment for moderate anemia","id":"RxVNLSeTjto","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Treatment for severe anemia","id":"nB4Ui3ckmUi","aggregationType":"SUM","zeroIsSignificant":false}]}'
+    content_type: text/plain
+    method: GET
+    status: 200
+    url: http://localhost:8080/api/dataElements?fields=id%2Cname%2CaggregationType%2CzeroIsSignificant&pageSize=1000
+- response:
+    auto_calculate_content_length: false
+    body: '{"pager":{"page":2,"pageCount":2,"total":1035,"pageSize":1000,"prevPage":"http://localhost:8080/api/dataElements?pageSize=1000&fields=id%2Cname%2CaggregationType%2CzeroIsSignificant"},"dataElements":[{"name":"WHOMCH
+      Ultrasound estimate of due date","id":"DecmCMPDPdS","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      Uterotonics given","id":"m3XQrgadVK9","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WHOMCH
+      White blood cell count","id":"csl3yq5UC46","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Worm
+      infestation follow-up","id":"E62UwxnYf26","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Worm
+      infestation new","id":"Usk9Asj5DED","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Worm
+      infestation referrals","id":"VmoPqzwBgkx","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Wounds/Trauma
+      follow-up","id":"yJwdE6XJbrF","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Wounds/Trauma
+      new","id":"FJs8ZjlQE6f","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Wounds/Trauma
+      referrals","id":"JMKtVQ5HasH","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WP1","id":"zHaIxBfQMZk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"WP2","id":"HUYDWrGgTdI","aggregationType":"SUM","zeroIsSignificant":false},{"name":"XX
+      MAL RDT TRK - Age","id":"vcSXdYGa5St","aggregationType":"SUM","zeroIsSignificant":true},{"name":"XX
+      MAL RDT TRK - Diagnosis Method","id":"lWLkpWMHqEq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"XX
+      MAL RDT TRK - Diagnosis Type","id":"QMLLmxjsFqk","aggregationType":"SUM","zeroIsSignificant":false},{"name":"XX
+      MAL RDT TRK - Microscopy Result","id":"XEuy83qbOvM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"XX
+      MAL RDT TRK - No tested reason","id":"iV67wNwjQuG","aggregationType":"SUM","zeroIsSignificant":false},{"name":"XX
+      MAL RDT TRK - RDT Result","id":"diH9IbKTpHj","aggregationType":"SUM","zeroIsSignificant":false},{"name":"XX
+      MAL RDT TRK - Reason for not testing","id":"DKj79JKpli0","aggregationType":"SUM","zeroIsSignificant":false},{"name":"XX
+      MAL RDT TRK - Referral","id":"DY1xJukD6nc","aggregationType":"SUM","zeroIsSignificant":false},{"name":"XX
+      MAL RDT TRK - Sex","id":"YdwvOAN77SV","aggregationType":"SUM","zeroIsSignificant":false},{"name":"XX
+      MAL RDT TRK - Treatment Mixed","id":"zFaeo9trjWb","aggregationType":"SUM","zeroIsSignificant":false},{"name":"XX
+      MAL RDT TRK - Treatment Pf","id":"CLC5VYdZBay","aggregationType":"SUM","zeroIsSignificant":false},{"name":"XX
+      MAL RDT TRK - Treatment Pv","id":"TnCSyYfCaNE","aggregationType":"SUM","zeroIsSignificant":false},{"name":"XX
+      MAL RDT TRK - Village of Residence","id":"rypjN8CV02V","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Yaws
+      follow-up","id":"plfo9ai1jtW","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Yaws
+      new","id":"FF3Ev33BuCh","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Yaws
+      referrals","id":"gQAAvbLx8MM","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Yebo","id":"cNkTt6mJQyO","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Yellow
+      Fever (Deaths < 5 yrs)","id":"USBq0VHSkZq","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Yellow
+      Fever (Deaths < 5 yrs) Narrative","id":"rj9mw1J6sBg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Yellow
+      Fever doses given","id":"l6byfWFUGaP","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Yellow
+      fever follow-up","id":"hvdCBRWUk80","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Yellow
+      fever new","id":"XWU1Huh0Luy","aggregationType":"SUM","zeroIsSignificant":false},{"name":"Yellow
+      fever referrals","id":"zSJF2b48kOg","aggregationType":"SUM","zeroIsSignificant":false},{"name":"YesOnly","id":"QN8WyI8KgpU","aggregationType":"SUM","zeroIsSignificant":false}]}'
+    content_type: text/plain
+    method: GET
+    status: 200
+    url: http://localhost:8080/api/dataElements?fields=id%2Cname%2CaggregationType%2CzeroIsSignificant&pageSize=1000&page=2

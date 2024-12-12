@@ -1,0 +1,150 @@
+responses:
+- response:
+    auto_calculate_content_length: false
+    body: '{"pager":{"page":1,"pageCount":1,"total":225,"pageSize":1000},"categoryOptionCombos":[{"id":"S34ULMcHMca","name":"0-11m"},{"id":"sqGRzCziswD","name":"0-11m"},{"id":"o2gxEt6Ek2C","name":"0-4y"},{"id":"LEDQQXEpWUl","name":"12-59m"},{"id":"wHBMVthqIX4","name":"12-59m"},{"id":"u5fU9rr67xo","name":"15-24y"},{"id":"YBhrfw1dP2J","name":"<15y"},{"id":"jOkIbJVhECg","name":"15y+"},{"id":"tMwM3ZBd7BN","name":"15y+"},{"id":"LbkJRbDblhe","name":"25-49y"},{"id":"z858fbdqWwF","name":">49y"},{"id":"b7fjZVL3q9b","name":"5-14y"},{"id":"SdOUI2yT46H","name":"5-14y"},{"id":"ba1FkzknqS8","name":"5y+"},{"id":"JkCyl4FMPVz","name":"5
+      years and above"},{"id":"nvLjum6Xbv5","name":"African Medical and Research Foundation"},{"id":"RuYW1OENYhV","name":"African
+      Medical and Research Foundation, Improve access to clean water"},{"id":"ZnccT3c85pr","name":"African
+      Medical and Research Foundation, Improve access to medicines"},{"id":"vp1qSLVMSc3","name":"African
+      Medical and Research Foundation, Provide access to basic education"},{"id":"qsYRjnFqwe5","name":"African
+      Medical and Research Foundation, Provide access to primary health care"},{"id":"l5QR5hJ4u44","name":"AIDSRelief
+      Consortium"},{"id":"cUb8seKgn2y","name":"AIDSRelief Consortium, Improve access
+      to clean water"},{"id":"m0s4zXGlubC","name":"AIDSRelief Consortium, Improve
+      access to medicines"},{"id":"VHj4WmtIGN4","name":"AIDSRelief Consortium, Provide
+      access to basic education"},{"id":"nmOB0bobSsj","name":"AIDSRelief Consortium,
+      Provide access to primary health care"},{"id":"NnZfgmFAyu0","name":"APHIAplus"},{"id":"XVl0bL5Bl4q","name":"APHIAplus,
+      Improve access to clean water"},{"id":"v2ZlaR9Uw99","name":"APHIAplus, Improve
+      access to medicines"},{"id":"Xruyu4NqK8L","name":"APHIAplus, Provide access
+      to basic education"},{"id":"ko7CWYAHvn1","name":"APHIAplus, Provide access to
+      primary health care"},{"id":"v99OAIrqSKj","name":"At PHU, Abortion"},{"id":"GTBzVBQY6eA","name":"At
+      PHU, Anaemia"},{"id":"DS13oURyQ5s","name":"At PHU, Ante-partum hemmorhage"},{"id":"wSIfDRFpQhe","name":"At
+      PHU, Hypertension"},{"id":"G9XRXHMgId1","name":"At PHU, Malaria in 1st trimester
+      (treat with oral quinine"},{"id":"G83s4UeQzyT","name":"At PHU, Malaria in 2nd
+      or 3rd trimester (treat with ACT)"},{"id":"toku1yGjhnO","name":"At PHU, Malpresentation"},{"id":"dKLECGfFphs","name":"At
+      PHU, Obstructed labour"},{"id":"YYcR8MyHtzY","name":"At PHU, Other early complication"},{"id":"bL8RBTCC5X1","name":"At
+      PHU, Other late complication"},{"id":"Zw24HlQNuKE","name":"At PHU, Post-partum
+      hemmorhage"},{"id":"AN492NhCwWd","name":"At PHU, Post-partum sepsis"},{"id":"Gk7wi8I1cKr","name":"At
+      PHU, Pre-eclampsia/Eclampsia/Hypertension"},{"id":"bgKO5mjR3Un","name":"At PHU,
+      Retained placenta"},{"id":"CweWgHpMTu7","name":"At PHU, STI"},{"id":"amw2rQP6r6M","name":"CARE
+      International"},{"id":"fC3z1lcAW5x","name":"CARE International, Improve access
+      to clean water"},{"id":"hYYykLNO1Pk","name":"CARE International, Improve access
+      to medicines"},{"id":"XjgA9fJK6bX","name":"CARE International, Provide access
+      to basic education"},{"id":"ranftQIH5M9","name":"CARE International, Provide
+      access to primary health care"},{"id":"PvFFIeF2J9x","name":"CHO, At PHU"},{"id":"RgrNGmlMOAJ","name":"CHO,
+      Female"},{"id":"w3BcsdjOcfk","name":"CHO, In Community"},{"id":"R3oRRwMRfMT","name":"CHO,
+      Male"},{"id":"J2Qf1jtZuj8","name":"Consumption"},{"id":"pn1upwnbxfn","name":"Damages"},{"id":"HllvX50cXC0","name":"default"},{"id":"rQLFnNXXIL0","name":"End
+      Balance"},{"id":"fsFN9T4ck3E","name":"Expired"},{"id":"uUJIRpWjNFt","name":"Family
+      Health International"},{"id":"h5i1N1wcq9G","name":"Family Health International,
+      Improve access to clean water"},{"id":"jsxBTh3eFsg","name":"Family Health International,
+      Improve access to medicines"},{"id":"h9eTWOH5od1","name":"Family Health International,
+      Provide access to basic education"},{"id":"FcHCeH4jegz","name":"Family Health
+      International, Provide access to primary health care"},{"id":"qk6n4eMAdtK","name":"Female"},{"id":"mG4ON0wm5ub","name":"Female,
+      12-18m"},{"id":"hl5zeAOOZJP","name":"Female, <12m"},{"id":"LbeIlyHEhKr","name":"Female,
+      15-24y"},{"id":"qNCMOhkoQju","name":"Female, <15y"},{"id":"w7fvkHv1CfZ","name":"Female,
+      >18m"},{"id":"qa0VqgYlgtN","name":"Female, 25-49y"},{"id":"rCMUTmcreqP","name":"Female,
+      >49y"},{"id":"pq2XI5kz2BY","name":"Fixed"},{"id":"Prlt0C1RF0s","name":"Fixed,
+      <1y"},{"id":"psbwp3CQEhs","name":"Fixed, >1y"},{"id":"kOSbWTm0Qng","name":"Hope
+      Worldwide"},{"id":"BN9KwUloeSL","name":"Hope Worldwide, Improve access to clean
+      water"},{"id":"LpTSTPshKQ8","name":"Hope Worldwide, Improve access to medicines"},{"id":"X0RDKeM4tBq","name":"Hope
+      Worldwide, Provide access to basic education"},{"id":"Rwa6QbSEhUo","name":"Hope
+      Worldwide, Provide access to primary health care"},{"id":"pO5CEqK6c1s","name":"Improve
+      access to clean water"},{"id":"sSeEjeQ0Rgt","name":"Improve access to medicines"},{"id":"RYnkI3dHV2r","name":"In
+      Community, Abortion"},{"id":"lKQatl72hbs","name":"In Community, Anaemia"},{"id":"OkTqmleJPNt","name":"In
+      Community, Ante-partum hemmorhage"},{"id":"Qvaa6XQsYJG","name":"In Community,
+      Hypertension"},{"id":"OrDRjJL9bTS","name":"In Community, Malaria in 1st trimester
+      (treat with oral quinine"},{"id":"D9HOVHItnAW","name":"In Community, Malaria
+      in 2nd or 3rd trimester (treat with ACT)"},{"id":"fXLSLTafPAa","name":"In Community,
+      Malpresentation"},{"id":"rpnukMmWBmK","name":"In Community, Obstructed labour"},{"id":"ylnUkus0uWL","name":"In
+      Community, Other early complication"},{"id":"TW3dSLS3Yez","name":"In Community,
+      Other late complication"},{"id":"UwZkJFuoed4","name":"In Community, Post-partum
+      hemmorhage"},{"id":"TsI6OWSobTy","name":"In Community, Post-partum sepsis"},{"id":"B0gmWQQnjRB","name":"In
+      Community, Pre-eclampsia/Eclampsia/Hypertension"},{"id":"fCEasSwk4iA","name":"In
+      Community, Retained placenta"},{"id":"R2e7o7AGaZl","name":"In Community, STI"},{"id":"w5hsiyYZfuR","name":"International
+      Rescue Committee"},{"id":"E29j0LFxvSV","name":"International Rescue Committee,
+      Improve access to clean water"},{"id":"uLOKFxgYi27","name":"International Rescue
+      Committee, Improve access to medicines"},{"id":"jZGfkSermfa","name":"International
+      Rescue Committee, Provide access to basic education"},{"id":"hJ290dNYYXe","name":"International
+      Rescue Committee, Provide access to primary health care"},{"id":"dvw2J5ZsdFc","name":"IntraHealth
+      International"},{"id":"KnS3rABktqN","name":"IntraHealth International, Improve
+      access to clean water"},{"id":"VYKHf8ucB2m","name":"IntraHealth International,
+      Improve access to medicines"},{"id":"RvzLp3fAVJM","name":"IntraHealth International,
+      Provide access to basic education"},{"id":"vcfEwePfiu6","name":"IntraHealth
+      International, Provide access to primary health care"},{"id":"KQ50BVoUrd6","name":"Male"},{"id":"EaDmbKV3ZWF","name":"Male,
+      12-18m"},{"id":"zqHPlIraRuB","name":"Male, <12m"},{"id":"zPpvbvpmkxN","name":"Male,
+      15-24y"},{"id":"TkDhg29x18A","name":"Male, <15y"},{"id":"pMETBl4mXms","name":"Male,
+      >18m"},{"id":"uX9yDetTdOp","name":"Male, 25-49y"},{"id":"GuJESuyOCMW","name":"Male,
+      >49y"},{"id":"eeUNYiMYZlq","name":"Managed at PHU, Abortion"},{"id":"y1jbXYIuubN","name":"Managed
+      at PHU, Anaemia"},{"id":"qZ9QcyhO0Vv","name":"Managed at PHU, Ante-partum hemmorhage"},{"id":"jaS34UZLyBe","name":"Managed
+      at PHU, Hypertension"},{"id":"bckzBoAurHI","name":"Managed at PHU, Malaria in
+      1st trimester (treat with oral quinine"},{"id":"TDb5JyDQqho","name":"Managed
+      at PHU, Malaria in 2nd or 3rd trimester (treat with ACT)"},{"id":"E4jVwXdL1FE","name":"Managed
+      at PHU, Malpresentation"},{"id":"HLg2utbMetZ","name":"Managed at PHU, Obstructed
+      labour"},{"id":"dMAOu9i2tU4","name":"Managed at PHU, Other early complication"},{"id":"JvO2GpldrnQ","name":"Managed
+      at PHU, Other late complication"},{"id":"iBOkirjs8TH","name":"Managed at PHU,
+      Post-partum hemmorhage"},{"id":"Lbil2sS54Ik","name":"Managed at PHU, Post-partum
+      sepsis"},{"id":"NboNN44Iwul","name":"Managed at PHU, Pre-eclampsia/Eclampsia/Hypertension"},{"id":"mgfOSrzUthX","name":"Managed
+      at PHU, Retained placenta"},{"id":"x1Ti1RoTKFr","name":"Managed at PHU, STI"},{"id":"L4P9VSgHkF6","name":"MCH
+      Aides, At PHU"},{"id":"Gqs7snASTtF","name":"MCH Aides, Female"},{"id":"b19Ye0TWs1D","name":"MCH
+      Aides, In Community"},{"id":"mcwaItVPoeA","name":"MCH Aides, Male"},{"id":"Tzg8I9KyEwd","name":"Midwives,
+      At PHU"},{"id":"xQbMVHxaUiW","name":"Midwives, Female"},{"id":"AKQ15Z2uqit","name":"Midwives,
+      In Community"},{"id":"w0tNkmER8Lb","name":"Midwives, Male"},{"id":"r8xySVHExGT","name":"Non-pregnant,
+      Fixed"},{"id":"U1PHVSShuWj","name":"Non-pregnant, Outreach"},{"id":"ONiwc2Eg0R1","name":"Non-pregnant,
+      School"},{"id":"R23h9QZRbRt","name":"Not on salary"},{"id":"DOC7emLzyRi","name":"On
+      salary"},{"id":"PT59n8BQbqM","name":"Outreach"},{"id":"V6L425pT3A0","name":"Outreach,
+      <1y"},{"id":"hEFKSsPV5et","name":"Outreach, >1y"},{"id":"hhSsZdKEChu","name":"Path"},{"id":"AqFKDa5c2bV","name":"Pathfinder
+      International"},{"id":"CQMZckgv9d2","name":"Pathfinder International, Improve
+      access to clean water"},{"id":"KKht3hCodcI","name":"Pathfinder International,
+      Improve access to medicines"},{"id":"ookIJtBen47","name":"Pathfinder International,
+      Provide access to basic education"},{"id":"FLpJ2hYMbLO","name":"Pathfinder International,
+      Provide access to primary health care"},{"id":"RRJ9WsqSrVs","name":"Path, Improve
+      access to clean water"},{"id":"beytUtTPOiH","name":"Path, Improve access to
+      medicines"},{"id":"KBdt6dufS1O","name":"Path, Provide access to basic education"},{"id":"VafY6h3Ozda","name":"Path,
+      Provide access to primary health care"},{"id":"el3bfHS1QDV","name":"Plan International"},{"id":"N7QFN41eTN8","name":"Plan
+      International, Improve access to clean water"},{"id":"xJo2vQ5O1Sd","name":"Plan
+      International, Improve access to medicines"},{"id":"ynACb30rXJx","name":"Plan
+      International, Provide access to basic education"},{"id":"zW0OOUGLA48","name":"Plan
+      International, Provide access to primary health care"},{"id":"W45gbOMzeJT","name":"Population
+      Services International"},{"id":"M0PqoB8pblq","name":"Population Services International,
+      Improve access to clean water"},{"id":"L27iqqRG0wk","name":"Population Services
+      International, Improve access to medicines"},{"id":"dH55kApJvz2","name":"Population
+      Services International, Provide access to basic education"},{"id":"aFhAxppj7FG","name":"Population
+      Services International, Provide access to primary health care"},{"id":"dcguXUTwenI","name":"Pregnant,
+      Fixed"},{"id":"cBQmyRrEKo3","name":"Pregnant, Outreach"},{"id":"xFRryVwuFWY","name":"Pregnant,
+      School"},{"id":"oawMLLH7OjA","name":"Provide access to basic education"},{"id":"BqblOcSwGey","name":"Provide
+      access to primary health care"},{"id":"KPP63zJPkOu","name":"Quantity to be ordered"},{"id":"v188IxY1WTh","name":"Referred,
+      Abortion"},{"id":"Pbzdb8uzHBW","name":"Referred, Anaemia"},{"id":"NFSAqnC92ct","name":"Referred,
+      Ante-partum hemmorhage"},{"id":"iO3MLhE4PHA","name":"Referred, Hypertension"},{"id":"GQsM79Oa8e1","name":"Referred,
+      Malaria in 1st trimester (treat with oral quinine"},{"id":"HLdVEzeYl0t","name":"Referred,
+      Malaria in 2nd or 3rd trimester (treat with ACT)"},{"id":"L7aTYZnP5Pe","name":"Referred,
+      Malpresentation"},{"id":"nquTEyWU7ff","name":"Referred, Obstructed labour"},{"id":"uh8MUdOumIk","name":"Referred,
+      Other early complication"},{"id":"N8wisgL0KOn","name":"Referred, Other late
+      complication"},{"id":"qtWl5uR98jt","name":"Referred, Post-partum hemmorhage"},{"id":"FWuj3rd87jj","name":"Referred,
+      Post-partum sepsis"},{"id":"h47XMXroiw4","name":"Referred, Pre-eclampsia/Eclampsia/Hypertension"},{"id":"E4CrE0wh4eN","name":"Referred,
+      Retained placenta"},{"id":"p53iCsRVPSU","name":"Referred, STI"},{"id":"gQhAMdimKO4","name":"Result"},{"id":"mPBwiaWc2sk","name":"Rural"},{"id":"YEmiuCcgNQI","name":"SECHN,
+      At PHU"},{"id":"Ifqide84xSh","name":"SECHN, Female"},{"id":"MaXD86iob3M","name":"SECHN,
+      In Community"},{"id":"NZAKyj67WW2","name":"SECHN, Male"},{"id":"lTHuSO6awqE","name":"Target"},{"id":"Gmbgme7z9BF","name":"Trained
+      TBA, At PHU"},{"id":"quwbAxfBdQU","name":"Trained TBA, Female"},{"id":"CYHGl18lR0W","name":"Trained
+      TBA, In Community"},{"id":"Tk8loZNEo4E","name":"Trained TBA, Male"},{"id":"pcKjEElpvqd","name":"Under
+      5 years"},{"id":"j9PqKr6Djnx","name":"Unicef"},{"id":"SeWJkpLAyLt","name":"Unicef,
+      Improve access to clean water"},{"id":"V2gbpszLQJm","name":"Unicef, Improve
+      access to medicines"},{"id":"cr89ebDZrac","name":"Unicef, Provide access to
+      basic education"},{"id":"B81quHGEY7H","name":"Unicef, Provide access to primary
+      health care"},{"id":"s3jlIgFCbUb","name":"Untrained TBA, At PHU"},{"id":"vP9xV78M67W","name":"Untrained
+      TBA, Female"},{"id":"HVFCn1yjoGx","name":"Untrained TBA, In Community"},{"id":"SeTGOtrbip1","name":"Untrained
+      TBA, Male"},{"id":"IGhnY0XeHXe","name":"Urban"},{"id":"TxaWpw1pN5G","name":"VVM
+      Change"},{"id":"y8ncbotRdf1","name":"World Concern"},{"id":"GZMZ9gZMvGs","name":"World
+      Concern, Improve access to clean water"},{"id":"EMbImyiN3qH","name":"World Concern,
+      Improve access to medicines"},{"id":"Um7S7APfj3M","name":"World Concern, Provide
+      access to basic education"},{"id":"WyOEpns2Qks","name":"World Concern, Provide
+      access to primary health care"},{"id":"iR1xska5MM2","name":"World Relief"},{"id":"i3HQ1ziPjC7","name":"World
+      Relief, Improve access to clean water"},{"id":"UcWQppzD1it","name":"World Relief,
+      Improve access to medicines"},{"id":"tzsPhPtE94U","name":"World Relief, Provide
+      access to basic education"},{"id":"AeOORUC0ISH","name":"World Relief, Provide
+      access to primary health care"},{"id":"doC37EbiwW5","name":"World Vision"},{"id":"QjyqqJMm0X7","name":"World
+      Vision, Improve access to clean water"},{"id":"zBTkMNxXEvq","name":"World Vision,
+      Improve access to medicines"},{"id":"E5M2FZ1hReY","name":"World Vision, Provide
+      access to basic education"},{"id":"pN2UVP29cKQ","name":"World Vision, Provide
+      access to primary health care"}]}'
+    content_type: text/plain
+    method: GET
+    status: 200
+    url: http://localhost:8080/api/categoryOptionCombos?fields=id%2Cname&pageSize=1000

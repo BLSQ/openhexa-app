@@ -1,0 +1,8 @@
+responses:
+- response:
+    auto_calculate_content_length: false
+    body: '[{"name":"National","created":"2011-12-24T12:24:22.935","lastUpdated":"2015-08-09T12:58:05.003","translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"level":1,"displayName":"National","access":{"manage":true,"externalize":false,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"H1KlN4QIauv","attributeValues":[]},{"name":"District","created":"2011-12-24T12:24:22.935","lastUpdated":"2015-08-09T12:58:04.997","translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"level":2,"displayName":"District","access":{"manage":true,"externalize":false,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"wjP19dkFeIk","attributeValues":[]},{"name":"Chiefdom","created":"2011-12-24T12:24:22.935","lastUpdated":"2015-08-09T12:58:05.001","translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"level":3,"displayName":"Chiefdom","access":{"manage":true,"externalize":false,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"tTUf91fCytl","attributeValues":[]},{"name":"Facility","created":"2011-12-24T12:24:22.935","lastUpdated":"2015-08-09T12:58:05.005","translations":[],"favorites":[],"sharing":{"external":false,"users":{},"userGroups":{}},"level":4,"displayName":"Facility","access":{"manage":true,"externalize":false,"write":true,"read":true,"update":true,"delete":true},"favorite":false,"id":"m9lBJogzE95","attributeValues":[]}]'
+    content_type: text/plain
+    method: GET
+    status: 200
+    url: http://localhost:8080/api/filledOrganisationUnitLevels

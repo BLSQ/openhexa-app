@@ -11,6 +11,10 @@ class DHIS2Connection:
     password: str = None
 
 
+class DHIS2Exception(Exception):
+    pass
+
+
 class DHIS2Client:
     def __init__(self, connection: DHIS2Connection):
         self.url = connection.url
@@ -41,8 +45,7 @@ class DHIS2Client:
         s = requests.Session()
         s.auth = requests.auth.HTTPBasicAuth(username, password)
         r = s.get(f"{self.url}/system/ping")
-        # some old instances doesn't have a "system/ping" endpoint
-        # we don't want to raise an error in that case
+
         if r.status_code in [200, 406]:
             logger.info(f"Logged in to '{self.url}' as '{username}'")
         else:
@@ -56,3 +59,13 @@ class DHIS2Client:
         response = self.session.request(method, url, params=params, json=data)
         response.raise_for_status()
         return response
+
+    def raise_if_error(self, r: requests.Response) -> None:
+        if r.status_code != 200 and "json" in r.headers["content-type"]:
+            msg = r.json()
+            if msg.get("status") == "ERROR":
+                raise DHIS2Exception(
+                    f"{msg.get('status')} {msg.get('httpStatusCode')}: {msg.get('message')}"
+                )
+
+        r.raise_for_status()
