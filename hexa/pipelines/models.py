@@ -4,6 +4,7 @@ import typing
 import uuid
 from datetime import datetime
 
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
@@ -32,7 +33,6 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
-from hexa.template_pipelines.models import Template
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -460,6 +460,7 @@ class Pipeline(SoftDeletedModel):
 
     def get_or_create_template(self, name, code, description, config):
         if not self.template:
+            Template = apps.get_model("template_pipelines", "Template")
             self.template = Template.objects.create(
                 name=name,
                 code=code,
