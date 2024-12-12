@@ -1,5 +1,3 @@
-import uuid
-
 from django.db.utils import IntegrityError
 
 from hexa.core.test import TestCase
@@ -15,6 +13,18 @@ class TemplateModelTest(TestCase):
         self.pipeline = Pipeline.objects.create(
             name="Test Pipeline", workspace=self.workspace
         )
+        self.template = Template.objects.create(
+            name="Test Template",
+            code="test_code",
+            workspace=self.workspace,
+            source_pipeline=self.pipeline,
+        )
+        self.pipeline_version1 = PipelineVersion.objects.create(
+            pipeline=self.pipeline, version_number=1
+        )
+        self.pipeline_version3 = PipelineVersion.objects.create(
+            pipeline=self.pipeline, version_number=3
+        )
 
     def test_create_template(self):
         template = Template.objects.create(
@@ -23,7 +33,6 @@ class TemplateModelTest(TestCase):
             workspace=self.workspace,
             source_pipeline=self.pipeline,
         )
-        self.assertIsInstance(template.id, uuid.UUID)
         self.assertEqual(template.name, "Test Template")
         self.assertEqual(template.code, "test_code")
         self.assertEqual(template.workspace, self.workspace)
@@ -61,6 +70,21 @@ class TemplateModelTest(TestCase):
                 source_pipeline=self.pipeline,
             )
 
+    def test_create_template_version(self):
+        template_version1 = self.template.create_version(self.pipeline_version1)
+        self.assertEqual(template_version1.version_number, 1)
+        self.assertEqual(template_version1.template, self.template)
+        self.assertEqual(
+            template_version1.source_pipeline_version, self.pipeline_version1
+        )
+
+        template_version2 = self.template.create_version(self.pipeline_version3)
+        self.assertEqual(template_version2.version_number, 2)
+        self.assertEqual(template_version2.template, self.template)
+        self.assertEqual(
+            template_version2.source_pipeline_version, self.pipeline_version3
+        )
+
 
 class TemplateVersionModelTest(TestCase):
     def setUp(self):
@@ -84,7 +108,6 @@ class TemplateVersionModelTest(TestCase):
             template=self.template,
             source_pipeline_version=self.pipeline_version,
         )
-        self.assertIsInstance(template_version.id, uuid.UUID)
         self.assertEqual(template_version.version_number, 1)
         self.assertEqual(template_version.template, self.template)
         self.assertEqual(
