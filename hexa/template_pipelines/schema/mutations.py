@@ -31,7 +31,7 @@ def get_source_pipeline_version(source_pipeline, pipeline_version_id):
 
 
 @template_pipelines_mutations.field("createTemplateVersion")
-def resolve_create_template(_, info, **kwargs):
+def resolve_create_template_version(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
 
