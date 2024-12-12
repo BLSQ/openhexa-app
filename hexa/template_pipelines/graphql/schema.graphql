@@ -9,8 +9,8 @@ extend type Mutation {
 Represents the input for creating a new template version.
 """
 input CreateTemplateVersionInput {
-  name: String!  # The name of the template.
-  code: String!  # The code of the template.
+  name: String  # The name of the template.
+  code: String  # The code of the template.
   description: String  # The description of the template.
   config: String  # The configuration of the template.
   workspace_slug: String!  # The slug of the workspace.
