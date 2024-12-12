@@ -32,6 +32,7 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
+from hexa.template_pipelines.models import Template
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -456,6 +457,19 @@ class Pipeline(SoftDeletedModel):
         }
         merged_config = {**cleaned_pipeline_version_config, **cleaned_provided_config}
         return merged_config
+
+    def create_template(self, name, code, description, config, workspace):
+        if not self.template:
+            self.template = Template.objects.create(
+                name=name,
+                code=code,
+                description=description,
+                config=config,
+                workspace=workspace,
+                source_pipeline=self,
+            )
+            self.save()
+        return self.template
 
     def __str__(self):
         if self.name is not None and self.name != "":

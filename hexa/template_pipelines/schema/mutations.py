@@ -4,7 +4,6 @@ from django.http import HttpRequest
 
 from hexa.analytics.api import track
 from hexa.pipelines.models import Pipeline, PipelineVersion
-from hexa.template_pipelines.models import Template
 from hexa.workspaces.models import Workspace
 
 template_pipelines_mutations = MutationType()
@@ -26,23 +25,9 @@ def get_source_pipeline(user, pipeline_id):
 
 def get_source_pipeline_version(source_pipeline, pipeline_version_id):
     try:
-        return source_pipeline.versions.get(version_number=pipeline_version_id)
+        return source_pipeline.versions.get(id=pipeline_version_id)
     except PipelineVersion.DoesNotExist:
         return None
-
-
-def create_template(input, workspace, source_pipeline):
-    template = Template.objects.create(
-        name=input.get("name"),
-        code=input.get("code"),
-        description=input.get("description"),
-        config=input.get("config"),
-        workspace=workspace,
-        source_pipeline=source_pipeline,
-    )
-    source_pipeline.template = template
-    source_pipeline.save()
-    return template
 
 
 @template_pipelines_mutations.field("createTemplateVersion")
@@ -67,12 +52,8 @@ def resolve_create_template(_, info, **kwargs):
     if not source_pipeline_version:
         return {"success": False, "errors": ["PIPELINE_VERSION_NOT_FOUND"]}
 
-    template = source_pipeline.template or create_template(
-        input, workspace, source_pipeline
-    )
-    template_version = template.create_version(
-        source_pipeline_version=source_pipeline_version
-    )
+    template = source_pipeline.get_or_create_template(input, workspace, source_pipeline)
+    template_version = template.create_version(source_pipeline_version)
     track(
         request,
         "templates.template_created",
