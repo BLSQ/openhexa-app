@@ -10,60 +10,75 @@ from hexa.workspaces.models import Workspace
 template_pipelines_mutations = MutationType()
 
 
+def get_workspace(user, workspace_slug):
+    try:
+        return Workspace.objects.filter_for_user(user).get(slug=workspace_slug)
+    except Workspace.DoesNotExist:
+        return None
+
+
+def get_source_pipeline(user, pipeline_id):
+    try:
+        return Pipeline.objects.filter_for_user(user).get(id=pipeline_id)
+    except Pipeline.DoesNotExist:
+        return None
+
+
+def get_source_pipeline_version(source_pipeline, pipeline_version_id):
+    try:
+        return source_pipeline.versions.get(version_number=pipeline_version_id)
+    except PipelineVersion.DoesNotExist:
+        return None
+
+
+def create_template(input, workspace, source_pipeline):
+    template = Template.objects.create(
+        name=input.get("name"),
+        code=input.get("code"),
+        description=input.get("description"),
+        config=input.get("config"),
+        workspace=workspace,
+        source_pipeline=source_pipeline,
+    )
+    source_pipeline.template = template
+    source_pipeline.save()
+    return template
+
+
 @template_pipelines_mutations.field("createTemplateVersion")
 def resolve_create_template(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
-    try:
-        workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=input.get("workspace_slug")
-        )
-    except Workspace.DoesNotExist:
-        return {
-            "success": False,
-            "errors": ["WORKSPACE_NOT_FOUND"],
-        }
+
+    workspace = get_workspace(request.user, input.get("workspace_slug"))
+    if not workspace:
+        return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
+
     if not request.user.has_perm("templates.create_template", workspace):
         raise PermissionDenied()
-    try:
-        source_pipeline = Pipeline.objects.filter_for_user(request.user).get(
-            id=input.get("pipeline_id")
-        )
-    except Pipeline.DoesNotExist:
-        return {
-            "success": False,
-            "errors": ["PIPELINE_NOT_FOUND"],
-        }
-    try:
-        source_pipeline_version = source_pipeline.versions.get(
-            version_number=input.get("pipeline_version_id")
-        )
-    except PipelineVersion.DoesNotExist:
-        return {
-            "success": False,
-            "errors": ["PIPELINE_VERSION_NOT_FOUND"],
-        }
 
-    template = (
-        source_pipeline.template
-        if source_pipeline.template
-        else Template.objects.create(
-            name=input.get("name"),
-            code=input.get("code"),
-            description=input.get("description"),
-            config=input.get("config"),
-            workspace=workspace,
-            source_pipeline=source_pipeline,
-        )
+    source_pipeline = get_source_pipeline(request.user, input.get("pipeline_id"))
+    if not source_pipeline:
+        return {"success": False, "errors": ["PIPELINE_NOT_FOUND"]}
+
+    source_pipeline_version = get_source_pipeline_version(
+        source_pipeline, input.get("pipeline_version_id")
     )
-    source_pipeline.template = template
-    source_pipeline.save()
-    template.create_version(source_pipeline_version=source_pipeline_version)
+    if not source_pipeline_version:
+        return {"success": False, "errors": ["PIPELINE_VERSION_NOT_FOUND"]}
+
+    template = source_pipeline.template or create_template(
+        input, workspace, source_pipeline
+    )
+    template_version = template.create_version(
+        source_pipeline_version=source_pipeline_version
+    )
     track(
         request,
         "templates.template_created",
         {
             "template_id": str(template.id),
+            "template_version_id": str(template_version.id),
             "workspace": workspace.slug,
         },
     )
