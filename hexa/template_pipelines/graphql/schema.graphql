@@ -1,0 +1,35 @@
+type Mutation {
+  createTemplateVersion(input: CreateTemplateVersionInput!): CreateTemplateVersionPayload
+}
+
+input CreateTemplateVersionInput {
+  name: String!
+  code: String!
+  description: String
+  config: String
+  workspace_slug: String!
+  pipeline_id: ID!
+  pipeline_version_id: ID!
+}
+
+type CreateTemplateVersionPayload {
+  template: Template
+  success: Boolean!
+  errors: [String!]
+}
+
+type Template {
+  id: ID!
+  name: String!
+  code: String!
+  description: String
+  config: String
+  versions: [TemplateVersion!]
+}
+
+type TemplateVersion {
+  id: ID!
+  version_number: Int!
+  created_at: String!
+  template: Template!
+}
