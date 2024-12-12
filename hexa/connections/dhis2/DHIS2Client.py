@@ -1,5 +1,5 @@
+import requests
 from requests.adapters import HTTPAdapter
-from starlette import requests
 from urllib3 import Retry
 
 from hexa.catalog.queue import logger
