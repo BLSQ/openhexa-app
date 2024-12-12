@@ -14,7 +14,6 @@ from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.workspaces.models import Workspace
 
 
-# TODO : create template test
 class TemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     pass
 
@@ -52,6 +51,14 @@ class Template(SoftDeletedModel):
 
     objects = DefaultSoftDeletedManager.from_queryset(TemplateQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(TemplateQuerySet)()
+
+    def create_version(self, source_pipeline_version):
+        template_version = TemplateVersion.objects.create(
+            template=self,
+            version_number=self.versions.count() + 1,
+            source_pipeline_version=source_pipeline_version,
+        )
+        return template_version
 
 
 class TemplateVersionQuerySet(BaseQuerySet):
