@@ -26,6 +26,7 @@ from hexa.plugins.connector_airflow.schema import dags_bindables, dags_type_defs
 from hexa.plugins.connector_dhis2.schema import dhis2_bindables, dhis2_type_defs
 from hexa.plugins.connector_s3.schema import s3_bindables, s3_type_defs
 from hexa.tags.schema import tags_bindables, tags_type_defs
+from hexa.template_pipelines.schema import templates_bindables, templates_type_defs
 from hexa.user_management.schema import (
     identity_bindables,
     identity_directives,
@@ -84,6 +85,7 @@ schema = make_executable_schema(
         countries_type_defs,
         notebooks_type_defs,
         pipelines_type_defs,
+        templates_type_defs,
         workspaces_type_def,
         metadata_type_def,
         databases_types_def,
@@ -95,6 +97,7 @@ schema = make_executable_schema(
         uuid_scalar,
         opaque_id_scalar,
         *pipelines_bindables,
+        *templates_bindables,
         *identity_bindables,
         *tags_bindables,
         *dags_bindables,
