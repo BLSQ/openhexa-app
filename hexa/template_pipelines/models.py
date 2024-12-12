@@ -50,23 +50,6 @@ class Template(SoftDeletedModel):
     objects = DefaultSoftDeletedManager.from_queryset(TemplateQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(TemplateQuerySet)()
 
-    @classmethod
-    def create_from_pipeline(
-        cls, pipeline_id, name, code, description, config, workspace
-    ):
-        pipeline = Pipeline.objects.get(id=pipeline_id)
-        # TODO : check it exists + permission
-        template = cls(
-            name=name,
-            code=code,
-            description=description,
-            config=config,
-            workspace=workspace,
-            source_pipeline=pipeline,
-        )
-        template.save()
-        return template
-
 
 class TemplateVersionQuerySet(BaseQuerySet):
     pass
