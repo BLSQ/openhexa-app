@@ -14,6 +14,8 @@ from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.workspaces.models import Workspace
 
 
+# TODO : model unit test
+# TODO : create template test
 class TemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     pass
 
