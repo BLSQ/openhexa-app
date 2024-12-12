@@ -58,3 +58,22 @@ type TemplateVersion {
   created_at: String!  # The creation date of the template version.
   template: Template!  # The template associated with the version.
 }
+
+"""
+Represents the permissions for a template.
+"""
+type TemplatePermissions {
+  createVersion: Boolean!  # Indicates if a new version of the template can be created.
+}
+
+"""
+Represents the permissions for a template version.
+"""
+type TemplateVersionPermissions {
+  update: Boolean!  # Indicates if the pipeline version can be updated.
+  delete: Boolean!  # Indicates if the pipeline version can be deleted.
+}
+
+extend type WorkspacePermissions {
+  createTemplateVersion: Boolean!  # Indicates if a template version can be created in the workspace.
+}
