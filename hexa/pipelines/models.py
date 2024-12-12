@@ -458,14 +458,14 @@ class Pipeline(SoftDeletedModel):
         merged_config = {**cleaned_pipeline_version_config, **cleaned_provided_config}
         return merged_config
 
-    def create_template(self, name, code, description, config, workspace):
+    def get_or_create_template(self, name, code, description, config):
         if not self.template:
             self.template = Template.objects.create(
                 name=name,
                 code=code,
                 description=description,
                 config=config,
-                workspace=workspace,
+                workspace=self.workspace,
                 source_pipeline=self,
             )
             self.save()

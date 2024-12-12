@@ -184,3 +184,23 @@ class PipelineTest(TestCase):
 
         mail_run_recipients(run)
         self.assertEqual(len(mail.outbox), 3)
+
+    def test_get_or_create_template(self):
+        template_name = "Test Template"
+        template = self.PIPELINE.get_or_create_template(
+            name=template_name,
+            code="test_code",
+            description="Some description",
+            config={"key": "value"},
+        )
+        self.assertIsNotNone(template)
+        self.assertEqual(self.PIPELINE.template.name, template_name)
+        self.PIPELINE.get_or_create_template(
+            name="SOME RANDOM NAME",
+            code="test_code",
+            description="Some description",
+            config={"key": "value"},
+        )
+        self.assertEqual(
+            self.PIPELINE.template.name, template_name
+        )  # Do not recreate a new template when it exists
