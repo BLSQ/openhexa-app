@@ -1,4 +1,5 @@
 from ariadne import MutationType
+from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
 from hexa.analytics.api import track
@@ -32,7 +33,8 @@ def resolve_create_template(_, info, **kwargs):
             "errors": ["PIPELINE_NOT_FOUND"],
         }
 
-    # TODO : permission
+    if not request.user.has_perm("templates.create_template", workspace):
+        raise PermissionDenied()
 
     data = {
         "name": input.get("name"),
