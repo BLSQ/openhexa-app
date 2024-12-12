@@ -34,7 +34,7 @@ class TemplatesTest(GraphQLTestCase):
         cls.PIPELINE = Pipeline.objects.create(name="Test Pipeline", workspace=cls.WS1)
         cls.PIPELINE_VERSION = PipelineVersion.objects.create(
             pipeline=cls.PIPELINE,
-            version="v1.0",
+            version_number=1,
             description="Initial version",
         )
 
@@ -55,8 +55,8 @@ class TemplatesTest(GraphQLTestCase):
                     "description": "A test template",
                     "config": "{}",
                     "workspace_slug": self.WS1.slug,
-                    "pipeline_id": self.PIPELINE.id,
-                    "pipeline_version_id": self.PIPELINE_VERSION.id,
+                    "pipeline_id": str(self.PIPELINE.id),
+                    "pipeline_version_id": str(self.PIPELINE_VERSION.id),
                 }
             },
         )
