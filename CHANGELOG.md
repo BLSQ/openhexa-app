@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.76.2](https://github.com/BLSQ/openhexa-app/compare/0.76.1...0.76.2) (2024-12-13)
+
+
+### Bug Fixes
+
+* **Datasets:** snake case for datasetlink id ([#873](https://github.com/BLSQ/openhexa-app/issues/873)) ([0eb8667](https://github.com/BLSQ/openhexa-app/commit/0eb8667f9017f20ef9eaf23920cb27dde8da1f60))
+
 ## [0.76.1](https://github.com/BLSQ/openhexa-app/compare/0.76.0...0.76.1) (2024-12-11)
 
 
