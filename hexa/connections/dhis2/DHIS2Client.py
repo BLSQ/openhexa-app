@@ -1,8 +1,10 @@
+from logging import getLogger
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
-from config import logging
+logger = getLogger(__name__)
 
 
 class DHIS2ClientException(Exception):
@@ -15,7 +17,7 @@ class DHIS2ClientException(Exception):
         return self.message
 
     def log_error(self):
-        logging.error(f"DHIS2 Cient Error : {self.message}")
+        logger.error(f"DHIS2 Cient Error : {self.message}")
 
 
 class DHIS2Client(requests.Session):
@@ -26,6 +28,7 @@ class DHIS2Client(requests.Session):
         self.password = password
 
         self.authenticate()
+        self.status = self.ping()
 
     @staticmethod
     def parse_api_url(url: str) -> str:
@@ -54,7 +57,7 @@ class DHIS2Client(requests.Session):
             self.raise_if_error(resp)
             return resp
         except requests.RequestException as exc:
-            logging.exception(exc)
+            logger.exception(exc)
             raise
 
     def raise_if_error(self, r: requests.Response) -> None:
@@ -66,3 +69,11 @@ class DHIS2Client(requests.Session):
                 )
 
         r.raise_for_status()
+
+    def ping(self) -> requests.Response:
+        response = self.get(f"{self.url}/system/ping")
+        if response.status_code in [200, 406]:
+            logger.info(f"Logged in to '{self.url}' as '{self.username}'")
+        else:
+            self.raise_if_error(response)
+        return response

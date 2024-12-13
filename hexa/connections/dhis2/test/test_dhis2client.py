@@ -14,8 +14,7 @@ class TestDhis2Client(test.TestCase):
 
         for version in VERSIONS:
             with self.subTest(version=version):
-                client = DHIS2Client("https://127.0.0.1:8080/", "admin", "district")
                 path_to_version = Path(response_dir, version, "api_authenticate.yaml")
                 responses._add_from_file(path_to_version)
-                session = client.authenticate()
-                assert session.status_code == 200
+                client = DHIS2Client("http://localhost:8080/", "admin", "district")
+                assert client.status.status_code == 200
