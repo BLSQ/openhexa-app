@@ -25,11 +25,11 @@ attrs==24.2.0
     # via
     #   morecantile
     #   rasterio
-boto3==1.35.66
+boto3==1.35.81
     # via
     #   -r requirements.in
     #   moto
-botocore==1.35.66
+botocore==1.35.81
     # via
     #   boto3
     #   moto
@@ -75,7 +75,7 @@ deprecated==1.2.14
     # via opentelemetry-api
 dhis2-py==2.3.0
     # via -r requirements.in
-django==5.1
+django==4.2.17
     # via
     #   -r requirements.in
     #   ariadne-django
