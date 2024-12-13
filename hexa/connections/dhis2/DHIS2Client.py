@@ -60,15 +60,14 @@ class DHIS2Client(requests.Session):
             logger.exception(exc)
             raise
 
-    def raise_if_error(self, r: requests.Response) -> None:
-        if r.status_code != 200 and "json" in r.headers["content-type"]:
-            msg = r.json()
+    def raise_if_error(self, response: requests.Response) -> None:
+        if response.status_code != 200 and "json" in response.headers["content-type"]:
+            msg = response.json()
             if msg.get("status") == "ERROR":
                 raise DHIS2ClientException(
                     f"{msg.get('status')} {msg.get('httpStatusCode')}: {msg.get('message')}"
                 )
-
-        r.raise_for_status()
+        response.raise_for_status()
 
     def ping(self) -> requests.Response:
         response = self.get(f"{self.url}/system/ping")

@@ -4,5 +4,5 @@ responses:
     body: pong
     content_type: text/plain
     method: GET
-    status: 200
+    status: 404
     url: http://localhost:8080/api/system/ping
