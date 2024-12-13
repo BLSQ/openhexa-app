@@ -296,7 +296,7 @@ def resolve_pin_dataset(_, info, **kwargs):
     mutation_input = kwargs["input"]
 
     try:
-        link = DatasetLink.objects.get(id=mutation_input["linkId"])
+        link = DatasetLink.objects.get(id=mutation_input["link_id"])
 
         if not request.user.has_perm("datasets.pin_dataset", link):
             raise PermissionDenied
