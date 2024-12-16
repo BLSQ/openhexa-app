@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.76.4](https://github.com/BLSQ/openhexa-app/compare/0.76.3...0.76.4) (2024-12-16)
+
+
+### Bug Fixes
+
+* OPENHEXA-1BV snake_case issue in create bucket folder ([#880](https://github.com/BLSQ/openhexa-app/issues/880)) ([d6a3e67](https://github.com/BLSQ/openhexa-app/commit/d6a3e674e1c8f9d6192c97716b357d48bff9293a))
+
 ## [0.76.3](https://github.com/BLSQ/openhexa-app/compare/0.76.2...0.76.3) (2024-12-16)
 
 
