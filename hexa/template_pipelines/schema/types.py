@@ -10,7 +10,7 @@ template_version_permissions = ObjectType("TemplateVersionPermissions")
 template_object = ObjectType("Template")
 
 
-@workspace_permissions.field("createTemplateVersion")
+@workspace_permissions.field("createPipelineTemplateVersion")
 def resolve_workspace_permissions_create_template_version(
     obj: Workspace, info, **kwargs
 ):
