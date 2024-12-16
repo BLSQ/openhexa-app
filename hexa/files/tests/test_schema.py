@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import Feature, User
 from hexa.workspaces.models import Workspace
@@ -6,6 +8,7 @@ from hexa.workspaces.models import Workspace
 class FilesTest(GraphQLTestCase):
     USER_WORKSPACE_ADMIN = None
     WORKSPACE = None
+    FOLDER_NAME = "/new_folder"
 
     @classmethod
     def setUpTestData(cls):
@@ -61,4 +64,36 @@ class FilesTest(GraphQLTestCase):
                 }
             },
             r["data"]["workspace"],
+        )
+
+    @patch("hexa.files.schema.mutations.storage")
+    def test_create_bucket_folder(self, mock_storage):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        mock_storage.create_bucket_folder.return_value = {"name": self.FOLDER_NAME}
+
+        r = self.run_query(
+            """
+        mutation CreateBucketFolder($input: CreateBucketFolderInput!) {
+            createBucketFolder(input: $input) {
+                success
+                errors
+                folder {
+                    name
+                }
+            }
+        }
+        """,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "folderKey": self.FOLDER_NAME,
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": True, "errors": [], "folder": {"name": self.FOLDER_NAME}},
+            r["data"]["createBucketFolder"],
+        )
+        mock_storage.create_bucket_folder.assert_called_once_with(
+            self.WORKSPACE.bucket_name, self.FOLDER_NAME
         )
