@@ -174,7 +174,7 @@ def resolve_pipeline_versions(pipeline: Pipeline, info, **kwargs):
 
 @pipeline_object.field("template")
 def resolve_pipeline_template(pipeline: Pipeline, info, **kwargs):
-    return pipeline.template
+    return getattr(pipeline, "template", None)
 
 
 @pipeline_object.field("runs")
