@@ -82,7 +82,7 @@ def resolve_create_bucket_folder(_, info, **kwargs):
         )
         if not request.user.has_perm("files.create_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
-        folder_key = mutation_input["folderKey"]
+        folder_key = mutation_input["folder_key"]
         folder_object = storage.create_bucket_folder(workspace.bucket_name, folder_key)
 
         return {"success": True, "folder": folder_object, "errors": []}
