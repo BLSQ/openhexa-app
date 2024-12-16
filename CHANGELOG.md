@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.76.3](https://github.com/BLSQ/openhexa-app/compare/0.76.2...0.76.3) (2024-12-16)
+
+
+### Bug Fixes
+
+* **Pipelines:** Put back 'number' on PipelineVersion to not break ([#878](https://github.com/BLSQ/openhexa-app/issues/878)) ([417433b](https://github.com/BLSQ/openhexa-app/commit/417433b8a9c39dba0c17425c3a9c35ad5370e3c1))
+
 ## [0.76.2](https://github.com/BLSQ/openhexa-app/compare/0.76.1...0.76.2) (2024-12-13)
 
 
