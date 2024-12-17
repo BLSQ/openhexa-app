@@ -12,7 +12,7 @@ class TemplateAdmin(GlobalObjectsModelAdmin):
 
 
 @admin.register(PipelineTemplateVersion)
-class PipelineVersionAdmin(admin.ModelAdmin):
+class PipelineTemplateVersionAdmin(admin.ModelAdmin):
     list_display = ("version_number", "template", "created_at")
     list_filter = ("template", "template__workspace")
     search_fields = ("template__name", "template__code", "template__id")
