@@ -149,6 +149,7 @@ INSTALLED_APPS = [
     "hexa.countries",
     "hexa.notebooks",
     "hexa.pipelines",
+    "hexa.pipeline_templates",
     "hexa.comments",
     "hexa.tags",
     "hexa.ui",
