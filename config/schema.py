@@ -17,6 +17,7 @@ from hexa.datasets.schema import datasets_bindables, datasets_type_defs
 from hexa.files.schema import files_bindables, files_type_def
 from hexa.metadata.schema import metadata_bindables, metadata_type_def
 from hexa.notebooks.schema import notebooks_bindables, notebooks_type_defs
+from hexa.pipeline_templates.schema import templates_bindables, templates_type_defs
 from hexa.pipelines.schema import pipelines_bindables, pipelines_type_defs
 from hexa.plugins.connector_accessmod.schema import (
     accessmod_bindables,
@@ -26,7 +27,6 @@ from hexa.plugins.connector_airflow.schema import dags_bindables, dags_type_defs
 from hexa.plugins.connector_dhis2.schema import dhis2_bindables, dhis2_type_defs
 from hexa.plugins.connector_s3.schema import s3_bindables, s3_type_defs
 from hexa.tags.schema import tags_bindables, tags_type_defs
-from hexa.template_pipelines.schema import templates_bindables, templates_type_defs
 from hexa.user_management.schema import (
     identity_bindables,
     identity_directives,

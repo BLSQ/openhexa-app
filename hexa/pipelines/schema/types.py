@@ -295,7 +295,7 @@ def resolve_pipeline_run_dataset_version(run: PipelineRun, info, **kwargs):
 def resolve_me_permissions_create_pipeline_template_version(me, info):
     request: HttpRequest = info.context["request"]
     return (
-        request.user.has_perm("template_pipelines.create_pipeline_template")
+        request.user.has_perm("pipeline_templates.create_pipeline_template")
         if request.user.is_authenticated
         else False
     )

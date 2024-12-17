@@ -92,7 +92,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="versions",
-                        to="template_pipelines.template",
+                        to="pipeline_templates.template",
                     ),
                 ),
             ],
