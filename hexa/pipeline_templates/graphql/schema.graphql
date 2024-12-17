@@ -41,7 +41,7 @@ enum CreatePipelineTemplateVersionError {
 Represents a pipeline template.
 """
 type PipelineTemplate {
-  id: ID!  # The ID of the pipeline template.
+  id: UUID!  # The ID of the pipeline template.
   name: String!  # The name of the pipeline template.
   code: String!  # The code of the pipeline template.
   description: String  # The description of the pipeline template.
@@ -53,7 +53,7 @@ type PipelineTemplate {
 Represents a version of a pipeline template.
 """
 type PipelineTemplateVersion {
-  id: ID!  # The ID of the pipeline template version.
+  id: UUID!  # The ID of the pipeline template version.
   versionNumber: Int!  # The version number of the pipeline template version.
   createdAt: String!  # The creation date of the pipeline template version.
   template: PipelineTemplate!  # The pipeline template associated with the version.
