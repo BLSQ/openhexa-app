@@ -14,8 +14,8 @@ input CreatePipelineTemplateVersionInput {
   description: String  # The description of the pipeline template.
   config: String  # The configuration of the pipeline template.
   workspaceSlug: String!  # The slug of the pipeline workspace.
-  pipelineId: ID!  # The ID of the pipeline.
-  pipelineVersionId: ID!  # The ID of the pipeline version.
+  pipelineId: UUID!  # The ID of the pipeline.
+  pipelineVersionId: UUID!  # The ID of the pipeline version.
 }
 
 """
