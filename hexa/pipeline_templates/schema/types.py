@@ -1,6 +1,6 @@
 from ariadne import ObjectType
 
-from hexa.template_pipelines.models import Template
+from hexa.pipeline_templates.models import Template
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_permissions
 

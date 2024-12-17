@@ -1,8 +1,8 @@
 from django.db.utils import IntegrityError
 
 from hexa.core.test import TestCase
+from hexa.pipeline_templates.models import Template, TemplateVersion
 from hexa.pipelines.models import Pipeline, PipelineVersion
-from hexa.template_pipelines.models import Template, TemplateVersion
 from hexa.workspaces.models import Workspace
 
 

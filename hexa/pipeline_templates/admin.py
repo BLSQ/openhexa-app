@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from hexa.core.admin import GlobalObjectsModelAdmin
-from hexa.template_pipelines.models import Template, TemplateVersion
+from hexa.pipeline_templates.models import Template, TemplateVersion
 
 
 @admin.register(Template)

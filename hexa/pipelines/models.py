@@ -460,7 +460,7 @@ class Pipeline(SoftDeletedModel):
 
     def get_or_create_template(self, name, code, description, config):
         if not hasattr(self, "template") or not self.template:
-            Template = apps.get_model("template_pipelines", "Template")
+            Template = apps.get_model("pipeline_templates", "Template")
             self.template = Template.objects.create(
                 name=name,
                 code=code,
