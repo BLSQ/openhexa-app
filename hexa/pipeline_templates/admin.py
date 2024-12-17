@@ -5,7 +5,7 @@ from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVer
 
 
 @admin.register(PipelineTemplate)
-class TemplateAdmin(GlobalObjectsModelAdmin):
+class PipelineTemplateAdmin(GlobalObjectsModelAdmin):
     list_display = ("name", "code", "workspace")
     list_filter = ("workspace",)
     search_fields = ("id", "code", "name")
