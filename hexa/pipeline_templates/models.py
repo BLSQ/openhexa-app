@@ -20,7 +20,6 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
 
 class PipelineTemplate(SoftDeletedModel):
     class Meta:
-        verbose_name = "PipelineTemplate"
         constraints = [
             models.UniqueConstraint(
                 "workspace_id",
