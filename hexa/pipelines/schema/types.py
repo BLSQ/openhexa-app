@@ -233,6 +233,9 @@ def resolve_pipeline_version_version_name(version: PipelineVersion, info, **kwar
     return version.version_name
 
 
+pipeline_version_object.set_alias("number", "versionNumber")
+
+
 @pipeline_version_object.field("isLatestVersion")
 def resolve_pipeline_version_is_latest(version: PipelineVersion, info, **kwargs):
     return version.is_latest_version

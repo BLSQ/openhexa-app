@@ -111,6 +111,7 @@ type PipelineVersion {
   user: User  # The user who created the pipeline version.
   pipeline: Pipeline!  # The pipeline associated with the version.
   name: String  # The optional name of the pipeline version.
+  number: Int @deprecated(reason: "Use 'versionNumber' instead")  # The version number of the pipeline version.
   versionNumber: Int!  # The version number of the pipeline version.
   versionName: String!  # The version name of the pipeline version including the versionNumber and the optional name.
   description: String  # The description of the pipeline version.
