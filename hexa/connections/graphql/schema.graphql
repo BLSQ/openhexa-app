@@ -1,0 +1,13 @@
+type QueryResultItem {
+    id: String!
+    name: String!
+}
+
+type QueryResult {
+    data: [QueryResultItem!]!
+}
+
+type DHIS2Connection {
+    query(type: String!, filter: String, fields: String!): QueryResult!
+}
+

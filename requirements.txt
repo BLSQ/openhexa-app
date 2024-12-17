@@ -75,6 +75,8 @@ deprecated==1.2.15
     # via opentelemetry-api
 dhis2-py==2.3.0
     # via -r requirements.in
+diskcache==5.6.3
+    # via openhexa-toolbox
 django==4.2.17
     # via
     #   -r requirements.in
@@ -111,7 +113,9 @@ et-xmlfile==2.0.0
 exceptiongroup==1.2.2
     # via anyio
 geopandas==1.0.1
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   openhexa-toolbox
 google-api-core[grpc]==2.24.0
     # via
     #   google-cloud-appengine-logging
@@ -214,6 +218,8 @@ oauthlib==3.2.2
     # via
     #   kubernetes
     #   requests-oauthlib
+openhexa-toolbox==1.0.0
+    # via -r requirements.in
 openpyxl==3.1.5
     # via -r requirements.in
 opentelemetry-api==1.29.0
@@ -228,8 +234,11 @@ pandas==2.2.3
     # via
     #   -r requirements.in
     #   geopandas
+    #   openhexa-toolbox
 pip-tools==7.4.1
     # via -r requirements.in
+polars==1.17.1
+    # via openhexa-toolbox
 proto-plus==1.25.0
     # via
     #   google-api-core
@@ -269,6 +278,8 @@ pydantic-core==2.27.2
     # via pydantic
 pygments==2.18.0
     # via dhis2-py
+pyjwt==2.10.1
+    # via openhexa-toolbox
 pyogrio==0.10.0
     # via geopandas
 pyparsing==3.2.0
@@ -287,6 +298,7 @@ python-dateutil==2.9.0.post0
     #   croniter
     #   kubernetes
     #   moto
+    #   openhexa-toolbox
     #   pandas
 python-slugify==8.0.4
     # via -r requirements.in
@@ -315,6 +327,7 @@ requests==2.32.3
     #   kubernetes
     #   mixpanel
     #   moto
+    #   openhexa-toolbox
     #   requests-oauthlib
     #   responses
 requests-oauthlib==2.0.0
@@ -332,7 +345,9 @@ s3transfer==0.10.4
 sentry-sdk==2.19.2
     # via -r requirements.in
 shapely==2.0.6
-    # via geopandas
+    # via
+    #   geopandas
+    #   openhexa-toolbox
 six==1.17.0
     # via
     #   django-ltree
