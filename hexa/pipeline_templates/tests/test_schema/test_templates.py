@@ -49,7 +49,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
             """
                 mutation createPipelineTemplateVersion($input: CreatePipelineTemplateVersionInput!) {
                     createPipelineTemplateVersion(input: $input) {
-                        success errors template {name code versions {version_number}}
+                        success errors pipelineTemplate {name code versions {versionNumber}}
                     }
                 }
             """,
@@ -59,9 +59,9 @@ class PipelineTemplatesTest(GraphQLTestCase):
                     "code": "template_code",
                     "description": "A test template",
                     "config": "{}",
-                    "workspace_slug": self.WS1.slug,
-                    "pipeline_id": str(self.PIPELINE.id),
-                    "pipeline_version_id": str(pipeline_version_id),
+                    "workspaceSlug": self.WS1.slug,
+                    "pipelineId": str(self.PIPELINE.id),
+                    "pipelineVersionId": str(pipeline_version_id),
                 }
             },
         )
@@ -69,7 +69,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
             {
                 "success": True,
                 "errors": [],
-                "template": {
+                "pipelineTemplate": {
                     "name": "Template1",
                     "code": "template_code",
                     "versions": expected_versions,
@@ -80,7 +80,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
 
     def test_create_template_version(self):
         self.client.force_login(self.USER_ROOT)
-        self.create_template_version(self.PIPELINE_VERSION1.id, [{"version_number": 1}])
+        self.create_template_version(self.PIPELINE_VERSION1.id, [{"versionNumber": 1}])
         self.create_template_version(
-            self.PIPELINE_VERSION2.id, [{"version_number": 1}, {"version_number": 2}]
+            self.PIPELINE_VERSION2.id, [{"versionNumber": 1}, {"versionNumber": 2}]
         )
