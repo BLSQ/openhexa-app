@@ -25,12 +25,12 @@ class PipelineTemplate(SoftDeletedModel):
             models.UniqueConstraint(
                 "workspace_id",
                 "code",
-                name="unique_pipeline_template_code_per_workspace",
+                name="unique_p_template_code_per_workspace",
                 condition=Q(deleted_at__isnull=True),
             ),
             models.UniqueConstraint(
                 fields=["name"],
-                name="unique_pipeline_template_name",
+                name="unique_p_template_name",
                 condition=Q(deleted_at__isnull=True),
             ),
         ]
@@ -74,13 +74,13 @@ class PipelineTemplateVersion(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["template", "version_number"],
-                name="unique_pipeline_template_version_number",
+                name="unique_p_template_version_number",
             ),
         ]
         indexes = [
             models.Index(
                 fields=["template", "version_number"],
-                name="index_pipeline_template_version_number",
+                name="index_p_template_version_number",
             ),
         ]
 
