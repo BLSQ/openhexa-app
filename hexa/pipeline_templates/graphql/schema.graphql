@@ -5,6 +5,10 @@ extend type Mutation {
   createPipelineTemplateVersion(input: CreatePipelineTemplateVersionInput!): CreatePipelineTemplateVersionResult! @loginRequired
 }
 
+extend type Query {
+  allPipelineTemplates: [PipelineTemplate!]!  # Returns all pipeline templates.
+}
+
 """
 Represents the input for creating a new pipeline template version.
 """
