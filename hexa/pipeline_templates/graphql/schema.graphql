@@ -54,8 +54,8 @@ Represents a version of a pipeline template.
 """
 type PipelineTemplateVersion {
   id: ID!  # The ID of the pipeline template version.
-  version_number: Int!  # The version number of the pipeline template version.
-  created_at: String!  # The creation date of the pipeline template version.
+  versionNumber: Int!  # The version number of the pipeline template version.
+  createdAt: String!  # The creation date of the pipeline template version.
   template: PipelineTemplate!  # The pipeline template associated with the version.
 }
 
