@@ -1,36 +1,36 @@
 extend type Mutation {
   """
-  Creates a new template version.
+  Creates a new pipeline template version.
   """
-  createTemplateVersion(input: CreateTemplateVersionInput!): CreateTemplateVersionResult! @loginRequired
+  createPipelineTemplateVersion(input: CreatePipelineTemplateVersionInput!): CreatePipelineTemplateVersionResult! @loginRequired
 }
 
 """
-Represents the input for creating a new template version.
+Represents the input for creating a new pipeline template version.
 """
-input CreateTemplateVersionInput {
-  name: String  # The name of the template.
-  code: String  # The code of the template.
-  description: String  # The description of the template.
-  config: String  # The configuration of the template.
-  workspace_slug: String!  # The slug of the workspace.
-  pipeline_id: ID!  # The ID of the pipeline.
-  pipeline_version_id: ID!  # The ID of the pipeline version.
+input CreatePipelineTemplateVersionInput {
+  name: String  # The name of the pipeline template.
+  code: String  # The code of the pipeline template.
+  description: String  # The description of the pipeline template.
+  config: String  # The configuration of the pipeline template.
+  workspaceSlug: String!  # The slug of the pipeline workspace.
+  pipelineId: ID!  # The ID of the pipeline.
+  pipelineVersionId: ID!  # The ID of the pipeline version.
 }
 
 """
-Represents the result of creating a new template version.
+Represents the result of creating a new pipeline template version.
 """
-type CreateTemplateVersionResult {
-  template: Template  # The created template.
-  success: Boolean!  # Indicates if the template version was created successfully.
-  errors: [CreateTemplateVersionError!]  # The list of errors that occurred during the creation of the template version.
+type CreatePipelineTemplateVersionResult {
+  pipelineTemplate: PipelineTemplate  # The created pipeline template.
+  success: Boolean!  # Indicates if the pipeline template version was created successfully.
+  errors: [CreatePipelineTemplateVersionError!]  # The list of errors that occurred during the creation of the pipeline template version.
 }
 
 """
-Enum representing the possible errors that can occur when creating a template version.
+Enum representing the possible errors that can occur when creating a pipeline template version.
 """
-enum CreateTemplateVersionError {
+enum CreatePipelineTemplateVersionError {
   PERMISSION_DENIED
   WORKSPACE_NOT_FOUND
   PIPELINE_NOT_FOUND
@@ -38,46 +38,46 @@ enum CreateTemplateVersionError {
 }
 
 """
-Represents a template.
+Represents a pipeline template.
 """
-type Template {
-  id: ID!  # The ID of the template.
-  name: String!  # The name of the template.
-  code: String!  # The code of the template.
-  description: String  # The description of the template.
-  config: String  # The configuration of the template.
-  versions: [TemplateVersion!]  # The list of versions of the template.
+type PipelineTemplate {
+  id: ID!  # The ID of the pipeline template.
+  name: String!  # The name of the pipeline template.
+  code: String!  # The code of the pipeline template.
+  description: String  # The description of the pipeline template.
+  config: String  # The configuration of the pipeline template.
+  versions: [PipelineTemplateVersion!]  # The list of versions of the pipeline template.
 }
 
 """
-Represents a version of a template.
+Represents a version of a pipeline template.
 """
-type TemplateVersion {
-  id: ID!  # The ID of the template version.
-  version_number: Int!  # The version number of the template version.
-  created_at: String!  # The creation date of the template version.
-  template: Template!  # The template associated with the version.
+type PipelineTemplateVersion {
+  id: ID!  # The ID of the pipeline template version.
+  version_number: Int!  # The version number of the pipeline template version.
+  created_at: String!  # The creation date of the pipeline template version.
+  template: PipelineTemplate!  # The pipeline template associated with the version.
 }
 
 """
-Represents the permissions for a template.
+Represents the permissions for a pipeline template.
 """
-type TemplatePermissions {
-  createVersion: Boolean!  # Indicates if a new version of the template can be created.
+type PipelineTemplatePermissions {
+  createVersion: Boolean!  # Indicates if a new version of the pipeline template can be created.
 }
 
 """
-Represents the permissions for a template version.
+Represents the permissions for a pipeline template version.
 """
-type TemplateVersionPermissions {
-  update: Boolean!  # Indicates if the pipeline version can be updated.
-  delete: Boolean!  # Indicates if the pipeline version can be deleted.
+type PipelineTemplateVersionPermissions {
+  update: Boolean!  # Indicates if the pipeline template version can be updated.
+  delete: Boolean!  # Indicates if the pipeline template version can be deleted.
 }
 
 extend type WorkspacePermissions {
-  createPipelineTemplateVersion: Boolean!  # Indicates if a template version can be created in the workspace.
+  createPipelineTemplateVersion: Boolean!  # Indicates if a pipeline template version can be created in the workspace.
 }
 extend type MePermissions {
-  # Indicates whether the user can create a template version.
+  # Indicates whether the user can create a pipeline template version.
   createPipelineTemplateVersion: Boolean!
 }

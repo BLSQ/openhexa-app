@@ -1,17 +1,17 @@
 from django.contrib import admin
 
 from hexa.core.admin import GlobalObjectsModelAdmin
-from hexa.pipeline_templates.models import Template, TemplateVersion
+from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 
 
-@admin.register(Template)
+@admin.register(PipelineTemplate)
 class TemplateAdmin(GlobalObjectsModelAdmin):
     list_display = ("name", "code", "workspace")
     list_filter = ("workspace",)
     search_fields = ("id", "code", "name")
 
 
-@admin.register(TemplateVersion)
+@admin.register(PipelineTemplateVersion)
 class PipelineVersionAdmin(admin.ModelAdmin):
     list_display = ("version_number", "template", "created_at")
     list_filter = ("template", "template__workspace")

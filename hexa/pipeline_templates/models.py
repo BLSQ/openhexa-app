@@ -14,23 +14,23 @@ from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.workspaces.models import Workspace
 
 
-class TemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
+class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     pass
 
 
-class Template(SoftDeletedModel):
+class PipelineTemplate(SoftDeletedModel):
     class Meta:
-        verbose_name = "Template"
+        verbose_name = "PipelineTemplate"
         constraints = [
             models.UniqueConstraint(
                 "workspace_id",
                 "code",
-                name="unique_template_code_per_workspace",
+                name="unique_pipeline_template_code_per_workspace",
                 condition=Q(deleted_at__isnull=True),
             ),
             models.UniqueConstraint(
                 fields=["name"],
-                name="unique_template_name",
+                name="unique_pipeline_template_name",
                 condition=Q(deleted_at__isnull=True),
             ),
         ]
@@ -49,11 +49,11 @@ class Template(SoftDeletedModel):
         Pipeline, on_delete=models.PROTECT, related_name="template"
     )
 
-    objects = DefaultSoftDeletedManager.from_queryset(TemplateQuerySet)()
-    all_objects = IncludeSoftDeletedManager.from_queryset(TemplateQuerySet)()
+    objects = DefaultSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
+    all_objects = IncludeSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
 
     def create_version(self, source_pipeline_version):
-        template_version = TemplateVersion.objects.create(
+        template_version = PipelineTemplateVersion.objects.create(
             template=self,
             version_number=self.versions.count() + 1,
             source_pipeline_version=source_pipeline_version,
@@ -64,23 +64,23 @@ class Template(SoftDeletedModel):
         return self.name
 
 
-class TemplateVersionQuerySet(BaseQuerySet):
+class PipelineTemplateVersionQuerySet(BaseQuerySet):
     pass
 
 
-class TemplateVersion(models.Model):
+class PipelineTemplateVersion(models.Model):
     class Meta:
         ordering = ("created_at",)
         constraints = [
             models.UniqueConstraint(
                 fields=["template", "version_number"],
-                name="unique_template_version_number",
+                name="unique_pipeline_template_version_number",
             ),
         ]
         indexes = [
             models.Index(
                 fields=["template", "version_number"],
-                name="index_template_version_number",
+                name="index_pipeline_template_version_number",
             ),
         ]
 
@@ -88,13 +88,13 @@ class TemplateVersion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     version_number = models.PositiveIntegerField(editable=False)
     template = models.ForeignKey(
-        Template, on_delete=models.CASCADE, related_name="versions"
+        PipelineTemplate, on_delete=models.CASCADE, related_name="versions"
     )
     source_pipeline_version = models.OneToOneField(
         PipelineVersion, on_delete=models.RESTRICT, related_name="template_version"
     )
 
-    objects = TemplateVersionQuerySet.as_manager()
+    objects = PipelineTemplateVersionQuerySet.as_manager()
 
     def __str__(self):
         return f"v{self.version_number} of {self.template.name}"

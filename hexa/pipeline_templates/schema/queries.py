@@ -1,7 +1,7 @@
 from ariadne import QueryType
 
-template_pipelines_query = QueryType()
+pipeline_template_query = QueryType()
 
 bindables = [
-    template_pipelines_query,
+    pipeline_template_query,
 ]

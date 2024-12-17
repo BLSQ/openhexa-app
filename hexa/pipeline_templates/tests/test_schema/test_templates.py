@@ -11,7 +11,7 @@ from hexa.workspaces.models import (
 )
 
 
-class TemplatesTest(GraphQLTestCase):
+class PipelineTemplatesTest(GraphQLTestCase):
     USER_ROOT = None
     PIPELINE = None
     PIPELINE_VERSION1 = None
@@ -47,8 +47,8 @@ class TemplatesTest(GraphQLTestCase):
     def create_template_version(self, pipeline_version_id, expected_versions):
         r = self.run_query(
             """
-                mutation createTemplateVersion($input: CreateTemplateVersionInput!) {
-                    createTemplateVersion(input: $input) {
+                mutation createPipelineTemplateVersion($input: CreatePipelineTemplateVersionInput!) {
+                    createPipelineTemplateVersion(input: $input) {
                         success errors template {name code versions {version_number}}
                     }
                 }
@@ -75,7 +75,7 @@ class TemplatesTest(GraphQLTestCase):
                     "versions": expected_versions,
                 },
             },
-            r["data"]["createTemplateVersion"],
+            r["data"]["createPipelineTemplateVersion"],
         )
 
     def test_create_template_version(self):
