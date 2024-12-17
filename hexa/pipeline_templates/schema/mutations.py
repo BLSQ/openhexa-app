@@ -6,7 +6,7 @@ from hexa.analytics.api import track
 from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.workspaces.models import Workspace
 
-template_pipelines_mutations = MutationType()
+pipeline_template_mutations = MutationType()
 
 
 def get_workspace(user, workspace_slug):
@@ -30,8 +30,8 @@ def get_source_pipeline_version(source_pipeline, pipeline_version_id):
         return None
 
 
-@template_pipelines_mutations.field("createTemplateVersion")
-def resolve_create_template_version(_, info, **kwargs):
+@pipeline_template_mutations.field("createPipelineTemplateVersion")
+def resolve_create_pipeline_template_version(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
 
@@ -39,7 +39,9 @@ def resolve_create_template_version(_, info, **kwargs):
     if not workspace:
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
 
-    if not request.user.has_perm("templates.create_template_version", workspace):
+    if not request.user.has_perm(
+        "pipeline_templates.create_pipeline_template_version", workspace
+    ):
         raise PermissionDenied()
 
     source_pipeline = get_source_pipeline(request.user, input.get("pipeline_id"))
@@ -52,23 +54,25 @@ def resolve_create_template_version(_, info, **kwargs):
     if not source_pipeline_version:
         return {"success": False, "errors": ["PIPELINE_VERSION_NOT_FOUND"]}
 
-    template = source_pipeline.get_or_create_template(
+    pipeline_template = source_pipeline.get_or_create_template(
         name=input.get("name"),
         code=input.get("code"),
         description=input.get("description"),
         config=input.get("config"),
     )
-    template_version = template.create_version(source_pipeline_version)
+    pipeline_template_version = pipeline_template.create_version(
+        source_pipeline_version
+    )
     track(
         request,
-        "templates.template_created",
+        "pipeline_templates.pipeline_template_created",
         {
-            "template_id": str(template.id),
-            "template_version_id": str(template_version.id),
+            "pipeline_template_id": str(pipeline_template.id),
+            "pipeline_template_version_id": str(pipeline_template_version.id),
             "workspace": workspace.slug,
         },
     )
-    return {"template": template, "success": True, "errors": []}
+    return {"pipeline_template": pipeline_template, "success": True, "errors": []}
 
 
-bindables = [template_pipelines_mutations]
+bindables = [pipeline_template_mutations]

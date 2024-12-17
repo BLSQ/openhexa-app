@@ -17,7 +17,10 @@ from hexa.datasets.schema import datasets_bindables, datasets_type_defs
 from hexa.files.schema import files_bindables, files_type_def
 from hexa.metadata.schema import metadata_bindables, metadata_type_def
 from hexa.notebooks.schema import notebooks_bindables, notebooks_type_defs
-from hexa.pipeline_templates.schema import templates_bindables, templates_type_defs
+from hexa.pipeline_templates.schema import (
+    pipeline_templates_bindables,
+    pipeline_templates_type_defs,
+)
 from hexa.pipelines.schema import pipelines_bindables, pipelines_type_defs
 from hexa.plugins.connector_accessmod.schema import (
     accessmod_bindables,
@@ -85,7 +88,7 @@ schema = make_executable_schema(
         countries_type_defs,
         notebooks_type_defs,
         pipelines_type_defs,
-        templates_type_defs,
+        pipeline_templates_type_defs,
         workspaces_type_def,
         metadata_type_def,
         databases_types_def,
@@ -97,7 +100,7 @@ schema = make_executable_schema(
         uuid_scalar,
         opaque_id_scalar,
         *pipelines_bindables,
-        *templates_bindables,
+        *pipeline_templates_bindables,
         *identity_bindables,
         *tags_bindables,
         *dags_bindables,
