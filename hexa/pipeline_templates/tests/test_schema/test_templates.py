@@ -89,7 +89,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
             self.PIPELINE_VERSION2.id, [{"versionNumber": 1}, {"versionNumber": 2}]
         )
 
-    def test_all_pipeline_templates(self):
+    def test_get_pipeline_templates(self):
         PipelineTemplate.objects.create(
             name="Template 1", code="Code 1", source_pipeline=self.PIPELINE
         )
@@ -99,17 +99,24 @@ class PipelineTemplatesTest(GraphQLTestCase):
         r = self.run_query(
             """
             query {
-                allPipelineTemplates {
-                    name
-                    code
+                pipelineTemplates(page: 1, perPage: 1) {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
                 }
             }
             """
         )
         self.assertEqual(
-            [
-                {"code": "Code 1", "name": "Template 1"},
-                {"code": "Code 2", "name": "Template 2"},
-            ],
-            r["data"]["allPipelineTemplates"],
+            {
+                "pageNumber": 1,
+                "totalPages": 2,
+                "totalItems": 2,
+                "items": [{"code": "Code 1", "name": "Template 1"}],
+            },
+            r["data"]["pipelineTemplates"],
         )
