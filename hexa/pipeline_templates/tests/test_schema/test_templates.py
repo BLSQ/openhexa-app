@@ -32,11 +32,16 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 name="WS1",
                 description="Workspace 1",
             )
-        cls.PIPELINE = Pipeline.objects.create(name="Test Pipeline", workspace=cls.WS1)
+        cls.PIPELINE = Pipeline.objects.create(
+            name="Test Pipeline", code="Test Pipeline", workspace=cls.WS1
+        )
         cls.PIPELINE_VERSION1 = PipelineVersion.objects.create(
             pipeline=cls.PIPELINE,
             version_number=1,
             description="Initial version",
+            parameters=[{"code": "param_1"}],
+            config=[{"param_1": 1}],
+            zipfile=str.encode("some_bytes"),
         )
         cls.PIPELINE_VERSION2 = PipelineVersion.objects.create(
             pipeline=cls.PIPELINE,
@@ -87,6 +92,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
 
     def test_create_pipeline_from_template_version(self):
         self.client.force_login(self.USER_ROOT)
+        self.create_template_version(self.PIPELINE_VERSION1.id, [{"versionNumber": 1}])
         r = self.run_query(
             """
                 mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
@@ -98,7 +104,9 @@ class PipelineTemplatesTest(GraphQLTestCase):
             {
                 "input": {
                     "workspaceSlug": self.WS1.slug,
-                    "pipelineTemplateVersionId": str(self.PIPELINE_VERSION1.id),
+                    "pipelineTemplateVersionId": str(
+                        self.PIPELINE_VERSION1.template_version.id
+                    ),
                 }
             },
         )
@@ -108,8 +116,12 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 "errors": [],
                 "pipeline": {
                     "name": self.PIPELINE.name,
-                    "code": self.PIPELINE.code,
-                    "currentVersion": {"zipfile": "a", "parameters": "", "config": ""},
+                    "code": "Test Pipeline (from Template)",
+                    "currentVersion": {
+                        "zipfile": "c29tZV9ieXRlcw==",
+                        "parameters": [{"code": "param_1", "default": None}],
+                        "config": [{"param_1": 1}],
+                    },
                 },
             },
             r["data"]["createPipelineFromTemplateVersion"],

@@ -94,7 +94,7 @@ def resolve_create_pipeline_from_template_version(_, info, **kwargs):
     except PipelineTemplateVersion.DoesNotExist:
         return {"success": False, "errors": ["PIPELINE_TEMPLATE_VERSION_NOT_FOUND"]}
 
-    pipeline_code = template_version.template.source_pipeline.code
+    pipeline_code = f"{template_version.template.source_pipeline.code} (from Template)"
     if Pipeline.objects.filter(workspace=workspace, code=pipeline_code).exists():
         return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}
     pipeline = template_version.create_pipeline(pipeline_code, workspace, request.user)
