@@ -294,7 +294,7 @@ class Pipeline(SoftDeletedModel):
     )
     notebook_path = models.TextField(null=True, blank=True)
     source_template = models.ForeignKey(
-        "PipelineTemplate",
+        "pipeline_templates.PipelineTemplate",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,

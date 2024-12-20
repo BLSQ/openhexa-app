@@ -84,3 +84,58 @@ class PipelineTemplatesTest(GraphQLTestCase):
         self.create_template_version(
             self.PIPELINE_VERSION2.id, [{"versionNumber": 1}, {"versionNumber": 2}]
         )
+
+    def test_create_pipeline_from_template_version(self):
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+                mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
+                    createPipelineFromTemplateVersion(input: $input) {
+                        success errors pipeline {name code currentVersion {zipfile parameters {code default} config}}
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                    "pipelineTemplateVersionId": str(self.PIPELINE_VERSION1.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipeline": {
+                    "name": self.PIPELINE.name,
+                    "code": self.PIPELINE.code,
+                    "currentVersion": {"zipfile": "a", "parameters": "", "config": ""},
+                },
+            },
+            r["data"]["createPipelineFromTemplateVersion"],
+        )
+
+    def test_create_pipeline_from_template_version_duplicate(self):
+        r = self.run_query(
+            """
+                    mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
+                        createPipelineFromTemplateVersion(input: $input) {
+                            success errors pipeline {name code}
+                        }
+                    }
+                """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                    "templateVersionId": str(self.PIPELINE_VERSION1.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["PIPELINE_ALREADY_EXISTS"],
+                "pipeline": None,
+            },
+            r["data"]["createPipelineFromTemplateVersion"],
+        )
