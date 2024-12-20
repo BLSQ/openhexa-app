@@ -385,11 +385,7 @@ class Pipeline(SoftDeletedModel):
         if not user.has_perm("pipelines.update_pipeline", self):
             raise PermissionDenied
 
-        config = (
-            config
-            if config is not None
-            else self.get_config_from_previous_version(parameters)
-        )
+        config = config or self.get_config_from_previous_version(parameters)
 
         version = PipelineVersion(
             user=user,
