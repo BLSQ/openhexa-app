@@ -127,19 +127,20 @@ class PipelineTemplatesTest(GraphQLTestCase):
             r["data"]["createPipelineFromTemplateVersion"],
         )
 
-    def test_create_pipeline_from_template_version_duplicate(self):
         r = self.run_query(
             """
-                    mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
-                        createPipelineFromTemplateVersion(input: $input) {
-                            success errors pipeline {name code}
-                        }
+                mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
+                    createPipelineFromTemplateVersion(input: $input) {
+                        success errors pipeline {name code currentVersion {zipfile parameters {code default} config}}
                     }
-                """,
+                }
+            """,
             {
                 "input": {
                     "workspaceSlug": self.WS1.slug,
-                    "templateVersionId": str(self.PIPELINE_VERSION1.id),
+                    "pipelineTemplateVersionId": str(
+                        self.PIPELINE_VERSION1.template_version.id
+                    ),
                 }
             },
         )
