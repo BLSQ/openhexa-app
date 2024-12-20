@@ -293,6 +293,13 @@ class Pipeline(SoftDeletedModel):
         default=PipelineType.ZIPFILE,
     )
     notebook_path = models.TextField(null=True, blank=True)
+    source_template = models.ForeignKey(
+        "PipelineTemplate",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="pipelines",
+    )
 
     objects = DefaultSoftDeletedManager.from_queryset(PipelineQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()

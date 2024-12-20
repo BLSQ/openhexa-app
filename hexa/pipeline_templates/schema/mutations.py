@@ -2,6 +2,7 @@ from ariadne import MutationType
 from django.http import HttpRequest
 
 from hexa.analytics.api import track
+from hexa.pipeline_templates.models import PipelineTemplateVersion
 from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.workspaces.models import Workspace
 
@@ -72,6 +73,42 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
         },
     )
     return {"pipeline_template": pipeline_template, "success": True, "errors": []}
+
+
+# TODO : test
+@pipeline_template_mutations.field("createPipelineFromTemplateVersion")
+def resolve_create_pipeline_from_template_version(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    workspace = get_workspace(request.user, input.get("workspace_slug"))
+    if not workspace:
+        return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
+
+    if not request.user.has_perm("pipelines.create_pipeline", workspace):
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+    try:
+        template_version = PipelineTemplateVersion.objects.get(
+            id=input["template_version_id"]
+        )
+    except PipelineVersion.DoesNotExist:
+        return {"success": False, "errors": ["TEMPLATE_VERSION_NOT_FOUND"]}
+
+    # TODO : verify that the name does not exist in the workspace
+
+    pipeline = template_version.create_pipeline(workspace, request.user)
+
+    track(
+        request,
+        "pipeline_templates.pipeline_created_from_template",
+        {
+            "pipeline_id": str(pipeline.id),
+            "template_version_id": str(template_version.id),
+            "workspace": workspace.slug,
+        },
+    )
+    return {"pipeline": pipeline, "success": True, "errors": []}
 
 
 bindables = [pipeline_template_mutations]
