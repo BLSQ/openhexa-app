@@ -6,7 +6,9 @@ dhis2_connection = ObjectType("DHIS2Connection")
 
 
 @dhis2_connection.field("query")
-def resolve_query(connection_slug: str, info, type, filter=None, fields="id,name"):
+def resolve_query(
+    connection_slug: str, info, type: str, filter: str = None, fields: str = "id,name"
+):
     if not fields:
         raise ValueError("The 'fields' argument is required.")
     if not type:
