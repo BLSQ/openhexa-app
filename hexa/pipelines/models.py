@@ -4,6 +4,7 @@ import typing
 import uuid
 from datetime import datetime
 
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
@@ -456,6 +457,20 @@ class Pipeline(SoftDeletedModel):
         }
         merged_config = {**cleaned_pipeline_version_config, **cleaned_provided_config}
         return merged_config
+
+    def get_or_create_template(self, name, code, description, config):
+        if not hasattr(self, "template") or not self.template:
+            PipelineTemplate = apps.get_model("pipeline_templates", "PipelineTemplate")
+            self.template = PipelineTemplate.objects.create(
+                name=name,
+                code=code,
+                description=description,
+                config=config,
+                workspace=self.workspace,
+                source_pipeline=self,
+            )
+            self.save()
+        return self.template
 
     def __str__(self):
         if self.name is not None and self.name != "":

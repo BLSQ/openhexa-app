@@ -123,6 +123,7 @@ type PipelineVersion {
   timeout: Int  # The timeout value for the pipeline version (in seconds).
   permissions: PipelineVersionPermissions!  # The permissions for the pipeline version.
   config: JSON  # The default configuration to set on newly created pipeline runs
+  templateVersion: PipelineTemplateVersion  # The template version associated with the pipeline version.
 }
 
 """
@@ -244,6 +245,7 @@ type Pipeline {
   webhookUrl: String  # The URL of the webhook for the pipeline.
   type: PipelineType!  # The type of the pipeline.
   notebookPath: String  # The path to the notebook file for the pipeline (only filled if the pipeline is a notebook).
+  template: PipelineTemplate  # The template associated with the pipeline.
 }
 
 """
