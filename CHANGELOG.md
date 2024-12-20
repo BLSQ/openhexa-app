@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.77.0](https://github.com/BLSQ/openhexa-app/compare/0.76.4...0.77.0) (2024-12-20)
+
+
+### Features
+
+* HEXA-1120 template pipelines and template versions models + endpoint to create template ([#874](https://github.com/BLSQ/openhexa-app/issues/874)) ([22ed895](https://github.com/BLSQ/openhexa-app/commit/22ed895f2b31febd1c715ff2bff4eaaf8fc48311))
+
 ## [0.76.4](https://github.com/BLSQ/openhexa-app/compare/0.76.3...0.76.4) (2024-12-16)
 
 
