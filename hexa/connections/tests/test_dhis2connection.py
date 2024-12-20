@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from hexa.connections.dhis2_connection import get_client_by_slug
+from hexa.connections.dhis2_connection import get_client_by_slug, get_dhis2_metadata
 from hexa.core.test import TestCase
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
@@ -68,3 +68,53 @@ class TestDHIS2Methods(TestCase):
     def test_dhis2_connection_from_slug(self):
         dhis2 = get_client_by_slug("dhis2-connection-1")
         self.assertIsNotNone(dhis2)
+
+    def test_dhis2_org_units(self):
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(dhis2, "organisation_units", "id,name", None)
+        print(metadata)
+
+    def test_dhis2_org_unit_groups(self):
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(dhis2, type="organisation_unit_groups")
+        self.assertIsNotNone(metadata)
+        print(metadata)
+
+    def test_dhis2_org_unit_levels(self):
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(dhis2, "organisation_unit_levels")
+        self.assertIsNotNone(metadata)
+        print(metadata)
+
+    def test_dhis2_datasets(self):
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(dhis2, "datasets")
+        self.assertIsNotNone(metadata)
+        print(metadata)
+
+    def test_dhis2_data_elements(self):
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        # metadata = get_dhis2_metadata(dhis2, "data_elements", filter="dataElementGroups.id:in:[oDkJh5Ddh7d]")
+        metadata = get_dhis2_metadata(
+            dhis2, "data_elements", filter="dataSetElements.dataSet.id:in:[lyLU2wR22tC]"
+        )
+        self.assertIsNotNone(metadata)
+        print(metadata)
+
+    def test_dhis2_data_element_groups(self):
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(dhis2, "data_element_groups")
+        self.assertIsNotNone(metadata)
+        print(metadata)
+
+    def test_dhis2_indicators(self):
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(dhis2, "indicator")
+        self.assertIsNotNone(metadata)
+        print(metadata)
+
+    def test_dhis2_indicator_groups(self):
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(dhis2, "indicator_groups")
+        self.assertIsNotNone(metadata)
+        print(metadata)

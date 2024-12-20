@@ -1,0 +1,115 @@
+indicator_groups = [
+    {
+        "id": "oehv9EO3vP7",
+        "name": "ANC",
+        "indicators": [
+            "Uvn6LCg7dVU",
+            "Lzg9LtG1xg3",
+            "Tt5TAvdfdVK",
+            "puykO1tbcdi",
+            "ReUHfIn0pTQ",
+            "c8fABiNpT0B",
+            "OdiHJayrsKo",
+            "AUqdhY4mpvp",
+            "dwEq7wi6nXV",
+            "sB79w2hiLp8",
+        ],
+    },
+    {"id": "Dcl7WiHIXp9", "name": "Commodities", "indicators": ["aRabHjSGuGK"]},
+    {
+        "id": "LWvy9lMdSlH",
+        "name": "Deliveries",
+        "indicators": [
+            "n0GE1ISYrdM",
+            "elTqMUTRgdk",
+            "Q3M7Htpzg1Y",
+            "tcs5YGnjiKo",
+            "ulgL07PF8rq",
+            "EoYar8UxddG",
+        ],
+    },
+    {"id": "r5HxQkux3GD", "name": "Diarrhoea", "indicators": ["JIVMtpjVZqJ"]},
+    {
+        "id": "PoTnGN0F2n5",
+        "name": "Emergency Response",
+        "indicators": [
+            "EY8gsfEomc0",
+            "MkXHDfrFRKV",
+            "ULW9dQOiiTS",
+            "ryFBhJdetdM",
+            "iug406zdfTE",
+            "qmCKRmVj4WX",
+            "oTOpKabJA1v",
+            "X2XfzgH4NOR",
+        ],
+    },
+    {
+        "id": "pKHOV0uwPJk",
+        "name": "Facility infrastructure",
+        "indicators": ["DwEVHQvMnDZ", "vEBapQFZ1AA", "v27b2y9kKh7"],
+    },
+    {"id": "RsvclmONCT3", "name": "HIV", "indicators": ["lZZxDlIsvTc"]},
+]
+
+indicators = [
+    {
+        "name": "ANC 1-3 Dropout Rate",
+        "numerator": "#{fbfJHSPpUQD.pq2XI5kz2BY}+#{fbfJHSPpUQD.PT59n8BQbqM}-#{Jtf34kNZhzP.pq2XI5kz2BY}-#{Jtf34kNZhzP.PT59n8BQbqM}",
+        "denominator": "#{fbfJHSPpUQD.pq2XI5kz2BY}+#{fbfJHSPpUQD.PT59n8BQbqM}",
+        "id": "ReUHfIn0pTQ",
+    },
+    {
+        "name": "ANC 1 Coverage",
+        "numerator": "#{fbfJHSPpUQD}",
+        "denominator": "#{h0xKKjijTdI}",
+        "id": "Uvn6LCg7dVU",
+    },
+    {
+        "name": "ANC 2 Coverage",
+        "numerator": "#{cYeuwXTCPkU}",
+        "denominator": "#{h0xKKjijTdI}",
+        "id": "OdiHJayrsKo",
+    },
+    {
+        "name": "ANC 3 Coverage",
+        "numerator": "#{Jtf34kNZhzP}",
+        "denominator": "#{h0xKKjijTdI}",
+        "id": "sB79w2hiLp8",
+    },
+    {
+        "name": "ANC => 4 Coverage",
+        "numerator": "#{hfdmMSPBgLG}",
+        "denominator": "#{h0xKKjijTdI}",
+        "id": "AUqdhY4mpvp",
+    },
+    {
+        "name": "ANC IPT 1 Coverage",
+        "numerator": "#{bqK6eSIwo3h.pq2XI5kz2BY}+#{bqK6eSIwo3h.PT59n8BQbqM}+#{yTHydhurQQU.pq2XI5kz2BY}+#{yTHydhurQQU.PT59n8BQbqM}",
+        "denominator": "#{fbfJHSPpUQD.pq2XI5kz2BY}+#{fbfJHSPpUQD.PT59n8BQbqM}",
+        "id": "dwEq7wi6nXV",
+    },
+    {
+        "name": "ANC IPT 2 Coverage",
+        "numerator": "#{V37YqbqpEhV.pq2XI5kz2BY}+#{V37YqbqpEhV.PT59n8BQbqM}+#{SA7WeFZnUci.pq2XI5kz2BY}+#{SA7WeFZnUci.PT59n8BQbqM}",
+        "denominator": "#{cYeuwXTCPkU.pq2XI5kz2BY}+#{cYeuwXTCPkU.PT59n8BQbqM}",
+        "id": "c8fABiNpT0B",
+    },
+    {
+        "name": "ANC LLITN coverage",
+        "numerator": "#{ybzlGLjWwnK.pq2XI5kz2BY}+#{ybzlGLjWwnK.PT59n8BQbqM}",
+        "denominator": "#{fbfJHSPpUQD.pq2XI5kz2BY}+#{fbfJHSPpUQD.PT59n8BQbqM}",
+        "id": "Tt5TAvdfdVK",
+    },
+    {
+        "name": "ANC TT2 coverage",
+        "numerator": "#{DUTSJE8MGCw}",
+        "denominator": "#{fbfJHSPpUQD.pq2XI5kz2BY}+#{fbfJHSPpUQD.PT59n8BQbqM}",
+        "id": "puykO1tbcdi",
+    },
+    {
+        "name": "ANC visits total",
+        "numerator": "#{fbfJHSPpUQD}+#{cYeuwXTCPkU}+#{Jtf34kNZhzP}",
+        "denominator": "1",
+        "id": "dy1a1mseGR7",
+    },
+]
