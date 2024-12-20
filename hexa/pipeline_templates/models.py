@@ -33,6 +33,7 @@ class PipelineTemplate(SoftDeletedModel):
                 condition=Q(deleted_at__isnull=True),
             ),
         ]
+        ordering = ["name"]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -58,6 +59,10 @@ class PipelineTemplate(SoftDeletedModel):
             source_pipeline_version=source_pipeline_version,
         )
         return template_version
+
+    @property
+    def last_version(self) -> "PipelineTemplateVersion":
+        return self.versions.last()
 
     def __str__(self):
         return self.name

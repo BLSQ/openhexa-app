@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
+from hexa.pipeline_templates.models import PipelineTemplate
 from hexa.pipelines.models import (
     Pipeline,
     PipelineVersion,
@@ -43,6 +44,9 @@ class PipelineTemplatesTest(GraphQLTestCase):
             version_number=2,
             description="Second version",
         )
+        cls.OTHER_PIPELINE = Pipeline.objects.create(
+            name="Other Pipeline", code="other-pipeline", workspace=cls.WS1
+        )
 
     def create_template_version(self, pipeline_version_id, expected_versions):
         r = self.run_query(
@@ -83,4 +87,36 @@ class PipelineTemplatesTest(GraphQLTestCase):
         self.create_template_version(self.PIPELINE_VERSION1.id, [{"versionNumber": 1}])
         self.create_template_version(
             self.PIPELINE_VERSION2.id, [{"versionNumber": 1}, {"versionNumber": 2}]
+        )
+
+    def test_get_pipeline_templates(self):
+        PipelineTemplate.objects.create(
+            name="Template 1", code="Code 1", source_pipeline=self.PIPELINE
+        )
+        PipelineTemplate.objects.create(
+            name="Template 2", code="Code 2", source_pipeline=self.OTHER_PIPELINE
+        )
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 1) {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """
+        )
+        self.assertEqual(
+            {
+                "pageNumber": 1,
+                "totalPages": 2,
+                "totalItems": 2,
+                "items": [{"code": "Code 1", "name": "Template 1"}],
+            },
+            r["data"]["pipelineTemplates"],
         )
