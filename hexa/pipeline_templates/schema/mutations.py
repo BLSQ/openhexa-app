@@ -75,7 +75,6 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
     return {"pipeline_template": pipeline_template, "success": True, "errors": []}
 
 
-# TODO : test
 @pipeline_template_mutations.field("createPipelineFromTemplateVersion")
 def resolve_create_pipeline_from_template_version(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -95,9 +94,10 @@ def resolve_create_pipeline_from_template_version(_, info, **kwargs):
     except PipelineVersion.DoesNotExist:
         return {"success": False, "errors": ["TEMPLATE_VERSION_NOT_FOUND"]}
 
-    # TODO : verify that the name does not exist in the workspace
-
-    pipeline = template_version.create_pipeline(workspace, request.user)
+    pipeline_code = template_version.template.source_pipeline.code
+    if Pipeline.objects.filter(workspace=workspace, code=pipeline_code).exists():
+        return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}
+    pipeline = template_version.create_pipeline(pipeline_code, workspace, request.user)
 
     track(
         request,

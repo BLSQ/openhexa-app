@@ -95,11 +95,12 @@ class PipelineTemplateVersion(models.Model):
 
     objects = PipelineTemplateVersionQuerySet.as_manager()
 
-    def create_pipeline(self, workspace, user):
+    def create_pipeline(self, code, workspace, user):
         source_pipeline = self.template.source_pipeline
         source_version = self.source_pipeline_version
         pipeline = Pipeline.objects.create(
             source_template=self.template,
+            code=code,
             name=source_pipeline.name,
             description=source_pipeline.description,
             config=source_pipeline.config,
