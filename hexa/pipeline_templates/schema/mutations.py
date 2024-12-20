@@ -43,7 +43,7 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
     ):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
-    source_pipeline = get_source_pipeline(request.user, input.get("pipeline_id"))
+    source_pipeline = get_source_pipeline(request.user, input["pipeline_id"])
     if not source_pipeline:
         return {"success": False, "errors": ["PIPELINE_NOT_FOUND"]}
 
