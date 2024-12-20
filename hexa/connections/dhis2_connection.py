@@ -37,7 +37,6 @@ def get_client_by_slug(slug: str) -> DHIS2 | None:
 def get_dhis2_client(url: str, username: str, password: str) -> DHIS2:
     connection = ConcreteDHIS2Connection(url, username, password)
     dhis2_client = DHIS2(connection)
-    print(dhis2_client.__dict__)
     return dhis2_client
 
 
@@ -46,20 +45,22 @@ def get_dhis2_metadata(dhis2: DHIS2, type: str, **kwargs) -> dict:
     Gets metadata from DHIS2
     """
     metadata_methods = {
-        # TODO: extend toolbox client with fields
+        # TODO: extend toolbox client with fields to limit to id, name
         "organisation_units": dhis2.meta.organisation_units,
-        # TODO: extend with fields and filter - or addd name to id dictionary
+        # TODO: extend with fields to limit to id,name
         "organisation_unit_groups": dhis2.meta.organisation_unit_groups,
         # all good
         "organisation_unit_levels": dhis2.meta.organisation_unit_levels,
-        # already ahs dataElements by id
+        # already has indicators, organisation units and data elements, should add fields to not include
+        # TODO: add fields to limit to id, name
         "datasets": dhis2.meta.datasets,
-        # all good, use filter to filter on dataSets, or dataElementGroups
+        # TODO: add fields to limit to id, name
         "data_elements": dhis2.meta.data_elements,
-        # already has dataElements, but without names, better first list of ids to build
+        # TODO: add fields to limit to id, name
         "data_element_groups": dhis2.meta.data_element_groups,
-        # indicator
+        # TODO: add fields to limit to id, name (probably)
         "indicator": dhis2.meta.indicators,
+        # TODO: add fields to limit to id, name
         "indicator_groups": dhis2.meta.indicator_groups,
     }
     return metadata_methods[type](**kwargs)
