@@ -1,5 +1,4 @@
 from ariadne import MutationType
-from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
 from hexa.analytics.api import track
@@ -42,9 +41,9 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
     if not request.user.has_perm(
         "pipeline_templates.create_pipeline_template_version", workspace
     ):
-        raise PermissionDenied()
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
-    source_pipeline = get_source_pipeline(request.user, input.get("pipeline_id"))
+    source_pipeline = get_source_pipeline(request.user, input["pipeline_id"])
     if not source_pipeline:
         return {"success": False, "errors": ["PIPELINE_NOT_FOUND"]}
 
