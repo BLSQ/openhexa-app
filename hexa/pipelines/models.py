@@ -348,7 +348,9 @@ class Pipeline(SoftDeletedModel):
         if self.last_version:
             previous_parameters = self.last_version.parameters
             overlapping_parameters = [
-                param for param in new_parameters if param in previous_parameters
+                new_parameter
+                for new_parameter in new_parameters
+                if new_parameter in previous_parameters
             ]
             previous_config_from_overlapping_parameter = {
                 overlapping_parameter["code"]: value
