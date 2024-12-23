@@ -342,30 +342,31 @@ class Pipeline(SoftDeletedModel):
 
     def get_config_from_previous_version(self, new_parameters: dict):
         """
-        Get the config from the previous version of the pipeline considering only common parameters between the new and the previous version.
+        Get the config from the previous version of the pipeline considering only overlapping parameters between the new and the previous version.
         """
-        previous_config_from_common_parameter = {}
+        previous_config_from_overlapping_parameter = {}
         if self.last_version:
             previous_parameters = self.last_version.parameters
-            common_parameters = [
+            overlapping_parameters = [
                 param for param in new_parameters if param in previous_parameters
             ]
-            previous_config_from_common_parameter = {
-                parameter["code"]: value
-                for parameter in common_parameters
+            previous_config_from_overlapping_parameter = {
+                overlapping_parameter["code"]: value
+                for overlapping_parameter in overlapping_parameters
                 if (
                     value := self.last_version.config.get(
-                        parameter["code"], parameter.get("default")
+                        overlapping_parameter["code"],
+                        overlapping_parameter.get("default"),
                     )
                 )
                 is not None
             }
         return {
-            parameter["code"]: value
-            for parameter in new_parameters
+            new_parameter["code"]: value
+            for new_parameter in new_parameters
             if (
-                value := previous_config_from_common_parameter.get(
-                    parameter["code"], parameter.get("default")
+                value := previous_config_from_overlapping_parameter.get(
+                    new_parameter["code"], new_parameter.get("default")
                 )
             )
             is not None
