@@ -293,6 +293,13 @@ class Pipeline(SoftDeletedModel):
         default=PipelineType.ZIPFILE,
     )
     notebook_path = models.TextField(null=True, blank=True)
+    source_template = models.ForeignKey(
+        "pipeline_templates.PipelineTemplate",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="pipelines",
+    )
 
     objects = DefaultSoftDeletedManager.from_queryset(PipelineQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()
@@ -341,6 +348,40 @@ class Pipeline(SoftDeletedModel):
         elif self.type == PipelineType.ZIPFILE:
             return self.last_version and self.last_version.is_schedulable
 
+    def get_config_from_previous_version(self, new_parameters: dict):
+        """
+        Get the config from the previous version of the pipeline considering only overlapping parameters between the new and the previous version.
+        """
+        previous_config_from_overlapping_parameters = {}
+        if self.last_version:
+            previous_parameters = self.last_version.parameters
+            overlapping_parameters = [
+                new_parameter
+                for new_parameter in new_parameters
+                if new_parameter in previous_parameters
+            ]
+            previous_config_from_overlapping_parameters = {
+                overlapping_parameter["code"]: value
+                for overlapping_parameter in overlapping_parameters
+                if (
+                    value := self.last_version.config.get(
+                        overlapping_parameter["code"],
+                        overlapping_parameter.get("default"),
+                    )
+                )
+                is not None
+            }
+        return {
+            new_parameter["code"]: value
+            for new_parameter in new_parameters
+            if (
+                value := previous_config_from_overlapping_parameters.get(
+                    new_parameter["code"], new_parameter.get("default")
+                )
+            )
+            is not None
+        }
+
     def upload_new_version(
         self,
         user: User,
@@ -355,14 +396,8 @@ class Pipeline(SoftDeletedModel):
         if not user.has_perm("pipelines.update_pipeline", self):
             raise PermissionDenied
 
-        if config is None:
-            # No default configuration has been provided, let's take the default values from the parameters
-            # In the future, we'll use the one from the last version
-            config = {
-                parameter["code"]: parameter["default"]
-                for parameter in parameters
-                if parameter.get("default") is not None
-            }
+        config = config or self.get_config_from_previous_version(parameters)
+
         version = PipelineVersion(
             user=user,
             pipeline=self,

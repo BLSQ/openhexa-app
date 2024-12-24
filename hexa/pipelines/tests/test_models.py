@@ -185,6 +185,110 @@ class PipelineTest(TestCase):
         mail_run_recipients(run)
         self.assertEqual(len(mail.outbox), 3)
 
+    def test_get_config_from_previous_version(self):
+        pipeline = Pipeline.objects.create(
+            name="Test pipeline",
+        )
+        pipeline.upload_new_version(
+            user=self.USER_ADMIN,
+            zipfile=b"",
+            parameters=[
+                {
+                    "choices": None,
+                    "code": "param_1",
+                    "default": None,
+                    "help": None,
+                    "multiple": False,
+                    "name": "Param 1",
+                    "required": True,
+                    "type": "int",
+                },
+                {
+                    "choices": None,
+                    "code": "param_2",
+                    "default": None,
+                    "help": None,
+                    "multiple": False,
+                    "name": "Param 2",
+                    "required": True,
+                    "type": "int",
+                },
+            ],
+            name="Version 1",
+            config={"param_1": 43, "param_2": 42},
+        )
+        self.assertEqual(
+            {"param_1": 43, "param_2": 42},
+            pipeline.last_version.config,
+            "Initial config",
+        )
+        pipeline.upload_new_version(
+            user=self.USER_ADMIN,
+            zipfile=b"",
+            parameters=[
+                {
+                    "choices": None,
+                    "code": "param_1",
+                    "default": None,
+                    "help": None,
+                    "multiple": False,
+                    "name": "Param 1",
+                    "required": True,
+                    "type": "int",
+                },
+                {
+                    "choices": None,
+                    "code": "param_3",
+                    "default": None,
+                    "help": None,
+                    "multiple": False,
+                    "name": "Param 3",
+                    "required": True,
+                    "type": "int",
+                },
+            ],
+            name="Version 2",
+            config=None,
+        )
+        self.assertEqual(
+            {"param_1": 43},
+            pipeline.last_version.config,
+            "Config from previous version with a partial change of parameters",
+        )
+        pipeline.upload_new_version(
+            user=self.USER_ADMIN,
+            zipfile=b"",
+            parameters=[
+                {
+                    "choices": None,
+                    "code": "param_1",
+                    "default": 45,
+                    "help": None,
+                    "multiple": False,
+                    "name": "Param 1",
+                    "required": True,
+                    "type": "int",
+                },
+                {
+                    "choices": None,
+                    "code": "param_2",
+                    "default": 46,
+                    "help": None,
+                    "multiple": False,
+                    "name": "Param 2",
+                    "required": True,
+                    "type": "int",
+                },
+            ],
+            name="Version 3",
+            config=None,
+        )
+        self.assertEqual(
+            {"param_1": 45, "param_2": 46},
+            pipeline.last_version.config,
+            "Config from previous version with a change of default values",
+        )
+
     def test_get_or_create_template(self):
         template_name = "Test Template"
         template = self.PIPELINE.get_or_create_template(
