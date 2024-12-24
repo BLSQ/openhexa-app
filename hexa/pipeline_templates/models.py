@@ -107,7 +107,7 @@ class PipelineTemplateVersion(models.Model):
             source_template=self.template,
             code=code,
             name=source_pipeline.name,
-            description=source_pipeline.description,
+            description=self.template.description,
             config=source_pipeline.config,
             workspace=workspace,
         )

@@ -29,10 +29,17 @@ def resolve_pipeline_template_versions(
 
 
 @pipeline_template_object.field("currentVersion")
-def resolve_pipeline_current_version(
+def resolve_pipeline_template_current_version(
     pipeline_template: PipelineTemplate, info, **kwargs
 ):
     return pipeline_template.last_version
+
+
+@pipeline_template_object.field("sourcePipeline")
+def resolve_pipeline_template_source_pipeline(
+    pipeline_template: PipelineTemplate, info, **kwargs
+):
+    return pipeline_template.source_pipeline
 
 
 bindables = [

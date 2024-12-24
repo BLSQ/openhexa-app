@@ -89,6 +89,7 @@ type PipelineTemplate {
   config: String  # The configuration of the pipeline template.
   versions: [PipelineTemplateVersion!]  # The list of versions of the pipeline template.
   currentVersion: PipelineTemplateVersion  # The current version of the pipeline template.
+  sourcePipeline: Pipeline  # The source pipeline of the pipeline template.
 }
 
 """
