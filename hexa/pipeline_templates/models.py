@@ -95,5 +95,26 @@ class PipelineTemplateVersion(models.Model):
 
     objects = PipelineTemplateVersionQuerySet.as_manager()
 
+    def create_pipeline(self, code, workspace, user):
+        source_pipeline = self.template.source_pipeline
+        source_version = self.source_pipeline_version
+        pipeline = Pipeline.objects.create(
+            source_template=self.template,
+            code=code,
+            name=source_pipeline.name,
+            description=source_pipeline.description,
+            config=source_pipeline.config,
+            workspace=workspace,
+        )
+        PipelineVersion.objects.create(
+            user=user,
+            pipeline=pipeline,
+            zipfile=source_version.zipfile,
+            parameters=source_version.parameters,
+            config=source_version.config,
+            timeout=source_version.timeout,
+        )
+        return pipeline
+
     def __str__(self):
         return f"v{self.version_number} of {self.template.name}"

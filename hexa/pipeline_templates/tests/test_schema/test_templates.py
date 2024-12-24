@@ -32,11 +32,16 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 name="WS1",
                 description="Workspace 1",
             )
-        cls.PIPELINE = Pipeline.objects.create(name="Test Pipeline", workspace=cls.WS1)
+        cls.PIPELINE = Pipeline.objects.create(
+            name="Test Pipeline", code="Test Pipeline", workspace=cls.WS1
+        )
         cls.PIPELINE_VERSION1 = PipelineVersion.objects.create(
             pipeline=cls.PIPELINE,
             version_number=1,
             description="Initial version",
+            parameters=[{"code": "param_1"}],
+            config=[{"param_1": 1}],
+            zipfile=str.encode("some_bytes"),
         )
         cls.PIPELINE_VERSION2 = PipelineVersion.objects.create(
             pipeline=cls.PIPELINE,
@@ -83,4 +88,67 @@ class PipelineTemplatesTest(GraphQLTestCase):
         self.create_template_version(self.PIPELINE_VERSION1.id, [{"versionNumber": 1}])
         self.create_template_version(
             self.PIPELINE_VERSION2.id, [{"versionNumber": 1}, {"versionNumber": 2}]
+        )
+
+    def test_create_pipeline_from_template_version(self):
+        self.client.force_login(self.USER_ROOT)
+        self.create_template_version(self.PIPELINE_VERSION1.id, [{"versionNumber": 1}])
+        r = self.run_query(
+            """
+                mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
+                    createPipelineFromTemplateVersion(input: $input) {
+                        success errors pipeline {name code currentVersion {zipfile parameters {code default} config}}
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                    "pipelineTemplateVersionId": str(
+                        self.PIPELINE_VERSION1.template_version.id
+                    ),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipeline": {
+                    "name": self.PIPELINE.name,
+                    "code": "Test Pipeline (from Template)",
+                    "currentVersion": {
+                        "zipfile": "c29tZV9ieXRlcw==",
+                        "parameters": [{"code": "param_1", "default": None}],
+                        "config": [{"param_1": 1}],
+                    },
+                },
+            },
+            r["data"]["createPipelineFromTemplateVersion"],
+        )
+
+        r = self.run_query(
+            """
+                mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
+                    createPipelineFromTemplateVersion(input: $input) {
+                        success errors pipeline {name code currentVersion {zipfile parameters {code default} config}}
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                    "pipelineTemplateVersionId": str(
+                        self.PIPELINE_VERSION1.template_version.id
+                    ),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["PIPELINE_ALREADY_EXISTS"],
+                "pipeline": None,
+            },
+            r["data"]["createPipelineFromTemplateVersion"],
         )
