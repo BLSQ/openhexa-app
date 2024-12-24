@@ -33,6 +33,11 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 name="WS1",
                 description="Workspace 1",
             )
+            cls.WS2 = Workspace.objects.create_if_has_perm(
+                cls.USER_ROOT,
+                name="WS2",
+                description="Workspace 2",
+            )
         cls.PIPELINE = Pipeline.objects.create(
             name="Test Pipeline", code="Test Pipeline", workspace=cls.WS1
         )
@@ -107,7 +112,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceSlug": self.WS1.slug,
+                    "workspaceSlug": self.WS2.slug,
                     "pipelineTemplateVersionId": str(
                         self.PIPELINE_VERSION1.template_version.id
                     ),
@@ -120,7 +125,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 "errors": [],
                 "pipeline": {
                     "name": self.PIPELINE.name,
-                    "code": "Test Pipeline (from Template)",
+                    "code": "Test Pipeline",
                     "currentVersion": {
                         "zipfile": "c29tZV9ieXRlcw==",
                         "parameters": [{"code": "param_1", "default": None}],
