@@ -5,7 +5,7 @@ from hexa.workspaces.models import Connection, ConnectionField
 
 def get_client_by_slug(slug: str) -> DHIS2 | None:
     """
-    Gets DHIS2 connection from workspace by its slug
+    Gets DHIS2 client from workspace by its slug
     """
     dhis2_connection = Connection.objects.filter(slug=slug).first()
 
@@ -19,16 +19,11 @@ def get_client_by_slug(slug: str) -> DHIS2 | None:
     )
     dhis_connection_dict = {field.code: field.value for field in fields}
 
-    return get_dhis2_client(
-        url=dhis_connection_dict["url"],
-        username=dhis_connection_dict["username"],
-        password=dhis_connection_dict["password"],
+    return DHIS2(
+        url=dhis_connection_dict.get("url"),
+        username=dhis_connection_dict.get("username"),
+        password=dhis_connection_dict.get("password"),
     )
-
-
-def get_dhis2_client(url: str, username: str, password: str) -> DHIS2:
-    dhis2_client = DHIS2(url, username, password)
-    return dhis2_client
 
 
 def get_dhis2_metadata(dhis2: DHIS2, type: str, **kwargs) -> dict:

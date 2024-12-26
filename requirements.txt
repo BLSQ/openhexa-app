@@ -85,7 +85,9 @@ cryptography==44.0.0
     #   -r requirements.in
     #   moto
 datapi==0.1.1
-    # via cdsapi
+    # via
+    #   cdsapi
+    #   openhexa-toolbox
 deprecated==1.2.15
     # via opentelemetry-api
 dhis2-py==2.3.0
@@ -232,6 +234,7 @@ multiurl==0.3.3
     # via
     #   cads-api-client
     #   datapi
+    #   openhexa-toolbox
 numpy==2.0.2
     # via
     #   cfgrib
@@ -246,7 +249,7 @@ oauthlib==3.2.2
     # via
     #   kubernetes
     #   requests-oauthlib
-openhexa-toolbox==1.4.3
+openhexa-toolbox==1.6.1
     # via -r requirements.in
 openpyxl==3.1.5
     # via -r requirements.in

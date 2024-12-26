@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import responses
 
-from hexa.connections.dhis2_connection import get_client_by_slug, get_dhis2_metadata
+from hexa.connections.dhis2_client_helper import get_client_by_slug, get_dhis2_metadata
 from hexa.connections.tests.fixtures.data_elements import (
     data_element_groups,
     data_elements_by_data_elements_group,
@@ -99,7 +99,7 @@ class TestDHIS2Methods(TestCase):
     def test_dhis2_org_units(self):
         responses.add(
             responses.GET,
-            "http://127.0.0.1:8080/api/organisationUnits?fields=id%2Cname%2Clevel%2Cpath%2Cgeometry&pageSize=1000",
+            "http://127.0.0.1:8080/api/organisationUnits?fields=id%2Cname&pageSize=1000",
             json={"organisationUnits": org_units},
             status=200,
         )
@@ -111,7 +111,7 @@ class TestDHIS2Methods(TestCase):
     def test_dhis2_org_units_by_groups(self):
         responses.add(
             responses.GET,
-            "http://127.0.0.1:8080/api/organisationUnits?fields=id%2Cname%2Clevel%2Cpath%2Cgeometry&filter=organisationUnitGroups.id%3Ain%3A%5BoDkJh5Ddh7d%5D&pageSize=1000",
+            "http://127.0.0.1:8080/api/organisationUnits?fields=id%2Cname&filter=organisationUnitGroups.id%3Ain%3A%5BoDkJh5Ddh7d%5D&pageSize=1000",
             json={"organisationUnits": org_units},
             status=200,
         )
@@ -127,7 +127,7 @@ class TestDHIS2Methods(TestCase):
     def test_dhis2_org_unit_groups(self):
         responses.add(
             responses.GET,
-            "http://127.0.0.1:8080//api/organisationUnits?fields=id%2Cname%2Clevel%2Cpath%2Cgeometry&filter=organisationUnitGroups.id%3Ain%3A%5BoDkJh5Ddh7d%5D&pageSize=1000",
+            "http://127.0.0.1:8080//api/organisationUnits?fields=id%2Cname&filter=organisationUnitGroups.id%3Ain%3A%5BoDkJh5Ddh7d%5D&pageSize=1000",
             json={"organisationUnitGroups": org_units_groups},
             status=200,
         )
