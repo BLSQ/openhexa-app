@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import patch
 
 import responses
@@ -30,6 +31,7 @@ class TestDHIS2Methods(TestCase):
     USER_ADMIN = None
 
     @classmethod
+    @responses.activate
     def setUp(cls):
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com",
@@ -80,16 +82,8 @@ class TestDHIS2Methods(TestCase):
 
     @responses.activate
     def test_dhis2_connection_from_slug(self):
-        responses.add(
-            responses.GET,
-            "http://127.0.0.1:8080/api/system/ping",
-            status=200,
-        )
-        responses.add(
-            responses.GET,
-            "http://127.0.0.1:8080/api/system/info",
-            json={"version": "2.35"},
-            status=200,
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
         )
         dhis2 = get_client_by_slug("dhis2-connection-1")
         self.assertIsNotNone(dhis2)
@@ -97,154 +91,202 @@ class TestDHIS2Methods(TestCase):
 
     @responses.activate
     def test_dhis2_org_units(self):
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+        )
         responses.add(
             responses.GET,
             "http://127.0.0.1:8080/api/organisationUnits?fields=id%2Cname&pageSize=1000",
             json={"organisationUnits": org_units},
             status=200,
         )
-        dhis2 = self.test_dhis2_connection_from_slug()
-        metadata = get_dhis2_metadata(dhis2, "organisation_units")
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(dhis2, "organisation_units", fields="id,name")
         self.assertIsNotNone(metadata)
 
     @responses.activate
     def test_dhis2_org_units_by_groups(self):
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+        )
         responses.add(
             responses.GET,
             "http://127.0.0.1:8080/api/organisationUnits?fields=id%2Cname&filter=organisationUnitGroups.id%3Ain%3A%5BoDkJh5Ddh7d%5D&pageSize=1000",
             json={"organisationUnits": org_units},
             status=200,
         )
-        dhis2 = self.test_dhis2_connection_from_slug()
+        dhis2 = get_client_by_slug("dhis2-connection-1")
         metadata = get_dhis2_metadata(
             dhis2,
             "organisation_units",
             filter="organisationUnitGroups.id:in:[oDkJh5Ddh7d]",
+            fields="id,name",
         )
         self.assertIsNotNone(metadata)
 
     @responses.activate
     def test_dhis2_org_unit_groups(self):
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+        )
         responses.add(
             responses.GET,
-            "http://127.0.0.1:8080//api/organisationUnits?fields=id%2Cname&filter=organisationUnitGroups.id%3Ain%3A%5BoDkJh5Ddh7d%5D&pageSize=1000",
+            "http://127.0.0.1:8080/api/organisationUnitGroups?fields=id%2Cname&pageSize=1000",
             json={"organisationUnitGroups": org_units_groups},
             status=200,
         )
-        dhis2 = self.test_dhis2_connection_from_slug()
-        metadata = get_dhis2_metadata(dhis2, type="organisation_unit_groups")
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(
+            dhis2, type="organisation_unit_groups", fields="id,name"
+        )
         self.assertIsNotNone(metadata)
 
     @responses.activate
     def test_dhis2_org_unit_levels(self):
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+        )
         responses.add(
             responses.GET,
             "http://127.0.0.1:8080/api/filledOrganisationUnitLevels",
-            json={"organisationUnitLevels": org_units_levels},
+            json=org_units_levels,
             status=200,
         )
-        dhis2 = self.test_dhis2_connection_from_slug()
+        dhis2 = get_client_by_slug("dhis2-connection-1")
         metadata = get_dhis2_metadata(dhis2, "organisation_unit_levels")
         self.assertIsNotNone(metadata)
 
     @responses.activate
     def test_dhis2_datasets(self):
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+        )
         responses.add(
             responses.GET,
-            "http://127.0.0.1:8080/api/dataSets?fields=id%2Cname%2CdataSetElements%2Cindicators%2CorganisationUnits&pageSize=1000",
+            "http://127.0.0.1:8080/api/dataSets?fields=id%2Cname&pageSize=1000",
             json={"dataSets": datasets},
             status=200,
         )
-        dhis2 = self.test_dhis2_connection_from_slug()
-        metadata = get_dhis2_metadata(dhis2, "datasets")
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(dhis2, "datasets", fields="id,name")
         self.assertIsNotNone(metadata)
 
     @responses.activate
     def test_dhis2_data_elements(self):
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+        )
         responses.add(
             responses.GET,
-            "http://127.0.0.1:8080/api/dataElements?fields=id%2Cname%2CaggregationType%2CzeroIsSignificant&pageSize=1000",
+            "http://127.0.0.1:8080/api/dataElements?fields=id%2Cname&pageSize=1000",
             json={"dataElements": data_elements_by_data_elements_group},
             status=200,
         )
-        dhis2 = self.test_dhis2_connection_from_slug()
-        metadata = get_dhis2_metadata(dhis2, "data_elements")
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(dhis2, "data_elements", fields="id,name")
         self.assertIsNotNone(metadata)
 
     @responses.activate
     def test_dhis2_data_elements_by_datasets(self):
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+        )
         responses.add(
             responses.GET,
-            "http://127.0.0.1:8080",
+            "http://127.0.0.1:8080/api/dataElements?fields=id%2Cname&filter=dataSetElements.dataSet.id%3Ain%3A%5BlyLU2wR22tC%5D&pageSize=1000",
             json={"dataElements": data_elements_by_data_elements_group},
             status=200,
         )
-        dhis2 = self.test_dhis2_connection_from_slug()
+        dhis2 = get_client_by_slug("dhis2-connection-1")
         metadata = get_dhis2_metadata(
-            dhis2, "data_elements", filter="dataSetElements.dataSet.id:in:[lyLU2wR22tC]"
+            dhis2,
+            "data_elements",
+            filter="dataSetElements.dataSet.id:in:[lyLU2wR22tC]",
+            fields="id,name",
         )
         self.assertIsNotNone(metadata)
 
     @responses.activate
     def test_dhis2_data_elements_by_groups(self):
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+        )
         responses.add(
             responses.GET,
             "http://127.0.0.1:8080/api/dataElements",
             json={"dataElements": data_elements_by_data_elements_group},
             status=200,
         )
-        dhis2 = self.test_dhis2_connection_from_slug()
+        dhis2 = get_client_by_slug("dhis2-connection-1")
         metadata = get_dhis2_metadata(
-            dhis2, "data_elements", filter="dataElementGroups.id:in:[oDkJh5Ddh7d]"
+            dhis2,
+            "data_elements",
+            filter="dataElementGroups.id:in:[oDkJh5Ddh7d]",
+            fields="id,name",
         )
         self.assertIsNotNone(metadata)
 
     @responses.activate
     def test_dhis2_data_element_groups(self):
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+        )
         responses.add(
             responses.GET,
             "http://127.0.0.1:8080/api/dataElementGroups",
             json={"dataElementGroups": data_element_groups},
             status=200,
         )
-        dhis2 = self.test_dhis2_connection_from_slug()
-        metadata = get_dhis2_metadata(dhis2, "data_element_groups")
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(dhis2, "data_element_groups", fields="id,name")
         self.assertIsNotNone(metadata)
 
     @responses.activate
     def test_dhis2_indicators(self):
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+        )
         responses.add(
             responses.GET,
             "http://127.0.0.1:8080/api/indicators",
             json={"indicators": indicators},
             status=200,
         )
-        dhis2 = self.test_dhis2_connection_from_slug()
-        metadata = get_dhis2_metadata(dhis2, "indicator")
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(dhis2, "indicator", fields="id,name")
         self.assertIsNotNone(metadata)
 
     @responses.activate
     def test_dhis2_indicators_by_groups(self):
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+        )
         responses.add(
             responses.GET,
             "http://127.0.0.1:8080/api/indicators",
             json={"indicators": indicators},
             status=200,
         )
-        dhis2 = self.test_dhis2_connection_from_slug()
+        dhis2 = get_client_by_slug("dhis2-connection-1")
         metadata = get_dhis2_metadata(
-            dhis2, "indicator", filter="indicatorGroups.id:in:[PoTnGN0F2n5]"
+            dhis2,
+            "indicator",
+            filter="indicatorGroups.id:in:[PoTnGN0F2n5]",
+            fields="id,name",
         )
         self.assertIsNotNone(metadata)
 
     @responses.activate
     def test_dhis2_indicator_groups(self):
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+        )
         responses.add(
             responses.GET,
             "http://127.0.0.1:8080/api/indicatorGroups",
             json={"indicatorGroups": indicator_groups},
             status=200,
         )
-        dhis2 = self.test_dhis2_connection_from_slug()
-        metadata = get_dhis2_metadata(dhis2, "indicator_groups")
+        dhis2 = get_client_by_slug("dhis2-connection-1")
+        metadata = get_dhis2_metadata(dhis2, "indicator_groups", fields="id,name")
         self.assertIsNotNone(metadata)
