@@ -1,7 +1,7 @@
 """
 DHIS2 metadata item
 """
-type DHIS2Metadata {
+type DHIS2MetadataItem {
     id: String!     # Unique identifier
     name: String!   # Name of the metadata item
 }
@@ -10,7 +10,7 @@ type DHIS2Metadata {
 DHIS2 metadata query result
 """
 type DHIS2QueryResult {
-    data: [DHIS2Metadata!]  # List of metadata items
+    data: [DHIS2MetadataItem!]  # List of metadata items
     errors: [String!]!      # List of errors
 }
 
@@ -21,3 +21,6 @@ type DHIS2Connection {
     query(type: String!, filter: String, fields: String): DHIS2QueryResult! # Query metadata items
 }
 
+extend type Query {
+    dhis2connection(slug: String!): DHIS2Connection! # Get DHIS2 connection
+}

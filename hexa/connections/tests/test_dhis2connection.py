@@ -31,7 +31,6 @@ class TestDHIS2Methods(TestCase):
     USER_ADMIN = None
 
     @classmethod
-    @responses.activate
     def setUp(cls):
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com",
