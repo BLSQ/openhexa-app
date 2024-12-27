@@ -14,7 +14,7 @@ from hexa.workspaces.models import (
 
 class PipelineTemplatesTest(GraphQLTestCase):
     USER_ROOT = None
-    PIPELINE = None
+    PIPELINE1 = None
     PIPELINE_VERSION1 = None
     PIPELINE_VERSION2 = None
 
@@ -38,11 +38,11 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 name="WS2",
                 description="Workspace 2",
             )
-        cls.PIPELINE = Pipeline.objects.create(
+        cls.PIPELINE1 = Pipeline.objects.create(
             name="Test Pipeline", code="Test Pipeline", workspace=cls.WS1
         )
         cls.PIPELINE_VERSION1 = PipelineVersion.objects.create(
-            pipeline=cls.PIPELINE,
+            pipeline=cls.PIPELINE1,
             version_number=1,
             description="Initial version",
             parameters=[{"code": "param_1"}],
@@ -50,12 +50,15 @@ class PipelineTemplatesTest(GraphQLTestCase):
             zipfile=str.encode("some_bytes"),
         )
         cls.PIPELINE_VERSION2 = PipelineVersion.objects.create(
-            pipeline=cls.PIPELINE,
+            pipeline=cls.PIPELINE1,
             version_number=2,
             description="Second version",
         )
-        cls.OTHER_PIPELINE = Pipeline.objects.create(
-            name="Other Pipeline", code="other-pipeline", workspace=cls.WS1
+        cls.PIPELINE2 = Pipeline.objects.create(
+            name="Pipeline 2", code="pipeline-2", workspace=cls.WS1
+        )
+        cls.PIPELINE3 = Pipeline.objects.create(
+            name="Pipeline 3", code="pipeline-3", workspace=cls.WS1
         )
 
     def create_template_version(self, pipeline_version_id, expected_versions):
@@ -74,7 +77,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
                     "description": "A test template",
                     "config": "{}",
                     "workspaceSlug": self.WS1.slug,
-                    "pipelineId": str(self.PIPELINE.id),
+                    "pipelineId": str(self.PIPELINE1.id),
                     "pipelineVersionId": str(pipeline_version_id),
                 }
             },
@@ -124,7 +127,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 "success": True,
                 "errors": [],
                 "pipeline": {
-                    "name": self.PIPELINE.name,
+                    "name": self.PIPELINE1.name,
                     "code": "Test Pipeline",
                     "currentVersion": {
                         "zipfile": "c29tZV9ieXRlcw==",
@@ -164,10 +167,10 @@ class PipelineTemplatesTest(GraphQLTestCase):
 
     def test_get_pipeline_templates(self):
         PipelineTemplate.objects.create(
-            name="Template 1", code="Code 1", source_pipeline=self.PIPELINE
+            name="Template 1", code="Code 1", source_pipeline=self.PIPELINE1
         )
         PipelineTemplate.objects.create(
-            name="Template 2", code="Code 2", source_pipeline=self.OTHER_PIPELINE
+            name="Template 2", code="Code 2", source_pipeline=self.PIPELINE2
         )
         r = self.run_query(
             """
@@ -190,6 +193,68 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 "totalPages": 2,
                 "totalItems": 2,
                 "items": [{"code": "Code 1", "name": "Template 1"}],
+            },
+            r["data"]["pipelineTemplates"],
+        )
+
+    def test_searching_pipeline_templates(self):
+        PipelineTemplate.objects.create(
+            name="Template 1", code="Code 1", source_pipeline=self.PIPELINE1
+        )
+        PipelineTemplate.objects.create(
+            name="Template 2", code="Code 2", source_pipeline=self.PIPELINE2
+        )
+        PipelineTemplate.objects.create(
+            name="Template 22", code="Code 22", source_pipeline=self.PIPELINE3
+        )
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 1, search: "Template 3") {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """
+        )
+        self.assertEqual(
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 0,
+                "items": [],
+            },
+            r["data"]["pipelineTemplates"],
+        )
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 2, search: "Template 2") {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """
+        )
+        self.assertEqual(
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 2,
+                "items": [
+                    {"code": "Code 2", "name": "Template 2"},
+                    {"code": "Code 22", "name": "Template 22"},
+                ],
             },
             r["data"]["pipelineTemplates"],
         )

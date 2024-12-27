@@ -8,8 +8,14 @@ pipeline_template_query = QueryType()
 
 @pipeline_template_query.field("pipelineTemplates")
 def resolve_pipeline_templates(_, info, **kwargs):
+    search = kwargs.get("search", "")
+    pipeline_templates = PipelineTemplate.objects.all()
+
+    if search:
+        pipeline_templates = pipeline_templates.filter(name__icontains=search)
+
     return result_page(
-        PipelineTemplate.objects.all(),
+        pipeline_templates,
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", 15),
     )
