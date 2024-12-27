@@ -15,6 +15,8 @@ from hexa.workspaces.models import (
 class PipelineTemplatesTest(GraphQLTestCase):
     USER_ROOT = None
     PIPELINE1 = None
+    PIPELINE2 = None
+    PIPELINE3 = None
     PIPELINE_VERSION1 = None
     PIPELINE_VERSION2 = None
 
