@@ -100,7 +100,7 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(dhis2, "organisation_units", fields="id,name")
+        metadata = get_dhis2_metadata(dhis2, "organisationUnits", fields="id,name")
         self.assertIsNotNone(metadata)
 
     @responses.activate
@@ -117,7 +117,7 @@ class TestDHIS2Methods(TestCase):
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(
             dhis2,
-            "organisation_units",
+            "organisationUnits",
             filter="organisationUnitGroups.id:in:[oDkJh5Ddh7d]",
             fields="id,name",
         )
@@ -136,7 +136,7 @@ class TestDHIS2Methods(TestCase):
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(
-            dhis2, type="organisation_unit_groups", fields="id,name"
+            dhis2, type="organisationUnitGroups", fields="id,name"
         )
         self.assertIsNotNone(metadata)
 
@@ -152,7 +152,7 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(dhis2, "organisation_unit_levels")
+        metadata = get_dhis2_metadata(dhis2, "organisationUnitLevels")
         self.assertIsNotNone(metadata)
 
     @responses.activate
@@ -182,7 +182,7 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(dhis2, "data_elements", fields="id,name")
+        metadata = get_dhis2_metadata(dhis2, "dataElements", fields="id,name")
         self.assertIsNotNone(metadata)
 
     @responses.activate
@@ -199,7 +199,7 @@ class TestDHIS2Methods(TestCase):
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(
             dhis2,
-            "data_elements",
+            "dataElements",
             filter="dataSetElements.dataSet.id:in:[lyLU2wR22tC]",
             fields="id,name",
         )
@@ -219,7 +219,7 @@ class TestDHIS2Methods(TestCase):
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(
             dhis2,
-            "data_elements",
+            "dataElements",
             filter="dataElementGroups.id:in:[oDkJh5Ddh7d]",
             fields="id,name",
         )
@@ -237,7 +237,7 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(dhis2, "data_element_groups", fields="id,name")
+        metadata = get_dhis2_metadata(dhis2, "dataElementGroups", fields="id,name")
         self.assertIsNotNone(metadata)
 
     @responses.activate
@@ -252,7 +252,7 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(dhis2, "indicator", fields="id,name")
+        metadata = get_dhis2_metadata(dhis2, "indicators", fields="id,name")
         self.assertIsNotNone(metadata)
 
     @responses.activate
@@ -269,7 +269,7 @@ class TestDHIS2Methods(TestCase):
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(
             dhis2,
-            "indicator",
+            "indicators",
             filter="indicatorGroups.id:in:[PoTnGN0F2n5]",
             fields="id,name",
         )
@@ -287,5 +287,5 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(dhis2, "indicator_groups", fields="id,name")
+        metadata = get_dhis2_metadata(dhis2, "indicatorGroups", fields="id,name")
         self.assertIsNotNone(metadata)

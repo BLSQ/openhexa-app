@@ -81,7 +81,7 @@ class ConnectiontTest(GraphQLTestCase):
                 """
                 {
                     dhis2connection(slug: "dhis2-connection-1") {
-                        query(type: "organisation_units", fields: "id,name") {
+                        query(type: "organisationUnits", fields: "id,name") {
                             data {
                                     id
                                     name
@@ -111,7 +111,7 @@ class ConnectiontTest(GraphQLTestCase):
             """
             {
                 dhis2connection(slug: "dhis2-connection-2") {
-                    query(type: "organisation_units", fields: "id,name") {
+                    query(type: "organisationUnits", fields: "id,name") {
                         data {
                                 id
                                 name
@@ -131,7 +131,7 @@ class ConnectiontTest(GraphQLTestCase):
             """
             {
                 dhis2connection(slug: "dhis2-connection-1") {
-                    query(type: "organisation_units", fields: "id,name") {
+                    query(type: "organisationUnits", fields: "id,name") {
                         data {
                                 id
                                 name
@@ -157,7 +157,7 @@ class ConnectiontTest(GraphQLTestCase):
                 """
                 {
                     dhis2connection(slug: "dhis2-connection-1") {
-                        query(type: "organisation_units", fields: "id,name") {
+                        query(type: "organisationUnits", fields: "id,name") {
                             data {
                                     id
                                     name
@@ -177,7 +177,7 @@ class ConnectiontTest(GraphQLTestCase):
                 },
             )
 
-    def test_UNKNOWN_ERROR(self):
+    def test_unkown_error(self):
         self.client.force_login(self.USER_SERENA)
 
         dhis2_mock = MagicMock()
@@ -190,7 +190,7 @@ class ConnectiontTest(GraphQLTestCase):
                 """
                 {
                     dhis2connection(slug: "dhis2-connection-1") {
-                        query(type: "organisation_units", fields: "id,name") {
+                        query(type: "organisationUnits", fields: "id,name") {
                             data {
                                     id
                                     name
