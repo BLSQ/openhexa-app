@@ -19,13 +19,13 @@ def resolve_query(dhis2_client, info, **kwargs):
         )
 
         result = [{"id": item.get("id"), "name": item.get("name")} for item in metadata]
-        return {"data": result, "errors": []}
+        return {"data": result, "success": True, "errors": []}
     except DHIS2Error as e:
         logging.error(f"DHIS2 error: {e}")
-        return {"data": [], "errors": ["CONNECTION_ERROR"]}
+        return {"data": [], "success": False, "errors": ["CONNECTION_ERROR"]}
     except Exception as e:
         logging.error(f"Unknown error: {e}")
-        return {"data": [], "errors": ["UNKNOWN_ERROR"]}
+        return {"data": [], "success": False, "errors": ["UNKNOWN_ERROR"]}
 
 
 bindables = [dhis2_connection]
