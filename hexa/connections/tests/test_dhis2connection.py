@@ -84,7 +84,7 @@ class TestDHIS2Methods(TestCase):
         responses._add_from_file(
             Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1")
+        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         self.assertIsNotNone(dhis2)
         return dhis2
 
@@ -99,7 +99,7 @@ class TestDHIS2Methods(TestCase):
             json={"organisationUnits": org_units},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1")
+        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(dhis2, "organisation_units", fields="id,name")
         self.assertIsNotNone(metadata)
 
@@ -114,7 +114,7 @@ class TestDHIS2Methods(TestCase):
             json={"organisationUnits": org_units},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1")
+        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(
             dhis2,
             "organisation_units",
@@ -134,7 +134,7 @@ class TestDHIS2Methods(TestCase):
             json={"organisationUnitGroups": org_units_groups},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1")
+        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(
             dhis2, type="organisation_unit_groups", fields="id,name"
         )
@@ -151,7 +151,7 @@ class TestDHIS2Methods(TestCase):
             json=org_units_levels,
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1")
+        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(dhis2, "organisation_unit_levels")
         self.assertIsNotNone(metadata)
 
@@ -166,7 +166,7 @@ class TestDHIS2Methods(TestCase):
             json={"dataSets": datasets},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1")
+        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(dhis2, "datasets", fields="id,name")
         self.assertIsNotNone(metadata)
 
@@ -181,7 +181,7 @@ class TestDHIS2Methods(TestCase):
             json={"dataElements": data_elements_by_data_elements_group},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1")
+        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(dhis2, "data_elements", fields="id,name")
         self.assertIsNotNone(metadata)
 
@@ -196,7 +196,7 @@ class TestDHIS2Methods(TestCase):
             json={"dataElements": data_elements_by_data_elements_group},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1")
+        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(
             dhis2,
             "data_elements",
@@ -216,7 +216,7 @@ class TestDHIS2Methods(TestCase):
             json={"dataElements": data_elements_by_data_elements_group},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1")
+        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(
             dhis2,
             "data_elements",
@@ -236,7 +236,7 @@ class TestDHIS2Methods(TestCase):
             json={"dataElementGroups": data_element_groups},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1")
+        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(dhis2, "data_element_groups", fields="id,name")
         self.assertIsNotNone(metadata)
 
@@ -251,7 +251,7 @@ class TestDHIS2Methods(TestCase):
             json={"indicators": indicators},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1")
+        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(dhis2, "indicator", fields="id,name")
         self.assertIsNotNone(metadata)
 
@@ -266,7 +266,7 @@ class TestDHIS2Methods(TestCase):
             json={"indicators": indicators},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1")
+        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(
             dhis2,
             "indicator",
@@ -286,6 +286,6 @@ class TestDHIS2Methods(TestCase):
             json={"indicatorGroups": indicator_groups},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1")
+        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = get_dhis2_metadata(dhis2, "indicator_groups", fields="id,name")
         self.assertIsNotNone(metadata)

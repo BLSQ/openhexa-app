@@ -79,7 +79,7 @@ class ConnectiontTest(GraphQLTestCase):
                 """
                 {
                     dhis2connection(slug: "dhis2-connection-1") {
-                        query(type: "organisation_units") {
+                        query(type: "organisation_units", fields: "id,name") {
                             data {
                                     id
                                     name
@@ -101,3 +101,24 @@ class ConnectiontTest(GraphQLTestCase):
                     }
                 },
             )
+
+    def test_get_org_units_no_connection(self):  # noqa
+        self.client.force_login(self.USER_SERENA)
+
+        response = self.run_query(
+            """
+            {
+                dhis2connection(slug: "dhis2-connection-2") {
+                    query(type: "organisation_units", fields: "id,name") {
+                        data {
+                                id
+                                name
+                            }
+                        errors
+                    }
+                }
+            }
+            """
+        )
+        print(response)
+        self.assertEqual(response["data"], {"dhis2connection": None})

@@ -1,13 +1,20 @@
 from openhexa.toolbox.dhis2 import DHIS2
+from openhexa.toolbox.dhis2.api import DHIS2Error
 
+from hexa.user_management.models import User
 from hexa.workspaces.models import Connection, ConnectionField
 
 
-def get_client_by_slug(slug: str) -> DHIS2 | None:
+def get_client_by_slug(slug: str, user: User) -> DHIS2 | None:
     """
     Gets DHIS2 client from workspace by its slug
     """
-    dhis2_connection = Connection.objects.filter(slug=slug).first()
+    try:
+        dhis2_connection = (
+            Connection.objects.filter_for_user(user).filter(slug=slug).first()
+        )
+    except Connection.DoesNotExist:
+        return None
 
     if not dhis2_connection:
         return None
@@ -18,12 +25,14 @@ def get_client_by_slug(slug: str) -> DHIS2 | None:
         .all()
     )
     dhis_connection_dict = {field.code: field.value for field in fields}
-
-    return DHIS2(
-        url=dhis_connection_dict.get("url"),
-        username=dhis_connection_dict.get("username"),
-        password=dhis_connection_dict.get("password"),
-    )
+    try:
+        return DHIS2(
+            url=dhis_connection_dict.get("url"),
+            username=dhis_connection_dict.get("username"),
+            password=dhis_connection_dict.get("password"),
+        )
+    except DHIS2Error:
+        return None
 
 
 def get_dhis2_metadata(dhis2: DHIS2, type: str, **kwargs) -> dict:
