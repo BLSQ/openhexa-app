@@ -1,3 +1,5 @@
+import logging
+
 from ariadne import ObjectType
 from openhexa.toolbox.dhis2.api import DHIS2Error
 
@@ -18,8 +20,12 @@ def resolve_query(dhis2_client, info, **kwargs):
 
         result = [{"id": item.get("id"), "name": item.get("name")} for item in metadata]
         return {"data": result, "errors": []}
-    except DHIS2Error:
+    except DHIS2Error as e:
+        logging.error(f"DHIS2 error: {e}")
         return {"data": [], "errors": ["CONNECTION_ERROR"]}
+    except Exception as e:
+        logging.error(f"Unknown error: {e}")
+        return {"data": [], "errors": ["UNKNOWN_ERROR"]}
 
 
 bindables = [dhis2_connection]

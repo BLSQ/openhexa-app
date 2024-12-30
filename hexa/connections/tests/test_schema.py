@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
 
+from openhexa.toolbox.dhis2.api import DHIS2Error
+
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
@@ -120,5 +122,90 @@ class ConnectiontTest(GraphQLTestCase):
             }
             """
         )
-        print(response)
         self.assertEqual(response["data"], {"dhis2connection": None})
+
+    def test_get_org_units_no_permission(self):
+        self.client.force_login(self.USER_JIM)
+
+        response = self.run_query(
+            """
+            {
+                dhis2connection(slug: "dhis2-connection-1") {
+                    query(type: "organisation_units", fields: "id,name") {
+                        data {
+                                id
+                                name
+                            }
+                        errors
+                    }
+                }
+            }
+            """
+        )
+        self.assertEqual(response["data"], {"dhis2connection": None})
+
+    def test_connection_error(self):
+        self.client.force_login(self.USER_SERENA)
+
+        dhis2_mock = MagicMock()
+        dhis2_mock.meta.organisation_units.side_effect = DHIS2Error("Connection error")
+
+        with patch(
+            "hexa.connections.dhis2_client_helper.DHIS2", return_value=dhis2_mock
+        ):
+            response = self.run_query(
+                """
+                {
+                    dhis2connection(slug: "dhis2-connection-1") {
+                        query(type: "organisation_units", fields: "id,name") {
+                            data {
+                                    id
+                                    name
+                                }
+                            errors
+                        }
+                    }
+                }
+                """
+            )
+            self.assertEqual(
+                response["data"],
+                {
+                    "dhis2connection": {
+                        "query": {"data": [], "errors": ["CONNECTION_ERROR"]}
+                    }
+                },
+            )
+
+    def test_UNKNOWN_ERROR(self):
+        self.client.force_login(self.USER_SERENA)
+
+        dhis2_mock = MagicMock()
+        dhis2_mock.meta.organisation_units.side_effect = Exception("Unknown error")
+
+        with patch(
+            "hexa.connections.dhis2_client_helper.DHIS2", return_value=dhis2_mock
+        ):
+            response = self.run_query(
+                """
+                {
+                    dhis2connection(slug: "dhis2-connection-1") {
+                        query(type: "organisation_units", fields: "id,name") {
+                            data {
+                                    id
+                                    name
+                                }
+                            errors
+                        }
+                    }
+                }
+                """
+            )
+            self.assertEqual(
+                response["data"],
+                {
+                    "dhis2connection": {
+                        "query": {"data": [], "errors": ["UNKNOWN_ERROR"]}
+                    }
+                },
+            )
