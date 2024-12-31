@@ -177,6 +177,11 @@ def resolve_pipeline_template(pipeline: Pipeline, info, **kwargs):
     return getattr(pipeline, "template", None)
 
 
+@pipeline_object.field("sourceTemplate")
+def resolve_source_template(pipeline: Pipeline, info, **kwargs):
+    return pipeline.source_template
+
+
 @pipeline_object.field("newTemplateVersionAvailable")
 def resolve_new_template_version_available(pipeline: Pipeline, info, **kwargs):
     return pipeline.is_new_template_version_available
