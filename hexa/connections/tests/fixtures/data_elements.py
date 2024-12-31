@@ -51,7 +51,7 @@ data_element_groups = [
         "id": "oDkJh5Ddh7d",
         "name": "Acute Flaccid Paralysis (AFP) ",
     },
-    {"id": "GBHN1a1Jddh", "name": "All Others", "data_elements": ["qrur9Dvnyt5"]},
+    {"id": "GBHN1a1Jddh", "name": "All Others"},
     {
         "id": "KmwPVkjp7yl",
         "name": "Anaemia",

@@ -81,7 +81,7 @@ class ConnectiontTest(GraphQLTestCase):
                 """
                 {
                     dhis2connection(slug: "dhis2-connection-1") {
-                        query(type: "organisationUnits", fields: "id,name") {
+                        query(type: "organisationUnits") {
                             data {
                                     id
                                     name
@@ -111,7 +111,7 @@ class ConnectiontTest(GraphQLTestCase):
             """
             {
                 dhis2connection(slug: "dhis2-connection-2") {
-                    query(type: "organisationUnits", fields: "id,name") {
+                    query(type: "organisationUnits") {
                         data {
                                 id
                                 name
@@ -131,7 +131,7 @@ class ConnectiontTest(GraphQLTestCase):
             """
             {
                 dhis2connection(slug: "dhis2-connection-1") {
-                    query(type: "organisationUnits", fields: "id,name") {
+                    query(type: "organisationUnits") {
                         data {
                                 id
                                 name
@@ -157,7 +157,7 @@ class ConnectiontTest(GraphQLTestCase):
                 """
                 {
                     dhis2connection(slug: "dhis2-connection-1") {
-                        query(type: "organisationUnits", fields: "id,name") {
+                        query(type: "organisationUnits") {
                             data {
                                     id
                                     name
@@ -190,7 +190,7 @@ class ConnectiontTest(GraphQLTestCase):
                 """
                 {
                     dhis2connection(slug: "dhis2-connection-1") {
-                        query(type: "organisationUnits", fields: "id,name") {
+                        query(type: "organisationUnits") {
                             data {
                                     id
                                     name
