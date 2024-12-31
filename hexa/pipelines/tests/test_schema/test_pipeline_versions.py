@@ -329,6 +329,8 @@ class PipelineVersionsTest(GraphQLTestCase):
                             "type": "str",
                             "help": "Param Example's Help",
                             "default": None,
+                            "widget": None,
+                            "validation_source": None,
                             "multiple": False,
                             "required": True,
                             "choices": [],
