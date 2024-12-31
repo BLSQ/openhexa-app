@@ -231,7 +231,7 @@ class TestDHIS2Methods(TestCase):
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = query_dhis2_metadata(dhis2, "dataElementGroups")
-        self.assertIsNotNone(metadata)
+        self.assertEqual(metadata, data_element_groups)
 
     @responses.activate
     def test_dhis2_indicators(self):
@@ -240,7 +240,7 @@ class TestDHIS2Methods(TestCase):
         )
         responses.add(
             responses.GET,
-            "http://127.0.0.1:8080/api/indicators",
+            "http://127.0.0.1:8080/api/indicators?fields=id%2Cname&pageSize=1000",
             json={"indicators": indicators},
             status=200,
         )
@@ -255,16 +255,13 @@ class TestDHIS2Methods(TestCase):
         )
         responses.add(
             responses.GET,
-            "http://127.0.0.1:8080/api/indicators",
+            "http://127.0.0.1:8080/api/indicators?fields=id%2Cname&filter=indicatorGroups.id%3Ain%3A%5BPoTnGN0F2n5%5D&pageSize=1000",
             json={"indicators": indicators},
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = query_dhis2_metadata(
-            dhis2,
-            "indicators",
-            filter="indicatorGroups.id:in:[PoTnGN0F2n5]",
-            fields="id,name",
+            dhis2, "indicators", filter="indicatorGroups.id:in:[PoTnGN0F2n5]"
         )
         self.assertEqual(metadata, indicators)
 
@@ -281,4 +278,5 @@ class TestDHIS2Methods(TestCase):
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = query_dhis2_metadata(dhis2, "indicatorGroups")
+        print(metadata)
         self.assertEqual(metadata, indicator_groups)

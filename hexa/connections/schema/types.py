@@ -14,6 +14,7 @@ def resolve_query(dhis2_client, info, **kwargs):
         metadata = query_dhis2_metadata(
             dhis2_client,
             type=kwargs.get("type"),
+            fields="id,name",
             filter=kwargs.get("filter"),
         )
 
