@@ -10,6 +10,7 @@ from ariadne import (
 )
 from django.contrib.contenttypes.models import ContentType
 
+from hexa.connections.schema import connections_bindables, connections_type_defs
 from hexa.core.schema import config_bindables, config_type_defs
 from hexa.countries.schema import countries_bindables, countries_type_defs
 from hexa.databases.schema import databases_bindables, databases_types_def
@@ -27,7 +28,6 @@ from hexa.plugins.connector_accessmod.schema import (
     accessmod_type_defs,
 )
 from hexa.plugins.connector_airflow.schema import dags_bindables, dags_type_defs
-from hexa.plugins.connector_dhis2.schema import dhis2_bindables, dhis2_type_defs
 from hexa.plugins.connector_s3.schema import s3_bindables, s3_type_defs
 from hexa.tags.schema import tags_bindables, tags_type_defs
 from hexa.user_management.schema import (
@@ -81,8 +81,8 @@ schema = make_executable_schema(
         type_defs,
         identity_type_defs,
         tags_type_defs,
+        connections_type_defs,
         dags_type_defs,
-        *dhis2_type_defs,
         *s3_type_defs,
         accessmod_type_defs,
         countries_type_defs,
@@ -99,12 +99,12 @@ schema = make_executable_schema(
     [
         uuid_scalar,
         opaque_id_scalar,
+        *connections_bindables,
         *pipelines_bindables,
         *pipeline_templates_bindables,
         *identity_bindables,
         *tags_bindables,
         *dags_bindables,
-        *dhis2_bindables,
         *s3_bindables,
         *accessmod_bindables,
         *countries_bindables,
