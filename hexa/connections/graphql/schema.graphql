@@ -22,7 +22,7 @@ type DHIS2QueryResult {
 DHIS2 connection object
 """
 type DHIS2Connection {
-    query(type: String!, filter: String, fields: String): DHIS2QueryResult! # Query metadata items
+    query(type: String!, filter: String): DHIS2QueryResult! # Query metadata items
 }
 
 extend type Query {

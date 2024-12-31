@@ -10,15 +10,17 @@ dhis2_connection = ObjectType("DHIS2Connection")
 
 @dhis2_connection.field("query")
 def resolve_query(dhis2_client, info, **kwargs):
+    fields = ["id", "name"]
+
     try:
         metadata = query_dhis2_metadata(
             dhis2_client,
             type=kwargs.get("type"),
-            fields="id,name",
+            fields=fields,
             filter=kwargs.get("filter"),
         )
 
-        result = [{"id": item.get("id"), "name": item.get("name")} for item in metadata]
+        result = [{field: item.get(field) for field in fields} for item in metadata]
         return {"data": result, "success": True, "errors": []}
     except DHIS2Error as e:
         logging.error(f"DHIS2 error: {e}")
