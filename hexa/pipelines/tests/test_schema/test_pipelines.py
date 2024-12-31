@@ -2574,3 +2574,73 @@ class PipelinesV2Test(GraphQLTestCase):
             },
             r["data"]["deletePipelineRecipient"],
         )
+
+    def test_new_template_version_available(self):
+        self.client.force_login(self.USER_ROOT)
+        source_pipeline = Pipeline.objects.create(
+            code="source_pipeline",
+            workspace=self.WS1,
+        )
+        source_pipeline_version1 = source_pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            name="Version 1",
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters=[],
+        )
+        template = source_pipeline.get_or_create_template(
+            "Template", "template", "Description", {}
+        )
+        template_version1 = template.create_version(source_pipeline_version1)
+
+        r = self.run_query(
+            """
+                mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
+                    createPipelineFromTemplateVersion(input: $input) {
+                        success errors pipeline {id newTemplateVersionAvailable}
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS2.slug,
+                    "pipelineTemplateVersionId": str(template_version1.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipeline": {
+                    "id": str(
+                        r["data"]["createPipelineFromTemplateVersion"]["pipeline"]["id"]
+                    ),
+                    "newTemplateVersionAvailable": False,
+                },
+            },
+            r["data"]["createPipelineFromTemplateVersion"],
+        )
+
+        source_version2 = source_pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            name="Version 2",
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters=[],
+        )
+        template.create_version(source_version2)
+
+        r = self.run_query(
+            """
+            query ($id: UUID!) {
+                pipeline(id: $id) {
+                    newTemplateVersionAvailable
+                }
+            }
+            """,
+            {
+                "id": str(
+                    r["data"]["createPipelineFromTemplateVersion"]["pipeline"]["id"]
+                )
+            },
+        )
+        self.assertEqual(True, r["data"]["pipeline"]["newTemplateVersionAvailable"])

@@ -112,6 +112,7 @@ class PipelineTemplateVersion(models.Model):
             workspace=workspace,
         )
         PipelineVersion.objects.create(
+            source_template_version=self,
             user=user,
             pipeline=pipeline,
             zipfile=source_version.zipfile,
