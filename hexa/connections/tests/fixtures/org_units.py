@@ -36,8 +36,8 @@ org_units_groups = [
 ]
 
 org_units_levels = [
-    {"id": "H1KlN4QIauv", "level": 1, "name": "National"},
-    {"id": "wjP19dkFeIk", "level": 2, "name": "District"},
-    {"id": "tTUf91fCytl", "level": 3, "name": "Chiefdom"},
-    {"id": "m9lBJogzE95", "level": 4, "name": "Facility"},
+    {"id": "H1KlN4QIauv", "name": "National"},
+    {"id": "wjP19dkFeIk", "name": "District"},
+    {"id": "tTUf91fCytl", "name": "Chiefdom"},
+    {"id": "m9lBJogzE95", "name": "Facility"},
 ]

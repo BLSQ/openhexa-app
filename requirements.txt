@@ -206,8 +206,6 @@ importlib-metadata==8.5.0
     #   markdown
     #   opentelemetry-api
     #   rasterio
-jinja2==3.1.5
-    # via opentelemetry-api
 jinja2==3.1.4
     # via moto
 jmespath==1.0.1
@@ -249,7 +247,7 @@ oauthlib==3.2.2
     # via
     #   kubernetes
     #   requests-oauthlib
-openhexa-toolbox==1.6.1
+openhexa-toolbox==1.6.2
     # via -r requirements.in
 openpyxl==3.1.5
     # via -r requirements.in

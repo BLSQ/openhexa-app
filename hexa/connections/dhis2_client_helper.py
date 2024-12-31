@@ -28,10 +28,11 @@ def get_client_by_slug(slug: str, user: User) -> DHIS2 | None:
     )
 
 
-def get_dhis2_metadata(dhis2: DHIS2, type: str, **kwargs) -> dict:
+def query_dhis2_metadata(dhis2: DHIS2, type: str, **kwargs) -> dict:
     """
     Gets metadata from DHIS2
     """
+    kwargs.setdefault("fields", "id,name")
     type_to_metadata_method = {
         "organisationUnits": dhis2.meta.organisation_units,
         "organisationUnitGroups": dhis2.meta.organisation_unit_groups,

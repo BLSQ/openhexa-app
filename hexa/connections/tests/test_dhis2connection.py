@@ -3,7 +3,10 @@ from unittest.mock import patch
 
 import responses
 
-from hexa.connections.dhis2_client_helper import get_client_by_slug, get_dhis2_metadata
+from hexa.connections.dhis2_client_helper import (
+    get_client_by_slug,
+    query_dhis2_metadata,
+)
 from hexa.connections.tests.fixtures.data_elements import (
     data_element_groups,
     data_elements_by_data_elements_group,
@@ -86,7 +89,6 @@ class TestDHIS2Methods(TestCase):
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         self.assertIsNotNone(dhis2)
-        return dhis2
 
     @responses.activate
     def test_dhis2_org_units(self):
@@ -100,8 +102,8 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(dhis2, "organisationUnits", fields="id,name")
-        self.assertIsNotNone(metadata)
+        metadata = query_dhis2_metadata(dhis2, "organisationUnits")
+        self.assertEqual(metadata, org_units)
 
     @responses.activate
     def test_dhis2_org_units_by_groups(self):
@@ -115,13 +117,12 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(
+        metadata = query_dhis2_metadata(
             dhis2,
             "organisationUnits",
             filter="organisationUnitGroups.id:in:[oDkJh5Ddh7d]",
-            fields="id,name",
         )
-        self.assertIsNotNone(metadata)
+        self.assertEqual(metadata, org_units)
 
     @responses.activate
     def test_dhis2_org_unit_groups(self):
@@ -135,10 +136,8 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(
-            dhis2, type="organisationUnitGroups", fields="id,name"
-        )
-        self.assertIsNotNone(metadata)
+        metadata = query_dhis2_metadata(dhis2, type="organisationUnitGroups")
+        self.assertEqual(metadata, org_units_groups)
 
     @responses.activate
     def test_dhis2_org_unit_levels(self):
@@ -152,8 +151,8 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(dhis2, "organisationUnitLevels")
-        self.assertIsNotNone(metadata)
+        metadata = query_dhis2_metadata(dhis2, "organisationUnitLevels")
+        self.assertEqual(metadata, org_units_levels)
 
     @responses.activate
     def test_dhis2_datasets(self):
@@ -167,8 +166,8 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(dhis2, "datasets", fields="id,name")
-        self.assertIsNotNone(metadata)
+        metadata = query_dhis2_metadata(dhis2, "datasets")
+        self.assertEqual(metadata, datasets)
 
     @responses.activate
     def test_dhis2_data_elements(self):
@@ -182,8 +181,8 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(dhis2, "dataElements", fields="id,name")
-        self.assertIsNotNone(metadata)
+        metadata = query_dhis2_metadata(dhis2, "dataElements")
+        self.assertEqual(metadata, data_elements_by_data_elements_group)
 
     @responses.activate
     def test_dhis2_data_elements_by_datasets(self):
@@ -197,11 +196,8 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(
-            dhis2,
-            "dataElements",
-            filter="dataSetElements.dataSet.id:in:[lyLU2wR22tC]",
-            fields="id,name",
+        metadata = query_dhis2_metadata(
+            dhis2, "dataElements", filter="dataSetElements.dataSet.id:in:[lyLU2wR22tC]"
         )
         self.assertIsNotNone(metadata)
 
@@ -217,13 +213,10 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(
-            dhis2,
-            "dataElements",
-            filter="dataElementGroups.id:in:[oDkJh5Ddh7d]",
-            fields="id,name",
+        metadata = query_dhis2_metadata(
+            dhis2, "dataElements", filter="dataElementGroups.id:in:[oDkJh5Ddh7d]"
         )
-        self.assertIsNotNone(metadata)
+        self.assertEqual(metadata, data_elements_by_data_elements_group)
 
     @responses.activate
     def test_dhis2_data_element_groups(self):
@@ -237,7 +230,7 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(dhis2, "dataElementGroups", fields="id,name")
+        metadata = query_dhis2_metadata(dhis2, "dataElementGroups")
         self.assertIsNotNone(metadata)
 
     @responses.activate
@@ -252,8 +245,8 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(dhis2, "indicators", fields="id,name")
-        self.assertIsNotNone(metadata)
+        metadata = query_dhis2_metadata(dhis2, "indicators")
+        self.assertEqual(metadata, indicators)
 
     @responses.activate
     def test_dhis2_indicators_by_groups(self):
@@ -267,13 +260,13 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(
+        metadata = query_dhis2_metadata(
             dhis2,
             "indicators",
             filter="indicatorGroups.id:in:[PoTnGN0F2n5]",
             fields="id,name",
         )
-        self.assertIsNotNone(metadata)
+        self.assertEqual(metadata, indicators)
 
     @responses.activate
     def test_dhis2_indicator_groups(self):
@@ -287,5 +280,5 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = get_dhis2_metadata(dhis2, "indicatorGroups", fields="id,name")
-        self.assertIsNotNone(metadata)
+        metadata = query_dhis2_metadata(dhis2, "indicatorGroups")
+        self.assertEqual(metadata, indicator_groups)
