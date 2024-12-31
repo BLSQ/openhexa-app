@@ -10,7 +10,7 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.7.0
     # via starlette
-ariadne==0.23.0
+ariadne==0.24.0
     # via
     #   -r requirements.in
     #   ariadne-django
@@ -21,7 +21,7 @@ asgiref==3.8.1
     #   django
     #   django-cors-headers
     #   django-countries
-attrs==24.2.0
+attrs==24.3.0
     # via
     #   morecantile
     #   rasterio
@@ -48,9 +48,9 @@ certifi==2024.12.14
     #   sentry-sdk
 cffi==1.17.1
     # via cryptography
-charset-normalizer==3.4.0
+charset-normalizer==3.4.1
     # via requests
-click==8.1.7
+click==8.1.8
     # via
     #   click-plugins
     #   cligj
@@ -63,9 +63,9 @@ cligj==0.7.2
     # via rasterio
 colorhash==2.0.0
     # via -r requirements.in
-coverage[toml]==7.6.9
+coverage[toml]==7.6.10
     # via -r requirements.in
-croniter==5.0.1
+croniter==6.0.0
     # via -r requirements.in
 cryptography==44.0.0
     # via
@@ -181,7 +181,7 @@ importlib-metadata==8.5.0
     #   markdown
     #   opentelemetry-api
     #   rasterio
-jinja2==3.1.4
+jinja2==3.1.5
     # via moto
 jmespath==1.0.1
     # via
@@ -199,9 +199,9 @@ markupsafe==3.0.2
     #   werkzeug
 mixpanel==4.10.1
     # via -r requirements.in
-morecantile==6.1.0
+morecantile==6.2.0
     # via rio-cogeo
-moto[s3]==5.0.23
+moto[s3]==5.0.25
     # via -r requirements.in
 numpy==2.0.2
     # via
@@ -236,7 +236,7 @@ proto-plus==1.25.0
     #   google-cloud-appengine-logging
     #   google-cloud-iam
     #   google-cloud-logging
-protobuf==5.29.1
+protobuf==5.29.2
     # via
     #   google-api-core
     #   google-cloud-appengine-logging
@@ -249,7 +249,7 @@ protobuf==5.29.1
     #   proto-plus
 psycopg2-binary==2.9.10
     # via -r requirements.in
-py-partiql-parser==0.5.6
+py-partiql-parser==0.6.1
     # via moto
 pyarrow==18.1.0
     # via -r requirements.in
@@ -261,11 +261,11 @@ pyasn1-modules==0.4.1
     # via google-auth
 pycparser==2.22
     # via cffi
-pydantic==2.10.3
+pydantic==2.10.4
     # via
     #   morecantile
     #   rio-cogeo
-pydantic-core==2.27.1
+pydantic-core==2.27.2
     # via pydantic
 pygments==2.18.0
     # via dhis2-py
@@ -323,7 +323,7 @@ responses==0.25.3
     # via
     #   -r requirements.in
     #   moto
-rio-cogeo==5.4.0
+rio-cogeo==5.4.1
     # via -r requirements.in
 rsa==4.9
     # via google-auth
@@ -345,7 +345,7 @@ sqlparse==0.5.3
     # via
     #   django
     #   django-debug-toolbar
-starlette==0.42.0
+starlette==0.45.0
     # via ariadne
 stringcase==1.2.0
     # via -r requirements.in
