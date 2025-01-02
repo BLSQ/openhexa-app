@@ -8,6 +8,7 @@ x-app: &common
       args:
         - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
         - WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
+        - ARCHITECTURE=${ARCHITECTURE}
     env_file:
       - path: ./.env
         required: true
