@@ -7,7 +7,7 @@ import {
 } from "@headlessui/react";
 import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { sameWidthModifier } from "core/helpers/popper";
 import { usePopper } from "react-popper";
@@ -51,15 +51,6 @@ const Listbox = (props: ListboxProps) => {
     modifiers: MODIFIERS,
   });
 
-  const endRef = useRef<HTMLDivElement>(null);
-  const list = useIntersectionObserver(endRef, {});
-
-  useEffect(() => {
-    if (list?.isIntersecting && onScrollBottom) {
-      onScrollBottom();
-    }
-  }, [onScrollBottom, list]);
-
   return (
     <UIListbox value={value} onChange={onChange} by={by}>
       {({ open }) => (
@@ -83,47 +74,70 @@ const Listbox = (props: ListboxProps) => {
               <ChevronUpDownIcon className="h-5 w-5" aria-hidden="true" />
             </span>
           </UIListboxButton>
-          <Portal>
-            <UIListboxOptions
-              ref={setPopperElement}
-              className={
-                "z-10 flex max-h-72 w-full flex-col rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
-              }
-              style={styles.popper}
-              {...attributes.popper}
-            >
-              <div className="flex-1 overflow-auto">
-                {options.map((option) => (
-                  <UIListboxOption
-                    key={option[by]}
-                    value={option}
-                    className={({ focus }) =>
-                      clsx(
-                        "relative cursor-default select-none px-2 py-2",
-                        focus ? "bg-blue-500 text-white" : "text-gray-900",
-                      )
-                    }
-                  >
-                    {({ focus, selected }) => (
-                      <span
-                        className={clsx(
-                          "flex-1 truncate",
-                          selected && "font-semibold",
-                        )}
-                      >
-                        {getOptionLabel(option)}
-                      </span>
-                    )}
-                  </UIListboxOption>
-                ))}
-                {onScrollBottom && <div ref={endRef}></div>}
-              </div>
-            </UIListboxOptions>
-          </Portal>
+          {open && (
+            <Portal>
+              <UIListboxOptions
+                ref={setPopperElement}
+                className={
+                  "z-10 flex max-h-72 w-full flex-col rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+                }
+                style={styles.popper}
+                {...attributes.popper}
+              >
+                <div className="flex-1 overflow-auto">
+                  {options.map((option) => (
+                    <UIListboxOption
+                      key={option[by]}
+                      value={option}
+                      className={({ focus }) =>
+                        clsx(
+                          "relative cursor-default select-none px-2 py-2",
+                          focus ? "bg-blue-500 text-white" : "text-gray-900",
+                        )
+                      }
+                    >
+                      {({ focus, selected }) => (
+                        <span
+                          className={clsx(
+                            "flex-1 truncate",
+                            selected && "font-semibold",
+                          )}
+                        >
+                          {getOptionLabel(option)}
+                        </span>
+                      )}
+                    </UIListboxOption>
+                  ))}
+                  {onScrollBottom && (
+                    <IntersectionObserverWrapper
+                      onScrollBottom={onScrollBottom}
+                    />
+                  )}
+                </div>
+              </UIListboxOptions>
+            </Portal>
+          )}
         </div>
       )}
     </UIListbox>
   );
+};
+
+const IntersectionObserverWrapper = ({
+  onScrollBottom,
+}: {
+  onScrollBottom: () => void;
+}) => {
+  const [lastElement, setLastElement] = useState<Element | null>(null);
+  const list = useIntersectionObserver(lastElement, {});
+
+  useEffect(() => {
+    if (lastElement && list?.isIntersecting) {
+      onScrollBottom();
+    }
+  }, [onScrollBottom, list, lastElement]);
+
+  return <div ref={setLastElement}></div>;
 };
 
 export default Listbox;

@@ -1,11 +1,11 @@
-import { RefObject, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Args extends IntersectionObserverInit {
   freezeOnceVisible?: boolean;
 }
 
 export default function useIntersectionObserver(
-  elementRef: RefObject<Element>,
+  element: Element | null,
   {
     threshold = 0,
     root = null,
@@ -22,22 +22,21 @@ export default function useIntersectionObserver(
   };
 
   useEffect(() => {
-    const node = elementRef?.current; // DOM Ref
     const hasIOSupport = !!window.IntersectionObserver;
 
-    if (!hasIOSupport || frozen || !node) {
+    if (!hasIOSupport || frozen || !element) {
       return;
     }
 
     const observerParams = { threshold, root, rootMargin };
     const observer = new IntersectionObserver(updateEntry, observerParams);
 
-    observer.observe(node);
+    observer.observe(element);
 
     return () => observer.disconnect();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [elementRef, threshold, root, rootMargin, frozen]);
+  }, [element, threshold, root, rootMargin, frozen]);
 
   return entry;
 }
