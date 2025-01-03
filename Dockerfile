@@ -21,7 +21,7 @@ COPY requirements.txt /code/
 ARG BUILDARCH
 RUN --mount=type=cache,target=/root/.cache \
     pip install -r requirements.txt  && \
-    if ["$BUILDARCH" = "arm64"]; then pip install polars-lts-cpu; fi && \
+    if [ "$BUILDARCH" = "arm64" ]; then pip install polars-lts-cpu; fi && \
     apt-get remove -y build-essential && \
     apt-get autoremove -y
 
