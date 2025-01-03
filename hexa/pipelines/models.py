@@ -462,8 +462,10 @@ class Pipeline(SoftDeletedModel):
 
     @property
     def is_new_template_version_available(self) -> bool:
-        if self.source_template and hasattr(
-            self.last_version, "source_template_version"
+        if (
+            self.source_template
+            and hasattr(self.last_version, "source_template_version")
+            and self.last_version.source_template_version
         ):
             return (
                 self.source_template.last_version.created_at
