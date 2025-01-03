@@ -4,14 +4,19 @@ import { TextColumn } from "core/components/DataGrid/TextColumn";
 import DescriptionList from "core/components/DescriptionList";
 import Spinner from "core/components/Spinner";
 import { ApolloComponent } from "core/helpers/types";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import useFeature from "identity/hooks/useFeature";
-import { DatasetVersionFileSample_FileFragment } from "./DatasetVersionFileSample.generated";
+import {
+  DatasetVersionFileSample_FileFragment,
+  DatasetVersionFileSample_VersionFragment,
+} from "./DatasetVersionFileSample.generated";
 import { Iframe } from "core/components/Iframe";
+import { trackEvent } from "core/helpers/analytics";
 
 interface DatasetVersionFileSampleProps {
   file: DatasetVersionFileSample_FileFragment;
+  version: DatasetVersionFileSample_VersionFragment;
 }
 
 const NoPreviewMessage = () => {
@@ -100,7 +105,7 @@ const GET_DATASET_VERSION_FILE_SAMPLE = gql`
 
 export const DatasetVersionFileSample: ApolloComponent<
   DatasetVersionFileSampleProps
-> = ({ file }) => {
+> = ({ file, version }) => {
   const { t } = useTranslation();
   const [isSmartPreviewerEnabled] = useFeature("datasets.smart_previewer");
   const { data, loading } = useQuery(GET_DATASET_VERSION_FILE_SAMPLE, {
@@ -108,6 +113,18 @@ export const DatasetVersionFileSample: ApolloComponent<
       id: file.id,
     },
   });
+
+  useEffect(() => {
+    const { dataset } = version;
+    if (dataset) {
+      trackEvent("datasets.dataset_file_previewed", {
+        dataset_id: dataset.slug,
+        workspace: dataset?.workspace?.slug,
+        dataset_version: version.name,
+        filename: file.filename,
+      });
+    }
+  }, []);
 
   const { sample, columns, status } = useMemo(() => {
     if (!data?.datasetVersionFile.fileSample) {
@@ -205,6 +222,17 @@ DatasetVersionFileSample.fragments = {
       contentType
       size
       downloadUrl(attachment: false)
+    }
+  `,
+  version: gql`
+    fragment DatasetVersionFileSample_version on DatasetVersion {
+      name
+      dataset {
+        slug
+        workspace {
+          slug
+        }
+      }
     }
   `,
 };

@@ -10,11 +10,25 @@ export type DatasetVersionFileColumnsMetadataQueryVariables = Types.Exact<{
 
 export type DatasetVersionFileColumnsMetadataQuery = { __typename?: 'Query', datasetVersionFile?: { __typename?: 'DatasetVersionFile', id: string, attributes: Array<{ __typename?: 'MetadataAttribute', id: string, key: string, value?: any | null, system: boolean }> } | null };
 
-export type DatasetVersionFileColumns_FileFragment = { __typename?: 'DatasetVersionFile', id: string };
+export type DatasetVersionFileColumns_FileFragment = { __typename?: 'DatasetVersionFile', id: string, filename: string };
+
+export type DatasetVersionFileColumns_VersionFragment = { __typename?: 'DatasetVersion', name: string, dataset: { __typename?: 'Dataset', slug: string, workspace?: { __typename?: 'Workspace', slug: string } | null } };
 
 export const DatasetVersionFileColumns_FileFragmentDoc = gql`
     fragment DatasetVersionFileColumns_file on DatasetVersionFile {
   id
+  filename
+}
+    `;
+export const DatasetVersionFileColumns_VersionFragmentDoc = gql`
+    fragment DatasetVersionFileColumns_version on DatasetVersion {
+  name
+  dataset {
+    slug
+    workspace {
+      slug
+    }
+  }
 }
     `;
 export const DatasetVersionFileColumnsMetadataDocument = gql`

@@ -1,5 +1,5 @@
 import { gql, useQuery } from "@apollo/client";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import Spinner from "core/components/Spinner";
 import { MetadataAttribute } from "graphql/types";
 import { camelCase } from "lodash";
@@ -8,6 +8,11 @@ import DescriptionList from "core/components/DescriptionList";
 import { useTranslation } from "react-i18next";
 import Badge from "core/components/Badge";
 import { percentage } from "datasets/helpers/dataset";
+import { trackEvent } from "core/helpers/analytics";
+import {
+  DatasetVersionFileColumns_FileFragment,
+  DatasetVersionFileColumns_VersionFragment,
+} from "./DatasetVersionFileColumns.generated";
 
 export type DatasetColumn = {
   id: string;
@@ -23,12 +28,13 @@ export type DatasetColumn = {
 };
 
 type DatasetVersionFileColumnsProps = {
-  file: any;
+  file: DatasetVersionFileColumns_FileFragment;
+  version: DatasetVersionFileColumns_VersionFragment;
 };
 
 const DatasetVersionFileColumns = (props: DatasetVersionFileColumnsProps) => {
   const { t } = useTranslation();
-  const { file } = props;
+  const { file, version } = props;
   const { data, loading } = useQuery(
     gql`
       query DatasetVersionFileColumnsMetadata($id: ID!) {
@@ -49,6 +55,18 @@ const DatasetVersionFileColumns = (props: DatasetVersionFileColumnsProps) => {
       },
     },
   );
+
+  useEffect(() => {
+    const { dataset } = version;
+    if (dataset) {
+      trackEvent("datasets.dataset_file_metadata_accessed", {
+        dataset_id: dataset.slug,
+        workspace: dataset?.workspace?.slug,
+        dataset_version: version.name,
+        filename: file.filename,
+      });
+    }
+  }, []);
 
   const { columns, total } = useMemo(() => {
     if (!data?.datasetVersionFile.attributes) {
@@ -134,6 +152,18 @@ DatasetVersionFileColumns.fragments = {
   file: gql`
     fragment DatasetVersionFileColumns_file on DatasetVersionFile {
       id
+      filename
+    }
+  `,
+  version: gql`
+    fragment DatasetVersionFileColumns_version on DatasetVersion {
+      name
+      dataset {
+        slug
+        workspace {
+          slug
+        }
+      }
     }
   `,
 };

@@ -12,6 +12,8 @@ export type GetDatasetVersionFileSampleQuery = { __typename?: 'Query', datasetVe
 
 export type DatasetVersionFileSample_FileFragment = { __typename?: 'DatasetVersionFile', id: string, filename: string, contentType: string, size: any, downloadUrl?: string | null };
 
+export type DatasetVersionFileSample_VersionFragment = { __typename?: 'DatasetVersion', name: string, dataset: { __typename?: 'Dataset', slug: string, workspace?: { __typename?: 'Workspace', slug: string } | null } };
+
 export const DatasetVersionFileSample_FileFragmentDoc = gql`
     fragment DatasetVersionFileSample_file on DatasetVersionFile {
   id
@@ -19,6 +21,17 @@ export const DatasetVersionFileSample_FileFragmentDoc = gql`
   contentType
   size
   downloadUrl(attachment: false)
+}
+    `;
+export const DatasetVersionFileSample_VersionFragmentDoc = gql`
+    fragment DatasetVersionFileSample_version on DatasetVersion {
+  name
+  dataset {
+    slug
+    workspace {
+      slug
+    }
+  }
 }
     `;
 export const GetDatasetVersionFileSampleDocument = gql`

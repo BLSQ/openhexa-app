@@ -89,14 +89,20 @@ const DatasetExplorer = ({
                 className="mt-2 min-h-[560px] xtall:min-h-[780px] relative"
               >
                 <ErrorBoundary fullScreen={false}>
-                  <DatasetVersionFileSample file={currentFile} />
+                  <DatasetVersionFileSample
+                    file={currentFile}
+                    version={version}
+                  />
                 </ErrorBoundary>
               </Tabs.Tab>
               <Tabs.Tab
                 label={t("Columns")}
                 className="mt-2 min-h-[560px] xtall:min-h-[780px] relative"
               >
-                <DatasetVersionFileColumns file={currentFile} />
+                <DatasetVersionFileColumns
+                  file={currentFile}
+                  version={version}
+                />
               </Tabs.Tab>
             </Tabs>
           </div>
@@ -134,7 +140,11 @@ DatasetExplorer.fragments = {
           ...DatasetExplorer_file
         }
       }
+      ...DatasetVersionFileSample_version
+      ...DatasetVersionFileColumns_version
     }
+    ${DatasetVersionFileSample.fragments.version}
+    ${DatasetVersionFileColumns.fragments.version}
   `,
 };
 
