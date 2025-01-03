@@ -152,6 +152,14 @@ class PipelineVersion(models.Model):
         help_text="Time (in seconds) after which the pipeline execution will be stopped (with a default value of 4 hours up to 12 max).",
     )
 
+    source_template_version = models.ForeignKey(
+        "pipeline_templates.PipelineTemplateVersion",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="pipeline_versions",
+    )
+
     objects = PipelineVersionQuerySet.as_manager()
 
     def _increment_version_number(self):
@@ -451,6 +459,19 @@ class Pipeline(SoftDeletedModel):
     @property
     def last_version(self) -> "PipelineVersion":
         return self.versions.first()
+
+    @property
+    def is_new_template_version_available(self) -> bool:
+        if (
+            self.source_template
+            and hasattr(self.last_version, "source_template_version")
+            and self.last_version.source_template_version
+        ):
+            return (
+                self.source_template.last_version.created_at
+                > self.last_version.source_template_version.created_at
+            )
+        return False
 
     def get_token(self):
         return Signer().sign_object(

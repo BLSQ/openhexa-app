@@ -119,6 +119,7 @@ class PipelineTemplateVersionModelTest(TestCase):
         self.assertEqual(
             template_version.source_pipeline_version, self.pipeline_version
         )
+        self.assertEqual(self.pipeline_version.template_version, template_version)
 
     def test_unique_template_version_number(self):
         PipelineTemplateVersion.objects.create(
