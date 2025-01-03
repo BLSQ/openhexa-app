@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.77.0](https://github.com/BLSQ/openhexa-app/compare/0.76.4...0.77.0) (2025-01-03)
+
+
+### Features
+
+* Hexa 1117 dhis2 graphql interface ([#888](https://github.com/BLSQ/openhexa-app/issues/888)) ([b72ed47](https://github.com/BLSQ/openhexa-app/commit/b72ed47c48327e43b965dec47147e373a9d8c34f))
+* HEXA-1120 template pipelines and template versions models + endpoint to create template ([#874](https://github.com/BLSQ/openhexa-app/issues/874)) ([22ed895](https://github.com/BLSQ/openhexa-app/commit/22ed895f2b31febd1c715ff2bff4eaaf8fc48311))
+* HEXA-1122 list of templates in create pipeline dialog ([#885](https://github.com/BLSQ/openhexa-app/issues/885)) ([be8b201](https://github.com/BLSQ/openhexa-app/commit/be8b20168aeb0383d10eb4bbcc333a12c6d60ab2))
+* HEXA-1125 endpoint for source template and check if a new template version is available for upgrade ([#890](https://github.com/BLSQ/openhexa-app/issues/890)) ([272e5d4](https://github.com/BLSQ/openhexa-app/commit/272e5d4353cc3c29f72c3652d8c5a03b6169bf48))
+* HEXA-1146 Propagate pipeline default parameters in new versions ([#883](https://github.com/BLSQ/openhexa-app/issues/883)) ([6e518f6](https://github.com/BLSQ/openhexa-app/commit/6e518f6b19f90844bc8456eaa645914244a04be9))
+
 ## [0.76.4](https://github.com/BLSQ/openhexa-app/compare/0.76.3...0.76.4) (2024-12-16)
 
 
