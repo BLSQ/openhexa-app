@@ -5,6 +5,7 @@ type DHIS2MetadataItem {
     id: String!     # Unique identifier
     name: String!   # Name of the metadata item
 }
+
 enum DHIS2ConnectionError {
     CONNECTION_ERROR
     UNKNOWN_ERROR
@@ -18,10 +19,16 @@ type DHIS2QueryResult {
     errors: [String!]!      # List of errors
 }
 
+enum ConnectionStatus{
+    UP
+    DOWN
+}
+
 """
 DHIS2 connection object
 """
 type DHIS2Connection {
+    status: ConnectionStatus    # Connection status
     query(type: String!, filter: String): DHIS2QueryResult! # Query metadata items
 }
 

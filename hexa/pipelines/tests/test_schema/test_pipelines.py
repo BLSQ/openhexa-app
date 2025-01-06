@@ -2644,3 +2644,110 @@ class PipelinesV2Test(GraphQLTestCase):
             },
         )
         self.assertEqual(True, r["data"]["pipeline"]["newTemplateVersionAvailable"])
+
+    def test_new_pipeline_with_widget_parameter(self):
+        self.client.force_login(self.USER_ROOT)
+        source_pipeline = Pipeline.objects.create(
+            code="source_pipeline",
+            workspace=self.WS1,
+        )
+        source_pipeline_version1 = source_pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            name="Version 1",
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters=[
+                {
+                    "code": "param1",
+                    "name": "Param 1",
+                    "type": "widget",
+                    "help": "Param 1's Help",
+                    "default": None,
+                    "multiple": True,
+                    "required": True,
+                    "widget": "location_picker_org_units",
+                    "choices": ["Choice 1", "Choice 2"],
+                }
+            ],
+        )
+
+        r = self.run_query(
+            """
+                mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
+                    createPipelineFromTemplateVersion(input: $input) {
+                        success errors pipeline {id}
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS2.slug,
+                    "pipelineTemplateVersionId": str(source_pipeline_version1.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipeline": {
+                    "id": str(
+                        r["data"]["createPipelineFromTemplateVersion"]["pipeline"]["id"]
+                    )
+                },
+            },
+            r["data"]["createPipelineFromTemplateVersion"],
+        )
+
+    def test_new_pipeline_with_widget_and_validation_source(self):
+        self.client.force_login(self.USER_ROOT)
+        source_pipeline = Pipeline.objects.create(
+            code="source_pipeline",
+            workspace=self.WS1,
+        )
+        source_pipeline_version1 = source_pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            name="Version 1",
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters=[
+                {
+                    "code": "param1",
+                    "name": "Param 1",
+                    "type": "widget",
+                    "help": "Param 1's Help",
+                    "default": None,
+                    "multiple": True,
+                    "required": True,
+                    "choices": None,
+                    "widget": "location_picker_org_units",
+                    "validation_source": "source",
+                }
+            ],
+        )
+
+        r = self.run_query(
+            """
+                mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
+                    createPipelineFromTemplateVersion(input: $input) {
+                        success errors pipeline {id}
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS2.slug,
+                    "pipelineTemplateVersionId": str(source_pipeline_version1.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipeline": {
+                    "id": str(
+                        r["data"]["createPipelineFromTemplateVersion"]["pipeline"]["id"]
+                    )
+                },
+            },
+            r["data"]["createPipelineFromTemplateVersion"],
+        )

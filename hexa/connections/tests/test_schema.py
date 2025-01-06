@@ -1,5 +1,7 @@
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import responses
 from openhexa.toolbox.dhis2.api import DHIS2Error
 
 from hexa.core.test import GraphQLTestCase
@@ -65,6 +67,44 @@ class ConnectiontTest(GraphQLTestCase):
             ],
         )
         connection.save()
+
+    @responses.activate
+    def test_connection_is_valid(self):
+        self.client.force_login(self.USER_SERENA)
+        responses._add_from_file(
+            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+        )
+
+        response = self.run_query(
+            """
+            {
+                dhis2connection(slug: "dhis2-connection-1") 
+                {
+                    status
+                }
+            }
+            """
+        )
+        self.assertEqual(
+            response["data"],
+            {"dhis2connection": {"status": "UP"}},
+        )
+
+    def test_connection_is_invalid(self):
+        self.client.force_login(self.USER_SERENA)
+
+        response = self.run_query(
+            """
+            {
+                dhis2connection(slug: "dhis2-connection-1") 
+            }
+            """
+        )
+        print(response)
+        self.assertEqual(
+            response["data"],
+            {"dhis2connection": None},
+        )
 
     def test_get_org_units(self):
         self.client.force_login(self.USER_SERENA)
