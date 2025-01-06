@@ -45,7 +45,7 @@ type ConnectionPermissions {
 """
 Represents a connection to an external data source or service.
 """
-type Connection {
+interface Connection {
   # The unique identifier for the connection.
   id: String!
 
@@ -247,15 +247,20 @@ type DHIS2QueryResult {
     errors: [String!]!      # List of errors
 }
 
-
-interface Connection {
-    query(type: String!, filter: String): DHIS2QueryResult! # Query metadata items
-}
-
 """
 DHIS2 connection object
 """
-type DHIS2Connection implements Connection{
+type DHIS2Connection implements Connection {
+    id: String!     # Unique identifier
+    name: String!   # Name of the connection
+    slug: String!   # Slug of the connection
+    description: String # Description of the connection
+    createdAt: DateTime! # Date and time when the connection was created
+    updatedAt: DateTime # Date and time when the connection was last updated
+    type: ConnectionType! # Type of the connection
+    user: User # User associated with the connection
+    fields: [ConnectionField!]! # Fields of the connection
+    permissions: ConnectionPermissions! # Permissions of the connection
     query(type: String!, filter: String): DHIS2QueryResult! # Query metadata items
 }
 

@@ -158,6 +158,7 @@ INSTALLED_APPS = [
     "hexa.plugins.connector_airflow",
     "hexa.plugins.connector_postgresql",
     "hexa.plugins.connector_accessmod",
+    "hexa.connections",
     "hexa.workspaces",
     "hexa.databases",
     "hexa.metadata",

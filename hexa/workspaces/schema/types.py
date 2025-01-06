@@ -2,12 +2,9 @@ from ariadne import ObjectType
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.pipelines.authentication import PipelineRunUser
 from hexa.user_management.schema import me_permissions_object
 
 from ..models import (
-    Connection,
-    ConnectionField,
     Workspace,
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
@@ -15,21 +12,6 @@ from ..models import (
 
 workspace_object = ObjectType("Workspace")
 workspace_permissions = ObjectType("WorkspacePermissions")
-connection_object = ObjectType("Connection")
-connection_field_object = ObjectType("ConnectionField")
-connection_permissions_object = ObjectType("ConnectionPermissions")
-
-
-@connection_permissions_object.field("update")
-def resolve_connection_permissions_update(connection: Connection, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    return request.user.has_perm("workspaces.update_connection", connection)
-
-
-@connection_permissions_object.field("delete")
-def resolve_connection_permissions_delete(connection: Connection, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    return request.user.has_perm("workspaces.delete_connection", connection)
 
 
 @workspace_permissions.field("createConnection")
@@ -91,11 +73,6 @@ def resolve_workspace_permissions(workspace: Workspace, info):
     return workspace
 
 
-@connection_object.field("permissions")
-def resolve_workspace_connection_permissions(connection: Connection, info):
-    return connection
-
-
 @workspace_object.field("countries")
 def resolve_workspace_countries(workspace: Workspace, info, **kwargs):
     if workspace.countries is not None:
@@ -137,33 +114,7 @@ def resolve_workspace_connections(workspace: Workspace, info, **kwargs):
     return workspace.connections.all()
 
 
-@connection_object.field("fields")
-def resolve_workspace_connection_fields(obj, info, **kwargs):
-    return obj.fields.all()
-
-
-@connection_field_object.field("value")
-def resolve_connection_field_value(obj: ConnectionField, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    if obj.secret is False:
-        return obj.value
-    # FIXME this is a temporary solution to allow pipelines to see the secrets
-    if (
-        isinstance(request.user, PipelineRunUser)
-        and request.user.pipeline_run.pipeline.workspace == obj.connection.workspace
-    ):
-        return obj.value
-    if request.user.has_perm("workspaces.update_connection", obj.connection):
-        return obj.value
-
-
-connection_object.set_alias("type", "connection_type")
-
-
 bindables = [
     workspace_object,
     workspace_permissions,
-    connection_field_object,
-    connection_object,
-    connection_permissions_object,
 ]

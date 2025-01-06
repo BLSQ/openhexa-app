@@ -10,9 +10,9 @@ from hexa.countries.models import Country
 from hexa.databases.utils import TableNotFound, delete_table
 from hexa.user_management.models import Feature, FeatureFlag, User
 
+from ...connections.models import Connection
 from ..models import (
     AlreadyExists,
-    Connection,
     Workspace,
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
