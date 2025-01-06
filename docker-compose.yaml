@@ -1,6 +1,5 @@
 # Defines a service that can be reused multiple times later
 x-app: &common
-    platform: linux/amd64
     build:
       context: .
       dockerfile: Dockerfile
