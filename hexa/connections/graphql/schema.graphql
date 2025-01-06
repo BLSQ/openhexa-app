@@ -1,3 +1,232 @@
+
+"""
+Represents the types of connections.
+"""
+enum ConnectionType {
+  S3
+  GCS
+  POSTGRESQL
+  DHIS2
+  CUSTOM
+  IASO
+}
+
+"""
+Represents a field in a connection.
+"""
+type ConnectionField {
+  # The code of the field.
+  code: String!
+
+  # The value of the field.
+  value: String
+
+  # Indicates whether the field is a secret.
+  secret: Boolean!
+
+  # The date and time when the field was created.
+  createdAt: DateTime!
+
+  # The date and time when the field was last updated.
+  updatedAt: DateTime
+}
+
+"""
+Represents the permissions of a connection.
+"""
+type ConnectionPermissions {
+  # Indicates whether the connection can be updated.
+  update: Boolean!
+
+  # Indicates whether the connection can be deleted.
+  delete: Boolean!
+}
+
+"""
+Represents a connection to an external data source or service.
+"""
+type Connection {
+  # The unique identifier for the connection.
+  id: String!
+
+  # The name of the connection.
+  name: String!
+
+  # The slug of the connection.
+  slug: String!
+
+  # The description of the connection.
+  description: String
+
+  # The date and time when the connection was created.
+  createdAt: DateTime!
+
+  # The date and time when the connection was last updated.
+  updatedAt: DateTime
+
+  # The type of the connection.
+  type: ConnectionType!
+
+  # The user associated with the connection.
+  user: User
+
+  # The fields of the connection.
+  fields: [ConnectionField!]!
+
+  # The permissions of the connection.
+  permissions: ConnectionPermissions!
+}
+
+"""
+Represents the input for a connection field.
+"""
+input ConnectionFieldInput {
+  # The code of the field.
+  code: String!
+
+  # The value of the field.
+  value: String
+
+  # Indicates whether the field is a secret.
+  secret: Boolean!
+}
+
+"""
+Represents the input for creating a connection.
+"""
+input CreateConnectionInput {
+  # The slug of the workspace.
+  workspaceSlug: String!
+
+  # The name of the connection.
+  name: String!
+
+  # The slug of the connection.
+  slug: String
+
+  # The description of the connection.
+  description: String
+
+  # The type of the connection.
+  type: ConnectionType!
+
+  # The fields of the connection.
+  fields: [ConnectionFieldInput!]
+}
+
+"""
+Represents the result of creating a connection.
+"""
+type CreateConnectionResult {
+  # Indicates whether the creation was successful.
+  success: Boolean!
+
+  # The created connection.
+  connection: Connection
+
+  # The errors that occurred during the creation.
+  errors: [CreateConnectionError!]!
+}
+
+"""
+Represents the error types for creating a connection.
+"""
+enum CreateConnectionError {
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+  INVALID_SLUG
+}
+
+"""
+Represents the input for updating a connection.
+"""
+input UpdateConnectionInput {
+  # The ID of the connection to update.
+  id: String!
+
+  # The new name of the connection.
+  name: String
+
+  # The new slug of the connection.
+  slug: String
+
+  # The new description of the connection.
+  description: String
+
+  # The new fields of the connection.
+  fields: [ConnectionFieldInput!]
+}
+
+"""
+Represents the result of updating a connection.
+"""
+type UpdateConnectionResult {
+  # Indicates whether the update was successful.
+  success: Boolean!
+
+  # The updated connection.
+  connection: Connection
+
+  # The errors that occurred during the update.
+  errors: [UpdateConnectionError!]!
+}
+
+"""
+Represents the error types for updating a connection.
+"""
+enum UpdateConnectionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+  INVALID_SLUG
+}
+
+"""
+Represents the input for deleting a connection.
+"""
+input DeleteConnectionInput {
+  # The ID of the connection to delete.
+  id: String!
+}
+
+"""
+Represents the result of deleting a connection.
+"""
+type DeleteConnectionResult {
+  # Indicates whether the deletion was successful.
+  success: Boolean!
+
+  # The errors that occurred during the deletion.
+  errors: [DeleteConnectionError!]!
+}
+
+"""
+Represents the error types for deleting a connection.
+"""
+enum DeleteConnectionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+
+extend type Query {
+  # Returns a connection by its unique identifier.
+  connection(id: UUID!): Connection @loginRequired
+  # Returns a connection by its slug and the workspace slug.
+  connectionBySlug(workspaceSlug: String!, connectionSlug: String!): Connection @loginRequired
+}
+
+
+extend type Mutation {
+  # Creates a connection in a workspace.
+  createConnection(input: CreateConnectionInput!): CreateConnectionResult! @loginRequired
+  # Updates a connection in a workspace.
+  updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult! @loginRequired
+  # Deletes a connection in a workspace.
+  deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult! @loginRequired
+}
+
+
+
 """
 DHIS2 metadata item
 """
@@ -18,13 +247,19 @@ type DHIS2QueryResult {
     errors: [String!]!      # List of errors
 }
 
+
+interface Connection {
+    query(type: String!, filter: String): DHIS2QueryResult! # Query metadata items
+}
+
 """
 DHIS2 connection object
 """
-type DHIS2Connection {
+type DHIS2Connection implements Connection{
     query(type: String!, filter: String): DHIS2QueryResult! # Query metadata items
 }
 
 extend type Query {
     dhis2connection(slug: String!): DHIS2Connection # Get DHIS2 connection
 }
+

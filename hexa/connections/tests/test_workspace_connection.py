@@ -1,8 +1,7 @@
+from hexa.connections.models import Connection, ConnectionType
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
-    Connection,
-    ConnectionType,
     Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,

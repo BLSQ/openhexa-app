@@ -1,8 +1,6 @@
 from django.contrib import admin
 
 from .models import (
-    Connection,
-    ConnectionField,
     Workspace,
     WorkspaceInvitation,
     WorkspaceMembership,
@@ -43,36 +41,6 @@ class WorkspaceMembershipAdmin(admin.ModelAdmin):
         "updated_at",
     )
     readonly_fields = ("notebooks_server_hash",)
-
-
-class ConnectionFieldInline(admin.StackedInline):
-    model = ConnectionField
-
-
-@admin.register(Connection)
-class ConnectionAdmin(admin.ModelAdmin):
-    list_display = (
-        "name",
-        "connection_type",
-        "workspace",
-        "id",
-    )
-
-    list_filter = (
-        "workspace",
-        "connection_type",
-    )
-
-    inlines = [ConnectionFieldInline]
-
-
-@admin.register(ConnectionField)
-class ConnectionFieldAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "connection",
-        "code",
-    )
 
 
 @admin.register(WorkspaceInvitation)
