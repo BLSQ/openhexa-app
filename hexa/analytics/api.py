@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.http import HttpRequest
-from mixpanel import Mixpanel
+from mixpanel import Consumer, Mixpanel
 from sentry_sdk import capture_exception
 from ua_parser import user_agent_parser
 
@@ -8,7 +8,15 @@ from hexa.user_management.models import AnonymousUser, User
 
 mixpanel = None
 if settings.MIXPANEL_TOKEN:
-    mixpanel = Mixpanel(token=settings.MIXPANEL_TOKEN)
+    mixpanel = Mixpanel(
+        token=settings.MIXPANEL_TOKEN,
+        consumer=Consumer(
+            retry_limit=0,
+            # It’s a good practice to set connect timeouts to slightly larger than a multiple of 3, which is the default TCP packet retransmission window.
+            # https://requests.readthedocs.io/en/latest/user/advanced/#timeouts
+            request_timeout=3.05,
+        ),
+    )
 
 
 def track(
