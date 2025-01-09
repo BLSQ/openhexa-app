@@ -56,7 +56,9 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
   const [_, setLastWorkspace] = useLocalStorage("last-visited-workspace");
   const defaultSidebarOpen = getDefaultSidebarOpen();
 
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(
+    !forceCompactSidebar && defaultSidebarOpen,
+  );
 
   useEffect(() => {
     setLastWorkspace(workspace.slug);
@@ -128,8 +130,8 @@ WorkspaceLayout.prefetch = async (
   client: CustomApolloClient,
 ) => {
   // Load the cookie value from the request to render it correctly on the server
-  cookieSidebarOpenState = hasCookie("sidebar-open", ctx)
-    ? getCookie("sidebar-open", ctx) === "true"
+  cookieSidebarOpenState = (await hasCookie("sidebar-open", ctx))
+    ? (await getCookie("sidebar-open", ctx)) === "true"
     : true;
   await Sidebar.prefetch(client);
 };

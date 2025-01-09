@@ -246,7 +246,8 @@ export const getServerSideProps = createGetServerSideProps({
     const perPage = ctx.query?.perPage
       ? parseInt(ctx.query.perPage as string, 10)
       : ENTRIES_PER_PAGE;
-    const showHiddenFiles = getCookie("show-hidden-files", ctx) === undefined;
+    const showHiddenFiles =
+      (await getCookie("show-hidden-files", ctx)) === undefined;
     const { data } = await client.query<
       WorkspaceFilesPageQuery,
       WorkspaceFilesPageQueryVariables
