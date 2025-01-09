@@ -230,6 +230,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
           onClose={onClose}
           centered={false}
           onSubmit={form.handleSubmit}
+          maxWidth={"max-w-2xl"}
         >
           <Dialog.Title>{t("Run pipeline")}</Dialog.Title>
           {!activeVersion ? (
