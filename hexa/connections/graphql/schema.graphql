@@ -241,10 +241,10 @@ enum DHIS2ConnectionError {
 """
 DHIS2 metadata query result
 """
-type DHIS2QueryResult {
-    data: [DHIS2MetadataItem!]  # List of metadata items
+type DHIS2Metadata {
+    items: [DHIS2MetadataItem!]  # List of metadata items
     success: Boolean!           # Query success status
-    errors: [String!]!      # List of errors
+    error: String               # Connection error message
 }
 
 """
@@ -261,7 +261,59 @@ type DHIS2Connection implements Connection {
     user: User # User associated with the connection
     fields: [ConnectionField!]! # Fields of the connection
     permissions: ConnectionPermissions! # Permissions of the connection
-    query(type: String!, filter: String): DHIS2QueryResult! # Query metadata items
+    metadataQuery(type: String!, filter: String): DHIS2Metadata! # Query metadata items
+}
+
+type S3Connection implements Connection {
+    id: String!     # Unique identifier
+    name: String!   # Name of the connection
+    slug: String!   # Slug of the connection
+    description: String # Description of the connection
+    createdAt: DateTime! # Date and time when the connection was created
+    updatedAt: DateTime # Date and time when the connection was last updated
+    type: ConnectionType! # Type of the connection
+    user: User # User associated with the connection
+    fields: [ConnectionField!]! # Fields of the connection
+    permissions: ConnectionPermissions! # Permissions of the connection
+}
+
+type GCSConnection implements Connection {
+    id: String!     # Unique identifier
+    name: String!   # Name of the connection
+    slug: String!   # Slug of the connection
+    description: String # Description of the connection
+    createdAt: DateTime! # Date and time when the connection was created
+    updatedAt: DateTime # Date and time when the connection was last updated
+    type: ConnectionType! # Type of the connection
+    user: User # User associated with the connection
+    fields: [ConnectionField!]! # Fields of the connection
+    permissions: ConnectionPermissions! # Permissions of the connection
+}
+
+type PostgreSQLConnection implements Connection {
+    id: String!     # Unique identifier
+    name: String!   # Name of the connection
+    slug: String!   # Slug of the connection
+    description: String # Description of the connection
+    createdAt: DateTime! # Date and time when the connection was created
+    updatedAt: DateTime # Date and time when the connection was last updated
+    type: ConnectionType! # Type of the connection
+    user: User # User associated with the connection
+    fields: [ConnectionField!]! # Fields of the connection
+    permissions: ConnectionPermissions! # Permissions of the connection
+}
+
+type CustomConnection implements Connection {
+    id: String!     # Unique identifier
+    name: String!   # Name of the connection
+    slug: String!   # Slug of the connection
+    description: String # Description of the connection
+    createdAt: DateTime! # Date and time when the connection was created
+    updatedAt: DateTime # Date and time when the connection was last updated
+    type: ConnectionType! # Type of the connection
+    user: User # User associated with the connection
+    fields: [ConnectionField!]! # Fields of the connection
+    permissions: ConnectionPermissions! # Permissions of the connection
 }
 
 extend type Query {

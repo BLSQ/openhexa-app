@@ -1,6 +1,6 @@
 import logging
 
-from ariadne import ObjectType
+from ariadne import InterfaceType, ObjectType
 from django.http import HttpRequest
 from openhexa.toolbox.dhis2.api import DHIS2Error
 
@@ -9,12 +9,12 @@ from hexa.connections.models import Connection, ConnectionField
 from hexa.pipelines.authentication import PipelineRunUser
 
 dhis2_connection = ObjectType("DHIS2Connection")
-connection_object = ObjectType("Connection")
+connection_object = InterfaceType("Connection")
 connection_field_object = ObjectType("ConnectionField")
 connection_permissions_object = ObjectType("ConnectionPermissions")
 
 
-@dhis2_connection.field("query")
+@dhis2_connection.field("metadataQuery")
 def resolve_query(dhis2_client, info, **kwargs):
     fields = ["id", "name"]
 
