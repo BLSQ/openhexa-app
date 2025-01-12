@@ -24,7 +24,9 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             uri=dataset.latest_version.get_full_uri("file.csv"),
             created_by=user,
         )
-        file.add_attribute(key="height", value="188cm", system=False)
+        file.update_or_create_attribute(
+            key="height", value="188cm", system=False, principal=user
+        )
         r_before = self.run_query(
             self.queries["get_metadata_for_file"], {"id": str(file.id)}
         )
@@ -68,7 +70,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             },
         )
         r_add = self.run_query(
-            self.queries["add_metadata_attribute"],
+            self.queries["set_metadata_attribute"],
             {
                 "input": {
                     "targetId": opaque_id,
@@ -78,7 +80,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             },
         )
         self.assertEqual(
-            r_add["data"], {"addMetadataAttribute": {"success": True, "errors": []}}
+            r_add["data"], {"setMetadataAttribute": {"success": True, "errors": []}}
         )
 
         r_after = self.run_query(
@@ -221,7 +223,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             },
         )
         r_edit = self.run_query(
-            self.queries["edit_metadata_attribute"],
+            self.queries["set_metadata_attribute"],
             {
                 "input": {
                     "targetId": opaque_id,
@@ -231,7 +233,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             },
         )
         self.assertEqual(
-            r_edit["data"], {"editMetadataAttribute": {"success": True, "errors": []}}
+            r_edit["data"], {"setMetadataAttribute": {"success": True, "errors": []}}
         )
         r_after = self.run_query(
             self.queries["get_metadata_for_file"], {"id": str(file.id)}
@@ -284,7 +286,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
         )
 
         r_add = self.run_query(
-            self.queries["add_metadata_attribute"],
+            self.queries["set_metadata_attribute"],
             {
                 "input": {
                     "targetId": opaque_id,
@@ -294,7 +296,7 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
             },
         )
         self.assertEqual(
-            r_add["data"], {"addMetadataAttribute": {"success": True, "errors": []}}
+            r_add["data"], {"setMetadataAttribute": {"success": True, "errors": []}}
         )
 
         r_after = self.run_query(
@@ -335,9 +337,9 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
               }
             }
         """,
-        "add_metadata_attribute": """
-            mutation AddMetadataToFile($input: CreateMetadataAttributeInput!){
-              addMetadataAttribute(input: $input) {
+        "set_metadata_attribute": """
+            mutation SetMetadataAttribute($input: SetMetadataAttributeInput!){
+              setMetadataAttribute(input: $input) {
                 success
                 errors
               }
@@ -346,14 +348,6 @@ class MetadataTest(GraphQLTestCase, MetadataTestMixin):
         "delete_metadata_attribute": """
             mutation DeleteMetadataFromFile($input: DeleteMetadataAttributeInput!){
               deleteMetadataAttribute(input: $input) {
-                success
-                errors
-              }
-            }
-            """,
-        "edit_metadata_attribute": """
-            mutation editMetadataOnFile($input: EditMetadataAttributeInput!){
-              editMetadataAttribute(input: $input) {
                 success
                 errors
               }

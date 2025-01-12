@@ -319,8 +319,8 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                     expected_df = pd.read_csv(expected_result_file_path)
 
                     # Compare the values
-                    for original_key, hashed_key in version_file.properties[
-                        "column_name_map"
+                    for hashed_key, original_key in version_file.properties[
+                        "columns"
                     ].items():
                         for value in expected_values:
                             attribute = attributes.get(key=f"{hashed_key}.{value}")
