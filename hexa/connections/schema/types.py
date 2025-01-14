@@ -5,8 +5,8 @@ from django.http import HttpRequest
 from openhexa.toolbox.dhis2.api import DHIS2Error
 
 from hexa.connections.dhis2_client_helper import query_dhis2_metadata
-from hexa.connections.models import Connection, ConnectionField
 from hexa.pipelines.authentication import PipelineRunUser
+from hexa.workspaces.models import Connection, ConnectionField
 
 dhis2_connection = ObjectType("DHIS2Connection")
 connection_object = InterfaceType("Connection")

@@ -247,6 +247,17 @@ type DHIS2Metadata {
     error: String               # Connection error message
 }
 
+enum DHIS2MetadataQueryType {
+    ORGANISATION_UNITS
+    ORGANISATION_UNIT_GROUPS
+    ORGANISATION_UNIT_LEVELS
+    DATASETS
+    DATA_ELEMENTS
+    DATA_ELEMENT_GROUPS
+    INDICATORS
+    INDICATOR_GROUPS
+}
+
 """
 DHIS2 connection object
 """
@@ -261,7 +272,7 @@ type DHIS2Connection implements Connection {
     user: User # User associated with the connection
     fields: [ConnectionField!]! # Fields of the connection
     permissions: ConnectionPermissions! # Permissions of the connection
-    metadataQuery(type: String!, filter: String): DHIS2Metadata! # Query metadata items
+    metadataQuery(type: DHIS2MetadataQueryType!, filter: String): DHIS2Metadata! # Query metadata items
 }
 
 type S3Connection implements Connection {
@@ -315,6 +326,7 @@ type CustomConnection implements Connection {
     fields: [ConnectionField!]! # Fields of the connection
     permissions: ConnectionPermissions! # Permissions of the connection
 }
+
 
 extend type Query {
     dhis2connection(slug: String!): DHIS2Connection # Get DHIS2 connection

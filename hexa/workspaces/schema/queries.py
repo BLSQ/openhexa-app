@@ -2,8 +2,8 @@ from ariadne import QueryType
 
 from hexa.core.graphql import result_page
 
-from ...connections.models import Connection
 from ..models import (
+    Connection,
     Workspace,
     WorkspaceInvitation,
     WorkspaceInvitationStatus,

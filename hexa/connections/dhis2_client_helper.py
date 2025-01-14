@@ -1,7 +1,7 @@
 from openhexa.toolbox.dhis2 import DHIS2
 
-from hexa.connections.models import Connection
 from hexa.user_management.models import User
+from hexa.workspaces.models import Connection
 
 
 def get_client_by_slug(slug: str, user: User) -> DHIS2 | None:
@@ -33,13 +33,13 @@ def query_dhis2_metadata(dhis2: DHIS2, type: str, **kwargs) -> dict:
     Gets metadata from DHIS2
     """
     type_to_metadata_method = {
-        "organisationUnits": dhis2.meta.organisation_units,
-        "organisationUnitGroups": dhis2.meta.organisation_unit_groups,
-        "organisationUnitLevels": dhis2.meta.organisation_unit_levels,
-        "datasets": dhis2.meta.datasets,
-        "dataElements": dhis2.meta.data_elements,
-        "dataElementGroups": dhis2.meta.data_element_groups,
-        "indicators": dhis2.meta.indicators,
-        "indicatorGroups": dhis2.meta.indicator_groups,
+        "ORGANISATION_UNITS": dhis2.meta.organisation_units,
+        "ORGANISATION_UNIT_GROUPS": dhis2.meta.organisation_unit_groups,
+        "ORGANISATION_UNIT_LEVELS": dhis2.meta.organisation_unit_levels,
+        "DATASETS": dhis2.meta.datasets,
+        "DATA_ELEMENTS": dhis2.meta.data_elements,
+        "DATA_ELEMENT_GROUPS": dhis2.meta.data_element_groups,
+        "INDICATORS": dhis2.meta.indicators,
+        "INDICATOR_GROUPS": dhis2.meta.indicator_groups,
     }
     return type_to_metadata_method[type](**kwargs)
