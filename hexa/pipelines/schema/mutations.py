@@ -587,4 +587,30 @@ def resolve_add_pipeline_output(_, info, **kwargs):
     return {"success": True, "errors": []}
 
 
+@pipelines_mutations.field("upgradePipelineVersionFromTemplate")
+def resolve_upgrade_pipeline_version_from_template(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            id=input.get("id")
+        )
+    except Pipeline.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+    if not pipeline.source_template:
+        return {"success": False, "errors": ["PIPELINE_NOT_FROM_TEMPLATE"]}
+    if not pipeline.is_new_template_version_available:
+        return {"success": False, "errors": ["NO_NEW_TEMPLATE_VERSION_AVAILABLE"]}
+
+    pipeline_version = pipeline.source_template.last_version.create_pipeline_version(
+        workspace=pipeline.workspace,
+        user=request.user,
+        pipeline=pipeline,
+    )
+    return {"success": True, "errors": [], "pipeline_version": pipeline_version}
+
+
 bindables = [pipelines_mutations]

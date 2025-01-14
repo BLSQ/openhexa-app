@@ -10,7 +10,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
-from hexa.pipelines.models import Pipeline, PipelineVersion
+from hexa.pipelines.models import Pipeline, PipelineAlreadyExistsError, PipelineVersion
 from hexa.workspaces.models import Workspace
 
 
@@ -100,18 +100,27 @@ class PipelineTemplateVersion(models.Model):
 
     objects = PipelineTemplateVersionQuerySet.as_manager()
 
-    def create_pipeline(self, code, workspace, user):
+    def _create_pipeline(self, workspace):
         source_pipeline = self.template.source_pipeline
-        source_version = self.source_pipeline_version
-        pipeline = Pipeline.objects.create(
+        if Pipeline.objects.filter(
+            workspace=workspace, code=source_pipeline.code
+        ).exists():
+            raise PipelineAlreadyExistsError(
+                f"Failed to create a pipeline with code {source_pipeline.code}, it already exists in the {workspace.name} workspace"
+            )
+        return Pipeline.objects.create(
             source_template=self.template,
-            code=code,
+            code=source_pipeline.code,
             name=source_pipeline.name,
             description=self.template.description,
             config=source_pipeline.config,
             workspace=workspace,
         )
-        PipelineVersion.objects.create(
+
+    def create_pipeline_version(self, workspace, user, pipeline=None):
+        pipeline = pipeline or self._create_pipeline(workspace)
+        source_version = self.source_pipeline_version
+        return PipelineVersion.objects.create(
             source_template_version=self,
             user=user,
             pipeline=pipeline,
@@ -120,7 +129,6 @@ class PipelineTemplateVersion(models.Model):
             config=source_version.config,
             timeout=source_version.timeout,
         )
-        return pipeline
 
     def __str__(self):
         return f"v{self.version_number} of {self.template.name}"

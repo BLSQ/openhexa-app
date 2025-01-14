@@ -37,6 +37,10 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 
+class PipelineAlreadyExistsError(Exception):
+    pass
+
+
 class PipelineDoesNotSupportParametersError(Exception):
     pass
 
