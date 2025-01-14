@@ -109,8 +109,8 @@ class PipelineTemplatesTest(GraphQLTestCase):
         self.create_template_version(self.PIPELINE_VERSION1.id, [{"versionNumber": 1}])
         r = self.run_query(
             """
-                mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
-                    createPipelineFromTemplateVersion(input: $input) {
+                mutation createPipelineVersionFromTemplateVersion($input: CreatePipelineVersionFromTemplateVersionInput!) {
+                    createPipelineVersionFromTemplateVersion(input: $input) {
                         success errors pipeline {name code currentVersion {zipfile parameters {code default} config}}
                     }
                 }
@@ -138,13 +138,13 @@ class PipelineTemplatesTest(GraphQLTestCase):
                     },
                 },
             },
-            r["data"]["createPipelineFromTemplateVersion"],
+            r["data"]["createPipelineVersionFromTemplateVersion"],
         )
 
         r = self.run_query(
             """
-                mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
-                    createPipelineFromTemplateVersion(input: $input) {
+                mutation createPipelineVersionFromTemplateVersion($input: CreatePipelineVersionFromTemplateVersion!) {
+                    createPipelineVersionFromTemplateVersion(input: $input) {
                         success errors pipeline {name code currentVersion {zipfile parameters {code default} config}}
                     }
                 }
@@ -164,7 +164,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 "errors": ["PIPELINE_ALREADY_EXISTS"],
                 "pipeline": None,
             },
-            r["data"]["createPipelineFromTemplateVersion"],
+            r["data"]["createPipelineVersionFromTemplateVersion"],
         )
 
     def test_get_pipeline_templates(self):
