@@ -12,28 +12,25 @@ Generic metadata attribute
 type MetadataAttribute {
   id: UUID!
   key: String!
+  label: String
   value: JSON
   system: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User
+  updatedBy: User
 }
 
+
 """
-Input to add a custom attribute, empty field for value is accepted
+Input to set a custom attribute, empty field for value is accepted
 """
-input CreateMetadataAttributeInput {
+input SetMetadataAttributeInput {
   targetId: OpaqueID!
   key: String!
   value: JSON
+  label: String
 }
-
-"""
-Input to edit a custom attribute, empty field for value is accepted
-"""
-input EditMetadataAttributeInput {
-  targetId: OpaqueID!
-  key: String!
-  value: JSON
-}
-
 
 """
 Input to delete custom attribute
@@ -41,15 +38,6 @@ Input to delete custom attribute
 input DeleteMetadataAttributeInput {
   targetId: OpaqueID!
   key: String!
-}
-
-"""
-Errors that can occur when creating an attribute.
-"""
-enum CreateMetadataAttributeError {
-  PERMISSION_DENIED
-  TARGET_NOT_FOUND
-  DUPLICATE_KEY
 }
 
 """
@@ -62,16 +50,17 @@ enum DeleteMetadataAttributeError {
 }
 
 """
-Errors that can occur when editing an attribute.
+Errors that can occur when setting an attribute.
 """
-enum EditMetadataAttributeError {
+enum SetMetadataAttributeError {
   PERMISSION_DENIED
   TARGET_NOT_FOUND
 }
 
-type CreateMetadataAttributeResult {
+type SetMetadataAttributeResult {
   success: Boolean!
-  errors: [CreateMetadataAttributeError!]!
+  attribute: MetadataAttribute
+  errors: [SetMetadataAttributeError!]!
 }
 
 type DeleteMetadataAttributeResult {
@@ -79,22 +68,16 @@ type DeleteMetadataAttributeResult {
   errors: [DeleteMetadataAttributeError!]!
 }
 
-type EditMetadataAttributeResult {
-  success: Boolean!
-  errors: [EditMetadataAttributeError!]!
-}
 
 extend type Query {
   metadataAttributes(targetId: OpaqueID!): [MetadataAttribute]!
 }
 
 extend type Mutation {
-  "Add a custom metadata attribute to an object instance"
-  addMetadataAttribute(input: CreateMetadataAttributeInput!): CreateMetadataAttributeResult! @loginRequired
+  "Set a custom metadata attribute to an object instance"
+  setMetadataAttribute(input: SetMetadataAttributeInput!): SetMetadataAttributeResult! @loginRequired
   "Delete an metadata attribute from an object instance"
   deleteMetadataAttribute(input: DeleteMetadataAttributeInput!): DeleteMetadataAttributeResult! @loginRequired
-  "Edit metadata attribute for an object instance"
-  editMetadataAttribute(input: EditMetadataAttributeInput!): EditMetadataAttributeResult! @loginRequired
 }
 
 

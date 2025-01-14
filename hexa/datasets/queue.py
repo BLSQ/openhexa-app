@@ -165,27 +165,31 @@ def add_system_attributes(version_file: DatasetVersionFile, df: pd.DataFrame | N
         logger.info(f"Copying attributes from previous version - {prev_file}")
         for attribute in prev_file.attributes.filter(system=False).all():
             logger.info(f"Attribute {attribute.key}={attribute.value} copied")
-            version_file.add_attribute(
-                key=attribute.key, value=attribute.value, system=False
+            version_file.update_or_create_attribute(
+                key=attribute.key,
+                value=attribute.value,
+                label=attribute.label,
+                system=False,
             )
 
     # Add attributes from automated profiling (if the file is supported)
     if df is None:
         return
     profiling = generate_profile(df)
-    column_name_map = {}
+    columns = {}
     for column_profile in profiling:
         for key, value in column_profile.items():
             hashed_column_name = hashlib.md5(
                 column_profile["column_name"].encode()
             ).hexdigest()
-            column_name_map[column_profile["column_name"]] = hashed_column_name
+            columns[hashed_column_name] = column_profile["column_name"]
             version_file.update_or_create_attribute(
                 key=f"{hashed_column_name}.{key}",
                 value=value,
                 system=True,
             )
-    version_file.properties["column_name_map"] = column_name_map
+    version_file.properties["columns"] = columns
+    version_file.save()
     # Set properties map
 
 
