@@ -2594,8 +2594,8 @@ class PipelinesV2Test(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation createPipelineVersionFromTemplateVersion($input: CreatePipelineVersionFromTemplateVersionInput!) {
-                    createPipelineVersionFromTemplateVersion(input: $input) {
+                mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
+                    createPipelineFromTemplateVersion(input: $input) {
                         success errors pipeline {id newTemplateVersionAvailable}
                     }
                 }
@@ -2613,14 +2613,12 @@ class PipelinesV2Test(GraphQLTestCase):
                 "errors": [],
                 "pipeline": {
                     "id": str(
-                        r["data"]["createPipelineVersionFromTemplateVersion"][
-                            "pipeline"
-                        ]["id"]
+                        r["data"]["createPipelineFromTemplateVersion"]["pipeline"]["id"]
                     ),
                     "newTemplateVersionAvailable": False,
                 },
             },
-            r["data"]["createPipelineVersionFromTemplateVersion"],
+            r["data"]["createPipelineFromTemplateVersion"],
         )
 
         source_version2 = source_pipeline.upload_new_version(
@@ -2641,9 +2639,7 @@ class PipelinesV2Test(GraphQLTestCase):
             """,
             {
                 "id": str(
-                    r["data"]["createPipelineVersionFromTemplateVersion"]["pipeline"][
-                        "id"
-                    ]
+                    r["data"]["createPipelineFromTemplateVersion"]["pipeline"]["id"]
                 )
             },
         )

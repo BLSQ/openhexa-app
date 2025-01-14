@@ -3,7 +3,7 @@ extend type Mutation {
   Creates a new pipeline template version.
   """
   createPipelineTemplateVersion(input: CreatePipelineTemplateVersionInput!): CreatePipelineTemplateVersionResult! @loginRequired
-  createPipelineVersionFromTemplateVersion(input: CreatePipelineVersionFromTemplateVersionInput!): CreatePipelineVersionFromTemplateVersionResult! @loginRequired
+  createPipelineFromTemplateVersion(input: CreatePipelineFromTemplateVersionInput!): CreatePipelineFromTemplateVersionResult! @loginRequired
 }
 
 extend type Query {
@@ -44,7 +44,7 @@ type CreatePipelineTemplateVersionResult {
 """
 Represents the input for creating a new pipeline from a template version.
 """
-input CreatePipelineVersionFromTemplateVersionInput {
+input CreatePipelineFromTemplateVersionInput {
   workspaceSlug: String!  # The slug of the pipeline workspace.
   pipelineTemplateVersionId: UUID!  # The ID of the pipeline template version.
 }
@@ -52,16 +52,16 @@ input CreatePipelineVersionFromTemplateVersionInput {
 """
 Represents the result of creating a new pipeline from a template version.
 """
-type CreatePipelineVersionFromTemplateVersionResult {
+type CreatePipelineFromTemplateVersionResult {
   pipeline: Pipeline  # The created pipeline.
   success: Boolean!  # Indicates if the pipeline was created successfully.
-  errors: [CreatePipelineVersionFromTemplateVersionError!]  # The list of errors that occurred during the creation of the pipeline.
+  errors: [CreatePipelineFromTemplateVersionError!]  # The list of errors that occurred during the creation of the pipeline.
 }
 
 """
 Enum representing the possible errors that can occur when creating a pipeline from a template version.
 """
-enum CreatePipelineVersionFromTemplateVersionError {
+enum CreatePipelineFromTemplateVersionError {
   PERMISSION_DENIED
   WORKSPACE_NOT_FOUND
   PIPELINE_TEMPLATE_VERSION_NOT_FOUND
