@@ -1,6 +1,6 @@
 import logging
 
-from ariadne import ObjectType
+from ariadne import InterfaceType, ObjectType
 from django.http import HttpRequest
 from openhexa.toolbox.dhis2.api import DHIS2Error
 
@@ -19,7 +19,7 @@ from ..models import (
 
 workspace_object = ObjectType("Workspace")
 workspace_permissions = ObjectType("WorkspacePermissions")
-connection_object = ObjectType("Connection")
+connection_interface = InterfaceType("Connection")
 connection_field_object = ObjectType("ConnectionField")
 connection_permissions_object = ObjectType("ConnectionPermissions")
 dhis2_connection = ObjectType("DHIS2Connection")
@@ -96,7 +96,7 @@ def resolve_workspace_permissions(workspace: Workspace, info):
     return workspace
 
 
-@connection_object.field("permissions")
+@connection_interface.field("permissions")
 def resolve_workspace_connection_permissions(connection: Connection, info):
     return connection
 
@@ -142,7 +142,7 @@ def resolve_workspace_connections(workspace: Workspace, info, **kwargs):
     return workspace.connections.all()
 
 
-@connection_object.field("fields")
+@connection_interface.field("fields")
 def resolve_workspace_connection_fields(obj, info, **kwargs):
     return obj.fields.all()
 
@@ -162,13 +162,13 @@ def resolve_connection_field_value(obj: ConnectionField, info, **kwargs):
         return obj.value
 
 
-connection_object.set_alias("type", "connection_type")
+connection_interface.set_alias("type", "connection_type")
 
 
-@dhis2_connection.field("metadataQuery")
+@dhis2_connection.field("queryMetadata")
 def resolve_query(dhis2_client, info, **kwargs):
     fields = ["id", "name"]
-
+    print("Printing QueryMetadata")
     try:
         metadata = query_dhis2_metadata(
             dhis2_client,
@@ -178,19 +178,39 @@ def resolve_query(dhis2_client, info, **kwargs):
         )
 
         result = [{field: item.get(field) for field in fields} for item in metadata]
-        return {"data": result, "success": True, "errors": []}
+        return {"data": result, "success": True, "error": None}
     except DHIS2Error as e:
         logging.error(f"DHIS2 error: {e}")
-        return {"data": [], "success": False, "errors": ["CONNECTION_ERROR"]}
+        return {"data": [], "success": False, "error": "CONNECTION_ERROR"}
     except Exception as e:
         logging.error(f"Unknown error: {e}")
-        return {"data": [], "success": False, "errors": ["UNKNOWN_ERROR"]}
+        return {"data": [], "success": False, "error": "UNKNOWN_ERROR"}
+
+
+@connection_interface.type_resolver
+def resolve_connection_type(obj, *_):
+    if isinstance(obj, Connection):
+        if obj.connection_type == "DHIS2":
+            return "DHIS2Connection"
+        elif obj.connection_type == "S3":
+            return "S3Connection"
+        elif obj.connection_type == "POSTGRESQL":
+            return "PostgreSQLConnection"
+        elif obj.connection_type == "CUSTOM":
+            return "CustomConnection"
+        elif obj.connection_type == "GCS":
+            return "GCSConnection"
+        elif obj.connection_type == "IASO":
+            return "IASOConnection"
+        else:
+            return None
+    return None
 
 
 bindables = [
     workspace_object,
     workspace_permissions,
     connection_field_object,
-    connection_object,
+    connection_interface,
     connection_permissions_object,
 ]

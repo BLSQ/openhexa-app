@@ -670,7 +670,7 @@ type ConnectionPermissions {
 """
 Represents a connection to an external data source or service.
 """
-type Connection {
+interface Connection {
   # The unique identifier for the connection.
   id: String!
 
@@ -880,10 +880,96 @@ type DHIS2QueryResult {
 """
 DHIS2 connection object
 """
-type DHIS2Connection {
-    query(type: String!, filter: String): DHIS2QueryResult! # Query metadata items
+type DHIS2Connection implements Connection{
+    id: String! # Unique identifier
+    name: String! # Name of the connection
+    slug: String! # Slug of the connection
+    description: String # Description of the connection
+    createdAt: DateTime! # Date and time when the connection was created
+    updatedAt: DateTime # Date and time when the connection was last updated
+    type: ConnectionType! # Type of the connection
+    user: User # User associated with the connection
+    fields: [ConnectionField!]! # Fields of the connection
+    permissions: ConnectionPermissions! # Permissions of the connection
+    queryMetadata(type: String!, filter: String): DHIS2QueryResult! # Query metadata items
 }
 
-extend type Query {
-    dhis2connection(slug: String!): DHIS2Connection # Get DHIS2 connection
+"""
+PostgreSQL connection object
+"""
+type PostgreSQLConnection implements Connection {
+    id: String! # Unique identifier
+    name: String! # Name of the connection
+    slug: String! # Slug of the connection
+    description: String # Description of the connection
+    createdAt: DateTime! # Date and time when the connection was created
+    updatedAt: DateTime # Date and time when the connection was last updated
+    type: ConnectionType! # Type of the connection
+    user: User # User associated with the connection
+    fields: [ConnectionField!]! # Fields of the connection
+    permissions: ConnectionPermissions! # Permissions of the connection
+}
+
+"""
+IASO connection object
+"""
+type IASOConnection implements Connection {
+    id: String! # Unique identifier
+    name: String! # Name of the connection
+    slug: String! # Slug of the connection
+    description: String # Description of the connection
+    createdAt: DateTime! # Date and time when the connection was created
+    updatedAt: DateTime # Date and time when the connection was last updated
+    type: ConnectionType! # Type of the connection
+    user: User # User associated with the connection
+    fields: [ConnectionField!]! # Fields of the connection
+    permissions: ConnectionPermissions! # Permissions of the connection
+}
+
+"""
+S3 connection object
+"""
+type S3Connection implements Connection {
+    id: String! # Unique identifier
+    name: String! # Name of the connection
+    slug: String! # Slug of the connection
+    description: String # Description of the connection
+    createdAt: DateTime! # Date and time when the connection was created
+    updatedAt: DateTime # Date and time when the connection was last updated
+    type: ConnectionType! # Type of the connection
+    user: User # User associated with the connection
+    fields: [ConnectionField!]! # Fields of the connection
+    permissions: ConnectionPermissions! # Permissions of the connection
+}
+
+"""
+GCS connection object
+"""
+type GCSConnection implements Connection {
+    id: String! # Unique identifier
+    name: String! # Name of the connection
+    slug: String! # Slug of the connection
+    description: String # Description of the connection
+    createdAt: DateTime! # Date and time when the connection was created
+    updatedAt: DateTime # Date and time when the connection was last updated
+    type: ConnectionType! # Type of the connection
+    user: User # User associated with the connection
+    fields: [ConnectionField!]! # Fields of the connection
+    permissions: ConnectionPermissions! # Permissions of the connection
+}
+
+"""
+Custom connection object
+"""
+type CustomConnection implements Connection {
+    id: String! # Unique identifier
+    name: String! # Name of the connection
+    slug: String! # Slug of the connection
+    description: String # Description of the connection
+    createdAt: DateTime! # Date and time when the connection was created
+    updatedAt: DateTime # Date and time when the connection was last updated
+    type: ConnectionType! # Type of the connection
+    user: User # User associated with the connection
+    fields: [ConnectionField!]! # Fields of the connection
+    permissions: ConnectionPermissions! # Permissions of the connection
 }

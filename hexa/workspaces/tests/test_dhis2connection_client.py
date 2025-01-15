@@ -6,7 +6,6 @@ import responses
 from hexa.core.test import TestCase
 from hexa.user_management.models import User
 from hexa.workspaces.dhis2_client_helper import (
-    DHIS2MetadataQueryType,
     get_client_by_slug,
     query_dhis2_metadata,
 )
@@ -103,9 +102,7 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = query_dhis2_metadata(
-            dhis2, DHIS2MetadataQueryType.ORGANISATION_UNITS.value, fields="id,name"
-        )
+        metadata = query_dhis2_metadata(dhis2, "ORGANISATION_UNITS", fields="id,name")
         self.assertEqual(metadata, org_units)
 
     @responses.activate
@@ -122,7 +119,7 @@ class TestDHIS2Methods(TestCase):
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = query_dhis2_metadata(
             dhis2,
-            "organisationUnits",
+            "ORGANISATION_UNITS",
             fields="id,name",
             filter="organisationUnitGroups.id:in:[oDkJh5Ddh7d]",
         )
@@ -141,7 +138,7 @@ class TestDHIS2Methods(TestCase):
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = query_dhis2_metadata(
-            dhis2, type="organisationUnitGroups", fields="id,name"
+            dhis2, type="ORGANISATION_UNIT_GROUPS", fields="id,name"
         )
         self.assertEqual(metadata, org_units_groups)
 
@@ -158,7 +155,7 @@ class TestDHIS2Methods(TestCase):
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = query_dhis2_metadata(
-            dhis2, "organisationUnitLevels", fields="id,name"
+            dhis2, "ORGANISATION_UNIT_LEVELS", fields="id,name"
         )
         self.assertEqual(metadata, org_units_levels)
 
@@ -174,7 +171,7 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = query_dhis2_metadata(dhis2, "datasets", fields="id,name")
+        metadata = query_dhis2_metadata(dhis2, "DATASETS", fields="id,name")
         self.assertEqual(metadata, datasets)
 
     @responses.activate
@@ -206,7 +203,7 @@ class TestDHIS2Methods(TestCase):
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = query_dhis2_metadata(
             dhis2,
-            "dataElements",
+            "DATA_ELEMENTS",
             fields="id,name",
             filter="dataSetElements.dataSet.id:in:[lyLU2wR22tC]",
         )
@@ -226,7 +223,7 @@ class TestDHIS2Methods(TestCase):
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = query_dhis2_metadata(
             dhis2,
-            "dataElements",
+            "DATA_ELEMENTS",
             fields="id,name",
             filter="dataElementGroups.id:in:[oDkJh5Ddh7d]",
         )
@@ -244,7 +241,7 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = query_dhis2_metadata(dhis2, "dataElementGroups", fields="id,name")
+        metadata = query_dhis2_metadata(dhis2, "DATA_ELEMENT_GROUPS", fields="id,name")
         self.assertEqual(metadata, data_element_groups)
 
     @responses.activate
@@ -259,7 +256,7 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = query_dhis2_metadata(dhis2, "indicators", fields="id,name")
+        metadata = query_dhis2_metadata(dhis2, "INDICATORS", fields="id,name")
         self.assertEqual(metadata, indicators)
 
     @responses.activate
@@ -276,7 +273,7 @@ class TestDHIS2Methods(TestCase):
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
         metadata = query_dhis2_metadata(
             dhis2,
-            "indicators",
+            "INDICATORS",
             fields="id,name",
             filter="indicatorGroups.id:in:[PoTnGN0F2n5]",
         )
@@ -294,5 +291,5 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = query_dhis2_metadata(dhis2, "indicatorGroups", fields="id,name")
+        metadata = query_dhis2_metadata(dhis2, "INDICATOR_GROUPS", fields="id,name")
         self.assertEqual(metadata, indicator_groups)
