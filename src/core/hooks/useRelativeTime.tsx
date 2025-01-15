@@ -8,7 +8,9 @@ function useRelativeTime(datetime: DateTime | string) {
 
   const value = useMemo(() => {
     if (!datetime) return null;
-    return typeof datetime === "string" ? DateTime.fromISO(datetime) : datetime;
+    return typeof datetime === "string"
+      ? DateTime.fromISO(datetime, { zone: "utc" })
+      : datetime;
   }, [datetime]);
 
   return value ? value.toRelative() : null;

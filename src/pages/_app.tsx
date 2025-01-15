@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { ApolloProvider } from "@apollo/client";
 import { useApollo } from "core/helpers/apollo";
 import DefaultLayout from "core/layouts/default";
@@ -9,14 +8,19 @@ import "../styles/globals.css";
 import AlertManager from "core/components/AlertManager";
 import { useEffect } from "react";
 import { setUser } from "@sentry/nextjs";
-import { Settings } from "luxon";
-import { MeProvider } from "identity/hooks/useMe";
 import ErrorBoundary from "core/components/ErrorBoundary/ErrorBoundary";
-
-// Set the default locale & timezone to be used on server and client.
-// This should be changed to use the correct lang and tz of the user when it's available.
-// Fixes #OPENHEXA-D7 Hydration error
-Settings.defaultZone = "Europe/Brussels";
+import { Settings } from "luxon";
+import Head from "next/head";
+// Set the default timezone to use on the client
+import { MeProvider } from "identity/hooks/useMe";
+if (typeof window !== "undefined") {
+  try {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    Settings.defaultZone = timeZone;
+  } catch (e) {
+    console.error(e);
+  }
+}
 
 function App({ Component, pageProps }: AppPropsWithLayout) {
   const apolloClient = useApollo(pageProps);
