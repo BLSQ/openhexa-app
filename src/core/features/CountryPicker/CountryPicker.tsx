@@ -8,6 +8,7 @@ import {
   CountryPickerQueryVariables,
   CountryPicker_CountryFragment,
 } from "./CountryPicker.generated";
+import Flag from "react-world-flags";
 
 type CountryPickerProps = {
   disabled?: boolean;
@@ -80,13 +81,11 @@ function CountryPicker(props: CountryPickerProps) {
       {options.map((option) => (
         <Combobox.CheckOption key={option.code} value={option}>
           <div className="flex items-center">
-            <img
-              loading="lazy"
-              src={option.flag}
-              className="sr-hidden mr-2"
+            <Flag
+              code={option.code}
+              className="mr-2 sr-hidden"
               width={16}
               height={11}
-              alt="Country Flag"
             />
             {option.name}
           </div>
@@ -102,7 +101,6 @@ CountryPicker.fragments = {
       code
       alpha3
       name
-      flag
     }
   `,
 };
