@@ -79,10 +79,10 @@ class ConnectiontTest(GraphQLTestCase):
         ):
             response = self.run_query(
                 """
-                query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!) {
+                query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: String!) {
                 connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug){
                     ... on DHIS2Connection {
-                        queryMetadata(type: "ORGANISATION_UNITS") {
+                        queryMetadata(type: $type) {
                                 items {
                                         id
                                         name
@@ -96,6 +96,7 @@ class ConnectiontTest(GraphQLTestCase):
                 variables={
                     "workspaceSlug": self.WORKSPACE.slug,
                     "connectionSlug": "dhis2-connection-1",
+                    "type": "ORGANISATION_UNITS",
                 },
             )
             print(response)
