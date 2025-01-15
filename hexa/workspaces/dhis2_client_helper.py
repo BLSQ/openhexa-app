@@ -1,24 +1,13 @@
 from openhexa.toolbox.dhis2 import DHIS2
 
-from hexa.user_management.models import User
 from hexa.workspaces.models import Connection
 
 
-def get_client_by_slug(slug: str, user: User) -> DHIS2 | None:
+def dhis2_client_from_connection(connection: Connection) -> DHIS2 | None:
     """
-    Gets DHIS2 client from workspace by its slug
+    Gets DHIS2 toolbox client from workspace connection
     """
-    try:
-        dhis2_connection = (
-            Connection.objects.filter_for_user(user).filter(slug=slug).first()
-        )
-    except Connection.DoesNotExist:
-        return None
-
-    if not dhis2_connection:
-        return None
-
-    fields = dhis2_connection.fields.all()
+    fields = connection.fields.all()
     dhis_connection_dict = {field.code: field.value for field in fields}
 
     return DHIS2(
