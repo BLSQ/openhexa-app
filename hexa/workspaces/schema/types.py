@@ -1,10 +1,14 @@
+import logging
+
 from ariadne import ObjectType
 from django.http import HttpRequest
+from openhexa.toolbox.dhis2.api import DHIS2Error
 
 from hexa.core.graphql import result_page
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.user_management.schema import me_permissions_object
 
+from ..dhis2_client_helper import query_dhis2_metadata
 from ..models import (
     Connection,
     ConnectionField,
@@ -18,6 +22,7 @@ workspace_permissions = ObjectType("WorkspacePermissions")
 connection_object = ObjectType("Connection")
 connection_field_object = ObjectType("ConnectionField")
 connection_permissions_object = ObjectType("ConnectionPermissions")
+dhis2_connection = ObjectType("DHIS2Connection")
 
 
 @connection_permissions_object.field("update")
@@ -158,6 +163,28 @@ def resolve_connection_field_value(obj: ConnectionField, info, **kwargs):
 
 
 connection_object.set_alias("type", "connection_type")
+
+
+@dhis2_connection.field("metadataQuery")
+def resolve_query(dhis2_client, info, **kwargs):
+    fields = ["id", "name"]
+
+    try:
+        metadata = query_dhis2_metadata(
+            dhis2_client,
+            type=kwargs.get("type"),
+            fields=fields,
+            filter=kwargs.get("filter"),
+        )
+
+        result = [{field: item.get(field) for field in fields} for item in metadata]
+        return {"data": result, "success": True, "errors": []}
+    except DHIS2Error as e:
+        logging.error(f"DHIS2 error: {e}")
+        return {"data": [], "success": False, "errors": ["CONNECTION_ERROR"]}
+    except Exception as e:
+        logging.error(f"Unknown error: {e}")
+        return {"data": [], "success": False, "errors": ["UNKNOWN_ERROR"]}
 
 
 bindables = [
