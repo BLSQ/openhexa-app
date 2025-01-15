@@ -6,16 +6,15 @@ const defaultOptions = {} as const;
 export type CountryPickerQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type CountryPickerQuery = { __typename?: 'Query', countries: Array<{ __typename?: 'Country', code: string, alpha3: string, name: string, flag: string }> };
+export type CountryPickerQuery = { __typename?: 'Query', countries: Array<{ __typename?: 'Country', code: string, alpha3: string, name: string }> };
 
-export type CountryPicker_CountryFragment = { __typename?: 'Country', code: string, alpha3: string, name: string, flag: string };
+export type CountryPicker_CountryFragment = { __typename?: 'Country', code: string, alpha3: string, name: string };
 
 export const CountryPicker_CountryFragmentDoc = gql`
     fragment CountryPicker_country on Country {
   code
   alpha3
   name
-  flag
 }
     `;
 export const CountryPickerDocument = gql`

@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client";
 import clsx from "clsx";
+import Flag from "react-world-flags";
 import Badge from "../components/Badge";
 import { CountryBadge_CountryFragment } from "./CountryBadge.generated";
 
@@ -22,10 +23,9 @@ const CountryBadge = (props: CountryBadgeProps) => {
         onClick && "cursor-pointer",
       )}
     >
-      <img
-        alt="Country flag"
-        className="absolute w-4 flex-shrink rounded-sm"
-        src={country.flag}
+      <Flag
+        code={country.code}
+        className="absolute w-4 h-3 flex-shrink rounded-sm"
       />
       <span className="ml-5 max-w-[20ch] truncate">{country.name}</span>
     </Badge>
@@ -37,7 +37,6 @@ CountryBadge.fragments = {
     fragment CountryBadge_country on Country {
       code
       name
-      flag
     }
   `,
 };

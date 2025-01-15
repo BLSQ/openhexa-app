@@ -35,6 +35,7 @@ import { logout } from "identity/helpers/auth";
 import Tooltip from "core/components/Tooltip";
 import UILanguagePicker from "identity/features/UILanguagePicker";
 import Field from "core/components/forms/Field";
+import Flag from "react-world-flags";
 
 interface SidebarMenuProps {
   workspace: SidebarMenu_WorkspaceFragment;
@@ -127,11 +128,9 @@ const SidebarMenu = (props: SidebarMenuProps) => {
           <>
             {workspace.countries.length === 1 && (
               <div className="mr-2.5 flex h-full items-center">
-                <img
-                  alt="Country flag"
-                  loading="lazy"
-                  className="w-5 rounded-sm"
-                  src={workspace.countries[0].flag}
+                <Flag
+                  code={workspace.countries[0].code}
+                  className="w-5 h-4 flex-shrink rounded-sm"
                 />
               </div>
             )}
@@ -212,10 +211,9 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                 >
                   <div className="mr-2.5 flex h-full w-5 items-center">
                     {ws.countries && ws.countries.length === 1 ? (
-                      <img
-                        alt="Country flag"
+                      <Flag
+                        code={ws.countries[0].code}
                         className="w-5 flex-shrink rounded-sm"
-                        src={ws.countries[0].flag}
                       />
                     ) : (
                       <GlobeAltIcon className="w-5 flex-shrink rounded-sm text-gray-400" />
