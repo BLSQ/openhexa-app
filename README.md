@@ -106,6 +106,7 @@ The following environment variables should be provided at run time:
 - `SENTRY_DSN`: the [Sentry](https://sentry.io/) DSN
 - `SENTRY_ENVIRONMENT`: the [Sentry](https://sentry.io/) environment tag
 - `DISABLE_ANALYTICS`: set to `true` to disable analytics tracking (only prevent the requests to be sent to the backend)
+- `MAX_REQUEST_BODY_SIZE`: the maximum size of the request body. This is used when the backend is proxied by the frontend to upload files.
 
 ### Code style
 
