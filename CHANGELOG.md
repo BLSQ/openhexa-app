@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.57.0](https://github.com/BLSQ/openhexa-frontend/compare/0.56.2...0.57.0) (2025-01-15)
+
+
+### Features
+
+* **datasets:** Annotations of the datasets columns by the user ([b93931e](https://github.com/BLSQ/openhexa-frontend/commit/b93931e79f5fa8b66c2f7a3355b4eb65ba2da90b))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @apollo/client to v3.12.5 ([#995](https://github.com/BLSQ/openhexa-frontend/issues/995)) ([6c97679](https://github.com/BLSQ/openhexa-frontend/commit/6c97679e146538ef9bbcac2e040618a006d567e2))
+* **deps:** update dependency @apollo/client to v3.12.6 ([#1002](https://github.com/BLSQ/openhexa-frontend/issues/1002)) ([5fd992c](https://github.com/BLSQ/openhexa-frontend/commit/5fd992cc86d714285f429d8d5ed7f5b4dfaed15e))
+* **deps:** update dependency @sentry/nextjs to v8.48.0 ([#992](https://github.com/BLSQ/openhexa-frontend/issues/992)) ([666e843](https://github.com/BLSQ/openhexa-frontend/commit/666e843ff61c8b131af0ff048981fe716256576a))
+* **deps:** update dependency @tailwindcss/forms to v0.5.10 ([#989](https://github.com/BLSQ/openhexa-frontend/issues/989)) ([896ee3f](https://github.com/BLSQ/openhexa-frontend/commit/896ee3f02335ef98e1c4487cd765f73208571441))
+* **deps:** update dependency @tailwindcss/typography to v0.5.16 ([#990](https://github.com/BLSQ/openhexa-frontend/issues/990)) ([7bbae37](https://github.com/BLSQ/openhexa-frontend/commit/7bbae376927585f9cde1e6f8a6b72cdfce2b93b3))
+* **deps:** update dependency @types/lodash to v4.17.14 ([#982](https://github.com/BLSQ/openhexa-frontend/issues/982)) ([ec042eb](https://github.com/BLSQ/openhexa-frontend/commit/ec042eb3d6ac14630fc0e95ee6bc79d0aec27e36))
+* **deps:** update dependency @types/node to v22.10.6 ([#999](https://github.com/BLSQ/openhexa-frontend/issues/999)) ([32f6168](https://github.com/BLSQ/openhexa-frontend/commit/32f61687ccfbdbb07abb5595f1a6aeac29c76ea3))
+* **deps:** update dependency i18next to v24.2.1 ([#987](https://github.com/BLSQ/openhexa-frontend/issues/987)) ([0b7eaf7](https://github.com/BLSQ/openhexa-frontend/commit/0b7eaf7459da887d6d2d6d1b6747592243d468cb))
+* **deps:** update dependency react-markdown to v9.0.2 ([#985](https://github.com/BLSQ/openhexa-frontend/issues/985)) ([fe04b23](https://github.com/BLSQ/openhexa-frontend/commit/fe04b23a2b7da21396a0db3d1397febf318ba867))
+* **deps:** update dependency react-markdown to v9.0.3 ([#986](https://github.com/BLSQ/openhexa-frontend/issues/986)) ([db6929f](https://github.com/BLSQ/openhexa-frontend/commit/db6929f3f75cb54aa134fa2db302e6ca3e37f49b))
+* **deps:** update dependency typescript to v5.7.3 ([#993](https://github.com/BLSQ/openhexa-frontend/issues/993)) ([75ae12f](https://github.com/BLSQ/openhexa-frontend/commit/75ae12fa382f7ad8a5aac2eca43cac9c4ebccf5a))
+* **deps:** update dependency uuid to v11.0.4 ([#984](https://github.com/BLSQ/openhexa-frontend/issues/984)) ([b0bf496](https://github.com/BLSQ/openhexa-frontend/commit/b0bf496f5142fdaa3302ced3afd2ff098e16257d))
+* **deps:** update dependency uuid to v11.0.5 ([#996](https://github.com/BLSQ/openhexa-frontend/issues/996)) ([8177652](https://github.com/BLSQ/openhexa-frontend/commit/81776522e2e4a7268d6f0f6752d3d93f7e2653ae))
+* **deps:** update nextjs monorepo to v15.1.4 ([#991](https://github.com/BLSQ/openhexa-frontend/issues/991)) ([f9fa8ff](https://github.com/BLSQ/openhexa-frontend/commit/f9fa8ffc055d0b0bc76b6ec059f56c88905392d8))
+* set default state for sidebar ([#988](https://github.com/BLSQ/openhexa-frontend/issues/988)) ([3f0ed22](https://github.com/BLSQ/openhexa-frontend/commit/3f0ed221b35f348f177fce066c4d8472902f83ba))
+
 ## [0.56.2](https://github.com/BLSQ/openhexa-frontend/compare/0.56.1...0.56.2) (2025-01-03)
 
 
