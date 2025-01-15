@@ -8,7 +8,7 @@ from hexa.core.graphql import result_page
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.user_management.schema import me_permissions_object
 
-from ..dhis2_client_helper import query_dhis2_metadata
+from ..dhis2_client_helper import dhis2_client_from_connection, query_dhis2_metadata
 from ..models import (
     Connection,
     ConnectionField,
@@ -166,9 +166,9 @@ connection_interface.set_alias("type", "connection_type")
 
 
 @dhis2_connection.field("queryMetadata")
-def resolve_query(dhis2_client, info, **kwargs):
+def resolve_query(connection, info, **kwargs):
     fields = ["id", "name"]
-    print("Printing QueryMetadata")
+    dhis2_client = dhis2_client_from_connection(connection)
     try:
         metadata = query_dhis2_metadata(
             dhis2_client,
