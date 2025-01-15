@@ -201,7 +201,9 @@ export const DatasetVersionFileSample: ApolloComponent<
             data={sample}
             sortable
             spacing="tight"
-            className="border border-gray-100 rounded-md overflow-hidden font-mono tracking-tight"
+            className="border border-gray-100 rounded-md overflow-hidden tracking-tight"
+            headerClassName="font-mono"
+            rowClassName="font-mono"
             totalItems={sample.length}
             fixedLayout={false}
           >

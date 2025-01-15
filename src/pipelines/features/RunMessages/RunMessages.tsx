@@ -21,13 +21,13 @@ type RunMessagesProps = {
 function getBadgeClassName(priority: string) {
   switch (priority) {
     case "DEBUG":
-      return "bg-gray-50 text-gray-500";
+      return "bg-gray-50 text-gray-500 ring-gray-500/20";
     case "INFO":
-      return "bg-sky-100 text-sky-600";
+      return "bg-sky-100 text-sky-600 ring-sky-500/20";
     case "WARNING":
-      return "bg-amber-50 text-amber-600";
+      return "bg-amber-50 text-amber-600 ring-amber-500/20";
     case "ERROR":
-      return "bg-red-100 text-red-500";
+      return "bg-red-100 text-red-500 ring-red-500/20";
     default:
       return undefined;
   }

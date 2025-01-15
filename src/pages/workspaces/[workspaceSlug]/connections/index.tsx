@@ -49,9 +49,8 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
               href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines#using-connections",
             },
           ]}
-        >
-          <WorkspaceLayout.Header>
-            <div className="flex items-center justify-between">
+          header={
+            <>
               <Breadcrumbs withHome={false}>
                 <Breadcrumbs.Part
                   isFirst
@@ -77,8 +76,9 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
                   {t("Add connection")}
                 </Button>
               )}
-            </div>
-          </WorkspaceLayout.Header>
+            </>
+          }
+        >
           <WorkspaceLayout.PageContent className="space-y-4">
             {workspace.connections.length === 0 ? (
               <div className="text-center text-gray-500">

@@ -52,6 +52,20 @@ export type DeleteDatasetMutationVariables = Types.Exact<{
 
 export type DeleteDatasetMutation = { __typename?: 'Mutation', deleteDataset: { __typename?: 'DeleteDatasetResult', success: boolean, errors: Array<Types.DeleteDatasetError> } };
 
+export type SetMetadataAttributeMutationVariables = Types.Exact<{
+  input: Types.SetMetadataAttributeInput;
+}>;
+
+
+export type SetMetadataAttributeMutation = { __typename?: 'Mutation', setMetadataAttribute: { __typename?: 'SetMetadataAttributeResult', success: boolean, errors: Array<Types.SetMetadataAttributeError>, attribute?: { __typename?: 'MetadataAttribute', id: string, key: string, label?: string | null, value?: any | null, system: boolean } | null } };
+
+export type DeleteMetadataAttributeMutationVariables = Types.Exact<{
+  input: Types.DeleteMetadataAttributeInput;
+}>;
+
+
+export type DeleteMetadataAttributeMutation = { __typename?: 'Mutation', deleteMetadataAttribute: { __typename?: 'DeleteMetadataAttributeResult', success: boolean, errors: Array<Types.DeleteMetadataAttributeError> } };
+
 
 export const UpdateDatasetDocument = gql`
     mutation UpdateDataset($input: UpdateDatasetInput!) {
@@ -307,3 +321,78 @@ export function useDeleteDatasetMutation(baseOptions?: Apollo.MutationHookOption
 export type DeleteDatasetMutationHookResult = ReturnType<typeof useDeleteDatasetMutation>;
 export type DeleteDatasetMutationResult = Apollo.MutationResult<DeleteDatasetMutation>;
 export type DeleteDatasetMutationOptions = Apollo.BaseMutationOptions<DeleteDatasetMutation, DeleteDatasetMutationVariables>;
+export const SetMetadataAttributeDocument = gql`
+    mutation SetMetadataAttribute($input: SetMetadataAttributeInput!) {
+  setMetadataAttribute(input: $input) {
+    success
+    errors
+    attribute {
+      id
+      key
+      label
+      value
+      system
+    }
+  }
+}
+    `;
+export type SetMetadataAttributeMutationFn = Apollo.MutationFunction<SetMetadataAttributeMutation, SetMetadataAttributeMutationVariables>;
+
+/**
+ * __useSetMetadataAttributeMutation__
+ *
+ * To run a mutation, you first call `useSetMetadataAttributeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetMetadataAttributeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setMetadataAttributeMutation, { data, loading, error }] = useSetMetadataAttributeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSetMetadataAttributeMutation(baseOptions?: Apollo.MutationHookOptions<SetMetadataAttributeMutation, SetMetadataAttributeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetMetadataAttributeMutation, SetMetadataAttributeMutationVariables>(SetMetadataAttributeDocument, options);
+      }
+export type SetMetadataAttributeMutationHookResult = ReturnType<typeof useSetMetadataAttributeMutation>;
+export type SetMetadataAttributeMutationResult = Apollo.MutationResult<SetMetadataAttributeMutation>;
+export type SetMetadataAttributeMutationOptions = Apollo.BaseMutationOptions<SetMetadataAttributeMutation, SetMetadataAttributeMutationVariables>;
+export const DeleteMetadataAttributeDocument = gql`
+    mutation DeleteMetadataAttribute($input: DeleteMetadataAttributeInput!) {
+  deleteMetadataAttribute(input: $input) {
+    success
+    errors
+  }
+}
+    `;
+export type DeleteMetadataAttributeMutationFn = Apollo.MutationFunction<DeleteMetadataAttributeMutation, DeleteMetadataAttributeMutationVariables>;
+
+/**
+ * __useDeleteMetadataAttributeMutation__
+ *
+ * To run a mutation, you first call `useDeleteMetadataAttributeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteMetadataAttributeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteMetadataAttributeMutation, { data, loading, error }] = useDeleteMetadataAttributeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDeleteMetadataAttributeMutation(baseOptions?: Apollo.MutationHookOptions<DeleteMetadataAttributeMutation, DeleteMetadataAttributeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteMetadataAttributeMutation, DeleteMetadataAttributeMutationVariables>(DeleteMetadataAttributeDocument, options);
+      }
+export type DeleteMetadataAttributeMutationHookResult = ReturnType<typeof useDeleteMetadataAttributeMutation>;
+export type DeleteMetadataAttributeMutationResult = Apollo.MutationResult<DeleteMetadataAttributeMutation>;
+export type DeleteMetadataAttributeMutationOptions = Apollo.BaseMutationOptions<DeleteMetadataAttributeMutation, DeleteMetadataAttributeMutationVariables>;

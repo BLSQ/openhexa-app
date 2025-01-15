@@ -17,7 +17,7 @@ const Tag = (props: TagProps) => {
     className,
     tag,
     bgColor = "bg-purple-100",
-    borderColor = "border-purple-400",
+    borderColor = "ring-purple-400/20",
   } = props;
   return (
     <Badge

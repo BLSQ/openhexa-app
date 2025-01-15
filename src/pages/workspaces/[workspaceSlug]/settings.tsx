@@ -88,27 +88,29 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
             href: "https://github.com/BLSQ/openhexa/wiki/User-manual#regenerating-the-workspace-database-password",
           },
         ]}
+        header={
+          <>
+            <Breadcrumbs withHome={false}>
+              <Breadcrumbs.Part
+                isFirst
+                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+              >
+                {workspace.name}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part isLast>{t("Settings")}</Breadcrumbs.Part>
+            </Breadcrumbs>
+            {workspace.permissions.delete && (
+              <Button
+                className="bg-red-700 hover:bg-red-800 focus:ring-red-500"
+                onClick={() => setIsArchiveDialogOpen(true)}
+                leadingIcon={<TrashIcon className="w-4" />}
+              >
+                {t("Archive")}
+              </Button>
+            )}
+          </>
+        }
       >
-        <WorkspaceLayout.Header className="flex justify-between items-center">
-          <Breadcrumbs withHome={false}>
-            <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part isLast>{t("Settings")}</Breadcrumbs.Part>
-          </Breadcrumbs>
-          {workspace.permissions.delete && (
-            <Button
-              className="bg-red-700 hover:bg-red-800 focus:ring-red-500"
-              onClick={() => setIsArchiveDialogOpen(true)}
-              leadingIcon={<TrashIcon className="w-4" />}
-            >
-              {t("Archive")}
-            </Button>
-          )}
-        </WorkspaceLayout.Header>
         <WorkspaceLayout.PageContent className="space-y-10">
           <DataCard className="w-full" item={workspace}>
             <DataCard.FormSection

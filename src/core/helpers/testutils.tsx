@@ -44,3 +44,35 @@ export async function waitForDialog(options?: ByRoleOptions) {
   const dialog = await screen.findByRole("dialog", options);
   return dialog;
 }
+
+export async function frames(count: number) {
+  for (let n = 0; n <= count; n++) {
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
+  }
+}
+
+export function assertHidden(element: HTMLElement | null) {
+  try {
+    if (element === null) return expect(element).not.toBe(null);
+
+    expect(element).toHaveAttribute("hidden");
+    expect(element).toHaveStyle({ display: "none" });
+  } catch (err) {
+    if (err instanceof Error) Error.captureStackTrace(err, assertHidden);
+    throw err;
+  }
+}
+
+export function assertVisible(element: HTMLElement | null) {
+  try {
+    if (element === null) return expect(element).not.toBe(null);
+
+    expect(element).not.toHaveAttribute("hidden");
+    expect(element).not.toHaveStyle({ display: "none" });
+  } catch (err) {
+    if (err instanceof Error) Error.captureStackTrace(err, assertVisible);
+    throw err;
+  }
+}

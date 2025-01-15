@@ -1,7 +1,10 @@
+import clsx from "clsx";
+import Overflow from "core/components/Overflow";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import DatasetExplorer from "datasets/features/DatasetExplorer";
+import { DatasetExplorer_FileFragment } from "datasets/features/DatasetExplorer/DatasetExplorer.generated";
 import LinkDatasetDialog from "datasets/features/LinkDatasetDialog";
 import DatasetLayout from "datasets/layouts/DatasetLayout";
 import { useTranslation } from "next-i18next";
@@ -19,7 +22,7 @@ export type WorkspaceDatasetFilesPageProps = {
   workspaceSlug: string;
   datasetSlug: string;
   versionId: string;
-  fileId: string | null;
+  currentFile: NonNullable<DatasetExplorer_FileFragment>;
 };
 
 const WorkspaceDatasetFilesPage: NextPageWithLayout = (
@@ -28,8 +31,13 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
   const { t } = useTranslation();
   const router = useRouter();
   const [isLinkDialogOpen, setLinkDialogOpen] = useState(false);
-  const { fileId, isSpecificVersion, workspaceSlug, datasetSlug, versionId } =
-    props;
+  const {
+    currentFile,
+    isSpecificVersion,
+    workspaceSlug,
+    datasetSlug,
+    versionId,
+  } = props;
   const { data } = useWorkspaceDatasetFilesPageQuery({
     variables: { isSpecificVersion, workspaceSlug, datasetSlug, versionId },
   });
@@ -39,16 +47,6 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
   const { datasetLink, workspace } = data;
   const { dataset } = datasetLink;
   const version = isSpecificVersion ? dataset.version! : dataset.latestVersion!;
-
-  const currentFile = (() => {
-    if (!fileId) {
-      return version.files.items[0];
-    } else {
-      return version.files.items.find(
-        (file: { id: string }) => file.id === fileId,
-      );
-    }
-  })();
 
   return (
     <Page title={dataset.name ?? t("Dataset")}>
@@ -72,7 +70,11 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
           onClickFile={(file) =>
             router.push({
               pathname: `${router.pathname}`,
-              query: { ...router.query, version: version?.id, fileId: file.id },
+              query: {
+                ...router.query,
+                version: version?.id,
+                fileId: file.id,
+              },
             })
           }
         />
@@ -116,14 +118,35 @@ export const getServerSideProps = createGetServerSideProps({
     }
 
     // optional route parameters
-    const fileArr = (ctx.query.fileId as string[]) ?? [];
-
-    return {
-      props: {
-        ...variables,
-        fileId: fileArr.length === 1 ? fileArr[0] : null,
-      },
-    };
+    try {
+      const currentFileId = (ctx.query.fileId as string[])[0];
+      const currentFile = version.files.items.find(
+        (f) => f.id === currentFileId,
+      );
+      if (!currentFile) {
+        return { notFound: true };
+      }
+      return {
+        props: {
+          ...variables,
+          currentFile,
+        },
+      };
+    } catch (e) {
+      if (version.files.items.length > 0) {
+        return {
+          redirect: {
+            destination: `/workspaces/${encodeURIComponent(
+              data.workspace.slug,
+            )}/datasets/${encodeURIComponent(data.datasetLink.dataset.slug)}/files/${encodeURIComponent(version.files.items[0].id)}?version=${encodeURIComponent(version.id)}`,
+            permanent: false,
+          },
+        };
+      }
+      return {
+        notFound: true,
+      };
+    }
   },
 });
 

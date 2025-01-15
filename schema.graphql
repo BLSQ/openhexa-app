@@ -1,8 +1,8 @@
 directive @loginRequired(withoutTwoFactor: Boolean) on FIELD_DEFINITION
 
-"""Exposes a URL that specifies the behaviour of this scalar."""
+"""Exposes a URL that specifies the behavior of this scalar."""
 directive @specifiedBy(
-  """The URL that specifies the behaviour of this scalar."""
+  """The URL that specifies the behavior of this scalar."""
   url: String!
 ) on SCALAR
 
@@ -714,23 +714,31 @@ type CreateMembershipResult {
   errors: [CreateMembershipError!]!
 }
 
-"""Errors that can occur when creating an attribute."""
-enum CreateMetadataAttributeError {
+"""
+Enum representing the possible errors that can occur when creating a pipeline from a template version.
+"""
+enum CreatePipelineFromTemplateVersionError {
   PERMISSION_DENIED
-  TARGET_NOT_FOUND
-  DUPLICATE_KEY
+  WORKSPACE_NOT_FOUND
+  PIPELINE_TEMPLATE_VERSION_NOT_FOUND
+  PIPELINE_ALREADY_EXISTS
 }
 
-"""Input to add a custom attribute, empty field for value is accepted"""
-input CreateMetadataAttributeInput {
-  targetId: OpaqueID!
-  key: String!
-  value: JSON
+"""
+Represents the input for creating a new pipeline from a template version.
+"""
+input CreatePipelineFromTemplateVersionInput {
+  workspaceSlug: String!
+  pipelineTemplateVersionId: UUID!
 }
 
-type CreateMetadataAttributeResult {
+"""
+Represents the result of creating a new pipeline from a template version.
+"""
+type CreatePipelineFromTemplateVersionResult {
+  pipeline: Pipeline
   success: Boolean!
-  errors: [CreateMetadataAttributeError!]!
+  errors: [CreatePipelineFromTemplateVersionError!]
 }
 
 """Represents the input for creating a pipeline."""
@@ -753,6 +761,34 @@ type CreatePipelineResult {
   success: Boolean!
   errors: [PipelineError!]!
   pipeline: Pipeline
+}
+
+"""
+Enum representing the possible errors that can occur when creating a pipeline template version.
+"""
+enum CreatePipelineTemplateVersionError {
+  PERMISSION_DENIED
+  WORKSPACE_NOT_FOUND
+  PIPELINE_NOT_FOUND
+  PIPELINE_VERSION_NOT_FOUND
+}
+
+"""Represents the input for creating a new pipeline template version."""
+input CreatePipelineTemplateVersionInput {
+  name: String
+  code: String
+  description: String
+  config: String
+  workspaceSlug: String!
+  pipelineId: UUID!
+  pipelineVersionId: UUID!
+}
+
+"""Represents the result of creating a new pipeline template version."""
+type CreatePipelineTemplateVersionResult {
+  pipelineTemplate: PipelineTemplate
+  success: Boolean!
+  errors: [CreatePipelineTemplateVersionError!]
 }
 
 """
@@ -1464,26 +1500,27 @@ type DenyAccessmodAccessRequestResult {
   errors: [DenyAccessmodAccessRequestError!]!
 }
 
-type DHIS2DataElement {
-  id: String!
-  name: String!
-  code: String!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  instance: DHIS2Instance!
+"""DHIS2 connection object"""
+type DHIS2Connection {
+  query(type: String!, filter: String): DHIS2QueryResult!
 }
 
-type DHIS2DataElementPage {
-  pageNumber: Int!
-  totalPages: Int!
-  totalItems: Int!
-  items: [DHIS2DataElement!]!
+enum DHIS2ConnectionError {
+  CONNECTION_ERROR
+  UNKNOWN_ERROR
 }
 
-type DHIS2Instance {
+"""DHIS2 metadata item"""
+type DHIS2MetadataItem {
   id: String!
   name: String!
-  url: String
+}
+
+"""DHIS2 metadata query result"""
+type DHIS2QueryResult {
+  data: [DHIS2MetadataItem!]
+  success: Boolean!
+  errors: [String!]!
 }
 
 """
@@ -1507,24 +1544,6 @@ The DisableTwoFactorResult type represents the result of the disableTwoFactor mu
 type DisableTwoFactorResult {
   success: Boolean!
   errors: [DisableTwoFactorError!]
-}
-
-"""Errors that can occur when editing an attribute."""
-enum EditMetadataAttributeError {
-  PERMISSION_DENIED
-  TARGET_NOT_FOUND
-}
-
-"""Input to edit a custom attribute, empty field for value is accepted"""
-input EditMetadataAttributeInput {
-  targetId: OpaqueID!
-  key: String!
-  value: JSON
-}
-
-type EditMetadataAttributeResult {
-  success: Boolean!
-  errors: [EditMetadataAttributeError!]!
 }
 
 """
@@ -1903,6 +1922,7 @@ type MePermissions {
   superUser: Boolean!
   createAccessmodProject: Boolean!
   manageAccessmodAccessRequests: Boolean!
+  createPipelineTemplateVersion: Boolean!
   createWorkspace: Boolean!
 }
 
@@ -1919,8 +1939,13 @@ enum MessagePriority {
 type MetadataAttribute {
   id: UUID!
   key: String!
+  label: String
   value: JSON
   system: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User
+  updatedBy: User
 }
 
 """Interface for type implementing metadata"""
@@ -2046,6 +2071,10 @@ type Mutation {
 
   """Deletes a pipeline recipient."""
   deletePipelineRecipient(input: DeletePipelineRecipientInput!): DeletePipelineRecipientResult!
+
+  """Creates a new pipeline template version."""
+  createPipelineTemplateVersion(input: CreatePipelineTemplateVersionInput!): CreatePipelineTemplateVersionResult!
+  createPipelineFromTemplateVersion(input: CreatePipelineFromTemplateVersionInput!): CreatePipelineFromTemplateVersionResult!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
@@ -2063,14 +2092,11 @@ type Mutation {
   updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult!
   deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult!
 
-  """Add a custom metadata attribute to an object instance"""
-  addMetadataAttribute(input: CreateMetadataAttributeInput!): CreateMetadataAttributeResult!
+  """Set a custom metadata attribute to an object instance"""
+  setMetadataAttribute(input: SetMetadataAttributeInput!): SetMetadataAttributeResult!
 
   """Delete an metadata attribute from an object instance"""
   deleteMetadataAttribute(input: DeleteMetadataAttributeInput!): DeleteMetadataAttributeResult!
-
-  """Edit metadata attribute for an object instance"""
-  editMetadataAttribute(input: EditMetadataAttributeInput!): EditMetadataAttributeResult!
 
   """Generates a new password for a database."""
   generateNewDatabasePassword(input: GenerateNewDatabasePasswordInput!): GenerateNewDatabasePasswordResult!
@@ -2254,6 +2280,9 @@ type Pipeline {
   webhookUrl: String
   type: PipelineType!
   notebookPath: String
+  template: PipelineTemplate
+  sourceTemplate: PipelineTemplate
+  newTemplateVersionAvailable: Boolean!
 }
 
 enum PipelineError {
@@ -2270,6 +2299,7 @@ enum PipelineError {
   FILE_NOT_FOUND
   TABLE_NOT_FOUND
   CANNOT_UPDATE_NOTEBOOK_PIPELINE
+  DUPLICATE_PIPELINE_VERSION_NAME
 }
 
 """Represents the notification level for a pipeline recipient."""
@@ -2390,6 +2420,45 @@ type PipelinesPage {
   totalItems: Int!
 }
 
+"""Represents a pipeline template."""
+type PipelineTemplate {
+  id: UUID!
+  name: String!
+  code: String!
+  description: String
+  config: String
+  versions: [PipelineTemplateVersion!]
+  currentVersion: PipelineTemplateVersion
+  sourcePipeline: Pipeline
+}
+
+"""Represents paged result of fetching pipeline templates."""
+type PipelineTemplatePage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [PipelineTemplate!]!
+}
+
+"""Represents the permissions for a pipeline template."""
+type PipelineTemplatePermissions {
+  createVersion: Boolean!
+}
+
+"""Represents a version of a pipeline template."""
+type PipelineTemplateVersion {
+  id: UUID!
+  versionNumber: Int!
+  createdAt: DateTime!
+  template: PipelineTemplate!
+}
+
+"""Represents the permissions for a pipeline template version."""
+type PipelineTemplateVersionPermissions {
+  update: Boolean!
+  delete: Boolean!
+}
+
 """Represents the input for retrieving a pipeline token."""
 input PipelineTokenInput {
   workspaceSlug: String!
@@ -2415,6 +2484,7 @@ type PipelineVersion {
   user: User
   pipeline: Pipeline!
   name: String
+  number: Int @deprecated(reason: "Use 'versionNumber' instead")
   versionNumber: Int!
   versionName: String!
   description: String
@@ -2426,6 +2496,7 @@ type PipelineVersion {
   timeout: Int
   permissions: PipelineVersionPermissions!
   config: JSON
+  templateVersion: PipelineTemplateVersion
 }
 
 """Represents a page of pipeline versions."""
@@ -2559,6 +2630,7 @@ type Query {
 
   """Retrieves a list of organizations."""
   organizations: [Organization!]!
+  dhis2connection(slug: String!): DHIS2Connection
   dags(page: Int, perPage: Int): DAGPage!
   dag(id: UUID!): DAG
   dagRun(id: UUID!): DAGRun
@@ -2590,6 +2662,7 @@ type Query {
 
   """Retrieves a pipeline run by ID."""
   pipelineRun(id: UUID!): PipelineRun
+  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String): PipelineTemplatePage!
   workspace(slug: String!): Workspace
   workspaces(query: String, page: Int, perPage: Int): WorkspacePage!
   pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
@@ -2742,6 +2815,8 @@ input RunPipelineInput {
   id: UUID!
   versionId: UUID
   config: JSON!
+  sendMailNotifications: Boolean
+  enableDebugLogs: Boolean
 }
 
 """Represents the result of running a pipeline."""
@@ -2796,6 +2871,26 @@ type SetDAGRunFavoriteResult {
   success: Boolean!
   errors: [SetDAGRunFavoriteError!]!
   dagRun: DAGRun
+}
+
+"""Errors that can occur when setting an attribute."""
+enum SetMetadataAttributeError {
+  PERMISSION_DENIED
+  TARGET_NOT_FOUND
+}
+
+"""Input to set a custom attribute, empty field for value is accepted"""
+input SetMetadataAttributeInput {
+  targetId: OpaqueID!
+  key: String!
+  value: JSON
+  label: String
+}
+
+type SetMetadataAttributeResult {
+  success: Boolean!
+  attribute: MetadataAttribute
+  errors: [SetMetadataAttributeError!]!
 }
 
 """
@@ -3345,7 +3440,7 @@ type UpdateWorkspaceResult {
 input UploadPipelineInput {
   workspaceSlug: String!
   pipelineCode: String
-  name: String!
+  name: String
   description: String
   externalLink: URL
   parameters: [ParameterInput!]!
@@ -3532,6 +3627,7 @@ type WorkspacePermissions {
   launchNotebookServer: Boolean!
   deleteDatabaseTable: Boolean!
   createPipeline: Boolean!
+  createPipelineTemplateVersion: Boolean!
 
   """User can create objects in the workspace's bucket."""
   createObject: Boolean!

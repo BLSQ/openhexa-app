@@ -110,22 +110,7 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
     <Page title={workspace.name}>
       <WorkspaceLayout
         workspace={workspace}
-        helpLinks={[
-          {
-            label: t("About the workspace's filesystem"),
-            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#file-management-in-workspaces",
-          },
-          {
-            label: t("Using the filesystem in notebooks"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHEXA#using-the-workspace-filesystem",
-          },
-          {
-            label: t("Using the filesystem in pipelines"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines#reading-and-writing-files",
-          },
-        ]}
-      >
-        <WorkspaceLayout.Header className="flex items-center justify-between">
+        header={
           <Breadcrumbs withHome={false}>
             <Breadcrumbs.Part
               isFirst
@@ -151,7 +136,22 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
               </Breadcrumbs.Part>
             ))}
           </Breadcrumbs>
-        </WorkspaceLayout.Header>
+        }
+        helpLinks={[
+          {
+            label: t("About the workspace's filesystem"),
+            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#file-management-in-workspaces",
+          },
+          {
+            label: t("Using the filesystem in notebooks"),
+            href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHEXA#using-the-workspace-filesystem",
+          },
+          {
+            label: t("Using the filesystem in pipelines"),
+            href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines#reading-and-writing-files",
+          },
+        ]}
+      >
         <WorkspaceLayout.PageContent className="space-y-4">
           <div className="flex items-center justify-end gap-3">
             <SearchInput

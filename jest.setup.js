@@ -5,11 +5,18 @@
 import "@testing-library/jest-dom";
 import { faker } from "@faker-js/faker";
 import { setConfig } from "next/config";
+
+import { configMocks } from "jsdom-testing-mocks";
+import { act } from "react";
 import { Settings } from "luxon";
 
 Settings.defaultLocale = "en";
 Settings.defaultZone = "Europe/Brussels";
 Settings.now = jest.fn().mockImplementation(() => Date.now());
+
+// To not have to wrap everything in act()
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+configMocks({ act });
 
 // @ts-ignore
 import { publicRuntimeConfig } from "./next.config";
@@ -85,10 +92,3 @@ const intersectionObserverMock = () => ({
 window.IntersectionObserver = jest
   .fn()
   .mockImplementation(intersectionObserverMock);
-
-// Mock @headlessui/react to disable animations
-
-jest.mock("@headlessui/react", () => ({
-  __esModule: true,
-  ...jest.requireActual("@headlessui/react"),
-}));

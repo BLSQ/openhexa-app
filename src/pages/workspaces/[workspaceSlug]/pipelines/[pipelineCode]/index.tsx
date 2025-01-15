@@ -105,7 +105,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
           />
           <RenderProperty id="type" label={t("Type")} accessor="type">
             {(property) => (
-              <Badge className="bg-gray-50">
+              <Badge className="bg-gray-50 ring-gray-500/20">
                 {formatPipelineType(property.displayValue)}
               </Badge>
             )}

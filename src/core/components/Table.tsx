@@ -23,7 +23,7 @@ const SpacingClasses = {
 };
 
 export const Table = (props: HTMLAttributes<HTMLTableElement>) => (
-  <table {...props} className={clsx(props.className, TableClasses.table)} />
+  <table {...props} className={props.className ?? TableClasses.table} />
 );
 
 export const TableHead = (props: HTMLAttributes<HTMLTableSectionElement>) => (

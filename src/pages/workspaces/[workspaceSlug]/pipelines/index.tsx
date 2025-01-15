@@ -57,31 +57,33 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props: Props) => {
             href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines",
           },
         ]}
+        header={
+          <>
+            <Breadcrumbs withHome={false} className="flex-1">
+              <Breadcrumbs.Part
+                isFirst
+                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+              >
+                {workspace.name}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                isLast
+                href={`/workspaces/${encodeURIComponent(
+                  workspace.slug,
+                )}/pipelines`}
+              >
+                {t("Pipelines")}
+              </Breadcrumbs.Part>
+            </Breadcrumbs>
+            <Button
+              leadingIcon={<PlusIcon className="h-4 w-4" />}
+              onClick={() => setDialogOpen(true)}
+            >
+              {t("Create")}
+            </Button>
+          </>
+        }
       >
-        <WorkspaceLayout.Header className="flex items-center gap-2">
-          <Breadcrumbs withHome={false} className="flex-1">
-            <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              isLast
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/pipelines`}
-            >
-              {t("Pipelines")}
-            </Breadcrumbs.Part>
-          </Breadcrumbs>
-          <Button
-            leadingIcon={<PlusIcon className="h-4 w-4" />}
-            onClick={() => setDialogOpen(true)}
-          >
-            {t("Create")}
-          </Button>
-        </WorkspaceLayout.Header>
         <WorkspaceLayout.PageContent className="divide divide-y-2">
           {pipelines.items.length === 0 ? (
             <div className="text-center text-gray-500">

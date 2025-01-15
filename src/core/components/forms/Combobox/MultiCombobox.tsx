@@ -142,7 +142,10 @@ function MultiCombobox<T extends { [key: string]: any }>(
           >
             <div className="mr-1 flex flex-1 flex-wrap items-center gap-2 truncate">
               {value?.map((val, i) => (
-                <Badge className="bg-gray-100 py-0 hover:bg-gray-50" key={i}>
+                <Badge
+                  className="bg-gray-100 py-0 hover:bg-gray-50 ring-gray-500/20"
+                  key={i}
+                >
                   {displayValue(val)}
                   {!disabled && !required && (
                     <XMarkIcon

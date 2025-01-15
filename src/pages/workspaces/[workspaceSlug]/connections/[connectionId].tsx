@@ -81,46 +81,48 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
             href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines#using-connections",
           },
         ]}
-      >
-        <WorkspaceLayout.Header className="flex items-center justify-between">
-          <Breadcrumbs withHome={false}>
-            <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/connections`}
-            >
-              {t("Connections")}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              isLast
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/pipelines/${encodeURIComponent(connection.id)}`}
-            >
-              {connection.name}
-            </Breadcrumbs.Part>
-          </Breadcrumbs>
-          <DeleteConnectionTrigger
-            workspace={workspace}
-            connection={connection}
-          >
-            {({ onClick }) => (
-              <Button
-                className="bg-red-500 hover:bg-red-700 focus:ring-red-500"
-                onClick={onClick}
-                leadingIcon={<TrashIcon className="w-4" />}
+        header={
+          <>
+            <Breadcrumbs withHome={false}>
+              <Breadcrumbs.Part
+                isFirst
+                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
               >
-                {t("Delete")}
-              </Button>
-            )}
-          </DeleteConnectionTrigger>
-        </WorkspaceLayout.Header>
+                {workspace.name}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                href={`/workspaces/${encodeURIComponent(
+                  workspace.slug,
+                )}/connections`}
+              >
+                {t("Connections")}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                isLast
+                href={`/workspaces/${encodeURIComponent(
+                  workspace.slug,
+                )}/pipelines/${encodeURIComponent(connection.id)}`}
+              >
+                {connection.name}
+              </Breadcrumbs.Part>
+            </Breadcrumbs>
+            <DeleteConnectionTrigger
+              workspace={workspace}
+              connection={connection}
+            >
+              {({ onClick }) => (
+                <Button
+                  className="bg-red-500 hover:bg-red-700 focus:ring-red-500"
+                  onClick={onClick}
+                  leadingIcon={<TrashIcon className="w-4" />}
+                >
+                  {t("Delete")}
+                </Button>
+              )}
+            </DeleteConnectionTrigger>
+          </>
+        }
+      >
         <WorkspaceLayout.PageContent>
           <DataCard item={connection} className="divide-y-2 divide-gray-100">
             <div>

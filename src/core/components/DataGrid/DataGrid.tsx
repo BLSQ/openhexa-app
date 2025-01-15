@@ -33,6 +33,7 @@ import {
   TableBody,
   TableCell,
   TableCellProps,
+  TableClasses,
   TableHead,
   TableRow,
 } from "../Table";
@@ -73,6 +74,7 @@ interface IDataGridProps {
   emptyLabel?: string;
   defaultSortBy?: SortingRule<object>[];
   pageSizeOptions?: number[];
+  headerClassName?: string;
   rowClassName?: string;
   spacing?: TableCellProps["spacing"];
 }
@@ -85,6 +87,7 @@ function DataGrid(props: DataGridProps) {
     children,
     data,
     rowClassName,
+    headerClassName,
     fixedLayout = true,
     onSelectionChange,
     emptyLabel = t("No elements to display"),
@@ -265,9 +268,9 @@ function DataGrid(props: DataGridProps) {
       <Overflow horizontal gradientWidth="w-12">
         <Table
           {...getTableProps()}
-          className={clsx(fixedLayout && "table-fixed")}
+          className={clsx(TableClasses.table, fixedLayout && "table-fixed")}
         >
-          <TableHead>
+          <TableHead className={headerClassName}>
             {headerGroups.map((headerGroup, i) => {
               const rowProps = headerGroup.getHeaderGroupProps();
               const { key: rowKey, ...otherRowProps } = rowProps;

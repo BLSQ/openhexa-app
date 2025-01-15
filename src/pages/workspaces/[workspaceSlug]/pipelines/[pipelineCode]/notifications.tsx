@@ -123,11 +123,14 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
             required={(_, __, values) => Boolean(values.enableScheduling)}
           />
         </DataCard.FormSection>
-        <div className="px-2 space-y-4">
-          <Title level={6} className="px-4">
+        <div>
+          <Title level={6} className="px-6 pt-4">
             {t("Notifications")}
           </Title>
-          <PipelineRecipients pipeline={pipeline} />
+
+          <div className="px-2 -mx-2">
+            <PipelineRecipients className="w-full" pipeline={pipeline} />
+          </div>
         </div>
       </PipelineLayout>
     </Page>

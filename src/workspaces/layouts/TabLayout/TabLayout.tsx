@@ -9,28 +9,13 @@ import { GetServerSidePropsContext } from "next";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { TabLayout_WorkspaceFragment } from "./TabLayout.generated";
 
-const TabLayoutHeader = ({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className: string;
-}) => <div className={className}>{children}</div>;
-
-const TabLayoutPageContent = ({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) => <div className={className}>{children}</div>;
-
 type TabLayoutProps = {
   workspace: TabLayout_WorkspaceFragment;
   item: any;
   currentTab: string;
   children: React.ReactNode;
   helpLinks?: { label: string; href: string }[];
+  header?: ReactNode | ReactNode[];
   tabs: { label: string; href: string; id: string }[];
   title?: string | ReactElement;
 };
@@ -42,20 +27,15 @@ const TabLayout = ({
   children,
   helpLinks,
   tabs,
+  header,
   title,
 }: TabLayoutProps) => {
-  const headerChild = React.Children.toArray(children).find(
-    (child) => React.isValidElement(child) && child.type === TabLayout.Header,
-  );
-
-  const contentChild = React.Children.toArray(children).find(
-    (child) =>
-      React.isValidElement(child) && child.type === TabLayout.PageContent,
-  );
-
   return (
-    <WorkspaceLayout workspace={workspace} helpLinks={helpLinks}>
-      <WorkspaceLayout.Header>{headerChild}</WorkspaceLayout.Header>
+    <WorkspaceLayout
+      workspace={workspace}
+      helpLinks={helpLinks}
+      header={header}
+    >
       <WorkspaceLayout.PageContent>
         {typeof title === "string" ? (
           <Title level={2} className="flex items-center justify-between">
@@ -66,7 +46,7 @@ const TabLayout = ({
         )}
         <DataCard item={item}>
           <LinkTabs className="mx-4 mt-2" tabs={tabs} selected={currentTab} />
-          {contentChild}
+          {children}
         </DataCard>
       </WorkspaceLayout.PageContent>
     </WorkspaceLayout>
@@ -89,8 +69,5 @@ TabLayout.fragments = {
     ${WorkspaceLayout.fragments.workspace}
   `,
 };
-
-TabLayout.Header = TabLayoutHeader;
-TabLayout.PageContent = TabLayoutPageContent;
 
 export default TabLayout;

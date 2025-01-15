@@ -1,5 +1,12 @@
-import { getApolloClient } from "core/helpers/apollo";
 import { gql } from "@apollo/client";
+import { getApolloClient } from "core/helpers/apollo";
+import { i18n } from "next-i18next";
+import {
+  CreateDatasetVersionError,
+  DeleteDatasetError,
+  DeleteDatasetLinkError,
+  SetMetadataAttributeError,
+} from "graphql/types";
 import {
   CreateDatasetVersionFileMutation,
   CreateDatasetVersionFileMutationVariables,
@@ -9,18 +16,18 @@ import {
   DeleteDatasetLinkMutationVariables,
   DeleteDatasetMutation,
   DeleteDatasetMutationVariables,
+  DeleteMetadataAttributeMutation,
+  DeleteMetadataAttributeMutationVariables,
   GenerateDatasetUploadUrlMutation,
   GenerateDatasetUploadUrlMutationVariables,
   PrepareVersionFileDownloadMutation,
   PrepareVersionFileDownloadMutationVariables,
+  SetMetadataAttributeMutation,
+  SetMetadataAttributeMutationVariables,
   UpdateDatasetMutation,
   UpdateDatasetMutationVariables,
 } from "./dataset.generated";
-import {
-  CreateDatasetVersionError,
-  DeleteDatasetError,
-  DeleteDatasetLinkError,
-} from "graphql/types";
+import { v4 as uuidv4 } from "uuid";
 
 export async function updateDataset(
   datasetId: string,
@@ -323,4 +330,104 @@ export function percentage(part: number, total: number): number {
     throw new Error("Total must be a valid positive number");
   }
   return Number(((part / total) * 100).toFixed(2));
+}
+
+export async function setColumnMetadataAttribute(
+  targetId: string,
+  columnKey: string,
+  key: string | null,
+  label: string | null,
+  value: string,
+) {
+  const client = getApolloClient();
+
+  if (!key) {
+    // Generate a key using the column key
+    key = `${columnKey}.${uuidv4()}`;
+  }
+
+  // Create the attribute
+  const { data } = await client.mutate<
+    SetMetadataAttributeMutation,
+    SetMetadataAttributeMutationVariables
+  >({
+    mutation: gql`
+      mutation SetMetadataAttribute($input: SetMetadataAttributeInput!) {
+        setMetadataAttribute(input: $input) {
+          success
+          errors
+          attribute {
+            id
+            key
+            label
+            value
+            system
+          }
+        }
+      }
+    `,
+    variables: {
+      input: {
+        targetId,
+        key,
+        label,
+        value,
+      },
+    },
+  });
+
+  if (data?.setMetadataAttribute.success) {
+    return data.setMetadataAttribute.attribute;
+  } else if (
+    data?.setMetadataAttribute.errors.includes(
+      SetMetadataAttributeError.PermissionDenied,
+    )
+  ) {
+    throw new Error(
+      i18n!.t("You do not have permission to set this attribute"),
+    );
+  } else if (
+    data?.setMetadataAttribute.errors.includes(
+      SetMetadataAttributeError.TargetNotFound,
+    )
+  ) {
+    throw new Error(
+      i18n!.t("The object on which you try to add metadata does not exist"),
+    );
+  } else {
+    throw new Error(i18n!.t("An unknown error occurred"));
+  }
+}
+
+export async function deleteColumnMetadataAttribute(
+  targetId: string,
+  key: string,
+) {
+  const client = getApolloClient();
+
+  const { data } = await client.mutate<
+    DeleteMetadataAttributeMutation,
+    DeleteMetadataAttributeMutationVariables
+  >({
+    mutation: gql`
+      mutation DeleteMetadataAttribute($input: DeleteMetadataAttributeInput!) {
+        deleteMetadataAttribute(input: $input) {
+          success
+          errors
+        }
+      }
+    `,
+    variables: {
+      input: {
+        targetId,
+        key,
+      },
+    },
+  });
+
+  if (data?.deleteMetadataAttribute.success) {
+    return true;
+  } else {
+    throw new Error("An unknown error occurred");
+  }
 }

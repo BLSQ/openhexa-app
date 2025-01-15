@@ -87,36 +87,38 @@ const WorkspaceDatasetsPage: NextPageWithLayout = (props: Props) => {
             href: "https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK#working-with-datasets",
           },
         ]}
-      >
-        <WorkspaceLayout.Header className="flex items-center gap-2">
-          <Breadcrumbs withHome={false} className="flex-1">
-            <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              isLast
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/datasets`}
-            >
-              {t("Datasets")}
-            </Breadcrumbs.Part>
-          </Breadcrumbs>
-
-          {workspace.permissions.createDataset && (
-            <>
-              <Button
-                leadingIcon={<PlusIcon className="h-4 w-4" />}
-                onClick={() => setDialogOpen(true)}
+        header={
+          <>
+            <Breadcrumbs withHome={false} className="flex-1">
+              <Breadcrumbs.Part
+                isFirst
+                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
               >
-                {t("Create")}
-              </Button>
-            </>
-          )}
-        </WorkspaceLayout.Header>
+                {workspace.name}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                isLast
+                href={`/workspaces/${encodeURIComponent(
+                  workspace.slug,
+                )}/datasets`}
+              >
+                {t("Datasets")}
+              </Breadcrumbs.Part>
+            </Breadcrumbs>
+
+            {workspace.permissions.createDataset && (
+              <>
+                <Button
+                  leadingIcon={<PlusIcon className="h-4 w-4" />}
+                  onClick={() => setDialogOpen(true)}
+                >
+                  {t("Create")}
+                </Button>
+              </>
+            )}
+          </>
+        }
+      >
         <WorkspaceLayout.PageContent className="flex flex-col">
           {workspace.pinnedDatasets.items.length > 0 && (
             <>

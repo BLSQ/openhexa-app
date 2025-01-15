@@ -137,74 +137,75 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
             href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines",
           },
         ]}
+        header={
+          <>
+            <Breadcrumbs withHome={false}>
+              <Breadcrumbs.Part
+                isFirst
+                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+              >
+                {workspace.name}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                href={`/workspaces/${encodeURIComponent(
+                  workspace.slug,
+                )}/pipelines`}
+              >
+                {t("Pipelines")}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                href={`/workspaces/${encodeURIComponent(
+                  workspace.slug,
+                )}/pipelines/${encodeURIComponent(run.pipeline.code)}`}
+              >
+                {run.pipeline.name}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                href={`/workspaces/${encodeURIComponent(
+                  workspace.slug,
+                )}/pipelines/${encodeURIComponent(run.pipeline.code)}/runs`}
+              >
+                {t("Runs")}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                isLast
+                href={{
+                  pathname:
+                    "/workspaces/[workspaceSlug]/pipelines/[pipelineCode]/runs/[runId]",
+                  query: {
+                    workspaceSlug: workspace.slug,
+                    pipelineCode: run.pipeline.code,
+                    runId: run.id,
+                  },
+                }}
+              >
+                <Time datetime={run.executionDate} />
+              </Breadcrumbs.Part>
+            </Breadcrumbs>
+            {isFinished && (
+              <RunPipelineDialog pipeline={run.pipeline} run={run}>
+                {(onClick) => (
+                  <Button
+                    leadingIcon={<ArrowPathIcon className="h-4 w-4" />}
+                    onClick={onClick}
+                  >
+                    {t("Run again")}
+                  </Button>
+                )}
+              </RunPipelineDialog>
+            )}
+            {!isFinished && run.pipeline.permissions.stopPipeline && (
+              <Button
+                leadingIcon={<StopIcon className="h-4 w-4" />}
+                className="bg-red-500 hover:bg-red-700 focus:ring-red-500"
+                onClick={() => setIsStopPipelineDialogOpen(true)}
+              >
+                {t("Stop")}
+              </Button>
+            )}
+          </>
+        }
       >
-        <WorkspaceLayout.Header className="flex items-center justify-between gap-2">
-          <Breadcrumbs withHome={false}>
-            <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/pipelines`}
-            >
-              {t("Pipelines")}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/pipelines/${encodeURIComponent(run.pipeline.code)}`}
-            >
-              {run.pipeline.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/pipelines/${encodeURIComponent(run.pipeline.code)}/runs`}
-            >
-              {t("Runs")}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              isLast
-              href={{
-                pathname:
-                  "/workspaces/[workspaceSlug]/pipelines/[pipelineCode]/runs/[runId]",
-                query: {
-                  workspaceSlug: workspace.slug,
-                  pipelineCode: run.pipeline.code,
-                  runId: run.id,
-                },
-              }}
-            >
-              <Time datetime={run.executionDate} />
-            </Breadcrumbs.Part>
-          </Breadcrumbs>
-          {isFinished && (
-            <RunPipelineDialog pipeline={run.pipeline} run={run}>
-              {(onClick) => (
-                <Button
-                  leadingIcon={<ArrowPathIcon className="h-4 w-4" />}
-                  onClick={onClick}
-                >
-                  {t("Run again")}
-                </Button>
-              )}
-            </RunPipelineDialog>
-          )}
-          {!isFinished && run.pipeline.permissions.stopPipeline && (
-            <Button
-              leadingIcon={<StopIcon className="h-4 w-4" />}
-              className="bg-red-500 hover:bg-red-700 focus:ring-red-500"
-              onClick={() => setIsStopPipelineDialogOpen(true)}
-            >
-              {t("Stop")}
-            </Button>
-          )}
-        </WorkspaceLayout.Header>
-
         <WorkspaceLayout.PageContent>
           <Block className="divide-y-2 divide-gray-100">
             <Block.Header>

@@ -40,7 +40,7 @@ const PipelineRunStatusBadge = (props: PipelineRunStatusBadgeProps) => {
   }, [run.status]);
 
   return (
-    <Badge className={clsx(className, "flex items-center")}>
+    <Badge className={clsx(className, "flex items-center ring-gray-500/20")}>
       {loading && <Spinner className="mr-1" size="xs" />}
       {formatPipelineRunStatus(run.status)}
     </Badge>

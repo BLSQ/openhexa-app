@@ -81,69 +81,71 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
           href: "https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK#working-with-datasets",
         },
       ]}
-    >
-      <WorkspaceLayout.Header className="flex items-center justify-between gap-2">
-        <Breadcrumbs withHome={false} className="flex-1">
-          <Breadcrumbs.Part
-            isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-          >
-            {workspace.name}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}/datasets`}
-          >
-            {t("Datasets")}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            isLast={!extraBreadcrumbs.length}
-            href={`/workspaces/${encodeURIComponent(
-              workspace.slug,
-            )}/datasets/${encodeURIComponent(dataset.slug)}`}
-          >
-            {dataset.name}
-          </Breadcrumbs.Part>
-          {extraBreadcrumbs.map(({ href, title }, index) => (
+      header={
+        <>
+          <Breadcrumbs withHome={false} className="flex-1">
             <Breadcrumbs.Part
-              key={index}
-              isLast={extraBreadcrumbs.length - 1 == index}
-              href={href}
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
             >
-              {title}
+              {workspace.name}
             </Breadcrumbs.Part>
-          ))}
-        </Breadcrumbs>
-        <PinDatasetButton link={datasetLink} />
-        {dataset.permissions.createVersion && isWorkspaceSource && (
-          <Button
-            leadingIcon={<PlusIcon className="h-4 w-4" />}
-            onClick={() => setUploadDialogOpen(true)}
-          >
-            {t("Create new version")}
-          </Button>
-        )}
-        {isWorkspaceSource && dataset.permissions.delete && (
-          <DeleteDatasetTrigger
-            dataset={dataset}
-            onDelete={() =>
-              router.push({
-                pathname: "/workspaces/[workspaceSlug]/datasets",
-                query: { workspaceSlug: workspace.slug },
-              })
-            }
-          >
-            {({ onClick }) => (
-              <Button
-                variant={"danger"}
-                onClick={onClick}
-                leadingIcon={<TrashIcon className="w-4" />}
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}/datasets`}
+            >
+              {t("Datasets")}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              isLast={!extraBreadcrumbs.length}
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/datasets/${encodeURIComponent(dataset.slug)}`}
+            >
+              {dataset.name}
+            </Breadcrumbs.Part>
+            {extraBreadcrumbs.map(({ href, title }, index) => (
+              <Breadcrumbs.Part
+                key={index}
+                isLast={extraBreadcrumbs.length - 1 == index}
+                href={href}
               >
-                {t("Delete")}
-              </Button>
-            )}
-          </DeleteDatasetTrigger>
-        )}
-      </WorkspaceLayout.Header>
+                {title}
+              </Breadcrumbs.Part>
+            ))}
+          </Breadcrumbs>
+          <PinDatasetButton link={datasetLink} />
+          {dataset.permissions.createVersion && isWorkspaceSource && (
+            <Button
+              leadingIcon={<PlusIcon className="h-4 w-4" />}
+              onClick={() => setUploadDialogOpen(true)}
+            >
+              {t("Create new version")}
+            </Button>
+          )}
+          {isWorkspaceSource && dataset.permissions.delete && (
+            <DeleteDatasetTrigger
+              dataset={dataset}
+              onDelete={() =>
+                router.push({
+                  pathname: "/workspaces/[workspaceSlug]/datasets",
+                  query: { workspaceSlug: workspace.slug },
+                })
+              }
+            >
+              {({ onClick }) => (
+                <Button
+                  variant={"danger"}
+                  onClick={onClick}
+                  leadingIcon={<TrashIcon className="w-4" />}
+                >
+                  {t("Delete")}
+                </Button>
+              )}
+            </DeleteDatasetTrigger>
+          )}
+        </>
+      }
+    >
       <WorkspaceLayout.PageContent>
         <Title level={2} className="flex items-center justify-between">
           {dataset.name}

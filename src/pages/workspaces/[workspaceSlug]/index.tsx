@@ -51,20 +51,22 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
             label: t("Editing the workspace homepage"),
           },
         ]}
+        header={
+          <>
+            <Breadcrumbs withHome={false}>
+              <Breadcrumbs.Part
+                isFirst
+                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+              >
+                {workspace.name}
+              </Breadcrumbs.Part>
+            </Breadcrumbs>
+            {workspace.permissions.update && (
+              <Button onClick={() => setIsDialogOpen(true)}>{t("Edit")}</Button>
+            )}
+          </>
+        }
       >
-        <WorkspaceLayout.Header className="flex items-center justify-between">
-          <Breadcrumbs withHome={false}>
-            <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-          </Breadcrumbs>
-          {workspace.permissions.update && (
-            <Button onClick={() => setIsDialogOpen(true)}>{t("Edit")}</Button>
-          )}
-        </WorkspaceLayout.Header>
         <WorkspaceLayout.PageContent>
           <Block>
             <Block.Content>

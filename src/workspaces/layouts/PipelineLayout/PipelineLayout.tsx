@@ -71,81 +71,81 @@ const PipelineLayout = (props: PipelineLayoutProps) => {
         },
       ]}
       title={pipeline.name ?? t("Pipeline")}
-    >
-      <TabLayout.Header className="flex items-center justify-between gap-2">
-        <Breadcrumbs withHome={false} className="flex-1">
-          <Breadcrumbs.Part
-            isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-          >
-            {workspace.name}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}/pipelines`}
-          >
-            {t("Pipelines")}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            isLast={!extraBreadcrumbs.length}
-            href={`/workspaces/${encodeURIComponent(
-              workspace.slug,
-            )}/pipelines/${encodeURIComponent(pipeline.code)}`}
-          >
-            {pipeline.name}
-          </Breadcrumbs.Part>
-          {extraBreadcrumbs.map(({ href, title }, index) => (
+      header={
+        <>
+          <Breadcrumbs withHome={false} className="flex-1">
             <Breadcrumbs.Part
-              key={index}
-              isLast={extraBreadcrumbs.length - 1 == index}
-              href={href}
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
             >
-              {title}
+              {workspace.name}
             </Breadcrumbs.Part>
-          ))}
-        </Breadcrumbs>
-        <div className="flex items-center gap-2">
-          {pipeline.currentVersion && (
-            <DownloadPipelineVersion version={pipeline.currentVersion}>
-              {({ onClick, isDownloading }) => (
-                <Button onClick={onClick} variant="secondary">
-                  {isDownloading && <Spinner size="sm" />}
-                  {t("Download code")}
-                </Button>
-              )}
-            </DownloadPipelineVersion>
-          )}
-          {pipeline.permissions.run && (
-            <RunPipelineDialog pipeline={pipeline}>
-              {(onClick) => (
-                <Button
-                  leadingIcon={<PlayIcon className="w-4" />}
-                  onClick={onClick}
-                >
-                  {t("Run")}
-                </Button>
-              )}
-            </RunPipelineDialog>
-          )}
-          {pipeline.permissions.delete && (
-            <Button
-              onClick={() => setDeletePipelineDialogOpen(true)}
-              className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
-              leadingIcon={<TrashIcon className="w-4" />}
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}/pipelines`}
             >
-              {t("Delete")}
-            </Button>
-          )}
-        </div>
-      </TabLayout.Header>
-      <TabLayout.PageContent>
-        {children}
-        <DeletePipelineDialog
-          open={isDeletePipelineDialogOpen}
-          onClose={() => setDeletePipelineDialogOpen(false)}
-          pipeline={pipeline}
-          workspace={workspace}
-        />
-      </TabLayout.PageContent>
+              {t("Pipelines")}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              isLast={!extraBreadcrumbs.length}
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/pipelines/${encodeURIComponent(pipeline.code)}`}
+            >
+              {pipeline.name}
+            </Breadcrumbs.Part>
+            {extraBreadcrumbs.map(({ href, title }, index) => (
+              <Breadcrumbs.Part
+                key={index}
+                isLast={extraBreadcrumbs.length - 1 == index}
+                href={href}
+              >
+                {title}
+              </Breadcrumbs.Part>
+            ))}
+          </Breadcrumbs>
+          <div className="flex items-center gap-2">
+            {pipeline.currentVersion && (
+              <DownloadPipelineVersion version={pipeline.currentVersion}>
+                {({ onClick, isDownloading }) => (
+                  <Button onClick={onClick} variant="secondary">
+                    {isDownloading && <Spinner size="sm" />}
+                    {t("Download code")}
+                  </Button>
+                )}
+              </DownloadPipelineVersion>
+            )}
+            {pipeline.permissions.run && (
+              <RunPipelineDialog pipeline={pipeline}>
+                {(onClick) => (
+                  <Button
+                    leadingIcon={<PlayIcon className="w-4" />}
+                    onClick={onClick}
+                  >
+                    {t("Run")}
+                  </Button>
+                )}
+              </RunPipelineDialog>
+            )}
+            {pipeline.permissions.delete && (
+              <Button
+                onClick={() => setDeletePipelineDialogOpen(true)}
+                className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
+                leadingIcon={<TrashIcon className="w-4" />}
+              >
+                {t("Delete")}
+              </Button>
+            )}
+          </div>
+        </>
+      }
+    >
+      {children}
+      <DeletePipelineDialog
+        open={isDeletePipelineDialogOpen}
+        onClose={() => setDeletePipelineDialogOpen(false)}
+        pipeline={pipeline}
+        workspace={workspace}
+      />
     </TabLayout>
   );
 };

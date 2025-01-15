@@ -58,25 +58,27 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
             href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHEXA#using-the-workspace-database",
           },
         ]}
+        header={
+          <>
+            <Breadcrumbs withHome={false}>
+              <Breadcrumbs.Part
+                isFirst
+                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+              >
+                {workspace.name}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                isLast
+                href={`/workspaces/${encodeURIComponent(
+                  workspace.slug,
+                )}/databases`}
+              >
+                {t("Database")}
+              </Breadcrumbs.Part>
+            </Breadcrumbs>
+          </>
+        }
       >
-        <WorkspaceLayout.Header className="flex items-center justify-between">
-          <Breadcrumbs withHome={false}>
-            <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              isLast
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/databases`}
-            >
-              {t("Database")}
-            </Breadcrumbs.Part>
-          </Breadcrumbs>
-        </WorkspaceLayout.Header>
         <WorkspaceLayout.PageContent className="space-y-8">
           <Title level={2}>{t("Tables")}</Title>
           <DataGrid
