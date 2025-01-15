@@ -75,7 +75,7 @@ class ConnectiontTest(GraphQLTestCase):
         ]
 
         with patch(
-            "hexa.connections.dhis2_client_helper.DHIS2", return_value=dhis2_mock
+            "hexa.workspaces.dhis2_client_helper.DHIS2", return_value=dhis2_mock
         ):
             response = self.run_query(
                 """
@@ -151,7 +151,7 @@ class ConnectiontTest(GraphQLTestCase):
         dhis2_mock.meta.organisation_units.side_effect = DHIS2Error("Connection error")
 
         with patch(
-            "hexa.connections.dhis2_client_helper.DHIS2", return_value=dhis2_mock
+            "hexa.workspaces.dhis2_client_helper.DHIS2", return_value=dhis2_mock
         ):
             response = self.run_query(
                 """
@@ -184,7 +184,7 @@ class ConnectiontTest(GraphQLTestCase):
         dhis2_mock.meta.organisation_units.side_effect = Exception("Unknown error")
 
         with patch(
-            "hexa.connections.dhis2_client_helper.DHIS2", return_value=dhis2_mock
+            "hexa.workspaces.dhis2_client_helper.DHIS2", return_value=dhis2_mock
         ):
             response = self.run_query(
                 """
