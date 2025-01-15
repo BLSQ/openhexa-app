@@ -1,7 +1,7 @@
 from openhexa.toolbox.dhis2 import DHIS2
 
+from hexa.connections.models import Connection
 from hexa.user_management.models import User
-from hexa.workspaces.models import Connection
 
 
 def get_client_by_slug(slug: str, user: User) -> DHIS2 | None:
