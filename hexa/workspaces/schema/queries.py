@@ -2,7 +2,6 @@ from ariadne import QueryType
 
 from hexa.core.graphql import result_page
 
-from ..dhis2_client_helper import get_client_by_slug
 from ..models import (
     Connection,
     Workspace,
@@ -60,12 +59,6 @@ def resolve_pending_workspace_invitations(_, info, page=1, per_page=10):
         email=request.user.email, status=WorkspaceInvitationStatus.PENDING
     ).order_by("-created_at")
     return result_page(qs, page=page, per_page=per_page)
-
-
-@workspace_queries.field("dhis2connection")
-def resolve_dhis2_connection(_, info, slug):
-    request = info.context["request"]
-    return get_client_by_slug(slug, request.user)
 
 
 bindables = [

@@ -79,26 +79,33 @@ class ConnectiontTest(GraphQLTestCase):
         ):
             response = self.run_query(
                 """
-                {
-                    dhis2connection(slug: "dhis2-connection-1") {
-                        query(type: "organisationUnits") {
-                            data {
-                                    id
-                                    name
-                                }
-                            errors
+                query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!) {
+                connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug){
+                    ... on DHIS2Connection {
+                        queryMetadata(type: "ORGANISATION_UNITS") {
+                                items {
+                                        id
+                                        name
+                                      }
+                                error
+                            }
                         }
                     }
                 }
-                """
+                """,
+                variables={
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "connectionSlug": "dhis2-connection-1",
+                },
             )
+            print(response)
             self.assertEqual(
-                response["data"],
+                response["items"],
                 {
                     "dhis2connection": {
                         "query": {
-                            "data": [{"id": "1", "name": "Org Unit 1"}],
-                            "errors": [],
+                            "items": [{"id": "1", "name": "Org Unit 1"}],
+                            "error": None,
                         }
                     }
                 },
