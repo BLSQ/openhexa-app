@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.77.0](https://github.com/BLSQ/openhexa-app/compare/0.76.4...0.77.0) (2025-01-14)
+
+
+### Features
+
+* **Datasets:** User defined annotations on dataset files #Pathways-157 ([35ca450](https://github.com/BLSQ/openhexa-app/commit/35ca4506bc28ff1a12e89e2d6e6bc2ce7fb953f7))
+* Hexa 1117 dhis2 graphql interface ([#888](https://github.com/BLSQ/openhexa-app/issues/888)) ([b72ed47](https://github.com/BLSQ/openhexa-app/commit/b72ed47c48327e43b965dec47147e373a9d8c34f))
+* HEXA-1120 template pipelines and template versions models + endpoint to create template ([#874](https://github.com/BLSQ/openhexa-app/issues/874)) ([22ed895](https://github.com/BLSQ/openhexa-app/commit/22ed895f2b31febd1c715ff2bff4eaaf8fc48311))
+* HEXA-1122 list of templates in create pipeline dialog ([#885](https://github.com/BLSQ/openhexa-app/issues/885)) ([be8b201](https://github.com/BLSQ/openhexa-app/commit/be8b20168aeb0383d10eb4bbcc333a12c6d60ab2))
+* HEXA-1125 endpoint for source template and check if a new template version is available for upgrade ([#890](https://github.com/BLSQ/openhexa-app/issues/890)) ([272e5d4](https://github.com/BLSQ/openhexa-app/commit/272e5d4353cc3c29f72c3652d8c5a03b6169bf48))
+* HEXA-1146 Propagate pipeline default parameters in new versions ([#883](https://github.com/BLSQ/openhexa-app/issues/883)) ([6e518f6](https://github.com/BLSQ/openhexa-app/commit/6e518f6b19f90844bc8456eaa645914244a04be9))
+
+
+### Bug Fixes
+
+* **Mixpanel:** Set a timeout on the mixpanel requests & never retry to send events ([#895](https://github.com/BLSQ/openhexa-app/issues/895)) ([4b60171](https://github.com/BLSQ/openhexa-app/commit/4b60171118c37cc3d6752ab6eed39728c48dca71))
+* **Mixpanel:** Set a timeout on the mixpanel requests & never retry to send events ([#897](https://github.com/BLSQ/openhexa-app/issues/897)) ([6f6b9ef](https://github.com/BLSQ/openhexa-app/commit/6f6b9efdf6fac695523aba1ea2ade3fcaf858cec))
+
 ## [0.76.4](https://github.com/BLSQ/openhexa-app/compare/0.76.3...0.76.4) (2024-12-16)
 
 
