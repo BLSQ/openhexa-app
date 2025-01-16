@@ -8,7 +8,7 @@ affine==2.4.0
     # via rasterio
 annotated-types==0.7.0
     # via pydantic
-anyio==4.7.0
+anyio==4.8.0
     # via starlette
 ariadne==0.24.0
     # via
@@ -33,7 +33,7 @@ boto3==1.35.90
     # via
     #   -r requirements.in
     #   moto
-botocore==1.35.90
+botocore==1.35.99
     # via
     #   boto3
     #   moto
@@ -60,7 +60,7 @@ cffi==1.17.1
     #   eccodes
 cfgrib==0.9.15.0
     # via openhexa-toolbox
-charset-normalizer==3.4.0
+charset-normalizer==3.4.1
     # via requests
 click==8.1.8
     # via
@@ -84,7 +84,7 @@ cryptography==44.0.0
     # via
     #   -r requirements.in
     #   moto
-datapi==0.1.1
+datapi==0.1.2
     # via
     #   cdsapi
     #   openhexa-toolbox
@@ -109,7 +109,7 @@ django-cors-headers==4.6.0
     # via -r requirements.in
 django-countries==7.6.1
     # via -r requirements.in
-django-debug-toolbar==4.4.6
+django-debug-toolbar==5.0.1
     # via -r requirements.in
 django-ltree==0.5.3
     # via -r requirements.in
@@ -182,17 +182,17 @@ googleapis-common-protos[grpc]==1.66.0
     #   grpcio-status
 graphql-core==3.2.5
     # via ariadne
-grpc-google-iam-v1==0.13.1
+grpc-google-iam-v1==0.14.0
     # via
     #   google-cloud-iam
     #   google-cloud-logging
-grpcio==1.68.1
+grpcio==1.69.0
     # via
     #   google-api-core
     #   googleapis-common-protos
     #   grpc-google-iam-v1
     #   grpcio-status
-grpcio-status==1.68.1
+grpcio-status==1.69.0
     # via google-api-core
 gunicorn==23.0.0
     # via -r requirements.in
@@ -202,7 +202,7 @@ idna==3.10
     #   requests
 importlib-metadata==8.5.0
     # via opentelemetry-api
-jinja2==3.1.4
+jinja2==3.1.5
     # via moto
 jmespath==1.0.1
     # via
@@ -222,14 +222,14 @@ mixpanel==4.10.1
     # via -r requirements.in
 morecantile==6.2.0
     # via rio-cogeo
-moto[s3]==5.0.25
+moto[s3]==5.0.26
     # via -r requirements.in
 multiurl==0.3.3
     # via
     #   cads-api-client
     #   datapi
     #   openhexa-toolbox
-numpy==2.0.2
+numpy==2.2.1
     # via
     #   cfgrib
     #   eccodes
@@ -264,7 +264,7 @@ pandas==2.2.3
     #   xarray
 pip-tools==7.4.1
     # via -r requirements.in
-polars==1.17.1
+polars==1.19.0
     # via openhexa-toolbox
 proto-plus==1.25.0
     # via
@@ -272,7 +272,7 @@ proto-plus==1.25.0
     #   google-cloud-appengine-logging
     #   google-cloud-iam
     #   google-cloud-logging
-protobuf==5.29.2
+protobuf==5.29.3
     # via
     #   google-api-core
     #   google-cloud-appengine-logging
@@ -287,7 +287,7 @@ psycopg2-binary==2.9.10
     # via -r requirements.in
 py-partiql-parser==0.6.1
     # via moto
-pyarrow==18.1.0
+pyarrow==19.0.0
     # via -r requirements.in
 pyasn1==0.6.1
     # via
@@ -297,21 +297,21 @@ pyasn1-modules==0.4.1
     # via google-auth
 pycparser==2.22
     # via cffi
-pydantic==2.10.4
+pydantic==2.10.5
     # via
     #   morecantile
     #   rio-cogeo
 pydantic-core==2.27.2
     # via pydantic
-pygments==2.18.0
+pygments==2.19.1
     # via dhis2-py
 pyjwt==2.10.1
     # via openhexa-toolbox
 pyogrio==0.10.0
     # via geopandas
-pyparsing==3.2.0
+pyparsing==3.2.1
     # via rasterio
-pyproj==3.6.1
+pyproj==3.7.0
     # via
     #   geopandas
     #   morecantile
@@ -366,7 +366,7 @@ requests==2.32.3
     #   responses
 requests-oauthlib==2.0.0
     # via kubernetes
-responses==0.25.3
+responses==0.25.6
     # via
     #   -r requirements.in
     #   moto
@@ -376,7 +376,7 @@ rsa==4.9
     # via google-auth
 s3transfer==0.10.4
     # via boto3
-sentry-sdk==2.19.2
+sentry-sdk==2.20.0
     # via -r requirements.in
 shapely==2.0.6
     # via
@@ -394,7 +394,7 @@ sqlparse==0.5.3
     # via
     #   django
     #   django-debug-toolbar
-starlette==0.45.0
+starlette==0.45.2
     # via ariadne
 stringcase==1.2.0
     # via -r requirements.in
@@ -422,7 +422,7 @@ ua-parser==1.0.0
     # via -r requirements.in
 ua-parser-builtins==0.18.0.post1
     # via ua-parser
-urllib3==1.26.20
+urllib3==2.3.0
     # via
     #   botocore
     #   docker
@@ -439,9 +439,9 @@ wheel==0.45.1
     # via pip-tools
 whitenoise==6.8.2
     # via -r requirements.in
-wrapt==1.17.0
+wrapt==1.17.2
     # via deprecated
-xarray==2024.11.0
+xarray==2025.1.1
     # via openhexa-toolbox
 xmltodict==0.14.2
     # via moto
