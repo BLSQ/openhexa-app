@@ -120,7 +120,3 @@ type PipelineTemplateVersionPermissions {
 extend type WorkspacePermissions {
   createPipelineTemplateVersion: Boolean!  # Indicates if a pipeline template version can be created in the workspace.
 }
-extend type MePermissions {
-  # Indicates whether the user can create a pipeline template version.
-  createPipelineTemplateVersion: Boolean!
-}
