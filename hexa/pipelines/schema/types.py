@@ -135,8 +135,10 @@ def resolve_pipeline_permissions_create_template_version(
     current_version_has_template = pipeline.last_version and hasattr(
         pipeline.last_version, "template_version"
     )
+    pipeline_is_created_from_a_template = pipeline.source_template
     return (
         user_has_permission
+        and not pipeline_is_created_from_a_template
         and not current_version_has_template
         and pipeline.type != PipelineType.NOTEBOOK
     )
