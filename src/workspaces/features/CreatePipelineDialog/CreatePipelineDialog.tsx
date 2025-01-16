@@ -17,6 +17,8 @@ import {
   CreatePipelineDialog_WorkspaceFragment,
   GenerateWorkspaceTokenMutation,
 } from "./CreatePipelineDialog.generated";
+import useFeature from "identity/hooks/useFeature";
+import PipelineTemplateTable from "../PipelineTemplatesTable";
 
 type CreatePipelineDialogProps = {
   open: boolean;
@@ -28,6 +30,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   const { t } = useTranslation();
   const { open, onClose, workspace } = props;
   const router = useRouter();
+  const [pipelineTemplateFeatureEnabled] = useFeature("pipeline_templates");
   const [tabIndex, setTabIndex] = useState<number | null>(0);
 
   const [mutate] = useCreatePipelineMutation();
@@ -108,12 +111,17 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   }, [open]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="max-w-2xl">
-      <form onSubmit={form.handleSubmit}>
-        <Dialog.Title>{t("How to create a pipeline")}</Dialog.Title>
-        <Dialog.Content className="space-y-4">
-          <Tabs onChange={(index) => setTabIndex(index)}>
-            <Tabs.Tab label={t("From Notebook")} className={"space-y-2 pt-2"}>
+    <Dialog open={open} onClose={onClose} maxWidth="max-w-6xl">
+      <Dialog.Title>{t("How to create a pipeline")}</Dialog.Title>
+      <Dialog.Content className="space-y-4">
+        <Tabs onChange={(index) => setTabIndex(index)}>
+          {pipelineTemplateFeatureEnabled && (
+            <Tabs.Tab label={t("From Template")} className={"space-y-2 pt-2"}>
+              <PipelineTemplateTable workspace={workspace} />
+            </Tabs.Tab>
+          )}
+          <Tabs.Tab label={t("From Notebook")} className={"space-y-2 pt-2"}>
+            <form onSubmit={form.handleSubmit}>
               <p className="mb-6">
                 <Trans>
                   You can use a Notebook from the workspace file system to be
@@ -139,6 +147,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
                   error={
                     form.touched.notebookObject && form.errors.notebookObject
                   }
+                  className={"max-w-[230px]"}
                 >
                   <BucketObjectPicker
                     onChange={(value) =>
@@ -157,73 +166,70 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
                   <p className={"text-sm text-red-500"}>{form.submitError}</p>
                 )}
               </div>
-            </Tabs.Tab>
-            <Tabs.Tab
-              label={t("From OpenHEXA CLI")}
-              className={"space-y-2 pt-2"}
-            >
-              <p className="mb-6">
-                <Trans>
-                  In order to create pipelines, you need to setup the{" "}
-                  <code>openhexa</code> CLI using the{" "}
-                  <Link
-                    target="_blank"
-                    href="https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines"
-                  >
-                    guide
-                  </Link>{" "}
-                  on Github.
-                </Trans>
-              </p>
-              <p>
-                {t(
-                  "Configure the workspace in your terminal using the following commands:",
-                )}
-              </p>
+            </form>
+          </Tabs.Tab>
+          <Tabs.Tab label={t("From OpenHEXA CLI")} className={"space-y-2 pt-2"}>
+            <p className="mb-6">
+              <Trans>
+                In order to create pipelines, you need to setup the{" "}
+                <code>openhexa</code> CLI using the{" "}
+                <Link
+                  target="_blank"
+                  href="https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines"
+                >
+                  guide
+                </Link>{" "}
+                on Github.
+              </Trans>
+            </p>
+            <p>
+              {t(
+                "Configure the workspace in your terminal using the following commands:",
+              )}
+            </p>
 
-              <pre className=" bg-slate-100 p-2 font-mono text-sm leading-6">
-                <div>
-                  <span className="select-none text-gray-400">$ </span>pip
-                  install openhexa.sdk
-                  <span className="select-none text-gray-400">
-                    {t("# if not installed")}
-                  </span>
-                </div>
-                <div>
-                  <span className="select-none text-gray-400">$ </span>
-                  <span className="whitespace-normal">
-                    openhexa workspaces add <b>{workspace.slug}</b>
-                  </span>
-                </div>
-              </pre>
-              <Field name="token" label={t("Access Token")} required>
-                <div className="flex w-full flex-1 items-center gap-1">
-                  {token ? (
-                    <Textarea className="font-mono" value={token} readOnly />
-                  ) : (
-                    <Button variant="secondary" onClick={onTokenClick}>
-                      {t("Show")}
-                    </Button>
-                  )}
-                </div>
-              </Field>
-            </Tabs.Tab>
-          </Tabs>
-          {form.submitError && (
-            <p className={"text-sm text-red-500"}>{form.submitError}</p>
-          )}
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onClick={onClose} variant="outlined">
-            {t("Close")}
+            <pre className=" bg-slate-100 p-2 font-mono text-sm leading-6">
+              <div>
+                <span className="select-none text-gray-400">$ </span>pip install
+                openhexa.sdk
+                <span className="select-none text-gray-400">
+                  {t("# if not installed")}
+                </span>
+              </div>
+              <div>
+                <span className="select-none text-gray-400">$ </span>
+                <span className="whitespace-normal">
+                  openhexa workspaces add <b>{workspace.slug}</b>
+                </span>
+              </div>
+            </pre>
+            <Field name="token" label={t("Access Token")} required>
+              <div className="flex w-full flex-1 items-center gap-1">
+                {token ? (
+                  <Textarea className="font-mono" value={token} readOnly />
+                ) : (
+                  <Button variant="secondary" onClick={onTokenClick}>
+                    {t("Show")}
+                  </Button>
+                )}
+              </div>
+            </Field>
+          </Tabs.Tab>
+        </Tabs>
+        {form.submitError && (
+          <p className={"text-sm text-red-500"}>{form.submitError}</p>
+        )}
+      </Dialog.Content>
+      <Dialog.Actions>
+        <Button onClick={onClose} variant="outlined">
+          {t("Close")}
+        </Button>
+        {tabIndex === 1 && (
+          <Button disabled={form.isSubmitting} type="submit">
+            {t("Create")}
           </Button>
-          {tabIndex === 0 && (
-            <Button disabled={form.isSubmitting} type="submit">
-              {t("Create")}
-            </Button>
-          )}
-        </Dialog.Actions>
-      </form>
+        )}
+      </Dialog.Actions>
     </Dialog>
   );
 };

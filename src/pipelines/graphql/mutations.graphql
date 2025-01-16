@@ -10,3 +10,31 @@ mutation UpdatePipeline($input: UpdateDAGInput!) {
     }
   }
 }
+mutation CreatePipelineTemplateVersion(
+  $input: CreatePipelineTemplateVersionInput!
+) {
+  createPipelineTemplateVersion(input: $input) {
+    success
+    errors
+    pipelineTemplate {
+      name
+      code
+      versions {
+        versionNumber
+      }
+    }
+  }
+}
+mutation CreatePipelineFromTemplateVersion(
+  $input: CreatePipelineFromTemplateVersionInput!
+) {
+  createPipelineFromTemplateVersion(input: $input) {
+    success
+    errors
+    pipeline {
+      id
+      name
+      code
+    }
+  }
+}

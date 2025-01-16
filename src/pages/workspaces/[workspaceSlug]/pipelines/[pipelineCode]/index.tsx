@@ -19,10 +19,10 @@ import { useState } from "react";
 import GeneratePipelineWebhookUrlDialog from "workspaces/features/GeneratePipelineWebhookUrlDialog";
 import PipelineVersionConfigDialog from "workspaces/features/PipelineVersionConfigDialog";
 import {
+  useWorkspacePipelinePageQuery,
   WorkspacePipelinePageDocument,
   WorkspacePipelinePageQuery,
   WorkspacePipelinePageQueryVariables,
-  useWorkspacePipelinePageQuery,
 } from "workspaces/graphql/queries.generated";
 import {
   formatPipelineType,
@@ -44,6 +44,8 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const [isGenerateWebhookUrlDialogOpen, setIsGenerateWebhookUrlDialogOpen] =
     useState(false);
   const [isWebhookFeatureEnabled] = useFeature("pipeline_webhook");
+  const [isPipelineTemplateFeatureEnabled] = useFeature("pipeline_templates");
+
   const { data } = useWorkspacePipelinePageQuery({
     variables: {
       workspaceSlug,
@@ -151,6 +153,26 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                   >
                     {property.displayValue.versionName}
                   </Link>
+                </div>
+              )}
+            </RenderProperty>
+          )}
+          {isPipelineTemplateFeatureEnabled && pipeline.sourceTemplate && (
+            <RenderProperty
+              id="source_remplate"
+              accessor={"sourceTemplate.name"}
+              label={t("Source Template")}
+              readonly
+            >
+              {(sourceTemplateName) => (
+                <div className="flex items-center gap-2">
+                  <p>{sourceTemplateName.displayValue}</p>
+                  {pipeline.newTemplateVersionAvailable &&
+                    pipeline.permissions.createVersion && (
+                      <Button variant={"secondary"} size={"sm"}>
+                        {t("Upgrade to latest version")}
+                      </Button>
+                    )}
                 </div>
               )}
             </RenderProperty>

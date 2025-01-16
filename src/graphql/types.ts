@@ -2820,6 +2820,7 @@ export type PipelineParameter = {
 /** Represents the permissions for a pipeline. */
 export type PipelinePermissions = {
   __typename?: 'PipelinePermissions';
+  createTemplateVersion: Scalars['Boolean']['output'];
   createVersion: Scalars['Boolean']['output'];
   delete: Scalars['Boolean']['output'];
   run: Scalars['Boolean']['output'];
@@ -3180,6 +3181,7 @@ export type Query = {
   pipelineByCode?: Maybe<Pipeline>;
   /** Retrieves a pipeline run by ID. */
   pipelineRun?: Maybe<PipelineRun>;
+  /** Search pipeline templates. */
   pipelineTemplates: PipelineTemplatePage;
   /** Retrieves a pipeline version by ID. */
   pipelineVersion?: Maybe<PipelineVersion>;

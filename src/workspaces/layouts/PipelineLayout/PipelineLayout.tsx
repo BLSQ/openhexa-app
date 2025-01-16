@@ -16,6 +16,8 @@ import {
   PipelineLayout_PipelineFragment,
   PipelineLayout_WorkspaceFragment,
 } from "./PipelineLayout.generated";
+import PublishPipelineDialog from "workspaces/features/PublishPipelineDialog";
+import useFeature from "identity/hooks/useFeature";
 
 type PipelineLayoutProps = {
   pipeline: PipelineLayout_PipelineFragment;
@@ -35,8 +37,12 @@ const PipelineLayout = (props: PipelineLayoutProps) => {
   } = props;
 
   const { t } = useTranslation();
+  const [isPublishPipelineDialogOpen, setPublishPipelineDialogOpen] =
+    useState(false);
   const [isDeletePipelineDialogOpen, setDeletePipelineDialogOpen] =
     useState(false);
+
+  const [pipelineTemplateFeatureEnabled] = useFeature("pipeline_templates");
 
   return (
     <TabLayout
@@ -104,6 +110,17 @@ const PipelineLayout = (props: PipelineLayoutProps) => {
             ))}
           </Breadcrumbs>
           <div className="flex items-center gap-2">
+            {pipelineTemplateFeatureEnabled &&
+              pipeline.permissions.createTemplateVersion && (
+                <Button
+                  onClick={() => setPublishPipelineDialogOpen(true)}
+                  variant={"secondary"}
+                >
+                  {pipeline.template
+                    ? t("Publish a new Template Version")
+                    : t("Publish as Template")}
+                </Button>
+              )}
             {pipeline.currentVersion && (
               <DownloadPipelineVersion version={pipeline.currentVersion}>
                 {({ onClick, isDownloading }) => (
@@ -146,6 +163,12 @@ const PipelineLayout = (props: PipelineLayoutProps) => {
         pipeline={pipeline}
         workspace={workspace}
       />
+      <PublishPipelineDialog
+        open={isPublishPipelineDialogOpen}
+        onClose={() => setPublishPipelineDialogOpen(false)}
+        pipeline={pipeline}
+        workspace={workspace}
+      />
     </TabLayout>
   );
 };
@@ -173,6 +196,11 @@ PipelineLayout.fragments = {
         run
         delete
         update
+        createTemplateVersion
+      }
+      template {
+        id
+        name
       }
       currentVersion {
         id
@@ -180,6 +208,9 @@ PipelineLayout.fragments = {
         description
         config
         externalLink
+        templateVersion {
+          id
+        }
         ...PipelineVersionPicker_version
         ...DownloadPipelineVersion_version
       }

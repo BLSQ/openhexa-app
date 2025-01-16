@@ -61,10 +61,7 @@ query WorkspaceNotebooksPage($workspaceSlug: String!) {
   }
 }
 
-query WorkspacePipelinePage(
-  $workspaceSlug: String!
-  $pipelineCode: String!
-) {
+query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
@@ -78,6 +75,8 @@ query WorkspacePipelinePage(
       update
       schedule
       delete
+      createVersion
+      createTemplateVersion
     }
     webhookUrl
     webhookEnabled
@@ -89,6 +88,11 @@ query WorkspacePipelinePage(
     schedule
     type
     notebookPath
+    sourceTemplate {
+      id
+      name
+    }
+    newTemplateVersionAvailable
     currentVersion {
       id
       versionName
@@ -162,7 +166,7 @@ query WorkspacePipelineNotificationsPage(
     code
     type
     schedule
-    permissions{
+    permissions {
       schedule
       update
     }
