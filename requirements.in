@@ -2,7 +2,7 @@ ariadne
 ariadne_django
 colorhash
 cryptography
-Django
+Django>=5
 django-cors-headers
 django-countries
 django-debug-toolbar
