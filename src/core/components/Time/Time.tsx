@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import useRelativeTime from "core/hooks/useRelativeTime";
 import { DateTime, DateTimeOptions } from "luxon";
-import { memo, useMemo } from "react";
+import { useMemo } from "react";
 
 type Props = {
   datetime: string;
@@ -12,34 +12,28 @@ type Props = {
 
 const Time = (props: Props) => {
   const datetime = useMemo(
-    () => DateTime.fromISO(props.datetime),
+    // By default, all dates from the backend are in UTC
+    () => DateTime.fromISO(props.datetime).toLocal(),
     [props.datetime],
   );
 
   const relativeDate = useRelativeTime(datetime);
 
-  const value = useMemo(() => {
-    if (props.relative) {
-      return relativeDate;
-    } else {
-      return datetime.toLocaleString(props.format ?? DateTime.DATETIME_SHORT);
-    }
-    // We use the toggle variable to force React to recompute this value
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [datetime, props.format, props.relative, relativeDate]);
-
   if (!datetime?.isValid) return null;
 
+  const isoDate = datetime.toISO();
   return (
     <time
       suppressHydrationWarning={true}
-      title={datetime.toISO() ?? undefined}
-      dateTime={datetime.toISO() ?? undefined}
+      title={isoDate ?? undefined}
+      dateTime={isoDate ?? undefined}
       className={clsx("whitespace-nowrap", props.className)}
     >
-      {value}
+      {props.relative
+        ? relativeDate
+        : datetime.toLocaleString(props.format ?? DateTime.DATETIME_SHORT)}
     </time>
   );
 };
 
-export default memo(Time);
+export default Time;

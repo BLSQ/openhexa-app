@@ -1,23 +1,28 @@
-import Head from "next/head";
 import { ApolloProvider } from "@apollo/client";
-import { useApollo } from "core/helpers/apollo";
-import DefaultLayout from "core/layouts/default";
-import { AppPropsWithLayout } from "core/helpers/types";
-import { appWithTranslation } from "next-i18next";
-import NavigationProgress from "nextjs-progressbar";
-import "../styles/globals.css";
-import { useEffect } from "react";
 import { setUser } from "@sentry/nextjs";
-import { Settings } from "luxon";
-import { MeProvider } from "identity/hooks/useMe";
 import ErrorBoundary from "core/components/ErrorBoundary/ErrorBoundary";
+import { useApollo } from "core/helpers/apollo";
+import { AppPropsWithLayout } from "core/helpers/types";
+import DefaultLayout from "core/layouts/default";
+import { MeProvider } from "identity/hooks/useMe";
+import { Settings } from "luxon";
+import { appWithTranslation } from "next-i18next";
+import Head from "next/head";
+import NavigationProgress from "nextjs-progressbar";
+import { useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "../styles/globals.css";
 
-// Set the default locale & timezone to be used on server and client.
-// This should be changed to use the correct lang and tz of the user when it's available.
-// Fixes #OPENHEXA-D7 Hydration error
-Settings.defaultZone = "Europe/Brussels";
+// Set the default timezone to use on the client
+if (typeof window !== "undefined") {
+  try {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    Settings.defaultZone = timeZone;
+  } catch (e) {
+    console.error(e);
+  }
+}
 
 function App({ Component, pageProps }: AppPropsWithLayout) {
   const apolloClient = useApollo(pageProps);
