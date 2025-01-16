@@ -12,6 +12,7 @@ from hexa.pipelines.models import (
     Pipeline,
     PipelineNotificationLevel,
     PipelineRun,
+    PipelineType,
     PipelineVersion,
 )
 from hexa.workspaces.models import Workspace
@@ -120,6 +121,24 @@ def resolve_pipeline_permissions_stop_pipeline(pipeline: Pipeline, info, **kwarg
     request = info.context["request"]
     return request.user.is_authenticated and request.user.has_perm(
         "pipelines.stop_pipeline", pipeline
+    )
+
+
+@pipeline_permissions.field("createTemplateVersion")
+def resolve_pipeline_permissions_create_template_version(
+    pipeline: Pipeline, info, **kwargs
+):
+    request = info.context["request"]
+    user_has_permission = request.user.is_authenticated and request.user.has_perm(
+        "pipeline_templates.create_pipeline_template_version", pipeline.workspace
+    )
+    current_version_has_template = pipeline.last_version and hasattr(
+        pipeline.last_version, "template_version"
+    )
+    return (
+        user_has_permission
+        and not current_version_has_template
+        and pipeline.type != PipelineType.NOTEBOOK
     )
 
 
