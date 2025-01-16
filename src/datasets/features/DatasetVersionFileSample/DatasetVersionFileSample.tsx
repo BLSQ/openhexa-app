@@ -82,7 +82,7 @@ const SmartPreviewer = ({
         src={file.downloadUrl}
         type={file.contentType}
         width="100%"
-        height="100%"
+        height="720"
       ></embed>
     );
   }
