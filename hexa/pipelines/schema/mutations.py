@@ -593,7 +593,7 @@ def resolve_upgrade_pipeline_version_from_template(_, info, **kwargs):
     input = kwargs["input"]
     try:
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
-            id=input.get("pipelineId")
+            id=input.get("pipeline_id")
         )
     except Pipeline.DoesNotExist:
         return {
