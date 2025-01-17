@@ -134,7 +134,7 @@ class PipelineTemplateVersion(models.Model):
     ) -> PipelineVersion:
         pipeline = pipeline or self._create_pipeline(workspace)
         source_version = self.source_pipeline_version
-        return PipelineVersion.objects.create_(
+        return PipelineVersion.objects.create(
             source_template_version=self,
             user=principal,
             pipeline=pipeline,
