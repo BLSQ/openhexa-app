@@ -605,10 +605,12 @@ def resolve_upgrade_pipeline_version_from_template(_, info, **kwargs):
     if not pipeline.is_new_template_version_available:
         return {"success": False, "errors": ["NO_NEW_TEMPLATE_VERSION_AVAILABLE"]}
 
-    pipeline_version = pipeline.source_template.last_version.create_pipeline_version(
-        workspace=pipeline.workspace,
-        user=request.user,
-        pipeline=pipeline,
+    pipeline_version = (
+        pipeline.source_template.last_version.create_pipeline_version_if_has_perm(
+            principal=request.user,
+            workspace=pipeline.workspace,
+            pipeline=pipeline,
+        )
     )
     return {"success": True, "errors": [], "pipeline_version": pipeline_version}
 

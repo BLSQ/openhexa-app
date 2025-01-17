@@ -11,6 +11,7 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.pipelines.models import Pipeline, PipelineAlreadyExistsError, PipelineVersion
+from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 
@@ -100,7 +101,7 @@ class PipelineTemplateVersion(models.Model):
 
     objects = PipelineTemplateVersionQuerySet.as_manager()
 
-    def _create_pipeline(self, workspace):
+    def _create_pipeline(self, workspace: Workspace) -> Pipeline:
         source_pipeline = self.template.source_pipeline
         if Pipeline.objects.filter(
             workspace=workspace, code=source_pipeline.code
@@ -117,12 +118,14 @@ class PipelineTemplateVersion(models.Model):
             workspace=workspace,
         )
 
-    def create_pipeline_version(self, workspace, user, pipeline=None):
+    def create_pipeline_version_if_has_perm(
+        self, principal: User, workspace: Workspace, pipeline=None
+    ) -> PipelineVersion:
         pipeline = pipeline or self._create_pipeline(workspace)
         source_version = self.source_pipeline_version
         return PipelineVersion.objects.create(
             source_template_version=self,
-            user=user,
+            user=principal,
             pipeline=pipeline,
             zipfile=source_version.zipfile,
             parameters=source_version.parameters,

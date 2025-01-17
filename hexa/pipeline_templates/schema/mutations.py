@@ -96,7 +96,9 @@ def resolve_create_pipeline_from_template_version(_, info, **kwargs):
         return {"success": False, "errors": ["PIPELINE_TEMPLATE_VERSION_NOT_FOUND"]}
 
     try:
-        pipeline_version = template_version.create_pipeline_version(workspace, user)
+        pipeline_version = template_version.create_pipeline_version_if_has_perm(
+            user, workspace
+        )
     except PipelineAlreadyExistsError:
         return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}
 
