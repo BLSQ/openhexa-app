@@ -2702,7 +2702,7 @@ class PipelinesV2Test(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "id": pipeline_id,
+                    "pipeline_id": pipeline_id,
                 }
             },
         )

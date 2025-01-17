@@ -334,7 +334,7 @@ input DeletePipelineRecipientInput {
 Represents the input for upgrading a pipeline version from the latest template version.
 """
 input UpgradePipelineVersionFromTemplateInput {
-  id: UUID!
+  pipeline_id: UUID!
 }
 
 """
