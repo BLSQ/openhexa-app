@@ -118,12 +118,12 @@ class PipelineTemplateVersion(models.Model):
             workspace=workspace,
         )
 
-    def create_pipeline_version_if_has_perm(
+    def create_pipeline_version(
         self, principal: User, workspace: Workspace, pipeline=None
     ) -> PipelineVersion:
         pipeline = pipeline or self._create_pipeline(workspace)
         source_version = self.source_pipeline_version
-        return PipelineVersion.objects.create(
+        return PipelineVersion.objects.create_(
             source_template_version=self,
             user=principal,
             pipeline=pipeline,
