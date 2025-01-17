@@ -600,6 +600,8 @@ def resolve_upgrade_pipeline_version_from_template(_, info, **kwargs):
             "success": False,
             "errors": ["PIPELINE_NOT_FOUND"],
         }
+    if not request.user.has_perm("pipelines.create_pipeline_version", pipeline):
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
     if not pipeline.source_template:
         return {"success": False, "errors": ["PIPELINE_NOT_FROM_TEMPLATE"]}
     if not pipeline.is_new_template_version_available:
