@@ -73,8 +73,6 @@ class SchemaTest(GraphQLTestCase):
             feature=cls.FEATURE, user=cls.USER_TAYLOR, config={"config_argument": 10}
         )
 
-        cls.TWO_FACTOR_FEATURE = Feature.objects.create(code="two_factor")
-        FeatureFlag.objects.create(feature=cls.TWO_FACTOR_FEATURE, user=cls.USER_JANE)
         cls.USER_JANE.emaildevice_set.create(name="default", user=cls.USER_JANE)
 
     def test_me_anonymous(self):
@@ -1056,7 +1054,6 @@ class TwoFactorTest(GraphQLTestCase):
         cls.USER_WITH_DEVICE_2.emaildevice_set.create(
             name="default", user=cls.USER_WITH_DEVICE_2
         ).save()
-        Feature.objects.create(code="two_factor", force_activate=True)
 
     def test_me_without_two_factor(self):
         self.client.force_login(self.USER_REGULAR)
@@ -1351,7 +1348,6 @@ class RegisterTest(GraphQLTestCase):
             "john@bluesquarehub.com",
             "regular",
         )
-        cls.FEATURE = Feature.objects.create(code="workspaces")
         cls.WORKSPACE = Workspace.objects.create(name="Workspace")
         cls.WORKSPACE_INVITATION = WorkspaceInvitation.objects.create(
             workspace=cls.WORKSPACE,

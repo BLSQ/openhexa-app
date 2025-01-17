@@ -47,16 +47,9 @@ class WorkspaceTest(GraphQLTestCase):
         )
         cls.USER_JOE = User.objects.create_user("joe@bluesquarehub.com", "joepassword")
 
-        cls.FEATURE_WORKSPACES = Feature.objects.create(code="workspaces")
-
-        FeatureFlag.objects.create(feature=cls.FEATURE_WORKSPACES, user=cls.USER_JULIA)
-
         FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces.create"),
-            user=cls.USER_JULIA,
-        )
-        FeatureFlag.objects.create(
-            feature=cls.FEATURE_WORKSPACES, user=cls.USER_PENDING
+            feature=Feature.objects.create(code="workspaces.prevent_create"),
+            user=cls.USER_SABRINA,
         )
 
         cls.USER_WORKSPACE_ADMIN = User.objects.create_user(
@@ -149,38 +142,8 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["createWorkspace"],
         )
 
-    def test_create_workspace_if_feature_flag_enabled(self):
+    def test_create_workspace(self):
         self.client.force_login(self.USER_JOE)
-        r = self.run_query(
-            """
-            mutation createWorkspace($input:CreateWorkspaceInput!) {
-                createWorkspace(input: $input) {
-                    success
-                    workspace {
-                        name
-                        description
-                    }
-                    errors
-                }
-            }
-            """,
-            {
-                "input": {
-                    "name": "Cameroon workspace",
-                    "description": "Description",
-                }
-            },
-        )
-        self.assertEqual(
-            {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
-            r["data"]["createWorkspace"],
-        )
-
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces.create"), user=self.USER_JOE
-        )
-        FeatureFlag.objects.create(feature=self.FEATURE_WORKSPACES, user=self.USER_JOE)
-
         r = self.run_query(
             """
             mutation createWorkspace($input:CreateWorkspaceInput!) {
@@ -210,6 +173,37 @@ class WorkspaceTest(GraphQLTestCase):
                 },
                 "errors": [],
             },
+            r["data"]["createWorkspace"],
+        )
+
+    def test_create_workspace_prevent_create(self):
+        FeatureFlag.objects.create(
+            feature=Feature.objects.create(code="workspaces.prevent_create"),
+            user=self.USER_JOE,
+        )
+        self.client.force_login(self.USER_JOE)
+        r = self.run_query(
+            """
+            mutation createWorkspace($input:CreateWorkspaceInput!) {
+                createWorkspace(input: $input) {
+                    success
+                    workspace {
+                        name
+                        description
+                    }
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "name": "Cameroon workspace",
+                    "description": "Description",
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
             r["data"]["createWorkspace"],
         )
 
@@ -575,7 +569,6 @@ class WorkspaceTest(GraphQLTestCase):
 
     def test_invite_workspace_member(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
-        self.assertFalse(self.USER_SABRINA.has_feature_flag("workspaces"))
         r = self.run_query(
             """
             mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {

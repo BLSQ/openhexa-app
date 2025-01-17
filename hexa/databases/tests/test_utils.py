@@ -14,7 +14,7 @@ from hexa.databases.utils import (
     get_table_rows,
 )
 from hexa.plugins.connector_postgresql.models import Database
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 
@@ -50,13 +50,6 @@ class DatabaseUtilsTest(TestCase):
         )
         cls.USER_SABRINA = User.objects.create_user(
             "sabrina@bluesquarehub.com", "standardpassword"
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces"), user=cls.USER_SABRINA
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces.create"),
-            user=cls.USER_SABRINA,
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(

@@ -9,7 +9,7 @@ from django.urls import reverse
 
 from hexa.core.test import TestCase
 from hexa.pipelines.models import Pipeline, PipelineRunTrigger, PipelineType
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -20,24 +20,18 @@ from hexa.workspaces.models import (
 class ViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.WORKSPACE_FEATURE = Feature.objects.create(code="workspaces")
         cls.USER_JANE = User.objects.create_user(
             "jane@bluesquarehub.com",
             "janerocks2",
         )
-        FeatureFlag.objects.create(feature=cls.WORKSPACE_FEATURE, user=cls.USER_JANE)
 
         cls.USER_JULIA = User.objects.create_user(
             "julia@bluesquarehub.com",
             "juliaspassword",
         )
-        FeatureFlag.objects.create(feature=cls.WORKSPACE_FEATURE, user=cls.USER_JULIA)
 
         cls.USER_SUPERUSER = User.objects.create_user(
             "rebecca@bluesquarehub.com", "standardpassword", is_superuser=True
-        )
-        FeatureFlag.objects.create(
-            feature=cls.WORKSPACE_FEATURE, user=cls.USER_SUPERUSER
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(

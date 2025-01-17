@@ -2,7 +2,7 @@ import responses
 from django.conf import settings
 
 from hexa.core.test import GraphQLTestCase
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -25,9 +25,6 @@ class NotebooksTest(GraphQLTestCase):
 
         cls.USER_JULIA = User.objects.create_user(
             "julia@bluesquarehub.com", "juliaspassword", is_superuser=True
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces"), user=cls.USER_JULIA
         )
 
         cls.USER_WORKSPACE_ADMIN = User.objects.create_user(
