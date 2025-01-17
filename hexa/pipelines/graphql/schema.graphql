@@ -180,6 +180,7 @@ type PipelinePermissions {
   schedule: Boolean!  # Indicates if the pipeline can be scheduled.
   createVersion: Boolean!  # Indicates if a new version of the pipeline can be created.
   stopPipeline: Boolean!  # Indicates if the pipeline can be stopped.
+  createTemplateVersion: Boolean!  # Indicates if a new template version can be created.
 }
 
 extend type WorkspacePermissions {

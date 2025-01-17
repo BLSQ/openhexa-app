@@ -2717,3 +2717,41 @@ class PipelinesV2Test(GraphQLTestCase):
                 "versionNumber"
             ],
         )
+
+    def _get_pipeline(self, pipeline_id):
+        return self.run_query(
+            """
+                query ($id: UUID!) {
+                    pipeline(id: $id) {
+                        permissions {
+                            createTemplateVersion
+                        }
+                    }
+                }
+            """,
+            {"id": str(pipeline_id)},
+        )
+
+    def test_permission_to_create_template_version(self):
+        self.client.force_login(self.USER_ROOT)
+        source_pipeline = Pipeline.objects.create(
+            code="source_pipeline", workspace=self.WS1, type=PipelineType.NOTEBOOK
+        )
+        source_pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            name="Version 1",
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters=[],
+        )
+        r = self._get_pipeline(source_pipeline.id)
+        self.assertFalse(r["data"]["pipeline"]["permissions"]["createTemplateVersion"])
+        source_pipeline.type = PipelineType.ZIPFILE
+        source_pipeline.save()
+        r = self._get_pipeline(source_pipeline.id)
+        self.assertTrue(r["data"]["pipeline"]["permissions"]["createTemplateVersion"])
+        template = source_pipeline.get_or_create_template(
+            "Template", "template", "Description", {}
+        )
+        template.create_version(source_pipeline.last_version)
+        r = self._get_pipeline(source_pipeline.id)
+        self.assertFalse(r["data"]["pipeline"]["permissions"]["createTemplateVersion"])

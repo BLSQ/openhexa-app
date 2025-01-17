@@ -1,7 +1,6 @@
 import base64
 
 from ariadne import EnumType, ObjectType, UnionType
-from django.http import HttpRequest
 from django.urls import reverse
 from sentry_sdk import capture_exception
 
@@ -13,9 +12,9 @@ from hexa.pipelines.models import (
     Pipeline,
     PipelineNotificationLevel,
     PipelineRun,
+    PipelineType,
     PipelineVersion,
 )
-from hexa.user_management.schema import me_permissions_object
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_permissions
 
@@ -122,6 +121,26 @@ def resolve_pipeline_permissions_stop_pipeline(pipeline: Pipeline, info, **kwarg
     request = info.context["request"]
     return request.user.is_authenticated and request.user.has_perm(
         "pipelines.stop_pipeline", pipeline
+    )
+
+
+@pipeline_permissions.field("createTemplateVersion")
+def resolve_pipeline_permissions_create_template_version(
+    pipeline: Pipeline, info, **kwargs
+):
+    request = info.context["request"]
+    user_has_permission = request.user.is_authenticated and request.user.has_perm(
+        "pipeline_templates.create_pipeline_template_version", pipeline.workspace
+    )
+    current_version_has_template = pipeline.last_version and hasattr(
+        pipeline.last_version, "template_version"
+    )
+    pipeline_is_created_from_a_template = pipeline.source_template
+    return (
+        user_has_permission
+        and not pipeline_is_created_from_a_template
+        and not current_version_has_template
+        and pipeline.type != PipelineType.NOTEBOOK
     )
 
 
@@ -302,16 +321,6 @@ def resolve_pipeline_run_outputs(run: PipelineRun, info, **kwargs):
 @pipeline_run_object.field("datasetVersions")
 def resolve_pipeline_run_dataset_version(run: PipelineRun, info, **kwargs):
     return run.dataset_versions.all()
-
-
-@me_permissions_object.field("createPipelineTemplateVersion")
-def resolve_me_permissions_create_pipeline_template_version(me, info):
-    request: HttpRequest = info.context["request"]
-    return (
-        request.user.has_perm("pipeline_templates.create_pipeline_template")
-        if request.user.is_authenticated
-        else False
-    )
 
 
 bindables = [
