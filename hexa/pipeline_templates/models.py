@@ -53,13 +53,15 @@ class PipelineTemplate(SoftDeletedModel):
     objects = DefaultSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
 
-    def create_version(self, source_pipeline_version):
-        template_version = PipelineTemplateVersion.objects.create(
+    def create_version(
+        self, source_pipeline_version: PipelineVersion, changelog: str
+    ) -> "PipelineTemplateVersion":
+        return PipelineTemplateVersion.objects.create(
             template=self,
             version_number=self.versions.count() + 1,
+            changelog=changelog,
             source_pipeline_version=source_pipeline_version,
         )
-        return template_version
 
     def upgrade(
         self,
@@ -103,6 +105,7 @@ class PipelineTemplateVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     version_number = models.PositiveIntegerField(editable=False)
+    changelog = models.TextField(blank=True, null=True)
     template = models.ForeignKey(
         PipelineTemplate, on_delete=models.CASCADE, related_name="versions"
     )
