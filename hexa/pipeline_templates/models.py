@@ -61,6 +61,17 @@ class PipelineTemplate(SoftDeletedModel):
         )
         return template_version
 
+    def upgrade(
+        self,
+        principal: User,
+        pipeline: Pipeline,
+        template_version: "PipelineTemplateVersion" = None,
+    ) -> PipelineVersion:
+        template_version = template_version or self.last_version
+        return template_version.create_pipeline_version(
+            principal, pipeline.workspace, pipeline
+        )
+
     @property
     def last_version(self) -> "PipelineTemplateVersion":
         return self.versions.last()
