@@ -1,6 +1,7 @@
 from django.core import mail
 
 from hexa.core.test import TestCase
+from hexa.pipeline_templates.models import PipelineTemplate
 from hexa.pipelines.models import (
     Pipeline,
     PipelineNotificationLevel,
@@ -74,6 +75,13 @@ class PipelineTest(TestCase):
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
             cls.USER_ADMIN,
             name="Sandbox",
+            description="This is a sandbox workspace ",
+            countries=[{"code": "AL"}],
+        )
+
+        cls.WORKSPACE2 = Workspace.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            name="Sandbox2",
             description="This is a sandbox workspace ",
             countries=[{"code": "AL"}],
         )
@@ -308,3 +316,41 @@ class PipelineTest(TestCase):
         self.assertEqual(
             self.PIPELINE.template.name, template_name
         )  # Do not recreate a new template when it exists
+
+    def test_new_template_version(self):
+        template: PipelineTemplate = self.PIPELINE.get_or_create_template(
+            name="Test Template",
+            code="test_code",
+            description="Some description",
+            config={"key": "value"},
+        )
+        template_version = template.create_version(
+            self.PIPELINE.last_version, changelog="First version"
+        )
+
+        created_pipeline_version = template_version.create_pipeline_version(
+            self.USER_ADMIN, self.WORKSPACE2
+        )
+        created_pipeline = created_pipeline_version.pipeline
+        self.assertFalse(created_pipeline.is_new_template_version_available)
+        self.assertEqual(len(created_pipeline.new_template_versions), 0)
+
+        for i in range(2, 5):
+            self.PIPELINE.upload_new_version(
+                user=self.USER_ADMIN,
+                zipfile=b"",
+                parameters=[],
+                name=f"Version {i}",
+                config={},
+            )
+            template.create_version(
+                self.PIPELINE.last_version, changelog=f"Changelog {i}"
+            )
+
+        self.assertTrue(created_pipeline.is_new_template_version_available)
+        self.assertEqual(len(created_pipeline.new_template_versions), 3)
+
+        template.upgrade(self.USER_ADMIN, created_pipeline)
+
+        self.assertFalse(created_pipeline.is_new_template_version_available)
+        self.assertEqual(len(created_pipeline.new_template_versions), 0)
