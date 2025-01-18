@@ -473,7 +473,7 @@ class Pipeline(SoftDeletedModel):
         ).first()
         return self.source_template.versions.filter(
             created_at__gt=last_version_from_template.created_at
-        )
+        ).order_by("-created_at")
 
     @property
     def is_new_template_version_available(self) -> bool:
