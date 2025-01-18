@@ -97,7 +97,7 @@ def resolve_available_pipeline_versions(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     try:
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
-            id=kwargs["pipelineId"]
+            id=kwargs["pipeline_id"]
         )
     except Pipeline.DoesNotExist:
         return []
