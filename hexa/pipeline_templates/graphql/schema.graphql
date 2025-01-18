@@ -99,6 +99,7 @@ Represents a version of a pipeline template.
 type PipelineTemplateVersion {
   id: UUID!  # The ID of the pipeline template version.
   versionNumber: Int!  # The version number of the pipeline template version.
+  changelog: String  # The changelog of the pipeline template version.
   createdAt: DateTime!  # The creation date of the pipeline template version.
   template: PipelineTemplate!  # The pipeline template associated with the version.
 }
