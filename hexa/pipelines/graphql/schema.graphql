@@ -633,6 +633,11 @@ extend type Query {
   Retrieves a pipeline run by ID.
   """
   pipelineRun(id: UUID!): PipelineRun @loginRequired
+
+  """
+  Retrieves template versions available for upgrades for a pipeline.
+  """
+  availableUpgradePipelineTemplateVersions(pipelineId: UUID!): [PipelineTemplateVersion!]! @loginRequired
 }
 
 extend type Mutation {

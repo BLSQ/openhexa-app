@@ -92,6 +92,18 @@ def resolve_pipeline_version(_, info, **kwargs):
         return None
 
 
+@pipelines_query.field("availableUpgradePipelineTemplateVersions")
+def resolve_available_pipeline_versions(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            id=kwargs["pipelineId"]
+        )
+    except Pipeline.DoesNotExist:
+        return []
+    return pipeline.new_template_versions
+
+
 bindables = [
     pipelines_query,
 ]
