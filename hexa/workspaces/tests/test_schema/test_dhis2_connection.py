@@ -69,9 +69,7 @@ class ConnectiontTest(GraphQLTestCase):
             {"id": "1", "name": "Org Unit 1"}
         ]
 
-        with patch(
-            "hexa.workspaces.dhis2_client_helper.DHIS2", return_value=dhis2_mock
-        ):
+        with patch("hexa.workspaces.utils.DHIS2", return_value=dhis2_mock):
             response = self.run_query(
                 """
                 query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: String!) {
@@ -189,9 +187,7 @@ class ConnectiontTest(GraphQLTestCase):
             {"id": "1", "name": "Org Unit 1"}
         ]
 
-        with patch(
-            "hexa.workspaces.dhis2_client_helper.DHIS2", return_value=dhis2_mock
-        ):
+        with patch("hexa.workspaces.utils.DHIS2", return_value=dhis2_mock):
             response = self.run_query(
                 """
                 query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: String!) {
@@ -222,9 +218,7 @@ class ConnectiontTest(GraphQLTestCase):
         dhis2_mock = MagicMock()
         dhis2_mock.meta.organisation_units.side_effect = DHIS2Error("Connection error")
 
-        with patch(
-            "hexa.workspaces.dhis2_client_helper.DHIS2", return_value=dhis2_mock
-        ):
+        with patch("hexa.workspaces.utils.DHIS2", return_value=dhis2_mock):
             response = self.run_query(
                 """
                 query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: String!) {
@@ -262,9 +256,7 @@ class ConnectiontTest(GraphQLTestCase):
         dhis2_mock = MagicMock()
         dhis2_mock.meta.organisation_units.side_effect = Exception("Unknown error")
 
-        with patch(
-            "hexa.workspaces.dhis2_client_helper.DHIS2", return_value=dhis2_mock
-        ):
+        with patch("hexa.workspaces.utils.DHIS2", return_value=dhis2_mock):
             response = self.run_query(
                 """
                 query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: String!) {
