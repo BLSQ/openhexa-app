@@ -82,6 +82,8 @@ class ConnectiontTest(GraphQLTestCase):
                 query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: String!) {
                 connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug){
                     ... on DHIS2Connection {
+                        name
+                        slug
                         queryMetadata(type: $type) {
                                 items {
                                         id
