@@ -8,7 +8,7 @@ from django.utils.crypto import get_random_string
 from hexa.core.test import TestCase
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
 from hexa.files import storage
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -36,10 +36,6 @@ class BaseTestMixin:
         cls.USER_ADMIN = User.objects.create_user(
             "julia@bluesquarehub.com", "juliaspassword", is_superuser=True
         )
-        FEATURE = Feature.objects.create(code="workspaces")
-        FeatureFlag.objects.create(feature=FEATURE, user=cls.USER_ADMIN)
-        FeatureFlag.objects.create(feature=FEATURE, user=cls.USER_SERENA)
-        FeatureFlag.objects.create(feature=FEATURE, user=cls.USER_EDITOR)
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
             cls.USER_ADMIN, name="My Workspace", description="Test workspace"

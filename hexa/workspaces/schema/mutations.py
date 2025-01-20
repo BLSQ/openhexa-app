@@ -8,7 +8,7 @@ from django.http import HttpRequest
 
 from hexa.countries.models import Country
 from hexa.databases.utils import TableNotFound, delete_table
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import User
 
 from ..models import (
     AlreadyExists,
@@ -186,11 +186,6 @@ def resolve_join_workspace(_, info, **kwargs):
         ).exists():
             raise AlreadyExists(
                 f"Already got a membership for {request.user} and workspace {invitation.workspace.name}"
-            )
-
-        if not request.user.has_feature_flag("workspaces"):
-            FeatureFlag.objects.create(
-                feature=Feature.objects.get(code="workspaces"), user=request.user
             )
 
         # We create the membership

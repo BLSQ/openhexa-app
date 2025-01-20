@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
 from hexa.pipelines.models import Pipeline
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -34,15 +34,6 @@ class PipelineVersionsTest(GraphQLTestCase):
         cls.USER_SABRINA = User.objects.create_user(
             "sabrina@bluesquarehub.com",
             "standardpassword",
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces"), user=cls.USER_ADMIN
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces"), user=cls.USER_LAMBDA
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces"), user=cls.USER_SABRINA
         )
 
         with patch("hexa.workspaces.models.create_database"), patch(

@@ -33,26 +33,21 @@ class WorkspaceTest(TestCase):
             "julia@bluesquarehub.com", "juliaspassword"
         )
         FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces"), user=cls.USER_JULIA
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces.create"),
-            user=cls.USER_JULIA,
+            feature=Feature.objects.create(code="workspaces.prevent_create"),
+            user=cls.USER_SERENA,
         )
 
     def setUp(self) -> None:
         storage.reset()
         return super().setUp()
 
-    def test_create_workspace_regular_user(self):
+    def test_create_workspace_prevent_create_flag(self):
         with self.assertRaises(PermissionDenied):
-            workspace = Workspace.objects.create_if_has_perm(
+            Workspace.objects.create_if_has_perm(
                 self.USER_SERENA,
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
             )
-            workspace.save()
-            self.assertTrue("hexa-test-senegal-workspace" in storage.buckets)
 
     def test_create_workspace_no_slug(self):
         with patch("secrets.token_hex", lambda _: "mock"), patch(

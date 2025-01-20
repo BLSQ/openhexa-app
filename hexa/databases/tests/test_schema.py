@@ -6,7 +6,7 @@ from django.conf import settings
 from hexa.core.test import GraphQLTestCase
 from hexa.databases.utils import TableRowsPage
 from hexa.plugins.connector_postgresql.models import Database
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -31,13 +31,7 @@ class DatabaseTest(GraphQLTestCase):
             password="pwd",
             database="hexa-explore-demo",
         )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces"), user=cls.USER_JULIA
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces.create"),
-            user=cls.USER_JULIA,
-        )
+
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
             cls.USER_JULIA,
             name="Test Workspace",

@@ -215,9 +215,11 @@ def resolve_run_pipeline(_, info, **kwargs):
             trigger_mode=PipelineRunTrigger.MANUAL,
             config=input.get("config", {}),
             send_mail_notifications=input.get("send_mail_notifications", False),
-            log_level=PipelineRunLogLevel.DEBUG
-            if input.get("enable_debug_logs", False)
-            else PipelineRunLogLevel.INFO,
+            log_level=(
+                PipelineRunLogLevel.DEBUG
+                if input.get("enable_debug_logs", False)
+                else PipelineRunLogLevel.INFO
+            ),
         )
         track(
             request,
@@ -262,9 +264,7 @@ def resolve_pipeline_generate_webhook_url(_, info, **kwargs):
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
             id=input.get("id")
         )
-        if not request.user.has_perm(
-            "pipelines.update_pipeline", pipeline
-        ) or not request.user.has_feature_flag("pipeline_webhook"):
+        if not request.user.has_perm("pipelines.update_pipeline", pipeline):
             raise PermissionDenied
 
         if pipeline.webhook_enabled is False:

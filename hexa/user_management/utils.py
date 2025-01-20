@@ -16,9 +16,5 @@ def default_device(user, confirmed=True):
             return device
 
 
-def is_two_factor_available(user):
-    return user.is_authenticated and user.has_feature_flag("two_factor")
-
-
 def has_configured_two_factor(user):
-    return is_two_factor_available(user) and user_has_device(user)
+    return user.is_authenticated and user_has_device(user)
