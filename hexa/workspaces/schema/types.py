@@ -8,7 +8,6 @@ from hexa.core.graphql import result_page
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.user_management.schema import me_permissions_object
 
-from ..dhis2_client_helper import dhis2_client_from_connection, query_dhis2_metadata
 from ..models import (
     Connection,
     ConnectionField,
@@ -16,6 +15,7 @@ from ..models import (
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
 )
+from ..utils import dhis2_client_from_connection, query_dhis2_metadata
 
 workspace_object = ObjectType("Workspace")
 workspace_permissions = ObjectType("WorkspacePermissions")

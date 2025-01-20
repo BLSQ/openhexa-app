@@ -5,10 +5,6 @@ import responses
 
 from hexa.core.test import TestCase
 from hexa.user_management.models import User
-from hexa.workspaces.dhis2_client_helper import (
-    dhis2_client_from_connection,
-    query_dhis2_metadata,
-)
 from hexa.workspaces.models import (
     Connection,
     ConnectionType,
@@ -27,6 +23,7 @@ from hexa.workspaces.tests.fixtures.org_units import (
     org_units_groups,
     org_units_levels,
 )
+from hexa.workspaces.utils import dhis2_client_from_connection, query_dhis2_metadata
 
 
 class TestDHIS2Methods(TestCase):
