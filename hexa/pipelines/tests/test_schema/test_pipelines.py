@@ -2614,6 +2614,79 @@ class PipelinesV2Test(GraphQLTestCase):
         )
         self.assertEqual(True, r["data"]["pipeline"]["newTemplateVersionAvailable"])
 
+    def test_upgrade_pipeline_version_from_template(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+
+        source_pipeline = Pipeline.objects.create(
+            code="source_pipeline",
+            workspace=self.WS1,
+        )
+        source_pipeline_version1 = source_pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            name="Version 1",
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters=[],
+        )
+        source_pipeline_version2 = source_pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            name="Version 2",
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters=[],
+        )
+        template = source_pipeline.get_or_create_template(
+            "Template", "template", "Description", {}
+        )
+        template_version1 = template.create_version(source_pipeline_version1)
+        r = self.run_query(
+            """
+                mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
+                    createPipelineFromTemplateVersion(input: $input) {
+                        success errors pipeline { id currentVersion { versionNumber } }
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS2.slug,
+                    "pipelineTemplateVersionId": str(template_version1.id),
+                }
+            },
+        )
+        self.assertEqual(
+            1,
+            r["data"]["createPipelineFromTemplateVersion"]["pipeline"][
+                "currentVersion"
+            ]["versionNumber"],
+        )
+        pipeline_id = r["data"]["createPipelineFromTemplateVersion"]["pipeline"]["id"]
+        template.create_version(source_pipeline_version2)
+        r = self.run_query(
+            """
+                mutation upgradePipelineVersionFromTemplate($input: UpgradePipelineVersionFromTemplateInput!) {
+                    upgradePipelineVersionFromTemplate(input: $input) {
+                        success errors pipelineVersion {versionNumber}
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "pipelineId": pipeline_id,
+                }
+            },
+        )
+
+        self.assertEqual(
+            True, r["data"]["upgradePipelineVersionFromTemplate"]["success"]
+        )
+        self.assertEqual([], r["data"]["upgradePipelineVersionFromTemplate"]["errors"])
+        self.assertEqual(
+            2,
+            r["data"]["upgradePipelineVersionFromTemplate"]["pipelineVersion"][
+                "versionNumber"
+            ],
+        )
+
     def _get_pipeline(self, pipeline_id):
         return self.run_query(
             """

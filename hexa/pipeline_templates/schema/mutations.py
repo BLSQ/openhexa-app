@@ -3,7 +3,7 @@ from django.http import HttpRequest
 
 from hexa.analytics.api import track
 from hexa.pipeline_templates.models import PipelineTemplateVersion
-from hexa.pipelines.models import Pipeline, PipelineVersion
+from hexa.pipelines.models import Pipeline, PipelineAlreadyExistsError, PipelineVersion
 from hexa.workspaces.models import Workspace
 
 pipeline_template_mutations = MutationType()
@@ -78,13 +78,14 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
 @pipeline_template_mutations.field("createPipelineFromTemplateVersion")
 def resolve_create_pipeline_from_template_version(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    user = request.user
     input = kwargs["input"]
 
-    workspace = get_workspace(request.user, input.get("workspace_slug"))
+    workspace = get_workspace(user, input.get("workspace_slug"))
     if not workspace:
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
 
-    if not request.user.has_perm("pipelines.create_pipeline", workspace):
+    if not user.has_perm("pipelines.create_pipeline", workspace):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
     try:
@@ -94,21 +95,21 @@ def resolve_create_pipeline_from_template_version(_, info, **kwargs):
     except PipelineTemplateVersion.DoesNotExist:
         return {"success": False, "errors": ["PIPELINE_TEMPLATE_VERSION_NOT_FOUND"]}
 
-    pipeline_code = template_version.template.source_pipeline.code
-    if Pipeline.objects.filter(workspace=workspace, code=pipeline_code).exists():
+    try:
+        pipeline_version = template_version.create_pipeline_version(user, workspace)
+    except PipelineAlreadyExistsError:
         return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}
-    pipeline = template_version.create_pipeline(pipeline_code, workspace, request.user)
 
     track(
         request,
         "pipeline_templates.pipeline_created_from_template",
         {
-            "pipeline_id": str(pipeline.id),
+            "pipeline_id": str(pipeline_version.pipeline.id),
             "template_version_id": str(template_version.id),
             "workspace": workspace.slug,
         },
     )
-    return {"pipeline": pipeline, "success": True, "errors": []}
+    return {"pipeline": pipeline_version.pipeline, "success": True, "errors": []}
 
 
 bindables = [pipeline_template_mutations]
