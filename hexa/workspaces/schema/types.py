@@ -184,6 +184,9 @@ def resolve_query(connection, info, **kwargs):
         return {"data": [], "success": False, "error": "UNKNOWN_ERROR"}
 
 
+connection_interface.set_alias("type", "connection_type")
+
+
 @connection_interface.type_resolver
 def resolve_connection_type(obj, *_):
     connection_type_mapping = {
