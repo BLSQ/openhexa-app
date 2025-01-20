@@ -162,9 +162,6 @@ def resolve_connection_field_value(obj: ConnectionField, info, **kwargs):
         return obj.value
 
 
-connection_interface.set_alias("type", "connection_type")
-
-
 @dhis2_connection.field("queryMetadata")
 def resolve_query(connection, info, **kwargs):
     fields = ["id", "name"]
@@ -178,7 +175,7 @@ def resolve_query(connection, info, **kwargs):
         )
 
         result = [{field: item.get(field) for field in fields} for item in metadata]
-        return {"data": result, "success": True, "error": None}
+        return {"items": result, "success": True, "error": None}
     except DHIS2Error as e:
         logging.error(f"DHIS2 error: {e}")
         return {"data": [], "success": False, "error": "CONNECTION_ERROR"}
@@ -189,21 +186,19 @@ def resolve_query(connection, info, **kwargs):
 
 @connection_interface.type_resolver
 def resolve_connection_type(obj, *_):
+    connection_type_mapping = {
+        "DHIS2": "DHIS2Connection",
+        "S3": "S3Connection",
+        "POSTGRESQL": "PostgreSQLConnection",
+        "CUSTOM": "CustomConnection",
+        "GCS": "GCSConnection",
+        "IASO": "IASOConnection",
+    }
     if isinstance(obj, Connection):
-        if obj.connection_type == "DHIS2":
-            return "DHIS2Connection"
-        elif obj.connection_type == "S3":
-            return "S3Connection"
-        elif obj.connection_type == "POSTGRESQL":
-            return "PostgreSQLConnection"
-        elif obj.connection_type == "CUSTOM":
-            return "CustomConnection"
-        elif obj.connection_type == "GCS":
-            return "GCSConnection"
-        elif obj.connection_type == "IASO":
-            return "IASOConnection"
-        else:
-            return None
+        resolved_type = connection_type_mapping.get(obj.connection_type)
+        if resolved_type:
+            return resolved_type
+        logging.warning(f"Unknown connection type: {obj.connection_type}")
     return None
 
 
@@ -212,5 +207,6 @@ bindables = [
     workspace_permissions,
     connection_field_object,
     connection_interface,
+    dhis2_connection,
     connection_permissions_object,
 ]

@@ -43,7 +43,7 @@ def resolve_workspace_connection(_, info, id):
 def resolve_workspace_connection_by_slug(_, info, **kwargs):
     request = info.context["request"]
     try:
-        Connection.objects.filter_for_user(request.user).get(
+        return Connection.objects.filter_for_user(request.user).get(
             workspace__slug=kwargs["workspace_slug"], slug=kwargs["connection_slug"]
         )
     except Connection.DoesNotExist:
