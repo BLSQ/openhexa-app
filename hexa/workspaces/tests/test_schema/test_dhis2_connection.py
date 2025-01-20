@@ -36,11 +36,6 @@ class ConnectiontTest(GraphQLTestCase):
             )
 
         WorkspaceMembership.objects.create(
-            user=cls.USER_SERENA,
-            workspace=cls.WORKSPACE,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
-        WorkspaceMembership.objects.create(
             user=cls.USER_JIM,
             workspace=cls.WORKSPACE,
             role=WorkspaceMembershipRole.EDITOR,
@@ -67,7 +62,7 @@ class ConnectiontTest(GraphQLTestCase):
         connection.save()
 
     def test_get_org_units(self):
-        self.client.force_login(self.USER_SERENA)
+        self.client.force_login(self.USER_JIM)
 
         dhis2_mock = MagicMock()
         dhis2_mock.meta.organisation_units.return_value = [
@@ -111,48 +106,118 @@ class ConnectiontTest(GraphQLTestCase):
                 },
             )
 
-    def test_get_org_units_no_connection(self):  # noqa
-        self.client.force_login(self.USER_SERENA)
-
-        response = self.run_query(
-            """
-            {
-                dhis2connection(slug: "dhis2-connection-2") {
-                    query(type: "organisationUnits") {
-                        data {
-                                id
-                                name
-                            }
-                        errors
-                    }
-                }
-            }
-            """
-        )
-        self.assertEqual(response["data"], {"dhis2connection": None})
-
-    def test_get_org_units_no_permission(self):
+    def test_get_s3_connection(self):
         self.client.force_login(self.USER_JIM)
 
+        connection = Connection.objects.create_if_has_perm(
+            self.USER_JIM,
+            self.WORKSPACE,
+            name="S3 connection 1",
+            slug="s3-connection-1",
+            connection_type=ConnectionType.S3,
+        )
+        connection.set_fields(
+            self.USER_JIM,
+            [
+                {
+                    "code": "access_key",
+                    "value": "access_key",
+                    "secret": True,
+                },
+                {"code": "secret_key", "value": "secret_key", "secret": True},
+                {"code": "region", "value": "region", "secret": False},
+            ],
+        )
+        connection.save()
+
         response = self.run_query(
             """
+            query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!) {
+            connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug){
+                ... on S3Connection {
+                    name
+                    id
+                }
+            }
+            }
+            """,
+            variables={
+                "workspaceSlug": self.WORKSPACE.slug,
+                "connectionSlug": "s3-connection-1",
+            },
+        )
+        self.assertEqual(
+            response["data"],
             {
-                dhis2connection(slug: "dhis2-connection-1") {
-                    query(type: "organisationUnits") {
-                        data {
-                                id
-                                name
-                            }
-                        errors
+                "connectionBySlug": {
+                    "name": "S3 connection 1",
+                    "id": str(connection.id),
+                }
+            },
+        )
+
+    def test_get_org_units_no_connection(self):  # noqa
+        self.client.force_login(self.USER_JIM)
+        response = self.run_query(
+            """
+            query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: String!) {
+            connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug){
+                ... on DHIS2Connection {
+                    queryMetadata(type: $type) {
+                            items {
+                                    id
+                                    name
+                                  }
+                            error
+                        }
                     }
                 }
             }
-            """
+            """,
+            variables={
+                "workspaceSlug": self.WORKSPACE.slug,
+                "connectionSlug": "dhis2-connection-1",
+                "type": "ORGANISATION_UNITS",
+            },
         )
-        self.assertEqual(response["data"], {"dhis2connection": None})
+        self.assertEqual(response["data"], {"connectionBySlug": None})
+
+    def test_get_org_units_no_permission(self):
+        self.client.force_login(self.USER_SERENA)
+        dhis2_mock = MagicMock()
+        dhis2_mock.meta.organisation_units.return_value = [
+            {"id": "1", "name": "Org Unit 1"}
+        ]
+
+        with patch(
+            "hexa.workspaces.dhis2_client_helper.DHIS2", return_value=dhis2_mock
+        ):
+            response = self.run_query(
+                """
+                query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: String!) {
+                connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug){
+                    ... on DHIS2Connection {
+                        queryMetadata(type: $type) {
+                                items {
+                                        id
+                                        name
+                                      }
+                                error
+                            }
+                        }
+                    }
+                }
+                """,
+                variables={
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "connectionSlug": "dhis2-connection-1",
+                    "type": "ORGANISATION_UNITS",
+                },
+            )
+            self.assertEqual(response["data"], {"connectionBySlug": None})
 
     def test_connection_error(self):
-        self.client.force_login(self.USER_SERENA)
+        self.client.force_login(self.USER_JIM)
 
         dhis2_mock = MagicMock()
         dhis2_mock.meta.organisation_units.side_effect = DHIS2Error("Connection error")
@@ -162,30 +227,37 @@ class ConnectiontTest(GraphQLTestCase):
         ):
             response = self.run_query(
                 """
-                {
-                    dhis2connection(slug: "dhis2-connection-1") {
-                        query(type: "organisationUnits") {
-                            data {
-                                    id
-                                    name
-                                }
-                            errors
+                query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: String!) {
+                connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug){
+                    ... on DHIS2Connection {
+                        queryMetadata(type: $type) {
+                                items {
+                                        id
+                                        name
+                                      }
+                                error
+                            }
                         }
                     }
                 }
-                """
+                """,
+                variables={
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "connectionSlug": "dhis2-connection-1",
+                    "type": "ORGANISATION_UNITS",
+                },
             )
             self.assertEqual(
                 response["data"],
                 {
-                    "dhis2connection": {
-                        "query": {"data": [], "errors": ["CONNECTION_ERROR"]}
+                    "connectionBySlug": {
+                        "queryMetadata": {"items": None, "error": "CONNECTION_ERROR"}
                     }
                 },
             )
 
     def test_unkown_error(self):
-        self.client.force_login(self.USER_SERENA)
+        self.client.force_login(self.USER_JIM)
 
         dhis2_mock = MagicMock()
         dhis2_mock.meta.organisation_units.side_effect = Exception("Unknown error")
@@ -195,24 +267,31 @@ class ConnectiontTest(GraphQLTestCase):
         ):
             response = self.run_query(
                 """
-                {
-                    dhis2connection(slug: "dhis2-connection-1") {
-                        query(type: "organisationUnits") {
-                            data {
-                                    id
-                                    name
-                                }
-                            errors
+                query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: String!) {
+                connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug){
+                    ... on DHIS2Connection {
+                        queryMetadata(type: $type) {
+                                items {
+                                        id
+                                        name
+                                      }
+                                error
+                            }
                         }
                     }
                 }
-                """
+                """,
+                variables={
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "connectionSlug": "dhis2-connection-1",
+                    "type": "ORGANISATION_UNITS",
+                },
             )
             self.assertEqual(
                 response["data"],
                 {
-                    "dhis2connection": {
-                        "query": {"data": [], "errors": ["UNKNOWN_ERROR"]}
+                    "connectionBySlug": {
+                        "queryMetadata": {"items": None, "error": "UNKNOWN_ERROR"}
                     }
                 },
             )
