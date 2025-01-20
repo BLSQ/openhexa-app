@@ -3,21 +3,6 @@ from unittest.mock import patch
 
 import responses
 
-from hexa.connections.dhis2_client_helper import (
-    get_client_by_slug,
-    query_dhis2_metadata,
-)
-from hexa.connections.tests.fixtures.data_elements import (
-    data_element_groups,
-    data_elements_by_data_elements_group,
-    datasets,
-)
-from hexa.connections.tests.fixtures.indicators import indicator_groups, indicators
-from hexa.connections.tests.fixtures.org_units import (
-    org_units,
-    org_units_groups,
-    org_units_levels,
-)
 from hexa.core.test import TestCase
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
@@ -27,6 +12,18 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.fixtures.data_elements import (
+    data_element_groups,
+    data_elements_by_data_elements_group,
+    datasets,
+)
+from hexa.workspaces.tests.fixtures.indicators import indicator_groups, indicators
+from hexa.workspaces.tests.fixtures.org_units import (
+    org_units,
+    org_units_groups,
+    org_units_levels,
+)
+from hexa.workspaces.utils import dhis2_client_from_connection, query_dhis2_metadata
 
 
 class TestDHIS2Methods(TestCase):
@@ -61,14 +58,14 @@ class TestDHIS2Methods(TestCase):
             workspace=cls.WORKSPACE,
             role=WorkspaceMembershipRole.EDITOR,
         )
-        connection = Connection.objects.create_if_has_perm(
+        cls.connection = Connection.objects.create_if_has_perm(
             cls.USER_JIM,
             cls.WORKSPACE,
             name="DHIS2 connection 1",
             slug="dhis2-connection-1",
             connection_type=ConnectionType.DHIS2,
         )
-        connection.set_fields(
+        cls.connection.set_fields(
             cls.USER_JIM,
             [
                 {
@@ -80,20 +77,20 @@ class TestDHIS2Methods(TestCase):
                 {"code": "password", "value": "district", "secret": True},
             ],
         )
-        connection.save()
+        cls.connection.save()
 
     @responses.activate
     def test_dhis2_connection_from_slug(self):
         responses._add_from_file(
-            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
+        dhis2 = dhis2_client_from_connection(self.connection)
         self.assertIsNotNone(dhis2)
 
     @responses.activate
     def test_dhis2_org_units(self):
         responses._add_from_file(
-            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -101,14 +98,14 @@ class TestDHIS2Methods(TestCase):
             json={"organisationUnits": org_units},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = query_dhis2_metadata(dhis2, "organisationUnits", fields="id,name")
+        dhis2 = dhis2_client_from_connection(self.connection)
+        metadata = query_dhis2_metadata(dhis2, "ORGANISATION_UNITS", fields="id,name")
         self.assertEqual(metadata, org_units)
 
     @responses.activate
     def test_dhis2_org_units_by_groups(self):
         responses._add_from_file(
-            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -116,10 +113,10 @@ class TestDHIS2Methods(TestCase):
             json={"organisationUnits": org_units},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
+        dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2,
-            "organisationUnits",
+            "ORGANISATION_UNITS",
             fields="id,name",
             filter="organisationUnitGroups.id:in:[oDkJh5Ddh7d]",
         )
@@ -128,7 +125,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_org_unit_groups(self):
         responses._add_from_file(
-            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -136,16 +133,16 @@ class TestDHIS2Methods(TestCase):
             json={"organisationUnitGroups": org_units_groups},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
+        dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
-            dhis2, type="organisationUnitGroups", fields="id,name"
+            dhis2, type="ORGANISATION_UNIT_GROUPS", fields="id,name"
         )
         self.assertEqual(metadata, org_units_groups)
 
     @responses.activate
     def test_dhis2_org_unit_levels(self):
         responses._add_from_file(
-            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -153,16 +150,16 @@ class TestDHIS2Methods(TestCase):
             json=org_units_levels,
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
+        dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
-            dhis2, "organisationUnitLevels", fields="id,name"
+            dhis2, "ORGANISATION_UNIT_LEVELS", fields="id,name"
         )
         self.assertEqual(metadata, org_units_levels)
 
     @responses.activate
     def test_dhis2_datasets(self):
         responses._add_from_file(
-            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -170,14 +167,14 @@ class TestDHIS2Methods(TestCase):
             json={"dataSets": datasets},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = query_dhis2_metadata(dhis2, "datasets", fields="id,name")
+        dhis2 = dhis2_client_from_connection(self.connection)
+        metadata = query_dhis2_metadata(dhis2, "DATASETS", fields="id,name")
         self.assertEqual(metadata, datasets)
 
     @responses.activate
     def test_dhis2_data_elements(self):
         responses._add_from_file(
-            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -185,14 +182,14 @@ class TestDHIS2Methods(TestCase):
             json={"dataElements": data_elements_by_data_elements_group},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = query_dhis2_metadata(dhis2, "dataElements", fields="id,name")
+        dhis2 = dhis2_client_from_connection(self.connection)
+        metadata = query_dhis2_metadata(dhis2, "DATA_ELEMENTS", fields="id,name")
         self.assertEqual(metadata, data_elements_by_data_elements_group)
 
     @responses.activate
     def test_dhis2_data_elements_by_datasets(self):
         responses._add_from_file(
-            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -200,10 +197,10 @@ class TestDHIS2Methods(TestCase):
             json={"dataElements": data_elements_by_data_elements_group},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
+        dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2,
-            "dataElements",
+            "DATA_ELEMENTS",
             fields="id,name",
             filter="dataSetElements.dataSet.id:in:[lyLU2wR22tC]",
         )
@@ -212,7 +209,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_data_elements_by_groups(self):
         responses._add_from_file(
-            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -220,10 +217,10 @@ class TestDHIS2Methods(TestCase):
             json={"dataElements": data_elements_by_data_elements_group},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
+        dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2,
-            "dataElements",
+            "DATA_ELEMENTS",
             fields="id,name",
             filter="dataElementGroups.id:in:[oDkJh5Ddh7d]",
         )
@@ -232,7 +229,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_data_element_groups(self):
         responses._add_from_file(
-            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -240,14 +237,14 @@ class TestDHIS2Methods(TestCase):
             json={"dataElementGroups": data_element_groups},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = query_dhis2_metadata(dhis2, "dataElementGroups", fields="id,name")
+        dhis2 = dhis2_client_from_connection(self.connection)
+        metadata = query_dhis2_metadata(dhis2, "DATA_ELEMENT_GROUPS", fields="id,name")
         self.assertEqual(metadata, data_element_groups)
 
     @responses.activate
     def test_dhis2_indicators(self):
         responses._add_from_file(
-            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -255,14 +252,14 @@ class TestDHIS2Methods(TestCase):
             json={"indicators": indicators},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = query_dhis2_metadata(dhis2, "indicators", fields="id,name")
+        dhis2 = dhis2_client_from_connection(self.connection)
+        metadata = query_dhis2_metadata(dhis2, "INDICATORS", fields="id,name")
         self.assertEqual(metadata, indicators)
 
     @responses.activate
     def test_dhis2_indicators_by_groups(self):
         responses._add_from_file(
-            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -270,10 +267,10 @@ class TestDHIS2Methods(TestCase):
             json={"indicators": indicators},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
+        dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2,
-            "indicators",
+            "INDICATORS",
             fields="id,name",
             filter="indicatorGroups.id:in:[PoTnGN0F2n5]",
         )
@@ -282,7 +279,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_indicator_groups(self):
         responses._add_from_file(
-            Path("hexa", "connections", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -290,6 +287,6 @@ class TestDHIS2Methods(TestCase):
             json={"indicatorGroups": indicator_groups},
             status=200,
         )
-        dhis2 = get_client_by_slug("dhis2-connection-1", self.USER_JIM)
-        metadata = query_dhis2_metadata(dhis2, "indicatorGroups", fields="id,name")
+        dhis2 = dhis2_client_from_connection(self.connection)
+        metadata = query_dhis2_metadata(dhis2, "INDICATOR_GROUPS", fields="id,name")
         self.assertEqual(metadata, indicator_groups)
