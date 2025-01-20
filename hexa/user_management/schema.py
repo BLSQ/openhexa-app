@@ -32,7 +32,6 @@ from hexa.user_management.models import (
     AlreadyExists,
     CannotDelete,
     CannotDowngradeRole,
-    Feature,
     FeatureFlag,
     Membership,
     Organization,
@@ -370,9 +369,6 @@ def resolve_register(_, info, **kwargs):
             password=mutation_input["password1"],
             first_name=mutation_input["first_name"],
             last_name=mutation_input["last_name"],
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.get(code="workspaces"), user=user
         )
 
         # Let's authenticate the user automatically

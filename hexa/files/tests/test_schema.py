@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
-from hexa.user_management.models import Feature, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 
@@ -12,8 +12,6 @@ class FilesTest(GraphQLTestCase):
 
     @classmethod
     def setUpTestData(cls):
-        Feature.objects.create(code="workspaces", force_activate=True)
-
         cls.USER_WORKSPACE_ADMIN = User.objects.create_user(
             "workspaceroot@bluesquarehub.com", "workspace", is_superuser=True
         )

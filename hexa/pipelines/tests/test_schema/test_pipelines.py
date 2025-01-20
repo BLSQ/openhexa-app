@@ -30,7 +30,7 @@ from hexa.pipelines.tests.test_schema.fixtures_for_pipelines import (
     pipelines_parameters_with_scalars,
 )
 from hexa.pipelines.utils import mail_run_recipients
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -62,15 +62,6 @@ class PipelinesV2Test(GraphQLTestCase):
         cls.USER_SABRINA = User.objects.create_user(
             "sabrina@bluesquarehub.com",
             "standardpassword",
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="pipeline_webhook"), user=cls.USER_ROOT
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces"), user=cls.USER_NOOB
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces"), user=cls.USER_SABRINA
         )
 
         with patch("hexa.workspaces.models.create_database"), patch(
@@ -2176,28 +2167,6 @@ class PipelinesV2Test(GraphQLTestCase):
     def test_generate_pipeline_webhook_url_update_permission_denied(self):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_SABRINA)
-        pipeline = Pipeline.objects.get(code="new_pipeline")
-
-        r = self.run_query(
-            """
-            mutation generateWebhookPipelineUrl($input: GeneratePipelineWebhookUrlInput!) {
-                generatePipelineWebhookUrl(input: $input) {
-                    success
-                    errors
-                }
-            }
-            """,
-            {"input": {"id": str(pipeline.id)}},
-        )
-
-        self.assertEqual(
-            {"success": False, "errors": ["PERMISSION_DENIED"]},
-            r["data"]["generatePipelineWebhookUrl"],
-        )
-
-    def test_generate_pipeline_webhook_url_feature_flag_permission_denied(self):
-        self.test_create_pipeline_version()
-        self.client.force_login(self.USER_LAMBDA)
         pipeline = Pipeline.objects.get(code="new_pipeline")
 
         r = self.run_query(
