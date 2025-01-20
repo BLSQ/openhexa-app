@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.58.0](https://github.com/BLSQ/openhexa-frontend/compare/0.57.0...0.58.0) (2025-01-19)
+
+
+### Features
+
+* Pipeline Templates end-to-end flow (HEXA-1121 HEXA-1122 HEXA-1124 HEXA-1125 HEXA-1126 HEXA-1128) ([#981](https://github.com/BLSQ/openhexa-frontend/issues/981)) ([d96506a](https://github.com/BLSQ/openhexa-frontend/commit/d96506ae07d55068cbe74431412a239408940a7e))
+
+
+### Bug Fixes
+
+* **Countries:** Do not use the static image from the backend, use a react library to render the flags as svg ([f148613](https://github.com/BLSQ/openhexa-frontend/commit/f1486132581347b4c3191938225bf026498d7489))
+* **Countries:** Render countries flags as SVG using a react library instead of getting the image from the backend ([#1008](https://github.com/BLSQ/openhexa-frontend/issues/1008)) ([f148613](https://github.com/BLSQ/openhexa-frontend/commit/f1486132581347b4c3191938225bf026498d7489))
+* **datasets:** Give a specific height to the &lt;embed /&gt; to preview the pdfs ([#1013](https://github.com/BLSQ/openhexa-frontend/issues/1013)) ([41c6fef](https://github.com/BLSQ/openhexa-frontend/commit/41c6fef3f07047455c5e1990f1b5837d9dd81070))
+* **Dates:** Set zone for dates coming from the backend as UTC by default & load the user tz in the browser ([#1009](https://github.com/BLSQ/openhexa-frontend/issues/1009)) ([7c7bc5b](https://github.com/BLSQ/openhexa-frontend/commit/7c7bc5b84abf755619d5fce69ae703b790f6da0c))
+* **deps:** update dependency @codemirror/lang-python to v6.1.7 ([#1021](https://github.com/BLSQ/openhexa-frontend/issues/1021)) ([daf37fb](https://github.com/BLSQ/openhexa-frontend/commit/daf37fbecf6159c91e8bd43d033f91ac4e62ff2e))
+* **deps:** update dependency @sentry/nextjs to v8.49.0 ([#1006](https://github.com/BLSQ/openhexa-frontend/issues/1006)) ([aa48987](https://github.com/BLSQ/openhexa-frontend/commit/aa489873c0a8b797d650a01f6fdf7c8d1a0f4078))
+* **deps:** update dependency @sentry/nextjs to v8.50.0 ([#1012](https://github.com/BLSQ/openhexa-frontend/issues/1012)) ([d8d7973](https://github.com/BLSQ/openhexa-frontend/commit/d8d797397b8d303200e234adcc685ad838cf9d27))
+* **deps:** update dependency @types/node to v22.10.7 ([#1015](https://github.com/BLSQ/openhexa-frontend/issues/1015)) ([f3e02d3](https://github.com/BLSQ/openhexa-frontend/commit/f3e02d3410a91e9e3cd1ebf843aeadf5bc34c58e))
+* **deps:** update dependency cookies-next to v5.1.0 ([#1007](https://github.com/BLSQ/openhexa-frontend/issues/1007)) ([4bf4f8b](https://github.com/BLSQ/openhexa-frontend/commit/4bf4f8b36cd8919caacfac14df8c365c025364ff))
+* **deps:** update dependency cronstrue to v2.53.0 ([#1018](https://github.com/BLSQ/openhexa-frontend/issues/1018)) ([55b3c7c](https://github.com/BLSQ/openhexa-frontend/commit/55b3c7cfa205d635ef56a544ad01f18e1a629e22))
+* **deps:** update dependency react-toastify to v11.0.3 ([#1010](https://github.com/BLSQ/openhexa-frontend/issues/1010)) ([ee85a8a](https://github.com/BLSQ/openhexa-frontend/commit/ee85a8ada964c704b0bb425324ef96054039a86d))
+* **deps:** update nextjs monorepo to v15.1.5 ([#1022](https://github.com/BLSQ/openhexa-frontend/issues/1022)) ([3709109](https://github.com/BLSQ/openhexa-frontend/commit/37091099bf5a3d4a026fddbeb97f69bc6a35b663))
+* **Server:** Add a limit on the request size when proxying the backend ([#1004](https://github.com/BLSQ/openhexa-frontend/issues/1004)) ([f16374e](https://github.com/BLSQ/openhexa-frontend/commit/f16374e1ca6dc56bda9bb982be7482b9a71e539c))
+
 ## [0.57.0](https://github.com/BLSQ/openhexa-frontend/compare/0.56.2...0.57.0) (2025-01-15)
 
 
