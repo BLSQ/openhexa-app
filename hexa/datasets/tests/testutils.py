@@ -12,8 +12,6 @@ class DatasetTestMixin:
     def create_user(self, email, *args, password=None, **kwargs):
         password = password or "Pa$$w0rd"
         user = User.objects.create_user(email, *args, password=password, **kwargs)
-        feature, _ = Feature.objects.get_or_create(code="workspaces")
-        FeatureFlag.objects.create(feature=feature, user=user)
         return user
 
     @staticmethod

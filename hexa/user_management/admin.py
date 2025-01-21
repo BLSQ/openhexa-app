@@ -48,25 +48,8 @@ class MembershipInline(admin.TabularInline):
     extra = 0
 
 
-class FeatureFlagFormSet(forms.BaseInlineFormSet):
-    def clean(self):
-        if not any(
-            "feature" in flag
-            and flag["feature"].code in ("workspaces", "openhexa_legacy")
-            for flag in self.cleaned_data
-        ):
-            raise forms.ValidationError(
-                "For now, Openhexa users must have at least one of the following feature flags: "
-                "openhexa_legacy (allows users to access OpenHEXA v1) or workspaces (allows "
-                "users to use the workspaces version."
-            )
-
-        super().clean()
-
-
 class FeatureFlagInline(admin.TabularInline):
     model = FeatureFlag
-    formset = FeatureFlagFormSet
     extra = 0
 
 

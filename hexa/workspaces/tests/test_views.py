@@ -4,7 +4,7 @@ from django.urls import reverse
 from hexa.core.test import TestCase
 from hexa.databases.api import get_db_server_credentials
 from hexa.pipelines.models import Pipeline, PipelineRunTrigger
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -27,10 +27,6 @@ class ViewsTest(TestCase):
         cls.USER_REBECCA = User.objects.create_user(
             "rebecca@bluesquarehub.com",
             "standardpassword",
-        )
-
-        FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces"), user=cls.USER_JULIA
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
