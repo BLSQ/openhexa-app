@@ -471,6 +471,8 @@ class Pipeline(SoftDeletedModel):
         last_version_from_template = self.versions.filter(
             source_template_version__isnull=False
         ).first()
+        if not last_version_from_template:
+            return []
         return self.source_template.versions.filter(
             created_at__gt=last_version_from_template.created_at
         ).order_by("-created_at")
