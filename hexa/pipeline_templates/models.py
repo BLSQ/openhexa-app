@@ -138,7 +138,8 @@ class PipelineTemplateVersion(models.Model):
         source_version = self.source_pipeline_version
         kept_source_parameters = list(
             filter(
-                lambda param: param["type"] in ["bool", "int", "str", "float"],
+                lambda param: "type" in param
+                and param["type"] in ["bool", "int", "str", "float"],
                 source_version.parameters,
             )
         )
