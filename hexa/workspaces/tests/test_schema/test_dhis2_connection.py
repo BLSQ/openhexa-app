@@ -92,6 +92,7 @@ class ConnectiontTest(GraphQLTestCase):
                     "type": "ORGANISATION_UNITS",
                 },
             )
+
             self.assertEqual(
                 response["data"],
                 {
