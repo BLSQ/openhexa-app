@@ -291,7 +291,7 @@ class PipelineTest(TestCase):
 
     def test_get_or_create_template(self):
         template_name = "Test Template"
-        template = self.PIPELINE.get_or_create_template(
+        template, _ = self.PIPELINE.get_or_create_template(
             name=template_name,
             code="test_code",
             description="Some description",

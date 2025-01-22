@@ -2556,7 +2556,7 @@ class PipelinesV2Test(GraphQLTestCase):
             zipfile=base64.b64decode("".encode("ascii")),
             parameters=[],
         )
-        template = source_pipeline.get_or_create_template(
+        template, _ = source_pipeline.get_or_create_template(
             "Template", "template", "Description", {}
         )
         template_version1 = template.create_version(source_pipeline_version1)
@@ -2634,7 +2634,7 @@ class PipelinesV2Test(GraphQLTestCase):
             zipfile=base64.b64decode("".encode("ascii")),
             parameters=[],
         )
-        template = source_pipeline.get_or_create_template(
+        template, _ = source_pipeline.get_or_create_template(
             "Template", "template", "Description", {}
         )
         template_version1 = template.create_version(source_pipeline_version1)
@@ -2718,7 +2718,7 @@ class PipelinesV2Test(GraphQLTestCase):
         source_pipeline.save()
         r = self._get_pipeline(source_pipeline.id)
         self.assertTrue(r["data"]["pipeline"]["permissions"]["createTemplateVersion"])
-        template = source_pipeline.get_or_create_template(
+        template, _ = source_pipeline.get_or_create_template(
             "Template", "template", "Description", {}
         )
         template.create_version(source_pipeline.last_version)
