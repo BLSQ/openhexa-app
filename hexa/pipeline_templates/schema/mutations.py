@@ -105,10 +105,12 @@ def resolve_create_pipeline_from_template_version(_, info, **kwargs):
 
     track(
         request,
-        "pipeline_templates.pipeline_created_from_template",
+        "pipeline_templates.pipeline_template_used",
         {
             "pipeline_id": str(pipeline_version.pipeline.id),
-            "template_version_id": str(template_version.id),
+            "pipeline_version_id": str(pipeline_version.id),
+            "pipeline_template_id": str(template_version.template.id),
+            "pipeline_template_version_id": str(template_version.id),
             "workspace": workspace.slug,
         },
     )
