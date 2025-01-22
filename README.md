@@ -129,7 +129,6 @@ You can then add a new configuration in VSCode to run the app in debugger mode:
 
 Run the app with `docker compose -f docker-compose.yaml -f docker-compose.debug.yaml up` & start the debugger from VSCode.
 
-
 #### Using **Pycharm**
 
 ```yaml
@@ -148,12 +147,57 @@ Create a new interpreter configuration in Pycharm with the following settings:
 
 ![Pycharm Interpreter Configuration](docs/images/pycharm-interpreter-configuration.png)
 
-
 Create a new django server run configuration by setting the following options:
 - Python interpreter: The one you just created
 - In "Docker Compose" section; Command and options: `-f docker-compose.yaml -f docker-compose.debug.yaml up`
 
 Run the configuration in debug mode.
+
+### PgAdmin as dev tool
+
+For development purposes, you can define a pgAdmin service as Docker container. In this example, let's say in *docker-compose.dev.yaml*.
+
+```yaml
+# docker-compose.dev.yaml
+
+services:
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-root@openhexa.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-root}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    depends_on:
+      - db
+    networks:
+      - openhexa
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin4
+
+volumes:
+  pgadmin_data:
+```
+
+Next run the following command:
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.dev.yaml [-f docker-compose.debug.yaml] up
+```
+
+In the browser, go to http://localhost:5050 and log in using credentials defined in the *docker-compose.dev.yaml* file.
+
+![PgAdmin dev tool](docs/images/pg-admin-dashboard.png)
+
+Finally create a new connection to the server:
+
+![PgAdmin dev tool](docs/images/pg-admin-server-setup-1.png)
+
+![PgAdmin dev tool](docs/images/pg-admin-server-setup-2.png)
+
+The address of the server must be the one of the database container gateway, on the 5434 port.
 
 ### Running with the frontend
 
