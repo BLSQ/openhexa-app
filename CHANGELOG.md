@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.58.1](https://github.com/BLSQ/openhexa-frontend/compare/0.58.0...0.58.1) (2025-01-22)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @apollo/client to v3.12.7 ([#1029](https://github.com/BLSQ/openhexa-frontend/issues/1029)) ([7ebd7ea](https://github.com/BLSQ/openhexa-frontend/commit/7ebd7ea6f2f22cb4f0e5d1557983c11d3b482c8c))
+* duplicates in cache (HEXA-1171) ([#1024](https://github.com/BLSQ/openhexa-frontend/issues/1024)) ([38a8236](https://github.com/BLSQ/openhexa-frontend/commit/38a8236f1b5e6b0ce3cdca57c148feb68463c7d5))
+
 ## [0.58.0](https://github.com/BLSQ/openhexa-frontend/compare/0.57.0...0.58.0) (2025-01-19)
 
 
