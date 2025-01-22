@@ -15,7 +15,11 @@ from ..models import (
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
 )
-from ..utils import dhis2_client_from_connection, query_dhis2_metadata
+from ..utils import (
+    DHIS2MetadataQueryType,
+    dhis2_client_from_connection,
+    query_dhis2_metadata,
+)
 
 workspace_object = ObjectType("Workspace")
 workspace_permissions = ObjectType("WorkspacePermissions")
@@ -169,7 +173,7 @@ def resolve_query(connection, info, **kwargs):
     try:
         metadata = query_dhis2_metadata(
             dhis2_client,
-            type=kwargs.get("type"),
+            query_type=DHIS2MetadataQueryType[kwargs.get("type")],
             fields=fields,
             filter=kwargs.get("filter"),
         )

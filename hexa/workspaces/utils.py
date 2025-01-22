@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum, auto
 from typing import Optional
 from urllib.parse import urlencode
 
@@ -42,32 +42,34 @@ def send_workspace_invitation_email(
         )
 
 
-class DHIS2MetadataQueryTypes(Enum):
-    ORGANISATION_UNITS = "ORGANISATION_UNITS"
-    ORGANISATION_UNIT_GROUPS = "ORGANISATION_UNIT_GROUPS"
-    ORGANISATION_UNIT_LEVELS = "ORGANISATION_UNIT_LEVELS"
-    DATASETS = "DATASETS"
-    DATA_ELEMENTS = "DATA_ELEMENTS"
-    DATA_ELEMENT_GROUPS = "DATA_ELEMENT_GROUPS"
-    INDICATORS = "INDICATORS"
-    INDICATOR_GROUPS = "INDICATOR_GROUPS"
+class DHIS2MetadataQueryType(StrEnum):
+    ORGANISATION_UNITS = auto()
+    ORGANISATION_UNIT_GROUPS = auto()
+    ORGANISATION_UNIT_LEVELS = auto()
+    DATASETS = auto()
+    DATA_ELEMENTS = auto()
+    DATA_ELEMENT_GROUPS = auto()
+    INDICATORS = auto()
+    INDICATOR_GROUPS = auto()
 
 
-def query_dhis2_metadata(dhis2: DHIS2, type: str, **kwargs) -> dict:
+def query_dhis2_metadata(
+    dhis2: DHIS2, query_type: DHIS2MetadataQueryType, **kwargs
+) -> dict:
     """
     Gets metadata from DHIS2
     """
     metadata_methods = {
-        DHIS2MetadataQueryTypes.ORGANISATION_UNITS.value: dhis2.meta.organisation_units,
-        DHIS2MetadataQueryTypes.ORGANISATION_UNIT_GROUPS.value: dhis2.meta.organisation_unit_groups,
-        DHIS2MetadataQueryTypes.ORGANISATION_UNIT_LEVELS.value: dhis2.meta.organisation_unit_levels,
-        DHIS2MetadataQueryTypes.DATASETS.value: dhis2.meta.datasets,
-        DHIS2MetadataQueryTypes.DATA_ELEMENTS.value: dhis2.meta.data_elements,
-        DHIS2MetadataQueryTypes.DATA_ELEMENT_GROUPS.value: dhis2.meta.data_element_groups,
-        DHIS2MetadataQueryTypes.INDICATORS.value: dhis2.meta.indicators,
-        DHIS2MetadataQueryTypes.INDICATOR_GROUPS.value: dhis2.meta.indicator_groups,
+        DHIS2MetadataQueryType.ORGANISATION_UNITS: dhis2.meta.organisation_units,
+        DHIS2MetadataQueryType.ORGANISATION_UNIT_GROUPS: dhis2.meta.organisation_unit_groups,
+        DHIS2MetadataQueryType.ORGANISATION_UNIT_LEVELS: dhis2.meta.organisation_unit_levels,
+        DHIS2MetadataQueryType.DATASETS: dhis2.meta.datasets,
+        DHIS2MetadataQueryType.DATA_ELEMENTS: dhis2.meta.data_elements,
+        DHIS2MetadataQueryType.DATA_ELEMENT_GROUPS: dhis2.meta.data_element_groups,
+        DHIS2MetadataQueryType.INDICATORS: dhis2.meta.indicators,
+        DHIS2MetadataQueryType.INDICATOR_GROUPS: dhis2.meta.indicator_groups,
     }
-    return metadata_methods[type](**kwargs)
+    return metadata_methods[query_type](**kwargs)
 
 
 def dhis2_client_from_connection(connection: Connection) -> DHIS2 | None:

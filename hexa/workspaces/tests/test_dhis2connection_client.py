@@ -23,7 +23,11 @@ from hexa.workspaces.tests.fixtures.org_units import (
     org_units_groups,
     org_units_levels,
 )
-from hexa.workspaces.utils import dhis2_client_from_connection, query_dhis2_metadata
+from hexa.workspaces.utils import (
+    DHIS2MetadataQueryType,
+    dhis2_client_from_connection,
+    query_dhis2_metadata,
+)
 
 
 class TestDHIS2Methods(TestCase):
@@ -99,7 +103,9 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = dhis2_client_from_connection(self.connection)
-        metadata = query_dhis2_metadata(dhis2, "ORGANISATION_UNITS", fields="id,name")
+        metadata = query_dhis2_metadata(
+            dhis2, DHIS2MetadataQueryType.ORGANISATION_UNITS, fields="id,name"
+        )
         self.assertEqual(metadata, org_units)
 
     @responses.activate
@@ -116,7 +122,7 @@ class TestDHIS2Methods(TestCase):
         dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2,
-            "ORGANISATION_UNITS",
+            DHIS2MetadataQueryType.ORGANISATION_UNITS,
             fields="id,name",
             filter="organisationUnitGroups.id:in:[oDkJh5Ddh7d]",
         )
@@ -135,7 +141,7 @@ class TestDHIS2Methods(TestCase):
         )
         dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
-            dhis2, type="ORGANISATION_UNIT_GROUPS", fields="id,name"
+            dhis2, DHIS2MetadataQueryType.ORGANISATION_UNIT_GROUPS, fields="id,name"
         )
         self.assertEqual(metadata, org_units_groups)
 
@@ -152,7 +158,7 @@ class TestDHIS2Methods(TestCase):
         )
         dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
-            dhis2, "ORGANISATION_UNIT_LEVELS", fields="id,name"
+            dhis2, DHIS2MetadataQueryType.ORGANISATION_UNIT_LEVELS, fields="id,name"
         )
         self.assertEqual(metadata, org_units_levels)
 
@@ -168,7 +174,9 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = dhis2_client_from_connection(self.connection)
-        metadata = query_dhis2_metadata(dhis2, "DATASETS", fields="id,name")
+        metadata = query_dhis2_metadata(
+            dhis2, DHIS2MetadataQueryType.DATASETS, fields="id,name"
+        )
         self.assertEqual(metadata, datasets)
 
     @responses.activate
@@ -183,7 +191,9 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = dhis2_client_from_connection(self.connection)
-        metadata = query_dhis2_metadata(dhis2, "DATA_ELEMENTS", fields="id,name")
+        metadata = query_dhis2_metadata(
+            dhis2, DHIS2MetadataQueryType.DATA_ELEMENTS, fields="id,name"
+        )
         self.assertEqual(metadata, data_elements_by_data_elements_group)
 
     @responses.activate
@@ -200,7 +210,7 @@ class TestDHIS2Methods(TestCase):
         dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2,
-            "DATA_ELEMENTS",
+            DHIS2MetadataQueryType.DATA_ELEMENTS,
             fields="id,name",
             filter="dataSetElements.dataSet.id:in:[lyLU2wR22tC]",
         )
@@ -220,7 +230,7 @@ class TestDHIS2Methods(TestCase):
         dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2,
-            "DATA_ELEMENTS",
+            DHIS2MetadataQueryType.DATA_ELEMENTS,
             fields="id,name",
             filter="dataElementGroups.id:in:[oDkJh5Ddh7d]",
         )
@@ -238,7 +248,9 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = dhis2_client_from_connection(self.connection)
-        metadata = query_dhis2_metadata(dhis2, "DATA_ELEMENT_GROUPS", fields="id,name")
+        metadata = query_dhis2_metadata(
+            dhis2, DHIS2MetadataQueryType.DATA_ELEMENT_GROUPS, fields="id,name"
+        )
         self.assertEqual(metadata, data_element_groups)
 
     @responses.activate
@@ -253,7 +265,9 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = dhis2_client_from_connection(self.connection)
-        metadata = query_dhis2_metadata(dhis2, "INDICATORS", fields="id,name")
+        metadata = query_dhis2_metadata(
+            dhis2, DHIS2MetadataQueryType.INDICATORS, fields="id,name"
+        )
         self.assertEqual(metadata, indicators)
 
     @responses.activate
@@ -270,7 +284,7 @@ class TestDHIS2Methods(TestCase):
         dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2,
-            "INDICATORS",
+            DHIS2MetadataQueryType.INDICATORS,
             fields="id,name",
             filter="indicatorGroups.id:in:[PoTnGN0F2n5]",
         )
@@ -288,5 +302,7 @@ class TestDHIS2Methods(TestCase):
             status=200,
         )
         dhis2 = dhis2_client_from_connection(self.connection)
-        metadata = query_dhis2_metadata(dhis2, "INDICATOR_GROUPS", fields="id,name")
+        metadata = query_dhis2_metadata(
+            dhis2, DHIS2MetadataQueryType.INDICATOR_GROUPS, fields="id,name"
+        )
         self.assertEqual(metadata, indicator_groups)
