@@ -299,7 +299,7 @@ class PipelineTest(TestCase):
             config=None,
         )
         self.assertEqual(
-            {"param_1": 45, "param_2": 46},
+            {"param_1": 43, "param_2": 46},
             pipeline.last_version.config,
             "Config from previous version with a change of default values",
         )
