@@ -373,10 +373,11 @@ class Pipeline(SoftDeletedModel):
         previous_config_from_overlapping_parameters = {}
         if self.last_version:
             previous_parameters = map(remove_default, self.last_version.parameters)
-            overlapping_parameters = []
-            for new_parameter in new_parameters:
-                if remove_default(new_parameter) in previous_parameters:
-                    overlapping_parameters.append(new_parameter)
+            overlapping_parameters = [
+                new_parameter
+                for new_parameter in new_parameters
+                if remove_default(new_parameter) in previous_parameters
+            ]
             previous_config_from_overlapping_parameters = {
                 overlapping_parameter["code"]: value
                 for overlapping_parameter in overlapping_parameters
