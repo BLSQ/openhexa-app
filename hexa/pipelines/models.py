@@ -367,7 +367,8 @@ class Pipeline(SoftDeletedModel):
 
         def remove_default(parameter):
             parameter_without_default = parameter.copy()
-            del parameter_without_default["default"]
+            if "default" in parameter:
+                del parameter_without_default["default"]
             return parameter_without_default
 
         previous_config_from_overlapping_parameters = {}

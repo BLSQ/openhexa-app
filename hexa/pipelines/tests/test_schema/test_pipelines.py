@@ -2557,7 +2557,7 @@ class PipelinesV2Test(GraphQLTestCase):
             parameters=[],
         )
         template = source_pipeline.get_or_create_template(
-            "Template", "template", "Description", {}
+            "Template", "template", "Description"
         )
         template_version1 = template.create_version(source_pipeline_version1)
 
@@ -2635,7 +2635,7 @@ class PipelinesV2Test(GraphQLTestCase):
             parameters=[],
         )
         template = source_pipeline.get_or_create_template(
-            "Template", "template", "Description", {}
+            "Template", "template", "Description"
         )
         template_version1 = template.create_version(source_pipeline_version1)
         r = self.run_query(
@@ -2719,7 +2719,7 @@ class PipelinesV2Test(GraphQLTestCase):
         r = self._get_pipeline(source_pipeline.id)
         self.assertTrue(r["data"]["pipeline"]["permissions"]["createTemplateVersion"])
         template = source_pipeline.get_or_create_template(
-            "Template", "template", "Description", {}
+            "Template", "template", "Description"
         )
         template.create_version(source_pipeline.last_version)
         r = self._get_pipeline(source_pipeline.id)

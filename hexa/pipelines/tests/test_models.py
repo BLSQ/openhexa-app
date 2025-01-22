@@ -310,7 +310,6 @@ class PipelineTest(TestCase):
             name=template_name,
             code="test_code",
             description="Some description",
-            config={"key": "value"},
         )
         self.assertIsNotNone(template)
         self.assertEqual(self.PIPELINE.template.name, template_name)
@@ -318,7 +317,6 @@ class PipelineTest(TestCase):
             name="SOME RANDOM NAME",
             code="test_code",
             description="Some description",
-            config={"key": "value"},
         )
         self.assertEqual(
             self.PIPELINE.template.name, template_name
