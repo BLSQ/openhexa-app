@@ -188,6 +188,19 @@ def resolve_query(connection, info, **kwargs):
         return {"data": [], "success": False, "error": "UNKNOWN_ERROR"}
 
 
+@dhis2_connection.field("status")
+def resolve_dhis2_connection_status(connection, info, **kwargs):
+    try:
+        dhis2_client_from_connection(connection)
+        return "UP"
+    except DHIS2Error as e:
+        logging.error(f"DHIS2 error: {e}")
+        return "DOWN"
+    except Exception as e:
+        logging.error(f"Unknown error: {e}")
+        return "UNKNOWN"
+
+
 connection_interface.set_alias("type", "connection_type")
 
 

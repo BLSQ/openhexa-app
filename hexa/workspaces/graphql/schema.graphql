@@ -878,6 +878,16 @@ type DHIS2QueryResult {
 }
 
 """
+DHIS2 connection status
+"""
+enum DHIS2ConnectionStatus {
+    UP
+    DOWN
+    UNKNOWN
+}
+
+
+"""
 DHIS2 connection object
 """
 type DHIS2Connection implements Connection{
@@ -891,6 +901,7 @@ type DHIS2Connection implements Connection{
     user: User # User associated with the connection
     fields: [ConnectionField!]! # Fields of the connection
     permissions: ConnectionPermissions! # Permissions of the connection
+    status: DHIS2ConnectionStatus! # Connection status
     queryMetadata(type: String!, filter: String): DHIS2QueryResult! # Query metadata items
 }
 
