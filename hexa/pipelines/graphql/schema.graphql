@@ -71,7 +71,6 @@ enum ParameterType {
 Represents a parameter of a pipeline.
 """
 type PipelineParameter {
-  id: String!  # The ID of the parameter.
   code: String!  # The code of the parameter.
   name: String!  # The name of the parameter.
   type: ParameterType!  # The type of the parameter.

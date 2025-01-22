@@ -57,11 +57,6 @@ def resolve_run_output_type(obj, *_):
         return "GenericOutput"
 
 
-@pipeline_parameter.field("id")
-def resolve_pipeline_parameter_id(parameter, info, **kwargs):
-    return parameter.get("code")
-
-
 @pipeline_parameter.field("name")
 def resolve_pipeline_parameter_code(parameter, info, **kwargs):
     name = parameter.get("name")
