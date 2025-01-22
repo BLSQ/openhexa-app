@@ -43,7 +43,6 @@ class PipelineTemplate(SoftDeletedModel):
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=200, default="")
     description = models.TextField(blank=True)
-    config = models.JSONField(blank=True, null=True, default=dict)
     workspace = models.ForeignKey(Workspace, on_delete=models.SET_NULL, null=True)
 
     source_pipeline = models.OneToOneField(
@@ -137,13 +136,28 @@ class PipelineTemplateVersion(models.Model):
     ) -> PipelineVersion:
         pipeline = pipeline or self._create_pipeline(workspace)
         source_version = self.source_pipeline_version
+        kept_source_parameters = list(
+            filter(
+                lambda param: param["type"] in ["bool", "int", "str", "float"],
+                source_version.parameters,
+            )
+        )
+        config_to_keep = pipeline.get_config_from_previous_version(
+            kept_source_parameters
+        )
+        new_version_config = {
+            k: v
+            for k, v in source_version.config.items()
+            if k in kept_source_parameters
+        }
+        new_version_config.update(config_to_keep)
         return PipelineVersion.objects.create(
             source_template_version=self,
             user=principal,
             pipeline=pipeline,
             zipfile=source_version.zipfile,
             parameters=source_version.parameters,
-            config=source_version.config,
+            config=new_version_config,
             timeout=source_version.timeout,
         )
 

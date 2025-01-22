@@ -93,7 +93,14 @@ class PipelineTest(TestCase):
             description="This is a test pipeline",
         )
         cls.PIPELINE.upload_new_version(
-            cls.USER_ADMIN, zipfile=b"", parameters=[], name="Version"
+            cls.USER_ADMIN,
+            zipfile=b"",
+            name="Version",
+            parameters=[
+                {"code": "param_1", "name": "Param 1", "default": 123, "type": "int"},
+                {"code": "param_2", "name": "Param 2", "default": 456, "type": "int"},
+            ],
+            config={"param_1": 1234, "param_2": 4567},
         )
 
     def test_mail_run_recipients_mail_not_sent(self):
@@ -322,7 +329,6 @@ class PipelineTest(TestCase):
             name="Test Template",
             code="test_code",
             description="Some description",
-            config={"key": "value"},
         )
         template_version = template.create_version(
             self.PIPELINE.last_version, changelog="First version"
@@ -339,9 +345,23 @@ class PipelineTest(TestCase):
             self.PIPELINE.upload_new_version(
                 user=self.USER_ADMIN,
                 zipfile=b"",
-                parameters=[],
+                parameters=[
+                    {
+                        "code": "param_1",
+                        "name": "Param 1",
+                        "default": 444,
+                        "type": "int",
+                    },
+                    {
+                        "code": "param_3",
+                        "name": "Param 3",
+                        "default": 666,
+                        "type": "int",
+                    },
+                    {"code": "param_4", "name": "Param 4", "type": "dhis2"},
+                ],
                 name=f"Version {i}",
-                config={},
+                config={"param_1": 888, "param_3": 999, "param_4": "dhis2"},
             )
             template.create_version(
                 self.PIPELINE.last_version, changelog=f"Changelog {i}"
@@ -350,7 +370,22 @@ class PipelineTest(TestCase):
         self.assertTrue(created_pipeline.is_new_template_version_available)
         self.assertEqual(len(created_pipeline.new_template_versions), 3)
 
+        created_pipeline.upload_new_version(
+            self.USER_ADMIN,
+            zipfile=b"",
+            name="Version",
+            parameters=[
+                {"code": "param_1", "name": "Param 1", "default": 123, "type": "int"},
+                {"code": "param_5", "name": "Param 5", "default": 456, "type": "int"},
+            ],
+            config={"param_1": 1234, "param_5": 4567},
+        )
+
+        self.assertEqual(len(created_pipeline.new_template_versions), 3)
+
         template.upgrade(self.USER_ADMIN, created_pipeline)
 
-        self.assertFalse(created_pipeline.is_new_template_version_available)
         self.assertEqual(len(created_pipeline.new_template_versions), 0)
+        self.assertEqual(
+            created_pipeline.last_version.config, {"param_1": 1234, "param_3": 666}
+        )
