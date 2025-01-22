@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.78.0](https://github.com/BLSQ/openhexa-app/compare/0.77.0...0.78.0) (2025-01-22)
+
+
+### Features
+
+* Fix permissions for Pipeline Templates (HEXA-1121 HEXA-1122 HEXA-1124 HEXA-1125 HEXA-1126 HEXA-1128) ([#903](https://github.com/BLSQ/openhexa-app/issues/903)) ([32c5fad](https://github.com/BLSQ/openhexa-app/commit/32c5fad10d23dcff125eb3d76c212e336bdbf916))
+* HEXA-1127 button to create a new version of the pipeline using the new template ([#901](https://github.com/BLSQ/openhexa-app/issues/901)) ([fda8fad](https://github.com/BLSQ/openhexa-app/commit/fda8fad6a289d33884dffbf06985ef9f7b8d4cbd))
+* pgAdmin dev tool setup ([#850](https://github.com/BLSQ/openhexa-app/issues/850)) ([193fc32](https://github.com/BLSQ/openhexa-app/commit/193fc32ef914fc50292a37ff29c224b6f034ef4b))
+
 ## [0.77.0](https://github.com/BLSQ/openhexa-app/compare/0.76.4...0.77.0) (2025-01-14)
 
 
