@@ -53,7 +53,8 @@ class PipelineTemplate(SoftDeletedModel):
     objects = DefaultSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
 
-    def create_version(self, source_pipeline_version):
+    def create_version(self, source_pipeline_version: "PipelineVersion"):
+        """Create a new version of the template using a pipeline version as source"""
         template_version = PipelineTemplateVersion.objects.create(
             template=self,
             version_number=self.versions.count() + 1,
@@ -61,12 +62,16 @@ class PipelineTemplate(SoftDeletedModel):
         )
         return template_version
 
-    def upgrade(
+    def upgrade_pipeline(
         self,
         principal: User,
         pipeline: Pipeline,
         template_version: "PipelineTemplateVersion" = None,
     ) -> PipelineVersion:
+        """Upgrade a pipeline to the latest version or the specified version of the template"""
+        if template_version and template_version.template != self:
+            raise ValueError("The specified template version is not for this template")
+
         template_version = template_version or self.last_version
         return template_version.create_pipeline_version(
             principal, pipeline.workspace, pipeline
