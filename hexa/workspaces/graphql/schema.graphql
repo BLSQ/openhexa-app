@@ -867,7 +867,14 @@ enum DHIS2ConnectionError {
     REQUEST_ERROR
     UNKNOWN_ERROR
 }
-
+"""
+DHIS2 connection status
+"""
+enum DHIS2ConnectionStatus {
+    UP
+    DOWN
+    UNKNOWN
+}
 """
 DHIS2 metadata query result
 """
@@ -891,6 +898,7 @@ type DHIS2Connection implements Connection{
     user: User # User associated with the connection
     fields: [ConnectionField!]! # Fields of the connection
     permissions: ConnectionPermissions! # Permissions of the connection
+    status: DHIS2ConnectionStatus! # Connection status
     queryMetadata(type: String!, filter: String): DHIS2QueryResult! # Query metadata items
 }
 
