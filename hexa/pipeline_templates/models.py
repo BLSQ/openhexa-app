@@ -152,22 +152,22 @@ class PipelineTemplateVersion(models.Model):
 
     def _extract_config(self, pipeline: Pipeline) -> dict:
         """Extract the config from the source pipeline version based on the pipeline config and filter out the parameters with complex types"""
-        kept_source_parameters = list(
-            filter(
-                lambda param: "type" in param
-                and param["type"] in ["bool", "int", "str", "float"],
-                self.source_pipeline_version.parameters,
-            )
-        )
+        kept_source_parameters = [
+            param
+            for param in self.source_pipeline_version.parameters
+            if param.get("type") in {"bool", "int", "str", "float"}
+        ]  # Only keep the parameters with simple types
         config_to_keep = pipeline.get_config_from_previous_version(
             kept_source_parameters
-        )
+        )  # Keep the config from the previous version
         new_version_config = {
             k: v
             for k, v in self.source_pipeline_version.config.items()
             if k in kept_source_parameters
-        }
-        new_version_config.update(config_to_keep)
+        }  # Update the new config with the new parameters with simple types
+        new_version_config.update(
+            config_to_keep
+        )  # Update the new config with the config from the previous version
         return new_version_config
 
     def create_pipeline_version(
