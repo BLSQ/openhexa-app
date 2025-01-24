@@ -80,6 +80,23 @@ class PipelineTemplate(SoftDeletedModel):
         )
 
     @property
+    def new_versions(self) -> list["PipelineTemplateVersion"]:
+        """Return the versions of the template that are newer than the last version of the pipeline"""
+        last_version_from_template = self.source_pipeline.versions.filter(
+            source_template_version__isnull=False
+        ).first()
+        if not last_version_from_template:
+            return []
+        return self.versions.filter(
+            created_at__gt=last_version_from_template.created_at
+        ).order_by("-created_at")
+
+    @property
+    def has_new_versions(self) -> bool:
+        """Return True if there are new versions of the template available for the pipeline"""
+        return len(self.new_versions) > 0
+
+    @property
     def last_version(self) -> "PipelineTemplateVersion":
         return self.versions.last()
 

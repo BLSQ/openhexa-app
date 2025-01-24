@@ -332,8 +332,8 @@ class PipelineTest(TestCase):
             self.USER_ADMIN, self.WORKSPACE2
         )
         created_pipeline = created_pipeline_version.pipeline
-        self.assertFalse(created_pipeline.is_new_template_version_available)
-        self.assertEqual(len(created_pipeline.new_template_versions), 0)
+        self.assertFalse(created_pipeline.template.has_new_versions)
+        self.assertEqual(len(created_pipeline.template.new_versions), 0)
 
         for i in range(2, 5):
             self.PIPELINE.upload_new_version(
@@ -347,10 +347,10 @@ class PipelineTest(TestCase):
                 self.PIPELINE.last_version, changelog=f"Changelog {i}"
             )
 
-        self.assertTrue(created_pipeline.is_new_template_version_available)
-        self.assertEqual(len(created_pipeline.new_template_versions), 3)
+        self.assertTrue(created_pipeline.template.has_new_versions)
+        self.assertEqual(len(created_pipeline.template.new_versions), 3)
 
         template.upgrade(self.USER_ADMIN, created_pipeline)
 
-        self.assertFalse(created_pipeline.is_new_template_version_available)
-        self.assertEqual(len(created_pipeline.new_template_versions), 0)
+        self.assertFalse(created_pipeline.template.has_new_versions)
+        self.assertEqual(len(created_pipeline.template.new_versions), 0)

@@ -101,7 +101,7 @@ def resolve_available_pipeline_versions(_, info, **kwargs):
         )
     except Pipeline.DoesNotExist:
         return []
-    return pipeline.new_template_versions
+    return pipeline.template.new_versions if pipeline.template else []
 
 
 bindables = [
