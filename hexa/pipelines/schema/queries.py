@@ -99,9 +99,9 @@ def resolve_available_pipeline_versions(_, info, **kwargs):
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
             id=kwargs["pipeline_id"]
         )
+        return pipeline.template.new_versions if pipeline.template else []
     except Pipeline.DoesNotExist:
         return []
-    return pipeline.template.new_versions if pipeline.template else []
 
 
 bindables = [
