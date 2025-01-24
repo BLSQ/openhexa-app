@@ -390,7 +390,7 @@ type Config {
 }
 
 """Represents a connection to an external data source or service."""
-type Connection {
+interface Connection {
   id: String!
   name: String!
   slug: String!
@@ -846,6 +846,20 @@ type CreateWorkspaceResult {
   success: Boolean!
   errors: [CreateWorkspaceError!]!
   workspace: Workspace
+}
+
+"""Custom connection object"""
+type CustomConnection implements Connection {
+  id: String!
+  name: String!
+  slug: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+  type: ConnectionType!
+  user: User
+  fields: [ConnectionField!]!
+  permissions: ConnectionPermissions!
 }
 
 type DAG {
@@ -1501,8 +1515,18 @@ type DenyAccessmodAccessRequestResult {
 }
 
 """DHIS2 connection object"""
-type DHIS2Connection {
-  query(type: String!, filter: String): DHIS2QueryResult!
+type DHIS2Connection implements Connection {
+  id: String!
+  name: String!
+  slug: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+  type: ConnectionType!
+  user: User
+  fields: [ConnectionField!]!
+  permissions: ConnectionPermissions!
+  queryMetadata(type: String!, filter: String): DHIS2QueryResult!
 }
 
 enum DHIS2ConnectionError {
@@ -1518,9 +1542,9 @@ type DHIS2MetadataItem {
 
 """DHIS2 metadata query result"""
 type DHIS2QueryResult {
-  data: [DHIS2MetadataItem!]
+  items: [DHIS2MetadataItem!]
   success: Boolean!
-  errors: [String!]!
+  error: DHIS2ConnectionError
 }
 
 """
@@ -1584,6 +1608,20 @@ enum FileSampleStatus {
   PROCESSING
   FAILED
   FINISHED
+}
+
+"""GCS connection object"""
+type GCSConnection implements Connection {
+  id: String!
+  name: String!
+  slug: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+  type: ConnectionType!
+  user: User
+  fields: [ConnectionField!]!
+  permissions: ConnectionPermissions!
 }
 
 """
@@ -1684,6 +1722,20 @@ type GenericOutput {
   name: String
   type: String!
   uri: String!
+}
+
+"""IASO connection object"""
+type IASOConnection implements Connection {
+  id: String!
+  name: String!
+  slug: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+  type: ConnectionType!
+  user: User
+  fields: [ConnectionField!]!
+  permissions: ConnectionPermissions!
 }
 
 """Represents the input for inviting a member to a workspace."""
@@ -1922,7 +1974,6 @@ type MePermissions {
   superUser: Boolean!
   createAccessmodProject: Boolean!
   manageAccessmodAccessRequests: Boolean!
-  createPipelineTemplateVersion: Boolean!
   createWorkspace: Boolean!
 }
 
@@ -2071,6 +2122,9 @@ type Mutation {
 
   """Deletes a pipeline recipient."""
   deletePipelineRecipient(input: DeletePipelineRecipientInput!): DeletePipelineRecipientResult!
+
+  """Upgrades a pipeline version using the latest template version."""
+  upgradePipelineVersionFromTemplate(input: UpgradePipelineVersionFromTemplateInput!): UpgradePipelineVersionFromTemplateResult!
 
   """Creates a new pipeline template version."""
   createPipelineTemplateVersion(input: CreatePipelineTemplateVersionInput!): CreatePipelineTemplateVersionResult!
@@ -2514,6 +2568,20 @@ type PipelineVersionPermissions {
   delete: Boolean!
 }
 
+"""PostgreSQL connection object"""
+type PostgreSQLConnection implements Connection {
+  id: String!
+  name: String!
+  slug: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+  type: ConnectionType!
+  user: User
+  fields: [ConnectionField!]!
+  permissions: ConnectionPermissions!
+}
+
 input PrepareAccessmodFileDownloadInput {
   fileId: String!
 }
@@ -2631,7 +2699,6 @@ type Query {
 
   """Retrieves a list of organizations."""
   organizations: [Organization!]!
-  dhis2connection(slug: String!): DHIS2Connection
   dags(page: Int, perPage: Int): DAGPage!
   dag(id: UUID!): DAG
   dagRun(id: UUID!): DAGRun
@@ -2663,6 +2730,7 @@ type Query {
 
   """Retrieves a pipeline run by ID."""
   pipelineRun(id: UUID!): PipelineRun
+  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String): PipelineTemplatePage!
   workspace(slug: String!): Workspace
   workspaces(query: String, page: Int, perPage: Int): WorkspacePage!
   pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
@@ -2691,9 +2759,6 @@ type Query {
 
   """Search datasets."""
   datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
-
-  """Search pipeline templates."""
-  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String): PipelineTemplatePage!
 }
 
 """
@@ -2834,6 +2899,20 @@ type S3Bucket {
   name: String!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+"""S3 connection object"""
+type S3Connection implements Connection {
+  id: String!
+  name: String!
+  slug: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+  type: ConnectionType!
+  user: User
+  fields: [ConnectionField!]!
+  permissions: ConnectionPermissions!
 }
 
 type S3Object {
@@ -3437,6 +3516,31 @@ type UpdateWorkspaceResult {
   success: Boolean!
   errors: [UpdateWorkspaceError!]!
   workspace: Workspace
+}
+
+"""
+Enum representing the possible errors that can occur when upgrading a pipeline version from the latest template version.
+"""
+enum UpgradePipelineVersionFromTemplateError {
+  PIPELINE_NOT_FOUND
+  PIPELINE_NOT_FROM_TEMPLATE
+  NO_NEW_TEMPLATE_VERSION_AVAILABLE
+}
+
+"""
+Represents the input for upgrading a pipeline version from the latest template version.
+"""
+input UpgradePipelineVersionFromTemplateInput {
+  pipelineId: UUID!
+}
+
+"""
+Represents the result of upgrading a pipeline version from the latest template version.
+"""
+type UpgradePipelineVersionFromTemplateResult {
+  success: Boolean!
+  errors: [UpgradePipelineVersionFromTemplateError!]!
+  pipelineVersion: PipelineVersion
 }
 
 """Represents the input for uploading a pipeline."""

@@ -445,7 +445,6 @@ export type Config = {
 
 /** Represents a connection to an external data source or service. */
 export type Connection = {
-  __typename?: 'Connection';
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   fields: Array<ConnectionField>;
@@ -890,6 +889,21 @@ export type CreateWorkspaceResult = {
   workspace?: Maybe<Workspace>;
 };
 
+/** Custom connection object */
+export type CustomConnection = Connection & {
+  __typename?: 'CustomConnection';
+  createdAt: Scalars['DateTime']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  fields: Array<ConnectionField>;
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  permissions: ConnectionPermissions;
+  slug: Scalars['String']['output'];
+  type: ConnectionType;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  user?: Maybe<User>;
+};
+
 export type Dag = {
   __typename?: 'DAG';
   countries: Array<Country>;
@@ -989,14 +1003,24 @@ export type DagTemplate = {
 };
 
 /** DHIS2 connection object */
-export type Dhis2Connection = {
+export type Dhis2Connection = Connection & {
   __typename?: 'DHIS2Connection';
-  query: Dhis2QueryResult;
+  createdAt: Scalars['DateTime']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  fields: Array<ConnectionField>;
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  permissions: ConnectionPermissions;
+  queryMetadata: Dhis2QueryResult;
+  slug: Scalars['String']['output'];
+  type: ConnectionType;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  user?: Maybe<User>;
 };
 
 
 /** DHIS2 connection object */
-export type Dhis2ConnectionQueryArgs = {
+export type Dhis2ConnectionQueryMetadataArgs = {
   filter?: InputMaybe<Scalars['String']['input']>;
   type: Scalars['String']['input'];
 };
@@ -1016,8 +1040,8 @@ export type Dhis2MetadataItem = {
 /** DHIS2 metadata query result */
 export type Dhis2QueryResult = {
   __typename?: 'DHIS2QueryResult';
-  data?: Maybe<Array<Dhis2MetadataItem>>;
-  errors: Array<Scalars['String']['output']>;
+  error?: Maybe<Dhis2ConnectionError>;
+  items?: Maybe<Array<Dhis2MetadataItem>>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -1682,6 +1706,21 @@ export enum FileSampleStatus {
   Processing = 'PROCESSING'
 }
 
+/** GCS connection object */
+export type GcsConnection = Connection & {
+  __typename?: 'GCSConnection';
+  createdAt: Scalars['DateTime']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  fields: Array<ConnectionField>;
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  permissions: ConnectionPermissions;
+  slug: Scalars['String']['output'];
+  type: ConnectionType;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  user?: Maybe<User>;
+};
+
 /** The GenerateChallengeError enum represents the possible errors that can occur during the generateChallenge mutation. */
 export enum GenerateChallengeError {
   ChallengeError = 'CHALLENGE_ERROR',
@@ -1777,6 +1816,21 @@ export type GenericOutput = {
   name?: Maybe<Scalars['String']['output']>;
   type: Scalars['String']['output'];
   uri: Scalars['String']['output'];
+};
+
+/** IASO connection object */
+export type IasoConnection = Connection & {
+  __typename?: 'IASOConnection';
+  createdAt: Scalars['DateTime']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  fields: Array<ConnectionField>;
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  permissions: ConnectionPermissions;
+  slug: Scalars['String']['output'];
+  type: ConnectionType;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  user?: Maybe<User>;
 };
 
 /** Represents the input for inviting a member to a workspace. */
@@ -1944,7 +1998,6 @@ export type MePermissions = {
   /** Indicates whether the user has permission to access the admin panel. */
   adminPanel: Scalars['Boolean']['output'];
   createAccessmodProject: Scalars['Boolean']['output'];
-  createPipelineTemplateVersion: Scalars['Boolean']['output'];
   /** Indicates whether the user has permission to create a team. */
   createTeam: Scalars['Boolean']['output'];
   createWorkspace: Scalars['Boolean']['output'];
@@ -2169,6 +2222,8 @@ export type Mutation = {
   updateUser: UpdateUserResult;
   updateWorkspace: UpdateWorkspaceResult;
   updateWorkspaceMember: UpdateWorkspaceMemberResult;
+  /** Upgrades a pipeline version using the latest template version. */
+  upgradePipelineVersionFromTemplate: UpgradePipelineVersionFromTemplateResult;
   /** Uploads a pipeline. */
   uploadPipeline: UploadPipelineResult;
   /** Verifies a device for two-factor authentication. */
@@ -2631,6 +2686,11 @@ export type MutationUpdateWorkspaceMemberArgs = {
 };
 
 
+export type MutationUpgradePipelineVersionFromTemplateArgs = {
+  input: UpgradePipelineVersionFromTemplateInput;
+};
+
+
 export type MutationUploadPipelineArgs = {
   input: UploadPipelineInput;
 };
@@ -3025,6 +3085,21 @@ export type PipelinesPage = {
   totalPages: Scalars['Int']['output'];
 };
 
+/** PostgreSQL connection object */
+export type PostgreSqlConnection = Connection & {
+  __typename?: 'PostgreSQLConnection';
+  createdAt: Scalars['DateTime']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  fields: Array<ConnectionField>;
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  permissions: ConnectionPermissions;
+  slug: Scalars['String']['output'];
+  type: ConnectionType;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  user?: Maybe<User>;
+};
+
 export type PrepareAccessmodFileDownloadInput = {
   fileId: Scalars['String']['input'];
 };
@@ -3167,7 +3242,6 @@ export type Query = {
   datasetVersionFile?: Maybe<DatasetVersionFile>;
   /** Search datasets. */
   datasets: DatasetPage;
-  dhis2connection?: Maybe<Dhis2Connection>;
   /** Retrieves the currently authenticated user. */
   me: Me;
   metadataAttributes: Array<Maybe<MetadataAttribute>>;
@@ -3181,7 +3255,6 @@ export type Query = {
   pipelineByCode?: Maybe<Pipeline>;
   /** Retrieves a pipeline run by ID. */
   pipelineRun?: Maybe<PipelineRun>;
-  /** Search pipeline templates. */
   pipelineTemplates: PipelineTemplatePage;
   /** Retrieves a pipeline version by ID. */
   pipelineVersion?: Maybe<PipelineVersion>;
@@ -3321,11 +3394,6 @@ export type QueryDatasetsArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type QueryDhis2connectionArgs = {
-  slug: Scalars['String']['input'];
 };
 
 
@@ -3526,6 +3594,21 @@ export type S3Bucket = {
   id: Scalars['String']['output'];
   name: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
+};
+
+/** S3 connection object */
+export type S3Connection = Connection & {
+  __typename?: 'S3Connection';
+  createdAt: Scalars['DateTime']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  fields: Array<ConnectionField>;
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  permissions: ConnectionPermissions;
+  slug: Scalars['String']['output'];
+  type: ConnectionType;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  user?: Maybe<User>;
 };
 
 export type S3Object = {
@@ -4086,6 +4169,26 @@ export type UpdateWorkspaceResult = {
   errors: Array<UpdateWorkspaceError>;
   success: Scalars['Boolean']['output'];
   workspace?: Maybe<Workspace>;
+};
+
+/** Enum representing the possible errors that can occur when upgrading a pipeline version from the latest template version. */
+export enum UpgradePipelineVersionFromTemplateError {
+  NoNewTemplateVersionAvailable = 'NO_NEW_TEMPLATE_VERSION_AVAILABLE',
+  PipelineNotFound = 'PIPELINE_NOT_FOUND',
+  PipelineNotFromTemplate = 'PIPELINE_NOT_FROM_TEMPLATE'
+}
+
+/** Represents the input for upgrading a pipeline version from the latest template version. */
+export type UpgradePipelineVersionFromTemplateInput = {
+  pipelineId: Scalars['UUID']['input'];
+};
+
+/** Represents the result of upgrading a pipeline version from the latest template version. */
+export type UpgradePipelineVersionFromTemplateResult = {
+  __typename?: 'UpgradePipelineVersionFromTemplateResult';
+  errors: Array<UpgradePipelineVersionFromTemplateError>;
+  pipelineVersion?: Maybe<PipelineVersion>;
+  success: Scalars['Boolean']['output'];
 };
 
 /** Represents the input for uploading a pipeline. */

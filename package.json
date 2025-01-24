@@ -93,6 +93,7 @@
   "devDependencies": {
     "@faker-js/faker": "^9.0.1",
     "@graphql-codegen/cli": "^5.0.2",
+    "@graphql-codegen/fragment-matcher": "^5.0.2",
     "@graphql-codegen/introspection": "4.0.3",
     "@graphql-codegen/near-operation-file-preset": "^3.0.0",
     "@graphql-codegen/typescript": "^4.0.9",

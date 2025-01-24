@@ -14,7 +14,6 @@ import isEqual from "lodash/isEqual";
 import type { AppProps } from "next/app";
 import { useMemo } from "react";
 import getConfig from "next/config";
-
 const { publicRuntimeConfig } = getConfig();
 const APOLLO_STATE_PROP_NAME = "__APOLLO_STATE__";
 
@@ -25,7 +24,8 @@ let apolloClient: CustomApolloClient | undefined;
 const CACHE_CONFIG: InMemoryCacheConfig = {
   // possibleTypes must be provided to cache correctly unions and interfaces
   // https://www.apollographql.com/docs/react/data/fragments/#using-fragments-with-unions-and-interfaces
-  possibleTypes: {},
+  addTypename: true,
+  possibleTypes: require("graphql/possibleTypes.json").possibleTypes,
   typePolicies: {
     Team: {
       merge: true,
@@ -76,7 +76,16 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
     Pipeline: {
       merge: true,
     },
+
     PipelineParameter: {
+      keyFields: ["code"],
+    },
+
+    Connection: {
+      merge: true,
+    },
+
+    ConnectionField: {
       merge: true,
       keyFields: ["code"],
     },
@@ -84,7 +93,10 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
 };
 
 const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
-  const enhancedFetch = (input: RequestInfo | URL, init?: RequestInit) => {
+  const enhancedFetch = async (
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ) => {
     if (typeof init === "undefined") {
       init = {};
     }

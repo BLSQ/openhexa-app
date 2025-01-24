@@ -15,5 +15,10 @@ generates:
       - typescript-react-apollo
     config:
       withHooks: true
-      scalars: 
+      scalars:
         UUID: string
+  src/graphql/possibleTypes.json:
+    plugins: ["fragment-matcher"]
+    config:
+      module: es2015
+      useExplicitTyping: true

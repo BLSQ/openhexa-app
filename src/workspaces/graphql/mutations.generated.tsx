@@ -58,14 +58,14 @@ export type CreateConnectionMutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateConnectionMutation = { __typename?: 'Mutation', createConnection: { __typename?: 'CreateConnectionResult', success: boolean, errors: Array<Types.CreateConnectionError>, connection?: { __typename?: 'Connection', id: string, name: string } | null } };
+export type CreateConnectionMutation = { __typename?: 'Mutation', createConnection: { __typename?: 'CreateConnectionResult', success: boolean, errors: Array<Types.CreateConnectionError>, connection?: { __typename?: 'CustomConnection', id: string, name: string } | { __typename?: 'DHIS2Connection', id: string, name: string } | { __typename?: 'GCSConnection', id: string, name: string } | { __typename?: 'IASOConnection', id: string, name: string } | { __typename?: 'PostgreSQLConnection', id: string, name: string } | { __typename?: 'S3Connection', id: string, name: string } | null } };
 
 export type UpdateConnectionMutationVariables = Types.Exact<{
   input: Types.UpdateConnectionInput;
 }>;
 
 
-export type UpdateConnectionMutation = { __typename?: 'Mutation', updateConnection: { __typename?: 'UpdateConnectionResult', success: boolean, errors: Array<Types.UpdateConnectionError>, connection?: { __typename?: 'Connection', id: string, name: string, slug: string, description?: string | null, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | null } };
+export type UpdateConnectionMutation = { __typename?: 'Mutation', updateConnection: { __typename?: 'UpdateConnectionResult', success: boolean, errors: Array<Types.UpdateConnectionError>, connection?: { __typename?: 'CustomConnection', id: string, name: string, slug: string, description?: string | null, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | { __typename?: 'DHIS2Connection', id: string, name: string, slug: string, description?: string | null, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | { __typename?: 'GCSConnection', id: string, name: string, slug: string, description?: string | null, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | { __typename?: 'IASOConnection', id: string, name: string, slug: string, description?: string | null, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | { __typename?: 'PostgreSQLConnection', id: string, name: string, slug: string, description?: string | null, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | { __typename?: 'S3Connection', id: string, name: string, slug: string, description?: string | null, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | null } };
 
 export type GenerateNewDatabasePasswordMutationVariables = Types.Exact<{
   input: Types.GenerateNewDatabasePasswordInput;
