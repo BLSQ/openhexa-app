@@ -201,9 +201,9 @@ def resolve_source_template(pipeline: Pipeline, info, **kwargs):
     return pipeline.source_template
 
 
-@pipeline_object.field("newTemplateVersionAvailable")
-def resolve_new_template_version_available(pipeline: Pipeline, info, **kwargs):
-    return pipeline.is_new_template_version_available
+@pipeline_object.field("newTemplateVersions")
+def resolve_new_template_versions(pipeline: Pipeline, info, **kwargs):
+    return pipeline.new_template_versions
 
 
 @pipeline_object.field("runs")

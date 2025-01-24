@@ -17,8 +17,11 @@ def get_workspace(user, workspace_slug):
 
 
 def get_source_pipeline(user, pipeline_id):
+    """
+    Get a pipeline that the user has access to, regardless of whether it has been deleted or not.
+    """
     try:
-        return Pipeline.objects.filter_for_user(user).get(id=pipeline_id)
+        return Pipeline.all_objects.filter_for_user(user).get(id=pipeline_id)
     except Pipeline.DoesNotExist:
         return None
 

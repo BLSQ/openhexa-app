@@ -55,6 +55,7 @@ class PipelineTemplate(SoftDeletedModel):
     def create_version(
         self, source_pipeline_version: PipelineVersion, changelog: str = None
     ) -> "PipelineTemplateVersion":
+        """Create a new version of the template using a pipeline version as source"""
         return PipelineTemplateVersion.objects.create(
             template=self,
             version_number=self.versions.count() + 1,
@@ -62,16 +63,34 @@ class PipelineTemplate(SoftDeletedModel):
             source_pipeline_version=source_pipeline_version,
         )
 
-    def upgrade(
+    def upgrade_pipeline(
         self,
         principal: User,
         pipeline: Pipeline,
         template_version: "PipelineTemplateVersion" = None,
     ) -> PipelineVersion:
+        """Upgrade a pipeline to the latest version or the specified version of the template"""
+        if template_version and template_version.template != self:
+            raise ValueError("The specified template version is not for this template")
+
         template_version = template_version or self.last_version
         return template_version.create_pipeline_version(
             principal, pipeline.workspace, pipeline
         )
+
+    def new_versions(self, pipeline: Pipeline) -> list["PipelineTemplateVersion"]:
+        """Return the versions of the template that are newer than the last version of the pipeline"""
+        if pipeline.source_template != self:
+            raise ValueError("The specified pipeline is not from this template")
+
+        last_version_from_template = pipeline.versions.filter(
+            source_template_version__isnull=False
+        ).first()
+        if not last_version_from_template:
+            return []
+        return self.versions.filter(
+            created_at__gt=last_version_from_template.created_at
+        ).order_by("-created_at")
 
     @property
     def last_version(self) -> "PipelineTemplateVersion":
