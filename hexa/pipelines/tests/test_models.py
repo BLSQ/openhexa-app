@@ -348,6 +348,6 @@ class PipelineTest(TestCase):
 
         self.assertEqual(len(created_pipeline.new_template_versions), 3)
 
-        template.upgrade(self.USER_ADMIN, created_pipeline)
+        template.upgrade_pipeline(self.USER_ADMIN, created_pipeline)
 
         self.assertEqual(len(created_pipeline.new_template_versions), 0)
