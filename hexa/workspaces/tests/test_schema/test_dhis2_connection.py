@@ -288,3 +288,28 @@ class ConnectiontTest(GraphQLTestCase):
                     }
                 },
             )
+
+    def test_dhis2_connection_status(self):
+        self.client.force_login(self.USER_JIM)
+        dhis2_mock = MagicMock()
+
+        with patch("hexa.workspaces.utils.DHIS2", return_value=dhis2_mock):
+            response = self.run_query(
+                """
+                query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!) {
+                connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug){
+                    ... on DHIS2Connection {
+                            status
+                        }
+                }
+                }
+                """,
+                variables={
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "connectionSlug": "dhis2-connection-1",
+                },
+            )
+            self.assertEqual(
+                response["data"],
+                {"connectionBySlug": {"status": "UP"}},
+            )
