@@ -864,19 +864,9 @@ type DHIS2MetadataItem {
     name: String!   # Name of the metadata item
 }
 enum DHIS2ConnectionError {
-    CONNECTION_ERROR
+    REQUEST_ERROR
     UNKNOWN_ERROR
 }
-
-"""
-DHIS2 metadata query result
-"""
-type DHIS2QueryResult {
-    items: [DHIS2MetadataItem!]  # List of metadata items
-    success: Boolean!           # Query success status
-    error: DHIS2ConnectionError # Connection error
-}
-
 """
 DHIS2 connection status
 """
@@ -885,7 +875,14 @@ enum DHIS2ConnectionStatus {
     DOWN
     UNKNOWN
 }
-
+"""
+DHIS2 metadata query result
+"""
+type DHIS2QueryResult {
+    items: [DHIS2MetadataItem!]  # List of metadata items
+    success: Boolean!           # Query success status
+    error: DHIS2ConnectionError # Connection error
+}
 
 """
 DHIS2 connection object
