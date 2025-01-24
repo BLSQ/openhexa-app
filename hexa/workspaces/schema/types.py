@@ -1,5 +1,8 @@
-from ariadne import ObjectType
+import logging
+
+from ariadne import InterfaceType, ObjectType
 from django.http import HttpRequest
+from openhexa.toolbox.dhis2.api import DHIS2Error
 
 from hexa.core.graphql import result_page
 from hexa.pipelines.authentication import PipelineRunUser
@@ -12,12 +15,18 @@ from ..models import (
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
 )
+from ..utils import (
+    DHIS2MetadataQueryType,
+    dhis2_client_from_connection,
+    query_dhis2_metadata,
+)
 
 workspace_object = ObjectType("Workspace")
 workspace_permissions = ObjectType("WorkspacePermissions")
-connection_object = ObjectType("Connection")
+connection_interface = InterfaceType("Connection")
 connection_field_object = ObjectType("ConnectionField")
 connection_permissions_object = ObjectType("ConnectionPermissions")
+dhis2_connection = ObjectType("DHIS2Connection")
 
 
 @connection_permissions_object.field("update")
@@ -91,7 +100,7 @@ def resolve_workspace_permissions(workspace: Workspace, info):
     return workspace
 
 
-@connection_object.field("permissions")
+@connection_interface.field("permissions")
 def resolve_workspace_connection_permissions(connection: Connection, info):
     return connection
 
@@ -137,7 +146,7 @@ def resolve_workspace_connections(workspace: Workspace, info, **kwargs):
     return workspace.connections.all()
 
 
-@connection_object.field("fields")
+@connection_interface.field("fields")
 def resolve_workspace_connection_fields(obj, info, **kwargs):
     return obj.fields.all()
 
@@ -157,13 +166,54 @@ def resolve_connection_field_value(obj: ConnectionField, info, **kwargs):
         return obj.value
 
 
-connection_object.set_alias("type", "connection_type")
+@dhis2_connection.field("queryMetadata")
+def resolve_query(connection, info, **kwargs):
+    fields = ["id", "name"]
+    dhis2_client = dhis2_client_from_connection(connection)
+    try:
+        metadata = query_dhis2_metadata(
+            dhis2_client,
+            query_type=DHIS2MetadataQueryType[kwargs.get("type")],
+            fields=fields,
+            filter=kwargs.get("filter"),
+        )
+
+        result = [{field: item.get(field) for field in fields} for item in metadata]
+        return {"items": result, "success": True, "error": None}
+    except DHIS2Error as e:
+        logging.error(f"DHIS2 error: {e}")
+        return {"data": [], "success": False, "error": "REQUEST_ERROR"}
+    except Exception as e:
+        logging.error(f"Unknown error: {e}")
+        return {"data": [], "success": False, "error": "UNKNOWN_ERROR"}
+
+
+connection_interface.set_alias("type", "connection_type")
+
+
+@connection_interface.type_resolver
+def resolve_connection_type(obj, *_):
+    connection_type_mapping = {
+        "DHIS2": "DHIS2Connection",
+        "S3": "S3Connection",
+        "POSTGRESQL": "PostgreSQLConnection",
+        "CUSTOM": "CustomConnection",
+        "GCS": "GCSConnection",
+        "IASO": "IASOConnection",
+    }
+    if isinstance(obj, Connection):
+        resolved_type = connection_type_mapping.get(obj.connection_type)
+        if resolved_type:
+            return resolved_type
+        logging.warning(f"Unknown connection type: {obj.connection_type}")
+    return None
 
 
 bindables = [
     workspace_object,
     workspace_permissions,
     connection_field_object,
-    connection_object,
+    connection_interface,
+    dhis2_connection,
     connection_permissions_object,
 ]
