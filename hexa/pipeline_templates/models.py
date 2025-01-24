@@ -150,16 +150,13 @@ class PipelineTemplateVersion(models.Model):
             workspace=workspace,
         )
 
-    def create_pipeline_version(
-        self, principal: User, workspace: Workspace, pipeline=None
-    ) -> PipelineVersion:
-        pipeline = pipeline or self._create_pipeline(workspace)
-        source_version = self.source_pipeline_version
+    def _extract_config(self, pipeline: Pipeline) -> dict:
+        """Extract the config from the source pipeline version based on the pipeline config and filter out the parameters with complex types"""
         kept_source_parameters = list(
             filter(
                 lambda param: "type" in param
                 and param["type"] in ["bool", "int", "str", "float"],
-                source_version.parameters,
+                self.source_pipeline_version.parameters,
             )
         )
         config_to_keep = pipeline.get_config_from_previous_version(
@@ -167,10 +164,18 @@ class PipelineTemplateVersion(models.Model):
         )
         new_version_config = {
             k: v
-            for k, v in source_version.config.items()
+            for k, v in self.source_pipeline_version.config.items()
             if k in kept_source_parameters
         }
         new_version_config.update(config_to_keep)
+        return new_version_config
+
+    def create_pipeline_version(
+        self, principal: User, workspace: Workspace, pipeline=None
+    ) -> PipelineVersion:
+        pipeline = pipeline or self._create_pipeline(workspace)
+        new_version_config = self._extract_config(pipeline)
+        source_version = self.source_pipeline_version
         return PipelineVersion.objects.create(
             source_template_version=self,
             user=principal,
