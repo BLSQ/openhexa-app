@@ -182,7 +182,7 @@ def resolve_query(connection, info, **kwargs):
         return {"items": result, "success": True, "error": None}
     except DHIS2Error as e:
         logging.error(f"DHIS2 error: {e}")
-        return {"data": [], "success": False, "error": "CONNECTION_ERROR"}
+        return {"data": [], "success": False, "error": "REQUEST_ERROR"}
     except Exception as e:
         logging.error(f"Unknown error: {e}")
         return {"data": [], "success": False, "error": "UNKNOWN_ERROR"}

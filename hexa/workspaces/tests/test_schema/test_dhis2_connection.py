@@ -213,7 +213,7 @@ class ConnectiontTest(GraphQLTestCase):
             )
             self.assertEqual(response["data"], {"connectionBySlug": None})
 
-    def test_connection_error(self):
+    def test_connection_request_error(self):
         self.client.force_login(self.USER_JIM)
 
         dhis2_mock = MagicMock()
@@ -246,7 +246,7 @@ class ConnectiontTest(GraphQLTestCase):
                 response["data"],
                 {
                     "connectionBySlug": {
-                        "queryMetadata": {"items": None, "error": "CONNECTION_ERROR"}
+                        "queryMetadata": {"items": None, "error": "REQUEST_ERROR"}
                     }
                 },
             )

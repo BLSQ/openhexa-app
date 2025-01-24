@@ -864,7 +864,7 @@ type DHIS2MetadataItem {
     name: String!   # Name of the metadata item
 }
 enum DHIS2ConnectionError {
-    CONNECTION_ERROR
+    REQUEST_ERROR
     UNKNOWN_ERROR
 }
 
