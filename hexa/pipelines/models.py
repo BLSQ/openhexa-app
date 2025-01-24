@@ -466,16 +466,7 @@ class Pipeline(SoftDeletedModel):
 
     @property
     def new_template_versions(self):
-        if not self.source_template:
-            return []
-        last_version_from_template = self.versions.filter(
-            source_template_version__isnull=False
-        ).first()
-        if not last_version_from_template:
-            return []
-        return self.source_template.versions.filter(
-            created_at__gt=last_version_from_template.created_at
-        ).order_by("-created_at")
+        return self.source_template.new_versions(self) if self.source_template else []
 
     def get_token(self):
         return Signer().sign_object(

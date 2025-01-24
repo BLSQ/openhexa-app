@@ -248,7 +248,7 @@ type Pipeline {
   notebookPath: String  # The path to the notebook file for the pipeline (only filled if the pipeline is a notebook).
   template: PipelineTemplate  # The template associated with the pipeline.
   sourceTemplate: PipelineTemplate  # The source template associated with the pipeline.
-  newTemplateVersionAvailable: Boolean!  # Indicates if a new template version is available for the pipeline.
+  newTemplateVersions: [PipelineTemplateVersion!]  # The new template versions available for the pipeline.
 }
 
 """
@@ -633,11 +633,6 @@ extend type Query {
   Retrieves a pipeline run by ID.
   """
   pipelineRun(id: UUID!): PipelineRun @loginRequired
-
-  """
-  Retrieves template versions available for upgrades for a pipeline.
-  """
-  availableUpgradePipelineTemplateVersions(pipelineId: UUID!): [PipelineTemplateVersion!]! @loginRequired
 }
 
 extend type Mutation {
