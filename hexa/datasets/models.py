@@ -120,12 +120,12 @@ class Dataset(MetadataMixin, Base):
             raise PermissionDenied
         self.delete()
 
-    def create_version(self, *, principal: User, name: str, description: str = None):
+    def create_version(self, *, principal: User, name: str, changelog: str = None):
         return DatasetVersion.objects.create_if_has_perm(
             principal=principal,
             dataset=self,
             name=name,
-            description=description,
+            changelog=changelog,
         )
 
     def can_view_metadata(self, user: User):
@@ -163,7 +163,7 @@ class DatasetVersionQuerySet(BaseQuerySet):
 
 class DatasetVersionManager(models.Manager):
     def create_if_has_perm(
-        self, principal: User, dataset: Dataset, *, name: str, description: str
+        self, principal: User, dataset: Dataset, *, name: str, changelog: str
     ):
         # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
         from hexa.pipelines.authentication import PipelineRunUser
@@ -181,7 +181,7 @@ class DatasetVersionManager(models.Manager):
             name=name,
             dataset=dataset,
             created_by=created_by,
-            description=description,
+            changelog=changelog,
             pipeline_run=pipeline_run,
         )
 
@@ -197,7 +197,7 @@ class DatasetVersion(MetadataMixin, Base):
         related_name="versions",
     )
     name = models.TextField(null=False, blank=False)
-    description = models.TextField(blank=True, null=True)
+    changelog = models.TextField(blank=True, null=True)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     pipeline_run = models.ForeignKey(
         "pipelines.PipelineRun",

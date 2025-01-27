@@ -96,7 +96,7 @@ def resolve_create_dataset_version(_, info, **kwargs):
             principal=request.user,
             dataset=dataset,
             name=mutation_input["name"],
-            description=mutation_input.get("description"),
+            changelog=mutation_input.get("changelog"),
         )
 
         # Register dataset version creation event

@@ -349,6 +349,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                     errors
                     version {
                         name
+                        changelog
                         description
                     }
                 }
@@ -358,7 +359,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                 "input": {
                     "datasetId": str(dataset.id),
                     "name": "Version 1",
-                    "description": "Version 1 description",
+                    "changelog": "Version 1 changelog",
                 }
             },
         )
@@ -368,7 +369,8 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                 "errors": [],
                 "version": {
                     "name": "Version 1",
-                    "description": "Version 1 description",
+                    "changelog": "Version 1 changelog",
+                    "description": "Version 1 changelog",
                 },
             },
             r["data"]["createDatasetVersion"],

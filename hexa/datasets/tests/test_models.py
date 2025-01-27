@@ -186,23 +186,23 @@ class DatasetVersionTest(BaseTestMixin, TestCase):
         storage.create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
 
     def test_create_dataset_version(
-        self, name="Dataset's version", description="Version's description"
+        self, name="Dataset's version", changelog="Version's description"
     ):
         with self.assertRaises(PermissionDenied):
             self.DATASET.create_version(
                 principal=self.USER_SERENA,
                 name="New name",
-                description="New description",
+                changelog="New changelog",
             )
 
         version = self.DATASET.create_version(
             principal=self.USER_ADMIN,
             name=name,
-            description=description,
+            changelog=changelog,
         )
 
         self.assertEqual(version.name, name)
-        self.assertEqual(version.description, description)
+        self.assertEqual(version.changelog, changelog)
         self.assertEqual(self.DATASET.versions.filter(id=version.id).count(), 1)
 
         return version

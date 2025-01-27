@@ -188,6 +188,9 @@ def resolve_file_by_name(obj: DatasetVersion, info, name, **kwargs):
         return None
 
 
+dataset_version_object.set_alias("description", "changelog")
+
+
 @dataset_version_permissions.field("update")
 def resolve_version_permissions_update(obj: DatasetVersion, info, **kwargs):
     request: HttpRequest = info.context["request"]
