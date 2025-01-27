@@ -39,7 +39,8 @@ A version of a dataset. A version is a snapshot of the dataset at a point in tim
 type DatasetVersion implements MetadataObject{
   id: ID!
   name: String!
-  description: String
+  changelog: String
+  description: String @deprecated(reason: "use changelog instead")
   createdAt: DateTime!
   createdBy: User
   dataset: Dataset!
@@ -253,7 +254,7 @@ Input for creating a dataset version.
 input CreateDatasetVersionInput {
   datasetId: ID!
   name: String!
-  description: String
+  changelog: String
 }
 
 """
