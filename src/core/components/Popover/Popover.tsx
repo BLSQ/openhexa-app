@@ -47,7 +47,7 @@ const Popover = (props: PopoverProps) => {
       ref={setPopperElement}
       style={styles.popper}
       className={clsx(
-        "z-10 overflow-hidden rounded-md bg-white p-4 shadow-md ring-1 ring-black ring-opacity-5",
+        "z-10 overflow-hidden rounded-md bg-white p-4 shadow-md ring-1 ring-black/5",
         className,
       )}
       {...attributes.popper}

@@ -82,7 +82,7 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
         <WorkspaceLayout.PageContent className="space-y-8">
           <Title level={2}>{t("Tables")}</Title>
           <DataGrid
-            className="overflow-hidden rounded-md bg-white shadow-sm"
+            className="overflow-hidden rounded-md bg-white shadow-xs"
             data={tables.items}
             defaultPageSize={15}
             sortable

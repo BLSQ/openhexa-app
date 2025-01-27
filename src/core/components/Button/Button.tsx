@@ -23,7 +23,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Classes: { [key: string]: string } = {
-  base: `relative rounded h-fit
+  base: `relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium

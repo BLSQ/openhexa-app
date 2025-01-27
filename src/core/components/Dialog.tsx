@@ -119,7 +119,7 @@ function Dialog(props: DialogProps) {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
           className={clsx(
-            "fixed inset-0 -z-10 bg-gray-800 bg-opacity-50 backdrop-blur-xs transition-opacity",
+            "fixed inset-0 -z-10 bg-gray-800/50 backdrop-blur-xs transition-opacity",
             !closeOnOutsideClick && "pointer-events-none", // Let's prevent mouse events to be triggered to ensure the dialog stay open.
           )}
         />

@@ -12,7 +12,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="flex items-center gap-4"
         >
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -23,7 +23,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             primary
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -34,7 +34,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             primary
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -45,7 +45,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             primary
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -56,7 +56,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             primary
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -71,7 +71,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="flex items-center gap-4"
         >
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -82,7 +82,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             secondary
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -93,7 +93,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             secondary
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -104,7 +104,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             secondary
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -115,7 +115,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             secondary
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -130,7 +130,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="flex items-center gap-4"
         >
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -141,7 +141,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             white
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -152,7 +152,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             white
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -163,7 +163,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             white
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -174,7 +174,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             white
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -189,7 +189,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="flex items-center gap-4"
         >
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -200,7 +200,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             danger
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -211,7 +211,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             danger
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -222,7 +222,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             danger
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -233,7 +233,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             danger
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -248,7 +248,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="flex items-center gap-4"
         >
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -259,7 +259,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             outlined
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -270,7 +270,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             outlined
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -281,7 +281,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             outlined
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -292,7 +292,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             outlined
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -307,7 +307,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="flex items-center gap-4"
         >
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -318,7 +318,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             custom
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -329,7 +329,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             custom
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -340,7 +340,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             custom
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -351,7 +351,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             custom
           </button>
           <button
-            class="relative rounded h-fit
+            class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -373,7 +373,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
         class="flex items-center gap-4"
       >
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -384,7 +384,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           primary
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -395,7 +395,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           primary
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -406,7 +406,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           primary
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -417,7 +417,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           primary
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -432,7 +432,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
         class="flex items-center gap-4"
       >
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -443,7 +443,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           secondary
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -454,7 +454,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           secondary
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -465,7 +465,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           secondary
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -476,7 +476,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           secondary
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -491,7 +491,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
         class="flex items-center gap-4"
       >
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -502,7 +502,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           white
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -513,7 +513,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           white
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -524,7 +524,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           white
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -535,7 +535,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           white
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -550,7 +550,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
         class="flex items-center gap-4"
       >
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -561,7 +561,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           danger
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -572,7 +572,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           danger
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -583,7 +583,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           danger
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -594,7 +594,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           danger
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -609,7 +609,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
         class="flex items-center gap-4"
       >
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -620,7 +620,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           outlined
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -631,7 +631,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           outlined
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -642,7 +642,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           outlined
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -653,7 +653,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           outlined
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -668,7 +668,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
         class="flex items-center gap-4"
       >
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -679,7 +679,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           custom
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -690,7 +690,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           custom
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -701,7 +701,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           custom
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -712,7 +712,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           custom
         </button>
         <button
-          class="relative rounded h-fit
+          class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -785,7 +785,7 @@ exports[`Button renders an icon in front of the label 1`] = `
   "baseElement": <body>
     <div>
       <button
-        class="relative rounded h-fit
+        class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
@@ -822,7 +822,7 @@ exports[`Button renders an icon in front of the label 1`] = `
   </body>,
   "container": <div>
     <button
-      class="relative rounded h-fit
+      class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium

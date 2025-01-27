@@ -1,6 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Workspaces hides the edit button when user have not update permission  1`] = `<div />`;
+exports[
+  `Workspaces hides the edit button when user have not update permission  1`
+] = `<div />`;
 
 exports[`Workspaces renders null as workspace doesn't exist 1`] = `<div />`;
 
@@ -261,7 +263,7 @@ exports[`Workspaces renders the workspace page 1`] = `
     </div>
   </div>
   <header
-    class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-sm group/header left-64 2xl:left-72"
+    class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
   >
     <div
       class="px-4 md:px-6 xl:px-10 2xl:px-12 h-full gap-2 flex items-center justify-between"
@@ -306,7 +308,7 @@ exports[`Workspaces renders the workspace page 1`] = `
         class="mx-auto px-4 md:px-6 xl:px-10  2xl:px-12"
       >
         <article
-          class="sm:rounded-lg overflow-hidden shadow-sm border-b border-gray-200 bg-white"
+          class="sm:rounded-lg overflow-hidden shadow-xs border-b border-gray-200 bg-white"
         >
           <section
             class="px-4 py-5 sm:px-6"
@@ -334,7 +336,7 @@ exports[`Workspaces renders the workspace page 1`] = `
         type="button"
       >
         <div
-          class="flex h-12 w-12 items-center justify-center rounded-full bg-white text-3xl shadow-xl ring-1 ring-gray-500 ring-opacity-5 transition-all hover:bg-gray-50 hover:text-4xl"
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-white text-3xl shadow-xl ring-1 ring-gray-500/5 transition-all hover:bg-gray-50 hover:text-4xl"
         >
           ?
         </div>
@@ -344,7 +346,9 @@ exports[`Workspaces renders the workspace page 1`] = `
 </div>
 `;
 
-exports[`Workspaces shows the jupyterhub entry when user have the launchNotebookServer permission  1`] = `
+exports[
+  `Workspaces shows the jupyterhub entry when user have the launchNotebookServer permission  1`
+] = `
 <div>
   <div
     class="fixed h-screen bg-gray-800 transition-all duration-75 z-20 w-64 2xl:w-72"
@@ -627,7 +631,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
     </div>
   </div>
   <header
-    class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-sm group/header left-64 2xl:left-72"
+    class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
   >
     <div
       class="px-4 md:px-6 xl:px-10 2xl:px-12 h-full gap-2 flex items-center justify-between"
@@ -672,7 +676,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
         class="mx-auto px-4 md:px-6 xl:px-10  2xl:px-12"
       >
         <article
-          class="sm:rounded-lg overflow-hidden shadow-sm border-b border-gray-200 bg-white"
+          class="sm:rounded-lg overflow-hidden shadow-xs border-b border-gray-200 bg-white"
         >
           <section
             class="px-4 py-5 sm:px-6"
@@ -700,7 +704,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
         type="button"
       >
         <div
-          class="flex h-12 w-12 items-center justify-center rounded-full bg-white text-3xl shadow-xl ring-1 ring-gray-500 ring-opacity-5 transition-all hover:bg-gray-50 hover:text-4xl"
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-white text-3xl shadow-xl ring-1 ring-gray-500/5 transition-all hover:bg-gray-50 hover:text-4xl"
         >
           ?
         </div>

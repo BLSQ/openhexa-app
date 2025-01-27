@@ -52,7 +52,7 @@ export type ComboboxProps<T> = {
 
 const Classes = {
   Options:
-    "max-h-60 z-10 w-full rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-hidden sm:text-sm flex flex-col",
+    "max-h-60 z-10 w-full rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-hidden sm:text-sm flex flex-col",
   OptionsList: "overflow-auto flex-1",
 };
 
@@ -143,7 +143,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
               >
                 <input
                   data-testid="combobox-input"
-                  className="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-hidden"
+                  className="flex-1 placeholder-gray-600/70 outline-hidden"
                   autoComplete="off"
                   placeholder={placeholder}
                 />

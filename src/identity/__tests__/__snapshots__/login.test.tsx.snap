@@ -99,7 +99,7 @@ exports[`LoginPage: No Two Factor Authentication renders the login page 1`] = `
       class="space-y-2"
     >
       <button
-        class="relative rounded h-fit
+        class="relative rounded-sm h-fit
     focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium

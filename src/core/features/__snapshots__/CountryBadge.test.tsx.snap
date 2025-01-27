@@ -3,7 +3,7 @@
 exports[`CountryBadge renders 1`] = `
 <div>
   <span
-    class="inline-flex items-center truncate whitespace-nowrap rounded-md font-medium ring-1 ring-inset px-2 py-0.5 text-xs relative flex items-center gap-1 border ring-gray-300 bg-gray-50 hover-bg-opacity-70"
+    class="inline-flex items-center truncate whitespace-nowrap rounded-md font-medium ring-1 ring-inset px-2 py-0.5 text-xs relative flex items-center gap-1 border ring-gray-300 bg-gray-50 hover:bg-opacity-70"
     title="United Arab Emirates"
   >
     <img

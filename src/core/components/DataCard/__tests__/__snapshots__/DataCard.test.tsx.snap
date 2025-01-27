@@ -3,7 +3,7 @@
 exports[`DataCard renders 1`] = `
 <div>
   <article
-    class="sm:rounded-lg overflow-hidden shadow-sm border-b border-gray-200 bg-white divide-y divide-gray-200"
+    class="sm:rounded-lg overflow-hidden shadow-xs border-b border-gray-200 bg-white divide-y divide-gray-200"
   >
     <h3
       class="px-4 py-5 pt-7 text-lg font-medium leading-4 text-gray-900 sm:px-6 flex items-center justify-between"

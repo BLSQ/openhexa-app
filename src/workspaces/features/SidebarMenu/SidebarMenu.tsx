@@ -170,7 +170,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
           style={styles.popper}
           ref={setPopperElement}
           {...attributes.popper}
-          className="divide z-50 flex w-72 flex-col divide-y divide-gray-200 overflow-hidden rounded-sm bg-white pt-2 text-base shadow-md ring-1 ring-black ring-opacity-5 focus:outline-hidden"
+          className="divide z-50 flex w-72 flex-col divide-y divide-gray-200 overflow-hidden rounded-sm bg-white pt-2 text-base shadow-md ring-1 ring-black/5 focus:outline-hidden"
         >
           <section>
             <div className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium tracking-wide text-gray-500 opacity-90">
