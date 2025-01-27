@@ -60,7 +60,7 @@ const Popover = (props: PopoverProps) => {
     <HeadlessPopover className="relative">
       <HeadlessPopoverButton
         as={as}
-        className={clsx("flex items-center outline-none", buttonClassName)}
+        className={clsx("flex items-center outline-hidden", buttonClassName)}
         ref={setReferenceElement}
       >
         {trigger}

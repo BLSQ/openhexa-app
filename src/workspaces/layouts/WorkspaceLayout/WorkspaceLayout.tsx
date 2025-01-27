@@ -95,7 +95,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
       {header && (
         <header
           className={clsx(
-            "fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow group/header",
+            "fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-sm group/header",
             isSidebarOpen ? "left-64 2xl:left-72" : "left-16",
           )}
         >

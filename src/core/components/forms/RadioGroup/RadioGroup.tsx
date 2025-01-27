@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { FormEvent, HTMLAttributes } from "react";
+import { HTMLAttributes } from "react";
 
 interface RadioOption {
   id: OptionId;
@@ -32,7 +32,7 @@ const RadioGroup = ({
             name={name}
             disabled={disabled}
             className={clsx(
-              "form-radio text-gray-800 focus:outline-none focus:ring-transparent",
+              "form-radio text-gray-800 focus:outline-hidden focus:ring-transparent",
             )}
             value={option.id}
             onChange={onChange}

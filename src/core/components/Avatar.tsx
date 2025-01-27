@@ -34,7 +34,7 @@ const Avatar = (props: AvatarProps) => {
       {...delegated}
       style={{ background: color }}
       className={clsx(
-        "inline-flex flex-shrink-0 items-center justify-center rounded-full bg-gray-500",
+        "inline-flex shrink-0 items-center justify-center rounded-full bg-gray-500",
         className,
       )}
     >

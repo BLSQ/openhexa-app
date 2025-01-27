@@ -6,7 +6,7 @@ exports[`User renders 1`] = `
     class="flex items-center gap-2"
   >
     <span
-      class="inline-flex flex-shrink-0 items-center justify-center rounded-full bg-gray-500 text-sm h-8 w-8"
+      class="inline-flex shrink-0 items-center justify-center rounded-full bg-gray-500 text-sm h-8 w-8"
       title="Test User"
     >
       <span
@@ -34,7 +34,7 @@ exports[`User renders with the subtext 1`] = `
     class="flex items-center gap-2"
   >
     <span
-      class="inline-flex flex-shrink-0 items-center justify-center rounded-full bg-gray-500 text-sm h-8 w-8"
+      class="inline-flex shrink-0 items-center justify-center rounded-full bg-gray-500 text-sm h-8 w-8"
       title="Test User"
     >
       <span

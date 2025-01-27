@@ -129,7 +129,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
               <div className="mr-2.5 flex h-full items-center">
                 <Flag
                   code={workspace.countries[0].code}
-                  className="w-5 h-4 flex-shrink rounded-sm"
+                  className="w-5 h-4 shrink rounded-xs"
                 />
               </div>
             )}
@@ -170,7 +170,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
           style={styles.popper}
           ref={setPopperElement}
           {...attributes.popper}
-          className="divide z-50 flex w-72 flex-col divide-y divide-gray-200 overflow-hidden rounded bg-white pt-2 text-base shadow-md ring-1 ring-black ring-opacity-5 focus:outline-none"
+          className="divide z-50 flex w-72 flex-col divide-y divide-gray-200 overflow-hidden rounded-sm bg-white pt-2 text-base shadow-md ring-1 ring-black ring-opacity-5 focus:outline-hidden"
         >
           <section>
             <div className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium tracking-wide text-gray-500 opacity-90">
@@ -212,10 +212,10 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                     {ws.countries && ws.countries.length === 1 ? (
                       <Flag
                         code={ws.countries[0].code}
-                        className="w-5 flex-shrink rounded-sm"
+                        className="w-5 shrink rounded-xs"
                       />
                     ) : (
-                      <GlobeAltIcon className="w-5 flex-shrink rounded-sm text-gray-400" />
+                      <GlobeAltIcon className="w-5 shrink rounded-xs text-gray-400" />
                     )}
                   </div>
                   <span className="text-sm leading-tight tracking-tight">

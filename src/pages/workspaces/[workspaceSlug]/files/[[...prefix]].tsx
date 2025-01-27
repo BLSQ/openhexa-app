@@ -161,7 +161,7 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
               onChange={(event) =>
                 setSearchQueryState(event.target.value ?? "")
               }
-              className="shadow-sm border-gray-50"
+              className="shadow-xs border-gray-50"
             />
             <Popover
               as="div"

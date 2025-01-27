@@ -46,7 +46,7 @@ exports[`LoginPage: No Two Factor Authentication renders the login page 1`] = `
           aria-describedby="email-description"
           aria-invalid="false"
           autocomplete="email"
-          class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-none focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 w-full rounded-b-none"
+          class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 w-full rounded-b-none"
           data-testid="email"
           id="email"
           name="email"
@@ -69,7 +69,7 @@ exports[`LoginPage: No Two Factor Authentication renders the login page 1`] = `
           aria-describedby="password-description"
           aria-invalid="false"
           autocomplete="current-password"
-          class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-none focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 w-full rounded-t-none"
+          class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 w-full rounded-t-none"
           data-testid="password"
           id="password"
           name="password"
@@ -100,11 +100,11 @@ exports[`LoginPage: No Two Factor Authentication renders the login page 1`] = `
     >
       <button
         class="relative rounded h-fit
-    focus:outline-none focus:ring-2 focus:ring-offset-2
+    focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 shadow-sm border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 w-full"
+   text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 w-full"
         data-testid="submit"
         type="submit"
       >

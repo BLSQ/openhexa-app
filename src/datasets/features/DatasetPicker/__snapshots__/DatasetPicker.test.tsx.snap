@@ -8,7 +8,7 @@ exports[`DatasetPicker display all dataset 1`] = `
     data-open=""
   >
     <div
-      class="form-input flex w-full items-center rounded-md border-gray-300 shadow-sm disabled:border-gray-300 focus-within:outline-none focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed  sm:text-sm border-blue-500"
+      class="form-input flex w-full items-center rounded-md border-gray-300 shadow-xs disabled:border-gray-300 focus-within:outline-hidden focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed  sm:text-sm border-blue-500"
     >
       <div
         class="mr-1 flex flex-1 items-center truncate"
@@ -19,7 +19,7 @@ exports[`DatasetPicker display all dataset 1`] = `
           aria-controls="headlessui-combobox-options-d88d149f-80c3-4c6d-9b82-01013b801f93"
           aria-expanded="true"
           autocomplete="off"
-          class="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-none"
+          class="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-hidden"
           data-focus=""
           data-headlessui-state="open focus"
           data-open=""
@@ -44,7 +44,7 @@ exports[`DatasetPicker display all dataset 1`] = `
         type="button"
       >
         <div
-          class="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-none"
+          class="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-hidden"
         >
           <svg
             class="animate-spin h-5 w-5"
@@ -72,7 +72,7 @@ exports[`DatasetPicker display all dataset 1`] = `
     </div>
     <div
       aria-labelledby="headlessui-combobox-button-963e9095-8e5e-490e-8bf2-2eb1cceb1000"
-      class="max-h-60 z-10 w-full rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm flex flex-col"
+      class="max-h-60 z-10 w-full rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-hidden sm:text-sm flex flex-col"
       data-headlessui-state="open"
       data-open=""
       data-popper-escaped="true"

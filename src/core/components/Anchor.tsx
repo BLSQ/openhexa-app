@@ -15,7 +15,7 @@ const Anchor = forwardRef<HTMLAnchorElement, AnchorProps>((props, ref) => {
   return (
     <a
       ref={ref}
-      className={clsx(className, linkStyle, "cursor-pointer outline-none")}
+      className={clsx(className, linkStyle, "cursor-pointer outline-hidden")}
       {...delegated}
     />
   );

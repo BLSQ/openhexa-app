@@ -21,7 +21,7 @@ const SecretField = (field: { value: string | number }) => {
         <button
           onClick={toggleSecret}
           type="button"
-          className="flex cursor-pointer gap-1 hover:text-blue-500 focus:outline-none"
+          className="flex cursor-pointer gap-1 hover:text-blue-500 focus:outline-hidden"
         >
           <EyeSlashIcon className="h-4 w-4" />
         </button>
@@ -36,7 +36,7 @@ const SecretField = (field: { value: string | number }) => {
       <button
         onClick={toggleSecret}
         type="button"
-        className="flex cursor-pointer gap-1 hover:text-blue-500 focus:outline-none"
+        className="flex cursor-pointer gap-1 hover:text-blue-500 focus:outline-hidden"
       >
         <EyeIcon className="h-4 w-4" />
       </button>

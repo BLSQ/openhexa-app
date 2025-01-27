@@ -93,7 +93,7 @@ const Pagination = (props: Props) => {
           )}
           {totalPages > 1 && (
             <nav
-              className="relative z-0 inline-flex -space-x-px rounded-md shadow-sm"
+              className="relative z-0 inline-flex -space-x-px rounded-md shadow-xs"
               aria-label="Pagination"
             >
               <PaginationItem

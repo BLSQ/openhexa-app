@@ -21,7 +21,7 @@ const ChevronLinkColumn = ({
         url={url}
         className={clsx(
           className,
-          "flex w-full cursor-pointer items-center justify-end outline-none",
+          "flex w-full cursor-pointer items-center justify-end outline-hidden",
         )}
       >
         {t("View")}

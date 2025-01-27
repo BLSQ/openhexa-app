@@ -25,7 +25,7 @@ const CountryBadge = (props: CountryBadgeProps) => {
     >
       <Flag
         code={country.code}
-        className="absolute w-4 h-3 flex-shrink rounded-sm"
+        className="absolute w-4 h-3 shrink rounded-xs"
       />
       <span className="ml-5 max-w-[20ch] truncate">{country.name}</span>
     </Badge>

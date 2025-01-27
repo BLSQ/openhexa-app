@@ -72,7 +72,7 @@ const ArchiveWorkspaceDialog = (props: ArchiveWorkspaceDialogProps) => {
           value={inputName}
           placeholder={workspace.name}
           onChange={(e) => setInputName(e.target.value)}
-          className="w-full border border-gray-300 rounded px-2 py-1"
+          className="w-full border border-gray-300 rounded-sm px-2 py-1"
         />
       </Dialog.Content>
       <Dialog.Actions>

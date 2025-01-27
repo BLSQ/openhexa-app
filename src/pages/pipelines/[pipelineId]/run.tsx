@@ -75,7 +75,7 @@ const PipelineConfigureRunPage = (props: Props) => {
           </Breadcrumbs.Part>
         </Breadcrumbs>
         <div className="flex flex-col gap-4 md:flex-row">
-          <Block className="flex-1 flex-shrink-0 basis-7/12">
+          <Block className="flex-1 shrink-0 basis-7/12">
             <Block.Header>
               {t("Create a new run of {{externalId}}", {
                 externalId: dag.externalId,

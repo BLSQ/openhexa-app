@@ -300,7 +300,7 @@ function DataGrid(props: DataGridProps) {
                               i === headerGroups.length - 1 && (
                                 <div
                                   className={clsx(
-                                    "ml-2 inline-block w-3 flex-none rounded bg-gray-200 text-gray-900 group-hover:bg-gray-300",
+                                    "ml-2 inline-block w-3 flex-none rounded-sm bg-gray-200 text-gray-900 group-hover:bg-gray-300",
                                   )}
                                 >
                                   {column.isSortedDesc ? (

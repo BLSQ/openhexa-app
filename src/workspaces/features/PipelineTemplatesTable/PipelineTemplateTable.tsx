@@ -108,7 +108,7 @@ const PipelineTemplatesTable = ({ workspace }: PipelineTemplatesTableProps) => {
         }}
         value={searchQuery}
         onChange={(event) => setSearchQuery(event.target.value ?? "")}
-        className="my-5 shadow-sm border-gray-50 w-96"
+        className="my-5 shadow-xs border-gray-50 w-96"
       />
       <Block className="divide divide-y divide-gray-100 mt-10">
         <DataGrid

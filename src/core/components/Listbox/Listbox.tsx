@@ -79,7 +79,7 @@ const Listbox = (props: ListboxProps) => {
               <UIListboxOptions
                 ref={setPopperElement}
                 className={
-                  "z-10 flex max-h-72 w-full flex-col rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+                  "z-10 flex max-h-72 w-full flex-col rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-hidden sm:text-sm"
                 }
                 style={styles.popper}
                 {...attributes.popper}

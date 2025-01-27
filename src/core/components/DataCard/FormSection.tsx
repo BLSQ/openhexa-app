@@ -196,7 +196,7 @@ function FormSection<F extends { [key: string]: any }>(
         title
       )}
       {open && renderEditButton()}
-      <div className="flex flex-1 flex-shrink items-center justify-end">
+      <div className="flex flex-1 shrink items-center justify-end">
         {collapsible && (
           <button title={open ? t("Hide") : t("Show")}>
             {open ? (

@@ -24,7 +24,7 @@ export const Part = ({
       <div className="flex items-center">
         {!isFirst && (
           <svg
-            className="h-5 w-5 flex-shrink-0 text-gray-300"
+            className="h-5 w-5 shrink-0 text-gray-300"
             xmlns="http://www.w3.org/2000/svg"
             fill="currentColor"
             viewBox="0 0 20 20"
@@ -70,7 +70,7 @@ const Breadcrumbs = (props: {
           <li>
             <div>
               <Link href="/" customStyle="text-gray-400 hover:text-gray-500">
-                <HomeIcon className="h-5 w-5 flex-shrink-0" />
+                <HomeIcon className="h-5 w-5 shrink-0" />
                 <span className="sr-only">{t("Home")}</span>
               </Link>
             </div>

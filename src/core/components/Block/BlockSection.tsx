@@ -42,7 +42,7 @@ function BlockSection(props: BlockSectionProps) {
       ) : (
         <>
           <h4 className="font-medium">{title}</h4>
-          <div className="flex flex-1 flex-shrink items-center justify-end">
+          <div className="flex flex-1 shrink items-center justify-end">
             {loading && <Spinner size="sm" />}
             {!loading && collapsible && (
               <button title={open ? t("Hide") : t("Show")}>

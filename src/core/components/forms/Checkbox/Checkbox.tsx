@@ -13,7 +13,7 @@ const Checkbox = (props: CheckboxProps) => {
   const { id, name, label, description, className, help, ...delegated } = props;
 
   const inputClassName = clsx(
-    "form-checkbox h-4 w-4 text-blue-500 border-gray-300 rounded focus:ring-0 focus:ring-offset-0",
+    "form-checkbox h-4 w-4 text-blue-500 border-gray-300 rounded-sm focus:ring-0 focus:ring-offset-0",
   );
   return (
     <div className={clsx("relative flex items-start", className)}>

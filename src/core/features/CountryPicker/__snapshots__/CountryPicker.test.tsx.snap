@@ -7,7 +7,7 @@ exports[`CountryPicker renders 1`] = `
     data-headlessui-state=""
   >
     <div
-      class="form-input flex w-full items-center rounded-md border-gray-300 shadow-sm disabled:border-gray-300 focus-within:outline-none focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed  sm:text-sm hover:border-gray-400"
+      class="form-input flex w-full items-center rounded-md border-gray-300 shadow-xs disabled:border-gray-300 focus-within:outline-hidden focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed  sm:text-sm hover:border-gray-400"
     >
       <div
         class="mr-1 flex flex-1 items-center truncate"
@@ -16,7 +16,7 @@ exports[`CountryPicker renders 1`] = `
           aria-autocomplete="list"
           aria-expanded="false"
           autocomplete="off"
-          class="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-none"
+          class="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-hidden"
           data-headlessui-state=""
           data-testid="combobox-input"
           id="headlessui-combobox-input-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
@@ -35,7 +35,7 @@ exports[`CountryPicker renders 1`] = `
         type="button"
       >
         <div
-          class="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-none"
+          class="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-hidden"
         >
           <svg
             class="animate-spin h-5 w-5"

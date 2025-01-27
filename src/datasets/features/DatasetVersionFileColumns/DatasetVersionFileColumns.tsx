@@ -88,7 +88,7 @@ const DatasetVersionFileColumns = (props: DatasetVersionFileColumnsProps) => {
               {column.name}
             </Title>
             <div className="flex flex-row divide divide-x divide-gray-200">
-              <div className="flex-1/3 flex-grow-0">
+              <div className="flex-1/3 grow-0">
                 <Table>
                   <TableBody className="font-mono">
                     <TableRow>

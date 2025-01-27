@@ -10,7 +10,7 @@ import { Table, TableBody } from "core/components/Table";
 import Title from "core/components/Title";
 import { TabularColumn } from "datasets/hooks/useTabularFileMetadata";
 import { useTranslation } from "next-i18next";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import RenderColumnAttribute from "../RenderColumnAttribute";
 import { ColumnMetadataDrawer_FileFragment } from "./ColumnMetadataDrawer.generated";
 import useForm from "core/hooks/useForm";
@@ -246,7 +246,7 @@ export default function ColumnMetadataDrawer({
                 </Button>
               </Title>
               {form.formData.attributes!.length > 0 ? (
-                <div className="rounded overflow-hidden">
+                <div className="rounded-sm overflow-hidden">
                   <Table>
                     <thead>
                       <tr className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ">

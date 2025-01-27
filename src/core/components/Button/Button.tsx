@@ -24,20 +24,20 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Classes: { [key: string]: string } = {
   base: `relative rounded h-fit
-    focus:outline-none focus:ring-2 focus:ring-offset-2
+    focus:outline-hidden focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
   `,
   primary:
-    "shadow-sm border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
+    "shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
   secondary:
-    "shadow-sm border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500",
+    "shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500",
   white:
-    "shadow-sm text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400",
+    "shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400",
   outlined: "text-gray-800 border-transparent hover:bg-gray-100",
   danger:
-    "shadow-sm border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600",
+    "shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600",
 
   // Sizes
   sm: "text-xs px-2 py-1",

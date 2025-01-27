@@ -52,7 +52,7 @@ export type ComboboxProps<T> = {
 
 const Classes = {
   Options:
-    "max-h-60 z-10 w-full rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm flex flex-col",
+    "max-h-60 z-10 w-full rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-hidden sm:text-sm flex flex-col",
   OptionsList: "overflow-auto flex-1",
 };
 
@@ -128,8 +128,8 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
         <div className="relative" ref={setReferenceElement}>
           <div
             className={clsx(
-              "form-input flex w-full items-center rounded-md border-gray-300 shadow-sm disabled:border-gray-300",
-              "focus-within:outline-none focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed ",
+              "form-input flex w-full items-center rounded-md border-gray-300 shadow-xs disabled:border-gray-300",
+              "focus-within:outline-hidden focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed ",
               "sm:text-sm",
               open ? "border-blue-500" : "hover:border-gray-400",
               className,
@@ -143,7 +143,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
               >
                 <input
                   data-testid="combobox-input"
-                  className="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-none"
+                  className="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-hidden"
                   autoComplete="off"
                   placeholder={placeholder}
                 />
@@ -151,7 +151,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
             </div>
             {value && renderIcon && renderIcon(value)}
             <UIComboboxButton ref={btnRef} data-testid="combobox-button">
-              <div className="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-none">
+              <div className="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-hidden">
                 {value && !required && !disabled && (
                   <XMarkIcon
                     onClick={() => onChange()}

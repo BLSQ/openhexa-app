@@ -88,10 +88,10 @@ const Sidebar = (props: SidebarProps) => {
 
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
-      <div className="flex h-full flex-grow flex-col border-r border-gray-200 bg-gray-800">
+      <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
-        <div className="mt-5 flex flex-grow flex-col">
+        <div className="mt-5 flex grow flex-col">
           <nav className="flex-1 space-y-1 px-0 pb-4">
             <NavItem
               exact
@@ -149,7 +149,7 @@ const Sidebar = (props: SidebarProps) => {
           </nav>
         </div>
 
-        <div className="mb-5 flex flex-shrink-0 flex-col items-center px-4">
+        <div className="mb-5 flex shrink-0 flex-col items-center px-4">
           <Link noStyle href="/" className="flex h-8 items-center">
             <img
               className="h-full"

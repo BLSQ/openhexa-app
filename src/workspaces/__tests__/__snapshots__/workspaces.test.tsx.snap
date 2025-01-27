@@ -13,7 +13,7 @@ exports[`Workspaces renders the workspace page 1`] = `
       class="relative z-20 flex h-full flex-col"
     >
       <div
-        class="flex h-full flex-grow flex-col border-r border-gray-200 bg-gray-800"
+        class="flex h-full grow flex-col border-r border-gray-200 bg-gray-800"
       >
         <div
           class="w-full"
@@ -47,7 +47,7 @@ exports[`Workspaces renders the workspace page 1`] = `
           </button>
         </div>
         <div
-          class="mt-5 flex flex-grow flex-col"
+          class="mt-5 flex grow flex-col"
         >
           <nav
             class="flex-1 space-y-1 px-0 pb-4"
@@ -211,7 +211,7 @@ exports[`Workspaces renders the workspace page 1`] = `
           </nav>
         </div>
         <div
-          class="mb-5 flex flex-shrink-0 flex-col items-center px-4"
+          class="mb-5 flex shrink-0 flex-col items-center px-4"
         >
           <a
             class="flex h-8 items-center"
@@ -261,7 +261,7 @@ exports[`Workspaces renders the workspace page 1`] = `
     </div>
   </div>
   <header
-    class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow group/header left-64 2xl:left-72"
+    class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-sm group/header left-64 2xl:left-72"
   >
     <div
       class="px-4 md:px-6 xl:px-10 2xl:px-12 h-full gap-2 flex items-center justify-between"
@@ -306,7 +306,7 @@ exports[`Workspaces renders the workspace page 1`] = `
         class="mx-auto px-4 md:px-6 xl:px-10  2xl:px-12"
       >
         <article
-          class="sm:rounded-lg overflow-hidden shadow border-b border-gray-200 bg-white"
+          class="sm:rounded-lg overflow-hidden shadow-sm border-b border-gray-200 bg-white"
         >
           <section
             class="px-4 py-5 sm:px-6"
@@ -328,7 +328,7 @@ exports[`Workspaces renders the workspace page 1`] = `
     >
       <button
         aria-expanded="false"
-        class="flex items-center outline-none"
+        class="flex items-center outline-hidden"
         data-headlessui-state=""
         id="headlessui-popover-button-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
         type="button"
@@ -353,7 +353,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
       class="relative z-20 flex h-full flex-col"
     >
       <div
-        class="flex h-full flex-grow flex-col border-r border-gray-200 bg-gray-800"
+        class="flex h-full grow flex-col border-r border-gray-200 bg-gray-800"
       >
         <div
           class="w-full"
@@ -387,7 +387,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
           </button>
         </div>
         <div
-          class="mt-5 flex flex-grow flex-col"
+          class="mt-5 flex grow flex-col"
         >
           <nav
             class="flex-1 space-y-1 px-0 pb-4"
@@ -577,7 +577,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
           </nav>
         </div>
         <div
-          class="mb-5 flex flex-shrink-0 flex-col items-center px-4"
+          class="mb-5 flex shrink-0 flex-col items-center px-4"
         >
           <a
             class="flex h-8 items-center"
@@ -627,7 +627,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
     </div>
   </div>
   <header
-    class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow group/header left-64 2xl:left-72"
+    class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-sm group/header left-64 2xl:left-72"
   >
     <div
       class="px-4 md:px-6 xl:px-10 2xl:px-12 h-full gap-2 flex items-center justify-between"
@@ -672,7 +672,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
         class="mx-auto px-4 md:px-6 xl:px-10  2xl:px-12"
       >
         <article
-          class="sm:rounded-lg overflow-hidden shadow border-b border-gray-200 bg-white"
+          class="sm:rounded-lg overflow-hidden shadow-sm border-b border-gray-200 bg-white"
         >
           <section
             class="px-4 py-5 sm:px-6"
@@ -694,7 +694,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
     >
       <button
         aria-expanded="false"
-        class="flex items-center outline-none"
+        class="flex items-center outline-hidden"
         data-headlessui-state=""
         id="headlessui-popover-button-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
         type="button"

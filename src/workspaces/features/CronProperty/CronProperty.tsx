@@ -39,10 +39,10 @@ const CronProperty = (props: CronPropertyProps) => {
             required={property.required}
             readOnly={property.readonly}
             placeholder={placeholder}
-            className="flex-shrink-0 w-72"
+            className="shrink-0 w-72"
             fullWidth={false}
           />
-          <span className="flex-grow-0 text-gray-500 italic">
+          <span className="grow-0 text-gray-500 italic">
             ({getCronExpressionDescription(property.formValue) ?? t("Invalid")})
           </span>
         </div>
