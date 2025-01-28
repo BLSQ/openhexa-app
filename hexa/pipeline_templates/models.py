@@ -1,5 +1,6 @@
 import uuid
 
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Q
@@ -17,7 +18,12 @@ from hexa.workspaces.models import Workspace
 
 
 class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
-    pass
+    def filter_for_user(self, user: AnonymousUser | User):
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(workspace__members=user),
+            return_all_if_superuser=False,
+        )
 
 
 class PipelineTemplate(SoftDeletedModel):
