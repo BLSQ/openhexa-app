@@ -7,7 +7,7 @@ extend type Mutation {
 }
 
 extend type Query {
-  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String): PipelineTemplatePage!  # Returns pipeline templates.
+  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String): PipelineTemplatePage!  # Returns pipeline templates.
 }
 
 """
