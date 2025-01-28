@@ -4,6 +4,11 @@ extend type Mutation {
   """
   createPipelineTemplateVersion(input: CreatePipelineTemplateVersionInput!): CreatePipelineTemplateVersionResult! @loginRequired
   createPipelineFromTemplateVersion(input: CreatePipelineFromTemplateVersionInput!): CreatePipelineFromTemplateVersionResult! @loginRequired
+
+  """
+  Deletes a pipeline template.
+  """
+  deletePipelineTemplate(input: DeletePipelineTemplateInput): DeletePipelineTemplateResult! @loginRequired
 }
 
 extend type Query {
@@ -76,6 +81,26 @@ enum CreatePipelineTemplateVersionError {
   WORKSPACE_NOT_FOUND
   PIPELINE_NOT_FOUND
   PIPELINE_VERSION_NOT_FOUND
+}
+
+"""
+Represents the input for deleting a pipeline template.
+"""
+input DeletePipelineTemplateInput {
+  id: UUID!  # The ID of the pipeline template to delete.
+}
+
+"""
+Represents the result of deleting a pipeline.
+"""
+type DeletePipelineTemplateResult {
+  success: Boolean!  # Indicates if the pipeline template was deleted successfully.
+  errors: [PipelineTemplateError!]!  # The list of errors that occurred during the deletion of the pipeline template.
+}
+
+enum PipelineTemplateError {
+  PIPELINE_TEMPLATE_NOT_FOUND
+  PERMISSION_DENIED
 }
 
 """

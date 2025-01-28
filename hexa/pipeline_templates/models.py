@@ -1,5 +1,6 @@
 import uuid
 
+from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Q
 
@@ -76,6 +77,11 @@ class PipelineTemplate(SoftDeletedModel):
         return template_version.create_pipeline_version(
             principal, pipeline.workspace, pipeline
         )
+
+    def delete_if_has_perm(self, *, principal: User):
+        if not principal.has_perm("pipeline_templates.delete_pipeline_template", self):
+            raise PermissionDenied
+        self.delete()
 
     @property
     def last_version(self) -> "PipelineTemplateVersion":

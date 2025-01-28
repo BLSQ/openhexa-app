@@ -1,8 +1,9 @@
 from ariadne import MutationType
+from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
 from hexa.analytics.api import track
-from hexa.pipeline_templates.models import PipelineTemplateVersion
+from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import Pipeline, PipelineAlreadyExistsError, PipelineVersion
 from hexa.workspaces.models import Workspace
 
@@ -113,6 +114,31 @@ def resolve_create_pipeline_from_template_version(_, info, **kwargs):
         },
     )
     return {"pipeline": pipeline_version.pipeline, "success": True, "errors": []}
+
+
+@pipeline_template_mutations.field("deletePipelineTemplate")
+def resolve_delete_pipeline_template(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        pipeline_template = PipelineTemplate.objects.filter_for_user(
+            user=request.user
+        ).get(id=input.get("id"))
+        pipeline_template.delete_if_has_perm(principal=request.user)
+        return {
+            "success": True,
+            "errors": [],
+        }
+    except PipelineTemplate.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_TEMPLATE_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
 
 
 bindables = [pipeline_template_mutations]
