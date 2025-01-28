@@ -276,6 +276,32 @@ type CreateDatasetVersionResult {
 }
 
 """
+Input for updating a dataset version.
+"""
+input UpdateDatasetVersionInput {
+  versionId: ID!
+  name: String
+  changelog: String
+}
+
+"""
+Result of updating a dataset version.
+"""
+type UpdateDatasetVersionResult {
+  version: DatasetVersion
+  success: Boolean!
+  errors: [UpdateDatasetVersionError!]!
+}
+
+"""
+Errors that can occur when updating a dataset version.
+"""
+enum UpdateDatasetVersionError {
+  VERSION_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""
 Input for deleting a dataset version.
 """
 input DeleteDatasetVersionInput {
@@ -477,6 +503,8 @@ extend type Mutation {
   deleteDataset(input: DeleteDatasetInput!): DeleteDatasetResult! @loginRequired
   "Create a new dataset version."
   createDatasetVersion(input: CreateDatasetVersionInput!): CreateDatasetVersionResult! @loginRequired
+  "Update a dataset version."
+  updateDatasetVersion(input: UpdateDatasetVersionInput!): UpdateDatasetVersionResult! @loginRequired
   "Delete a dataset version."
   deleteDatasetVersion(input: DeleteDatasetVersionInput!): DeleteDatasetVersionResult! @loginRequired
   "Create dataset version file upload url."

@@ -128,6 +128,25 @@ def resolve_create_dataset_version(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
+@mutations.field("updateDatasetVersion")
+def resolve_update_dataset_version(_, info, **kwargs):
+    request = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    try:
+        version = DatasetVersion.objects.filter_for_user(request.user).get(
+            id=mutation_input["version_id"]
+        )
+
+        version.update_if_has_perm(principal=request.user, **mutation_input)
+
+        return {"success": True, "errors": [], "version": version}
+    except DatasetVersion.DoesNotExist:
+        return {"success": False, "errors": ["VERSION_NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
 @mutations.field("deleteDatasetVersion")
 def resolve_delete_dataset_version(_, info, **kwargs):
     request = info.context["request"]
