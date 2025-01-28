@@ -155,6 +155,7 @@ WorkspaceDatasetPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    await DatasetLayout.prefetch(ctx, client);
     const versionId = (ctx.query.version as string) ?? "";
 
     const variables = {

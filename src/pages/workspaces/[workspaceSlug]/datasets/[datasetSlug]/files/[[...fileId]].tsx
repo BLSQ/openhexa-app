@@ -1,5 +1,3 @@
-import clsx from "clsx";
-import Overflow from "core/components/Overflow";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
@@ -93,6 +91,7 @@ WorkspaceDatasetFilesPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    await DatasetLayout.prefetch(ctx, client);
     const versionId = (ctx.query.version as string) ?? "";
 
     const variables = {

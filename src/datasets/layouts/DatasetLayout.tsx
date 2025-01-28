@@ -19,6 +19,8 @@ import {
 } from "./DatasetLayout.generated";
 import LinkTabs from "core/components/Tabs/LinkTabs";
 import { trackEvent } from "core/helpers/analytics";
+import { CustomApolloClient } from "core/helpers/apollo";
+import { GetServerSidePropsContext } from "next";
 
 type DatasetLayoutProps = {
   datasetLink: DatasetLayout_DatasetLinkFragment;
@@ -234,6 +236,13 @@ DatasetLayout.fragments = {
     }
     ${DatasetVersionPicker.fragments.version}
   `,
+};
+
+DatasetLayout.prefetch = async (
+  ctx: GetServerSidePropsContext,
+  client: CustomApolloClient,
+) => {
+  await WorkspaceLayout.prefetch(ctx, client);
 };
 
 export default DatasetLayout;
