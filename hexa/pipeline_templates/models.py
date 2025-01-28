@@ -87,7 +87,11 @@ class PipelineTemplate(SoftDeletedModel):
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("pipeline_templates.delete_pipeline_template", self):
             raise PermissionDenied
+        # Remove the template reference from the source pipeline
+        source_pipeline = self.source_pipeline
         self.delete()
+        source_pipeline.template = None
+        source_pipeline.save()
 
     @property
     def last_version(self) -> "PipelineTemplateVersion":
