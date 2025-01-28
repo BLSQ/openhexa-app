@@ -139,7 +139,7 @@ def resolve_pipeline_permissions_create_template_version(
     return (
         user_has_permission
         and not pipeline_is_created_from_a_template
-        and not current_version_has_template
+        and (not hasattr(pipeline, "template") or not current_version_has_template)
         and pipeline.type != PipelineType.NOTEBOOK
     )
 

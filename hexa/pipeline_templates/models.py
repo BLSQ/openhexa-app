@@ -4,6 +4,8 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Q
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.soft_delete import (
@@ -24,6 +26,10 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             Q(workspace__members=user),
             return_all_if_superuser=False,
         )
+
+    def delete(self):
+        print("deleting queryset")
+        return super().delete()
 
 
 class PipelineTemplate(SoftDeletedModel):
@@ -54,7 +60,7 @@ class PipelineTemplate(SoftDeletedModel):
     workspace = models.ForeignKey(Workspace, on_delete=models.SET_NULL, null=True)
 
     source_pipeline = models.OneToOneField(
-        Pipeline, on_delete=models.PROTECT, related_name="template"
+        Pipeline, on_delete=models.SET_NULL, related_name="template", null=True
     )
 
     objects = DefaultSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
@@ -68,6 +74,18 @@ class PipelineTemplate(SoftDeletedModel):
             source_pipeline_version=source_pipeline_version,
         )
         return template_version
+
+    def delete(self):
+        # Delete references to the source pipeline and version
+        if self.source_pipeline:
+            source_pipeline = self.source_pipeline
+            source_pipeline.template = None
+            source_pipeline.save()
+        if self.last_version:
+            last_version = self.last_version
+            last_version.source_pipeline_version = None
+            last_version.save()
+        return super().delete()
 
     def upgrade_pipeline(
         self,
@@ -87,11 +105,7 @@ class PipelineTemplate(SoftDeletedModel):
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("pipeline_templates.delete_pipeline_template", self):
             raise PermissionDenied
-        # Remove the template reference from the source pipeline
-        source_pipeline = self.source_pipeline
         self.delete()
-        source_pipeline.template = None
-        source_pipeline.save()
 
     @property
     def last_version(self) -> "PipelineTemplateVersion":
@@ -99,6 +113,11 @@ class PipelineTemplate(SoftDeletedModel):
 
     def __str__(self):
         return self.name
+
+
+@receiver(pre_delete, sender=PipelineTemplate)
+def pre_delete_pipeline_template(sender, instance: PipelineTemplate, **kwargs):
+    instance.delete()  # When deleting the template from the admin panel, ensure that the references to the source pipeline are also deleted
 
 
 class PipelineTemplateVersionQuerySet(BaseQuerySet):
@@ -128,7 +147,10 @@ class PipelineTemplateVersion(models.Model):
         PipelineTemplate, on_delete=models.CASCADE, related_name="versions"
     )
     source_pipeline_version = models.OneToOneField(
-        PipelineVersion, on_delete=models.RESTRICT, related_name="template_version"
+        PipelineVersion,
+        on_delete=models.SET_NULL,
+        related_name="template_version",
+        null=True,
     )
 
     objects = PipelineTemplateVersionQuerySet.as_manager()
