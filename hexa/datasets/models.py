@@ -212,6 +212,16 @@ class DatasetVersion(MetadataMixin, Base):
         ordering = ["-created_at"]
         unique_together = ("dataset", "name")
 
+    def update_if_has_perm(self, *, principal: User, **kwargs):
+        if not principal.has_perm("datasets.update_dataset_version", self):
+            raise PermissionDenied
+
+        for key in ["name", "changelog"]:
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+
+        return self.save()
+
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("datasets.delete_dataset_version", self):
             raise PermissionDenied
