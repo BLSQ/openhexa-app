@@ -61,15 +61,6 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
     if (ctx.me?.user) {
       const { features } = ctx.me;
 
-      if (
-        !features.some(
-          (f) => f.code === "openhexa_legacy" || f.code === "workspaces",
-        )
-      ) {
-        throw new Error(
-          "There is a configuration error with this account. Please contact your administrator.",
-        );
-      }
       // If the user doesn't have the legacy feature, redirect to workspaces page if the user
       // tries to access a page that is not /workspaces or /user or /register
       if (
@@ -82,18 +73,6 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
           redirect: {
             permanent: false,
             destination: "/workspaces",
-          },
-        };
-      }
-
-      if (
-        !features.some((f) => f.code === "workspaces") &&
-        ctx.resolvedUrl.startsWith("/workspaces")
-      ) {
-        return {
-          redirect: {
-            permanent: false,
-            destination: "/pipelines",
           },
         };
       }
