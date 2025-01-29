@@ -475,7 +475,9 @@ class Pipeline(SoftDeletedModel):
 
     @property
     def new_template_versions(self):
-        return self.source_template.new_versions(self) if self.source_template else []
+        return (
+            self.source_template.get_new_versions(self) if self.source_template else []
+        )
 
     def get_token(self):
         return Signer().sign_object(
