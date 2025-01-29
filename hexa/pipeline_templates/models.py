@@ -83,7 +83,7 @@ class PipelineTemplate(SoftDeletedModel):
         if pipeline.source_template != self:
             raise ValueError("The specified pipeline is not from this template")
 
-        last_version_from_template = pipeline.versions.filter(
+        last_version_created_from_template = pipeline.versions.filter(
             source_template_version__isnull=False
         ).first()
         if not last_version_from_template:
