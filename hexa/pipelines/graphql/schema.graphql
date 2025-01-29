@@ -248,7 +248,7 @@ type Pipeline {
   notebookPath: String  # The path to the notebook file for the pipeline (only filled if the pipeline is a notebook).
   template: PipelineTemplate  # The template associated with the pipeline.
   sourceTemplate: PipelineTemplate  # The source template associated with the pipeline.
-  newTemplateVersions: [PipelineTemplateVersion!]  # The new template versions available for the pipeline.
+  newTemplateVersions: [PipelineTemplateVersion!]!  # The new template versions available for the pipeline.
 }
 
 """
