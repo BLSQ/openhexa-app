@@ -27,10 +27,6 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             return_all_if_superuser=False,
         )
 
-    def delete(self):
-        print("deleting queryset")
-        return super().delete()
-
 
 class PipelineTemplate(SoftDeletedModel):
     class Meta:
@@ -81,10 +77,9 @@ class PipelineTemplate(SoftDeletedModel):
             source_pipeline = self.source_pipeline
             source_pipeline.template = None
             source_pipeline.save()
-        if self.last_version:
-            last_version = self.last_version
-            last_version.source_pipeline_version = None
-            last_version.save()
+        for version in self.versions.all():
+            version.source_pipeline_version = None
+            version.save()
         return super().delete()
 
     def upgrade_pipeline(
