@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
-from hexa.pipeline_templates.models import PipelineTemplate
+from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import (
     Pipeline,
     PipelineVersion,
@@ -259,4 +259,46 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 ],
             },
             r["data"]["pipelineTemplates"],
+        )
+
+    def test_delete_pipeline_template(self):
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline_template = PipelineTemplate.objects.create(
+            name="Template to Delete",
+            code="template_to_delete",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+        pipeline_template_version = PipelineTemplateVersion.objects.create(
+            template=pipeline_template,
+            version_number=1,
+            source_pipeline_version=self.PIPELINE_VERSION1,
+        )
+
+        response = self.run_query(
+            """
+            mutation deletePipelineTemplate($input: DeletePipelineTemplateInput!) {
+                deletePipelineTemplate(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(pipeline_template.id),
+                }
+            },
+        )
+
+        self.assertEqual(response["data"]["deletePipelineTemplate"]["success"], True)
+        self.assertEqual(response["data"]["deletePipelineTemplate"]["errors"], [])
+
+        self.PIPELINE1.refresh_from_db()
+        self.assertFalse(hasattr(self.PIPELINE1, "template"))
+        pipeline_template_version.refresh_from_db()
+        self.assertIsNone(pipeline_template_version.source_pipeline_version)
+        self.assertFalse(
+            PipelineTemplate.objects.filter(id=pipeline_template.id).exists()
         )
