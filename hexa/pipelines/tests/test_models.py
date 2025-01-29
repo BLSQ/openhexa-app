@@ -1,6 +1,7 @@
 from django.core import mail
 
 from hexa.core.test import TestCase
+from hexa.pipeline_templates.models import PipelineTemplateVersion
 from hexa.pipelines.models import (
     Pipeline,
     PipelineNotificationLevel,
@@ -335,7 +336,7 @@ class PipelineTest(TestCase):
             self.USER_ADMIN, self.WORKSPACE2
         )
         created_pipeline = created_pipeline_version.pipeline
-        self.assertEqual(len(created_pipeline.new_template_versions), 0)
+        self.assertFalse(created_pipeline.has_new_template_versions)
 
         for i in range(2, 5):
             self.PIPELINE.upload_new_version(
@@ -363,7 +364,9 @@ class PipelineTest(TestCase):
                 self.PIPELINE.last_version, changelog=f"Changelog {i}"
             )
 
-        self.assertEqual(len(created_pipeline.new_template_versions), 3)
+        self.assertEqual(
+            PipelineTemplateVersion.objects.get_updates_for(created_pipeline).count(), 3
+        )
 
         created_pipeline.upload_new_version(
             self.USER_ADMIN,
@@ -376,11 +379,13 @@ class PipelineTest(TestCase):
             config={"param_1": 1234, "param_5": 4567},
         )
 
-        self.assertEqual(len(created_pipeline.new_template_versions), 3)
+        self.assertEqual(
+            PipelineTemplateVersion.objects.get_updates_for(created_pipeline).count(), 3
+        )
 
         template.upgrade_pipeline(self.USER_ADMIN, created_pipeline)
 
-        self.assertEqual(len(created_pipeline.new_template_versions), 0)
+        self.assertFalse(created_pipeline.has_new_template_versions)
         self.assertEqual(
             created_pipeline.last_version.config, {"param_1": 1234, "param_3": 666}
         )

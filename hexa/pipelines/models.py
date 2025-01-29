@@ -32,6 +32,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.pipeline_templates.models import PipelineTemplateVersion
 from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
@@ -474,10 +475,8 @@ class Pipeline(SoftDeletedModel):
         return self.versions.first()
 
     @property
-    def new_template_versions(self):
-        return (
-            self.source_template.get_new_versions(self) if self.source_template else []
-        )
+    def has_new_template_versions(self):
+        return PipelineTemplateVersion.objects.get_updates_for(self).exists()
 
     def get_token(self):
         return Signer().sign_object(

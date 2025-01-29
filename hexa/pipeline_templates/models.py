@@ -78,20 +78,6 @@ class PipelineTemplate(SoftDeletedModel):
             principal, pipeline.workspace, pipeline
         )
 
-    def get_new_versions(self, pipeline: Pipeline) -> list["PipelineTemplateVersion"]:
-        """Return the versions of the template that are newer than the last version of the pipeline"""
-        if pipeline.source_template != self:
-            raise ValueError("The specified pipeline is not from this template")
-
-        last_version_created_from_template = pipeline.versions.filter(
-            source_template_version__isnull=False
-        ).first()
-        if not last_version_created_from_template:
-            return []
-        return self.versions.filter(
-            created_at__gt=last_version_created_from_template.created_at
-        ).order_by("-created_at")
-
     @property
     def last_version(self) -> "PipelineTemplateVersion":
         return self.versions.last()
@@ -101,7 +87,22 @@ class PipelineTemplate(SoftDeletedModel):
 
 
 class PipelineTemplateVersionQuerySet(BaseQuerySet):
-    pass
+    def get_updates_for(self, pipeline: Pipeline):
+        """Return the versions of the template that are newer than the last version of the pipeline"""
+        if pipeline.source_template is None:
+            return self.none()
+
+        last_version_created_from_template = pipeline.versions.filter(
+            source_template_version__isnull=False
+        ).first()
+
+        if not last_version_created_from_template:
+            return self.none()
+
+        return self.filter(
+            template=pipeline.source_template,
+            created_at__gt=last_version_created_from_template.created_at,
+        ).order_by("-created_at")
 
 
 class PipelineTemplateVersion(models.Model):
