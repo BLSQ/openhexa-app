@@ -57,7 +57,7 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
     if not source_pipeline_version:
         return {"success": False, "errors": ["PIPELINE_VERSION_NOT_FOUND"]}
 
-    pipeline_template = source_pipeline.get_or_create_template(
+    pipeline_template, template_created = source_pipeline.get_or_create_template(
         name=input.get("name"),
         code=input.get("code"),
         description=input.get("description"),
@@ -67,7 +67,9 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
     )
     track(
         request,
-        "pipeline_templates.pipeline_template_created",
+        "pipeline_templates.pipeline_template_created"
+        if template_created
+        else "pipeline_templates.pipeline_template_updated",
         {
             "pipeline_template_id": str(pipeline_template.id),
             "pipeline_template_version_id": str(pipeline_template_version.id),
@@ -104,10 +106,12 @@ def resolve_create_pipeline_from_template_version(_, info, **kwargs):
 
     track(
         request,
-        "pipeline_templates.pipeline_created_from_template",
+        "pipeline_templates.pipeline_template_used",
         {
             "pipeline_id": str(pipeline_version.pipeline.id),
-            "template_version_id": str(template_version.id),
+            "pipeline_version_id": str(pipeline_version.id),
+            "pipeline_template_id": str(template_version.template.id),
+            "pipeline_template_version_id": str(template_version.id),
             "workspace": workspace.slug,
         },
     )

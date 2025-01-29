@@ -1,4 +1,4 @@
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -13,11 +13,6 @@ class DatasetTestMixin:
         password = password or "Pa$$w0rd"
         user = User.objects.create_user(email, *args, password=password, **kwargs)
         return user
-
-    @staticmethod
-    def create_feature_flag(*, code: str, user: User):
-        feature, _ = Feature.objects.get_or_create(code=code)
-        FeatureFlag.objects.create(feature=feature, user=user)
 
     def create_workspace(self, principal: User, name, description, *args, **kwargs):
         workspace = Workspace.objects.create_if_has_perm(
@@ -50,13 +45,13 @@ class DatasetTestMixin:
 
     @staticmethod
     def create_dataset_version(
-        principal: User, *, dataset: Dataset, name="v1", description=None, **kwargs
+        principal: User, *, dataset: Dataset, name="v1", changelog=None, **kwargs
     ) -> DatasetVersion:
         return DatasetVersion.objects.create_if_has_perm(
             principal=principal,
             dataset=dataset,
             name=name,
-            description=description,
+            changelog=changelog,
             **kwargs,
         )
 

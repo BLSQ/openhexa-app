@@ -39,7 +39,8 @@ A version of a dataset. A version is a snapshot of the dataset at a point in tim
 type DatasetVersion implements MetadataObject{
   id: ID!
   name: String!
-  description: String
+  changelog: String
+  description: String @deprecated(reason: "use changelog instead")
   createdAt: DateTime!
   createdBy: User
   dataset: Dataset!
@@ -253,7 +254,7 @@ Input for creating a dataset version.
 input CreateDatasetVersionInput {
   datasetId: ID!
   name: String!
-  description: String
+  changelog: String
 }
 
 """
@@ -272,6 +273,32 @@ type CreateDatasetVersionResult {
   version: DatasetVersion
   success: Boolean!
   errors: [CreateDatasetVersionError!]!
+}
+
+"""
+Input for updating a dataset version.
+"""
+input UpdateDatasetVersionInput {
+  versionId: ID!
+  name: String
+  changelog: String
+}
+
+"""
+Result of updating a dataset version.
+"""
+type UpdateDatasetVersionResult {
+  version: DatasetVersion
+  success: Boolean!
+  errors: [UpdateDatasetVersionError!]!
+}
+
+"""
+Errors that can occur when updating a dataset version.
+"""
+enum UpdateDatasetVersionError {
+  VERSION_NOT_FOUND
+  PERMISSION_DENIED
 }
 
 """
@@ -476,6 +503,8 @@ extend type Mutation {
   deleteDataset(input: DeleteDatasetInput!): DeleteDatasetResult! @loginRequired
   "Create a new dataset version."
   createDatasetVersion(input: CreateDatasetVersionInput!): CreateDatasetVersionResult! @loginRequired
+  "Update a dataset version."
+  updateDatasetVersion(input: UpdateDatasetVersionInput!): UpdateDatasetVersionResult! @loginRequired
   "Delete a dataset version."
   deleteDatasetVersion(input: DeleteDatasetVersionInput!): DeleteDatasetVersionResult! @loginRequired
   "Create dataset version file upload url."

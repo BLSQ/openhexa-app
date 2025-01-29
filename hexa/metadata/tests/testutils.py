@@ -51,13 +51,13 @@ class MetadataTestMixin:
 
     @staticmethod
     def create_dataset_version(
-        principal: User, *, dataset: Dataset, name="v1", description=None, **kwargs
+        principal: User, *, dataset: Dataset, name="v1", changelog=None, **kwargs
     ) -> DatasetVersion:
         return DatasetVersion.objects.create_if_has_perm(
             principal=principal,
             dataset=dataset,
             name=name,
-            description=description,
+            changelog=changelog,
             **kwargs,
         )
 

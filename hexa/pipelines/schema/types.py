@@ -206,6 +206,11 @@ def resolve_new_template_versions(pipeline: Pipeline, info, **kwargs):
     return pipeline.new_template_versions
 
 
+@pipeline_object.field("hasNewTemplateVersions")
+def resolve_has_new_template_versions(pipeline: Pipeline, info, **kwargs):
+    return len(pipeline.new_template_versions) > 0
+
+
 @pipeline_object.field("runs")
 def resolve_pipeline_runs(pipeline: Pipeline, info, **kwargs):
     qs = PipelineRun.objects.filter(pipeline=pipeline)
