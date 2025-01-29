@@ -186,23 +186,23 @@ class DatasetVersionTest(BaseTestMixin, TestCase):
         storage.create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
 
     def test_create_dataset_version(
-        self, name="Dataset's version", description="Version's description"
+        self, name="Dataset's version", changelog="Version's description"
     ):
         with self.assertRaises(PermissionDenied):
             self.DATASET.create_version(
                 principal=self.USER_SERENA,
                 name="New name",
-                description="New description",
+                changelog="New changelog",
             )
 
         version = self.DATASET.create_version(
             principal=self.USER_ADMIN,
             name=name,
-            description=description,
+            changelog=changelog,
         )
 
         self.assertEqual(version.name, name)
-        self.assertEqual(version.description, description)
+        self.assertEqual(version.changelog, changelog)
         self.assertEqual(self.DATASET.versions.filter(id=version.id).count(), 1)
 
         return version
@@ -266,3 +266,44 @@ class DatasetLinkTest(BaseTestMixin, TestCase):
         self.assertTrue(
             self.USER_SERENA.has_perm("datasets.view_dataset", self.DATASET)
         )
+
+
+class DatasetVersionUpdateTest(BaseTestMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        BaseTestMixin.setUpTestData()
+        cls.DATASET = Dataset.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            cls.WORKSPACE,
+            name="My Dataset",
+            description="Description of dataset",
+        )
+
+    def test_create_dataset_version(self):
+        version = self.DATASET.create_version(
+            principal=self.USER_ADMIN,
+            name="v1",
+            changelog="Version 1 changelog",
+        )
+        self.assertEqual(version.name, "v1")
+        self.assertEqual(version.changelog, "Version 1 changelog")
+        return version
+
+    def test_update_dataset_version(self):
+        version = self.test_create_dataset_version()
+        self.assertNotEqual(version.name, "New name")
+        self.assertNotEqual(version.changelog, "New changelog")
+        version.update_if_has_perm(
+            principal=self.USER_ADMIN, name="New name", changelog="New changelog"
+        )
+        self.assertEqual(version.name, "New name")
+        self.assertEqual(version.changelog, "New changelog")
+
+    def test_update_dataset_version_permission_denied(self):
+        version = self.test_create_dataset_version()
+        with self.assertRaises(PermissionDenied):
+            version.update_if_has_perm(
+                principal=self.USER_SERENA, name="New name", changelog="New changelog"
+            )
+        self.assertNotEqual(version.name, "New name")
+        self.assertNotEqual(version.changelog, "New changelog")

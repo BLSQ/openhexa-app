@@ -11,7 +11,7 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import WorkspaceMembershipRole
 
 from ...metadata.models import MetadataAttribute
-from ..models import Dataset, DatasetFileSample, DatasetVersionFile
+from ..models import Dataset, DatasetFileSample, DatasetVersion, DatasetVersionFile
 from .testutils import DatasetTestMixin
 
 
@@ -348,7 +348,9 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                     success
                     errors
                     version {
+                        id
                         name
+                        changelog
                         description
                     }
                 }
@@ -358,21 +360,27 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                 "input": {
                     "datasetId": str(dataset.id),
                     "name": "Version 1",
-                    "description": "Version 1 description",
+                    "changelog": "Version 1 changelog",
                 }
             },
+        )
+        version = DatasetVersion.objects.get(
+            id=r["data"]["createDatasetVersion"]["version"]["id"]
         )
         self.assertEqual(
             {
                 "success": True,
                 "errors": [],
                 "version": {
+                    "id": str(version.id),
                     "name": "Version 1",
-                    "description": "Version 1 description",
+                    "changelog": "Version 1 changelog",
+                    "description": "Version 1 changelog",
                 },
             },
             r["data"]["createDatasetVersion"],
         )
+        return version
 
     def test_create_duplicate(self):
         self.test_create_dataset_version()
@@ -709,4 +717,37 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                 "downloadUrl": f"http://mockstorage.com/{settings.WORKSPACE_DATASETS_BUCKET}/{version_file.uri}",
             },
             r["data"]["prepareVersionFileDownload"],
+        )
+
+    def test_update_dataset_version(self):
+        version = self.test_create_dataset_version()
+        self.client.force_login(version.created_by)
+        r = self.run_query(
+            """
+            mutation UpdateDatasetVersion ($input: UpdateDatasetVersionInput!) {
+                updateDatasetVersion(input: $input) {
+                    version {
+                        name
+                        changelog
+                    }
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "versionId": str(version.id),
+                    "name": "New name",
+                    "changelog": "New changelog",
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "version": {"name": "New name", "changelog": "New changelog"},
+            },
+            r["data"]["updateDatasetVersion"],
         )
