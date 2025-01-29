@@ -1,7 +1,6 @@
 from django.core import mail
 
 from hexa.core.test import TestCase
-from hexa.pipeline_templates.models import PipelineTemplate
 from hexa.pipelines.models import (
     Pipeline,
     PipelineNotificationLevel,
@@ -318,12 +317,12 @@ class PipelineTest(TestCase):
         )  # Do not recreate a new template when it exists
 
     def test_new_template_version(self):
-        template: PipelineTemplate = self.PIPELINE.get_or_create_template(
+        template, _ = self.PIPELINE.get_or_create_template(
             name="Test Template",
             code="test_code",
             description="Some description",
             config={"key": "value"},
-        )
+        )  # type: PipelineTemplate, bool
         template_version = template.create_version(
             self.PIPELINE.last_version, changelog="First version"
         )
