@@ -42,6 +42,17 @@ def resolve_pipeline_template_source_pipeline(
     return pipeline_template.source_pipeline
 
 
+@pipeline_template_object.field("canDelete")
+def resolve_pipeline_template_can_delete(
+    pipeline_template: PipelineTemplate, info, **kwargs
+):
+    request = info.context["request"]
+    user = request.user
+    return user.is_authenticated and user.has_perm(
+        "pipeline_templates.delete_pipeline_template", pipeline_template
+    )
+
+
 bindables = [
     pipeline_template_object,
     pipeline_template_permissions,

@@ -111,7 +111,7 @@ class PipelineTemplate(SoftDeletedModel):
 
 
 # TODO : popup to ask confirmation
-# TODO : can delete permission and hide button for the popup
+# TODO : hide button for the popup
 # TODO : add a test for the BE
 @receiver(pre_delete, sender=PipelineTemplate)
 def pre_delete_pipeline_template(sender, instance: PipelineTemplate, **kwargs):
