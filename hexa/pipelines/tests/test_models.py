@@ -322,7 +322,7 @@ class PipelineTest(TestCase):
             code="test_code",
             description="Some description",
             config={"key": "value"},
-        )  # type: PipelineTemplate, bool
+        )
         template_version = template.create_version(
             self.PIPELINE.last_version, changelog="First version"
         )
