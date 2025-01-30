@@ -174,8 +174,8 @@ def resolve_query(connection, info, **kwargs):
         metadata = query_dhis2_metadata(
             dhis2_client,
             query_type=DHIS2MetadataQueryType[kwargs.get("type")],
-            fields=fields,
-            filter=kwargs.get("filter"),
+            fields=",".join(fields),
+            **({"filter": kwargs["filter"]} if "filter" in kwargs else {}),
         )
 
         result = [{field: item.get(field) for field in fields} for item in metadata]

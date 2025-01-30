@@ -79,7 +79,7 @@ type PipelineParameter {
   default: Generic  # The default value of the parameter.
   help: String  # The help text for the parameter.
   widget: String  # The widget to use for the parameter.
-  connection: String!  # The connection associated with the parameter.
+  connection: String  # The connection associated with the parameter.
   choices: [Generic!]  # The list of choices for the parameter.
 }
 
