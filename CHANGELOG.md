@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.58.2](https://github.com/BLSQ/openhexa-frontend/compare/0.58.1...0.58.2) (2025-01-29)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @apollo/client to v3.12.8 ([#1046](https://github.com/BLSQ/openhexa-frontend/issues/1046)) ([270af0c](https://github.com/BLSQ/openhexa-frontend/commit/270af0c27f78e19f032ec1e363609642968afd3e))
+* **deps:** update dependency @sentry/nextjs to v8.51.0 ([#1034](https://github.com/BLSQ/openhexa-frontend/issues/1034)) ([78a9b81](https://github.com/BLSQ/openhexa-frontend/commit/78a9b81bbf968063c2dd620424016c45d0618855))
+* **deps:** update dependency @sentry/nextjs to v8.52.0 ([#1053](https://github.com/BLSQ/openhexa-frontend/issues/1053)) ([515762a](https://github.com/BLSQ/openhexa-frontend/commit/515762a15ed40b90aafb87497513e43fb41fd6f6))
+* **deps:** update dependency @types/lodash to v4.17.15 ([#1047](https://github.com/BLSQ/openhexa-frontend/issues/1047)) ([2ac1d02](https://github.com/BLSQ/openhexa-frontend/commit/2ac1d02e11594c04a5cf87106295434805eab202))
+* **deps:** update dependency @types/node to v22.10.10 ([#1041](https://github.com/BLSQ/openhexa-frontend/issues/1041)) ([6d14c44](https://github.com/BLSQ/openhexa-frontend/commit/6d14c44c3d35aafea4c9c086875767ae919a09b4))
+* **deps:** update dependency @types/node to v22.10.8 ([#1036](https://github.com/BLSQ/openhexa-frontend/issues/1036)) ([33207f8](https://github.com/BLSQ/openhexa-frontend/commit/33207f8c03d55ea91f58b29f9092fdf01b319815))
+* **deps:** update dependency @types/node to v22.10.9 ([#1037](https://github.com/BLSQ/openhexa-frontend/issues/1037)) ([705715d](https://github.com/BLSQ/openhexa-frontend/commit/705715d47d1573371091add6bb37faf75f27ae57))
+* **deps:** update dependency @types/node to v22.12.0 ([#1048](https://github.com/BLSQ/openhexa-frontend/issues/1048)) ([de6de61](https://github.com/BLSQ/openhexa-frontend/commit/de6de611c803b4b0339d038fdb2d509be17996ee))
+* **deps:** update dependency i18next to v24.2.2 ([#1042](https://github.com/BLSQ/openhexa-frontend/issues/1042)) ([5e7baa8](https://github.com/BLSQ/openhexa-frontend/commit/5e7baa8c43b615e9d70e736b83860e08a7ef3442))
+* **deps:** update nextjs monorepo to v15.1.6 ([#1030](https://github.com/BLSQ/openhexa-frontend/issues/1030)) ([5d37d1f](https://github.com/BLSQ/openhexa-frontend/commit/5d37d1f5df0dace3085d0dcaee61937c333ce5af))
+* **Features:** 'workspaces' FF has been removed ([#1045](https://github.com/BLSQ/openhexa-frontend/issues/1045)) ([fef2c00](https://github.com/BLSQ/openhexa-frontend/commit/fef2c0047bd1823b16cc2e8710ef6238d4d12414))
+* **React:** fix hydration error because the WorkspaceLayout (& thus Sidebar) was not loaded in the DatasetLayout pages ([#1051](https://github.com/BLSQ/openhexa-frontend/issues/1051)) ([a307513](https://github.com/BLSQ/openhexa-frontend/commit/a30751314ec4c25cd65a28b3eeddbc6b22434c36))
+* **Tailwind:** Rename utilities used in our code ([#1044](https://github.com/BLSQ/openhexa-frontend/issues/1044)) ([a3feb7b](https://github.com/BLSQ/openhexa-frontend/commit/a3feb7bf221a438d032556d7af9c94ad39034999))
+
 ## [0.58.1](https://github.com/BLSQ/openhexa-frontend/compare/0.58.0...0.58.1) (2025-01-22)
 
 
