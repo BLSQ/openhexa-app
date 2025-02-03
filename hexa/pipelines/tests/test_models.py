@@ -86,6 +86,13 @@ class PipelineTest(TestCase):
             countries=[{"code": "AL"}],
         )
 
+        cls.WORKSPACE2 = Workspace.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            name="Sandbox2",
+            description="This is a sandbox workspace ",
+            countries=[{"code": "AL"}],
+        )
+
         cls.PIPELINE = Pipeline.objects.create(
             workspace=cls.WORKSPACE,
             name="Test pipeline",

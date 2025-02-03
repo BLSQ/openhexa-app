@@ -98,6 +98,20 @@ class PipelineTemplate(SoftDeletedModel):
             principal, pipeline.workspace, pipeline
         )
 
+    def new_versions(self, pipeline: Pipeline) -> list["PipelineTemplateVersion"]:
+        """Return the versions of the template that are newer than the last version of the pipeline"""
+        if pipeline.source_template != self:
+            raise ValueError("The specified pipeline is not from this template")
+
+        last_version_from_template = pipeline.versions.filter(
+            source_template_version__isnull=False
+        ).first()
+        if not last_version_from_template:
+            return []
+        return self.versions.filter(
+            created_at__gt=last_version_from_template.created_at
+        ).order_by("-created_at")
+
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("pipeline_templates.delete_pipeline_template", self):
             raise PermissionDenied
