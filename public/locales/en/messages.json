@@ -412,6 +412,8 @@
   "Suggested help topics": "Suggested help topics",
   "Tables": "Tables",
   "Tabs": "Tabs",
+  "Template": "Template",
+  "Template {{template}} (v{{version}})": "Template {{template}} (v{{version}})",
   "Template description": "Template description",
   "Template Description": "Template Description",
   "Template name": "Template name",

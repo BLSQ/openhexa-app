@@ -24,6 +24,7 @@ import {
   UpdatePipelineVersionMutation,
   UpdatePipelineVersionMutationVariables,
 } from "./PipelineVersionCard.generated";
+import useFeature from "identity/hooks/useFeature";
 
 type PipelineVersionCardProps = {
   version: PipelineVersionCard_VersionFragment;
@@ -33,6 +34,7 @@ type PipelineVersionCardProps = {
 const PipelineVersionCard = (props: PipelineVersionCardProps) => {
   const { t } = useTranslation();
   const { version } = props;
+  const [isPipelineTemplateFeatureEnabled] = useFeature("pipeline_templates");
   const [updateVersion] = useMutation<
     UpdatePipelineVersionMutation,
     UpdatePipelineVersionMutationVariables
@@ -86,13 +88,21 @@ const PipelineVersionCard = (props: PipelineVersionCardProps) => {
               </Trans>
             </span>
           </div>
-          {version.isLatestVersion && (
-            <div>
+          <div>
+            {version.isLatestVersion && (
               <Badge className="ml-2 text-gray-500 text-sm ring-gray-300">
                 {t("Latest version")}
               </Badge>
-            </div>
-          )}
+            )}
+            {isPipelineTemplateFeatureEnabled && version.templateVersion && (
+              <Badge className="ml-2 text-gray-500 text-sm ring-gray-300">
+                {t("Template {{template}} (v{{version}})", {
+                  template: version.templateVersion.template.name,
+                  version: version.templateVersion.versionNumber,
+                })}
+              </Badge>
+            )}
+          </div>
         </Block.Header>
         <DataCard.FormSection
           title={t("Details")}
@@ -209,6 +219,14 @@ PipelineVersionCard.fragments = {
       pipeline {
         id
         code
+      }
+      templateVersion {
+        id
+        versionNumber
+        template {
+          id
+          name
+        }
       }
       ...DownloadPipelineVersion_version
       ...DeletePipelineVersionTrigger_version

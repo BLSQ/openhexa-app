@@ -414,6 +414,8 @@
   "Suggested help topics": "Sujets d'aide suggérés",
   "Tables": "Tableaux",
   "Tabs": "Onglets",
+  "Template": "Modèle",
+  "Template {{template}} (v{{version}})": "Modèle {{template}} (v{{version}})",
   "Template description": "Description du modèle",
   "Template Description": "Description du modèle",
   "Template name": "Nom du modèle",

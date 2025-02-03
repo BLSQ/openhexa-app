@@ -159,7 +159,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
           )}
           {isPipelineTemplateFeatureEnabled && pipeline.sourceTemplate && (
             <RenderProperty
-              id="source_remplate"
+              id="source_template"
               accessor={"sourceTemplate.name"}
               label={t("Source Template")}
               readonly
@@ -176,6 +176,14 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 </div>
               )}
             </RenderProperty>
+          )}
+          {isPipelineTemplateFeatureEnabled && pipeline?.template && (
+            <TextProperty
+              id="template"
+              accessor={"template.name"}
+              label={t("Template")}
+              readonly
+            />
           )}
         </DataCard.FormSection>
         {pipeline.type === PipelineType.ZipFile && pipeline.currentVersion ? (
