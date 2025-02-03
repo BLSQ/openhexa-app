@@ -249,7 +249,7 @@ type Pipeline {
   template: PipelineTemplate  # The template associated with the pipeline.
   sourceTemplate: PipelineTemplate  # The source template associated with the pipeline.
   hasNewTemplateVersions: Boolean!  # Indicates if there are new template versions available for the pipeline.
-  newTemplateVersions: [PipelineTemplateVersion!]  # The new template versions available for the pipeline.
+  newTemplateVersions: [PipelineTemplateVersion!]!  # The new template versions available for the pipeline.
 }
 
 """

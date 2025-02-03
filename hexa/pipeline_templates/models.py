@@ -43,7 +43,6 @@ class PipelineTemplate(SoftDeletedModel):
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=200, default="")
     description = models.TextField(blank=True)
-    config = models.JSONField(blank=True, null=True, default=dict)
     workspace = models.ForeignKey(Workspace, on_delete=models.SET_NULL, null=True)
 
     source_pipeline = models.OneToOneField(
@@ -102,7 +101,22 @@ class PipelineTemplate(SoftDeletedModel):
 
 
 class PipelineTemplateVersionQuerySet(BaseQuerySet):
-    pass
+    def get_updates_for(self, pipeline: Pipeline):
+        """Return the versions of the template that are newer than the last version of the pipeline"""
+        if pipeline.source_template is None:
+            return self.none()
+
+        last_version_created_from_template = pipeline.versions.filter(
+            source_template_version__isnull=False
+        ).first()
+
+        if not last_version_created_from_template:
+            return self.none()
+
+        return self.filter(
+            template=pipeline.source_template,
+            created_at__gt=last_version_created_from_template.created_at,
+        ).order_by("-created_at")
 
 
 class PipelineTemplateVersion(models.Model):
@@ -151,10 +165,33 @@ class PipelineTemplateVersion(models.Model):
             workspace=workspace,
         )
 
+    def _extract_config(self, pipeline: Pipeline) -> dict:
+        """Extract the config from the source pipeline version based on the pipeline config and filter out the parameters with complex types"""
+        # Only keep the source parameters with simple types
+        kept_source_parameters = [
+            param
+            for param in self.source_pipeline_version.parameters
+            if param.get("type") in {"bool", "int", "str", "float"}
+        ]
+        # Keep the config from the previous version
+        config_to_keep = pipeline.get_config_from_previous_version(
+            kept_source_parameters
+        )
+        # Use the config from the source pipeline for simple types
+        new_version_config = {
+            k: v
+            for k, v in self.source_pipeline_version.config.items()
+            if k in kept_source_parameters
+        }
+        # Keep in priority the config from the previous version
+        new_version_config.update(config_to_keep)
+        return new_version_config
+
     def create_pipeline_version(
         self, principal: User, workspace: Workspace, pipeline=None
     ) -> PipelineVersion:
         pipeline = pipeline or self._create_pipeline(workspace)
+        new_version_config = self._extract_config(pipeline)
         source_version = self.source_pipeline_version
         return PipelineVersion.objects.create(
             source_template_version=self,
@@ -162,7 +199,7 @@ class PipelineTemplateVersion(models.Model):
             pipeline=pipeline,
             zipfile=source_version.zipfile,
             parameters=source_version.parameters,
-            config=source_version.config,
+            config=new_version_config,
             timeout=source_version.timeout,
         )
 

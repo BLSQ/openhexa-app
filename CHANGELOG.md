@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.79.0](https://github.com/BLSQ/openhexa-app/compare/0.78.0...0.79.0) (2025-02-03)
+
+
+### Features
+
+* handle default parameters values for pipeline template upgrades (HEXA-1165) ([#908](https://github.com/BLSQ/openhexa-app/issues/908)) ([c8d0cdf](https://github.com/BLSQ/openhexa-app/commit/c8d0cdf83f96c9c269860b043a7f3a8348601805))
+* instrument and improve feature adoption analytics (HEXA-1156) ([#911](https://github.com/BLSQ/openhexa-app/issues/911)) ([a9ffe7f](https://github.com/BLSQ/openhexa-app/commit/a9ffe7fb9dcadaf3b14099f66f001edba2076a90))
+
+
+### Bug Fixes
+
+* HEXA-1163 - refactor dhis2 client, move connection to workspace ([#906](https://github.com/BLSQ/openhexa-app/issues/906)) ([50a14a9](https://github.com/BLSQ/openhexa-app/commit/50a14a918671dffd6dfce7be7a713e6aa3becec9))
+* Support deleted source pipeline (HEXA-1169) ([#909](https://github.com/BLSQ/openhexa-app/issues/909)) ([097dfef](https://github.com/BLSQ/openhexa-app/commit/097dfef49db64f8a59d39967ed9f3fab17b93836))
+
 ## [0.78.0](https://github.com/BLSQ/openhexa-app/compare/0.77.0...0.78.0) (2025-01-22)
 
 

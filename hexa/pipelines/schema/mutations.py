@@ -604,7 +604,7 @@ def resolve_upgrade_pipeline_version_from_template(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
     if not pipeline.source_template:
         return {"success": False, "errors": ["PIPELINE_NOT_FROM_TEMPLATE"]}
-    if len(pipeline.new_template_versions) == 0:
+    if not pipeline.has_new_template_versions:
         return {"success": False, "errors": ["NO_NEW_TEMPLATE_VERSION_AVAILABLE"]}
     pipeline_version = pipeline.source_template.upgrade_pipeline(request.user, pipeline)
     return {"success": True, "errors": [], "pipeline_version": pipeline_version}
