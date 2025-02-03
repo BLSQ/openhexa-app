@@ -824,6 +824,7 @@ export enum CreatePipelineTemplateVersionError {
 
 /** Represents the input for creating a new pipeline template version. */
 export type CreatePipelineTemplateVersionInput = {
+  changelog?: InputMaybe<Scalars['String']['input']>;
   code?: InputMaybe<Scalars['String']['input']>;
   config?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
@@ -2808,9 +2809,10 @@ export type Pipeline = {
   createdAt: Scalars['DateTime']['output'];
   currentVersion?: Maybe<PipelineVersion>;
   description?: Maybe<Scalars['String']['output']>;
+  hasNewTemplateVersions: Scalars['Boolean']['output'];
   id: Scalars['UUID']['output'];
   name?: Maybe<Scalars['String']['output']>;
-  newTemplateVersionAvailable: Scalars['Boolean']['output'];
+  newTemplateVersions?: Maybe<Array<PipelineTemplateVersion>>;
   notebookPath?: Maybe<Scalars['String']['output']>;
   permissions: PipelinePermissions;
   recipients: Array<PipelineRecipient>;
@@ -3004,6 +3006,7 @@ export type PipelineTemplatePermissions = {
 /** Represents a version of a pipeline template. */
 export type PipelineTemplateVersion = {
   __typename?: 'PipelineTemplateVersion';
+  changelog?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
   template: PipelineTemplate;

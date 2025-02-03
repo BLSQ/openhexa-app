@@ -18,7 +18,7 @@ import {
   GenerateWorkspaceTokenMutation,
 } from "./CreatePipelineDialog.generated";
 import useFeature from "identity/hooks/useFeature";
-import PipelineTemplateTable from "../PipelineTemplatesTable";
+import PipelineTemplateTable from "../../../pipelines/features/PipelineTemplatesTable";
 
 type CreatePipelineDialogProps = {
   open: boolean;

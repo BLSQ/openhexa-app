@@ -778,6 +778,7 @@ input CreatePipelineTemplateVersionInput {
   name: String
   code: String
   description: String
+  changelog: String
   config: String
   workspaceSlug: String!
   pipelineId: UUID!
@@ -2336,7 +2337,8 @@ type Pipeline {
   notebookPath: String
   template: PipelineTemplate
   sourceTemplate: PipelineTemplate
-  newTemplateVersionAvailable: Boolean!
+  hasNewTemplateVersions: Boolean!
+  newTemplateVersions: [PipelineTemplateVersion!]
 }
 
 enum PipelineError {
@@ -2504,6 +2506,7 @@ type PipelineTemplatePermissions {
 type PipelineTemplateVersion {
   id: UUID!
   versionNumber: Int!
+  changelog: String
   createdAt: DateTime!
   template: PipelineTemplate!
 }

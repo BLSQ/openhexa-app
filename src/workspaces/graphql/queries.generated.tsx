@@ -69,7 +69,7 @@ export type WorkspacePipelinePageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspacePipelinePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', webhookUrl?: string | null, webhookEnabled: boolean, id: string, createdAt: any, code: string, name?: string | null, description?: string | null, schedule?: string | null, type: Types.PipelineType, notebookPath?: string | null, newTemplateVersionAvailable: boolean, permissions: { __typename?: 'PipelinePermissions', run: boolean, update: boolean, schedule: boolean, delete: boolean, createVersion: boolean, createTemplateVersion: boolean }, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, name: string } | null, currentVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, description?: string | null, config?: any | null, externalLink?: any | null, name?: string | null, isLatestVersion: boolean, createdAt: any, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, multiple: boolean, type: Types.ParameterType, help?: string | null, required: boolean, choices?: Array<any> | null, default?: any | null }>, pipeline: { __typename?: 'Pipeline', id: string, schedule?: string | null, code: string, workspace: { __typename?: 'Workspace', slug: string } }, user?: { __typename?: 'User', displayName: string } | null } | null, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: string, displayName: string } }>, workspace: { __typename?: 'Workspace', slug: string }, template?: { __typename?: 'PipelineTemplate', id: string, name: string } | null } | null };
+export type WorkspacePipelinePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', webhookUrl?: string | null, webhookEnabled: boolean, id: string, createdAt: any, code: string, name?: string | null, description?: string | null, schedule?: string | null, type: Types.PipelineType, notebookPath?: string | null, hasNewTemplateVersions: boolean, permissions: { __typename?: 'PipelinePermissions', run: boolean, update: boolean, schedule: boolean, delete: boolean, createVersion: boolean, createTemplateVersion: boolean }, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, name: string } | null, newTemplateVersions?: Array<{ __typename?: 'PipelineTemplateVersion', id: string, changelog?: string | null, versionNumber: number, createdAt: any }> | null, currentVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, description?: string | null, config?: any | null, externalLink?: any | null, name?: string | null, isLatestVersion: boolean, createdAt: any, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, multiple: boolean, type: Types.ParameterType, help?: string | null, required: boolean, choices?: Array<any> | null, default?: any | null }>, pipeline: { __typename?: 'Pipeline', id: string, schedule?: string | null, code: string, workspace: { __typename?: 'Workspace', slug: string } }, user?: { __typename?: 'User', displayName: string } | null } | null, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: string, displayName: string } }>, workspace: { __typename?: 'Workspace', slug: string }, template?: { __typename?: 'PipelineTemplate', id: string, name: string } | null } | null };
 
 export type WorkspacePipelineRunsPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -439,7 +439,13 @@ export const WorkspacePipelinePageDocument = gql`
       id
       name
     }
-    newTemplateVersionAvailable
+    hasNewTemplateVersions
+    newTemplateVersions {
+      id
+      changelog
+      versionNumber
+      createdAt
+    }
     currentVersion {
       id
       versionName

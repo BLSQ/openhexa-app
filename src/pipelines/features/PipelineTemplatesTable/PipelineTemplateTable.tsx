@@ -24,7 +24,7 @@ type PipelineTemplatesTableProps = {
 const PipelineTemplatesTable = ({ workspace }: PipelineTemplatesTableProps) => {
   const { t } = useTranslation();
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const perPage = 1;
+  const perPage = 5;
   const clearCache = useCacheKey(["pipelines"]);
   const [createPipelineFromTemplateVersion] =
     useCreatePipelineFromTemplateVersionMutation();

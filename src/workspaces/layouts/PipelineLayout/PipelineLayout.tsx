@@ -16,7 +16,7 @@ import {
   PipelineLayout_PipelineFragment,
   PipelineLayout_WorkspaceFragment,
 } from "./PipelineLayout.generated";
-import PublishPipelineDialog from "workspaces/features/PublishPipelineDialog";
+import PublishPipelineDialog from "pipelines/features/PublishPipelineDialog";
 import useFeature from "identity/hooks/useFeature";
 
 type PipelineLayoutProps = {

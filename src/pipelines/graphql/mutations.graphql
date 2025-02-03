@@ -38,3 +38,12 @@ mutation CreatePipelineFromTemplateVersion(
     }
   }
 }
+
+mutation upgradePipelineVersionFromTemplate(
+  $input: UpgradePipelineVersionFromTemplateInput!
+) {
+  upgradePipelineVersionFromTemplate(input: $input) {
+    success
+    errors
+  }
+}

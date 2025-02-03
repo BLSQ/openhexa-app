@@ -29,6 +29,8 @@ import {
   updatePipeline,
 } from "workspaces/helpers/pipelines";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
+import UpgradePipelineFromTemplateDialog from "pipelines/features/UpgradePipelineFromTemplateDialog";
+import useCacheKey from "core/hooks/useCacheKey";
 
 type Props = {
   pipelineCode: string;
@@ -43,15 +45,18 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
     useState(false);
   const [isGenerateWebhookUrlDialogOpen, setIsGenerateWebhookUrlDialogOpen] =
     useState(false);
+  const [isUpgradeFromTemplateDialogOpen, setUpgradeFromTemplateDialogOpen] =
+    useState(false);
   const [isWebhookFeatureEnabled] = useFeature("pipeline_webhook");
   const [isPipelineTemplateFeatureEnabled] = useFeature("pipeline_templates");
 
-  const { data } = useWorkspacePipelinePageQuery({
+  const { data, refetch } = useWorkspacePipelinePageQuery({
     variables: {
       workspaceSlug,
       pipelineCode,
     },
   });
+  const clearCache = useCacheKey(["pipelines"], refetch);
 
   if (!data?.workspace || !data?.pipeline) {
     return null;
@@ -151,7 +156,9 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                       workspace.slug,
                     )}/pipelines/${encodeURIComponent(pipeline.code)}/versions`}
                   >
-                    {property.displayValue.versionName}
+                    {property.displayValue
+                      ? property.displayValue.versionName
+                      : t("No version yet")}
                   </Link>
                 </div>
               )}
@@ -167,9 +174,13 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               {(sourceTemplateName) => (
                 <div className="flex items-center gap-2">
                   <p>{sourceTemplateName.displayValue}</p>
-                  {pipeline.newTemplateVersionAvailable &&
+                  {pipeline.hasNewTemplateVersions &&
                     pipeline.permissions.createVersion && (
-                      <Button variant={"secondary"} size={"sm"}>
+                      <Button
+                        variant={"secondary"}
+                        size={"sm"}
+                        onClick={() => setUpgradeFromTemplateDialogOpen(true)}
+                      >
                         {t("Upgrade to latest version")}
                       </Button>
                     )}
@@ -303,6 +314,12 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
         ) : (
           <></>
         )}
+        <UpgradePipelineFromTemplateDialog
+          pipeline={pipeline}
+          open={isUpgradeFromTemplateDialogOpen}
+          onClose={() => setUpgradeFromTemplateDialogOpen(false)}
+          onSuccess={clearCache}
+        />
       </PipelineLayout>
     </Page>
   );
