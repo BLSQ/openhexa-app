@@ -42,8 +42,8 @@ def resolve_pipeline_template_source_pipeline(
     return pipeline_template.source_pipeline
 
 
-@pipeline_template_object.field("canDelete")
-def resolve_pipeline_template_can_delete(
+@pipeline_template_permissions.field("delete")
+def resolve_pipeline_permissions_delete(
     pipeline_template: PipelineTemplate, info, **kwargs
 ):
     request = info.context["request"]

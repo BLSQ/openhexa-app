@@ -116,7 +116,7 @@ type PipelineTemplate {
   versions: [PipelineTemplateVersion!]  # The list of versions of the pipeline template.
   currentVersion: PipelineTemplateVersion  # The current version of the pipeline template.
   sourcePipeline: Pipeline  # The source pipeline of the pipeline template.
-  canDelete: Boolean # Indicates if the pipeline template can be deleted bu the requesting user.
+  permissions: PipelineTemplatePermissions!  # The permissions for the pipeline template.
 }
 
 """
@@ -134,7 +134,7 @@ type PipelineTemplateVersion {
 Represents the permissions for a pipeline template.
 """
 type PipelineTemplatePermissions {
-  createVersion: Boolean!  # Indicates if a new version of the pipeline template can be created.
+    delete: Boolean! # Indicates if the pipeline template can be deleted by the requesting user.
 }
 
 """
