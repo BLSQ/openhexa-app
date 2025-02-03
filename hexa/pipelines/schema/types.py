@@ -8,6 +8,7 @@ from hexa.core.graphql import result_page
 from hexa.databases.utils import get_table_definition
 from hexa.files import storage
 from hexa.files.backends.base import StorageObject
+from hexa.pipeline_templates.models import PipelineTemplateVersion
 from hexa.pipelines.models import (
     Pipeline,
     PipelineNotificationLevel,
@@ -201,9 +202,14 @@ def resolve_source_template(pipeline: Pipeline, info, **kwargs):
     return pipeline.source_template
 
 
-@pipeline_object.field("newTemplateVersionAvailable")
-def resolve_new_template_version_available(pipeline: Pipeline, info, **kwargs):
-    return pipeline.is_new_template_version_available
+@pipeline_object.field("newTemplateVersions")
+def resolve_new_template_versions(pipeline: Pipeline, info, **kwargs):
+    return PipelineTemplateVersion.objects.get_updates_for(pipeline)
+
+
+@pipeline_object.field("hasNewTemplateVersions")
+def resolve_has_new_template_versions(pipeline: Pipeline, info, **kwargs):
+    return pipeline.has_new_template_versions
 
 
 @pipeline_object.field("runs")

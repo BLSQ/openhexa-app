@@ -199,7 +199,7 @@ class PipelineVersion(models.Model):
         for parameter in self.parameters:
             if (
                 parameter.get("required")
-                and parameter.get("defaul") is None
+                and parameter.get("default") is None
                 and self.config.get(parameter.get("code"))
             ) and new_config.get(parameter.get("code")) is None:
                 raise PipelineDoesNotSupportParametersError(
@@ -360,17 +360,26 @@ class Pipeline(SoftDeletedModel):
         elif self.type == PipelineType.ZIPFILE:
             return self.last_version and self.last_version.is_schedulable
 
-    def get_config_from_previous_version(self, new_parameters: dict):
+    def get_config_from_previous_version(self, new_parameters: list[dict]):
         """
         Get the config from the previous version of the pipeline considering only overlapping parameters between the new and the previous version.
         """
+
+        def remove_default(parameter):
+            parameter_without_default = parameter.copy()
+            if "default" in parameter:
+                del parameter_without_default["default"]
+            return parameter_without_default
+
         previous_config_from_overlapping_parameters = {}
         if self.last_version:
-            previous_parameters = self.last_version.parameters
+            previous_parameters = list(
+                map(remove_default, self.last_version.parameters)
+            )
             overlapping_parameters = [
                 new_parameter
                 for new_parameter in new_parameters
-                if new_parameter in previous_parameters
+                if remove_default(new_parameter) in previous_parameters
             ]
             previous_config_from_overlapping_parameters = {
                 overlapping_parameter["code"]: value
@@ -397,7 +406,7 @@ class Pipeline(SoftDeletedModel):
     def upload_new_version(
         self,
         user: User,
-        parameters: dict,
+        parameters: list[dict],
         name: str,
         zipfile: str = None,
         description: str = None,
@@ -465,17 +474,11 @@ class Pipeline(SoftDeletedModel):
         return self.versions.first()
 
     @property
-    def is_new_template_version_available(self) -> bool:
-        if (
-            self.source_template
-            and hasattr(self.last_version, "source_template_version")
-            and self.last_version.source_template_version
-        ):
-            return (
-                self.source_template.last_version.created_at
-                > self.last_version.source_template_version.created_at
-            )
-        return False
+    def has_new_template_versions(self):
+        PipelineTemplateVersion = apps.get_model(
+            "pipeline_templates", "PipelineTemplateVersion"
+        )
+        return PipelineTemplateVersion.objects.get_updates_for(self).exists()
 
     def get_token(self):
         return Signer().sign_object(
@@ -518,7 +521,7 @@ class Pipeline(SoftDeletedModel):
         merged_config = {**cleaned_pipeline_version_config, **cleaned_provided_config}
         return merged_config
 
-    def get_or_create_template(self, name, code, description, config):
+    def get_or_create_template(self, name: str, code: str, description: str):
         created = False
         if not hasattr(self, "template") or not self.template:
             PipelineTemplate = apps.get_model("pipeline_templates", "PipelineTemplate")
@@ -526,7 +529,6 @@ class Pipeline(SoftDeletedModel):
                 name=name,
                 code=code,
                 description=description,
-                config=config,
                 workspace=self.workspace,
                 source_pipeline=self,
             )

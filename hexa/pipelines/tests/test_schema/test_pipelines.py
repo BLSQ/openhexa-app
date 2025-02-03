@@ -2557,7 +2557,7 @@ class PipelinesV2Test(GraphQLTestCase):
             parameters=[],
         )
         template, _ = source_pipeline.get_or_create_template(
-            "Template", "template", "Description", {}
+            "Template", "template", "Description"
         )
         template_version1 = template.create_version(source_pipeline_version1)
 
@@ -2565,7 +2565,7 @@ class PipelinesV2Test(GraphQLTestCase):
             """
                 mutation createPipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
                     createPipelineFromTemplateVersion(input: $input) {
-                        success errors pipeline {id newTemplateVersionAvailable}
+                        success errors pipeline {id newTemplateVersions {versionNumber}}
                     }
                 }
             """,
@@ -2584,7 +2584,7 @@ class PipelinesV2Test(GraphQLTestCase):
                     "id": str(
                         r["data"]["createPipelineFromTemplateVersion"]["pipeline"]["id"]
                     ),
-                    "newTemplateVersionAvailable": False,
+                    "newTemplateVersions": [],
                 },
             },
             r["data"]["createPipelineFromTemplateVersion"],
@@ -2602,7 +2602,9 @@ class PipelinesV2Test(GraphQLTestCase):
             """
             query ($id: UUID!) {
                 pipeline(id: $id) {
-                    newTemplateVersionAvailable
+                    newTemplateVersions {
+                        versionNumber
+                    }
                 }
             }
             """,
@@ -2612,7 +2614,9 @@ class PipelinesV2Test(GraphQLTestCase):
                 )
             },
         )
-        self.assertEqual(True, r["data"]["pipeline"]["newTemplateVersionAvailable"])
+        self.assertEqual(
+            [{"versionNumber": 2}], r["data"]["pipeline"]["newTemplateVersions"]
+        )
 
     def test_upgrade_pipeline_version_from_template(self):
         self.test_create_pipeline_version()
@@ -2635,7 +2639,7 @@ class PipelinesV2Test(GraphQLTestCase):
             parameters=[],
         )
         template, _ = source_pipeline.get_or_create_template(
-            "Template", "template", "Description", {}
+            "Template", "template", "Description"
         )
         template_version1 = template.create_version(source_pipeline_version1)
         r = self.run_query(
@@ -2719,7 +2723,7 @@ class PipelinesV2Test(GraphQLTestCase):
         r = self._get_pipeline(source_pipeline.id)
         self.assertTrue(r["data"]["pipeline"]["permissions"]["createTemplateVersion"])
         template, _ = source_pipeline.get_or_create_template(
-            "Template", "template", "Description", {}
+            "Template", "template", "Description"
         )
         template.create_version(source_pipeline.last_version)
         r = self._get_pipeline(source_pipeline.id)

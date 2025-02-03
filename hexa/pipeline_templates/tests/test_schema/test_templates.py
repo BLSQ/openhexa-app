@@ -47,8 +47,8 @@ class PipelineTemplatesTest(GraphQLTestCase):
             pipeline=cls.PIPELINE1,
             version_number=1,
             description="Initial version",
-            parameters=[{"code": "param_1"}],
-            config=[{"param_1": 1}],
+            parameters=[{"code": "param_1", "default": 23}],
+            config={"param_1": 1},
             zipfile=str.encode("some_bytes"),
         )
         cls.PIPELINE_VERSION2 = PipelineVersion.objects.create(
@@ -133,8 +133,8 @@ class PipelineTemplatesTest(GraphQLTestCase):
                     "code": "Test Pipeline",
                     "currentVersion": {
                         "zipfile": "c29tZV9ieXRlcw==",
-                        "parameters": [{"code": "param_1", "default": None}],
-                        "config": [{"param_1": 1}],
+                        "parameters": [{"code": "param_1", "default": 23}],
+                        "config": {},
                     },
                 },
             },
