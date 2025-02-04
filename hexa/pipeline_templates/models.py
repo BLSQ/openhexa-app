@@ -62,12 +62,16 @@ class PipelineTemplate(SoftDeletedModel):
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
 
     def create_version(
-        self, source_pipeline_version: PipelineVersion, changelog: str = None
+        self,
+        source_pipeline_version: PipelineVersion,
+        user: User = None,
+        changelog: str = None,
     ) -> "PipelineTemplateVersion":
         """Create a new version of the template using a pipeline version as source"""
         return PipelineTemplateVersion.objects.create(
             template=self,
             version_number=self.versions.count() + 1,
+            user=user,
             changelog=changelog,
             source_pipeline_version=source_pipeline_version,
         )
@@ -177,6 +181,9 @@ class PipelineTemplateVersion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     version_number = models.PositiveIntegerField(editable=False)
     changelog = models.TextField(blank=True, null=True)
+    user = models.ForeignKey(
+        "user_management.User", null=True, on_delete=models.SET_NULL
+    )
     template = models.ForeignKey(
         PipelineTemplate, on_delete=models.CASCADE, related_name="versions"
     )

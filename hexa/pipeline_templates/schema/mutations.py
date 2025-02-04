@@ -64,7 +64,7 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
         description=input.get("description"),
     )
     pipeline_template_version = pipeline_template.create_version(
-        source_pipeline_version, input.get("changelog")
+        source_pipeline_version, user=request.user, changelog=input.get("changelog")
     )
     track(
         request,
