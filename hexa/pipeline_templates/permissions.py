@@ -18,3 +18,13 @@ def delete_pipeline_template(principal: User, pipeline_template: PipelineTemplat
             role__in=[WorkspaceMembershipRole.ADMIN],
         ).exists()
     )
+
+
+def update_pipeline_template(principal: User, pipeline_template: PipelineTemplate):
+    return (
+        pipeline_template.workspace
+        and pipeline_template.workspace.workspacemembership_set.filter(
+            user=principal,
+            role__in=[WorkspaceMembershipRole.EDITOR, WorkspaceMembershipRole.ADMIN],
+        ).exists()
+    )

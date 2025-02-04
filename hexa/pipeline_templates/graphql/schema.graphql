@@ -9,10 +9,19 @@ extend type Mutation {
   Deletes a pipeline template.
   """
   deletePipelineTemplate(input: DeletePipelineTemplateInput): DeletePipelineTemplateResult! @loginRequired
+
+
+  """Updates an existing template."""
+  updatePipelineTemplate(input: UpdateTemplateInput!): UpdateTemplateResult!
 }
 
 extend type Query {
   pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String): PipelineTemplatePage!  # Returns pipeline templates.
+
+  """
+  Retrieves a template by workspace slug and code.
+  """
+  templateByCode(workspaceSlug: String!, code: String!): PipelineTemplate @loginRequired
 }
 
 """
@@ -102,6 +111,29 @@ type DeletePipelineTemplateResult {
 enum PipelineTemplateError {
   PIPELINE_TEMPLATE_NOT_FOUND
   PERMISSION_DENIED
+}
+
+"""
+Enum representing the possible errors that can occur when updating a template.
+"""
+enum UpdateTemplateError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for updating a template."""
+input UpdateTemplateInput {
+  id: UUID!
+  name: String
+  config: JSON
+  description: String
+}
+
+"""Represents the result of updating a template."""
+type UpdateTemplateResult {
+  success: Boolean!
+  errors: [UpdateTemplateError!]!
+  template: PipelineTemplate
 }
 
 """

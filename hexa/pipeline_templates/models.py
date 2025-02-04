@@ -117,6 +117,14 @@ class PipelineTemplate(SoftDeletedModel):
             raise PermissionDenied
         self.delete()
 
+    def update_if_has_perm(self, principal: User, **kwargs):
+        if not principal.has_perm("pipeline_templates.update_pipeline_template", self):
+            raise PermissionDenied
+        for key in ["name", "description", "config"]:
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+        return self.save()
+
     @property
     def last_version(self) -> "PipelineTemplateVersion":
         return self.versions.last()
