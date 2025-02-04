@@ -58,6 +58,17 @@ def resolve_pipeline_template_permissions_delete(
     )
 
 
+@pipeline_template_permissions.field("update")
+def resolve_pipeline_template_permissions_update(
+    pipeline_template: PipelineTemplate, info, **kwargs
+):
+    request = info.context["request"]
+    user = request.user
+    return user.is_authenticated and user.has_perm(
+        "pipeline_templates.update_pipeline_template", pipeline_template
+    )
+
+
 bindables = [
     pipeline_template_object,
     pipeline_template_permissions,

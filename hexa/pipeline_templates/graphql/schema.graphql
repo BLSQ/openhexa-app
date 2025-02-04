@@ -167,6 +167,7 @@ Represents the permissions for a pipeline template.
 """
 type PipelineTemplatePermissions {
     delete: Boolean! # Indicates if the pipeline template can be deleted by the requesting user.
+    update: Boolean! # Indicates if the pipeline template can be updated by the requesting user.
 }
 
 """
