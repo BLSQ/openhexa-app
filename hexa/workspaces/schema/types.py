@@ -178,8 +178,24 @@ def resolve_query(connection, info, **kwargs):
             **({"filter": kwargs["filter"]} if "filter" in kwargs else {}),
         )
 
-        result = [{field: item.get(field) for field in fields} for item in metadata]
-        return {"items": result, "success": True, "error": None}
+        query_string = kwargs.get("search", "").lower()
+        filtered_metadata = [
+            item
+            for item in metadata
+            if any(
+                query_string in (str(item.get(field)) or "").lower() for field in fields
+            )
+        ]
+        result = [
+            {field: item.get(field) for field in fields} for item in filtered_metadata
+        ][kwargs.get("offset", 0) : kwargs.get("limit", 10)]
+
+        return {
+            "items": result,
+            "totalCount": len(result),
+            "success": True,
+            "error": None,
+        }
     except DHIS2Error as e:
         logging.error(f"DHIS2 error: {e}")
         return {"data": [], "success": False, "error": "REQUEST_ERROR"}

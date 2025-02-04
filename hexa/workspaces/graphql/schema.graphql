@@ -880,6 +880,7 @@ DHIS2 metadata query result
 """
 type DHIS2QueryResult {
     items: [DHIS2MetadataItem!]  # List of metadata items
+    totalCount: Int             # Total number of items
     success: Boolean!           # Query success status
     error: DHIS2ConnectionError # Connection error
 }
@@ -899,7 +900,7 @@ type DHIS2Connection implements Connection{
     fields: [ConnectionField!]! # Fields of the connection
     permissions: ConnectionPermissions! # Permissions of the connection
     status: DHIS2ConnectionStatus! # Connection status
-    queryMetadata(type: String!, filter: String): DHIS2QueryResult! # Query metadata items
+    queryMetadata(type: String!, filter: String, search: String, limit: Int, offset:Int): DHIS2QueryResult! # Query metadata items
 }
 
 """
