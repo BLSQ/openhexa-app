@@ -21,7 +21,7 @@ extend type Query {
   """
   Retrieves a template by workspace slug and code.
   """
-  templateByCode(workspaceSlug: String!, code: String!): PipelineTemplate @loginRequired
+  templateByCode(code: String!): PipelineTemplate @loginRequired
 }
 
 """

@@ -37,7 +37,7 @@ def resolve_template_by_code(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     try:
         template = PipelineTemplate.objects.filter_for_user(request.user).get(
-            workspace__slug=kwargs["workspace_slug"], code=kwargs["code"]
+            code=kwargs["code"]
         )
     except PipelineTemplate.DoesNotExist:
         template = None
