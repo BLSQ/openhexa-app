@@ -80,7 +80,7 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
     return {"pipeline_template": pipeline_template, "success": True, "errors": []}
 
 
-@pipeline_template_mutations.field("updateTemnplateVersion")
+@pipeline_template_mutations.field("updateTemplateVersion")
 def resolve_update_template_version(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
