@@ -1,6 +1,7 @@
 from ariadne import ObjectType
 
-from hexa.pipeline_templates.models import PipelineTemplate
+from hexa.core.graphql import result_page
+from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_permissions
 
@@ -25,7 +26,10 @@ def resolve_workspace_permissions_create_pipeline_template_version(
 def resolve_pipeline_template_versions(
     pipeline_template: PipelineTemplate, info, **kwargs
 ):
-    return pipeline_template.versions.all()
+    qs = pipeline_template.versions.all()
+    return result_page(
+        queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
+    )
 
 
 @pipeline_template_object.field("currentVersion")
@@ -66,6 +70,26 @@ def resolve_pipeline_template_permissions_update(
     user = request.user
     return user.is_authenticated and user.has_perm(
         "pipeline_templates.update_pipeline_template", pipeline_template
+    )
+
+
+@pipeline_template_version_permissions.field("delete")
+def resolve_template_version_permissions_delete(
+    pipeline_template_version: PipelineTemplateVersion, info, **kwargs
+):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipeline_templates.delete_pipeline_template_version", pipeline_template_version
+    )
+
+
+@pipeline_template_version_permissions.field("update")
+def resolve_template_version_permissions_update(
+    pipeline_template_version: PipelineTemplateVersion, info, **kwargs
+):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipeline_templates.update_pipeline_template_version", pipeline_template_version
     )
 
 
