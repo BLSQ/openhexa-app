@@ -27,7 +27,7 @@ def resolve_workspace_permissions_create_pipeline_template_version(
 def resolve_pipeline_template_versions(
     pipeline_template: PipelineTemplate, info, **kwargs
 ):
-    qs = pipeline_template.versions.all()
+    qs = pipeline_template.versions.order_by("-created_at")
     return result_page(
         queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
     )
