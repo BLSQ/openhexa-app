@@ -81,6 +81,13 @@ def resolve_pipeline_version_is_latest(
     return version.is_latest_version
 
 
+@pipeline_template_version_object.field("permissions")
+def resolve_template_version_permissions(
+    version: PipelineTemplateVersion, info, **kwargs
+):
+    return version
+
+
 @pipeline_template_version_permissions.field("delete")
 def resolve_template_version_permissions_delete(
     pipeline_template_version: PipelineTemplateVersion, info, **kwargs
@@ -103,6 +110,7 @@ def resolve_template_version_permissions_update(
 
 bindables = [
     pipeline_template_object,
+    pipeline_template_version_object,
     pipeline_template_permissions,
     pipeline_template_version_permissions,
 ]
