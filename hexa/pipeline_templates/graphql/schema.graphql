@@ -14,6 +14,14 @@ extend type Mutation {
   """Updates an existing template."""
   updatePipelineTemplate(input: UpdateTemplateInput!): UpdateTemplateResult!
 
+  """
+  Updates a pipeline version.
+  """
+  updateTemplateVersion(input: UpdateTemplateVersionInput!): UpdateTemplateVersionResult!
+
+  """
+  Deletes a pipeline version.
+  """
   deleteTemplateVersion(input: DeleteTemplateVersionInput!): DeleteTemplateVersionResult!
 }
 
@@ -216,4 +224,29 @@ enum DeleteTemplateVersionError {
   TEMPLATE_VERSION_NOT_FOUND
   PERMISSION_DENIED
   TEMPLATE_NOT_FOUND
+}
+
+"""
+Represents the input for updating a template version.
+"""
+input UpdateTemplateVersionInput {
+  id: UUID!  # The ID of the template version to update.
+  changelog: String  # The new changelog associated with the template version.
+}
+
+"""
+Enum representing the possible errors that can occur when updating a template version.
+"""
+enum UpdateTemplateVersionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""
+Represents the result of updating a template version.
+"""
+type UpdateTemplateVersionResult {
+  success: Boolean!  # Indicates if the template version was updated successfully.
+  errors: [UpdateTemplateVersionError!]!  # The list of errors that occurred during the update of the template version.
+  templateVersion: PipelineTemplateVersion  # The updated template version.
 }

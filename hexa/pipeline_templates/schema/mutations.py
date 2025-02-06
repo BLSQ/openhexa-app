@@ -80,6 +80,29 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
     return {"pipeline_template": pipeline_template, "success": True, "errors": []}
 
 
+@pipeline_template_mutations.field("updateTemnplateVersion")
+def resolve_update_template_version(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        template_version = PipelineTemplateVersion.objects.filter_for_user(
+            request.user
+        ).get(id=input.pop("id"))
+        template_version.update_if_has_perm(request.user, **input)
+        return {"template_version": template_version, "success": True, "errors": []}
+    except PipelineTemplateVersion.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+
+
 @pipeline_template_mutations.field("deleteTemplateVersion")
 def resolve_delete_template_version(_, info, **kwargs):
     request: HttpRequest = info.context["request"]

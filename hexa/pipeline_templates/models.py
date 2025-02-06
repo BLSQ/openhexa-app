@@ -251,6 +251,16 @@ class PipelineTemplateVersion(models.Model):
             timeout=source_version.timeout,
         )
 
+    def update_if_has_perm(self, principal: User, **kwargs):
+        if not principal.has_perm(
+            "pipeline_templates.update_pipeline_template_version", self
+        ):
+            raise PermissionDenied
+        for key in ["changelog"]:
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+        return self.save()
+
     @property
     def is_latest_version(self):
         return self == self.template.last_version
