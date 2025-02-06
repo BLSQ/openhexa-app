@@ -9,6 +9,7 @@ pipeline_template_permissions = ObjectType("PipelineTemplatePermissions")
 pipeline_template_version_permissions = ObjectType("PipelineTemplateVersionPermissions")
 
 pipeline_template_object = ObjectType("PipelineTemplate")
+pipeline_template_version_object = ObjectType("PipelineTemplateVersion")
 
 
 @workspace_permissions.field("createPipelineTemplateVersion")
@@ -71,6 +72,13 @@ def resolve_pipeline_template_permissions_update(
     return user.is_authenticated and user.has_perm(
         "pipeline_templates.update_pipeline_template", pipeline_template
     )
+
+
+@pipeline_template_version_object.field("isLatestVersion")
+def resolve_pipeline_version_is_latest(
+    version: PipelineTemplateVersion, info, **kwargs
+):
+    return version.is_latest_version
 
 
 @pipeline_template_version_permissions.field("delete")

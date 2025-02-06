@@ -251,5 +251,9 @@ class PipelineTemplateVersion(models.Model):
             timeout=source_version.timeout,
         )
 
+    @property
+    def is_latest_version(self):
+        return self == self.template.last_version
+
     def __str__(self):
         return f"v{self.version_number} of {self.template.name}"
