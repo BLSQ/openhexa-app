@@ -625,6 +625,9 @@ class PipelineRun(Base, WithStatus):
 
     class Meta:
         ordering = ("-execution_date",)
+        indexes = [
+            models.Index(fields=["access_token"]),
+        ]
 
     user = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
