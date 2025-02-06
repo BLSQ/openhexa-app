@@ -13,6 +13,8 @@ extend type Mutation {
 
   """Updates an existing template."""
   updatePipelineTemplate(input: UpdateTemplateInput!): UpdateTemplateResult!
+
+  deleteTemplateVersion(input: DeleteTemplateVersionInput!): DeleteTemplateVersionResult!
 }
 
 extend type Query {
@@ -192,4 +194,25 @@ type PipelineTemplateVersionPermissions {
 
 extend type WorkspacePermissions {
   createPipelineTemplateVersion: Boolean!  # Indicates if a pipeline template version can be created in the workspace.
+}
+
+"""
+Represents the input for deleting a template version.
+"""
+input DeleteTemplateVersionInput {
+  id: UUID!  # The ID of the template version to delete.
+}
+
+"""
+Represents the result of deleting a template version.
+"""
+type DeleteTemplateVersionResult {
+  success: Boolean!  # Indicates if the template version was deleted successfully.
+  errors: [DeleteTemplateVersionError!]!  # The list of errors that occurred during the deletion of the template version.
+}
+
+enum DeleteTemplateVersionError {
+  TEMPLATE_VERSION_NOT_FOUND
+  PERMISSION_DENIED
+  TEMPLATE_NOT_FOUND
 }
