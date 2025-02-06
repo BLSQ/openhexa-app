@@ -143,6 +143,9 @@ def pre_delete_pipeline_template(sender, instance: PipelineTemplate, **kwargs):
 
 
 class PipelineTemplateVersionQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: AnonymousUser | User):
+        return self.filter(template__in=PipelineTemplate.objects.filter_for_user(user))
+
     def get_updates_for(self, pipeline: Pipeline):
         """Return the versions of the template that are newer than the last version of the pipeline"""
         if pipeline.source_template is None:
