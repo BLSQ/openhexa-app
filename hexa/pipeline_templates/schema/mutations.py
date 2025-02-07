@@ -5,19 +5,20 @@ from django.http import HttpRequest
 from hexa.analytics.api import track
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import Pipeline, PipelineAlreadyExistsError, PipelineVersion
+from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 pipeline_template_mutations = MutationType()
 
 
-def get_workspace(user, workspace_slug):
+def get_workspace(user: User, workspace_slug: str) -> Workspace | None:
     try:
         return Workspace.objects.filter_for_user(user).get(slug=workspace_slug)
     except Workspace.DoesNotExist:
         return None
 
 
-def get_source_pipeline(user, pipeline_id):
+def get_source_pipeline(user: User, pipeline_id: str) -> Pipeline | None:
     """
     Get a pipeline that the user has access to, regardless of whether it has been deleted or not.
     """
@@ -27,7 +28,9 @@ def get_source_pipeline(user, pipeline_id):
         return None
 
 
-def get_source_pipeline_version(source_pipeline, pipeline_version_id):
+def get_source_pipeline_version(
+    source_pipeline: Pipeline, pipeline_version_id: str
+) -> PipelineVersion | None:
     try:
         return source_pipeline.versions.get(id=pipeline_version_id)
     except PipelineVersion.DoesNotExist:
@@ -63,9 +66,13 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
         code=input.get("code"),
         description=input.get("description"),
     )
-    pipeline_template_version = pipeline_template.create_version(
-        source_pipeline_version, user=request.user, changelog=input.get("changelog")
-    )
+    pipeline_template_version = (
+        source_pipeline_version.source_template_version
+        if source_pipeline_version.source_template_version
+        else pipeline_template.create_version(
+            source_pipeline_version, user=request.user, changelog=input.get("changelog")
+        )
+    )  # Recreate the version if the source pipeline version has no source template version (it can have one if the template was deleted before and restored)
     track(
         request,
         "pipeline_templates.pipeline_template_created"
