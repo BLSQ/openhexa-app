@@ -116,16 +116,15 @@ def resolve_delete_template_version(_, info, **kwargs):
     input = kwargs["input"]
     try:
         template_version = PipelineTemplateVersion.objects.get(id=input["id"])
-
-        if not request.user.has_perm(
-            "pipelines_template.delete_pipeline_template_version", template_version
-        ):
-            return {"success": False, "errors": ["PERMISSION_DENIED"]}
-
-        template_version.delete()
+        template_version.delete_if_has_perm(request.user)
         return {
             "success": True,
             "errors": [],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
         }
     except PipelineTemplateVersion.DoesNotExist:
         return {
