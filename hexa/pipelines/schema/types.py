@@ -137,7 +137,7 @@ def resolve_pipeline_permissions_create_template_version(
         pipeline.last_version, "template_version"
     )
     pipeline_has_active_template = (
-        hasattr(pipeline, "template") and pipeline.template.is_deleted
+        hasattr(pipeline, "template") and not pipeline.template.is_deleted
     )
     pipeline_is_created_from_a_template = pipeline.source_template
     return (
