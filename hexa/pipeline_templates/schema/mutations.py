@@ -68,7 +68,7 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
     )
     pipeline_template_version = (
         source_pipeline_version.template_version
-        if source_pipeline_version.template_version
+        if hasattr(source_pipeline_version, "template_version")
         else pipeline_template.create_version(
             source_pipeline_version, user=request.user, changelog=input.get("changelog")
         )
