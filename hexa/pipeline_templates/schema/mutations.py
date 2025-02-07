@@ -67,12 +67,12 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
         description=input.get("description"),
     )
     pipeline_template_version = (
-        source_pipeline_version.source_template_version
-        if source_pipeline_version.source_template_version
+        source_pipeline_version.template_version
+        if source_pipeline_version.template_version
         else pipeline_template.create_version(
             source_pipeline_version, user=request.user, changelog=input.get("changelog")
         )
-    )  # Recreate the version if the source pipeline version has no source template version (it can have one if the template was deleted before and restored)
+    )  # Recreate the version if the source pipeline version has no template version (it can have one if the template was deleted before and restored)
     track(
         request,
         "pipeline_templates.pipeline_template_created"
