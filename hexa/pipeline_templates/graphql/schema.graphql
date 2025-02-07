@@ -10,23 +10,27 @@ extend type Mutation {
   """
   deletePipelineTemplate(input: DeletePipelineTemplateInput): DeletePipelineTemplateResult! @loginRequired
 
-
-  """Updates an existing template."""
-  updatePipelineTemplate(input: UpdateTemplateInput!): UpdateTemplateResult!
-
   """
-  Updates a pipeline version.
+  Updates an existing template.
   """
-  updateTemplateVersion(input: UpdateTemplateVersionInput!): UpdateTemplateVersionResult!
+  updatePipelineTemplate(input: UpdateTemplateInput!): UpdateTemplateResult! @loginRequired
 
   """
-  Deletes a pipeline version.
+  Deletes a template version.
   """
-  deleteTemplateVersion(input: DeleteTemplateVersionInput!): DeleteTemplateVersionResult!
+  deleteTemplateVersion(input: DeleteTemplateVersionInput!): DeleteTemplateVersionResult! @loginRequired
+
+  """
+  Updates a template version.
+  """
+  updateTemplateVersion(input: UpdateTemplateVersionInput!): UpdateTemplateVersionResult! @loginRequired
 }
 
 extend type Query {
-  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String): PipelineTemplatePage!  # Returns pipeline templates.
+  """
+  Retrieves a page of pipeline templates.
+  """
+  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String): PipelineTemplatePage!  @loginRequired
 
   """
   Retrieves a template by workspace slug and code.
@@ -111,7 +115,7 @@ input DeletePipelineTemplateInput {
 }
 
 """
-Represents the result of deleting a pipeline.
+Represents the result of deleting a template.
 """
 type DeletePipelineTemplateResult {
   success: Boolean!  # Indicates if the pipeline template was deleted successfully.

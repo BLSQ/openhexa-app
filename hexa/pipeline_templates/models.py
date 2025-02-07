@@ -111,7 +111,7 @@ class PipelineTemplate(SoftDeletedModel):
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("pipeline_templates.update_pipeline_template", self):
             raise PermissionDenied
-        for key in ["name", "description", "config"]:
+        for key in ["name", "description"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
         return self.save()
