@@ -115,8 +115,9 @@ def resolve_delete_template_version(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
-        template_version = PipelineTemplateVersion.objects.get(id=input["id"])
-        template_version.delete_if_has_perm(request.user)
+        PipelineTemplateVersion.objects.get(id=input["id"]).delete_if_has_perm(
+            request.user
+        )
         return {
             "success": True,
             "errors": [],

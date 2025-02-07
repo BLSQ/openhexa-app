@@ -236,7 +236,7 @@ class PipelineTemplateVersion(models.Model):
             timeout=source_version.timeout,
         )
 
-    def delete_if_has_perm(self, *, principal: User):
+    def delete_if_has_perm(self, principal: User):
         if not principal.has_perm(
             "pipeline_templates.delete_pipeline_template_version", self
         ):
