@@ -4,8 +4,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Q
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
 
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.soft_delete import (
@@ -124,11 +122,6 @@ class PipelineTemplate(SoftDeletedModel):
 
     def __str__(self):
         return self.name
-
-
-@receiver(pre_delete, sender=PipelineTemplate)
-def pre_delete_pipeline_template(sender, instance: PipelineTemplate, **kwargs):
-    instance.delete()  # When deleting the template from the admin panel, ensure that the references to the source pipeline are also deleted
 
 
 class PipelineTemplateVersionQuerySet(BaseQuerySet):
