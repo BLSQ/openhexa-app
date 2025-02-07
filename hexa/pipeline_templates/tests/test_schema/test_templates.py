@@ -68,7 +68,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
             """
                 mutation createPipelineTemplateVersion($input: CreatePipelineTemplateVersionInput!) {
                     createPipelineTemplateVersion(input: $input) {
-                        success errors pipelineTemplate {name code versions {versionNumber}}
+                        success errors pipelineTemplate {name code versions(page:1, perPage:10) { items { versionNumber }}}
                     }
                 }
             """,
@@ -91,7 +91,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 "pipelineTemplate": {
                     "name": "Template1",
                     "code": "template_code",
-                    "versions": expected_versions,
+                    "versions": {"items": expected_versions},
                 },
             },
             r["data"]["createPipelineTemplateVersion"],
@@ -101,7 +101,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
         self.client.force_login(self.USER_ROOT)
         self.create_template_version(self.PIPELINE_VERSION1.id, [{"versionNumber": 1}])
         self.create_template_version(
-            self.PIPELINE_VERSION2.id, [{"versionNumber": 1}, {"versionNumber": 2}]
+            self.PIPELINE_VERSION2.id, [{"versionNumber": 2}, {"versionNumber": 1}]
         )
 
     def test_create_pipeline_from_template_version(self):
@@ -168,6 +168,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
         )
 
     def test_get_pipeline_templates(self):
+        self.client.force_login(self.USER_ROOT)
         PipelineTemplate.objects.create(
             name="Template 1", code="Code 1", source_pipeline=self.PIPELINE1
         )
@@ -200,6 +201,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
         )
 
     def test_searching_pipeline_templates(self):
+        self.client.force_login(self.USER_ROOT)
         PipelineTemplate.objects.create(
             name="Template 1", code="Code 1", source_pipeline=self.PIPELINE1
         )
@@ -270,7 +272,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
             source_pipeline=self.PIPELINE1,
             workspace=self.WS1,
         )
-        pipeline_template_version = PipelineTemplateVersion.objects.create(
+        PipelineTemplateVersion.objects.create(
             template=pipeline_template,
             version_number=1,
             source_pipeline_version=self.PIPELINE_VERSION1,
@@ -296,9 +298,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
         self.assertEqual(response["data"]["deletePipelineTemplate"]["errors"], [])
 
         self.PIPELINE1.refresh_from_db()
-        self.assertFalse(hasattr(self.PIPELINE1, "template"))
-        pipeline_template_version.refresh_from_db()
-        self.assertIsNone(pipeline_template_version.source_pipeline_version)
+        self.assertTrue(self.PIPELINE1.template.is_deleted)
         self.assertFalse(
             PipelineTemplate.objects.filter(id=pipeline_template.id).exists()
         )
