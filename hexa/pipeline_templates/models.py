@@ -241,10 +241,7 @@ class PipelineTemplateVersion(models.Model):
             "pipeline_templates.delete_pipeline_template_version", self
         ):
             raise PermissionDenied
-        if self.template.versions.count() > 1:
-            self.delete()
-        else:
-            raise PermissionDenied("Cannot delete the last version of a template")
+        self.delete()
 
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm(
