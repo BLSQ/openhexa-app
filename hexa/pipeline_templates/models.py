@@ -137,7 +137,7 @@ class PipelineTemplateVersionQuerySet(BaseQuerySet):
 
     def get_updates_for(self, pipeline: Pipeline):
         """Return the versions of the template that are newer than the last version of the pipeline"""
-        if pipeline.source_template is None:
+        if not pipeline.source_template or pipeline.source_template.is_deleted:
             return self.none()
 
         last_version_created_from_template = pipeline.versions.filter(
