@@ -76,17 +76,6 @@ class PipelineTemplate(SoftDeletedModel):
             source_pipeline_version=source_pipeline_version,
         )
 
-    def delete(self):
-        # Delete references to the source pipeline and version
-        if self.source_pipeline:
-            source_pipeline = self.source_pipeline
-            source_pipeline.template = None
-            source_pipeline.save()
-        for version in self.versions.all():
-            version.source_pipeline_version = None
-            version.save()
-        return super().delete()
-
     def upgrade_pipeline(
         self,
         principal: User,
