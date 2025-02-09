@@ -170,12 +170,27 @@ def resolve_connection_field_value(obj: ConnectionField, info, **kwargs):
 def resolve_query(connection, info, **kwargs):
     fields = ["id", "name"]
     dhis2_client = dhis2_client_from_connection(connection)
+    page = kwargs.get("page", 0)
+    per_page = kwargs.get("per_page", 10)
+
+    filters = []
+
+    def generate_search_filter(kwargs):
+        if kwargs.get("search") and kwargs.get("search") != "":
+            filters.append(f"name:token:{kwargs.get('search')}")
+        if kwargs.get("filter"):
+            for item in kwargs.get("filter"):
+                filters.append(f"{item['field']}:in[{[item in item['value']]}]")
+
     try:
+        filters = generate_search_filter(kwargs)
         metadata = query_dhis2_metadata(
             dhis2_client,
             query_type=DHIS2MetadataQueryType[kwargs.get("type")],
             fields=",".join(fields),
-            **({"filter": kwargs["filter"]} if "filter" in kwargs else {}),
+            page=page,
+            pageSize=per_page,
+            **({"filter": filters} if len(filters) > 0 else {}),
         )
 
         query_string = kwargs.get("search", "").lower()
@@ -186,13 +201,18 @@ def resolve_query(connection, info, **kwargs):
                 query_string in (str(item.get(field)) or "").lower() for field in fields
             )
         ]
+        # add filter / api / organisationUnits?filter = name:token: a & fields = id, name & paging = true
         result = [
             {field: item.get(field) for field in fields} for item in filtered_metadata
-        ][kwargs.get("offset", 0) : kwargs.get("limit", 10)]
+        ][kwargs.get("page", 0) : kwargs.get("per_page", 10)]
+
+        logging.info(f"Query metadata kwargs: {kwargs}")
 
         return {
             "items": result,
-            "totalCount": len(result),
+            "total_items": len(metadata),
+            "total_pages": 10,
+            "page_number": 1,
             "success": True,
             "error": None,
         }

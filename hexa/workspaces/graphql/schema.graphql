@@ -860,9 +860,27 @@ extend type MePermissions {
 DHIS2 metadata item
 """
 type DHIS2MetadataItem {
-    id: String!     # Unique identifier
+    id: String     # Unique identifier
     name: String!   # Name of the metadata item
 }
+
+"""
+DHIS2 metadata level
+"""
+type DHIS2OrganisationUnitLevel {
+    id: String     # Unique identifier
+    name: String!   # Name of the metadata level
+    level: Int!     # Level of the metadata
+}
+
+"""
+DHIS2 metadata item union
+"""
+union DHIS2MetadataItemUnion = DHIS2MetadataItem | DHIS2OrganisationUnitLevel
+
+"""
+DHIS2 connection error
+"""
 enum DHIS2ConnectionError {
     REQUEST_ERROR
     UNKNOWN_ERROR
@@ -878,9 +896,11 @@ enum DHIS2ConnectionStatus {
 """
 DHIS2 metadata query result
 """
-type DHIS2QueryResult {
-    items: [DHIS2MetadataItem!]  # List of metadata items
-    totalCount: Int             # Total number of items
+type DHIS2QueryResultPage {
+    items: [DHIS2MetadataItemUnion!]  # List of metadata items
+    pageNumber: Int!                   # Current page number
+    totalPages: Int!                # Number of items per page
+    totalItems: Int!             # Total number of items
     success: Boolean!           # Query success status
     error: DHIS2ConnectionError # Connection error
 }
@@ -900,7 +920,7 @@ type DHIS2Connection implements Connection{
     fields: [ConnectionField!]! # Fields of the connection
     permissions: ConnectionPermissions! # Permissions of the connection
     status: DHIS2ConnectionStatus! # Connection status
-    queryMetadata(type: String!, filter: String, search: String, limit: Int, offset:Int): DHIS2QueryResult! # Query metadata items
+    queryMetadata(type: String!, filter: String, search: String, perPage: Int, page:Int): DHIS2QueryResultPage! # Query metadata items
 }
 
 """
