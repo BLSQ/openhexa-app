@@ -170,58 +170,74 @@ def resolve_connection_field_value(obj: ConnectionField, info, **kwargs):
 def resolve_query(connection, info, **kwargs):
     fields = ["id", "name"]
     dhis2_client = dhis2_client_from_connection(connection)
-    page = kwargs.get("page", 0)
-    per_page = kwargs.get("per_page", 10)
 
+    page = kwargs.get("page", 1)  # Default to page 1
+    per_page = kwargs.get("per_page", 10)  # Default to 10 items per page
     filters = []
 
     def generate_search_filter(kwargs):
-        if kwargs.get("search") and kwargs.get("search") != "":
-            filters.append(f"name:token:{kwargs.get('search')}")
+        search_query = kwargs.get("search")
+        if search_query and search_query.strip():
+            filters.append(f"name:token:{search_query.strip()}")
+
         if kwargs.get("filter"):
-            for item in kwargs.get("filter"):
-                filters.append(f"{item['field']}:in[{[item in item['value']]}]")
+            for item in kwargs["filter"]:
+                filters.append(
+                    f"{item['field']}:in[{','.join(map(str, item['value']))}]"
+                )
 
     try:
-        filters = generate_search_filter(kwargs)
-        metadata = query_dhis2_metadata(
+        generate_search_filter(kwargs)
+
+        metadata_response = query_dhis2_metadata(
             dhis2_client,
             query_type=DHIS2MetadataQueryType[kwargs.get("type")],
             fields=",".join(fields),
             page=page,
             pageSize=per_page,
-            **({"filter": filters} if len(filters) > 0 else {}),
+            **({"filter": filters} if filters else {}),
         )
 
-        query_string = kwargs.get("search", "").lower()
-        filtered_metadata = [
-            item
-            for item in metadata
-            if any(
-                query_string in (str(item.get(field)) or "").lower() for field in fields
-            )
-        ]
-        # add filter / api / organisationUnits?filter = name:token: a & fields = id, name & paging = true
-        result = [
-            {field: item.get(field) for field in fields} for item in filtered_metadata
-        ][kwargs.get("page", 0) : kwargs.get("per_page", 10)]
+        metadata_items = metadata_response.get("organisationUnits", [])
+        pager = metadata_response.get("pager", {})
 
-        logging.info(f"Query metadata kwargs: {kwargs}")
+        total_items = pager.get("total", len(metadata_items))
+        total_pages = pager.get("pageCount", 1)
+        page_number = pager.get("page", page)
+
+        # Format response
+        result = [
+            {field: item.get(field) for field in fields} for item in metadata_items
+        ]
 
         return {
             "items": result,
-            "total_items": len(metadata),
-            "total_pages": 10,
-            "page_number": 1,
+            "total_items": total_items,
+            "total_pages": total_pages,
+            "page_number": page_number,
             "success": True,
             "error": None,
         }
     except DHIS2Error as e:
         logging.error(f"DHIS2 error: {e}")
-        return {"data": [], "success": False, "error": "REQUEST_ERROR"}
+        return {
+            "items": [],
+            "total_items": 0,
+            "total_pages": 0,
+            "page_number": page,
+            "success": False,
+            "error": "REQUEST_ERROR",
+        }
     except Exception as e:
         logging.error(f"Unknown error: {e}")
-        return {"data": [], "success": False, "error": "UNKNOWN_ERROR"}
+        return {
+            "items": [],
+            "total_items": 0,
+            "total_pages": 0,
+            "page_number": page,
+            "success": False,
+            "error": "UNKNOWN_ERROR",
+        }
 
 
 connection_interface.set_alias("type", "connection_type")
