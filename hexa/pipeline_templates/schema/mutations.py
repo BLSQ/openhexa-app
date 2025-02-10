@@ -154,11 +154,6 @@ def resolve_create_pipeline_from_template_version(_, info, **kwargs):
     except PipelineTemplateVersion.DoesNotExist:
         return {"success": False, "errors": ["PIPELINE_TEMPLATE_VERSION_NOT_FOUND"]}
 
-    if not template_version.source_pipeline_version:
-        return {
-            "success": False,
-            "errors": ["PIPELINE_TEMPLATE_VERSION_HAS_NO_SOURCE_PIPELINE_VERSION"],
-        }
     try:
         pipeline_version = template_version.create_pipeline_version(user, workspace)
     except PipelineAlreadyExistsError:
