@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.59.0](https://github.com/BLSQ/openhexa-frontend/compare/0.58.2...0.59.0) (2025-02-10)
+
+
+### Features
+
+* Changelog support for pipeline templates (HEXA-1166) ([#1023](https://github.com/BLSQ/openhexa-frontend/issues/1023)) ([03572ef](https://github.com/BLSQ/openhexa-frontend/commit/03572ef592848263b4656da9dceaaf4d49a1584e))
+* **Datasets:** A changelog can be set on all `DatasetVersion` by admin & editors of the workspace. ([#1050](https://github.com/BLSQ/openhexa-frontend/issues/1050)) ([0e3f0f4](https://github.com/BLSQ/openhexa-frontend/commit/0e3f0f47027f6bb2fe42f013e05c76e04a12eb60))
+* Introduce a markdown editor and use it for the workspace description ([#1054](https://github.com/BLSQ/openhexa-frontend/issues/1054)) ([d067065](https://github.com/BLSQ/openhexa-frontend/commit/d0670656b4f2ff6d2937e40d9c5355fe9b617aff))
+* Show that a pipeline is used to create a template (HEXA-1167 ) ([#1032](https://github.com/BLSQ/openhexa-frontend/issues/1032)) ([c8ee7a4](https://github.com/BLSQ/openhexa-frontend/commit/c8ee7a4f051e7898dbbfa70a7e7a19e5658eef43))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @apollo/client to v3.12.10 ([#1069](https://github.com/BLSQ/openhexa-frontend/issues/1069)) ([15e1785](https://github.com/BLSQ/openhexa-frontend/commit/15e17853e3a8899ac75a3017045730a5e5ff2920))
+* **deps:** update dependency @apollo/client to v3.12.11 ([#1071](https://github.com/BLSQ/openhexa-frontend/issues/1071)) ([f1ee86c](https://github.com/BLSQ/openhexa-frontend/commit/f1ee86c82f4162130395dd066605abb65bc0ffa1))
+* **deps:** update dependency @apollo/client to v3.12.9 ([#1064](https://github.com/BLSQ/openhexa-frontend/issues/1064)) ([7329e2e](https://github.com/BLSQ/openhexa-frontend/commit/7329e2e5b360fb101737ecd4aacbd33457f4cd3e))
+* **deps:** update dependency @mdxeditor/editor to v3.21.4 ([#1075](https://github.com/BLSQ/openhexa-frontend/issues/1075)) ([8922fd5](https://github.com/BLSQ/openhexa-frontend/commit/8922fd553cc98758552c5d790a17809bb4954bc8))
+* **deps:** update dependency @sentry/nextjs to v8.52.1 ([#1057](https://github.com/BLSQ/openhexa-frontend/issues/1057)) ([f704fee](https://github.com/BLSQ/openhexa-frontend/commit/f704fee252fcf84d10e4f1c521e457a18b38dd28))
+* **deps:** update dependency @sentry/nextjs to v8.53.0 ([#1060](https://github.com/BLSQ/openhexa-frontend/issues/1060)) ([d2e185c](https://github.com/BLSQ/openhexa-frontend/commit/d2e185cf7b8a242141565c60e9e6d293c13f1cf6))
+* **deps:** update dependency @sentry/nextjs to v8.54.0 ([#1063](https://github.com/BLSQ/openhexa-frontend/issues/1063)) ([59ff750](https://github.com/BLSQ/openhexa-frontend/commit/59ff750beccb9dc3405cb3dcbaa9796240edc84a))
+* **deps:** update dependency @types/node to v22.13.0 ([#1062](https://github.com/BLSQ/openhexa-frontend/issues/1062)) ([c86034f](https://github.com/BLSQ/openhexa-frontend/commit/c86034fa4c9b9eea5ad6b5f9ef4eb1d07d5b182e))
+* **deps:** update dependency @types/node to v22.13.1 ([#1065](https://github.com/BLSQ/openhexa-frontend/issues/1065)) ([bd361f0](https://github.com/BLSQ/openhexa-frontend/commit/bd361f0d0a016da031335264fbbeefd98b63baf8))
+* **deps:** update dependency @uiw/react-codemirror to v4.23.8 ([#1066](https://github.com/BLSQ/openhexa-frontend/issues/1066)) ([412d158](https://github.com/BLSQ/openhexa-frontend/commit/412d158912fcd3acf9b661e4d7d828d02ca8deef))
+* **deps:** update dependency cronstrue to v2.54.0 ([#1059](https://github.com/BLSQ/openhexa-frontend/issues/1059)) ([69d3c6f](https://github.com/BLSQ/openhexa-frontend/commit/69d3c6fd17bf8189597ed7e2bb2a7db5056c9f1b))
+* **deps:** update dependency next-i18next to v15.4.2 ([#1067](https://github.com/BLSQ/openhexa-frontend/issues/1067)) ([c04bbd6](https://github.com/BLSQ/openhexa-frontend/commit/c04bbd6af0bc959da7d8a7b07973facb313ccea8))
+
 ## [0.58.2](https://github.com/BLSQ/openhexa-frontend/compare/0.58.1...0.58.2) (2025-01-29)
 
 
