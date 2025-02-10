@@ -9,10 +9,11 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import Signer, TimestampSigner
 from django.db import models, transaction
-from django.db.models import Q
+from django.db.models import ProtectedError, Q
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
@@ -545,6 +546,21 @@ class Pipeline(SoftDeletedModel):
             return self.name
 
         return self.code
+
+
+@receiver(models.signals.pre_delete, sender=Pipeline)
+def protect_pipeline_delete(sender, instance, **kwargs):
+    try:
+        instance.delete()
+    except ProtectedError:
+        if instance.source_template:
+            raise ValidationError(
+                f"Cannot delete this Pipeline because it is used as source for the template '{instance.source_template.name}'."
+            )
+        else:
+            raise ValidationError(
+                "Cannot delete this Pipeline because this instance is used in a Protected relation."
+            )
 
 
 class PipelineNotificationLevel(models.TextChoices):
