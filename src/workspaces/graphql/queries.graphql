@@ -24,7 +24,6 @@ query WorkspacePage($slug: String!) {
     }
     ...ArchiveWorkspace_workspace
     ...InviteMemberWorkspace_workspace
-    ...UpdateWorkspaceDescription_workspace
     ...WorkspaceLayout_workspace
   }
 }

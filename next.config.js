@@ -22,6 +22,9 @@ let config = {
     DISABLE_ANALYTICS: process.env.DISABLE_ANALYTICS === "true",
   },
 
+  // Next.js in pages mode seems to choke on the ESM format of the editor and one of its dependencies.
+  // https://mdxeditor.dev/editor/docs/getting-started#nextjs-pages-router
+  transpilePackages: ["@mdweditor/editor"],
   // Sentry tree shaking configuration
   webpack: (config, { webpack }) => {
     config.plugins.push(
@@ -33,6 +36,9 @@ let config = {
         __SENTRY_EXCLUDE_REPLAY_WORKER__: true,
       }),
     );
+
+    // this will just update topLevelAwait property of config.experiments
+    config.experiments = { ...config.experiments, topLevelAwait: true };
 
     // return the modified config
     return config;

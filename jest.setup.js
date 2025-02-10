@@ -6,10 +6,9 @@ import "@testing-library/jest-dom";
 import { faker } from "@faker-js/faker";
 import { setConfig } from "next/config";
 
-import { configMocks } from "jsdom-testing-mocks";
+import { configMocks, mockAnimationsApi } from "jsdom-testing-mocks";
 import { act } from "react";
 import { Settings } from "luxon";
-
 Settings.defaultLocale = "en";
 Settings.defaultZone = "Europe/Brussels";
 Settings.now = jest.fn().mockImplementation(() => Date.now());
@@ -17,6 +16,8 @@ Settings.now = jest.fn().mockImplementation(() => Date.now());
 // To not have to wrap everything in act()
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 configMocks({ act });
+
+mockAnimationsApi();
 
 // @ts-ignore
 import { publicRuntimeConfig } from "./next.config";
@@ -82,6 +83,16 @@ jest.mock("next/dist/shared/lib/router-context.shared-runtime", () => {
   const RouterContext = createContext(router);
   return { RouterContext };
 });
+
+jest.mock("@mdxeditor/editor", () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock("remark-gfm", () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 // Mock the IntersectionObserver
 const intersectionObserverMock = () => ({

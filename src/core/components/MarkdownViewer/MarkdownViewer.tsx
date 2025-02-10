@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import React, { useMemo } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import Link from "../Link";
 
 type MarkdownViewerProps = {
@@ -30,6 +31,7 @@ const MarkdownViewer = (props: MarkdownViewerProps) => {
   );
   return (
     <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
       className={clsx(
         "prose prose-headings:font-medium prose-h1:font-medium",
         maxWidth,

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ButtonHTMLAttributes, ReactElement } from "react";
+import { ButtonHTMLAttributes, ReactElement, ReactNode } from "react";
 
 const ButtonVariants = [
   "primary",
@@ -18,7 +18,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   className?: string;
-  leadingIcon?: ReactElement;
+  leadingIcon?: ReactNode;
   type?: "button" | "submit" | "reset";
 }
 
@@ -77,7 +77,7 @@ const Button = (props: ButtonProps) => {
 Button.Variants = ButtonVariants;
 Button.Sizes = ButtonSizes;
 
-const LeadingIcon = (props: { children: ReactElement; size?: ButtonSize }) => {
+const LeadingIcon = (props: { children: ReactNode; size?: ButtonSize }) => {
   return (
     <div
       className={clsx(

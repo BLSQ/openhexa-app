@@ -1,8 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[
-  `Workspaces hides the edit button when user have not update permission  1`
-] = `<div />`;
+exports[`Workspaces hides the edit button when user have not update permission  1`] = `<div />`;
 
 exports[`Workspaces renders null as workspace doesn't exist 1`] = `<div />`;
 
@@ -296,6 +294,9 @@ exports[`Workspaces renders the workspace page 1`] = `
           </li>
         </ol>
       </nav>
+      <div
+        class="flex items-center gap-2"
+      />
     </div>
   </header>
   <main
@@ -346,9 +347,7 @@ exports[`Workspaces renders the workspace page 1`] = `
 </div>
 `;
 
-exports[
-  `Workspaces shows the jupyterhub entry when user have the launchNotebookServer permission  1`
-] = `
+exports[`Workspaces shows the jupyterhub entry when user have the launchNotebookServer permission  1`] = `
 <div>
   <div
     class="fixed h-screen bg-gray-800 transition-all duration-75 z-20 w-64 2xl:w-72"
@@ -664,6 +663,9 @@ exports[
           </li>
         </ol>
       </nav>
+      <div
+        class="flex items-center gap-2"
+      />
     </div>
   </header>
   <main

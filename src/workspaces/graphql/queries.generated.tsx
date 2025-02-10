@@ -3,7 +3,6 @@ import * as Types from '../../graphql/types';
 import { gql } from '@apollo/client';
 import { ArchiveWorkspace_WorkspaceFragmentDoc } from '../features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated';
 import { InviteMemberWorkspace_WorkspaceFragmentDoc } from '../features/InviteMemberDialog/InviteMemberDialog.generated';
-import { UpdateWorkspaceDescription_WorkspaceFragmentDoc } from '../features/UpdateDescriptionDialog/UpdateDescriptionDialog.generated';
 import { WorkspaceLayout_WorkspaceFragmentDoc } from '../layouts/WorkspaceLayout/WorkspaceLayout.generated';
 import { CreatePipelineDialog_WorkspaceFragmentDoc } from '../features/CreatePipelineDialog/CreatePipelineDialog.generated';
 import { PipelineCard_PipelineFragmentDoc } from '../features/PipelineCard/PipelineCard.generated';
@@ -266,13 +265,11 @@ export const WorkspacePageDocument = gql`
     }
     ...ArchiveWorkspace_workspace
     ...InviteMemberWorkspace_workspace
-    ...UpdateWorkspaceDescription_workspace
     ...WorkspaceLayout_workspace
   }
 }
     ${ArchiveWorkspace_WorkspaceFragmentDoc}
 ${InviteMemberWorkspace_WorkspaceFragmentDoc}
-${UpdateWorkspaceDescription_WorkspaceFragmentDoc}
 ${WorkspaceLayout_WorkspaceFragmentDoc}`;
 
 /**

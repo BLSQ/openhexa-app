@@ -1,5 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`EditWorkspaceDescriptionDialog is displayed when open is true 1`] = `<div />`;
-
-exports[`EditWorkspaceDescriptionDialog is not displayed  1`] = `<div />`;

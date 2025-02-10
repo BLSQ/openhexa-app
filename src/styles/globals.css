@@ -34,4 +34,9 @@
   body {
     @apply overflow-x-hidden;
   }
+
+  /* In order to make the popup container of the markdown editor visible when displayed inside a Dialog */
+  .mdxeditor-popup-container {
+    z-index: 50 !important;
+  }
 }

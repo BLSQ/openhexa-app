@@ -1,13 +1,11 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { mockAnimationsApi } from "jsdom-testing-mocks";
 import { act, useState } from "react";
 import Drawer from "./Drawer";
 
 import { assertVisible } from "core/helpers/testutils";
 
 describe("Drawer", () => {
-  mockAnimationsApi();
   it("renders", async () => {
     await render(
       <Drawer open={true} setOpen={() => {}}>
