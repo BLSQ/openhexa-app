@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.80.0](https://github.com/BLSQ/openhexa-app/compare/0.79.0...0.80.0) (2025-02-07)
+
+
+### Features
+
+* Changelog support  for pipeline templates (HEXA-1166) ([#907](https://github.com/BLSQ/openhexa-app/issues/907)) ([0fe67fc](https://github.com/BLSQ/openhexa-app/commit/0fe67fcdcd33cc5944dd3690d6e2aa96c162bb10))
+
 ## [0.79.0](https://github.com/BLSQ/openhexa-app/compare/0.78.0...0.79.0) (2025-02-03)
 
 
