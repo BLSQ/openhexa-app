@@ -53,7 +53,7 @@ class PipelineTemplate(SoftDeletedModel):
     workspace = models.ForeignKey(Workspace, on_delete=models.SET_NULL, null=True)
 
     source_pipeline = models.OneToOneField(
-        Pipeline, on_delete=models.SET_NULL, related_name="template", null=True
+        Pipeline, on_delete=models.PROTECT, related_name="template"
     )
 
     objects = DefaultSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
@@ -173,10 +173,7 @@ class PipelineTemplateVersion(models.Model):
         PipelineTemplate, on_delete=models.CASCADE, related_name="versions"
     )
     source_pipeline_version = models.OneToOneField(
-        PipelineVersion,
-        on_delete=models.SET_NULL,
-        related_name="template_version",
-        null=True,
+        PipelineVersion, on_delete=models.CASCADE, related_name="template_version"
     )
 
     objects = PipelineTemplateVersionQuerySet.as_manager()
