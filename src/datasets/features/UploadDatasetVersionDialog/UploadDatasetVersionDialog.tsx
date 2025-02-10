@@ -17,6 +17,7 @@ import {
 import Spinner from "core/components/Spinner";
 import { useRouter } from "next/router";
 import CodeEditor from "core/components/CodeEditor";
+import Textarea from "core/components/forms/Textarea";
 
 type UploadDatasetVersionDialogProps = {
   open: boolean;
@@ -33,15 +34,17 @@ const UploadDatasetVersionDialog = ({
   const [tabIndex, setTabIndex] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const router = useRouter();
-  const form = useForm<{ name: string; files: any[] }>({
+  const form = useForm<{ name: string; files: any[]; changelog: string }>({
     initialState: {
       name: "",
       files: [],
+      changelog: "",
     },
     async onSubmit(values) {
       const version = await createDatasetVersion(
         datasetLink.dataset.id,
         values.name,
+        values.changelog,
       );
       await uploader.createUploadJob({
         files: values.files,
@@ -126,7 +129,7 @@ from openhexa.sdk import workspace
 dataset = workspace.get_dataset("${datasetLink.dataset.slug}")
 
 # Create a new version
-version = dataset.create_version("v2")
+version = dataset.create_version("v2", changelog="This is a changelog in markdown")
 
 # Upload a single file
 version.add_file("/path/to/file.csv")`}
@@ -142,6 +145,20 @@ version.add_file("/path/to/file.csv")`}
                 placeholder={t("Version name. ex: v2")}
                 onChange={form.handleInputChange}
               />
+              <Field
+                name="changelog"
+                label={t("Changelog")}
+                fullWidth
+                placeholder={t("Changelog")}
+              >
+                <Textarea
+                  name={"changelog"}
+                  onChange={form.handleInputChange}
+                  rows={5}
+                >
+                  {form.formData.changelog}
+                </Textarea>
+              </Field>
               <Field name={"files"} label={t("Files")} required>
                 <Dropzone
                   onChange={(files) => form.setFieldValue("files", files)}

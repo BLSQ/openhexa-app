@@ -132,7 +132,7 @@ export type WorkspaceDatasetIndexPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceDatasetIndexPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, datasetLink?: { __typename?: 'DatasetLink', id: string, isPinned: boolean, dataset: { __typename?: 'Dataset', description?: string | null, updatedAt: any, createdAt: any, slug: string, id: string, name: string, permissions: { __typename?: 'DatasetPermissions', update: boolean, delete: boolean, createVersion: boolean }, workspace?: { __typename?: 'Workspace', name: string, slug: string } | null, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, version?: { __typename?: 'DatasetVersion', id: string, createdAt: any, name: string, createdBy?: { __typename?: 'User', displayName: string } | null } | null, latestVersion?: { __typename?: 'DatasetVersion', id: string, createdAt: any, name: string, createdBy?: { __typename?: 'User', displayName: string } | null } | null }, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'DatasetLinkPermissions', pin: boolean } } | null };
+export type WorkspaceDatasetIndexPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, datasetLink?: { __typename?: 'DatasetLink', id: string, isPinned: boolean, dataset: { __typename?: 'Dataset', description?: string | null, updatedAt: any, createdAt: any, slug: string, id: string, name: string, permissions: { __typename?: 'DatasetPermissions', update: boolean, delete: boolean, createVersion: boolean }, workspace?: { __typename?: 'Workspace', name: string, slug: string } | null, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, version?: { __typename?: 'DatasetVersion', id: string, createdAt: any, changelog?: string | null, name: string, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'DatasetVersionPermissions', update: boolean } } | null, latestVersion?: { __typename?: 'DatasetVersion', id: string, changelog?: string | null, createdAt: any, name: string, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'DatasetVersionPermissions', update: boolean } } | null }, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'DatasetLinkPermissions', pin: boolean } } | null };
 
 export type WorkspaceDatasetAccessPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -946,17 +946,25 @@ export const WorkspaceDatasetIndexPageDocument = gql`
       version(id: $versionId) @include(if: $isSpecificVersion) {
         id
         createdAt
+        changelog
         createdBy {
-          displayName
+          ...User_user
+        }
+        permissions {
+          update
         }
         name
         ...DatasetLayout_version
       }
       latestVersion @skip(if: $isSpecificVersion) {
         id
+        changelog
         createdAt
         createdBy {
-          displayName
+          ...User_user
+        }
+        permissions {
+          update
         }
         name
         ...DatasetLayout_version

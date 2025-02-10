@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { TextareaHTMLAttributes } from "react";
 
-type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
+export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   error?: string | null | false | true;
 };
 

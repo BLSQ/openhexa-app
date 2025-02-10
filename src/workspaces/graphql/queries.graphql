@@ -352,8 +352,12 @@ query WorkspaceDatasetIndexPage(
       version(id: $versionId) @include(if: $isSpecificVersion) {
         id
         createdAt
+        changelog
         createdBy {
-          displayName
+          ...User_user
+        }
+        permissions {
+          update
         }
         name
         ...DatasetLayout_version
@@ -361,9 +365,13 @@ query WorkspaceDatasetIndexPage(
       # Or the last version
       latestVersion @skip(if: $isSpecificVersion) {
         id
+        changelog
         createdAt
         createdBy {
-          displayName
+          ...User_user
+        }
+        permissions {
+          update
         }
         name
         ...DatasetLayout_version

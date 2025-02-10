@@ -5,16 +5,17 @@ import Textarea from "../forms/Textarea";
 import DataCard from "./DataCard";
 import { useDataCardProperty } from "./context";
 import { PropertyDefinition } from "./types";
+import { TextareaProps } from "../forms/Textarea/Textarea";
 
 type TextPropertyProps = PropertyDefinition & {
   markdown?: boolean;
   defaultValue?: string;
   className?: string;
   sm?: boolean;
-};
+} & { rows?: TextareaProps["rows"] };
 
 const TextProperty = (props: TextPropertyProps) => {
-  const { className, markdown, sm = false, ...delegated } = props;
+  const { className, markdown, sm = false, rows, ...delegated } = props;
 
   const { property, section } = useDataCardProperty(delegated);
 
@@ -31,6 +32,7 @@ const TextProperty = (props: TextPropertyProps) => {
             value={property.formValue}
             onChange={(e) => property.setValue(e.target.value)}
             required={property.required}
+            rows={rows}
             readOnly={property.readonly}
           />
         ) : (

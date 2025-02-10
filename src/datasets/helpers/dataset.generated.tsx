@@ -10,12 +10,19 @@ export type UpdateDatasetMutationVariables = Types.Exact<{
 
 export type UpdateDatasetMutation = { __typename?: 'Mutation', updateDataset: { __typename?: 'UpdateDatasetResult', success: boolean, errors: Array<Types.UpdateDatasetError>, dataset?: { __typename?: 'Dataset', id: string, name: string, description?: string | null, updatedAt: any } | null } };
 
+export type UpdateDatasetVersionMutationVariables = Types.Exact<{
+  input: Types.UpdateDatasetVersionInput;
+}>;
+
+
+export type UpdateDatasetVersionMutation = { __typename?: 'Mutation', updateDatasetVersion: { __typename?: 'UpdateDatasetVersionResult', success: boolean, errors: Array<Types.UpdateDatasetVersionError>, version?: { __typename?: 'DatasetVersion', id: string, name: string, changelog?: string | null } | null } };
+
 export type CreateDatasetVersionMutationVariables = Types.Exact<{
   input: Types.CreateDatasetVersionInput;
 }>;
 
 
-export type CreateDatasetVersionMutation = { __typename?: 'Mutation', createDatasetVersion: { __typename?: 'CreateDatasetVersionResult', success: boolean, errors: Array<Types.CreateDatasetVersionError>, version?: { __typename?: 'DatasetVersion', id: string, name: string } | null } };
+export type CreateDatasetVersionMutation = { __typename?: 'Mutation', createDatasetVersion: { __typename?: 'CreateDatasetVersionResult', success: boolean, errors: Array<Types.CreateDatasetVersionError>, version?: { __typename?: 'DatasetVersion', id: string, name: string, changelog?: string | null } | null } };
 
 export type GenerateDatasetUploadUrlMutationVariables = Types.Exact<{
   input: Types.GenerateDatasetUploadUrlInput;
@@ -107,12 +114,52 @@ export function useUpdateDatasetMutation(baseOptions?: Apollo.MutationHookOption
 export type UpdateDatasetMutationHookResult = ReturnType<typeof useUpdateDatasetMutation>;
 export type UpdateDatasetMutationResult = Apollo.MutationResult<UpdateDatasetMutation>;
 export type UpdateDatasetMutationOptions = Apollo.BaseMutationOptions<UpdateDatasetMutation, UpdateDatasetMutationVariables>;
+export const UpdateDatasetVersionDocument = gql`
+    mutation UpdateDatasetVersion($input: UpdateDatasetVersionInput!) {
+  updateDatasetVersion(input: $input) {
+    version {
+      id
+      name
+      changelog
+    }
+    success
+    errors
+  }
+}
+    `;
+export type UpdateDatasetVersionMutationFn = Apollo.MutationFunction<UpdateDatasetVersionMutation, UpdateDatasetVersionMutationVariables>;
+
+/**
+ * __useUpdateDatasetVersionMutation__
+ *
+ * To run a mutation, you first call `useUpdateDatasetVersionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateDatasetVersionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateDatasetVersionMutation, { data, loading, error }] = useUpdateDatasetVersionMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateDatasetVersionMutation(baseOptions?: Apollo.MutationHookOptions<UpdateDatasetVersionMutation, UpdateDatasetVersionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateDatasetVersionMutation, UpdateDatasetVersionMutationVariables>(UpdateDatasetVersionDocument, options);
+      }
+export type UpdateDatasetVersionMutationHookResult = ReturnType<typeof useUpdateDatasetVersionMutation>;
+export type UpdateDatasetVersionMutationResult = Apollo.MutationResult<UpdateDatasetVersionMutation>;
+export type UpdateDatasetVersionMutationOptions = Apollo.BaseMutationOptions<UpdateDatasetVersionMutation, UpdateDatasetVersionMutationVariables>;
 export const CreateDatasetVersionDocument = gql`
     mutation CreateDatasetVersion($input: CreateDatasetVersionInput!) {
   createDatasetVersion(input: $input) {
     version {
       id
       name
+      changelog
     }
     success
     errors

@@ -6,6 +6,7 @@ import {
   DeleteDatasetError,
   DeleteDatasetLinkError,
   SetMetadataAttributeError,
+  UpdateDatasetVersionError,
 } from "graphql/types";
 import {
   CreateDatasetVersionFileMutation,
@@ -26,6 +27,8 @@ import {
   SetMetadataAttributeMutationVariables,
   UpdateDatasetMutation,
   UpdateDatasetMutationVariables,
+  UpdateDatasetVersionMutation,
+  UpdateDatasetVersionMutationVariables,
 } from "./dataset.generated";
 import { v4 as uuidv4 } from "uuid";
 
@@ -71,7 +74,64 @@ export async function updateDataset(
   }
 }
 
-export async function createDatasetVersion(datasetId: string, name: string) {
+export async function updateDatasetVersion(
+  versionId: string,
+  values: { name?: string; changelog?: string },
+) {
+  const client = getApolloClient();
+
+  const { data } = await client.mutate<
+    UpdateDatasetVersionMutation,
+    UpdateDatasetVersionMutationVariables
+  >({
+    mutation: gql`
+      mutation UpdateDatasetVersion($input: UpdateDatasetVersionInput!) {
+        updateDatasetVersion(input: $input) {
+          version {
+            id
+            name
+            changelog
+          }
+          success
+          errors
+        }
+      }
+    `,
+    variables: {
+      input: {
+        versionId,
+        name: values.name,
+        changelog: values.changelog,
+      },
+    },
+  });
+
+  if (data?.updateDatasetVersion.success) {
+    return data.updateDatasetVersion.version;
+  } else if (
+    data?.updateDatasetVersion.errors.includes(
+      UpdateDatasetVersionError.PermissionDenied,
+    )
+  ) {
+    throw new Error(
+      i18n!.t("You do not have permission to update this version"),
+    );
+  } else if (
+    data?.updateDatasetVersion.errors.includes(
+      UpdateDatasetVersionError.VersionNotFound,
+    )
+  ) {
+    throw new Error(i18n!.t("This version does not exist"));
+  } else {
+    throw new Error(i18n!.t("An unknown error occurred"));
+  }
+}
+
+export async function createDatasetVersion(
+  datasetId: string,
+  name: string,
+  changelog: string,
+) {
   const client = getApolloClient();
   const { data } = await client.mutate<
     CreateDatasetVersionMutation,
@@ -83,6 +143,7 @@ export async function createDatasetVersion(datasetId: string, name: string) {
           version {
             id
             name
+            changelog
           }
           success
           errors
@@ -93,6 +154,7 @@ export async function createDatasetVersion(datasetId: string, name: string) {
       input: {
         datasetId,
         name,
+        changelog,
       },
     },
   });

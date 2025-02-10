@@ -1,12 +1,16 @@
 import { gql } from "@apollo/client";
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import Block from "core/components/Block/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
-import DataCard from "core/components/DataCard";
+import LinkTabs from "core/components/Tabs/LinkTabs";
 import Title from "core/components/Title";
+import { trackEvent } from "core/helpers/analytics";
+import { CustomApolloClient } from "core/helpers/apollo";
+import { GetServerSidePropsContext } from "next";
+import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { useTranslation } from "next-i18next";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import DatasetVersionPicker from "../features/DatasetVersionPicker";
 import DeleteDatasetTrigger from "../features/DeleteDatasetTrigger";
@@ -17,10 +21,6 @@ import {
   DatasetLayout_VersionFragment,
   DatasetLayout_WorkspaceFragment,
 } from "./DatasetLayout.generated";
-import LinkTabs from "core/components/Tabs/LinkTabs";
-import { trackEvent } from "core/helpers/analytics";
-import { CustomApolloClient } from "core/helpers/apollo";
-import { GetServerSidePropsContext } from "next";
 
 type DatasetLayoutProps = {
   datasetLink: DatasetLayout_DatasetLinkFragment;
@@ -161,7 +161,7 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
             />
           )}
         </Title>
-        <DataCard item={dataset} className="">
+        <Block className="divide-y divide-gray-200">
           <LinkTabs
             className="mx-4 mt-2"
             tabs={[
@@ -188,7 +188,7 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
             selected={tab}
           />
           {children}
-        </DataCard>
+        </Block>
       </WorkspaceLayout.PageContent>
 
       <UploadDatasetVersionDialog
