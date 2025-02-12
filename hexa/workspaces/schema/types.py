@@ -1,6 +1,6 @@
 import logging
 
-from ariadne import InterfaceType, ObjectType
+from ariadne import InterfaceType, ObjectType, UnionType
 from django.http import HttpRequest
 from openhexa.toolbox.dhis2.api import DHIS2Error
 
@@ -18,6 +18,9 @@ from ..models import (
 from ..utils import (
     DHIS2MetadataQueryType,
     dhis2_client_from_connection,
+    error_response,
+    generate_search_filter,
+    process_metadata_response,
     query_dhis2_metadata,
 )
 
@@ -27,6 +30,7 @@ connection_interface = InterfaceType("Connection")
 connection_field_object = ObjectType("ConnectionField")
 connection_permissions_object = ObjectType("ConnectionPermissions")
 dhis2_connection = ObjectType("DHIS2Connection")
+dhis2_metadata_union = UnionType("DHIS2MetadataItemUnion")
 
 
 @connection_permissions_object.field("update")
@@ -168,26 +172,19 @@ def resolve_connection_field_value(obj: ConnectionField, info, **kwargs):
 
 @dhis2_connection.field("queryMetadata")
 def resolve_query(connection, info, **kwargs):
-    fields = ["id", "name"]
-    dhis2_client = dhis2_client_from_connection(connection)
-
-    page = kwargs.get("page", 1)  # Default to page 1
-    per_page = kwargs.get("per_page", 10)  # Default to 10 items per page
-    filters = []
-
-    def generate_search_filter(kwargs):
-        search_query = kwargs.get("search")
-        if search_query and search_query.strip():
-            filters.append(f"name:token:{search_query.strip()}")
-
-        if kwargs.get("filter"):
-            for item in kwargs["filter"]:
-                filters.append(
-                    f"{item['field']}:in[{','.join(map(str, item['value']))}]"
-                )
-
     try:
-        generate_search_filter(kwargs)
+        query_type = DHIS2MetadataQueryType[kwargs.get("type")]
+        fields = ["id", "name"] + (
+            ["level"]
+            if query_type == DHIS2MetadataQueryType.ORGANISATION_UNIT_LEVELS
+            else []
+        )
+
+        dhis2_client = dhis2_client_from_connection(connection)
+        page = kwargs.get("page", 1)
+        per_page = kwargs.get("per_page", 10)
+
+        filters = generate_search_filter(kwargs)
 
         metadata_response = query_dhis2_metadata(
             dhis2_client,
@@ -195,17 +192,15 @@ def resolve_query(connection, info, **kwargs):
             fields=",".join(fields),
             page=page,
             pageSize=per_page,
-            **({"filter": filters} if filters else {}),
+            **({"filters": filters} if filters else {}),
         )
+        (
+            metadata_items,
+            total_items,
+            total_pages,
+            page_number,
+        ) = process_metadata_response(metadata_response, page)
 
-        metadata_items = metadata_response.get("organisationUnits", [])
-        pager = metadata_response.get("pager", {})
-
-        total_items = pager.get("total", len(metadata_items))
-        total_pages = pager.get("pageCount", 1)
-        page_number = pager.get("page", page)
-
-        # Format response
         result = [
             {field: item.get(field) for field in fields} for item in metadata_items
         ]
@@ -218,26 +213,27 @@ def resolve_query(connection, info, **kwargs):
             "success": True,
             "error": None,
         }
+
     except DHIS2Error as e:
         logging.error(f"DHIS2 error: {e}")
-        return {
-            "items": [],
-            "total_items": 0,
-            "total_pages": 0,
-            "page_number": page,
-            "success": False,
-            "error": "REQUEST_ERROR",
-        }
+        return error_response(page, "REQUEST_ERROR")
+
     except Exception as e:
         logging.error(f"Unknown error: {e}")
-        return {
-            "items": [],
-            "total_items": 0,
-            "total_pages": 0,
-            "page_number": page,
-            "success": False,
-            "error": "UNKNOWN_ERROR",
-        }
+        return error_response(page, "UNKNOWN_ERROR")
+
+
+@dhis2_metadata_union.type_resolver
+def resolve_dhis2_metadata_item(obj, *_):
+    if not isinstance(obj, dict):
+        logging.warning(f"Unexpected metadata item type: {type(obj)}")
+        return None
+
+    if "level" in obj:
+        return "DHIS2OrganisationUnitLevel"
+    if "id" in obj and "name" in obj:
+        return "DHIS2MetadataItem"
+    return None
 
 
 connection_interface.set_alias("type", "connection_type")
@@ -280,5 +276,6 @@ bindables = [
     connection_field_object,
     connection_interface,
     dhis2_connection,
+    dhis2_metadata_union,
     connection_permissions_object,
 ]
