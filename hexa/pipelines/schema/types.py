@@ -136,11 +136,14 @@ def resolve_pipeline_permissions_create_template_version(
     current_version_has_template = pipeline.last_version and hasattr(
         pipeline.last_version, "template_version"
     )
+    pipeline_has_active_template = (
+        hasattr(pipeline, "template") and not pipeline.template.is_deleted
+    )
     pipeline_is_created_from_a_template = pipeline.source_template
     return (
         user_has_permission
         and not pipeline_is_created_from_a_template
-        and not current_version_has_template
+        and (not pipeline_has_active_template or not current_version_has_template)
         and pipeline.type != PipelineType.NOTEBOOK
     )
 
@@ -194,12 +197,17 @@ def resolve_pipeline_versions(pipeline: Pipeline, info, **kwargs):
 
 @pipeline_object.field("template")
 def resolve_pipeline_template(pipeline: Pipeline, info, **kwargs):
-    return getattr(pipeline, "template", None)
+    template = getattr(pipeline, "template", None)
+    return template if template and not template.is_deleted else None
 
 
 @pipeline_object.field("sourceTemplate")
 def resolve_source_template(pipeline: Pipeline, info, **kwargs):
-    return pipeline.source_template
+    return (
+        pipeline.source_template
+        if pipeline.source_template and not pipeline.source_template.is_deleted
+        else None
+    )
 
 
 @pipeline_object.field("newTemplateVersions")

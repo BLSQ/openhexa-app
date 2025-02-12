@@ -329,6 +329,16 @@ class PipelineTest(TestCase):
             self.PIPELINE.template.name, template_name
         )  # Do not recreate a new template when it exists
 
+        template.delete()
+
+        self.PIPELINE.get_or_create_template(
+            name="New name", code="New code", description="New description"
+        )
+        self.assertFalse(template.is_deleted)
+        self.assertEqual(template.name, "New name")
+        self.assertEqual(template.code, "New code")
+        self.assertEqual(template.description, "New description")
+
     def test_new_template_version(self):
         template, _ = self.PIPELINE.get_or_create_template(
             name="Test Template",
