@@ -1,5 +1,7 @@
 import uuid
 
+from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Q
 
@@ -16,7 +18,12 @@ from hexa.workspaces.models import Workspace
 
 
 class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
-    pass
+    def filter_for_user(self, user: AnonymousUser | User):
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(workspace__members=user),
+            return_all_if_superuser=False,
+        )
 
 
 class PipelineTemplate(SoftDeletedModel):
@@ -53,12 +60,16 @@ class PipelineTemplate(SoftDeletedModel):
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
 
     def create_version(
-        self, source_pipeline_version: PipelineVersion, changelog: str = None
+        self,
+        source_pipeline_version: PipelineVersion,
+        user: User = None,
+        changelog: str = None,
     ) -> "PipelineTemplateVersion":
         """Create a new version of the template using a pipeline version as source"""
         return PipelineTemplateVersion.objects.create(
             template=self,
             version_number=self.versions.count() + 1,
+            user=user,
             changelog=changelog,
             source_pipeline_version=source_pipeline_version,
         )
@@ -92,6 +103,19 @@ class PipelineTemplate(SoftDeletedModel):
             created_at__gt=last_version_from_template.created_at
         ).order_by("-created_at")
 
+    def delete_if_has_perm(self, *, principal: User):
+        if not principal.has_perm("pipeline_templates.delete_pipeline_template", self):
+            raise PermissionDenied
+        self.delete()
+
+    def update_if_has_perm(self, principal: User, **kwargs):
+        if not principal.has_perm("pipeline_templates.update_pipeline_template", self):
+            raise PermissionDenied
+        for key in ["name", "description"]:
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+        return self.save()
+
     @property
     def last_version(self) -> "PipelineTemplateVersion":
         return self.versions.last()
@@ -101,9 +125,12 @@ class PipelineTemplate(SoftDeletedModel):
 
 
 class PipelineTemplateVersionQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: AnonymousUser | User):
+        return self.filter(template__in=PipelineTemplate.objects.filter_for_user(user))
+
     def get_updates_for(self, pipeline: Pipeline):
         """Return the versions of the template that are newer than the last version of the pipeline"""
-        if pipeline.source_template is None:
+        if not pipeline.source_template or pipeline.source_template.is_deleted:
             return self.none()
 
         last_version_created_from_template = pipeline.versions.filter(
@@ -139,11 +166,14 @@ class PipelineTemplateVersion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     version_number = models.PositiveIntegerField(editable=False)
     changelog = models.TextField(blank=True, null=True)
+    user = models.ForeignKey(
+        "user_management.User", null=True, on_delete=models.SET_NULL
+    )
     template = models.ForeignKey(
         PipelineTemplate, on_delete=models.CASCADE, related_name="versions"
     )
     source_pipeline_version = models.OneToOneField(
-        PipelineVersion, on_delete=models.RESTRICT, related_name="template_version"
+        PipelineVersion, on_delete=models.CASCADE, related_name="template_version"
     )
 
     objects = PipelineTemplateVersionQuerySet.as_manager()
@@ -202,6 +232,27 @@ class PipelineTemplateVersion(models.Model):
             config=new_version_config,
             timeout=source_version.timeout,
         )
+
+    def delete_if_has_perm(self, principal: User):
+        if not principal.has_perm(
+            "pipeline_templates.delete_pipeline_template_version", self
+        ):
+            raise PermissionDenied
+        self.delete()
+
+    def update_if_has_perm(self, principal: User, **kwargs):
+        if not principal.has_perm(
+            "pipeline_templates.update_pipeline_template_version", self
+        ):
+            raise PermissionDenied
+        for key in ["changelog"]:
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+        return self.save()
+
+    @property
+    def is_latest_version(self):
+        return self == self.template.last_version
 
     def __str__(self):
         return f"v{self.version_number} of {self.template.name}"

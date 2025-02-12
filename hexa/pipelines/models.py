@@ -522,8 +522,7 @@ class Pipeline(SoftDeletedModel):
         return merged_config
 
     def get_or_create_template(self, name: str, code: str, description: str):
-        created = False
-        if not hasattr(self, "template") or not self.template:
+        if not hasattr(self, "template"):
             PipelineTemplate = apps.get_model("pipeline_templates", "PipelineTemplate")
             self.template = PipelineTemplate.objects.create(
                 name=name,
@@ -532,9 +531,14 @@ class Pipeline(SoftDeletedModel):
                 workspace=self.workspace,
                 source_pipeline=self,
             )
-            self.save()
-            created = True
-        return self.template, created
+            return self.template, True
+        if self.template.is_deleted:
+            self.template.restore()
+            self.template.name = name
+            self.template.code = code
+            self.template.description = description
+            self.template.save()
+        return self.template, False
 
     def __str__(self):
         if self.name is not None and self.name != "":
