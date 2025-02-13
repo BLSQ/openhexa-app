@@ -148,7 +148,7 @@ class ConnectiontTest(GraphQLTestCase):
                 },
             )
             self.assertEqual(
-                response["data"],
+                response["data"]["connectionBySlug"]["queryMetadata"],
                 {
                     "items": [
                         {"id": "1", "name": "Org Unit 1"},

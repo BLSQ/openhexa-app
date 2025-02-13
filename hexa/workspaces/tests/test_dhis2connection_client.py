@@ -124,7 +124,7 @@ class TestDHIS2Methods(TestCase):
             dhis2,
             DHIS2MetadataQueryType.ORGANISATION_UNITS,
             fields="id,name",
-            filters="organisationUnitGroups.id:in:[oDkJh5Ddh7d]",
+            filters=["organisationUnitGroups.id:in:[oDkJh5Ddh7d]"],
         )
         self.assertEqual(metadata, org_units)
 
@@ -203,7 +203,7 @@ class TestDHIS2Methods(TestCase):
         )
         responses.add(
             responses.GET,
-            "http://127.0.0.1:8080/api/dataElements?fields=id%2Cname&filters=dataSetElements.dataSet.id%3Ain%3A%5BlyLU2wR22tC%5D&pageSize=1000",
+            "http://127.0.0.1:8080/api/dataElements?fields=id%2Cname&filter=dataSetElements.dataSet.id%3Ain%3A%5BlyLU2wR22tC%5D&pageSize=1000",
             json={"dataElements": data_elements_by_data_elements_group},
             status=200,
         )
@@ -212,7 +212,7 @@ class TestDHIS2Methods(TestCase):
             dhis2,
             DHIS2MetadataQueryType.DATA_ELEMENTS,
             fields="id,name",
-            filters="dataSetElements.dataSet.id:in:[lyLU2wR22tC]",
+            filters=["dataSetElements.dataSet.id:in:[lyLU2wR22tC]"],
         )
         self.assertIsNotNone(metadata)
 
@@ -232,7 +232,7 @@ class TestDHIS2Methods(TestCase):
             dhis2,
             DHIS2MetadataQueryType.DATA_ELEMENTS,
             fields="id,name",
-            filters="dataElementGroups.id:in:[oDkJh5Ddh7d]",
+            filters=["dataElementGroups.id:in:[oDkJh5Ddh7d]"],
         )
         self.assertEqual(metadata, data_elements_by_data_elements_group)
 
@@ -277,7 +277,7 @@ class TestDHIS2Methods(TestCase):
         )
         responses.add(
             responses.GET,
-            "http://127.0.0.1:8080/api/indicators?fields=id%2Cname&filters=indicatorGroups.id%3Ain%3A%5BPoTnGN0F2n5%5D&pageSize=1000",
+            "http://127.0.0.1:8080/api/indicators?fields=id%2Cname&filter=indicatorGroups.id%3Ain%3A%5BPoTnGN0F2n5%5D&pageSize=1000",
             json={"indicators": indicators},
             status=200,
         )
@@ -286,7 +286,7 @@ class TestDHIS2Methods(TestCase):
             dhis2,
             DHIS2MetadataQueryType.INDICATORS,
             fields="id,name",
-            filters="indicatorGroups.id:in:[PoTnGN0F2n5]",
+            filters=["indicatorGroups.id:in:[PoTnGN0F2n5]"],
         )
         self.assertEqual(metadata, indicators)
 
