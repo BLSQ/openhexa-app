@@ -77,8 +77,10 @@ class ConnectiontTest(GraphQLTestCase):
                     ... on DHIS2Connection {
                         queryMetadata(type: $type) {
                                 items {
-                                        id
-                                        name
+                                      ... on DHIS2MetadataItem {
+                                            id
+                                            name
+                                          }
                                       }
                                 error
                             }
@@ -92,13 +94,119 @@ class ConnectiontTest(GraphQLTestCase):
                     "type": "ORGANISATION_UNITS",
                 },
             )
-
             self.assertEqual(
                 response["data"],
                 {
                     "connectionBySlug": {
                         "queryMetadata": {
                             "items": [{"id": "1", "name": "Org Unit 1"}],
+                            "error": None,
+                        }
+                    }
+                },
+            )
+
+    def test_get_org_units_paged(self):
+        self.client.force_login(self.USER_JIM)
+        self.maxDiff = None
+
+        dhis2_mock = MagicMock()
+        dhis2_mock.meta.organisation_units.return_value = {
+            "pager": {"page": 1, "pageCount": 1, "total": 2},
+            "items": [
+                {"id": "1", "name": "Org Unit 1"},
+                {"id": "2", "name": "Org Unit 2"},
+            ],
+        }
+
+        with patch("hexa.workspaces.utils.DHIS2", return_value=dhis2_mock):
+            response = self.run_query(
+                """
+                query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: String!) {
+                connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug){
+                    ... on DHIS2Connection {
+                        queryMetadata(type: $type, page: 1, perPage: 2) {
+                                pageNumber
+                                totalItems
+                                totalPages
+                                items {
+                                      ... on DHIS2MetadataItem {
+                                            id
+                                            name
+                                          }
+                                      }
+                                error
+                            }
+                        }
+                    }
+                }
+                """,
+                variables={
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "connectionSlug": "dhis2-connection-1",
+                    "type": "ORGANISATION_UNITS",
+                },
+            )
+            self.assertEqual(
+                response["data"]["connectionBySlug"]["queryMetadata"],
+                {
+                    "items": [
+                        {"id": "1", "name": "Org Unit 1"},
+                        {"id": "2", "name": "Org Unit 2"},
+                    ],
+                    "pageNumber": 1,
+                    "totalItems": 2,
+                    "totalPages": 1,
+                    "error": None,
+                },
+            )
+
+    def test_get_org_unit_levels(self):
+        self.client.force_login(self.USER_JIM)
+
+        dhis2_mock = MagicMock()
+        dhis2_mock.meta.organisation_unit_levels.return_value = [
+            {"level": 1, "name": "District", "id": "1"}
+        ]
+
+        with patch("hexa.workspaces.utils.DHIS2", return_value=dhis2_mock):
+            response = self.run_query(
+                """
+                query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: String!) {
+                connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug){
+                    ... on DHIS2Connection {
+                        queryMetadata(type: $type) {
+                                items {
+                                        __typename
+                                      ... on DHIS2OrganisationUnitLevel {
+                                            level
+                                            name
+                                          }
+                                      }
+                                error
+                            }
+                        }
+                    }
+                }
+                """,
+                variables={
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "connectionSlug": "dhis2-connection-1",
+                    "type": "ORGANISATION_UNIT_LEVELS",
+                },
+            )
+            self.assertEqual(
+                response["data"],
+                {
+                    "connectionBySlug": {
+                        "queryMetadata": {
+                            "items": [
+                                {
+                                    "__typename": "DHIS2OrganisationUnitLevel",
+                                    "level": 1,
+                                    "name": "District",
+                                }
+                            ],
                             "error": None,
                         }
                     }
@@ -164,9 +272,11 @@ class ConnectiontTest(GraphQLTestCase):
                 ... on DHIS2Connection {
                     queryMetadata(type: $type) {
                             items {
-                                    id
-                                    name
-                                  }
+                                      ... on DHIS2MetadataItem {
+                                            id
+                                            name
+                                          }
+                                      }
                             error
                         }
                     }
@@ -196,8 +306,10 @@ class ConnectiontTest(GraphQLTestCase):
                     ... on DHIS2Connection {
                         queryMetadata(type: $type) {
                                 items {
-                                        id
-                                        name
+                                      ... on DHIS2MetadataItem {
+                                            id
+                                            name
+                                          }
                                       }
                                 error
                             }
@@ -227,8 +339,10 @@ class ConnectiontTest(GraphQLTestCase):
                     ... on DHIS2Connection {
                         queryMetadata(type: $type) {
                                 items {
-                                        id
-                                        name
+                                      ... on DHIS2MetadataItem {
+                                            id
+                                            name
+                                          }
                                       }
                                 error
                             }
@@ -246,7 +360,7 @@ class ConnectiontTest(GraphQLTestCase):
                 response["data"],
                 {
                     "connectionBySlug": {
-                        "queryMetadata": {"items": None, "error": "REQUEST_ERROR"}
+                        "queryMetadata": {"items": [], "error": "REQUEST_ERROR"}
                     }
                 },
             )
@@ -265,8 +379,10 @@ class ConnectiontTest(GraphQLTestCase):
                     ... on DHIS2Connection {
                         queryMetadata(type: $type) {
                                 items {
-                                        id
-                                        name
+                                      ... on DHIS2MetadataItem {
+                                            id
+                                            name
+                                          }
                                       }
                                 error
                             }
@@ -284,7 +400,7 @@ class ConnectiontTest(GraphQLTestCase):
                 response["data"],
                 {
                     "connectionBySlug": {
-                        "queryMetadata": {"items": None, "error": "UNKNOWN_ERROR"}
+                        "queryMetadata": {"items": [], "error": "UNKNOWN_ERROR"}
                     }
                 },
             )
