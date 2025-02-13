@@ -124,7 +124,7 @@ class TestDHIS2Methods(TestCase):
             dhis2,
             DHIS2MetadataQueryType.ORGANISATION_UNITS,
             fields="id,name",
-            filter="organisationUnitGroups.id:in:[oDkJh5Ddh7d]",
+            filters=["organisationUnitGroups.id:in:[oDkJh5Ddh7d]"],
         )
         self.assertEqual(metadata, org_units)
 
@@ -212,7 +212,7 @@ class TestDHIS2Methods(TestCase):
             dhis2,
             DHIS2MetadataQueryType.DATA_ELEMENTS,
             fields="id,name",
-            filter="dataSetElements.dataSet.id:in:[lyLU2wR22tC]",
+            filters=["dataSetElements.dataSet.id:in:[lyLU2wR22tC]"],
         )
         self.assertIsNotNone(metadata)
 
@@ -232,7 +232,7 @@ class TestDHIS2Methods(TestCase):
             dhis2,
             DHIS2MetadataQueryType.DATA_ELEMENTS,
             fields="id,name",
-            filter="dataElementGroups.id:in:[oDkJh5Ddh7d]",
+            filters=["dataElementGroups.id:in:[oDkJh5Ddh7d]"],
         )
         self.assertEqual(metadata, data_elements_by_data_elements_group)
 
@@ -286,7 +286,7 @@ class TestDHIS2Methods(TestCase):
             dhis2,
             DHIS2MetadataQueryType.INDICATORS,
             fields="id,name",
-            filter="indicatorGroups.id:in:[PoTnGN0F2n5]",
+            filters=["indicatorGroups.id:in:[PoTnGN0F2n5]"],
         )
         self.assertEqual(metadata, indicators)
 

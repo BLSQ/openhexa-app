@@ -1,4 +1,4 @@
-from enum import StrEnum, auto
+from enum import StrEnum
 from typing import Optional
 from urllib.parse import urlencode
 
@@ -43,14 +43,14 @@ def send_workspace_invitation_email(
 
 
 class DHIS2MetadataQueryType(StrEnum):
-    ORGANISATION_UNITS = auto()
-    ORGANISATION_UNIT_GROUPS = auto()
-    ORGANISATION_UNIT_LEVELS = auto()
-    DATASETS = auto()
-    DATA_ELEMENTS = auto()
-    DATA_ELEMENT_GROUPS = auto()
-    INDICATORS = auto()
-    INDICATOR_GROUPS = auto()
+    ORGANISATION_UNITS = "ORGANISATION_UNITS"
+    ORGANISATION_UNIT_GROUPS = "ORGANISATION_UNIT_GROUPS"
+    ORGANISATION_UNIT_LEVELS = "ORGANISATION_UNIT_LEVELS"
+    DATASETS = "DATASETS"
+    DATA_ELEMENTS = "DATA_ELEMENTS"
+    DATA_ELEMENT_GROUPS = "DATA_ELEMENT_GROUPS"
+    INDICATORS = "INDICATORS"
+    INDICATOR_GROUPS = "INDICATOR_GROUPS"
 
 
 def query_dhis2_metadata(
@@ -84,3 +84,47 @@ def dhis2_client_from_connection(connection: Connection) -> DHIS2 | None:
         username=dhis_connection_dict.get("username"),
         password=dhis_connection_dict.get("password"),
     )
+
+
+def generate_search_filter(kwargs):
+    filters = []
+    search_query = kwargs.get("search")
+    if search_query and search_query.strip():
+        filters.append(f"name:token:{search_query.strip()}")
+
+    if kwargs.get("filter"):
+        for item in kwargs["filter"]:
+            filters.append(f"{item['field']}:in[{','.join(map(str, item['value']))}]")
+
+    return filters
+
+
+def process_metadata_response(metadata_response, page):
+    if isinstance(metadata_response, dict):
+        metadata_items = metadata_response.get("items", [])
+        pager = metadata_response.get("pager", {})
+        total_items = pager.get("total", len(metadata_items))
+        total_pages = pager.get("pageCount", 1)
+        page_number = pager.get("page", page)
+
+    elif isinstance(metadata_response, list):
+        metadata_items = metadata_response
+        total_items = len(metadata_items)
+        total_pages = 1
+        page_number = page
+
+    else:
+        raise ValueError("Unexpected response format from DHIS2")
+
+    return metadata_items, total_items, total_pages, page_number
+
+
+def error_response(page, error_type):
+    return {
+        "items": [],
+        "total_items": 0,
+        "total_pages": 0,
+        "page_number": page,
+        "success": False,
+        "error": error_type,
+    }
