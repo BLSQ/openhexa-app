@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.81.0](https://github.com/BLSQ/openhexa-app/compare/0.80.0...0.81.0) (2025-02-14)
+
+
+### Features
+
+* Management pages for templates (HEXA-1129, HEXA-1130) ([#921](https://github.com/BLSQ/openhexa-app/issues/921)) ([b68411a](https://github.com/BLSQ/openhexa-app/commit/b68411a7961aa63b532a53174bf0b35eafdf3542))
+* **workspace:** HEXA-1136, DHIS2 parameter widget from connection ([#926](https://github.com/BLSQ/openhexa-app/issues/926)) ([8129c5a](https://github.com/BLSQ/openhexa-app/commit/8129c5a7787cee6f20a64178a6390256d47e071e))
+
+
+### Bug Fixes
+
+* **Mails:** Allow the admin to enable SSL for the mail server (in addition of TLS) ([#928](https://github.com/BLSQ/openhexa-app/issues/928)) ([65fb3fc](https://github.com/BLSQ/openhexa-app/commit/65fb3fc134090a8a0c2f1ecf0cbc128c81838c95))
+
 ## [0.80.0](https://github.com/BLSQ/openhexa-app/compare/0.79.0...0.80.0) (2025-02-07)
 
 
