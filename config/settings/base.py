@@ -75,7 +75,8 @@ if "PROXY_HOSTNAME_AND_PORT" in os.environ:
         if os.environ.get("TRUST_FORWARDED_PROTO", "false") == "true"
         else SCHEME
     )
-    PROXY_URL = f'{SCHEME}://{os.environ.get("PROXY_HOSTNAME_AND_PORT")}'
+    PROXY_URL = f"{SCHEME}://{os.environ.get('PROXY_HOSTNAME_AND_PORT')}"
+    BASE_URL = PROXY_URL
     NEW_FRONTEND_DOMAIN = os.environ.get(
         "NEW_FRONTEND_DOMAIN", os.environ.get("PROXY_HOSTNAME_AND_PORT")
     )
@@ -89,11 +90,11 @@ if "PROXY_HOSTNAME_AND_PORT" in os.environ:
 else:
     NEW_FRONTEND_DOMAIN = os.environ.get(
         "NEW_FRONTEND_DOMAIN",
-        f'{BASE_HOSTNAME}:{os.environ.get("FRONTEND_PORT", 3000)}',
+        f"{BASE_HOSTNAME}:{os.environ.get('FRONTEND_PORT', 3000)}",
     )
     NOTEBOOKS_URL = os.environ.get(
         "NOTEBOOKS_URL",
-        f'{SCHEME}://{BASE_HOSTNAME}:{os.environ.get("JUPYTERHUB_PORT", 8001)}',
+        f"{SCHEME}://{BASE_HOSTNAME}:{os.environ.get('JUPYTERHUB_PORT', 8001)}",
     )
     if not re.match(r"^https?://", NEW_FRONTEND_DOMAIN, re.IGNORECASE):
         # Add the scheme if it is missing
@@ -334,6 +335,8 @@ EMAIL_PORT = os.environ.get("EMAIL_PORT")
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS") == "true"
+EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL") == "true"
+EMAIL_USE_LOCALTIME = os.environ.get("EMAIL_USE_LOCALTIME") == "true"
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL", "OpenHEXA <hexatron@notifications.openhexa.org>"
 )
