@@ -180,15 +180,13 @@ class PipelineTemplateVersion(models.Model):
 
     def _create_pipeline(self, workspace: Workspace) -> Pipeline:
         source_pipeline = self.template.source_pipeline
+        data = {
+            "source_template": self.template,
+            "description": self.template.description,
+            "config": source_pipeline.config,
+        }
         return Pipeline.objects.create_with_unique_code(
-            source_pipeline.name,
-            workspace,
-            {
-                "source_template": self.template,
-                "name": source_pipeline.name,
-                "description": self.template.description,
-                "config": source_pipeline.config,
-            },
+            name=source_pipeline.name, workspace=workspace, **data
         )
 
     def _extract_config(self, pipeline: Pipeline) -> dict:
