@@ -89,6 +89,7 @@ query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
     notebookPath
     sourceTemplate {
       id
+      code
       name
     }
     hasNewTemplateVersions
@@ -582,5 +583,81 @@ query ConnectionPage($workspaceSlug: String!, $connectionId: UUID!) {
 query CheckWorkspaceAvailability($slug: String!) {
   workspace(slug: $slug) {
     slug
+  }
+}
+
+query WorkspaceTemplatesPage(
+  $workspaceSlug: String!
+  $page: Int
+  $perPage: Int
+) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...WorkspaceLayout_workspace
+  }
+
+  pipelineTemplates(
+    workspaceSlug: $workspaceSlug
+    page: $page
+    perPage: $perPage
+  ) {
+    items {
+      ...TemplateCard_template
+    }
+    totalItems
+    totalPages
+    pageNumber
+  }
+}
+query WorkspaceTemplatePage($workspaceSlug: String!, $templateCode: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...PipelineLayout_workspace
+  }
+  template: templateByCode(code: $templateCode) {
+    ...TemplateLayout_template
+    permissions {
+      update
+      delete
+    }
+    id
+    code
+    name
+    description
+    currentVersion {
+      id
+      versionNumber
+    }
+  }
+}
+
+query WorkspaceTemplateVersionsPage(
+  $workspaceSlug: String!
+  $templateCode: String!
+  $page: Int!
+  $perPage: Int!
+) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...WorkspaceLayout_workspace
+  }
+  template: templateByCode(code: $templateCode) {
+    id
+    code
+    name
+    currentVersion {
+      id
+    }
+    versions(page: $page, perPage: $perPage) {
+      items {
+        ...TemplateVersionCard_version
+        id
+      }
+      totalItems
+      totalPages
+    }
   }
 }

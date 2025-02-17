@@ -20,11 +20,12 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
   leadingIcon?: ReactNode;
   type?: "button" | "submit" | "reset";
+  rounded?: boolean;
+  focusRing?: boolean;
 }
 
 export const Classes: { [key: string]: string } = {
-  base: `relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+  base: `relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
@@ -56,11 +57,15 @@ const Button = (props: ButtonProps) => {
     leadingIcon,
     disabled,
     type = "button",
+    rounded = true,
+    focusRing = true,
     ...delegated
   } = props;
 
   const classes = clsx(
     Classes.base,
+    rounded && "rounded-sm",
+    focusRing && "focus:outline-hidden focus:ring-2 focus:ring-offset-2",
     Classes[size],
     variant !== "custom" && Classes[variant],
     className,

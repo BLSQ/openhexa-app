@@ -173,7 +173,13 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             >
               {(sourceTemplateName) => (
                 <div className="flex items-center gap-2">
-                  <p>{sourceTemplateName.displayValue}</p>
+                  <Link
+                    href={`/workspaces/${encodeURIComponent(
+                      workspace.slug,
+                    )}/templates/${pipeline.sourceTemplate?.code}`}
+                  >
+                    {sourceTemplateName.displayValue}
+                  </Link>
                   {pipeline.hasNewTemplateVersions &&
                     pipeline.permissions.createVersion && (
                       <Button
@@ -189,12 +195,22 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             </RenderProperty>
           )}
           {isPipelineTemplateFeatureEnabled && pipeline?.template && (
-            <TextProperty
+            <RenderProperty
               id="template"
               accessor={"template.name"}
               label={t("Template")}
               readonly
-            />
+            >
+              {(templateName) => (
+                <Link
+                  href={`/workspaces/${encodeURIComponent(
+                    workspace.slug,
+                  )}/templates/${pipeline?.template?.code}`}
+                >
+                  {templateName.displayValue}
+                </Link>
+              )}
+            </RenderProperty>
           )}
         </DataCard.FormSection>
         {pipeline.type === PipelineType.ZipFile && pipeline.currentVersion ? (

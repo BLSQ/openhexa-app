@@ -201,6 +201,7 @@ PipelineLayout.fragments = {
       template {
         id
         name
+        code
       }
       currentVersion {
         id

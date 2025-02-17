@@ -142,6 +142,13 @@ mutation deletePipelineVersion($input: DeletePipelineVersionInput!) {
   }
 }
 
+mutation deletePipelineTemplate($input: DeletePipelineTemplateInput!) {
+  deletePipelineTemplate(input: $input) {
+    success
+    errors
+  }
+}
+
 mutation joinWorkspace($input: JoinWorkspaceInput!) {
   joinWorkspace(input: $input) {
     success

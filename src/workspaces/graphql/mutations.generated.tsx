@@ -102,6 +102,13 @@ export type DeletePipelineVersionMutationVariables = Types.Exact<{
 
 export type DeletePipelineVersionMutation = { __typename?: 'Mutation', deletePipelineVersion: { __typename?: 'DeletePipelineVersionResult', success: boolean, errors: Array<Types.DeletePipelineVersionError> } };
 
+export type DeletePipelineTemplateMutationVariables = Types.Exact<{
+  input: Types.DeletePipelineTemplateInput;
+}>;
+
+
+export type DeletePipelineTemplateMutation = { __typename?: 'Mutation', deletePipelineTemplate: { __typename?: 'DeletePipelineTemplateResult', success: boolean, errors: Array<Types.PipelineTemplateError> } };
+
 export type JoinWorkspaceMutationVariables = Types.Exact<{
   input: Types.JoinWorkspaceInput;
 }>;
@@ -659,6 +666,40 @@ export function useDeletePipelineVersionMutation(baseOptions?: Apollo.MutationHo
 export type DeletePipelineVersionMutationHookResult = ReturnType<typeof useDeletePipelineVersionMutation>;
 export type DeletePipelineVersionMutationResult = Apollo.MutationResult<DeletePipelineVersionMutation>;
 export type DeletePipelineVersionMutationOptions = Apollo.BaseMutationOptions<DeletePipelineVersionMutation, DeletePipelineVersionMutationVariables>;
+export const DeletePipelineTemplateDocument = gql`
+    mutation deletePipelineTemplate($input: DeletePipelineTemplateInput!) {
+  deletePipelineTemplate(input: $input) {
+    success
+    errors
+  }
+}
+    `;
+export type DeletePipelineTemplateMutationFn = Apollo.MutationFunction<DeletePipelineTemplateMutation, DeletePipelineTemplateMutationVariables>;
+
+/**
+ * __useDeletePipelineTemplateMutation__
+ *
+ * To run a mutation, you first call `useDeletePipelineTemplateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeletePipelineTemplateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deletePipelineTemplateMutation, { data, loading, error }] = useDeletePipelineTemplateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDeletePipelineTemplateMutation(baseOptions?: Apollo.MutationHookOptions<DeletePipelineTemplateMutation, DeletePipelineTemplateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeletePipelineTemplateMutation, DeletePipelineTemplateMutationVariables>(DeletePipelineTemplateDocument, options);
+      }
+export type DeletePipelineTemplateMutationHookResult = ReturnType<typeof useDeletePipelineTemplateMutation>;
+export type DeletePipelineTemplateMutationResult = Apollo.MutationResult<DeletePipelineTemplateMutation>;
+export type DeletePipelineTemplateMutationOptions = Apollo.BaseMutationOptions<DeletePipelineTemplateMutation, DeletePipelineTemplateMutationVariables>;
 export const JoinWorkspaceDocument = gql`
     mutation joinWorkspace($input: JoinWorkspaceInput!) {
   joinWorkspace(input: $input) {

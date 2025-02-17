@@ -2,16 +2,16 @@ import { gql } from "@apollo/client";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "next-i18next";
 import { ReactElement } from "react";
-import { deletePipelineVersion } from "workspaces/helpers/pipelines";
-import { DeletePipelineVersionTrigger_VersionFragment } from "./DeletePipelineVersionTrigger.generated";
+import { DeleteTemplateVersionTrigger_VersionFragment } from "./DeleteTemplateVersionTrigger.generated";
+import { deleteTemplateVersion } from "workspaces/helpers/templates";
 
 type DeletePipelineVersionTriggerProps = {
   children: ({ onClick }: { onClick: () => void }) => ReactElement;
   confirmMessage?: string;
-  version: DeletePipelineVersionTrigger_VersionFragment;
+  version: DeleteTemplateVersionTrigger_VersionFragment;
 };
 
-const DeletePipelineVersionTrigger = (
+const DeleteTemplateVersionTrigger = (
   props: DeletePipelineVersionTriggerProps,
 ) => {
   const { t } = useTranslation();
@@ -19,18 +19,18 @@ const DeletePipelineVersionTrigger = (
     children,
     version,
     confirmMessage = t(
-      'Are you sure you want to delete the version "{{name}}"?',
+      'Are you sure you want to delete the version "{{versionNumber}}"?',
       {
-        name: version.name,
+        versionNumber: version.versionNumber,
       },
     ),
   } = props;
 
-  const clearCache = useCacheKey(["pipelines", version.pipeline.id]);
+  const clearCache = useCacheKey(["templates", version.template.id]);
 
   const onClick = async () => {
     if (window.confirm(confirmMessage)) {
-      await deletePipelineVersion(version.id);
+      await deleteTemplateVersion(version.id);
       clearCache();
     }
   };
@@ -40,12 +40,12 @@ const DeletePipelineVersionTrigger = (
   return children({ onClick });
 };
 
-DeletePipelineVersionTrigger.fragments = {
+DeleteTemplateVersionTrigger.fragments = {
   version: gql`
-    fragment DeletePipelineVersionTrigger_version on PipelineVersion {
+    fragment DeleteTemplateVersionTrigger_version on PipelineTemplateVersion {
       id
-      name
-      pipeline {
+      versionNumber
+      template {
         id
       }
       permissions {
@@ -55,4 +55,4 @@ DeletePipelineVersionTrigger.fragments = {
   `,
 };
 
-export default DeletePipelineVersionTrigger;
+export default DeleteTemplateVersionTrigger;

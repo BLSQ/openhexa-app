@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import Button from "core/components/Button";
 import Spinner from "core/components/Spinner";
 import React, { useEffect, useState } from "react";
@@ -45,8 +45,8 @@ const PublishPipelineDialog = ({
     changelog: string;
   }>({
     initialState: {
-      name: "",
-      description: "",
+      name: pipeline.name ?? "",
+      description: pipeline.description ?? "",
       confirmPublishing: false,
       changelog: "",
     },
@@ -78,7 +78,9 @@ const PublishPipelineDialog = ({
       if (data.createPipelineTemplateVersion.success) {
         toast.success(successMessage);
         onClose();
-        await router.push(`/workspaces/${workspace.slug}/pipelines/`);
+        await router.push(
+          `/workspaces/${workspace.slug}/templates/${data.createPipelineTemplateVersion.pipelineTemplate?.code}`,
+        );
       } else if (
         data.createPipelineTemplateVersion.errors?.includes(
           CreatePipelineTemplateVersionError.PermissionDenied,
@@ -180,9 +182,12 @@ const PublishPipelineDialog = ({
               name="confirmPublishing"
               checked={form.formData.confirmPublishing}
               onChange={form.handleInputChange}
-              label={t(
-                "I confirm that I want to publish this Pipeline code as a Template with all OpenHexa users.",
-              )}
+              label={
+                <Trans>
+                  I confirm that I want to publish this code and make it
+                  available <b>to all users of the OpenHEXA platform</b>
+                </Trans>
+              }
             />
           </Field>
           {form.submitError && (
@@ -207,6 +212,8 @@ PublishPipelineDialog.fragment = {
   pipeline: gql`
     fragment PipelinePublish_pipeline on Pipeline {
       id
+      name
+      description
       currentVersion {
         id
         versionName

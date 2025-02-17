@@ -1,10 +1,10 @@
 import { InformationCircleIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 import Tooltip from "core/components/Tooltip/Tooltip";
-import { InputHTMLAttributes } from "react";
+import { InputHTMLAttributes, ReactNode } from "react";
 
 interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
+  label?: ReactNode;
   description?: string;
   help?: string;
 }

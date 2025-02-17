@@ -6,60 +6,50 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import PipelineVersionCard from "pipelines/features/PipelineVersionCard";
 import {
-  useWorkspacePipelineVersionsPageQuery,
-  WorkspacePipelineVersionsPageDocument,
-  WorkspacePipelineVersionsPageQuery,
-  WorkspacePipelineVersionsPageQueryVariables,
+  useWorkspaceTemplateVersionsPageQuery,
+  WorkspaceTemplateVersionsPageDocument,
+  WorkspaceTemplateVersionsPageQuery,
+  WorkspaceTemplateVersionsPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import TemplateVersionCard from "pipelines/features/TemplateVersionCard";
 
 type Props = {
   workspaceSlug: string;
-  pipelineCode: string;
+  templateCode: string;
   page: number;
   perPage: number;
 };
-const PipelineVersionsPage: NextPageWithLayout<Props> = ({
+const TemplateVersionsPage: NextPageWithLayout<Props> = ({
   workspaceSlug,
-  pipelineCode,
+  templateCode,
   page,
   perPage,
 }) => {
   const { t } = useTranslation();
 
-  const { data, refetch } = useWorkspacePipelineVersionsPageQuery({
+  const { data, refetch } = useWorkspaceTemplateVersionsPageQuery({
     variables: {
       workspaceSlug,
-      pipelineCode,
+      templateCode,
       page,
       perPage,
     },
   });
 
-  useCacheKey(["pipelines", data?.pipeline?.id], refetch);
+  useCacheKey(["templates", data?.template?.id], refetch);
 
   const router = useRouter();
-  if (!data?.workspace || !data?.pipeline) {
+  if (!data?.workspace || !data?.template) {
     return null;
   }
 
-  const { workspace, pipeline } = data;
+  const { workspace, template } = data;
   return (
-    <Page title={t("Versions of {{pipeline}}", { pipeline: pipeline.name })}>
+    <Page title={t("Versions of {{template}}", { template: template.name })}>
       <WorkspaceLayout
         workspace={workspace}
-        helpLinks={[
-          {
-            label: t("About pipelines"),
-            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#using-pipelines",
-          },
-          {
-            label: t("Writing OpenHEXA pipelines"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines",
-          },
-        ]}
         header={
           <div className="flex items-center gap-2">
             <Breadcrumbs withHome={false} className="flex-1">
@@ -72,23 +62,23 @@ const PipelineVersionsPage: NextPageWithLayout<Props> = ({
               <Breadcrumbs.Part
                 href={`/workspaces/${encodeURIComponent(
                   workspace.slug,
-                )}/pipelines`}
+                )}/pipelines/?tab=templates`}
               >
-                {t("Pipelines")}
+                {t("Templates")}
               </Breadcrumbs.Part>
 
               <Breadcrumbs.Part
                 href={`/workspaces/${encodeURIComponent(
                   workspace.slug,
-                )}/pipelines/${encodeURIComponent(pipeline.code)}`}
+                )}/templates/${encodeURIComponent(template.code)}`}
               >
-                {pipeline.name}
+                {template.name}
               </Breadcrumbs.Part>
               <Breadcrumbs.Part
                 isLast
                 href={`/workspaces/${encodeURIComponent(
                   workspace.slug,
-                )}/pipelines/${encodeURIComponent(pipeline.code)}/versions`}
+                )}/templates/${encodeURIComponent(template.code)}/versions`}
               >
                 {t("Versions")}
               </Breadcrumbs.Part>
@@ -97,19 +87,19 @@ const PipelineVersionsPage: NextPageWithLayout<Props> = ({
         }
       >
         <WorkspaceLayout.PageContent className="grid grid-cols-1 gap-4">
-          {data.pipeline.versions.items.length === 0 && (
+          {data.template.versions.items.length === 0 && (
             <div className="text-center text-gray-500">
               <div>{t("This pipeline does not have any version.")}</div>
             </div>
           )}
-          {data.pipeline.versions.items.map((version) => (
-            <PipelineVersionCard key={version.id} version={version} />
+          {data.template.versions.items.map((version) => (
+            <TemplateVersionCard key={version.id} version={version} />
           ))}
           <Pagination
-            totalItems={data.pipeline.versions.totalItems}
+            totalItems={data.template.versions.totalItems}
             page={page}
             perPage={perPage}
-            countItems={data.pipeline.versions.items.length}
+            countItems={data.template.versions.items.length}
             onChange={(page) =>
               router.push({
                 pathname: router.pathname,
@@ -126,7 +116,7 @@ const PipelineVersionsPage: NextPageWithLayout<Props> = ({
   );
 };
 
-PipelineVersionsPage.getLayout = (page) => page;
+TemplateVersionsPage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
@@ -135,25 +125,25 @@ export const getServerSideProps = createGetServerSideProps({
     const page = parseInt(ctx.query.page as string, 10) || 1;
     const PER_PAGE = 15;
     const { data } = await client.query<
-      WorkspacePipelineVersionsPageQuery,
-      WorkspacePipelineVersionsPageQueryVariables
+      WorkspaceTemplateVersionsPageQuery,
+      WorkspaceTemplateVersionsPageQueryVariables
     >({
-      query: WorkspacePipelineVersionsPageDocument,
+      query: WorkspaceTemplateVersionsPageDocument,
       variables: {
         workspaceSlug: ctx.params!.workspaceSlug as string,
-        pipelineCode: ctx.params!.pipelineCode as string,
+        templateCode: ctx.params!.templateCode as string,
         page,
         perPage: PER_PAGE,
       },
     });
 
-    if (!data.workspace || !data.pipeline) {
+    if (!data.workspace || !data.template) {
       return { notFound: true };
     }
     return {
       props: {
         workspaceSlug: ctx.params!.workspaceSlug,
-        pipelineCode: ctx.params!.pipelineCode,
+        templateCode: ctx.params!.templateCode,
         page,
         perPage: PER_PAGE,
       },
@@ -161,4 +151,4 @@ export const getServerSideProps = createGetServerSideProps({
   },
 });
 
-export default PipelineVersionsPage;
+export default TemplateVersionsPage;

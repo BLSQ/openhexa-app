@@ -1528,6 +1528,18 @@ export type DeletePipelineResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Represents the input for deleting a pipeline template. */
+export type DeletePipelineTemplateInput = {
+  id: Scalars['UUID']['input'];
+};
+
+/** Represents the result of deleting a pipeline. */
+export type DeletePipelineTemplateResult = {
+  __typename?: 'DeletePipelineTemplateResult';
+  errors: Array<PipelineTemplateError>;
+  success: Scalars['Boolean']['output'];
+};
+
 export enum DeletePipelineVersionError {
   PermissionDenied = 'PERMISSION_DENIED',
   PipelineNotFound = 'PIPELINE_NOT_FOUND',
@@ -1566,6 +1578,24 @@ export type DeleteTeamResult = {
   /** The list of errors that occurred during the deleteTeam mutation. */
   errors: Array<DeleteTeamError>;
   /** Indicates whether the deleteTeam mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
+export enum DeleteTemplateVersionError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  TemplateNotFound = 'TEMPLATE_NOT_FOUND',
+  TemplateVersionNotFound = 'TEMPLATE_VERSION_NOT_FOUND'
+}
+
+/** Represents the input for deleting a template version. */
+export type DeleteTemplateVersionInput = {
+  id: Scalars['UUID']['input'];
+};
+
+/** Represents the result of deleting a template version. */
+export type DeleteTemplateVersionResult = {
+  __typename?: 'DeleteTemplateVersionResult';
+  errors: Array<DeleteTemplateVersionError>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -2139,9 +2169,11 @@ export type Mutation = {
   deletePipeline: DeletePipelineResult;
   /** Deletes a pipeline recipient. */
   deletePipelineRecipient: DeletePipelineRecipientResult;
+  deletePipelineTemplate: DeletePipelineTemplateResult;
   /** Deletes a pipeline version. */
   deletePipelineVersion: DeletePipelineVersionResult;
   deleteTeam: DeleteTeamResult;
+  deleteTemplateVersion: DeleteTemplateVersionResult;
   deleteWorkspace: DeleteWorkspaceResult;
   deleteWorkspaceDatabaseTable?: Maybe<DeleteWorkspaceDatabaseTableResult>;
   deleteWorkspaceInvitation: DeleteWorkspaceInvitationResult;
@@ -2220,9 +2252,12 @@ export type Mutation = {
   updatePipelineProgress: UpdatePipelineProgressResult;
   /** Updates a pipeline recipient. */
   updatePipelineRecipient: UpdatePipelineRecipientResult;
+  /** Updates an existing template. */
+  updatePipelineTemplate: UpdateTemplateResult;
   /** Updates a pipeline version. */
   updatePipelineVersion: UpdatePipelineVersionResult;
   updateTeam: UpdateTeamResult;
+  updateTemplateVersion: UpdateTemplateVersionResult;
   /** Updates the profile of the currently authenticated user. */
   updateUser: UpdateUserResult;
   updateWorkspace: UpdateWorkspaceResult;
@@ -2411,6 +2446,11 @@ export type MutationDeletePipelineRecipientArgs = {
 };
 
 
+export type MutationDeletePipelineTemplateArgs = {
+  input?: InputMaybe<DeletePipelineTemplateInput>;
+};
+
+
 export type MutationDeletePipelineVersionArgs = {
   input: DeletePipelineVersionInput;
 };
@@ -2418,6 +2458,11 @@ export type MutationDeletePipelineVersionArgs = {
 
 export type MutationDeleteTeamArgs = {
   input: DeleteTeamInput;
+};
+
+
+export type MutationDeleteTemplateVersionArgs = {
+  input: DeleteTemplateVersionInput;
 };
 
 
@@ -2671,6 +2716,11 @@ export type MutationUpdatePipelineRecipientArgs = {
 };
 
 
+export type MutationUpdatePipelineTemplateArgs = {
+  input: UpdateTemplateInput;
+};
+
+
 export type MutationUpdatePipelineVersionArgs = {
   input: UpdatePipelineVersionInput;
 };
@@ -2678,6 +2728,11 @@ export type MutationUpdatePipelineVersionArgs = {
 
 export type MutationUpdateTeamArgs = {
   input: UpdateTeamInput;
+};
+
+
+export type MutationUpdateTemplateVersionArgs = {
+  input: UpdateTemplateVersionInput;
 };
 
 
@@ -2993,9 +3048,22 @@ export type PipelineTemplate = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
+  permissions: PipelineTemplatePermissions;
   sourcePipeline?: Maybe<Pipeline>;
-  versions?: Maybe<Array<PipelineTemplateVersion>>;
+  versions: TemplateVersionPage;
 };
+
+
+/** Represents a pipeline template. */
+export type PipelineTemplateVersionsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum PipelineTemplateError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  PipelineTemplateNotFound = 'PIPELINE_TEMPLATE_NOT_FOUND'
+}
 
 /** Represents paged result of fetching pipeline templates. */
 export type PipelineTemplatePage = {
@@ -3009,7 +3077,8 @@ export type PipelineTemplatePage = {
 /** Represents the permissions for a pipeline template. */
 export type PipelineTemplatePermissions = {
   __typename?: 'PipelineTemplatePermissions';
-  createVersion: Scalars['Boolean']['output'];
+  delete: Scalars['Boolean']['output'];
+  update: Scalars['Boolean']['output'];
 };
 
 /** Represents a version of a pipeline template. */
@@ -3018,7 +3087,10 @@ export type PipelineTemplateVersion = {
   changelog?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
+  isLatestVersion: Scalars['Boolean']['output'];
+  permissions: PipelineTemplateVersionPermissions;
   template: PipelineTemplate;
+  user?: Maybe<User>;
   versionNumber: Scalars['Int']['output'];
 };
 
@@ -3274,6 +3346,8 @@ export type Query = {
   pipelines: PipelinesPage;
   team?: Maybe<Team>;
   teams: TeamPage;
+  /** Retrieves a template by code. */
+  templateByCode?: Maybe<PipelineTemplate>;
   workspace?: Maybe<Workspace>;
   workspaces: WorkspacePage;
 };
@@ -3440,6 +3514,7 @@ export type QueryPipelineTemplatesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+  workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -3464,6 +3539,11 @@ export type QueryTeamsArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   term?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryTemplateByCodeArgs = {
+  code: Scalars['String']['input'];
 };
 
 
@@ -3806,6 +3886,15 @@ export type TeamPermissions = {
   update: Scalars['Boolean']['output'];
 };
 
+/** Represents a page of template versions. */
+export type TemplateVersionPage = {
+  __typename?: 'TemplateVersionPage';
+  items: Array<PipelineTemplateVersion>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
 export enum UpdateAccessmodAccessibilityAnalysisError {
   NameDuplicate = 'NAME_DUPLICATE',
   NotFound = 'NOT_FOUND'
@@ -4130,6 +4219,48 @@ export type UpdateTeamResult = {
   success: Scalars['Boolean']['output'];
   /** The updated team object. */
   team?: Maybe<Team>;
+};
+
+/** Enum representing the possible errors that can occur when updating a template. */
+export enum UpdateTemplateError {
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** Represents the input for updating a template. */
+export type UpdateTemplateInput = {
+  config?: InputMaybe<Scalars['JSON']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Represents the result of updating a template. */
+export type UpdateTemplateResult = {
+  __typename?: 'UpdateTemplateResult';
+  errors: Array<UpdateTemplateError>;
+  success: Scalars['Boolean']['output'];
+  template?: Maybe<PipelineTemplate>;
+};
+
+/** Enum representing the possible errors that can occur when updating a template version. */
+export enum UpdateTemplateVersionError {
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** Represents the input for updating a template version. */
+export type UpdateTemplateVersionInput = {
+  changelog?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+};
+
+/** Represents the result of updating a template version. */
+export type UpdateTemplateVersionResult = {
+  __typename?: 'UpdateTemplateVersionResult';
+  errors: Array<UpdateTemplateVersionError>;
+  success: Scalars['Boolean']['output'];
+  templateVersion?: Maybe<PipelineTemplateVersion>;
 };
 
 /** The UpdateUserError enum represents the possible errors that can occur during the updateUser mutation. */

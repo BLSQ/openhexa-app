@@ -12,56 +12,51 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="flex items-center gap-4"
         >
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
             type="button"
           >
             primary
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
             type="button"
           >
             primary
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
             type="button"
           >
             primary
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
             type="button"
           >
             primary
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
             type="button"
           >
             primary
@@ -71,56 +66,51 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="flex items-center gap-4"
         >
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
             type="button"
           >
             secondary
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
             type="button"
           >
             secondary
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
             type="button"
           >
             secondary
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
             type="button"
           >
             secondary
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
             type="button"
           >
             secondary
@@ -130,56 +120,51 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="flex items-center gap-4"
         >
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
             type="button"
           >
             white
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
             type="button"
           >
             white
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
             type="button"
           >
             white
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
             type="button"
           >
             white
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
             type="button"
           >
             white
@@ -189,56 +174,51 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="flex items-center gap-4"
         >
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
             type="button"
           >
             danger
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
             type="button"
           >
             danger
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
             type="button"
           >
             danger
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
             type="button"
           >
             danger
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
             type="button"
           >
             danger
@@ -248,56 +228,51 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="flex items-center gap-4"
         >
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 text-gray-800 border-transparent hover:bg-gray-100"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 text-gray-800 border-transparent hover:bg-gray-100"
             type="button"
           >
             outlined
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 text-gray-800 border-transparent hover:bg-gray-100"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 text-gray-800 border-transparent hover:bg-gray-100"
             type="button"
           >
             outlined
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 text-gray-800 border-transparent hover:bg-gray-100"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 text-gray-800 border-transparent hover:bg-gray-100"
             type="button"
           >
             outlined
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 text-gray-800 border-transparent hover:bg-gray-100"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 text-gray-800 border-transparent hover:bg-gray-100"
             type="button"
           >
             outlined
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 text-gray-800 border-transparent hover:bg-gray-100"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 text-gray-800 border-transparent hover:bg-gray-100"
             type="button"
           >
             outlined
@@ -307,56 +282,51 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="flex items-center gap-4"
         >
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1"
             type="button"
           >
             custom
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4"
             type="button"
           >
             custom
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5"
             type="button"
           >
             custom
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2"
             type="button"
           >
             custom
           </button>
           <button
-            class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+            class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3"
             type="button"
           >
             custom
@@ -373,56 +343,51 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
         class="flex items-center gap-4"
       >
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
           type="button"
         >
           primary
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
           type="button"
         >
           primary
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
           type="button"
         >
           primary
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
           type="button"
         >
           primary
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
           type="button"
         >
           primary
@@ -432,56 +397,51 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
         class="flex items-center gap-4"
       >
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
           type="button"
         >
           secondary
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
           type="button"
         >
           secondary
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
           type="button"
         >
           secondary
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
           type="button"
         >
           secondary
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
           type="button"
         >
           secondary
@@ -491,56 +451,51 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
         class="flex items-center gap-4"
       >
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
           type="button"
         >
           white
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
           type="button"
         >
           white
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
           type="button"
         >
           white
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
           type="button"
         >
           white
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
           type="button"
         >
           white
@@ -550,56 +505,51 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
         class="flex items-center gap-4"
       >
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
           type="button"
         >
           danger
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
           type="button"
         >
           danger
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
           type="button"
         >
           danger
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
           type="button"
         >
           danger
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
           type="button"
         >
           danger
@@ -609,56 +559,51 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
         class="flex items-center gap-4"
       >
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 text-gray-800 border-transparent hover:bg-gray-100"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 text-gray-800 border-transparent hover:bg-gray-100"
           type="button"
         >
           outlined
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 text-gray-800 border-transparent hover:bg-gray-100"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 text-gray-800 border-transparent hover:bg-gray-100"
           type="button"
         >
           outlined
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 text-gray-800 border-transparent hover:bg-gray-100"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 text-gray-800 border-transparent hover:bg-gray-100"
           type="button"
         >
           outlined
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 text-gray-800 border-transparent hover:bg-gray-100"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 text-gray-800 border-transparent hover:bg-gray-100"
           type="button"
         >
           outlined
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 text-gray-800 border-transparent hover:bg-gray-100"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 text-gray-800 border-transparent hover:bg-gray-100"
           type="button"
         >
           outlined
@@ -668,56 +613,51 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
         class="flex items-center gap-4"
       >
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1"
           type="button"
         >
           custom
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4"
           type="button"
         >
           custom
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5"
           type="button"
         >
           custom
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2"
           type="button"
         >
           custom
         </button>
         <button
-          class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+          class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3"
           type="button"
         >
           custom
@@ -785,12 +725,11 @@ exports[`Button renders an icon in front of the label 1`] = `
   "baseElement": <body>
     <div>
       <button
-        class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+        class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
         disabled=""
         type="button"
       >
@@ -822,12 +761,11 @@ exports[`Button renders an icon in front of the label 1`] = `
   </body>,
   "container": <div>
     <button
-      class="relative rounded-sm h-fit
-    focus:outline-hidden focus:ring-2 focus:ring-offset-2
+      class="relative h-fit
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
       disabled=""
       type="button"
     >

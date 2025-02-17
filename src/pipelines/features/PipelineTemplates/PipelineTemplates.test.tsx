@@ -1,7 +1,7 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useMutation, useQuery } from "@apollo/client";
-import PipelineTemplatesTable from "./PipelineTemplateTable";
+import PipelineTemplates from "./PipelineTemplates";
 
 jest.mock("@apollo/client", () => ({
   __esModule: true,
@@ -18,42 +18,34 @@ const mockWorkspace = {
   slug: "test-workspace",
 };
 
+const template = (id: string) => ({
+  id: id,
+  name: `Template ${id}`,
+  description: `Description ${id}`,
+  permissions: {
+    delete: true,
+  },
+  currentVersion: {
+    id: id,
+    versionNumber: id,
+    createdAt: `2023-01-01T00:0${id}:00Z`,
+    template: {
+      sourcePipeline: {
+        name: `Pipeline ${id}`,
+      },
+    },
+  },
+});
 const mockPipelineTemplates = {
   pageNumber: 1,
   totalPages: 2,
-  totalItems: 6,
-  items: Array.from({ length: 6 }, (_, index) => {
-    const indexAsString = (index + 1).toString();
-    return {
-      id: indexAsString,
-      name: `Template ${indexAsString}`,
-      currentVersion: {
-        id: indexAsString,
-        versionNumber: indexAsString,
-        createdAt: `2023-01-01T00:0${indexAsString}:00Z`,
-        template: {
-          sourcePipeline: {
-            name: `Pipeline ${indexAsString}`,
-          },
-        },
-      },
-    };
-  }),
+  totalItems: 11,
+  items: Array.from({ length: 10 }, (_, index) =>
+    template((index + 1).toString()),
+  ),
 };
 
-describe("PipelineTemplatesTable", () => {
-  it("renders loading state initially", () => {
-    useQueryMock.mockReturnValue({
-      loading: true,
-      data: null,
-      error: null,
-    });
-
-    render(<PipelineTemplatesTable workspace={mockWorkspace} />);
-
-    expect(screen.getByTestId("spinner")).toBeInTheDocument();
-  });
-
+describe("PipelineTemplates", () => {
   it("renders data after loading", async () => {
     useQueryMock.mockReturnValue({
       loading: false,
@@ -61,59 +53,69 @@ describe("PipelineTemplatesTable", () => {
       error: null,
     });
 
-    render(<PipelineTemplatesTable workspace={mockWorkspace} />);
+    render(<PipelineTemplates workspace={mockWorkspace} />);
 
     await waitFor(() => {
       expect(screen.getByText("Template 1")).toBeInTheDocument();
-      expect(screen.getByText("v1")).toBeInTheDocument();
-      expect(screen.getByText("1/1/2023, 1:01 AM")).toBeInTheDocument();
+      expect(screen.getByText("Description 1")).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByTestId("grid-view"));
+
+    expect(screen.getByText("Template 1")).toBeInTheDocument();
+    expect(screen.getByText("v1")).toBeInTheDocument();
+    expect(screen.getByText("1/1/2023, 1:01 AM")).toBeInTheDocument();
   });
 
   it("handles pagination", async () => {
-    const fetchMore = jest.fn();
     useQueryMock.mockReturnValue({
       loading: false,
       data: { pipelineTemplates: mockPipelineTemplates },
       error: null,
-      fetchMore,
     });
 
-    render(<PipelineTemplatesTable workspace={mockWorkspace} />);
+    render(<PipelineTemplates workspace={mockWorkspace} />);
 
     const previousButton = screen.getByRole("button", { name: /Previous/i });
     const nextButton = previousButton.nextElementSibling as HTMLButtonElement;
     await waitFor(() => {
       expect(nextButton).toBeInTheDocument();
     });
-    expect(fetchMore).not.toHaveBeenCalled();
+
+    useQueryMock.mockReturnValue({
+      loading: false,
+      data: {
+        pipelineTemplates: {
+          ...mockPipelineTemplates,
+          items: [template("11")],
+        },
+      },
+      error: null,
+    });
 
     fireEvent.click(nextButton);
 
     await waitFor(() => {
-      expect(fetchMore).toHaveBeenCalled();
+      expect(screen.getByText("Template 11")).toBeInTheDocument();
     });
   });
 
   it("handles search functionality", async () => {
-    const fetchMore = jest.fn();
     useQueryMock.mockReturnValue({
       loading: false,
       data: { pipelineTemplates: mockPipelineTemplates },
       error: null,
-      fetchMore,
     });
 
-    render(<PipelineTemplatesTable workspace={mockWorkspace} />);
+    render(<PipelineTemplates workspace={mockWorkspace} />);
 
     const searchInput = screen.getByRole("textbox");
 
     fireEvent.change(searchInput, { target: { value: "Template 1" } });
-    expect(fetchMore).not.toHaveBeenCalled();
-    fireEvent.submit(searchInput);
 
     await waitFor(() => {
-      expect(fetchMore).toHaveBeenCalledWith(
+      expect(useQueryMock).lastCalledWith(
+        "GQL",
         expect.objectContaining({
           variables: expect.objectContaining({
             search: "Template 1",
@@ -131,7 +133,7 @@ describe("PipelineTemplatesTable", () => {
       error: new Error("An error occurred"),
     });
 
-    render(<PipelineTemplatesTable workspace={mockWorkspace} />);
+    render(<PipelineTemplates workspace={mockWorkspace} />);
 
     await waitFor(() => {
       expect(screen.getByText("Error loading templates")).toBeInTheDocument();

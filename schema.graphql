@@ -725,6 +725,26 @@ enum CreatePipelineFromTemplateVersionError {
 }
 
 """
+Represents the input for deleting a pipeline template.
+"""
+input DeletePipelineTemplateInput {
+  id: UUID!
+}
+
+"""
+Represents the result of deleting a pipeline.
+"""
+type DeletePipelineTemplateResult {
+  success: Boolean!
+  errors: [PipelineTemplateError!]!
+}
+
+enum PipelineTemplateError {
+  PIPELINE_TEMPLATE_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""
 Represents the input for creating a new pipeline from a template version.
 """
 input CreatePipelineFromTemplateVersionInput {
@@ -2131,6 +2151,7 @@ type Mutation {
   """Creates a new pipeline template version."""
   createPipelineTemplateVersion(input: CreatePipelineTemplateVersionInput!): CreatePipelineTemplateVersionResult!
   createPipelineFromTemplateVersion(input: CreatePipelineFromTemplateVersionInput!): CreatePipelineFromTemplateVersionResult!
+  deletePipelineTemplate(input: DeletePipelineTemplateInput): DeletePipelineTemplateResult! @loginRequired
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
@@ -2204,6 +2225,12 @@ type Mutation {
 
   """Pin or unpin a dataset for a workspace."""
   pinDataset(input: PinDatasetInput!): PinDatasetResult!
+
+  """Updates an existing template."""
+  updatePipelineTemplate(input: UpdateTemplateInput!): UpdateTemplateResult!
+
+  updateTemplateVersion(input: UpdateTemplateVersionInput!): UpdateTemplateVersionResult!
+  deleteTemplateVersion(input: DeleteTemplateVersionInput!): DeleteTemplateVersionResult!
 }
 
 type NotebookServer {
@@ -2488,9 +2515,10 @@ type PipelineTemplate {
   code: String!
   description: String
   config: String
-  versions: [PipelineTemplateVersion!]
+  versions(page: Int, perPage: Int): TemplateVersionPage!
   currentVersion: PipelineTemplateVersion
   sourcePipeline: Pipeline
+  permissions: PipelineTemplatePermissions!
 }
 
 """Represents paged result of fetching pipeline templates."""
@@ -2503,7 +2531,18 @@ type PipelineTemplatePage {
 
 """Represents the permissions for a pipeline template."""
 type PipelineTemplatePermissions {
-  createVersion: Boolean!
+  delete: Boolean!
+  update: Boolean!
+}
+
+"""
+Represents a page of template versions.
+"""
+type TemplateVersionPage {
+  items: [PipelineTemplateVersion!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
 }
 
 """Represents a version of a pipeline template."""
@@ -2513,6 +2552,9 @@ type PipelineTemplateVersion {
   changelog: String
   createdAt: DateTime!
   template: PipelineTemplate!
+  user: User
+  permissions: PipelineTemplateVersionPermissions!
+  isLatestVersion: Boolean!
 }
 
 """Represents the permissions for a pipeline template version."""
@@ -2734,10 +2776,12 @@ type Query {
 
   """Retrieves a pipeline by workspace slug and code."""
   pipelineByCode(workspaceSlug: String!, code: String!): Pipeline
+  """Retrieves a template by code."""
+  templateByCode(code: String!): PipelineTemplate
 
   """Retrieves a pipeline run by ID."""
   pipelineRun(id: UUID!): PipelineRun
-  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String): PipelineTemplatePage!
+  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String): PipelineTemplatePage!
   workspace(slug: String!): Workspace
   workspaces(query: String, page: Int, perPage: Int): WorkspacePage!
   pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
@@ -3366,6 +3410,29 @@ input UpdatePipelineInput {
   webhookEnabled: Boolean
 }
 
+"""
+Enum representing the possible errors that can occur when updating a template.
+"""
+enum UpdateTemplateError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for updating a template."""
+input UpdateTemplateInput {
+  id: UUID!
+  name: String
+  config: JSON
+  description: String
+}
+
+"""Represents the result of updating a template."""
+type UpdateTemplateResult {
+  success: Boolean!
+  errors: [UpdateTemplateError!]!
+  template: PipelineTemplate
+}
+
 """Represents the input for updating the progress of a pipeline."""
 input UpdatePipelineProgressInput {
   percent: Int!
@@ -3774,5 +3841,52 @@ type WorkspacePermissions {
 
   """Permissions to create a dataset in the workspace"""
   createDataset: Boolean!
+}
+
+
+"""
+Represents the input for deleting a template version.
+"""
+input DeleteTemplateVersionInput {
+  id: UUID!
+}
+
+"""
+Represents the result of deleting a template version.
+"""
+type DeleteTemplateVersionResult {
+  success: Boolean!
+  errors: [DeleteTemplateVersionError!]!
+}
+
+enum DeleteTemplateVersionError {
+  TEMPLATE_VERSION_NOT_FOUND
+  PERMISSION_DENIED
+  TEMPLATE_NOT_FOUND
+}
+
+"""
+Represents the input for updating a template version.
+"""
+input UpdateTemplateVersionInput {
+  id: UUID!
+  changelog: String
+}
+
+"""
+Enum representing the possible errors that can occur when updating a template version.
+"""
+enum UpdateTemplateVersionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""
+Represents the result of updating a template version.
+"""
+type UpdateTemplateVersionResult {
+  success: Boolean!
+  errors: [UpdateTemplateVersionError!]!
+  templateVersion: PipelineTemplateVersion
 }
 

@@ -15,7 +15,7 @@ export type CreatePipelineTemplateVersionMutationVariables = Types.Exact<{
 }>;
 
 
-export type CreatePipelineTemplateVersionMutation = { __typename?: 'Mutation', createPipelineTemplateVersion: { __typename?: 'CreatePipelineTemplateVersionResult', success: boolean, errors?: Array<Types.CreatePipelineTemplateVersionError> | null, pipelineTemplate?: { __typename?: 'PipelineTemplate', name: string, code: string, versions?: Array<{ __typename?: 'PipelineTemplateVersion', versionNumber: number }> | null } | null } };
+export type CreatePipelineTemplateVersionMutation = { __typename?: 'Mutation', createPipelineTemplateVersion: { __typename?: 'CreatePipelineTemplateVersionResult', success: boolean, errors?: Array<Types.CreatePipelineTemplateVersionError> | null, pipelineTemplate?: { __typename?: 'PipelineTemplate', name: string, code: string } | null } };
 
 export type CreatePipelineFromTemplateVersionMutationVariables = Types.Exact<{
   input: Types.CreatePipelineFromTemplateVersionInput;
@@ -80,9 +80,6 @@ export const CreatePipelineTemplateVersionDocument = gql`
     pipelineTemplate {
       name
       code
-      versions {
-        versionNumber
-      }
     }
   }
 }

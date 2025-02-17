@@ -1,37 +1,52 @@
 import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
+import { User_UserFragmentDoc } from '../../../core/features/User/User.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type GetPipelineTemplatesQueryVariables = Types.Exact<{
   page: Types.Scalars['Int']['input'];
   perPage: Types.Scalars['Int']['input'];
   search?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  workspaceSlug?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
 
 
-export type GetPipelineTemplatesQuery = { __typename?: 'Query', pipelineTemplates: { __typename?: 'PipelineTemplatePage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'PipelineTemplate', id: string, name: string, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, createdAt: any, template: { __typename?: 'PipelineTemplate', sourcePipeline?: { __typename?: 'Pipeline', name?: string | null } | null } } | null }> } };
+export type GetPipelineTemplatesQuery = { __typename?: 'Query', pipelineTemplates: { __typename?: 'PipelineTemplatePage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'PipelineTemplate', id: string, description?: string | null, code: string, name: string, permissions: { __typename?: 'PipelineTemplatePermissions', delete: boolean }, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, template: { __typename?: 'PipelineTemplate', sourcePipeline?: { __typename?: 'Pipeline', name?: string | null } | null } } | null }> } };
 
-export type PipelineTemplateTable_WorkspaceFragment = { __typename?: 'Workspace', slug: string };
+export type PipelineTemplates_WorkspaceFragment = { __typename?: 'Workspace', slug: string };
 
-export const PipelineTemplateTable_WorkspaceFragmentDoc = gql`
-    fragment PipelineTemplateTable_workspace on Workspace {
+export const PipelineTemplates_WorkspaceFragmentDoc = gql`
+    fragment PipelineTemplates_workspace on Workspace {
   slug
 }
     `;
 export const GetPipelineTemplatesDocument = gql`
-    query GetPipelineTemplates($page: Int!, $perPage: Int!, $search: String) {
-  pipelineTemplates(page: $page, perPage: $perPage, search: $search) {
+    query GetPipelineTemplates($page: Int!, $perPage: Int!, $search: String, $workspaceSlug: String) {
+  pipelineTemplates(
+    page: $page
+    perPage: $perPage
+    search: $search
+    workspaceSlug: $workspaceSlug
+  ) {
     pageNumber
     totalPages
     totalItems
     items {
       id
+      description
+      code
       name
+      permissions {
+        delete
+      }
       currentVersion {
         id
         versionNumber
         createdAt
+        user {
+          ...User_user
+        }
         template {
           sourcePipeline {
             name
@@ -41,7 +56,7 @@ export const GetPipelineTemplatesDocument = gql`
     }
   }
 }
-    `;
+    ${User_UserFragmentDoc}`;
 
 /**
  * __useGetPipelineTemplatesQuery__
@@ -58,6 +73,7 @@ export const GetPipelineTemplatesDocument = gql`
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *      search: // value for 'search'
+ *      workspaceSlug: // value for 'workspaceSlug'
  *   },
  * });
  */

@@ -19,9 +19,6 @@ mutation CreatePipelineTemplateVersion(
     pipelineTemplate {
       name
       code
-      versions {
-        versionNumber
-      }
     }
   }
 }
