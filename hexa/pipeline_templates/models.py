@@ -186,7 +186,7 @@ class PipelineTemplateVersion(models.Model):
             "config": source_pipeline.config,
         }
         return Pipeline.objects.create_with_unique_code(
-            name=source_pipeline.name, workspace=workspace, **data
+            name=source_pipeline.code, workspace=workspace, **data
         )
 
     def _extract_config(self, pipeline: Pipeline) -> dict:
