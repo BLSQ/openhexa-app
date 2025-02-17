@@ -362,8 +362,11 @@ requests==2.32.3
     #   moto
     #   multiurl
     #   openhexa-toolbox
+    #   requests-mock
     #   requests-oauthlib
     #   responses
+requests-mock==1.12.1
+    # via -r requirements.in
 requests-oauthlib==2.0.0
     # via kubernetes
 responses==0.25.6

@@ -1,0 +1,47 @@
+{% load static i18n %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>OpenHEXA | {{ dashboard.name }}</title>
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+    <link rel="shortcut icon" href="{% static "img/favicon.png" %}">
+    <script src="https://unpkg.com/@superset-ui/embedded-sdk"></script>
+</head>
+
+<body>
+<div id="container" style="height: 100vh; width: 100vw;">
+</div>
+<script>
+  supersetEmbeddedSdk.embedDashboard({
+    id: "{{ dashboard.external_id }}", // given by the Superset embedding UI
+    supersetDomain: "{{ dashboard.superset_instance.url }}",
+    mountPoint: document.getElementById("container"), // any html element that can contain an iframe
+    fetchGuestToken: () => "{{ guest_token }}",
+    dashboardUiConfig: { // dashboard UI config: hideTitle, hideTab, hideChartControls, filters.visible, filters.expanded (optional), urlParams (optional)
+        hideTitle: true,
+        filters: {
+            expanded: true,
+        },
+    },
+      // optional additional iframe sandbox attributes
+    iframeSandboxExtras: ['allow-top-navigation', 'allow-popups-to-escape-sandbox', 'allow-scripts']
+  });
+</script>
+
+</body>
+<style> 
+  #container {
+    height: 100vh;
+    width: 100vw;
+  }
+  #container iframe {
+    height: 100%;
+    width: 100%;
+  }
+</style>
+</html>
