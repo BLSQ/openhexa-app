@@ -130,7 +130,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 "errors": [],
                 "pipeline": {
                     "name": self.PIPELINE1.name,
-                    "code": "Test Pipeline",
+                    "code": "test-Pipeline",
                     "currentVersion": {
                         "zipfile": "c29tZV9ieXRlcw==",
                         "parameters": [{"code": "param_1", "default": 23}],
