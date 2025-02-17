@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.60.0](https://github.com/BLSQ/openhexa-frontend/compare/0.59.0...0.60.0) (2025-02-17)
+
+
+### Features
+
+* Management pages for templates (HEXA-1129, HEXA-1130) ([#1070](https://github.com/BLSQ/openhexa-frontend/issues/1070)) ([fa58037](https://github.com/BLSQ/openhexa-frontend/commit/fa58037237dba3efcb15cec8d4eb133990d119c6))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @apollo/client to v3.13.0 ([#1091](https://github.com/BLSQ/openhexa-frontend/issues/1091)) ([41adcfe](https://github.com/BLSQ/openhexa-frontend/commit/41adcfe7c127f4e0373bd3f83542147e2f890017))
+* **deps:** update dependency @apollo/client to v3.13.1 ([#1093](https://github.com/BLSQ/openhexa-frontend/issues/1093)) ([a818ead](https://github.com/BLSQ/openhexa-frontend/commit/a818ead1e95a88d06605647be6c343b116a7459f))
+* **deps:** update dependency @mdxeditor/editor to v3.21.5 ([#1086](https://github.com/BLSQ/openhexa-frontend/issues/1086)) ([34e0252](https://github.com/BLSQ/openhexa-frontend/commit/34e0252af2900047b9bb9370f41ba2178d5b8e82))
+* **deps:** update dependency @mdxeditor/editor to v3.22.1 ([#1095](https://github.com/BLSQ/openhexa-frontend/issues/1095)) ([9226624](https://github.com/BLSQ/openhexa-frontend/commit/92266243065de391178489fb40d22d8f41e00c84))
+* **deps:** update dependency @mdxeditor/editor to v3.22.2 ([#1097](https://github.com/BLSQ/openhexa-frontend/issues/1097)) ([66e3ba8](https://github.com/BLSQ/openhexa-frontend/commit/66e3ba86853f4a6992600a9383feb2497f252f8a))
+* **deps:** update dependency @mdxeditor/editor to v3.23.0 ([#1099](https://github.com/BLSQ/openhexa-frontend/issues/1099)) ([d6a2ada](https://github.com/BLSQ/openhexa-frontend/commit/d6a2ada177f531feac471e3ab34f0182976ef7ff))
+* **deps:** update dependency @sentry/nextjs to v9 ([#1078](https://github.com/BLSQ/openhexa-frontend/issues/1078)) ([52924ae](https://github.com/BLSQ/openhexa-frontend/commit/52924ae4a90da4f6cedd64b004b10ee5cea3aa6e))
+* **deps:** update dependency @sentry/nextjs to v9.0.1 ([#1082](https://github.com/BLSQ/openhexa-frontend/issues/1082)) ([4568163](https://github.com/BLSQ/openhexa-frontend/commit/4568163035fbe5631cc8046299a94b79173ce76c))
+* **deps:** update dependency @sentry/nextjs to v9.1.0 ([#1087](https://github.com/BLSQ/openhexa-frontend/issues/1087)) ([731c165](https://github.com/BLSQ/openhexa-frontend/commit/731c165c2abb76d1a8f93f344af78c4f63d4ab3a))
+* **deps:** update dependency @tanstack/react-table to v8.21.2 ([#1083](https://github.com/BLSQ/openhexa-frontend/issues/1083)) ([e002bee](https://github.com/BLSQ/openhexa-frontend/commit/e002bee1c3c2a7fa553eeb4b1ab529cd11e270b9))
+* **deps:** update dependency @types/node to v22.13.2 ([#1085](https://github.com/BLSQ/openhexa-frontend/issues/1085)) ([fb5106a](https://github.com/BLSQ/openhexa-frontend/commit/fb5106a9d91504476347dca0becd48df939930fb))
+* **deps:** update dependency @types/node to v22.13.4 ([#1090](https://github.com/BLSQ/openhexa-frontend/issues/1090)) ([93b23b5](https://github.com/BLSQ/openhexa-frontend/commit/93b23b5f7588ed031a8e62752a44df265d4e7f2d))
+* **deps:** update dependency cron-parser to v5 ([#1092](https://github.com/BLSQ/openhexa-frontend/issues/1092)) ([9605171](https://github.com/BLSQ/openhexa-frontend/commit/960517101b4bf06b982a3ae2e2e8dd007f03c555))
+* **deps:** update dependency cron-parser to v5.0.1 ([#1098](https://github.com/BLSQ/openhexa-frontend/issues/1098)) ([d401a48](https://github.com/BLSQ/openhexa-frontend/commit/d401a4830a6708538f156c6aaa66cae75532f9be))
+* **deps:** update dependency remark-gfm to v4.0.1 ([#1076](https://github.com/BLSQ/openhexa-frontend/issues/1076)) ([ad01b3d](https://github.com/BLSQ/openhexa-frontend/commit/ad01b3dad29681909798ab7089ef414fe7e1a8e4))
+* **deps:** update nextjs monorepo to v15.1.7 ([#1081](https://github.com/BLSQ/openhexa-frontend/issues/1081)) ([a4d3ac9](https://github.com/BLSQ/openhexa-frontend/commit/a4d3ac9dd46be3bc39d4b7d2ea99ccd8136f0e93))
+
 ## [0.59.0](https://github.com/BLSQ/openhexa-frontend/compare/0.58.2...0.59.0) (2025-02-10)
 
 
