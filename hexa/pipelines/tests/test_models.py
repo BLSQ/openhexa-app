@@ -1,3 +1,5 @@
+import random
+
 from django.core import mail
 
 from hexa.core.test import TestCase
@@ -406,3 +408,24 @@ class PipelineTest(TestCase):
         self.assertEqual(
             created_pipeline.last_version.config, {"param_1": 1234, "param_3": 666}
         )
+
+    def test_create_with_unique_code(self):
+        random.seed(42)
+
+        workspace = Workspace.objects.create(
+            name="Test Workspace",
+            description="A workspace for testing",
+        )
+
+        pipeline1 = Pipeline.objects.create_with_unique_code(
+            name="Test Pipeline",
+            workspace=workspace,
+        )
+        pipeline2 = Pipeline.objects.create_with_unique_code(
+            name="Test Pipeline",
+            workspace=workspace,
+        )
+
+        self.assertNotEqual(pipeline1.code, pipeline2.code)
+        self.assertEqual(pipeline1.code, "test-pipeline")
+        self.assertEqual(pipeline2.code, "test-pipeline-85e26c")
