@@ -160,9 +160,17 @@ class PipelineTemplatesTest(GraphQLTestCase):
         )
         self.assertEqual(
             {
-                "success": False,
-                "errors": ["PIPELINE_ALREADY_EXISTS"],
-                "pipeline": None,
+                "errors": [],
+                "pipeline": {
+                    "code": "test-pipeline",
+                    "currentVersion": {
+                        "config": {},
+                        "parameters": [{"code": "param_1", "default": 23}],
+                        "zipfile": "c29tZV9ieXRlcw==",
+                    },
+                    "name": "Test Pipeline",
+                },
+                "success": True,
             },
             r["data"]["createPipelineFromTemplateVersion"],
         )

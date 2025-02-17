@@ -79,9 +79,6 @@ def resolve_create_pipeline(_, info, **kwargs):
     except storage.exceptions.NotFound:
         return {"success": False, "errors": ["FILE_NOT_FOUND"]}
 
-    except IntegrityError:
-        return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}
-
     return {"pipeline": pipeline, "success": True, "errors": []}
 
 
