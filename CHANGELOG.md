@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.60.1](https://github.com/BLSQ/openhexa-frontend/compare/0.60.0...0.60.1) (2025-02-18)
+
+
+### Bug Fixes
+
+* Create pipeline dialog is not showing the create button ([#1106](https://github.com/BLSQ/openhexa-frontend/issues/1106)) ([8f2bfb1](https://github.com/BLSQ/openhexa-frontend/commit/8f2bfb1912bc9cb2c3c020d4ea6f78360b89d1f7))
+* **deps:** update dependency @mdxeditor/editor to v3.23.2 ([#1103](https://github.com/BLSQ/openhexa-frontend/issues/1103)) ([7749f55](https://github.com/BLSQ/openhexa-frontend/commit/7749f55aa644dbc6e1c9978dc2735d034c8b864b))
+* **deps:** update dependency react-i18next to v15.4.1 ([#1105](https://github.com/BLSQ/openhexa-frontend/issues/1105)) ([008ae8d](https://github.com/BLSQ/openhexa-frontend/commit/008ae8ddc38f8c1da25126066f65ca21697ac6d5))
+
 ## [0.60.0](https://github.com/BLSQ/openhexa-frontend/compare/0.59.0...0.60.0) (2025-02-17)
 
 
