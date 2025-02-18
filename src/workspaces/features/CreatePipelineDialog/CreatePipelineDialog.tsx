@@ -117,7 +117,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
     <Dialog open={open} onClose={onClose} maxWidth="max-w-6xl">
       <Dialog.Title>{t("How to create a pipeline")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
-        <Tabs onChange={(index) => setTabIndex(index)}>
+        <Tabs onChange={(index) => setTabIndex(index)} defaultIndex={tabIndex}>
           {pipelineTemplateFeatureEnabled && (
             <Tabs.Tab label={t("From Template")} className={"space-y-2 pt-2"}>
               <PipelineTemplateTable workspace={workspace} />
