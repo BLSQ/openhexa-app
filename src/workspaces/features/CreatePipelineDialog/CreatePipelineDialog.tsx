@@ -31,7 +31,10 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   const { open, onClose, workspace } = props;
   const router = useRouter();
   const [pipelineTemplateFeatureEnabled] = useFeature("pipeline_templates");
-  const [tabIndex, setTabIndex] = useState<number | null>(0);
+  const tabs = pipelineTemplateFeatureEnabled
+    ? ["templates", "notebooks", "cli"]
+    : ["notebooks", "cli"];
+  const [tabIndex, setTabIndex] = useState<number>(0);
 
   const [mutate] = useCreatePipelineMutation();
 
@@ -121,7 +124,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
             </Tabs.Tab>
           )}
           <Tabs.Tab label={t("From Notebook")} className={"space-y-2 pt-2"}>
-            <form onSubmit={form.handleSubmit}>
+            <form>
               <p className="mb-6">
                 <Trans>
                   You can use a Notebook from the workspace file system to be
@@ -216,16 +219,13 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
             </Field>
           </Tabs.Tab>
         </Tabs>
-        {form.submitError && (
-          <p className={"text-sm text-red-500"}>{form.submitError}</p>
-        )}
       </Dialog.Content>
       <Dialog.Actions>
         <Button onClick={onClose} variant="outlined">
           {t("Close")}
         </Button>
-        {tabIndex === 1 && (
-          <Button disabled={form.isSubmitting} type="submit">
+        {tabs[tabIndex] === "notebooks" && (
+          <Button disabled={form.isSubmitting} onClick={form.handleSubmit}>
             {t("Create")}
           </Button>
         )}
