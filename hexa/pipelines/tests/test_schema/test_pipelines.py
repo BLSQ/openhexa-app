@@ -93,6 +93,28 @@ class PipelinesV2Test(GraphQLTestCase):
             role=WorkspaceMembershipRole.VIEWER,
         )
 
+    def test_create_pipeline_without_name(self):
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+                mutation createPipeline($input: CreatePipelineInput!) {
+                    createPipeline(input: $input) {
+                        success errors pipeline {name code}
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                }
+            },
+        )
+        self.assertIsNotNone(r["errors"])
+        self.assertIn(
+            "Field 'name' of required type 'String!' was not provided.",
+            r["errors"][0]["message"],
+        )
+
     def test_create_pipeline(self):
         self.assertEqual(0, len(Pipeline.objects.all()))
 
