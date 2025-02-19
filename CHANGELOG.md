@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.60.2](https://github.com/BLSQ/openhexa-frontend/compare/0.60.1...0.60.2) (2025-02-18)
+
+
+### Bug Fixes
+
+* Glitch when opening, choosing a tab and then closing the pipeline create dialog with feature flag enabled ([#1107](https://github.com/BLSQ/openhexa-frontend/issues/1107)) ([0992923](https://github.com/BLSQ/openhexa-frontend/commit/0992923b018045feaa4ba10933840d429220ecd8))
+
 ## [0.60.1](https://github.com/BLSQ/openhexa-frontend/compare/0.60.0...0.60.1) (2025-02-18)
 
 
