@@ -616,7 +616,7 @@ extend type Query {
   """
   Retrieves a page of pipelines.
   """
-  pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage! @loginRequired
+  pipelines(workspaceSlug: String, name: String, page: Int, perPage: Int): PipelinesPage! @loginRequired
 
   """
   Retrieves a pipeline by ID.

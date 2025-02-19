@@ -32,6 +32,12 @@ def resolve_pipelines(_, info, **kwargs):
     else:
         qs = Pipeline.objects.filter_for_user(request.user).order_by("name", "id")
 
+    name_filter = kwargs.get("name", None)
+    if name_filter:
+        matching_qs = list(qs.filter(name__icontains=name_filter))
+        non_matching_qs = list(qs.exclude(name__icontains=name_filter))
+        qs = matching_qs + non_matching_qs
+
     return result_page(
         queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
     )
