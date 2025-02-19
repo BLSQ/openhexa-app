@@ -427,4 +427,4 @@ class PipelineTest(TestCase):
 
         self.assertNotEqual(pipeline1.code, pipeline2.code)
         self.assertEqual(pipeline1.code, "test-pipeline")
-        self.assertTrue(pipeline2.code.startswith("test-pipeline-abc123"))
+        self.assertEqual(pipeline2.code, "test-pipeline-abc123")
