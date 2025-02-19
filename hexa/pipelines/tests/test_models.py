@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.core import mail
 
 from hexa.core.test import TestCase
@@ -413,15 +415,16 @@ class PipelineTest(TestCase):
             description="A workspace for testing",
         )
 
-        pipeline1 = Pipeline.objects.create_with_unique_code(
-            name="Test Pipeline",
-            workspace=workspace,
-        )
-        pipeline2 = Pipeline.objects.create_with_unique_code(
-            name="Test Pipeline",
-            workspace=workspace,
-        )
+        with patch("secrets.token_hex", return_value="abc123"):
+            pipeline1 = Pipeline.objects.create_with_unique_code(
+                name="Test Pipeline",
+                workspace=workspace,
+            )
+            pipeline2 = Pipeline.objects.create_with_unique_code(
+                name="Test Pipeline",
+                workspace=workspace,
+            )
 
         self.assertNotEqual(pipeline1.code, pipeline2.code)
         self.assertEqual(pipeline1.code, "test-pipeline")
-        self.assertTrue(pipeline2.code.startswith("test-pipeline-"))
+        self.assertTrue(pipeline2.code.startswith("test-pipeline-abc123"))
