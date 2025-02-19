@@ -37,7 +37,7 @@ class Webapp(Base, SoftDeletedModel):
         Workspace, on_delete=models.CASCADE, related_name="webapps"
     )
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-
+    url = models.URLField()
     objects = WebappManager.from_queryset(WebappQuerySet)()
 
     def __str__(self):
