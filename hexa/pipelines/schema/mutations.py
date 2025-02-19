@@ -61,7 +61,7 @@ def resolve_create_pipeline(_, info, **kwargs):
             data["type"] = PipelineType.ZIPFILE
 
         pipeline = Pipeline.objects.create_with_unique_code(
-            input.get("name"), workspace, **data
+            name=input["name"], workspace=workspace, **data
         )
         event_properties = {
             "pipeline_id": str(pipeline.id),
