@@ -1,4 +1,5 @@
 import base64
+import secrets
 import time
 import typing
 import uuid
@@ -16,6 +17,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
+from slugify import slugify
 
 from hexa.core.models import (
     Base,
@@ -267,6 +269,20 @@ class PipelineRunLogLevel(models.IntegerChoices):
         return cls.INFO
 
 
+class PipelineManager(DefaultSoftDeletedManager.from_queryset(PipelineQuerySet)):
+    def _create_unique_code(self, name: str, workspace: Workspace):
+        suffix = ""
+        while True:
+            code = slugify(name[: 255 - len(suffix)] + suffix)
+            if not super().filter(workspace=workspace, code=code).exists():
+                return code
+            suffix = "-" + secrets.token_hex(3)
+
+    def create_with_unique_code(self, name: str, workspace: Workspace, **kwargs):
+        code = self._create_unique_code(name, workspace)
+        return super().create(name=name, workspace=workspace, code=code, **kwargs)
+
+
 class Pipeline(SoftDeletedModel):
     class Meta:
         verbose_name = "Pipeline"
@@ -276,6 +292,7 @@ class Pipeline(SoftDeletedModel):
                 "code",
                 name="unique_pipeline_code_per_workspace",
                 condition=Q(deleted_at__isnull=True),
+                violation_error_message="A pipeline with the same code already exists in this workspace. Consider using `create_with_unique_code` method.",
             )
         ]
 
@@ -313,7 +330,7 @@ class Pipeline(SoftDeletedModel):
         related_name="pipelines",
     )
 
-    objects = DefaultSoftDeletedManager.from_queryset(PipelineQuerySet)()
+    objects = PipelineManager()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()
 
     def run(

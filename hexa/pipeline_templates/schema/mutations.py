@@ -4,7 +4,7 @@ from django.http import HttpRequest
 
 from hexa.analytics.api import track
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
-from hexa.pipelines.models import Pipeline, PipelineAlreadyExistsError, PipelineVersion
+from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -154,10 +154,7 @@ def resolve_create_pipeline_from_template_version(_, info, **kwargs):
     except PipelineTemplateVersion.DoesNotExist:
         return {"success": False, "errors": ["PIPELINE_TEMPLATE_VERSION_NOT_FOUND"]}
 
-    try:
-        pipeline_version = template_version.create_pipeline_version(user, workspace)
-    except PipelineAlreadyExistsError:
-        return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}
+    pipeline_version = template_version.create_pipeline_version(user, workspace)
 
     track(
         request,

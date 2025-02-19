@@ -93,6 +93,28 @@ class PipelinesV2Test(GraphQLTestCase):
             role=WorkspaceMembershipRole.VIEWER,
         )
 
+    def test_create_pipeline_without_name(self):
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+                mutation createPipeline($input: CreatePipelineInput!) {
+                    createPipeline(input: $input) {
+                        success errors pipeline {name code}
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                }
+            },
+        )
+        self.assertIsNotNone(r["errors"])
+        self.assertIn(
+            "Field 'name' of required type 'String!' was not provided.",
+            r["errors"][0]["message"],
+        )
+
     def test_create_pipeline(self):
         self.assertEqual(0, len(Pipeline.objects.all()))
 
@@ -107,7 +129,6 @@ class PipelinesV2Test(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "code": "new_pipeline",
                     "name": "MonBeauPipeline",
                     "workspaceSlug": self.WS1.slug,
                 }
@@ -117,7 +138,7 @@ class PipelinesV2Test(GraphQLTestCase):
             {
                 "success": True,
                 "errors": [],
-                "pipeline": {"name": "MonBeauPipeline", "code": "new_pipeline"},
+                "pipeline": {"name": "MonBeauPipeline", "code": "monbeaupipeline"},
             },
             r["data"]["createPipeline"],
         )
@@ -153,7 +174,6 @@ class PipelinesV2Test(GraphQLTestCase):
                 """,
                 {
                     "input": {
-                        "code": "new_pipeline",
                         "name": "notebook.ipynb",
                         "workspaceSlug": self.WS1.slug,
                         "notebookPath": "notebook.ipynb",
@@ -192,7 +212,6 @@ class PipelinesV2Test(GraphQLTestCase):
                 """,
                 {
                     "input": {
-                        "code": "new_pipeline",
                         "name": "notebook.ipynb",
                         "workspaceSlug": self.WS1.slug,
                         "notebookPath": "notebook.ipynb",
@@ -204,7 +223,7 @@ class PipelinesV2Test(GraphQLTestCase):
                 {
                     "success": True,
                     "errors": [],
-                    "pipeline": {"code": "new_pipeline", "name": "notebook.ipynb"},
+                    "pipeline": {"code": "notebook-ipynb", "name": "notebook.ipynb"},
                 },
                 r["data"]["createPipeline"],
             )
@@ -247,7 +266,7 @@ class PipelinesV2Test(GraphQLTestCase):
         )
         self.assertEqual(1, len(r["data"]["pipelines"]["items"]))
         self.assertEqual(
-            {"code": "new_pipeline", "workspace": {"name": "WS1"}},
+            {"code": "monbeaupipeline", "workspace": {"name": "WS1"}},
             r["data"]["pipelines"]["items"][0],
         )
 
@@ -564,7 +583,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)
 
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         run = pipeline.run(
             user=self.USER_ROOT,
             pipeline_version=pipeline.last_version,
@@ -596,7 +615,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)
 
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         run = pipeline.run(
             user=self.USER_ROOT,
             pipeline_version=pipeline.last_version,
@@ -798,13 +817,17 @@ class PipelinesV2Test(GraphQLTestCase):
             }
         """,
             {
-                "code": "new_pipeline",
+                "code": "monbeaupipeline",
                 "workspaceSlug": self.WS1.slug,
             },
         )
 
         self.assertEqual(
-            {"id": str(pipeline.id), "code": "new_pipeline", "name": "MonBeauPipeline"},
+            {
+                "id": str(pipeline.id),
+                "code": "monbeaupipeline",
+                "name": "MonBeauPipeline",
+            },
             r["data"]["pipelineByCode"],
         )
 
@@ -820,7 +843,7 @@ class PipelinesV2Test(GraphQLTestCase):
             }
         """,
             {
-                "code": "new_pipeline",
+                "code": "monbeaupipeline",
                 "workspaceSlug": self.WS1.slug,
             },
         )
@@ -833,7 +856,7 @@ class PipelinesV2Test(GraphQLTestCase):
     def test_pipeline_run_outputs(self):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         run = pipeline.run(
             user=self.USER_ROOT,
             pipeline_version=pipeline.last_version,
@@ -874,7 +897,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)
 
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         run = pipeline.run(
             user=self.USER_ROOT,
             pipeline_version=pipeline.last_version,
@@ -918,7 +941,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)
 
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         run = pipeline.run(
             user=self.USER_ROOT,
             pipeline_version=pipeline.last_version,
@@ -965,7 +988,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)
 
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         run = pipeline.run(
             user=self.USER_ROOT,
             pipeline_version=pipeline.last_version,
@@ -1009,7 +1032,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)
 
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         run = pipeline.run(
             user=self.USER_ROOT,
             pipeline_version=pipeline.last_version,
@@ -1924,7 +1947,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)
 
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         run = pipeline.run(
             user=self.USER_ROOT,
             pipeline_version=pipeline.last_version,
@@ -1955,7 +1978,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)
 
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         run = pipeline.run(
             user=self.USER_ROOT,
             pipeline_version=pipeline.last_version,
@@ -1986,7 +2009,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)
 
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         run = pipeline.run(
             user=self.USER_ROOT,
             pipeline_version=pipeline.last_version,
@@ -2017,7 +2040,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_SABRINA)
 
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         run = pipeline.run(
             user=self.USER_ROOT,
             pipeline_version=pipeline.last_version,
@@ -2047,7 +2070,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)
 
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         run = pipeline.run(
             user=self.USER_ROOT,
             pipeline_version=pipeline.last_version,
@@ -2100,7 +2123,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)
 
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         pipeline.webhook_enabled = False
         pipeline.save()
 
@@ -2125,7 +2148,7 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)
 
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
         pipeline.webhook_enabled = True
         pipeline.save()
 
@@ -2167,7 +2190,7 @@ class PipelinesV2Test(GraphQLTestCase):
     def test_generate_pipeline_webhook_url_update_permission_denied(self):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_SABRINA)
-        pipeline = Pipeline.objects.get(code="new_pipeline")
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
 
         r = self.run_query(
             """
