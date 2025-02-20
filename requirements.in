@@ -59,6 +59,7 @@ requests==2.32.3
 
 # analytics
 mixpanel
+mixpanel-py-async
 ua-parser
 
 # dataset explorer
