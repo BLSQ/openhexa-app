@@ -9,6 +9,9 @@ import { setConfig } from "next/config";
 import { configMocks, mockAnimationsApi } from "jsdom-testing-mocks";
 import { act } from "react";
 import { Settings } from "luxon";
+// @ts-ignore
+import { publicRuntimeConfig } from "./next.config";
+
 Settings.defaultLocale = "en";
 Settings.defaultZone = "Europe/Brussels";
 Settings.now = jest.fn().mockImplementation(() => Date.now());
@@ -18,9 +21,6 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 configMocks({ act });
 
 mockAnimationsApi();
-
-// @ts-ignore
-import { publicRuntimeConfig } from "./next.config";
 
 // Mock ResizeObserver
 class ResizeObserver {
@@ -50,10 +50,6 @@ afterEach(() => {
 // Mock browser confirm
 window.confirm = jest.fn();
 
-jest.mock("react-markdown", () => (props) => {
-  return props.children || null;
-});
-
 jest.mock("react", () => {
   const actualReact = jest.requireActual("react");
   return {
@@ -62,6 +58,12 @@ jest.mock("react", () => {
       const ref = actualReact.useRef(faker.string.uuid());
       return ref.current;
     },
+  };
+});
+
+jest.mock("core/components/MarkdownEditor/MarkdownEditor", () => {
+  return (props) => {
+    return props.markdown || null;
   };
 });
 
