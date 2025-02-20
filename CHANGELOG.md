@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.60.3](https://github.com/BLSQ/openhexa-frontend/compare/0.60.2...0.60.3) (2025-02-20)
+
+
+### Bug Fixes
+
+* **deps:** update dependency react-markdown to v10 ([#1116](https://github.com/BLSQ/openhexa-frontend/issues/1116)) ([280b90f](https://github.com/BLSQ/openhexa-frontend/commit/280b90f7f1c0f44b30b707745b3a73e6cdd3fae3))
+* **deps:** update dependency react-markdown to v9.1.0 ([#1115](https://github.com/BLSQ/openhexa-frontend/issues/1115)) ([338caf3](https://github.com/BLSQ/openhexa-frontend/commit/338caf38d367dd01042005f871b9600d0246936f))
+* **deps:** update dependency uuid to v11.1.0 ([#1113](https://github.com/BLSQ/openhexa-frontend/issues/1113)) ([e90ede1](https://github.com/BLSQ/openhexa-frontend/commit/e90ede17ba83c6978411fe64fa761e0d43e22d5a))
+* glitches with markdowns and support images in markdowns (HEXA-1194) ([#1110](https://github.com/BLSQ/openhexa-frontend/issues/1110)) ([aeffd6e](https://github.com/BLSQ/openhexa-frontend/commit/aeffd6e388d31c4f0bb72db3db173441c87406ea))
+
 ## [0.60.2](https://github.com/BLSQ/openhexa-frontend/compare/0.60.1...0.60.2) (2025-02-18)
 
 
