@@ -3,31 +3,34 @@ import {
   BoldItalicUnderlineToggles,
   ChangeAdmonitionType,
   ChangeCodeMirrorLanguage,
+  codeBlockPlugin,
+  codeMirrorPlugin,
   CodeToggle,
   ConditionalContents,
   EditorInFocus,
-  InsertCodeBlock,
-  InsertThematicBreak,
-  ListsToggle,
-  MDXEditor,
-  MDXEditorProps,
-  Separator,
-  StrikeThroughSupSubToggles,
-  UndoRedo,
-  codeBlockPlugin,
-  codeMirrorPlugin,
   headingsPlugin,
+  imagePlugin,
+  InsertCodeBlock,
+  InsertImage,
+  InsertThematicBreak,
   linkDialogPlugin,
   linkPlugin,
   listsPlugin,
+  ListsToggle,
   markdownShortcutPlugin,
+  MDXEditor,
+  MDXEditorProps,
   quotePlugin,
+  Separator,
+  StrikeThroughSupSubToggles,
   thematicBreakPlugin,
   toolbarPlugin,
+  UndoRedo,
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
 import clsx from "clsx";
 import styles from "./MarkdownEditor.module.css";
+import { useMemo } from "react";
 
 export type MarkdownEditorProps = MDXEditorProps & {
   sm?: boolean;
@@ -46,12 +49,84 @@ const MarkdownEditor = ({
   className,
   markdown,
   sm,
+  readOnly,
   ...delegated
 }: MarkdownEditorProps) => {
+  const plugins = useMemo(() => {
+    const basePlugins = [
+      headingsPlugin(),
+      quotePlugin(),
+      listsPlugin(),
+      codeBlockPlugin({ defaultCodeBlockLanguage: "txt" }),
+      codeMirrorPlugin({
+        codeBlockLanguages: {
+          python: "Python",
+          js: "JavaScript",
+          css: "CSS",
+          txt: "text",
+        },
+      }),
+      thematicBreakPlugin(),
+      linkPlugin(),
+      linkDialogPlugin(),
+      markdownShortcutPlugin(),
+      imagePlugin({ disableImageResize: readOnly }),
+    ];
+
+    if (!readOnly) {
+      basePlugins.push(
+        toolbarPlugin({
+          toolbarClassName: styles.toolbar,
+          toolbarContents: () => (
+            <ConditionalContents
+              options={[
+                {
+                  when: (editor) => editor?.editorType === "codeblock",
+                  contents: () => <ChangeCodeMirrorLanguage />,
+                },
+                {
+                  fallback: () => (
+                    <>
+                      <UndoRedo />
+                      <Separator />
+                      <BoldItalicUnderlineToggles />
+                      <CodeToggle />
+                      <Separator />
+                      <StrikeThroughSupSubToggles />
+                      <Separator />
+                      <ListsToggle options={["bullet", "number"]} />
+                      <Separator />
+                      <ConditionalContents
+                        options={[
+                          {
+                            when: whenInAdmonition,
+                            contents: () => <ChangeAdmonitionType />,
+                          },
+                          { fallback: () => <BlockTypeSelect /> },
+                        ]}
+                      />
+                      <Separator />
+                      <InsertThematicBreak />
+                      <Separator />
+                      <InsertCodeBlock />
+                      <InsertImage />
+                    </>
+                  ),
+                },
+              ]}
+            />
+          ),
+        }),
+      );
+    }
+    return basePlugins;
+  }, [readOnly]);
+
   return (
     <div
       className={clsx(
-        "rounded-md border border-gray-300 overflow-y-auto",
+        "rounded-md overflow-y-auto",
+        !readOnly && "border border-gray-300",
         className,
       )}
     >
@@ -67,69 +142,8 @@ const MarkdownEditor = ({
             "prose-sm prose-h1:text-xl prose-h2:text-lg prose-h3:text-md prose-h2:mt-0",
           styles.editor,
         )}
-        plugins={[
-          toolbarPlugin({
-            toolbarClassName: styles.toolbar,
-            toolbarContents: () => (
-              <ConditionalContents
-                options={[
-                  {
-                    when: (editor) => editor?.editorType === "codeblock",
-                    contents: () => <ChangeCodeMirrorLanguage />,
-                  },
-                  {
-                    fallback: () => (
-                      <>
-                        <UndoRedo />
-                        <Separator />
-                        <BoldItalicUnderlineToggles />
-                        <CodeToggle />
-                        <Separator />
-                        <StrikeThroughSupSubToggles />
-                        <Separator />
-                        <ListsToggle options={["bullet", "number"]} />
-                        <Separator />
-
-                        <ConditionalContents
-                          options={[
-                            {
-                              when: whenInAdmonition,
-                              contents: () => <ChangeAdmonitionType />,
-                            },
-                            { fallback: () => <BlockTypeSelect /> },
-                          ]}
-                        />
-
-                        <Separator />
-
-                        <InsertThematicBreak />
-
-                        <Separator />
-                        <InsertCodeBlock />
-                      </>
-                    ),
-                  },
-                ]}
-              />
-            ),
-          }),
-          headingsPlugin(),
-          quotePlugin(),
-          listsPlugin(),
-          codeBlockPlugin({ defaultCodeBlockLanguage: "txt" }),
-          codeMirrorPlugin({
-            codeBlockLanguages: {
-              python: "Python",
-              js: "JavaScript",
-              css: "CSS",
-              txt: "text",
-            },
-          }),
-          thematicBreakPlugin(),
-          linkPlugin(),
-          linkDialogPlugin(),
-          markdownShortcutPlugin(),
-        ]}
+        plugins={plugins}
+        readOnly={readOnly}
         {...delegated}
       />
     </div>

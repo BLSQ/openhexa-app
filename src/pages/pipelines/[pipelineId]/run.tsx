@@ -12,9 +12,9 @@ import {
 import { runPipeline } from "pipelines/helpers/pipeline";
 import { getPipelineRun } from "pipelines/helpers/runs";
 import { useMemo } from "react";
-import ReactMarkdown from "react-markdown";
 import BackLayout from "core/layouts/back/BackLayout";
 import { toast } from "react-toastify";
+import MarkdownViewer from "core/components/MarkdownViewer";
 
 type Props = {
   run: Awaited<ReturnType<typeof getPipelineRun>>;
@@ -93,9 +93,10 @@ const PipelineConfigureRunPage = (props: Props) => {
             <Block className="basis-5/12">
               <Block.Header>{t("Description")}</Block.Header>
               <Block.Content>
-                <ReactMarkdown className="prose max-w-3xl text-sm">
-                  {description}
-                </ReactMarkdown>
+                <MarkdownViewer
+                  className="prose max-w-3xl text-sm"
+                  markdown={description}
+                />
               </Block.Content>
             </Block>
           )}
