@@ -82,7 +82,7 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
             msg in str(e)
             for msg in [
                 "unique_template_code_per_workspace",
-                "unique_template_name_per_workspace",
+                "unique_template_name",
             ]
         ):
             return {"success": False, "errors": ["DUPLICATE_TEMPLATE_NAME_OR_CODE"]}
