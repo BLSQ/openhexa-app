@@ -194,11 +194,20 @@ In the browser, go to http://localhost:5050 and log in using credentials defined
 
 ![PgAdmin dev tool](docs/images/pg-admin-dashboard.png)
 
-Finally create a new connection to the server:
+Finally create a new connection to the server.
+Here's what you should type in if you followed the current installation instructions:
+
+- name: choose a name for your server
+- Host name/address: that's the docker compose gateway IP address (`172.18.0.1`)
+- Port: the port bound for the postgres database (`5434`)
+- Username: the name of the user automatically created for you (`hexa-app`)
+- Password: the password of the user automatically created for you (`hexa-app`)
 
 ![PgAdmin dev tool](docs/images/pg-admin-server-setup-1.png)
 
 ![PgAdmin dev tool](docs/images/pg-admin-server-setup-2.png)
+
+![PgAdmin dev tool](docs/images/pg-admin-connected.png)
 
 The address of the server must be the one of the database container gateway, on the 5434 port.
 
