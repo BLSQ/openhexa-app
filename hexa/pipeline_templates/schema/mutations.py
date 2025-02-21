@@ -78,12 +78,15 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
             )
         )  # Recreate the version if the source pipeline version has no template version (it can have one if the template was deleted before and restored)
     except IntegrityError as e:
-        if "unique_template_code_per_workspace" in str(
-            e
-        ) or "unique_template_name_per_workspace" in str(e):
+        if any(
+            msg in str(e)
+            for msg in [
+                "unique_template_code_per_workspace",
+                "unique_template_name_per_workspace",
+            ]
+        ):
             return {"success": False, "errors": ["DUPLICATE_TEMPLATE_NAME_OR_CODE"]}
-        else:
-            return {"success": False, "errors": ["UNKNOWN_ERROR"]}
+        return {"success": False, "errors": ["UNKNOWN_ERROR"]}
 
     track(
         request,
