@@ -10,7 +10,13 @@ from hexa.user_management.models import AnonymousUser, User
 mixpanel = None
 if settings.MIXPANEL_TOKEN:
     mixpanel = Mixpanel(
-        token=settings.MIXPANEL_TOKEN, consumer=AsyncBufferedConsumer(request_timeout=4)
+        token=settings.MIXPANEL_TOKEN,
+        consumer=AsyncBufferedConsumer(  # See AsyncMixpanelTest for expected behavior
+            # It’s a good practice to set connect timeouts to slightly larger than a multiple of 3, which is the default TCP packet retransmission window.
+            # https://requests.readthedocs.io/en/latest/user/advanced/#timeouts
+            # request_timeout is an int, so using 4 seconds
+            request_timeout=4
+        ),
     )
 
 
