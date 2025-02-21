@@ -29,11 +29,11 @@ attrs==25.1.0
     #   eccodes
     #   morecantile
     #   rasterio
-boto3==1.35.90
+boto3==1.36.26
     # via
     #   -r requirements.in
     #   moto
-botocore==1.35.99
+botocore==1.36.26
     # via
     #   boto3
     #   moto
@@ -374,7 +374,7 @@ rio-cogeo==5.4.1
     # via -r requirements.in
 rsa==4.9
     # via google-auth
-s3transfer==0.10.4
+s3transfer==0.11.2
     # via boto3
 sentry-sdk==2.20.0
     # via -r requirements.in
