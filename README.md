@@ -47,8 +47,11 @@ container.
 The following steps will get you up and running:
 
 ```bash
+git clone git@github.com:BLSQ/openhexa-app.git
+mkdir data  # any local directory to use a local storage backend for workspaces
+cd openhexa-app
 cp .env.dist .env  # adapt the .env file with the required configuration values
-# Set WORKSPACE_STORAGE_LOCATION to a local directory to use a local storage backend for workspaces
+export WORKSPACE_STORAGE_LOCATION=../data
 docker network create openhexa
 docker compose build
 docker compose run app fixtures
@@ -61,7 +64,7 @@ This will correctly configure all the environment variables, fill the database w
 - http://localhost:8000/graphql for the GraphQL API
 - http://localhost:8000/ready for the readiness endpoint 
 
-Anything else will be redirected to the frontend served at `http://localhost:3000`.
+Anything else will be redirected to the frontend served at `http://localhost:3000`. Check out the [frontend installation instructions](https://github.com/BLSQ/openhexa/wiki/Installation-instructions#frontend).
 
 You can then log in with the following credentials: `root@openhexa.org`/`root`
 
