@@ -305,7 +305,9 @@ class Pipeline(SoftDeletedModel):
     updated_at = models.DateTimeField(auto_now=True)
 
     name = models.CharField(max_length=200, null=True, blank=True)
-    code = models.CharField(max_length=200, default="")
+    code = models.CharField(
+        max_length=200, default=""
+    )  # this is the auto-generated unique identifier for the pipeline, TODO: rename it to slug
     description = models.TextField(blank=True)
     config = models.JSONField(blank=True, default=dict)
     schedule = models.CharField(max_length=200, null=True, blank=True)
