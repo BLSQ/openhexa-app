@@ -1,5 +1,6 @@
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied
+from django.db import IntegrityError
 from django.http import HttpRequest
 
 from hexa.analytics.api import track
@@ -61,18 +62,32 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
     if not source_pipeline_version:
         return {"success": False, "errors": ["PIPELINE_VERSION_NOT_FOUND"]}
 
-    pipeline_template, template_created = source_pipeline.get_or_create_template(
-        name=input.get("name"),
-        code=input.get("code"),
-        description=input.get("description"),
-    )
-    pipeline_template_version = (
-        source_pipeline_version.template_version
-        if hasattr(source_pipeline_version, "template_version")
-        else pipeline_template.create_version(
-            source_pipeline_version, user=request.user, changelog=input.get("changelog")
+    try:
+        pipeline_template, template_created = source_pipeline.get_or_create_template(
+            name=input.get("name"),
+            code=input.get("code"),
+            description=input.get("description"),
         )
-    )  # Recreate the version if the source pipeline version has no template version (it can have one if the template was deleted before and restored)
+        pipeline_template_version = (
+            source_pipeline_version.template_version
+            if hasattr(source_pipeline_version, "template_version")
+            else pipeline_template.create_version(
+                source_pipeline_version,
+                user=request.user,
+                changelog=input.get("changelog"),
+            )
+        )  # Recreate the version if the source pipeline version has no template version (it can have one if the template was deleted before and restored)
+    except IntegrityError as e:
+        if any(
+            msg in str(e)
+            for msg in [
+                "unique_template_code_per_workspace",
+                "unique_template_name",
+            ]
+        ):
+            return {"success": False, "errors": ["DUPLICATE_TEMPLATE_NAME_OR_CODE"]}
+        return {"success": False, "errors": ["UNKNOWN_ERROR"]}
+
     track(
         request,
         "pipeline_templates.pipeline_template_created"
