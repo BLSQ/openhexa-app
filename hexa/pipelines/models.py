@@ -298,7 +298,7 @@ class Pipeline(SoftDeletedModel):
                 "code",
                 name="unique_pipeline_code_per_workspace",
                 condition=Q(deleted_at__isnull=True),
-                violation_error_message="A pipeline with the same code already exists in this workspace. Consider using `create_with_unique_code` method.",
+                violation_error_message="A pipeline with the same code already exists in this workspace. Consider using `create_if_has_perm` method.",
             )
         ]
 
