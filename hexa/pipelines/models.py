@@ -283,6 +283,8 @@ class PipelineManager(DefaultSoftDeletedManager.from_queryset(PipelineQuerySet))
     ):
         if not principal.has_perm("pipelines.create_pipeline", workspace):
             raise PermissionDenied
+        if kwargs.get("code"):
+            raise ValueError("The code field is automatically generated.")
         code = self._create_unique_code(name, workspace)
         return super().create(name=name, workspace=workspace, code=code, **kwargs)
 
