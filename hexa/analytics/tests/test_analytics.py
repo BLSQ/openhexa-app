@@ -1,6 +1,9 @@
+from datetime import datetime, timedelta
 from unittest import mock
 
 from django.test import RequestFactory
+from mixpanel import Mixpanel
+from mixpanel_async import AsyncBufferedConsumer
 
 from hexa.analytics.api import set_user_properties, track
 from hexa.core.test import TestCase
@@ -165,3 +168,55 @@ class AnalyticsTest(TestCase):
                     "features_flag": [],
                 },
             )
+
+
+class AsyncMixpanelTest(TestCase):
+    """
+    Mixpanel team proposes to use the AsyncBufferedConsumer (from mixpanel-py-async) to queue events and send them asynchronously.
+    This test suite ensures, through sanity checks, that the open-source and community-maintained AsyncBufferedConsumer implementation works as expected.
+    """
+
+    @mock.patch("mixpanel_async.AsyncBufferedConsumer._sync_flush")
+    def test_async_mixpanel_queues_events(self, mock_sync_flush):
+        consumer = AsyncBufferedConsumer(request_timeout=4, flush_first=False)
+        mixpanel = Mixpanel(token="dummy_token", consumer=consumer)
+
+        for i in range(3):
+            mixpanel.track("event", "event_name", {"prop": f"value{i}"})
+
+        self.assertEqual(len(consumer._async_buffers.get("events")), 3)
+        consumer.flush()
+        self.assertEqual(len(consumer._async_buffers.get("events")), 0)
+        self.assertEqual(len(consumer._buffers.get("events")), 3)
+        mock_sync_flush.assert_called_once()
+
+    @mock.patch("mixpanel_async.AsyncBufferedConsumer._sync_flush")
+    @mock.patch("mixpanel_async.async_buffered_consumer.datetime")
+    def test_async_mixpanel_events_sent_without_flush(
+        self, mock_datetime, mock_sync_flush
+    ):
+        initial_time = datetime(1995, 11, 6, 12, 50, 33)
+        mock_datetime.now.return_value = initial_time
+        flush_after = timedelta(seconds=10)
+        consumer = AsyncBufferedConsumer(
+            request_timeout=4, flush_first=False, flush_after=flush_after
+        )
+        mixpanel = Mixpanel(token="dummy_token", consumer=consumer)
+
+        for i in range(3):
+            mixpanel.track("event", "event_name", {"prop": f"value{i+1}"})
+
+        # Simulate a bit more than the flush_after time passing
+        mock_datetime.now.return_value = (
+            initial_time + flush_after + timedelta(microseconds=1)
+        )
+
+        self.assertEqual(
+            len(consumer._async_buffers.get("events")), 3
+        )  # Flush happens only when a new event is tracked
+
+        mixpanel.track("event", "event_name", {"prop": "value4"})
+
+        self.assertEqual(len(consumer._async_buffers.get("events")), 0)
+        self.assertEqual(len(consumer._buffers.get("events")), 4)
+        mock_sync_flush.assert_called_once()
