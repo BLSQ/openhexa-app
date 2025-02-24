@@ -278,7 +278,11 @@ class PipelineManager(DefaultSoftDeletedManager.from_queryset(PipelineQuerySet))
                 return code
             suffix = "-" + secrets.token_hex(3)
 
-    def create_with_unique_code(self, name: str, workspace: Workspace, **kwargs):
+    def create_if_has_perm(
+        self, principal: User, workspace: Workspace, name: str, **kwargs
+    ):
+        if not principal.has_perm("pipelines.create_pipeline", workspace):
+            raise PermissionDenied
         code = self._create_unique_code(name, workspace)
         return super().create(name=name, workspace=workspace, code=code, **kwargs)
 

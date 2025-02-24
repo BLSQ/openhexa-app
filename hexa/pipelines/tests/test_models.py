@@ -409,19 +409,21 @@ class PipelineTest(TestCase):
             created_pipeline.last_version.config, {"param_1": 1234, "param_3": 666}
         )
 
-    def test_create_with_unique_code(self):
+    def test_create_if_has_perm(self):
         workspace = Workspace.objects.create(
             name="Test Workspace",
             description="A workspace for testing",
         )
 
         with patch("secrets.token_hex", return_value="abc123"):
-            pipeline1 = Pipeline.objects.create_with_unique_code(
+            pipeline1 = Pipeline.objects.create_if_has_perm(
                 name="Test Pipeline",
+                principal=self.USER_ADMIN,
                 workspace=workspace,
             )
-            pipeline2 = Pipeline.objects.create_with_unique_code(
+            pipeline2 = Pipeline.objects.create_if_has_perm(
                 name="Test Pipeline",
+                principal=self.USER_ADMIN,
                 workspace=workspace,
             )
 
