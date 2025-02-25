@@ -61,7 +61,7 @@ def resolve_create_pipeline(_, info, **kwargs):
             data["type"] = PipelineType.ZIPFILE
 
         pipeline = Pipeline.objects.create_if_has_perm(
-            principal=request, workspace=workspace, name=input["name"], **data
+            principal=request.user, workspace=workspace, name=input["name"], **data
         )
         event_properties = {
             "pipeline_id": str(pipeline.id),

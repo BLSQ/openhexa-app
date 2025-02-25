@@ -115,21 +115,19 @@ class PipelinesV2Test(GraphQLTestCase):
             r["errors"][0]["message"],
         )
 
-    def test_create_pipeline(self):
-        self.assertEqual(0, len(Pipeline.objects.all()))
-
+    def _create_pipeline(self, name):
         self.client.force_login(self.USER_ROOT)
         r = self.run_query(
             """
                 mutation createPipeline($input: CreatePipelineInput!) {
                     createPipeline(input: $input) {
-                        success errors pipeline {name code}
+                        success errors pipeline {name}
                     }
                 }
             """,
             {
                 "input": {
-                    "name": "MonBeauPipeline",
+                    "name": name,
                     "workspaceSlug": self.WS1.slug,
                 }
             },
@@ -138,10 +136,15 @@ class PipelinesV2Test(GraphQLTestCase):
             {
                 "success": True,
                 "errors": [],
-                "pipeline": {"name": "MonBeauPipeline", "code": "monbeaupipeline"},
+                "pipeline": {"name": name},
             },
             r["data"]["createPipeline"],
         )
+
+    def test_create_pipeline(self):
+        self.assertEqual(0, len(Pipeline.objects.all()))
+
+        self._create_pipeline("MonBeauPipeline")
         pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).get()
 
         self.assertEqual(1, len(Pipeline.objects.all()))
@@ -233,27 +236,15 @@ class PipelinesV2Test(GraphQLTestCase):
 
     def test_list_pipelines(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
-        self.test_create_pipeline()
+        self._create_pipeline(name="Pipeline DHIS2")
+        self._create_pipeline(name="Pipeline DHIS")
+        self._create_pipeline(name="Pipeline S3")
 
         self.client.force_login(self.USER_ROOT)
         r = self.run_query(
             """
-              query {
-                  pipelines {
-                    items {
-                      code
-                      workspace { name slug }
-                    }
-                  }
-              }
-            """
-        )
-        self.assertEqual(1, len(r["data"]["pipelines"]["items"]))
-
-        r = self.run_query(
-            """
-            query ($workspaceSlug: String!) {
-                pipelines (workspaceSlug: $workspaceSlug) {
+            query ($workspaceSlug: String!, $name: String!) {
+                pipelines (workspaceSlug: $workspaceSlug, name: $name) {
                     items {
                         code
                         workspace {
@@ -262,12 +253,16 @@ class PipelinesV2Test(GraphQLTestCase):
                     }
                 }
             }""",
-            {"workspaceSlug": self.WS1.slug},
+            {"workspaceSlug": self.WS1.slug, "name": "DHIS2"},
         )
-        self.assertEqual(1, len(r["data"]["pipelines"]["items"]))
+        self.assertEqual(3, len(r["data"]["pipelines"]["items"]))
         self.assertEqual(
-            {"code": "monbeaupipeline", "workspace": {"name": "WS1"}},
+            {"code": "pipeline-dhis2", "workspace": {"name": "WS1"}},
             r["data"]["pipelines"]["items"][0],
+        )
+        self.assertEqual(
+            {"code": "pipeline-dhis", "workspace": {"name": "WS1"}},
+            r["data"]["pipelines"]["items"][1],
         )
 
     def test_create_pipeline_version(self, parameters=[], config={}):

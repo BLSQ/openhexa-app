@@ -1,4 +1,5 @@
 from ariadne import QueryType
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
@@ -32,11 +33,13 @@ def resolve_pipelines(_, info, **kwargs):
     else:
         qs = Pipeline.objects.filter_for_user(request.user).order_by("name", "id")
 
-    name_filter = kwargs.get("name", None)
-    if name_filter:
-        matching_qs = list(qs.filter(name__icontains=name_filter))
-        non_matching_qs = list(qs.exclude(name__icontains=name_filter))
-        qs = matching_qs + non_matching_qs
+    if "name" in kwargs:
+        name_to_order_by = kwargs.get("name")
+        search_vector = SearchVector("name")
+        search_query = SearchQuery(name_to_order_by)
+        qs = qs.annotate(rank=SearchRank(search_vector, search_query)).order_by(
+            "-rank", "name", "id"
+        )
 
     return result_page(
         queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")

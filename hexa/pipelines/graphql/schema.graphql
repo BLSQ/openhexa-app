@@ -614,7 +614,7 @@ type UpdatePipelineVersionResult {
 
 extend type Query {
   """
-  Retrieves a page of pipelines.
+  Retrieves a page of pipelines ordered by relevant name.
   """
   pipelines(workspaceSlug: String, name: String, page: Int, perPage: Int): PipelinesPage! @loginRequired
 
