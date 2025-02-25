@@ -51,11 +51,7 @@ def resolve_create_pipeline(_, info, **kwargs):
         }
 
     try:
-        data = {
-            "code": input["code"],
-            "name": input.get("name"),
-            "workspace": workspace,
-        }
+        data = {}
         if input.get("notebook_path", None) is not None:
             data["type"] = PipelineType.NOTEBOOK
             data["notebook_path"] = input["notebook_path"]
@@ -64,7 +60,9 @@ def resolve_create_pipeline(_, info, **kwargs):
         else:
             data["type"] = PipelineType.ZIPFILE
 
-        pipeline = Pipeline.objects.create(**data)
+        pipeline = Pipeline.objects.create_if_has_perm(
+            principal=request.user, workspace=workspace, name=input["name"], **data
+        )
         event_properties = {
             "pipeline_id": str(pipeline.id),
             "creation_source": (
@@ -80,9 +78,6 @@ def resolve_create_pipeline(_, info, **kwargs):
 
     except storage.exceptions.NotFound:
         return {"success": False, "errors": ["FILE_NOT_FOUND"]}
-
-    except IntegrityError:
-        return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}
 
     return {"pipeline": pipeline, "success": True, "errors": []}
 

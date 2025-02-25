@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.core import mail
 
 from hexa.core.test import TestCase
@@ -406,3 +408,25 @@ class PipelineTest(TestCase):
         self.assertEqual(
             created_pipeline.last_version.config, {"param_1": 1234, "param_3": 666}
         )
+
+    def test_create_if_has_perm(self):
+        workspace = Workspace.objects.create(
+            name="Test Workspace",
+            description="A workspace for testing",
+        )
+
+        with patch("secrets.token_hex", return_value="abc123"):
+            pipeline1 = Pipeline.objects.create_if_has_perm(
+                name="Test Pipeline",
+                principal=self.USER_ADMIN,
+                workspace=workspace,
+            )
+            pipeline2 = Pipeline.objects.create_if_has_perm(
+                name="Test Pipeline",
+                principal=self.USER_ADMIN,
+                workspace=workspace,
+            )
+
+        self.assertNotEqual(pipeline1.code, pipeline2.code)
+        self.assertEqual(pipeline1.code, "test-pipeline")
+        self.assertEqual(pipeline2.code, "test-pipeline-abc123")
