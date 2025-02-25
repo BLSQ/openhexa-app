@@ -24,6 +24,7 @@ app.prepare().then(async () => {
           "/analytics/track/",
           "/files/up",
           "/files/dl",
+          "/superset",
         ].some((path) => req.path.startsWith(path));
         return needsProxy;
       },
