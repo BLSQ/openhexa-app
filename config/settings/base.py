@@ -163,6 +163,7 @@ INSTALLED_APPS = [
     "hexa.metadata",
     "hexa.files",
     "hexa.datasets",
+    "hexa.superset",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
