@@ -15,6 +15,7 @@
   "A new code has been sent to your mailbox.": "Un nouveau code a été envoyé à votre adresse e-mail.",
   "A pipeline with the same name already exists.": "Un pipeline portant le même nom existe déjà.",
   "A pipeline with the selected notebook already exist": "Un pipeline avec le carnet sélectionné existe déjà",
+  "A template with the same name already exists.": "Un modèle portant le même nom existe déjà.",
   "About connections": "A propos des connexions",
   "About datasets": "À propos des ensembles de données",
   "About pipelines": "À propos des pipelines",

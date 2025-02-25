@@ -816,9 +816,11 @@ export type CreatePipelineResult = {
 
 /** Enum representing the possible errors that can occur when creating a pipeline template version. */
 export enum CreatePipelineTemplateVersionError {
+  DuplicateTemplateNameOrCode = 'DUPLICATE_TEMPLATE_NAME_OR_CODE',
   PermissionDenied = 'PERMISSION_DENIED',
   PipelineNotFound = 'PIPELINE_NOT_FOUND',
   PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND',
+  UnknownError = 'UNKNOWN_ERROR',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 

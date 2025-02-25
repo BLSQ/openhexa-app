@@ -87,6 +87,12 @@ const PublishPipelineDialog = ({
         )
       ) {
         toast.error(t("You are not allowed to create a Template."));
+      } else if (
+        data.createPipelineTemplateVersion.errors?.includes(
+          CreatePipelineTemplateVersionError.DuplicateTemplateNameOrCode,
+        )
+      ) {
+        toast.error(t("A template with the same name already exists."));
       } else {
         toast.error(t("Unknown error."));
       }
