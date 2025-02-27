@@ -77,10 +77,8 @@ class ConnectiontTest(GraphQLTestCase):
                     ... on DHIS2Connection {
                         queryMetadata(type: $type) {
                                 items {
-                                      ... on DHIS2MetadataItem {
-                                            id
-                                            name
-                                          }
+                                        id
+                                        label
                                       }
                                 error
                             }
@@ -99,7 +97,7 @@ class ConnectiontTest(GraphQLTestCase):
                 {
                     "connectionBySlug": {
                         "queryMetadata": {
-                            "items": [{"id": "1", "name": "Org Unit 1"}],
+                            "items": [{"id": "1", "label": "Org Unit 1"}],
                             "error": None,
                         }
                     }
@@ -130,10 +128,8 @@ class ConnectiontTest(GraphQLTestCase):
                                 totalItems
                                 totalPages
                                 items {
-                                      ... on DHIS2MetadataItem {
-                                            id
-                                            name
-                                          }
+                                        id
+                                        label
                                       }
                                 error
                             }
@@ -151,8 +147,8 @@ class ConnectiontTest(GraphQLTestCase):
                 response["data"]["connectionBySlug"]["queryMetadata"],
                 {
                     "items": [
-                        {"id": "1", "name": "Org Unit 1"},
-                        {"id": "2", "name": "Org Unit 2"},
+                        {"id": "1", "label": "Org Unit 1"},
+                        {"id": "2", "label": "Org Unit 2"},
                     ],
                     "pageNumber": 1,
                     "totalItems": 2,
@@ -177,11 +173,8 @@ class ConnectiontTest(GraphQLTestCase):
                     ... on DHIS2Connection {
                         queryMetadata(type: $type) {
                                 items {
-                                        __typename
-                                      ... on DHIS2OrganisationUnitLevel {
-                                            level
-                                            name
-                                          }
+                                        id
+                                        label
                                       }
                                 error
                             }
@@ -202,9 +195,8 @@ class ConnectiontTest(GraphQLTestCase):
                         "queryMetadata": {
                             "items": [
                                 {
-                                    "__typename": "DHIS2OrganisationUnitLevel",
-                                    "level": 1,
-                                    "name": "District",
+                                    "id": "1",
+                                    "label": "District",
                                 }
                             ],
                             "error": None,
@@ -272,11 +264,9 @@ class ConnectiontTest(GraphQLTestCase):
                 ... on DHIS2Connection {
                     queryMetadata(type: $type) {
                             items {
-                                      ... on DHIS2MetadataItem {
-                                            id
-                                            name
-                                          }
-                                      }
+                                    id
+                                    label
+                                  }
                             error
                         }
                     }
@@ -306,10 +296,8 @@ class ConnectiontTest(GraphQLTestCase):
                     ... on DHIS2Connection {
                         queryMetadata(type: $type) {
                                 items {
-                                      ... on DHIS2MetadataItem {
-                                            id
-                                            name
-                                          }
+                                      id
+                                      label
                                       }
                                 error
                             }
@@ -339,10 +327,8 @@ class ConnectiontTest(GraphQLTestCase):
                     ... on DHIS2Connection {
                         queryMetadata(type: $type) {
                                 items {
-                                      ... on DHIS2MetadataItem {
-                                            id
-                                            name
-                                          }
+                                      id
+                                      label
                                       }
                                 error
                             }
@@ -379,10 +365,8 @@ class ConnectiontTest(GraphQLTestCase):
                     ... on DHIS2Connection {
                         queryMetadata(type: $type) {
                                 items {
-                                      ... on DHIS2MetadataItem {
-                                            id
-                                            name
-                                          }
+                                      id
+                                      label
                                       }
                                 error
                             }

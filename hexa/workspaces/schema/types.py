@@ -1,6 +1,6 @@
 import logging
 
-from ariadne import InterfaceType, ObjectType, UnionType
+from ariadne import InterfaceType, ObjectType
 from django.http import HttpRequest
 from openhexa.toolbox.dhis2.api import DHIS2Error
 
@@ -30,7 +30,6 @@ connection_interface = InterfaceType("Connection")
 connection_field_object = ObjectType("ConnectionField")
 connection_permissions_object = ObjectType("ConnectionPermissions")
 dhis2_connection = ObjectType("DHIS2Connection")
-dhis2_metadata_union = UnionType("DHIS2MetadataItemUnion")
 
 
 @connection_permissions_object.field("update")
@@ -202,7 +201,11 @@ def resolve_query(connection, info, **kwargs):
         ) = process_metadata_response(metadata_response, page)
 
         result = [
-            {field: item.get(field) for field in fields} for item in metadata_items
+            {
+                "label": item.get("name") or item.get("level"),
+                "id": item.get("id") or item.get("level"),
+            }
+            for item in metadata_items
         ]
 
         return {
@@ -221,19 +224,6 @@ def resolve_query(connection, info, **kwargs):
     except Exception as e:
         logging.error(f"Unknown error: {e}")
         return error_response(page, "UNKNOWN_ERROR")
-
-
-@dhis2_metadata_union.type_resolver
-def resolve_dhis2_metadata_item(obj, *_):
-    if not isinstance(obj, dict):
-        logging.warning(f"Unexpected metadata item type: {type(obj)}")
-        return None
-
-    if "level" in obj:
-        return "DHIS2OrganisationUnitLevel"
-    if "id" in obj and "name" in obj:
-        return "DHIS2MetadataItem"
-    return None
 
 
 connection_interface.set_alias("type", "connection_type")
@@ -276,6 +266,5 @@ bindables = [
     connection_field_object,
     connection_interface,
     dhis2_connection,
-    dhis2_metadata_union,
     connection_permissions_object,
 ]
