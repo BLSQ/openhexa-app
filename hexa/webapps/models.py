@@ -1,11 +1,9 @@
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Q
 
-from hexa.core.models.base import Base, BaseQuerySet
+from hexa.core.models.base import Base, BaseManager, BaseQuerySet
 from hexa.core.models.soft_delete import (
-    DefaultSoftDeletedManager,
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
@@ -13,11 +11,8 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 
-class WebappManager(DefaultSoftDeletedManager):
-    def create_if_has_perm(self, principal: User, **kwargs):
-        if not principal.has_perm("webapps.create_webapp"):
-            raise PermissionDenied
-        return super().create(**kwargs)
+class WebappManager(BaseManager):
+    pass
 
 
 class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):

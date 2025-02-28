@@ -3,9 +3,39 @@ from __future__ import annotations
 import uuid
 
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
 from django.db import models
 
 from hexa.user_management import models as user_management_models
+from hexa.user_management.models import User
+
+
+class BaseManager(models.Manager):
+    def create_if_has_perm(self, principal: User, **kwargs):
+        if not principal.has_perm(
+            f"{self.model._meta.app_label}.create_{self.model._meta.model_name}"
+        ):
+            raise PermissionDenied
+        return super().create(**kwargs)
+
+    def update_if_has_perm(self, principal: User, instance, **kwargs):
+        if not principal.has_perm(
+            f"{self.model._meta.app_label}.update_{self.model._meta.model_name}",
+            instance,
+        ):
+            raise PermissionDenied
+        for attr, value in kwargs.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+    def delete_if_has_perm(self, principal: User, instance):
+        if not principal.has_perm(
+            f"{self.model._meta.app_label}.delete_{self.model._meta.model_name}",
+            instance,
+        ):
+            raise PermissionDenied
+        instance.delete()
 
 
 class BaseQuerySet(models.QuerySet):
