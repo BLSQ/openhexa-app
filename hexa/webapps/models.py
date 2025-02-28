@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Q
 
@@ -13,7 +14,10 @@ from hexa.workspaces.models import Workspace
 
 
 class WebappManager(DefaultSoftDeletedManager):
-    pass
+    def create_if_has_perm(self, principal: User, **kwargs):
+        if not principal.has_perm("webapps.create_webapp"):
+            raise PermissionDenied
+        return super().create(**kwargs)
 
 
 class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):
@@ -39,12 +43,6 @@ class Webapp(Base, SoftDeletedModel):
     )
     objects = WebappManager.from_queryset(WebappQuerySet)()
 
-    def __str__(self):
-        return self.name
-
-    def __repr__(self) -> str:
-        return f"<Webapp: {self.name}>"
-
     def add_to_favorites(self, user: User):
         self.favorites.add(user)
         self.save()
@@ -52,3 +50,9 @@ class Webapp(Base, SoftDeletedModel):
     def remove_from_favorites(self, user: User):
         self.favorites.remove(user)
         self.save()
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self) -> str:
+        return f"<Webapp: {self.name}>"
