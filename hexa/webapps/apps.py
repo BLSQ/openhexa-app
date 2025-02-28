@@ -1,6 +1,7 @@
-from django.apps import AppConfig
+from hexa.app import CoreAppConfig
 
 
-class WebappsConfig(AppConfig):
+class WebappsConfig(CoreAppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "webapps"
+    name = "hexa.webapps"
+    label = "webapps"

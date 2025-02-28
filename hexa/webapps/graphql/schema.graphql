@@ -1,0 +1,5 @@
+extend type Mutation {
+}
+
+extend type Query {
+}
