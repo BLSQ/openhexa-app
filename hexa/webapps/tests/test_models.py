@@ -1,3 +1,6 @@
+from django.core.exceptions import PermissionDenied
+from django.db import IntegrityError
+
 from hexa.core.test import TestCase
 from hexa.user_management.models import User
 from hexa.webapps.models import Webapp
@@ -65,3 +68,78 @@ class WebappModelTest(TestCase):
         webapp_id = self.webapp.id
         self.webapp.delete()
         self.assertTrue(Webapp.objects.filter(id=webapp_id).first().is_deleted)
+
+    def test_add_to_favorites(self):
+        self.webapp.add_to_favorites(self.user_viewer)
+        self.assertIn(self.user_viewer, self.webapp.favorites.all())
+
+    def test_remove_from_favorites(self):
+        self.webapp.add_to_favorites(self.user_viewer)
+        self.webapp.remove_from_favorites(self.user_viewer)
+        self.assertNotIn(self.user_viewer, self.webapp.favorites.all())
+
+    def test_create_if_has_perm(self):
+        with self.assertRaises(PermissionDenied):
+            Webapp.objects.create_if_has_perm(
+                self.user_viewer,
+                self.workspace,
+                name="New Webapp",
+                workspace=self.workspace,
+                created_by=self.user_viewer,
+                url="https://example.com",
+            )
+
+        webapp = Webapp.objects.create_if_has_perm(
+            self.user_admin,
+            self.workspace,
+            name="New Webapp1",
+            workspace=self.workspace,
+            created_by=self.user_admin,
+            url="https://example.com",
+        )
+        self.assertTrue(Webapp.objects.filter(id=webapp.id).exists())
+
+        webapp = Webapp.objects.create_if_has_perm(
+            self.user_editor,
+            self.workspace,
+            name="New Webapp2",
+            workspace=self.workspace,
+            created_by=self.user_editor,
+            url="https://example.com",
+        )
+        self.assertTrue(Webapp.objects.filter(id=webapp.id).exists())
+
+    def test_update_if_has_perm(self):
+        with self.assertRaises(PermissionDenied):
+            Webapp.objects.update_if_has_perm(
+                self.user_viewer, self.webapp, name="Updated Webapp"
+            )
+
+        webapp = Webapp.objects.update_if_has_perm(
+            self.user_admin, self.webapp, name="Updated Webapp by admin"
+        )
+        self.assertEqual(webapp.name, "Updated Webapp by admin")
+
+        webapp = Webapp.objects.update_if_has_perm(
+            self.user_editor, self.webapp, name="Updated Webapp by editor"
+        )
+        self.assertEqual(webapp.name, "Updated Webapp by editor")
+
+    def test_delete_if_has_perm(self):
+        with self.assertRaises(PermissionDenied):
+            Webapp.objects.delete_if_has_perm(self.user_viewer, self.webapp)
+
+        with self.assertRaises(PermissionDenied):
+            Webapp.objects.delete_if_has_perm(self.user_editor, self.webapp)
+
+        Webapp.objects.delete_if_has_perm(self.user_admin, self.webapp)
+        self.assertTrue(Webapp.objects.filter(id=self.webapp.id).first().is_deleted)
+
+    def test_unique_constraint(self):
+        with self.assertRaises(IntegrityError):
+            Webapp.objects.create(
+                name=self.webapp.name,
+                workspace=self.webapp.workspace,
+                created_by=self.user_admin,
+                url="https://example.com",
+            )

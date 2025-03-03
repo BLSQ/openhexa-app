@@ -25,6 +25,17 @@ class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):
 
 
 class Webapp(Base, SoftDeletedModel):
+    class Meta:
+        verbose_name = "Webapp"
+        constraints = [
+            models.UniqueConstraint(
+                "workspace_id",
+                "name",
+                name="unique_webapp_name_per_workspace",
+                condition=Q(deleted_at__isnull=True),
+            )
+        ]
+
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     icon = models.BinaryField(blank=True, null=True)

@@ -10,9 +10,9 @@ from hexa.user_management import models as user_management_models
 
 
 class BaseManager(models.Manager):
-    def create_if_has_perm(self, principal, **kwargs):
+    def create_if_has_perm(self, principal, ws, **kwargs):
         if not principal.has_perm(
-            f"{self.model._meta.app_label}.create_{self.model._meta.model_name}"
+            f"{self.model._meta.app_label}.create_{self.model._meta.model_name}", ws
         ):
             raise PermissionDenied
         return super().create(**kwargs)
