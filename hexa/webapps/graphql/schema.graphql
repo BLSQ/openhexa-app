@@ -1,5 +1,161 @@
-extend type Mutation {
+"""
+Represents a web app.
+"""
+type Webapp {
+  id: UUID!
+  name: String!
+  description: String
+  url: String!
+  workspace: Workspace!
+  createdBy: User!
+  isFavorite: Boolean!
+  permissions: WebappPermissions!
+}
+"""
+Represents the permissions for a web app.
+"""
+type WebappPermissions {
+  update: Boolean!  # Indicates if the webapp can be updated.
+  delete: Boolean!  # Indicates if the webapp can be deleted.
+}
+
+"""
+Represents the input for creating a web app.
+"""
+input CreateWebappInput {
+  name: String!
+  description: String
+  url: String!
+  workspaceSlug: String!
+}
+
+"""
+Represents the result of creating a web app.
+"""
+type CreateWebappResult {
+  success: Boolean!
+  errors: [CreateWebappError!]!
+  webapp: Webapp
+}
+"""
+Represents the error message for a web app creation.
+"""
+enum CreateWebappError {
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+  ALREADY_EXISTS
+}
+
+"""
+Represents the input for updating a web app.
+"""
+input UpdateWebappInput {
+  id: UUID!
+  name: String
+  description: String
+  url: String
+}
+
+"""
+Represents the result of updating a web app.
+"""
+type UpdateWebappResult {
+  success: Boolean!
+  errors: [UpdateWebappError!]!
+  webapp: Webapp
+}
+
+"""
+Represents the error message for a web app update.
+"""
+enum UpdateWebappError {
+  WEBAPP_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""
+Represents the input for deleting a web app.
+"""
+input DeleteWebappInput {
+  id: UUID!
+}
+
+"""
+Represents the result of deleting a web app.
+"""
+type DeleteWebappResult {
+  success: Boolean!
+  errors: [DeleteWebappError!]!
+}
+"""
+Represents the error message for a web app deletion.
+"""
+enum DeleteWebappError {
+  WEBAPP_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""
+Represents the input for adding a web app to favorites.
+"""
+input AddToFavoritesInput {
+  webappId: ID!
+}
+
+"""
+Represents the result of adding a web app to favorites.
+"""
+type AddToFavoritesResult {
+  success: Boolean!
+  errors: [AddToFavoritesError!]!
+}
+"""
+Represents the error message for adding a web app to favorites.
+"""
+enum AddToFavoritesError {
+  WEBAPP_NOT_FOUND
+}
+
+"""
+Represents the input for removing a web app from favorites.
+"""
+input RemoveFromFavoritesInput {
+  webappId: ID!
+}
+
+"""
+Represents the result of removing a web app from favorites.
+"""
+type RemoveFromFavoritesResult {
+  success: Boolean!
+  errors: [RemoveFromFavoritesError!]!
+}
+
+"""
+Represents the error message for removing a web app from favorites.
+"""
+enum RemoveFromFavoritesError {
+  WEBAPP_NOT_FOUND
+}
+
+"""
+Represents a page of webapps.
+"""
+type WebappsPage {
+  items: [Webapp!]!  # The list of webapps on the current page.
+  pageNumber: Int!  # The current page number.
+  totalPages: Int!  # The total number of pages.
+  totalItems: Int!  # The total number of pipelines.
 }
 
 extend type Query {
+  webapps(workspaceSlug: String, page: Int, perPage: Int): WebappsPage! @loginRequired
+}
+
+extend type Mutation {
+    createWebapp(input: CreateWebappInput!): CreateWebappResult! @loginRequired
+  updateWebapp(input: UpdateWebappInput!): UpdateWebappResult! @loginRequired
+  deleteWebapp(input: DeleteWebappInput!): DeleteWebappResult! @loginRequired
+  addToFavorites(input: AddToFavoritesInput!): AddToFavoritesResult! @loginRequired
+    removeFromFavorites(input: RemoveFromFavoritesInput!): RemoveFromFavoritesResult! @loginRequired
 }

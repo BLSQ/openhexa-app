@@ -49,6 +49,9 @@ class Webapp(Base, SoftDeletedModel):
     )
     objects = WebappManager.from_queryset(WebappQuerySet)()
 
+    def is_favorite(self, user: User):
+        return self.favorites.filter(pk=user.pk).exists()
+
     def add_to_favorites(self, user: User):
         self.favorites.add(user)
         self.save()

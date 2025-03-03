@@ -69,6 +69,11 @@ class WebappModelTest(TestCase):
         self.webapp.delete()
         self.assertTrue(Webapp.objects.filter(id=webapp_id).first().is_deleted)
 
+    def test_is_favorite(self):
+        self.assertFalse(self.webapp.is_favorite(self.user_viewer))
+        self.webapp.add_to_favorites(self.user_viewer)
+        self.assertTrue(self.webapp.is_favorite(self.user_viewer))
+
     def test_add_to_favorites(self):
         self.webapp.add_to_favorites(self.user_viewer)
         self.assertIn(self.user_viewer, self.webapp.favorites.all())
