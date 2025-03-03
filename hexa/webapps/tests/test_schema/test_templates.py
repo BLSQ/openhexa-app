@@ -161,7 +161,7 @@ class WebappsTest(GraphQLTestCase):
         self.assertTrue(response["data"]["deleteWebapp"]["success"])
         self.assertTrue(Webapp.objects.get(id=self.WEBAPP.id).is_deleted)
 
-    def test_add_to_favorites(self):
+    def test_favorites(self):
         self.client.force_login(self.USER_ROOT)
         response = self.run_query(
             """
@@ -175,9 +175,10 @@ class WebappsTest(GraphQLTestCase):
             {"input": {"webappId": str(self.WEBAPP.id)}},
         )
         self.assertTrue(response["data"]["addToFavorites"]["success"])
+        self.assertTrue(
+            self.USER_ROOT.favorite_webapps.filter(id=self.WEBAPP.id).exists()
+        )
 
-    def test_remove_from_favorites(self):
-        self.client.force_login(self.USER_ROOT)
         response = self.run_query(
             """
             mutation removeFromFavorites($input: RemoveFromFavoritesInput!) {
@@ -190,3 +191,6 @@ class WebappsTest(GraphQLTestCase):
             {"input": {"webappId": str(self.WEBAPP.id)}},
         )
         self.assertTrue(response["data"]["removeFromFavorites"]["success"])
+        self.assertFalse(
+            self.USER_ROOT.favorite_webapps.filter(id=self.WEBAPP.id).exists()
+        )

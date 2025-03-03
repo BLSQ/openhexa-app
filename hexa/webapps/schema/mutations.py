@@ -20,7 +20,7 @@ def resolve_add_to_favorites(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
-        webapp = Webapp.objects.get(pk=input["webappId"])
+        webapp = Webapp.objects.get(pk=input["webapp_id"])
         webapp.add_to_favorites(request.user)
         return {"success": True, "errors": []}
     except Webapp.DoesNotExist:
@@ -32,7 +32,7 @@ def resolve_remove_from_favorites(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
-        webapp = Webapp.objects.get(pk=input["webappId"])
+        webapp = Webapp.objects.get(pk=input["webapp_id"])
         webapp.remove_from_favorites(request.user)
         return {"success": True, "errors": []}
     except Webapp.DoesNotExist:
