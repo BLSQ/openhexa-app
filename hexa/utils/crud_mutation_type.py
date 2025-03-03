@@ -3,7 +3,7 @@ from typing import Callable, Optional, Type
 
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 
 from hexa.core.models import Base
@@ -38,14 +38,18 @@ class CRUDMutationType(MutationType):
                     "success": False,
                     "errors": ["WORKSPACE_NOT_FOUND"],
                 }
-            if pre_hook:
-                pre_hook(request, input)
             try:
-                instance = self.model.objects.create_if_has_perm(
-                    request.user, workspace, **input
-                )
-                if post_hook:
-                    post_hook(instance)
+                with transaction.atomic():
+                    if pre_hook:
+                        pre_hook(request, input)
+
+                    input["workspace"] = workspace
+                    instance = self.model.objects.create_if_has_perm(
+                        request.user, workspace, **input
+                    )
+
+                    if post_hook:
+                        post_hook(instance)
                 return {
                     "success": True,
                     "errors": [],

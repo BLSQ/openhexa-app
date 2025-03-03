@@ -82,6 +82,30 @@ class WebappsTest(GraphQLTestCase):
             """,
             {
                 "input": {
+                    "name": "Test Webapp",
+                    "url": "http://newwebapp.com",
+                    "workspaceSlug": self.WS1.slug,
+                }
+            },
+        )
+        self.assertFalse(response["data"]["createWebapp"]["success"])
+        self.assertEqual(response["data"]["createWebapp"]["errors"], ["ALREADY_EXISTS"])
+
+        response = self.run_query(
+            """
+            mutation createWebapp($input: CreateWebappInput!) {
+                createWebapp(input: $input) {
+                    success
+                    errors
+                    webapp {
+                        id
+                        name
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
                     "name": "New Webapp",
                     "url": "http://newwebapp.com",
                     "workspaceSlug": self.WS1.slug,
@@ -90,7 +114,7 @@ class WebappsTest(GraphQLTestCase):
         )
         self.assertTrue(response["data"]["createWebapp"]["success"])
         self.assertEqual(
-            "New Webapp", response["data"]["createWebapp"]["webapp"]["name"]
+            response["data"]["createWebapp"]["webapp"]["name"], "New Webapp"
         )
 
     def test_update_webapp(self):
