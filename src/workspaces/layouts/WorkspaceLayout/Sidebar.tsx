@@ -16,11 +16,11 @@ import Badge from "core/components/Badge";
 import Link from "core/components/Link";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 import { useContext, useMemo } from "react";
 import SidebarMenu from "workspaces/features/SidebarMenu";
 import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
 import { LayoutContext } from "./WorkspaceLayout";
+import { useRouter } from "next/router";
 
 type SidebarProps = {
   workspace: Sidebar_WorkspaceFragment;
@@ -31,23 +31,10 @@ const NavItem = (props: {
   Icon: any;
   label?: string;
   href: string;
-  exact?: boolean;
+  isCurrent: boolean;
   compact?: boolean;
 }) => {
-  const { Icon, compact, label, href, exact } = props;
-  const router = useRouter();
-
-  const isCurrent = useMemo(() => {
-    if (!exact && router.asPath.startsWith(href)) {
-      return true;
-    }
-
-    if (exact && router.asPath === href) {
-      return true;
-    }
-
-    return false;
-  }, [href, exact, router.asPath]);
+  const { Icon, compact, label, href, isCurrent } = props;
 
   return (
     <Link
@@ -83,8 +70,80 @@ const Sidebar = (props: SidebarProps) => {
   const { workspace, className } = props;
   const { t } = useTranslation();
   const { isSidebarOpen, setSidebarOpen } = useContext(LayoutContext);
+  const router = useRouter();
 
   const { slug } = workspace;
+
+  const homeLink = {
+    href: `/workspaces/${encodeURIComponent(slug)}`,
+    label: t("Home"),
+    Icon: HomeIcon,
+  };
+  const pipelineLink = {
+    href: `/workspaces/${encodeURIComponent(slug)}/pipelines`,
+    label: t("Pipelines"),
+    Icon: BoltIcon,
+  };
+
+  const links = [
+    {
+      href: `/workspaces/${encodeURIComponent(slug)}/files`,
+      label: t("Files"),
+      Icon: FolderOpenIcon,
+    },
+    {
+      href: `/workspaces/${encodeURIComponent(slug)}/databases`,
+      label: t("Database"),
+      Icon: CircleStackIcon,
+    },
+    {
+      href: `/workspaces/${encodeURIComponent(slug)}/datasets`,
+      label: t("Datasets"),
+      Icon: Square2StackIcon,
+    },
+    {
+      href: `/workspaces/${encodeURIComponent(slug)}/connections`,
+      label: t("Connections"),
+      Icon: SwatchIcon,
+    },
+    pipelineLink,
+    ...(workspace.permissions.launchNotebookServer
+      ? [
+          {
+            href: `/workspaces/${encodeURIComponent(slug)}/notebooks`,
+            label: t("JupyterHub"),
+            Icon: BookOpenIcon,
+          },
+        ]
+      : []),
+    ...(workspace.permissions.manageMembers
+      ? [
+          {
+            href: `/workspaces/${encodeURIComponent(slug)}/settings`,
+            label: t("Settings"),
+            Icon: Cog6ToothIcon,
+          },
+        ]
+      : []),
+  ];
+
+  const currentLink = useMemo(() => {
+    for (const { href } of links) {
+      if (router.asPath.startsWith(href)) {
+        return href;
+      }
+    }
+    if (
+      router.asPath.startsWith(
+        `/workspaces/${encodeURIComponent(slug)}/templates`,
+      )
+    ) {
+      return pipelineLink.href;
+    }
+    if (router.asPath.startsWith(homeLink.href)) {
+      return homeLink.href;
+    }
+  }, [router.asPath]);
 
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
@@ -93,59 +152,16 @@ const Sidebar = (props: SidebarProps) => {
 
         <div className="mt-5 flex grow flex-col">
           <nav className="flex-1 space-y-1 px-0 pb-4">
-            <NavItem
-              exact
-              href={`/workspaces/${encodeURIComponent(slug)}/`}
-              Icon={HomeIcon}
-              label={t("Home")}
-              compact={!isSidebarOpen}
-            />
-            <NavItem
-              href={`/workspaces/${encodeURIComponent(slug)}/files`}
-              Icon={FolderOpenIcon}
-              label={t("Files")}
-              compact={!isSidebarOpen}
-            />
-            <NavItem
-              href={`/workspaces/${encodeURIComponent(slug)}/databases`}
-              Icon={CircleStackIcon}
-              label={t("Database")}
-              compact={!isSidebarOpen}
-            />
-            <NavItem
-              href={`/workspaces/${encodeURIComponent(slug)}/datasets`}
-              Icon={Square2StackIcon}
-              label={t("Datasets")}
-              compact={!isSidebarOpen}
-            />
-            <NavItem
-              href={`/workspaces/${encodeURIComponent(slug)}/connections`}
-              Icon={SwatchIcon}
-              label={t("Connections")}
-              compact={!isSidebarOpen}
-            />
-            <NavItem
-              href={`/workspaces/${encodeURIComponent(slug)}/pipelines`}
-              Icon={BoltIcon}
-              label={t("Pipelines")}
-              compact={!isSidebarOpen}
-            />
-            {workspace.permissions.launchNotebookServer && (
+            {[homeLink].concat(links).map(({ href, Icon, label }) => (
               <NavItem
-                href={`/workspaces/${encodeURIComponent(slug)}/notebooks`}
-                Icon={BookOpenIcon}
-                label={t("JupyterHub")}
+                key={href}
+                href={href}
+                Icon={Icon}
+                label={label}
+                isCurrent={currentLink === href}
                 compact={!isSidebarOpen}
               />
-            )}
-            {workspace.permissions.manageMembers && (
-              <NavItem
-                href={`/workspaces/${encodeURIComponent(slug)}/settings`}
-                Icon={Cog6ToothIcon}
-                label={t("Settings")}
-                compact={!isSidebarOpen}
-              />
-            )}
+            ))}
           </nav>
         </div>
 
