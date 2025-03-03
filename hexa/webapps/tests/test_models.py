@@ -61,8 +61,7 @@ class WebappModelTest(TestCase):
         self.webapp.save()
         self.assertEqual(self.webapp.name, "Updated Webapp")
 
-    def test_webapp_delete(self):
+    def test_webapp_soft_delete(self):
         webapp_id = self.webapp.id
         self.webapp.delete()
-        with self.assertRaises(Webapp.DoesNotExist):
-            Webapp.objects.get(id=webapp_id)
+        self.assertTrue(Webapp.objects.filter(id=webapp_id).first().is_deleted)
