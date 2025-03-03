@@ -24,7 +24,7 @@ let config = {
 
   // Next.js in pages mode seems to choke on the ESM format of the editor and one of its dependencies.
   // https://mdxeditor.dev/editor/docs/getting-started#nextjs-pages-router
-  transpilePackages: ["@mdweditor/editor"],
+  transpilePackages: ["@mdweditor/editor", "@uiw/react-codemirror"],
   // Sentry tree shaking configuration
   webpack: (config, { webpack }) => {
     config.plugins.push(
