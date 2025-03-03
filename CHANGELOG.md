@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.82.0](https://github.com/BLSQ/openhexa-app/compare/0.81.0...0.82.0) (2025-02-28)
+
+
+### Features
+
+* Embedded dashboards from Superset made right! ([#931](https://github.com/BLSQ/openhexa-app/issues/931)) ([ebc6732](https://github.com/BLSQ/openhexa-app/commit/ebc6732dd9231012a87b822abc44f706e4de453e))
+* **Parameter:** HEXA-1136 move name and level to label  for GraphQL DHIS interface ([#938](https://github.com/BLSQ/openhexa-app/issues/938)) ([9898710](https://github.com/BLSQ/openhexa-app/commit/9898710e43f98ac70d88f76698ef3784ff629c33))
+* Queue and send analytics asynchronously to MixPanel (HEXA-1191) ([#933](https://github.com/BLSQ/openhexa-app/issues/933)) ([60397d5](https://github.com/BLSQ/openhexa-app/commit/60397d572d675560645c84c07ccd2622e187cfbb))
+
+
+### Bug Fixes
+
+* handle gracefully duplicate template name (HEXA-1199) ([#936](https://github.com/BLSQ/openhexa-app/issues/936)) ([ed48944](https://github.com/BLSQ/openhexa-app/commit/ed489441a1cd56f97833c6b3c3ac183270584d5e))
+
 ## [0.81.0](https://github.com/BLSQ/openhexa-app/compare/0.80.0...0.81.0) (2025-02-14)
 
 
