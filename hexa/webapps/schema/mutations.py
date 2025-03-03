@@ -11,7 +11,7 @@ def pre_create_webapp(request, input):
 
 
 webapps_mutations.set_field(
-    f"create{Webapp.__name__}", webapps_mutations.create(pre_hook=pre_create_webapp)()
+    f"create{Webapp.__name__}", webapps_mutations.create(pre_hook=pre_create_webapp)
 )
 
 
