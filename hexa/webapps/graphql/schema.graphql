@@ -153,9 +153,9 @@ extend type Query {
 }
 
 extend type Mutation {
-    createWebapp(input: CreateWebappInput!): CreateWebappResult! @loginRequired
+  createWebapp(input: CreateWebappInput!): CreateWebappResult! @loginRequired
   updateWebapp(input: UpdateWebappInput!): UpdateWebappResult! @loginRequired
   deleteWebapp(input: DeleteWebappInput!): DeleteWebappResult! @loginRequired
   addToFavorites(input: AddToFavoritesInput!): AddToFavoritesResult! @loginRequired
-    removeFromFavorites(input: RemoveFromFavoritesInput!): RemoveFromFavoritesResult! @loginRequired
+  removeFromFavorites(input: RemoveFromFavoritesInput!): RemoveFromFavoritesResult! @loginRequired
 }
