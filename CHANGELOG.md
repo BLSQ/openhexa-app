@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.60.4](https://github.com/BLSQ/openhexa-frontend/compare/0.60.3...0.60.4) (2025-03-03)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @mdxeditor/editor to v3.24.0 ([#1123](https://github.com/BLSQ/openhexa-frontend/issues/1123)) ([e380f47](https://github.com/BLSQ/openhexa-frontend/commit/e380f47fe495929ebbd8c0ddbb49fe591213d9d6))
+* **deps:** update dependency @mdxeditor/editor to v3.25.0 ([#1141](https://github.com/BLSQ/openhexa-frontend/issues/1141)) ([06f6794](https://github.com/BLSQ/openhexa-frontend/commit/06f6794c34ed0d291e66720216dad6d4baf422cd))
+* **deps:** update dependency @sentry/nextjs to v9.2.0 ([#1128](https://github.com/BLSQ/openhexa-frontend/issues/1128)) ([58c8f8e](https://github.com/BLSQ/openhexa-frontend/commit/58c8f8e5c22942c69d258f23b7a8c6fcae3063b2))
+* **deps:** update dependency @sentry/nextjs to v9.3.0 ([#1136](https://github.com/BLSQ/openhexa-frontend/issues/1136)) ([8262599](https://github.com/BLSQ/openhexa-frontend/commit/82625991d6b64eaac7e2b0dd2110cac2b8f8874c))
+* **deps:** update dependency @types/lodash to v4.17.16 ([#1139](https://github.com/BLSQ/openhexa-frontend/issues/1139)) ([b39718f](https://github.com/BLSQ/openhexa-frontend/commit/b39718f697ee593c7842307cc94e048777efb682))
+* **deps:** update dependency @types/node to v22.13.5 ([#1119](https://github.com/BLSQ/openhexa-frontend/issues/1119)) ([31c4fc2](https://github.com/BLSQ/openhexa-frontend/commit/31c4fc2d6bdf596b3879a48a95c78c02b7f21fe6))
+* **deps:** update dependency @types/node to v22.13.7 ([#1138](https://github.com/BLSQ/openhexa-frontend/issues/1138)) ([5a6cab1](https://github.com/BLSQ/openhexa-frontend/commit/5a6cab13183e602d4c7090e8afc82f6277a25880))
+* **deps:** update dependency @types/node to v22.13.8 ([#1140](https://github.com/BLSQ/openhexa-frontend/issues/1140)) ([bb93d1e](https://github.com/BLSQ/openhexa-frontend/commit/bb93d1e7449a67db36650bd663d69b84d444d2e5))
+* **deps:** update dependency @uiw/react-codemirror to v4.23.9 ([#1134](https://github.com/BLSQ/openhexa-frontend/issues/1134)) ([2a0f4ba](https://github.com/BLSQ/openhexa-frontend/commit/2a0f4ba99f9fb4057bb00848ec21d1753edd1e89))
+* **deps:** update dependency cronstrue to v2.55.0 ([#1121](https://github.com/BLSQ/openhexa-frontend/issues/1121)) ([2574172](https://github.com/BLSQ/openhexa-frontend/commit/25741721c514ae234c2e00f44e41c55357beec32))
+* **deps:** update dependency react-dropzone to v14.3.6 ([#1124](https://github.com/BLSQ/openhexa-frontend/issues/1124)) ([2e8e401](https://github.com/BLSQ/openhexa-frontend/commit/2e8e401196ac48f5ab9a8b6d86e3c940b9df74cd))
+* **deps:** update dependency react-dropzone to v14.3.8 ([#1126](https://github.com/BLSQ/openhexa-frontend/issues/1126)) ([438811a](https://github.com/BLSQ/openhexa-frontend/commit/438811a35d0377e5c1049614b1d6e7c27977fe5e))
+* **deps:** update dependency react-toastify to v11.0.5 ([#1127](https://github.com/BLSQ/openhexa-frontend/issues/1127)) ([e57efa3](https://github.com/BLSQ/openhexa-frontend/commit/e57efa38a7e47d43b6d422544769b532e786794a))
+* **deps:** update dependency typescript to v5.8.2 ([#1137](https://github.com/BLSQ/openhexa-frontend/issues/1137)) ([704c705](https://github.com/BLSQ/openhexa-frontend/commit/704c705bfe8130b01b9ed0957950ac60edf0ab9e))
+* **deps:** update nextjs monorepo to v15.2.0 ([#1132](https://github.com/BLSQ/openhexa-frontend/issues/1132)) ([acc9f35](https://github.com/BLSQ/openhexa-frontend/commit/acc9f35c8f4aa6555e3ba2dc8a16edc881f4c471))
+* handle gracefully duplicate template name (HEXA-1199) ([#1117](https://github.com/BLSQ/openhexa-frontend/issues/1117)) ([e3438da](https://github.com/BLSQ/openhexa-frontend/commit/e3438da677c8232525c13236d22c303acab349f0))
+* the sidebar pipelines tab is not marked as active when the user is in the templates pages (HEXA-1189) ([#1133](https://github.com/BLSQ/openhexa-frontend/issues/1133)) ([f691cdd](https://github.com/BLSQ/openhexa-frontend/commit/f691cdd1c79604b028a78ae4871ba49f70c23bbb))
+
 ## [0.60.3](https://github.com/BLSQ/openhexa-frontend/compare/0.60.2...0.60.3) (2025-02-20)
 
 
