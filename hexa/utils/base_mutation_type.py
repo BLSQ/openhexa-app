@@ -10,15 +10,12 @@ from hexa.core.models.base import BaseManager, BaseQuerySet
 from hexa.workspaces.models import Workspace
 
 
-class CRUDMutationType(MutationType):
+class BaseMutationType(MutationType):
     def __init__(self, manager: BaseManager, query_set: BaseQuerySet):
         super().__init__()
         self.manager = manager
         self.model_name = manager.model.__name__
         self.query_set = query_set
-        self.add_crud_operations()
-
-    def add_crud_operations(self):
         self.set_field(f"create{self.model_name}", self.create())
         self.set_field(f"update{self.model_name}", self.update())
         self.set_field(f"delete{self.model_name}", self.delete())
