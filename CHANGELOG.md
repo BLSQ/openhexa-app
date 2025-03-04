@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.83.0](https://github.com/BLSQ/openhexa-app/compare/0.82.0...0.83.0) (2025-03-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* Allow creation of a pipeline with a duplicate name  (HEXA-1170) ([#930](https://github.com/BLSQ/openhexa-app/issues/930))
+
+### Features
+
+* Allow creation of a pipeline with a duplicate name  (HEXA-1170) ([#930](https://github.com/BLSQ/openhexa-app/issues/930)) ([531151e](https://github.com/BLSQ/openhexa-app/commit/531151e66a902c7ea85f63cc3bf897e2b50ab433))
+
 ## [0.82.0](https://github.com/BLSQ/openhexa-app/compare/0.81.0...0.82.0) (2025-02-28)
 
 
