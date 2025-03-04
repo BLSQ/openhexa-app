@@ -3,7 +3,7 @@ from django.http import HttpRequest
 from hexa.utils.crud_mutation_type import CRUDMutationType
 from hexa.webapps.models import Webapp
 
-webapps_mutations = CRUDMutationType(Webapp)
+webapps_mutations = CRUDMutationType(Webapp.objects, Webapp.objects.get_queryset())
 
 
 def pre_create_webapp(request, input):

@@ -88,7 +88,7 @@ class Base(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    objects = BaseManager.from_queryset(BaseQuerySet)()
+    objects = BaseQuerySet.as_manager()
 
     @property
     def display_name(self):
