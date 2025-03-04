@@ -1,4 +1,5 @@
 import base64
+import secrets
 import time
 import typing
 import uuid
@@ -16,6 +17,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
+from slugify import slugify
 
 from hexa.core.models import (
     Base,
@@ -267,6 +269,26 @@ class PipelineRunLogLevel(models.IntegerChoices):
         return cls.INFO
 
 
+class PipelineManager(DefaultSoftDeletedManager.from_queryset(PipelineQuerySet)):
+    def _create_unique_code(self, name: str, workspace: Workspace):
+        suffix = ""
+        while True:
+            code = slugify(name[: 255 - len(suffix)] + suffix)
+            if not super().filter(workspace=workspace, code=code).exists():
+                return code
+            suffix = "-" + secrets.token_hex(3)
+
+    def create_if_has_perm(
+        self, principal: User, workspace: Workspace, name: str, **kwargs
+    ):
+        if not principal.has_perm("pipelines.create_pipeline", workspace):
+            raise PermissionDenied
+        if kwargs.get("code"):
+            raise ValueError("The code field is automatically generated.")
+        code = self._create_unique_code(name, workspace)
+        return super().create(name=name, workspace=workspace, code=code, **kwargs)
+
+
 class Pipeline(SoftDeletedModel):
     class Meta:
         verbose_name = "Pipeline"
@@ -276,6 +298,7 @@ class Pipeline(SoftDeletedModel):
                 "code",
                 name="unique_pipeline_code_per_workspace",
                 condition=Q(deleted_at__isnull=True),
+                violation_error_message="A pipeline with the same code already exists in this workspace. Consider using `create_if_has_perm` method.",
             )
         ]
 
@@ -284,7 +307,9 @@ class Pipeline(SoftDeletedModel):
     updated_at = models.DateTimeField(auto_now=True)
 
     name = models.CharField(max_length=200, null=True, blank=True)
-    code = models.CharField(max_length=200, default="")
+    code = models.CharField(
+        max_length=200, default=""
+    )  # this is the auto-generated unique identifier for the pipeline, TODO: rename it to slug
     description = models.TextField(blank=True)
     config = models.JSONField(blank=True, default=dict)
     schedule = models.CharField(max_length=200, null=True, blank=True)
@@ -313,7 +338,7 @@ class Pipeline(SoftDeletedModel):
         related_name="pipelines",
     )
 
-    objects = DefaultSoftDeletedManager.from_queryset(PipelineQuerySet)()
+    objects = PipelineManager()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()
 
     def run(

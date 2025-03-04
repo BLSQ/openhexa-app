@@ -12,7 +12,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
-from hexa.pipelines.models import Pipeline, PipelineAlreadyExistsError, PipelineVersion
+from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -178,21 +178,18 @@ class PipelineTemplateVersion(models.Model):
 
     objects = PipelineTemplateVersionQuerySet.as_manager()
 
-    def _create_pipeline(self, workspace: Workspace) -> Pipeline:
+    def _create_pipeline(self, principal: User, workspace: Workspace) -> Pipeline:
         source_pipeline = self.template.source_pipeline
-        if Pipeline.objects.filter(
-            workspace=workspace, code=source_pipeline.code
-        ).exists():
-            raise PipelineAlreadyExistsError(
-                f"Failed to create a pipeline with code {source_pipeline.code}, it already exists in the {workspace.name} workspace"
-            )
-        return Pipeline.objects.create(
-            source_template=self.template,
-            code=source_pipeline.code,
-            name=source_pipeline.name,
-            description=self.template.description,
-            config=source_pipeline.config,
+        data = {
+            "source_template": self.template,
+            "description": self.template.description,
+            "config": source_pipeline.config,
+        }
+        return Pipeline.objects.create_if_has_perm(
+            principal=principal,
             workspace=workspace,
+            name=source_pipeline.name or source_pipeline.code,
+            **data,
         )
 
     def _extract_config(self, pipeline: Pipeline) -> dict:
@@ -220,7 +217,7 @@ class PipelineTemplateVersion(models.Model):
     def create_pipeline_version(
         self, principal: User, workspace: Workspace, pipeline=None
     ) -> PipelineVersion:
-        pipeline = pipeline or self._create_pipeline(workspace)
+        pipeline = pipeline or self._create_pipeline(principal, workspace)
         new_version_config = self._extract_config(pipeline)
         source_version = self.source_pipeline_version
         return PipelineVersion.objects.create(
