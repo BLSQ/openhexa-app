@@ -27,6 +27,7 @@ input CreateWebappInput {
   name: String!
   description: String
   url: String!
+  icon: String
   workspaceSlug: String!
 }
 
