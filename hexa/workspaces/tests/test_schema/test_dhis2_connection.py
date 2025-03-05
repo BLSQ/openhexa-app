@@ -279,7 +279,14 @@ class ConnectiontTest(GraphQLTestCase):
                 "type": "ORG_UNITS",
             },
         )
-        self.assertEqual(response["data"], {"connectionBySlug": None})
+        self.assertEqual(
+            response["data"],
+            {
+                "connectionBySlug": {
+                    "queryMetadata": {"error": "UNKNOWN_ERROR", "items": []}
+                }
+            },
+        )
 
     def test_get_org_units_no_permission(self):
         self.client.force_login(self.USER_SERENA)
