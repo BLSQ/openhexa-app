@@ -8,6 +8,15 @@ from hexa.workspaces.models import Workspace
 webapp_query = QueryType()
 
 
+@webapp_query.field("webapp")
+def resolve_webapp(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    try:
+        return Webapp.objects.filter_for_user(request.user).get(id=kwargs["id"])
+    except Webapp.DoesNotExist:
+        return None
+
+
 @webapp_query.field("webapps")
 def resolve_webapps(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
