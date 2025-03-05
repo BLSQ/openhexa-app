@@ -2,7 +2,7 @@ import logging
 
 from ariadne import EnumType, InterfaceType, ObjectType
 from django.http import HttpRequest
-from openhexa.toolbox.dhis2.api import DHIS2Error, query_dhis2_metadata
+from openhexa.toolbox.dhis2.api import DHIS2Error
 
 from hexa.core.graphql import result_page
 from hexa.pipelines.authentication import PipelineRunUser
@@ -18,7 +18,7 @@ from ..models import (
 from ..utils import (
     DHIS2MetadataQueryType,
     dhis2_client_from_connection,
-    generate_search_filter,
+    query_dhis2_metadata,
 )
 
 workspace_object = ObjectType("Workspace")
@@ -174,9 +174,9 @@ def resolve_query(connection, info, page=1, per_page=10, **kwargs):
         fields = ["id", "name"] + (
             ["level"] if query_type == DHIS2MetadataQueryType.ORG_UNIT_LEVELS else []
         )
+        filters = kwargs.get("filters", None)
 
         dhis2_client = dhis2_client_from_connection(connection)
-        filters = generate_search_filter(kwargs)
 
         response = query_dhis2_metadata(
             dhis2_client,
@@ -186,7 +186,6 @@ def resolve_query(connection, info, page=1, per_page=10, **kwargs):
             pageSize=per_page,
             **({"filters": filters} if filters else {}),
         )
-        print(page, per_page, flush=True)
 
         result = [
             {

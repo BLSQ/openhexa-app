@@ -920,7 +920,7 @@ type DHIS2Connection implements Connection{
     fields: [ConnectionField!]! # Fields of the connection
     permissions: ConnectionPermissions! # Permissions of the connection
     status: DHIS2ConnectionStatus! # Connection status
-    queryMetadata(type: DHIS2MetadataType!, filter: String, search: String, perPage: Int, page:Int): DHIS2QueryResultPage! # Query metadata items
+    queryMetadata(type: DHIS2MetadataType!, filters: [String], perPage: Int, page:Int): DHIS2QueryResultPage! # Query metadata items
 }
 
 """

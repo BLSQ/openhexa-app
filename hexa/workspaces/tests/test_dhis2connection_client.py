@@ -104,9 +104,9 @@ class TestDHIS2Methods(TestCase):
         )
         dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
-            dhis2, DHIS2MetadataQueryType.ORGANISATION_UNITS, fields="id,name"
+            dhis2, DHIS2MetadataQueryType.ORG_UNITS, fields="id,name"
         )
-        self.assertEqual(metadata, org_units)
+        self.assertEqual(metadata.items, org_units)
 
     @responses.activate
     def test_dhis2_org_units_by_groups(self):
@@ -122,11 +122,11 @@ class TestDHIS2Methods(TestCase):
         dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2,
-            DHIS2MetadataQueryType.ORGANISATION_UNITS,
+            DHIS2MetadataQueryType.ORG_UNITS,
             fields="id,name",
             filters=["organisationUnitGroups.id:in:[oDkJh5Ddh7d]"],
         )
-        self.assertEqual(metadata, org_units)
+        self.assertEqual(metadata.items, org_units)
 
     @responses.activate
     def test_dhis2_org_unit_groups(self):
@@ -141,9 +141,9 @@ class TestDHIS2Methods(TestCase):
         )
         dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
-            dhis2, DHIS2MetadataQueryType.ORGANISATION_UNIT_GROUPS, fields="id,name"
+            dhis2, DHIS2MetadataQueryType.ORG_UNIT_GROUPS, fields="id,name"
         )
-        self.assertEqual(metadata, org_units_groups)
+        self.assertEqual(metadata.items, org_units_groups)
 
     @responses.activate
     def test_dhis2_org_unit_levels(self):
@@ -158,9 +158,9 @@ class TestDHIS2Methods(TestCase):
         )
         dhis2 = dhis2_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
-            dhis2, DHIS2MetadataQueryType.ORGANISATION_UNIT_LEVELS, fields="id,name"
+            dhis2, DHIS2MetadataQueryType.ORG_UNIT_LEVELS, fields="id,name"
         )
-        self.assertEqual(metadata, org_units_levels)
+        self.assertEqual(metadata.items, org_units_levels)
 
     @responses.activate
     def test_dhis2_datasets(self):
@@ -177,7 +177,7 @@ class TestDHIS2Methods(TestCase):
         metadata = query_dhis2_metadata(
             dhis2, DHIS2MetadataQueryType.DATASETS, fields="id,name"
         )
-        self.assertEqual(metadata, datasets)
+        self.assertEqual(metadata.items, datasets)
 
     @responses.activate
     def test_dhis2_data_elements(self):
@@ -194,7 +194,7 @@ class TestDHIS2Methods(TestCase):
         metadata = query_dhis2_metadata(
             dhis2, DHIS2MetadataQueryType.DATA_ELEMENTS, fields="id,name"
         )
-        self.assertEqual(metadata, data_elements_by_data_elements_group)
+        self.assertEqual(metadata.items, data_elements_by_data_elements_group)
 
     @responses.activate
     def test_dhis2_data_elements_by_datasets(self):
@@ -234,7 +234,7 @@ class TestDHIS2Methods(TestCase):
             fields="id,name",
             filters=["dataElementGroups.id:in:[oDkJh5Ddh7d]"],
         )
-        self.assertEqual(metadata, data_elements_by_data_elements_group)
+        self.assertEqual(metadata.items, data_elements_by_data_elements_group)
 
     @responses.activate
     def test_dhis2_data_element_groups(self):
@@ -251,7 +251,7 @@ class TestDHIS2Methods(TestCase):
         metadata = query_dhis2_metadata(
             dhis2, DHIS2MetadataQueryType.DATA_ELEMENT_GROUPS, fields="id,name"
         )
-        self.assertEqual(metadata, data_element_groups)
+        self.assertEqual(metadata.items, data_element_groups)
 
     @responses.activate
     def test_dhis2_indicators(self):
@@ -268,7 +268,7 @@ class TestDHIS2Methods(TestCase):
         metadata = query_dhis2_metadata(
             dhis2, DHIS2MetadataQueryType.INDICATORS, fields="id,name"
         )
-        self.assertEqual(metadata, indicators)
+        self.assertEqual(metadata.items, indicators)
 
     @responses.activate
     def test_dhis2_indicators_by_groups(self):
@@ -288,7 +288,7 @@ class TestDHIS2Methods(TestCase):
             fields="id,name",
             filters=["indicatorGroups.id:in:[PoTnGN0F2n5]"],
         )
-        self.assertEqual(metadata, indicators)
+        self.assertEqual(metadata.items, indicators)
 
     @responses.activate
     def test_dhis2_indicator_groups(self):
@@ -305,4 +305,4 @@ class TestDHIS2Methods(TestCase):
         metadata = query_dhis2_metadata(
             dhis2, DHIS2MetadataQueryType.INDICATOR_GROUPS, fields="id,name"
         )
-        self.assertEqual(metadata, indicator_groups)
+        self.assertEqual(metadata.items, indicator_groups)

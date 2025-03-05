@@ -115,16 +115,3 @@ def dhis2_client_from_connection(connection: Connection) -> DHIS2 | None:
         username=dhis_connection_dict.get("username"),
         password=dhis_connection_dict.get("password"),
     )
-
-
-def generate_search_filter(kwargs):
-    filters = []
-    search_query = kwargs.get("search")
-    if search_query and search_query.strip():
-        filters.append(f"name:token:{search_query.strip()}")
-
-    if kwargs.get("filter"):
-        for item in kwargs["filter"]:
-            filters.append(f"{item['field']}:in[{','.join(map(str, item['value']))}]")
-
-    return filters
