@@ -32,6 +32,11 @@ def resolve_url(webapp: Webapp, info, **kwargs):
     return webapp.url
 
 
+@webapp_object.field("icon")
+def resolve_icon(webapp: Webapp, info, **kwargs):
+    return webapp.icon
+
+
 @webapp_object.field("description")
 def resolve_description(webapp: Webapp, info, **kwargs):
     return webapp.description
