@@ -71,9 +71,9 @@ enum ParameterType {
 Enum representing the type of a parameter widget.
 """
 enum ParameterWidget {
-  DHIS2_ORG_UNIT
-  DHIS2_ORG_UNIT_GROUP
-  DHIS2_ORG_UNIT_LEVEL
+  DHIS2_ORG_UNITS
+  DHIS2_ORG_UNIT_GROUPS
+  DHIS2_ORG_UNIT_LEVELS
   DHIS2_DATASETS
   DHIS2_DATA_ELEMENTS
   DHIS2_DATA_ELEMENT_GROUPS
