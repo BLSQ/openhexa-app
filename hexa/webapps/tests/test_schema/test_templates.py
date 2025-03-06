@@ -159,7 +159,8 @@ class WebappsTest(GraphQLTestCase):
             {"input": {"id": str(self.WEBAPP.id)}},
         )
         self.assertTrue(response["data"]["deleteWebapp"]["success"])
-        self.assertTrue(Webapp.objects.get(id=self.WEBAPP.id).is_deleted)
+        self.assertFalse(Webapp.objects.filter(id=self.WEBAPP.id).exists())
+        self.assertTrue(Webapp.all_objects.get(id=self.WEBAPP.id).is_deleted)
 
     def test_favorites(self):
         self.client.force_login(self.USER_ROOT)

@@ -67,7 +67,8 @@ class WebappModelTest(TestCase):
     def test_webapp_soft_delete(self):
         webapp_id = self.webapp.id
         self.webapp.delete()
-        self.assertTrue(Webapp.objects.filter(id=webapp_id).first().is_deleted)
+        self.assertFalse(Webapp.objects.filter(id=webapp_id).exists())
+        self.assertTrue(Webapp.all_objects.get(id=webapp_id).is_deleted)
 
     def test_is_favorite(self):
         self.assertFalse(self.webapp.is_favorite(self.user_viewer))
@@ -138,7 +139,8 @@ class WebappModelTest(TestCase):
             Webapp.objects.delete_if_has_perm(self.user_editor, self.webapp)
 
         Webapp.objects.delete_if_has_perm(self.user_admin, self.webapp)
-        self.assertTrue(Webapp.objects.filter(id=self.webapp.id).first().is_deleted)
+        self.assertFalse(Webapp.objects.filter(id=self.webapp.id).exists())
+        self.assertTrue(Webapp.all_objects.get(id=self.webapp.id).is_deleted)
 
     def test_unique_constraint(self):
         with self.assertRaises(IntegrityError):

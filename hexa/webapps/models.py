@@ -5,15 +5,12 @@ from django.db.models import Q
 from hexa.core.models.base import Base, BaseManager, BaseQuerySet
 from hexa.core.models.soft_delete import (
     DefaultSoftDeletedManager,
+    IncludeSoftDeletedManager,
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
-
-
-class WebappManager(BaseManager, DefaultSoftDeletedManager):
-    pass
 
 
 class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):
@@ -23,6 +20,18 @@ class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             Q(workspace__members=user),
             return_all_if_superuser=False,
         )
+
+
+class WebappManager(
+    BaseManager, DefaultSoftDeletedManager.from_queryset(WebappQuerySet)
+):
+    pass
+
+
+class AllWebappManager(
+    BaseManager, IncludeSoftDeletedManager.from_queryset(WebappQuerySet)
+):
+    pass
 
 
 class Webapp(Base, SoftDeletedModel):
@@ -48,7 +57,8 @@ class Webapp(Base, SoftDeletedModel):
     favorites = models.ManyToManyField(
         User, related_name="favorite_webapps", blank=True
     )
-    objects = WebappManager.from_queryset(WebappQuerySet)()
+    objects = WebappManager()
+    all_objects = AllWebappManager()
 
     def is_favorite(self, user: User):
         return self.favorites.filter(pk=user.pk).exists()
