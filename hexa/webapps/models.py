@@ -4,6 +4,7 @@ from django.db.models import Q
 
 from hexa.core.models.base import Base, BaseManager, BaseQuerySet
 from hexa.core.models.soft_delete import (
+    DefaultSoftDeletedManager,
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
@@ -11,7 +12,7 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 
-class WebappManager(BaseManager):
+class WebappManager(BaseManager, DefaultSoftDeletedManager):
     pass
 
 
