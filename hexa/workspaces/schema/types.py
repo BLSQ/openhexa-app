@@ -1,6 +1,6 @@
 import logging
 
-from ariadne import InterfaceType, ObjectType
+from ariadne import EnumType, InterfaceType, ObjectType
 from django.http import HttpRequest
 from openhexa.toolbox.dhis2.api import DHIS2Error
 
@@ -18,9 +18,6 @@ from ..models import (
 from ..utils import (
     DHIS2MetadataQueryType,
     dhis2_client_from_connection,
-    error_response,
-    generate_search_filter,
-    process_metadata_response,
     query_dhis2_metadata,
 )
 
@@ -30,6 +27,7 @@ connection_interface = InterfaceType("Connection")
 connection_field_object = ObjectType("ConnectionField")
 connection_permissions_object = ObjectType("ConnectionPermissions")
 dhis2_connection = ObjectType("DHIS2Connection")
+dhis2_metadata_type = EnumType("DHIS2MetadataType", DHIS2MetadataQueryType)
 
 
 @connection_permissions_object.field("update")
@@ -170,60 +168,52 @@ def resolve_connection_field_value(obj: ConnectionField, info, **kwargs):
 
 
 @dhis2_connection.field("queryMetadata")
-def resolve_query(connection, info, **kwargs):
+def resolve_query(connection, info, page=1, per_page=10, **kwargs):
     try:
-        query_type = DHIS2MetadataQueryType[kwargs.get("type")]
+        query_type = DHIS2MetadataQueryType[kwargs["type"]]
         fields = ["id", "name"] + (
-            ["level"]
-            if query_type == DHIS2MetadataQueryType.ORGANISATION_UNIT_LEVELS
-            else []
+            ["level"] if query_type == DHIS2MetadataQueryType.ORG_UNIT_LEVELS else []
         )
+        filters = kwargs.get("filters", None)
 
         dhis2_client = dhis2_client_from_connection(connection)
-        page = kwargs.get("page", 1)
-        per_page = kwargs.get("per_page", 10)
 
-        filters = generate_search_filter(kwargs)
-
-        metadata_response = query_dhis2_metadata(
+        response = query_dhis2_metadata(
             dhis2_client,
-            query_type=DHIS2MetadataQueryType[kwargs.get("type")],
+            query_type=query_type,
             fields=",".join(fields),
             page=page,
             pageSize=per_page,
             **({"filters": filters} if filters else {}),
         )
-        (
-            metadata_items,
-            total_items,
-            total_pages,
-            page_number,
-        ) = process_metadata_response(metadata_response, page)
 
         result = [
             {
                 "label": item.get("name") or item.get("level"),
                 "id": item.get("id") or item.get("level"),
             }
-            for item in metadata_items
+            for item in response.items
         ]
 
         return {
             "items": result,
-            "total_items": total_items,
-            "total_pages": total_pages,
-            "page_number": page_number,
+            "total_items": response.total_items,
+            "total_pages": response.total_pages,
+            "page_number": response.page_number,
             "success": True,
             "error": None,
         }
 
-    except DHIS2Error as e:
-        logging.error(f"DHIS2 error: {e}")
-        return error_response(page, "REQUEST_ERROR")
-
     except Exception as e:
-        logging.error(f"Unknown error: {e}")
-        return error_response(page, "UNKNOWN_ERROR")
+        logging.error(f"DHIS2 error: {e}")
+        return {
+            "items": [],
+            "total_items": 0,
+            "total_pages": 0,
+            "page_number": page,
+            "success": False,
+            "error": "REQUEST_ERROR" if isinstance(e, DHIS2Error) else "UNKNOWN_ERROR",
+        }
 
 
 connection_interface.set_alias("type", "connection_type")
@@ -267,4 +257,5 @@ bindables = [
     connection_interface,
     dhis2_connection,
     connection_permissions_object,
+    dhis2_metadata_type,
 ]
