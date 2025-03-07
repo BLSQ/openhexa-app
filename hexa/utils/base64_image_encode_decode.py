@@ -11,9 +11,7 @@ def decode_base64_image(data: str) -> bytes:
 
 def encode_base64_image(image: bytes) -> str:
     """Encode image data bytes to a base64 data string."""
-    mime_type = imghdr.what(None, h=image)
-    if mime_type is None:
-        mime_type = "octet-stream"
+    mime_type = imghdr.what(None, h=image) or "octet-stream"
     return (
         f"data:image/{mime_type};{base64_identifier}{base64.b64encode(image).decode()}"
     )
