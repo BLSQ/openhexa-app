@@ -35,7 +35,7 @@ def resolve_url(webapp: Webapp, info, **kwargs):
 
 @webapp_object.field("icon")
 def resolve_icon(webapp: Webapp, info, **kwargs):
-    return encode_base64_image(webapp.icon) if webapp.icon else None
+    return encode_base64_image(bytes(webapp.icon)) if webapp.icon else None
 
 
 @webapp_object.field("description")
