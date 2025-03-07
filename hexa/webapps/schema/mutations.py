@@ -12,7 +12,7 @@ def pre_create_webapp(request, input):
 
 
 def pre_update_webapp(request, input):
-    if "icon" in input and input["icon"] is not None:
+    if input.get("icon"):
         input["icon"] = decode_base64_image(input["icon"])
 
 
