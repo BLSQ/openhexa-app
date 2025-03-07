@@ -7,13 +7,14 @@ from hexa.webapps.models import Webapp
 webapps_mutations = BaseMutationType(Webapp.objects, Webapp.objects.get_queryset())
 
 
-def pre_create_webapp(request, input):
-    input["created_by"] = request.user
-
-
 def pre_update_webapp(request, input):
     if input.get("icon"):
         input["icon"] = decode_base64_image(input["icon"])
+
+
+def pre_create_webapp(request, input):
+    input["created_by"] = request.user
+    pre_update_webapp(request, input)
 
 
 webapps_mutations.set_field(
