@@ -1,5 +1,6 @@
 from ariadne import ObjectType
 
+from hexa.utils.base64_image_encode_decode import encode_base64_image
 from hexa.webapps.models import Webapp
 
 webapp_permissions = ObjectType("WebappPermissions")
@@ -34,7 +35,7 @@ def resolve_url(webapp: Webapp, info, **kwargs):
 
 @webapp_object.field("icon")
 def resolve_icon(webapp: Webapp, info, **kwargs):
-    return webapp.icon
+    return encode_base64_image(webapp.icon) if webapp.icon else None
 
 
 @webapp_object.field("description")
