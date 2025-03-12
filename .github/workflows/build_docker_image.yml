@@ -75,6 +75,7 @@ jobs:
             DJANGO_SETTINGS_MODULE=config.settings.dev
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
+          platforms: linux/amd64,linux/arm64
           tags: |
             blsq/openhexa-app:${{ steps.version.outputs.number }}
 
@@ -91,6 +92,7 @@ jobs:
             DJANGO_SETTINGS_MODULE=config.settings.dev
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
+          platforms: linux/amd64,linux/arm64
           tags: |
             blsq/openhexa-app:${{ github.event.inputs.tag }}
         
