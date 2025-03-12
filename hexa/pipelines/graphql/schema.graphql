@@ -68,6 +68,20 @@ enum ParameterType {
 }
 
 """
+Enum representing the type of a parameter widget.
+"""
+enum ParameterWidget {
+  DHIS2_ORG_UNITS
+  DHIS2_ORG_UNIT_GROUPS
+  DHIS2_ORG_UNIT_LEVELS
+  DHIS2_DATASETS
+  DHIS2_DATA_ELEMENTS
+  DHIS2_DATA_ELEMENT_GROUPS
+  DHIS2_INDICATORS
+  DHIS2_INDICATOR_GROUPS
+}
+
+"""
 Represents a parameter of a pipeline.
 """
 type PipelineParameter {
@@ -78,7 +92,7 @@ type PipelineParameter {
   required: Boolean!  # Indicates if the parameter is required.
   default: Generic  # The default value of the parameter.
   help: String  # The help text for the parameter.
-  widget: String  # The widget to use for the parameter.
+  widget: ParameterWidget  # The widget to use for the parameter.
   connection: String  # The connection associated with the parameter.
   choices: [Generic!]  # The list of choices for the parameter.
 }
@@ -93,7 +107,7 @@ input ParameterInput {
   multiple: Boolean  # Indicates if the parameter allows multiple values.
   required: Boolean  # Indicates if the parameter is required.
   default: Generic  # The default value of the parameter.
-  widget: String  # The widget to use for the parameter.
+  widget: ParameterWidget  # The widget to use for the parameter.
   connection: String # The connection associated with the parameter.
   help: String  # The help text for the parameter.
   choices: [Generic!]  # The list of choices for the parameter.

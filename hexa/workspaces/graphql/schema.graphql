@@ -892,6 +892,20 @@ type DHIS2QueryResultPage {
 }
 
 """
+Enum representing the type of a DHIS2 metadata item.
+"""
+enum DHIS2MetadataType {
+    ORG_UNITS
+    ORG_UNIT_GROUPS
+    ORG_UNIT_LEVELS
+    DATASETS
+    DATA_ELEMENTS
+    DATA_ELEMENT_GROUPS
+    INDICATORS
+    INDICATOR_GROUPS
+}
+
+"""
 DHIS2 connection object
 """
 type DHIS2Connection implements Connection{
@@ -906,7 +920,7 @@ type DHIS2Connection implements Connection{
     fields: [ConnectionField!]! # Fields of the connection
     permissions: ConnectionPermissions! # Permissions of the connection
     status: DHIS2ConnectionStatus! # Connection status
-    queryMetadata(type: String!, filter: String, search: String, perPage: Int, page:Int): DHIS2QueryResultPage! # Query metadata items
+    queryMetadata(type: DHIS2MetadataType!, filters: [String], perPage: Int, page:Int): DHIS2QueryResultPage! # Query metadata items
 }
 
 """
