@@ -26,7 +26,7 @@ exports[`DataCard renders 1`] = `
             id="headlessui-disclosure-panel-b0421256-86a3-4e0a-9682-3cf5bee102e1"
           >
             <div
-              class="absolute top-0 right-0"
+              class="absolute top-0 right-0 z-1"
             />
             <dl
               class="grid gap-4"

@@ -221,7 +221,9 @@ function FormSection<F extends { [key: string]: any }>(
         {() => (
           <>
             {!title && (
-              <div className="absolute top-0 right-0">{renderEditButton()}</div>
+              <div className="absolute top-0 right-0 z-1">
+                {renderEditButton()}
+              </div>
             )}
             {isEdited ? (
               <form onSubmit={form.handleSubmit}>
