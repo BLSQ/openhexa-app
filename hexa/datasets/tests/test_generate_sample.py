@@ -15,6 +15,7 @@ from hexa.datasets.models import (
 )
 from hexa.datasets.queue import (
     add_system_attributes,
+    generate_profile,
     generate_sample,
     get_previous_version_file,
     load_df,
@@ -264,6 +265,35 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
 
             with self.assertRaises(EmptyDataError):
                 load_df(version_file)
+
+    def test_generate_profile(self):
+        df = pd.DataFrame(
+            {1234: [1, 2, 3, 4, 5], "str_column": ["a", "b", "c", "d", "e"]}
+        )
+        profile = generate_profile(df)
+        self.assertEqual(
+            profile,
+            [
+                {
+                    "column_name": "1234",
+                    "constant_values": False,
+                    "count": 5,
+                    "data_type": "int64",
+                    "distinct_values": 5,
+                    "missing_values": 0,
+                    "unique_values": 5,
+                },
+                {
+                    "column_name": "str_column",
+                    "constant_values": False,
+                    "count": 5,
+                    "data_type": "string",
+                    "distinct_values": 5,
+                    "missing_values": 0,
+                    "unique_values": 5,
+                },
+            ],
+        )
 
     def test_add_system_attributes(self):
         CASES = [
