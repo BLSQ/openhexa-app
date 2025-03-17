@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.http import HttpRequest
 from mixpanel import Mixpanel
-from mixpanel_async import AsyncBufferedConsumer
 from sentry_sdk import capture_exception
 from ua_parser import user_agent_parser
 
@@ -9,6 +8,8 @@ from hexa.user_management.models import AnonymousUser, User
 
 mixpanel = None
 if settings.MIXPANEL_TOKEN:
+    from mixpanel_async import AsyncBufferedConsumer
+
     mixpanel = Mixpanel(
         token=settings.MIXPANEL_TOKEN,
         consumer=AsyncBufferedConsumer(  # See AsyncMixpanelTest for expected behavior
