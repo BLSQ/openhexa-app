@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.60.5](https://github.com/BLSQ/openhexa-frontend/compare/0.60.4...0.60.5) (2025-03-16)
+
+
+### Bug Fixes
+
+* Cannot edit dataset metadata (absolute button without z index) (HEXA-1210) ([#1174](https://github.com/BLSQ/openhexa-frontend/issues/1174)) ([b6140ef](https://github.com/BLSQ/openhexa-frontend/commit/b6140efeb5e3ec066ef0d83e61495e216fc463e0))
+* **deps:** update dependency @apollo/client to v3.13.2 ([#1155](https://github.com/BLSQ/openhexa-frontend/issues/1155)) ([aa8390b](https://github.com/BLSQ/openhexa-frontend/commit/aa8390b3992b6f7bb08d4f1a7fe3e9c4c05cec50))
+* **deps:** update dependency @apollo/client to v3.13.3 ([#1162](https://github.com/BLSQ/openhexa-frontend/issues/1162)) ([ada9351](https://github.com/BLSQ/openhexa-frontend/commit/ada935185c3dcdb1ea63c35cbe08900dc8a668c6))
+* **deps:** update dependency @apollo/client to v3.13.4 ([#1166](https://github.com/BLSQ/openhexa-frontend/issues/1166)) ([154bd24](https://github.com/BLSQ/openhexa-frontend/commit/154bd24574206def6c3637af924dbdbf3dcb4935))
+* **deps:** update dependency @mdxeditor/editor to v3.25.1 ([#1153](https://github.com/BLSQ/openhexa-frontend/issues/1153)) ([855ead5](https://github.com/BLSQ/openhexa-frontend/commit/855ead5889687f463fb1b6c2c1a325173d0eaa5c))
+* **deps:** update dependency @mdxeditor/editor to v3.26.0 ([#1164](https://github.com/BLSQ/openhexa-frontend/issues/1164)) ([89b4139](https://github.com/BLSQ/openhexa-frontend/commit/89b4139e592e9947d34b87a02fdabd11c4ec079e))
+* **deps:** update dependency @mdxeditor/editor to v3.27.0 ([#1177](https://github.com/BLSQ/openhexa-frontend/issues/1177)) ([8f24cc8](https://github.com/BLSQ/openhexa-frontend/commit/8f24cc88c6cf456be8cc9a0536421d4c0c9ba201))
+* **deps:** update dependency @mdxeditor/editor to v3.28.0 ([#1178](https://github.com/BLSQ/openhexa-frontend/issues/1178)) ([0a0b010](https://github.com/BLSQ/openhexa-frontend/commit/0a0b010b2167484e570dbed530b1315609eda4c4))
+* **deps:** update dependency @sentry/nextjs to v9.4.0 ([#1150](https://github.com/BLSQ/openhexa-frontend/issues/1150)) ([6ed9a69](https://github.com/BLSQ/openhexa-frontend/commit/6ed9a69e7ba7c2b946d457bdacbafe35e04f8413))
+* **deps:** update dependency @sentry/nextjs to v9.5.0 ([#1156](https://github.com/BLSQ/openhexa-frontend/issues/1156)) ([42125c9](https://github.com/BLSQ/openhexa-frontend/commit/42125c950ae744a6519edb7f86f2d98b433e06a5))
+* **deps:** update dependency @types/node to v22.13.10 ([#1165](https://github.com/BLSQ/openhexa-frontend/issues/1165)) ([dbca4b3](https://github.com/BLSQ/openhexa-frontend/commit/dbca4b343969a9d242ced7210e08594a64ed87f5))
+* **deps:** update dependency @types/node to v22.13.9 ([#1146](https://github.com/BLSQ/openhexa-frontend/issues/1146)) ([570a0d0](https://github.com/BLSQ/openhexa-frontend/commit/570a0d09843dcba0fb76c14b4352e3c3ff5d337b))
+* **deps:** update dependency @uiw/react-codemirror to v4.23.10 ([#1148](https://github.com/BLSQ/openhexa-frontend/issues/1148)) ([2e3cd81](https://github.com/BLSQ/openhexa-frontend/commit/2e3cd812f7c9d984043e39b84e71e2637eb601eb))
+* **deps:** update dependency cronstrue to v2.56.0 ([#1144](https://github.com/BLSQ/openhexa-frontend/issues/1144)) ([3de30a0](https://github.com/BLSQ/openhexa-frontend/commit/3de30a0161fd3c1138bd99712c171f12b891fe1e))
+* **deps:** update dependency i18next to v24.2.3 ([#1176](https://github.com/BLSQ/openhexa-frontend/issues/1176)) ([0acca94](https://github.com/BLSQ/openhexa-frontend/commit/0acca94bfddd2d74be51d89d9756582c499ab344))
+* **deps:** update nextjs monorepo to v15.2.1 ([#1147](https://github.com/BLSQ/openhexa-frontend/issues/1147)) ([2da9780](https://github.com/BLSQ/openhexa-frontend/commit/2da978036166415fcb4cf2e2b2a0086a34ea1436))
+* **deps:** update nextjs monorepo to v15.2.2 ([#1168](https://github.com/BLSQ/openhexa-frontend/issues/1168)) ([06c572c](https://github.com/BLSQ/openhexa-frontend/commit/06c572cf4a0d7dfdec5f30e19656cc7a7fb093ba))
+
 ## [0.60.4](https://github.com/BLSQ/openhexa-frontend/compare/0.60.3...0.60.4) (2025-03-03)
 
 
