@@ -136,15 +136,12 @@ def resolve_pipeline_permissions_create_template_version(
     current_version_has_template = pipeline.last_version and hasattr(
         pipeline.last_version, "template_version"
     )
-    pipeline_has_active_template = (
-        hasattr(pipeline, "template") and not pipeline.template.is_deleted
-    )
     pipeline_is_created_from_a_template = pipeline.source_template
     pipeline_is_notebook = pipeline.type == PipelineType.NOTEBOOK
     is_allowed = (
         user_has_permission
         and not pipeline_is_created_from_a_template
-        and (not pipeline_has_active_template or not current_version_has_template)
+        and not current_version_has_template
         and not pipeline_is_notebook
     )
     return {
@@ -155,7 +152,6 @@ def resolve_pipeline_permissions_create_template_version(
                 not user_has_permission and "PERMISSION_DENIED",
                 pipeline_is_created_from_a_template
                 and "PIPELINE_IS_ALREADY_FROM_TEMPLATE",
-                pipeline_has_active_template and "PIPELINE_HAS_TEMPLATE_ALREADY",
                 current_version_has_template and "NO_NEW_TEMPLATE_VERSION_AVAILABLE",
                 pipeline_is_notebook and "PIPELINE_IS_NOTEBOOK",
             ]
