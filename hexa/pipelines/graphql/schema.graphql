@@ -215,7 +215,6 @@ Enum representing the possible errors preventing the creation of a template vers
 enum CreateTemplateVersionPermissionError {
   PERMISSION_DENIED
   PIPELINE_IS_ALREADY_FROM_TEMPLATE
-  PIPELINE_HAS_TEMPLATE_ALREADY
   NO_NEW_TEMPLATE_VERSION_AVAILABLE
   PIPELINE_IS_NOTEBOOK
 }
