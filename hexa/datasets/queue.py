@@ -114,7 +114,7 @@ def generate_profile(df: pd.DataFrame) -> list:
 
         metadata_per_column = [
             {
-                "column_name": column,
+                "column_name": str(column),
                 "count": count.get(column),
                 "data_type": data_types.get(column),
                 "missing_values": missing_values.get(column),
