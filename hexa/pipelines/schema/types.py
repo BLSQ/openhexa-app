@@ -140,12 +140,23 @@ def resolve_pipeline_permissions_create_template_version(
         hasattr(pipeline, "template") and not pipeline.template.is_deleted
     )
     pipeline_is_created_from_a_template = pipeline.source_template
-    return (
+    pipeline_is_notebook = pipeline.type == PipelineType.NOTEBOOK
+    is_allowed = (
         user_has_permission
         and not pipeline_is_created_from_a_template
         and (not pipeline_has_active_template or not current_version_has_template)
-        and pipeline.type != PipelineType.NOTEBOOK
+        and not pipeline_is_notebook
     )
+    return {
+        "is_allowed": is_allowed,
+        "errors": [
+            user_has_permission and "PERMISSION_DENIED",
+            pipeline_is_created_from_a_template and "PIPELINE_IS_ALREADY_FROM_TEMPLATE",
+            pipeline_has_active_template and "PIPELINE_HAS_TEMPLATE_ALREADY",
+            current_version_has_template and "NO_NEW_TEMPLATE_VERSION_AVAILABLE",
+            pipeline_is_notebook and "PIPELINE_IS_NOTEBOOK",
+        ],
+    }
 
 
 @pipeline_version_permissions.field("update")
