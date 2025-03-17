@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.83.1](https://github.com/BLSQ/openhexa-app/compare/0.83.0...0.83.1) (2025-03-17)
+
+
+### Bug Fixes
+
+* Datasets files not profiled (HEXA-1219) ([#943](https://github.com/BLSQ/openhexa-app/issues/943)) ([62a7435](https://github.com/BLSQ/openhexa-app/commit/62a74355d5743c0287e2043b29c1c323178fd05e))
+
 ## [0.83.0](https://github.com/BLSQ/openhexa-app/compare/0.82.0...0.83.0) (2025-03-03)
 
 
