@@ -150,7 +150,7 @@ def resolve_pipeline_permissions_create_template_version(
     return {
         "is_allowed": is_allowed,
         "errors": [
-            user_has_permission and "PERMISSION_DENIED",
+            not user_has_permission and "PERMISSION_DENIED",
             pipeline_is_created_from_a_template and "PIPELINE_IS_ALREADY_FROM_TEMPLATE",
             pipeline_has_active_template and "PIPELINE_HAS_TEMPLATE_ALREADY",
             current_version_has_template and "NO_NEW_TEMPLATE_VERSION_AVAILABLE",
