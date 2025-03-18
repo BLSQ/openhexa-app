@@ -5,7 +5,6 @@ from hexa.webapps.models import Webapp
 from hexa.workspaces.base_workspace_mutation_type import BaseWorkspaceMutationType
 
 
-# TODO : ensure the model is passed or the manager and queryset are from the same model
 def _decode_icon_if_present(input: dict):
     if input.get("icon"):
         input["icon"] = decode_base64_image(input["icon"])
@@ -20,28 +19,7 @@ class WebappsWorkspaceMutationType(BaseWorkspaceMutationType):
         _decode_icon_if_present(input)
 
 
-webapps_mutations = WebappsWorkspaceMutationType(
-    Webapp.objects, Webapp.objects.get_queryset()
-)
-
-
-def pre_update_webapp(request, input):
-    if input.get("icon"):
-        input["icon"] = decode_base64_image(input["icon"])
-
-
-def pre_create_webapp(request, input):
-    input["created_by"] = request.user
-    pre_update_webapp(request, input)
-
-
-webapps_mutations.set_field(
-    f"create{Webapp.__name__}", webapps_mutations.create(pre_hook=pre_create_webapp)
-)
-
-webapps_mutations.set_field(
-    f"update{Webapp.__name__}", webapps_mutations.update(pre_hook=pre_update_webapp)
-)
+webapps_mutations = WebappsWorkspaceMutationType(Webapp)
 
 
 @webapps_mutations.field("addToFavorites")

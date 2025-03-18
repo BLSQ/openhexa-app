@@ -1,6 +1,9 @@
+from typing import Type
+
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
+from django.db.models.base import Model
 from django.http import HttpRequest
 
 from hexa.core.models.base import BaseManager, BaseQuerySet
@@ -8,11 +11,20 @@ from hexa.workspaces.models import Workspace
 
 
 class BaseWorkspaceMutationType(MutationType):
-    def __init__(self, manager: BaseManager, query_set: BaseQuerySet):
+    def __init__(self, model: Type[Model]):
         super().__init__()
-        self.manager = manager
-        self.model_name = manager.model.__name__
-        self.query_set = query_set
+        self.model = model
+        self.model_name = model.__name__
+
+        if not isinstance(model.objects, BaseManager):
+            raise TypeError("Model's manager must be a subclass of BaseManager")
+        self.manager: BaseManager = model.objects
+
+        query_set = model.objects.get_queryset()
+        if not isinstance(query_set, BaseQuerySet):
+            raise TypeError("Model's queryset must be a subclass of BaseQuerySet")
+        self.query_set: BaseQuerySet = query_set
+
         self.set_field(f"create{self.model_name}", self.create())
         self.set_field(f"update{self.model_name}", self.update())
         self.set_field(f"delete{self.model_name}", self.delete())
