@@ -7,7 +7,7 @@ from hexa.core.models.base import BaseManager, BaseQuerySet
 from hexa.workspaces.models import Workspace
 
 
-class BaseMutationType(MutationType):
+class BaseWorkspaceMutationType(MutationType):
     def __init__(self, manager: BaseManager, query_set: BaseQuerySet):
         super().__init__()
         self.manager = manager
