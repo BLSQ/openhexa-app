@@ -2,7 +2,7 @@ from typing import Type
 
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models.base import Model
 from django.http import HttpRequest
 
@@ -45,8 +45,9 @@ class BaseWorkspaceMutationType(MutationType):
                 }
             try:
                 input["workspace"] = workspace
-                self.pre_create(request, input)
-                instance = self.perform_create(request, input, workspace)
+                with transaction.atomic():
+                    self.pre_create(request, input)
+                    instance = self.perform_create(request, input, workspace)
                 return {
                     "success": True,
                     "errors": [],
@@ -75,8 +76,9 @@ class BaseWorkspaceMutationType(MutationType):
                 instance = self.query_set.filter_for_user(request.user).get(
                     id=input.pop("id")
                 )
-                self.pre_update(request, instance, input)
-                self.perform_update(request, instance, input)
+                with transaction.atomic():
+                    self.pre_update(request, instance, input)
+                    self.perform_update(request, instance, input)
                 return {
                     "success": True,
                     "errors": [],
