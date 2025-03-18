@@ -4,10 +4,24 @@ from hexa.utils.base64_image_encode_decode import decode_base64_image
 from hexa.utils.base_mutation_type import BaseMutationType
 from hexa.webapps.models import Webapp
 
-# TODO : class based mutation type
+
 # TODO : ensure the model is passed or the manager and queryset are from the same model
 # TODO : move class to workspace folder
-webapps_mutations = BaseMutationType(Webapp.objects, Webapp.objects.get_queryset())
+def _decode_icon_if_present(input: dict):
+    if input.get("icon"):
+        input["icon"] = decode_base64_image(input["icon"])
+
+
+class WebappsMutationType(BaseMutationType):
+    def pre_create(self, request: HttpRequest, input: dict):
+        input["created_by"] = request.user
+        _decode_icon_if_present(input)
+
+    def perform_update(self, request: HttpRequest, instance, input: dict):
+        _decode_icon_if_present(input)
+
+
+webapps_mutations = WebappsMutationType(Webapp.objects, Webapp.objects.get_queryset())
 
 
 def pre_update_webapp(request, input):

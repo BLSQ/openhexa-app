@@ -1,9 +1,6 @@
-from functools import wraps
-from typing import Callable, Optional
-
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError
 from django.http import HttpRequest
 
 from hexa.core.models.base import BaseManager, BaseQuerySet
@@ -20,10 +17,7 @@ class BaseMutationType(MutationType):
         self.set_field(f"update{self.model_name}", self.update())
         self.set_field(f"delete{self.model_name}", self.delete())
 
-    def create(
-        self, pre_hook: Optional[Callable] = None, post_hook: Optional[Callable] = None
-    ):
-        @wraps(self.create)
+    def create(self):
         def wrapper(_, info, **kwargs):
             request: HttpRequest = info.context["request"]
             input = kwargs["input"]
@@ -38,17 +32,9 @@ class BaseMutationType(MutationType):
                     "errors": ["WORKSPACE_NOT_FOUND"],
                 }
             try:
-                with transaction.atomic():
-                    if pre_hook:
-                        pre_hook(request, input)
-
-                    input["workspace"] = workspace
-                    instance = self.manager.create_if_has_perm(
-                        request.user, workspace, **input
-                    )
-
-                    if post_hook:
-                        post_hook(instance)
+                input["workspace"] = workspace
+                self.pre_create(request, input)
+                instance = self.perform_create(request, input, workspace)
                 return {
                     "success": True,
                     "errors": [],
@@ -69,10 +55,7 @@ class BaseMutationType(MutationType):
 
         return wrapper
 
-    def update(
-        self, pre_hook: Optional[Callable] = None, post_hook: Optional[Callable] = None
-    ):
-        @wraps(self.update)
+    def update(self):
         def wrapper(_, info, **kwargs):
             request: HttpRequest = info.context["request"]
             input = kwargs["input"]
@@ -80,11 +63,8 @@ class BaseMutationType(MutationType):
                 instance = self.query_set.filter_for_user(request.user).get(
                     id=input.pop("id")
                 )
-                if pre_hook:
-                    pre_hook(instance, input)
-                self.manager.update_if_has_perm(request.user, instance, **input)
-                if post_hook:
-                    post_hook(instance)
+                self.pre_update(request, instance, input)
+                self.perform_update(request, instance, input)
                 return {
                     "success": True,
                     "errors": [],
@@ -100,10 +80,7 @@ class BaseMutationType(MutationType):
 
         return wrapper
 
-    def delete(
-        self, pre_hook: Optional[Callable] = None, post_hook: Optional[Callable] = None
-    ):
-        @wraps(self.delete)
+    def delete(self):
         def wrapper(_, info, **kwargs):
             request: HttpRequest = info.context["request"]
             input = kwargs["input"]
@@ -111,11 +88,8 @@ class BaseMutationType(MutationType):
                 instance = self.query_set.filter_for_user(request.user).get(
                     id=input["id"]
                 )
-                if pre_hook:
-                    pre_hook(instance)
-                self.manager.delete_if_has_perm(request.user, instance)
-                if post_hook:
-                    post_hook(instance)
+                self.pre_delete(request, instance)
+                self.perform_delete(request, instance)
                 return {"success": True, "errors": []}
             except self.manager.model.DoesNotExist:
                 return {
@@ -126,3 +100,21 @@ class BaseMutationType(MutationType):
                 return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
         return wrapper
+
+    def perform_create(self, request: HttpRequest, input: dict, workspace: Workspace):
+        return self.manager.create_if_has_perm(request.user, workspace, **input)
+
+    def perform_update(self, request: HttpRequest, instance, input: dict):
+        self.manager.update_if_has_perm(request.user, instance, **input)
+
+    def perform_delete(self, request: HttpRequest, instance):
+        self.manager.delete_if_has_perm(request.user, instance)
+
+    def pre_create(self, request: HttpRequest, input: dict):
+        pass
+
+    def pre_update(self, request: HttpRequest, instance, input: dict):
+        pass
+
+    def pre_delete(self, request: HttpRequest, instance):
+        pass
