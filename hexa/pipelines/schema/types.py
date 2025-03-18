@@ -146,7 +146,7 @@ def resolve_pipeline_permissions_create_template_version(
     )
     return {
         "is_allowed": is_allowed,
-        "errors": [
+        "reasons": [
             msg
             for msg in [
                 not user_has_permission and "PERMISSION_DENIED",
