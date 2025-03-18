@@ -4,6 +4,9 @@ from hexa.utils.base64_image_encode_decode import decode_base64_image
 from hexa.utils.base_mutation_type import BaseMutationType
 from hexa.webapps.models import Webapp
 
+# TODO : class based mutation type
+# TODO : ensure the model is passed or the manager and queryset are from the same model
+# TODO : move class to workspace folder
 webapps_mutations = BaseMutationType(Webapp.objects, Webapp.objects.get_queryset())
 
 
