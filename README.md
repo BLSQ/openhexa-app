@@ -341,6 +341,17 @@ Triggering a new release is done by merging the pull request created by release-
 * a GitHub release is created
 * a docker image is built for the new tag and pushed on the docker registry
 
+### Release Branches
+
+Release-please also run on release branches named `release/*` (ex: release/0.81) for maintaining older versions. When working on a release branch:
+
+1. The same conventional commit format should be used
+2. Release-please will create and maintain a PR for the next patch version on that branch
+3. Changes can be cherry-picked or implemented directly on the release branch
+4. Merging the PR created by release-please will trigger a new patch release for that version
+
+This approach allows us to maintain multiple versions simultaneously while ensuring proper semantic versioning for each release line.
+
 ## How should I write my commits?
 
 This project assumes you are using [Conventional Commit messages](https://www.conventionalcommits.org/).
