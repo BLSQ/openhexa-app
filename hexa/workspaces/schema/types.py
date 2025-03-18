@@ -168,13 +168,12 @@ def resolve_connection_field_value(obj: ConnectionField, info, **kwargs):
 
 
 @dhis2_connection.field("queryMetadata")
-def resolve_query(connection, info, page=1, per_page=10, **kwargs):
+def resolve_query(connection, info, page=1, per_page=10, filters=None, **kwargs):
     try:
         query_type = DHIS2MetadataQueryType[kwargs["type"]]
         fields = ["id", "name"] + (
             ["level"] if query_type == DHIS2MetadataQueryType.ORG_UNIT_LEVELS else []
         )
-        filters = kwargs.get("filters", None)
 
         dhis2_client = dhis2_client_from_connection(connection)
 
@@ -184,7 +183,7 @@ def resolve_query(connection, info, page=1, per_page=10, **kwargs):
             fields=",".join(fields),
             page=page,
             pageSize=per_page,
-            **({"filters": filters} if filters else {}),
+            filters=filters,
         )
 
         result = [
