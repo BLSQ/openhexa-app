@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 
@@ -26,7 +27,7 @@ class SupersetDashboard(Base):
 
     def get_absolute_url(self):
         """Returns the URL to access this dashboard."""
-        return reverse("superset:dashboard", kwargs={"dashboard_id": self.id})
+        return f"{settings.NEW_FRONTEND_DOMAIN}{reverse('superset:dashboard', kwargs={'dashboard_id': self.id})}"
 
     class Meta:
         unique_together = ("external_id", "superset_instance")
