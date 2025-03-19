@@ -198,7 +198,25 @@ type PipelinePermissions {
   schedule: Boolean!  # Indicates if the pipeline can be scheduled.
   createVersion: Boolean!  # Indicates if a new version of the pipeline can be created.
   stopPipeline: Boolean!  # Indicates if the pipeline can be stopped.
-  createTemplateVersion: Boolean!  # Indicates if a new template version can be created.
+  createTemplateVersion: CreateTemplateVersionPermission!  # Indicates if a new template version can be created.
+}
+
+"""
+Represents the permission details for creating a template version.
+"""
+type CreateTemplateVersionPermission {
+  isAllowed: Boolean!
+  reasons: [CreateTemplateVersionPermissionReason!]!
+}
+
+"""
+Enum representing the possible reasons preventing the creation of a template version.
+"""
+enum CreateTemplateVersionPermissionReason {
+  PERMISSION_DENIED
+  PIPELINE_IS_ALREADY_FROM_TEMPLATE
+  NO_NEW_TEMPLATE_VERSION_AVAILABLE
+  PIPELINE_IS_NOTEBOOK
 }
 
 extend type WorkspacePermissions {

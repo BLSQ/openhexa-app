@@ -2715,7 +2715,7 @@ class PipelinesV2Test(GraphQLTestCase):
                 query ($id: UUID!) {
                     pipeline(id: $id) {
                         permissions {
-                            createTemplateVersion
+                            createTemplateVersion { isAllowed }
                         }
                     }
                 }
@@ -2735,14 +2735,20 @@ class PipelinesV2Test(GraphQLTestCase):
             parameters=[],
         )
         r = self._get_pipeline(source_pipeline.id)
-        self.assertFalse(r["data"]["pipeline"]["permissions"]["createTemplateVersion"])
+        self.assertFalse(
+            r["data"]["pipeline"]["permissions"]["createTemplateVersion"]["isAllowed"]
+        )
         source_pipeline.type = PipelineType.ZIPFILE
         source_pipeline.save()
         r = self._get_pipeline(source_pipeline.id)
-        self.assertTrue(r["data"]["pipeline"]["permissions"]["createTemplateVersion"])
+        self.assertTrue(
+            r["data"]["pipeline"]["permissions"]["createTemplateVersion"]["isAllowed"]
+        )
         template, _ = source_pipeline.get_or_create_template(
             "Template", "template", "Description"
         )
         template.create_version(source_pipeline.last_version)
         r = self._get_pipeline(source_pipeline.id)
-        self.assertFalse(r["data"]["pipeline"]["permissions"]["createTemplateVersion"])
+        self.assertFalse(
+            r["data"]["pipeline"]["permissions"]["createTemplateVersion"]["isAllowed"]
+        )
