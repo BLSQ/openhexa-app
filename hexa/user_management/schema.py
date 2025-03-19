@@ -1,6 +1,7 @@
 import binascii
 import logging
 import pathlib
+from urllib.parse import urlparse
 
 import django_otp
 from ariadne import (
@@ -387,7 +388,10 @@ def resolve_reset_password(_, info, input, **kwargs):
     request: HttpRequest = info.context["request"]
     form = PasswordResetForm({"email": input["email"]})
     if form.is_valid():
-        form.save(request=request, domain_override=settings.NEW_FRONTEND_DOMAIN)
+        parsed_url = urlparse(settings.NEW_FRONTEND_DOMAIN)
+        domain_override = parsed_url.netloc
+        use_https = parsed_url.scheme == "https"
+        form.save(request=request, domain_override=domain_override, use_https=use_https)
         return {"success": True}
     else:
         return {"success": False}
