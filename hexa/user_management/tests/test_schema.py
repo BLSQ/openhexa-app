@@ -539,6 +539,7 @@ class SchemaTest(GraphQLTestCase):
             r["data"]["me"],
         )
 
+    @override_settings(SCHEME="https")
     @override_settings(NEW_FRONTEND_DOMAIN="https://newfrontend.example.com")
     def test_reset_password(self):
         r = self.run_query(
