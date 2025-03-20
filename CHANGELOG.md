@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.84.0](https://github.com/BLSQ/openhexa-app/compare/0.83.1...0.84.0) (2025-03-20)
+
+
+### Features
+
+* Model and GraphQL layers for Webapps (PATHWAYS-335) ([#940](https://github.com/BLSQ/openhexa-app/issues/940)) ([273f005](https://github.com/BLSQ/openhexa-app/commit/273f005bb91b3fcee3164036f4011268f61f6707))
+* **templates:** Ask for deletion confirmation, more details when unable to create template (HEXA-1209) ([#945](https://github.com/BLSQ/openhexa-app/issues/945)) ([6c94c66](https://github.com/BLSQ/openhexa-app/commit/6c94c667b2b5d9b7ba933eb73fd6c808c22436ea))
+
+
+### Bug Fixes
+
+* Malformed URL for password reset (HEXA-1222) ([#949](https://github.com/BLSQ/openhexa-app/issues/949)) ([d0fadfb](https://github.com/BLSQ/openhexa-app/commit/d0fadfb5e914f114c50e35954be5d308ad2af5ab))
+
 ## [0.83.1](https://github.com/BLSQ/openhexa-app/compare/0.83.0...0.83.1) (2025-03-17)
 
 
