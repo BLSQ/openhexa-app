@@ -34,6 +34,10 @@ from hexa.user_management.schema import (
     identity_directives,
     identity_type_defs,
 )
+from hexa.webapps.schema import (
+    webapps_bindables,
+    webapps_type_defs,
+)
 from hexa.workspaces.schema import workspaces_bindables, workspaces_type_def
 
 uuid_scalar = ScalarType("UUID")
@@ -87,6 +91,7 @@ schema = make_executable_schema(
         notebooks_type_defs,
         pipelines_type_defs,
         pipeline_templates_type_defs,
+        webapps_type_defs,
         workspaces_type_def,
         metadata_type_def,
         databases_types_def,
@@ -99,6 +104,7 @@ schema = make_executable_schema(
         opaque_id_scalar,
         *pipelines_bindables,
         *pipeline_templates_bindables,
+        *webapps_bindables,
         *identity_bindables,
         *tags_bindables,
         *dags_bindables,
