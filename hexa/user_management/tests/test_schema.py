@@ -539,15 +539,16 @@ class SchemaTest(GraphQLTestCase):
             r["data"]["me"],
         )
 
+    @override_settings(NEW_FRONTEND_DOMAIN="https://newfrontend.example.com")
     def test_reset_password(self):
         r = self.run_query(
             """
-              mutation resetPassword($input: ResetPasswordInput!) {
-                resetPassword(input: $input) {
-                  success
-                }
-              }
-            """,
+                  mutation resetPassword($input: ResetPasswordInput!) {
+                    resetPassword(input: $input) {
+                      success
+                    }
+                  }
+                """,
             {"input": {"email": self.USER_JIM.email}},
         )
 
@@ -557,8 +558,16 @@ class SchemaTest(GraphQLTestCase):
         )
 
         self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(
+            "Please go to the following page and choose a new password:",
+            mail.outbox[0].body,
+        )
+        self.assertIn(
+            "https://newfrontend.example.com/auth/reset/", mail.outbox[0].body
+        )
         self.assertEqual(
-            mail.outbox[0].subject, "Password reset on http://localhost:3000"
+            mail.outbox[0].subject,
+            "Password reset on newfrontend.example.com",
         )
 
     def test_reset_password_wrong_email(self):
