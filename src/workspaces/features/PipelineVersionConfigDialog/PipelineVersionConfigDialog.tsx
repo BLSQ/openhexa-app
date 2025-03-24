@@ -140,6 +140,7 @@ const PipelineVersionConfigDialog = (props: PipelineVersionConfigProps) => {
                   form.setFieldValue(param.code, value);
                 }}
                 workspaceSlug={version.pipeline.workspace.slug}
+                form={form}
               />
             </Field>
           ))}

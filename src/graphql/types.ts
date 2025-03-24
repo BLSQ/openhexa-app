@@ -1014,7 +1014,7 @@ export type Dhis2Connection = Connection & {
   id: Scalars['String']['output'];
   name: Scalars['String']['output'];
   permissions: ConnectionPermissions;
-  queryMetadata: Dhis2QueryResult;
+  queryMetadata: Dhis2QueryResultPage;
   slug: Scalars['String']['output'];
   type: ConnectionType;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -1024,28 +1024,53 @@ export type Dhis2Connection = Connection & {
 
 /** DHIS2 connection object */
 export type Dhis2ConnectionQueryMetadataArgs = {
-  filter?: InputMaybe<Scalars['String']['input']>;
-  type: Scalars['String']['input'];
+  filters?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  type: Dhis2MetadataType;
 };
 
+/** DHIS2 connection error */
 export enum Dhis2ConnectionError {
-  ConnectionError = 'CONNECTION_ERROR',
+  RequestError = 'REQUEST_ERROR',
   UnknownError = 'UNKNOWN_ERROR'
+}
+
+/** DHIS2 connection status */
+export enum Dhis2ConnectionStatus {
+  Down = 'DOWN',
+  Unknown = 'UNKNOWN',
+  Up = 'UP'
 }
 
 /** DHIS2 metadata item */
 export type Dhis2MetadataItem = {
   __typename?: 'DHIS2MetadataItem';
-  id: Scalars['String']['output'];
-  name: Scalars['String']['output'];
+  id?: Maybe<Scalars['String']['output']>;
+  label?: Maybe<Scalars['String']['output']>;
 };
 
-/** DHIS2 metadata query result */
-export type Dhis2QueryResult = {
-  __typename?: 'DHIS2QueryResult';
+/** Enum representing the type of a DHIS2 metadata item. */
+export enum Dhis2MetadataType {
+  Datasets = 'DATASETS',
+  DataElements = 'DATA_ELEMENTS',
+  DataElementGroups = 'DATA_ELEMENT_GROUPS',
+  Indicators = 'INDICATORS',
+  IndicatorGroups = 'INDICATOR_GROUPS',
+  OrgUnits = 'ORG_UNITS',
+  OrgUnitGroups = 'ORG_UNIT_GROUPS',
+  OrgUnitLevels = 'ORG_UNIT_LEVELS'
+}
+
+/** DHIS2 metadata query result page */
+export type Dhis2QueryResultPage = {
+  __typename?: 'DHIS2QueryResultPage';
   error?: Maybe<Dhis2ConnectionError>;
   items?: Maybe<Array<Dhis2MetadataItem>>;
+  pageNumber: Scalars['Int']['output'];
   success: Scalars['Boolean']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
 };
 
 export type Database = {
@@ -2937,12 +2962,14 @@ export type PipelineParameter = {
   __typename?: 'PipelineParameter';
   choices?: Maybe<Array<Scalars['Generic']['output']>>;
   code: Scalars['String']['output'];
+  connection?: Maybe<Scalars['String']['output']>;
   default?: Maybe<Scalars['Generic']['output']>;
   help?: Maybe<Scalars['String']['output']>;
   multiple: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   required: Scalars['Boolean']['output'];
   type: ParameterType;
+  widget?: Maybe<Scalars['String']['output']>;
 };
 
 /** Represents the permissions for a pipeline. */

@@ -205,7 +205,6 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
 
   useEffect(() => {
     form.resetForm();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form, activeVersion]);
 
   if (!pipeline.permissions.run) {
@@ -219,7 +218,6 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       </ErrorAlert>
     );
   }
-
   return (
     <>
       {children(onClick)}
@@ -260,10 +258,14 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                     >
                       <ParameterField
                         parameter={param}
-                        value={form.formData[param.code]}
+                        value={
+                          form.formData[param.code] ??
+                          (param.multiple ? [] : "")
+                        }
                         onChange={(value: any) => {
                           form.setFieldValue(param.code, value);
                         }}
+                        form={form}
                         workspaceSlug={pipeline.workspace?.slug}
                       />
                     </Field>

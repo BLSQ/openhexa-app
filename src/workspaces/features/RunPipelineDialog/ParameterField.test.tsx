@@ -16,12 +16,14 @@ describe("ParameterField", () => {
       choices: null,
       multiple: false,
     };
+    const form = {};
 
     render(
       <ParameterField
         parameter={param}
         value={param.default}
         onChange={onChange}
+        form={form}
       />,
     );
 
@@ -46,13 +48,16 @@ describe("ParameterField", () => {
       required: false,
       choices: null,
       multiple: false,
+      connection: null,
+      widget: null,
     };
-
+    const form = {};
     render(
       <ParameterField
         parameter={param}
         value={param.default}
         onChange={onChange}
+        form={form}
       />,
     );
 
@@ -76,13 +81,17 @@ describe("ParameterField", () => {
       required: false,
       choices: null,
       multiple: true,
+      connection: null,
+      widget: null,
     };
+    const form = {};
 
     const { debug } = render(
       <ParameterField
         parameter={param}
         value={param.default}
         onChange={onChange}
+        form={form}
       />,
     );
 
@@ -104,13 +113,17 @@ describe("ParameterField", () => {
       required: false,
       choices: null,
       multiple: false,
+      connection: null,
+      widget: null,
     };
+    const form = {};
 
     render(
       <ParameterField
         parameter={param}
         value={param.default}
         onChange={onChange}
+        form={form}
       />,
     );
 
@@ -131,13 +144,17 @@ describe("ParameterField", () => {
       required: false,
       choices: [1, 2, 3],
       multiple: false,
+      connection: null,
+      widget: null,
     };
+    const form = {};
 
     render(
       <ParameterField
         parameter={param}
         value={param.default}
         onChange={onChange}
+        form={form}
       />,
     );
 
@@ -156,15 +173,19 @@ describe("ParameterField", () => {
       type: "int",
       default: null,
       required: false,
+      widget: null,
+      connection: null,
       choices: [1, 2, 3],
       multiple: true,
     };
+    const form = {};
 
     render(
       <ParameterField
         parameter={param}
         value={param.default}
         onChange={onChange}
+        form={form}
       />,
     );
 
@@ -185,13 +206,16 @@ describe("ParameterField", () => {
       required: false,
       choices: ["a", "b", "c"],
       multiple: true,
+      widget: null,
+      connection: null,
     };
-
+    const form = {};
     render(
       <ParameterField
         parameter={param}
         value={param.default}
         onChange={onChange}
+        form={form}
       />,
     );
 
@@ -211,8 +235,10 @@ describe("ParameterField", () => {
       required: false,
       choices: null,
       multiple: true,
+      widget: null,
+      connection: null,
     };
-
+    const form = {};
     const user = userEvent.setup();
 
     render(
@@ -220,6 +246,7 @@ describe("ParameterField", () => {
         parameter={param}
         value={param.default}
         onChange={onChange}
+        form={form}
       />,
     );
 

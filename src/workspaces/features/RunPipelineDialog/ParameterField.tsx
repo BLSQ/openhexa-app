@@ -3,23 +3,25 @@ import Switch from "core/components/Switch/Switch";
 import Input from "core/components/forms/Input/Input";
 import Select from "core/components/forms/Select";
 import Textarea from "core/components/forms/Textarea/Textarea";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "next-i18next";
 import WorkspaceConnectionPicker from "../WorkspaceConnectionPicker/WorkspaceConnectionPicker";
 import { isConnectionParameter } from "workspaces/helpers/pipelines";
 import DatasetPicker from "datasets/features/DatasetPicker";
 import { ensureArray } from "core/helpers/array";
+import GenericConnectionWidget from "./GenericConnectionWidget";
 
 type ParameterFieldProps = {
   parameter: any;
   value: any;
+  form: any;
   onChange(value: any): void;
   workspaceSlug?: string;
 };
 
 const ParameterField = (props: ParameterFieldProps) => {
   const { t } = useTranslation();
-  const { parameter, value, onChange, workspaceSlug } = props;
+  const { parameter, value, form, onChange, workspaceSlug } = props;
 
   const handleChange = useCallback(
     (value: any) => {
@@ -44,6 +46,19 @@ const ParameterField = (props: ParameterFieldProps) => {
     );
   }
 
+  if (parameter.widget !== null && parameter.connection !== null) {
+    return (
+      <GenericConnectionWidget
+        parameter={parameter}
+        widget={parameter.widget}
+        form={form}
+        workspaceSlug={workspaceSlug || ""}
+        aria-label={parameter.code}
+        name={parameter.code}
+      />
+    );
+  }
+
   if (isConnectionParameter(parameter.type)) {
     return (
       <WorkspaceConnectionPicker
@@ -63,6 +78,7 @@ const ParameterField = (props: ParameterFieldProps) => {
         value={value}
         onChange={(option) => handleChange(option?.dataset.slug)}
         withPortal
+        aria-label={parameter.code}
       />
     );
   }
@@ -75,6 +91,8 @@ const ParameterField = (props: ParameterFieldProps) => {
     return (
       <Select
         onChange={handleChange}
+        aria-label={parameter.code}
+        name={parameter.code}
         value={parameter.multiple ? ensureArray(value) : value}
         required={Boolean(parameter.required)}
         multiple={parameter.multiple}
@@ -155,6 +173,8 @@ ParameterField.fragments = {
       default
       required
       choices
+      connection
+      widget
       multiple
     }
   `,

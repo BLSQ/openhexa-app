@@ -8,7 +8,7 @@ exports[`DatasetPicker display all dataset 1`] = `
     data-open=""
   >
     <div
-      class="form-input flex w-full items-center rounded-md border-gray-300 shadow-xs disabled:border-gray-300 focus-within:outline-hidden focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed  sm:text-sm border-blue-500"
+      class="form-input flex w-full items-center rounded-md border-gray-300 shadow-xs focus-within:outline-hidden focus:ring-transparent focus-visible:border-blue-500  sm:text-sm border-blue-500"
     >
       <div
         class="mr-1 flex flex-1 items-center truncate"
