@@ -7,10 +7,12 @@ import { useDeletePipelineTemplateMutation } from "workspaces/graphql/mutations.
 import useCacheKey from "core/hooks/useCacheKey";
 import { gql } from "@apollo/client";
 import { PipelineTemplateDialog_PipelineTemplateFragment } from "./DeleteTemplateDialog.generated";
+import { useState } from "react";
 
 type DeleteTemplateDialogProps = {
   open: boolean;
   pipelineTemplate: PipelineTemplateDialog_PipelineTemplateFragment;
+  onDelete?: () => void;
   onClose: () => void;
 };
 
@@ -19,8 +21,11 @@ const DeleteTemplateDialog = (props: DeleteTemplateDialogProps) => {
   const {
     open,
     pipelineTemplate: { id, name },
+    onDelete,
     onClose,
   } = props;
+
+  const [confirmationInput, setConfirmationInput] = useState("");
 
   const clearTemplateCache = useCacheKey(["templates"]);
 
@@ -58,9 +63,18 @@ const DeleteTemplateDialog = (props: DeleteTemplateDialogProps) => {
     <Dialog open={open} onClose={onClose}>
       <Dialog.Title>{t("Delete template")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
-        <p>
-          <Trans>Are you sure you want to delete the template {name}?</Trans>
-        </p>
+        <Trans>
+          <p>Are you sure that you want to delete the template {name}?</p>
+          <p>It will not be available anymore in other workspaces.</p>
+          <p>Please enter the template name to confirm deletion:</p>
+        </Trans>
+        <input
+          type="text"
+          value={confirmationInput}
+          placeholder={name}
+          onChange={(e) => setConfirmationInput(e.target.value)}
+          className="w-full border border-gray-300 rounded-sm px-2 py-1"
+        />
       </Dialog.Content>
       <Dialog.Actions>
         <Button variant="white" onClick={onClose}>
@@ -68,8 +82,9 @@ const DeleteTemplateDialog = (props: DeleteTemplateDialogProps) => {
         </Button>
         <Button
           onClick={() => {
-            deleteTemplate().then(() => onClose());
+            deleteTemplate().then(() => onDelete && onDelete());
           }}
+          disabled={confirmationInput.toLowerCase() !== name.toLowerCase()}
         >
           {t("Delete")}
         </Button>

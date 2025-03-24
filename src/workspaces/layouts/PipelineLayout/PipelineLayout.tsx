@@ -1,8 +1,12 @@
 import { gql } from "@apollo/client";
-import { PlayIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  PlayIcon,
+  QuestionMarkCircleIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "next-i18next";
 import DownloadPipelineVersion from "pipelines/features/DownloadPipelineVersion";
 import Spinner from "core/components/Spinner";
@@ -18,6 +22,8 @@ import {
 } from "./PipelineLayout.generated";
 import PublishPipelineDialog from "pipelines/features/PublishPipelineDialog";
 import useFeature from "identity/hooks/useFeature";
+import Tooltip from "core/components/Tooltip";
+import { CreateTemplateVersionPermissionReason } from "graphql/types";
 
 type PipelineLayoutProps = {
   pipeline: PipelineLayout_PipelineFragment;
@@ -43,6 +49,27 @@ const PipelineLayout = (props: PipelineLayoutProps) => {
     useState(false);
 
   const [pipelineTemplateFeatureEnabled] = useFeature("pipeline_templates");
+
+  const createTemplateVersionReasonMessages = useMemo(() => {
+    const reasonMessages = {
+      [CreateTemplateVersionPermissionReason.PermissionDenied]: t(
+        "You lack permissions to publish a new template version.",
+      ),
+      [CreateTemplateVersionPermissionReason.PipelineIsNotebook]: t(
+        "Notebook pipelines cannot be published as templates.",
+      ),
+      [CreateTemplateVersionPermissionReason.NoNewTemplateVersionAvailable]: t(
+        "No new template version available for publishing.",
+      ),
+      [CreateTemplateVersionPermissionReason.PipelineIsAlreadyFromTemplate]: t(
+        "It is not possible to create a template from a pipeline created using a template.",
+      ),
+    };
+
+    return pipeline.permissions.createTemplateVersion.reasons.map(
+      (reason) => reasonMessages[reason],
+    );
+  }, [pipeline.permissions.createTemplateVersion.reasons, t]);
 
   return (
     <TabLayout
@@ -110,17 +137,32 @@ const PipelineLayout = (props: PipelineLayoutProps) => {
             ))}
           </Breadcrumbs>
           <div className="flex items-center gap-2">
-            {pipelineTemplateFeatureEnabled &&
-              pipeline.permissions.createTemplateVersion && (
+            {pipelineTemplateFeatureEnabled && (
+              <>
+                {!pipeline.permissions.createTemplateVersion.isAllowed && (
+                  <Tooltip
+                    label={createTemplateVersionReasonMessages.map(
+                      (m, index) => (
+                        <p key={index}>{m}</p>
+                      ),
+                    )}
+                  >
+                    <QuestionMarkCircleIcon className="h-5 w-5" />
+                  </Tooltip>
+                )}
                 <Button
                   onClick={() => setPublishPipelineDialogOpen(true)}
                   variant={"secondary"}
+                  disabled={
+                    !pipeline.permissions.createTemplateVersion.isAllowed
+                  }
                 >
                   {pipeline.template
                     ? t("Publish a new Template Version")
                     : t("Publish as Template")}
                 </Button>
-              )}
+              </>
+            )}
             {pipeline.currentVersion && (
               <DownloadPipelineVersion version={pipeline.currentVersion}>
                 {({ onClick, isDownloading }) => (
@@ -196,7 +238,10 @@ PipelineLayout.fragments = {
         run
         delete
         update
-        createTemplateVersion
+        createTemplateVersion {
+          isAllowed
+          reasons
+        }
       }
       template {
         id

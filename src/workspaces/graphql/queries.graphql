@@ -75,7 +75,9 @@ query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
       schedule
       delete
       createVersion
-      createTemplateVersion
+      createTemplateVersion {
+        isAllowed
+      }
     }
     webhookUrl
     webhookEnabled

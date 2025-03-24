@@ -884,6 +884,21 @@ export type CreateTeamResult = {
   team?: Maybe<Team>;
 };
 
+/** Represents the permission details for creating a template version. */
+export type CreateTemplateVersionPermission = {
+  __typename?: 'CreateTemplateVersionPermission';
+  isAllowed: Scalars['Boolean']['output'];
+  reasons: Array<CreateTemplateVersionPermissionReason>;
+};
+
+/** Enum representing the possible reasons preventing the creation of a template version. */
+export enum CreateTemplateVersionPermissionReason {
+  NoNewTemplateVersionAvailable = 'NO_NEW_TEMPLATE_VERSION_AVAILABLE',
+  PermissionDenied = 'PERMISSION_DENIED',
+  PipelineIsAlreadyFromTemplate = 'PIPELINE_IS_ALREADY_FROM_TEMPLATE',
+  PipelineIsNotebook = 'PIPELINE_IS_NOTEBOOK'
+}
+
 /** Represents the error message for a web app creation. */
 export enum CreateWebappError {
   AlreadyExists = 'ALREADY_EXISTS',
@@ -1055,6 +1070,7 @@ export type Dhis2Connection = Connection & {
   permissions: ConnectionPermissions;
   queryMetadata: Dhis2QueryResultPage;
   slug: Scalars['String']['output'];
+  status: Dhis2ConnectionStatus;
   type: ConnectionType;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   user?: Maybe<User>;
@@ -1063,7 +1079,7 @@ export type Dhis2Connection = Connection & {
 
 /** DHIS2 connection object */
 export type Dhis2ConnectionQueryMetadataArgs = {
-  filters?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  filters?: InputMaybe<Array<Scalars['String']['input']>>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   type: Dhis2MetadataType;
@@ -1101,7 +1117,7 @@ export enum Dhis2MetadataType {
   OrgUnitLevels = 'ORG_UNIT_LEVELS'
 }
 
-/** DHIS2 metadata query result page */
+/** DHIS2 metadata query result */
 export type Dhis2QueryResultPage = {
   __typename?: 'DHIS2QueryResultPage';
   error?: Maybe<Dhis2ConnectionError>;
@@ -2935,7 +2951,7 @@ export type ParameterInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   required?: InputMaybe<Scalars['Boolean']['input']>;
   type: Scalars['String']['input'];
-  widget?: InputMaybe<Scalars['String']['input']>;
+  widget?: InputMaybe<ParameterWidget>;
 };
 
 /** Enum representing the type of a parameter. */
@@ -2951,6 +2967,18 @@ export enum ParameterType {
   Postgresql = 'postgresql',
   S3 = 's3',
   Str = 'str'
+}
+
+/** Enum representing the type of a parameter widget. */
+export enum ParameterWidget {
+  Dhis2Datasets = 'DHIS2_DATASETS',
+  Dhis2DataElements = 'DHIS2_DATA_ELEMENTS',
+  Dhis2DataElementGroups = 'DHIS2_DATA_ELEMENT_GROUPS',
+  Dhis2Indicators = 'DHIS2_INDICATORS',
+  Dhis2IndicatorGroups = 'DHIS2_INDICATOR_GROUPS',
+  Dhis2OrgUnits = 'DHIS2_ORG_UNITS',
+  Dhis2OrgUnitGroups = 'DHIS2_ORG_UNIT_GROUPS',
+  Dhis2OrgUnitLevels = 'DHIS2_ORG_UNIT_LEVELS'
 }
 
 /** The PermissionMode enum represents the mode of permissions for a team. */
@@ -3060,13 +3088,13 @@ export type PipelineParameter = {
   name: Scalars['String']['output'];
   required: Scalars['Boolean']['output'];
   type: ParameterType;
-  widget?: Maybe<Scalars['String']['output']>;
+  widget?: Maybe<ParameterWidget>;
 };
 
 /** Represents the permissions for a pipeline. */
 export type PipelinePermissions = {
   __typename?: 'PipelinePermissions';
-  createTemplateVersion: Scalars['Boolean']['output'];
+  createTemplateVersion: CreateTemplateVersionPermission;
   createVersion: Scalars['Boolean']['output'];
   delete: Scalars['Boolean']['output'];
   run: Scalars['Boolean']['output'];
