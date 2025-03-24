@@ -122,6 +122,11 @@ const MarkdownEditor = ({
     return basePlugins;
   }, [readOnly]);
 
+  // TODO : MxEditor is escaping ``` to \`\`\` which is not a valid markdown syntax, same for ` which is escaped to \`. This is a workaround to fix it, but we should fix the root cause
+  const cleanedMarkdown = markdown
+    .replace(/\\`\\`\\`/, "```txt")
+    .replace(/(\\`)/g, "`");
+
   return (
     <div
       className={clsx(
@@ -132,7 +137,7 @@ const MarkdownEditor = ({
     >
       <MDXEditor
         data-testid="markdown-editor"
-        markdown={markdown}
+        markdown={cleanedMarkdown}
         contentEditableClassName={clsx(
           "max-w-none p-2 ring-none outline-none",
           // Standard styles
