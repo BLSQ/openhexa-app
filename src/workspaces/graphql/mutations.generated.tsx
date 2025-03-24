@@ -144,6 +144,13 @@ export type AddPipelineRecipientMutationVariables = Types.Exact<{
 
 export type AddPipelineRecipientMutation = { __typename?: 'Mutation', addPipelineRecipient: { __typename?: 'AddPipelineRecipientResult', success: boolean, errors: Array<Types.PipelineRecipientError> } };
 
+export type DeleteWebappMutationVariables = Types.Exact<{
+  input: Types.DeleteWebappInput;
+}>;
+
+
+export type DeleteWebappMutation = { __typename?: 'Mutation', deleteWebapp: { __typename?: 'DeleteWebappResult', success: boolean, errors: Array<Types.DeleteWebappError> } };
+
 
 export const CreateWorkspaceDocument = gql`
     mutation createWorkspace($input: CreateWorkspaceInput!) {
@@ -890,3 +897,37 @@ export function useAddPipelineRecipientMutation(baseOptions?: Apollo.MutationHoo
 export type AddPipelineRecipientMutationHookResult = ReturnType<typeof useAddPipelineRecipientMutation>;
 export type AddPipelineRecipientMutationResult = Apollo.MutationResult<AddPipelineRecipientMutation>;
 export type AddPipelineRecipientMutationOptions = Apollo.BaseMutationOptions<AddPipelineRecipientMutation, AddPipelineRecipientMutationVariables>;
+export const DeleteWebappDocument = gql`
+    mutation deleteWebapp($input: DeleteWebappInput!) {
+  deleteWebapp(input: $input) {
+    success
+    errors
+  }
+}
+    `;
+export type DeleteWebappMutationFn = Apollo.MutationFunction<DeleteWebappMutation, DeleteWebappMutationVariables>;
+
+/**
+ * __useDeleteWebappMutation__
+ *
+ * To run a mutation, you first call `useDeleteWebappMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteWebappMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteWebappMutation, { data, loading, error }] = useDeleteWebappMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDeleteWebappMutation(baseOptions?: Apollo.MutationHookOptions<DeleteWebappMutation, DeleteWebappMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteWebappMutation, DeleteWebappMutationVariables>(DeleteWebappDocument, options);
+      }
+export type DeleteWebappMutationHookResult = ReturnType<typeof useDeleteWebappMutation>;
+export type DeleteWebappMutationResult = Apollo.MutationResult<DeleteWebappMutation>;
+export type DeleteWebappMutationOptions = Apollo.BaseMutationOptions<DeleteWebappMutation, DeleteWebappMutationVariables>;

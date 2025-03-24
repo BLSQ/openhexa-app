@@ -346,6 +346,23 @@ export type AddPipelineRecipientResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Represents the error message for adding a web app to favorites. */
+export enum AddToFavoritesError {
+  WebappNotFound = 'WEBAPP_NOT_FOUND'
+}
+
+/** Represents the input for adding a web app to favorites. */
+export type AddToFavoritesInput = {
+  webappId: Scalars['ID']['input'];
+};
+
+/** Represents the result of adding a web app to favorites. */
+export type AddToFavoritesResult = {
+  __typename?: 'AddToFavoritesResult';
+  errors: Array<AddToFavoritesError>;
+  success: Scalars['Boolean']['output'];
+};
+
 export enum ApproveAccessmodAccessRequestError {
   Invalid = 'INVALID'
 }
@@ -772,7 +789,6 @@ export type CreateMembershipResult = {
 /** Enum representing the possible errors that can occur when creating a pipeline from a template version. */
 export enum CreatePipelineFromTemplateVersionError {
   PermissionDenied = 'PERMISSION_DENIED',
-  PipelineAlreadyExists = 'PIPELINE_ALREADY_EXISTS',
   PipelineTemplateVersionNotFound = 'PIPELINE_TEMPLATE_VERSION_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
@@ -793,8 +809,7 @@ export type CreatePipelineFromTemplateVersionResult = {
 
 /** Represents the input for creating a pipeline. */
 export type CreatePipelineInput = {
-  code: Scalars['String']['input'];
-  name?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
   notebookPath?: InputMaybe<Scalars['String']['input']>;
   workspaceSlug: Scalars['String']['input'];
 };
@@ -867,6 +882,30 @@ export type CreateTeamResult = {
   success: Scalars['Boolean']['output'];
   /** The created team object. */
   team?: Maybe<Team>;
+};
+
+/** Represents the error message for a web app creation. */
+export enum CreateWebappError {
+  AlreadyExists = 'ALREADY_EXISTS',
+  PermissionDenied = 'PERMISSION_DENIED',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+/** Represents the input for creating a web app. */
+export type CreateWebappInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  icon?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  url: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
+};
+
+/** Represents the result of creating a web app. */
+export type CreateWebappResult = {
+  __typename?: 'CreateWebappResult';
+  errors: Array<CreateWebappError>;
+  success: Scalars['Boolean']['output'];
+  webapp?: Maybe<Webapp>;
 };
 
 /** Enum representing the possible errors that can occur when creating a workspace. */
@@ -1560,7 +1599,7 @@ export type DeletePipelineTemplateInput = {
   id: Scalars['UUID']['input'];
 };
 
-/** Represents the result of deleting a pipeline. */
+/** Represents the result of deleting a template. */
 export type DeletePipelineTemplateResult = {
   __typename?: 'DeletePipelineTemplateResult';
   errors: Array<PipelineTemplateError>;
@@ -1623,6 +1662,24 @@ export type DeleteTemplateVersionInput = {
 export type DeleteTemplateVersionResult = {
   __typename?: 'DeleteTemplateVersionResult';
   errors: Array<DeleteTemplateVersionError>;
+  success: Scalars['Boolean']['output'];
+};
+
+/** Represents the error message for a web app deletion. */
+export enum DeleteWebappError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  WebappNotFound = 'WEBAPP_NOT_FOUND'
+}
+
+/** Represents the input for deleting a web app. */
+export type DeleteWebappInput = {
+  id: Scalars['UUID']['input'];
+};
+
+/** Represents the result of deleting a web app. */
+export type DeleteWebappResult = {
+  __typename?: 'DeleteWebappResult';
+  errors: Array<DeleteWebappError>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -2150,6 +2207,7 @@ export type Mutation = {
   addPipelineOutput: AddPipelineOutputResult;
   /** Adds a recipient to a pipeline. */
   addPipelineRecipient: AddPipelineRecipientResult;
+  addToFavorites: AddToFavoritesResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
   archiveWorkspace: ArchiveWorkspaceResult;
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
@@ -2174,6 +2232,7 @@ export type Mutation = {
   /** Creates a new pipeline template version. */
   createPipelineTemplateVersion: CreatePipelineTemplateVersionResult;
   createTeam: CreateTeamResult;
+  createWebapp: CreateWebappResult;
   createWorkspace: CreateWorkspaceResult;
   declineWorkspaceInvitation: DeclineWorkspaceInvitationResult;
   deleteAccessmodAnalysis: DeleteAccessmodAnalysisResult;
@@ -2196,11 +2255,14 @@ export type Mutation = {
   deletePipeline: DeletePipelineResult;
   /** Deletes a pipeline recipient. */
   deletePipelineRecipient: DeletePipelineRecipientResult;
+  /** Deletes a pipeline template. */
   deletePipelineTemplate: DeletePipelineTemplateResult;
   /** Deletes a pipeline version. */
   deletePipelineVersion: DeletePipelineVersionResult;
   deleteTeam: DeleteTeamResult;
+  /** Deletes a template version. */
   deleteTemplateVersion: DeleteTemplateVersionResult;
+  deleteWebapp: DeleteWebappResult;
   deleteWorkspace: DeleteWorkspaceResult;
   deleteWorkspaceDatabaseTable?: Maybe<DeleteWorkspaceDatabaseTableResult>;
   deleteWorkspaceInvitation: DeleteWorkspaceInvitationResult;
@@ -2247,6 +2309,7 @@ export type Mutation = {
   prepareVersionFileDownload: PrepareVersionFileDownloadResult;
   /** Registers a new user. */
   register: RegisterResult;
+  removeFromFavorites: RemoveFromFavoritesResult;
   requestAccessmodAccess: RequestAccessmodAccessInputResult;
   resendWorkspaceInvitation: ResendWorkspaceInvitationResult;
   /** Sends a password reset email to the user. */
@@ -2284,9 +2347,11 @@ export type Mutation = {
   /** Updates a pipeline version. */
   updatePipelineVersion: UpdatePipelineVersionResult;
   updateTeam: UpdateTeamResult;
+  /** Updates a template version. */
   updateTemplateVersion: UpdateTemplateVersionResult;
   /** Updates the profile of the currently authenticated user. */
   updateUser: UpdateUserResult;
+  updateWebapp: UpdateWebappResult;
   updateWorkspace: UpdateWorkspaceResult;
   updateWorkspaceMember: UpdateWorkspaceMemberResult;
   /** Upgrades a pipeline version using the latest template version. */
@@ -2305,6 +2370,11 @@ export type MutationAddPipelineOutputArgs = {
 
 export type MutationAddPipelineRecipientArgs = {
   input: CreatePipelineRecipientInput;
+};
+
+
+export type MutationAddToFavoritesArgs = {
+  input: AddToFavoritesInput;
 };
 
 
@@ -2395,6 +2465,11 @@ export type MutationCreatePipelineTemplateVersionArgs = {
 
 export type MutationCreateTeamArgs = {
   input: CreateTeamInput;
+};
+
+
+export type MutationCreateWebappArgs = {
+  input: CreateWebappInput;
 };
 
 
@@ -2490,6 +2565,11 @@ export type MutationDeleteTeamArgs = {
 
 export type MutationDeleteTemplateVersionArgs = {
   input: DeleteTemplateVersionInput;
+};
+
+
+export type MutationDeleteWebappArgs = {
+  input: DeleteWebappInput;
 };
 
 
@@ -2633,6 +2713,11 @@ export type MutationRegisterArgs = {
 };
 
 
+export type MutationRemoveFromFavoritesArgs = {
+  input: RemoveFromFavoritesInput;
+};
+
+
 export type MutationRequestAccessmodAccessArgs = {
   input: RequestAccessmodAccessInput;
 };
@@ -2768,6 +2853,11 @@ export type MutationUpdateUserArgs = {
 };
 
 
+export type MutationUpdateWebappArgs = {
+  input: UpdateWebappInput;
+};
+
+
 export type MutationUpdateWorkspaceArgs = {
   input: UpdateWorkspaceInput;
 };
@@ -2838,12 +2928,14 @@ export type OrganizationInput = {
 export type ParameterInput = {
   choices?: InputMaybe<Array<Scalars['Generic']['input']>>;
   code: Scalars['String']['input'];
+  connection?: InputMaybe<Scalars['String']['input']>;
   default?: InputMaybe<Scalars['Generic']['input']>;
   help?: InputMaybe<Scalars['String']['input']>;
   multiple?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   required?: InputMaybe<Scalars['Boolean']['input']>;
   type: Scalars['String']['input'];
+  widget?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Enum representing the type of a parameter. */
@@ -2903,7 +2995,7 @@ export type Pipeline = {
   hasNewTemplateVersions: Scalars['Boolean']['output'];
   id: Scalars['UUID']['output'];
   name?: Maybe<Scalars['String']['output']>;
-  newTemplateVersions?: Maybe<Array<PipelineTemplateVersion>>;
+  newTemplateVersions: Array<PipelineTemplateVersion>;
   notebookPath?: Maybe<Scalars['String']['output']>;
   permissions: PipelinePermissions;
   recipients: Array<PipelineRecipient>;
@@ -2942,7 +3034,6 @@ export enum PipelineError {
   InvalidTimeoutValue = 'INVALID_TIMEOUT_VALUE',
   PermissionDenied = 'PERMISSION_DENIED',
   PipelineAlreadyCompleted = 'PIPELINE_ALREADY_COMPLETED',
-  PipelineAlreadyExists = 'PIPELINE_ALREADY_EXISTS',
   PipelineAlreadyStopped = 'PIPELINE_ALREADY_STOPPED',
   PipelineDoesNotSupportParameters = 'PIPELINE_DOES_NOT_SUPPORT_PARAMETERS',
   PipelineNotFound = 'PIPELINE_NOT_FOUND',
@@ -3368,15 +3459,18 @@ export type Query = {
   pipelineByCode?: Maybe<Pipeline>;
   /** Retrieves a pipeline run by ID. */
   pipelineRun?: Maybe<PipelineRun>;
+  /** Retrieves a page of pipeline templates. */
   pipelineTemplates: PipelineTemplatePage;
   /** Retrieves a pipeline version by ID. */
   pipelineVersion?: Maybe<PipelineVersion>;
-  /** Retrieves a page of pipelines. */
+  /** Retrieves a page of pipelines ordered by relevant name. */
   pipelines: PipelinesPage;
   team?: Maybe<Team>;
   teams: TeamPage;
-  /** Retrieves a template by code. */
+  /** Retrieves a template by workspace slug and code. */
   templateByCode?: Maybe<PipelineTemplate>;
+  webapp?: Maybe<Webapp>;
+  webapps: WebappsPage;
   workspace?: Maybe<Workspace>;
   workspaces: WorkspacePage;
 };
@@ -3553,6 +3647,7 @@ export type QueryPipelineVersionArgs = {
 
 
 export type QueryPipelinesArgs = {
+  name?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
@@ -3573,6 +3668,18 @@ export type QueryTeamsArgs = {
 
 export type QueryTemplateByCodeArgs = {
   code: Scalars['String']['input'];
+};
+
+
+export type QueryWebappArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryWebappsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -3621,6 +3728,23 @@ export type RegisterResult = {
   /** The list of errors that occurred during the registration process. */
   errors?: Maybe<Array<RegisterError>>;
   /** Indicates whether the registration was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
+/** Represents the error message for removing a web app from favorites. */
+export enum RemoveFromFavoritesError {
+  WebappNotFound = 'WEBAPP_NOT_FOUND'
+}
+
+/** Represents the input for removing a web app from favorites. */
+export type RemoveFromFavoritesInput = {
+  webappId: Scalars['ID']['input'];
+};
+
+/** Represents the result of removing a web app from favorites. */
+export type RemoveFromFavoritesResult = {
+  __typename?: 'RemoveFromFavoritesResult';
+  errors: Array<RemoveFromFavoritesError>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -4321,6 +4445,29 @@ export type UpdateUserResult = {
   user?: Maybe<User>;
 };
 
+/** Represents the error message for a web app update. */
+export enum UpdateWebappError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  WebappNotFound = 'WEBAPP_NOT_FOUND'
+}
+
+/** Represents the input for updating a web app. */
+export type UpdateWebappInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  icon?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+  url?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Represents the result of updating a web app. */
+export type UpdateWebappResult = {
+  __typename?: 'UpdateWebappResult';
+  errors: Array<UpdateWebappError>;
+  success: Scalars['Boolean']['output'];
+  webapp?: Maybe<Webapp>;
+};
+
 /** Enum representing the possible errors that can occur when updating a workspace. */
 export enum UpdateWorkspaceError {
   NotFound = 'NOT_FOUND',
@@ -4467,6 +4614,36 @@ export type WhoRegion = {
   __typename?: 'WHORegion';
   code: Scalars['String']['output'];
   name: Scalars['String']['output'];
+};
+
+/** Represents a web app. */
+export type Webapp = {
+  __typename?: 'Webapp';
+  createdBy: User;
+  description?: Maybe<Scalars['String']['output']>;
+  icon?: Maybe<Scalars['String']['output']>;
+  id: Scalars['UUID']['output'];
+  isFavorite: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  permissions: WebappPermissions;
+  url: Scalars['String']['output'];
+  workspace: Workspace;
+};
+
+/** Represents the permissions for a web app. */
+export type WebappPermissions = {
+  __typename?: 'WebappPermissions';
+  delete: Scalars['Boolean']['output'];
+  update: Scalars['Boolean']['output'];
+};
+
+/** Represents a page of webapps. */
+export type WebappsPage = {
+  __typename?: 'WebappsPage';
+  items: Array<Webapp>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
 };
 
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */

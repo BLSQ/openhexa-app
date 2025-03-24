@@ -6,12 +6,11 @@ import Tabs from "core/components/Tabs";
 import Field from "core/components/forms/Field/Field";
 import Textarea from "core/components/forms/Textarea/Textarea";
 import useForm from "core/hooks/useForm";
-import { BucketObjectType, PipelineError } from "graphql/types";
+import { BucketObjectType } from "graphql/types";
 import { Trans, useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useCreatePipelineMutation } from "workspaces/graphql/mutations.generated";
-import { toSpinalCase } from "workspaces/helpers/pipelines";
 import BucketObjectPicker from "../BucketObjectPicker";
 import {
   CreatePipelineDialog_WorkspaceFragment,
@@ -45,7 +44,6 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
       const { data } = await mutate({
         variables: {
           input: {
-            code: toSpinalCase(values.name.toLowerCase()),
             name: values.name,
             notebookPath: notebookObject.key,
             workspaceSlug: workspace.slug,
@@ -59,14 +57,6 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
           `/workspaces/${encodeURIComponent(
             router.query.workspaceSlug as string,
           )}/pipelines/${encodeURIComponent(pipeline.code)}`,
-        );
-      } else if (
-        data?.createPipeline.errors.includes(
-          PipelineError.PipelineAlreadyExists,
-        )
-      ) {
-        throw new Error(
-          t("A pipeline with the selected notebook already exist"),
         );
       } else {
         throw new Error(t("An error occurred while creating the pipeline."));

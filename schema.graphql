@@ -308,6 +308,22 @@ type AddPipelineRecipientResult {
   recipient: PipelineRecipient
 }
 
+"""Represents the error message for adding a web app to favorites."""
+enum AddToFavoritesError {
+  WEBAPP_NOT_FOUND
+}
+
+"""Represents the input for adding a web app to favorites."""
+input AddToFavoritesInput {
+  webappId: ID!
+}
+
+"""Represents the result of adding a web app to favorites."""
+type AddToFavoritesResult {
+  success: Boolean!
+  errors: [AddToFavoritesError!]!
+}
+
 enum ApproveAccessmodAccessRequestError {
   INVALID
 }
@@ -721,27 +737,6 @@ enum CreatePipelineFromTemplateVersionError {
   PERMISSION_DENIED
   WORKSPACE_NOT_FOUND
   PIPELINE_TEMPLATE_VERSION_NOT_FOUND
-  PIPELINE_ALREADY_EXISTS
-}
-
-"""
-Represents the input for deleting a pipeline template.
-"""
-input DeletePipelineTemplateInput {
-  id: UUID!
-}
-
-"""
-Represents the result of deleting a pipeline.
-"""
-type DeletePipelineTemplateResult {
-  success: Boolean!
-  errors: [PipelineTemplateError!]!
-}
-
-enum PipelineTemplateError {
-  PIPELINE_TEMPLATE_NOT_FOUND
-  PERMISSION_DENIED
 }
 
 """
@@ -763,8 +758,7 @@ type CreatePipelineFromTemplateVersionResult {
 
 """Represents the input for creating a pipeline."""
 input CreatePipelineInput {
-  code: String!
-  name: String
+  name: String!
   workspaceSlug: String!
   notebookPath: String
 }
@@ -845,6 +839,45 @@ type CreateTeamResult {
 
   """The list of errors that occurred during the createTeam mutation."""
   errors: [CreateTeamError!]!
+}
+
+"""Represents the permission details for creating a template version."""
+type CreateTemplateVersionPermission {
+  isAllowed: Boolean!
+  reasons: [CreateTemplateVersionPermissionReason!]!
+}
+
+"""
+Enum representing the possible reasons preventing the creation of a template version.
+"""
+enum CreateTemplateVersionPermissionReason {
+  PERMISSION_DENIED
+  PIPELINE_IS_ALREADY_FROM_TEMPLATE
+  NO_NEW_TEMPLATE_VERSION_AVAILABLE
+  PIPELINE_IS_NOTEBOOK
+}
+
+"""Represents the error message for a web app creation."""
+enum CreateWebappError {
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+  ALREADY_EXISTS
+}
+
+"""Represents the input for creating a web app."""
+input CreateWebappInput {
+  name: String!
+  description: String
+  url: String!
+  icon: String
+  workspaceSlug: String!
+}
+
+"""Represents the result of creating a web app."""
+type CreateWebappResult {
+  success: Boolean!
+  errors: [CreateWebappError!]!
+  webapp: Webapp
 }
 
 """
@@ -1405,6 +1438,17 @@ type DeletePipelineResult {
   errors: [PipelineError!]!
 }
 
+"""Represents the input for deleting a pipeline template."""
+input DeletePipelineTemplateInput {
+  id: UUID!
+}
+
+"""Represents the result of deleting a template."""
+type DeletePipelineTemplateResult {
+  success: Boolean!
+  errors: [PipelineTemplateError!]!
+}
+
 enum DeletePipelineVersionError {
   PIPELINE_VERSION_NOT_FOUND
   PERMISSION_DENIED
@@ -1450,6 +1494,40 @@ type DeleteTeamResult {
 
   """The list of errors that occurred during the deleteTeam mutation."""
   errors: [DeleteTeamError!]!
+}
+
+enum DeleteTemplateVersionError {
+  TEMPLATE_VERSION_NOT_FOUND
+  PERMISSION_DENIED
+  TEMPLATE_NOT_FOUND
+}
+
+"""Represents the input for deleting a template version."""
+input DeleteTemplateVersionInput {
+  id: UUID!
+}
+
+"""Represents the result of deleting a template version."""
+type DeleteTemplateVersionResult {
+  success: Boolean!
+  errors: [DeleteTemplateVersionError!]!
+}
+
+"""Represents the error message for a web app deletion."""
+enum DeleteWebappError {
+  WEBAPP_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for deleting a web app."""
+input DeleteWebappInput {
+  id: UUID!
+}
+
+"""Represents the result of deleting a web app."""
+type DeleteWebappResult {
+  success: Boolean!
+  errors: [DeleteWebappError!]!
 }
 
 enum DeleteWorkspaceDatabaseTableError {
@@ -1564,7 +1642,9 @@ type DHIS2Connection implements Connection {
   user: User
   fields: [ConnectionField!]!
   permissions: ConnectionPermissions!
-  queryMetadata(type: DHIS2MetadataType!, filters: [String], perPage: Int, page: Int ): DHIS2QueryResultPage!
+  status: DHIS2ConnectionStatus!
+  queryMetadata(type: DHIS2MetadataType!, filters: [String!], perPage: Int, page: Int): DHIS2QueryResultPage!
+
 }
 
 
@@ -1591,7 +1671,19 @@ enum DHIS2ConnectionStatus {
     UNKNOWN
 }
 
-"""DHIS2 metadata query result page"""
+"""Enum representing the type of a DHIS2 metadata item."""
+enum DHIS2MetadataType {
+  ORG_UNITS
+  ORG_UNIT_GROUPS
+  ORG_UNIT_LEVELS
+  DATASETS
+  DATA_ELEMENTS
+  DATA_ELEMENT_GROUPS
+  INDICATORS
+  INDICATOR_GROUPS
+}
+
+"""DHIS2 metadata query result"""
 type DHIS2QueryResultPage {
     items: [DHIS2MetadataItem!]  # List of metadata items
     pageNumber: Int!                   # Current page number
@@ -2183,7 +2275,23 @@ type Mutation {
   """Creates a new pipeline template version."""
   createPipelineTemplateVersion(input: CreatePipelineTemplateVersionInput!): CreatePipelineTemplateVersionResult!
   createPipelineFromTemplateVersion(input: CreatePipelineFromTemplateVersionInput!): CreatePipelineFromTemplateVersionResult!
-  deletePipelineTemplate(input: DeletePipelineTemplateInput): DeletePipelineTemplateResult! @loginRequired
+
+  """Deletes a pipeline template."""
+  deletePipelineTemplate(input: DeletePipelineTemplateInput): DeletePipelineTemplateResult!
+
+  """Updates an existing template."""
+  updatePipelineTemplate(input: UpdateTemplateInput!): UpdateTemplateResult!
+
+  """Deletes a template version."""
+  deleteTemplateVersion(input: DeleteTemplateVersionInput!): DeleteTemplateVersionResult!
+
+  """Updates a template version."""
+  updateTemplateVersion(input: UpdateTemplateVersionInput!): UpdateTemplateVersionResult!
+  createWebapp(input: CreateWebappInput!): CreateWebappResult!
+  updateWebapp(input: UpdateWebappInput!): UpdateWebappResult!
+  deleteWebapp(input: DeleteWebappInput!): DeleteWebappResult!
+  addToFavorites(input: AddToFavoritesInput!): AddToFavoritesResult!
+  removeFromFavorites(input: RemoveFromFavoritesInput!): RemoveFromFavoritesResult!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
@@ -2257,12 +2365,6 @@ type Mutation {
 
   """Pin or unpin a dataset for a workspace."""
   pinDataset(input: PinDatasetInput!): PinDatasetResult!
-
-  """Updates an existing template."""
-  updatePipelineTemplate(input: UpdateTemplateInput!): UpdateTemplateResult!
-
-  updateTemplateVersion(input: UpdateTemplateVersionInput!): UpdateTemplateVersionResult!
-  deleteTemplateVersion(input: DeleteTemplateVersionInput!): DeleteTemplateVersionResult!
 }
 
 type NotebookServer {
@@ -2325,6 +2427,8 @@ input ParameterInput {
   multiple: Boolean
   required: Boolean
   default: Generic
+  widget: ParameterWidget
+  connection: String
   help: String
   choices: [Generic!]
 }
@@ -2342,6 +2446,18 @@ enum ParameterType {
   s3
   gcs
   custom
+}
+
+"""Enum representing the type of a parameter widget."""
+enum ParameterWidget {
+  DHIS2_ORG_UNITS
+  DHIS2_ORG_UNIT_GROUPS
+  DHIS2_ORG_UNIT_LEVELS
+  DHIS2_DATASETS
+  DHIS2_DATA_ELEMENTS
+  DHIS2_DATA_ELEMENT_GROUPS
+  DHIS2_INDICATORS
+  DHIS2_INDICATOR_GROUPS
 }
 
 """The PermissionMode enum represents the mode of permissions for a team."""
@@ -2401,7 +2517,7 @@ type Pipeline {
   template: PipelineTemplate
   sourceTemplate: PipelineTemplate
   hasNewTemplateVersions: Boolean!
-  newTemplateVersions: [PipelineTemplateVersion!]
+  newTemplateVersions: [PipelineTemplateVersion!]!
 }
 
 enum PipelineError {
@@ -2409,7 +2525,6 @@ enum PipelineError {
   PIPELINE_VERSION_NOT_FOUND
   PIPELINE_DOES_NOT_SUPPORT_PARAMETERS
   WORKSPACE_NOT_FOUND
-  PIPELINE_ALREADY_EXISTS
   INVALID_CONFIG
   PIPELINE_ALREADY_COMPLETED
   PIPELINE_ALREADY_STOPPED
@@ -2438,6 +2553,8 @@ type PipelineParameter {
   connection: String
   widget: String
   help: String
+  widget: ParameterWidget
+  connection: String
   choices: [Generic!]
 }
 
@@ -2449,7 +2566,7 @@ type PipelinePermissions {
   schedule: Boolean!
   createVersion: Boolean!
   stopPipeline: Boolean!
-  createTemplateVersion: Boolean!
+  createTemplateVersion: CreateTemplateVersionPermission!
 }
 
 """Represents a recipient of a pipeline."""
@@ -2555,6 +2672,11 @@ type PipelineTemplate {
   permissions: PipelineTemplatePermissions!
 }
 
+enum PipelineTemplateError {
+  PIPELINE_TEMPLATE_NOT_FOUND
+  PERMISSION_DENIED
+}
+
 """Represents paged result of fetching pipeline templates."""
 type PipelineTemplatePage {
   pageNumber: Int!
@@ -2567,16 +2689,6 @@ type PipelineTemplatePage {
 type PipelineTemplatePermissions {
   delete: Boolean!
   update: Boolean!
-}
-
-"""
-Represents a page of template versions.
-"""
-type TemplateVersionPage {
-  items: [PipelineTemplateVersion!]!
-  pageNumber: Int!
-  totalPages: Int!
-  totalItems: Int!
 }
 
 """Represents a version of a pipeline template."""
@@ -2799,8 +2911,8 @@ type Query {
   countries: [Country!]!
   notebooksUrl: URL!
 
-  """Retrieves a page of pipelines."""
-  pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage!
+  """Retrieves a page of pipelines ordered by relevant name."""
+  pipelines(workspaceSlug: String, name: String, page: Int, perPage: Int): PipelinesPage!
 
   """Retrieves a pipeline by ID."""
   pipeline(id: UUID!): Pipeline
@@ -2810,12 +2922,17 @@ type Query {
 
   """Retrieves a pipeline by workspace slug and code."""
   pipelineByCode(workspaceSlug: String!, code: String!): Pipeline
-  """Retrieves a template by code."""
-  templateByCode(code: String!): PipelineTemplate
 
   """Retrieves a pipeline run by ID."""
   pipelineRun(id: UUID!): PipelineRun
+
+  """Retrieves a page of pipeline templates."""
   pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String): PipelineTemplatePage!
+
+  """Retrieves a template by workspace slug and code."""
+  templateByCode(code: String!): PipelineTemplate
+  webapp(id: UUID!): Webapp
+  webapps(workspaceSlug: String, page: Int, perPage: Int): WebappsPage!
   workspace(slug: String!): Workspace
   workspaces(query: String, page: Int, perPage: Int): WorkspacePage!
   pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
@@ -2893,6 +3010,22 @@ type RegisterResult {
 
   """The list of errors that occurred during the registration process."""
   errors: [RegisterError!]
+}
+
+"""Represents the error message for removing a web app from favorites."""
+enum RemoveFromFavoritesError {
+  WEBAPP_NOT_FOUND
+}
+
+"""Represents the input for removing a web app from favorites."""
+input RemoveFromFavoritesInput {
+  webappId: ID!
+}
+
+"""Represents the result of removing a web app from favorites."""
+type RemoveFromFavoritesResult {
+  success: Boolean!
+  errors: [RemoveFromFavoritesError!]!
 }
 
 enum RequestAccessmodAccessError {
@@ -3196,6 +3329,14 @@ type TeamPermissions {
   delete: Boolean!
 }
 
+"""Represents a page of template versions."""
+type TemplateVersionPage {
+  items: [PipelineTemplateVersion!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+}
+
 scalar TimeThresholds
 
 enum UpdateAccessmodAccessibilityAnalysisError {
@@ -3444,29 +3585,6 @@ input UpdatePipelineInput {
   webhookEnabled: Boolean
 }
 
-"""
-Enum representing the possible errors that can occur when updating a template.
-"""
-enum UpdateTemplateError {
-  NOT_FOUND
-  PERMISSION_DENIED
-}
-
-"""Represents the input for updating a template."""
-input UpdateTemplateInput {
-  id: UUID!
-  name: String
-  config: JSON
-  description: String
-}
-
-"""Represents the result of updating a template."""
-type UpdateTemplateResult {
-  success: Boolean!
-  errors: [UpdateTemplateError!]!
-  template: PipelineTemplate
-}
-
 """Represents the input for updating the progress of a pipeline."""
 input UpdatePipelineProgressInput {
   percent: Int!
@@ -3561,6 +3679,50 @@ type UpdateTeamResult {
 }
 
 """
+Enum representing the possible errors that can occur when updating a template.
+"""
+enum UpdateTemplateError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for updating a template."""
+input UpdateTemplateInput {
+  id: UUID!
+  name: String
+  config: JSON
+  description: String
+}
+
+"""Represents the result of updating a template."""
+type UpdateTemplateResult {
+  success: Boolean!
+  errors: [UpdateTemplateError!]!
+  template: PipelineTemplate
+}
+
+"""
+Enum representing the possible errors that can occur when updating a template version.
+"""
+enum UpdateTemplateVersionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for updating a template version."""
+input UpdateTemplateVersionInput {
+  id: UUID!
+  changelog: String
+}
+
+"""Represents the result of updating a template version."""
+type UpdateTemplateVersionResult {
+  success: Boolean!
+  errors: [UpdateTemplateVersionError!]!
+  templateVersion: PipelineTemplateVersion
+}
+
+"""
 The UpdateUserError enum represents the possible errors that can occur during the updateUser mutation.
 """
 enum UpdateUserError {
@@ -3599,6 +3761,28 @@ type UpdateUserResult {
 
   """The list of errors that occurred during the updateUser mutation."""
   errors: [UpdateUserError!]!
+}
+
+"""Represents the error message for a web app update."""
+enum UpdateWebappError {
+  WEBAPP_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for updating a web app."""
+input UpdateWebappInput {
+  id: UUID!
+  name: String
+  description: String
+  url: String
+  icon: String
+}
+
+"""Represents the result of updating a web app."""
+type UpdateWebappResult {
+  success: Boolean!
+  errors: [UpdateWebappError!]!
+  webapp: Webapp
 }
 
 """
@@ -3748,6 +3932,33 @@ type VerifyDeviceResult {
   errors: [VerifyDeviceError!]
 }
 
+"""Represents a web app."""
+type Webapp {
+  id: UUID!
+  name: String!
+  description: String
+  url: String!
+  icon: String
+  workspace: Workspace!
+  createdBy: User!
+  isFavorite: Boolean!
+  permissions: WebappPermissions!
+}
+
+"""Represents the permissions for a web app."""
+type WebappPermissions {
+  update: Boolean!
+  delete: Boolean!
+}
+
+"""Represents a page of webapps."""
+type WebappsPage {
+  items: [Webapp!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+}
+
 type WHOBoundary {
   id: String!
   name: String!
@@ -3875,52 +4086,5 @@ type WorkspacePermissions {
 
   """Permissions to create a dataset in the workspace"""
   createDataset: Boolean!
-}
-
-
-"""
-Represents the input for deleting a template version.
-"""
-input DeleteTemplateVersionInput {
-  id: UUID!
-}
-
-"""
-Represents the result of deleting a template version.
-"""
-type DeleteTemplateVersionResult {
-  success: Boolean!
-  errors: [DeleteTemplateVersionError!]!
-}
-
-enum DeleteTemplateVersionError {
-  TEMPLATE_VERSION_NOT_FOUND
-  PERMISSION_DENIED
-  TEMPLATE_NOT_FOUND
-}
-
-"""
-Represents the input for updating a template version.
-"""
-input UpdateTemplateVersionInput {
-  id: UUID!
-  changelog: String
-}
-
-"""
-Enum representing the possible errors that can occur when updating a template version.
-"""
-enum UpdateTemplateVersionError {
-  NOT_FOUND
-  PERMISSION_DENIED
-}
-
-"""
-Represents the result of updating a template version.
-"""
-type UpdateTemplateVersionResult {
-  success: Boolean!
-  errors: [UpdateTemplateVersionError!]!
-  templateVersion: PipelineTemplateVersion
 }
 

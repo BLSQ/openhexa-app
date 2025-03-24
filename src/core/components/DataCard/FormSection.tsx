@@ -28,9 +28,12 @@ export type OnSaveFn = (
 ) => Promise<void> | void;
 
 type FormSectionProps = {
+  forceEditMode?: boolean;
+  confirmButtonLabel?: string;
   editLabel?: string;
   editIcon?: ReactElement;
   onSave?: OnSaveFn;
+  onCancel?: () => void;
   title?: string | ReactElement;
   children: ReactNode;
 } & Pick<DescriptionListProps, "displayMode" | "columns"> &
@@ -84,6 +87,8 @@ function FormSection<F extends { [key: string]: any }>(
 ) {
   const { t } = useTranslation();
   const {
+    forceEditMode,
+    confirmButtonLabel,
     title,
     editLabel,
     editIcon,
@@ -94,10 +99,12 @@ function FormSection<F extends { [key: string]: any }>(
     defaultOpen,
     children,
     onSave,
+    onCancel,
   } = props;
   const { item } = useItemContext();
 
-  const [isEdited, setEdited] = useState<boolean>(false);
+  const [isEditedState, setEdited] = useState<boolean>(false);
+  const isEdited = forceEditMode || isEditedState;
 
   const definitions = useRef<PropertyDefinition[]>([]);
   const properties = useRef<{ [key: Property["id"]]: Property }>({});
@@ -241,9 +248,9 @@ function FormSection<F extends { [key: string]: any }>(
                     {form.isSubmitting && (
                       <Spinner size="xs" className="mr-1" />
                     )}
-                    {t("Save")}
+                    {confirmButtonLabel ?? t("Save")}
                   </Button>
-                  <Button onClick={toggleEdit} variant="white">
+                  <Button onClick={onCancel ?? toggleEdit} variant="white">
                     {t("Cancel")}
                   </Button>
                 </div>

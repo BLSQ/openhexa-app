@@ -661,3 +661,50 @@ query WorkspaceTemplateVersionsPage(
     }
   }
 }
+
+query WorkspaceWebappsPage(
+  $workspaceSlug: String!
+  $page: Int
+  $perPage: Int = 15
+) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...WorkspaceLayout_workspace
+  }
+
+  webapps(workspaceSlug: $workspaceSlug, page: $page, perPage: $perPage) {
+    totalPages
+    totalItems
+    items {
+      id
+      name
+      icon
+      description
+      url
+      isFavorite
+      createdBy {
+        firstName
+        lastName
+        ...User_user
+      }
+      workspace {
+        slug
+        name
+      }
+      permissions {
+        update
+        delete
+      }
+    }
+  }
+}
+
+query WorkspaceWebappPage($workspaceSlug: String!, $webappId: UUID!) {
+  workspace(slug: $workspaceSlug) {
+    ...WebappForm_workspace
+  }
+  webapp: webapp(id: $webappId) {
+    ...WebappForm_webapp
+  }
+}

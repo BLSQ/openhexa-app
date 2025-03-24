@@ -203,3 +203,10 @@ mutation addPipelineRecipient($input: CreatePipelineRecipientInput!) {
     errors
   }
 }
+
+mutation deleteWebapp($input: DeleteWebappInput!) {
+  deleteWebapp(input: $input) {
+    success
+    errors
+  }
+}

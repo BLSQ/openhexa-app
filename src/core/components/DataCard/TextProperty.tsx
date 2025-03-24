@@ -6,16 +6,25 @@ import DataCard from "./DataCard";
 import { useDataCardProperty } from "./context";
 import { PropertyDefinition } from "./types";
 import { TextareaProps } from "../forms/Textarea/Textarea";
+import { ChangeEvent } from "react";
 
 type TextPropertyProps = PropertyDefinition & {
   markdown?: boolean;
   defaultValue?: string;
   className?: string;
   sm?: boolean;
+  onChange?: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 } & { rows?: TextareaProps["rows"] };
 
 const TextProperty = (props: TextPropertyProps) => {
-  const { className, markdown, sm = false, rows, ...delegated } = props;
+  const {
+    className,
+    markdown,
+    sm = false,
+    rows,
+    onChange,
+    ...delegated
+  } = props;
 
   const { property, section } = useDataCardProperty(delegated);
 
@@ -30,7 +39,10 @@ const TextProperty = (props: TextPropertyProps) => {
           <Textarea
             className="w-full"
             value={property.formValue}
-            onChange={(e) => property.setValue(e.target.value)}
+            onChange={(e) => {
+              property.setValue(e.target.value);
+              if (onChange) onChange(e);
+            }}
             required={property.required}
             rows={rows}
             readOnly={property.readonly}
@@ -39,7 +51,10 @@ const TextProperty = (props: TextPropertyProps) => {
           <Input
             fullWidth
             value={property.formValue ?? ""}
-            onChange={(e) => property.setValue(e.target.value)}
+            onChange={(e) => {
+              property.setValue(e.target.value);
+              if (onChange) onChange(e);
+            }}
             required={property.required}
             readOnly={property.readonly}
           />
