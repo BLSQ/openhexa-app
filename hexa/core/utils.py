@@ -1,3 +1,4 @@
+import logging
 import typing
 
 from django.core.mail import send_mail as django_send_mail
@@ -42,6 +43,7 @@ def send_email_mjml(
     html_message = mjml2html(
         render_to_string(f"{template_name}.mjml", template_variables)
     )
+    logging.info(html_message)
     django_send_mail(
         title,
         message=text_message,

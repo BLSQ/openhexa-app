@@ -1,14 +1,20 @@
 {% load i18n %}
 
-{% blocktranslate %}
-{{owner}} has invited you to join {{workspace} on OpenHEXA.
+{% blocktranslate with owner=owner workspace=workspace %}
+{{ owner }} has invited you to join {{ workspace }} on OpenHEXA.
+{% endblocktranslate %}
 
-Join {{owner} ({{owner_email}) to start collaborating.
+{% blocktranslate with owner=owner owner_email=owner_email %}
+Join {{ owner }} ({{ owner_email }}) to start collaborating.
+{% endblocktranslate %}
 
+{% blocktranslate with url=url %}
 Join now: {{ url }}
+{% endblocktranslate %}
 
 ---
 
+{% blocktranslate %}
 Unlock the power of your data where it matters the most.
 
 Explore OpenHEXA modules:

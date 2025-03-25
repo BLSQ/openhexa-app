@@ -26,8 +26,8 @@
           {% endblocktranslate %}
         </mj-text>
         <mj-text color="#333333" padding-top="10px">
-          {% blocktranslate with owner=owner owner_url=owner_url %}
-          Join {{owner}}, ({{owner_ur}}) to start collaborating.
+          {% blocktranslate with owner=owner owner_email=owner_email %}
+          Join {{owner}}, ({{ owner_email }}) to start collaborating.
           {% endblocktranslate %}
         </mj-text>
         <mj-button href="{{url}}" background-color="#FF499C" color="#ffffff" padding="30px 0 0 0" width="200px">
