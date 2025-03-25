@@ -3,7 +3,9 @@ from logging import getLogger
 
 import pandas as pd
 from django.conf import settings
-from dpq.queue import AtLeastOnceQueue
+from django.db import transaction
+from dpq.models import Job
+from dpq.queue import Queue
 
 from hexa.core import mimetypes
 from hexa.datasets.api import generate_download_url
@@ -217,7 +219,37 @@ def generate_file_metadata_task(file_id: str) -> None:
     add_system_attributes(version_file, df)
 
 
-class DatasetsFileMetadataQueue(AtLeastOnceQueue):
+class AtMostLimitedAmountQueue(Queue):
+    def run_once(self, exclude_ids=[]):
+        job = None
+        try:
+            with transaction.atomic():
+                job = self.job_model.dequeue(exclude_ids=exclude_ids)
+                if job:
+                    self.logger.debug(
+                        "Claimed %r.", job, extra={"data": {"job": job.to_json()}}
+                    )
+                    try:
+                        return (job, self.run_job(job), None)
+                    except Exception as e:
+                        job.retry_count += 1
+                        self.logger.warning(
+                            f"Job {job.id} failed: {e}, retrying {job.retry_count}/{job.max_retries}"
+                        )
+                        if job.retry_count >= job.max_retries:
+                            job.status = Job.STATUS_FAILED
+                            job.save()
+                            self.logger.error(f"Job {job.id} failed after max retries")
+                        else:
+                            job.save()
+                        raise e
+                    return (job, self.run_job(job), None)
+                return None
+        except Exception as e:
+            return (job, None, e)
+
+
+class DatasetsFileMetadataQueue(AtMostLimitedAmountQueue):
     job_model = DatasetFileMetadataJob
 
 
