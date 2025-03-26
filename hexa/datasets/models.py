@@ -456,9 +456,14 @@ class DatasetLink(Base):
         unique_together = ("dataset", "workspace")
 
 
-class DatasetFileMetadataJob(BaseJob):
+class BaseJobWithRetry(BaseJob):
     retry_count = models.IntegerField(default=0)
     max_retries = models.IntegerField(default=10)
 
+    class Meta:
+        abstract = True
+
+
+class DatasetFileMetadataJob(BaseJobWithRetry):
     class Meta:
         db_table = "datasets_filemetadata_job"
