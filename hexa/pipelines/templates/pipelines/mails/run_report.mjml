@@ -29,8 +29,6 @@
                 <mj-text color="#333333" padding-top="10px">
                     {% blocktranslate %}The report for pipeline {{ pipeline_code }} is available:{% endblocktranslate %}
                 </mj-text>
-            </mj-column>
-            <mj-column>
                 <mj-text color="#333333" padding-top="10px">
                     <ul>
                         <li>

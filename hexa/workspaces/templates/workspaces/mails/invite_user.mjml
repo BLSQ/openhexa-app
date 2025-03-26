@@ -43,8 +43,8 @@
             Unlock the power of your data {{ span }}
             {% endblocktranslate %}
           </mj-text>
-          <mj-image padding="20px 0" src="https://8e2d7715-c797-4808-96ab-4af99ba89ba1.b-cdn.net/e/59e880a4-076f-4085-a836-b3626c76fd2a/8beef02a-01fd-4eba-939e-a58be9cc740e.png" alt="OpenHexa Overview" />
-          <mj-image padding="0" src="https://8e2d7715-c797-4808-96ab-4af99ba89ba1.b-cdn.net/e/59e880a4-076f-4085-a836-b3626c76fd2a/d87083be-2413-4dc3-aaee-d95e191e1aa6.png" alt="Modules Overview" />
+          <mj-image padding="20px 0" src="https://app.openhexa.org/images/services_openhexa.png" alt="OpenHexa Overview" />
+          <mj-image padding="0" src="https://app.openhexa.org/images/flow_openhexa.png" alt="Modules Overview" />
         </mj-column>
       </mj-section>
 
