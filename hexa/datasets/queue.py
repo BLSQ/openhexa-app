@@ -11,6 +11,7 @@ from hexa.core import mimetypes
 from hexa.datasets.api import generate_download_url
 from hexa.datasets.models import (
     BaseJobWithRetry,
+    DatasetFileMetadataJob,
     DatasetFileSample,
     DatasetVersion,
     DatasetVersionFile,
@@ -260,7 +261,7 @@ class AtMostLimitedAmountQueue(Queue):
 
 
 class DatasetsFileMetadataQueue(AtMostOnceQueue):
-    pass
+    job_model = DatasetFileMetadataJob
 
 
 dataset_file_metadata_queue = DatasetsFileMetadataQueue(
