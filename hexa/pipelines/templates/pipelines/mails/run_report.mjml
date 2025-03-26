@@ -1,4 +1,4 @@
-{% load i18n custom_filters %}
+{% load i18n date_utils %}
 {% autoescape off %}
 
 
@@ -27,8 +27,7 @@
                     {% trans "Pipeline run report" %}
                 </mj-text>
                 <mj-text color="#333333" padding-top="10px">
-                    {% blocktranslate %} The report for pipeline <b>{{pipeline_code}}</b> is available:
-                    {% endblocktranslate %}
+                    {% blocktranslate %}The report for pipeline {{ pipeline_code }} is available:{% endblocktranslate %}
                 </mj-text>
             </mj-column>
             <mj-column>
@@ -54,10 +53,10 @@
 
                 <mj-button href="{{run_url}}" background-color="#FF499C" color="#ffffff" padding="30px 0 0 0"
                            width="200px">
-                    {% trans "View the full report"%}
+                    {% trans "View the full report" %}
                 </mj-button>
                 <mj-text>
-                    {% blocktranslate %}The OpenHEXA team{% endblocktranslate %}
+                    {% trans "The OpenHEXA team" %}
                 </mj-text>
             </mj-column>
         </mj-section>
