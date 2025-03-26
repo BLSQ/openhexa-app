@@ -5,13 +5,12 @@ from typing import Type
 import pandas as pd
 from django.conf import settings
 from django.db import transaction
-from dpq.queue import Queue
+from dpq.queue import AtMostOnceQueue, Queue
 
 from hexa.core import mimetypes
 from hexa.datasets.api import generate_download_url
 from hexa.datasets.models import (
     BaseJobWithRetry,
-    DatasetFileMetadataJob,
     DatasetFileSample,
     DatasetVersion,
     DatasetVersionFile,
@@ -260,12 +259,11 @@ class AtMostLimitedAmountQueue(Queue):
         job.save()
 
 
-class DatasetsFileMetadataQueue(AtMostLimitedAmountQueue):
+class DatasetsFileMetadataQueue(AtMostOnceQueue):
     pass
 
 
 dataset_file_metadata_queue = DatasetsFileMetadataQueue(
-    job_model=DatasetFileMetadataJob,
     tasks={
         "generate_file_metadata": lambda _, job: generate_file_metadata_task(
             job.args["file_id"]
