@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n custom_filters %}
 {% autoescape off %}
 
 
@@ -27,20 +27,31 @@
                     {% trans "Pipeline run report" %}
                 </mj-text>
                 <mj-text color="#333333" padding-top="10px">
-                    {% blocktranslate %} The report for pipeline <b>{{pipeline_code}}</b> is available:{%
-                    endblocktranslate %}
-                    {% blocktranslate with duration_t=duration|duration_format:True %}
+                    {% blocktranslate %} The report for pipeline <b>{{pipeline_code}}</b> is available:
                     {% endblocktranslate %}
                 </mj-text>
             </mj-column>
             <mj-column>
                 <mj-text color="#333333" padding-top="10px">
                     <ul>
-                        <li>Status: {{status}}</li>
-                        <li>Executed at: {{executed_at}}</li>
-                        <li>Duration: {{duration_t}}</li>
+                        <li>
+                            {% blocktranslate with status=status %}
+                            Status: {{ status }}
+                            {% endblocktranslate %}
+                        </li>
+                        <li>
+                            {% blocktranslate with executed_at=executed_at %}
+                            Executed at: {{ executed_at }}
+                            {% endblocktranslate %}
+                        </li>
+                        <li>
+                            {% blocktranslate with duration_t=duration|duration_format:True %}
+                            Duration: {{ duration_t }}
+                            {% endblocktranslate %}
+                        </li>
                     </ul>
                 </mj-text>
+
                 <mj-button href="{{run_url}}" background-color="#FF499C" color="#ffffff" padding="30px 0 0 0"
                            width="200px">
                     {% trans "View the full report"%}
@@ -59,8 +70,6 @@
                 </mj-text>
             </mj-column>
         </mj-section>
-
-
     </mj-body>
 </mjml>
 
