@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy, override
 from openhexa.toolbox.dhis2 import DHIS2
 
-from hexa.core.utils import send_email_mjml as send_mail
+from hexa.core.utils import send_mail as send_mail
 from hexa.user_management.models import User
 
 from .models import Connection, ConnectionType, WorkspaceInvitation

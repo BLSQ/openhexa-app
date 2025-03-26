@@ -1,19 +1,19 @@
 {% load i18n %}
 
 {% blocktranslate with owner=owner workspace=workspace %}
-{{ owner }} has invited you to join {{ workspace }} on OpenHEXA.
+{{owner}} has invited you to join {{workspace} on OpenHEXA.
 {% endblocktranslate %}
 
 {% blocktranslate with owner=owner owner_email=owner_email %}
-Join {{ owner }} ({{ owner_email }}) to start collaborating.
+Join {{owner} ({{owner_email}) to start collaborating.
 {% endblocktranslate %}
 
-{% blocktranslate with url=url %}
+{% blocktranslate %}
 Join now: {{ url }}
 {% endblocktranslate %}
 
----
 
+---
 {% blocktranslate %}
 Unlock the power of your data where it matters the most.
 
@@ -27,6 +27,4 @@ User Manual: https://github.com/BLSQ/openhexa/wiki/User-manual
 Wiki: https://github.com/BLSQ/openhexa/wiki
 
 © 2025 Bluesquare SA. All Rights Reserved
-
-The OpenHEXA team
 {% endblocktranslate %}
