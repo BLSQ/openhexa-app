@@ -36,13 +36,8 @@ def create_dataset_version(principal: User, dataset: Dataset):
 
 
 def update_dataset_version(principal: User, version: DatasetVersion):
-    """Only workspace admins & editors can update dataset versions and
-    only the latest version can be updated
-    """
-    return (
-        create_dataset(principal, version.dataset.workspace)
-        and version.dataset.latest_version == version
-    )
+    """Only workspace admins & editors can update dataset versions"""
+    return create_dataset(principal, version.dataset.workspace)
 
 
 def delete_dataset_version(principal: User, version: DatasetVersion):
