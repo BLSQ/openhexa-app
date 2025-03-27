@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.84.1](https://github.com/BLSQ/openhexa-app/compare/0.84.0...0.84.1) (2025-03-27)
+
+
+### Bug Fixes
+
+* **Datasets:** add max retries job, implements the job for metadata w… ([#953](https://github.com/BLSQ/openhexa-app/issues/953)) ([5b95be3](https://github.com/BLSQ/openhexa-app/commit/5b95be34912644c957d709117e0ff3989611e900))
+
 ## [0.84.0](https://github.com/BLSQ/openhexa-app/compare/0.83.1...0.84.0) (2025-03-20)
 
 
