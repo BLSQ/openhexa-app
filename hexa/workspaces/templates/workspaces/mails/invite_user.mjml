@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n static static_with_domain %}
 {% autoescape off %}
 
 <mjml>
@@ -12,13 +12,14 @@
   </mj-head>
 
   <mj-body background-color="#efeeea" width="600px">
+    <mj-section padding="60px 0 0 0"></mj-section>
     <mj-section background-color="#2e2e2e" border-radius="18px 18px 0 0" padding="30px 0">
       <mj-column>
-        <mj-image align="center" height="100px" src="https://app.openhexa.org/images/logo_with_text_white.svg" padding="10px 25px 10px 25px"></mj-image>
+        <mj-image title="OpenHEXA" align="center" height="100px" src="{% static_with_domain 'img/logo/logo_with_text_white.svg' %}" padding="10px 25px 10px 25px"></mj-image>
       </mj-column>
     </mj-section>
 
-    <mj-section background-color="#ffffff" padding="40px 30px 0 30px">
+    <mj-section background-color="#ffffff" padding="40px 40px 0 40px">
       <mj-column>
         <mj-text font-size="24px" font-weight="800" font-family="'Inter Tight', sans-serif" line-height="1.5">
           {% blocktranslate with owner=owner workspace=workspace %}
@@ -30,21 +31,21 @@
           Join {{owner}}, ({{ owner_email }}) to start collaborating.
           {% endblocktranslate %}
         </mj-text>
-        <mj-button href="{{url}}" background-color="#FF499C" color="#ffffff" padding="30px 0 0 0" width="200px">
+        <mj-button href="{{url}}" background-color="#FF499C" color="#ffffff" padding="30px 0 10px 0">
           {% trans "Join Now"%}
         </mj-button>
       </mj-column>
     </mj-section>
-    <mj-wrapper padding="20px 25px 20px 25px" border="none" text-align="center" background-color="#ffffff">
-      <mj-section background-color="#fff2f2" padding="40px 30px 20px 30px">
+    <mj-wrapper padding="20px 50px 40px 50px" border="none" text-align="center" background-color="#ffffff" border-radius="0 0 18px 18px">
+      <mj-section background-color="#fff2f2" padding="40px 20px 20px 20px">
         <mj-column>
           <mj-text font-size="20px" font-weight="800" font-family="'Inter Tight', sans-serif">
             {% blocktranslate with span="<span style='color:#FF499C;'>where it matters the most</span>" %}
             Unlock the power of your data {{ span }}
             {% endblocktranslate %}
           </mj-text>
-          <mj-image padding="20px 0" src="https://app.openhexa.org/images/services_openhexa.png" alt="OpenHexa Overview" />
-          <mj-image padding="0" src="https://app.openhexa.org/images/flow_openhexa.png" alt="Modules Overview" />
+          <mj-image padding="20px 0" src="{% static_with_domain 'img/email/services_openhexa.png' %}" alt="OpenHEXA Overview" />
+          <mj-image padding="0" src="{% static_with_domain 'img/email/flow_openhexa.png' %}" alt="Modules Overview" />
         </mj-column>
       </mj-section>
 
@@ -79,11 +80,10 @@
             <mj-social-element name="web" href="https://openhexa.io" />
           </mj-social>
         </mj-column>
-
       </mj-section>
     </mj-wrapper>
 
-    <mj-section background-repeat="repeat" background-size="auto" background-position="top center" border="none" direction="ltr" text-align="left" padding="0px 0px 0px 0px">
+    <mj-section background-repeat="repeat" background-size="auto"  border="none" direction="ltr" text-align="left" padding="0px 0px 60px 0px">
       <mj-column border="none" vertical-align="top" padding="0px 0px 0px 0px">
         <mj-text align="center" font-size="12px" padding="10px 25px 10px 25px">
           © 2025 Bluesquare SA. {% trans "All Rights Reserved" %}
