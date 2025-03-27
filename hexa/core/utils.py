@@ -2,6 +2,7 @@ import typing
 
 from django.core.mail import send_mail as django_send_mail
 from django.template.loader import render_to_string
+from mjml import mjml2html
 
 
 def send_mail(
@@ -11,14 +12,9 @@ def send_mail(
     template_name: str,
     template_variables: typing.Mapping,
 ):
-    html_message = render_to_string(
-        f"{template_name}.html",
-        template_variables,
-    )
-
-    text_message = render_to_string(
-        f"{template_name}.txt",
-        template_variables,
+    text_message = render_to_string(f"{template_name}.txt", template_variables)
+    html_message = mjml2html(
+        render_to_string(f"{template_name}.mjml", template_variables)
     )
 
     django_send_mail(

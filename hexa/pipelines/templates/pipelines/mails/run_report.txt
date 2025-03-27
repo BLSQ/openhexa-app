@@ -8,4 +8,8 @@ Duration: {{duration_t}}
 Please go to the following page to view it: {{ run_url }}
 {% endblocktranslate %}
 
-{%blocktranslate%}The OpenHEXA team{%endblocktranslate%}
+{%blocktranslate%}
+The OpenHEXA team
+
+© 2025 Bluesquare SA. All Rights Reserved
+{%endblocktranslate%}

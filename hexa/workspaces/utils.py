@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy, override
 from openhexa.toolbox.dhis2 import DHIS2
 
-from hexa.core.utils import send_mail
+from hexa.core.utils import send_mail as send_mail
 from hexa.user_management.models import User
 
 from .models import Connection, ConnectionType, WorkspaceInvitation
@@ -36,6 +36,7 @@ def send_workspace_invitation_email(
             template_variables={
                 "workspace": invitation.workspace.name,
                 "owner": invitation.invited_by.display_name,
+                "owner_email": invitation.invited_by.email,
                 "user": user,
                 "url": action_url,
             },

@@ -1,4 +1,5 @@
 import base64
+import html
 import uuid
 from unittest.mock import patch
 from urllib.parse import urlencode
@@ -982,7 +983,7 @@ class WorkspaceTest(GraphQLTestCase):
             self.assertListEqual([user_email], mail.outbox[0].recipients())
             self.assertIn(
                 f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
-                mail.outbox[0].body,
+                html.unescape(mail.outbox[0].body),
             )
 
     def test_decline_workspace_invitation(self):
@@ -1565,7 +1566,7 @@ class WorkspaceTest(GraphQLTestCase):
             self.assertListEqual([user_email], mail.outbox[0].recipients())
             self.assertIn(
                 f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
-                mail.outbox[0].body,
+                html.unescape(mail.outbox[0].body),
             )
 
     def test_resend_workspace_member_invitation_existing_user(self):

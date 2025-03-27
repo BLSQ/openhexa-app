@@ -1,13 +1,16 @@
 import hashlib
 from logging import getLogger
+from typing import Type
 
 import pandas as pd
 from django.conf import settings
-from dpq.queue import AtLeastOnceQueue
+from django.db import transaction
+from dpq.queue import AtMostOnceQueue, Queue
 
 from hexa.core import mimetypes
 from hexa.datasets.api import generate_download_url
 from hexa.datasets.models import (
+    BaseJobWithRetry,
     DatasetFileMetadataJob,
     DatasetFileSample,
     DatasetVersion,
@@ -217,7 +220,47 @@ def generate_file_metadata_task(file_id: str) -> None:
     add_system_attributes(version_file, df)
 
 
-class DatasetsFileMetadataQueue(AtLeastOnceQueue):
+class AtMostLimitedAmountQueue(Queue):
+    def __init__(self, job_model: Type[BaseJobWithRetry], *args, **kwargs):
+        self.job_model = job_model
+        super().__init__(*args, **kwargs)
+
+    def run_once(self, exclude_ids=[]):
+        job: BaseJobWithRetry | None = None
+        try:
+            with transaction.atomic():
+                job = self.job_model.dequeue(exclude_ids=exclude_ids)
+                if job:
+                    self.logger.debug(
+                        "Claimed %r.", job, extra={"data": {"job": job.to_json()}}
+                    )
+                    if job.retry_count < job.max_retries:
+                        try:
+                            result = self.run_job(job)
+                            return (job, result, None)
+                        except Exception as e:
+                            self.handle_job_failure(job, e)
+                            raise e
+                    else:
+                        self.logger.error(
+                            f"Job {job.id} reached max retries, skipping."
+                        )
+                        return None
+                return None
+        except Exception as e:
+            return (job, None, e)
+
+    def handle_job_failure(self, job: BaseJobWithRetry, exception: Exception):
+        job.retry_count += 1
+        self.logger.warning(
+            f"Job {job.id} failed: {exception}, retrying {job.retry_count}/{job.max_retries}"
+        )
+        if job.retry_count >= job.max_retries:
+            self.logger.error(f"Job {job.id} failed after max retries")
+        job.save()
+
+
+class DatasetsFileMetadataQueue(AtMostOnceQueue):
     job_model = DatasetFileMetadataJob
 
 
