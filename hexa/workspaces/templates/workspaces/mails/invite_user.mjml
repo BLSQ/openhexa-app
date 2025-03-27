@@ -1,0 +1,97 @@
+{% load i18n %}
+{% autoescape off %}
+
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-font name="Inter Tight" href="https://fonts.googleapis.com/css?family=Inter Tight" />
+      <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans','Helvetica Neue', sans-serif" />
+      <mj-text font-size="14px" color="#1c2024" line-height="1.7" font-weight="400" />
+      <mj-button font-weight="800" font-size="12px" text-transform="uppercase" letter-spacing="2px" border-radius="40px" />
+    </mj-attributes>
+  </mj-head>
+
+  <mj-body background-color="#efeeea" width="600px">
+    <mj-section background-color="#2e2e2e" border-radius="18px 18px 0 0" padding="30px 0">
+      <mj-column>
+        <mj-image align="center" height="100px" src="https://app.openhexa.org/images/logo_with_text_white.svg" padding="10px 25px 10px 25px"></mj-image>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#ffffff" padding="40px 30px 0 30px">
+      <mj-column>
+        <mj-text font-size="24px" font-weight="800" font-family="'Inter Tight', sans-serif" line-height="1.5">
+          {% blocktranslate with owner=owner workspace=workspace %}
+          {{ owner }} has invited you to join {{ workspace }} on OpenHEXA
+          {% endblocktranslate %}
+        </mj-text>
+        <mj-text color="#333333" padding-top="10px">
+          {% blocktranslate with owner=owner owner_email=owner_email %}
+          Join {{owner}}, ({{ owner_email }}) to start collaborating.
+          {% endblocktranslate %}
+        </mj-text>
+        <mj-button href="{{url}}" background-color="#FF499C" color="#ffffff" padding="30px 0 0 0" width="200px">
+          {% trans "Join Now"%}
+        </mj-button>
+      </mj-column>
+    </mj-section>
+    <mj-wrapper padding="20px 25px 20px 25px" border="none" text-align="center" background-color="#ffffff">
+      <mj-section background-color="#fff2f2" padding="40px 30px 20px 30px">
+        <mj-column>
+          <mj-text font-size="20px" font-weight="800" font-family="'Inter Tight', sans-serif">
+            {% blocktranslate with span="<span style='color:#FF499C;'>where it matters the most</span>" %}
+            Unlock the power of your data {{ span }}
+            {% endblocktranslate %}
+          </mj-text>
+          <mj-image padding="20px 0" src="https://app.openhexa.org/images/services_openhexa.png" alt="OpenHexa Overview" />
+          <mj-image padding="0" src="https://app.openhexa.org/images/flow_openhexa.png" alt="Modules Overview" />
+        </mj-column>
+      </mj-section>
+
+      <mj-section background-color="#fff2f2">
+        <mj-column>
+          <mj-text font-size="14px" align="center" text-transform="uppercase" letter-spacing="2px">
+            {% trans "Need Help?" %}
+          </mj-text>
+          <mj-text font-size="20px" font-weight="800" align="center" font-family="'Inter Tight', sans-serif">
+            {% trans "Resources to help you get started" %}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section background-color="#fff2f2" padding="40px 30px 30px 30px">
+        <mj-column width="50%">
+          <mj-button href="https://github.com/BLSQ/openhexa/wiki/User-manual" width="100%" background-color="#FF499C" color="#ffffff">
+            {% trans "User Manual" %}
+          </mj-button>
+        </mj-column>
+        <mj-column width="50%">
+          <mj-button href="https://github.com/BLSQ/openhexa/wiki" width="100%" background-color="#FF499C" color="#ffffff">
+            Wiki
+          </mj-button>
+        </mj-column>
+      </mj-section>
+
+      <mj-section background-color="#2e2e2e" padding="20px 0">
+        <mj-column>
+          <mj-social mode="horizontal" align="center" icon-size="24px">
+            <mj-social-element name="github" href="https://github.com/BLSQ/openhexa" />
+            <mj-social-element name="web" href="https://openhexa.io" />
+          </mj-social>
+        </mj-column>
+
+      </mj-section>
+    </mj-wrapper>
+
+    <mj-section background-repeat="repeat" background-size="auto" background-position="top center" border="none" direction="ltr" text-align="left" padding="0px 0px 0px 0px">
+      <mj-column border="none" vertical-align="top" padding="0px 0px 0px 0px">
+        <mj-text align="center" font-size="12px" padding="10px 25px 10px 25px">
+          © 2025 Bluesquare SA. {% trans "All Rights Reserved" %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+  </mj-body>
+</mjml>
+
+{% endautoescape %}
