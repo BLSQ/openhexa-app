@@ -18,6 +18,7 @@ from hexa.workspaces.models import (
 
 class BaseTestMixin:
     USER_SERENA = None
+    USER_VIEWER = None
     USER_EDITOR = None
     WORKSPACE = None
 
@@ -35,6 +36,9 @@ class BaseTestMixin:
 
         cls.USER_ADMIN = User.objects.create_user(
             "julia@bluesquarehub.com", "juliaspassword", is_superuser=True
+        )
+        cls.USER_VIEWER = User.objects.create_user(
+            "viewer@bluesquarehub.com", "goodbyequentin"
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
@@ -55,6 +59,11 @@ class BaseTestMixin:
             workspace=cls.WORKSPACE_2,
             user=cls.USER_SERENA,
             role=WorkspaceMembershipRole.EDITOR,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=cls.WORKSPACE,
+            user=cls.USER_VIEWER,
+            role=WorkspaceMembershipRole.VIEWER,
         )
 
 
@@ -307,3 +316,33 @@ class DatasetVersionUpdateTest(BaseTestMixin, TestCase):
             )
         self.assertNotEqual(version.name, "New name")
         self.assertNotEqual(version.changelog, "New changelog")
+
+    def test_update_dataset_version_not_latest_only(self):
+        version1 = self.DATASET.create_version(
+            principal=self.USER_ADMIN,
+            name="v1",
+            changelog="Version 1 changelog",
+        )
+        version2 = self.DATASET.create_version(
+            principal=self.USER_ADMIN,
+            name="v2",
+            changelog="Version 2 changelog",
+        )
+        version1.update_if_has_perm(
+            principal=self.USER_ADMIN,
+            name="Updated v1",
+            changelog="Updated changelog v1",
+        )
+        version2.update_if_has_perm(
+            principal=self.USER_ADMIN,
+            name="Updated v2",
+            changelog="Updated changelog v2",
+        )
+        self.assertEqual(version1.name, "Updated v1")
+        self.assertEqual(version2.name, "Updated v2")
+        with self.assertRaises(PermissionDenied):
+            version2.update_if_has_perm(
+                principal=self.USER_VIEWER,
+                name="Updated v3",
+                changelog="Updated changelog v3",
+            )
