@@ -36,7 +36,7 @@ def resolve_webapps(_, info, **kwargs):
         qs = Webapp.objects.filter_for_user(request.user).order_by("name", "id")
 
     if kwargs.get("favorite", None):
-        qs = qs.filter(is_favorite=True)
+        qs = qs.filter_favorites(request.user)
 
     return result_page(
         queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
