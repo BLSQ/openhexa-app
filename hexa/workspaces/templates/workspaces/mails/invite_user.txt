@@ -1,7 +1,7 @@
 {% load i18n %}
 
 {% blocktranslate with owner=owner workspace=workspace %}
-{{owner}} has invited you to join {{workspace}} on OpenHEXA.
+{{owner}} has invited you to join the workspace "{{workspace}}" on OpenHEXA.
 {% endblocktranslate %}
 
 {% blocktranslate with owner=owner owner_email=owner_email %}
