@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.84.3](https://github.com/BLSQ/openhexa-app/compare/0.84.2...0.84.3) (2025-03-28)
+
+
+### Bug Fixes
+
+* Setup Mailhog to debug emails and adapt the MJML templates to make them even more good-looking ([#956](https://github.com/BLSQ/openhexa-app/issues/956)) ([0dc0dea](https://github.com/BLSQ/openhexa-app/commit/0dc0deaa73e9b3ddbf7c61e76e82e00432b00008))
+
+## [0.84.2](https://github.com/BLSQ/openhexa-app/compare/0.84.1...0.84.2) (2025-03-27)
+
+
+### Bug Fixes
+
+* datasets edit button disappearing for some users2 (HEXA-1221) ([3162cae](https://github.com/BLSQ/openhexa-app/commit/3162cae7d2415f8328a123a413dda02ebac59af9))
+
 ## [0.84.1](https://github.com/BLSQ/openhexa-app/compare/0.84.0...0.84.1) (2025-03-27)
 
 

@@ -345,10 +345,9 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL", "OpenHEXA <hexatron@notifications.openhexa.org>"
 )
 
-if all([EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD]):
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-else:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
+)
 
 # Sync settings: sync datasource with a worker (good for scaling) or in the web serv (good for dev)
 EXTERNAL_ASYNC_REFRESH = os.environ.get("EXTERNAL_ASYNC_REFRESH") == "true"
