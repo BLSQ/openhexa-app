@@ -1,6 +1,6 @@
 [project]
 name = "openhexa-app"
-version = "0.84.3"
+version = "1.0.0"
 
 [tool.ruff]
 ignore = ["E501"]

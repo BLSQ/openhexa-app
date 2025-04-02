@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.0.0](https://github.com/BLSQ/openhexa-app/compare/0.84.3...1.0.0) (2025-04-02)
+
+
+### Features
+
+* allow searching for favorites webapps (PATHWAYS-414) ([#959](https://github.com/BLSQ/openhexa-app/issues/959)) ([0cac36c](https://github.com/BLSQ/openhexa-app/commit/0cac36c280ba36d2d0144900104cbd9704cd38ff))
+
+
+### Bug Fixes
+
+* add missing .env.dist ([e5fedf4](https://github.com/BLSQ/openhexa-app/commit/e5fedf40927389f1c54ddc82c61e11af5031f6c4))
+* express upgrade ([ebf529f](https://github.com/BLSQ/openhexa-app/commit/ebf529fba26ecd945d676ed8a2a76bd2b90120af))
+* Release 1.0.0 ([b72b59f](https://github.com/BLSQ/openhexa-app/commit/b72b59f3014bcfc53bc3e1c4086e0414f4d1665e))
+
 ## [0.61.0](https://github.com/BLSQ/openhexa-frontend/compare/0.60.5...0.61.0) (2025-03-24)
 
 
