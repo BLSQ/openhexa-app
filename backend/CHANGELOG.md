@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/BLSQ/openhexa-app/compare/1.0.0...1.0.1) (2025-04-02)
+
+
+### Bug Fixes
+
+* add authors section to pyproject.toml ([f9ee2f8](https://github.com/BLSQ/openhexa-app/commit/f9ee2f85eeedda25a3b21e30756060ae747dac8e))
+
 ## [1.0.0](https://github.com/BLSQ/openhexa-app/compare/0.84.3...1.0.0) (2025-04-02)
 
 
