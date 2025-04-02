@@ -21,6 +21,9 @@ class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             return_all_if_superuser=False,
         )
 
+    def filter_favorites(self, user: User):
+        return self.filter(favorites=user)
+
 
 class WebappManager(
     BaseManager, DefaultSoftDeletedManager.from_queryset(WebappQuerySet)

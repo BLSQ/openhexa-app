@@ -3728,6 +3728,7 @@ export type QueryWebappArgs = {
 
 
 export type QueryWebappsArgs = {
+  favorite?: InputMaybe<Scalars['Boolean']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;

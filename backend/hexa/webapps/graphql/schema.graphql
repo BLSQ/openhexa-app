@@ -153,7 +153,7 @@ type WebappsPage {
 
 extend type Query {
   webapp(id: UUID!): Webapp @loginRequired
-  webapps(workspaceSlug: String, page: Int, perPage: Int): WebappsPage! @loginRequired
+  webapps(workspaceSlug: String, favorite: Boolean, page: Int, perPage: Int): WebappsPage! @loginRequired
 }
 
 extend type Mutation {
