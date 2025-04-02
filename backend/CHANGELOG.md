@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.75.2](https://github.com/BLSQ/openhexa-app/compare/0.84.3...0.75.2) (2025-04-02)
+
+
+### Bug Fixes
+
+* add missing .env.dist ([e5fedf4](https://github.com/BLSQ/openhexa-app/commit/e5fedf40927389f1c54ddc82c61e11af5031f6c4))
+* add missing .env.dist ([8be32bc](https://github.com/BLSQ/openhexa-app/commit/8be32bc54c1a7825081d7e4c3b5b70201923e10e))
+* image names ([5ecd2fb](https://github.com/BLSQ/openhexa-app/commit/5ecd2fb2865de21405f5fa4938e96e01753eddd9))
+
+
+### Miscellaneous Chores
+
+* Release 0.75.2 ([81f1d84](https://github.com/BLSQ/openhexa-app/commit/81f1d8428fd090311fd67e7d06ae53a3d90bded3))
+
 ## [0.84.3](https://github.com/BLSQ/openhexa-app/compare/0.84.2...0.84.3) (2025-03-28)
 
 

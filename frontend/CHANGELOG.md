@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.75.2](https://github.com/BLSQ/openhexa-app/compare/openhexa-frontend-0.84.3...openhexa-frontend-0.75.2) (2025-04-02)
+
+
+### Bug Fixes
+
+* add missing .env.dist ([e5fedf4](https://github.com/BLSQ/openhexa-app/commit/e5fedf40927389f1c54ddc82c61e11af5031f6c4))
+* express upgrade ([ebf529f](https://github.com/BLSQ/openhexa-app/commit/ebf529fba26ecd945d676ed8a2a76bd2b90120af))
+
+
+### Miscellaneous Chores
+
+* Release 0.75.2 ([81f1d84](https://github.com/BLSQ/openhexa-app/commit/81f1d8428fd090311fd67e7d06ae53a3d90bded3))
+
 ## [0.61.0](https://github.com/BLSQ/openhexa-frontend/compare/0.60.5...0.61.0) (2025-03-24)
 
 
