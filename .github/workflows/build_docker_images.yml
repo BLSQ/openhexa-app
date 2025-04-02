@@ -68,11 +68,11 @@ jobs:
           context: backend
           file: backend/Dockerfile
           tags: |
-            yolanfe/yf:${{ steps.version.outputs.number }}
+            blsq/openhexa-app:${{ steps.version.outputs.number }}
           build-args: |
             DJANGO_SETTINGS_MODULE=config.settings.dev
-          cache-from: type=registry,ref=yolanfe/yf:buildcache
-          cache-to: type=registry,ref=yolanfe/yf:buildcache,mode=max
+          cache-from: type=registry,ref=blsq/openhexa-app:buildcache
+          cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
 
       - name: Build and push (manual)
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -82,11 +82,11 @@ jobs:
           context: backend
           file: backend/Dockerfile
           tags: |
-            yolanfe/yf:${{ github.event.inputs.tag }}
+            blsq/openhexa-app:${{ github.event.inputs.tag }}
           build-args: |
             DJANGO_SETTINGS_MODULE=config.settings.dev
-          cache-from: type=registry,ref=yolanfe/yf:buildcache
-          cache-to: type=registry,ref=yolanfe/yf:buildcache,mode=max
+          cache-from: type=registry,ref=blsq/openhexa-app:buildcache
+          cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
 
   build_frontend:
     name: Build Frontend Docker Image
@@ -139,10 +139,10 @@ jobs:
           context: frontend
           file: frontend/Dockerfile
           tags: |
-            yolanfe/yf-frontend:${{ steps.version.outputs.number }}
-            yolanfe/yf-frontend:latest
-          cache-from: type=registry,ref=yolanfe/yf-frontend:buildcache
-          cache-to: type=registry,ref=yolanfe/yf-frontend:buildcache,mode=max
+            blsq/openhexa-frontend:${{ steps.version.outputs.number }}
+            blsq/openhexa-frontend:latest
+          cache-from: type=registry,ref=blsq/openhexa-frontend:buildcache
+          cache-to: type=registry,ref=blsq/openhexa-frontend:buildcache,mode=max
           build-args: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
             "RELEASE=${{ steps.version.outputs.number }}"
@@ -155,10 +155,10 @@ jobs:
           push: true
           file: frontend/Dockerfile
           tags: |
-            yolanfe/yf-frontend:${{ github.event.inputs.tag }}
-            yolanfe/yf-frontend:latest
-          cache-from: type=registry,ref=yolanfe/yf-frontend:buildcache
-          cache-to: type=registry,ref=yolanfe/yf-frontend:buildcache,mode=max
+            blsq/openhexa-frontend:${{ github.event.inputs.tag }}
+            blsq/openhexa-frontend:latest
+          cache-from: type=registry,ref=blsq/openhexa-frontend:buildcache
+          cache-to: type=registry,ref=blsq/openhexa-frontend:buildcache,mode=max
           build-args: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
             "RELEASE=${{ steps.version.outputs.number }}"
@@ -170,8 +170,8 @@ jobs:
           context: frontend
           push: true
           tags: |
-            yolanfe/yf-frontend:pr-${{ github.event.pull_request.number }}
-          cache-from: type=registry,ref=yolanfe/yf-frontend:buildcache
+            blsq/openhexa-frontend:pr-${{ github.event.pull_request.number }}
+          cache-from: type=registry,ref=blsq/openhexa-frontend:buildcache
 
       - name: Build and push (main branch)
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -180,5 +180,5 @@ jobs:
           context: frontend
           push: true
           tags: |
-            yolanfe/yf-frontend:main
-          cache-from: type=registry,ref=yolanfe/yf-frontend:buildcache
+            blsq/openhexa-frontend:main
+          cache-from: type=registry,ref=blsq/openhexa-frontend:buildcache

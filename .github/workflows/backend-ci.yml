@@ -90,9 +90,9 @@ jobs:
           file: backend/Dockerfile
           build-args: |
             DJANGO_SETTINGS_MODULE=config.settings.dev
-          cache-from: type=registry,ref=yolanfe/yf:buildcache
-          cache-to: type=registry,ref=yolanfe/yf:buildcache,mode=max
+          cache-from: type=registry,ref=blsq/openhexa-app:buildcache
+          cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
           tags: |
-            yolanfe/yf:main
-            yolanfe/yf:latest
+            blsq/openhexa-app:main
+            blsq/openhexa-app:latest
       
