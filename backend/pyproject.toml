@@ -1,3 +1,7 @@
+[project]
+name = "openhexa-app"
+version = "0.84.3"
+
 [tool.ruff]
 ignore = ["E501"]
 exclude =[".git",".eggs","node_modules", ".local", ".vscode", ".cache"] # exclude a few common directories in the root of the project
