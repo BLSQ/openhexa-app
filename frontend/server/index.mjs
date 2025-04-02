@@ -32,7 +32,7 @@ app.prepare().then(async () => {
     }),
   );
 
-  server.all("*", (req, res) => handle(req, res));
+  server.all(/(.*)/, (req, res) => handle(req, res));
 
   server.listen(port, () => {
     console.log(`> Ready on http://localhost:${port}`);
