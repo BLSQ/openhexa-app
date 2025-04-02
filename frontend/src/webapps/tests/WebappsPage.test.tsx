@@ -111,6 +111,11 @@ const graphqlMocks: MockedResponse[] = [
             webapp((index + 1).toString()),
           ),
         },
+        favoriteWebapps: {
+          items: [],
+          totalPages: 0,
+          totalItems: 0,
+        },
       },
     },
   },
@@ -155,7 +160,7 @@ describe("WebappsPage", () => {
       expect(screen.getByText("Webapp 1")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByTestId("star-icon-1"));
+    fireEvent.click(screen.getByTestId("favorite-button-1"));
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("Added to favorites");
@@ -188,7 +193,7 @@ describe("WebappsPage", () => {
       expect(screen.getByText("Webapp 2")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByTestId("star-icon-2"));
+    fireEvent.click(screen.getByTestId("favorite-button-2"));
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("Removed from favorites");
