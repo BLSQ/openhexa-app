@@ -1,14 +1,32 @@
-name: Test suite
+name: Backend
 on:
   pull_request:
+    paths:
+      - 'backend/**'
   push:
     branches: [ main ]
+    paths:
+      - 'backend/**'
 
 jobs:
-  test:
-    name: Run test suite
+  pre-commit:
+    name: Lint
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --config backend/.pre-commit-config.yaml
+        env:
+          PRE_COMMIT_HOME: backend/.cache/pre-commit
 
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -45,12 +63,11 @@ jobs:
               "var-lib-apt": "/var/lib/apt",
               "root-.cache": "/root/.cache"
             }
-    
           skip-extraction: ${{ steps.cache.outputs.cache-hit }}
 
       - name: Create docker network
         run: docker network create openhexa
-      
+
       - name: Copy .env file
         run: cp .env.dist .env
 
@@ -67,15 +84,15 @@ jobs:
       - name: Build and push (on main)
         uses: docker/build-push-action@v6
         with:
-          push: ${{ github.event_name != 'pull_request' }} 
-          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          context: backend
           target: app
-          file: Dockerfile
+          file: backend/Dockerfile
           build-args: |
             DJANGO_SETTINGS_MODULE=config.settings.dev
-          cache-from: type=registry,ref=blsq/openhexa-app:buildcache
-          cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
+          cache-from: type=registry,ref=yolanfe/yf:buildcache
+          cache-to: type=registry,ref=yolanfe/yf:buildcache,mode=max
           tags: |
-            blsq/openhexa-app:main
-            blsq/openhexa-app:latest
+            yolanfe/yf:main
+            yolanfe/yf:latest
       

@@ -1,5 +1,5 @@
 overwrite: true
-schema: "./schema.graphql"
+schema: "../backend/**/schema.graphql" # /!\ We have decided to directly source schemas from the django apps, it means that schemas of disabled apps will still be included in the codegen process
 documents: "src/**/!(*.generated).{ts,tsx,graphql}"
 generates:
   src/graphql/types.ts:

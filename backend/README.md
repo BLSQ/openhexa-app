@@ -10,7 +10,7 @@
    </a>
 </p>
 
-OpenHEXA App Component
+OpenHEXA App Components
 ======================
 
 OpenHEXA is an open-source data integration platform developed by [Bluesquare](https://bluesquarehub.com).

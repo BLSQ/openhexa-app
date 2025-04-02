@@ -1,17 +1,20 @@
-# This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
-name: Lint, Test & Build
+name: Frontend
 
 on:
   pull_request:
+    paths:
+      - 'frontend/**'
+      - 'backend/**/schema.graphql'
   push:
     branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'backend/**/schema.graphql'
 
 env:
   CI: true
 
-concurrency: 
+concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
@@ -19,43 +22,38 @@ jobs:
   i18n:
     name: Validate i18n
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-
       - name: Use Node.js v20
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
-
       - name: Cache dependencies
         id: cache
         uses: actions/cache@v4
         with:
           path: ./node_modules
           key: node_modules-v20-${{ hashFiles('package-lock.json') }}
-
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
-        
       - name: Ensure all keys are translated
         run: npm run i18n:validate
-
   ci:
-    name: Lint, Test & Build
+    name: Lint, Build & Test
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-
       - name: Use Node.js v20
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
-
       - name: Cache dependencies
         id: cache
         uses: actions/cache@v4
@@ -64,16 +62,43 @@ jobs:
             ./node_modules
             ${{ github.workspace }}/.next/cache
           key: node_modules-v20-${{ hashFiles('package-lock.json') }}
-
       - name: Install dependencies
         # if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
-
       - run: npm run lint
         name: Lint Typescript files
-
       - run: npm run test:ci
         name: Run Tests
-        
       - run: npm run build
         name: Build
+
+  codegen:
+    name: Codegen
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ./node_modules
+          key: node_modules-v20-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Run codegen script
+        run: npm run codegen
+      - name: Check for changes
+        run: |
+          if [[ `git status --porcelain` ]]; then
+            echo "Uncommitted changes found. Please run 'npm run codegen' and commit the changes."
+            exit 1
+          else
+            echo "No changes found."
+          fi

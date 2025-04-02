@@ -17,7 +17,6 @@
     "lint": "next lint --dir src",
     "next": "next",
     "prepare": "husky",
-    "schema": "npx -y get-graphql-schema http://localhost:8000/graphql/ > schema.graphql",
     "start": "NODE_ENV=production node server/index.mjs",
     "test:ci": "jest --ci",
     "test": "jest --watch"
@@ -29,7 +28,7 @@
     ]
   },
   "graphql": {
-    "schema": "./schema.graphql"
+    "schema": "../backend/**/schema.graphql"
   },
   "dependencies": {
     "@apollo/client": "^3.11.8",

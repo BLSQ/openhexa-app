@@ -1,0 +1,69 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+.DS_Store
+### Backend ###
+backend/*.env
+backend/.coverage
+backend/.local/
+backend/.cache/
+backend/htmlcov/
+backend/venv
+backend/k8s/*
+!backend/k8s/sample_app.yaml
+
+#for mac and idea
+backend/.idea/
+# TODO: remove
+backend/credentials
+backend/.terraform*
+
+backend/static/uploads/*
+backend/.venv
+backend/.vscode
+backend/__pycache__
+
+backend/docker-compose.debug.yaml
+backend/docker-compose.dev.yaml
+
+#### Frontend ####
+# dependencies
+frontend/node_modules
+frontend/.pnp
+frontend/.pnp.js
+
+# testing
+frontend/coverage
+
+# next.js
+frontend/.next/
+frontend/out/
+
+# production
+frontend/build
+
+# misc
+frontend/*.pem
+
+# debug
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# local env files
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# vercel
+frontend/.vercel
+
+# typescript
+frontend/*.tsbuildinfo
+
+# Sentry
+frontend/.sentryclirc
+
+
+# Sentry Config File
+frontend/.env.sentry-build-plugin

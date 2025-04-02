@@ -228,7 +228,6 @@ type DeleteTemplateVersionResult {
 enum DeleteTemplateVersionError {
   TEMPLATE_VERSION_NOT_FOUND
   PERMISSION_DENIED
-  TEMPLATE_NOT_FOUND
 }
 
 """

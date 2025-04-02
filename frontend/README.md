@@ -10,7 +10,7 @@
    </a>
 </p>
 
-# OpenHEXA Frontend Component
+# OpenHEXA Frontend Components
 
 OpenHEXA is an open-source data integration platform developed by [Bluesquare](https://bluesquarehub.com).
 
@@ -129,7 +129,6 @@ npm run lint && npm run format
 - `npm run lint`: Lint files in `src/` using `eslint`
 - `npm run format`: Format files in `src/` using `prettier`
 - `npm run prepare`: This script is called automatically by npm on `npm install`. It adds the pre-commit hook
-- `npm run schema`: Run an introspection query on the graphql backend and generate a `schema.graphql` file. This file is used to generate typescript types & for DX in the IDE
 - `npm run codegen`: Generate typescript types found in all the files based on `schema.graphql`
 - `npm run i18n:extract`: Extract translatable strings and write `messages.json` files for each language
 - `npm run i18n:translate` Translate the `messages.json` files using DeepL (requires a DeepL API key `DEEPL_API_KEY` to be set).

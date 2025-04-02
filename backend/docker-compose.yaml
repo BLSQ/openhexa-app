@@ -37,7 +37,7 @@ services:
     command: "manage runserver 0:8000"
     restart: unless-stopped
     container_name: app
-    image: blsq/openhexa-app
+    image: yolanfe/yf
     ports:
       - "8000:8000"
     depends_on:

@@ -14,13 +14,13 @@ WORKDIR /code
 
 # Upgrade pip and install requirements
 RUN --mount=type=cache,target=/root/.cache \
-    pip install --upgrade pip setuptools==68.0.0
+    pip install --upgrade pip setuptools==78.0.2
 
 # Install project dependencies from requirements.txt
 COPY requirements.txt /code/
 
 RUN --mount=type=cache,target=/root/.cache \
-    pip install -r requirements.txt  && \ 
+    pip install -r requirements.txt  && \
     apt-get remove -y build-essential && \
     apt-get autoremove -y
 
