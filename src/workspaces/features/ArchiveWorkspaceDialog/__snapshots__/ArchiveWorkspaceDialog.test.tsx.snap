@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ArchiveWorkspaceDialog is displayed when open is true 1`] = `<div />`;
+
+exports[`ArchiveWorkspaceDialog is not displayed  1`] = `<div />`;

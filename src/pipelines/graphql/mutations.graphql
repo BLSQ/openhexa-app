@@ -1,0 +1,46 @@
+mutation UpdatePipeline($input: UpdateDAGInput!) {
+  updateDAG(input: $input) {
+    success
+    errors
+    dag {
+      id
+      label
+      description
+      schedule
+    }
+  }
+}
+mutation CreatePipelineTemplateVersion(
+  $input: CreatePipelineTemplateVersionInput!
+) {
+  createPipelineTemplateVersion(input: $input) {
+    success
+    errors
+    pipelineTemplate {
+      name
+      code
+    }
+  }
+}
+mutation CreatePipelineFromTemplateVersion(
+  $input: CreatePipelineFromTemplateVersionInput!
+) {
+  createPipelineFromTemplateVersion(input: $input) {
+    success
+    errors
+    pipeline {
+      id
+      name
+      code
+    }
+  }
+}
+
+mutation upgradePipelineVersionFromTemplate(
+  $input: UpgradePipelineVersionFromTemplateInput!
+) {
+  upgradePipelineVersionFromTemplate(input: $input) {
+    success
+    errors
+  }
+}

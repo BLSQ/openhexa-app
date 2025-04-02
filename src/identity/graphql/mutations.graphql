@@ -1,0 +1,74 @@
+mutation ResetPassword($input: ResetPasswordInput!) {
+  resetPassword(input: $input) {
+    success
+  }
+}
+
+mutation SetPassword($input: SetPasswordInput!) {
+  setPassword(input: $input) {
+    success
+    error
+  }
+}
+
+mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation Logout {
+  logout {
+    success
+  }
+}
+
+mutation Register($input: RegisterInput!) {
+  register(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation GenerateChallenge {
+  generateChallenge {
+    success
+    errors
+  }
+}
+
+mutation VerifyDevice($input: VerifyDeviceInput!) {
+  verifyDevice(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation DisableTwoFactor($input: DisableTwoFactorInput!) {
+  disableTwoFactor(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation EnableTwoFactor {
+  enableTwoFactor {
+    success
+    verified
+    errors
+  }
+}
+
+mutation UpdateUser($input: UpdateUserInput!) {
+  updateUser(input: $input) {
+    success
+    errors
+    user {
+      id
+      language
+      firstName
+      lastName
+    }
+  }
+}

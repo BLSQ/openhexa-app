@@ -1,0 +1,115 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LoginPage: No Two Factor Authentication renders the login page 1`] = `
+<div>
+  <form
+    class="max-w-md flex-1 space-y-6"
+  >
+    <div>
+      <div
+        class="relative h-16 w-auto"
+      >
+        <span
+          style="box-sizing: border-box; display: block; overflow: hidden; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px; position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px;"
+        >
+          <img
+            alt="OpenHEXA logo"
+            class="mx-auto block h-16 w-auto"
+            data-nimg="fill"
+            decoding="async"
+            sizes="100vw"
+            src="/images/logo.svg"
+            srcset="/images/logo.svg 640w, /images/logo.svg 750w, /images/logo.svg 828w, /images/logo.svg 1080w, /images/logo.svg 1200w, /images/logo.svg 1920w, /images/logo.svg 2048w, /images/logo.svg 3840w"
+            style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px; box-sizing: border-box; padding: 0px; margin: auto; display: block; width: 0px; height: 0px; min-width: 100%; max-width: 100%; min-height: 100%; max-height: 100%;"
+          />
+        </span>
+      </div>
+      <h2
+        class="mt-6 text-center text-3xl font-extrabold text-gray-900"
+      >
+        Sign in
+      </h2>
+    </div>
+    <div
+      class="-space-y-px pt-2"
+    >
+      <label
+        class="sr-only"
+        for="email"
+      >
+        Email address
+      </label>
+      <div
+        class="group relative w-full"
+      >
+        <input
+          aria-describedby="email-description"
+          aria-invalid="false"
+          autocomplete="email"
+          class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 w-full rounded-b-none"
+          data-testid="email"
+          id="email"
+          name="email"
+          placeholder="Email address"
+          required=""
+          type="text"
+          value=""
+        />
+      </div>
+      <label
+        class="sr-only"
+        for="password"
+      >
+        Password
+      </label>
+      <div
+        class="group relative w-full"
+      >
+        <input
+          aria-describedby="password-description"
+          aria-invalid="false"
+          autocomplete="current-password"
+          class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 w-full rounded-t-none"
+          data-testid="password"
+          id="password"
+          name="password"
+          placeholder="Password"
+          required=""
+          type="password"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      class="flex items-center justify-end"
+    >
+      <div
+        class="text-sm"
+      >
+        <a
+          class="text-blue-600 hover:text-blue-500"
+          href="/auth/password_reset"
+          rel="noopener noreferrer"
+        >
+          Forgot your password?
+        </a>
+      </div>
+    </div>
+    <div
+      class="space-y-2"
+    >
+      <button
+        class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 w-full"
+        data-testid="submit"
+        type="submit"
+      >
+        Sign in
+      </button>
+    </div>
+  </form>
+</div>
+`;

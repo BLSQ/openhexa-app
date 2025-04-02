@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`User renders 1`] = `
+<div>
+  <div
+    class="flex items-center gap-2"
+  >
+    <span
+      class="inline-flex shrink-0 items-center justify-center rounded-full bg-gray-500 text-sm h-8 w-8"
+      title="Test User"
+    >
+      <span
+        class="font-medium leading-none text-white"
+      >
+        TU
+      </span>
+    </span>
+    <div
+      class="truncate"
+    >
+      <div
+        class="text-inherit"
+      >
+        Test User
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`User renders with the subtext 1`] = `
+<div>
+  <div
+    class="flex items-center gap-2"
+  >
+    <span
+      class="inline-flex shrink-0 items-center justify-center rounded-full bg-gray-500 text-sm h-8 w-8"
+      title="Test User"
+    >
+      <span
+        class="font-medium leading-none text-white"
+      >
+        TU
+      </span>
+    </span>
+    <div
+      class="truncate"
+    >
+      <div
+        class="text-inherit"
+      >
+        Test User
+      </div>
+      <div
+        class="text-xs text-gray-400"
+      >
+        testuser@openhexa.org
+      </div>
+    </div>
+  </div>
+</div>
+`;

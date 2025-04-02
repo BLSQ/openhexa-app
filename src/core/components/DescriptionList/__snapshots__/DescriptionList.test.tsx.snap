@@ -1,0 +1,118 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DescriptionList renders a list with one item 1`] = `
+<div>
+  <dl
+    class="grid gap-4"
+  >
+    <div
+      class="grid grid-cols-5 gap-2 sm:gap-4"
+    >
+      <dt
+        class="flex text-sm font-medium text-gray-500 col-span-1 items-center"
+      >
+        <span
+          class="inline"
+        >
+          label
+        </span>
+      </dt>
+      <dd
+        class="col-span-4 text-sm text-gray-900"
+      >
+        value
+      </dd>
+    </div>
+  </dl>
+</div>
+`;
+
+exports[`DescriptionList renders the list on multiple columns 1`] = `
+<div>
+  <dl
+    class="grid gap-4 grid-cols-2"
+  >
+    <div
+      class="grid grid-cols-5 gap-2 sm:gap-4"
+    >
+      <dt
+        class="flex text-sm font-medium text-gray-500 col-span-1 items-center"
+      >
+        <span
+          class="inline"
+        >
+          label 1
+        </span>
+      </dt>
+      <dd
+        class="col-span-4 text-sm text-gray-900"
+      >
+        value 1
+      </dd>
+    </div>
+    <div
+      class="grid grid-cols-5 gap-2 sm:gap-4"
+    >
+      <dt
+        class="flex text-sm font-medium text-gray-500 col-span-1 items-center"
+      >
+        <span
+          class="inline"
+        >
+          label 2
+        </span>
+      </dt>
+      <dd
+        class="col-span-4 text-sm text-gray-900"
+      >
+        value 2
+      </dd>
+    </div>
+  </dl>
+</div>
+`;
+
+exports[`DescriptionList renders the list with the label above the value 1`] = `
+<div>
+  <dl
+    class="grid gap-4 grid-cols-2"
+  >
+    <div
+      class="space-y-1"
+    >
+      <dt
+        class="flex text-sm font-medium text-gray-500 col-span-5"
+      >
+        <span
+          class="inline"
+        >
+          label 1
+        </span>
+      </dt>
+      <dd
+        class="col-span-4 text-sm text-gray-900"
+      >
+        value 1
+      </dd>
+    </div>
+    <div
+      class="space-y-1"
+    >
+      <dt
+        class="flex text-sm font-medium text-gray-500 col-span-5"
+      >
+        <span
+          class="inline"
+        >
+          label 2
+        </span>
+      </dt>
+      <dd
+        class="col-span-4 text-sm text-gray-900"
+      >
+        value 2
+      </dd>
+    </div>
+  </dl>
+</div>
+`;

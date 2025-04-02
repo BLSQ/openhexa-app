@@ -1,0 +1,79 @@
+# This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Lint, Test & Build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  CI: true
+
+concurrency: 
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  i18n:
+    name: Validate i18n
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ./node_modules
+          key: node_modules-v20-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci --ignore-scripts
+        
+      - name: Ensure all keys are translated
+        run: npm run i18n:validate
+
+  ci:
+    name: Lint, Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./node_modules
+            ${{ github.workspace }}/.next/cache
+          key: node_modules-v20-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        # if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - run: npm run lint
+        name: Lint Typescript files
+
+      - run: npm run test:ci
+        name: Run Tests
+        
+      - run: npm run build
+        name: Build

@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Input renders 1`] = `
+<div>
+  <div
+    class="group relative"
+  >
+    <input
+      aria-describedby="a_field-description"
+      aria-invalid="false"
+      class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500"
+      data-testid="input"
+      id="a_field"
+      name="a_field"
+      type="text"
+      value=""
+    />
+  </div>
+</div>
+`;
+
+exports[`Input renders a trailing icon 1`] = `
+<div>
+  <div
+    class="group relative"
+  >
+    <input
+      aria-describedby="undefined-description"
+      aria-invalid="false"
+      class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 pr-4"
+      type="text"
+      value=""
+    />
+    <div
+      class="absolute inset-y-0 right-0 z-10 inline-flex items-center justify-center pr-2.5"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-4"
+        data-slot="icon"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+  </div>
+</div>
+`;

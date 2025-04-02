@@ -1,0 +1,212 @@
+mutation createWorkspace($input: CreateWorkspaceInput!) {
+  createWorkspace(input: $input) {
+    success
+    workspace {
+      slug
+      name
+      description
+      countries {
+        code
+        alpha3
+        name
+      }
+    }
+    errors
+  }
+}
+
+mutation updateWorkspace($input: UpdateWorkspaceInput!) {
+  updateWorkspace(input: $input) {
+    success
+    workspace {
+      slug
+      name
+      description
+      countries {
+        code
+        alpha3
+        name
+      }
+    }
+    errors
+  }
+}
+
+mutation deleteWorkspace($input: DeleteWorkspaceInput!) {
+  deleteWorkspace(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation archiveWorkspace($input: ArchiveWorkspaceInput!) {
+  archiveWorkspace(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+  inviteWorkspaceMember(input: $input) {
+    success
+    errors
+    workspaceMembership {
+      id
+    }
+  }
+}
+
+mutation deleteWorkspaceMember($input: DeleteWorkspaceMemberInput!) {
+  deleteWorkspaceMember(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation updateWorkspaceMember($input: UpdateWorkspaceMemberInput!) {
+  updateWorkspaceMember(input: $input) {
+    success
+    errors
+    workspaceMembership {
+      id
+      role
+    }
+  }
+}
+mutation createConnection($input: CreateConnectionInput!) {
+  createConnection(input: $input) {
+    success
+    connection {
+      id
+      name
+    }
+    errors
+  }
+}
+
+mutation updateConnection($input: UpdateConnectionInput!) {
+  updateConnection(input: $input) {
+    success
+    errors
+    connection {
+      id
+      name
+      slug
+      description
+      fields {
+        code
+        value
+        secret
+      }
+    }
+  }
+}
+
+mutation generateNewDatabasePassword(
+  $input: GenerateNewDatabasePasswordInput!
+) {
+  generateNewDatabasePassword(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation createPipeline($input: CreatePipelineInput!) {
+  createPipeline(input: $input) {
+    success
+    errors
+    pipeline {
+      code
+    }
+  }
+}
+
+mutation deletePipeline($input: DeletePipelineInput!) {
+  deletePipeline(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation stopPipeline($input: StopPipelineInput!) {
+  stopPipeline(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation deletePipelineVersion($input: DeletePipelineVersionInput!) {
+  deletePipelineVersion(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation deletePipelineTemplate($input: DeletePipelineTemplateInput!) {
+  deletePipelineTemplate(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation joinWorkspace($input: JoinWorkspaceInput!) {
+  joinWorkspace(input: $input) {
+    success
+    errors
+    invitation {
+      id
+      status
+      invitedBy {
+        ...User_user
+      }
+      role
+      workspace {
+        slug
+        name
+      }
+      createdAt
+    }
+    workspace {
+      slug
+    }
+  }
+}
+
+mutation declineWorkspaceInvitation($input: DeclineWorkspaceInvitationInput!) {
+  declineWorkspaceInvitation(input: $input) {
+    success
+    invitation {
+      id
+      status
+    }
+    errors
+  }
+}
+
+mutation deleteWorkspaceInvitation($input: DeleteWorkspaceInvitationInput!) {
+  deleteWorkspaceInvitation(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
+  resendWorkspaceInvitation(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation addPipelineRecipient($input: CreatePipelineRecipientInput!) {
+  addPipelineRecipient(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation deleteWebapp($input: DeleteWebappInput!) {
+  deleteWebapp(input: $input) {
+    success
+    errors
+  }
+}

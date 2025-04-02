@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Textarea renders 1`] = `
+<div>
+  <textarea
+    class="form-textarea w-full appearance-none rounded-md border px-3 py-2 focus:z-10 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500"
+    rows="4"
+  >
+    this is a textarea
+  </textarea>
+</div>
+`;

@@ -1,0 +1,102 @@
+query PipelinesPage($page: Int, $perPage: Int = 15) {
+  dags(page: $page, perPage: $perPage) {
+    totalPages
+    totalItems
+    items {
+      label
+      countries {
+        ...CountryBadge_country
+      }
+      tags {
+        ...Tag_tag
+      }
+      id
+      externalId
+      runs(orderBy: EXECUTION_DATE_DESC, perPage: 1) {
+        items {
+          id
+          status
+          executionDate
+        }
+      }
+    }
+  }
+}
+
+query PipelinePage($id: UUID!, $page: Int, $perPage: Int) {
+  dag(id: $id) {
+    id
+    label
+    countries {
+      ...CountryBadge_country
+    }
+    tags {
+      ...Tag_tag
+    }
+    externalId
+    schedule
+    externalUrl
+    template {
+      code
+      description
+      sampleConfig
+    }
+    description
+    schedule
+    user {
+      ...UserProperty_user
+    }
+    runs(page: $page, perPage: $perPage) {
+      totalItems
+      totalPages
+      items {
+        id
+        label
+        triggerMode
+        externalId
+        externalUrl
+        user {
+          ...UserColumn_user
+        }
+        status
+        executionDate
+        lastRefreshedAt
+        duration
+        ...PipelineRunFavoriteTrigger_run
+      }
+    }
+  }
+}
+
+query PipelineRunPage($pipelineId: UUID!, $runId: UUID!) {
+  dagRun(id: $runId) {
+    id
+    label
+    triggerMode
+    user {
+      displayName
+    }
+    ...PipelineRunDataCard_dagRun
+  }
+
+  dag(id: $pipelineId) {
+    id
+    externalId
+    label
+    ...PipelineRunDataCard_dag
+  }
+}
+
+query PipelineConfigureRunPage($pipelineId: UUID!) {
+  dag(id: $pipelineId) {
+    id
+    label
+    externalId
+    template {
+      sampleConfig
+      description
+    }
+    description
+    ...PipelineRunForm_dag
+  }
+}

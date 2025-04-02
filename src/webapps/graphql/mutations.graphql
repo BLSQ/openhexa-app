@@ -1,0 +1,28 @@
+mutation UpdateWebapp($input: UpdateWebappInput!) {
+  updateWebapp(input: $input) {
+    success
+    errors
+  }
+}
+mutation CreateWebapp($input: CreateWebappInput!) {
+  createWebapp(input: $input) {
+    success
+    errors
+    webapp {
+      id
+    }
+  }
+}
+mutation AddToFavorites($input: AddToFavoritesInput!) {
+  addToFavorites(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation RemoveFromFavorites($input: RemoveFromFavoritesInput!) {
+  removeFromFavorites(input: $input) {
+    success
+    errors
+  }
+}

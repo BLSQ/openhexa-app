@@ -1,0 +1,717 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Workspaces hides the edit button when user have not update permission  1`] = `<div />`;
+
+exports[`Workspaces renders null as workspace doesn't exist 1`] = `<div />`;
+
+exports[`Workspaces renders the workspace page 1`] = `
+<div>
+  <div
+    class="fixed h-screen bg-gray-800 transition-all duration-75 z-20 w-64 2xl:w-72"
+  >
+    <div
+      class="relative z-20 flex h-full flex-col"
+    >
+      <div
+        class="flex h-full grow flex-col border-r border-gray-200 bg-gray-800"
+      >
+        <div
+          class="w-full"
+        >
+          <button
+            class="group flex h-16 w-full items-center justify-center bg-gray-800 px-2 text-left hover:bg-gray-600"
+          >
+            <div
+              class="line-clamp-2 flex-1 text-sm tracking-tight text-gray-50"
+              title="Rwanda Workspace"
+            >
+              Rwanda Workspace
+              <div
+                class="text-xs tracking-tighter text-gray-500 group-hover:text-gray-400"
+              />
+            </div>
+            <svg
+              aria-hidden="true"
+              class="ml-1 h-4 w-4 text-gray-500 group-hover:text-gray-100"
+              data-slot="icon"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                clip-rule="evenodd"
+                d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                fill-rule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          class="mt-5 flex grow flex-col"
+        >
+          <nav
+            class="flex-1 space-y-1 px-0 pb-4"
+          >
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              href="/workspaces/test"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Home
+            </a>
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              href="/workspaces/test/files"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Files
+            </a>
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              href="/workspaces/test/databases"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Database
+            </a>
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              href="/workspaces/test/datasets"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M16.5 8.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v8.25A2.25 2.25 0 0 0 6 16.5h2.25m8.25-8.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-7.5A2.25 2.25 0 0 1 8.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 0 0-2.25 2.25v6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Datasets
+            </a>
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              href="/workspaces/test/connections"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Connections
+            </a>
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              href="/workspaces/test/pipelines"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Pipelines
+            </a>
+          </nav>
+        </div>
+        <div
+          class="mb-5 flex shrink-0 flex-col items-center px-4"
+        >
+          <a
+            class="flex h-8 items-center"
+            href="/"
+            rel="noopener noreferrer"
+          >
+            <img
+              alt="OpenHEXA logo"
+              class="h-full"
+              src="/images/logo_with_text_white.svg"
+            />
+          </a>
+        </div>
+      </div>
+      <button
+        class="group absolute inset-y-0 right-0 border-r-4 border-transparent after:absolute after:inset-y-0 after:-left-1.5 after:block after:w-5 after:content-[''] hover:border-r-gray-500"
+      >
+        <div
+          class="relative h-full"
+        >
+          <div
+            class="pointer-events-none absolute inset-y-0 right-0 flex items-center"
+          >
+            <div
+              class="pointer-events-auto invisible rounded-l-md bg-gray-500 p-1 pr-0.5 align-middle text-white group-hover:visible"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15.75 19.5 8.25 12l7.5-7.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </button>
+    </div>
+  </div>
+  <header
+    class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
+  >
+    <div
+      class="px-4 md:px-6 xl:px-10 2xl:px-12 h-full gap-2 flex items-center justify-between"
+    >
+      <nav
+        aria-label="Breadcrumbs"
+      >
+        <ol
+          class="flex items-center"
+          role="list"
+        >
+          <li
+            class=""
+          >
+            <div
+              class="flex items-center"
+            >
+              <span
+                class="text-sm hover:text-gray-700 font-medium text-gray-500"
+              >
+                <a
+                  class=""
+                  href="/workspaces/test"
+                  rel="noopener noreferrer"
+                >
+                  Rwanda Workspace
+                </a>
+              </span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+      <div
+        class="flex items-center gap-2"
+      />
+    </div>
+  </header>
+  <main
+    class="w-full mb-12 pl-64 2xl:pl-72 pt-16"
+  >
+    <div
+      class="py-6 xl:py-8"
+    >
+      <div
+        class="mx-auto px-4 md:px-6 xl:px-10  2xl:px-12"
+      >
+        <article
+          class="sm:rounded-lg overflow-hidden shadow-xs border-b border-gray-200 bg-white"
+        >
+          <section
+            class="px-4 py-5 sm:px-6"
+          >
+            <div>
+              This is a description
+            </div>
+          </section>
+        </article>
+      </div>
+    </div>
+  </main>
+  <div
+    class="fixed bottom-6 right-6"
+  >
+    <div
+      class="relative"
+      data-headlessui-state=""
+    >
+      <button
+        aria-expanded="false"
+        class="flex items-center outline-hidden"
+        data-headlessui-state=""
+        id="headlessui-popover-button-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
+        type="button"
+      >
+        <div
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-white text-3xl shadow-xl ring-1 ring-gray-500/5 transition-all hover:bg-gray-50 hover:text-4xl"
+        >
+          ?
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Workspaces shows the jupyterhub entry when user have the launchNotebookServer permission  1`] = `
+<div>
+  <div
+    class="fixed h-screen bg-gray-800 transition-all duration-75 z-20 w-64 2xl:w-72"
+  >
+    <div
+      class="relative z-20 flex h-full flex-col"
+    >
+      <div
+        class="flex h-full grow flex-col border-r border-gray-200 bg-gray-800"
+      >
+        <div
+          class="w-full"
+        >
+          <button
+            class="group flex h-16 w-full items-center justify-center bg-gray-800 px-2 text-left hover:bg-gray-600"
+          >
+            <div
+              class="line-clamp-2 flex-1 text-sm tracking-tight text-gray-50"
+              title="Rwanda Workspace"
+            >
+              Rwanda Workspace
+              <div
+                class="text-xs tracking-tighter text-gray-500 group-hover:text-gray-400"
+              />
+            </div>
+            <svg
+              aria-hidden="true"
+              class="ml-1 h-4 w-4 text-gray-500 group-hover:text-gray-100"
+              data-slot="icon"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                clip-rule="evenodd"
+                d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+                fill-rule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          class="mt-5 flex grow flex-col"
+        >
+          <nav
+            class="flex-1 space-y-1 px-0 pb-4"
+          >
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Home
+            </a>
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/files"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Files
+            </a>
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/databases"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Database
+            </a>
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/datasets"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M16.5 8.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v8.25A2.25 2.25 0 0 0 6 16.5h2.25m8.25-8.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-7.5A2.25 2.25 0 0 1 8.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 0 0-2.25 2.25v6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Datasets
+            </a>
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/connections"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Connections
+            </a>
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/pipelines"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Pipelines
+            </a>
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/notebooks"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              JupyterHub
+            </a>
+          </nav>
+        </div>
+        <div
+          class="mb-5 flex shrink-0 flex-col items-center px-4"
+        >
+          <a
+            class="flex h-8 items-center"
+            href="/"
+            rel="noopener noreferrer"
+          >
+            <img
+              alt="OpenHEXA logo"
+              class="h-full"
+              src="/images/logo_with_text_white.svg"
+            />
+          </a>
+        </div>
+      </div>
+      <button
+        class="group absolute inset-y-0 right-0 border-r-4 border-transparent after:absolute after:inset-y-0 after:-left-1.5 after:block after:w-5 after:content-[''] hover:border-r-gray-500"
+      >
+        <div
+          class="relative h-full"
+        >
+          <div
+            class="pointer-events-none absolute inset-y-0 right-0 flex items-center"
+          >
+            <div
+              class="pointer-events-auto invisible rounded-l-md bg-gray-500 p-1 pr-0.5 align-middle text-white group-hover:visible"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15.75 19.5 8.25 12l7.5-7.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </button>
+    </div>
+  </div>
+  <header
+    class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
+  >
+    <div
+      class="px-4 md:px-6 xl:px-10 2xl:px-12 h-full gap-2 flex items-center justify-between"
+    >
+      <nav
+        aria-label="Breadcrumbs"
+      >
+        <ol
+          class="flex items-center"
+          role="list"
+        >
+          <li
+            class=""
+          >
+            <div
+              class="flex items-center"
+            >
+              <span
+                class="text-sm hover:text-gray-700 font-medium text-gray-500"
+              >
+                <a
+                  class=""
+                  href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63"
+                  rel="noopener noreferrer"
+                >
+                  Rwanda Workspace
+                </a>
+              </span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+      <div
+        class="flex items-center gap-2"
+      />
+    </div>
+  </header>
+  <main
+    class="w-full mb-12 pl-64 2xl:pl-72 pt-16"
+  >
+    <div
+      class="py-6 xl:py-8"
+    >
+      <div
+        class="mx-auto px-4 md:px-6 xl:px-10  2xl:px-12"
+      >
+        <article
+          class="sm:rounded-lg overflow-hidden shadow-xs border-b border-gray-200 bg-white"
+        >
+          <section
+            class="px-4 py-5 sm:px-6"
+          >
+            <div>
+              This is a description
+            </div>
+          </section>
+        </article>
+      </div>
+    </div>
+  </main>
+  <div
+    class="fixed bottom-6 right-6"
+  >
+    <div
+      class="relative"
+      data-headlessui-state=""
+    >
+      <button
+        aria-expanded="false"
+        class="flex items-center outline-hidden"
+        data-headlessui-state=""
+        id="headlessui-popover-button-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
+        type="button"
+      >
+        <div
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-white text-3xl shadow-xl ring-1 ring-gray-500/5 transition-all hover:bg-gray-50 hover:text-4xl"
+        >
+          ?
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+`;

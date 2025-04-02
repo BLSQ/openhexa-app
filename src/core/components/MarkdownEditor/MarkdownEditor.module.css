@@ -1,0 +1,13 @@
+.toolbar {
+  border-radius: 0;
+}
+
+.editor :global(li[role="checkbox"]) {
+    &::before {
+      top: var(--spacing-1);
+    }
+    &::after {
+      top: var(--spacing-2);
+    }
+  }
+  

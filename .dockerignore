@@ -1,0 +1,12 @@
+.github
+.git
+.idea
+
+.env.local
+
+docker-compose.yml
+Dockerfile
+.dockerignore
+node_modules
+npm-debug.log
+

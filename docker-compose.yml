@@ -1,0 +1,21 @@
+services:
+  frontend:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    restart: unless-stopped
+    networks: 
+      - openhexa
+    environment:
+      - NODE_ENV=development
+      - OPENHEXA_BACKEND_URL=http://app:8000
+    ports:
+      - "3000:3000"
+    volumes:  # only used for Github Codespaces
+      - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
+    
+networks:
+  openhexa:
+    name: openhexa
+    external: true

@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DefaultLayout renders the layout for a authenticated user 1`] = `
+<div>
+  <div
+    class="flex min-h-screen flex-col "
+  >
+    <span
+      data-testid="page"
+    />
+  </div>
+</div>
+`;
+
+exports[`DefaultLayout renders the layout for an unauthenticated user 1`] = `
+<div>
+  <div
+    class="flex min-h-screen flex-col "
+  >
+    <span
+      data-testid="page"
+    />
+  </div>
+</div>
+`;

@@ -1,0 +1,849 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Button renders all variants and all sizes of the button 1`] = `
+{
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="space-y-6"
+      >
+        <div
+          class="flex items-center gap-4"
+        >
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+            type="button"
+          >
+            primary
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+            type="button"
+          >
+            primary
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+            type="button"
+          >
+            primary
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+            type="button"
+          >
+            primary
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+            type="button"
+          >
+            primary
+          </button>
+        </div>
+        <div
+          class="flex items-center gap-4"
+        >
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+            type="button"
+          >
+            secondary
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+            type="button"
+          >
+            secondary
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+            type="button"
+          >
+            secondary
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+            type="button"
+          >
+            secondary
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+            type="button"
+          >
+            secondary
+          </button>
+        </div>
+        <div
+          class="flex items-center gap-4"
+        >
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+            type="button"
+          >
+            white
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+            type="button"
+          >
+            white
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+            type="button"
+          >
+            white
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+            type="button"
+          >
+            white
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+            type="button"
+          >
+            white
+          </button>
+        </div>
+        <div
+          class="flex items-center gap-4"
+        >
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            type="button"
+          >
+            danger
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            type="button"
+          >
+            danger
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            type="button"
+          >
+            danger
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            type="button"
+          >
+            danger
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            type="button"
+          >
+            danger
+          </button>
+        </div>
+        <div
+          class="flex items-center gap-4"
+        >
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 text-gray-800 border-transparent hover:bg-gray-100"
+            type="button"
+          >
+            outlined
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 text-gray-800 border-transparent hover:bg-gray-100"
+            type="button"
+          >
+            outlined
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 text-gray-800 border-transparent hover:bg-gray-100"
+            type="button"
+          >
+            outlined
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 text-gray-800 border-transparent hover:bg-gray-100"
+            type="button"
+          >
+            outlined
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 text-gray-800 border-transparent hover:bg-gray-100"
+            type="button"
+          >
+            outlined
+          </button>
+        </div>
+        <div
+          class="flex items-center gap-4"
+        >
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1"
+            type="button"
+          >
+            custom
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4"
+            type="button"
+          >
+            custom
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5"
+            type="button"
+          >
+            custom
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2"
+            type="button"
+          >
+            custom
+          </button>
+          <button
+            class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3"
+            type="button"
+          >
+            custom
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div>
+    <div
+      class="space-y-6"
+    >
+      <div
+        class="flex items-center gap-4"
+      >
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+          type="button"
+        >
+          primary
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+          type="button"
+        >
+          primary
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+          type="button"
+        >
+          primary
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+          type="button"
+        >
+          primary
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+          type="button"
+        >
+          primary
+        </button>
+      </div>
+      <div
+        class="flex items-center gap-4"
+      >
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+          type="button"
+        >
+          secondary
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+          type="button"
+        >
+          secondary
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+          type="button"
+        >
+          secondary
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+          type="button"
+        >
+          secondary
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+          type="button"
+        >
+          secondary
+        </button>
+      </div>
+      <div
+        class="flex items-center gap-4"
+      >
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+          type="button"
+        >
+          white
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+          type="button"
+        >
+          white
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+          type="button"
+        >
+          white
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+          type="button"
+        >
+          white
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400"
+          type="button"
+        >
+          white
+        </button>
+      </div>
+      <div
+        class="flex items-center gap-4"
+      >
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+          type="button"
+        >
+          danger
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+          type="button"
+        >
+          danger
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+          type="button"
+        >
+          danger
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+          type="button"
+        >
+          danger
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 shadow-xs border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
+          type="button"
+        >
+          danger
+        </button>
+      </div>
+      <div
+        class="flex items-center gap-4"
+      >
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 text-gray-800 border-transparent hover:bg-gray-100"
+          type="button"
+        >
+          outlined
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 text-gray-800 border-transparent hover:bg-gray-100"
+          type="button"
+        >
+          outlined
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5 text-gray-800 border-transparent hover:bg-gray-100"
+          type="button"
+        >
+          outlined
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2 text-gray-800 border-transparent hover:bg-gray-100"
+          type="button"
+        >
+          outlined
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3 text-gray-800 border-transparent hover:bg-gray-100"
+          type="button"
+        >
+          outlined
+        </button>
+      </div>
+      <div
+        class="flex items-center gap-4"
+      >
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1"
+          type="button"
+        >
+          custom
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4"
+          type="button"
+        >
+          custom
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-4 py-2.5"
+          type="button"
+        >
+          custom
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-4 py-2"
+          type="button"
+        >
+          custom
+        </button>
+        <button
+          class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-base px-6 py-3"
+          type="button"
+        >
+          custom
+        </button>
+      </div>
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
+`;
+
+exports[`Button renders an icon in front of the label 1`] = `
+{
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <button
+        class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+        disabled=""
+        type="button"
+      >
+        <div
+          aria-hidden="true"
+          class="-ml-1 mr-1.5"
+        >
+          <svg
+            aria-hidden="true"
+            class="w-4"
+            data-slot="icon"
+            data-testid="icon"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 4.5v15m7.5-7.5h-15"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        button
+      </button>
+    </div>
+  </body>,
+  "container": <div>
+    <button
+      class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-sm px-3 py-2.5 leading-4 shadow-xs border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+      disabled=""
+      type="button"
+    >
+      <div
+        aria-hidden="true"
+        class="-ml-1 mr-1.5"
+      >
+        <svg
+          aria-hidden="true"
+          class="w-4"
+          data-slot="icon"
+          data-testid="icon"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 4.5v15m7.5-7.5h-15"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+      button
+    </button>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
+`;
