@@ -1,0 +1,38 @@
+{
+  "possibleTypes": {
+    "AccessmodAnalysis": [
+      "AccessmodAccessibilityAnalysis",
+      "AccessmodGeographicCoverageAnalysis",
+      "AccessmodZonalStatistics"
+    ],
+    "AccessmodOwner": [
+      "Team",
+      "User"
+    ],
+    "AccessmodOwnership": [
+      "AccessmodAccessibilityAnalysis",
+      "AccessmodFileset",
+      "AccessmodGeographicCoverageAnalysis",
+      "AccessmodProject",
+      "AccessmodZonalStatistics"
+    ],
+    "Connection": [
+      "CustomConnection",
+      "DHIS2Connection",
+      "GCSConnection",
+      "IASOConnection",
+      "PostgreSQLConnection",
+      "S3Connection"
+    ],
+    "MetadataObject": [
+      "Dataset",
+      "DatasetVersion",
+      "DatasetVersionFile"
+    ],
+    "PipelineRunOutput": [
+      "BucketObject",
+      "DatabaseTable",
+      "GenericOutput"
+    ]
+  }
+}

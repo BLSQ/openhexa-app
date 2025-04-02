@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RadioGroup renders 1`] = `
+<div>
+  <fieldset
+    class="flex gap-4"
+  >
+    <div
+      class="flex items-center"
+    >
+      <input
+        class="form-radio text-gray-800 focus:outline-hidden focus:ring-transparent"
+        id="radio-1"
+        name="radio"
+        type="radio"
+        value="1"
+      />
+      <label
+        class="ml-2 text-sm font-medium text-gray-700"
+        for="radio-1"
+      >
+        Option 1
+      </label>
+    </div>
+    <div
+      class="flex items-center"
+    >
+      <input
+        checked=""
+        class="form-radio text-gray-800 focus:outline-hidden focus:ring-transparent"
+        id="radio-2"
+        name="radio"
+        type="radio"
+        value="2"
+      />
+      <label
+        class="ml-2 text-sm font-medium text-gray-700"
+        for="radio-2"
+      >
+        Option 2
+      </label>
+    </div>
+    <div
+      class="flex items-center"
+    >
+      <input
+        class="form-radio text-gray-800 focus:outline-hidden focus:ring-transparent"
+        id="radio-3"
+        name="radio"
+        type="radio"
+        value="3"
+      />
+      <label
+        class="ml-2 text-sm font-medium text-gray-700"
+        for="radio-3"
+      >
+        Option 3
+      </label>
+    </div>
+  </fieldset>
+</div>
+`;

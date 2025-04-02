@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`UpdateWorkspaceMemberDialog is displayed when open is true 1`] = `<div />`;
+
+exports[`UpdateWorkspaceMemberDialog is not displayed  1`] = `<div />`;

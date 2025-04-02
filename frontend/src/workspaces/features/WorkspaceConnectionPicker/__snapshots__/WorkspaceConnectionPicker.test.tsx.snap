@@ -1,0 +1,246 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkspaceConnectionPicker display all connections 1`] = `
+<div>
+  <div
+    class="relative"
+    data-headlessui-state="open"
+    data-open=""
+  >
+    <div
+      class="form-input flex w-full items-center rounded-md border-gray-300 shadow-xs focus-within:outline-hidden focus:ring-transparent focus-visible:border-blue-500  sm:text-sm border-blue-500"
+    >
+      <div
+        class="mr-1 flex flex-1 items-center truncate"
+      >
+        <input
+          aria-activedescendant="headlessui-combobox-option-ae7c7a26-e9c8-47d1-b9f8-3d4b8f9d0f15"
+          aria-autocomplete="list"
+          aria-controls="headlessui-combobox-options-d88d149f-80c3-4c6d-9b82-01013b801f93"
+          aria-expanded="true"
+          autocomplete="off"
+          class="flex-1 placeholder-gray-600/70 outline-hidden"
+          data-focus=""
+          data-headlessui-state="open focus"
+          data-open=""
+          data-testid="combobox-input"
+          id="headlessui-combobox-input-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
+          placeholder="Select connection"
+          role="combobox"
+          type="text"
+        />
+      </div>
+      <button
+        aria-controls="headlessui-combobox-options-d88d149f-80c3-4c6d-9b82-01013b801f93"
+        aria-expanded="true"
+        aria-haspopup="listbox"
+        data-active=""
+        data-headlessui-state="open active hover"
+        data-hover=""
+        data-open=""
+        data-testid="combobox-button"
+        id="headlessui-combobox-button-963e9095-8e5e-490e-8bf2-2eb1cceb1000"
+        tabindex="-1"
+        type="button"
+      >
+        <div
+          class="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-hidden"
+        >
+          <svg
+            class="animate-spin h-5 w-5"
+            data-testid="spinner"
+            fill="none"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            />
+            <path
+              class="opacity-75"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              fill="currentColor"
+            />
+          </svg>
+        </div>
+      </button>
+    </div>
+    <div
+      aria-labelledby="headlessui-combobox-button-963e9095-8e5e-490e-8bf2-2eb1cceb1000"
+      class="max-h-60 z-10 w-full rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-hidden sm:text-sm flex flex-col"
+      data-headlessui-state="open"
+      data-open=""
+      data-popper-escaped="true"
+      data-popper-placement="bottom-start"
+      data-popper-reference-hidden="true"
+      data-testid="combobox-options"
+      id="headlessui-combobox-options-d88d149f-80c3-4c6d-9b82-01013b801f93"
+      role="listbox"
+      style="position: absolute; left: 0px; top: 0px; --input-width: 0px; --button-width: 0px; transform: translate(0px, 4px);"
+    >
+      <div
+        class="overflow-auto flex-1"
+        role="none"
+      >
+        <div
+          aria-selected="false"
+          class="relative cursor-default select-none px-2 py-2 bg-blue-500 text-white"
+          data-active=""
+          data-focus=""
+          data-headlessui-state="active focus"
+          id="headlessui-combobox-option-ae7c7a26-e9c8-47d1-b9f8-3d4b8f9d0f15"
+          role="option"
+          tabindex="-1"
+        >
+          <div
+            class="group flex w-full items-center"
+          >
+            <span
+              class="flex items-center pr-4 invisible text-white"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m4.5 12.75 6 6 9-13.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <span
+              class="flex-1 truncate"
+            >
+              <div
+                class="flex items-center"
+              >
+                <img
+                  alt="Connection logo"
+                  class="sr-hidden mr-2"
+                  height="11"
+                  loading="lazy"
+                  src="/images/dhis2.svg"
+                  width="16"
+                />
+                dhis2-dev
+              </div>
+            </span>
+          </div>
+        </div>
+        <div
+          aria-selected="false"
+          class="relative cursor-default select-none px-2 py-2 text-gray-900"
+          data-headlessui-state=""
+          id="headlessui-combobox-option-0dd74c72-ee7d-46a6-a83f-4120b9c8cbc6"
+          role="option"
+          tabindex="-1"
+        >
+          <div
+            class="group flex w-full items-center"
+          >
+            <span
+              class="flex items-center pr-4 invisible text-gray-900"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m4.5 12.75 6 6 9-13.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <span
+              class="flex-1 truncate"
+            >
+              <div
+                class="flex items-center"
+              >
+                <img
+                  alt="Connection logo"
+                  class="sr-hidden mr-2"
+                  height="11"
+                  loading="lazy"
+                  src="/images/dhis2.svg"
+                  width="16"
+                />
+                dhis2-staging
+              </div>
+            </span>
+          </div>
+        </div>
+        <div
+          aria-selected="false"
+          class="relative cursor-default select-none px-2 py-2 text-gray-900"
+          data-headlessui-state=""
+          id="headlessui-combobox-option-252636f5-fa6d-494c-b655-b4c487de29e7"
+          role="option"
+          tabindex="-1"
+        >
+          <div
+            class="group flex w-full items-center"
+          >
+            <span
+              class="flex items-center pr-4 invisible text-gray-900"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m4.5 12.75 6 6 9-13.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <span
+              class="flex-1 truncate"
+            >
+              <div
+                class="flex items-center"
+              >
+                <img
+                  alt="Connection logo"
+                  class="sr-hidden mr-2"
+                  height="11"
+                  loading="lazy"
+                  src="/images/iaso.svg"
+                  width="16"
+                />
+                iaso-dev
+              </div>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

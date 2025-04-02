@@ -1,0 +1,66 @@
+query GetUser {
+  me {
+    hasTwoFactorEnabled
+    permissions {
+      adminPanel
+      superUser
+      createWorkspace
+    }
+    features {
+      code
+      config
+    }
+    user {
+      ...UserAvatar_user
+      email
+      id
+      firstName
+      lastName
+      displayName
+      language
+      avatar {
+        initials
+        color
+      }
+    }
+  }
+}
+
+query AccountPage {
+  me {
+    hasTwoFactorEnabled
+    user {
+      firstName
+      lastName
+      dateJoined
+      displayName
+      id
+      email
+      language
+      ...User_user
+    }
+  }
+
+  pendingWorkspaceInvitations {
+    totalItems
+    items {
+      id
+      status
+      invitedBy {
+        ...User_user
+      }
+      role
+      workspace {
+        slug
+        name
+      }
+      createdAt
+    }
+  }
+}
+
+query RegisterPage {
+  config {
+    passwordRequirements
+  }
+}

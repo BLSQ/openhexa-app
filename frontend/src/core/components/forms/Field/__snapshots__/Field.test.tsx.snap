@@ -1,0 +1,71 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Field renders 1`] = `
+<div>
+  <div>
+    <div
+      class="mb-1 flex justify-between"
+    >
+      <label
+        class="block text-sm font-medium text-gray-600 flex"
+        for="field"
+      >
+        Field
+      </label>
+      <span
+        class="text-sm text-gray-400"
+      >
+        Optional
+      </span>
+    </div>
+    <div
+      class="group relative"
+    >
+      <input
+        aria-describedby="field-description"
+        aria-invalid="false"
+        class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500"
+        id="field"
+        name="field"
+        type="text"
+        value=""
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Field renders a input if no child is given 1`] = `
+<div>
+  <div>
+    <div
+      class="mb-1 flex justify-between"
+    >
+      <label
+        class="block text-sm font-medium text-gray-600 flex"
+        for="field"
+      >
+        Field
+      </label>
+      <span
+        class="text-sm text-gray-400"
+      >
+        Optional
+      </span>
+    </div>
+    <div
+      class="group relative"
+    >
+      <input
+        aria-describedby="field-description"
+        aria-invalid="false"
+        class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500"
+        id="field"
+        name="field"
+        type="text"
+        value="Value"
+      />
+    </div>
+  </div>
+</div>
+`;

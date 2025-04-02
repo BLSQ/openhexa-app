@@ -1,0 +1,7 @@
+build
+.next
+coverage
+schema.graphql
+src/graphql/types.ts
+*.generated.tsx
+*.generated.ts

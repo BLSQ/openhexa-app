@@ -1,0 +1,63 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DataCard renders 1`] = `
+<div>
+  <article
+    class="sm:rounded-lg overflow-hidden shadow-xs border-b border-gray-200 bg-white divide-y divide-gray-200"
+  >
+    <h3
+      class="px-4 py-5 pt-7 text-lg font-medium leading-4 text-gray-900 sm:px-6 flex items-center justify-between"
+    >
+      <div>
+        Regional
+      </div>
+    </h3>
+    <section
+      class="px-4 py-5 sm:px-6"
+    >
+      <div
+        class="relative"
+      >
+        <div>
+          <div
+            class=""
+            data-headlessui-state="open"
+            data-open=""
+            id="headlessui-disclosure-panel-b0421256-86a3-4e0a-9682-3cf5bee102e1"
+          >
+            <div
+              class="absolute top-0 right-0 z-1"
+            />
+            <dl
+              class="grid gap-4"
+            >
+              <div
+                class="grid grid-cols-5 gap-2 sm:gap-4"
+              >
+                <dt
+                  class="flex text-sm font-medium text-gray-500 col-span-1 items-center"
+                >
+                  <span
+                    class="inline"
+                  >
+                    Name
+                  </span>
+                </dt>
+                <dd
+                  class="col-span-4 text-sm text-gray-900"
+                >
+                  <div
+                    class="prose text-sm text-gray-900"
+                  >
+                    Regional
+                  </div>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </section>
+  </article>
+</div>
+`;
