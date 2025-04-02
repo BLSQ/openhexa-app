@@ -6,10 +6,21 @@
   "include-component-in-tag": false,
   "packages": {
     "backend": {
+      "component": "openhexa-app",
       "release-type": "python"
     },
     "frontend": {
+      "component": "openhexa-frontend",
       "release-type": "node"
     }
-  }
+  },
+  "plugins": [
+    {
+      "type": "linked-versions",
+      "groupName": "OpenHEXA",
+      "components": [
+        "openhexa-backend", "openhexa-frontend"
+      ]
+    }
+  ]
 }
