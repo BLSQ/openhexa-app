@@ -35,7 +35,7 @@ RUN rm -rf /code/.next/cache
 
 #
 ## ----------- Dev -----------
-FROM builder AS dev
+FROM base AS dev
 
 WORKDIR /code
 
@@ -43,7 +43,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=development
 ENV PORT=3000
 
-COPY . /code/
+COPY --link . /code/
 
 RUN npm install
 
