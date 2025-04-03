@@ -2,7 +2,7 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "package-name": "openhexa-app",
+      "package-name": "openhexa",
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": false,
