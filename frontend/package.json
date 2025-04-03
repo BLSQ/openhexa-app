@@ -8,7 +8,7 @@
     "build:ci": "CI=1 next build",
     "build": "next build",
     "codegen": "find ./src -type f -name \"*.generated.tsx\" -delete && graphql-codegen --config codegen.yml",
-    "dev:server": "node -r dotenv/config server/index.mjs",
+    "dev:server": "node -r dotenv/config  --env-file=../.env server/index.mjs",
     "dev": "npm-run-all --parallel 'dev:server' 'codegen -- --watch'",
     "format": "prettier --write src",
     "i18n:extract": "i18next",
