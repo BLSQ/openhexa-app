@@ -7,6 +7,8 @@ import {
   codeMirrorPlugin,
   CodeToggle,
   ConditionalContents,
+  diffSourcePlugin,
+  DiffSourceToggleWrapper,
   EditorInFocus,
   headingsPlugin,
   imagePlugin,
@@ -66,6 +68,11 @@ const MarkdownEditor = ({
           txt: "text",
         },
       }),
+      diffSourcePlugin({
+        diffMarkdown: markdown,
+        viewMode: "rich-text",
+        readOnlyDiff: true,
+      }),
       thematicBreakPlugin(),
       linkPlugin(),
       linkDialogPlugin(),
@@ -78,54 +85,51 @@ const MarkdownEditor = ({
         toolbarPlugin({
           toolbarClassName: styles.toolbar,
           toolbarContents: () => (
-            <ConditionalContents
-              options={[
-                {
-                  when: (editor) => editor?.editorType === "codeblock",
-                  contents: () => <ChangeCodeMirrorLanguage />,
-                },
-                {
-                  fallback: () => (
-                    <>
-                      <UndoRedo />
-                      <Separator />
-                      <BoldItalicUnderlineToggles />
-                      <CodeToggle />
-                      <Separator />
-                      <StrikeThroughSupSubToggles />
-                      <Separator />
-                      <ListsToggle options={["bullet", "number"]} />
-                      <Separator />
-                      <ConditionalContents
-                        options={[
-                          {
-                            when: whenInAdmonition,
-                            contents: () => <ChangeAdmonitionType />,
-                          },
-                          { fallback: () => <BlockTypeSelect /> },
-                        ]}
-                      />
-                      <Separator />
-                      <InsertThematicBreak />
-                      <Separator />
-                      <InsertCodeBlock />
-                      <InsertImage />
-                    </>
-                  ),
-                },
-              ]}
-            />
+            <DiffSourceToggleWrapper>
+              <ConditionalContents
+                options={[
+                  {
+                    when: (editor) => editor?.editorType === "codeblock",
+                    contents: () => <ChangeCodeMirrorLanguage />,
+                  },
+                  {
+                    fallback: () => (
+                      <>
+                        <UndoRedo />
+                        <Separator />
+                        <BoldItalicUnderlineToggles />
+                        <CodeToggle />
+                        <Separator />
+                        <StrikeThroughSupSubToggles />
+                        <Separator />
+                        <ListsToggle options={["bullet", "number"]} />
+                        <Separator />
+                        <ConditionalContents
+                          options={[
+                            {
+                              when: whenInAdmonition,
+                              contents: () => <ChangeAdmonitionType />,
+                            },
+                            { fallback: () => <BlockTypeSelect /> },
+                          ]}
+                        />
+                        <Separator />
+                        <InsertThematicBreak />
+                        <Separator />
+                        <InsertCodeBlock />
+                        <InsertImage />
+                      </>
+                    ),
+                  },
+                ]}
+              />
+            </DiffSourceToggleWrapper>
           ),
         }),
       );
     }
     return basePlugins;
   }, [readOnly]);
-
-  // TODO : MxEditor is escaping ``` to \`\`\` which is not a valid markdown syntax, same for ` which is escaped to \`. This is a workaround to fix it, but we should fix the root cause
-  const cleanedMarkdown = markdown
-    .replace(/\\`\\`\\`/, "```txt")
-    .replace(/(\\`)/g, "`");
 
   return (
     <div
@@ -137,7 +141,7 @@ const MarkdownEditor = ({
     >
       <MDXEditor
         data-testid="markdown-editor"
-        markdown={cleanedMarkdown}
+        markdown={markdown}
         contentEditableClassName={clsx(
           "max-w-none p-2 ring-none outline-none",
           // Standard styles
