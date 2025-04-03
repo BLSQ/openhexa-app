@@ -55,6 +55,7 @@ const WebappCreatePage = ({ workspace }: any) => {
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   getServerSideProps: async (ctx, client) => {
+    await WorkspaceLayout.prefetch(ctx, client);
     const { data } = await client.query<WorkspacePageQuery>({
       query: WorkspacePageDocument,
       variables: {

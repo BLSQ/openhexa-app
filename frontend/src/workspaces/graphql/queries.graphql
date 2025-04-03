@@ -700,6 +700,16 @@ query WorkspaceWebappsPage(
       }
     }
   }
+  favoriteWebapps: webapps(
+    workspaceSlug: $workspaceSlug
+    favorite: true
+    page: 1
+    perPage: 6
+  ) {
+    items {
+      ...WebappCard_webapp
+    }
+  }
 }
 
 query WorkspaceWebappPage($workspaceSlug: String!, $webappId: UUID!) {

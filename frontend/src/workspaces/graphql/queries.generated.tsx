@@ -35,6 +35,7 @@ import { ConnectionFieldsSection_ConnectionFragmentDoc } from '../features/Conne
 import { TemplateCard_TemplateFragmentDoc } from '../features/TemplateCard/TemplateCard.generated';
 import { TemplateLayout_TemplateFragmentDoc } from '../layouts/TemplateLayout/TemplateLayout.generated';
 import { TemplateVersionCard_VersionFragmentDoc } from '../../pipelines/features/TemplateVersionCard/TemplateVersionCard.generated';
+import { WebappCard_WebappFragmentDoc } from '../../webapps/features/WebappCard/WebappCard.generated';
 import { WebappForm_WorkspaceFragmentDoc, WebappForm_WebappFragmentDoc } from '../../webapps/features/WebappForm/WebappForm.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
@@ -242,7 +243,7 @@ export type WorkspaceWebappsPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceWebappsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, webapps: { __typename?: 'WebappsPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'Webapp', id: string, name: string, icon?: string | null, description?: string | null, url: string, isFavorite: boolean, createdBy: { __typename?: 'User', firstName?: string | null, lastName?: string | null, id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, workspace: { __typename?: 'Workspace', slug: string, name: string }, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } }> } };
+export type WorkspaceWebappsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, webapps: { __typename?: 'WebappsPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'Webapp', id: string, name: string, icon?: string | null, description?: string | null, url: string, isFavorite: boolean, createdBy: { __typename?: 'User', firstName?: string | null, lastName?: string | null, id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, workspace: { __typename?: 'Workspace', slug: string, name: string }, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } }> }, favoriteWebapps: { __typename?: 'WebappsPage', items: Array<{ __typename?: 'Webapp', id: string, icon?: string | null, name: string, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
 
 export type WorkspaceWebappPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -1750,9 +1751,20 @@ export const WorkspaceWebappsPageDocument = gql`
       }
     }
   }
+  favoriteWebapps: webapps(
+    workspaceSlug: $workspaceSlug
+    favorite: true
+    page: 1
+    perPage: 6
+  ) {
+    items {
+      ...WebappCard_webapp
+    }
+  }
 }
     ${WorkspaceLayout_WorkspaceFragmentDoc}
-${User_UserFragmentDoc}`;
+${User_UserFragmentDoc}
+${WebappCard_WebappFragmentDoc}`;
 
 /**
  * __useWorkspaceWebappsPageQuery__
