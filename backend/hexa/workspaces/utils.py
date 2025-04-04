@@ -10,6 +10,7 @@ from openhexa.toolbox.dhis2 import DHIS2
 from hexa.core.utils import send_mail as send_mail
 from hexa.user_management.models import User
 
+from ..analytics.api import track_invitation
 from .models import Connection, ConnectionType, WorkspaceInvitation
 
 
@@ -42,6 +43,8 @@ def send_workspace_invitation_email(
             },
             recipient_list=[invitation.email],
         )
+
+        track_invitation(invitation, "emails.invite_sent")
 
 
 class DHIS2MetadataQueryType(StrEnum):
