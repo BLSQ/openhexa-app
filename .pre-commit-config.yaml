@@ -1,13 +1,17 @@
 repos:
 - repo: local
   hooks:
-    - id: run-backend-pre-commit
-      name: Run Backend Pre-Commit
-      entry: ./backend/script/pre-commit.sh
-      language: system
-      types: [python]
     - id: run-frontend-pre-commit
       name: Run Frontend Pre-Commit
       entry: ./frontend/script/pre-commit.sh
       language: system
       types: [javascript, ts]
+
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.2.1
+  hooks:
+    - id: ruff
+      args: [ --fix, --exit-non-zero-on-fix ]
+      files: ^backend/
+    - id: ruff-format
+      files: ^backend/

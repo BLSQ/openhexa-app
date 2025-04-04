@@ -10,6 +10,7 @@ from openhexa.toolbox.dhis2 import DHIS2
 from hexa.core.utils import send_mail as send_mail
 from hexa.user_management.models import User
 
+from ..analytics.api import track_invitation
 from .models import Connection, ConnectionType, WorkspaceInvitation
 
 
@@ -29,6 +30,8 @@ def send_workspace_invitation_email(
                 f"You've been invited to join the workspace {invitation.workspace.name} on OpenHEXA"
             )
             action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
+
+        track_invitation(invitation, "emails.invite_sent")
 
         send_mail(
             title=title,

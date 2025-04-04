@@ -1,3 +1,5 @@
+import datetime
+
 from django.conf import settings
 from django.http import HttpRequest
 from mixpanel import Mixpanel
@@ -5,6 +7,7 @@ from sentry_sdk import capture_exception
 from ua_parser import user_agent_parser
 
 from hexa.user_management.models import AnonymousUser, User
+from hexa.workspaces.models import WorkspaceInvitation
 
 mixpanel = None
 if settings.MIXPANEL_TOKEN:
@@ -65,6 +68,41 @@ def track(
             )
         mixpanel.track(
             distinct_id=str(people.id) if people else None,
+            event_name=event,
+            properties=properties,
+        )
+    except Exception as e:
+        capture_exception(e)
+
+
+def track_invitation(
+    invitation: WorkspaceInvitation,
+    event: str,
+    properties: dict = {},
+):
+    """Track event to mixpanel.
+
+    Parameters
+    ----------
+    event : str
+        An identifier for the event to track.
+    properties : dict
+       A dictionary holding the event properties
+    """
+    if mixpanel is None:
+        return
+
+    properties.update(
+        {
+            "$timestamp": datetime.utcnow().isoformat(),
+            "$workspace_id": invitation.workspace.id,
+            "$invitee_email": invitation.email,
+            "$invitee_role": invitation.role,
+        }
+    )
+    try:
+        mixpanel.track(
+            distinct_id=invitation,
             event_name=event,
             properties=properties,
         )
