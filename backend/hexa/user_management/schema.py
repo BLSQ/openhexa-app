@@ -378,10 +378,7 @@ def resolve_register(_, info, **kwargs):
             username=user.email, password=mutation_input["password1"]
         )
         login(request, authenticated_user)
-        track_invitation(
-            invitation,
-            "emails.registration_complete",
-        )
+        track_invitation(invitation, "emails.registration_complete")
         return {"success": True, "errors": []}
 
     except ValidationError:

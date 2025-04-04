@@ -31,8 +31,6 @@ def send_workspace_invitation_email(
             )
             action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
 
-        track_invitation(invitation, "emails.invite_sent")
-
         send_mail(
             title=title,
             template_name="workspaces/mails/invite_user",
@@ -45,6 +43,8 @@ def send_workspace_invitation_email(
             },
             recipient_list=[invitation.email],
         )
+
+        track_invitation(invitation, "emails.invite_sent")
 
 
 class DHIS2MetadataQueryType(StrEnum):

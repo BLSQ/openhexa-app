@@ -84,6 +84,8 @@ def track_invitation(
 
     Parameters
     ----------
+    invitation : WorkspaceInvitation
+        Invitation entity to track
     event : str
         An identifier for the event to track.
     properties : dict
@@ -102,7 +104,7 @@ def track_invitation(
     )
     try:
         mixpanel.track(
-            distinct_id=invitation,
+            distinct_id=invitation.id,
             event_name=event,
             properties=properties,
         )
