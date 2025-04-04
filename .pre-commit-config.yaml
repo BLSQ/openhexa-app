@@ -5,6 +5,7 @@ repos:
       name: Run Frontend Pre-Commit
       entry: ./frontend/script/pre-commit.sh
       language: system
+      files: ^frontend/
       types: [javascript, ts]
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -13,5 +14,7 @@ repos:
     - id: ruff
       args: [ --fix, --exit-non-zero-on-fix ]
       files: ^backend/
+      types: [python]
     - id: ruff-format
       files: ^backend/
+      types: [python]
