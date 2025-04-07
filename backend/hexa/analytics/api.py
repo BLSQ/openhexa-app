@@ -96,10 +96,11 @@ def track_invitation(
 
     properties.update(
         {
-            "$timestamp": datetime.utcnow().isoformat(),
-            "$workspace_id": invitation.workspace.id,
-            "$invitee_email": invitation.email,
-            "$invitee_role": invitation.role,
+            "timestamp": datetime.utcnow().isoformat(),
+            "workspace_id": invitation.workspace.id,
+            "invitee_email": invitation.email,
+            "invitee_role": invitation.role,
+            "status": invitation.status,
         }
     )
     try:
