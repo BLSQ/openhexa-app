@@ -71,7 +71,7 @@ jobs:
       - name: Build docker app image
         env:
           DOCKER_BUILDKIT: 1
-        run: docker compose build --build-arg DJANGO_SETTINGS_MODULE="config.settings.dev"
+        run: docker compose build --build-arg DJANGO_SETTINGS_MODULE="config.settings.dev" app
 
       - name: Run Django tests
         run: |
