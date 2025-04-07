@@ -75,3 +75,5 @@ openhexa-toolbox==1.10.0
 
 # email templating
 mjml-python
+#
+filetype

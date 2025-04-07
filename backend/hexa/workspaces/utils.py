@@ -46,6 +46,7 @@ def send_workspace_invitation_email(
         )
 
         track(
+            request=None,
             event="emails.invite_sent",
             properties={
                 "timestamp": datetime.now(timezone.utc).isoformat(),
