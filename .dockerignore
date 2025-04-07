@@ -8,7 +8,7 @@
 .coverage
 .env.local
 
-docker-compose.yml
+docker-compose*
 Dockerfile
 node_modules
 *.log
