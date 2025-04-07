@@ -103,6 +103,8 @@ services:
     networks:
       - openhexa
     container_name: frontend
+    profiles:
+      - "frontend"
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     environment:
