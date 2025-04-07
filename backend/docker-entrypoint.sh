@@ -62,8 +62,6 @@ case "$command" in
   export DJANGO_SETTINGS_MODULE=config.settings.test
   python manage.py makemigrations --check
   coverage run manage.py test $arguments
-  python manage.py makemigrations --check
-  coverage run manage.py test $arguments
   coverage report --skip-empty --fail-under=80
   ;;
 "manage")

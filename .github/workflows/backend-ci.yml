@@ -24,9 +24,6 @@ jobs:
   test:
     name: Build & Test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -74,11 +71,11 @@ jobs:
       - name: Build docker app image
         env:
           DOCKER_BUILDKIT: 1
-        run: docker compose build --build-arg DJANGO_SETTINGS_MODULE="config.settings.dev"
+        run: docker compose build --build-arg DJANGO_SETTINGS_MODULE="config.settings.dev" app
 
       - name: Run Django tests
         run: |
-          docker compose run -e DEBUG=false -u $(id -u):$(id -g) app coveraged-test
+          docker compose run -u $(id -u):$(id -g) app coveraged-test
 
       # Push on main
       - name: Build and push (on main)

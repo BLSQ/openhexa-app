@@ -1,7 +1,7 @@
 # Defines a service that can be reused multiple times later
 x-app: &common
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
       target: app
       args:
@@ -15,7 +15,7 @@ x-app: &common
     networks:
       - openhexa
     volumes:  # only used for Github Codespaces
-      - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
+      - "${LOCAL_WORKSPACE_FOLDER:-./backend}:/code"
       - "${WORKSPACE_STORAGE_LOCATION:-/data/openhexa}:/data"
 
 services:
@@ -43,6 +43,9 @@ services:
     depends_on:
       - db
 
+  # Workers
+  ##########
+
   dataset_worker:
     <<: *common
     command: "manage dataset_worker"
@@ -51,33 +54,6 @@ services:
       - "dataset_worker"
     depends_on:
       - db
-
-  # This service is only used for the connector_accessmod app.
-  accessmod_dataworker:
-    <<: *common
-    command: "manage validate_fileset_worker"
-    restart: unless-stopped
-    profiles:
-      - "dataworker"
-    depends_on:
-      - db
-
-  frontend:
-    image: "blsq/openhexa-frontend:${FRONTEND_VERSION:-main}"
-    env_file:
-      - path: ./.env
-        required: true
-    platform: linux/amd64
-    networks:
-      - openhexa
-    container_name: frontend
-    ports:
-      - "${FRONTEND_PORT:-3000}:3000"
-    profiles:
-      - frontend
-    restart: unless-stopped
-    depends_on:
-      - app
 
   pipelines_runner:
     <<: *common
@@ -112,6 +88,33 @@ services:
     depends_on:
       - db
   
+  # Frontend
+  # TODO: Fix dev container to be able to work with the backend graphql files
+  ###########
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    env_file:
+      - path: ./.env
+        required: true
+    networks:
+      - openhexa
+    container_name: frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - OPENHEXA_BACKEND_URL=http://app:8000
+    restart: unless-stopped
+    depends_on:
+      - app
+  
+  # Dev tools
+  ############
+
   mailhog:
     image: mailhog/mailhog:latest
     ports:
@@ -119,6 +122,20 @@ services:
       - "8025:8025"
     networks:
       - openhexa
+
+  
+  # Legacy services
+  ################
+
+  # This service is only used for the connector_accessmod app.
+  accessmod_dataworker:
+    <<: *common
+    command: "manage validate_fileset_worker"
+    restart: unless-stopped
+    profiles:
+      - "accessmod"
+    depends_on:
+      - db
 
 networks:
   openhexa:
