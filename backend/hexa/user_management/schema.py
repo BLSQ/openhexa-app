@@ -1,6 +1,7 @@
 import binascii
 import logging
 import pathlib
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 import django_otp
@@ -25,7 +26,7 @@ from django_otp import devices_for_user
 from django_otp.plugins.otp_email.models import EmailDevice
 from graphql import default_field_resolver
 
-from hexa.analytics.api import track, track_invitation
+from hexa.analytics.api import track
 from hexa.core.graphql import result_page
 from hexa.core.string import remove_whitespace
 from hexa.core.templatetags.colors import hash_color
@@ -347,7 +348,17 @@ def resolve_register(_, info, **kwargs):
         invitation = WorkspaceInvitation.objects.get_by_token(
             token=mutation_input["invitation_token"]
         )
-        track_invitation(invitation, "emails.registration_landed")
+        track(
+            request=request,
+            event="emails.registration_landed",
+            properties={
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "workspace_id": invitation.workspace.id,
+                "invitee_email": invitation.email,
+                "invitee_role": invitation.role,
+                "status": invitation.status,
+            },
+        )
         if invitation.status != WorkspaceInvitationStatus.PENDING:
             return {"success": False, "errors": ["INVALID_TOKEN"]}
     except (UnicodeDecodeError, SignatureExpired, binascii.Error, BadSignature):
@@ -378,7 +389,17 @@ def resolve_register(_, info, **kwargs):
             username=user.email, password=mutation_input["password1"]
         )
         login(request, authenticated_user)
-        track_invitation(invitation, "emails.registration_complete")
+        track(
+            request,
+            event="emails.registration_complete",
+            properties={
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "workspace_id": invitation.workspace.id,
+                "invitee_email": invitation.email,
+                "invitee_role": invitation.role,
+                "status": invitation.status,
+            },
+        )
         return {"success": True, "errors": []}
 
     except ValidationError:
