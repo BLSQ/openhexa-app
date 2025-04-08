@@ -27,6 +27,7 @@ attrs==25.1.0
     #   cfgrib
     #   datapi
     #   eccodes
+    #   fiona
     #   morecantile
     #   rasterio
 boto3==1.37.29
@@ -48,6 +49,7 @@ cdsapi==0.7.5
     # via openhexa-toolbox
 certifi==2024.12.14
     # via
+    #   fiona
     #   kubernetes
     #   pyogrio
     #   pyproj
@@ -67,13 +69,18 @@ click==8.1.8
     #   cfgrib
     #   click-plugins
     #   cligj
+    #   fiona
     #   pip-tools
     #   rasterio
     #   rio-cogeo
 click-plugins==1.1.1
-    # via rasterio
+    # via
+    #   fiona
+    #   rasterio
 cligj==0.7.2
-    # via rasterio
+    # via
+    #   fiona
+    #   rasterio
 colorhash==2.0.0
     # via -r requirements.in
 coverage[toml]==7.6.10
@@ -135,6 +142,8 @@ filetype==1.2.0
     # via -r requirements.in
 findlibs==0.0.5
     # via eccodes
+fiona==1.10.1
+    # via openhexa-toolbox
 geopandas==1.0.1
     # via
     #   -r requirements.in
@@ -232,7 +241,7 @@ morecantile==6.2.0
     # via rio-cogeo
 moto[s3]==5.0.27
     # via -r requirements.in
-multiurl==0.3.3
+multiurl==0.3.5
     # via
     #   cads-api-client
     #   datapi
@@ -251,7 +260,7 @@ oauthlib==3.2.2
     # via
     #   kubernetes
     #   requests-oauthlib
-openhexa-toolbox==1.13.0
+openhexa-toolbox==2.0.2
     # via -r requirements.in
 openpyxl==3.1.5
     # via -r requirements.in
