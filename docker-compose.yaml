@@ -99,9 +99,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: dev
-    env_file:
-      - path: ./.env
-        required: true
+    env_file: ./.env
     networks:
       - openhexa
     container_name: frontend
@@ -115,6 +113,9 @@ services:
     restart: unless-stopped
     depends_on:
       - app
+    volumes:
+      - ./.env:/.env
+      - ./backend:/backend
   
   # Dev tools
   ############

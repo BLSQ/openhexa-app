@@ -138,6 +138,13 @@ Python requirements are handled with [pip-tools](https://github.com/jazzband/pip
 When you want to add a requirement, simply update `requirements.in` and run `pip-compile` in the root directory. You
 can then rebuild the Docker image.
 
+## Backend & Frontend 
+
+You can run the frontend along with the backend in a single command : 
+```sh
+  docker compose --profile frontend up
+```
+
 ## Pipelines
 
 If you need the pipelines or want to work on them, there are 2 optional services to run: `pipelines_runner` and/or
