@@ -82,7 +82,7 @@ function Dialog(props: DialogProps) {
     maxWidth,
   } = props;
 
-  const dialogRef = useRef(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEventListener(
     "keydown",
