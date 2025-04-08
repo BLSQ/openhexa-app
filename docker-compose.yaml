@@ -58,7 +58,7 @@ services:
   pipelines_runner:
     <<: *common
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
       target: pipelines
       args:
@@ -70,13 +70,13 @@ services:
     depends_on:
       - db
     volumes:  # only used for Github Codespaces
-      - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
+      - "${LOCAL_WORKSPACE_FOLDER:-./backend}:/code"
       - /var/run/docker.sock:/var/run/docker.sock
 
   pipelines_scheduler:
     <<: *common
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
       target: pipelines
       args:
@@ -85,6 +85,8 @@ services:
     restart: unless-stopped
     profiles:
       - "pipelines"
+    volumes:  # only used for Github Codespaces
+      - "${LOCAL_WORKSPACE_FOLDER:-./backend}:/code"
     depends_on:
       - db
   
