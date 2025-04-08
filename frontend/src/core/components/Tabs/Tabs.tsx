@@ -62,7 +62,7 @@ const Tabs = (props: TabsProps) => {
                           : "border-transparent text-gray-500 hover:border-gray-400",
                       )}
                     >
-                      {child.props.label}
+                      {(child as ReactElement<TabProps>).props.label}
                     </a>
                   )}
                 </HeadlessTab>

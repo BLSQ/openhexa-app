@@ -75,7 +75,7 @@ export async function updatePipeline(
 
 export function validateCronExpression(cronExpression: string) {
   try {
-    CronParser.parseExpression(cronExpression);
+    CronParser.parse(cronExpression);
     return true;
   } catch (err) {
     return false;
