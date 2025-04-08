@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Optional
 from urllib.parse import urlencode
@@ -10,6 +11,7 @@ from openhexa.toolbox.dhis2 import DHIS2
 from hexa.core.utils import send_mail as send_mail
 from hexa.user_management.models import User
 
+from ..analytics.api import track
 from .models import Connection, ConnectionType, WorkspaceInvitation
 
 
@@ -41,6 +43,18 @@ def send_workspace_invitation_email(
                 "url": action_url,
             },
             recipient_list=[invitation.email],
+        )
+
+        track(
+            request=None,
+            event="emails.invite_sent",
+            properties={
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "workspace_id": invitation.workspace.id,
+                "invitee_email": invitation.email,
+                "invitee_role": invitation.role,
+                "status": invitation.status,
+            },
         )
 
 

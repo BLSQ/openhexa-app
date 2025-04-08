@@ -1,6 +1,7 @@
 import binascii
 import logging
 import pathlib
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 import django_otp
@@ -347,6 +348,17 @@ def resolve_register(_, info, **kwargs):
         invitation = WorkspaceInvitation.objects.get_by_token(
             token=mutation_input["invitation_token"]
         )
+        track(
+            request=request,
+            event="emails.registration_landed",
+            properties={
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "workspace_id": invitation.workspace.id,
+                "invitee_email": invitation.email,
+                "invitee_role": invitation.role,
+                "status": invitation.status,
+            },
+        )
         if invitation.status != WorkspaceInvitationStatus.PENDING:
             return {"success": False, "errors": ["INVALID_TOKEN"]}
     except (UnicodeDecodeError, SignatureExpired, binascii.Error, BadSignature):
@@ -377,6 +389,17 @@ def resolve_register(_, info, **kwargs):
             username=user.email, password=mutation_input["password1"]
         )
         login(request, authenticated_user)
+        track(
+            request,
+            event="emails.registration_complete",
+            properties={
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "workspace_id": invitation.workspace.id,
+                "invitee_email": invitation.email,
+                "invitee_role": invitation.role,
+                "status": invitation.status,
+            },
+        )
         return {"success": True, "errors": []}
 
     except ValidationError:
