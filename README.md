@@ -85,14 +85,18 @@ When running the backend component using `docker compose`, the code of this repo
 container, so that any change you make in your local copy of the codebase is directly reflected in the running 
 container.
 
-1. Navigate to the backend directory:
+1. Prepare the `.env` :
+    ```sh
+       cp .env.dist .env
+       # Set WORKSPACE_STORAGE_LOCATION to a local directory to use a local storage backend for workspaces (ex: /Users/yolanfery/Desktop/data/openhexa)
+       # Set the OPENHEXA_BACKEND_URL to the URL of the backend (ex: http://localhost:8000)
+     ```
+2. Navigate to the backend directory:
     ```sh
     cd backend
     ```
-2. Run the backend server:
+3. Run the backend server:
    ```sh
-   cp .env.dist .env  # adapt the .env file with the required configuration values
-   # Set WORKSPACE_STORAGE_LOCATION to a local directory to use a local storage backend for workspaces
    docker network create openhexa
    docker compose build
    docker compose run app fixtures
@@ -101,17 +105,19 @@ container.
 
 ## Frontend
 
-1. Navigate to the frontend directory:
+1. Prepare the `.env` :
+    ```sh
+       cp .env.dist .env
+       # Set WORKSPACE_STORAGE_LOCATION to a local directory to use a local storage backend for workspaces (ex: /Users/yolanfery/Desktop/data/openhexa)
+       # Set the OPENHEXA_BACKEND_URL to the URL of the backend (ex: http://localhost:8000)
+     ```
+2. Navigate to the frontend directory:
     ```sh
     cd frontend
     ```
-2. Install the required Node.js dependencies:
+3. Install the required Node.js dependencies:
     ```sh
     npm install
-    ```
-3. Copy `.env.local.dist` and adapt it to your needs:
-    ```sh
-    cp .env.local.dist .env.local  # adapt the .env file with the required configuration values
     ```
 4. Run the frontend development server:
     ```sh
