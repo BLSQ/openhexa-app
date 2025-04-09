@@ -30,11 +30,11 @@ attrs==25.1.0
     #   fiona
     #   morecantile
     #   rasterio
-boto3==1.37.30
+boto3==1.37.31
     # via
     #   -r requirements.in
     #   moto
-botocore==1.37.30
+botocore==1.37.31
     # via
     #   boto3
     #   moto
