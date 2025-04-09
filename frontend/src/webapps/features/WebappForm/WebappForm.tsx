@@ -16,9 +16,8 @@ import TextProperty from "core/components/DataCard/TextProperty";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import useCacheKey from "core/hooks/useCacheKey";
 import ImageProperty from "core/components/DataCard/ImageProperty";
-import Spinner from "core/components/Spinner";
-import clsx from "clsx";
 import useDebounce from "core/hooks/useDebounce";
+import WebappIframe from "webapps/features/WebappIframe";
 
 type WebappFormProps = {
   webapp?: WebappForm_WebappFragment;
@@ -32,7 +31,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const [updateWebapp] = useUpdateWebappMutation();
   const [loading, setLoading] = useState(false);
   const [url, setUrl] = useState(webapp?.url || "");
-  const [iframeLoading, setIframeLoading] = useState(false);
   const debouncedUrl = useDebounce(url, 500);
 
   const clearCache = useCacheKey("webapps");
@@ -63,9 +61,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           throw new Error("Webapp creation failed");
         }
         toast.success(t("Webapp created successfully"));
-        router.push(
-          `/workspaces/${workspace.slug}/webapps/${data.createWebapp.webapp.id}`,
-        );
+        router.push(`/workspaces/${workspace.slug}/webapps`);
       });
     } catch (error) {
       toast.error(t("An error occurred while creating the webapp"));
@@ -115,7 +111,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           required
           onChange={(e) => {
             setUrl(e.target.value);
-            setIframeLoading(true);
           }}
         />
       </DataCard.FormSection>
@@ -125,19 +120,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           collapsible={false}
           loading={loading}
         >
-          <div
-            className={"flex justify-center items-center"}
-            style={{ height: "50vh" }}
-          >
-            {iframeLoading && <Spinner size="md" />}{" "}
-            <iframe
-              src={debouncedUrl}
-              className={clsx("w-full h-full", iframeLoading && "hidden")}
-              sandbox="allow-forms allow-popups allow-downloads allow-presentation allow-modals allow-scripts"
-              onLoad={() => setIframeLoading(false)}
-              onError={() => setIframeLoading(false)}
-            />
-          </div>
+          <WebappIframe url={debouncedUrl} style={{ height: "65vh" }} />
         </DataCard.Section>
       )}
     </DataCard>
