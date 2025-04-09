@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.2.0](https://github.com/BLSQ/openhexa-app/compare/1.1.0...1.2.0) (2025-04-09)
+
+
+### Features
+
+* Improve web apps ([#965](https://github.com/BLSQ/openhexa-app/issues/965)) ([81792b2](https://github.com/BLSQ/openhexa-app/commit/81792b2411eb59d0cfd26acc3fdbd24661a29915))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @sentry/nextjs to v9.12.0 ([#997](https://github.com/BLSQ/openhexa-app/issues/997)) ([70c2a18](https://github.com/BLSQ/openhexa-app/commit/70c2a18bdf7c8890d696c66aa330a9636b395690))
+* **deps:** update dependency cronstrue to v2.59.0 ([#1000](https://github.com/BLSQ/openhexa-app/issues/1000)) ([4c796fd](https://github.com/BLSQ/openhexa-app/commit/4c796fd4059943a1c3b3bc6241d0aedd1637b1ae))
+* **deps:** update nextjs monorepo to v15.2.5 ([#999](https://github.com/BLSQ/openhexa-app/issues/999)) ([90c8bdb](https://github.com/BLSQ/openhexa-app/commit/90c8bdb23da50617be0e7f2ccc7d8f43723b0fa1))
+* docker-compose ([#994](https://github.com/BLSQ/openhexa-app/issues/994)) ([8e9401e](https://github.com/BLSQ/openhexa-app/commit/8e9401e569e8fc35d95148fa5e7b6264c4467281))
+* readme env handling ([#995](https://github.com/BLSQ/openhexa-app/issues/995)) ([ab2a0ff](https://github.com/BLSQ/openhexa-app/commit/ab2a0ff21dd2e6fa38f1f3770065dbc06410b51e))
+
 ## [1.1.0](https://github.com/BLSQ/openhexa-app/compare/1.0.2...1.1.0) (2025-04-08)
 
 
