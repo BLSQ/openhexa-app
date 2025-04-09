@@ -15,4 +15,4 @@ def static_with_domain(value: str):
     if static_url.startswith("http"):
         return static_url
 
-    return f"{settings.BASE_URL}/{static_url}"
+    return f"{settings.BASE_URL}{static_url}"
