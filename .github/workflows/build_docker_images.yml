@@ -3,11 +3,9 @@ name: Build Docker Images
 on:
   release:
     types: [published]
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: Image tag
-        required: true
+  push:
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -73,20 +71,21 @@ jobs:
             DJANGO_SETTINGS_MODULE=config.settings.dev
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
-
-      - name: Build and push (manual)
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+      
+      - name: Build and push (main)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: docker/build-push-action@v6
         with:
           push: true
           context: backend
           file: backend/Dockerfile
           tags: |
-            blsq/openhexa-app:${{ github.event.inputs.tag }}
+            blsq/openhexa-app:main
           build-args: |
             DJANGO_SETTINGS_MODULE=config.settings.dev
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
+
 
   build_frontend:
     name: Build Frontend Docker Image
@@ -146,32 +145,6 @@ jobs:
           build-args: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
             "RELEASE=${{ steps.version.outputs.number }}"
-
-      - name: Build and push (manual)
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        uses: docker/build-push-action@v6
-        with:
-          context: frontend
-          push: true
-          file: frontend/Dockerfile
-          tags: |
-            blsq/openhexa-frontend:${{ github.event.inputs.tag }}
-            blsq/openhexa-frontend:latest
-          cache-from: type=registry,ref=blsq/openhexa-frontend:buildcache
-          cache-to: type=registry,ref=blsq/openhexa-frontend:buildcache,mode=max
-          build-args: |
-            "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
-            "RELEASE=${{ steps.version.outputs.number }}"
-
-      - name: Build and push (pull request)
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: docker/build-push-action@v6
-        with:
-          context: frontend
-          push: true
-          tags: |
-            blsq/openhexa-frontend:pr-${{ github.event.pull_request.number }}
-          cache-from: type=registry,ref=blsq/openhexa-frontend:buildcache
 
       - name: Build and push (main branch)
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
