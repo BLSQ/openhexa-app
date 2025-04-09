@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/BLSQ/openhexa-app/compare/1.2.0...1.2.1) (2025-04-09)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @mdxeditor/editor to v3.29.3 ([#1001](https://github.com/BLSQ/openhexa-app/issues/1001)) ([75d7ba7](https://github.com/BLSQ/openhexa-app/commit/75d7ba7dd18175d1758686a5e9ab079993ccf45e))
+* **deps:** update dependency react-hotkeys-hook to v4.6.2 ([#1002](https://github.com/BLSQ/openhexa-app/issues/1002)) ([b94570e](https://github.com/BLSQ/openhexa-app/commit/b94570ebab58cd0a5b3fafc5eba5c72e6c258928))
+
 ## [1.2.0](https://github.com/BLSQ/openhexa-app/compare/1.1.0...1.2.0) (2025-04-09)
 
 
