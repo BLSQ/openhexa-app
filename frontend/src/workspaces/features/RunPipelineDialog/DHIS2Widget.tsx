@@ -55,7 +55,7 @@ const dhis2WidgetToQuery: { [key: string]: Dhis2MetadataType } = {
   DHIS2_ORG_UNITS: Dhis2MetadataType.OrgUnits,
   DHIS2_ORG_UNIT_GROUPS: Dhis2MetadataType.OrgUnitGroups,
   DHIS2_ORG_UNIT_LEVELS: Dhis2MetadataType.OrgUnitLevels,
-  DHIS2_DATASET: Dhis2MetadataType.OrgUnitLevels,
+  DHIS2_DATASETS: Dhis2MetadataType.Datasets,
   DHIS2_DATA_ELEMENTS: Dhis2MetadataType.DataElements,
   DHIS2_DATA_ELEMENT_GROUPS: Dhis2MetadataType.DataElementGroups,
   DHIS2_INDICATORS: Dhis2MetadataType.Indicators,

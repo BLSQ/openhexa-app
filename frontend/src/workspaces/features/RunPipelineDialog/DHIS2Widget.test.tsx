@@ -12,13 +12,13 @@ const generateMockedParameterField = (multiple = false) => ({
   parameter: {
     name: "Test Parameter",
     code: "test_param",
-    widget: "DHIS2_DATASET",
+    widget: "DHIS2_DATASETS",
     multiple: true,
     type: "str",
     connection: "test_connection",
     required: true,
   },
-  widget: "DHIS2_DATASET",
+  widget: "DHIS2_DATASETS",
   form: {
     formData: { test_connection: "mock_connection_slug", test_param: null },
     setFieldValue: jest.fn(),
