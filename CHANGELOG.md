@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.2](https://github.com/BLSQ/openhexa-app/compare/1.2.1...1.2.2) (2025-04-11)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @apollo/client to v3.13.7 ([#1011](https://github.com/BLSQ/openhexa-app/issues/1011)) ([e1abdcb](https://github.com/BLSQ/openhexa-app/commit/e1abdcb947d9e7d75183a311ee8f898d1915fc21))
+* **deps:** update dependency dotenv to v16.5.0 ([#1012](https://github.com/BLSQ/openhexa-app/issues/1012)) ([3aa6f5f](https://github.com/BLSQ/openhexa-app/commit/3aa6f5f6c3ccde965e0fafb389573b24b109b68b))
+* **deps:** update dependency react-hotkeys-hook to v5 ([#1005](https://github.com/BLSQ/openhexa-app/issues/1005)) ([79d773a](https://github.com/BLSQ/openhexa-app/commit/79d773a04eb2393cd283170340e2ef670946ba67))
+* **deps:** update nextjs monorepo to v15.3.0 ([#1008](https://github.com/BLSQ/openhexa-app/issues/1008)) ([6dacb14](https://github.com/BLSQ/openhexa-app/commit/6dacb1438b91a1e606d12a2a9d080e48e2ae8080))
+* fixes reference to datasets ([#1013](https://github.com/BLSQ/openhexa-app/issues/1013)) ([a1d8f27](https://github.com/BLSQ/openhexa-app/commit/a1d8f27b5d66b1d3a96ac76a10767308517d5edf))
+* remove double slash on images url in the mails ([#1004](https://github.com/BLSQ/openhexa-app/issues/1004)) ([883c8b3](https://github.com/BLSQ/openhexa-app/commit/883c8b3906f8af964963b870259286d82312e93d))
+
 ## [1.2.1](https://github.com/BLSQ/openhexa-app/compare/1.2.0...1.2.1) (2025-04-09)
 
 
