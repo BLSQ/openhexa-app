@@ -71,7 +71,7 @@ openpyxl
 regex
 
 #toolbox
-openhexa-toolbox==2.0.2
+openhexa-toolbox==2.0.3
 
 # email templating
 mjml-python
