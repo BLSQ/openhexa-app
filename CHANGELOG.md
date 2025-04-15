@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.3](https://github.com/BLSQ/openhexa-app/compare/1.2.2...1.2.3) (2025-04-14)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @mdxeditor/editor to v3.30.0 ([#1018](https://github.com/BLSQ/openhexa-app/issues/1018)) ([f6b0244](https://github.com/BLSQ/openhexa-app/commit/f6b024464e7ecb1854ba7d729507ab185bdb4bd0))
+* **deps:** update dependency @tanstack/react-table to v8.21.3 ([#1024](https://github.com/BLSQ/openhexa-app/issues/1024)) ([23ee56b](https://github.com/BLSQ/openhexa-app/commit/23ee56bfb9ef7eb039286a69fe5468eb93389c57))
+* **deps:** update dependency @types/node to v22.14.1 ([#1016](https://github.com/BLSQ/openhexa-app/issues/1016)) ([664a87a](https://github.com/BLSQ/openhexa-app/commit/664a87afbc360c27b575dfd2cb4a67cea127646a))
+
 ## [1.2.2](https://github.com/BLSQ/openhexa-app/compare/1.2.1...1.2.2) (2025-04-11)
 
 
