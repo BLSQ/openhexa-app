@@ -54,14 +54,14 @@ const WorkspaceFilterPanel = ({
             disabled={selectedWorkspaces.length >= workspaces.length}
             onClick={() => onChange(workspaces)}
           >
-            {t("Select All")}
+            {t("Select all")}
           </Button>
           <Button
             variant="white"
             disabled={selectedWorkspaces.length === 0}
             onClick={() => onChange([])}
           >
-            {t("Clear All")}
+            {t("Clear all")}
           </Button>
         </div>
       </div>
