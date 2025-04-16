@@ -16,9 +16,9 @@ extend-select = [
     "UP",  # pyupgrade
     "ANN", # flake8-annotations
 ]
-# Disable all "missing docstrings" and "missing type annotations" rules for now
-# TODO: Enable progressively the following rules
 ignore = [
+    # Disable all "missing docstrings" and "missing type annotations" rules for now
+    # TODO: Enable progressively the following rules
     "ANN001",
     "ANN002",
     "ANN003",

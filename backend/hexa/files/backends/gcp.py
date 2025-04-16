@@ -229,6 +229,7 @@ class GoogleCloudStorage(Storage):
         self,
         bucket_name,
         prefix=None,
+        match_glob=None,
         page: int = 1,
         per_page=30,
         query=None,
@@ -240,6 +241,7 @@ class GoogleCloudStorage(Storage):
         Args:
             bucket_name (str): Bucket name
             prefix (str, optional): The prefix the keys of the objects must have to be returned. Defaults to None.
+            match_glob (str, optional): The glob pattern to match the keys of the objects. Defaults to None.
             page (int, optional): Page to return. Defaults to 1.
             per_page (int, optional): Items per page. Defaults to 30.
             query (str, optional): Query to filter the objects. Defaults to None.
@@ -249,6 +251,7 @@ class GoogleCloudStorage(Storage):
         request = self.client.list_blobs(
             bucket_name,
             prefix=prefix,
+            match_glob=match_glob,
             # We take twice the number of items to be sure to have enough
             page_size=per_page * 2,
             delimiter="/",

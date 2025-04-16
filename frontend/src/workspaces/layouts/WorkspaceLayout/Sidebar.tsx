@@ -9,6 +9,7 @@ import {
   FolderOpenIcon,
   GlobeAltIcon,
   HomeIcon,
+  MagnifyingGlassIcon,
   Square2StackIcon,
   SwatchIcon,
 } from "@heroicons/react/24/outline";
@@ -17,12 +18,25 @@ import Badge from "core/components/Badge";
 import Link from "core/components/Link";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { useTranslation } from "next-i18next";
-import { useContext, useMemo } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import SidebarMenu from "workspaces/features/SidebarMenu";
 import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
 import { LayoutContext } from "./WorkspaceLayout";
 import { useRouter } from "next/router";
 import useFeature from "identity/hooks/useFeature";
+import { useHotkeys } from "react-hotkeys-hook";
+import { GetServerSidePropsContext } from "next";
+import SearchOverlay from "core/features/SpotlightSearch/SpotlightSearch";
+
+export let isMac = false;
+
+function getIsMac() {
+  if (typeof window === "undefined") {
+    return isMac;
+  }
+  const userAgent = window.navigator.userAgent;
+  return userAgent.includes("Mac");
+}
 
 type SidebarProps = {
   workspace: Sidebar_WorkspaceFragment;
@@ -72,11 +86,29 @@ const Sidebar = (props: SidebarProps) => {
   const { workspace, className } = props;
   const { t } = useTranslation();
   const { isSidebarOpen, setSidebarOpen } = useContext(LayoutContext);
+  const [isSearchOpen, setSearchOpen] = useState(false);
   const [webappsFeatureEnabled] = useFeature("webapps");
+  const [searchFeatureEnabled] = useFeature("search");
 
   const router = useRouter();
 
   const { slug } = workspace;
+
+  useHotkeys(
+    "mod+k",
+    () => {
+      searchFeatureEnabled && setSearchOpen((prev) => !prev);
+    },
+    { enableOnFormTags: ["INPUT", "TEXTAREA"] },
+  );
+
+  useHotkeys(
+    "esc",
+    () => {
+      setSearchOpen(false);
+    },
+    { enableOnFormTags: ["INPUT", "TEXTAREA"] },
+  );
 
   const homeLink = {
     href: `/workspaces/${encodeURIComponent(slug)}`,
@@ -160,37 +192,64 @@ const Sidebar = (props: SidebarProps) => {
 
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
-      <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
-        <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
+      <SearchOverlay
+        key={isSearchOpen ? Date.now() : null}
+        isOpen={isSearchOpen}
+        onClose={() => setSearchOpen(false)}
+      />
+      {searchFeatureEnabled &&
+        (isSidebarOpen ? (
+          <div className="flex flex-col border-gray-200 bg-gray-800 p-2">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="text-gray-400 bg-gray-700 hover:bg-gray-600 flex gap-4 p-2 rounded items-center"
+            >
+              <MagnifyingGlassIcon className="h-4 text-gray-400 ml-2" />
+              {t("Search")} {getIsMac() ? "(⌘K)" : "(Ctrl+K)"}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="relative flex justify-center px-2 py-2 text-gray-400 hover:bg-gray-700 hover:text-white group text-md font-medium"
+          >
+            <MagnifyingGlassIcon className="text-gray-400 h-7 w-7 m-2" />
+            <div className="absolute inset-y-0 left-full ml-2 flex items-center text-xs opacity-0 transition-opacity group-hover:opacity-100">
+              <Badge className="text-white bg-gray-800 ring-gray-500/20">
+                {t("Search")} {getIsMac() ? "(⌘K)" : "(Ctrl+K)"}
+              </Badge>
+            </div>
+          </button>
+        ))}
+      <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
-        <div className="mt-5 flex grow flex-col">
-          <nav className="flex-1 space-y-1 px-0 pb-4">
-            {[homeLink].concat(links).map(({ href, Icon, label }) => (
-              <NavItem
-                key={href}
-                href={href}
-                Icon={Icon}
-                label={label}
-                isCurrent={currentLink === href}
-                compact={!isSidebarOpen}
-              />
-            ))}
-          </nav>
-        </div>
-
-        <div className="mb-5 flex shrink-0 flex-col items-center px-4">
-          <Link noStyle href="/" className="flex h-8 items-center">
-            <img
-              className="h-full"
-              src={
-                isSidebarOpen
-                  ? "/images/logo_with_text_white.svg"
-                  : "/images/logo.svg"
-              }
-              alt="OpenHEXA logo"
+      <div className="mt-5 flex grow flex-col">
+        <nav className="flex-1 space-y-1 px-0 pb-4">
+          {[homeLink].concat(links).map(({ href, Icon, label }) => (
+            <NavItem
+              key={href}
+              href={href}
+              Icon={Icon}
+              label={label}
+              isCurrent={currentLink === href}
+              compact={!isSidebarOpen}
             />
-          </Link>
-        </div>
+          ))}
+        </nav>
+      </div>
+
+      <div className="mb-5 flex shrink-0 flex-col items-center px-4">
+        <Link noStyle href="/" className="flex h-8 items-center">
+          <img
+            className="h-full"
+            src={
+              isSidebarOpen
+                ? "/images/logo_with_text_white.svg"
+                : "/images/logo.svg"
+            }
+            alt="OpenHEXA logo"
+          />
+        </Link>
       </div>
       <button
         onClick={() => setSidebarOpen(!isSidebarOpen)}
@@ -227,7 +286,11 @@ Sidebar.fragments = {
   `,
 };
 
-Sidebar.prefetch = async (client: CustomApolloClient) => {
+Sidebar.prefetch = async (
+  ctx: GetServerSidePropsContext,
+  client: CustomApolloClient,
+) => {
+  isMac = ctx.req.headers["user-agent"]?.includes("Mac") ?? false;
   await SidebarMenu.prefetch(client);
 };
 

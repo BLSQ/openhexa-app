@@ -40,6 +40,20 @@ def resolve_pipeline_template_current_version(
     return pipeline_template.last_version
 
 
+@pipeline_template_object.field("workspace")
+def resolve_pipeline_template_workspace(
+    pipeline_template: PipelineTemplate, info, **kwargs
+):
+    return pipeline_template.workspace
+
+
+@pipeline_template_object.field("updatedAt")
+def resolve_pipeline_template_updated_at(
+    pipeline_template: PipelineTemplate, info, **kwargs
+):
+    return pipeline_template.updated_at
+
+
 @pipeline_template_object.field("sourcePipeline")
 def resolve_pipeline_template_source_pipeline(
     pipeline_template: PipelineTemplate, info, **kwargs

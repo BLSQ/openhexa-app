@@ -1220,6 +1220,21 @@ export type DatabaseTablePage = {
   totalPages: Scalars['Int']['output'];
 };
 
+export type DatabaseTableResult = SearchResult & {
+  __typename?: 'DatabaseTableResult';
+  databaseTable: DatabaseTable;
+  score: Scalars['Float']['output'];
+  workspace: Workspace;
+};
+
+export type DatabaseTableResultPage = {
+  __typename?: 'DatabaseTableResultPage';
+  items: Array<DatabaseTableResult>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
 /** Dataset is a collection of files that are related to each other and are versioned. */
 export type Dataset = MetadataObject & {
   __typename?: 'Dataset';
@@ -1316,6 +1331,20 @@ export type DatasetPermissions = {
   delete: Scalars['Boolean']['output'];
   /** Permissions to edit the dataset */
   update: Scalars['Boolean']['output'];
+};
+
+export type DatasetResult = SearchResult & {
+  __typename?: 'DatasetResult';
+  dataset: Dataset;
+  score: Scalars['Float']['output'];
+};
+
+export type DatasetResultPage = {
+  __typename?: 'DatasetResultPage';
+  items: Array<DatasetResult>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
 };
 
 /** A version of a dataset. A version is a snapshot of the dataset at a point in time. */
@@ -1858,11 +1887,41 @@ export type FeatureFlag = {
   config: Scalars['JSON']['output'];
 };
 
+export type File = {
+  __typename?: 'File';
+  key: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+  size?: Maybe<Scalars['BigInt']['output']>;
+  type: FileType;
+  updated?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export type FileResult = SearchResult & {
+  __typename?: 'FileResult';
+  file: File;
+  score: Scalars['Float']['output'];
+  workspace: Workspace;
+};
+
+export type FileResultPage = {
+  __typename?: 'FileResultPage';
+  items: Array<FileResult>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
 /** Statuses that can occur when generating file sample */
 export enum FileSampleStatus {
   Failed = 'FAILED',
   Finished = 'FINISHED',
   Processing = 'PROCESSING'
+}
+
+export enum FileType {
+  Directory = 'directory',
+  File = 'file'
 }
 
 /** GCS connection object */
@@ -3146,6 +3205,20 @@ export enum PipelineRecipientError {
   UserNotFound = 'USER_NOT_FOUND'
 }
 
+export type PipelineResult = SearchResult & {
+  __typename?: 'PipelineResult';
+  pipeline: Pipeline;
+  score: Scalars['Float']['output'];
+};
+
+export type PipelineResultPage = {
+  __typename?: 'PipelineResultPage';
+  items: Array<PipelineResult>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
 /** Represents a pipeline run. */
 export type PipelineRun = {
   __typename?: 'PipelineRun';
@@ -3224,7 +3297,9 @@ export type PipelineTemplate = {
   name: Scalars['String']['output'];
   permissions: PipelineTemplatePermissions;
   sourcePipeline?: Maybe<Pipeline>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
   versions: TemplateVersionPage;
+  workspace: Workspace;
 };
 
 
@@ -3253,6 +3328,20 @@ export type PipelineTemplatePermissions = {
   __typename?: 'PipelineTemplatePermissions';
   delete: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
+};
+
+export type PipelineTemplateResult = SearchResult & {
+  __typename?: 'PipelineTemplateResult';
+  pipelineTemplate: PipelineTemplate;
+  score: Scalars['Float']['output'];
+};
+
+export type PipelineTemplateResultPage = {
+  __typename?: 'PipelineTemplateResultPage';
+  items: Array<PipelineTemplateResult>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
 };
 
 /** Represents a version of a pipeline template. */
@@ -3516,6 +3605,11 @@ export type Query = {
   pipelineVersion?: Maybe<PipelineVersion>;
   /** Retrieves a page of pipelines ordered by relevant name. */
   pipelines: PipelinesPage;
+  searchDatabaseTables: DatabaseTableResultPage;
+  searchDatasets: DatasetResultPage;
+  searchFiles: FileResultPage;
+  searchPipelineTemplates: PipelineTemplateResultPage;
+  searchPipelines: PipelineResultPage;
   team?: Maybe<Team>;
   teams: TeamPage;
   /** Retrieves a template by workspace slug and code. */
@@ -3702,6 +3796,46 @@ export type QueryPipelinesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QuerySearchDatabaseTablesArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  query: Scalars['String']['input'];
+  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+};
+
+
+export type QuerySearchDatasetsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  query: Scalars['String']['input'];
+  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+};
+
+
+export type QuerySearchFilesArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  query: Scalars['String']['input'];
+  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+};
+
+
+export type QuerySearchPipelineTemplatesArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  query: Scalars['String']['input'];
+  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+};
+
+
+export type QuerySearchPipelinesArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  query: Scalars['String']['input'];
+  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
 };
 
 
@@ -3930,6 +4064,10 @@ export type S3ObjectPage = {
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
+};
+
+export type SearchResult = {
+  score: Scalars['Float']['output'];
 };
 
 export enum SetDagRunFavoriteError {

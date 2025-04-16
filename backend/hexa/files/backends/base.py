@@ -98,6 +98,7 @@ class Storage(ABC):
         self,
         bucket_name,
         prefix=None,
+        match_glob=None,
         page: int = 1,
         per_page=30,
         query=None,
