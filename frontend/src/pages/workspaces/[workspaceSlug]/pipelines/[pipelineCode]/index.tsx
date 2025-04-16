@@ -5,6 +5,7 @@ import Clipboard from "core/components/Clipboard";
 import DataCard from "core/components/DataCard";
 import RenderProperty from "core/components/DataCard/RenderProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
+import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Switch from "core/components/Switch";
@@ -15,7 +16,7 @@ import { PipelineType } from "graphql/types";
 import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 import PipelineVersionParametersTable from "pipelines/features/PipelineVersionParametersTable";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import GeneratePipelineWebhookUrlDialog from "workspaces/features/GeneratePipelineWebhookUrlDialog";
 import PipelineVersionConfigDialog from "workspaces/features/PipelineVersionConfigDialog";
 import {
@@ -64,6 +65,14 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
 
   const { workspace, pipeline } = data;
 
+  const [description, setDescription] = useState(
+    pipeline?.description || "",
+  );
+
+  useEffect(() => {
+    setDescription(pipeline?.description || "");
+  }, [pipeline?.description]);
+
   const onSavePipeline = async (values: any) => {
     await updatePipeline(pipeline.id, {
       name: values.name,
@@ -85,15 +94,10 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
           onSave={pipeline.permissions.update ? onSavePipeline : undefined}
           collapsible={false}
         >
-          <TextProperty
-            id="description"
-            accessor={"description"}
-            label={t("Description")}
-            defaultValue="-"
-            visible={(value, isEditing) => isEditing || value}
-            sm
-            hideLabel
-            markdown
+          <MarkdownProperty
+              id="description"
+              label="Description"
+              accessor={"description"}
           />
           <TextProperty
             id="name"
