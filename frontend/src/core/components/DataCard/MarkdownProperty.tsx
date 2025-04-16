@@ -11,24 +11,29 @@ type MarkdownPropertyProps = PropertyDefinition & {
 };
 
 const MarkdownProperty = (props: MarkdownPropertyProps) => {
-  const { className, ...delegated } = props;
+  const { className, defaultValue = "", ...delegated } = props;
   const { property, section } = useDataCardProperty(delegated);
 
   if (!property.visible) return null;
+
+  const markdownValue =
+    typeof property.formValue === "string"
+      ? property.formValue
+      : defaultValue;
 
   return (
     <DataCard.Property property={property}>
       {section.isEdited && !property.readonly ? (
         <div className={clsx("bg-white", className)}>
           <MarkdownEditor
-            markdown={property.formValue || ""}
+            markdown={markdownValue}
             onChange={(markdown) => property.setValue(markdown)}
           />
         </div>
       ) : (
         <Block>
           <Block.Content>
-            <MarkdownViewer markdown={property.displayValue || ""} />
+            <MarkdownViewer markdown={property.displayValue || defaultValue} />
           </Block.Content>
         </Block>
       )}

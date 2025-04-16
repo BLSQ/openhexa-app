@@ -17,6 +17,7 @@ import {
   PipelinePublish_PipelineFragment,
   PipelinePublish_WorkspaceFragment,
 } from "./PublishPipelineDialog.generated";
+import MarkdownEditor from "../../../core/components/MarkdownEditor/MarkdownEditor";
 
 type PublishPipelineDialogProps = {
   open: boolean;
@@ -166,13 +167,10 @@ const PublishPipelineDialog = ({
                 label={t("Template description")}
                 required
               >
-                <Textarea
-                  id="description"
-                  name="description"
-                  required
-                  rows={10}
-                  value={form.formData.description}
+                <MarkdownEditor
+                  markdown={form.formData.description}
                   onChange={form.handleInputChange}
+                  defaultValue={""}
                 />
               </Field>
             </>

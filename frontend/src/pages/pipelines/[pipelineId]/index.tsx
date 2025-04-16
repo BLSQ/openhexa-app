@@ -32,6 +32,7 @@ import {
   PipelinePageQuery,
   usePipelinePageQuery,
 } from "pipelines/graphql/queries.generated";
+import MarkdownProperty from "../../../core/components/DataCard/MarkdownProperty";
 
 type Props = {
   page: number;
@@ -172,12 +173,10 @@ const PipelinePage = (props: Props) => {
               defaultOpen={false}
             >
               <UserProperty id="user" accessor="user" label={t("Report to")} />
-              <TextProperty
-                readonly
+              <MarkdownProperty
                 id="description"
                 accessor="template.description"
                 label={t("Template Description")}
-                markdown
               />
             </DataCard.FormSection>
           </DataCard>
