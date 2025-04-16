@@ -18,6 +18,7 @@ import {
   PipelinePublish_WorkspaceFragment,
 } from "./PublishPipelineDialog.generated";
 import MarkdownEditor from "../../../core/components/MarkdownEditor/MarkdownEditor";
+import clsx from "clsx";
 
 type PublishPipelineDialogProps = {
   open: boolean;
@@ -168,8 +169,9 @@ const PublishPipelineDialog = ({
                 required
               >
                 <MarkdownEditor
+                  contentEditableClassName="min-h-[240px] p-2 prose prose-headings:font-medium"
                   markdown={form.formData.description}
-                  onChange={form.handleInputChange}
+                  onChange={(markdown) => form.formData.description = markdown}
                   defaultValue={""}
                 />
               </Field>
