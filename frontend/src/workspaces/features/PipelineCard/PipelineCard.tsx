@@ -11,6 +11,8 @@ import {
 import Tooltip from "core/components/Tooltip";
 import UserAvatar from "identity/features/UserAvatar";
 import { DateTime } from "luxon";
+import MarkdownViewer from "../../../core/components/MarkdownViewer";
+import React from "react";
 
 interface PipelineCardProps {
   workspace: PipelineCard_WorkspaceFragment;
@@ -42,11 +44,10 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
       }
     >
       <Card.Content className="space-y-4" title={pipeline.description ?? ""}>
-        <div
-          className={clsx("line-clamp-3", !pipeline.description && "italic")}
-        >
-          {pipeline.description || t("No description")}
-        </div>
+        <MarkdownViewer
+            className={clsx("line-clamp-3", !pipeline.description && "italic")}
+            markdown= {pipeline.description || t("No description")}
+          />
         {pipeline.currentVersion?.user && (
           <div className="flex justify-end">
             <Tooltip

@@ -13,6 +13,7 @@ import React from "react";
 import Button from "core/components/Button";
 import router from "next/router";
 import User from "core/features/User";
+import MarkdownViewer from "../../../core/components/MarkdownViewer";
 
 interface TemplateCardProps {
   workspace: TemplateCard_WorkspaceFragment;
@@ -41,7 +42,11 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
         <div
           className={clsx("line-clamp-3", !template.description && "italic")}
         >
-          {template.description || t("No description")}
+          <MarkdownViewer
+            className="prose max-w-3xl text-sm"
+            markdown= {template.description || t("No description")}
+          />
+
         </div>
         {template.currentVersion?.user && (
           <div className="flex justify-end">
