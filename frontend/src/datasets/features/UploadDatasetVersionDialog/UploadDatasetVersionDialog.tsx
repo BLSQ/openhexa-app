@@ -18,6 +18,7 @@ import Spinner from "core/components/Spinner";
 import { useRouter } from "next/router";
 import CodeEditor from "core/components/CodeEditor";
 import Textarea from "core/components/forms/Textarea";
+import MarkdownEditor from "../../../core/components/MarkdownEditor/MarkdownEditor";
 
 type UploadDatasetVersionDialogProps = {
   open: boolean;
@@ -151,13 +152,12 @@ version.add_file("/path/to/file.csv")`}
                 fullWidth
                 placeholder={t("Changelog")}
               >
-                <Textarea
-                  name={"changelog"}
-                  onChange={form.handleInputChange}
-                  rows={5}
-                >
-                  {form.formData.changelog}
-                </Textarea>
+              <MarkdownEditor
+                  id="changelog"
+                  contentEditableClassName="min-h-[240px] p-2 prose prose-headings:font-medium"
+                  markdown={form.formData.changelog}
+                  onChange={(markdown) => form.formData.changelog = markdown}
+              />
               </Field>
               <Field name={"files"} label={t("Files")} required>
                 <Dropzone
