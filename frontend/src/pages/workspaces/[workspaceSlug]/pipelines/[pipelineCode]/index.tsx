@@ -65,14 +65,6 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
 
   const { workspace, pipeline } = data;
 
-  const [description, setDescription] = useState(
-    pipeline?.description || "",
-  );
-
-  useEffect(() => {
-    setDescription(pipeline?.description || "");
-  }, [pipeline?.description]);
-
   const onSavePipeline = async (values: any) => {
     await updatePipeline(pipeline.id, {
       name: values.name,
