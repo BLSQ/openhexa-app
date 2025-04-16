@@ -70,8 +70,10 @@ describe("PublishPipelineDialog", () => {
     fireEvent.change(screen.getByLabelText("Template name"), {
       target: { value: "Test Template" },
     });
-    fireEvent.change(screen.getByLabelText("Template description"), {
-      target: { value: "Test Description" },
+
+    const editor = screen.getByLabelText("Template description");
+    fireEvent.input(editor, {
+      target: { textContent: "Test Description" },
     });
 
     const submitButton = screen.getByRole("button", {
