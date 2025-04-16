@@ -70,7 +70,7 @@ describe("PublishPipelineDialog", () => {
     fireEvent.change(screen.getByLabelText("Template name"), {
       target: { value: "Test Template" },
     });
-    fireEvent.change(screen.getAllByTestId("markdown-editor"), {
+    fireEvent.change(screen.getByLabelText("Template description"), {
       target: { value: "Test Description" },
     });
 
