@@ -3,7 +3,7 @@
   "extends": [
     "config:recommended"
   ],
-  "automerge": true,
+  "automerge": false,
   "automergeStrategy": "squash",
   "patch": {
     "automerge": true
