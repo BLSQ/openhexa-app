@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.4](https://github.com/BLSQ/openhexa-app/compare/1.2.3...1.2.4) (2025-04-17)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @sentry/nextjs to v9.13.0 ([#1033](https://github.com/BLSQ/openhexa-app/issues/1033)) ([27f1a80](https://github.com/BLSQ/openhexa-app/commit/27f1a8077cb69b1f91a99a1a1114956cf4764da3))
+* **deps:** update dependency i18next to v25 ([#1025](https://github.com/BLSQ/openhexa-app/issues/1025)) ([a69b603](https://github.com/BLSQ/openhexa-app/commit/a69b603c1f91d180f0bb0cdfd0cebe70145b18f7))
+* **DHIS2:** organisation_unit_levels did not support filters parameter OPENHEXA-1H1 ([#1036](https://github.com/BLSQ/openhexa-app/issues/1036)) ([e078366](https://github.com/BLSQ/openhexa-app/commit/e078366e801d60616f537865b63e765114d3ed2e))
+* **mixpanel:** serilize ids for tracking emails ([#1035](https://github.com/BLSQ/openhexa-app/issues/1035)) ([7ce9bbd](https://github.com/BLSQ/openhexa-app/commit/7ce9bbd18ef3f4362c12aeb176067d958804fadc))
+
 ## [1.2.3](https://github.com/BLSQ/openhexa-app/compare/1.2.2...1.2.3) (2025-04-14)
 
 
