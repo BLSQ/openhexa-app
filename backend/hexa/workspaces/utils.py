@@ -50,7 +50,7 @@ def send_workspace_invitation_email(
             event="emails.invite_sent",
             properties={
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "workspace_id": invitation.workspace.id,
+                "workspace_id": str(invitation.workspace.id),
                 "invitee_email": invitation.email,
                 "invitee_role": invitation.role,
                 "status": invitation.status,
