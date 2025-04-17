@@ -203,23 +203,27 @@ const DHIS2Widget = ({
   );
 
 
-  const selectedObjects = useMemo(() => {
-    const ids = ensureArray(form.formData[parameter.code]);
+const selectedObjects = useMemo(() => {
+  const ids = ensureArray(form.formData[parameter.code]);
 
-    return parameter.multiple
-      ? ids.map((id: string) =>
-          options.find((item) => item.id === id) ||
-          cachedSelectionsRef.current.get(id) || {
-            id,
-            label: t("Unknown ID: {{id}}", { id }),
-          },
-        )
-      : options.find((item) => item.id === ids[0]) ||
-        cachedSelectionsRef.current.get(ids[0]) || {
-          id: ids[0],
-          label: t("Unknown ID: {{id}}", { id: ids[0] }),
-        };
-  }, [form.formData[parameter.code], options]);
+  const selectObject = (id: string) => {
+    return (
+      options.find((item) => item.id === id) ||
+      cachedSelectionsRef.current.get(id) || {
+        id,
+        label: t("Unknown ID: {{id}}", { id }),
+      }
+    );
+  };
+
+  if (parameter.multiple) {
+    return ids.map(selectObject);
+  }
+
+  const singleId = ids[0];
+  return singleId ? selectObject(singleId) : null;
+}, [form.formData[parameter.code], options]);
+
 
 
 
