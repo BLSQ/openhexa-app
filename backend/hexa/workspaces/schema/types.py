@@ -17,8 +17,10 @@ from ..models import (
 )
 from ..utils import (
     DHIS2MetadataQueryType,
-    dhis2_client_from_connection,
+    IASOMetadataQueryType,
     query_dhis2_metadata,
+    query_iaso_metadata,
+    toolbox_client_from_conneciton,
 )
 
 workspace_object = ObjectType("Workspace")
@@ -28,6 +30,8 @@ connection_field_object = ObjectType("ConnectionField")
 connection_permissions_object = ObjectType("ConnectionPermissions")
 dhis2_connection = ObjectType("DHIS2Connection")
 dhis2_metadata_type = EnumType("DHIS2MetadataType", DHIS2MetadataQueryType)
+iaos_connection = ObjectType("IASOConnection")
+iaos_metadata_type = EnumType("IASOMetadataType", IASOMetadataQueryType)
 
 
 @connection_permissions_object.field("update")
@@ -175,7 +179,7 @@ def resolve_query(connection, info, page=1, per_page=10, filters=None, **kwargs)
             ["level"] if query_type == DHIS2MetadataQueryType.ORG_UNIT_LEVELS else []
         )
 
-        dhis2_client = dhis2_client_from_connection(connection)
+        dhis2_client = toolbox_client_from_conneciton(connection)
 
         response = query_dhis2_metadata(
             dhis2_client,
@@ -215,13 +219,59 @@ def resolve_query(connection, info, page=1, per_page=10, filters=None, **kwargs)
         }
 
 
+@iaos_connection.field("queryMetadata")
+def resolve_iaso_query(connection, info, page=1, per_page=10, filters=None, **kwargs):
+    try:
+        query_type = IASOMetadataQueryType[kwargs["type"]]
+        fields = ["id", "name"]
+
+        iaso_client = toolbox_client_from_conneciton(connection)
+
+        response = query_iaso_metadata(
+            iaso_client,
+            query_type=query_type,
+            fields=",".join(fields),
+            page=page,
+            pageSize=per_page,
+            filters=filters,
+        )
+
+        result = [
+            {
+                "label": item.get("name"),
+                "id": item.get("id"),
+            }
+            for item in response.items
+        ]
+
+        return {
+            "items": result,
+            "total_items": response.total_items,
+            "total_pages": response.total_pages,
+            "page_number": response.page_number,
+            "success": True,
+            "error": None,
+        }
+
+    except Exception as e:
+        logging.error(f"IASO error: {e}")
+        return {
+            "items": [],
+            "total_items": 0,
+            "total_pages": 0,
+            "page_number": page,
+            "success": False,
+            "error": "REQUEST_ERROR" if isinstance(e, DHIS2Error) else "UNKNOWN_ERROR",
+        }
+
+
 connection_interface.set_alias("type", "connection_type")
 
 
 @dhis2_connection.field("status")
 def resolve_dhis2_connection_status(connection, info, **kwargs):
     try:
-        dhis2_client_from_connection(connection)
+        toolbox_client_from_conneciton(connection)
         return "UP"
     except DHIS2Error as e:
         logging.error(f"DHIS2 error: {e}")
