@@ -198,6 +198,7 @@
   "Failed": "Échec",
   "failed {{relativeTime}} in {{durationStr}}": "a échoué {{relativeTime}} dans {{durationStr}}",
   "Failed connect to DHIS2": "Échec de la connexion à DHIS2",
+  "Failed connect to IASO": "Échec de la connexion à IASO",
   "Failed on {{relativeTime}}": "Échec le {{relativeTime}}",
   "Failed to accept invitation": "L'invitation n'a pas pu être acceptée",
   "Failed to create pipeline": "Échec de la création de la pipeline",

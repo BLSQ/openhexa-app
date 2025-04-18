@@ -1,28 +1,30 @@
-import { gql } from "@apollo/client";
-import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import { useTranslation } from "next-i18next";
-import { Combobox, MultiCombobox } from "core/components/forms/Combobox";
-import useDebounce from "core/hooks/useDebounce";
-import useIntersectionObserver from "core/hooks/useIntersectionObserver";
-import { FormInstance } from "core/hooks/useForm";
-import { Dhis2MetadataType } from "graphql/types";
-import { ensureArray } from "core/helpers/array";
 import {ParameterField_ParameterFragment} from "./ParameterField.generated";
-import {useGetConnectionBySlugDhis2LazyQuery} from "./DHIS2Widget.generated";
+import {FormInstance} from "core/hooks/useForm";
+import {IasoMetadataType} from "graphql/types";
+import {gql} from "@apollo/client";
+import { useGetConnectionBySlugIasoLazyQuery } from "./IASOWidget.generated";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import useIntersectionObserver from "core/hooks/useIntersectionObserver";
+import {Combobox, MultiCombobox} from "core/components/forms/Combobox";
+import useDebounce from "core/hooks/useDebounce";
+import {useTranslation} from "next-i18next";
+import { ensureArray } from "core/helpers/array";
 
-type DHIS2WidgetProps = {
-  parameter: ParameterField_ParameterFragment & { connection: string };
-  widget: string;
-  form: FormInstance<any>;
-  workspaceSlug: string;
-  name: string;
+type IASOWidgetProps = {
+    parameter: ParameterField_ParameterFragment & { connection: string };
+    widget: string;
+    form: FormInstance<any>;
+    workspaceSlug: string;
+    name: string;
 };
+
 export const GET_CONNECTION_METADATA = gql`
-    query getConnectionBySlugDhis2(
+    query getConnectionBySlugIaso(
         $workspaceSlug: String!
         $connectionSlug: String!
-        $type: DHIS2MetadataType!
-        $filters: [String!]
+        $type: IASOMetadataType!
+        $search: String
+        $filters: [IASOQueryFilterInput!]
         $perPage: Int
         $page: Int
     ) {
@@ -30,9 +32,10 @@ export const GET_CONNECTION_METADATA = gql`
             workspaceSlug: $workspaceSlug
             connectionSlug: $connectionSlug
         ) {
-            ... on DHIS2Connection {
+            ... on IASOConnection {
                 queryMetadata(
                     type: $type
+                    search: $search
                     filters: $filters
                     perPage: $perPage
                     page: $page
@@ -49,40 +52,36 @@ export const GET_CONNECTION_METADATA = gql`
         }
     }
 `;
-const dhis2WidgetToQuery: { [key: string]: Dhis2MetadataType } = {
-  DHIS2_ORG_UNITS: Dhis2MetadataType.OrgUnits,
-  DHIS2_ORG_UNIT_GROUPS: Dhis2MetadataType.OrgUnitGroups,
-  DHIS2_ORG_UNIT_LEVELS: Dhis2MetadataType.OrgUnitLevels,
-  DHIS2_DATASETS: Dhis2MetadataType.Datasets,
-  DHIS2_DATA_ELEMENTS: Dhis2MetadataType.DataElements,
-  DHIS2_DATA_ELEMENT_GROUPS: Dhis2MetadataType.DataElementGroups,
-  DHIS2_INDICATORS: Dhis2MetadataType.Indicators,
-  DHIS2_INDICATOR_GROUPS: Dhis2MetadataType.IndicatorGroups,
+const iasoWidgetToQuery: { [key: string]: IasoMetadataType } = {
+    IASO_ORG_UNITS: IasoMetadataType.IasoOrgUnits,
+    IASO_PROJECTS: IasoMetadataType.Projects,
+    IASO_FORMS: IasoMetadataType.Forms,
 };
 
-const DHIS2Widget = ({
-  parameter,
-  widget,
-  form,
-  workspaceSlug,
-  ...delegated
-}: DHIS2WidgetProps) => {
-  console.log("DHIS2Widget", parameter, widget);
+const IASOWidget = ({
+                        parameter,
+                        widget,
+                        form,
+                        workspaceSlug,
+                        ...delegated
+                    }: IASOWidgetProps) => {
+
   const [query, _setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 250);
   const [isLoading, setIsLoading] = useState(false);
   const { t } = useTranslation();
   const [options, setOptions] = useState<any[]>([]);
   const cachedSelectionsRef = useRef<Map<string, { id: string; label: string }>>(new Map());
-  const [fetchData, { data, error }] = useGetConnectionBySlugDhis2LazyQuery();
+  const [fetchData, { data, error }] = useGetConnectionBySlugIasoLazyQuery();
   const hasConnection = useMemo(() => {
     return form.formData[parameter.connection];
   }, [form.formData[parameter.connection]]);
 
-  // Memoize the connection to enforce the DHIS2Connection type
-  const dhis2Connection = useMemo(
+
+  // Memoize the connection to enforce the IASOConnection type
+  const iasoConnection = useMemo(
     () =>
-      data?.connectionBySlug?.__typename === "DHIS2Connection"
+      data?.connectionBySlug?.__typename === "IASOConnection"
         ? data.connectionBySlug
         : null,
     [data?.connectionBySlug],
@@ -93,34 +92,39 @@ const DHIS2Widget = ({
     _setQuery(newQuery);
   }, []);
 
-  const fetchMoreOptions = async (resetPagination: boolean = false) => {
+const fetchMoreOptions = async (resetPagination: boolean = false) => {
     setIsLoading(true);
+
     const result = await fetchData({
-      variables: {
-        workspaceSlug,
-        connectionSlug: form.formData[parameter.connection],
-        type: dhis2WidgetToQuery[widget],
-        filters: debouncedQuery ? ["name:token:" + debouncedQuery] : [],
-        perPage: 15,
-        page: resetPagination
-          ? 1
-          : (dhis2Connection?.queryMetadata?.pageNumber || 0) + 1,
-      },
+        variables: {
+            workspaceSlug,
+            connectionSlug: form.formData[parameter.connection],
+            type: iasoWidgetToQuery[widget],
+            search: debouncedQuery || null,
+            filters: [],
+            perPage: 15,
+            page: resetPagination
+                ? 1
+                : (iasoConnection?.queryMetadata?.pageNumber || 0) + 1,
+        },
     });
+
     setIsLoading(false);
-    if (result.data?.connectionBySlug?.__typename === "DHIS2Connection") {
-      const connection = result.data.connectionBySlug;
-      const newOptions = connection.queryMetadata?.items || [];
-      setOptions((prevOptions) => {
-        // If it's the first page, replace options
-        if (connection.queryMetadata?.pageNumber === 1) {
-          return newOptions;
-        }
-        // Otherwise append to existing options
-        return [...prevOptions, ...newOptions];
-      });
+    console.log("IASOWidget result", result);
+    if (result.data?.connectionBySlug?.__typename === "IASOConnection") {
+        const connection = result.data.connectionBySlug;
+        const newOptions = connection.queryMetadata?.items || [];
+        setOptions((prevOptions) => {
+            if (connection.queryMetadata?.pageNumber === 1) {
+                return newOptions;
+            }
+            return [...prevOptions, ...newOptions];
+        });
     }
-  };
+};
+
+
+
   const initializeCacheFromForm = () => {
   const ids = ensureArray(form.formData[parameter.code]);
   ids.forEach((id: string) => {
@@ -151,7 +155,7 @@ const DHIS2Widget = ({
     }
     const connection = data?.connectionBySlug;
     if (
-      connection?.__typename !== "DHIS2Connection" ||
+      connection?.__typename !== "IASOConnection" ||
       !connection.queryMetadata
     ) {
       return "";
@@ -159,7 +163,7 @@ const DHIS2Widget = ({
     const apiError = connection.queryMetadata.error;
     if (apiError) {
       console.error("API Error:", apiError);
-      return t("Failed connect to DHIS2");
+      return t("Failed connect to IASO");
     }
 
     return "";
@@ -229,55 +233,59 @@ const selectedObjects = useMemo(() => {
   const onScrollBottom = useCallback(() => {
     if (
       !isLoading &&
-      (dhis2Connection?.queryMetadata?.totalItems || 0) > options.length
+      (iasoConnection?.queryMetadata?.totalItems || 0) > options.length
     ) {
       fetchMoreOptions();
     }
-  }, [dhis2Connection, options, isLoading]);
+  }, [iasoConnection, options, isLoading]);
 
-  const PickerComponent = parameter.multiple ? MultiCombobox : Combobox;
 
-  return (
-    <PickerComponent
-      onChange={handleSelectionChange}
-      loading={isLoading}
-      displayValue={displayValueHandler}
-      by="id"
-      onInputChange={(e) => setQuery(e.target.value)}
-      placeholder={t("Select options")}
-      value={selectedObjects}
-      disabled={!hasConnection}
-      withPortal
-      onClose={useCallback(() => setQuery(""), [])}
-      error={errorMessage}
-      {...delegated}
-    >
-      {options.map((option) => (
-        <Combobox.CheckOption key={option.id} value={option}>
-          {option.label}
-        </Combobox.CheckOption>
-      ))}
-      {onScrollBottom && (
-        <IntersectionObserverWrapper onScrollBottom={onScrollBottom} />
-      )}
-    </PickerComponent>
-  );
+
+    const PickerComponent = parameter.multiple ? MultiCombobox : Combobox;
+
+    return (
+        <PickerComponent
+            onChange={handleSelectionChange}
+            loading={isLoading}
+            displayValue={displayValueHandler}
+            by="id"
+            onInputChange={(e) => setQuery(e.target.value)}
+            placeholder={t("Select options")}
+            value={selectedObjects}
+            disabled={!hasConnection}
+            withPortal
+            onClose={useCallback(() => setQuery(""), [])}
+            error={errorMessage}
+            {...delegated}
+        >
+            {options.map((option) => (
+                <Combobox.CheckOption key={option.id} value={option}>
+                    {option.label}
+                </Combobox.CheckOption>
+            ))}
+            {onScrollBottom && (
+                <IntersectionObserverWrapper onScrollBottom={onScrollBottom}/>
+            )}
+        </PickerComponent>
+    );
 };
+
+
 const IntersectionObserverWrapper = ({
-  onScrollBottom,
-}: {
-  onScrollBottom: () => void;
+                                         onScrollBottom,
+                                     }: {
+    onScrollBottom: () => void;
 }) => {
-  const [lastElement, setLastElement] = useState<Element | null>(null);
-  const list = useIntersectionObserver(lastElement, {});
+    const [lastElement, setLastElement] = useState<Element | null>(null);
+    const list = useIntersectionObserver(lastElement, {});
 
-  useEffect(() => {
-    if (lastElement && list?.isIntersecting) {
-      onScrollBottom();
-    }
-  }, [onScrollBottom, list, lastElement]);
+    useEffect(() => {
+        if (lastElement && list?.isIntersecting) {
+            onScrollBottom();
+        }
+    }, [onScrollBottom, list, lastElement]);
 
-  return <div ref={setLastElement}></div>;
+    return <div ref={setLastElement}></div>;
 };
 
-export { DHIS2Widget, dhis2WidgetToQuery };
+export {IASOWidget, iasoWidgetToQuery};
