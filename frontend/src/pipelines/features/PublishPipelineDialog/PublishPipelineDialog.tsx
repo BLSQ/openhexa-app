@@ -169,9 +169,12 @@ const PublishPipelineDialog = ({
                 required
               >
                 <MarkdownEditor
+                  id="description"
                   contentEditableClassName="min-h-[240px] p-2 prose prose-headings:font-medium"
                   markdown={form.formData.description || ""}
-                  onChange={(markdown) => form.formData.description = markdown}
+                  onChange={(markdown) =>
+                    (form.formData.description = markdown)
+                  }
                 />
               </Field>
             </>

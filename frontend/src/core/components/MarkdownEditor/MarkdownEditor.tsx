@@ -36,6 +36,7 @@ import { useMemo } from "react";
 
 export type MarkdownEditorProps = MDXEditorProps & {
   sm?: boolean;
+  id?: string;
 };
 
 function whenInAdmonition(editorInFocus: EditorInFocus | null) {
@@ -50,6 +51,7 @@ function whenInAdmonition(editorInFocus: EditorInFocus | null) {
 const MarkdownEditor = ({
   className,
   markdown,
+  id,
   sm,
   readOnly,
   ...delegated
@@ -133,6 +135,7 @@ const MarkdownEditor = ({
 
   return (
     <div
+      id={id}
       className={clsx(
         "rounded-md overflow-y-auto",
         !readOnly && "border border-gray-300",

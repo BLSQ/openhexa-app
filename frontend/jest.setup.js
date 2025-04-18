@@ -61,11 +61,7 @@ jest.mock("react", () => {
   };
 });
 
-jest.mock("core/components/MarkdownEditor/MarkdownEditor", () => {
-  return (props) => {
-    return props.markdown || null;
-  };
-});
+jest.mock("core/components/MarkdownEditor/MarkdownEditor");
 
 jest.mock("next-i18next", () => ({
   I18nextProvider: jest.fn(),
