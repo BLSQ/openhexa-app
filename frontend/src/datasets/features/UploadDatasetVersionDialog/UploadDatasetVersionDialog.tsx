@@ -1,24 +1,23 @@
 import { gql } from "@apollo/client";
-import Dialog from "core/components/Dialog";
-import { useTranslation } from "next-i18next";
 import Button from "core/components/Button";
-import Tabs from "core/components/Tabs";
-import { UploadDatasetVersionDialog_DatasetLinkFragment } from "./UploadDatasetVersionDialog.generated";
+import CodeEditor from "core/components/CodeEditor";
+import Dialog from "core/components/Dialog";
 import Dropzone from "core/components/Dropzone";
-import { useEffect, useState } from "react";
-import useForm from "core/hooks/useForm";
 import Field from "core/components/forms/Field";
+import Spinner from "core/components/Spinner";
+import Tabs from "core/components/Tabs";
 import { uploader } from "core/helpers/files";
+import useForm from "core/hooks/useForm";
 import {
   createDatasetVersion,
   createVersionFile,
   generateDatasetUploadUrl,
 } from "datasets/helpers/dataset";
-import Spinner from "core/components/Spinner";
+import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import CodeEditor from "core/components/CodeEditor";
-import Textarea from "core/components/forms/Textarea";
+import { useEffect, useState } from "react";
 import MarkdownEditor from "../../../core/components/MarkdownEditor/MarkdownEditor";
+import { UploadDatasetVersionDialog_DatasetLinkFragment } from "./UploadDatasetVersionDialog.generated";
 
 type UploadDatasetVersionDialogProps = {
   open: boolean;
@@ -152,12 +151,12 @@ version.add_file("/path/to/file.csv")`}
                 fullWidth
                 placeholder={t("Changelog")}
               >
-              <MarkdownEditor
+                <MarkdownEditor
                   id="changelog"
                   contentEditableClassName="min-h-[240px] p-2 prose prose-headings:font-medium"
-                  markdown={form.formData.changelog}
-                  onChange={(markdown) => form.formData.changelog = markdown}
-              />
+                  markdown={form.formData.changelog || ""}
+                  onChange={(markdown) => (form.formData.changelog = markdown)}
+                />
               </Field>
               <Field name={"files"} label={t("Files")} required>
                 <Dropzone
