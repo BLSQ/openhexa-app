@@ -88,7 +88,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
         >
           <MarkdownProperty
             id="description"
-            label="Description"
+            label={t("Description")}
             accessor={"description"}
           />
           <TextProperty

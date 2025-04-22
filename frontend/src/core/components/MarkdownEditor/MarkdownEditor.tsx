@@ -152,7 +152,7 @@ const MarkdownEditor = ({
           // Small styles
           sm &&
             "prose-sm prose-h1:text-xl prose-h2:text-lg prose-h3:text-md prose-h2:mt-0",
-          !readOnly && "p-2",
+          !readOnly ? "p-2" : "!p-0",
           styles.editor,
         )}
         plugins={plugins}

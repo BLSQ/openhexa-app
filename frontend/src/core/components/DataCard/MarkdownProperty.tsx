@@ -8,10 +8,11 @@ import { PropertyDefinition } from "./types";
 type MarkdownPropertyProps = PropertyDefinition & {
   className?: string;
   defaultValue?: string;
+  sm?: boolean;
 };
 
 const MarkdownProperty = (props: MarkdownPropertyProps) => {
-  const { className, defaultValue = "", ...delegated } = props;
+  const { className, defaultValue = "", sm, ...delegated } = props;
   const { property, section } = useDataCardProperty(delegated);
 
   if (!property.visible) return null;
@@ -24,7 +25,7 @@ const MarkdownProperty = (props: MarkdownPropertyProps) => {
       {section.isEdited && !property.readonly ? (
         <div className={clsx("bg-white", className)}>
           <MarkdownEditor
-            sm
+            sm={sm}
             markdown={markdownValue}
             onChange={(markdown) => property.setValue(markdown)}
           />

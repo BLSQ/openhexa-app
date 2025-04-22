@@ -10,4 +10,8 @@
       top: var(--spacing-2);
     }
   }
+
+.editor li {
+  margin: 0;
+}
   
