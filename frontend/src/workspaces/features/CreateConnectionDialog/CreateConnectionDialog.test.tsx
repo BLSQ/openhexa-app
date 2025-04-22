@@ -21,7 +21,7 @@ describe("CreateConnectionDialog", () => {
   });
 
   it("renders", async () => {
-    const { container } = render(
+    render(
       <TestApp>
         <CreateConnectionDialog open onClose={onClose} workspace={WORKSPACE} />
       </TestApp>,
@@ -37,7 +37,7 @@ describe("CreateConnectionDialog", () => {
       createConnectionMock,
     ]);
     const user = userEvent.setup();
-    const { container } = render(
+    render(
       <TestApp>
         <CreateConnectionDialog open onClose={onClose} workspace={WORKSPACE} />
       </TestApp>,

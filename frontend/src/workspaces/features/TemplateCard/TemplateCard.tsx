@@ -39,9 +39,7 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
         className="space-y-4 min-h-20 min-w-20"
         title={template.description ?? ""}
       >
-        <div
-          className={clsx("line-clamp-3", !template.description && "italic")}
-        >
+        <div className={clsx("line-clamp-3")}>
           {stripMarkdown(template.description ?? "")}
         </div>
         {template.currentVersion?.user && (

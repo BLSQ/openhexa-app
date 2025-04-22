@@ -109,7 +109,7 @@ describe("PipelineTemplates", () => {
 
     render(<PipelineTemplates workspace={mockWorkspace} />);
 
-    const searchInput = screen.getByRole("textbox");
+    const searchInput = screen.getByTestId("search-input");
 
     fireEvent.change(searchInput, { target: { value: "Template 1" } });
 
