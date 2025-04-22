@@ -18,8 +18,7 @@ import {
   WorkspaceDatasetIndexPageQuery,
   WorkspaceDatasetIndexPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
-import MarkdownProperty from "../../../../../core/components/DataCard/MarkdownProperty";
-import MarkdownEditor from "../../../../../core/components/MarkdownEditor/MarkdownEditor";
+import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 
 export type WorkspaceDatasetPageProps = {
   isSpecificVersion: boolean;
