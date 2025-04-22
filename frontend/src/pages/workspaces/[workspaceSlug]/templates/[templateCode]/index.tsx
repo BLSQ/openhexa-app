@@ -14,7 +14,7 @@ import TemplateLayout from "workspaces/layouts/TemplateLayout";
 import { updateTemplate } from "workspaces/helpers/templates";
 import Link from "core/components/Link";
 import RenderProperty from "core/components/DataCard/RenderProperty";
-import MarkdownProperty from "../../../../../core/components/DataCard/MarkdownProperty";
+import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 
 type Props = {
   templateCode: string;
@@ -64,7 +64,6 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
               id="description"
               label="Description"
               accessor={"description"}
-              defaultValue={"-"}
             />
             <RenderProperty
               id="version_name"

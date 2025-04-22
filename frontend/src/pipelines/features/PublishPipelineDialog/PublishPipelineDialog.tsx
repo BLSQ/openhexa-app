@@ -1,24 +1,23 @@
 import { gql } from "@apollo/client";
-import { Trans, useTranslation } from "react-i18next";
 import Button from "core/components/Button";
-import Spinner from "core/components/Spinner";
-import React, { useEffect, useState } from "react";
 import Dialog from "core/components/Dialog";
-import { useRouter } from "next/router";
-import { toast } from "react-toastify";
-import useForm from "core/hooks/useForm";
-import { isEmpty } from "lodash";
+import Checkbox from "core/components/forms/Checkbox";
 import Field from "core/components/forms/Field";
 import Textarea from "core/components/forms/Textarea";
-import Checkbox from "core/components/forms/Checkbox";
-import { useCreatePipelineTemplateVersionMutation } from "pipelines/graphql/mutations.generated";
+import MarkdownEditor from "core/components/MarkdownEditor/MarkdownEditor";
+import Spinner from "core/components/Spinner";
+import useForm from "core/hooks/useForm";
 import { CreatePipelineTemplateVersionError } from "graphql/types";
+import { isEmpty } from "lodash";
+import { useRouter } from "next/router";
+import { useCreatePipelineTemplateVersionMutation } from "pipelines/graphql/mutations.generated";
+import { useEffect, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 import {
   PipelinePublish_PipelineFragment,
   PipelinePublish_WorkspaceFragment,
 } from "./PublishPipelineDialog.generated";
-import MarkdownEditor from "../../../core/components/MarkdownEditor/MarkdownEditor";
-import clsx from "clsx";
 
 type PublishPipelineDialogProps = {
   open: boolean;
@@ -137,7 +136,7 @@ const PublishPipelineDialog = ({
     : t("Create a new Template");
 
   return (
-    <Dialog open={open} onClose={onClose} className={"w-140"}>
+    <Dialog open={open} onClose={onClose} maxWidth="max-w-4xl">
       <form onSubmit={form.handleSubmit}>
         <Dialog.Title>{actionMessage}</Dialog.Title>
         <Dialog.Content>

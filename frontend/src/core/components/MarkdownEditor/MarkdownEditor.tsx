@@ -146,12 +146,13 @@ const MarkdownEditor = ({
         data-testid="markdown-editor"
         markdown={markdown}
         contentEditableClassName={clsx(
-          "max-w-none p-2 ring-none outline-none",
+          "max-w-none ring-none outline-none",
           // Standard styles
           "prose prose-headings:font-medium prose-h1:font-medium",
           // Small styles
           sm &&
             "prose-sm prose-h1:text-xl prose-h2:text-lg prose-h3:text-md prose-h2:mt-0",
+          !readOnly && "p-2",
           styles.editor,
         )}
         plugins={plugins}
