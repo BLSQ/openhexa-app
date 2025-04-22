@@ -1,6 +1,9 @@
 import { gql } from "@apollo/client";
-import clsx from "clsx";
 import Card from "core/components/Card";
+import Tooltip from "core/components/Tooltip";
+import { stripMarkdown } from "core/helpers";
+import UserAvatar from "identity/features/UserAvatar";
+import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import { formatPipelineType } from "workspaces/helpers/pipelines";
@@ -8,9 +11,6 @@ import {
   PipelineCard_PipelineFragment,
   PipelineCard_WorkspaceFragment,
 } from "./PipelineCard.generated";
-import Tooltip from "core/components/Tooltip";
-import UserAvatar from "identity/features/UserAvatar";
-import { DateTime } from "luxon";
 
 interface PipelineCardProps {
   workspace: PipelineCard_WorkspaceFragment;
@@ -42,10 +42,8 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
       }
     >
       <Card.Content className="space-y-4" title={pipeline.description ?? ""}>
-        <div
-          className={clsx("line-clamp-3", !pipeline.description && "italic")}
-        >
-          {pipeline.description || t("No description")}
+        <div className="line-clamp-3">
+          {stripMarkdown(pipeline.description ?? "")}
         </div>
         {pipeline.currentVersion?.user && (
           <div className="flex justify-end">

@@ -137,7 +137,9 @@ const IntersectionObserverWrapper = ({
     }
   }, [onScrollBottom, list, lastElement]);
 
-  return <div ref={setLastElement}></div>;
+  return (
+    <div data-testid="intersection-observer-wrapper" ref={setLastElement}></div>
+  );
 };
 
 export default Listbox;

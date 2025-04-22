@@ -1,10 +1,12 @@
 import { useQuery } from "@apollo/client";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { faker } from "@faker-js/faker";
-import DatasetVersionPicker from "./DatasetVersionPicker";
 import "@testing-library/jest-dom";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { DateTime } from "luxon";
-import useIntersectionObserver from "core/hooks/useIntersectionObserver";
+import DatasetVersionPicker from "./DatasetVersionPicker";
+
+import { mockIntersectionObserver } from "jsdom-testing-mocks";
 
 jest.mock("@apollo/client", () => ({
   __esModule: true,
@@ -12,10 +14,9 @@ jest.mock("@apollo/client", () => ({
   gql: jest.fn(() => "GQL"),
 }));
 
-jest.mock("core/hooks/useIntersectionObserver");
+const intersectionObserver = mockIntersectionObserver();
 
 const useQueryMock = useQuery as jest.Mock;
-const useIntersectionObserverMock = useIntersectionObserver as jest.Mock;
 
 const createMockData = (totalItems: number, itemsPerPage: number) => ({
   dataset: {
@@ -32,18 +33,13 @@ const createMockData = (totalItems: number, itemsPerPage: number) => ({
 
 describe("DatasetVersionPicker component", () => {
   it("pull additional data when scrolling to the last element", async () => {
+    const user = userEvent.setup();
     const dataset = { id: faker.string.uuid() };
     const version = null;
-
     useQueryMock.mockReturnValue({
       loading: false,
       data: createMockData(20, 15),
     });
-
-    let isIntersecting = false;
-    useIntersectionObserverMock.mockImplementation(() => ({
-      isIntersecting,
-    }));
 
     render(
       <DatasetVersionPicker
@@ -54,23 +50,20 @@ describe("DatasetVersionPicker component", () => {
     );
 
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    await user.click(button);
 
     expect(screen.queryAllByRole("option")).toHaveLength(15);
-
     useQueryMock.mockReturnValue({
       loading: false,
       data: createMockData(20, 20),
     });
 
-    isIntersecting = true;
-    const dropdown = await screen.findByRole("listbox");
-    fireEvent.scroll(dropdown, {
-      target: { scrollTop: 2000 },
-    });
+    intersectionObserver.enterNode(
+      screen.getByTestId("intersection-observer-wrapper"),
+    );
 
     await waitFor(() => {
-      expect(screen.queryAllByRole("option")).toHaveLength(20);
+      expect(screen.queryAllByRole("option").length).toBe(20);
     });
   });
 });

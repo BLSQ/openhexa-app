@@ -3,6 +3,7 @@ import Badge from "core/components/Badge";
 import Button from "core/components/Button";
 import Clipboard from "core/components/Clipboard";
 import DataCard from "core/components/DataCard";
+import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 import RenderProperty from "core/components/DataCard/RenderProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
 import Link from "core/components/Link";
@@ -11,10 +12,12 @@ import Switch from "core/components/Switch";
 import Tooltip from "core/components/Tooltip";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
+import useCacheKey from "core/hooks/useCacheKey";
 import { PipelineType } from "graphql/types";
 import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 import PipelineVersionParametersTable from "pipelines/features/PipelineVersionParametersTable";
+import UpgradePipelineFromTemplateDialog from "pipelines/features/UpgradePipelineFromTemplateDialog";
 import { useState } from "react";
 import GeneratePipelineWebhookUrlDialog from "workspaces/features/GeneratePipelineWebhookUrlDialog";
 import PipelineVersionConfigDialog from "workspaces/features/PipelineVersionConfigDialog";
@@ -29,8 +32,6 @@ import {
   updatePipeline,
 } from "workspaces/helpers/pipelines";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
-import UpgradePipelineFromTemplateDialog from "pipelines/features/UpgradePipelineFromTemplateDialog";
-import useCacheKey from "core/hooks/useCacheKey";
 
 type Props = {
   pipelineCode: string;
@@ -85,15 +86,10 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
           onSave={pipeline.permissions.update ? onSavePipeline : undefined}
           collapsible={false}
         >
-          <TextProperty
+          <MarkdownProperty
             id="description"
+            label="Description"
             accessor={"description"}
-            label={t("Description")}
-            defaultValue="-"
-            visible={(value, isEditing) => isEditing || value}
-            sm
-            hideLabel
-            markdown
           />
           <TextProperty
             id="name"
