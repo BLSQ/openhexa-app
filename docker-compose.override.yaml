@@ -15,17 +15,16 @@ services:
           action: rebuild 
 
   frontend:
-    user: "openhexa"
-    build: ./frontend
-    group_add:
-      - "openhexa"
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./.env:/.env
+      - ./backend:/backend
+    environment:
+      - DEBUG=
     develop:
       watch:
-        - path: ./backend
-          action: sync
-          target: /backend
-          ignore: 
-            - ./backend/.venv
         - path: ./frontend/package-lock.json
           action: rebuild 
         - action: sync
@@ -33,6 +32,4 @@ services:
           target: /code
           ignore:
             - ./frontend/node_modules/
-        - action: sync
-          path: ./.env
-          target: /.env
+        

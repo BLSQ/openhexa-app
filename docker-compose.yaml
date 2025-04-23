@@ -105,8 +105,6 @@ services:
 
   frontend:
     image: ${FRONTEND_IMAGE:-blsq/openhexa-frontend}
-    build: ./frontend
-    command: "npm run dev"
     env_file: ./.env
     networks:
       - openhexa

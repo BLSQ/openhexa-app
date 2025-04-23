@@ -1,0 +1,33 @@
+FROM node:lts-alpine
+
+RUN mkdir -p /code && chown -R node:node /code
+WORKDIR /code
+
+# Install dependencies required for building
+RUN apk add --no-cache libc6-compat python3 make g++ && \
+    npm install -g npm@latest && \
+    apk del --purge apk-tools
+
+# Set development environment variables
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+
+
+USER node
+WORKDIR /code
+RUN ls -la /code
+# Copy package files
+COPY --chown=node:node package.json package-lock.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application
+COPY --chown=node:node . .
+
+# Expose the development port
+ENV PORT=3000
+EXPOSE ${PORT}
+
+# Start the development server
+CMD ["npm", "run", "dev"]

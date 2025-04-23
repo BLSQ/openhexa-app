@@ -55,22 +55,25 @@ FROM base AS runner
 
 WORKDIR /code
 ARG APP=/code
-ENV APP_USER=runner
+ARG USER="openhexa"
+ARG UID="1000"
+ARG GID="100"
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN addgroup --system --gid 1001 $APP_USER \
-    && adduser --system --uid 1001 $APP_USER \
+RUN addgroup --system --gid ${GID} ${USER} \
+    && adduser --system --uid ${UID} ${USER} \
     && mkdir .next \
-    && chown ${APP_USER}:${APP_USER} .next
-USER ${APP_USER}
+    && chown ${USER}:${USER} .next
+USER ${USER}
 
-COPY --from=deps    --chown=${APP_USER}:${APP_USER} /code/node_modules ./node_modules
-COPY --from=builder --chown=${APP_USER}:${APP_USER} /code/public ./public
-COPY --from=builder --chown=${APP_USER}:${APP_USER} /code/package.json ./package.json
-COPY --from=builder --chown=${APP_USER}:${APP_USER} /code/next.config.js ./
-COPY --from=builder --chown=${APP_USER}:${APP_USER} /code/next-i18next.config.js ./
-COPY --from=builder --chown=${APP_USER}:${APP_USER} /code/.next ./.next
-COPY --from=builder --chown=${APP_USER}:${APP_USER} /code/server ./server
+COPY --from=deps    --chown=${USER}:${USER} /code/node_modules ./node_modules
+COPY --from=builder --chown=${USER}:${USER} /code/public ./public
+COPY --from=builder --chown=${USER}:${USER} /code/package.json ./package.json
+COPY --from=builder --chown=${USER}:${USER} /code/next.config.js ./
+COPY --from=builder --chown=${USER}:${USER} /code/next-i18next.config.js ./
+COPY --from=builder --chown=${USER}:${USER} /code/.next ./.next
+COPY --from=builder --chown=${USER}:${USER} /code/server ./server
 
 ENV PORT=3000
 EXPOSE ${PORT}
