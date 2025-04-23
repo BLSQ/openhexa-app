@@ -1,26 +1,49 @@
 # Defines a service that can be reused multiple times later
-x-app: &common
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      target: app
-      args:
-        - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
-        - WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
-    env_file:
-      - path: ./.env
-        required: true
-    environment:
-      - ADDITIONAL_ALLOWED_HOSTS=*
-    networks:
-      - openhexa
-    volumes:  # only used for Github Codespaces
-      - "${LOCAL_WORKSPACE_FOLDER:-./backend}:/code"
-      - "${WORKSPACE_STORAGE_LOCATION:-/data/openhexa}:/data"
+x-app-common: &app-common
+  image: ${BACKEND_IMAGE:-blsq/openhexa-app}
+  build:
+    context: ./backend
+    target: app
+    args:
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+      - WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
+  env_file:
+    - path: ./.env
+      required: true
+  environment:
+    - ADDITIONAL_ALLOWED_HOSTS=*
+  depends_on:
+    db:
+      condition: service_healthy
+      restart: true
+  networks:
+    - openhexa
+  volumes:
+    - "${WORKSPACE_STORAGE_LOCATION:-/data/openhexa}:/data"
+
+
+x-app: &app
+  <<: *app-common
+  command: "manage runserver 0:8000"
+  restart: always
+  container_name: app
+  depends_on:
+    db:
+      condition: service_healthy
+      restart: true
+    prestart:
+      condition: service_completed_successfully
 
 services:
   db:
     image: postgis/postgis:15-3.3
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
     env_file:
       - path: ./.env
         required: true
@@ -31,74 +54,59 @@ services:
     ports:
       - "5434:5432"
 
+  prestart:
+    <<: *app-common
+    command: "fixtures"
+    container_name: prestart
+    image: blsq/openhexa-app
+
   app:
     # Inherit from the block defined on top and override some fields
-    <<: *common
+    <<: *app
     command: "manage runserver 0:8000"
     restart: unless-stopped
     container_name: app
-    image: blsq/openhexa-app
     ports:
       - "8000:8000"
-    depends_on:
-      - db
-
+    
   # Workers
   ##########
 
   dataset_worker:
-    <<: *common
+    <<: *app
     command: "manage dataset_worker"
     restart: unless-stopped
     profiles:
       - "dataset_worker"
-    depends_on:
-      - db
 
   pipelines_runner:
-    <<: *common
+    <<: *app
     build:
-      context: ./backend
-      dockerfile: Dockerfile
       target: pipelines
-      args:
-        - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
     command: "manage pipelines_runner"
     restart: unless-stopped
     profiles:
       - "pipelines"
-    depends_on:
-      - db
     volumes:  # only used for Github Codespaces
-      - "${LOCAL_WORKSPACE_FOLDER:-./backend}:/code"
       - /var/run/docker.sock:/var/run/docker.sock
 
   pipelines_scheduler:
-    <<: *common
+    <<: *app
     build:
-      context: ./backend
-      dockerfile: Dockerfile
       target: pipelines
-      args:
-        - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
     command: "manage pipelines_scheduler"
     restart: unless-stopped
     profiles:
       - "pipelines"
-    volumes:  # only used for Github Codespaces
-      - "${LOCAL_WORKSPACE_FOLDER:-./backend}:/code"
-    depends_on:
-      - db
-  
+
   # Frontend
   # TODO: Fix dev container to be able to work with the backend graphql files
   ###########
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      target: dev
+    image: ${FRONTEND_IMAGE:-blsq/openhexa-frontend}
+    build: ./frontend
+    command: "npm run dev"
     env_file: ./.env
     networks:
       - openhexa
@@ -113,10 +121,7 @@ services:
     restart: unless-stopped
     depends_on:
       - app
-    volumes:
-      - ./.env:/.env
-      - ./backend:/backend
-  
+
   # Dev tools
   ############
 
@@ -134,7 +139,7 @@ services:
 
   # This service is only used for the connector_accessmod app.
   accessmod_dataworker:
-    <<: *common
+    <<: *app-common
     command: "manage validate_fileset_worker"
     restart: unless-stopped
     profiles:

@@ -35,15 +35,12 @@ case "$command" in
   $command $arguments
   ;;
 "start")
-  wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
   gunicorn config.wsgi:application --bind 0:8000 --workers=3
   ;;
 "makemigrations")
-  wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
   python manage.py $command $arguments
   ;;
 "migrate")
-  wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
   python manage.py migrate $arguments
   # Load the base fixtures (features, data types, etc.)
   python manage.py loaddata base.json
@@ -52,24 +49,20 @@ case "$command" in
   python manage.py $command $arguments
   ;;
 "test")
-  wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
   export DJANGO_SETTINGS_MODULE=config.settings.test
   python manage.py makemigrations --check
   python manage.py test $arguments
   ;;
 "coveraged-test")
-  wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
   export DJANGO_SETTINGS_MODULE=config.settings.test
   python manage.py makemigrations --check
   coverage run manage.py test $arguments
   coverage report --skip-empty --fail-under=80
   ;;
 "manage")
-  wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
   python manage.py $arguments
   ;;
 "fixtures")
-  wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
   export DJANGO_SUPERUSER_USERNAME=root@openhexa.org
   export DJANGO_SUPERUSER_PASSWORD=root
   export DJANGO_SUPERUSER_EMAIL=root@openhexa.org

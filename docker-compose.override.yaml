@@ -1,0 +1,38 @@
+services:
+  app: 
+    user: "openhexa"
+    group_add:
+      - "openhexa"
+    
+    develop:
+      watch:
+        - path: ./backend
+          action: sync
+          target: /code
+          ignore:
+            - ./backend/.venv
+        - path: ./backend/requirements.txt
+          action: rebuild 
+
+  frontend:
+    user: "openhexa"
+    build: ./frontend
+    group_add:
+      - "openhexa"
+    develop:
+      watch:
+        - path: ./backend
+          action: sync
+          target: /backend
+          ignore: 
+            - ./backend/.venv
+        - path: ./frontend/package-lock.json
+          action: rebuild 
+        - action: sync
+          path: ./frontend
+          target: /code
+          ignore:
+            - ./frontend/node_modules/
+        - action: sync
+          path: ./.env
+          target: /.env
