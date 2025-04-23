@@ -45,8 +45,7 @@ const ParameterField = (props: ParameterFieldProps) => {
       />
     );
   }
-
-  if (parameter.widget !== null && parameter.connection !== null) {
+  if (parameter.widget && parameter.connection) {
     return (
       <GenericConnectionWidget
         parameter={parameter}
