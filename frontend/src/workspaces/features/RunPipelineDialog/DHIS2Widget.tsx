@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import { useTranslation } from "next-i18next";
 import { Combobox, MultiCombobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
@@ -74,6 +74,7 @@ const DHIS2Widget = ({
   const [isLoading, setIsLoading] = useState(false);
   const { t } = useTranslation();
   const [options, setOptions] = useState<any[]>([]);
+  const cachedSelectionsRef = useRef<Map<string, { id: string; label: string }>>(new Map());
   const [fetchData, { data, error }] = useGetConnectionBySlugLazyQuery();
   const hasConnection = useMemo(() => {
     return form.formData[parameter.connection];
@@ -121,12 +122,28 @@ const DHIS2Widget = ({
       });
     }
   };
-
+  const initializeCacheFromForm = () => {
+  const ids = ensureArray(form.formData[parameter.code]);
+  ids.forEach((id: string) => {
+    if (!cachedSelectionsRef.current.has(id)) {
+      cachedSelectionsRef.current.set(id, {
+        id,
+        label: t("Unknown ID: {{id}}", { id }),
+      });
+    }
+  });
+};
+  useEffect(() => {
+    // Initialize the cache with the current form data
+    initializeCacheFromForm();
+  }, []);
   // Initial load & when connection changes
   useEffect(() => {
     if (!hasConnection) return;
     fetchMoreOptions(true);
   }, [hasConnection, debouncedQuery]);
+
+
 
   const errorMessage = useMemo(() => {
     if (error) {
@@ -168,39 +185,47 @@ const DHIS2Widget = ({
   const handleSelectionChange = useCallback(
     (selectedValue: any) => {
       if (parameter.multiple) {
-        form.setFieldValue(
-          parameter.code,
-          ensureArray<{ id: string; label: string }>(selectedValue).map(
-            (item) => item.id,
-          ),
-        );
+        const selectedArray = ensureArray<{ id: string; label: string }>(selectedValue);
+        selectedArray.forEach((item) => {
+          if (item?.id) {
+            cachedSelectionsRef.current.set(item.id, item);
+          }
+        });
+        form.setFieldValue(parameter.code, selectedArray.map((item) => item.id));
       } else {
+        if (selectedValue?.id) {
+          cachedSelectionsRef.current.set(selectedValue.id, selectedValue);
+        }
         form.setFieldValue(parameter.code, selectedValue?.id);
       }
     },
     [form, parameter.code, parameter.multiple],
   );
 
-  const selectedObjects = useMemo(() => {
-    if (!form.formData[parameter.code]) return parameter.multiple ? [] : null;
 
-    if (Array.isArray(form.formData[parameter.code])) {
-      return form.formData[parameter.code].map(
-        (id: string) =>
-          options.find((item) => item.id === id) || {
-            id,
-            label: t("Unknown ID: {{id}}", { id }),
-          },
-      );
-    }
+const selectedObjects = useMemo(() => {
+  const ids = ensureArray(form.formData[parameter.code]);
 
+  const selectObject = (id: string) => {
     return (
-      options.find((item) => item.id === form.formData[parameter.code]) || {
-        id: form.formData[parameter.code],
-        label: t("Unknown ID: {{id}}", { id: form.formData[parameter.code] }),
+      options.find((item) => item.id === id) ||
+      cachedSelectionsRef.current.get(id) || {
+        id,
+        label: t("Unknown ID: {{id}}", { id }),
       }
     );
-  }, [form.formData[parameter.code], options]);
+  };
+
+  if (parameter.multiple) {
+    return ids.map(selectObject);
+  }
+
+  const singleId = ids[0];
+  return singleId ? selectObject(singleId) : null;
+}, [form.formData[parameter.code], options]);
+
+
+
 
   const onScrollBottom = useCallback(() => {
     if (

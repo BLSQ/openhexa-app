@@ -18,6 +18,7 @@ import {
   WorkspaceDatasetIndexPageQuery,
   WorkspaceDatasetIndexPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
+import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 
 export type WorkspaceDatasetPageProps = {
   isSpecificVersion: boolean;
@@ -78,12 +79,10 @@ const WorkspaceDatasetPage: NextPageWithLayout = (
               label={t("Name")}
               visible={(_, isEditing) => isEditing}
             />
-            <TextProperty
+            <MarkdownProperty
               id="description"
               accessor={"description"}
               label={t("Description")}
-              hideLabel
-              markdown
             />
             <RenderProperty
               id="slug"
@@ -139,13 +138,10 @@ const WorkspaceDatasetPage: NextPageWithLayout = (
               onSave={version?.permissions.update ? onSaveVersion : undefined}
               collapsible={false}
             >
-              <TextProperty
+              <MarkdownProperty
                 id="changelog"
                 accessor="changelog"
                 label={t("Changelog")}
-                hideLabel
-                rows={8}
-                markdown
                 sm
               />
               <TextProperty

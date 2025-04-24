@@ -13,6 +13,7 @@ import React from "react";
 import Button from "core/components/Button";
 import router from "next/router";
 import User from "core/features/User";
+import { stripMarkdown } from "core/helpers";
 
 interface TemplateCardProps {
   workspace: TemplateCard_WorkspaceFragment;
@@ -38,10 +39,8 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
         className="space-y-4 min-h-20 min-w-20"
         title={template.description ?? ""}
       >
-        <div
-          className={clsx("line-clamp-3", !template.description && "italic")}
-        >
-          {template.description || t("No description")}
+        <div className={clsx("line-clamp-3")}>
+          {stripMarkdown(template.description ?? "")}
         </div>
         {template.currentVersion?.user && (
           <div className="flex justify-end">

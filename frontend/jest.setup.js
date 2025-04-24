@@ -6,7 +6,11 @@ import "@testing-library/jest-dom";
 import { faker } from "@faker-js/faker";
 import { setConfig } from "next/config";
 
-import { configMocks, mockAnimationsApi } from "jsdom-testing-mocks";
+import {
+  configMocks,
+  mockAnimationsApi,
+  mockResizeObserver,
+} from "jsdom-testing-mocks";
 import { act } from "react";
 import { Settings } from "luxon";
 // @ts-ignore
@@ -20,16 +24,9 @@ Settings.now = jest.fn().mockImplementation(() => Date.now());
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 configMocks({ act });
 
+globalThis.resizeObserverMock = mockResizeObserver();
+
 mockAnimationsApi();
-
-// Mock ResizeObserver
-class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-
-global.ResizeObserver = ResizeObserver;
 
 // Make sure you can use "publicRuntimeConfig" within tests.
 setConfig({
@@ -61,12 +58,10 @@ jest.mock("react", () => {
   };
 });
 
-jest.mock("core/components/MarkdownEditor/MarkdownEditor", () => {
-  return (props) => {
-    return props.markdown || null;
-  };
-});
-
+jest.mock("core/components/MarkdownEditor/MarkdownEditor");
+jest.mock("core/helpers", () => ({
+  stripMarkdown: (markdown) => markdown,
+}));
 jest.mock("next-i18next", () => ({
   I18nextProvider: jest.fn(),
   useTranslation: () => ({ t: (key) => key }),
@@ -95,13 +90,3 @@ jest.mock("remark-gfm", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-
-// Mock the IntersectionObserver
-const intersectionObserverMock = () => ({
-  observe: () => null,
-  unobserve: () => null,
-  disconnect: () => null,
-});
-window.IntersectionObserver = jest
-  .fn()
-  .mockImplementation(intersectionObserverMock);
