@@ -331,8 +331,8 @@ const SearchOverlay = ({
 
   const oneOfTheResultsLoading =
     isBouncing || tabConfigs.some(({ loading }) => loading);
-  const showWorkspaceFilterPanel = query;
-  const showResults = query;
+  const showWorkspaceFilterPanel = unBouncedQuery;
+  const showResults = unBouncedQuery;
 
   if (!isOpen) {
     return null;
