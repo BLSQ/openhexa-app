@@ -3,7 +3,7 @@ services:
     user: "openhexa"
     group_add:
       - "openhexa"
-    
+    command: "manage runserver 0:8000"
     develop:
       watch:
         - path: ./backend
@@ -33,3 +33,10 @@ services:
           ignore:
             - ./frontend/node_modules/
         
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - openhexa

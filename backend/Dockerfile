@@ -8,45 +8,52 @@ RUN \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-  # Set up work directory
-RUN mkdir /code
-WORKDIR /code
-
+  
 # Upgrade pip and install requirements
 RUN --mount=type=cache,target=/root/.cache \
     pip install --upgrade pip setuptools==78.0.2
 
+# Rootless
+ARG USER=openhexa
+ARG UID=1000
+RUN groupadd --gid $UID $USER &&\
+  useradd --gid $UID --uid $UID --no-create-home --home-dir /code --no-log-init --shell /bin/bash $USER &&\
+  passwd -d $USER
+
+# Set up work directory
+RUN mkdir /data && \
+    chown $USER:$USER /data && \
+    mkdir /code && \
+    chown $USER:$USER /code
+WORKDIR /code
+
+
 # Install project dependencies from requirements.txt
-COPY requirements.txt /code/
+COPY --chown=$USER:$USER requirements.txt .
 
 RUN --mount=type=cache,target=/root/.cache \
-    pip install -r requirements.txt  && \
-    apt-get remove -y build-essential && \
-    apt-get autoremove -y
+pip install -r requirements.txt  && \
+apt-get remove -y build-essential && \
+apt-get autoremove -y
+
 
 # Copy the rest of the application
-COPY . /code/
+COPY --chown=$USER:$USER . .
 
 ARG DJANGO_SETTINGS_MODULE
 
-# Rootless
-ARG USER=openhexa
-ARG GROUP=openhexa
-RUN groupadd --gid 1000 $GROUP &&\
-  useradd --gid 1000 --uid 1000 --no-create-home --home-dir /code --no-log-init --shell /bin/bash $USER &&\
-  passwd -d $USER
+USER $USER
 
-RUN chown -R $USER:$GROUP /code/
-RUN mkdir /data && chown $USER:$GROUP /data
-USER $USER:$GROUP
 
-# Entry point
 ARG WORKSPACE_STORAGE_LOCATION
 ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
 ENV WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
 ENTRYPOINT ["/code/docker-entrypoint.sh"]
 CMD ["start"]
 
+###########
+#   App   #
+###########
 FROM deps AS app
 ARG DJANGO_SETTINGS_MODULE
 ARG WORKSPACE_STORAGE_LOCATION
@@ -54,6 +61,10 @@ ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
 ENV WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
 RUN python manage.py collectstatic --noinput
 
+
+#################
+#   Pipelines   #
+#################
 # Staged used to run the pipelines scheduler and runner
 FROM app AS pipelines
 ARG DJANGO_SETTINGS_MODULE
@@ -61,7 +72,7 @@ ARG WORKSPACE_STORAGE_LOCATION
 ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
 ENV WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
 
-USER root:root
+USER root
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && \
@@ -81,4 +92,4 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # Rootless
 RUN groupadd --gid 999 docker
 RUN usermod -aG docker $USER
-USER $USER:$GROUP
+USER $USER

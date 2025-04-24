@@ -24,7 +24,6 @@ x-app-common: &app-common
 
 x-app: &app
   <<: *app-common
-  command: "manage runserver 0:8000"
   restart: always
   container_name: app
   depends_on:
@@ -40,10 +39,10 @@ services:
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
+      interval: 2s
       retries: 5
-      start_period: 30s
-      timeout: 10s
+      start_period: 10s
+      timeout: 5s
     env_file:
       - path: ./.env
         required: true
@@ -120,18 +119,6 @@ services:
     depends_on:
       - app
 
-  # Dev tools
-  ############
-
-  mailhog:
-    image: mailhog/mailhog:latest
-    ports:
-      - "1025:1025"
-      - "8025:8025"
-    networks:
-      - openhexa
-
-  
   # Legacy services
   ################
 

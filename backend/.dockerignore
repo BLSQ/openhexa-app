@@ -5,6 +5,7 @@
 .env
 .ruff_cache
 .venv
+.cache
 Dockerfile
 docker-compose.yml
 .dockerignore
