@@ -118,6 +118,8 @@ PipelineVersionPicker.fragments = {
         name
         help
         type
+        widget
+        connection
         default
         required
         choices

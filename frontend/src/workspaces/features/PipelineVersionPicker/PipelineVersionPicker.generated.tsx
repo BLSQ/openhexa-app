@@ -8,11 +8,11 @@ export type PipelineVersionPickerQueryVariables = Types.Exact<{
 }>;
 
 
-export type PipelineVersionPickerQuery = { __typename?: 'Query', pipeline?: { __typename?: 'Pipeline', versions: { __typename?: 'PipelineVersionPage', items: Array<{ __typename?: 'PipelineVersion', id: string, versionName: string, createdAt: any, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null }> } } | null };
+export type PipelineVersionPickerQuery = { __typename?: 'Query', pipeline?: { __typename?: 'Pipeline', versions: { __typename?: 'PipelineVersionPage', items: Array<{ __typename?: 'PipelineVersion', id: string, versionName: string, createdAt: any, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, widget?: Types.ParameterWidget | null, connection?: string | null, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null }> } } | null };
 
 export type PipelineVersionPicker_PipelineFragment = { __typename?: 'Pipeline', id: string };
 
-export type PipelineVersionPicker_VersionFragment = { __typename?: 'PipelineVersion', id: string, versionName: string, createdAt: any, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null };
+export type PipelineVersionPicker_VersionFragment = { __typename?: 'PipelineVersion', id: string, versionName: string, createdAt: any, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, widget?: Types.ParameterWidget | null, connection?: string | null, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null };
 
 export const PipelineVersionPicker_PipelineFragmentDoc = gql`
     fragment PipelineVersionPicker_pipeline on Pipeline {
@@ -30,6 +30,8 @@ export const PipelineVersionPicker_VersionFragmentDoc = gql`
     name
     help
     type
+    widget
+    connection
     default
     required
     choices
