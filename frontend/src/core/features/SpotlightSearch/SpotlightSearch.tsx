@@ -334,19 +334,19 @@ const SearchOverlay = ({
   const showWorkspaceFilterPanel = query;
   const showResults = query;
 
+  if (!isOpen) {
+    return null;
+  }
   return (
     <div
-      className={clsx(
-        "fixed inset-0 z-50 bg-gray-900/70 flex transition-opacity duration-200 justify-center",
-        isOpen ? "opacity-100" : "opacity-0 pointer-events-none",
-      )}
+      className="fixed inset-0 z-50 bg-gray-900/70 flex justify-center"
       tabIndex={0}
     >
       <div className="flex w-2/3 mt-30" ref={searchBarRef}>
         <div className="relative">
           <div
             className={clsx(
-              "transition-opacity duration-200 ease-in-out p-4 pb-8 bg-white rounded-t-lg min-h-45",
+              "transition-opacity duration-100 ease-in-out p-4 pb-8 bg-white rounded-t-lg min-h-45",
               showWorkspaceFilterPanel ? "opacity-100" : "opacity-0",
             )}
           >
@@ -378,7 +378,7 @@ const SearchOverlay = ({
               setUnBouncedQuery(event.target.value ?? "");
             }}
             className={clsx(
-              "w-full transition-all duration-200 ease-in-out",
+              "w-full transition-all duration-100 ease-in-out",
               showWorkspaceFilterPanel && "rounded-t-none",
               showResults && "rounded-b-none",
             )}
@@ -386,7 +386,7 @@ const SearchOverlay = ({
           />
           <div
             className={clsx(
-              "transition-opacity duration-200 ease-in-out",
+              "transition-opacity duration-100 ease-in-out",
               showResults ? "opacity-100" : "opacity-0",
             )}
           >
