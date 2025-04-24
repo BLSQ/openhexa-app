@@ -163,13 +163,16 @@ describe("WorkspaceWebappPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
 
-    const nameParent = screen
+    const card = screen.getByRole("article");
+    const nameParent = within(card)
       .getByText("Name")
       .closest("div") as HTMLDivElement;
     const nameInput = within(nameParent).getByRole("textbox");
     fireEvent.change(nameInput, { target: { value: "Updated Webapp" } });
 
-    const urlParent = screen.getByText("URL").closest("div") as HTMLDivElement;
+    const urlParent = within(card)
+      .getByText("URL")
+      .closest("div") as HTMLDivElement;
     const urlInput = within(urlParent).getByRole("textbox");
     fireEvent.change(urlInput, {
       target: { value: "https://updated-url.com" },
