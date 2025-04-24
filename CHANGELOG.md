@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.3.0](https://github.com/BLSQ/openhexa-app/compare/1.2.4...1.3.0) (2025-04-24)
+
+
+### Features
+
+* **dataset:** add markdown editor to dataset (HEXA-1204)  ([#1032](https://github.com/BLSQ/openhexa-app/issues/1032)) ([93df72a](https://github.com/BLSQ/openhexa-app/commit/93df72aa68779a165f00b7c5185512b549da688e))
+* **pipeline:** adds pipeline editor to pipeline and template (HEXA-1202) ([#1031](https://github.com/BLSQ/openhexa-app/issues/1031)) ([0d3ea9e](https://github.com/BLSQ/openhexa-app/commit/0d3ea9e788f8403f5377cca84a542a7286591ee4))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @apollo/client to v3.13.8 ([#1041](https://github.com/BLSQ/openhexa-app/issues/1041)) ([5648259](https://github.com/BLSQ/openhexa-app/commit/5648259f9c67bddf29ba516e6295da8297071cf7))
+* **deps:** update dependency @headlessui/react to v2.2.2 ([#1039](https://github.com/BLSQ/openhexa-app/issues/1039)) ([00e7091](https://github.com/BLSQ/openhexa-app/commit/00e7091ed2b7d6aed5f371bebbe0244cff02ef9f))
+* **deps:** update dependency @mdxeditor/editor to v3.30.1 ([#1044](https://github.com/BLSQ/openhexa-app/issues/1044)) ([c266a67](https://github.com/BLSQ/openhexa-app/commit/c266a6759a6795e6ef485c45649dd8514273771c))
+* **deps:** update dependency i18next to v25.0.1 ([#1048](https://github.com/BLSQ/openhexa-app/issues/1048)) ([421a93c](https://github.com/BLSQ/openhexa-app/commit/421a93cb9371a1e6086bb4d853ba5e27927adb4a))
+* **deps:** update nextjs monorepo to v15.3.1 ([#1042](https://github.com/BLSQ/openhexa-app/issues/1042)) ([c9d0cf8](https://github.com/BLSQ/openhexa-app/commit/c9d0cf8351b5be9bbbccd68e9e071f93080c0d83))
+* fixe pipeline parameter update in version picker ([#1053](https://github.com/BLSQ/openhexa-app/issues/1053)) ([eda92a5](https://github.com/BLSQ/openhexa-app/commit/eda92a50cf89852f9ce6919f059fcdece404b4bc))
+
 ## [1.2.4](https://github.com/BLSQ/openhexa-app/compare/1.2.3...1.2.4) (2025-04-17)
 
 
