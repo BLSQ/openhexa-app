@@ -1,3 +1,7 @@
+from unittest.mock import patch
+
+from files.backends.base import StorageObject
+
 from hexa.core.test import GraphQLTestCase
 from hexa.datasets.models import Dataset
 from hexa.pipeline_templates.models import PipelineTemplate
@@ -34,18 +38,21 @@ class SearchResolversTest(GraphQLTestCase):
             slug="workspace1",
             description="First workspace",
             db_name="db_workspace1",
+            bucket_name="bucket_workspace1",
         )
         cls.WORKSPACE2 = Workspace.objects.create(
             name="Workspace 2",
             slug="workspace2",
             description="Second workspace",
             db_name="db_workspace2",
+            bucket_name="bucket_workspace2",
         )
         cls.WORKSPACE3 = Workspace.objects.create(
             name="Workspace 3",
             slug="workspace3",
             description="Third workspace (user not part of)",
             db_name="db_workspace3",
+            bucket_name="bucket_workspace3",
         )
 
         WorkspaceMembership.objects.create(
@@ -216,4 +223,63 @@ class SearchResolversTest(GraphQLTestCase):
         self.assertEqual(response["data"]["searchPipelineTemplates"]["totalPages"], 2)
         self.assertEqual(response["data"]["searchPipelineTemplates"]["totalItems"], 3)
 
-    # TODO : test files and database tables
+    @patch("hexa.files.storage.list_bucket_objects")
+    def test_search_files(self, mock_list_bucket_objects):
+        self.client.force_login(self.USER)
+
+        mock_list_bucket_objects.return_value.items = [
+            StorageObject(
+                name="file1", key="file1", path="file1", type="file", size=100
+            ),
+            StorageObject(
+                name="file2", key="file2", path="file2", type="file", size=200
+            ),
+        ]
+
+        response = self.run_query(
+            """
+            query searchFiles($query: String!, $page: Int, $perPage: Int, $workspaceSlugs: [String]!) {
+                searchFiles(query: $query, page: $page, perPage: $perPage, workspaceSlugs: $workspaceSlugs) {
+                    items {
+                        file {
+                            name
+                            path
+                        }
+                        workspace {
+                            name
+                        }
+                        score
+                    }
+                }
+            }
+            """,
+            {
+                "query": "file1",
+                "page": 1,
+                "perPage": 10,
+                "workspaceSlugs": ["workspace1", "workspace2"],
+            },
+        )
+
+        self.assertEqual(
+            len(response["data"]["searchFiles"]["items"]),
+            4,  # 2 files * 2 workspaces
+        )
+        self.assertEqual(
+            response["data"]["searchFiles"]["items"][0],
+            {
+                "file": {"name": "file1", "path": "file1"},
+                "score": 1.0,
+                "workspace": {"name": "Workspace 1"},
+            },
+        )
+        self.assertEqual(
+            response["data"]["searchFiles"]["items"][1],
+            {
+                "file": {"name": "file2", "path": "file2"},
+                "score": 0.5,
+                "workspace": {"name": "Workspace 1"},
+            },
+        )
+
+    # TODO : test database tables
