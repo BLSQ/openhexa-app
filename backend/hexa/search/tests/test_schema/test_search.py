@@ -164,7 +164,7 @@ class SearchResolversTest(GraphQLTestCase):
             }
             """,
             {
-                "query": "Pipeline",
+                "query": "pipeline 1",
                 "page": 1,
                 "perPage": 10,
                 "workspaceSlugs": ["workspace1", "workspace2"],
@@ -172,7 +172,7 @@ class SearchResolversTest(GraphQLTestCase):
         )
         self.assertEqual(
             response["data"]["searchPipelines"]["items"],
-            [{"pipeline": {"name": "Pipeline 1", "code": "pipeline-1"}, "score": 0.5}],
+            [{"pipeline": {"name": "Pipeline 1", "code": "pipeline-1"}, "score": 1}],
         )
 
     def test_search_pipeline_templates(self):
