@@ -47,7 +47,11 @@ class DatasetQuerySet(BaseQuerySet):
     def filter_for_workspace_slugs(
         self, user: AnonymousUser | User, workspace_slugs: list[str]
     ):
-        return self.filter_for_user(user).filter(Q(workspace__slug__in=workspace_slugs))
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(workspace__members=user, workspace__slug__in=workspace_slugs),
+            return_all_if_superuser=False,
+        )
 
 
 class DatasetManager(models.Manager):
