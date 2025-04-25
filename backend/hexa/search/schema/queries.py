@@ -63,11 +63,7 @@ def resolve_search_pipelines(
 def resolve_search_pipeline_templates(
     _, info, query=None, page=1, per_page=15, workspace_slugs=None
 ):
-    workspace_slugs = workspace_slugs or []
-    request = info.context["request"]
-    qs = PipelineTemplate.objects.filter_for_workspace_slugs(
-        request.user, workspace_slugs
-    )
+    qs = PipelineTemplate.objects.all()
     qs = apply_scored_search(qs, ["name", "code", "description"], query)
     return page_result_with_scores(qs, page, per_page, "pipeline_template")
 

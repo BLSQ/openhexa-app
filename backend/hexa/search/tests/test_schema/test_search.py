@@ -98,8 +98,8 @@ class SearchResolversTest(GraphQLTestCase):
         )
 
         cls.TEMPLATE1 = PipelineTemplate.objects.create(
-            name="Template 1",
-            code="template-1",
+            name="Template",
+            code="template",
             description="First template",
             source_pipeline=cls.PIPELINE1,
         )
@@ -188,13 +188,15 @@ class SearchResolversTest(GraphQLTestCase):
                         }
                         score
                     }
+                    totalPages
+                    totalItems
                 }
             }
             """,
             {
                 "query": "Template",
                 "page": 1,
-                "perPage": 10,
+                "perPage": 2,
                 "workspaceSlugs": ["workspace1", "workspace2"],
             },
         )
@@ -202,10 +204,16 @@ class SearchResolversTest(GraphQLTestCase):
             response["data"]["searchPipelineTemplates"]["items"],
             [
                 {
-                    "pipelineTemplate": {"name": "Template 1", "code": "template-1"},
+                    "pipelineTemplate": {"name": "Template", "code": "template"},
+                    "score": 1,
+                },
+                {
+                    "pipelineTemplate": {"name": "Template 2", "code": "template-2"},
                     "score": 0.5,
-                }
+                },
             ],
         )
+        self.assertEqual(response["data"]["searchPipelineTemplates"]["totalPages"], 2)
+        self.assertEqual(response["data"]["searchPipelineTemplates"]["totalItems"], 3)
 
     # TODO : test files and database tables

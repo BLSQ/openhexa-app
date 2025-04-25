@@ -25,17 +25,6 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             return_all_if_superuser=False,
         )
 
-    def filter_for_workspace_slugs(
-        self,
-        user: AnonymousUser | User,
-        workspace_slugs: list[str],
-    ) -> models.QuerySet:
-        return (
-            self.filter_for_user(user)
-            .filter(Q(workspace__slug__in=workspace_slugs))
-            .exclude(deleted_at__isnull=False)
-        )
-
 
 class PipelineTemplate(SoftDeletedModel):
     class Meta:
