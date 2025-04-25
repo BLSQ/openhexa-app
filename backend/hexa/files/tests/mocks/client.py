@@ -201,7 +201,13 @@ class MockClient:
         raise NotImplementedError
 
     def list_blobs(
-        self, bucket_or_name, max_results=None, prefix=None, page_size=None, **kwargs
+        self,
+        bucket_or_name,
+        max_results=None,
+        prefix=None,
+        page_size=None,
+        match_glob=None,
+        **kwargs,
     ):
         bucket = self._bucket_arg_to_bucket(bucket_or_name)
         if bucket is None:
@@ -227,6 +233,12 @@ class MockClient:
             if blob.name[prefix_len:].find("/") < 0
             or blob.name[prefix_len:].find("/") == len(blob.name[prefix_len:]) - 1
         ]
+
+        # Apply match_glob filtering if provided
+        if match_glob:
+            import fnmatch
+
+            blobs = [blob for blob in blobs if fnmatch.fnmatch(blob.name, match_glob)]
 
         blobs.sort(key=lambda blob: blob.name)
 

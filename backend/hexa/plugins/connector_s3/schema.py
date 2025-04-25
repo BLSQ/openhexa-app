@@ -1,9 +1,12 @@
-from ariadne import MutationType, ObjectType, QueryType
+import pathlib
 
-from hexa.core.graphql import load_type_defs_from_file
+from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
+
 from hexa.plugins.connector_s3.models import Object
 
-base_type_defs = load_type_defs_from_file("plugins/connector_s3/graphql/schema.graphql")
+base_type_defs = load_schema_from_path(
+    f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
+)
 
 query = QueryType()
 mutations = MutationType()
