@@ -282,4 +282,61 @@ class SearchResolversTest(GraphQLTestCase):
             },
         )
 
-    # TODO : test database tables
+    @patch("hexa.search.schema.queries.get_database_definition")
+    def test_search_database_tables(self, mock_get_database_definition):
+        self.client.force_login(self.USER)
+
+        mock_get_database_definition.return_value = [
+            {"name": "table"},
+            {"name": "table2"},
+        ]
+
+        response = self.run_query(
+            """
+            query searchDatabaseTables($query: String!, $page: Int, $perPage: Int, $workspaceSlugs: [String]!) {
+                searchDatabaseTables(query: $query, page: $page, perPage: $perPage, workspaceSlugs: $workspaceSlugs) {
+                    items {
+                        databaseTable {
+                            name
+                        }
+                        workspace {
+                            name
+                        }
+                        score
+                    }
+                }
+            }
+            """,
+            {
+                "query": "table",
+                "page": 1,
+                "perPage": 10,
+                "workspaceSlugs": ["workspace1", "workspace2"],
+            },
+        )
+
+        self.assertEqual(
+            response["data"]["searchDatabaseTables"]["items"],
+            [
+                {
+                    "databaseTable": {"name": "table"},
+                    "workspace": {"name": "Workspace 1"},
+                    "score": 1.0,
+                },
+                {
+                    "databaseTable": {"name": "table2"},
+                    "workspace": {"name": "Workspace 1"},
+                    "score": 0.5,
+                },
+                {
+                    "databaseTable": {"name": "table"},
+                    "workspace": {"name": "Workspace 2"},
+                    "score": 1.0,
+                },
+                {
+                    "databaseTable": {"name": "table2"},
+                    "workspace": {"name": "Workspace 2"},
+                    "score": 0.5,
+                },
+            ],
+        )
