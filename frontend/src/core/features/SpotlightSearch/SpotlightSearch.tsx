@@ -58,7 +58,7 @@ const getTabLabel = (
 
 const pageSize = 15;
 
-const SearchOverlay = ({
+const SpotlightSearch = ({
   isOpen,
   onClose,
 }: {
@@ -457,7 +457,7 @@ const SearchOverlay = ({
   );
 };
 
-SearchOverlay.fragments = {
+SpotlightSearch.fragments = {
   datasets: gql`
     query SearchDatasets($query: String!, $workspaceSlugs: [String]!, $page: Int, $perPage: Int) {
       datasets: searchDatasets(query: $query, workspaceSlugs: $workspaceSlugs, page: $page, perPage: $perPage) {
@@ -527,4 +527,4 @@ SearchOverlay.fragments = {
   `,
 };
 
-export default SearchOverlay;
+export default SpotlightSearch;

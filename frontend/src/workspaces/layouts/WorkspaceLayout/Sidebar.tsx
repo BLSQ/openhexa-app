@@ -26,7 +26,7 @@ import { useRouter } from "next/router";
 import useFeature from "identity/hooks/useFeature";
 import { useHotkeys } from "react-hotkeys-hook";
 import { GetServerSidePropsContext } from "next";
-import SearchOverlay from "core/features/SpotlightSearch/SpotlightSearch";
+import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 
 export let isMac = false;
 
@@ -193,7 +193,7 @@ const Sidebar = (props: SidebarProps) => {
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
-        <SearchOverlay
+        <SpotlightSearch
           key={isSearchOpen ? Date.now() : null}
           isOpen={isSearchOpen}
           onClose={() => setSearchOpen(false)}
