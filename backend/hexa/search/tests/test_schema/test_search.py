@@ -1,9 +1,8 @@
 from unittest.mock import patch
 
-from files.backends.base import StorageObject
-
 from hexa.core.test import GraphQLTestCase
 from hexa.datasets.models import Dataset
+from hexa.files.backends.base import StorageObject
 from hexa.pipeline_templates.models import PipelineTemplate
 from hexa.pipelines.models import Pipeline
 from hexa.user_management.models import User
