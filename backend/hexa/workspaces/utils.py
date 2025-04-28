@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import StrEnum
@@ -32,6 +33,42 @@ def send_workspace_invitation_email(
             )
             action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
 
+        attachments = [
+            (
+                "logo_with_text_white.png",
+                open(
+                    os.path.join(
+                        settings.BASE_DIR,
+                        "hexa/static/img/logo/logo_with_text_white.png",
+                    ),
+                    "rb",
+                ).read(),
+                "image/png",
+            ),
+            (
+                "services_openhexa.png",
+                open(
+                    os.path.join(
+                        settings.BASE_DIR,
+                        "hexa/static/img/email/services_openhexa.png",
+                    ),
+                    "rb",
+                ).read(),
+                "image/png",
+            ),
+            (
+                "flow_openhexa.png",
+                open(
+                    os.path.join(
+                        settings.BASE_DIR,
+                        "hexa/static/img/email/flow_openhexa.png",
+                    ),
+                    "rb",
+                ).read(),
+                "image/png",
+            ),
+        ]
+
         send_mail(
             title=title,
             template_name="workspaces/mails/invite_user",
@@ -43,6 +80,7 @@ def send_workspace_invitation_email(
                 "url": action_url,
             },
             recipient_list=[invitation.email],
+            attachments=attachments,
         )
 
         track(
