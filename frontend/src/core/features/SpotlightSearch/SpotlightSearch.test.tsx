@@ -31,19 +31,18 @@ describe("SpotlightSearch", () => {
       expect(screen.getByText("Filter by Workspace")).toBeInTheDocument();
     });
 
-    // TODO : check it changes something
-    fireEvent.click(screen.getByText("Test Workspace"));
+    fireEvent.click(screen.getByText("Test Workspace")); // The mock data has a workspace called "Test Workspace" and expecting only one workspace in the query
 
     const tabs = screen.getAllByRole("tab");
     expect(tabs).toHaveLength(6);
-    fireEvent.click(tabs[2]);
+    fireEvent.click(tabs[2]); // Switch to the tables tab
     expect(tabs[2]).toHaveAttribute("aria-selected", "true");
 
     await waitFor(
       () => expect(screen.getByText("Test Table")).toBeInTheDocument(),
       { timeout: 1000 }, // Account for a debounced time of 500ms in the input bar
     );
-    fireEvent.click(screen.getByText("Test Table"));
+    fireEvent.keyDown(document, { key: "Enter", code: "Enter" }); // Focus and keyboard shortcuts should work
     expect(mockRouter.asPath).toBe(
       "/workspaces/test-workspace/databases/Test%20Table",
     );
