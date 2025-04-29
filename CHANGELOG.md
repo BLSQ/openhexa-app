@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.4.0](https://github.com/BLSQ/openhexa-app/compare/1.3.0...1.4.0) (2025-04-29)
+
+
+### Features
+
+* **email:** enhance email sending functionality with attachments and update email template to use inline images ([#1057](https://github.com/BLSQ/openhexa-app/issues/1057)) ([cd317eb](https://github.com/BLSQ/openhexa-app/commit/cd317ebd21c9cac5d8cdc9c8f938d67ef41873a8))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @codemirror/lang-python to v6.2.0 ([#1056](https://github.com/BLSQ/openhexa-app/issues/1056)) ([743ccbb](https://github.com/BLSQ/openhexa-app/commit/743ccbb271d395877e157275026fb006b028a25a))
+* **deps:** update dependency @uiw/react-codemirror to v4.23.11 ([#1054](https://github.com/BLSQ/openhexa-app/issues/1054)) ([cba2bf1](https://github.com/BLSQ/openhexa-app/commit/cba2bf13cbc3c4ccc8e4c4d3ebe4db2b0318117b))
+* **deps:** update dependency i18next to v25.0.2 ([#1059](https://github.com/BLSQ/openhexa-app/issues/1059)) ([d531fe7](https://github.com/BLSQ/openhexa-app/commit/d531fe70594fd604e67707ea8fca3a478e23cea5))
+* **deps:** update dependency react-i18next to v15.5.1 ([#1052](https://github.com/BLSQ/openhexa-app/issues/1052)) ([7e462d4](https://github.com/BLSQ/openhexa-app/commit/7e462d487ad2dbc396e44f643dbae02b61522832))
+* Redirect the url already hosted on Vercel to the new one in Django. ([#1058](https://github.com/BLSQ/openhexa-app/issues/1058)) ([fb61fc9](https://github.com/BLSQ/openhexa-app/commit/fb61fc91db2205cb6d537e9fcb96399f47222ca8))
+
 ## [1.3.0](https://github.com/BLSQ/openhexa-app/compare/1.2.4...1.3.0) (2025-04-24)
 
 
