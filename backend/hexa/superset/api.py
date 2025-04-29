@@ -105,3 +105,8 @@ class SupersetClient:
             return response.json()["token"]
         except HTTPError as e:
             raise SupersetError(f"Failed to get guest token: {e}", response=e.response)
+
+    def request(self, method: str, endpoint: str, **kwargs):
+        response = self.session.request(method, self.base_url + endpoint, **kwargs)
+        response.raise_for_status()
+        return response.json()
