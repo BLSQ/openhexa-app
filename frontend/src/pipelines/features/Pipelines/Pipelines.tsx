@@ -50,6 +50,7 @@ const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
         setSearchQuery={setSearchQuery}
         view={view}
         setView={setView}
+        showCard={true}
       />
       {pipelines.items.length === 0 ? (
         <div className="text-center text-gray-500">

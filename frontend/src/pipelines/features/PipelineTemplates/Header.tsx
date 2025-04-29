@@ -24,7 +24,7 @@ const Header = ({
   filter,
   view,
   setView,
-  showCard = true,
+  showCard,
 }: HeaderProps) => {
   return (
     <div className={"my-5 flex justify-between"}>
