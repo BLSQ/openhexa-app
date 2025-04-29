@@ -1,6 +1,8 @@
 import typing
+from email.mime.image import MIMEImage
 
-from django.core.mail import send_mail as django_send_mail
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from mjml import mjml2html
 
@@ -11,16 +13,29 @@ def send_mail(
     recipient_list: typing.Sequence[str],
     template_name: str,
     template_variables: typing.Mapping,
+    attachments: typing.Sequence[typing.Tuple[str, bytes, str]] = None,
 ):
     text_message = render_to_string(f"{template_name}.txt", template_variables)
     html_message = mjml2html(
         render_to_string(f"{template_name}.mjml", template_variables)
     )
 
-    django_send_mail(
-        title,
-        message=text_message,
-        html_message=html_message,
-        recipient_list=recipient_list,
-        from_email=None,
+    mail = EmailMultiAlternatives(
+        subject=title,
+        body=text_message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=recipient_list,
     )
+    if html_message:
+        mail.attach_alternative(html_message, "text/html")
+
+    if attachments:
+        for filename, content, mimetype in attachments:
+            if mimetype.startswith("image/"):
+                image = MIMEImage(content)
+                image.add_header("Content-ID", f"<{filename}>")
+                mail.attach(image)
+            else:
+                mail.attach(filename, content, mimetype)
+
+    return mail.send()

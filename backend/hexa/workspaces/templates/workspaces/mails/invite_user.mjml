@@ -15,7 +15,7 @@
     <mj-section padding="60px 0 0 0"></mj-section>
     <mj-section background-color="#2e2e2e" border-radius="18px 18px 0 0" padding="30px 0">
       <mj-column>
-        <mj-image title="OpenHEXA" align="center" height="100px" src="{% static_with_domain 'img/logo/logo_with_text_white.svg' %}" padding="10px 25px 10px 25px"></mj-image>
+        <mj-image title="OpenHEXA" align="center" width="339px" src="cid:logo_with_text_white.png" padding="10px 25px 10px 25px"></mj-image>
       </mj-column>
     </mj-section>
 
@@ -44,8 +44,8 @@
             Unlock the power of your data {{ span }}
             {% endblocktranslate %}
           </mj-text>
-          <mj-image padding="20px 0" src="{% static_with_domain 'img/email/services_openhexa.png' %}" alt="OpenHEXA Overview" />
-          <mj-image padding="0" src="{% static_with_domain 'img/email/flow_openhexa.png' %}" alt="Modules Overview" />
+          <mj-image padding="20px 0" src="cid:services_openhexa.png" alt="OpenHEXA Overview" />
+          <mj-image padding="0" src="cid:flow_openhexa.png" alt="Modules Overview" />
         </mj-column>
       </mj-section>
 

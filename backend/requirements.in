@@ -33,7 +33,7 @@ gunicorn
 dhis2.py
 
 # connector_s3
-boto3==1.37.38
+boto3==1.38.4
 moto[s3]
 
 # connector_airflow
@@ -71,7 +71,7 @@ openpyxl
 regex
 
 #toolbox
-openhexa-toolbox==2.0.4
+openhexa-toolbox==2.0.5
 
 # email templating
 mjml-python

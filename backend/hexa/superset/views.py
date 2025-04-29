@@ -1,5 +1,6 @@
 from logging import getLogger
 
+import sentry_sdk
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -49,8 +50,15 @@ def view_superset_dashboard_by_external_id(
         "view_superset_dashboard_by_external_id is deprecated. Use view_superset_dashboard instead.",
         extra={"request": request, "external_id": external_id},
     )
-
-    dashboard: SupersetDashboard = get_object_or_404(
-        SupersetDashboard, external_id=external_id
-    )
+    try:
+        dashboard: SupersetDashboard = SupersetDashboard.objects.get(
+            external_id=external_id
+        )
+    except SupersetDashboard.DoesNotExist:
+        sentry_sdk.capture_message(
+            "Legacy Superset dashboard not found",
+            level="error",
+            extras={"request": request, "external_id": external_id},
+        )
+        return HttpResponse(status=404)
     return redirect(dashboard.get_absolute_url())
