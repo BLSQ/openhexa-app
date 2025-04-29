@@ -31,7 +31,7 @@ const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
     },
   });
 
-  if (!data?.workspace) {
+  if (!data?.pipelines) {
     return null;
   }
 
