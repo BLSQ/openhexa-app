@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 import Button from "core/components/Button";
 import { gql } from "@apollo/client";
 import { Pipelines_WorkspaceFragment } from "./Pipelines.generated";
@@ -14,17 +13,16 @@ type PipelinesProps = {
   setDialogOpen: (open: boolean) => void;
 };
 
-// TODO: search and wiring
-// TODO : pagination
-// TODO : delete
+// TODO : search and wiring
+// TODO : default and invert
+// TODO : name - code -version - type - created at
 
 const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
   const { t } = useTranslation();
-  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [view, setView] = useState<"grid" | "card">("grid");
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
+  const perPage = 10;
 
   const { data } = useWorkspacePipelinesPageQuery({
     variables: {
