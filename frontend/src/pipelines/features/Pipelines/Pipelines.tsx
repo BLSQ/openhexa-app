@@ -2,19 +2,21 @@ import React, { useState } from "react";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import Button from "core/components/Button";
-import PipelineCard from "workspaces/features/PipelineCard";
-import Pagination from "core/components/Pagination";
 import { gql } from "@apollo/client";
 import { Pipelines_WorkspaceFragment } from "./Pipelines.generated";
 import { useWorkspacePipelinesPageQuery } from "workspaces/graphql/queries.generated";
 import Header from "../PipelineTemplates/Header";
+import GridView from "./GridView";
+import CardView from "./CardView";
 
 type PipelinesProps = {
   workspace: Pipelines_WorkspaceFragment;
   setDialogOpen: (open: boolean) => void;
 };
 
-// TODO : backend search + wiring
+// TODO: search and wiring
+// TODO : pagination
+// TODO : delete
 
 const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
   const { t } = useTranslation();
@@ -38,6 +40,8 @@ const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
 
   const { pipelines } = data;
 
+  const ViewComponent = view === "grid" ? GridView : CardView;
+
   return (
     <div>
       <Header
@@ -58,37 +62,14 @@ const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
           </Button>
         </div>
       ) : (
-        <>
-          <div className="mt-5 mb-3 grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
-            {pipelines.items.map((pipeline, index) => (
-              <PipelineCard
-                workspace={workspace}
-                key={index}
-                pipeline={pipeline}
-              />
-            ))}
-          </div>
-          <Pagination
-            onChange={(page, perPage) => {
-              setPage(page);
-              setPerPage(perPage);
-              router
-                .push({
-                  pathname: "/workspaces/[workspaceSlug]/pipelines",
-                  query: {
-                    page,
-                    perPage,
-                    workspaceSlug: workspace.slug,
-                  },
-                })
-                .then();
-            }}
-            page={page}
-            perPage={perPage}
-            totalItems={pipelines.totalItems}
-            countItems={pipelines.items.length}
-          />
-        </>
+        <ViewComponent
+          items={pipelines.items}
+          workspace={workspace}
+          page={page}
+          perPage={perPage}
+          totalItems={pipelines.totalItems}
+          setPage={setPage}
+        />
       )}
     </div>
   );
