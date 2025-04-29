@@ -25,7 +25,6 @@ const GridView = ({
 }: GridViewProps) => {
   const { t } = useTranslation();
 
-  console.log(items);
   return (
     <Block className="divide divide-y divide-gray-100 mt-4">
       <DataGrid
