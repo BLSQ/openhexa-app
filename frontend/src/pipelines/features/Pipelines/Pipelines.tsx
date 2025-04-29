@@ -14,7 +14,6 @@ type PipelinesProps = {
 };
 
 // TODO : search and wiring
-// TODO : default and invert
 // TODO : name - code -version - type - created at
 
 const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
