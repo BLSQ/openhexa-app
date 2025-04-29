@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { gql } from "@apollo/client";
 import {
   Pipelines_WorkspaceFragment,
@@ -8,10 +8,13 @@ import Header from "../PipelineTemplates/Header";
 import GridView from "./GridView";
 import CardView from "./CardView";
 import useDebounce from "core/hooks/useDebounce";
+import Spinner from "core/components/Spinner";
 
 type PipelinesProps = {
   workspace: Pipelines_WorkspaceFragment;
 };
+
+// TODO : backend filter not working
 
 const Pipelines = ({ workspace }: PipelinesProps) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,7 +23,7 @@ const Pipelines = ({ workspace }: PipelinesProps) => {
   const [page, setPage] = useState(1);
   const perPage = 10;
 
-  const { data } = useGetPipelinesQuery({
+  const { data, loading } = useGetPipelinesQuery({
     variables: {
       workspaceSlug: workspace.slug,
       name: debouncedSearchQuery,
@@ -29,12 +32,17 @@ const Pipelines = ({ workspace }: PipelinesProps) => {
     },
   });
 
+  const [items, setItems] = useState(data?.pipelines?.items || []);
+
+  useEffect(() => {
+    if (!loading && data?.pipelines?.items) {
+      setItems(data.pipelines.items);
+    }
+  }, [loading, data]);
+
   const ViewComponent = view === "grid" ? GridView : CardView;
 
-  const { items, totalItems } = data?.pipelines ?? {
-    items: [],
-    totalItems: 0,
-  };
+  const totalItems = data?.pipelines?.totalItems ?? 0;
 
   return (
     <div>
@@ -44,15 +52,22 @@ const Pipelines = ({ workspace }: PipelinesProps) => {
         view={view}
         setView={setView}
         showCard={true}
-      />
-      <ViewComponent
-        items={items}
-        workspace={workspace}
-        page={page}
-        perPage={perPage}
-        totalItems={totalItems}
-        setPage={setPage}
-      />
+      />{" "}
+      <div className="relative">
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center backdrop-blur-xs z-10">
+            <Spinner />
+          </div>
+        )}
+        <ViewComponent
+          items={items}
+          workspace={workspace}
+          page={page}
+          perPage={perPage}
+          totalItems={totalItems}
+          setPage={setPage}
+        />
+      </div>
     </div>
   );
 };

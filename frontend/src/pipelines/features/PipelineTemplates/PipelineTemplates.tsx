@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { gql } from "@apollo/client";
 import { toast } from "react-toastify";
@@ -14,6 +14,7 @@ import { CreatePipelineFromTemplateVersionError } from "graphql/types";
 import CardView from "./CardView";
 import GridView from "./GridView";
 import Header from "./Header";
+import Spinner from "core/components/Spinner";
 
 type PipelineTemplatesProps = {
   workspace: PipelineTemplates_WorkspaceFragment;
@@ -42,7 +43,7 @@ const PipelineTemplates = ({
     workspaceFilterOptions[0],
   );
 
-  const { data, error, refetch } = useGetPipelineTemplatesQuery({
+  const { data, loading, refetch } = useGetPipelineTemplatesQuery({
     variables: {
       page,
       perPage,
@@ -51,15 +52,17 @@ const PipelineTemplates = ({
     },
     fetchPolicy: "cache-and-network", // The template list is a global list across the instance, so we want to check the network for updates and show the cached data in the meantime
   });
+  const [items, setItems] = useState(data?.pipelineTemplates?.items || []);
+
+  useEffect(() => {
+    if (!loading && data?.pipelineTemplates?.items) {
+      setItems(data.pipelineTemplates.items);
+    }
+  }, [loading, data]);
 
   useCacheKey("templates", () => refetch());
 
-  if (error) return <p>{t("Error loading templates")}</p>;
-
-  const { items, totalItems } = data?.pipelineTemplates ?? {
-    items: [],
-    totalItems: 0,
-  };
+  const totalItems = data?.pipelineTemplates?.totalItems ?? 0;
 
   const createPipeline = (pipelineTemplateVersionId: string) => () => {
     createPipelineFromTemplateVersion({
@@ -115,15 +118,22 @@ const PipelineTemplates = ({
         setView={setView}
         showCard={showCard}
       />
-      <ViewTemplates
-        items={items}
-        workspace={workspace}
-        page={page}
-        perPage={perPage}
-        totalItems={totalItems}
-        createPipeline={createPipeline}
-        setPage={setPage}
-      />
+      <div className="relative">
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center backdrop-blur-xs z-10">
+            <Spinner />
+          </div>
+        )}
+        <ViewTemplates
+          items={items}
+          workspace={workspace}
+          page={page}
+          perPage={perPage}
+          totalItems={totalItems}
+          createPipeline={createPipeline}
+          setPage={setPage}
+        />
+      </div>
     </div>
   );
 };
