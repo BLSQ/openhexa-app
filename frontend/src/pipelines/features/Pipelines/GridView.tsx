@@ -4,6 +4,8 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import Block from "core/components/Block";
 import { useTranslation } from "next-i18next";
 import Link from "core/components/Link";
+import { formatPipelineType } from "workspaces/helpers/pipelines";
+import Badge from "core/components/Badge";
 
 type GridViewProps = {
   items: any[];
@@ -23,6 +25,7 @@ const GridView = ({
 }: GridViewProps) => {
   const { t } = useTranslation();
 
+  console.log(items);
   return (
     <Block className="divide divide-y divide-gray-100 mt-4">
       <DataGrid
@@ -40,6 +43,15 @@ const GridView = ({
               {pipeline.name}
             </Link>
           )}
+        </BaseColumn>
+        <BaseColumn id="code" label={t("Code")}>
+          {(pipeline) => <span>{pipeline.code}</span>}
+        </BaseColumn>
+        <BaseColumn id="version" label={t("Version")}>
+          {(pipeline) => <span>{pipeline.currentVersion?.versionName}</span>}
+        </BaseColumn>
+        <BaseColumn id="type" label={t("Type")}>
+          {(pipeline) => <Badge>{formatPipelineType(pipeline.type)}</Badge>}
         </BaseColumn>
         <BaseColumn id="description" label={t("Description")}>
           {(pipeline) => <span>{pipeline.description}</span>}

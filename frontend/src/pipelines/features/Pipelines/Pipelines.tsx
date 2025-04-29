@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { useTranslation } from "next-i18next";
 import Button from "core/components/Button";
 import { gql } from "@apollo/client";
-import { Pipelines_WorkspaceFragment } from "./Pipelines.generated";
-import { useWorkspacePipelinesPageQuery } from "workspaces/graphql/queries.generated";
+import {
+  Pipelines_WorkspaceFragment,
+  useGetPipelinesQuery,
+} from "./Pipelines.generated";
 import Header from "../PipelineTemplates/Header";
 import GridView from "./GridView";
 import CardView from "./CardView";
@@ -14,7 +16,6 @@ type PipelinesProps = {
 };
 
 // TODO : search and wiring
-// TODO : name - code -version - type - created at
 
 const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
   const { t } = useTranslation();
@@ -23,7 +24,7 @@ const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
   const [page, setPage] = useState(1);
   const perPage = 10;
 
-  const { data } = useWorkspacePipelinesPageQuery({
+  const { data } = useGetPipelinesQuery({
     variables: {
       workspaceSlug: workspace.slug,
       page,
@@ -79,21 +80,7 @@ const GET_PIPELINES = gql`
       totalPages
       totalItems
       items {
-        id
-        description
-        code
-        name
-        permissions {
-          delete
-        }
-        currentVersion {
-          id
-          versionNumber
-          createdAt
-          user {
-            ...User_user
-          }
-        }
+        ...PipelineCard_pipeline
       }
     }
   }

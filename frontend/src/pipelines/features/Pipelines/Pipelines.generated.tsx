@@ -1,7 +1,7 @@
 import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
-import { User_UserFragmentDoc } from '../../../core/features/User/User.generated';
+import { PipelineCard_PipelineFragmentDoc } from '../../../workspaces/features/PipelineCard/PipelineCard.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type GetPipelinesQueryVariables = Types.Exact<{
@@ -11,7 +11,7 @@ export type GetPipelinesQueryVariables = Types.Exact<{
 }>;
 
 
-export type GetPipelinesQuery = { __typename?: 'Query', pipelines: { __typename?: 'PipelinesPage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'Pipeline', id: string, description?: string | null, code: string, name?: string | null, permissions: { __typename?: 'PipelinePermissions', delete: boolean }, currentVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } | null }> } };
+export type GetPipelinesQuery = { __typename?: 'Query', pipelines: { __typename?: 'PipelinesPage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'Pipeline', id: string, code: string, name?: string | null, schedule?: string | null, description?: string | null, type: Types.PipelineType, currentVersion?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } | null, lastRuns: { __typename?: 'PipelineRunPage', items: Array<{ __typename?: 'PipelineRun', id: string, status: Types.PipelineRunStatus }> } }> } };
 
 export type Pipelines_WorkspaceFragment = { __typename?: 'Workspace', slug: string };
 
@@ -27,25 +27,11 @@ export const GetPipelinesDocument = gql`
     totalPages
     totalItems
     items {
-      id
-      description
-      code
-      name
-      permissions {
-        delete
-      }
-      currentVersion {
-        id
-        versionNumber
-        createdAt
-        user {
-          ...User_user
-        }
-      }
+      ...PipelineCard_pipeline
     }
   }
 }
-    ${User_UserFragmentDoc}`;
+    ${PipelineCard_PipelineFragmentDoc}`;
 
 /**
  * __useGetPipelinesQuery__
