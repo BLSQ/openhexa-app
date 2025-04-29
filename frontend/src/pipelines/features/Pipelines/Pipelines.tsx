@@ -9,17 +9,19 @@ import {
 import Header from "../PipelineTemplates/Header";
 import GridView from "./GridView";
 import CardView from "./CardView";
+import useDebounce from "core/hooks/useDebounce";
 
 type PipelinesProps = {
   workspace: Pipelines_WorkspaceFragment;
   setDialogOpen: (open: boolean) => void;
 };
 
-// TODO : search and wiring
+// FIXME: flickering when searching
 
 const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [view, setView] = useState<"grid" | "card">("grid");
   const [page, setPage] = useState(1);
   const perPage = 10;
@@ -27,6 +29,7 @@ const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
   const { data } = useGetPipelinesQuery({
     variables: {
       workspaceSlug: workspace.slug,
+      name: debouncedSearchQuery,
       page,
       perPage,
     },
@@ -74,8 +77,18 @@ const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
 };
 
 const GET_PIPELINES = gql`
-  query GetPipelines($page: Int!, $perPage: Int!, $workspaceSlug: String) {
-    pipelines(page: $page, perPage: $perPage, workspaceSlug: $workspaceSlug) {
+  query GetPipelines(
+    $page: Int!
+    $perPage: Int!
+    $name: String
+    $workspaceSlug: String
+  ) {
+    pipelines(
+      page: $page
+      perPage: $perPage
+      name: $name
+      workspaceSlug: $workspaceSlug
+    ) {
       pageNumber
       totalPages
       totalItems
