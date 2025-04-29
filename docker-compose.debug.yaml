@@ -1,0 +1,7 @@
+services:
+  app:
+    entrypoint: []
+    # Used when running in normal mode.
+    command: ["/code/docker-entrypoint.sh", "manage", "runserver", "0.0.0.0:8000"]
+    ports:
+      - "8000:8000"
