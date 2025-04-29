@@ -93,7 +93,7 @@ const WorkspacePipelinesPage: NextPageWithLayout = ({ workspace }: Props) => {
             defaultIndex={tab === "templates" ? 1 : 0}
           >
             <Tabs.Tab label={t("Pipelines")} className={"space-y-2 pt-2"}>
-              <Pipelines workspace={workspace} setDialogOpen={setDialogOpen} />
+              <Pipelines workspace={workspace} />
             </Tabs.Tab>
             {pipelineTemplateFeatureEnabled && (
               <Tabs.Tab

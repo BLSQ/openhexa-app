@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import { useTranslation } from "next-i18next";
-import Button from "core/components/Button";
 import { gql } from "@apollo/client";
 import {
   Pipelines_WorkspaceFragment,
@@ -13,13 +11,9 @@ import useDebounce from "core/hooks/useDebounce";
 
 type PipelinesProps = {
   workspace: Pipelines_WorkspaceFragment;
-  setDialogOpen: (open: boolean) => void;
 };
 
-// FIXME: flickering when searching
-
-const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
-  const { t } = useTranslation();
+const Pipelines = ({ workspace }: PipelinesProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [view, setView] = useState<"grid" | "card">("grid");
@@ -35,13 +29,12 @@ const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
     },
   });
 
-  if (!data?.pipelines) {
-    return null;
-  }
-
-  const { pipelines } = data;
-
   const ViewComponent = view === "grid" ? GridView : CardView;
+
+  const { items, totalItems } = data?.pipelines ?? {
+    items: [],
+    totalItems: 0,
+  };
 
   return (
     <div>
@@ -52,27 +45,14 @@ const Pipelines = ({ workspace, setDialogOpen }: PipelinesProps) => {
         setView={setView}
         showCard={true}
       />
-      {pipelines.items.length === 0 ? (
-        <div className="text-center text-gray-500">
-          <div>{t("This workspace does not have any pipeline.")}</div>
-          <Button
-            variant="secondary"
-            onClick={() => setDialogOpen(true)}
-            className="mt-4"
-          >
-            {t("Add a new pipeline")}
-          </Button>
-        </div>
-      ) : (
-        <ViewComponent
-          items={pipelines.items}
-          workspace={workspace}
-          page={page}
-          perPage={perPage}
-          totalItems={pipelines.totalItems}
-          setPage={setPage}
-        />
-      )}
+      <ViewComponent
+        items={items}
+        workspace={workspace}
+        page={page}
+        perPage={perPage}
+        totalItems={totalItems}
+        setPage={setPage}
+      />
     </div>
   );
 };
