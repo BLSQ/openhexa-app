@@ -7,7 +7,7 @@ const defaultOptions = {} as const;
 export type GetPipelinesQueryVariables = Types.Exact<{
   page: Types.Scalars['Int']['input'];
   perPage: Types.Scalars['Int']['input'];
-  name?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  search?: Types.InputMaybe<Types.Scalars['String']['input']>;
   workspaceSlug?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
 
@@ -22,11 +22,11 @@ export const Pipelines_WorkspaceFragmentDoc = gql`
 }
     `;
 export const GetPipelinesDocument = gql`
-    query GetPipelines($page: Int!, $perPage: Int!, $name: String, $workspaceSlug: String) {
+    query GetPipelines($page: Int!, $perPage: Int!, $search: String, $workspaceSlug: String) {
   pipelines(
     page: $page
     perPage: $perPage
-    name: $name
+    search: $search
     workspaceSlug: $workspaceSlug
   ) {
     pageNumber
@@ -53,7 +53,7 @@ export const GetPipelinesDocument = gql`
  *   variables: {
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
- *      name: // value for 'name'
+ *      search: // value for 'search'
  *      workspaceSlug: // value for 'workspaceSlug'
  *   },
  * });

@@ -14,8 +14,6 @@ type PipelinesProps = {
   workspace: Pipelines_WorkspaceFragment;
 };
 
-// TODO : backend filter not working
-
 const Pipelines = ({ workspace }: PipelinesProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -26,7 +24,7 @@ const Pipelines = ({ workspace }: PipelinesProps) => {
   const { data, loading } = useGetPipelinesQuery({
     variables: {
       workspaceSlug: workspace.slug,
-      name: debouncedSearchQuery,
+      search: debouncedSearchQuery,
       page,
       perPage,
     },
@@ -52,7 +50,7 @@ const Pipelines = ({ workspace }: PipelinesProps) => {
         view={view}
         setView={setView}
         showCard={true}
-      />{" "}
+      />
       <div className="relative">
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center backdrop-blur-xs z-10">
@@ -76,13 +74,13 @@ const GET_PIPELINES = gql`
   query GetPipelines(
     $page: Int!
     $perPage: Int!
-    $name: String
+    $search: String
     $workspaceSlug: String
   ) {
     pipelines(
       page: $page
       perPage: $perPage
-      name: $name
+      search: $search
       workspaceSlug: $workspaceSlug
     ) {
       pageNumber
