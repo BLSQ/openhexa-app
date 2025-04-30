@@ -43,7 +43,7 @@ const PipelineTemplates = ({
     workspaceFilterOptions[0],
   );
 
-  const { data, loading, refetch } = useGetPipelineTemplatesQuery({
+  const { data, loading, error, refetch } = useGetPipelineTemplatesQuery({
     variables: {
       page,
       perPage,
@@ -63,6 +63,8 @@ const PipelineTemplates = ({
   useCacheKey("templates", () => refetch());
 
   const totalItems = data?.pipelineTemplates?.totalItems ?? 0;
+
+  if (error) return <p>{t("Error loading templates")}</p>;
 
   const createPipeline = (pipelineTemplateVersionId: string) => () => {
     createPipelineFromTemplateVersion({
