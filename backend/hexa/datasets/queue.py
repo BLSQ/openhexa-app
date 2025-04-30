@@ -116,6 +116,9 @@ def generate_profile(df: pd.DataFrame) -> list:
         count = df.count().to_dict()
 
         numeric_df = df.select_dtypes(include=["number"])
+        numeric_df = numeric_df.dropna(
+            how="all", axis=1
+        )  # Drop numeric columns with all NaN values
 
         mean = numeric_df.mean().to_dict()
         minimum = numeric_df.min().to_dict()

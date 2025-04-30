@@ -284,7 +284,7 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                     "unique_values": 5,
                     "mean": 6.0,
                     "median": 6.0,
-                    "standard_deviation": 2.0,
+                    "standard_deviation": 3.1622776601683795,
                     "minimum": 2,
                     "maximum": 10,
                     "quantiles25": 4.0,
