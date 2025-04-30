@@ -22,8 +22,8 @@ backend/credentials
 
 static/uploads/*
 
-backend/docker-compose.debug.yaml
-backend/docker-compose.dev.yaml
+docker-compose.debug.yaml
+docker-compose.dev.yaml
 
 #### Frontend ####
 # dependencies

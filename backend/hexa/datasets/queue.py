@@ -115,15 +115,40 @@ def generate_profile(df: pd.DataFrame) -> list:
         constant_values = df.apply(lambda x: x.nunique() == 1).astype("bool").to_dict()
         count = df.count().to_dict()
 
+        numeric_df = df.select_dtypes(include=["number"])
+
+        mean = numeric_df.mean().to_dict()
+        minimum = numeric_df.min().to_dict()
+        maximum = numeric_df.max().to_dict()
+        quantiles25 = numeric_df.quantile(0.25).to_dict()
+        median = numeric_df.median().to_dict()
+        quantiles75 = numeric_df.quantile(0.75).to_dict()
+        standard_deviation = numeric_df.std().to_dict()
+
         metadata_per_column = [
             {
-                "column_name": str(column),
-                "count": count.get(column),
-                "data_type": data_types.get(column),
-                "missing_values": missing_values.get(column),
-                "unique_values": unique_values.get(column),
-                "distinct_values": distinct_values.get(column),
-                "constant_values": constant_values.get(column),
+                **{
+                    "column_name": str(column),
+                    "count": count.get(column),
+                    "data_type": data_types.get(column),
+                    "missing_values": missing_values.get(column),
+                    "unique_values": unique_values.get(column),
+                    "distinct_values": distinct_values.get(column),
+                    "constant_values": constant_values.get(column),
+                },
+                **(
+                    {
+                        "mean": mean.get(column),
+                        "minimum": minimum.get(column),
+                        "maximum": maximum.get(column),
+                        "quantiles25": quantiles25.get(column),
+                        "median": median.get(column),
+                        "quantiles75": quantiles75.get(column),
+                        "standard_deviation": standard_deviation.get(column),
+                    }
+                    if column in numeric_df.columns
+                    else {}
+                ),
             }
             for column in df.columns
         ]
