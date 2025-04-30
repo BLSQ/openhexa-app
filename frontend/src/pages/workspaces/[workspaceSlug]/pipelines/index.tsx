@@ -27,7 +27,7 @@ const WorkspacePipelinesPage: NextPageWithLayout = ({ workspace }: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
   const [pipelineTemplateFeatureEnabled] = useFeature("pipeline_templates");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isDialogOpen, setDialogOpen] = useState(false);
 
   const tab = router.query.tab === "templates" ? "templates" : "pipelines";
 
@@ -108,7 +108,7 @@ const WorkspacePipelinesPage: NextPageWithLayout = ({ workspace }: Props) => {
       </WorkspaceLayout>
       <CreatePipelineDialog
         workspace={workspace}
-        open={dialogOpen}
+        open={isDialogOpen}
         onClose={() => setDialogOpen(false)}
       />
     </Page>
