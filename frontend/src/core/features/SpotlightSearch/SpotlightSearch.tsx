@@ -366,7 +366,7 @@ const SpotlightSearch = ({
             trailingIcon={
               <button
                 onClick={onClose}
-                className="absolute right-4 top-2 text-gray-500 hover:text-gray-700 focus:text-gray-700"
+                className="flex items-center absolute right-4 text-gray-500 hover:text-gray-700 focus:text-gray-700"
                 aria-label="Close"
               >
                 <XMarkIcon className="h-6 w-6" />
@@ -382,7 +382,9 @@ const SpotlightSearch = ({
               showWorkspaceFilterPanel && "rounded-t-none",
               showResults && "rounded-b-none",
             )}
-            classNameOverrides={"focus:ring-0 focus:border-white border-white"}
+            classNameOverrides={
+              "focus:ring-0 focus:border-white border-white py-4"
+            }
           />
           <div
             className={clsx(
