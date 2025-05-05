@@ -92,7 +92,7 @@ describe("AccountPage", () => {
     ];
 
     const { container } = render(
-      <TestApp mocks={graphqlMocks} me={{ features: [{ code: "two_factor" }] }}>
+      <TestApp mocks={graphqlMocks}>
         <AccountPage />
       </TestApp>,
     );
