@@ -2,7 +2,6 @@ import React, { useMemo, useState } from "react";
 import clsx from "clsx";
 import MultiCombobox from "core/components/forms/Combobox/MultiCombobox";
 import { Combobox } from "core/components/forms/Combobox";
-import Button from "core/components/Button";
 import WorkspaceDisplay from "./WorkspaceDisplay";
 import { GetWorkspacesQuery } from "./SpotlightSearch.generated";
 import { useTranslation } from "next-i18next";
