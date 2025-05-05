@@ -1,3 +1,2 @@
 ## Required
 - datasets
-- workspaces
