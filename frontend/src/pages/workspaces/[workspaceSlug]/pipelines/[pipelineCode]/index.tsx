@@ -49,7 +49,6 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const [isUpgradeFromTemplateDialogOpen, setUpgradeFromTemplateDialogOpen] =
     useState(false);
   const [isWebhookFeatureEnabled] = useFeature("pipeline_webhook");
-  const [isPipelineTemplateFeatureEnabled] = useFeature("pipeline_templates");
 
   const { data, refetch } = useWorkspacePipelinePageQuery({
     variables: {
@@ -160,7 +159,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               )}
             </RenderProperty>
           )}
-          {isPipelineTemplateFeatureEnabled && pipeline.sourceTemplate && (
+          {pipeline.sourceTemplate && (
             <RenderProperty
               id="source_template"
               accessor={"sourceTemplate.name"}
@@ -190,7 +189,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               )}
             </RenderProperty>
           )}
-          {isPipelineTemplateFeatureEnabled && pipeline?.template && (
+          {pipeline?.template && (
             <RenderProperty
               id="template"
               accessor={"template.name"}
