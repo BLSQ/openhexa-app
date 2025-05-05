@@ -268,7 +268,7 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
 
     def test_generate_profile(self):
         df = pd.DataFrame(
-            {1234: [1, 2, 3, 4, 5], "str_column": ["a", "b", "c", "d", "e"]}
+            {1234: [2, 4, 6, 8, 10], "str_column": ["a", "b", "c", "d", "e"]}
         )
         profile = generate_profile(df)
         self.assertEqual(
@@ -282,6 +282,13 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                     "distinct_values": 5,
                     "missing_values": 0,
                     "unique_values": 5,
+                    "mean": 6.0,
+                    "median": 6.0,
+                    "standard_deviation": 3.1622776601683795,
+                    "minimum": 2,
+                    "maximum": 10,
+                    "quantiles25": 4.0,
+                    "quantiles75": 8.0,
                 },
                 {
                     "column_name": "str_column",

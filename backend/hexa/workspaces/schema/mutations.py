@@ -139,14 +139,15 @@ def resolve_invite_workspace_member(_, info, **kwargs):
         if is_workspace_member or is_already_invited:
             raise AlreadyExists
 
-        invitation = WorkspaceInvitation.objects.create_if_has_perm(
-            principal=request.user,
-            workspace=workspace,
-            email=input["user_email"],
-            role=input["role"],
-        )
+        with transaction.atomic():
+            invitation = WorkspaceInvitation.objects.create_if_has_perm(
+                principal=request.user,
+                workspace=workspace,
+                email=input["user_email"],
+                role=input["role"],
+            )
 
-        send_workspace_invitation_email(invitation, user)
+            send_workspace_invitation_email(invitation, user)
 
         return {
             "success": True,

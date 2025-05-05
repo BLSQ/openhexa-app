@@ -12,6 +12,12 @@ const handle = app.getRequestHandler();
 app.prepare().then(async () => {
   const server = express();
 
+  // Redirect /dashboards/[externalId] to /superset/dashboards/external/[externalId]
+  // This is a temporary redirect until we have completely migrated from the older dashboard embedding solution
+  server.get("/dashboards/:externalId", (req, res) => {
+    res.redirect(301, `/superset/dashboard/external/${req.params.externalId}`);
+  });
+
   server.use(
     "/",
     proxy(api_url, {
