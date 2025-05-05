@@ -120,11 +120,6 @@ def resolve_dataset_updated_at(obj: Dataset, info, **kwargs):
     )
 
 
-@dataset_object.field("workspace")
-def resolve_dataset_workspace(obj: Dataset, info, **kwargs):
-    return obj.workspace
-
-
 @dataset_link_object.field("permissions")
 def resolve_dataset_link_permissions(obj: DatasetLink, info, **kwargs):
     return obj
