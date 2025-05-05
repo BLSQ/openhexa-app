@@ -65,6 +65,9 @@ const DatasetVersionFileColumns = (props: DatasetVersionFileColumnsProps) => {
     refetch();
   };
 
+  const hasNumericStatistics = (column: TabularColumn) =>
+    column.attributes.some((attr) => attr.key.includes("mean"));
+
   return (
     <>
       <div className="divide-y divide-gray-200">
@@ -91,6 +94,11 @@ const DatasetVersionFileColumns = (props: DatasetVersionFileColumnsProps) => {
               <div className="flex-1/3 grow-0">
                 <Table>
                   <TableBody className="font-mono">
+                    <TableRow className="font-bold">
+                      <TableCell spacing="tight">
+                        {t("Basic Statistics")}
+                      </TableCell>
+                    </TableRow>
                     <TableRow>
                       <TableCell spacing="tight">{t("Distinct")}</TableCell>
                       <RenderColumnAttribute
@@ -156,16 +164,130 @@ const DatasetVersionFileColumns = (props: DatasetVersionFileColumnsProps) => {
                   </TableBody>
                 </Table>
               </div>
-              <RenderColumnAttribute
-                column={column}
-                attributeKeys={"description"}
-              >
-                {(description) =>
-                  description?.value && (
-                    <div className="px-4">{description.value}</div>
-                  )
-                }
-              </RenderColumnAttribute>
+              {hasNumericStatistics(column) && (
+                <div className="flex-1/3 grow-0 px-4">
+                  <Table>
+                    <TableBody className="font-mono">
+                      <TableRow className="font-bold">
+                        <TableCell spacing="tight">
+                          {t("Numeric Statistics")}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell spacing="tight">{t("Mean")}</TableCell>
+                        <RenderColumnAttribute
+                          column={column}
+                          attributeKeys={["mean"]}
+                        >
+                          {(mean) =>
+                            mean && (
+                              <TableCell spacing="tight">
+                                {mean.value}
+                              </TableCell>
+                            )
+                          }
+                        </RenderColumnAttribute>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell spacing="tight">{t("Median")}</TableCell>
+                        <RenderColumnAttribute
+                          column={column}
+                          attributeKeys={["median"]}
+                        >
+                          {(median) =>
+                            median && (
+                              <TableCell spacing="tight">
+                                {median.value}
+                              </TableCell>
+                            )
+                          }
+                        </RenderColumnAttribute>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell spacing="tight">
+                          {t("Std Deviation")}
+                        </TableCell>
+                        <RenderColumnAttribute
+                          column={column}
+                          attributeKeys={["standard_deviation"]}
+                        >
+                          {(standard_deviation) =>
+                            standard_deviation && (
+                              <TableCell spacing="tight">
+                                {standard_deviation.value}
+                              </TableCell>
+                            )
+                          }
+                        </RenderColumnAttribute>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell spacing="tight">{t("Minimum")}</TableCell>
+                        <RenderColumnAttribute
+                          column={column}
+                          attributeKeys={["minimum"]}
+                        >
+                          {(minimum) =>
+                            minimum && (
+                              <TableCell spacing="tight">
+                                {minimum.value}
+                              </TableCell>
+                            )
+                          }
+                        </RenderColumnAttribute>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell spacing="tight">{t("Maximum")}</TableCell>
+                        <RenderColumnAttribute
+                          column={column}
+                          attributeKeys={["maximum"]}
+                        >
+                          {(maximum) =>
+                            maximum && (
+                              <TableCell spacing="tight">
+                                {maximum.value}
+                              </TableCell>
+                            )
+                          }
+                        </RenderColumnAttribute>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell spacing="tight">
+                          {t("25% Quantile")}
+                        </TableCell>
+                        <RenderColumnAttribute
+                          column={column}
+                          attributeKeys={["quantiles25"]}
+                        >
+                          {(quantiles25) =>
+                            quantiles25 && (
+                              <TableCell spacing="tight">
+                                {quantiles25.value}
+                              </TableCell>
+                            )
+                          }
+                        </RenderColumnAttribute>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell spacing="tight">
+                          {t("75% Quantile")}
+                        </TableCell>
+                        <RenderColumnAttribute
+                          column={column}
+                          attributeKeys={["quantiles75"]}
+                        >
+                          {(quantile75) =>
+                            quantile75 && (
+                              <TableCell spacing="tight">
+                                {quantile75.value}
+                              </TableCell>
+                            )
+                          }
+                        </RenderColumnAttribute>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap gap-2 mt-4 text-xs">
               <RenderColumnAttribute
