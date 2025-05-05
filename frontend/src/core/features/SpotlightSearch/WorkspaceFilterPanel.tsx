@@ -46,25 +46,7 @@ const WorkspaceFilterPanel = ({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-5">
-        <p className="text-md font-medium">{t("Filter by Workspace")}</p>
-        <div className="flex gap-2">
-          <Button
-            variant="white"
-            disabled={selectedWorkspaces.length >= workspaces.length}
-            onClick={() => onChange(workspaces)}
-          >
-            {t("Select all")}
-          </Button>
-          <Button
-            variant="white"
-            disabled={selectedWorkspaces.length === 0}
-            onClick={() => onChange([])}
-          >
-            {t("Clear all")}
-          </Button>
-        </div>
-      </div>
+      <p className="text-md font-medium mb-5">{t("Filter by Workspace")}</p>
       {workspaces.length <= 10 ? (
         <div className="flex gap-2 flex-wrap">
           {workspaces.map((workspace) => (
