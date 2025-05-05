@@ -10,6 +10,7 @@ def remove_feature_flag(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
+        ("webapps", "0002_alter_webapp_options_and_more"),
         ("user_management", "0020_user_analytics_enabled"),
     ]
 
