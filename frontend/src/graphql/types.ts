@@ -3297,9 +3297,9 @@ export type PipelineTemplate = {
   name: Scalars['String']['output'];
   permissions: PipelineTemplatePermissions;
   sourcePipeline?: Maybe<Pipeline>;
-  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  updatedAt: Scalars['DateTime']['output'];
   versions: TemplateVersionPage;
-  workspace: Workspace;
+  workspace?: Maybe<Workspace>;
 };
 
 

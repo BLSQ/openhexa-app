@@ -37,7 +37,7 @@ export type SearchPipelineTemplatesQueryVariables = Types.Exact<{
 }>;
 
 
-export type SearchPipelineTemplatesQuery = { __typename?: 'Query', pipelineTemplates: { __typename: 'PipelineTemplateResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'PipelineTemplateResult', score: number, pipelineTemplate: { __typename?: 'PipelineTemplate', id: string, code: string, name: string, description?: string | null, updatedAt?: any | null, workspace: { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number } | null } }> } };
+export type SearchPipelineTemplatesQuery = { __typename?: 'Query', pipelineTemplates: { __typename: 'PipelineTemplateResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'PipelineTemplateResult', score: number, pipelineTemplate: { __typename?: 'PipelineTemplate', id: string, code: string, name: string, description?: string | null, updatedAt: any, workspace?: { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> } | null, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number } | null } }> } };
 
 export type SearchDatabaseTablesQueryVariables = Types.Exact<{
   query: Types.Scalars['String']['input'];

@@ -164,8 +164,8 @@ type PipelineTemplate {
   currentVersion: PipelineTemplateVersion  # The current version of the pipeline template.
   sourcePipeline: Pipeline  # The source pipeline of the pipeline template.
   permissions: PipelineTemplatePermissions!  # The permissions for the pipeline template.
-  workspace: Workspace!  # The workspace associated with the pipeline template.
-  updatedAt: DateTime  # The last updated date of the pipeline template.
+  workspace: Workspace  # The workspace associated with the pipeline template.
+  updatedAt: DateTime!  # The last updated date of the pipeline template.
 }
 
 """
