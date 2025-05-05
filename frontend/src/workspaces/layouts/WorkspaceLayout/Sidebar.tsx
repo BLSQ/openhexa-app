@@ -194,7 +194,7 @@ const Sidebar = (props: SidebarProps) => {
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
         <SpotlightSearch
-          key={isSearchOpen ? Date.now() : null}
+          key={isSearchOpen ? Date.now() : null} // force remount on open (the key changes, so the component is recreated with a new state)
           isOpen={isSearchOpen}
           onClose={() => setSearchOpen(false)}
         />
