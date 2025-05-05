@@ -90,7 +90,7 @@ const graphqlMocks: MockedResponse[] = [
 describe("WebappCreatePage", () => {
   it("can create a web app", async () => {
     render(
-      <TestApp mocks={graphqlMocks} me={{ features: [{ code: "webapps" }] }}>
+      <TestApp mocks={graphqlMocks}>
         <WebappCreatePage workspace={mockWorkspace} />
       </TestApp>,
     );

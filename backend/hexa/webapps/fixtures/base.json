@@ -1,11 +1,1 @@
-[
-  {
-    "model": "user_management.feature",
-    "fields": {
-        "created_at": "2025-02-28T00:00:00.000Z",
-        "updated_at": "2025-02-28T00:00:00.000Z",
-        "code": "webapps",
-        "force_activate": false
-    }
-  }
-]
+[]
