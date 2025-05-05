@@ -366,7 +366,7 @@ const SpotlightSearch = ({
             trailingIcon={
               <button
                 onClick={onClose}
-                className="flex items-center absolute right-4 text-gray-500 hover:text-gray-700 focus:text-gray-700"
+                className="flex items-center text-gray-500 hover:text-gray-700 focus:text-gray-700"
                 aria-label="Close"
               >
                 <XMarkIcon className="h-6 w-6" />
