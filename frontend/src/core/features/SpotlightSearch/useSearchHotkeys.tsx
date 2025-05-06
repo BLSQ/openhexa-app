@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 
 type UseSearchHotkeysParams = {
   isOpen: boolean;
+  setIsOpen: (value: boolean) => void;
   inputRef: RefObject<HTMLInputElement>;
   data: any;
   highlightedIndex: number;
@@ -13,12 +14,31 @@ type UseSearchHotkeysParams = {
 
 const useSearchHotkeys = ({
   isOpen,
+  setIsOpen,
   inputRef,
   data,
   highlightedIndex,
   setHighlightedIndex,
 }: UseSearchHotkeysParams) => {
   const router = useRouter();
+
+  // Open and close the search
+  useHotkeys(
+    "mod+k",
+    () => {
+      setIsOpen(!isOpen);
+    },
+    { enableOnFormTags: ["INPUT", "TEXTAREA"] },
+  );
+
+  // Close the search when pressing escape
+  useHotkeys(
+    "esc",
+    () => {
+      setIsOpen(false);
+    },
+    { enableOnFormTags: ["INPUT", "TEXTAREA"] },
+  );
 
   // Navigate down the list
   useHotkeys(

@@ -9,7 +9,6 @@ import {
   FolderOpenIcon,
   GlobeAltIcon,
   HomeIcon,
-  MagnifyingGlassIcon,
   Square2StackIcon,
   SwatchIcon,
 } from "@heroicons/react/24/outline";
@@ -18,13 +17,12 @@ import Badge from "core/components/Badge";
 import Link from "core/components/Link";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { useTranslation } from "next-i18next";
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useMemo } from "react";
 import SidebarMenu from "workspaces/features/SidebarMenu";
 import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
 import { LayoutContext } from "./WorkspaceLayout";
 import { useRouter } from "next/router";
 import useFeature from "identity/hooks/useFeature";
-import { useHotkeys } from "react-hotkeys-hook";
 import { GetServerSidePropsContext } from "next";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 
@@ -86,29 +84,12 @@ const Sidebar = (props: SidebarProps) => {
   const { workspace, className } = props;
   const { t } = useTranslation();
   const { isSidebarOpen, setSidebarOpen } = useContext(LayoutContext);
-  const [isSearchOpen, setSearchOpen] = useState(false);
   const [webappsFeatureEnabled] = useFeature("webapps");
   const [searchFeatureEnabled] = useFeature("search");
 
   const router = useRouter();
 
   const { slug } = workspace;
-
-  useHotkeys(
-    "mod+k",
-    () => {
-      searchFeatureEnabled && setSearchOpen((prev) => !prev);
-    },
-    { enableOnFormTags: ["INPUT", "TEXTAREA"] },
-  );
-
-  useHotkeys(
-    "esc",
-    () => {
-      setSearchOpen(false);
-    },
-    { enableOnFormTags: ["INPUT", "TEXTAREA"] },
-  );
 
   const homeLink = {
     href: `/workspaces/${encodeURIComponent(slug)}`,
@@ -193,35 +174,7 @@ const Sidebar = (props: SidebarProps) => {
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
-        <SpotlightSearch
-          key={isSearchOpen ? Date.now() : null} // force remount on open (the key changes, so the component is recreated with a new state)
-          isOpen={isSearchOpen}
-          onClose={() => setSearchOpen(false)}
-        />
-        {searchFeatureEnabled &&
-          (isSidebarOpen ? (
-            <div className="flex flex-col border-gray-200 bg-gray-800 p-2">
-              <button
-                onClick={() => setSearchOpen(true)}
-                className="text-gray-400 bg-gray-700 hover:bg-gray-600 flex gap-4 p-2 rounded items-center"
-              >
-                <MagnifyingGlassIcon className="h-4 text-gray-400 ml-2" />
-                {t("Search")} {getIsMac() ? "(⌘K)" : "(Ctrl+K)"}
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="relative flex justify-center px-2 py-2 text-gray-400 hover:bg-gray-700 hover:text-white group text-md font-medium"
-            >
-              <MagnifyingGlassIcon className="text-gray-400 h-7 w-7 m-2" />
-              <div className="absolute inset-y-0 left-full ml-2 flex items-center text-xs opacity-0 transition-opacity group-hover:opacity-100">
-                <Badge className="text-white bg-gray-800 ring-gray-500/20">
-                  {t("Search")} {getIsMac() ? "(⌘K)" : "(Ctrl+K)"}
-                </Badge>
-              </div>
-            </button>
-          ))}
+        {searchFeatureEnabled && <SpotlightSearch isMac={getIsMac()} />}
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
         <div className="mt-5 flex grow flex-col">

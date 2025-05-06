@@ -21,6 +21,7 @@ import PipelineTemplateResultTable from "./PipelineTemplateResultTable";
 import AllResultsTable from "./AllResultsTable";
 import useSearchHotkeys from "./useSearchHotkeys";
 import Tabs from "core/components/Tabs";
+import Badge from "core/components/Badge";
 import {
   getItems,
   getTotalItems,
@@ -58,16 +59,11 @@ const getTabLabel = (
 
 const pageSize = 15;
 
-const SpotlightSearch = ({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) => {
+const SpotlightSearch = ({ isMac }: { isMac: boolean }) => {
   const { t } = useTranslation();
   const router = useRouter();
 
+  const [isOpen, setIsOpen] = useState(false);
   const [unBouncedQuery, setUnBouncedQuery] = useState("");
   const query = useDebounce(unBouncedQuery, 500);
 
@@ -182,16 +178,14 @@ const SpotlightSearch = ({
   ]);
 
   useEffect(() => {
-    const handleRouteChange = () => {
-      onClose();
-    };
+    const handleRouteChange = () => setIsOpen(false);
 
     router.events.on("routeChangeStart", handleRouteChange);
 
     return () => {
       router.events.off("routeChangeStart", handleRouteChange);
     };
-  }, [router.events, onClose]);
+  }, [router.events]);
 
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -293,6 +287,7 @@ const SpotlightSearch = ({
 
   useSearchHotkeys({
     isOpen,
+    setIsOpen,
     inputRef,
     data: currentData,
     highlightedIndex,
@@ -322,133 +317,152 @@ const SpotlightSearch = ({
     });
 
   const searchBarRef = useRef<HTMLDivElement>(null);
-  useOnClickOutside(searchBarRef, () => {
-    if (isOpen) {
-      onClose();
-    }
-  });
+  useOnClickOutside(searchBarRef, () => setIsOpen(false));
 
   const oneOfTheResultsLoading = tabConfigs.some(({ loading }) => loading);
   const showResults = unBouncedQuery;
 
   if (!isOpen) {
-    return null;
+    return (
+      <button
+        onClick={() => setIsOpen(true)}
+        className="relative flex justify-center px-2 py-2 text-gray-400 hover:bg-gray-700 hover:text-white group text-md font-medium"
+      >
+        <MagnifyingGlassIcon className="text-gray-400 h-7 w-7 m-2" />
+        <div className="absolute inset-y-0 left-full ml-2 flex items-center text-xs opacity-0 transition-opacity group-hover:opacity-100">
+          <Badge className="text-white bg-gray-800 ring-gray-500/20">
+            {t("Search")} {isMac ? "(⌘K)" : "(Ctrl+K)"}
+          </Badge>
+        </div>
+      </button>
+    );
   }
   return (
-    <div
-      className="fixed inset-0 z-50 bg-gray-900/70 flex justify-center"
-      tabIndex={0}
-    >
-      <div className="flex w-2/3 mt-30" ref={searchBarRef}>
-        <div className="relative">
-          <Input
-            id="search-input"
-            ref={inputRef}
-            value={unBouncedQuery}
-            data-testid="search-input"
-            leading={<MagnifyingGlassIcon className="h-5 text-gray-500" />}
-            autoComplete="off"
-            trailingIcon={
-              <button
-                onClick={onClose}
-                className="flex items-center text-gray-500 hover:text-gray-700 focus:text-gray-700"
-                aria-label="Close"
-              >
-                <XMarkIcon className="h-6 w-6" />
-              </button>
-            }
-            placeholder={t(
-              "Search for files, pipelines, templates, database, datasets,...",
-            )}
-            onChange={(event) => {
-              resetPages();
-              setUnBouncedQuery(event.target.value ?? "");
-            }}
-            className={clsx(
-              "w-full transition-all duration-100 ease-in-out",
-              showResults && "rounded-b-none",
-            )}
-            classNameOverrides={
-              "focus:ring-0 focus:border-white border-white py-4"
-            }
-          />
-          <div
-            className={clsx(
-              "transition-opacity duration-100 ease-in-out",
-              showResults ? "opacity-100" : "opacity-0",
-            )}
-          >
-            <WorkspaceFilterPanel
-              workspaces={workspacesData?.workspaces?.items || []}
-              selectedWorkspaces={selectedWorkspaces}
-              onChange={setSelectedWorkspaces}
-            />
-            <div className="max-h-[1000px] overflow-y-auto">
-              <Tabs
-                defaultIndex={0}
-                className="bg-white p-3 border-none"
-                onChange={handleTabChange}
-                tabsClassName="w-40"
-              >
-                <Tabs.Tab
-                  label={`${t("All results")} (${numberOfResults}${oneOfTheResultsLoading ? "+" : ""})`}
-                  className="bg-white rounded-b-md"
+    <>
+      <div
+        className="fixed inset-0 z-50 bg-gray-900/70 flex justify-center"
+        tabIndex={0}
+      >
+        <div className="flex w-2/3 mt-30" ref={searchBarRef}>
+          <div className="relative">
+            <Input
+              id="search-input"
+              ref={inputRef}
+              value={unBouncedQuery}
+              data-testid="search-input"
+              leading={<MagnifyingGlassIcon className="h-5 text-gray-500" />}
+              autoComplete="off"
+              trailingIcon={
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center text-gray-500 hover:text-gray-700 focus:text-gray-700"
+                  aria-label="Close"
                 >
-                  <AllResultsTable
-                    isActive={activeTabIndex === 0}
-                    combinedResults={combinedResults}
-                    highlightedIndex={highlightedIndex}
-                    hasPreviousPage={hasPreviousPageOverall}
-                    hasNextPage={hasNextPageOverall}
-                    fetchNextPage={fetchNextPage}
-                    fetchPreviousPage={fetchPreviousPage}
-                    pageSize={pageSize * tabConfigs.length}
-                  />
-                </Tabs.Tab>
-                {tabConfigs.map(
-                  (
-                    {
-                      Component,
-                      typeName,
-                      loading,
-                      propsKey,
-                      label,
-                      data,
-                      setPage,
-                    },
-                    index,
-                  ) => (
-                    <Tabs.Tab
-                      key={index}
-                      leadingElement={React.createElement(
-                        getTypeIcon(typeName),
-                        {
-                          className: "h-5 text-gray-500",
-                        },
-                      )}
-                      label={getTabLabel(loading, label, data?.totalItems)}
-                      className="bg-white rounded-b-md"
-                      loading={loading}
-                    >
-                      <Component
-                        {...{ [propsKey]: data }}
-                        isActive={activeTabIndex === index + 1}
-                        highlightedIndex={highlightedIndex}
-                        fetchData={(params: { page: number }) =>
-                          setPage(params.page)
-                        }
-                        setPage={setPage}
-                        pageSize={pageSize}
-                      />
-                    </Tabs.Tab>
-                  ),
-                )}
-              </Tabs>
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              }
+              placeholder={t(
+                "Search for files, pipelines, templates, database, datasets,...",
+              )}
+              onChange={(event) => {
+                resetPages();
+                setUnBouncedQuery(event.target.value ?? "");
+              }}
+              className={clsx(
+                "w-full transition-all duration-100 ease-in-out",
+                showResults && "rounded-b-none",
+              )}
+              classNameOverrides={
+                "focus:ring-0 focus:border-white border-white py-4"
+              }
+            />
+            <div
+              className={clsx(
+                "transition-opacity duration-100 ease-in-out",
+                showResults ? "opacity-100" : "opacity-0",
+              )}
+            >
+              <WorkspaceFilterPanel
+                workspaces={workspacesData?.workspaces?.items || []}
+                selectedWorkspaces={selectedWorkspaces}
+                onChange={setSelectedWorkspaces}
+              />
+              <div className="max-h-[1000px] overflow-y-auto">
+                <Tabs
+                  defaultIndex={0}
+                  className="bg-white p-3 border-none"
+                  onChange={handleTabChange}
+                  tabsClassName="w-40"
+                >
+                  <Tabs.Tab
+                    label={`${t("All results")} (${numberOfResults}${oneOfTheResultsLoading ? "+" : ""})`}
+                    className="bg-white rounded-b-md"
+                  >
+                    <AllResultsTable
+                      isActive={activeTabIndex === 0}
+                      combinedResults={combinedResults}
+                      highlightedIndex={highlightedIndex}
+                      hasPreviousPage={hasPreviousPageOverall}
+                      hasNextPage={hasNextPageOverall}
+                      fetchNextPage={fetchNextPage}
+                      fetchPreviousPage={fetchPreviousPage}
+                      pageSize={pageSize * tabConfigs.length}
+                    />
+                  </Tabs.Tab>
+                  {tabConfigs.map(
+                    (
+                      {
+                        Component,
+                        typeName,
+                        loading,
+                        propsKey,
+                        label,
+                        data,
+                        setPage,
+                      },
+                      index,
+                    ) => (
+                      <Tabs.Tab
+                        key={index}
+                        leadingElement={React.createElement(
+                          getTypeIcon(typeName),
+                          {
+                            className: "h-5 text-gray-500",
+                          },
+                        )}
+                        label={getTabLabel(loading, label, data?.totalItems)}
+                        className="bg-white rounded-b-md"
+                        loading={loading}
+                      >
+                        <Component
+                          {...{ [propsKey]: data }}
+                          isActive={activeTabIndex === index + 1}
+                          highlightedIndex={highlightedIndex}
+                          fetchData={(params: { page: number }) =>
+                            setPage(params.page)
+                          }
+                          setPage={setPage}
+                          pageSize={pageSize}
+                        />
+                      </Tabs.Tab>
+                    ),
+                  )}
+                </Tabs>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      <div className="flex flex-col border-gray-200 bg-gray-800 p-2">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="text-gray-400 bg-gray-700 hover:bg-gray-600 flex gap-4 p-2 rounded items-center"
+        >
+          <MagnifyingGlassIcon className="h-4 text-gray-400 ml-2" />
+          {t("Search")} {isMac ? "(⌘K)" : "(Ctrl+K)"}
+        </button>
+      </div>
+    </>
   );
 };
 

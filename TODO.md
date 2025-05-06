@@ -1,4 +1,4 @@
 ## Required
-- Fix frontend dev container to be able to work with the backend graphql files
+- When I do a search in dev on "covid" I do not have the demo workspace's files in the result :/ (tested with "covid", "covid)
 ## Optional 
 - Dev container on PR
