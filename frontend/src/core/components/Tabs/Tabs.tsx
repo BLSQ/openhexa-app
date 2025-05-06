@@ -21,10 +21,17 @@ export type TabsProps = {
   defaultIndex?: number;
   onChange?: (index: number) => void;
   className?: string;
+  tabsClassName?: string;
 };
 
 const Tabs = (props: TabsProps) => {
-  const { children, defaultIndex = 0, onChange, className } = props;
+  const {
+    children,
+    defaultIndex = 0,
+    onChange,
+    className,
+    tabsClassName,
+  } = props;
   const { t } = useTranslation();
 
   const validChildren: React.ReactNode[] = useMemo(
@@ -61,6 +68,7 @@ const Tabs = (props: TabsProps) => {
                         selected
                           ? "border-pink-500 "
                           : "border-transparent text-gray-500 hover:border-gray-400",
+                        tabsClassName,
                       )}
                     >
                       <div className="flex items-center">

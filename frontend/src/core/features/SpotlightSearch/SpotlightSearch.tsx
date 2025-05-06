@@ -70,7 +70,6 @@ const SpotlightSearch = ({
 
   const [unBouncedQuery, setUnBouncedQuery] = useState("");
   const query = useDebounce(unBouncedQuery, 500);
-  const isBouncing = unBouncedQuery !== query;
 
   const [selectedWorkspaces, setSelectedWorkspaces] = useState<Workspace[]>([]);
   const selectedWorkspaceSlugs = useMemo(
@@ -329,8 +328,7 @@ const SpotlightSearch = ({
     }
   });
 
-  const oneOfTheResultsLoading =
-    isBouncing || tabConfigs.some(({ loading }) => loading);
+  const oneOfTheResultsLoading = tabConfigs.some(({ loading }) => loading);
   const showResults = unBouncedQuery;
 
   if (!isOpen) {
@@ -390,6 +388,7 @@ const SpotlightSearch = ({
                 defaultIndex={0}
                 className="bg-white p-3 border-none"
                 onChange={handleTabChange}
+                tabsClassName="w-40"
               >
                 <Tabs.Tab
                   label={`${t("All results")} (${numberOfResults}${oneOfTheResultsLoading ? "+" : ""})`}
@@ -429,7 +428,7 @@ const SpotlightSearch = ({
                       )}
                       label={getTabLabel(loading, label, data?.totalItems)}
                       className="bg-white rounded-b-md"
-                      loading={isBouncing || loading}
+                      loading={loading}
                     >
                       <Component
                         {...{ [propsKey]: data }}
