@@ -30,15 +30,14 @@ COPY . /code/
 ARG DJANGO_SETTINGS_MODULE
 
 # Rootless
-ARG USER=openhexa
-ARG GROUP=openhexa
-RUN groupadd --gid 1000 $GROUP &&\
-  useradd --gid 1000 --uid 1000 --no-create-home --home-dir /code --no-log-init --shell /bin/bash $USER &&\
-  passwd -d $USER
+ARG UID=1000
+ARG GID=1000
+RUN groupadd --gid $GID openhexa &&\
+  useradd --gid $GID --uid $UID --no-create-home --home-dir /code --no-log-init --shell /bin/bash openhexa &&\
+  passwd -d openhexa
 
-RUN chown -R $USER:$GROUP /code/
-RUN mkdir /data && chown $USER:$GROUP /data
-USER $USER:$GROUP
+RUN chown -R $UID:$GID /code/
+USER openhexa
 
 # Entry point
 ARG WORKSPACE_STORAGE_LOCATION
@@ -61,7 +60,7 @@ ARG WORKSPACE_STORAGE_LOCATION
 ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
 ENV WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
 
-USER root:root
+USER root
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && \
@@ -80,5 +79,5 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 # Rootless
 RUN groupadd --gid 999 docker
-RUN usermod -aG docker $USER
-USER $USER:$GROUP
+RUN usermod -aG docker openhexa
+USER openhexa
