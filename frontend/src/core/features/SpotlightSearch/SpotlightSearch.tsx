@@ -385,7 +385,7 @@ const SpotlightSearch = ({
               selectedWorkspaces={selectedWorkspaces}
               onChange={setSelectedWorkspaces}
             />
-            <div className="max-h-[400px] overflow-y-auto">
+            <div className="overflow-y-auto">
               <Tabs
                 defaultIndex={0}
                 className="bg-white p-3"
