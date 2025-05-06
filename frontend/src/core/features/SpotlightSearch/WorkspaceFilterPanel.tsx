@@ -44,7 +44,7 @@ const WorkspaceFilterPanel = ({
   };
 
   return (
-    <div>
+    <div className="bg-white p-4">
       <p className="text-md font-medium mb-5">{t("Filter by Workspace")}</p>
       {workspaces.length <= 10 ? (
         <div className="flex gap-2 flex-wrap">

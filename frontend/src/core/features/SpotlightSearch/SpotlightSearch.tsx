@@ -331,7 +331,6 @@ const SpotlightSearch = ({
 
   const oneOfTheResultsLoading =
     isBouncing || tabConfigs.some(({ loading }) => loading);
-  const showWorkspaceFilterPanel = unBouncedQuery;
   const showResults = unBouncedQuery;
 
   if (!isOpen) {
@@ -344,18 +343,6 @@ const SpotlightSearch = ({
     >
       <div className="flex w-2/3 mt-30" ref={searchBarRef}>
         <div className="relative">
-          <div
-            className={clsx(
-              "transition-opacity duration-100 ease-in-out p-4 pb-8 bg-white rounded-t-lg min-h-45",
-              showWorkspaceFilterPanel ? "opacity-100" : "opacity-0",
-            )}
-          >
-            <WorkspaceFilterPanel
-              workspaces={workspacesData?.workspaces?.items || []}
-              selectedWorkspaces={selectedWorkspaces}
-              onChange={setSelectedWorkspaces}
-            />
-          </div>
           <Input
             id="search-input"
             ref={inputRef}
@@ -381,7 +368,6 @@ const SpotlightSearch = ({
             }}
             className={clsx(
               "w-full transition-all duration-100 ease-in-out",
-              showWorkspaceFilterPanel && "rounded-t-none",
               showResults && "rounded-b-none",
             )}
             classNameOverrides={
@@ -394,6 +380,11 @@ const SpotlightSearch = ({
               showResults ? "opacity-100" : "opacity-0",
             )}
           >
+            <WorkspaceFilterPanel
+              workspaces={workspacesData?.workspaces?.items || []}
+              selectedWorkspaces={selectedWorkspaces}
+              onChange={setSelectedWorkspaces}
+            />
             <div className="max-h-[400px] overflow-y-auto">
               <Tabs
                 defaultIndex={0}
