@@ -385,10 +385,10 @@ const SpotlightSearch = ({
               selectedWorkspaces={selectedWorkspaces}
               onChange={setSelectedWorkspaces}
             />
-            <div className="overflow-y-auto">
+            <div className="max-h-[1000px] overflow-y-auto">
               <Tabs
                 defaultIndex={0}
-                className="bg-white p-3"
+                className="bg-white p-3 border-none"
                 onChange={handleTabChange}
               >
                 <Tabs.Tab
