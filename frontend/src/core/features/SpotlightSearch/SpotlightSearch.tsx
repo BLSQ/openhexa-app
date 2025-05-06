@@ -392,7 +392,7 @@ const SpotlightSearch = ({
                   defaultIndex={0}
                   className="bg-white p-3 border-none"
                   onChange={handleTabChange}
-                  tabsClassName="w-40"
+                  tabsClassName="w-30"
                 >
                   <Tabs.Tab
                     label={`${t("All results")} (${numberOfResults}${oneOfTheResultsLoading ? "+" : ""})`}
