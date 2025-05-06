@@ -109,7 +109,7 @@ def resolve_search_files(
         if workspace.bucket_name
         for file in storage.list_bucket_objects(
             bucket_name=workspace.bucket_name,
-            match_glob=f"*{query.lower()}*",
+            match_glob=f"*{query}*",
         ).items
     ]
     return result_page(files, page=page, per_page=per_page)
