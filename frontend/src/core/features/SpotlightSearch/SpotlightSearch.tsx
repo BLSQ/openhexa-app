@@ -372,7 +372,9 @@ const SpotlightSearch = ({
                 <XMarkIcon className="h-6 w-6" />
               </button>
             }
-            placeholder={t("Search...")}
+            placeholder={t(
+              "Search for files, pipelines, templates, database, datasets,...",
+            )}
             onChange={(event) => {
               resetPages();
               setUnBouncedQuery(event.target.value ?? "");
