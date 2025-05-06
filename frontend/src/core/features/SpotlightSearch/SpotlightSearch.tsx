@@ -21,7 +21,6 @@ import PipelineTemplateResultTable from "./PipelineTemplateResultTable";
 import AllResultsTable from "./AllResultsTable";
 import useSearchHotkeys from "./useSearchHotkeys";
 import Tabs from "core/components/Tabs";
-import Badge from "core/components/Badge";
 import {
   getItems,
   getTotalItems,
@@ -36,6 +35,7 @@ import WorkspaceFilterPanel from "./WorkspaceFilterPanel";
 import FileResultTable from "./FileResultTable";
 import useOnClickOutside from "use-onclickoutside";
 import { max } from "lodash";
+import InputSearch from "./InputSearch";
 
 type Workspace = GetWorkspacesQuery["workspaces"]["items"][0];
 
@@ -59,7 +59,13 @@ const getTabLabel = (
 
 const pageSize = 15;
 
-const SpotlightSearch = ({ isMac }: { isMac: boolean }) => {
+const SpotlightSearch = ({
+  isMac,
+  isSidebarOpen,
+}: {
+  isMac: boolean;
+  isSidebarOpen: boolean;
+}) => {
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -324,17 +330,11 @@ const SpotlightSearch = ({ isMac }: { isMac: boolean }) => {
 
   if (!isOpen) {
     return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="relative flex justify-center px-2 py-2 text-gray-400 hover:bg-gray-700 hover:text-white group text-md font-medium"
-      >
-        <MagnifyingGlassIcon className="text-gray-400 h-7 w-7 m-2" />
-        <div className="absolute inset-y-0 left-full ml-2 flex items-center text-xs opacity-0 transition-opacity group-hover:opacity-100">
-          <Badge className="text-white bg-gray-800 ring-gray-500/20">
-            {t("Search")} {isMac ? "(⌘K)" : "(Ctrl+K)"}
-          </Badge>
-        </div>
-      </button>
+      <InputSearch
+        isSidebarOpen={isSidebarOpen}
+        isMac={isMac}
+        onClick={() => setIsOpen((prev) => !prev)}
+      />
     );
   }
   return (
@@ -453,15 +453,11 @@ const SpotlightSearch = ({ isMac }: { isMac: boolean }) => {
           </div>
         </div>
       </div>
-      <div className="flex flex-col border-gray-200 bg-gray-800 p-2">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="text-gray-400 bg-gray-700 hover:bg-gray-600 flex gap-4 p-2 rounded items-center"
-        >
-          <MagnifyingGlassIcon className="h-4 text-gray-400 ml-2" />
-          {t("Search")} {isMac ? "(⌘K)" : "(Ctrl+K)"}
-        </button>
-      </div>
+      <InputSearch
+        isSidebarOpen={isSidebarOpen}
+        isMac={isMac}
+        onClick={() => setIsOpen((prev) => !prev)}
+      />
     </>
   );
 };
