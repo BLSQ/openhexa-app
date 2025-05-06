@@ -14,7 +14,6 @@ import React, {
   ReactNode,
   useMemo,
 } from "react";
-import Spinner from "../Spinner";
 
 export type TabsProps = {
   children: ReactNode;
@@ -78,9 +77,6 @@ const Tabs = (props: TabsProps) => {
                           </span>
                         )}
                         {(child as ReactElement<TabProps>).props.label}
-                        {(child as ReactElement<TabProps>).props.loading && (
-                          <Spinner size="xs" className="text-pink-500 ml-2" />
-                        )}
                       </div>
                     </a>
                   )}
@@ -101,7 +97,6 @@ const Tabs = (props: TabsProps) => {
 type TabProps = {
   leadingElement?: ReactElement;
   label: string;
-  loading?: boolean;
   className?: string;
   children: ReactElement | ReactElement[];
 };

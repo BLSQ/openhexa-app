@@ -36,6 +36,7 @@ import FileResultTable from "./FileResultTable";
 import useOnClickOutside from "use-onclickoutside";
 import { max } from "lodash";
 import InputSearch from "./InputSearch";
+import Spinner from "core/components/Spinner";
 
 type Workspace = GetWorkspacesQuery["workspaces"]["items"][0];
 
@@ -49,12 +50,8 @@ type TabConfig = {
   setPage: React.Dispatch<React.SetStateAction<number>>;
 };
 
-const getTabLabel = (
-  loading: boolean,
-  label: string,
-  totalItems?: number,
-): string => {
-  return loading ? label : `${label} (${totalItems || 0})`;
+const getTabLabel = (label: string, totalItems?: number): string => {
+  return `${label} (${totalItems || 0})`;
 };
 
 const pageSize = 15;
@@ -325,7 +322,6 @@ const SpotlightSearch = ({
   const searchBarRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(searchBarRef, () => setIsOpen(false));
 
-  const oneOfTheResultsLoading = tabConfigs.some(({ loading }) => loading);
   const showResults = unBouncedQuery;
 
   if (!isOpen) {
@@ -392,10 +388,9 @@ const SpotlightSearch = ({
                   defaultIndex={0}
                   className="bg-white p-3 border-none"
                   onChange={handleTabChange}
-                  tabsClassName="w-30"
                 >
                   <Tabs.Tab
-                    label={`${t("All results")} (${numberOfResults}${oneOfTheResultsLoading ? "+" : ""})`}
+                    label={getTabLabel(t("All results"), numberOfResults)}
                     className="bg-white rounded-b-md"
                   >
                     <AllResultsTable
@@ -424,15 +419,20 @@ const SpotlightSearch = ({
                     ) => (
                       <Tabs.Tab
                         key={index}
-                        leadingElement={React.createElement(
-                          getTypeIcon(typeName),
-                          {
-                            className: "h-5 text-gray-500",
-                          },
-                        )}
-                        label={getTabLabel(loading, label, data?.totalItems)}
+                        leadingElement={
+                          loading ? (
+                            <Spinner
+                              size="xs"
+                              className="h-4 w-4 text-pink-500"
+                            />
+                          ) : (
+                            React.createElement(getTypeIcon(typeName), {
+                              className: "h-4 w-4 text-gray-500",
+                            })
+                          )
+                        }
+                        label={getTabLabel(label, data?.totalItems)}
                         className="bg-white rounded-b-md"
-                        loading={loading}
                       >
                         <Component
                           {...{ [propsKey]: data }}
