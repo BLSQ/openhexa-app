@@ -16,6 +16,7 @@ type AllResultsTableProps = {
   hasNextPage: boolean;
   fetchNextPage: () => void;
   fetchPreviousPage: () => void;
+  pageSize: number;
 };
 
 const AllResultsTable = ({
@@ -26,12 +27,13 @@ const AllResultsTable = ({
   hasNextPage,
   fetchNextPage,
   fetchPreviousPage,
+  pageSize,
 }: AllResultsTableProps) => {
   const { t } = useTranslation();
 
   return (
     <>
-      <DataGrid data={combinedResults}>
+      <DataGrid data={combinedResults} defaultPageSize={pageSize}>
         <BaseColumn id="name" label={t("Name")}>
           {(item) => (
             <HighlightedLink

@@ -403,6 +403,7 @@ const SpotlightSearch = ({
                     hasNextPage={hasNextPageOverall}
                     fetchNextPage={fetchNextPage}
                     fetchPreviousPage={fetchPreviousPage}
+                    pageSize={pageSize * tabConfigs.length}
                   />
                 </Tabs.Tab>
                 {tabConfigs.map(
