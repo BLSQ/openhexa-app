@@ -26,7 +26,6 @@ import {
   useAccountPageQuery,
 } from "identity/graphql/queries.generated";
 import { logout } from "identity/helpers/auth";
-import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 import {
   useDeclineWorkspaceInvitationMutation,
@@ -38,7 +37,6 @@ import { toast } from "react-toastify";
 function AccountPage() {
   const { t } = useTranslation();
   const { data } = useAccountPageQuery();
-  const [twoFactorEnabled] = useFeature("two_factor");
   const [showTwoFactorDialog, { toggle: toggleTwoFactorDialog }] = useToggle();
   const [updateUser] = useUpdateUserMutation();
 
@@ -135,27 +133,25 @@ function AccountPage() {
               readonly
             />
           </DataCard.FormSection>
-          {twoFactorEnabled && (
-            <Block.Section title={t("Security")} collapsible={false}>
-              <DescriptionList
-                columns={2}
-                displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
-              >
-                <DescriptionList.Item label={t("Two-Factor Authentication")}>
-                  {data.me.hasTwoFactorEnabled
-                    ? t("Currently enabled")
-                    : t("Currently disabled")}
-                  <Button
-                    size="sm"
-                    className="ml-2"
-                    onClick={toggleTwoFactorDialog}
-                  >
-                    {data.me.hasTwoFactorEnabled ? t("Disable") : t("Enable")}
-                  </Button>
-                </DescriptionList.Item>
-              </DescriptionList>
-            </Block.Section>
-          )}
+          <Block.Section title={t("Security")} collapsible={false}>
+            <DescriptionList
+              columns={2}
+              displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
+            >
+              <DescriptionList.Item label={t("Two-Factor Authentication")}>
+                {data.me.hasTwoFactorEnabled
+                  ? t("Currently enabled")
+                  : t("Currently disabled")}
+                <Button
+                  size="sm"
+                  className="ml-2"
+                  onClick={toggleTwoFactorDialog}
+                >
+                  {data.me.hasTwoFactorEnabled ? t("Disable") : t("Enable")}
+                </Button>
+              </DescriptionList.Item>
+            </DescriptionList>
+          </Block.Section>
         </DataCard>
 
         {data.pendingWorkspaceInvitations.totalItems > 0 ? (

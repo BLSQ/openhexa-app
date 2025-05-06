@@ -40,9 +40,7 @@ describe("DisableTwoFactorDialog", () => {
     const user = userEvent.setup();
     const onClose = jest.fn();
     const { container } = render(
-      <TestApp
-        me={{ features: [{ code: "two_factor" }], hasTwoFactorEnabled: true }}
-      >
+      <TestApp me={{ hasTwoFactorEnabled: true }}>
         <DisableTwoFactorDialog open onClose={onClose} />
       </TestApp>,
     );
@@ -72,9 +70,7 @@ describe("DisableTwoFactorDialog", () => {
     const user = userEvent.setup();
     const onClose = jest.fn();
     const { container } = render(
-      <TestApp
-        me={{ features: [{ code: "two_factor" }], hasTwoFactorEnabled: true }}
-      >
+      <TestApp me={{ hasTwoFactorEnabled: true }}>
         <DisableTwoFactorDialog open onClose={onClose} />
       </TestApp>,
     );

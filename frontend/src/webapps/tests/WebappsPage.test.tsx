@@ -124,7 +124,7 @@ const graphqlMocks: MockedResponse[] = [
 describe("WebappsPage", () => {
   it("renders the list of webapps", async () => {
     render(
-      <TestApp mocks={graphqlMocks} me={{ features: [{ code: "webapps" }] }}>
+      <TestApp mocks={graphqlMocks}>
         <WebappsPage workspaceSlug="test-workspace" page={1} perPage={15} />
       </TestApp>,
     );
@@ -150,7 +150,6 @@ describe("WebappsPage", () => {
             },
           },
         })}
-        me={{ features: [{ code: "webapps" }] }}
       >
         <WebappsPage workspaceSlug="test-workspace" page={1} perPage={15} />
       </TestApp>,
@@ -183,7 +182,6 @@ describe("WebappsPage", () => {
             },
           },
         })}
-        me={{ features: [{ code: "webapps" }] }}
       >
         <WebappsPage workspaceSlug="test-workspace" page={1} perPage={15} />
       </TestApp>,
@@ -224,7 +222,6 @@ describe("WebappsPage", () => {
             },
           },
         })}
-        me={{ features: [{ code: "webapps" }] }}
       >
         <WebappsPage workspaceSlug="test-workspace" page={1} perPage={15} />
       </TestApp>,
