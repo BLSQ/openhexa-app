@@ -13,7 +13,6 @@ type AccessmodAccessRequest {
 
 type AccessmodAccessRequestPage {
   items: [AccessmodAccessRequest!]!
-  pageNumber: Int!
   totalItems: Int!
   totalPages: Int!
 }
