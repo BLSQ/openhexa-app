@@ -154,12 +154,14 @@ def query_iaso_metadata(
         IASOMetadataQueryType.PROJECTS: iaso_client.get_projects,
         IASOMetadataQueryType.FORMS: iaso_client.get_forms,
     }
+
     if query_type not in metadata_methods:
         raise ValueError(f"Unsupported query type: {query_type}")
+
     return normalize_metadata_response(metadata_methods[query_type](**kwargs))
 
 
-def toolbox_client_from_conneciton(connection: Connection) -> DHIS2 | IASO | None:
+def toolbox_client_from_connection(connection: Connection) -> DHIS2 | IASO | None:
     """
     Gets DHIS2, IASO toolbox client from workspace connection
     """
