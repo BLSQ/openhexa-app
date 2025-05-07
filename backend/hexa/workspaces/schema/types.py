@@ -3,6 +3,7 @@ import logging
 from ariadne import EnumType, InterfaceType, ObjectType
 from django.http import HttpRequest
 from openhexa.toolbox.dhis2.api import DHIS2Error
+from openhexa.toolbox.iaso.api_client import IASOError
 
 from hexa.core.graphql import result_page
 from hexa.pipelines.authentication import PipelineRunUser
@@ -20,7 +21,7 @@ from ..utils import (
     IASOMetadataQueryType,
     query_dhis2_metadata,
     query_iaso_metadata,
-    toolbox_client_from_conneciton,
+    toolbox_client_from_connection,
 )
 
 workspace_object = ObjectType("Workspace")
@@ -179,7 +180,7 @@ def resolve_query(connection, info, page=1, per_page=10, filters=None, **kwargs)
             ["level"] if query_type == DHIS2MetadataQueryType.ORG_UNIT_LEVELS else []
         )
 
-        dhis2_client = toolbox_client_from_conneciton(connection)
+        dhis2_client = toolbox_client_from_connection(connection)
 
         response = query_dhis2_metadata(
             dhis2_client,
@@ -223,17 +224,19 @@ def resolve_query(connection, info, page=1, per_page=10, filters=None, **kwargs)
 def resolve_iaso_query(connection, info, page=1, per_page=10, filters=None, **kwargs):
     try:
         query_type = IASOMetadataQueryType[kwargs["type"]]
-        fields = ["id", "name"]
 
-        iaso_client = toolbox_client_from_conneciton(connection)
+        iaso_client = toolbox_client_from_connection(connection)
+        params = {}
+        if query_type == IASOMetadataQueryType.FORMS:
+            params["org_units"] = kwargs.get("org_units", None)
+            params["projects"] = kwargs.get("projects", None)
 
         response = query_iaso_metadata(
             iaso_client,
             query_type=query_type,
-            fields=",".join(fields),
             page=page,
-            pageSize=per_page,
-            filters=filters,
+            limit=per_page,
+            **params,
         )
 
         result = [
@@ -261,7 +264,7 @@ def resolve_iaso_query(connection, info, page=1, per_page=10, filters=None, **kw
             "total_pages": 0,
             "page_number": page,
             "success": False,
-            "error": "REQUEST_ERROR" if isinstance(e, DHIS2Error) else "UNKNOWN_ERROR",
+            "error": "REQUEST_ERROR" if isinstance(e, IASOError) else "UNKNOWN_ERROR",
         }
 
 
@@ -271,7 +274,7 @@ connection_interface.set_alias("type", "connection_type")
 @dhis2_connection.field("status")
 def resolve_dhis2_connection_status(connection, info, **kwargs):
     try:
-        toolbox_client_from_conneciton(connection)
+        toolbox_client_from_connection(connection)
         return "UP"
     except DHIS2Error as e:
         logging.error(f"DHIS2 error: {e}")
