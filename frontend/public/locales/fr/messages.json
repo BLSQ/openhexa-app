@@ -331,6 +331,7 @@
   "Password successfully changed": "Le mot de passe a été modifié avec succès",
   "Password to connect to the PostgreSQL server": "Mot de passe pour se connecter au serveur PostgreSQL",
   "Passwords are not the same": "Les mots de passe ne sont pas les mêmes",
+  "Path": "Chemin",
   "Pending": "En attente",
   "Pending & Declined invitations": "Invitations en attente et refusées",
   "Permission denied": "Permission refusée",
