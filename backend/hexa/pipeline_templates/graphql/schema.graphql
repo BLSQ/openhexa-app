@@ -242,6 +242,7 @@ input UpdateTemplateVersionInput {
 Enum representing the possible errors that can occur when updating a template version.
 """
 enum UpdateTemplateVersionError {
+  NOT_FOUND
   PERMISSION_DENIED
 }
 
