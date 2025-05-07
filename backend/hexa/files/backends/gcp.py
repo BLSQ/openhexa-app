@@ -1,4 +1,5 @@
 import base64
+import fnmatch
 import io
 import json
 
@@ -248,14 +249,22 @@ class GoogleCloudStorage(Storage):
             ignore_hidden_files (bool, optional): Returns the hidden files and directories if `False`. Defaults to True.
 
         """
-        request = self.client.list_blobs(
-            bucket_name,
-            prefix=prefix,
-            match_glob=match_glob,
-            # We take twice the number of items to be sure to have enough
-            page_size=per_page * 2,
-            delimiter="/",
-            include_trailing_delimiter=True,
+        request = (
+            self.client.list_blobs(
+                bucket_name,
+                prefix=prefix,
+                # We take twice the number of items to be sure to have enough
+                page_size=per_page * 2,
+                delimiter="/",
+                include_trailing_delimiter=True,
+            )
+            if not match_glob
+            else self.client.list_blobs(
+                bucket_name,
+                prefix=prefix,
+                match_glob=f"**/*{match_glob}*",
+                page_size=per_page * 2,
+            )
         )
         max_items = (page * per_page) + 1
         start_offset = (page - 1) * per_page
@@ -263,12 +272,17 @@ class GoogleCloudStorage(Storage):
 
         objects = []
 
+        lower_match_glob = match_glob.lower() if match_glob else None
+
         def is_object_match_query(obj):
-            if ignore_hidden_files and obj.name.startswith("."):
+            lower_name = obj.name.lower()
+            if ignore_hidden_files and lower_name.startswith("."):
                 return False
-            if not query:
-                return True
-            return query.lower() in obj.name.lower()
+            if query and query.lower() not in lower_name:
+                return False
+            if lower_match_glob and not fnmatch.fnmatch(lower_name, lower_match_glob):
+                return False
+            return True
 
         iterator = iter_request_results(bucket_name, request)
         while True:
