@@ -52,7 +52,7 @@ def _prefix_to_obj(bucket_name, name: str):
     )
 
 
-def iter_request_results(bucket_name, request):
+def iter_request_results(bucket_name, request, include_directories=False):
     # Start by adding all the prefixes
     # Prefixes are virtual directories based on the delimiter specified in the request
     # The API returns a list of keys that have the delimiter as a suffix (meaning they have objects in them)
@@ -68,7 +68,7 @@ def iter_request_results(bucket_name, request):
 
     while True:
         for blob in current_page:
-            if not _is_dir(blob):
+            if not _is_dir(blob) or include_directories:
                 # We ignore objects that are directories (object with a size = 0 and ending with a /)
                 # because they are already listed in the prefixes
                 yield _blob_to_obj(blob)
@@ -284,7 +284,9 @@ class GoogleCloudStorage(Storage):
                 return False
             return True
 
-        iterator = iter_request_results(bucket_name, request)
+        iterator = iter_request_results(
+            bucket_name, request, include_directories=match_glob
+        )
         while True:
             try:
                 obj = next(iterator)
