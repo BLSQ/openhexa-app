@@ -238,7 +238,17 @@ class MockClient:
         if match_glob:
             import fnmatch
 
-            blobs = [blob for blob in blobs if fnmatch.fnmatch(blob.name, match_glob)]
+            restricted_match_glob = (
+                match_glob[:-1] if match_glob.endswith("*") else match_glob
+            )  # fnmatch doesn't support trailing '*'
+            restricted_match_glob = restricted_match_glob.replace(
+                "**/", ""
+            )  # fnmatch doesn't support '**/'
+            blobs = [
+                blob
+                for blob in blobs
+                if fnmatch.fnmatch(blob.name, restricted_match_glob)
+            ]
 
         blobs.sort(key=lambda blob: blob.name)
 
