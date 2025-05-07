@@ -28,7 +28,7 @@ jobs:
         - uses: graphql-hive/graphql-inspector@master
           with:
             name: Validate GraphQL Schema
-            schema: 'main:backend/hexa/**/schema.graphql'
+            schema: 'main:frontend/schema.graphql'
 
   test:
     name: Build & Test

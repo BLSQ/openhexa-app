@@ -22,3 +22,6 @@ generates:
     config:
       module: es2015
       useExplicitTyping: true
+  ./schema.graphql:
+      plugins:
+        - schema-ast
