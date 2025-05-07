@@ -55,8 +55,8 @@ describe("AccountPage", () => {
     const elm = await screen.findByText("Alphonse Brown");
     expect(elm).toBeInTheDocument();
 
-    const securitySection = screen.queryByText("Security");
-    expect(securitySection).not.toBeInTheDocument();
+    const securitySection = screen.queryByText("Currently disabled");
+    expect(securitySection).toBeInTheDocument();
   });
 
   it("renders with two-factor enabled and not active for the user", async () => {
@@ -92,7 +92,7 @@ describe("AccountPage", () => {
     ];
 
     const { container } = render(
-      <TestApp mocks={graphqlMocks} me={{ features: [{ code: "two_factor" }] }}>
+      <TestApp mocks={graphqlMocks}>
         <AccountPage />
       </TestApp>,
     );

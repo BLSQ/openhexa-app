@@ -151,7 +151,6 @@ describe("WorkspaceWebappPage", () => {
             },
           },
         })}
-        me={{ features: [{ code: "webapps" }] }}
       >
         <WorkspaceWebappPage webappId="1" workspaceSlug="test-workspace" />
       </TestApp>,
@@ -202,7 +201,6 @@ describe("WorkspaceWebappPage", () => {
             },
           },
         })}
-        me={{ features: [{ code: "webapps" }] }}
       >
         <WorkspaceWebappPage webappId="1" workspaceSlug="test-workspace" />
       </TestApp>,

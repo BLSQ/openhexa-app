@@ -13,7 +13,6 @@ import { useRouter } from "next/router";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import React, { useState } from "react";
 import Tabs from "core/components/Tabs";
-import useFeature from "identity/hooks/useFeature";
 import PipelineTemplates from "pipelines/features/PipelineTemplates";
 import Pipelines from "pipelines/features/Pipelines/Pipelines";
 import CreatePipelineDialog from "workspaces/features/CreatePipelineDialog";
@@ -26,7 +25,6 @@ type Props = {
 const WorkspacePipelinesPage: NextPageWithLayout = ({ workspace }: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const [pipelineTemplateFeatureEnabled] = useFeature("pipeline_templates");
   const [isDialogOpen, setDialogOpen] = useState(false);
 
   const tab = router.query.tab === "templates" ? "templates" : "pipelines";
@@ -95,14 +93,12 @@ const WorkspacePipelinesPage: NextPageWithLayout = ({ workspace }: Props) => {
             <Tabs.Tab label={t("Pipelines")} className={"space-y-2 pt-2"}>
               <Pipelines workspace={workspace} />
             </Tabs.Tab>
-            {pipelineTemplateFeatureEnabled && (
-              <Tabs.Tab
-                label={t("Available Templates")}
-                className={"space-y-2 pt-2"}
-              >
-                <PipelineTemplates workspace={workspace} />
-              </Tabs.Tab>
-            )}
+            <Tabs.Tab
+              label={t("Available Templates")}
+              className={"space-y-2 pt-2"}
+            >
+              <PipelineTemplates workspace={workspace} />
+            </Tabs.Tab>
           </Tabs>
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>

@@ -23,9 +23,7 @@ describe("EnableTwoFactorDialog", () => {
   it("displays an alert if user has Two-factor devices", async () => {
     const onClose = jest.fn();
     const { container } = render(
-      <TestApp
-        me={{ features: [{ code: "two_factor" }], hasTwoFactorEnabled: true }}
-      >
+      <TestApp me={{ hasTwoFactorEnabled: true }}>
         <EnableTwoFactorDialog open onClose={onClose} />
       </TestApp>,
     );
@@ -40,9 +38,7 @@ describe("EnableTwoFactorDialog", () => {
     const onClose = jest.fn();
     const reload = jest.spyOn(router, "reload");
     const { container } = render(
-      <TestApp
-        me={{ features: [{ code: "two_factor" }], hasTwoFactorEnabled: false }}
-      >
+      <TestApp me={{ hasTwoFactorEnabled: false }}>
         <EnableTwoFactorDialog open onClose={onClose} />
       </TestApp>,
     );
@@ -61,9 +57,7 @@ describe("EnableTwoFactorDialog", () => {
     const onClose = jest.fn();
     const reload = jest.spyOn(router, "reload");
     const { container } = render(
-      <TestApp
-        me={{ features: [{ code: "two_factor" }], hasTwoFactorEnabled: false }}
-      >
+      <TestApp me={{ hasTwoFactorEnabled: false }}>
         <EnableTwoFactorDialog open onClose={onClose} />
       </TestApp>,
     );
@@ -83,9 +77,7 @@ describe("EnableTwoFactorDialog", () => {
     const user = userEvent.setup();
     const onClose = jest.fn();
     const { container } = render(
-      <TestApp
-        me={{ features: [{ code: "two_factor" }], hasTwoFactorEnabled: false }}
-      >
+      <TestApp me={{ hasTwoFactorEnabled: false }}>
         <EnableTwoFactorDialog open onClose={onClose} />
       </TestApp>,
     );
