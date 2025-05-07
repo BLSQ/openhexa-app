@@ -21,7 +21,6 @@ import {
   PipelineLayout_WorkspaceFragment,
 } from "./PipelineLayout.generated";
 import PublishPipelineDialog from "pipelines/features/PublishPipelineDialog";
-import useFeature from "identity/hooks/useFeature";
 import Tooltip from "core/components/Tooltip";
 import { CreateTemplateVersionPermissionReason } from "graphql/types";
 
@@ -47,8 +46,6 @@ const PipelineLayout = (props: PipelineLayoutProps) => {
     useState(false);
   const [isDeletePipelineDialogOpen, setDeletePipelineDialogOpen] =
     useState(false);
-
-  const [pipelineTemplateFeatureEnabled] = useFeature("pipeline_templates");
 
   const createTemplateVersionReasonMessages = useMemo(() => {
     const reasonMessages = {
@@ -137,32 +134,26 @@ const PipelineLayout = (props: PipelineLayoutProps) => {
             ))}
           </Breadcrumbs>
           <div className="flex items-center gap-2">
-            {pipelineTemplateFeatureEnabled && (
-              <>
-                {!pipeline.permissions.createTemplateVersion.isAllowed && (
-                  <Tooltip
-                    label={createTemplateVersionReasonMessages.map(
-                      (m, index) => (
-                        <p key={index}>{m}</p>
-                      ),
-                    )}
-                  >
-                    <QuestionMarkCircleIcon className="h-5 w-5" />
-                  </Tooltip>
-                )}
-                <Button
-                  onClick={() => setPublishPipelineDialogOpen(true)}
-                  variant={"secondary"}
-                  disabled={
-                    !pipeline.permissions.createTemplateVersion.isAllowed
-                  }
+            <>
+              {!pipeline.permissions.createTemplateVersion.isAllowed && (
+                <Tooltip
+                  label={createTemplateVersionReasonMessages.map((m, index) => (
+                    <p key={index}>{m}</p>
+                  ))}
                 >
-                  {pipeline.template
-                    ? t("Publish a new Template Version")
-                    : t("Publish as Template")}
-                </Button>
-              </>
-            )}
+                  <QuestionMarkCircleIcon className="h-5 w-5" />
+                </Tooltip>
+              )}
+              <Button
+                onClick={() => setPublishPipelineDialogOpen(true)}
+                variant={"secondary"}
+                disabled={!pipeline.permissions.createTemplateVersion.isAllowed}
+              >
+                {pipeline.template
+                  ? t("Publish a new Template Version")
+                  : t("Publish as Template")}
+              </Button>
+            </>
             {pipeline.currentVersion && (
               <DownloadPipelineVersion version={pipeline.currentVersion}>
                 {({ onClick, isDownloading }) => (

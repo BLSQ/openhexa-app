@@ -84,7 +84,6 @@ const Sidebar = (props: SidebarProps) => {
   const { workspace, className } = props;
   const { t } = useTranslation();
   const { isSidebarOpen, setSidebarOpen } = useContext(LayoutContext);
-  const [webappsFeatureEnabled] = useFeature("webapps");
   const [searchFeatureEnabled] = useFeature("search");
 
   const router = useRouter();
@@ -133,15 +132,11 @@ const Sidebar = (props: SidebarProps) => {
           },
         ]
       : []),
-    ...(webappsFeatureEnabled
-      ? [
-          {
-            href: `/workspaces/${encodeURIComponent(slug)}/webapps`,
-            label: t("Apps"),
-            Icon: GlobeAltIcon,
-          },
-        ]
-      : []),
+    {
+      href: `/workspaces/${encodeURIComponent(slug)}/webapps`,
+      label: t("Apps"),
+      Icon: GlobeAltIcon,
+    },
     ...(workspace.permissions.manageMembers
       ? [
           {

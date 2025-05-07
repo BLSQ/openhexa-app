@@ -85,20 +85,4 @@ describe("PipelineLayout", () => {
       getByRole("button", { name: "Publish as Template" }),
     ).toBeInTheDocument();
   });
-
-  it("should not show 'Publish as Template' button when feature flag is disabled", () => {
-    (useFeature as jest.Mock).mockReturnValue([false]);
-
-    const { queryByRole } = render(
-      <MockedProvider>
-        <PipelineLayout pipeline={pipeline} workspace={workspace}>
-          <div>Child Content</div>
-        </PipelineLayout>
-      </MockedProvider>,
-    );
-
-    expect(
-      queryByRole("button", { name: "Publish as Template" }),
-    ).not.toBeInTheDocument();
-  });
 });
