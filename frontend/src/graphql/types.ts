@@ -4450,7 +4450,6 @@ export type UpdateTemplateResult = {
 
 /** Enum representing the possible errors that can occur when updating a template version. */
 export enum UpdateTemplateVersionError {
-  NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 
