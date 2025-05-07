@@ -129,6 +129,7 @@ export const getLink = (item: Item): string => {
     const object = getObject(item);
     const urlName = getUrlName(item.__typename);
     const parentPath = object.path
+      .replace(/\/$/, "") // rstrip trailing slash if any
       .split("/")
       .slice(1, -1)
       .map(encodeURIComponent);
