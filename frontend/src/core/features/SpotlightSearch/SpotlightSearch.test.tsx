@@ -6,8 +6,6 @@ import mockRouter from "next-router-mock";
 import { TestApp } from "core/helpers/testutils";
 
 describe("SpotlightSearch", () => {
-  const mockOnClose = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouter.setCurrentUrl("/workspaces/test-workspace");
@@ -17,11 +15,19 @@ describe("SpotlightSearch", () => {
     render(
       <MemoryRouterProvider>
         <TestApp mocks={mocks}>
-          <SpotlightSearch isOpen={true} onClose={mockOnClose} />
+          <SpotlightSearch isMac={false} isSidebarOpen={false} />
         </TestApp>
       </MemoryRouterProvider>,
     );
 
+    fireEvent.keyDown(document, {
+      key: "k",
+      code: "KeyK",
+      ctrlKey: true,
+    });
+    await waitFor(() =>
+      expect(screen.getByTestId("search-input")).toBeInTheDocument(),
+    );
     const searchInput = screen.getByTestId("search-input");
     fireEvent.change(searchInput, { target: { value: "test query" } });
     expect(searchInput).toHaveValue("test query");
@@ -47,7 +53,9 @@ describe("SpotlightSearch", () => {
     );
 
     fireEvent.keyDown(document, { key: "Escape", code: "Escape" });
-    expect(mockOnClose).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(screen.queryByTestId("search-input")).not.toBeInTheDocument(),
+    );
   });
 });
 
@@ -94,7 +102,7 @@ const mocks = [
       query: SearchDatasetsDocument,
       variables: {
         query: "test query",
-        workspaceSlugs: ["test-workspace"],
+        workspaceSlugs: ["test-workspace2"],
         page: 1,
         perPage: 15,
       },
@@ -145,7 +153,7 @@ const mocks = [
       query: SearchPipelinesDocument,
       variables: {
         query: "test query",
-        workspaceSlugs: ["test-workspace"],
+        workspaceSlugs: ["test-workspace2"],
         page: 1,
         perPage: 15,
       },
@@ -196,7 +204,7 @@ const mocks = [
       query: SearchPipelineTemplatesDocument,
       variables: {
         query: "test query",
-        workspaceSlugs: ["test-workspace"],
+        workspaceSlugs: ["test-workspace2"],
         page: 1,
         perPage: 15,
       },
@@ -242,7 +250,7 @@ const mocks = [
       query: SearchDatabaseTablesDocument,
       variables: {
         query: "test query",
-        workspaceSlugs: ["test-workspace"],
+        workspaceSlugs: ["test-workspace2"],
         page: 1,
         perPage: 15,
       },
@@ -280,7 +288,7 @@ const mocks = [
       query: SearchFilesDocument,
       variables: {
         query: "test query",
-        workspaceSlugs: ["test-workspace"],
+        workspaceSlugs: ["test-workspace2"],
         page: 1,
         perPage: 15,
       },
