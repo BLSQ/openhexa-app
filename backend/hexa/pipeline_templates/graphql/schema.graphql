@@ -235,7 +235,6 @@ Represents the input for updating a template version.
 """
 input UpdateTemplateVersionInput {
   id: UUID!  # The ID of the template version to update.
-  changelog: String  # The new changelog associated with the template version.
 }
 
 """

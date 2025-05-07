@@ -4456,7 +4456,6 @@ export enum UpdateTemplateVersionError {
 
 /** Represents the input for updating a template version. */
 export type UpdateTemplateVersionInput = {
-  changelog?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
 };
 
