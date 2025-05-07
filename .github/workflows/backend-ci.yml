@@ -28,7 +28,7 @@ jobs:
         - uses: graphql-hive/graphql-inspector@master
           with:
             name: Validate GraphQL Schema
-            schema: 'HEXA-1238-implement-sdk-version-compatibility-check-system-breaking-changes-detection:frontend/schema.graphql'
+            schema: 'main:./frontend/schema.graphql'
 
   test:
     name: Build & Test
