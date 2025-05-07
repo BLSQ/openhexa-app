@@ -9,6 +9,7 @@ import Filesize from "core/components/Filesize";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import TypeBadge from "./TypeBadge";
 import HighlightedLink from "./HighlightedLink";
+import { TextColumn } from "core/components/DataGrid/TextColumn";
 
 type FileResultTableProps = {
   isActive: boolean;
@@ -56,6 +57,7 @@ const FileResultTable = ({
           />
         )}
       </BaseColumn>
+      <TextColumn label={t("Path")} accessor="file.path" />
       <BaseColumn id="type" label={t("Type")}>
         {(item) => (
           <TypeBadge typeName={item.__typename} type={item.file.type} />
