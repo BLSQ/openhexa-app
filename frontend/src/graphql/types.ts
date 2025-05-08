@@ -1865,6 +1865,12 @@ export enum FileSampleStatus {
   Processing = 'PROCESSING'
 }
 
+/** Represents the input for filtering metadata items. */
+export type FilterInput = {
+  type: Scalars['String']['input'];
+  value: Array<InputMaybe<Scalars['Int']['input']>>;
+};
+
 /** GCS connection object */
 export type GcsConnection = Connection & {
   __typename?: 'GCSConnection';
@@ -1986,10 +1992,51 @@ export type IasoConnection = Connection & {
   id: Scalars['String']['output'];
   name: Scalars['String']['output'];
   permissions: ConnectionPermissions;
+  queryMetadata: IasoQueryResultPage;
   slug: Scalars['String']['output'];
   type: ConnectionType;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   user?: Maybe<User>;
+};
+
+
+/** IASO connection object */
+export type IasoConnectionQueryMetadataArgs = {
+  filters?: InputMaybe<Array<InputMaybe<FilterInput>>>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  type: IasoMetadataType;
+};
+
+/** IASO connection error */
+export enum IasoConnectionError {
+  RequestError = 'REQUEST_ERROR',
+  UnknownError = 'UNKNOWN_ERROR'
+}
+
+/** IASO metadata item */
+export type IasoMetadataItem = {
+  __typename?: 'IASOMetadataItem';
+  id?: Maybe<Scalars['String']['output']>;
+  label: Scalars['String']['output'];
+};
+
+/** Enum representing the type of a IASO metadata item. */
+export enum IasoMetadataType {
+  Forms = 'FORMS',
+  OrgUnits = 'ORG_UNITS',
+  Projects = 'PROJECTS'
+}
+
+/** IASO metadata query result */
+export type IasoQueryResultPage = {
+  __typename?: 'IASOQueryResultPage';
+  error?: Maybe<IasoConnectionError>;
+  items?: Maybe<Array<IasoMetadataItem>>;
+  pageNumber: Scalars['Int']['output'];
+  success: Scalars['Boolean']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
 };
 
 /** Represents the input for inviting a member to a workspace. */
@@ -3004,7 +3051,10 @@ export enum ParameterWidget {
   Dhis2IndicatorGroups = 'DHIS2_INDICATOR_GROUPS',
   Dhis2OrgUnits = 'DHIS2_ORG_UNITS',
   Dhis2OrgUnitGroups = 'DHIS2_ORG_UNIT_GROUPS',
-  Dhis2OrgUnitLevels = 'DHIS2_ORG_UNIT_LEVELS'
+  Dhis2OrgUnitLevels = 'DHIS2_ORG_UNIT_LEVELS',
+  IasoForms = 'IASO_FORMS',
+  IasoOrgUnits = 'IASO_ORG_UNITS',
+  IasoProjects = 'IASO_PROJECTS'
 }
 
 /** The PermissionMode enum represents the mode of permissions for a team. */
