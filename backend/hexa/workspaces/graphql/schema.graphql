@@ -939,6 +939,8 @@ enum IASOMetadataType {
     PROJECTS
     FORMS
 }
+
+
 """
 DHIS2 connection object
 """
@@ -974,6 +976,13 @@ type PostgreSQLConnection implements Connection {
 }
 
 """
+Represents the input for filtering metadata items.
+"""
+input FilterInput {
+    type: String!
+    value: [Int]!
+}
+"""
 IASO connection object
 """
 type IASOConnection implements Connection {
@@ -987,7 +996,7 @@ type IASOConnection implements Connection {
     user: User # User associated with the connection
     fields: [ConnectionField!]! # Fields of the connection
     permissions: ConnectionPermissions! # Permissions of the connection
-    queryMetadata(type: IASOMetadataType!, filters: [String!], perPage: Int, page:Int): DHIS2QueryResultPage! # Query metadata items
+    queryMetadata(type: IASOMetadataType!, filters: [FilterInput], perPage: Int, page: Int): IASOQueryResultPage! # Query metadata items
 }
 
 """
