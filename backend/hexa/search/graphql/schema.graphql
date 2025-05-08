@@ -1,0 +1,87 @@
+interface SearchResult {
+  score: Float!
+}
+
+type DatasetResult implements SearchResult {
+  dataset: Dataset!
+  score: Float!
+}
+
+type DatasetResultPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [DatasetResult!]!
+}
+
+type PipelineResult implements SearchResult {
+  pipeline: Pipeline!
+  score: Float!
+}
+
+type PipelineResultPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [PipelineResult!]!
+}
+
+type PipelineTemplateResult implements SearchResult {
+  pipelineTemplate: PipelineTemplate!
+  score: Float!
+}
+
+type PipelineTemplateResultPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [PipelineTemplateResult!]!
+}
+
+type DatabaseTableResult implements SearchResult {
+  databaseTable: DatabaseTable!
+  workspace: Workspace!
+  score: Float!
+}
+
+type DatabaseTableResultPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [DatabaseTableResult!]!
+}
+
+enum FileType {
+  file
+  directory
+}
+
+type File {
+  key: String!
+  name: String!
+  path: String!
+  size: BigInt
+  updated: DateTime
+  type: FileType!
+}
+
+type FileResult implements SearchResult {
+  file: File!
+  workspace: Workspace!
+  score: Float!
+}
+
+type FileResultPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [FileResult!]!
+}
+
+extend type Query {
+  searchDatasets(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String]!): DatasetResultPage! @loginRequired
+  searchPipelines(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String]!): PipelineResultPage! @loginRequired
+  searchPipelineTemplates(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String]!): PipelineTemplateResultPage! @loginRequired
+  searchDatabaseTables(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String]!): DatabaseTableResultPage! @loginRequired
+  searchFiles(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String]!): FileResultPage! @loginRequired
+}

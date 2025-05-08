@@ -163,6 +163,7 @@ const WebappsPage = (props: Props) => {
               </LinkColumn>
               <ChevronLinkColumn
                 accessor="id"
+                customLabel={t("Details")}
                 url={(value: any) => ({
                   pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${value}`,
                 })}

@@ -49,6 +49,17 @@ class BaseQuerySet(models.QuerySet):
         """Most catalog / pipelines models need to implement this method for access control."""
         raise NotImplementedError
 
+    def filter_for_workspace_slugs(
+        self,
+        user: (
+            AnonymousUser
+            | user_management_models.User
+            | user_management_models.UserInterface
+        ),
+        workspace_slugs: list[str],
+    ) -> models.QuerySet:
+        raise NotImplementedError
+
     def _filter_for_user_and_query_object(
         self,
         user: (

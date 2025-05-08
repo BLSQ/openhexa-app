@@ -8,6 +8,7 @@ type ChevronLinkColumnProps = LinkColumnProps;
 const ChevronLinkColumn = ({
   className,
   customStyle,
+  customLabel,
   noStyle,
   url,
 }: ChevronLinkColumnProps) => {
@@ -24,7 +25,7 @@ const ChevronLinkColumn = ({
           "flex w-full cursor-pointer items-center justify-end outline-hidden",
         )}
       >
-        {t("View")}
+        {customLabel ?? t("View")}
         <ChevronRightIcon className="inline h-5" />
       </LinkColumn>
     </div>

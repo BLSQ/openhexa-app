@@ -20,10 +20,17 @@ export type TabsProps = {
   defaultIndex?: number;
   onChange?: (index: number) => void;
   className?: string;
+  tabsClassName?: string;
 };
 
 const Tabs = (props: TabsProps) => {
-  const { children, defaultIndex = 0, onChange, className } = props;
+  const {
+    children,
+    defaultIndex = 0,
+    onChange,
+    className,
+    tabsClassName,
+  } = props;
   const { t } = useTranslation();
 
   const validChildren: React.ReactNode[] = useMemo(
@@ -56,13 +63,21 @@ const Tabs = (props: TabsProps) => {
                   {({ selected }) => (
                     <a
                       className={clsx(
-                        "cursor-pointer whitespace-nowrap border-b-2 px-1.5 py-2.5 hover:text-gray-900 tracking-wide",
+                        "cursor-pointer whitespace-nowrap border-b-2 px-1.5 py-2.5 hover:text-gray-900 tracking-wide focus:outline-none",
                         selected
                           ? "border-pink-500 "
                           : "border-transparent text-gray-500 hover:border-gray-400",
+                        tabsClassName,
                       )}
                     >
-                      {(child as ReactElement<TabProps>).props.label}
+                      <div className="flex items-center">
+                        {child.props.leadingElement && (
+                          <span className="mr-2">
+                            {child.props.leadingElement}
+                          </span>
+                        )}
+                        {(child as ReactElement<TabProps>).props.label}
+                      </div>
                     </a>
                   )}
                 </HeadlessTab>
@@ -80,6 +95,7 @@ const Tabs = (props: TabsProps) => {
 };
 
 type TabProps = {
+  leadingElement?: ReactElement;
   label: string;
   className?: string;
   children: ReactElement | ReactElement[];

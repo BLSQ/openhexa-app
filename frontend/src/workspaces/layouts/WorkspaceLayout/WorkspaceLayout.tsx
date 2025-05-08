@@ -152,7 +152,7 @@ WorkspaceLayout.prefetch = async (
   cookieSidebarOpenState = (await hasCookie("sidebar-open", ctx))
     ? (await getCookie("sidebar-open", ctx)) === "true"
     : true;
-  await Sidebar.prefetch(client);
+  await Sidebar.prefetch(ctx, client);
 };
 
 WorkspaceLayout.PageContent = PageContent;

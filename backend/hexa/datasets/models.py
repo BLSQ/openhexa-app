@@ -7,7 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.db.models import JSONField
+from django.db.models import JSONField, Q
 from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
 from slugify import slugify
@@ -43,6 +43,15 @@ class DatasetQuerySet(BaseQuerySet):
                 models.Q(links__workspace__members=user),
                 return_all_if_superuser=False,
             )
+
+    def filter_for_workspace_slugs(
+        self, user: AnonymousUser | User, workspace_slugs: list[str]
+    ):
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(workspace__members=user, workspace__slug__in=workspace_slugs),
+            return_all_if_superuser=False,
+        )
 
 
 class DatasetManager(models.Manager):

@@ -33,6 +33,13 @@
       "BucketObject",
       "DatabaseTable",
       "GenericOutput"
+    ],
+    "SearchResult": [
+      "DatabaseTableResult",
+      "DatasetResult",
+      "FileResult",
+      "PipelineResult",
+      "PipelineTemplateResult"
     ]
   }
 }

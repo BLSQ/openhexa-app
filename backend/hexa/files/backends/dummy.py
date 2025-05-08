@@ -1,3 +1,4 @@
+import fnmatch
 import io
 
 from .base import ObjectsPage, Storage, StorageObject
@@ -120,6 +121,7 @@ class DummyStorageClient(Storage):
         self,
         bucket_name,
         prefix=None,
+        match_glob=None,
         page: int = 1,
         per_page=30,
         query=None,
@@ -131,6 +133,8 @@ class DummyStorageClient(Storage):
         object_keys = []
         for key in dummy_buckets[bucket_name].keys():
             if key.startswith(prefix or "") and (not query or query in key):
+                if match_glob and not fnmatch.fnmatch(key, match_glob):
+                    continue
                 object_keys.append(key)
 
         start = (page - 1) * per_page

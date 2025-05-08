@@ -1,4 +1,5 @@
 import base64
+import fnmatch
 import io
 import json
 
@@ -51,7 +52,7 @@ def _prefix_to_obj(bucket_name, name: str):
     )
 
 
-def iter_request_results(bucket_name, request):
+def iter_request_results(bucket_name, request, include_directories=False):
     # Start by adding all the prefixes
     # Prefixes are virtual directories based on the delimiter specified in the request
     # The API returns a list of keys that have the delimiter as a suffix (meaning they have objects in them)
@@ -67,7 +68,7 @@ def iter_request_results(bucket_name, request):
 
     while True:
         for blob in current_page:
-            if not _is_dir(blob):
+            if not _is_dir(blob) or include_directories:
                 # We ignore objects that are directories (object with a size = 0 and ending with a /)
                 # because they are already listed in the prefixes
                 yield _blob_to_obj(blob)
@@ -229,6 +230,7 @@ class GoogleCloudStorage(Storage):
         self,
         bucket_name,
         prefix=None,
+        match_glob=None,
         page: int = 1,
         per_page=30,
         query=None,
@@ -240,19 +242,29 @@ class GoogleCloudStorage(Storage):
         Args:
             bucket_name (str): Bucket name
             prefix (str, optional): The prefix the keys of the objects must have to be returned. Defaults to None.
+            match_glob (str, optional): The glob pattern to match the keys of the objects. Defaults to None.
             page (int, optional): Page to return. Defaults to 1.
             per_page (int, optional): Items per page. Defaults to 30.
             query (str, optional): Query to filter the objects. Defaults to None.
             ignore_hidden_files (bool, optional): Returns the hidden files and directories if `False`. Defaults to True.
 
         """
-        request = self.client.list_blobs(
-            bucket_name,
-            prefix=prefix,
-            # We take twice the number of items to be sure to have enough
-            page_size=per_page * 2,
-            delimiter="/",
-            include_trailing_delimiter=True,
+        request = (
+            self.client.list_blobs(
+                bucket_name,
+                prefix=prefix,
+                # We take twice the number of items to be sure to have enough
+                page_size=per_page * 2,
+                delimiter="/",
+                include_trailing_delimiter=True,
+            )
+            if not match_glob
+            else self.client.list_blobs(
+                bucket_name,
+                prefix=prefix,
+                match_glob=f"**/*{match_glob}*",
+                page_size=per_page * 2,
+            )
         )
         max_items = (page * per_page) + 1
         start_offset = (page - 1) * per_page
@@ -260,14 +272,21 @@ class GoogleCloudStorage(Storage):
 
         objects = []
 
-        def is_object_match_query(obj):
-            if ignore_hidden_files and obj.name.startswith("."):
-                return False
-            if not query:
-                return True
-            return query.lower() in obj.name.lower()
+        lower_match_glob = match_glob.lower() if match_glob else None
 
-        iterator = iter_request_results(bucket_name, request)
+        def is_object_match_query(obj):
+            lower_name = obj.name.lower()
+            if ignore_hidden_files and lower_name.startswith("."):
+                return False
+            if query and query.lower() not in lower_name:
+                return False
+            if lower_match_glob and not fnmatch.fnmatch(lower_name, lower_match_glob):
+                return False
+            return True
+
+        iterator = iter_request_results(
+            bucket_name, request, include_directories=match_glob
+        )
         while True:
             try:
                 obj = next(iterator)

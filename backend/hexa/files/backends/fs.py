@@ -1,3 +1,4 @@
+import fnmatch
 import io
 import os
 import shutil
@@ -217,6 +218,7 @@ class FileSystemStorage(Storage):
         self,
         bucket_name,
         prefix="",
+        match_glob=None,
         page: int = 1,
         per_page=30,
         query: str = None,
@@ -230,25 +232,36 @@ class FileSystemStorage(Storage):
         if not os.path.isdir(full_path):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} is not a directory")
 
+        lower_match_glob = match_glob.lower() if match_glob else None
+
         def does_object_match(name):
+            lower_name = name.lower()
             if ignore_hidden_files and name.startswith("."):
                 return False
-            if query:
-                return query.lower() in name.lower()
+            if query and query.lower() not in lower_name:
+                return False
+            if lower_match_glob and not fnmatch.fnmatch(lower_name, lower_match_glob):
+                return False
             return True
 
         objects = []
-        root, dirs, files = next(os.walk(full_path))
-        for dir in dirs:
-            if does_object_match(dir) is False:
-                continue
-            dir_key = Path(prefix) / dir
-            objects.append(self.to_storage_object(bucket_name, dir_key))
-        for file in files:
-            if does_object_match(file) is False:
-                continue
-            object_key = Path(prefix) / file
-            objects.append(self.to_storage_object(bucket_name, object_key))
+
+        def walk(path, relative_prefix, recursive=True):
+            for entry in os.scandir(path):
+                if ignore_hidden_files and entry.name.startswith("."):
+                    continue
+
+                entry_key = Path(relative_prefix) / entry.name
+
+                if entry.is_dir():
+                    if does_object_match(entry.name):
+                        objects.append(self.to_storage_object(bucket_name, entry_key))
+                    if recursive:
+                        walk(entry.path, entry_key)
+                elif entry.is_file() and does_object_match(entry.name):
+                    objects.append(self.to_storage_object(bucket_name, entry_key))
+
+        walk(full_path, Path(prefix), recursive=bool(match_glob))
 
         offset = (page - 1) * per_page
         return ObjectsPage(

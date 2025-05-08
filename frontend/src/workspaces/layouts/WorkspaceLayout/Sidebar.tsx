@@ -17,12 +17,24 @@ import Badge from "core/components/Badge";
 import Link from "core/components/Link";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { useTranslation } from "next-i18next";
-import { useContext, useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 import SidebarMenu from "workspaces/features/SidebarMenu";
 import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
 import { LayoutContext } from "./WorkspaceLayout";
 import { useRouter } from "next/router";
 import useFeature from "identity/hooks/useFeature";
+import { GetServerSidePropsContext } from "next";
+import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
+
+export let isMac = false;
+
+function getIsMac() {
+  if (typeof window === "undefined") {
+    return isMac;
+  }
+  const userAgent = window.navigator.userAgent;
+  return userAgent.includes("Mac");
+}
 
 type SidebarProps = {
   workspace: Sidebar_WorkspaceFragment;
@@ -72,6 +84,7 @@ const Sidebar = (props: SidebarProps) => {
   const { workspace, className } = props;
   const { t } = useTranslation();
   const { isSidebarOpen, setSidebarOpen } = useContext(LayoutContext);
+  const [searchFeatureEnabled] = useFeature("search");
 
   const router = useRouter();
 
@@ -156,6 +169,9 @@ const Sidebar = (props: SidebarProps) => {
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
+        {searchFeatureEnabled && (
+          <SpotlightSearch isSidebarOpen={isSidebarOpen} isMac={getIsMac()} />
+        )}
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
         <div className="mt-5 flex grow flex-col">
@@ -222,7 +238,11 @@ Sidebar.fragments = {
   `,
 };
 
-Sidebar.prefetch = async (client: CustomApolloClient) => {
+Sidebar.prefetch = async (
+  ctx: GetServerSidePropsContext,
+  client: CustomApolloClient,
+) => {
+  isMac = ctx.req.headers["user-agent"]?.includes("Mac") ?? false;
   await SidebarMenu.prefetch(client);
 };
 

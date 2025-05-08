@@ -156,6 +156,22 @@ class WorkspaceQuerySet(BaseQuerySet):
                 return_all_if_superuser=False,
             )
 
+    def filter_for_workspace_slugs(
+        self,
+        user: AnonymousUser | User,
+        workspace_slugs: list[str],
+    ) -> models.QuerySet:
+        if not user.is_authenticated:
+            return self.none()
+
+        if user.is_superuser:
+            return self.filter(slug__in=workspace_slugs)
+
+        return self.filter(
+            Q(workspacemembership__user=user, slug__in=workspace_slugs),
+            Q(archived=False),
+        )
+
 
 class Workspace(Base):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

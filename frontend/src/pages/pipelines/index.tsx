@@ -95,7 +95,7 @@ const PipelinesPage = (props: Props) => {
             </BaseColumn>
             <CountryColumn accessor="countries" label={t("Location")} max={1} />
             <DateColumn
-              label={t("Last run")}
+              label={t("Last Run")}
               relative
               accessor="lastRun.executionDate"
             />
