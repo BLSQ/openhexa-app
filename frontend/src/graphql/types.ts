@@ -1894,6 +1894,12 @@ export enum FileSampleStatus {
   Processing = 'PROCESSING'
 }
 
+/** Represents the input for filtering metadata items. */
+export type FilterInput = {
+  type: Scalars['String']['input'];
+  value: Array<InputMaybe<Scalars['Int']['input']>>;
+};
+
 export enum FileType {
   Directory = 'directory',
   File = 'file'
@@ -2020,7 +2026,7 @@ export type IasoConnection = Connection & {
   id: Scalars['String']['output'];
   name: Scalars['String']['output'];
   permissions: ConnectionPermissions;
-  queryMetadata: Dhis2QueryResultPage;
+  queryMetadata: IasoQueryResultPage;
   slug: Scalars['String']['output'];
   type: ConnectionType;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -2030,7 +2036,7 @@ export type IasoConnection = Connection & {
 
 /** IASO connection object */
 export type IasoConnectionQueryMetadataArgs = {
-  filters?: InputMaybe<Array<Scalars['String']['input']>>;
+  filters?: InputMaybe<Array<InputMaybe<FilterInput>>>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   type: IasoMetadataType;
