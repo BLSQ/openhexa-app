@@ -2947,7 +2947,7 @@ type Query {
   pipelineVersion(id: UUID!): PipelineVersion
 
   """Retrieves a page of pipelines ordered by relevant name."""
-  pipelines(name: String, page: Int, perPage: Int, workspaceSlug: String): PipelinesPage!
+  pipelines(name: String, page: Int, perPage: Int, search: String, workspaceSlug: String): PipelinesPage!
   team(id: UUID!): Team
   teams(page: Int, perPage: Int, term: String): TeamPage!
 
