@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.5.0](https://github.com/BLSQ/openhexa-app/compare/1.4.0...1.5.0) (2025-05-08)
+
+
+### Features
+
+* as a user i want to see summary stats of the numeric columns (PATHWAYS-313)  ([#1067](https://github.com/BLSQ/openhexa-app/issues/1067)) ([f0db51c](https://github.com/BLSQ/openhexa-app/commit/f0db51c6c04d93a73f56ed20692d5ed9e10560ab))
+* list view of pipelines like for templates (HEXA-1247) ([#1066](https://github.com/BLSQ/openhexa-app/issues/1066)) ([d0f3753](https://github.com/BLSQ/openhexa-app/commit/d0f3753fa8597f7c8e918de3bbe9b52e756dc28d))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @mdxeditor/editor to v3.32.2 ([#1060](https://github.com/BLSQ/openhexa-app/issues/1060)) ([3e677d7](https://github.com/BLSQ/openhexa-app/commit/3e677d7f1e044a0f1f7e5525f76bd4c964679e7c))
+* **deps:** update dependency @sentry/nextjs to v9.16.1 ([#1062](https://github.com/BLSQ/openhexa-app/issues/1062)) ([94c7f0d](https://github.com/BLSQ/openhexa-app/commit/94c7f0d0ba1197d4a89c64dd67a3761dfbf9831b))
+* **deps:** update dependency @types/node to v22.15.16 ([#1064](https://github.com/BLSQ/openhexa-app/issues/1064)) ([022e295](https://github.com/BLSQ/openhexa-app/commit/022e2955f27ced3282dbe2a818d3a7986920172f))
+* **deps:** update dependency @types/node to v22.15.17 ([#1079](https://github.com/BLSQ/openhexa-app/issues/1079)) ([78f0907](https://github.com/BLSQ/openhexa-app/commit/78f0907baaae13d91f51ac37f4112e9cbfa936ae))
+* **deps:** update dependency graphql to v16.11.0 ([#1065](https://github.com/BLSQ/openhexa-app/issues/1065)) ([78d5623](https://github.com/BLSQ/openhexa-app/commit/78d5623fd2e76948ae85aac2c2dad0150bb3ac11))
+* Set uid & gid to 1000 by default ([#1070](https://github.com/BLSQ/openhexa-app/issues/1070)) ([c9971c0](https://github.com/BLSQ/openhexa-app/commit/c9971c0b6717e7ffaee0625f2ccfc7c459f9705a))
+
 ## [1.4.0](https://github.com/BLSQ/openhexa-app/compare/1.3.0...1.4.0) (2025-04-29)
 
 
