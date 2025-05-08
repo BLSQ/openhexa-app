@@ -57,14 +57,13 @@ describe("PipelineTemplates", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Template 1")).toBeInTheDocument();
-      expect(screen.getByText("Description 1")).toBeInTheDocument();
+      expect(screen.getByText("v1")).toBeInTheDocument();
+      expect(screen.getByText("1/1/2023, 1:01 AM")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByTestId("grid-view"));
+    fireEvent.click(screen.getByTestId("card-view"));
 
-    expect(screen.getByText("Template 1")).toBeInTheDocument();
-    expect(screen.getByText("v1")).toBeInTheDocument();
-    expect(screen.getByText("1/1/2023, 1:01 AM")).toBeInTheDocument();
+    expect(screen.getByText("Description 1")).toBeInTheDocument();
   });
 
   it("handles pagination", async () => {

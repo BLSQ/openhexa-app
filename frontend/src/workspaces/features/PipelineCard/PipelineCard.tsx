@@ -77,6 +77,7 @@ PipelineCard.fragments = {
         user {
           ...User_user
         }
+        versionName
         createdAt
       }
       lastRuns: runs(orderBy: EXECUTION_DATE_DESC, page: 1, perPage: 1) {
