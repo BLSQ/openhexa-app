@@ -70,6 +70,7 @@ click==8.1.8
     #   click-plugins
     #   cligj
     #   fiona
+    #   openhexa-sdk
     #   pip-tools
     #   rasterio
     #   rio-cogeo
@@ -99,6 +100,8 @@ deprecated==1.2.18
     # via opentelemetry-api
 dhis2-py==2.3.0
     # via -r requirements.in
+dill==0.4.0
+    # via multiprocess
 diskcache==5.6.3
     # via openhexa-toolbox
 django==5.2.1
@@ -129,7 +132,9 @@ django-postgres-queue==1.0.0
 django-storages[google]==1.14.6
     # via -r requirements.in
 docker==7.1.0
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   openhexa-sdk
 durationpy==0.9
     # via kubernetes
 eccodes==2.41.0
@@ -207,6 +212,8 @@ grpcio-status==1.72.0rc1
     # via google-api-core
 gunicorn==23.0.0
     # via -r requirements.in
+humanize==4.12.3
+    # via openhexa-toolbox
 idna==3.10
     # via
     #   anyio
@@ -214,7 +221,9 @@ idna==3.10
 importlib-metadata==8.6.1
     # via opentelemetry-api
 jinja2==3.1.6
-    # via moto
+    # via
+    #   moto
+    #   openhexa-sdk
 jmespath==1.0.1
     # via
     #   boto3
@@ -241,11 +250,12 @@ morecantile==6.2.0
     # via rio-cogeo
 moto[s3]==5.1.4
     # via -r requirements.in
+multiprocess==0.70.18
+    # via openhexa-sdk
 multiurl==0.3.5
     # via
     #   cads-api-client
     #   datapi
-    #   openhexa-toolbox
 numpy==2.2.5
     # via
     #   cfgrib
@@ -260,7 +270,9 @@ oauthlib==3.2.2
     # via
     #   kubernetes
     #   requests-oauthlib
-openhexa-toolbox==2.0.5
+openhexa-sdk==2.1.2
+    # via openhexa-toolbox
+openhexa-toolbox==2.3.1
     # via -r requirements.in
 openpyxl==3.1.5
     # via -r requirements.in
@@ -356,6 +368,7 @@ pyyaml==6.0.2
     # via
     #   kubernetes
     #   moto
+    #   openhexa-sdk
     #   responses
 rasterio==1.4.3
     # via
@@ -378,6 +391,7 @@ requests==2.32.3
     #   mixpanel
     #   moto
     #   multiurl
+    #   openhexa-sdk
     #   openhexa-toolbox
     #   requests-mock
     #   requests-oauthlib
@@ -450,6 +464,7 @@ urllib3==2.4.0
     #   docker
     #   kubernetes
     #   mixpanel
+    #   openhexa-sdk
     #   requests
     #   responses
     #   sentry-sdk
