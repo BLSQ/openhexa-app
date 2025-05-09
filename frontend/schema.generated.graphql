@@ -1027,28 +1027,6 @@ enum DHIS2ConnectionStatus {
   UP
 }
 
-type DHIS2DataElement {
-  code: String!
-  createdAt: DateTime!
-  id: String!
-  instance: DHIS2Instance!
-  name: String!
-  updatedAt: DateTime!
-}
-
-type DHIS2DataElementPage {
-  items: [DHIS2DataElement!]!
-  pageNumber: Int!
-  totalItems: Int!
-  totalPages: Int!
-}
-
-type DHIS2Instance {
-  id: String!
-  name: String!
-  url: String
-}
-
 """DHIS2 metadata item"""
 type DHIS2MetadataItem {
   id: String
