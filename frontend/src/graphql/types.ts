@@ -1894,16 +1894,16 @@ export enum FileSampleStatus {
   Processing = 'PROCESSING'
 }
 
+export enum FileType {
+  Directory = 'directory',
+  File = 'file'
+}
+
 /** Represents the input for filtering metadata items. */
 export type FilterInput = {
   type: Scalars['String']['input'];
   value: Array<InputMaybe<Scalars['Int']['input']>>;
 };
-
-export enum FileType {
-  Directory = 'directory',
-  File = 'file'
-}
 
 /** GCS connection object */
 export type GcsConnection = Connection & {
@@ -2036,7 +2036,7 @@ export type IasoConnection = Connection & {
 
 /** IASO connection object */
 export type IasoConnectionQueryMetadataArgs = {
-  filters?: InputMaybe<Array<InputMaybe<FilterInput>>>;
+  filters?: InputMaybe<Array<FilterInput>>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   type: IasoMetadataType;

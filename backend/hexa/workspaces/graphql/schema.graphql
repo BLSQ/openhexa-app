@@ -996,7 +996,7 @@ type IASOConnection implements Connection {
     user: User # User associated with the connection
     fields: [ConnectionField!]! # Fields of the connection
     permissions: ConnectionPermissions! # Permissions of the connection
-    queryMetadata(type: IASOMetadataType!, filters: [FilterInput], perPage: Int, page: Int): IASOQueryResultPage! # Query metadata items
+    queryMetadata(type: IASOMetadataType!, filters: [FilterInput!], perPage: Int, page: Int): IASOQueryResultPage! # Query metadata items
 }
 
 """
