@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/BLSQ/openhexa-app/compare/1.6.0...1.6.1) (2025-05-12)
+
+
+### Bug Fixes
+
+* Tailwind upgrade to &gt; 4.1.4 is breaking the backdrop of dialog (HEXA-1258) ([#1097](https://github.com/BLSQ/openhexa-app/issues/1097)) ([c2fa80d](https://github.com/BLSQ/openhexa-app/commit/c2fa80df08ef265896160adbf543c9d99e4dced6))
+
 ## [1.6.0](https://github.com/BLSQ/openhexa-app/compare/1.5.0...1.6.0) (2025-05-12)
 
 
