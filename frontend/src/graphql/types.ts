@@ -3795,6 +3795,7 @@ export type QueryPipelinesArgs = {
   name?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };
 

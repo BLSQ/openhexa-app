@@ -1,5 +1,6 @@
 from ariadne import QueryType
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.db.models import Q
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
@@ -18,20 +19,21 @@ pipelines_query = QueryType()
 @pipelines_query.field("pipelines")
 def resolve_pipelines(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    search = kwargs.get("search", "")
+
+    qs = Pipeline.objects.filter_for_user(request.user).filter(
+        Q(name__icontains=search) | Q(description__icontains=search)
+    )
     if kwargs.get("workspace_slug", None):
         try:
             ws = Workspace.objects.filter_for_user(request.user).get(
                 slug=kwargs.get("workspace_slug")
             )
-            qs = (
-                Pipeline.objects.filter_for_user(request.user)
-                .filter(workspace=ws)
-                .order_by("name", "id")
-            )
+            qs = qs.filter(workspace=ws).order_by("name", "id")
         except Workspace.DoesNotExist:
             qs = Pipeline.objects.none()
     else:
-        qs = Pipeline.objects.filter_for_user(request.user).order_by("name", "id")
+        qs = qs.order_by("name", "id")
 
     if "name" in kwargs:
         name_to_order_by = kwargs.get("name")

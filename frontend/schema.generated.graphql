@@ -1,0 +1,4085 @@
+directive @loginRequired(withoutTwoFactor: Boolean) on FIELD_DEFINITION
+
+type AccessmodAccessRequest {
+  acceptedTos: Boolean!
+  createdAt: DateTime!
+  email: String!
+  firstName: String!
+  id: String!
+  lastName: String!
+  status: AccessmodAccessRequestStatus!
+  updatedAt: DateTime!
+}
+
+type AccessmodAccessRequestPage {
+  items: [AccessmodAccessRequest!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+enum AccessmodAccessRequestStatus {
+  APPROVED
+  DENIED
+  PENDING
+}
+
+type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwnership {
+  algorithm: AccessmodAccessibilityAnalysisAlgorithm
+  author: User!
+  barrier: AccessmodFileset
+  createdAt: DateTime!
+  dem: AccessmodFileset
+  frictionSurface: AccessmodFileset
+  healthFacilities: AccessmodFileset
+  id: String!
+  invertDirection: Boolean
+  knightMove: Boolean
+  landCover: AccessmodFileset
+  maxTravelTime: Int
+  movingSpeeds: MovingSpeeds
+  name: String!
+  owner: AccessmodOwner
+  permissions: AccessmodAnalysisPermissions!
+  stack: AccessmodFileset
+  stackPriorities: StackPriorities
+  status: AccessmodAnalysisStatus!
+  transportNetwork: AccessmodFileset
+  travelTimes: AccessmodFileset
+  type: AccessmodAnalysisType!
+  updatedAt: DateTime!
+  water: AccessmodFileset
+  waterAllTouched: Boolean
+}
+
+enum AccessmodAccessibilityAnalysisAlgorithm {
+  ANISOTROPIC
+  ISOTROPIC
+}
+
+interface AccessmodAnalysis {
+  author: User!
+  createdAt: DateTime!
+  id: String!
+  name: String!
+  permissions: AccessmodAnalysisPermissions!
+  status: AccessmodAnalysisStatus!
+  type: AccessmodAnalysisType!
+  updatedAt: DateTime!
+}
+
+type AccessmodAnalysisPage {
+  items: [AccessmodAnalysis!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type AccessmodAnalysisPermissions {
+  delete: Boolean!
+  run: Boolean!
+  update: Boolean!
+}
+
+enum AccessmodAnalysisStatus {
+  DRAFT
+  FAILED
+  QUEUED
+  READY
+  RUNNING
+  SUCCESS
+}
+
+enum AccessmodAnalysisType {
+  ACCESSIBILITY
+  GEOGRAPHIC_COVERAGE
+  ZONAL_STATISTICS
+}
+
+type AccessmodFile {
+  createdAt: DateTime!
+  fileset: AccessmodFileset
+  id: String!
+  mimeType: String!
+  name: String!
+  updatedAt: DateTime!
+  uri: String!
+}
+
+type AccessmodFileset implements AccessmodOwnership {
+  author: User!
+  createdAt: DateTime!
+  files: [AccessmodFile!]!
+  id: String!
+  metadata: AccessmodFilesetMetadata!
+  mode: AccessmodFilesetMode!
+  name: String!
+  owner: AccessmodOwner
+  permissions: AccessmodFilesetPermissions!
+  role: AccessmodFilesetRole!
+  status: AccessmodFilesetStatus!
+  updatedAt: DateTime!
+}
+
+enum AccessmodFilesetFormat {
+  RASTER
+  TABULAR
+  VECTOR
+}
+
+scalar AccessmodFilesetMetadata
+
+enum AccessmodFilesetMode {
+  AUTOMATIC_ACQUISITION
+  USER_INPUT
+}
+
+type AccessmodFilesetPage {
+  items: [AccessmodFileset!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type AccessmodFilesetPermissions {
+  createFile: Boolean!
+  delete: Boolean!
+  update: Boolean!
+}
+
+type AccessmodFilesetRole {
+  code: AccessmodFilesetRoleCode!
+  createdAt: DateTime!
+  format: AccessmodFilesetFormat!
+  id: String!
+  name: String!
+  updatedAt: DateTime!
+}
+
+enum AccessmodFilesetRoleCode {
+  BARRIER
+  BOUNDARIES
+  COVERAGE
+  DEM
+  FRICTION_SURFACE
+  GEOMETRY
+  HEALTH_FACILITIES
+  LAND_COVER
+  POPULATION
+  STACK
+  TRANSPORT_NETWORK
+  TRAVEL_TIMES
+  WATER
+  ZONAL_STATISTICS
+  ZONAL_STATISTICS_TABLE
+}
+
+enum AccessmodFilesetStatus {
+  INVALID
+  PENDING
+  TO_ACQUIRE
+  VALID
+  VALIDATING
+}
+
+type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis & AccessmodOwnership {
+  anisotropic: Boolean
+  author: User!
+  catchmentAreas: AccessmodFileset
+  createdAt: DateTime!
+  dem: AccessmodFileset
+  frictionSurface: AccessmodFileset
+  geographicCoverage: AccessmodFileset
+  healthFacilities: AccessmodFileset
+  hfProcessingOrder: String
+  id: String!
+  maxTravelTime: Int
+  name: String!
+  owner: AccessmodOwner
+  permissions: AccessmodAnalysisPermissions!
+  population: AccessmodFileset
+  status: AccessmodAnalysisStatus!
+  type: AccessmodAnalysisType!
+  updatedAt: DateTime!
+}
+
+union AccessmodOwner = Team | User
+
+interface AccessmodOwnership {
+  owner: AccessmodOwner
+}
+
+type AccessmodProject implements AccessmodOwnership {
+  author: User!
+  country: Country!
+  createdAt: DateTime!
+  crs: Int!
+  dem: AccessmodFileset
+  description: String!
+  extent: [[Float!]!]
+  id: String!
+  members: [AccessmodProjectMember!]!
+  name: String!
+  owner: AccessmodOwner
+  permissions: AccessmodProjectPermissions!
+  spatialResolution: Int!
+  updatedAt: DateTime!
+}
+
+type AccessmodProjectMember {
+  createdAt: DateTime!
+  id: String!
+  mode: PermissionMode!
+  permissions: AccessmodProjectMemberPermissions!
+  project: AccessmodProject!
+  team: Team
+  updatedAt: DateTime!
+  user: User
+}
+
+type AccessmodProjectMemberPermissions {
+  delete: Boolean!
+  update: Boolean!
+}
+
+enum AccessmodProjectOrder {
+  NAME_ASC
+  NAME_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+}
+
+type AccessmodProjectPage {
+  items: [AccessmodProject!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type AccessmodProjectPermissions {
+  createAnalysis: Boolean!
+  createFileset: Boolean!
+  createMember: Boolean!
+  createPermission: Boolean!
+  delete: Boolean!
+  update: Boolean!
+}
+
+type AccessmodZonalStatistics implements AccessmodAnalysis & AccessmodOwnership {
+  author: User!
+  boundaries: AccessmodFileset
+  createdAt: DateTime!
+  id: String!
+  name: String!
+  owner: AccessmodOwner
+  permissions: AccessmodAnalysisPermissions!
+  population: AccessmodFileset
+  status: AccessmodAnalysisStatus!
+  timeThresholds: TimeThresholds
+  travelTimes: AccessmodFileset
+  type: AccessmodAnalysisType!
+  updatedAt: DateTime!
+  zonalStatisticsGeo: AccessmodFileset
+  zonalStatisticsTable: AccessmodFileset
+}
+
+"""Represents the input for adding an output to a pipeline."""
+input AddPipelineOutputInput {
+  name: String
+  type: String!
+  uri: String!
+}
+
+"""Represents the result of adding an output to a pipeline."""
+type AddPipelineOutputResult {
+  errors: [PipelineError!]!
+  success: Boolean!
+}
+
+type AddPipelineRecipientResult {
+  errors: [PipelineRecipientError!]!
+  recipient: PipelineRecipient
+  success: Boolean!
+}
+
+"""Represents the error message for adding a web app to favorites."""
+enum AddToFavoritesError {
+  WEBAPP_NOT_FOUND
+}
+
+"""Represents the input for adding a web app to favorites."""
+input AddToFavoritesInput {
+  webappId: ID!
+}
+
+"""Represents the result of adding a web app to favorites."""
+type AddToFavoritesResult {
+  errors: [AddToFavoritesError!]!
+  success: Boolean!
+}
+
+enum ApproveAccessmodAccessRequestError {
+  INVALID
+}
+
+input ApproveAccessmodAccessRequestInput {
+  id: String!
+}
+
+type ApproveAccessmodAccessRequestResult {
+  errors: [ApproveAccessmodAccessRequestError!]!
+  success: Boolean!
+}
+
+"""
+Enum representing the possible errors that can occur when archiving a workspace.
+"""
+enum ArchiveWorkspaceError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for archiving a workspace."""
+input ArchiveWorkspaceInput {
+  slug: String!
+}
+
+"""Represents the result of archiving a workspace."""
+type ArchiveWorkspaceResult {
+  errors: [ArchiveWorkspaceError!]!
+  success: Boolean!
+}
+
+"""The Avatar type represents the avatar of a user."""
+type Avatar {
+  """The color of the user's avatar."""
+  color: String!
+
+  """The initials of the user's avatar."""
+  initials: String!
+}
+
+scalar BigInt
+
+"""
+A bucket is where all the files and data related to a workspace are stored.
+"""
+type Bucket {
+  name: String!
+  object(key: String!): BucketObject
+  objects(ignoreHiddenFiles: Boolean = true, page: Int = 1, perPage: Int = 15, prefix: String, query: String): BucketObjectPage!
+}
+
+"""An object in a workspace's bucket."""
+type BucketObject {
+  key: String!
+  name: String!
+  path: String!
+  size: BigInt
+  type: BucketObjectType!
+  updatedAt: DateTime
+}
+
+"""A page of objects in a workspace's bucket."""
+type BucketObjectPage {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  items: [BucketObject!]!
+  pageNumber: Int!
+}
+
+"""The type of an object in a workspace's bucket."""
+enum BucketObjectType {
+  DIRECTORY
+  FILE
+}
+
+type Config {
+  """List of requirements for the password."""
+  passwordRequirements: [String!]
+}
+
+"""Represents a connection to an external data source or service."""
+interface Connection {
+  createdAt: DateTime!
+  description: String
+  fields: [ConnectionField!]!
+  id: String!
+  name: String!
+  permissions: ConnectionPermissions!
+  slug: String!
+  type: ConnectionType!
+  updatedAt: DateTime
+  user: User
+}
+
+"""Represents a field in a connection."""
+type ConnectionField {
+  code: String!
+  createdAt: DateTime!
+  secret: Boolean!
+  updatedAt: DateTime
+  value: String
+}
+
+"""Represents the input for a connection field."""
+input ConnectionFieldInput {
+  code: String!
+  secret: Boolean!
+  value: String
+}
+
+"""Represents the permissions of a connection."""
+type ConnectionPermissions {
+  delete: Boolean!
+  update: Boolean!
+}
+
+"""Represents the types of connections."""
+enum ConnectionType {
+  CUSTOM
+  DHIS2
+  GCS
+  IASO
+  POSTGRESQL
+  S3
+}
+
+type Country {
+  alpha3: String!
+  code: String!
+  flag: String!
+  name: String!
+  whoInfo: WHOInfo!
+}
+
+input CountryInput {
+  alpha3: String
+  code: String!
+  flag: String
+  name: String
+}
+
+enum CreateAccessmodAccessibilityAnalysisError {
+  NAME_DUPLICATE
+}
+
+input CreateAccessmodAccessibilityAnalysisInput {
+  name: String!
+  projectId: String!
+}
+
+type CreateAccessmodAccessibilityAnalysisResult {
+  analysis: AccessmodAccessibilityAnalysis
+  errors: [CreateAccessmodAccessibilityAnalysisError!]!
+  success: Boolean!
+}
+
+enum CreateAccessmodFileError {
+  URI_DUPLICATE
+}
+
+input CreateAccessmodFileInput {
+  filesetId: String!
+  mimeType: String!
+  uri: String!
+}
+
+type CreateAccessmodFileResult {
+  errors: [CreateAccessmodFileError!]!
+  file: AccessmodFile
+  success: Boolean!
+}
+
+enum CreateAccessmodFilesetError {
+  NAME_DUPLICATE
+  PERMISSION_DENIED
+}
+
+input CreateAccessmodFilesetInput {
+  automatic: Boolean
+  metadata: AccessmodFilesetMetadata
+  name: String!
+  projectId: String!
+  roleId: String!
+}
+
+type CreateAccessmodFilesetResult {
+  errors: [CreateAccessmodFilesetError!]!
+  fileset: AccessmodFileset
+  success: Boolean!
+}
+
+enum CreateAccessmodProjectError {
+  NAME_DUPLICATE
+  PERMISSION_DENIED
+}
+
+input CreateAccessmodProjectInput {
+  country: CountryInput!
+  crs: Int!
+  description: String
+  extent: [[Float!]!]
+  name: String!
+  spatialResolution: Int!
+}
+
+enum CreateAccessmodProjectMemberError {
+  ALREADY_EXISTS
+  NOT_FOUND
+  NOT_IMPLEMENTED
+  PERMISSION_DENIED
+}
+
+input CreateAccessmodProjectMemberInput {
+  mode: PermissionMode!
+  projectId: String!
+  teamId: String
+  userId: String
+}
+
+type CreateAccessmodProjectMemberResult {
+  errors: [CreateAccessmodProjectMemberError!]!
+  member: AccessmodProjectMember
+  success: Boolean!
+}
+
+type CreateAccessmodProjectResult {
+  errors: [CreateAccessmodProjectError!]!
+  project: AccessmodProject
+  success: Boolean!
+}
+
+enum CreateAccessmodZonalStatisticsError {
+  NAME_DUPLICATE
+}
+
+input CreateAccessmodZonalStatisticsInput {
+  name: String!
+  projectId: String!
+}
+
+type CreateAccessmodZonalStatisticsResult {
+  analysis: AccessmodZonalStatistics
+  errors: [CreateAccessmodZonalStatisticsError!]!
+  success: Boolean!
+}
+
+"""Errors that can occur when creating a folder in a workspace's bucket."""
+enum CreateBucketFolderError {
+  ALREADY_EXISTS
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Input for creating a folder in a workspace's bucket."""
+input CreateBucketFolderInput {
+  folderKey: String!
+  workspaceSlug: String!
+}
+
+"""The result of creating a folder in a workspace's bucket."""
+type CreateBucketFolderResult {
+  errors: [CreateBucketFolderError!]!
+  folder: BucketObject
+  success: Boolean!
+}
+
+"""Represents the error types for creating a connection."""
+enum CreateConnectionError {
+  INVALID_SLUG
+  PERMISSION_DENIED
+  WORKSPACE_NOT_FOUND
+}
+
+"""Represents the input for creating a connection."""
+input CreateConnectionInput {
+  description: String
+  fields: [ConnectionFieldInput!]
+  name: String!
+  slug: String
+  type: ConnectionType!
+  workspaceSlug: String!
+}
+
+"""Represents the result of creating a connection."""
+type CreateConnectionResult {
+  connection: Connection
+  errors: [CreateConnectionError!]!
+  success: Boolean!
+}
+
+"""Errors that can occur when creating a dataset."""
+enum CreateDatasetError {
+  PERMISSION_DENIED
+  WORKSPACE_NOT_FOUND
+}
+
+"""Input for creating a dataset."""
+input CreateDatasetInput {
+  description: String
+  name: String!
+  workspaceSlug: String!
+}
+
+"""Result of creating a dataset."""
+type CreateDatasetResult {
+  dataset: Dataset
+  errors: [CreateDatasetError!]!
+  link: DatasetLink
+  success: Boolean!
+}
+
+"""Errors that can occur when creating a dataset version."""
+enum CreateDatasetVersionError {
+  DATASET_NOT_FOUND
+  DUPLICATE_NAME
+  PERMISSION_DENIED
+}
+
+"""Errors that can occur when creating a dataset version file."""
+enum CreateDatasetVersionFileError {
+  ALREADY_EXISTS
+  INVALID_URI
+  LOCKED_VERSION
+  PERMISSION_DENIED
+  VERSION_NOT_FOUND
+}
+
+"""Input for creating a dataset version file."""
+input CreateDatasetVersionFileInput {
+  contentType: String!
+  uri: String!
+  versionId: ID!
+}
+
+"""Result of creating a dataset version file."""
+type CreateDatasetVersionFileResult {
+  errors: [CreateDatasetVersionFileError!]!
+
+  """The created file object"""
+  file: DatasetVersionFile
+  success: Boolean!
+
+  """The URL to upload the file to"""
+  uploadUrl: String! @deprecated(reason: "moved to dedicated generateDatasetUploadUrl mutation")
+}
+
+"""Input for creating a dataset version."""
+input CreateDatasetVersionInput {
+  changelog: String
+  datasetId: ID!
+  name: String!
+}
+
+"""Result of creating a dataset version."""
+type CreateDatasetVersionResult {
+  errors: [CreateDatasetVersionError!]!
+  success: Boolean!
+  version: DatasetVersion
+}
+
+"""
+The CreateMembershipError enum represents the possible errors that can occur during the createMembership mutation.
+"""
+enum CreateMembershipError {
+  """
+  Indicates that a membership with the same user and team already exists.
+  """
+  ALREADY_EXISTS
+
+  """Indicates that the team or user was not found."""
+  NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to create a membership in the team.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The CreateMembershipInput type represents the input for the createMembership mutation.
+"""
+input CreateMembershipInput {
+  """The role of the user in the team."""
+  role: MembershipRole!
+
+  """The unique identifier of the team."""
+  teamId: UUID!
+
+  """The email address of the user to add to the team."""
+  userEmail: String!
+}
+
+"""
+The CreateMembershipResult type represents the result of the createMembership mutation.
+"""
+type CreateMembershipResult {
+  """The list of errors that occurred during the createMembership mutation."""
+  errors: [CreateMembershipError!]!
+
+  """The created membership object."""
+  membership: Membership
+
+  """Indicates whether the createMembership mutation was successful."""
+  success: Boolean!
+}
+
+"""
+Enum representing the possible errors that can occur when creating a pipeline from a template version.
+"""
+enum CreatePipelineFromTemplateVersionError {
+  PERMISSION_DENIED
+  PIPELINE_TEMPLATE_VERSION_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+}
+
+"""
+Represents the input for creating a new pipeline from a template version.
+"""
+input CreatePipelineFromTemplateVersionInput {
+  pipelineTemplateVersionId: UUID!
+  workspaceSlug: String!
+}
+
+"""
+Represents the result of creating a new pipeline from a template version.
+"""
+type CreatePipelineFromTemplateVersionResult {
+  errors: [CreatePipelineFromTemplateVersionError!]
+  pipeline: Pipeline
+  success: Boolean!
+}
+
+"""Represents the input for creating a pipeline."""
+input CreatePipelineInput {
+  code: String @deprecated(reason: "The code will be autogenerated")
+  name: String!
+  notebookPath: String
+  workspaceSlug: String!
+}
+
+"""Represents the input for adding a recipient to a pipeline."""
+input CreatePipelineRecipientInput {
+  notificationLevel: PipelineNotificationLevel!
+  pipelineId: UUID!
+  userId: UUID!
+}
+
+"""Represents the result of creating a pipeline."""
+type CreatePipelineResult {
+  errors: [PipelineError!]!
+  pipeline: Pipeline
+  success: Boolean!
+}
+
+"""
+Enum representing the possible errors that can occur when creating a pipeline template version.
+"""
+enum CreatePipelineTemplateVersionError {
+  DUPLICATE_TEMPLATE_NAME_OR_CODE
+  PERMISSION_DENIED
+  PIPELINE_NOT_FOUND
+  PIPELINE_VERSION_NOT_FOUND
+  UNKNOWN_ERROR
+  WORKSPACE_NOT_FOUND
+}
+
+"""Represents the input for creating a new pipeline template version."""
+input CreatePipelineTemplateVersionInput {
+  changelog: String
+  code: String
+  config: String
+  description: String
+  name: String
+  pipelineId: UUID!
+  pipelineVersionId: UUID!
+  workspaceSlug: String!
+}
+
+"""Represents the result of creating a new pipeline template version."""
+type CreatePipelineTemplateVersionResult {
+  errors: [CreatePipelineTemplateVersionError!]
+  pipelineTemplate: PipelineTemplate
+  success: Boolean!
+}
+
+"""
+The CreateTeamError enum represents the possible errors that can occur during the createTeam mutation.
+"""
+enum CreateTeamError {
+  """Indicates that a team with the same name already exists."""
+  NAME_DUPLICATE
+
+  """Indicates that the user does not have permission to create a team."""
+  PERMISSION_DENIED
+}
+
+"""
+The CreateTeamInput type represents the input for the createTeam mutation.
+"""
+input CreateTeamInput {
+  """The name of the team."""
+  name: String!
+}
+
+"""
+The CreateTeamResult type represents the result of the createTeam mutation.
+"""
+type CreateTeamResult {
+  """The list of errors that occurred during the createTeam mutation."""
+  errors: [CreateTeamError!]!
+
+  """Indicates whether the createTeam mutation was successful."""
+  success: Boolean!
+
+  """The created team object."""
+  team: Team
+}
+
+"""Represents the permission details for creating a template version."""
+type CreateTemplateVersionPermission {
+  isAllowed: Boolean!
+  reasons: [CreateTemplateVersionPermissionReason!]!
+}
+
+"""
+Enum representing the possible reasons preventing the creation of a template version.
+"""
+enum CreateTemplateVersionPermissionReason {
+  NO_NEW_TEMPLATE_VERSION_AVAILABLE
+  PERMISSION_DENIED
+  PIPELINE_IS_ALREADY_FROM_TEMPLATE
+  PIPELINE_IS_NOTEBOOK
+}
+
+"""Represents the error message for a web app creation."""
+enum CreateWebappError {
+  ALREADY_EXISTS
+  PERMISSION_DENIED
+  WORKSPACE_NOT_FOUND
+}
+
+"""Represents the input for creating a web app."""
+input CreateWebappInput {
+  description: String
+  icon: String
+  name: String!
+  url: String!
+  workspaceSlug: String!
+}
+
+"""Represents the result of creating a web app."""
+type CreateWebappResult {
+  errors: [CreateWebappError!]!
+  success: Boolean!
+  webapp: Webapp
+}
+
+"""
+Enum representing the possible errors that can occur when creating a workspace.
+"""
+enum CreateWorkspaceError {
+  INVALID_SLUG
+  PERMISSION_DENIED
+}
+
+"""Represents the input for creating a workspace."""
+input CreateWorkspaceInput {
+  countries: [CountryInput!]
+  description: String
+  loadSampleData: Boolean
+  name: String!
+  slug: String
+}
+
+"""Represents the result of creating a workspace."""
+type CreateWorkspaceResult {
+  errors: [CreateWorkspaceError!]!
+  success: Boolean!
+  workspace: Workspace
+}
+
+"""Custom connection object"""
+type CustomConnection implements Connection {
+  createdAt: DateTime!
+  description: String
+  fields: [ConnectionField!]!
+  id: String!
+  name: String!
+  permissions: ConnectionPermissions!
+  slug: String!
+  type: ConnectionType!
+  updatedAt: DateTime
+  user: User
+}
+
+type DAG {
+  countries: [Country!]!
+  description: String
+  externalId: String!
+  externalUrl: URL
+  formCode: String
+  id: UUID!
+  label: String!
+  runs(orderBy: DAGRunOrderBy, page: Int, perPage: Int): DAGRunPage!
+  schedule: String
+  tags: [Tag!]!
+  template: DAGTemplate!
+  user: User
+}
+
+type DAGPage {
+  items: [DAG!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type DAGRun {
+  config: JSON
+  duration: Int
+  executionDate: DateTime
+  externalId: String
+  externalUrl: URL
+  id: UUID!
+  isFavorite: Boolean!
+  label: String
+  lastRefreshedAt: DateTime
+  logs: String
+  messages: [DAGRunMessage!]!
+  outputs: [DAGRunOutput!]!
+  progress: Int!
+  status: DAGRunStatus!
+  triggerMode: DAGRunTrigger
+  user: User
+}
+
+type DAGRunMessage {
+  message: String!
+  priority: String!
+  timestamp: DateTime
+}
+
+enum DAGRunOrderBy {
+  EXECUTION_DATE_ASC
+  EXECUTION_DATE_DESC
+}
+
+type DAGRunOutput {
+  title: String!
+  uri: String!
+}
+
+type DAGRunPage {
+  items: [DAGRun!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+enum DAGRunStatus {
+  failed
+  queued
+  running
+  stopped
+  success
+  terminating
+}
+
+enum DAGRunTrigger {
+  MANUAL
+  SCHEDULED
+}
+
+type DAGTemplate {
+  code: String!
+  description: String
+  sampleConfig: JSON
+}
+
+"""DHIS2 connection object"""
+type DHIS2Connection implements Connection {
+  createdAt: DateTime!
+  description: String
+  fields: [ConnectionField!]!
+  id: String!
+  name: String!
+  permissions: ConnectionPermissions!
+  queryMetadata(filters: [String!], page: Int, perPage: Int, type: DHIS2MetadataType!): DHIS2QueryResultPage!
+  slug: String!
+  status: DHIS2ConnectionStatus!
+  type: ConnectionType!
+  updatedAt: DateTime
+  user: User
+}
+
+"""DHIS2 connection error"""
+enum DHIS2ConnectionError {
+  REQUEST_ERROR
+  UNKNOWN_ERROR
+}
+
+"""DHIS2 connection status"""
+enum DHIS2ConnectionStatus {
+  DOWN
+  UNKNOWN
+  UP
+}
+
+type DHIS2DataElement {
+  code: String!
+  createdAt: DateTime!
+  id: String!
+  instance: DHIS2Instance!
+  name: String!
+  updatedAt: DateTime!
+}
+
+type DHIS2DataElementPage {
+  items: [DHIS2DataElement!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type DHIS2Instance {
+  id: String!
+  name: String!
+  url: String
+}
+
+"""DHIS2 metadata item"""
+type DHIS2MetadataItem {
+  id: String
+  label: String!
+}
+
+"""Enum representing the type of a DHIS2 metadata item."""
+enum DHIS2MetadataType {
+  DATASETS
+  DATA_ELEMENTS
+  DATA_ELEMENT_GROUPS
+  INDICATORS
+  INDICATOR_GROUPS
+  ORG_UNITS
+  ORG_UNIT_GROUPS
+  ORG_UNIT_LEVELS
+}
+
+"""DHIS2 metadata query result"""
+type DHIS2QueryResultPage {
+  error: DHIS2ConnectionError
+  items: [DHIS2MetadataItem!]
+  pageNumber: Int!
+  success: Boolean!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type Database {
+  credentials: DatabaseCredentials
+  table(name: String!): DatabaseTable
+  tables(page: Int, perPage: Int): DatabaseTablePage!
+}
+
+type DatabaseCredentials {
+  dbName: String!
+  host: String!
+  password: String!
+  port: Int!
+  url: String!
+  username: String!
+}
+
+"""Represents a database table."""
+type DatabaseTable {
+  """The columns of the table."""
+  columns: [TableColumn!]!
+
+  """The number of rows in the table."""
+  count: Int
+
+  """The name of the table."""
+  name: String!
+
+  """Retrieves a paginated list of rows from the table."""
+  rows(
+    """The direction to order the rows in."""
+    direction: OrderByDirection!
+
+    """The column to order the rows by."""
+    orderBy: String!
+
+    """The page number to retrieve."""
+    page: Int!
+
+    """The number of rows per page."""
+    perPage: Int = 15
+  ): TableRowsPage!
+
+  """A sample row from the table."""
+  sample: JSON!
+}
+
+"""Represents a paginated list of database tables."""
+type DatabaseTablePage {
+  """The tables in the current page."""
+  items: [DatabaseTable!]!
+
+  """The page number of the result."""
+  pageNumber: Int!
+
+  """The total number of items."""
+  totalItems: Int!
+
+  """The total number of pages."""
+  totalPages: Int!
+}
+
+"""
+Dataset is a collection of files that are related to each other and are versioned.
+"""
+type Dataset implements MetadataObject {
+  attributes: [MetadataAttribute!]!
+  createdAt: DateTime!
+  createdBy: User
+  description: String
+  id: ID!
+  latestVersion: DatasetVersion
+  links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+  name: String!
+  permissions: DatasetPermissions!
+  slug: String!
+  targetId: OpaqueID!
+  updatedAt: DateTime!
+  version(id: ID!): DatasetVersion
+  versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
+  workspace: Workspace
+}
+
+"""File sample for dataset file"""
+type DatasetFileSample {
+  sample: JSON
+  status: FileSampleStatus!
+  statusReason: String
+}
+
+"""A link of a dataset with a workspace."""
+type DatasetLink {
+  createdAt: DateTime!
+  createdBy: User
+  dataset: Dataset!
+  id: ID!
+  isPinned: Boolean!
+  permissions: DatasetLinkPermissions!
+  workspace: Workspace!
+}
+
+"""A page of dataset links."""
+type DatasetLinkPage {
+  items: [DatasetLink!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""Permissions of a dataset link."""
+type DatasetLinkPermissions {
+  """Permissions to delete the link between the workspace and the dataset"""
+  delete: Boolean!
+
+  """Permissions to pin the dataset for the workspace"""
+  pin: Boolean!
+}
+
+"""A page of datasets."""
+type DatasetPage {
+  items: [Dataset!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""Permissions of a dataset."""
+type DatasetPermissions {
+  """Permissions to create a new version of the dataset"""
+  createVersion: Boolean!
+
+  """Permissions to delete the dataset"""
+  delete: Boolean!
+
+  """Permissions to edit the dataset"""
+  update: Boolean!
+}
+
+"""
+A version of a dataset. A version is a snapshot of the dataset at a point in time.
+"""
+type DatasetVersion implements MetadataObject {
+  attributes: [MetadataAttribute!]!
+  changelog: String
+  createdAt: DateTime!
+  createdBy: User
+  dataset: Dataset!
+  description: String @deprecated(reason: "use changelog instead")
+  fileByName(name: String!): DatasetVersionFile
+  files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!
+  id: ID!
+  name: String!
+  permissions: DatasetVersionPermissions!
+  targetId: OpaqueID!
+}
+
+"""A file in a dataset version."""
+type DatasetVersionFile implements MetadataObject {
+  attributes: [MetadataAttribute!]!
+  contentType: String!
+  createdAt: DateTime!
+  createdBy: User
+  downloadUrl(attachment: Boolean): String
+  fileSample: DatasetFileSample
+  filename: String!
+  id: ID!
+  properties: JSON
+  size: BigInt!
+  targetId: OpaqueID!
+  uri: String!
+}
+
+"""A page of dataset version files."""
+type DatasetVersionFilePage {
+  items: [DatasetVersionFile!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""A page of dataset versions."""
+type DatasetVersionPage {
+  items: [DatasetVersion!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""Permissions of a dataset version."""
+type DatasetVersionPermissions {
+  """Permissions to delete the dataset version"""
+  delete: Boolean!
+
+  """Permissions to download the content of the dataset version"""
+  download: Boolean!
+
+  """Permissions to update the dataset version"""
+  update: Boolean!
+}
+
+scalar Date
+
+scalar DateTime
+
+"""Represents the error types for declining a workspace invitation."""
+enum DeclineWorkspaceInvitationError {
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for declining a workspace invitation."""
+input DeclineWorkspaceInvitationInput {
+  invitationId: UUID!
+}
+
+"""Represents the result of declining a workspace invitation."""
+type DeclineWorkspaceInvitationResult {
+  errors: [DeclineWorkspaceInvitationError!]!
+  invitation: WorkspaceInvitation
+  success: Boolean!
+}
+
+enum DeleteAccessmodAnalysisError {
+  DELETE_FAILED
+  NOT_FOUND
+}
+
+input DeleteAccessmodAnalysisInput {
+  id: String!
+}
+
+type DeleteAccessmodAnalysisResult {
+  errors: [DeleteAccessmodAnalysisError!]!
+  success: Boolean!
+}
+
+enum DeleteAccessmodFilesetError {
+  FILESET_IN_USE
+  NOT_FOUND
+}
+
+input DeleteAccessmodFilesetInput {
+  id: String!
+}
+
+type DeleteAccessmodFilesetResult {
+  errors: [DeleteAccessmodFilesetError!]!
+  success: Boolean!
+}
+
+enum DeleteAccessmodProjectError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input DeleteAccessmodProjectInput {
+  id: String!
+}
+
+enum DeleteAccessmodProjectMemberError {
+  NOT_FOUND
+  NOT_IMPLEMENTED
+  PERMISSION_DENIED
+}
+
+input DeleteAccessmodProjectMemberInput {
+  id: String!
+}
+
+type DeleteAccessmodProjectMemberResult {
+  errors: [DeleteAccessmodProjectMemberError!]!
+  success: Boolean!
+}
+
+type DeleteAccessmodProjectResult {
+  errors: [DeleteAccessmodProjectError!]!
+  success: Boolean!
+}
+
+"""
+Errors that can occur when deleting an object from a workspace's bucket.
+"""
+enum DeleteBucketObjectError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Input for deleting an object from a workspace's bucket."""
+input DeleteBucketObjectInput {
+  objectKey: String!
+  workspaceSlug: String!
+}
+
+"""The result of deleting an object from a workspace's bucket."""
+type DeleteBucketObjectResult {
+  errors: [DeleteBucketObjectError!]!
+  success: Boolean!
+}
+
+"""Represents the error types for deleting a connection."""
+enum DeleteConnectionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for deleting a connection."""
+input DeleteConnectionInput {
+  id: String!
+}
+
+"""Represents the result of deleting a connection."""
+type DeleteConnectionResult {
+  errors: [DeleteConnectionError!]!
+  success: Boolean!
+}
+
+"""Errors that can occur when deleting a dataset."""
+enum DeleteDatasetError {
+  DATASET_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Input for deleting a dataset."""
+input DeleteDatasetInput {
+  id: ID!
+}
+
+"""Errors that can occur when deleting a dataset link."""
+enum DeleteDatasetLinkError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Input for deleting a dataset link."""
+input DeleteDatasetLinkInput {
+  id: ID!
+}
+
+"""Result of deleting a dataset link."""
+type DeleteDatasetLinkResult {
+  errors: [DeleteDatasetLinkError!]!
+  success: Boolean!
+}
+
+"""Result of deleting a dataset."""
+type DeleteDatasetResult {
+  errors: [DeleteDatasetError!]!
+  success: Boolean!
+}
+
+"""Errors that can occur when deleting a dataset version."""
+enum DeleteDatasetVersionError {
+  PERMISSION_DENIED
+  VERSION_NOT_FOUND
+}
+
+"""Input for deleting a dataset version."""
+input DeleteDatasetVersionInput {
+  versionId: ID!
+}
+
+"""Result of deleting a dataset version."""
+type DeleteDatasetVersionResult {
+  errors: [DeleteDatasetVersionError!]!
+  success: Boolean!
+}
+
+"""
+The DeleteMembershipError enum represents the possible errors that can occur during the deleteMembership mutation.
+"""
+enum DeleteMembershipError {
+  """Indicates that the membership was not found."""
+  NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to delete the membership.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The DeleteMembershipInput type represents the input for the deleteMembership mutation.
+"""
+input DeleteMembershipInput {
+  """The unique identifier of the membership to delete."""
+  id: UUID!
+}
+
+"""
+The DeleteMembershipResult type represents the result of the deleteMembership mutation.
+"""
+type DeleteMembershipResult {
+  """The list of errors that occurred during the deleteMembership mutation."""
+  errors: [DeleteMembershipError!]!
+
+  """Indicates whether the deleteMembership mutation was successful."""
+  success: Boolean!
+}
+
+"""Errors that can occur when deleting an attribute."""
+enum DeleteMetadataAttributeError {
+  METADATA_ATTRIBUTE_NOT_FOUND
+  PERMISSION_DENIED
+  TARGET_NOT_FOUND
+}
+
+"""Input to delete custom attribute"""
+input DeleteMetadataAttributeInput {
+  key: String!
+  targetId: OpaqueID!
+}
+
+type DeleteMetadataAttributeResult {
+  errors: [DeleteMetadataAttributeError!]!
+  success: Boolean!
+}
+
+"""Represents the input for deleting a pipeline."""
+input DeletePipelineInput {
+  id: UUID!
+}
+
+"""Represents the input for deleting a pipeline recipient."""
+input DeletePipelineRecipientInput {
+  recipientId: UUID!
+}
+
+type DeletePipelineRecipientResult {
+  errors: [PipelineRecipientError!]!
+  success: Boolean!
+}
+
+"""Represents the result of deleting a pipeline."""
+type DeletePipelineResult {
+  errors: [PipelineError!]!
+  success: Boolean!
+}
+
+"""Represents the input for deleting a pipeline template."""
+input DeletePipelineTemplateInput {
+  id: UUID!
+}
+
+"""Represents the result of deleting a template."""
+type DeletePipelineTemplateResult {
+  errors: [PipelineTemplateError!]!
+  success: Boolean!
+}
+
+enum DeletePipelineVersionError {
+  PERMISSION_DENIED
+  PIPELINE_NOT_FOUND
+  PIPELINE_VERSION_NOT_FOUND
+}
+
+"""Represents the input for deleting a pipeline version."""
+input DeletePipelineVersionInput {
+  id: UUID!
+}
+
+"""Represents the result of deleting a pipeline version."""
+type DeletePipelineVersionResult {
+  errors: [DeletePipelineVersionError!]!
+  success: Boolean!
+}
+
+"""
+The DeleteTeamError enum represents the possible errors that can occur during the deleteTeam mutation.
+"""
+enum DeleteTeamError {
+  """Indicates that the team was not found."""
+  NOT_FOUND
+
+  """Indicates that the user does not have permission to delete the team."""
+  PERMISSION_DENIED
+}
+
+"""
+The DeleteTeamInput type represents the input for the deleteTeam mutation.
+"""
+input DeleteTeamInput {
+  """The unique identifier of the team to delete."""
+  id: UUID!
+}
+
+"""
+The DeleteTeamResult type represents the result of the deleteTeam mutation.
+"""
+type DeleteTeamResult {
+  """The list of errors that occurred during the deleteTeam mutation."""
+  errors: [DeleteTeamError!]!
+
+  """Indicates whether the deleteTeam mutation was successful."""
+  success: Boolean!
+}
+
+enum DeleteTemplateVersionError {
+  PERMISSION_DENIED
+  TEMPLATE_VERSION_NOT_FOUND
+}
+
+"""Represents the input for deleting a template version."""
+input DeleteTemplateVersionInput {
+  id: UUID!
+}
+
+"""Represents the result of deleting a template version."""
+type DeleteTemplateVersionResult {
+  errors: [DeleteTemplateVersionError!]!
+  success: Boolean!
+}
+
+"""Represents the error message for a web app deletion."""
+enum DeleteWebappError {
+  PERMISSION_DENIED
+  WEBAPP_NOT_FOUND
+}
+
+"""Represents the input for deleting a web app."""
+input DeleteWebappInput {
+  id: UUID!
+}
+
+"""Represents the result of deleting a web app."""
+type DeleteWebappResult {
+  errors: [DeleteWebappError!]!
+  success: Boolean!
+}
+
+enum DeleteWorkspaceDatabaseTableError {
+  PERMISSION_DENIED
+  TABLE_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+}
+
+"""Represents the input for deleting a database table in a workspace."""
+input DeleteWorkspaceDatabaseTableInput {
+  table: String!
+  workspaceSlug: String!
+}
+
+"""Represents the result of deleting a database table in a workspace."""
+type DeleteWorkspaceDatabaseTableResult {
+  errors: [DeleteWorkspaceDatabaseTableError!]!
+  success: Boolean!
+}
+
+"""
+Enum representing the possible errors that can occur when deleting a workspace.
+"""
+enum DeleteWorkspaceError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for deleting a workspace."""
+input DeleteWorkspaceInput {
+  slug: String!
+}
+
+"""Represents the error types for deleting a workspace invitation."""
+enum DeleteWorkspaceInvitationError {
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for deleting a workspace invitation."""
+input DeleteWorkspaceInvitationInput {
+  invitationId: UUID!
+}
+
+"""Represents the result of deleting a workspace invitation."""
+type DeleteWorkspaceInvitationResult {
+  errors: [DeleteWorkspaceInvitationError!]!
+  success: Boolean!
+}
+
+"""
+Enum representing the possible errors that can occur when deleting a workspace member.
+"""
+enum DeleteWorkspaceMemberError {
+  MEMBERSHIP_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for deleting a workspace member."""
+input DeleteWorkspaceMemberInput {
+  membershipId: UUID!
+}
+
+"""Represents the result of deleting a workspace member."""
+type DeleteWorkspaceMemberResult {
+  errors: [DeleteWorkspaceMemberError!]!
+  success: Boolean!
+}
+
+"""Represents the result of deleting a workspace."""
+type DeleteWorkspaceResult {
+  errors: [DeleteWorkspaceError!]!
+  success: Boolean!
+}
+
+enum DenyAccessmodAccessRequestError {
+  INVALID
+}
+
+input DenyAccessmodAccessRequestInput {
+  id: String!
+}
+
+type DenyAccessmodAccessRequestResult {
+  errors: [DenyAccessmodAccessRequestError!]!
+  success: Boolean!
+}
+
+"""
+The DisableTwoFactorError enum represents the possible errors that can occur during the disableTwoFactor mutation.
+"""
+enum DisableTwoFactorError {
+  INVALID_OTP
+  NOT_ENABLED
+}
+
+"""
+The DisableTwoFactorInput type represents the input for the disableTwoFactor mutation.
+"""
+input DisableTwoFactorInput {
+  token: String!
+}
+
+"""
+The DisableTwoFactorResult type represents the result of the disableTwoFactor mutation.
+"""
+type DisableTwoFactorResult {
+  errors: [DisableTwoFactorError!]
+  success: Boolean!
+}
+
+"""
+The EnableTwoFactorError enum represents the possible errors that can occur during the enableTwoFactor mutation.
+"""
+enum EnableTwoFactorError {
+  ALREADY_ENABLED
+  EMAIL_MISMATCH
+}
+
+"""
+The EnableTwoFactorInput type represents the input for the enableTwoFactor mutation.
+"""
+input EnableTwoFactorInput {
+  email: String
+}
+
+"""
+The EnableTwoFactorResult type represents the result of the enableTwoFactor mutation.
+"""
+type EnableTwoFactorResult {
+  errors: [EnableTwoFactorError!]
+  success: Boolean!
+  verified: Boolean
+}
+
+"""The FeatureFlag type represents a feature flag in the system."""
+type FeatureFlag {
+  """The code of the feature flag."""
+  code: String!
+
+  """The configuration of the feature flag."""
+  config: JSON!
+}
+
+"""Statuses that can occur when generating file sample"""
+enum FileSampleStatus {
+  FAILED
+  FINISHED
+  PROCESSING
+}
+
+"""GCS connection object"""
+type GCSConnection implements Connection {
+  createdAt: DateTime!
+  description: String
+  fields: [ConnectionField!]!
+  id: String!
+  name: String!
+  permissions: ConnectionPermissions!
+  slug: String!
+  type: ConnectionType!
+  updatedAt: DateTime
+  user: User
+}
+
+"""
+The GenerateChallengeError enum represents the possible errors that can occur during the generateChallenge mutation.
+"""
+enum GenerateChallengeError {
+  CHALLENGE_ERROR
+  DEVICE_NOT_FOUND
+}
+
+"""
+The GenerateChallengeResult type represents the result of the generateChallenge mutation.
+"""
+type GenerateChallengeResult {
+  errors: [GenerateChallengeError!]
+  success: Boolean!
+}
+
+"""Input for creating un upload link for the file"""
+input GenerateDatasetUploadUrlInput {
+  contentType: String!
+  uri: String!
+  versionId: ID!
+}
+
+"""Result of creating an upload url"""
+type GenerateDatasetUploadUrlResult {
+  errors: [CreateDatasetVersionFileError!]!
+  success: Boolean!
+  uploadUrl: String
+}
+
+"""Possible errors when generating a new database password."""
+enum GenerateNewDatabasePasswordError {
+  """The database was not found."""
+  NOT_FOUND
+
+  """The user does not have permission to generate a new password."""
+  PERMISSION_DENIED
+}
+
+"""Input for generating a new database password."""
+input GenerateNewDatabasePasswordInput {
+  """The slug of the workspace."""
+  workspaceSlug: String!
+}
+
+"""The result of generating a new database password."""
+type GenerateNewDatabasePasswordResult {
+  """The errors that occurred during password generation."""
+  errors: [GenerateNewDatabasePasswordError!]!
+
+  """Indicates if the password generation was successful."""
+  success: Boolean!
+
+  """The workspace associated with the generated password."""
+  workspace: Workspace
+}
+
+enum GeneratePipelineWebhookUrlError {
+  PERMISSION_DENIED
+  PIPELINE_NOT_FOUND
+  WEBHOOK_NOT_ENABLED
+}
+
+input GeneratePipelineWebhookUrlInput {
+  id: UUID!
+}
+
+type GeneratePipelineWebhookUrlResult {
+  errors: [GeneratePipelineWebhookUrlError!]!
+  pipeline: Pipeline
+  success: Boolean!
+}
+
+"""Represents the error types for generating a workspace token."""
+enum GenerateWorkspaceTokenError {
+  PERMISSION_DENIED
+  WORKSPACE_NOT_FOUND
+}
+
+"""Represents the input for generating a workspace token."""
+input GenerateWorkspaceTokenInput {
+  slug: String!
+}
+
+"""Represents the result of generating a workspace token."""
+type GenerateWorkspaceTokenResult {
+  errors: [GenerateWorkspaceTokenError!]!
+  success: Boolean!
+  token: String
+}
+
+scalar Generic
+
+"""Represents a generic output of a pipeline run."""
+type GenericOutput {
+  name: String
+  type: String!
+  uri: String!
+}
+
+"""IASO connection object"""
+type IASOConnection implements Connection {
+  createdAt: DateTime!
+  description: String
+  fields: [ConnectionField!]!
+  id: String!
+  name: String!
+  permissions: ConnectionPermissions!
+  slug: String!
+  type: ConnectionType!
+  updatedAt: DateTime
+  user: User
+}
+
+"""Represents the input for inviting a member to a workspace."""
+input InviteWorkspaceMemberInput {
+  role: WorkspaceMembershipRole!
+  userEmail: String!
+  workspaceSlug: String!
+}
+
+"""Represents the result of inviting a member to a workspace."""
+type InviteWorkspaceMemberResult {
+  errors: [InviteWorkspaceMembershipError!]!
+  success: Boolean!
+  workspaceMembership: WorkspaceMembership
+}
+
+"""
+Enum representing the possible errors that can occur when inviting a user to a workspace.
+"""
+enum InviteWorkspaceMembershipError {
+  ALREADY_EXISTS
+  PERMISSION_DENIED
+  USER_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+}
+
+scalar JSON
+
+"""Represents the error types for joining a workspace."""
+enum JoinWorkspaceError {
+  ALREADY_ACCEPTED
+  ALREADY_EXISTS
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for joining a workspace."""
+input JoinWorkspaceInput {
+  invitationId: UUID!
+}
+
+"""Represents the result of joining a workspace."""
+type JoinWorkspaceResult {
+  errors: [JoinWorkspaceError!]!
+  invitation: WorkspaceInvitation
+  success: Boolean!
+  workspace: Workspace
+}
+
+enum LaunchAccessmodAnalysisError {
+  LAUNCH_FAILED
+}
+
+input LaunchAccessmodAnalysisInput {
+  id: String!
+}
+
+type LaunchAccessmodAnalysisResult {
+  analysis: AccessmodAnalysis
+  errors: [LaunchAccessmodAnalysisError!]!
+  success: Boolean!
+}
+
+enum LaunchNotebookServerError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input LaunchNotebookServerInput {
+  workspaceSlug: String!
+}
+
+type LaunchNotebookServerResult {
+  errors: [LaunchNotebookServerError!]!
+  server: NotebookServer
+  success: Boolean!
+}
+
+"""Errors that can occur when linking a dataset with a workspace."""
+enum LinkDatasetError {
+  ALREADY_LINKED
+  DATASET_NOT_FOUND
+  PERMISSION_DENIED
+  WORKSPACE_NOT_FOUND
+}
+
+"""Input for linking a dataset with a workspace."""
+input LinkDatasetInput {
+  datasetId: ID!
+  workspaceSlug: String!
+}
+
+"""Result of linking a dataset with a workspace."""
+type LinkDatasetResult {
+  errors: [LinkDatasetError!]!
+  link: DatasetLink
+  success: Boolean!
+}
+
+"""Represents the input for logging a pipeline message."""
+input LogPipelineMessageInput {
+  message: String!
+  priority: MessagePriority!
+}
+
+"""Represents the result of logging a pipeline message."""
+type LogPipelineMessageResult {
+  errors: [PipelineError!]!
+  success: Boolean!
+}
+
+"""
+The LoginError enum represents the possible errors that can occur during the login process.
+"""
+enum LoginError {
+  """Indicates that the provided credentials are invalid."""
+  INVALID_CREDENTIALS
+
+  """Indicates that the provided OTP is invalid."""
+  INVALID_OTP
+
+  """Indicates that an OTP (one-time password) is required for login."""
+  OTP_REQUIRED
+}
+
+"""The LoginInput type represents the input for the login mutation."""
+input LoginInput {
+  """The email address of the user."""
+  email: String!
+
+  """The password of the user."""
+  password: String!
+
+  """The token for two-factor authentication."""
+  token: String
+}
+
+"""The LoginResult type represents the result of the login mutation."""
+type LoginResult {
+  """The list of errors that occurred during the login process."""
+  errors: [LoginError!]
+
+  """Indicates whether the login was successful."""
+  success: Boolean!
+}
+
+"""The LogoutResult type represents the result of the logout mutation."""
+type LogoutResult {
+  """Indicates whether the logout was successful."""
+  success: Boolean!
+}
+
+"""The Me type represents the currently authenticated user."""
+type Me {
+  """The feature flags assigned to the currently authenticated user."""
+  features: [FeatureFlag!]!
+  hasTwoFactorEnabled: Boolean!
+
+  """The permissions assigned to the currently authenticated user."""
+  permissions: MePermissions!
+
+  """The user object representing the currently authenticated user."""
+  user: User
+}
+
+"""
+The MePermissions type represents the permissions of the currently authenticated user.
+"""
+type MePermissions {
+  """Indicates whether the user has permission to access the admin panel."""
+  adminPanel: Boolean!
+  createAccessmodProject: Boolean!
+
+  """Indicates whether the user has permission to create a team."""
+  createTeam: Boolean!
+  createWorkspace: Boolean!
+  manageAccessmodAccessRequests: Boolean!
+
+  """Indicates whether the user has superuser privileges."""
+  superUser: Boolean!
+}
+
+"""The Membership type represents a membership of a user in a team."""
+type Membership {
+  """The date when the membership was created."""
+  createdAt: DateTime!
+
+  """The unique identifier of the membership."""
+  id: UUID!
+
+  """The permissions assigned to the membership."""
+  permissions: MembershipPermissions!
+
+  """The role of the user in the team."""
+  role: MembershipRole!
+
+  """The team associated with the membership."""
+  team: Team!
+
+  """The date when the membership was last updated."""
+  updatedAt: DateTime!
+
+  """The user associated with the membership."""
+  user: User!
+}
+
+"""The MembershipPage type represents a paginated list of memberships."""
+type MembershipPage {
+  """The list of memberships on the current page."""
+  items: [Membership!]!
+
+  """The current page number."""
+  pageNumber: Int!
+
+  """The total number of items."""
+  totalItems: Int!
+
+  """The total number of pages."""
+  totalPages: Int!
+}
+
+"""
+The MembershipPermissions type represents the permissions of a membership.
+"""
+type MembershipPermissions {
+  """Indicates whether the user has permission to delete the membership."""
+  delete: Boolean!
+
+  """Indicates whether the user has permission to update the membership."""
+  update: Boolean!
+}
+
+"""The MembershipRole enum represents the role of a user in a team."""
+enum MembershipRole {
+  """Indicates that the user is an admin of the team."""
+  ADMIN
+
+  """Indicates that the user is a regular member of the team."""
+  REGULAR
+}
+
+"""An enumeration representing the priority levels of a message."""
+enum MessagePriority {
+  CRITICAL
+  DEBUG
+  ERROR
+  INFO
+  WARNING
+}
+
+"""Generic metadata attribute"""
+type MetadataAttribute {
+  createdAt: DateTime!
+  createdBy: User
+  id: UUID!
+  key: String!
+  label: String
+  system: Boolean!
+  updatedAt: DateTime!
+  updatedBy: User
+  value: JSON
+}
+
+"""Interface for type implementing metadata"""
+interface MetadataObject {
+  attributes: [MetadataAttribute!]!
+  targetId: OpaqueID!
+}
+
+scalar MovingSpeeds
+
+type Mutation {
+  """Adds an output to a pipeline."""
+  addPipelineOutput(input: AddPipelineOutputInput!): AddPipelineOutputResult!
+
+  """Adds a recipient to a pipeline."""
+  addPipelineRecipient(input: CreatePipelineRecipientInput!): AddPipelineRecipientResult!
+  addToFavorites(input: AddToFavoritesInput!): AddToFavoritesResult!
+  approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
+  archiveWorkspace(input: ArchiveWorkspaceInput!): ArchiveWorkspaceResult!
+  createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult!
+  createAccessmodFile(input: CreateAccessmodFileInput!): CreateAccessmodFileResult!
+  createAccessmodFileset(input: CreateAccessmodFilesetInput!): CreateAccessmodFilesetResult!
+  createAccessmodProject(input: CreateAccessmodProjectInput!): CreateAccessmodProjectResult!
+  createAccessmodProjectMember(input: CreateAccessmodProjectMemberInput!): CreateAccessmodProjectMemberResult!
+  createAccessmodZonalStatistics(input: CreateAccessmodZonalStatisticsInput): CreateAccessmodZonalStatisticsResult!
+
+  """Create a folder in a workspace's bucket."""
+  createBucketFolder(input: CreateBucketFolderInput!): CreateBucketFolderResult!
+  createConnection(input: CreateConnectionInput!): CreateConnectionResult!
+
+  """Create a new dataset."""
+  createDataset(input: CreateDatasetInput!): CreateDatasetResult!
+
+  """Create a new dataset version."""
+  createDatasetVersion(input: CreateDatasetVersionInput!): CreateDatasetVersionResult!
+
+  """Create a new file in a dataset version."""
+  createDatasetVersionFile(input: CreateDatasetVersionFileInput!): CreateDatasetVersionFileResult!
+  createMembership(input: CreateMembershipInput!): CreateMembershipResult!
+
+  """Creates a new pipeline."""
+  createPipeline(input: CreatePipelineInput!): CreatePipelineResult!
+  createPipelineFromTemplateVersion(input: CreatePipelineFromTemplateVersionInput!): CreatePipelineFromTemplateVersionResult!
+
+  """Creates a new pipeline template version."""
+  createPipelineTemplateVersion(input: CreatePipelineTemplateVersionInput!): CreatePipelineTemplateVersionResult!
+  createTeam(input: CreateTeamInput!): CreateTeamResult!
+  createWebapp(input: CreateWebappInput!): CreateWebappResult!
+  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
+  declineWorkspaceInvitation(input: DeclineWorkspaceInvitationInput!): DeclineWorkspaceInvitationResult!
+  deleteAccessmodAnalysis(input: DeleteAccessmodAnalysisInput): DeleteAccessmodAnalysisResult!
+  deleteAccessmodFileset(input: DeleteAccessmodFilesetInput!): DeleteAccessmodFilesetResult!
+  deleteAccessmodProject(input: DeleteAccessmodProjectInput!): DeleteAccessmodProjectResult!
+  deleteAccessmodProjectMember(input: DeleteAccessmodProjectMemberInput!): DeleteAccessmodProjectMemberResult!
+
+  """Delete an object from a workspace's bucket."""
+  deleteBucketObject(input: DeleteBucketObjectInput!): DeleteBucketObjectResult!
+  deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult!
+
+  """Delete a dataset."""
+  deleteDataset(input: DeleteDatasetInput!): DeleteDatasetResult!
+
+  """Delete a dataset link."""
+  deleteDatasetLink(input: DeleteDatasetLinkInput!): DeleteDatasetLinkResult!
+
+  """Delete a dataset version."""
+  deleteDatasetVersion(input: DeleteDatasetVersionInput!): DeleteDatasetVersionResult!
+  deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult!
+
+  """Delete an metadata attribute from an object instance"""
+  deleteMetadataAttribute(input: DeleteMetadataAttributeInput!): DeleteMetadataAttributeResult!
+
+  """Deletes a pipeline."""
+  deletePipeline(input: DeletePipelineInput): DeletePipelineResult!
+
+  """Deletes a pipeline recipient."""
+  deletePipelineRecipient(input: DeletePipelineRecipientInput!): DeletePipelineRecipientResult!
+
+  """Deletes a pipeline template."""
+  deletePipelineTemplate(input: DeletePipelineTemplateInput): DeletePipelineTemplateResult!
+
+  """Deletes a pipeline version."""
+  deletePipelineVersion(input: DeletePipelineVersionInput!): DeletePipelineVersionResult!
+  deleteTeam(input: DeleteTeamInput!): DeleteTeamResult!
+
+  """Deletes a template version."""
+  deleteTemplateVersion(input: DeleteTemplateVersionInput!): DeleteTemplateVersionResult!
+  deleteWebapp(input: DeleteWebappInput!): DeleteWebappResult!
+  deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
+  deleteWorkspaceDatabaseTable(input: DeleteWorkspaceDatabaseTableInput!): DeleteWorkspaceDatabaseTableResult
+  deleteWorkspaceInvitation(input: DeleteWorkspaceInvitationInput!): DeleteWorkspaceInvitationResult!
+  deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult!
+  denyAccessmodAccessRequest(input: DenyAccessmodAccessRequestInput!): DenyAccessmodAccessRequestResult!
+
+  """
+  Disables two-factor authentication for the currently authenticated user.
+  """
+  disableTwoFactor(input: DisableTwoFactorInput): DisableTwoFactorResult!
+
+  """
+  Enables two-factor authentication for the currently authenticated user.
+  """
+  enableTwoFactor(input: EnableTwoFactorInput): EnableTwoFactorResult!
+
+  """Generates a challenge for two-factor authentication."""
+  generateChallenge: GenerateChallengeResult!
+
+  """Create dataset version file upload url."""
+  generateDatasetUploadUrl(input: GenerateDatasetUploadUrlInput!): GenerateDatasetUploadUrlResult!
+
+  """Generates a new password for a database."""
+  generateNewDatabasePassword(input: GenerateNewDatabasePasswordInput!): GenerateNewDatabasePasswordResult!
+
+  """Generates a webhook URL for a pipeline."""
+  generatePipelineWebhookUrl(input: GeneratePipelineWebhookUrlInput!): GeneratePipelineWebhookUrlResult!
+  generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult!
+  inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult!
+  joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult!
+  launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult!
+  launchNotebookServer(input: LaunchNotebookServerInput!): LaunchNotebookServerResult!
+
+  """Link a dataset with a workspace."""
+  linkDataset(input: LinkDatasetInput!): LinkDatasetResult!
+
+  """Logs a message for a pipeline."""
+  logPipelineMessage(input: LogPipelineMessageInput!): LogPipelineMessageResult!
+
+  """Authenticates a user and generates an access token."""
+  login(input: LoginInput!): LoginResult!
+
+  """Logs out the currently authenticated user."""
+  logout: LogoutResult!
+
+  """Pin or unpin a dataset for a workspace."""
+  pinDataset(input: PinDatasetInput!): PinDatasetResult!
+
+  """Retrieves a token for a pipeline."""
+  pipelineToken(input: PipelineTokenInput!): PipelineTokenResult!
+  prepareAccessmodFileDownload(input: PrepareAccessmodFileDownloadInput!): PrepareAccessmodFileDownloadResult!
+  prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput!): PrepareAccessmodFileUploadResult!
+  prepareAccessmodFilesetVisualizationDownload(input: PrepareAccessmodFilesetVisualizationDownloadInput!): PrepareAccessmodFilesetVisualizationDownloadResult!
+  prepareDownloadURL(input: PrepareDownloadURLInput!): PrepareDownloadURLResult
+
+  """Prepare to download an object from a workspace's bucket."""
+  prepareObjectDownload(input: PrepareObjectDownloadInput!): PrepareObjectDownloadResult!
+
+  """Prepare to upload an object to a workspace's bucket."""
+  prepareObjectUpload(input: PrepareObjectUploadInput!): PrepareObjectUploadResult!
+
+  """Prepare to download a file in a dataset version."""
+  prepareVersionFileDownload(input: PrepareVersionFileDownloadInput!): PrepareVersionFileDownloadResult!
+
+  """Registers a new user."""
+  register(input: RegisterInput!): RegisterResult!
+  removeFromFavorites(input: RemoveFromFavoritesInput!): RemoveFromFavoritesResult!
+  requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
+  resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult!
+
+  """Sends a password reset email to the user."""
+  resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
+  runDAG(input: RunDAGInput!): RunDAGResult!
+
+  """Runs a pipeline."""
+  runPipeline(input: RunPipelineInput): RunPipelineResult!
+  setDAGRunFavorite(input: SetDAGRunFavoriteInput!): SetDAGRunFavoriteResult
+
+  """Set a custom metadata attribute to an object instance"""
+  setMetadataAttribute(input: SetMetadataAttributeInput!): SetMetadataAttributeResult!
+
+  """Sets a new password for the user."""
+  setPassword(input: SetPasswordInput!): SetPasswordResult!
+
+  """Stops a pipeline."""
+  stopPipeline(input: StopPipelineInput!): StopPipelineResult!
+  updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult!
+  updateAccessmodFileset(input: UpdateAccessmodFilesetInput!): UpdateAccessmodFilesetResult!
+  updateAccessmodProject(input: UpdateAccessmodProjectInput!): UpdateAccessmodProjectResult!
+  updateAccessmodProjectMember(input: UpdateAccessmodProjectMemberInput!): UpdateAccessmodProjectMemberResult!
+  updateAccessmodZonalStatistics(input: UpdateAccessmodZonalStatisticsInput): UpdateAccessmodZonalStatisticsResult!
+  updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult!
+  updateDAG(input: UpdateDAGInput!): UpdateDAGResult!
+
+  """Update a dataset."""
+  updateDataset(input: UpdateDatasetInput!): UpdateDatasetResult!
+
+  """Update a dataset version."""
+  updateDatasetVersion(input: UpdateDatasetVersionInput!): UpdateDatasetVersionResult!
+  updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
+
+  """Updates an existing pipeline."""
+  updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult!
+
+  """Updates the progress of a pipeline."""
+  updatePipelineProgress(input: UpdatePipelineProgressInput!): UpdatePipelineProgressResult!
+
+  """Updates a pipeline recipient."""
+  updatePipelineRecipient(input: UpdatePipelineRecipientInput!): UpdatePipelineRecipientResult!
+
+  """Updates an existing template."""
+  updatePipelineTemplate(input: UpdateTemplateInput!): UpdateTemplateResult!
+
+  """Updates a pipeline version."""
+  updatePipelineVersion(input: UpdatePipelineVersionInput!): UpdatePipelineVersionResult!
+  updateTeam(input: UpdateTeamInput!): UpdateTeamResult!
+
+  """Updates a template version."""
+  updateTemplateVersion(input: UpdateTemplateVersionInput!): UpdateTemplateVersionResult!
+
+  """Updates the profile of the currently authenticated user."""
+  updateUser(input: UpdateUserInput!): UpdateUserResult!
+  updateWebapp(input: UpdateWebappInput!): UpdateWebappResult!
+  updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
+  updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult!
+
+  """Upgrades a pipeline version using the latest template version."""
+  upgradePipelineVersionFromTemplate(input: UpgradePipelineVersionFromTemplateInput!): UpgradePipelineVersionFromTemplateResult!
+
+  """Uploads a pipeline."""
+  uploadPipeline(input: UploadPipelineInput!): UploadPipelineResult!
+
+  """Verifies a device for two-factor authentication."""
+  verifyDevice(input: VerifyDeviceInput!): VerifyDeviceResult!
+}
+
+type NotebookServer {
+  name: String!
+  ready: Boolean!
+  url: String!
+}
+
+scalar OpaqueID
+
+"""The direction in which to order a list of items."""
+enum OrderByDirection {
+  ASC
+  DESC
+}
+
+"""The Organization type represents an organization in the system."""
+type Organization {
+  """The contact information of the organization."""
+  contactInfo: String!
+
+  """The unique identifier of the organization."""
+  id: UUID!
+
+  """The name of the organization."""
+  name: String!
+
+  """The type of the organization."""
+  type: String!
+
+  """The URL of the organization."""
+  url: String!
+}
+
+"""
+The OrganizationInput type represents the input for creating or updating an organization.
+"""
+input OrganizationInput {
+  """The updated contact information of the organization."""
+  contactInfo: String
+
+  """The unique identifier of the organization."""
+  id: UUID!
+
+  """The updated name of the organization."""
+  name: String
+
+  """The updated type of the organization."""
+  type: String
+
+  """The updated URL of the organization."""
+  url: String
+}
+
+"""Represents an input parameter of a pipeline."""
+input ParameterInput {
+  choices: [Generic!]
+  code: String!
+  connection: String
+  default: Generic
+  help: String
+  multiple: Boolean
+  name: String
+  required: Boolean
+  type: String!
+  widget: ParameterWidget
+}
+
+"""Enum representing the type of a parameter."""
+enum ParameterType {
+  bool
+  custom
+  dataset
+  dhis2
+  float
+  gcs
+  iaso
+  int
+  postgresql
+  s3
+  str
+}
+
+"""Enum representing the type of a parameter widget."""
+enum ParameterWidget {
+  DHIS2_DATASETS
+  DHIS2_DATA_ELEMENTS
+  DHIS2_DATA_ELEMENT_GROUPS
+  DHIS2_INDICATORS
+  DHIS2_INDICATOR_GROUPS
+  DHIS2_ORG_UNITS
+  DHIS2_ORG_UNIT_GROUPS
+  DHIS2_ORG_UNIT_LEVELS
+}
+
+"""The PermissionMode enum represents the mode of permissions for a team."""
+enum PermissionMode {
+  """Indicates that the user is an editor of the team."""
+  EDITOR
+
+  """Indicates that the user is the owner of the team."""
+  OWNER
+
+  """Indicates that the user is a viewer of the team."""
+  VIEWER
+}
+
+"""
+Errors that can occur when pinning or unpinning a dataset for a workspace.
+"""
+enum PinDatasetError {
+  LINK_NOT_FOUND
+  PERMISSION_DENIED
+  WORKSPACE_NOT_FOUND
+}
+
+"""Input for pinning or unpinning a dataset for a workspace."""
+input PinDatasetInput {
+  linkId: ID!
+  pinned: Boolean!
+}
+
+"""Result of pinning or unpinning a dataset for a workspace."""
+type PinDatasetResult {
+  errors: [PinDatasetError!]!
+  link: DatasetLink
+  success: Boolean!
+}
+
+"""Represents a pipeline."""
+type Pipeline {
+  code: String!
+  config: JSON!
+  createdAt: DateTime!
+  currentVersion: PipelineVersion
+  description: String
+  hasNewTemplateVersions: Boolean!
+  id: UUID!
+  name: String
+  newTemplateVersions: [PipelineTemplateVersion!]!
+  notebookPath: String
+  permissions: PipelinePermissions!
+  recipients: [PipelineRecipient!]!
+  runs(orderBy: PipelineRunOrderBy, page: Int, perPage: Int): PipelineRunPage!
+  schedule: String
+  sourceTemplate: PipelineTemplate
+  template: PipelineTemplate
+  type: PipelineType!
+  updatedAt: DateTime
+  versions(page: Int, perPage: Int): PipelineVersionPage!
+  webhookEnabled: Boolean!
+  webhookUrl: String
+  workspace: Workspace!
+}
+
+enum PipelineError {
+  CANNOT_UPDATE_NOTEBOOK_PIPELINE
+  DUPLICATE_PIPELINE_VERSION_NAME
+  FILE_NOT_FOUND
+  INVALID_CONFIG
+  INVALID_TIMEOUT_VALUE
+  PERMISSION_DENIED
+  PIPELINE_ALREADY_COMPLETED
+  PIPELINE_ALREADY_STOPPED
+  PIPELINE_DOES_NOT_SUPPORT_PARAMETERS
+  PIPELINE_NOT_FOUND
+  PIPELINE_VERSION_NOT_FOUND
+  TABLE_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+}
+
+"""Represents the notification level for a pipeline recipient."""
+enum PipelineNotificationLevel {
+  ALL
+  ERROR
+}
+
+"""Represents a parameter of a pipeline."""
+type PipelineParameter {
+  choices: [Generic!]
+  code: String!
+  connection: String
+  default: Generic
+  help: String
+  multiple: Boolean!
+  name: String!
+  required: Boolean!
+  type: ParameterType!
+  widget: ParameterWidget
+}
+
+"""Represents the permissions for a pipeline."""
+type PipelinePermissions {
+  createTemplateVersion: CreateTemplateVersionPermission!
+  createVersion: Boolean!
+  delete: Boolean!
+  run: Boolean!
+  schedule: Boolean!
+  stopPipeline: Boolean!
+  update: Boolean!
+}
+
+"""Represents a recipient of a pipeline."""
+type PipelineRecipient {
+  id: UUID!
+  notificationLevel: PipelineNotificationLevel!
+  pipeline: Pipeline!
+  user: User!
+}
+
+enum PipelineRecipientError {
+  ALREADY_EXISTS
+  PERMISSION_DENIED
+  PIPELINE_NOT_FOUND
+  RECIPIENT_NOT_FOUND
+  USER_NOT_FOUND
+}
+
+"""Represents a pipeline run."""
+type PipelineRun {
+  code: String!
+  config: JSON!
+  datasetVersions: [DatasetVersion!]!
+  duration: Int
+  enableDebugLogs: Boolean!
+  executionDate: DateTime
+  id: UUID!
+  logs: String
+  messages: [PipelineRunMessage!]!
+  outputs: [PipelineRunOutput!]!
+  pipeline: Pipeline!
+  progress: Int!
+  run_id: UUID!
+  sendMailNotifications: Boolean!
+  status: PipelineRunStatus!
+  stoppedBy: User
+  timeout: Int
+  triggerMode: PipelineRunTrigger
+  user: User
+  version: PipelineVersion
+}
+
+"""Represents a message associated with a pipeline run."""
+type PipelineRunMessage {
+  message: String!
+  priority: MessagePriority!
+  timestamp: DateTime
+}
+
+"""Enum representing the possible orderings for pipeline runs."""
+enum PipelineRunOrderBy {
+  EXECUTION_DATE_ASC
+  EXECUTION_DATE_DESC
+}
+
+"""
+Represents an output of a pipeline run, which can be either a BucketObject, GenericOutput, or DatabaseTable.
+"""
+union PipelineRunOutput = BucketObject | DatabaseTable | GenericOutput
+
+"""Represents a page of pipeline runs."""
+type PipelineRunPage {
+  items: [PipelineRun!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""Enum representing the status of a pipeline run."""
+enum PipelineRunStatus {
+  failed
+  queued
+  running
+  stopped
+  success
+  terminating
+}
+
+enum PipelineRunTrigger {
+  manual
+  scheduled
+  webhook
+}
+
+"""Represents a pipeline template."""
+type PipelineTemplate {
+  code: String!
+  config: String
+  currentVersion: PipelineTemplateVersion
+  description: String
+  id: UUID!
+  name: String!
+  permissions: PipelineTemplatePermissions!
+  sourcePipeline: Pipeline
+  versions(page: Int, perPage: Int): TemplateVersionPage!
+}
+
+enum PipelineTemplateError {
+  PERMISSION_DENIED
+  PIPELINE_TEMPLATE_NOT_FOUND
+}
+
+"""Represents paged result of fetching pipeline templates."""
+type PipelineTemplatePage {
+  items: [PipelineTemplate!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""Represents the permissions for a pipeline template."""
+type PipelineTemplatePermissions {
+  delete: Boolean!
+  update: Boolean!
+}
+
+"""Represents a version of a pipeline template."""
+type PipelineTemplateVersion {
+  changelog: String
+  createdAt: DateTime!
+  id: UUID!
+  isLatestVersion: Boolean!
+  permissions: PipelineTemplateVersionPermissions!
+  template: PipelineTemplate!
+  user: User
+  versionNumber: Int!
+}
+
+"""Represents the permissions for a pipeline template version."""
+type PipelineTemplateVersionPermissions {
+  delete: Boolean!
+  update: Boolean!
+}
+
+"""Represents the input for retrieving a pipeline token."""
+input PipelineTokenInput {
+  pipelineCode: String!
+  workspaceSlug: String!
+}
+
+"""Represents the result of retrieving a pipeline token."""
+type PipelineTokenResult {
+  errors: [PipelineError!]!
+  success: Boolean!
+  token: String
+}
+
+"""Represents the type of a pipeline."""
+enum PipelineType {
+  notebook
+  zipFile
+}
+
+"""Represents a version of a pipeline."""
+type PipelineVersion {
+  config: JSON
+  createdAt: DateTime!
+  description: String
+  externalLink: URL
+  id: UUID!
+  isLatestVersion: Boolean!
+  name: String
+  number: Int @deprecated(reason: "Use 'versionNumber' instead")
+  parameters: [PipelineParameter!]!
+  permissions: PipelineVersionPermissions!
+  pipeline: Pipeline!
+  templateVersion: PipelineTemplateVersion
+  timeout: Int
+  user: User
+  versionName: String!
+  versionNumber: Int!
+  zipfile: String!
+}
+
+"""Represents a page of pipeline versions."""
+type PipelineVersionPage {
+  items: [PipelineVersion!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""Represents the permissions for a pipeline version."""
+type PipelineVersionPermissions {
+  delete: Boolean!
+  update: Boolean!
+}
+
+"""Represents a page of pipelines."""
+type PipelinesPage {
+  items: [Pipeline!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""PostgreSQL connection object"""
+type PostgreSQLConnection implements Connection {
+  createdAt: DateTime!
+  description: String
+  fields: [ConnectionField!]!
+  id: String!
+  name: String!
+  permissions: ConnectionPermissions!
+  slug: String!
+  type: ConnectionType!
+  updatedAt: DateTime
+  user: User
+}
+
+input PrepareAccessmodFileDownloadInput {
+  fileId: String!
+}
+
+type PrepareAccessmodFileDownloadResult {
+  downloadUrl: String
+  success: Boolean!
+}
+
+input PrepareAccessmodFileUploadInput {
+  filesetId: String!
+  mimeType: String!
+}
+
+type PrepareAccessmodFileUploadResult {
+  fileUri: String
+  success: Boolean!
+  uploadUrl: String
+}
+
+input PrepareAccessmodFilesetVisualizationDownloadInput {
+  id: String!
+}
+
+type PrepareAccessmodFilesetVisualizationDownloadResult {
+  success: Boolean!
+  url: String
+}
+
+input PrepareDownloadURLInput {
+  uri: URL!
+}
+
+type PrepareDownloadURLResult {
+  success: Boolean!
+  url: URL
+}
+
+"""
+Errors that can occur when preparing to download an object from a workspace's bucket.
+"""
+enum PrepareObjectDownloadError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input PrepareObjectDownloadInput {
+  objectKey: String!
+  workspaceSlug: String!
+}
+
+"""
+The result of preparing to download an object from a workspace's bucket.
+"""
+type PrepareObjectDownloadResult {
+  downloadUrl: URL
+  errors: [PrepareObjectDownloadError!]!
+  success: Boolean!
+}
+
+"""
+Errors that can occur when preparing to upload an object to a workspace's bucket.
+"""
+enum PrepareObjectUploadError {
+  PERMISSION_DENIED
+}
+
+"""
+Input for preparing to upload an object to a workspace's bucket.
+The `contentType` 
+"""
+input PrepareObjectUploadInput {
+  contentType: String
+  objectKey: String!
+  workspaceSlug: String!
+}
+
+"""
+The result of preparing to upload an object to a workspace's bucket. It contains a URL that can be used to upload the object using a PUT request.
+"""
+type PrepareObjectUploadResult {
+  errors: [PrepareObjectUploadError!]!
+  success: Boolean!
+
+  """
+  Url to upload the object to. The contentType passed with the PUT request should match the one passed in the input.
+  """
+  uploadUrl: URL
+}
+
+"""Errors that can occur when preparing a dataset version file download."""
+enum PrepareVersionFileDownloadError {
+  FILE_NOT_FOUND
+  FILE_NOT_UPLOADED
+  PERMISSION_DENIED
+}
+
+"""Input for preparing a dataset version file download."""
+input PrepareVersionFileDownloadInput {
+  fileId: ID!
+}
+
+"""Result of preparing a dataset version file download."""
+type PrepareVersionFileDownloadResult {
+  downloadUrl: String
+  errors: [PrepareVersionFileDownloadError!]!
+  success: Boolean!
+}
+
+type Query {
+  accessmodAccessRequests(page: Int, perPage: Int): AccessmodAccessRequestPage!
+  accessmodAnalyses(page: Int, perPage: Int, projectId: String!): AccessmodAnalysisPage!
+  accessmodAnalysis(id: String): AccessmodAnalysis
+  accessmodFileset(id: String): AccessmodFileset
+  accessmodFilesetRole(id: String!): AccessmodFilesetRole
+  accessmodFilesetRoles: [AccessmodFilesetRole!]!
+  accessmodFilesets(mode: AccessmodFilesetMode, page: Int, perPage: Int, projectId: String!, roleId: String, term: String): AccessmodFilesetPage!
+  accessmodProject(id: String): AccessmodProject
+  accessmodProjects(countries: [String!], orderBy: AccessmodProjectOrder, page: Int, perPage: Int, teams: [String!], term: String): AccessmodProjectPage!
+  boundaries(country_code: String!, level: String!): [WHOBoundary!]!
+
+  """Retrieves the configuration of the system."""
+  config: Config!
+  connection(id: UUID!): Connection
+  connectionBySlug(connectionSlug: String!, workspaceSlug: String!): Connection
+  countries: [Country!]!
+  country(alpha3: String, code: String): Country
+  dag(id: UUID!): DAG
+  dagRun(id: UUID!): DAGRun
+  dags(page: Int, perPage: Int): DAGPage!
+  databaseTable(id: String!): DatabaseTable
+
+  """Get a dataset by its ID."""
+  dataset(id: ID!): Dataset
+
+  """Get a dataset link by its id."""
+  datasetLink(id: ID!): DatasetLink
+
+  """Get a dataset link by its slug."""
+  datasetLinkBySlug(datasetSlug: String!, workspaceSlug: String!): DatasetLink
+
+  """Get a dataset by its slug."""
+  datasetVersion(id: ID!): DatasetVersion
+
+  """Get a dataset file by its id """
+  datasetVersionFile(id: ID!): DatasetVersionFile
+
+  """Search datasets."""
+  datasets(page: Int = 1, perPage: Int = 15, query: String): DatasetPage!
+
+  """Retrieves the currently authenticated user."""
+  me: Me!
+  metadataAttributes(targetId: OpaqueID!): [MetadataAttribute]!
+  notebooksUrl: URL!
+
+  """Retrieves a list of organizations."""
+  organizations: [Organization!]!
+  pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
+
+  """Retrieves a pipeline by ID."""
+  pipeline(id: UUID!): Pipeline
+
+  """Retrieves a pipeline by workspace slug and code."""
+  pipelineByCode(code: String!, workspaceSlug: String!): Pipeline
+
+  """Retrieves a pipeline run by ID."""
+  pipelineRun(id: UUID!): PipelineRun
+
+  """Retrieves a page of pipeline templates."""
+  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String): PipelineTemplatePage!
+
+  """Retrieves a pipeline version by ID."""
+  pipelineVersion(id: UUID!): PipelineVersion
+
+  """Retrieves a page of pipelines ordered by relevant name."""
+  pipelines(name: String, page: Int, perPage: Int, search: String, workspaceSlug: String): PipelinesPage!
+  team(id: UUID!): Team
+  teams(page: Int, perPage: Int, term: String): TeamPage!
+
+  """Retrieves a template by workspace slug and code."""
+  templateByCode(code: String!): PipelineTemplate
+  webapp(id: UUID!): Webapp
+  webapps(favorite: Boolean, page: Int, perPage: Int, workspaceSlug: String): WebappsPage!
+  workspace(slug: String!): Workspace
+  workspaces(page: Int, perPage: Int, query: String): WorkspacePage!
+}
+
+"""
+The RegisterError enum represents the possible errors that can occur during the register mutation.
+"""
+enum RegisterError {
+  """Indicates that the user is already logged in."""
+  ALREADY_LOGGED_IN
+
+  """Indicates that the email address is already taken."""
+  EMAIL_TAKEN
+
+  """Indicates that the provided password is invalid."""
+  INVALID_PASSWORD
+
+  """Indicates that the invitation token is invalid."""
+  INVALID_TOKEN
+
+  """Indicates that the provided passwords do not match."""
+  PASSWORD_MISMATCH
+}
+
+"""The RegisterInput type represents the input for the register mutation."""
+input RegisterInput {
+  """The first name of the user."""
+  firstName: String!
+
+  """The invitation token for registration."""
+  invitationToken: String!
+
+  """The last name of the user."""
+  lastName: String!
+
+  """The first password for registration."""
+  password1: String!
+
+  """The second password for registration (confirmation)."""
+  password2: String!
+}
+
+"""
+The RegisterResult type represents the result of the register mutation.
+"""
+type RegisterResult {
+  """The list of errors that occurred during the registration process."""
+  errors: [RegisterError!]
+
+  """Indicates whether the registration was successful."""
+  success: Boolean!
+}
+
+"""Represents the error message for removing a web app from favorites."""
+enum RemoveFromFavoritesError {
+  WEBAPP_NOT_FOUND
+}
+
+"""Represents the input for removing a web app from favorites."""
+input RemoveFromFavoritesInput {
+  webappId: ID!
+}
+
+"""Represents the result of removing a web app from favorites."""
+type RemoveFromFavoritesResult {
+  errors: [RemoveFromFavoritesError!]!
+  success: Boolean!
+}
+
+enum RequestAccessmodAccessError {
+  ALREADY_EXISTS
+  INVALID
+  MUST_ACCEPT_TOS
+}
+
+input RequestAccessmodAccessInput {
+  acceptTos: Boolean!
+  email: String!
+  firstName: String!
+  lastName: String!
+}
+
+type RequestAccessmodAccessInputResult {
+  errors: [RequestAccessmodAccessError!]!
+  success: Boolean!
+}
+
+"""Represents the error types for resending a workspace invitation."""
+enum ResendWorkspaceInvitationError {
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for resending a workspace invitation."""
+input ResendWorkspaceInvitationInput {
+  invitationId: UUID!
+}
+
+"""Represents the result of resending a workspace invitation."""
+type ResendWorkspaceInvitationResult {
+  errors: [ResendWorkspaceInvitationError!]!
+  success: Boolean!
+}
+
+"""
+The ResetPasswordInput type represents the input for the resetPassword mutation.
+"""
+input ResetPasswordInput {
+  """The email address of the user."""
+  email: String!
+}
+
+"""
+The ResetPasswordResult type represents the result of the resetPassword mutation.
+"""
+type ResetPasswordResult {
+  """Indicates whether the password reset was successful."""
+  success: Boolean!
+}
+
+enum RunDAGError {
+  DAG_NOT_FOUND
+  INVALID_CONFIG
+}
+
+input RunDAGInput {
+  config: JSON!
+  dagId: UUID!
+}
+
+type RunDAGResult {
+  dag: DAG
+  dagRun: DAGRun
+  errors: [RunDAGError!]!
+  success: Boolean!
+}
+
+"""Represents the input for running a pipeline."""
+input RunPipelineInput {
+  config: JSON!
+  enableDebugLogs: Boolean
+  id: UUID!
+  sendMailNotifications: Boolean
+  versionId: UUID
+}
+
+"""Represents the result of running a pipeline."""
+type RunPipelineResult {
+  errors: [PipelineError!]!
+  run: PipelineRun
+  success: Boolean!
+}
+
+type S3Bucket {
+  createdAt: DateTime!
+  id: String!
+  name: String!
+  updatedAt: DateTime!
+}
+
+"""S3 connection object"""
+type S3Connection implements Connection {
+  createdAt: DateTime!
+  description: String
+  fields: [ConnectionField!]!
+  id: String!
+  name: String!
+  permissions: ConnectionPermissions!
+  slug: String!
+  type: ConnectionType!
+  updatedAt: DateTime
+  user: User
+}
+
+type S3Object {
+  bucket: S3Bucket!
+  createdAt: DateTime!
+  etag: String!
+  filename: String!
+  id: String!
+  key: String!
+  lastModified: DateTime!
+  parentKey: String!
+  size: Int!
+  storageClass: String!
+  type: String!
+  updatedAt: DateTime!
+}
+
+type S3ObjectPage {
+  items: [S3Object!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+enum SetDAGRunFavoriteError {
+  INVALID
+  MISSING_LABEL
+  NOT_FOUND
+}
+
+input SetDAGRunFavoriteInput {
+  id: UUID!
+  isFavorite: Boolean!
+  label: String
+}
+
+type SetDAGRunFavoriteResult {
+  dagRun: DAGRun
+  errors: [SetDAGRunFavoriteError!]!
+  success: Boolean!
+}
+
+"""Errors that can occur when setting an attribute."""
+enum SetMetadataAttributeError {
+  PERMISSION_DENIED
+  TARGET_NOT_FOUND
+}
+
+"""Input to set a custom attribute, empty field for value is accepted"""
+input SetMetadataAttributeInput {
+  key: String!
+  label: String
+  targetId: OpaqueID!
+  value: JSON
+}
+
+type SetMetadataAttributeResult {
+  attribute: MetadataAttribute
+  errors: [SetMetadataAttributeError!]!
+  success: Boolean!
+}
+
+"""
+The SetPasswordError enum represents the possible errors that can occur during the setPassword mutation.
+"""
+enum SetPasswordError {
+  """Indicates that the provided password is invalid."""
+  INVALID_PASSWORD
+
+  """Indicates that the provided token is invalid."""
+  INVALID_TOKEN
+
+  """Indicates that the provided passwords do not match."""
+  PASSWORD_MISMATCH
+
+  """Indicates that the user was not found."""
+  USER_NOT_FOUND
+}
+
+"""
+The SetPasswordInput type represents the input for the setPassword mutation.
+"""
+input SetPasswordInput {
+  """The new password."""
+  password1: String!
+
+  """The confirmation of the new password."""
+  password2: String!
+
+  """The token for password reset."""
+  token: String!
+
+  """The base64-encoded user ID."""
+  uidb64: String!
+}
+
+"""
+The SetPasswordResult type represents the result of the setPassword mutation.
+"""
+type SetPasswordResult {
+  """The error that occurred during the setPassword mutation."""
+  error: SetPasswordError
+
+  """Indicates whether the password was set successfully."""
+  success: Boolean!
+}
+
+scalar SimplifiedExtentType
+
+scalar StackPriorities
+
+"""Represents the input for stopping a pipeline."""
+input StopPipelineInput {
+  runId: UUID!
+}
+
+"""Represents the result of stopping a pipeline."""
+type StopPipelineResult {
+  errors: [PipelineError!]!
+  success: Boolean!
+}
+
+type TableColumn {
+  name: String!
+  type: String!
+}
+
+"""Represents a paginated list of rows from a database table."""
+type TableRowsPage {
+  """Indicates if there is a next page available."""
+  hasNextPage: Boolean!
+
+  """Indicates if there is a previous page available."""
+  hasPreviousPage: Boolean!
+
+  """The rows in the current page."""
+  items: [JSON!]!
+
+  """The page number of the result."""
+  pageNumber: Int!
+}
+
+"""A tag is a label."""
+type Tag {
+  id: String!
+  name: String!
+}
+
+"""The Team type represents a team in the system."""
+type Team {
+  """The date when the team was created."""
+  createdAt: DateTime!
+
+  """The unique identifier of the team."""
+  id: UUID!
+
+  """Retrieves the memberships of the team."""
+  memberships(page: Int, perPage: Int): MembershipPage!
+
+  """The name of the team."""
+  name: String!
+
+  """The permissions assigned to the team."""
+  permissions: TeamPermissions!
+
+  """The date when the team was last updated."""
+  updatedAt: DateTime!
+}
+
+"""The TeamPage type represents a paginated list of teams."""
+type TeamPage {
+  """The list of teams on the current page."""
+  items: [Team!]!
+
+  """The current page number."""
+  pageNumber: Int!
+
+  """The total number of items."""
+  totalItems: Int!
+
+  """The total number of pages."""
+  totalPages: Int!
+}
+
+"""The TeamPermissions type represents the permissions of a team."""
+type TeamPermissions {
+  """
+  Indicates whether the user has permission to create a membership in the team.
+  """
+  createMembership: Boolean!
+
+  """Indicates whether the user has permission to delete the team."""
+  delete: Boolean!
+
+  """Indicates whether the user has permission to update the team."""
+  update: Boolean!
+}
+
+"""Represents a page of template versions."""
+type TemplateVersionPage {
+  items: [PipelineTemplateVersion!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+scalar TimeThresholds
+
+scalar URL
+
+scalar UUID
+
+enum UpdateAccessmodAccessibilityAnalysisError {
+  NAME_DUPLICATE
+  NOT_FOUND
+}
+
+input UpdateAccessmodAccessibilityAnalysisInput {
+  algorithm: AccessmodAccessibilityAnalysisAlgorithm
+  barrierId: String
+  demId: String
+  healthFacilitiesId: String
+  id: String!
+  invertDirection: Boolean
+  knightMove: Boolean
+  landCoverId: String
+  maxTravelTime: Int
+  movingSpeeds: MovingSpeeds
+  name: String
+  stackId: String
+  stackPriorities: StackPriorities
+  transportNetworkId: String
+  waterAllTouched: Boolean
+  waterId: String
+}
+
+type UpdateAccessmodAccessibilityAnalysisResult {
+  analysis: AccessmodAccessibilityAnalysis
+  errors: [UpdateAccessmodAccessibilityAnalysisError!]!
+  success: Boolean!
+}
+
+enum UpdateAccessmodFilesetError {
+  NAME_DUPLICATE
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input UpdateAccessmodFilesetInput {
+  id: String!
+  metadata: AccessmodFilesetMetadata
+  name: String
+}
+
+type UpdateAccessmodFilesetResult {
+  errors: [UpdateAccessmodFilesetError!]!
+  fileset: AccessmodFileset
+  success: Boolean!
+}
+
+enum UpdateAccessmodProjectError {
+  NAME_DUPLICATE
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input UpdateAccessmodProjectInput {
+  description: String
+  id: String!
+  name: String
+}
+
+enum UpdateAccessmodProjectMemberError {
+  NOT_FOUND
+  NOT_IMPLEMENTED
+  PERMISSION_DENIED
+}
+
+input UpdateAccessmodProjectMemberInput {
+  id: String!
+  mode: PermissionMode!
+}
+
+type UpdateAccessmodProjectMemberResult {
+  errors: [UpdateAccessmodProjectMemberError!]!
+  member: AccessmodProjectMember
+  success: Boolean!
+}
+
+type UpdateAccessmodProjectResult {
+  errors: [UpdateAccessmodProjectError!]!
+  project: AccessmodProject
+  success: Boolean!
+}
+
+enum UpdateAccessmodZonalStatisticsError {
+  NAME_DUPLICATE
+  NOT_FOUND
+}
+
+input UpdateAccessmodZonalStatisticsInput {
+  boundariesId: String
+  id: String!
+  name: String
+  populationId: String
+  timeThresholds: TimeThresholds
+  travelTimesId: String
+}
+
+type UpdateAccessmodZonalStatisticsResult {
+  analysis: AccessmodZonalStatistics
+  errors: [UpdateAccessmodZonalStatisticsError!]!
+  success: Boolean!
+}
+
+"""Represents the error types for updating a connection."""
+enum UpdateConnectionError {
+  INVALID_SLUG
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for updating a connection."""
+input UpdateConnectionInput {
+  description: String
+  fields: [ConnectionFieldInput!]
+  id: String!
+  name: String
+  slug: String
+}
+
+"""Represents the result of updating a connection."""
+type UpdateConnectionResult {
+  connection: Connection
+  errors: [UpdateConnectionError!]!
+  success: Boolean!
+}
+
+enum UpdateDAGError {
+  INVALID
+  NOT_FOUND
+}
+
+input UpdateDAGInput {
+  countries: [CountryInput!]
+  description: String
+  id: UUID!
+  label: String
+  schedule: String
+}
+
+type UpdateDAGResult {
+  dag: DAG
+  errors: [UpdateDAGError!]!
+  success: Boolean!
+}
+
+"""Errors that can occur when updating a dataset."""
+enum UpdateDatasetError {
+  DATASET_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Input for updating a dataset."""
+input UpdateDatasetInput {
+  datasetId: ID!
+  description: String
+  name: String
+}
+
+"""Result of updating a dataset."""
+type UpdateDatasetResult {
+  dataset: Dataset
+  errors: [UpdateDatasetError!]!
+  success: Boolean!
+}
+
+"""Errors that can occur when updating a dataset version."""
+enum UpdateDatasetVersionError {
+  PERMISSION_DENIED
+  VERSION_NOT_FOUND
+}
+
+"""Input for updating a dataset version."""
+input UpdateDatasetVersionInput {
+  changelog: String
+  name: String
+  versionId: ID!
+}
+
+"""Result of updating a dataset version."""
+type UpdateDatasetVersionResult {
+  errors: [UpdateDatasetVersionError!]!
+  success: Boolean!
+  version: DatasetVersion
+}
+
+"""
+The UpdateMembershipError enum represents the possible errors that can occur during the updateMembership mutation.
+"""
+enum UpdateMembershipError {
+  """Indicates that the provided role is invalid."""
+  INVALID_ROLE
+
+  """Indicates that the membership was not found."""
+  NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to update the membership.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The UpdateMembershipInput type represents the input for the updateMembership mutation.
+"""
+input UpdateMembershipInput {
+  """The unique identifier of the membership to update."""
+  id: UUID!
+
+  """The updated role of the user in the team."""
+  role: MembershipRole!
+}
+
+"""
+The UpdateMembershipResult type represents the result of the updateMembership mutation.
+"""
+type UpdateMembershipResult {
+  """The list of errors that occurred during the updateMembership mutation."""
+  errors: [UpdateMembershipError!]!
+
+  """The updated membership object."""
+  membership: Membership
+
+  """Indicates whether the updateMembership mutation was successful."""
+  success: Boolean!
+}
+
+"""
+Enum representing the possible errors that can occur when updating a pipeline.
+"""
+enum UpdatePipelineError {
+  INVALID_CONFIG
+  MISSING_VERSION_CONFIG
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for updating a pipeline."""
+input UpdatePipelineInput {
+  config: JSON
+  description: String
+  id: UUID!
+  name: String
+  schedule: String
+  webhookEnabled: Boolean
+}
+
+"""Represents the input for updating the progress of a pipeline."""
+input UpdatePipelineProgressInput {
+  percent: Int!
+}
+
+"""Represents the result of updating the progress of a pipeline."""
+type UpdatePipelineProgressResult {
+  errors: [PipelineError!]!
+  success: Boolean!
+}
+
+"""Represents the input for updating a recipient."""
+input UpdatePipelineRecipientInput {
+  notificationLevel: PipelineNotificationLevel!
+  recipientId: UUID!
+}
+
+type UpdatePipelineRecipientResult {
+  errors: [PipelineRecipientError!]!
+  recipient: PipelineRecipient
+  success: Boolean!
+}
+
+"""Represents the result of updating a pipeline."""
+type UpdatePipelineResult {
+  errors: [UpdatePipelineError!]!
+  pipeline: Pipeline
+  success: Boolean!
+}
+
+"""
+Enum representing the possible errors that can occur when updating a pipeline version.
+"""
+enum UpdatePipelineVersionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for updating a pipeline version."""
+input UpdatePipelineVersionInput {
+  config: JSON
+  description: String
+  externalLink: URL
+  id: UUID!
+  name: String
+}
+
+"""Represents the result of updating a pipeline version."""
+type UpdatePipelineVersionResult {
+  errors: [UpdatePipelineVersionError!]!
+  pipelineVersion: PipelineVersion
+  success: Boolean!
+}
+
+"""
+The UpdateTeamError enum represents the possible errors that can occur during the updateTeam mutation.
+"""
+enum UpdateTeamError {
+  """Indicates that a team with the same name already exists."""
+  NAME_DUPLICATE
+
+  """Indicates that the team was not found."""
+  NOT_FOUND
+
+  """Indicates that the user does not have permission to update the team."""
+  PERMISSION_DENIED
+}
+
+"""
+The UpdateTeamInput type represents the input for the updateTeam mutation.
+"""
+input UpdateTeamInput {
+  """The unique identifier of the team to update."""
+  id: UUID!
+
+  """The updated name of the team."""
+  name: String
+}
+
+"""
+The UpdateTeamResult type represents the result of the updateTeam mutation.
+"""
+type UpdateTeamResult {
+  """The list of errors that occurred during the updateTeam mutation."""
+  errors: [UpdateTeamError!]!
+
+  """Indicates whether the updateTeam mutation was successful."""
+  success: Boolean!
+
+  """The updated team object."""
+  team: Team
+}
+
+"""
+Enum representing the possible errors that can occur when updating a template.
+"""
+enum UpdateTemplateError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for updating a template."""
+input UpdateTemplateInput {
+  config: JSON
+  description: String
+  id: UUID!
+  name: String
+}
+
+"""Represents the result of updating a template."""
+type UpdateTemplateResult {
+  errors: [UpdateTemplateError!]!
+  success: Boolean!
+  template: PipelineTemplate
+}
+
+"""
+Enum representing the possible errors that can occur when updating a template version.
+"""
+enum UpdateTemplateVersionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for updating a template version."""
+input UpdateTemplateVersionInput {
+  changelog: String
+  id: UUID!
+}
+
+"""Represents the result of updating a template version."""
+type UpdateTemplateVersionResult {
+  errors: [UpdateTemplateVersionError!]!
+  success: Boolean!
+  templateVersion: PipelineTemplateVersion
+}
+
+"""
+The UpdateUserError enum represents the possible errors that can occur during the updateUser mutation.
+"""
+enum UpdateUserError {
+  """Indicates that the provided language is invalid."""
+  INVALID_LANGUAGE
+
+  """
+  Indicates that the user does not have permission to update their profile.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The UpdateUserInput type represents the input for the updateUser mutation.
+"""
+input UpdateUserInput {
+  """The updated first name of the user."""
+  firstName: String
+
+  """The updated language preference of the user."""
+  language: String
+
+  """The updated last name of the user."""
+  lastName: String
+}
+
+"""
+The UpdateUserResult type represents the result of the updateUser mutation.
+"""
+type UpdateUserResult {
+  """The list of errors that occurred during the updateUser mutation."""
+  errors: [UpdateUserError!]!
+
+  """Indicates whether the user update was successful."""
+  success: Boolean!
+
+  """The updated user object."""
+  user: User
+}
+
+"""Represents the error message for a web app update."""
+enum UpdateWebappError {
+  PERMISSION_DENIED
+  WEBAPP_NOT_FOUND
+}
+
+"""Represents the input for updating a web app."""
+input UpdateWebappInput {
+  description: String
+  icon: String
+  id: UUID!
+  name: String
+  url: String
+}
+
+"""Represents the result of updating a web app."""
+type UpdateWebappResult {
+  errors: [UpdateWebappError!]!
+  success: Boolean!
+  webapp: Webapp
+}
+
+"""
+Enum representing the possible errors that can occur when updating a workspace.
+"""
+enum UpdateWorkspaceError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for updating a workspace."""
+input UpdateWorkspaceInput {
+  countries: [CountryInput!]
+  description: String
+  dockerImage: String
+  name: String
+  slug: String!
+}
+
+"""
+Enum representing the possible errors that can occur when updating a workspace member.
+"""
+enum UpdateWorkspaceMemberError {
+  MEMBERSHIP_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for updating a workspace member."""
+input UpdateWorkspaceMemberInput {
+  membershipId: UUID!
+  role: WorkspaceMembershipRole!
+}
+
+"""Represents the result of updating a workspace member."""
+type UpdateWorkspaceMemberResult {
+  errors: [UpdateWorkspaceMemberError!]!
+  success: Boolean!
+  workspaceMembership: WorkspaceMembership
+}
+
+"""Represents the result of updating a workspace."""
+type UpdateWorkspaceResult {
+  errors: [UpdateWorkspaceError!]!
+  success: Boolean!
+  workspace: Workspace
+}
+
+"""
+Enum representing the possible errors that can occur when upgrading a pipeline version from the latest template version.
+"""
+enum UpgradePipelineVersionFromTemplateError {
+  NO_NEW_TEMPLATE_VERSION_AVAILABLE
+  PIPELINE_NOT_FOUND
+  PIPELINE_NOT_FROM_TEMPLATE
+}
+
+"""
+Represents the input for upgrading a pipeline version from the latest template version.
+"""
+input UpgradePipelineVersionFromTemplateInput {
+  pipelineId: UUID!
+}
+
+"""
+Represents the result of upgrading a pipeline version from the latest template version.
+"""
+type UpgradePipelineVersionFromTemplateResult {
+  errors: [UpgradePipelineVersionFromTemplateError!]!
+  pipelineVersion: PipelineVersion
+  success: Boolean!
+}
+
+"""Represents the input for uploading a pipeline."""
+input UploadPipelineInput {
+  code: String @deprecated(reason: "Use 'pipelineCode' field instead")
+  config: JSON
+  description: String
+  externalLink: URL
+  name: String
+  parameters: [ParameterInput!]!
+  pipelineCode: String
+  timeout: Int
+  workspaceSlug: String!
+  zipfile: String!
+}
+
+"""Represents the result of uploading a pipeline."""
+type UploadPipelineResult {
+  errors: [PipelineError!]!
+  pipelineVersion: PipelineVersion
+  success: Boolean!
+}
+
+"""The User type represents a user in the system."""
+type User {
+  """The avatar of the user."""
+  avatar: Avatar!
+
+  """The date when the user joined the system."""
+  dateJoined: DateTime!
+
+  """The display name of the user."""
+  displayName: String!
+
+  """The email address of the user."""
+  email: String!
+
+  """The first name of the user."""
+  firstName: String
+
+  """The unique identifier of the user."""
+  id: UUID!
+
+  """The language preference of the user."""
+  language: String!
+
+  """The date of the user's last login."""
+  lastLogin: DateTime
+
+  """The last name of the user."""
+  lastName: String
+}
+
+"""
+The VerifyDeviceError enum represents the possible errors that can occur during the verifyDevice mutation.
+"""
+enum VerifyDeviceError {
+  INVALID_OTP
+  NO_DEVICE
+}
+
+"""
+The VerifyDeviceInput type represents the input for the verifyDevice mutation.
+"""
+input VerifyDeviceInput {
+  token: String
+}
+
+"""
+The VerifyDeviceResult type represents the result of the verifyDevice mutation.
+"""
+type VerifyDeviceResult {
+  errors: [VerifyDeviceError!]
+  success: Boolean!
+}
+
+type WHOBoundary {
+  administrative_level: Int!
+  country: Country!
+  extent: String!
+  id: String!
+  name: String!
+  parent: String
+}
+
+type WHOInfo {
+  defaultCRS: Int!
+  region: WHORegion
+  simplifiedExtent: SimplifiedExtentType
+}
+
+type WHORegion {
+  code: String!
+  name: String!
+}
+
+"""Represents a web app."""
+type Webapp {
+  createdBy: User!
+  description: String
+  icon: String
+  id: UUID!
+  isFavorite: Boolean!
+  name: String!
+  permissions: WebappPermissions!
+  url: String!
+  workspace: Workspace!
+}
+
+"""Represents the permissions for a web app."""
+type WebappPermissions {
+  delete: Boolean!
+  update: Boolean!
+}
+
+"""Represents a page of webapps."""
+type WebappsPage {
+  items: [Webapp!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""
+Represents a workspace. A workspace is a shared environment where users can collaborate on data projects.
+"""
+type Workspace {
+  """File storage of the workspace represented as a bucket"""
+  bucket: Bucket!
+  connections: [Connection!]!
+  countries: [Country!]!
+  createdAt: DateTime!
+  createdBy: User!
+  database: Database!
+
+  """Linked datasets of the workspace"""
+  datasets(page: Int = 1, perPage: Int = 15, pinned: Boolean, query: String): DatasetLinkPage!
+  description: String
+  dockerImage: String
+  invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
+  members(page: Int, perPage: Int): WorkspaceMembershipPage!
+  name: String!
+  permissions: WorkspacePermissions!
+  slug: String!
+  updatedAt: DateTime
+}
+
+"""Represents an invitation to join a workspace."""
+type WorkspaceInvitation {
+  createdAt: DateTime!
+  email: String!
+  id: UUID!
+  invitedBy: User
+  role: WorkspaceMembershipRole!
+  status: WorkspaceInvitationStatus!
+  updatedAt: DateTime
+  workspace: Workspace!
+}
+
+"""Represents a page of workspace invitations."""
+type WorkspaceInvitationPage {
+  items: [WorkspaceInvitation!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""Represents the status of a workspace invitation."""
+enum WorkspaceInvitationStatus {
+  ACCEPTED
+  DECLINED
+  PENDING
+}
+
+"""Represents a membership in a workspace."""
+type WorkspaceMembership {
+  createdAt: DateTime!
+  id: UUID!
+  role: WorkspaceMembershipRole!
+  updatedAt: DateTime
+  user: User!
+  workspace: Workspace!
+}
+
+"""Represents a page of workspace memberships."""
+type WorkspaceMembershipPage {
+  items: [WorkspaceMembership!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""Represents the role of a workspace membership."""
+enum WorkspaceMembershipRole {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+"""Represents a page of workspaces."""
+type WorkspacePage {
+  items: [Workspace!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""Represents the permissions of a workspace."""
+type WorkspacePermissions {
+  createConnection: Boolean!
+
+  """Permissions to create a dataset in the workspace"""
+  createDataset: Boolean!
+
+  """User can create objects in the workspace's bucket."""
+  createObject: Boolean!
+  createPipeline: Boolean!
+  createPipelineTemplateVersion: Boolean!
+  delete: Boolean!
+  deleteDatabaseTable: Boolean!
+
+  """User can delete objects in the workspace's bucket."""
+  deleteObject: Boolean!
+
+  """User can download objects from the workspace's bucket."""
+  downloadObject: Boolean!
+  launchNotebookServer: Boolean!
+  manageMembers: Boolean!
+  update: Boolean!
+}
