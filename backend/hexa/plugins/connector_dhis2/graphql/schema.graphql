@@ -1,20 +1,21 @@
-type DHIS2Instance {
-    id: String!
-    name: String!
-    url: String
-}
-
-type DHIS2DataElement {
-    id: String!
-    name: String!  # TODO: complete
-    code: String!
-    createdAt: DateTime!
-    updatedAt: DateTime!
-    instance: DHIS2Instance!
-}
-type DHIS2DataElementPage {
-    pageNumber: Int!
-    totalPages: Int!
-    totalItems: Int!
-    items: [DHIS2DataElement!]!
-}
+# Not imported by Ariadne, so commenting out for now
+#type DHIS2Instance {
+#    id: String!
+#    name: String!
+#    url: String
+#}
+#
+#type DHIS2DataElement {
+#    id: String!
+#    name: String!  # TODO: complete
+#    code: String!
+#    createdAt: DateTime!
+#    updatedAt: DateTime!
+#    instance: DHIS2Instance!
+#}
+#type DHIS2DataElementPage {
+#    pageNumber: Int!
+#    totalPages: Int!
+#    totalItems: Int!
+#    items: [DHIS2DataElement!]!
+#}

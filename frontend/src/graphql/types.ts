@@ -1100,31 +1100,6 @@ export enum Dhis2ConnectionStatus {
   Up = 'UP'
 }
 
-export type Dhis2DataElement = {
-  __typename?: 'DHIS2DataElement';
-  code: Scalars['String']['output'];
-  createdAt: Scalars['DateTime']['output'];
-  id: Scalars['String']['output'];
-  instance: Dhis2Instance;
-  name: Scalars['String']['output'];
-  updatedAt: Scalars['DateTime']['output'];
-};
-
-export type Dhis2DataElementPage = {
-  __typename?: 'DHIS2DataElementPage';
-  items: Array<Dhis2DataElement>;
-  pageNumber: Scalars['Int']['output'];
-  totalItems: Scalars['Int']['output'];
-  totalPages: Scalars['Int']['output'];
-};
-
-export type Dhis2Instance = {
-  __typename?: 'DHIS2Instance';
-  id: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  url?: Maybe<Scalars['String']['output']>;
-};
-
 /** DHIS2 metadata item */
 export type Dhis2MetadataItem = {
   __typename?: 'DHIS2MetadataItem';
