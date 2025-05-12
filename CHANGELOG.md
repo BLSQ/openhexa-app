@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.6.0](https://github.com/BLSQ/openhexa-app/compare/1.5.0...1.6.0) (2025-05-12)
+
+
+### Features
+
+* search bar (HEXA-1232, HEXA-1246) ([#1030](https://github.com/BLSQ/openhexa-app/issues/1030)) ([b3832c5](https://github.com/BLSQ/openhexa-app/commit/b3832c52cb4d7de03c158cc244d3f7860494feaa))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @types/react to v18.3.21 ([#1082](https://github.com/BLSQ/openhexa-app/issues/1082)) ([197a8a4](https://github.com/BLSQ/openhexa-app/commit/197a8a4121a6c4fb8183b2881a80761f266a60f6))
+* **deps:** update dependency @uiw/react-codemirror to v4.23.12 ([#1085](https://github.com/BLSQ/openhexa-app/issues/1085)) ([783901e](https://github.com/BLSQ/openhexa-app/commit/783901e9de618cd187bd845582b58be859f756dd))
+* **deps:** update nextjs monorepo to v15.3.2 ([#1086](https://github.com/BLSQ/openhexa-app/issues/1086)) ([1683d25](https://github.com/BLSQ/openhexa-app/commit/1683d25fbce574b529aa272165af003cb6925493))
+
 ## [1.5.0](https://github.com/BLSQ/openhexa-app/compare/1.4.0...1.5.0) (2025-05-08)
 
 
