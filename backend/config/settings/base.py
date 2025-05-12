@@ -150,6 +150,7 @@ INSTALLED_APPS = [
     "hexa.notebooks",
     "hexa.pipelines",
     "hexa.pipeline_templates",
+    "hexa.search",
     "hexa.comments",
     "hexa.tags",
     "hexa.ui",

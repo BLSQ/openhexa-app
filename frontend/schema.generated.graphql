@@ -1137,6 +1137,19 @@ type DatabaseTablePage {
   totalPages: Int!
 }
 
+type DatabaseTableResult implements SearchResult {
+  databaseTable: DatabaseTable!
+  score: Float!
+  workspace: Workspace!
+}
+
+type DatabaseTableResultPage {
+  items: [DatabaseTableResult!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
 """
 Dataset is a collection of files that are related to each other and are versioned.
 """
@@ -1211,6 +1224,18 @@ type DatasetPermissions {
 
   """Permissions to edit the dataset"""
   update: Boolean!
+}
+
+type DatasetResult implements SearchResult {
+  dataset: Dataset!
+  score: Float!
+}
+
+type DatasetResultPage {
+  items: [DatasetResult!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
 }
 
 """
@@ -1746,11 +1771,38 @@ type FeatureFlag {
   config: JSON!
 }
 
+type File {
+  key: String!
+  name: String!
+  path: String!
+  size: BigInt
+  type: FileType!
+  updated: DateTime
+}
+
+type FileResult implements SearchResult {
+  file: File!
+  score: Float!
+  workspace: Workspace!
+}
+
+type FileResultPage {
+  items: [FileResult!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
 """Statuses that can occur when generating file sample"""
 enum FileSampleStatus {
   FAILED
   FINISHED
   PROCESSING
+}
+
+enum FileType {
+  directory
+  file
 }
 
 """GCS connection object"""
@@ -2580,6 +2632,18 @@ enum PipelineRecipientError {
   USER_NOT_FOUND
 }
 
+type PipelineResult implements SearchResult {
+  pipeline: Pipeline!
+  score: Float!
+}
+
+type PipelineResultPage {
+  items: [PipelineResult!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
 """Represents a pipeline run."""
 type PipelineRun {
   code: String!
@@ -2656,7 +2720,9 @@ type PipelineTemplate {
   name: String!
   permissions: PipelineTemplatePermissions!
   sourcePipeline: Pipeline
+  updatedAt: DateTime!
   versions(page: Int, perPage: Int): TemplateVersionPage!
+  workspace: Workspace
 }
 
 enum PipelineTemplateError {
@@ -2676,6 +2742,18 @@ type PipelineTemplatePage {
 type PipelineTemplatePermissions {
   delete: Boolean!
   update: Boolean!
+}
+
+type PipelineTemplateResult implements SearchResult {
+  pipelineTemplate: PipelineTemplate!
+  score: Float!
+}
+
+type PipelineTemplateResultPage {
+  items: [PipelineTemplateResult!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
 }
 
 """Represents a version of a pipeline template."""
@@ -2948,6 +3026,11 @@ type Query {
 
   """Retrieves a page of pipelines ordered by relevant name."""
   pipelines(name: String, page: Int, perPage: Int, search: String, workspaceSlug: String): PipelinesPage!
+  searchDatabaseTables(page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]!): DatabaseTableResultPage!
+  searchDatasets(page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]!): DatasetResultPage!
+  searchFiles(page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]!): FileResultPage!
+  searchPipelineTemplates(page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]!): PipelineTemplateResultPage!
+  searchPipelines(page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]!): PipelineResultPage!
   team(id: UUID!): Team
   teams(page: Int, perPage: Int, term: String): TeamPage!
 
@@ -3149,6 +3232,10 @@ type S3ObjectPage {
   pageNumber: Int!
   totalItems: Int!
   totalPages: Int!
+}
+
+interface SearchResult {
+  score: Float!
 }
 
 enum SetDAGRunFavoriteError {

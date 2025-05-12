@@ -47,6 +47,22 @@ class GoogleCloudStorageTest(TestCase):
         first = items[0]
         self.assertEqual(first.name, "test.txt")
 
+    def test_list_bucket_objects_with_match_glob(self):
+        bucket_name = self.storage.create_bucket("my-bucket")
+        bucket = self.storage_client.get_bucket(bucket_name)
+
+        bucket.blob("testAAA.txt").upload_from_string(b"test")
+        bucket.blob("testAAB.txt").upload_from_string(b"test")
+        bucket.blob("testABC.txt").upload_from_string(b"test")
+        bucket.blob("testABD.txt").upload_from_string(b"test")
+
+        items = self.storage.list_bucket_objects(
+            "my-bucket", match_glob="*testAA*"
+        ).items
+        self.assertEqual(len(items), 2)
+        self.assertEqual(items[0].name, "testAAA.txt")
+        self.assertEqual(items[1].name, "testAAB.txt")
+
     def test_delete_object(self):
         bucket_name = self.storage.create_bucket("my-bucket")
         bucket = self.storage.client.get_bucket(bucket_name)

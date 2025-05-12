@@ -6,6 +6,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   trailingIcon?: ReactNode;
   leading?: ReactNode;
   fullWidth?: boolean;
+  classNameOverrides?: string;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
@@ -15,6 +16,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     error,
     defaultValue,
     className,
+    classNameOverrides,
     trailingIcon,
     leading = null,
     value,
@@ -23,6 +25,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
   } = props;
 
   const inputClassName = clsx(
+    classNameOverrides,
     "form-input appearance-none relative block",
     "px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm",
     "disabled:opacity-50 disabled:cursor-not-allowed",

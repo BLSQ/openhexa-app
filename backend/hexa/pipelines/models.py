@@ -243,6 +243,15 @@ class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             return_all_if_superuser=False,
         )
 
+    def filter_for_workspace_slugs(
+        self, user: AnonymousUser | User, workspace_slugs: list[str]
+    ):
+        return (
+            self.filter_for_user(user)
+            .filter(Q(workspace__slug__in=workspace_slugs))
+            .exclude(deleted_at__isnull=False)
+        )
+
 
 class PipelineType(models.TextChoices):
     NOTEBOOK = "notebook", _("Notebook")
