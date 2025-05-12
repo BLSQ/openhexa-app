@@ -48,7 +48,7 @@ jobs:
           key: backend-cache-${{ hashFiles('backend/Dockerfile') }}
 
       - name: Inject caches into Docker
-        uses: reproducible-containers/buildkit-cache-dance@v3.1.2
+        uses: reproducible-containers/buildkit-cache-dance@v3.2.0
         with:
           cache-map: |
             {
@@ -121,7 +121,7 @@ jobs:
           key: frontend-cache-${{ hashFiles('frontend/Dockerfile') }}
 
       - name: Inject caches into Docker
-        uses: reproducible-containers/buildkit-cache-dance@v3.1.2
+        uses: reproducible-containers/buildkit-cache-dance@v3.2.0
         with:
           cache-map: |
             {
