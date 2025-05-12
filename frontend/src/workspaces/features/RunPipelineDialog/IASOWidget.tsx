@@ -6,9 +6,9 @@ import { useGetConnectionBySlugLazyQuery } from "./GenericConnectionWidget.gener
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import useIntersectionObserver from "core/hooks/useIntersectionObserver";
 import {Combobox, MultiCombobox} from "core/components/forms/Combobox";
-import useDebounce from "../../../core/hooks/useDebounce";
+import useDebounce from "core/hooks/useDebounce";
 import {useTranslation} from "next-i18next";
-import {ensureArray} from "../../../core/helpers/array";
+import { ensureArray } from "core/helpers/array";
 import {dhis2WidgetToQuery} from "./DHIS2Widget";
 
 type IASOWidgetProps = {
