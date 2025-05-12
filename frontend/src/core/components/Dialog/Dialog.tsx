@@ -107,7 +107,7 @@ function Dialog(props: DialogProps) {
         transition
         className="fixed inset-0 bg-black/30 duration-300 backdrop-blur-xs ease-out data-[closed]:opacity-0"
       />
-      <div className="h-screen px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+      <div className="fixed inset-0 h-screen px-4 pb-20 pt-4 text-center sm:block sm:p-0">
         <DialogPanel
           transition
           className={clsx(
