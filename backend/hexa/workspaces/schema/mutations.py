@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -19,7 +19,7 @@ from ..models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
-from ..utils import send_workspace_invitation_email
+from ..utils import send_workspace_add_user_email, send_workspace_invite_new_user_email
 
 workspace_mutations = MutationType()
 
@@ -124,50 +124,48 @@ def resolve_invite_workspace_member(_, info, **kwargs):
         )
         user = User.objects.filter(email=input["user_email"]).first()
 
-        is_workspace_member = (
-            user
-            and WorkspaceMembership.objects.filter(
+        if user:
+            is_workspace_member = WorkspaceMembership.objects.filter(
                 user=user, workspace=workspace
             ).exists()
-        )
-        is_already_invited = WorkspaceInvitation.objects.filter(
-            workspace=workspace,
-            email=input["user_email"],
-            status=WorkspaceInvitationStatus.PENDING,
-        ).exists()
+            if is_workspace_member:
+                raise AlreadyExists
 
-        if is_workspace_member or is_already_invited:
-            raise AlreadyExists
-
-        with transaction.atomic():
-            invitation = WorkspaceInvitation.objects.create_if_has_perm(
-                principal=request.user,
+            # We directly add existing users to the workspace
+            with transaction.atomic():
+                WorkspaceMembership.objects.create(
+                    workspace=workspace,
+                    user=user,
+                    role=input["role"],
+                )
+                send_workspace_add_user_email(
+                    invited_by=request.user, workspace=workspace, invitee=user
+                )
+        else:
+            is_already_invited = WorkspaceInvitation.objects.filter(
                 workspace=workspace,
                 email=input["user_email"],
-                role=input["role"],
-            )
+                status=WorkspaceInvitationStatus.PENDING,
+            ).exists()
+            if is_already_invited:
+                raise AlreadyExists
 
-            send_workspace_invitation_email(invitation, user)
+            with transaction.atomic():
+                invitation = WorkspaceInvitation.objects.create_if_has_perm(
+                    principal=request.user,
+                    workspace=workspace,
+                    email=input["user_email"],
+                    role=input["role"],
+                )
+                send_workspace_invite_new_user_email(invitation)
 
-        return {
-            "success": True,
-            "errors": [],
-        }
+        return {"success": True, "errors": []}
     except Workspace.DoesNotExist:
-        return {
-            "success": False,
-            "errors": ["WORKSPACE_NOT_FOUND"],
-        }
+        return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
     except PermissionDenied:
-        return {
-            "success": False,
-            "errors": ["PERMISSION_DENIED"],
-        }
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
     except AlreadyExists:
-        return {
-            "success": False,
-            "errors": ["ALREADY_EXISTS"],
-        }
+        return {"success": False, "errors": ["ALREADY_EXISTS"]}
 
 
 @workspace_mutations.field("joinWorkspace")
@@ -270,11 +268,10 @@ def resolve_resend_workspace_invitation(_, info, **kwargs):
             raise PermissionDenied
 
         invitation.status = WorkspaceInvitationStatus.PENDING
-        invitation.updated_at = datetime.utcnow()
+        invitation.updated_at = datetime.now(timezone.utc)
         invitation.save()
 
-        user = User.objects.filter(email=invitation.email).first()
-        send_workspace_invitation_email(invitation, user)
+        send_workspace_invite_new_user_email(invitation)
         return {
             "success": True,
             "errors": [],
