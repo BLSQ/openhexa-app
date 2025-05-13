@@ -64,9 +64,17 @@ const PipelineResultTable = ({
         )}
       </BaseColumn>
       <BaseColumn label={t("Last Run")} id="lastRunStatus">
-        {(item) => (
-          <PipelineRunStatusBadge run={item.pipeline.lastRuns.items[0]} />
-        )}
+        {(item) => {
+          if (item.pipeline.lastRuns.items.length > 0) {
+            return (
+              <PipelineRunStatusBadge
+                run={item.pipeline.lastRuns.items[0]}
+                polling={false}
+              />
+            );
+          }
+          return <p>{t("Not yet run")}</p>;
+        }}
       </BaseColumn>
     </DataGrid>
   );
