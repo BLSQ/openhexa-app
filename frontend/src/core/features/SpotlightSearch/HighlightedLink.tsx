@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import Link from "core/components/Link";
 import { getLink, getObject } from "./mapper";
 import useHighlightRow from "./useHighlightRow";
+import { useRouter } from "next/router";
 
 type HighlightedLinkProps = {
   item: any;
@@ -16,6 +17,11 @@ const HighlightedLink = ({
   isActive,
   data,
 }: HighlightedLinkProps) => {
+  const router = useRouter();
+  const { workspaceSlug: currentWorkspaceSlug } = router.query as {
+    workspaceSlug: string | undefined;
+  };
+
   const resultRefs = useRef<(HTMLDivElement | null)[]>([]);
   useHighlightRow(resultRefs, highlightedIndex, [isActive, data]);
 
@@ -29,7 +35,9 @@ const HighlightedLink = ({
       tabIndex={-1}
       className="focus:outline-none"
     >
-      <Link href={{ pathname: getLink(item) }}>{getObject(item).name}</Link>
+      <Link href={{ pathname: getLink(item, currentWorkspaceSlug) }}>
+        {getObject(item).name}
+      </Link>
     </div>
   );
 };

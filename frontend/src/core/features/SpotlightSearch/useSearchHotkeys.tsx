@@ -21,6 +21,9 @@ const useSearchHotkeys = ({
   setHighlightedIndex,
 }: UseSearchHotkeysParams) => {
   const router = useRouter();
+  const { workspaceSlug: currentWorkspaceSlug } = router.query as {
+    workspaceSlug: string | undefined;
+  };
 
   // Open and close the search
   useHotkeys(
@@ -70,7 +73,7 @@ const useSearchHotkeys = ({
   useHotkeys(
     "enter",
     () => {
-      const href = getLink(data[highlightedIndex]);
+      const href = getLink(data[highlightedIndex], currentWorkspaceSlug);
       href && router.push(href).then();
     },
     { enableOnFormTags: ["INPUT"], enabled: isOpen },
