@@ -222,6 +222,7 @@ def resolve_query(connection, info, page=1, per_page=10, filters=None, **kwargs)
 
 @iaos_connection.field("queryMetadata")
 def resolve_iaso_query(connection, info, page=1, per_page=10, filters=None, **kwargs):
+    print("IASO connection", connection)
     try:
         query_type = IASOMetadataQueryType[kwargs["type"]]
 
@@ -309,6 +310,8 @@ bindables = [
     connection_field_object,
     connection_interface,
     dhis2_connection,
+    iaos_connection,
+    iaos_metadata_type,
     connection_permissions_object,
     dhis2_metadata_type,
 ]

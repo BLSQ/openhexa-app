@@ -187,7 +187,7 @@ class ConnectiontTest(GraphQLTestCase):
                 variables={
                     "workspaceSlug": self.WORKSPACE.slug,
                     "connectionSlug": "iaso-connection-1",
-                    "type": "ORG_UNIT_LEVELS",
+                    "type": "PROJECTS",
                 },
             )
             self.assertEqual(
@@ -244,7 +244,6 @@ class ConnectiontTest(GraphQLTestCase):
                     "type": "FORMS",
                 },
             )
-            print(response)
             self.assertEqual(
                 response["data"],
                 {
