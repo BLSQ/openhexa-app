@@ -1902,7 +1902,7 @@ export enum FileType {
 /** Represents the input for filtering metadata items. */
 export type FilterInput = {
   type: Scalars['String']['input'];
-  value: Array<InputMaybe<Scalars['Int']['input']>>;
+  value: Array<Scalars['Int']['input']>;
 };
 
 /** GCS connection object */

@@ -63,7 +63,7 @@ class ConnectiontTest(GraphQLTestCase):
         self.client.force_login(self.USER_JIM)
 
         iaso_mock = MagicMock()
-        iaso_mock.get_org_units.return_value = [{"id": "1", "name": "Org Unit 1"}]
+        iaso_mock.get_org_units.return_value = [{"id": 1, "name": "Org Unit 1"}]
 
         with patch("hexa.workspaces.utils.IASO", return_value=iaso_mock):
             response = self.run_query(
@@ -93,7 +93,7 @@ class ConnectiontTest(GraphQLTestCase):
                 {
                     "connectionBySlug": {
                         "queryMetadata": {
-                            "items": [{"id": "1", "label": "Org Unit 1"}],
+                            "items": [{"id": 1, "label": "Org Unit 1"}],
                             "error": None,
                         }
                     }
@@ -108,8 +108,8 @@ class ConnectiontTest(GraphQLTestCase):
         iaso_mock.get_org_units.return_value = {
             "pager": {"page": 1, "pageCount": 1, "total": 2},
             "items": [
-                {"id": "1", "name": "Org Unit 1"},
-                {"id": "2", "name": "Org Unit 2"},
+                {"id": 1, "name": "Org Unit 1"},
+                {"id": 2, "name": "Org Unit 2"},
             ],
         }
 
@@ -143,8 +143,8 @@ class ConnectiontTest(GraphQLTestCase):
                 response["data"]["connectionBySlug"]["queryMetadata"],
                 {
                     "items": [
-                        {"id": "1", "label": "Org Unit 1"},
-                        {"id": "2", "label": "Org Unit 2"},
+                        {"id": 1, "label": "Org Unit 1"},
+                        {"id": 2, "label": "Org Unit 2"},
                     ],
                     "pageNumber": 1,
                     "totalItems": 2,
@@ -157,15 +157,38 @@ class ConnectiontTest(GraphQLTestCase):
         self.client.force_login(self.USER_JIM)
 
         iaso_mock = MagicMock()
-        iaso_mock.get_projects.return_value = {
-            "projects": [
-                {
-                    "id": 2,
-                    "name": "Pathways Senegal Yux",
-                    "app_id": "pathways.senegal.yux",
-                }
-            ]
-        }
+        iaso_mock.get_projects.return_value = [
+            {
+                "id": 2,
+                "name": "Pathways Senegal Yux",
+                "app_id": "pathways.senegal.yux",
+                "feature_flags": [
+                    {
+                        "id": 3,
+                        "name": "GPS point for each form",
+                        "code": "TAKE_GPS_ON_FORM",
+                    },
+                    {
+                        "id": 7,
+                        "name": "Mobile: Show data collection screen",
+                        "code": "DATA_COLLECTION",
+                    },
+                    {
+                        "id": 12,
+                        "name": "Mobile: Finalized forms are read only",
+                        "code": "MOBILE_FINALIZED_FORM_ARE_READ",
+                    },
+                    {
+                        "id": 4,
+                        "name": "Authentication",
+                        "code": "REQUIRE_AUTHENTICATION",
+                    },
+                ],
+                "created_at": 1710153966.532745,
+                "updated_at": 1717664805.185712,
+                "needs_authentication": True,
+            }
+        ]
 
         with patch("hexa.workspaces.utils.IASO", return_value=iaso_mock):
             response = self.run_query(
@@ -197,8 +220,8 @@ class ConnectiontTest(GraphQLTestCase):
                         "queryMetadata": {
                             "items": [
                                 {
-                                    "id": "1",
-                                    "label": "District",
+                                    "id": 2,
+                                    "label": "Pathways Senegal Yux",
                                 }
                             ],
                             "error": None,
@@ -209,9 +232,70 @@ class ConnectiontTest(GraphQLTestCase):
 
     def test_get_forms(self):
         self.client.force_login(self.USER_JIM)
-
         iaso_mock = MagicMock()
-        iaso_mock.meta.forms.return_value = [
+        iaso_mock.get_forms.return_value = [
+            {
+                "id": 62,
+                "name": "Form2",
+                "form_id": "pathways_senegal_yux",
+                "device_field": "deviceid",
+                "location_field": "",
+            }
+        ]
+
+        with patch("hexa.workspaces.utils.IASO", return_value=iaso_mock):
+            response = self.run_query(
+                """
+                query getConnectionBySlug(
+                    $workspaceSlug: String!, 
+                    $connectionSlug: String!, 
+                    $type: IASOMetadataType!,
+                    $filters: [IASOQueryFilterInput!]
+                ) {
+                    connectionBySlug(workspaceSlug: $workspaceSlug, connectionSlug: $connectionSlug) {
+                        ... on IASOConnection {
+                            queryMetadata(type: $type, filters: $filters) {
+                                items {
+                                    id
+                                    label
+                                }
+                                error
+                            }
+                        }
+                    }
+                }
+                """,
+                variables={
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "connectionSlug": "iaso-connection-1",
+                    "type": "FORMS",
+                    "filters": [
+                        {"type": "org_units", "value": [1, 2]},
+                        {"type": "projects", "value": [5]},
+                    ],
+                },
+            )
+            self.assertEqual(
+                response["data"],
+                {
+                    "connectionBySlug": {
+                        "queryMetadata": {
+                            "items": [
+                                {
+                                    "id": 62,
+                                    "label": "Form2",
+                                }
+                            ],
+                            "error": None,
+                        }
+                    }
+                },
+            )
+
+    def test_forms_without_filters(self):
+        self.client.force_login(self.USER_JIM)
+        iaso_mock = MagicMock()
+        iaso_mock.get_forms.return_value = [
             {
                 "id": 62,
                 "name": "Senegal Recruitment (Jan 2025)",
@@ -224,14 +308,18 @@ class ConnectiontTest(GraphQLTestCase):
         with patch("hexa.workspaces.utils.IASO", return_value=iaso_mock):
             response = self.run_query(
                 """
-                query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: IASOMetadataType!) {
-                connectionBySlug(workspaceSlug:$workspaceSlug, connectionSlug: $connectionSlug){
-                    ... on IASOConnection {
-                        queryMetadata(type: $type) {
+                query getConnectionBySlug(
+                    $workspaceSlug: String!, 
+                    $connectionSlug: String!, 
+                    $type: IASOMetadataType!
+                ) {
+                    connectionBySlug(workspaceSlug: $workspaceSlug, connectionSlug: $connectionSlug) {
+                        ... on IASOConnection {
+                            queryMetadata(type: $type) {
                                 items {
-                                        id
-                                        label
-                                      }
+                                    id
+                                    label
+                                }
                                 error
                             }
                         }
@@ -249,13 +337,8 @@ class ConnectiontTest(GraphQLTestCase):
                 {
                     "connectionBySlug": {
                         "queryMetadata": {
-                            "items": [
-                                {
-                                    "id": 62,
-                                    "label": "Senegal Recruitment (Jan 2025)",
-                                }
-                            ],
-                            "error": None,
+                            "items": [],
+                            "error": "UNKNOWN_ERROR",
                         }
                     }
                 },

@@ -157,7 +157,6 @@ def query_iaso_metadata(
 
     if query_type not in metadata_methods:
         raise ValueError(f"Unsupported query type: {query_type}")
-
     return normalize_metadata_response(metadata_methods[query_type](**kwargs))
 
 

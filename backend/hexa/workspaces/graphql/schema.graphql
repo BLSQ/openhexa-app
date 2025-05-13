@@ -867,7 +867,7 @@ type DHIS2MetadataItem {
 IASO metadata item
 """
 type IASOMetadataItem {
-    id: String      # Unique identifier
+    id: Int      # Unique identifier
     label: String!   # Label of the metadata item
 }
 
@@ -978,9 +978,9 @@ type PostgreSQLConnection implements Connection {
 """
 Represents the input for filtering metadata items.
 """
-input FilterInput {
+input IASOQueryFilterInput {
     type: String!
-    value: [Int]!
+    value: [Int!]!
 }
 """
 IASO connection object
@@ -996,7 +996,7 @@ type IASOConnection implements Connection {
     user: User # User associated with the connection
     fields: [ConnectionField!]! # Fields of the connection
     permissions: ConnectionPermissions! # Permissions of the connection
-    queryMetadata(type: IASOMetadataType!, filters: [FilterInput!], perPage: Int, page: Int): IASOQueryResultPage! # Query metadata items
+    queryMetadata(type: IASOMetadataType!, filters: [IASOQueryFilterInput!], perPage: Int, page: Int): IASOQueryResultPage! # Query metadata items
 }
 
 """

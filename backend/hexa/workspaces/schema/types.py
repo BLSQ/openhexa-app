@@ -222,16 +222,18 @@ def resolve_query(connection, info, page=1, per_page=10, filters=None, **kwargs)
 
 @iaos_connection.field("queryMetadata")
 def resolve_iaso_query(connection, info, page=1, per_page=10, filters=None, **kwargs):
-    print("IASO connection", connection)
     try:
         query_type = IASOMetadataQueryType[kwargs["type"]]
-
         iaso_client = toolbox_client_from_connection(connection)
-        print("IASO client", iaso_client)
         params = {}
         if query_type == IASOMetadataQueryType.FORMS:
-            params["org_units"] = kwargs.get("org_units", None)
-            params["projects"] = kwargs.get("projects", None)
+            if filters is None:
+                raise ValueError("Filters are required for forms query")
+            for filter in filters:
+                if filter["type"] == "org_units":
+                    params["org_units"] = filter["value"]
+                elif filter["type"] == "projects":
+                    params["projects"] = filter["value"]
 
         response = query_iaso_metadata(
             iaso_client,
@@ -240,7 +242,6 @@ def resolve_iaso_query(connection, info, page=1, per_page=10, filters=None, **kw
             limit=per_page,
             **params,
         )
-
         result = [
             {
                 "label": item.get("name"),
