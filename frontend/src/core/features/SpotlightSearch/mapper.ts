@@ -122,8 +122,11 @@ const getUrlId = (item: Item): string => {
   }
 };
 
-export const getLink = (item: Item): string => {
-  const workspaceSlug = getWorkspace(item).slug;
+export const getLink = (item: Item, currentWorkspaceSlug?: string): string => {
+  const workspaceSlug =
+    item.__typename === "PipelineTemplateResult" && currentWorkspaceSlug
+      ? currentWorkspaceSlug
+      : getWorkspace(item).slug;
   if (!item.__typename) return "";
   if (item.__typename === "FileResult") {
     const object = getObject(item);
