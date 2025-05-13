@@ -7,17 +7,17 @@ export type GetConnectionBySlugQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
   connectionSlug: Types.Scalars['String']['input'];
   type: Types.IasoMetadataType;
-  filters?: Types.InputMaybe<Array<Types.FilterInput> | Types.FilterInput>;
+  filters?: Types.InputMaybe<Array<Types.IasoQueryFilterInput> | Types.IasoQueryFilterInput>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
 
 
-export type GetConnectionBySlugQuery = { __typename?: 'Query', connectionBySlug?: { __typename?: 'CustomConnection' } | { __typename?: 'DHIS2Connection' } | { __typename?: 'GCSConnection' } | { __typename?: 'IASOConnection', queryMetadata: { __typename?: 'IASOQueryResultPage', pageNumber: number, totalItems: number, error?: Types.IasoConnectionError | null, items?: Array<{ __typename?: 'IASOMetadataItem', id?: string | null, label: string }> | null } } | { __typename?: 'PostgreSQLConnection' } | { __typename?: 'S3Connection' } | null };
+export type GetConnectionBySlugQuery = { __typename?: 'Query', connectionBySlug?: { __typename?: 'CustomConnection' } | { __typename?: 'DHIS2Connection' } | { __typename?: 'GCSConnection' } | { __typename?: 'IASOConnection', queryMetadata: { __typename?: 'IASOQueryResultPage', pageNumber: number, totalItems: number, error?: Types.IasoConnectionError | null, items?: Array<{ __typename?: 'IASOMetadataItem', id?: number | null, label: string }> | null } } | { __typename?: 'PostgreSQLConnection' } | { __typename?: 'S3Connection' } | null };
 
 
 export const GetConnectionBySlugDocument = gql`
-    query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: IASOMetadataType!, $filters: [FilterInput!], $perPage: Int, $page: Int) {
+    query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: IASOMetadataType!, $filters: [IASOQueryFilterInput!], $perPage: Int, $page: Int) {
   connectionBySlug(workspaceSlug: $workspaceSlug, connectionSlug: $connectionSlug) {
     ... on IASOConnection {
       queryMetadata(type: $type, filters: $filters, perPage: $perPage, page: $page) {

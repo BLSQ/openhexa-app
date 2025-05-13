@@ -16,7 +16,7 @@ export const GET_CONNECTION_METADATA = gql`
         $workspaceSlug: String!
         $connectionSlug: String!
         $type: IASOMetadataType!
-        $filters: [FilterInput!]
+        $filters: [IASOQueryFilterInput!]
         $perPage: Int
         $page: Int
     ) {

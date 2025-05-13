@@ -1899,12 +1899,6 @@ export enum FileType {
   File = 'file'
 }
 
-/** Represents the input for filtering metadata items. */
-export type FilterInput = {
-  type: Scalars['String']['input'];
-  value: Array<Scalars['Int']['input']>;
-};
-
 /** GCS connection object */
 export type GcsConnection = Connection & {
   __typename?: 'GCSConnection';
@@ -2036,7 +2030,7 @@ export type IasoConnection = Connection & {
 
 /** IASO connection object */
 export type IasoConnectionQueryMetadataArgs = {
-  filters?: InputMaybe<Array<FilterInput>>;
+  filters?: InputMaybe<Array<IasoQueryFilterInput>>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   type: IasoMetadataType;
@@ -2051,7 +2045,7 @@ export enum IasoConnectionError {
 /** IASO metadata item */
 export type IasoMetadataItem = {
   __typename?: 'IASOMetadataItem';
-  id?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['Int']['output']>;
   label: Scalars['String']['output'];
 };
 
@@ -2061,6 +2055,12 @@ export enum IasoMetadataType {
   OrgUnits = 'ORG_UNITS',
   Projects = 'PROJECTS'
 }
+
+/** Represents the input for filtering metadata items. */
+export type IasoQueryFilterInput = {
+  type: Scalars['String']['input'];
+  value: Array<Scalars['Int']['input']>;
+};
 
 /** IASO metadata query result */
 export type IasoQueryResultPage = {
