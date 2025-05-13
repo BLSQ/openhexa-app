@@ -65,8 +65,7 @@ const IASOWidget = ({
       variables: {
         workspaceSlug,
         connectionSlug: form.formData[parameter.connection],
-        type: dhis2WidgetToQuery[widget],
-        filters: debouncedQuery ? ["name:token:" + debouncedQuery] : [],
+        type: iasoWidgetToQuery[widget],
         perPage: 15,
         page: resetPagination
           ? 1
