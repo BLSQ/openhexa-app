@@ -144,12 +144,7 @@ const WorkspaceDatasetPage: NextPageWithLayout = (
                 label={t("Changelog")}
                 sm
               />
-              <TextProperty
-                id="name"
-                accessor="name"
-                label={t("Name")}
-                visible={({ isEditing }) => isEditing || isSpecificVersion}
-              />
+              <TextProperty id="name" accessor="name" label={t("Name")} />
               <DateProperty
                 id="createdAt"
                 accessor="createdAt"
