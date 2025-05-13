@@ -3014,6 +3014,11 @@ type Query {
 
   """Retrieves a template by workspace slug and code."""
   templateByCode(code: String!): PipelineTemplate
+
+  """
+  Search users, to be moved to "Organizations"
+  """
+  users(query: String!, workspaceSlug: String!): [User!]!
   webapp(id: UUID!): Webapp
   webapps(favorite: Boolean, page: Int, perPage: Int, workspaceSlug: String): WebappsPage!
   workspace(slug: String!): Workspace

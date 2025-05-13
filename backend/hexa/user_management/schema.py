@@ -20,6 +20,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import BadSignature, SignatureExpired
 from django.db import transaction
+from django.db.models import Q
 from django.http import HttpRequest
 from django.utils.http import urlsafe_base64_decode
 from django_otp import devices_for_user
@@ -40,7 +41,11 @@ from hexa.user_management.models import (
     Team,
     User,
 )
-from hexa.workspaces.models import WorkspaceInvitation, WorkspaceInvitationStatus
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceInvitation,
+    WorkspaceInvitationStatus,
+)
 
 from .utils import DEVICE_DEFAULT_NAME, default_device, has_configured_two_factor
 
@@ -238,6 +243,35 @@ def resolve_membership_permissions_delete(membership: Membership, info, **kwargs
 @identity_query.field("organizations")
 def resolve_organizations(*_):
     return [o for o in Organization.objects.all()]
+
+
+# TODO To be moved to organizations
+@identity_query.field("users")
+def resolve_users(_, info, query: str, workspace_slug: str):
+    request = info.context["request"]
+    query = query.strip()
+
+    try:
+        workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=workspace_slug
+        )
+
+        if not request.user.has_perm("workspaces.manage_members", workspace):
+            raise PermissionDenied
+
+        users = User.objects.filter(
+            Q(email__icontains=query)
+            | Q(first_name__icontains=query)
+            | Q(last_name__icontains=query)
+        )
+
+        users = users.exclude(id__in=workspace.members.values_list("id", flat=True))
+
+        return users[:10]
+    except PermissionDenied:
+        return []
+    except Workspace.DoesNotExist:
+        return []
 
 
 @identity_mutations.field("createTeam")
