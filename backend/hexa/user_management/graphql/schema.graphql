@@ -258,6 +258,10 @@ extend type Query {
     Retrieves the currently authenticated user.
     """
     me: Me!
+    """
+    Search users, to be moved to "Organizations"
+    """
+    users(query: String!, workspaceSlug: String!): [User!]! @loginRequired
 }
 
 """
@@ -677,7 +681,6 @@ extend type Mutation {
     deleteTeam(input: DeleteTeamInput!): DeleteTeamResult! @loginRequired
 }
 
-
 """
 The MembershipRole enum represents the role of a user in a team.
 """
@@ -956,7 +959,6 @@ extend type Mutation {
     # Deletes an existing membership in a team.
     deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult! @loginRequired
 }
-
 
 """
 The Organization type represents an organization in the system.
