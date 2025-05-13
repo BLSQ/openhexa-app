@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/BLSQ/openhexa-app/compare/1.6.1...1.6.2) (2025-05-13)
+
+
+### Bug Fixes
+
+* search bar, navigating to templates can fail because the user is not member of the workspace (HEXA-1261) ([#1104](https://github.com/BLSQ/openhexa-app/issues/1104)) ([4fc78ba](https://github.com/BLSQ/openhexa-app/commit/4fc78ba14ba72b8dbeb808bdb314579ef77a8945))
+
 ## [1.6.1](https://github.com/BLSQ/openhexa-app/compare/1.6.0...1.6.1) (2025-05-12)
 
 
