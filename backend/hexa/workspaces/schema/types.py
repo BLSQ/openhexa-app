@@ -226,6 +226,7 @@ def resolve_iaso_query(connection, info, page=1, per_page=10, filters=None, **kw
         query_type = IASOMetadataQueryType[kwargs["type"]]
 
         iaso_client = toolbox_client_from_connection(connection)
+        print("IASO client", iaso_client)
         params = {}
         if query_type == IASOMetadataQueryType.FORMS:
             params["org_units"] = kwargs.get("org_units", None)

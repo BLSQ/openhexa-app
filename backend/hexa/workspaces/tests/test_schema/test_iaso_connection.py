@@ -53,8 +53,8 @@ class ConnectiontTest(GraphQLTestCase):
                     "value": "http://127.0.0.1:8080",
                     "secret": False,
                 },
-                {"code": "username", "value": "admin", "secret": False},
-                {"code": "password", "value": "district", "secret": True},
+                {"code": "username", "value": "jim", "secret": False},
+                {"code": "password", "value": "test", "secret": True},
             ],
         )
         connection.save()
@@ -63,9 +63,7 @@ class ConnectiontTest(GraphQLTestCase):
         self.client.force_login(self.USER_JIM)
 
         iaso_mock = MagicMock()
-        iaso_mock.meta.organisation_units.return_value = [
-            {"id": "1", "name": "Org Unit 1"}
-        ]
+        iaso_mock.get_org_units.return_value = [{"id": "1", "name": "Org Unit 1"}]
 
         with patch("hexa.workspaces.utils.IASO", return_value=iaso_mock):
             response = self.run_query(
@@ -107,7 +105,7 @@ class ConnectiontTest(GraphQLTestCase):
         self.maxDiff = None
 
         iaso_mock = MagicMock()
-        iaso_mock.meta.organisation_units.return_value = {
+        iaso_mock.get_org_units.return_value = {
             "pager": {"page": 1, "pageCount": 1, "total": 2},
             "items": [
                 {"id": "1", "name": "Org Unit 1"},
@@ -115,7 +113,7 @@ class ConnectiontTest(GraphQLTestCase):
             ],
         }
 
-        with patch("hexa.workspaces.utils.DHIS2", return_value=iaso_mock):
+        with patch("hexa.workspaces.utils.IASO", return_value=iaso_mock):
             response = self.run_query(
                 """
                 query getConnectionBySlug($workspaceSlug: String!, $connectionSlug: String!, $type: IASOMetadataType!) {
@@ -159,23 +157,15 @@ class ConnectiontTest(GraphQLTestCase):
         self.client.force_login(self.USER_JIM)
 
         iaso_mock = MagicMock()
-        iaso_mock.meta.organisation_unit_levels.return_value = [
-            {
-                "count": 1,
-                "forms": [
-                    {
-                        "id": 62,
-                        "name": "Senegal Recruitment (Jan 2025)",
-                        "form_id": "pathways_senegal_yux",
-                        "device_field": "deviceid",
-                        "location_field": "",
-                    }
-                ],
-                "page": 1,
-                "pages": 1,
-                "limit": 50,
-            }
-        ]
+        iaso_mock.get_projects.return_value = {
+            "projects": [
+                {
+                    "id": 2,
+                    "name": "Pathways Senegal Yux",
+                    "app_id": "pathways.senegal.yux",
+                }
+            ]
+        }
 
         with patch("hexa.workspaces.utils.IASO", return_value=iaso_mock):
             response = self.run_query(
@@ -254,6 +244,7 @@ class ConnectiontTest(GraphQLTestCase):
                     "type": "FORMS",
                 },
             )
+            print(response)
             self.assertEqual(
                 response["data"],
                 {
