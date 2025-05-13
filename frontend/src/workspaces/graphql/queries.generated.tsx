@@ -53,6 +53,7 @@ export type WorkspacePageQuery = { __typename?: 'Query', workspace?: { __typenam
 
 export type WorkspacePipelinesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
+  search?: Types.InputMaybe<Types.Scalars['String']['input']>;
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
@@ -354,14 +355,19 @@ export type WorkspacePageLazyQueryHookResult = ReturnType<typeof useWorkspacePag
 export type WorkspacePageSuspenseQueryHookResult = ReturnType<typeof useWorkspacePageSuspenseQuery>;
 export type WorkspacePageQueryResult = Apollo.QueryResult<WorkspacePageQuery, WorkspacePageQueryVariables>;
 export const WorkspacePipelinesPageDocument = gql`
-    query WorkspacePipelinesPage($workspaceSlug: String!, $page: Int, $perPage: Int) {
+    query WorkspacePipelinesPage($workspaceSlug: String!, $search: String, $page: Int, $perPage: Int) {
   workspace(slug: $workspaceSlug) {
     slug
     name
     ...WorkspaceLayout_workspace
     ...CreatePipelineDialog_workspace
   }
-  pipelines(workspaceSlug: $workspaceSlug, page: $page, perPage: $perPage) {
+  pipelines(
+    workspaceSlug: $workspaceSlug
+    search: $search
+    page: $page
+    perPage: $perPage
+  ) {
     items {
       ...PipelineCard_pipeline
     }
@@ -387,6 +393,7 @@ ${PipelineCard_PipelineFragmentDoc}`;
  * const { data, loading, error } = useWorkspacePipelinesPageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
+ *      search: // value for 'search'
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *   },
