@@ -1026,11 +1026,10 @@ type FeatureFlag {
     The code of the feature flag.
     """
     code: String!
-
     """
-    The configuration of the feature flag.
+    The configuration of the feature flag (deprecated).
     """
-    config: JSON!
+    config: JSON! @deprecated(reason: "This field is deprecated and will be removed in the next version. In the meantime it always returns an empty object.")
 }
 
 extend type Query {

@@ -34,7 +34,7 @@ from hexa.user_management.models import (
     AlreadyExists,
     CannotDelete,
     CannotDowngradeRole,
-    FeatureFlag,
+    Feature,
     Membership,
     Organization,
     Team,
@@ -105,17 +105,6 @@ def resolve_can_admin_panel(obj, info, **kwargs):
 
 
 me_object = ObjectType("Me")
-feature_flag_object = ObjectType("FeatureFlag")
-
-
-@feature_flag_object.field("code")
-def resolve_feature_flag_code(flag: FeatureFlag, info):
-    return flag.feature.code
-
-
-@feature_flag_object.field("config")
-def resolve_feature_flag_config(flag: FeatureFlag, info):
-    return flag.config
 
 
 @me_object.field("user")
@@ -140,7 +129,13 @@ def resolve_me_features(_, info):
     principal: User = request.user
 
     if principal.is_authenticated:
-        return principal.featureflag_set.all()
+        return [
+            {
+                "code": feature.code,
+                "config": {},
+            }  # TODO: Remove the config field once the migration is done
+            for feature in Feature.objects.are_enabled_for_user(user=principal)
+        ]
     else:
         return []
 
@@ -655,7 +650,6 @@ identity_bindables = [
     user_object,
     team_object,
     me_object,
-    feature_flag_object,
     membership_object,
     me_permissions_object,
     team_permissions_object,

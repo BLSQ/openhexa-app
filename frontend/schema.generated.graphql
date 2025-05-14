@@ -1745,8 +1745,8 @@ type FeatureFlag {
   """The code of the feature flag."""
   code: String!
 
-  """The configuration of the feature flag."""
-  config: JSON!
+  """The configuration of the feature flag (deprecated)."""
+  config: JSON! @deprecated(reason: "This field is deprecated and will be removed in the next version. In the meantime it always returns an empty object.")
 }
 
 type File {

@@ -4,7 +4,7 @@ from mixpanel import Mixpanel
 from sentry_sdk import capture_exception
 from ua_parser import user_agent_parser
 
-from hexa.user_management.models import AnonymousUser, User
+from hexa.user_management.models import AnonymousUser, Feature, User
 
 mixpanel = None
 if settings.MIXPANEL_TOKEN:
@@ -86,7 +86,11 @@ def set_user_properties(user: User):
                 "$name": user.display_name,
                 "is_staff": user.is_staff,
                 "is_superuser": user.is_superuser,
-                "features_flag": [f.feature.code for f in user.featureflag_set.all()],
+                "features_flag": list(
+                    Feature.objects.are_enabled_for_user(user=user).values_list(
+                        "code", flat=True
+                    )
+                ),
             },
         )
     except Exception as e:

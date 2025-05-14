@@ -100,12 +100,9 @@ class User(AbstractUser, UserInterface):
         return self.email[:2].upper()
 
     def has_feature_flag(self, code: str) -> bool:
-        try:  # Always return True for "forced-activated features"
-            Feature.objects.get(code=code, force_activate=True)
-
-            return True
-        except Feature.DoesNotExist:
-            return self.featureflag_set.filter(feature__code=code).exists()
+        return (
+            Feature.objects.are_enabled_for_user(user=self).filter(code=code).exists()
+        )
 
     def is_member_of(self, team):
         return self.membership_set.filter(team=team).exists()
@@ -278,6 +275,12 @@ class Membership(Base):
 class FeatureManager(models.Manager):
     def get_by_natural_key(self, code: str):
         return self.get(code=code)
+
+    def are_enabled_for_user(self, user: User) -> list[Feature]:
+        return self.filter(
+            Q(force_activate=True)
+            | Q(code__in=user.featureflag_set.values_list("feature__code", flat=True))
+        )
 
 
 class Feature(Base):

@@ -1858,7 +1858,10 @@ export type FeatureFlag = {
   __typename?: 'FeatureFlag';
   /** The code of the feature flag. */
   code: Scalars['String']['output'];
-  /** The configuration of the feature flag. */
+  /**
+   * The configuration of the feature flag (deprecated).
+   * @deprecated This field is deprecated and will be removed in the next version. In the meantime it always returns an empty object.
+   */
   config: Scalars['JSON']['output'];
 };
 
