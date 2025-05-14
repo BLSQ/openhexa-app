@@ -1,12 +1,9 @@
-import { ComboboxOption } from "@headlessui/react";
-import clsx from "clsx";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
 import Spinner from "core/components/Spinner";
 import { useTranslation } from "next-i18next";
 import { useInviteWorkspaceMemberMutation } from "workspaces/graphql/mutations.generated";
-import useDebounce from "core/hooks/useDebounce";
 import useForm from "core/hooks/useForm";
 import {
   InviteWorkspaceMembershipError,
@@ -18,10 +15,8 @@ import SimpleSelect from "core/components/forms/SimpleSelect";
 import { gql } from "@apollo/client";
 import { InviteMemberWorkspace_WorkspaceFragment } from "./InviteMemberDialog.generated";
 import useCacheKey from "core/hooks/useCacheKey";
-import { useCallback, useMemo, useEffect, useState } from "react";
-import { Combobox } from "core/components/forms/Combobox";
-import { useGetUsersQuery } from "identity/graphql/queries.generated";
-import UserComponent from "core/features/User";
+import { useEffect } from "react";
+import { UserPicker } from "./UserPicker";
 
 type InviteMemberDialogProps = {
   onClose(): void;
@@ -34,10 +29,6 @@ type Form = {
   role: WorkspaceMembershipRole;
 };
 
-const Classes = {
-  Option: "p-2 text-gray-900 hover:bg-blue-500 hover:text-white",
-};
-
 const InviteMemberDialog = (props: InviteMemberDialogProps) => {
   const { t } = useTranslation();
   const { open, onClose, workspace } = props;
@@ -47,7 +38,6 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
 
   const form = useForm<Form>({
     onSubmit: async (values) => {
-      console.log("SUBMIT!", values);
       const { data } = await createWorkspaceMember({
         variables: {
           input: {
@@ -110,15 +100,6 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
     }
   }, [open, form]);
 
-  const [query, setQuery] = useState("");
-  const debouncedQuery = useDebounce(query, 250);
-  const { data, loading } = useGetUsersQuery({
-    variables: {
-      query: debouncedQuery,
-      workspaceSlug: workspace.slug,
-    },
-  });
-
   return (
     <Dialog open={open} onClose={handleClose} onSubmit={form.handleSubmit}>
       <Dialog.Title>{t("Add or invite member")}</Dialog.Title>
@@ -135,33 +116,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
             onChange={form.handleInputChange}
             error={form.touched.email && form.errors.email}
           /> */}
-          <Combobox
-            required
-            onChange={(user) => form.setFieldValue("user", user)}
-            loading={loading}
-            withPortal={true}
-            displayValue={(user) => user?.email ?? ""}
-            onInputChange={useCallback(
-              (event: any) => setQuery(event.target.value),
-              [],
-            )}
-            placeholder={t("Search users")}
-            value={form.formData.user}
-            onClose={useCallback(() => setQuery(""), [])}
-          >
-            <ComboboxOption
-              value={{ email: query }}
-              className={clsx(!data?.users.length && Classes.Option)}
-            >
-              {!data?.users.length && t("Invite new user: ") + query}
-            </ComboboxOption>
-            {data?.users.map((user) => (
-              <Combobox.CheckOption key={user.id} value={user}>
-                {user.email} ({user.displayName})
-                {/* <UserComponent user=user /> */}
-              </Combobox.CheckOption>
-            ))}
-          </Combobox>
+          <UserPicker workspaceSlug={workspace.slug} form={form} />
         </Field>
         <Field name="role" label={t("Role")} required>
           <SimpleSelect
