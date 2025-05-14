@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from openhexa.toolbox.dhis2.api import DHIS2Error
+from openhexa.toolbox.dhis2.api import DHIS2ToolboxError
 
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
@@ -324,7 +324,9 @@ class ConnectiontTest(GraphQLTestCase):
         self.client.force_login(self.USER_JIM)
 
         dhis2_mock = MagicMock()
-        dhis2_mock.meta.organisation_units.side_effect = DHIS2Error("Connection error")
+        dhis2_mock.meta.organisation_units.side_effect = DHIS2ToolboxError(
+            "Connection error"
+        )
 
         with patch("hexa.workspaces.utils.DHIS2", return_value=dhis2_mock):
             response = self.run_query(
