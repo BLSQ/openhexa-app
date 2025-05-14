@@ -249,7 +249,7 @@ def resolve_iaso_query(connection, info, page=1, per_page=10, filters=None, **kw
             }
             for item in response.items
         ]
-
+        logging.info(f"IASO result: {result}")
         return {
             "items": result,
             "total_items": response.total_items,

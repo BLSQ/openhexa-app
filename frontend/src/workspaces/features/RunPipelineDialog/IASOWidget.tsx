@@ -2,7 +2,7 @@ import {ParameterField_ParameterFragment} from "./ParameterField.generated";
 import {FormInstance} from "core/hooks/useForm";
 import {IasoMetadataType} from "graphql/types";
 import {gql} from "@apollo/client";
-import { useGetConnectionBySlugLazyQuery } from "./GenericConnectionWidget.generated";
+import { useGetConnectionBySlugIasoLazyQuery } from "./IASOWidget.generated";
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import useIntersectionObserver from "core/hooks/useIntersectionObserver";
 import {Combobox, MultiCombobox} from "core/components/forms/Combobox";
@@ -19,7 +19,38 @@ type IASOWidgetProps = {
     name: string;
 };
 
-
+export const GET_CONNECTION_METADATA = gql`
+    query getConnectionBySlugIaso(
+        $workspaceSlug: String!
+        $connectionSlug: String!
+        $type: IASOMetadataType!
+        $filters: [IASOQueryFilterInput!]
+        $perPage: Int
+        $page: Int
+    ) {
+        connectionBySlug(
+            workspaceSlug: $workspaceSlug
+            connectionSlug: $connectionSlug
+        ) {
+            ... on IASOConnection {
+                queryMetadata(
+                    type: $type
+                    filters: $filters
+                    perPage: $perPage
+                    page: $page
+                ) {
+                    items {
+                        id
+                        label
+                    }
+                    pageNumber
+                    totalItems
+                    error
+                }
+            }
+        }
+    }
+`;
 const iasoWidgetToQuery: { [key: string]: IasoMetadataType } = {
     IASO_ORG_UNITS: IasoMetadataType.OrgUnits,
     IASO_PROJECTS: IasoMetadataType.Projects,
@@ -40,10 +71,11 @@ const IASOWidget = ({
   const { t } = useTranslation();
   const [options, setOptions] = useState<any[]>([]);
   const cachedSelectionsRef = useRef<Map<string, { id: string; label: string }>>(new Map());
-  const [fetchData, { data, error }] = useGetConnectionBySlugLazyQuery();
+  const [fetchData, { data, error }] = useGetConnectionBySlugIasoLazyQuery();
   const hasConnection = useMemo(() => {
     return form.formData[parameter.connection];
   }, [form.formData[parameter.connection]]);
+
 
   // Memoize the connection to enforce the IASOConnection type
   const iasoConnection = useMemo(
@@ -61,11 +93,27 @@ const IASOWidget = ({
 
   const fetchMoreOptions = async (resetPagination: boolean = false) => {
     setIsLoading(true);
+    const filters = [];
+    console.log("🔍 Form Data:", form.formData);
+
+    if (widget === "IASO_FORMS") {
+      const orgUnits = ensureArray(form.formData["org_units"]);
+      const projects = ensureArray(form.formData["projects"]);
+
+      if (orgUnits.length > 0) {
+        filters.push({ type: "org_units", value: orgUnits.map(Number) });
+      }
+      if (projects.length > 0) {
+        filters.push({ type: "projects", value: projects.map(Number) });
+      }
+    }
+
     const result = await fetchData({
       variables: {
         workspaceSlug,
         connectionSlug: form.formData[parameter.connection],
         type: iasoWidgetToQuery[widget],
+        filters: debouncedQuery ? [] : [],
         perPage: 15,
         page: resetPagination
           ? 1

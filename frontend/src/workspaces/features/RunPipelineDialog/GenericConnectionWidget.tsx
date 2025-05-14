@@ -11,38 +11,7 @@ type GenericConnectionWidgetProps = {
   workspaceSlug: string;
   name: string;
 };
-export const GET_CONNECTION_METADATA = gql`
-    query getConnectionBySlug(
-        $workspaceSlug: String!
-        $connectionSlug: String!
-        $type: IASOMetadataType!
-        $filters: [IASOQueryFilterInput!]
-        $perPage: Int
-        $page: Int
-    ) {
-        connectionBySlug(
-            workspaceSlug: $workspaceSlug
-            connectionSlug: $connectionSlug
-        ) {
-            ... on IASOConnection {
-                queryMetadata(
-                    type: $type
-                    filters: $filters
-                    perPage: $perPage
-                    page: $page
-                ) {
-                    items {
-                        id
-                        label
-                    }
-                    pageNumber
-                    totalItems
-                    error
-                }
-            }
-        }
-    }
-`;
+
 const GenericConnectionWidget = ({
   parameter,
   widget,

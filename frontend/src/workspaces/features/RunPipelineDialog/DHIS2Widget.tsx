@@ -3,12 +3,12 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import { useTranslation } from "next-i18next";
 import { Combobox, MultiCombobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
-import { useGetConnectionBySlugLazyQuery } from "./GenericConnectionWidget.generated";
-import { ParameterField_ParameterFragment } from "./ParameterField.generated";
 import useIntersectionObserver from "core/hooks/useIntersectionObserver";
 import { FormInstance } from "core/hooks/useForm";
 import { Dhis2MetadataType } from "graphql/types";
 import { ensureArray } from "core/helpers/array";
+import {ParameterField_ParameterFragment} from "./ParameterField.generated";
+import {useGetConnectionBySlugDhis2LazyQuery} from "./DHIS2Widget.generated";
 
 type DHIS2WidgetProps = {
   parameter: ParameterField_ParameterFragment & { connection: string };
@@ -17,7 +17,38 @@ type DHIS2WidgetProps = {
   workspaceSlug: string;
   name: string;
 };
-
+export const GET_CONNECTION_METADATA = gql`
+    query getConnectionBySlugDhis2(
+        $workspaceSlug: String!
+        $connectionSlug: String!
+        $type: DHIS2MetadataType!
+        $filters: [String!]
+        $perPage: Int
+        $page: Int
+    ) {
+        connectionBySlug(
+            workspaceSlug: $workspaceSlug
+            connectionSlug: $connectionSlug
+        ) {
+            ... on DHIS2Connection {
+                queryMetadata(
+                    type: $type
+                    filters: $filters
+                    perPage: $perPage
+                    page: $page
+                ) {
+                    items {
+                        id
+                        label
+                    }
+                    pageNumber
+                    totalItems
+                    error
+                }
+            }
+        }
+    }
+`;
 const dhis2WidgetToQuery: { [key: string]: Dhis2MetadataType } = {
   DHIS2_ORG_UNITS: Dhis2MetadataType.OrgUnits,
   DHIS2_ORG_UNIT_GROUPS: Dhis2MetadataType.OrgUnitGroups,
@@ -42,7 +73,7 @@ const DHIS2Widget = ({
   const { t } = useTranslation();
   const [options, setOptions] = useState<any[]>([]);
   const cachedSelectionsRef = useRef<Map<string, { id: string; label: string }>>(new Map());
-  const [fetchData, { data, error }] = useGetConnectionBySlugLazyQuery();
+  const [fetchData, { data, error }] = useGetConnectionBySlugDhis2LazyQuery();
   const hasConnection = useMemo(() => {
     return form.formData[parameter.connection];
   }, [form.formData[parameter.connection]]);
