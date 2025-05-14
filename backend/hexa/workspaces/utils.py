@@ -103,7 +103,7 @@ def send_workspace_invite_new_user_email(invitation: WorkspaceInvitation):
             event="emails.invite_sent",
             properties={
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "workspace_id": str(invitation.workspace.id),
+                "workspace": invitation.workspace.slug,
                 "invitee_email": invitation.email,
                 "invitee_role": invitation.role,
                 "status": invitation.status,
