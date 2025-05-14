@@ -382,7 +382,7 @@ def resolve_register(_, info, **kwargs):
             event="emails.registration_landed",
             properties={
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "workspace_id": str(invitation.workspace.id),
+                "workspace": invitation.workspace.slug,
                 "invitee_email": invitation.email,
                 "invitee_role": invitation.role,
                 "status": invitation.status,
@@ -423,7 +423,7 @@ def resolve_register(_, info, **kwargs):
             event="emails.registration_complete",
             properties={
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "workspace_id": str(invitation.workspace.id),
+                "workspace": invitation.workspace.slug,
                 "invitee_email": invitation.email,
                 "invitee_role": invitation.role,
                 "status": invitation.status,
