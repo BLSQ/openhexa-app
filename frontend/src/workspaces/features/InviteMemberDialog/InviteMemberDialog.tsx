@@ -1,12 +1,16 @@
+import { ComboboxOption } from "@headlessui/react";
+import clsx from "clsx";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
 import Spinner from "core/components/Spinner";
 import { useTranslation } from "next-i18next";
 import { useInviteWorkspaceMemberMutation } from "workspaces/graphql/mutations.generated";
+import useDebounce from "core/hooks/useDebounce";
 import useForm from "core/hooks/useForm";
 import {
   InviteWorkspaceMembershipError,
+  User,
   WorkspaceMembershipRole,
 } from "graphql/types";
 import Input from "core/components/forms/Input";
@@ -14,7 +18,10 @@ import SimpleSelect from "core/components/forms/SimpleSelect";
 import { gql } from "@apollo/client";
 import { InviteMemberWorkspace_WorkspaceFragment } from "./InviteMemberDialog.generated";
 import useCacheKey from "core/hooks/useCacheKey";
-import { useEffect } from "react";
+import { useCallback, useMemo, useEffect, useState } from "react";
+import { Combobox } from "core/components/forms/Combobox";
+import { useGetUsersQuery } from "identity/graphql/queries.generated";
+import UserComponent from "core/features/User";
 
 type InviteMemberDialogProps = {
   onClose(): void;
@@ -23,8 +30,12 @@ type InviteMemberDialogProps = {
 };
 
 type Form = {
+  user: User | null;
   role: WorkspaceMembershipRole;
-  email: string;
+};
+
+const Classes = {
+  Option: "p-2 text-gray-900 hover:bg-blue-500 hover:text-white",
 };
 
 const InviteMemberDialog = (props: InviteMemberDialogProps) => {
@@ -36,12 +47,13 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
 
   const form = useForm<Form>({
     onSubmit: async (values) => {
+      console.log("SUBMIT!", values);
       const { data } = await createWorkspaceMember({
         variables: {
           input: {
             role: values.role,
             workspaceSlug: workspace.slug,
-            userEmail: values.email,
+            userEmail: values.user.email,
           },
         },
       });
@@ -75,11 +87,11 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
       clearCache();
       handleClose();
     },
-    initialState: { role: WorkspaceMembershipRole.Viewer, email: "" },
+    initialState: { role: WorkspaceMembershipRole.Viewer, user: null },
     validate: (values) => {
       const errors = {} as any;
-      if (!values.email) {
-        errors.email = t("Email address is mandatory");
+      if (!values.user) {
+        errors.user = t("Email address is mandatory");
       }
       if (!values.role) {
         errors.role = t("Member role is mandatory");
@@ -98,12 +110,21 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
     }
   }, [open, form]);
 
+  const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query, 250);
+  const { data, loading } = useGetUsersQuery({
+    variables: {
+      query: debouncedQuery,
+      workspaceSlug: workspace.slug,
+    },
+  });
+
   return (
     <Dialog open={open} onClose={handleClose} onSubmit={form.handleSubmit}>
-      <Dialog.Title>{t("Invite member")}</Dialog.Title>
+      <Dialog.Title>{t("Add or invite member")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
-        <Field name="email" label={t("Email address")} type="email" required>
-          <Input
+        <Field name="email" label={t("User")} type="email" required>
+          {/* <Input
             placeholder={t("sabrina@bluesquarehub.com")}
             name="email"
             type="email"
@@ -113,7 +134,34 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
             value={form.formData.email}
             onChange={form.handleInputChange}
             error={form.touched.email && form.errors.email}
-          />
+          /> */}
+          <Combobox
+            required
+            onChange={(user) => form.setFieldValue("user", user)}
+            loading={loading}
+            withPortal={true}
+            displayValue={(user) => user?.email ?? ""}
+            onInputChange={useCallback(
+              (event: any) => setQuery(event.target.value),
+              [],
+            )}
+            placeholder={t("Search users")}
+            value={form.formData.user}
+            onClose={useCallback(() => setQuery(""), [])}
+          >
+            <ComboboxOption
+              value={{ email: query }}
+              className={clsx(!data?.users.length && Classes.Option)}
+            >
+              {!data?.users.length && t("Invite new user: ") + query}
+            </ComboboxOption>
+            {data?.users.map((user) => (
+              <Combobox.CheckOption key={user.id} value={user}>
+                {user.email} ({user.displayName})
+                {/* <UserComponent user=user /> */}
+              </Combobox.CheckOption>
+            ))}
+          </Combobox>
         </Field>
         <Field name="role" label={t("Role")} required>
           <SimpleSelect
