@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.4](https://github.com/BLSQ/openhexa-app/compare/1.6.3...1.6.4) (2025-05-14)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @types/node to v22.15.18 ([#1115](https://github.com/BLSQ/openhexa-app/issues/1115)) ([0eeb9fa](https://github.com/BLSQ/openhexa-app/commit/0eeb9fa50d2b3ca1641baae193dde814cf79ec44))
+* Search bar : long name needs to be clamped, results scrollable (HEXA-1265) ([#1118](https://github.com/BLSQ/openhexa-app/issues/1118)) ([e91ab05](https://github.com/BLSQ/openhexa-app/commit/e91ab0510d238ab5077591988633c2ceb2dbaa50))
+
 ## [1.6.3](https://github.com/BLSQ/openhexa-app/compare/1.6.2...1.6.3) (2025-05-14)
 
 
