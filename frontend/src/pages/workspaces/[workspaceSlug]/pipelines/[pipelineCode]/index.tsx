@@ -270,8 +270,13 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             {(property, section) => (
               <div className="flex items-center gap-2">
                 <Switch
-                  checked={property.formValue}
+                  checked={
+                    section.isEdited
+                      ? property.formValue
+                      : property.displayValue
+                  }
                   onChange={property.setValue}
+                  disabled={!section.isEdited}
                 />
                 {section.isEdited && (
                   <span className="text-xs text-gray-500">
