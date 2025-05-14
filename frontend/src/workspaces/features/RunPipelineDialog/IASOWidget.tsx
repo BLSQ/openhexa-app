@@ -9,7 +9,6 @@ import {Combobox, MultiCombobox} from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
 import {useTranslation} from "next-i18next";
 import { ensureArray } from "core/helpers/array";
-import {dhis2WidgetToQuery} from "./DHIS2Widget";
 
 type IASOWidgetProps = {
     parameter: ParameterField_ParameterFragment & { connection: string };
@@ -91,49 +90,35 @@ const IASOWidget = ({
     _setQuery(newQuery);
   }, []);
 
-  const fetchMoreOptions = async (resetPagination: boolean = false) => {
+const fetchMoreOptions = async (resetPagination: boolean = false) => {
     setIsLoading(true);
-    const filters = [];
-    console.log("🔍 Form Data:", form.formData);
-
-    if (widget === "IASO_FORMS") {
-      const orgUnits = ensureArray(form.formData["org_units"]);
-      const projects = ensureArray(form.formData["projects"]);
-
-      if (orgUnits.length > 0) {
-        filters.push({ type: "org_units", value: orgUnits.map(Number) });
-      }
-      if (projects.length > 0) {
-        filters.push({ type: "projects", value: projects.map(Number) });
-      }
-    }
 
     const result = await fetchData({
-      variables: {
-        workspaceSlug,
-        connectionSlug: form.formData[parameter.connection],
-        type: iasoWidgetToQuery[widget],
-        filters: debouncedQuery ? [] : [],
-        perPage: 15,
-        page: resetPagination
-          ? 1
-          : (iasoConnection?.queryMetadata?.pageNumber || 0) + 1,
-      },
+        variables: {
+            workspaceSlug,
+            connectionSlug: form.formData[parameter.connection],
+            type: iasoWidgetToQuery[widget],
+            perPage: 15,
+            page: resetPagination
+                ? 1
+                : (iasoConnection?.queryMetadata?.pageNumber || 0) + 1,
+        },
     });
+
     setIsLoading(false);
+
     if (result.data?.connectionBySlug?.__typename === "IASOConnection") {
-      const connection = result.data.connectionBySlug;
-      const newOptions = connection.queryMetadata?.items || [];
-      setOptions((prevOptions) => {
-        // If it's the first page, replace options
-        if (connection.queryMetadata?.pageNumber === 1) {
-          return newOptions;
-        }
-        // Otherwise append to existing options
-        return [...prevOptions, ...newOptions];
-      });
+        const connection = result.data.connectionBySlug;
+        const newOptions = connection.queryMetadata?.items || [];
+        setOptions((prevOptions) => {
+            if (connection.queryMetadata?.pageNumber === 1) {
+                return newOptions;
+            }
+            return [...prevOptions, ...newOptions];
+        });
     }
-  };
+};
+
   const initializeCacheFromForm = () => {
   const ids = ensureArray(form.formData[parameter.code]);
   ids.forEach((id: string) => {

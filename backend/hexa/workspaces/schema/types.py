@@ -2,7 +2,7 @@ import logging
 
 from ariadne import EnumType, InterfaceType, ObjectType
 from django.http import HttpRequest
-from openhexa.toolbox.dhis2.api import DHIS2Error
+from openhexa.toolbox.dhis2.api import DHIS2ToolboxError
 from openhexa.toolbox.iaso.api_client import IASOError
 
 from hexa.core.graphql import result_page
@@ -216,7 +216,9 @@ def resolve_query(connection, info, page=1, per_page=10, filters=None, **kwargs)
             "total_pages": 0,
             "page_number": page,
             "success": False,
-            "error": "REQUEST_ERROR" if isinstance(e, DHIS2Error) else "UNKNOWN_ERROR",
+            "error": "REQUEST_ERROR"
+            if isinstance(e, DHIS2ToolboxError)
+            else "UNKNOWN_ERROR",
         }
 
 
@@ -226,14 +228,6 @@ def resolve_iaso_query(connection, info, page=1, per_page=10, filters=None, **kw
         query_type = IASOMetadataQueryType[kwargs["type"]]
         iaso_client = toolbox_client_from_connection(connection)
         params = {}
-        if query_type == IASOMetadataQueryType.FORMS:
-            if filters is None:
-                raise ValueError("Filters are required for forms query")
-            for filter in filters:
-                if filter["type"] == "org_units":
-                    params["org_units"] = filter["value"]
-                elif filter["type"] == "projects":
-                    params["projects"] = filter["value"]
 
         response = query_iaso_metadata(
             iaso_client,
@@ -279,7 +273,7 @@ def resolve_dhis2_connection_status(connection, info, **kwargs):
     try:
         toolbox_client_from_connection(connection)
         return "UP"
-    except DHIS2Error as e:
+    except DHIS2ToolboxError as e:
         logging.error(f"DHIS2 error: {e}")
         return "DOWN"
     except Exception as e:

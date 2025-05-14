@@ -20,9 +20,9 @@ const GenericConnectionWidget = ({
   ...delegated
 }: GenericConnectionWidgetProps) => {
   const { t } = useTranslation();
-  if (parameter.widget in dhis2WidgetToQuery) {
+  if (parameter.widget in iasoWidgetToQuery) {
     return (
-      <DHIS2Widget
+      <IASOWidget
         parameter={parameter}
         widget={widget}
         form={form}
@@ -31,9 +31,9 @@ const GenericConnectionWidget = ({
       />
     );
   }
-  else if (parameter.widget in iasoWidgetToQuery) {
+  else if (parameter.widget in dhis2WidgetToQuery) {
     return (
-      <IASOWidget
+      <DHIS2Widget
         parameter={parameter}
         widget={widget}
         form={form}
