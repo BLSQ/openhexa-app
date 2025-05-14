@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.6.3](https://github.com/BLSQ/openhexa-app/compare/1.6.2...1.6.3) (2025-05-14)
+
+
+### Bug Fixes
+
+* Caching and SRR of pipelines (HEXA-1262) ([#1109](https://github.com/BLSQ/openhexa-app/issues/1109)) ([4621ad4](https://github.com/BLSQ/openhexa-app/commit/4621ad42a597dde4bb1ea0a88f22d19d0cc3c617))
+* **deps:** update dependency @codemirror/lang-python to v6.2.1 ([#1112](https://github.com/BLSQ/openhexa-app/issues/1112)) ([ba08e59](https://github.com/BLSQ/openhexa-app/commit/ba08e597782bccb3e17fd991312a77432c5889d6))
+* **deps:** update dependency @headlessui/react to v2.2.3 ([#1113](https://github.com/BLSQ/openhexa-app/issues/1113)) ([14a47ae](https://github.com/BLSQ/openhexa-app/commit/14a47aeced94033755b273f255d08afe28faaa6e))
+* **deps:** update dependency @mdxeditor/editor to v3.32.3 ([#1114](https://github.com/BLSQ/openhexa-app/issues/1114)) ([91e5e95](https://github.com/BLSQ/openhexa-app/commit/91e5e95cffb708120d0078ad4f2b2027f022ff09))
+* **superset:** Add missing view in the anonymous routes ([#1108](https://github.com/BLSQ/openhexa-app/issues/1108)) ([6f7ecf1](https://github.com/BLSQ/openhexa-app/commit/6f7ecf1d1e9e3bb51852b1a520aac8951c45abea))
+* **tests:** Update jest snapshots ([c5189fc](https://github.com/BLSQ/openhexa-app/commit/c5189fc198c770221d462c24799eaf0d09004b58))
+* The name of the latest version of a dataset cannot be edited (HEXA-1257) ([#1106](https://github.com/BLSQ/openhexa-app/issues/1106)) ([d428861](https://github.com/BLSQ/openhexa-app/commit/d428861c166c4fd2745e8568d0120656d44e7a67))
+* web hook toggle can be changed while not in edit mode (HEXA-1264) ([#1110](https://github.com/BLSQ/openhexa-app/issues/1110)) ([9a3f195](https://github.com/BLSQ/openhexa-app/commit/9a3f195c49973f032cc2e47b445ac75574a6acbf))
+
 ## [1.6.2](https://github.com/BLSQ/openhexa-app/compare/1.6.1...1.6.2) (2025-05-13)
 
 

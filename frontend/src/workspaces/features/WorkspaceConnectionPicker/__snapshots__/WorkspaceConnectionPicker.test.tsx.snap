@@ -14,7 +14,7 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
         class="mr-1 flex flex-1 items-center truncate"
       >
         <input
-          aria-activedescendant="headlessui-combobox-option-ae7c7a26-e9c8-47d1-b9f8-3d4b8f9d0f15"
+          aria-activedescendant="headlessui-combobox-option-1c1f290c-38b2-483c-ab2d-0d86cbf40edb"
           aria-autocomplete="list"
           aria-controls="headlessui-combobox-options-d88d149f-80c3-4c6d-9b82-01013b801f93"
           aria-expanded="true"
@@ -35,8 +35,7 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
         aria-expanded="true"
         aria-haspopup="listbox"
         data-active=""
-        data-headlessui-state="open active hover"
-        data-hover=""
+        data-headlessui-state="open active"
         data-open=""
         data-testid="combobox-button"
         id="headlessui-combobox-button-963e9095-8e5e-490e-8bf2-2eb1cceb1000"
@@ -93,7 +92,7 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
           data-active=""
           data-focus=""
           data-headlessui-state="active focus"
-          id="headlessui-combobox-option-ae7c7a26-e9c8-47d1-b9f8-3d4b8f9d0f15"
+          id="headlessui-combobox-option-1c1f290c-38b2-483c-ab2d-0d86cbf40edb"
           role="option"
           tabindex="-1"
         >
@@ -143,7 +142,7 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
           aria-selected="false"
           class="relative cursor-default select-none px-2 py-2 text-gray-900"
           data-headlessui-state=""
-          id="headlessui-combobox-option-0dd74c72-ee7d-46a6-a83f-4120b9c8cbc6"
+          id="headlessui-combobox-option-bc5cc96b-0ce3-4134-9e84-249577d65a37"
           role="option"
           tabindex="-1"
         >
@@ -193,7 +192,7 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
           aria-selected="false"
           class="relative cursor-default select-none px-2 py-2 text-gray-900"
           data-headlessui-state=""
-          id="headlessui-combobox-option-252636f5-fa6d-494c-b655-b4c487de29e7"
+          id="headlessui-combobox-option-ae7c7a26-e9c8-47d1-b9f8-3d4b8f9d0f15"
           role="option"
           tabindex="-1"
         >

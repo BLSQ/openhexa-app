@@ -1,27 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { gql } from "@apollo/client";
-import {
-  Pipelines_WorkspaceFragment,
-  useGetPipelinesQuery,
-} from "./Pipelines.generated";
+import { Pipelines_WorkspaceFragment } from "./Pipelines.generated";
 import Header from "../PipelineTemplates/Header";
 import GridView from "./GridView";
 import CardView from "./CardView";
 import useDebounce from "core/hooks/useDebounce";
 import Spinner from "core/components/Spinner";
+import { useWorkspacePipelinesPageQuery } from "workspaces/graphql/queries.generated";
 
 type PipelinesProps = {
   workspace: Pipelines_WorkspaceFragment;
+  page: number;
+  perPage: number;
+  search: string;
 };
 
-const Pipelines = ({ workspace }: PipelinesProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
+const Pipelines = ({
+  workspace,
+  page: initialPage,
+  perPage,
+  search: initialSearch,
+}: PipelinesProps) => {
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [view, setView] = useState<"grid" | "card">("grid");
-  const [page, setPage] = useState(1);
-  const perPage = 10;
+  const [page, setPage] = useState(initialPage);
 
-  const { data, loading } = useGetPipelinesQuery({
+  const { data, loading } = useWorkspacePipelinesPageQuery({
     variables: {
       workspaceSlug: workspace.slug,
       search: debouncedSearchQuery,
@@ -69,29 +74,6 @@ const Pipelines = ({ workspace }: PipelinesProps) => {
     </div>
   );
 };
-
-const GET_PIPELINES = gql`
-  query GetPipelines(
-    $page: Int!
-    $perPage: Int!
-    $search: String
-    $workspaceSlug: String
-  ) {
-    pipelines(
-      page: $page
-      perPage: $perPage
-      search: $search
-      workspaceSlug: $workspaceSlug
-    ) {
-      pageNumber
-      totalPages
-      totalItems
-      items {
-        ...PipelineCard_pipeline
-      }
-    }
-  }
-`;
 
 Pipelines.fragments = {
   workspace: gql`

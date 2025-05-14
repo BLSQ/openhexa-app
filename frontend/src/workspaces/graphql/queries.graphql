@@ -30,6 +30,7 @@ query WorkspacePage($slug: String!) {
 
 query WorkspacePipelinesPage(
   $workspaceSlug: String!
+  $search: String
   $page: Int
   $perPage: Int
 ) {
@@ -40,7 +41,7 @@ query WorkspacePipelinesPage(
     ...CreatePipelineDialog_workspace
   }
 
-  pipelines(workspaceSlug: $workspaceSlug, page: $page, perPage: $perPage) {
+  pipelines(workspaceSlug: $workspaceSlug, search: $search, page: $page, perPage: $perPage) {
     items {
       ...PipelineCard_pipeline
     }
