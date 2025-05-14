@@ -45,6 +45,7 @@ from hexa.workspaces.models import (
     Workspace,
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
+    WorkspaceMembership,
 )
 
 from .utils import DEVICE_DEFAULT_NAME, default_device, has_configured_two_factor
@@ -371,8 +372,8 @@ def resolve_register(_, info, **kwargs):
     if request.user.is_authenticated:
         return {"success": False, "errors": ["ALREADY_LOGGED_IN"]}
 
-    # We only accept registration if the invitation token to a workspace is valid and pending. Once the user is created,
-    # the user is redirected to the list of all his invitations where he can accept or decline them.
+    # We only accept registration if the invitation token to a workspace is valid and pending.
+    # Once the user is created, their invitation is automatically accepted.
     try:
         invitation = WorkspaceInvitation.objects.get_by_token(
             token=mutation_input["invitation_token"]
@@ -412,6 +413,13 @@ def resolve_register(_, info, **kwargs):
             first_name=mutation_input["first_name"],
             last_name=mutation_input["last_name"],
         )
+        WorkspaceMembership.objects.create(
+            workspace=invitation.workspace,
+            user=user,
+            role=invitation.role,
+        )
+        invitation.status = WorkspaceInvitationStatus.ACCEPTED
+        invitation.save()
 
         # Let's authenticate the user automatically
         authenticated_user = authenticate(

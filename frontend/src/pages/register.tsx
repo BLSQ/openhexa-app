@@ -50,7 +50,7 @@ const RegisterPage: NextPageWithLayout = (props: {
 
       if (data?.register.success) {
         // Redirect the user to the workspace's invitations page
-        await router.push("/user/account");
+        await router.push("/workspaces");
       } else if (
         data?.register.errors?.includes(RegisterError.InvalidPassword)
       ) {
