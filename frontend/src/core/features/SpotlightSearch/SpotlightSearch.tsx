@@ -181,7 +181,11 @@ const SpotlightSearch = ({
   ]);
 
   useEffect(() => {
-    const handleRouteChange = () => setIsOpen(false);
+    const handleRouteChange = () => {
+      setIsOpen(false);
+      setUnBouncedQuery("");
+      setHighlightedIndex(0);
+    };
 
     router.events.on("routeChangeStart", handleRouteChange);
 
@@ -322,7 +326,7 @@ const SpotlightSearch = ({
   const searchBarRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(searchBarRef, () => setIsOpen(false));
 
-  const showResults = unBouncedQuery;
+  const showResults = unBouncedQuery && query === unBouncedQuery;
 
   if (!isOpen) {
     return (
@@ -383,72 +387,70 @@ const SpotlightSearch = ({
                 selectedWorkspaces={selectedWorkspaces}
                 onChange={setSelectedWorkspaces}
               />
-              <div className="max-h-[1000px] overflow-y-auto">
-                <Tabs
-                  defaultIndex={0}
-                  className="bg-white p-3 border-none"
-                  onChange={handleTabChange}
+              <Tabs
+                defaultIndex={0}
+                className="bg-white p-3 border-none"
+                onChange={handleTabChange}
+              >
+                <Tabs.Tab
+                  label={getTabLabel(t("All results"), numberOfResults)}
+                  className="bg-white rounded-b-md max-h-[50vh] overflow-y-auto"
                 >
-                  <Tabs.Tab
-                    label={getTabLabel(t("All results"), numberOfResults)}
-                    className="bg-white rounded-b-md"
-                  >
-                    <AllResultsTable
-                      isActive={activeTabIndex === 0}
-                      combinedResults={combinedResults}
-                      highlightedIndex={highlightedIndex}
-                      hasPreviousPage={hasPreviousPageOverall}
-                      hasNextPage={hasNextPageOverall}
-                      fetchNextPage={fetchNextPage}
-                      fetchPreviousPage={fetchPreviousPage}
-                      pageSize={pageSize * tabConfigs.length}
-                    />
-                  </Tabs.Tab>
-                  {tabConfigs.map(
-                    (
-                      {
-                        Component,
-                        typeName,
-                        loading,
-                        propsKey,
-                        label,
-                        data,
-                        setPage,
-                      },
-                      index,
-                    ) => (
-                      <Tabs.Tab
-                        key={index}
-                        leadingElement={
-                          loading ? (
-                            <Spinner
-                              size="xs"
-                              className="h-4 w-4 text-pink-500"
-                            />
-                          ) : (
-                            React.createElement(getTypeIcon(typeName), {
-                              className: "h-4 w-4 text-gray-500",
-                            })
-                          )
+                  <AllResultsTable
+                    isActive={activeTabIndex === 0}
+                    combinedResults={combinedResults}
+                    highlightedIndex={highlightedIndex}
+                    hasPreviousPage={hasPreviousPageOverall}
+                    hasNextPage={hasNextPageOverall}
+                    fetchNextPage={fetchNextPage}
+                    fetchPreviousPage={fetchPreviousPage}
+                    pageSize={pageSize * tabConfigs.length}
+                  />
+                </Tabs.Tab>
+                {tabConfigs.map(
+                  (
+                    {
+                      Component,
+                      typeName,
+                      loading,
+                      propsKey,
+                      label,
+                      data,
+                      setPage,
+                    },
+                    index,
+                  ) => (
+                    <Tabs.Tab
+                      key={index}
+                      leadingElement={
+                        loading ? (
+                          <Spinner
+                            size="xs"
+                            className="h-4 w-4 text-pink-500"
+                          />
+                        ) : (
+                          React.createElement(getTypeIcon(typeName), {
+                            className: "h-4 w-4 text-gray-500",
+                          })
+                        )
+                      }
+                      label={getTabLabel(label, data?.totalItems)}
+                      className="bg-white rounded-b-md max-h-[50vh] overflow-y-auto"
+                    >
+                      <Component
+                        {...{ [propsKey]: data }}
+                        isActive={activeTabIndex === index + 1}
+                        highlightedIndex={highlightedIndex}
+                        fetchData={(params: { page: number }) =>
+                          setPage(params.page)
                         }
-                        label={getTabLabel(label, data?.totalItems)}
-                        className="bg-white rounded-b-md"
-                      >
-                        <Component
-                          {...{ [propsKey]: data }}
-                          isActive={activeTabIndex === index + 1}
-                          highlightedIndex={highlightedIndex}
-                          fetchData={(params: { page: number }) =>
-                            setPage(params.page)
-                          }
-                          setPage={setPage}
-                          pageSize={pageSize}
-                        />
-                      </Tabs.Tab>
-                    ),
-                  )}
-                </Tabs>
-              </div>
+                        setPage={setPage}
+                        pageSize={pageSize}
+                      />
+                    </Tabs.Tab>
+                  ),
+                )}
+              </Tabs>
             </div>
           </div>
         </div>
