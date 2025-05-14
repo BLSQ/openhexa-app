@@ -181,7 +181,10 @@ const SpotlightSearch = ({
   ]);
 
   useEffect(() => {
-    const handleRouteChange = () => setIsOpen(false);
+    const handleRouteChange = () => {
+      setIsOpen(false);
+      setUnBouncedQuery("");
+    };
 
     router.events.on("routeChangeStart", handleRouteChange);
 
