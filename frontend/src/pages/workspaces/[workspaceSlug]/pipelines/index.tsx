@@ -6,8 +6,8 @@ import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import {
-  WorkspacePageDocument,
-  WorkspacePageQuery,
+  WorkspacePipelinesPageDocument,
+  WorkspacePipelinesPageQuery,
 } from "workspaces/graphql/queries.generated";
 import { useRouter } from "next/router";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
@@ -20,9 +20,17 @@ import { WorkspaceLayout_WorkspaceFragment } from "workspaces/layouts/WorkspaceL
 
 type Props = {
   workspace: WorkspaceLayout_WorkspaceFragment;
+  page: number;
+  perPage: number;
+  search: string;
 };
 
-const WorkspacePipelinesPage: NextPageWithLayout = ({ workspace }: Props) => {
+const WorkspacePipelinesPage: NextPageWithLayout = ({
+  workspace,
+  page,
+  perPage,
+  search,
+}: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -91,7 +99,12 @@ const WorkspacePipelinesPage: NextPageWithLayout = ({ workspace }: Props) => {
             defaultIndex={tab === "templates" ? 1 : 0}
           >
             <Tabs.Tab label={t("Pipelines")} className={"space-y-2 pt-2"}>
-              <Pipelines workspace={workspace} />
+              <Pipelines
+                workspace={workspace}
+                page={page}
+                perPage={perPage}
+                search={search}
+              />
             </Tabs.Tab>
             <Tabs.Tab
               label={t("Available Templates")}
@@ -116,11 +129,22 @@ WorkspacePipelinesPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    const workspaceSlug = ctx.params?.workspaceSlug as string;
+    const page = (ctx.query.page as string)
+      ? parseInt(ctx.query.page as string, 10)
+      : 1;
+    const perPage = 15;
+    const search = (ctx.query.search as string) ?? "";
+
     await WorkspaceLayout.prefetch(ctx, client);
-    const { data } = await client.query<WorkspacePageQuery>({
-      query: WorkspacePageDocument,
+
+    const { data } = await client.query<WorkspacePipelinesPageQuery>({
+      query: WorkspacePipelinesPageDocument,
       variables: {
-        slug: ctx.params?.workspaceSlug,
+        workspaceSlug,
+        page,
+        perPage,
+        search,
       },
     });
 
@@ -132,6 +156,9 @@ export const getServerSideProps = createGetServerSideProps({
     return {
       props: {
         workspace: data.workspace,
+        page,
+        perPage,
+        search,
       },
     };
   },

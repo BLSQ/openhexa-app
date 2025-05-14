@@ -10,14 +10,21 @@ import { useWorkspacePipelinesPageQuery } from "workspaces/graphql/queries.gener
 
 type PipelinesProps = {
   workspace: Pipelines_WorkspaceFragment;
+  page: number;
+  perPage: number;
+  search: string;
 };
 
-const Pipelines = ({ workspace }: PipelinesProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
+const Pipelines = ({
+  workspace,
+  page: initialPage,
+  perPage,
+  search: initialSearch,
+}: PipelinesProps) => {
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [view, setView] = useState<"grid" | "card">("grid");
-  const [page, setPage] = useState(1);
-  const perPage = 10;
+  const [page, setPage] = useState(initialPage);
 
   const { data, loading } = useWorkspacePipelinesPageQuery({
     variables: {
