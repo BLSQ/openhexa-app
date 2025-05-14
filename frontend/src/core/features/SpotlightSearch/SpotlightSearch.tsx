@@ -184,6 +184,7 @@ const SpotlightSearch = ({
     const handleRouteChange = () => {
       setIsOpen(false);
       setUnBouncedQuery("");
+      setHighlightedIndex(0);
     };
 
     router.events.on("routeChangeStart", handleRouteChange);
