@@ -53,7 +53,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
         ref={ref}
       />
       {leading && (
-        <div className="absolute inset-y-0 left-0 z-30 inline-flex items-center justify-center pl-2.5">
+        <div className="absolute inset-y-0 left-0 z-10 inline-flex items-center justify-center pl-2.5">
           {leading}
         </div>
       )}
