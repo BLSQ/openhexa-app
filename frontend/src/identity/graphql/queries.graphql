@@ -63,3 +63,9 @@ query RegisterPage {
     passwordRequirements
   }
 }
+
+query GetUsers($query: String!, $workspaceSlug: String!) {
+  users(query: $query, workspaceSlug: $workspaceSlug) {
+    ...User_user
+  }
+}
