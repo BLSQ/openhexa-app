@@ -7,7 +7,7 @@ import {
 } from "identity/graphql/mutations.generated";
 import mockRouter from "next-router-mock";
 import router from "next/router";
-import LoginPage from "pages/login";
+import LoginPage from "pages/login/index.page";
 
 jest.mock("identity/graphql/mutations.generated", () => {
   const actualModule = jest.requireActual(

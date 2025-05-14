@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { TestApp } from "core/helpers/testutils";
 import { AccountPageDocument } from "identity/graphql/queries.generated";
 import mockRouter from "next-router-mock";
-import AccountPage from "pages/user/account";
+import AccountPage from "pages/user/account.page";
 
 jest.mock("identity/graphql/mutations.generated", () => ({
   ...jest.requireActual("identity/graphql/mutations.generated"),
