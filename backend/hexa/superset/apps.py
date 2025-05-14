@@ -5,4 +5,4 @@ class SupersetConfig(CoreAppConfig):
     name = "hexa.superset"
     label = "superset"
 
-    ANONYMOUS_URLS = ["superset:dashboard"]
+    ANONYMOUS_URLS = ["superset:dashboard", "superset:dashboard-external"]
