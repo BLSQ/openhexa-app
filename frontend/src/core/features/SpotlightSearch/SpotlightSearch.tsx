@@ -326,7 +326,7 @@ const SpotlightSearch = ({
   const searchBarRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(searchBarRef, () => setIsOpen(false));
 
-  const showResults = unBouncedQuery;
+  const showResults = unBouncedQuery && query === unBouncedQuery;
 
   if (!isOpen) {
     return (
