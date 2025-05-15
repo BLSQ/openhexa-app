@@ -268,7 +268,7 @@ def resolve_users(_, info, query: str, workspace_slug: str):
 
         users = users.exclude(id__in=workspace.members.values_list("id", flat=True))
 
-        return users[:10]
+        return users.order_by("email")[:10]
     except PermissionDenied:
         return []
     except Workspace.DoesNotExist:
