@@ -51,7 +51,7 @@ def get_email_attachments():
 
 
 def send_workspace_add_user_email(
-    invited_by: User, workspace: Workspace, invitee: User
+    invited_by: User, workspace: Workspace, invitee: User, role: str
 ):
     title = gettext_lazy(
         f"You've been added to the workspace {workspace.name} on OpenHEXA"
@@ -73,7 +73,16 @@ def send_workspace_add_user_email(
             attachments=get_email_attachments(),
         )
 
-        # TODO: tracking
+        track(
+            request=None,
+            event="emails.workspace_invite_sent",
+            properties={
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "workspace": workspace.slug,
+                "invitee_email": invitee.email,
+                "invitee_role": role,
+            },
+        )
 
 
 def send_workspace_invite_new_user_email(invitation: WorkspaceInvitation):
