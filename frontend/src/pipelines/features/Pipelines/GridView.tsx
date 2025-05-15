@@ -6,6 +6,7 @@ import { useTranslation } from "next-i18next";
 import Link from "core/components/Link";
 import { formatPipelineType } from "workspaces/helpers/pipelines";
 import Badge from "core/components/Badge";
+import PipelineRunStatusBadge from "../PipelineRunStatusBadge";
 
 type GridViewProps = {
   items: any[];
@@ -51,6 +52,19 @@ const GridView = ({
         </BaseColumn>
         <BaseColumn id="type" label={t("Type")}>
           {(pipeline) => <Badge>{formatPipelineType(pipeline.type)}</Badge>}
+        </BaseColumn>
+        <BaseColumn label={t("Last Run")} id="lastRunStatus">
+          {(pipeline) => {
+            if (pipeline.lastRuns.items.length > 0) {
+              return (
+                <PipelineRunStatusBadge
+                  run={pipeline.lastRuns.items[0]}
+                  polling={false}
+                />
+              );
+            }
+            return <p>{t("Not yet run")}</p>;
+          }}
         </BaseColumn>
         <BaseColumn id="description" label={t("Description")}>
           {(pipeline) => <span>{pipeline.description}</span>}
