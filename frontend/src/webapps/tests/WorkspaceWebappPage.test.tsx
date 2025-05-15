@@ -6,7 +6,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import WorkspaceWebappPage from "pages/workspaces/[workspaceSlug]/webapps/[webappId]";
+import WorkspaceWebappPage from "pages/workspaces/[workspaceSlug]/webapps/[webappId]/index.page";
 import { toast } from "react-toastify";
 import { TestApp } from "core/helpers/testutils";
 import {

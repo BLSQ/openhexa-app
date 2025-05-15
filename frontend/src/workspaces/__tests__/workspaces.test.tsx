@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { TestApp } from "core/helpers/testutils";
-import WorkspacePage from "pages/workspaces/[workspaceSlug]";
+import WorkspacePage from "pages/workspaces/[workspaceSlug]/index.page";
 import { SidebarMenuDocument } from "workspaces/features/SidebarMenu/SidebarMenu.generated";
 import { WorkspacePageDocument } from "workspaces/graphql/queries.generated";
 

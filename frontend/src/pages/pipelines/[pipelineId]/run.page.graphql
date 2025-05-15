@@ -1,0 +1,13 @@
+query PipelineConfigureRunPage($pipelineId: UUID!) {
+  dag(id: $pipelineId) {
+    id
+    label
+    externalId
+    template {
+      sampleConfig
+      description
+    }
+    description
+    ...PipelineRunForm_dag
+  }
+}

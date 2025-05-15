@@ -1,0 +1,24 @@
+query PipelinesPage($page: Int, $perPage: Int = 15) {
+  dags(page: $page, perPage: $perPage) {
+    totalPages
+    totalItems
+    items {
+      label
+      countries {
+        ...CountryBadge_country
+      }
+      tags {
+        ...Tag_tag
+      }
+      id
+      externalId
+      runs(orderBy: EXECUTION_DATE_DESC, perPage: 1) {
+        items {
+          id
+          status
+          executionDate
+        }
+      }
+    }
+  }
+}

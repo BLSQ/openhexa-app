@@ -1,0 +1,44 @@
+query PipelinePage($id: UUID!, $page: Int, $perPage: Int) {
+  dag(id: $id) {
+    id
+    label
+    countries {
+      ...CountryBadge_country
+    }
+    tags {
+      ...Tag_tag
+    }
+    externalId
+    schedule
+    externalUrl
+    template {
+      code
+      description
+      sampleConfig
+    }
+    description
+    schedule
+    user {
+      ...UserProperty_user
+    }
+    runs(page: $page, perPage: $perPage) {
+      totalItems
+      totalPages
+      items {
+        id
+        label
+        triggerMode
+        externalId
+        externalUrl
+        user {
+          ...UserColumn_user
+        }
+        status
+        executionDate
+        lastRefreshedAt
+        duration
+        ...PipelineRunFavoriteTrigger_run
+      }
+    }
+  }
+}

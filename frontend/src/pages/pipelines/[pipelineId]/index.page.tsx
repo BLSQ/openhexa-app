@@ -27,12 +27,13 @@ import PipelineRunFavoriteTrigger from "pipelines/features/PipelineRunFavoriteTr
 import { PipelineRunFavoriteTrigger_RunFragment } from "pipelines/features/PipelineRunFavoriteTrigger/PipelineRunFavoriteTrigger.generated";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import { useUpdatePipelineMutation } from "pipelines/graphql/mutations.generated";
+
+import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 import {
   PipelinePageDocument,
   PipelinePageQuery,
   usePipelinePageQuery,
-} from "pipelines/graphql/queries.generated";
-import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
+} from "./index.page.generated";
 
 type Props = {
   page: number;

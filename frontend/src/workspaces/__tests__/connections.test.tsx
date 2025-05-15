@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { TestApp, waitForDialog } from "core/helpers/testutils";
-import ConnectionsPage from "pages/workspaces/[workspaceSlug]/connections";
-import ConnectionPage from "pages/workspaces/[workspaceSlug]/connections/[connectionId]";
+import ConnectionsPage from "pages/workspaces/[workspaceSlug]/connections/index.page";
+import ConnectionPage from "pages/workspaces/[workspaceSlug]/connections/[connectionId].page";
 import {
   ConnectionPageDocument,
   ConnectionsPageDocument,

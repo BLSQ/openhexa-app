@@ -4,11 +4,11 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import useForm from "core/hooks/useForm";
 import { SetPasswordError } from "graphql/types";
-import { useSetPasswordMutation } from "identity/graphql/mutations.generated";
 import Link from "core/components/Link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
+import { useSetPasswordMutation } from "../auth.generated";
 
 type Form = {
   password1: string;
