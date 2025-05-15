@@ -1,0 +1,17 @@
+query PipelineRunPage($pipelineId: UUID!, $runId: UUID!) {
+  dagRun(id: $runId) {
+    id
+    label
+    triggerMode
+    user {
+      displayName
+    }
+    ...PipelineRunDataCard_dagRun
+  }
+  dag(id: $pipelineId) {
+    id
+    externalId
+    label
+    ...PipelineRunDataCard_dag
+  }
+}

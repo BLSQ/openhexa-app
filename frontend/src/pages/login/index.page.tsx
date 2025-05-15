@@ -1,22 +1,21 @@
-import Input from "core/components/forms/Input";
-import Spinner from "core/components/Spinner";
+import clsx from "clsx";
 import Button from "core/components/Button";
+import Field from "core/components/forms/Field";
+import Input from "core/components/forms/Input";
+import Link from "core/components/Link";
+import Page from "core/components/Page";
+import Spinner from "core/components/Spinner";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
-import Image from "next/legacy/image";
-import Link from "core/components/Link";
 import CenteredLayout from "core/layouts/centered";
+import { LoginError } from "graphql/types";
+import { useTranslation } from "next-i18next";
+import Image from "next/legacy/image";
 import { useRouter } from "next/router";
 import { ReactElement, useState } from "react";
-import Page from "core/components/Page";
-import { useTranslation } from "next-i18next";
-import { LoginError } from "graphql/types";
-import Field from "core/components/forms/Field";
-import clsx from "clsx";
 import { toast } from "react-toastify";
-import { LoginMutation, LoginMutationVariables } from "./index.generated";
-import { gql, useMutation } from "@apollo/client";
+import { useLoginMutation } from "./index.page.generated";
 
 interface LoginForm {
   email: string;
@@ -26,14 +25,7 @@ interface LoginForm {
 
 const LoginPage: NextPageWithLayout = () => {
   const router = useRouter();
-  const [doLogin] = useMutation<LoginMutation, LoginMutationVariables>(gql`
-    mutation Login($input: LoginInput!) {
-      login(input: $input) {
-        success
-        errors
-      }
-    }
-  `);
+  const [doLogin] = useLoginMutation();
   const [showOTPForm, setOTPForm] = useState(false);
   const { t } = useTranslation();
 

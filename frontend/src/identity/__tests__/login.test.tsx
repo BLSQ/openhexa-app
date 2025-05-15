@@ -1,18 +1,16 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TestApp } from "core/helpers/testutils";
-import {
-  LoginDocument,
-  useLoginMutation,
-} from "identity/graphql/mutations.generated";
 import mockRouter from "next-router-mock";
 import router from "next/router";
 import LoginPage from "pages/login/index.page";
+import {
+  LoginDocument,
+  useLoginMutation,
+} from "pages/login/index.page.generated";
 
-jest.mock("identity/graphql/mutations.generated", () => {
-  const actualModule = jest.requireActual(
-    "identity/graphql/mutations.generated",
-  );
+jest.mock("pages/login/index.page.generated", () => {
+  const actualModule = jest.requireActual("pages/login/index.page.generated");
   return {
     ...actualModule,
     __esModule: true,
@@ -21,6 +19,7 @@ jest.mock("identity/graphql/mutations.generated", () => {
 });
 
 const useLoginMutationMock = useLoginMutation as jest.Mock;
+
 describe("LoginPage: No Two Factor Authentication", () => {
   beforeEach(() => {
     mockRouter.setCurrentUrl("/");
@@ -72,7 +71,7 @@ describe("LoginPage: No Two Factor Authentication", () => {
   it("redirects the user on success", async () => {
     const pushSpy = jest.spyOn(router, "push");
     const { useLoginMutation } = jest.requireActual(
-      "identity/graphql/mutations.generated",
+      "pages/login/index.page.generated",
     );
     useLoginMutationMock.mockImplementation(useLoginMutation);
     const user = userEvent.setup();
@@ -115,7 +114,7 @@ describe("LoginPage: No Two Factor Authentication", () => {
 
   it("displays an error message if email/password is incorrect", async () => {
     const { useLoginMutation } = jest.requireActual(
-      "identity/graphql/mutations.generated",
+      "pages/login/index.page.generated",
     );
     useLoginMutationMock.mockImplementation(useLoginMutation);
     const user = userEvent.setup();

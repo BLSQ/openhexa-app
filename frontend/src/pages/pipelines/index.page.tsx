@@ -1,24 +1,24 @@
 import Block from "core/components/Block";
+import Button from "core/components/Button";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
 import CountryColumn from "core/components/DataGrid/CountryColumn";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
-import Page from "core/components/Page";
 import Link from "core/components/Link";
+import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
+import BackLayout from "core/layouts/back/BackLayout";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
+import { useMemo } from "react";
 import {
   PipelinesPageDocument,
   PipelinesPageQuery,
   PipelinesPageQueryVariables,
   usePipelinesPageQuery,
-} from "pipelines/graphql/queries.generated";
-import { useMemo } from "react";
-import BackLayout from "core/layouts/back/BackLayout";
-import Button from "core/components/Button";
+} from "./index.page.generated";
 
 type Props = {
   page: number;

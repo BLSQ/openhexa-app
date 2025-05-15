@@ -4,17 +4,14 @@ import { createGetServerSideProps } from "core/helpers/page";
 import BackLayoutHeader from "core/layouts/back/BackLayoutHeader";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { NotebooksPageDocument, NotebooksPageQuery } from "./index.generated";
-import { gql, useQuery } from "@apollo/client";
-
-const QUERY = gql`
-  query notebooksPage {
-    notebooksUrl
-  }
-`;
+import {
+  NotebooksPageDocument,
+  NotebooksPageQuery,
+  useNotebooksPageQuery,
+} from "./index.page.generated";
 
 const NotebooksPage = () => {
-  const { data } = useQuery<NotebooksPageQuery>(QUERY);
+  const { data } = useNotebooksPageQuery();
   const { t } = useTranslation();
   const router = useRouter();
   if (!data) {
@@ -59,7 +56,7 @@ export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   getServerSideProps: async (ctx, client) => {
     await client.query<NotebooksPageQuery>({
-      query: QUERY,
+      query: NotebooksPageDocument,
     });
   },
 });
