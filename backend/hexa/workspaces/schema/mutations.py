@@ -139,7 +139,10 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                     role=input["role"],
                 )
                 send_workspace_add_user_email(
-                    invited_by=request.user, workspace=workspace, invitee=user
+                    invited_by=request.user,
+                    workspace=workspace,
+                    invitee=user,
+                    role=input["role"],
                 )
         else:
             is_already_invited = WorkspaceInvitation.objects.filter(
