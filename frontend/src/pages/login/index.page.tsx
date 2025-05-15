@@ -1,7 +1,6 @@
 import Input from "core/components/forms/Input";
 import Spinner from "core/components/Spinner";
 import Button from "core/components/Button";
-import { useLoginMutation } from "identity/graphql/mutations.generated";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
@@ -16,6 +15,8 @@ import { LoginError } from "graphql/types";
 import Field from "core/components/forms/Field";
 import clsx from "clsx";
 import { toast } from "react-toastify";
+import { LoginMutation, LoginMutationVariables } from "./index.generated";
+import { gql, useMutation } from "@apollo/client";
 
 interface LoginForm {
   email: string;
@@ -25,7 +26,14 @@ interface LoginForm {
 
 const LoginPage: NextPageWithLayout = () => {
   const router = useRouter();
-  const [doLogin] = useLoginMutation();
+  const [doLogin] = useMutation<LoginMutation, LoginMutationVariables>(gql`
+    mutation Login($input: LoginInput!) {
+      login(input: $input) {
+        success
+        errors
+      }
+    }
+  `);
   const [showOTPForm, setOTPForm] = useState(false);
   const { t } = useTranslation();
 
