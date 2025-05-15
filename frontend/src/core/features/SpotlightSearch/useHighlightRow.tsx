@@ -10,7 +10,7 @@ const useHighlightRow = (
       const row = ref?.parentElement?.parentElement;
       if (row) {
         if (index === highlightedIndex) {
-          row.className = "bg-blue-100 outline-solid outline-blue-500/50"; // Highlight the current row
+          row.className = "bg-blue-100/50 outline-solid outline-blue-500/50"; // Highlight the current row
           ref?.focus();
         } else {
           row.className = ""; // Reset other rows
