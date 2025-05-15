@@ -3,7 +3,6 @@ import Link from "core/components/Link";
 import { getLink, getObject } from "./mapper";
 import useHighlightRow from "./useHighlightRow";
 import { useRouter } from "next/router";
-import clsx from "clsx";
 
 type HighlightedLinkProps = {
   item: any;
@@ -34,13 +33,10 @@ const HighlightedLink = ({
         resultRefs.current[index] = el;
       }}
       tabIndex={-1}
-      className={clsx(
-        "focus:outline-none hover:w-auto hover:fixed",
-        index === highlightedIndex ? "hover:bg-blue-100" : "hover:bg-white",
-      )}
+      className="focus:outline-none"
     >
       <Link href={{ pathname: getLink(item, currentWorkspaceSlug) }}>
-        <div className="truncate">{getObject(item).name}</div>
+        {getObject(item).name}
       </Link>
     </div>
   );
