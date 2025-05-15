@@ -3,7 +3,6 @@ import { ComboboxOption } from "@headlessui/react";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
 
-import UserComponent from "core/features/User";
 import useDebounce from "core/hooks/useDebounce";
 import { Combobox } from "core/components/forms/Combobox";
 import { useGetUsersQuery } from "identity/graphql/queries.generated";
@@ -49,11 +48,12 @@ export const UserPicker = (props: UserPickerProps) => {
         value={{ email: query }}
         className={clsx(!data?.users.length && Classes.newUser)}
       >
-        {!data?.users.length && t("Invite new user: ") + query}
+        {data?.users && !data?.users.length && t("Invite new user: ") + query}
       </ComboboxOption>
       {data?.users.map((user) => (
         <Combobox.CheckOption key={user.id} value={user}>
-          {user.email} ({user.displayName}){/* <UserComponent user=user /> */}
+          {user.email}{" "}
+          {user.displayName !== user.email && `(${user.displayName})`}
         </Combobox.CheckOption>
       ))}
     </Combobox>
