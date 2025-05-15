@@ -1,3 +1,4 @@
+import { gql } from "@apollo/client";
 import { useCallback, useState } from "react";
 import { ComboboxOption } from "@headlessui/react";
 import clsx from "clsx";
@@ -5,11 +6,16 @@ import { useTranslation } from "next-i18next";
 
 import useDebounce from "core/hooks/useDebounce";
 import { Combobox } from "core/components/forms/Combobox";
-import { useGetUsersQuery } from "identity/graphql/queries.generated";
+import UserComponent from "core/features/User";
+
+import {
+  useGetUsersQuery,
+  UserPicker_UserFragment,
+} from "./UserPicker.generated";
 
 type UserPickerProps = {
   workspaceSlug: string;
-  form: any;
+  onChange(user: UserPicker_UserFragment | null): void;
 };
 
 const Classes = {
@@ -18,9 +24,11 @@ const Classes = {
 
 export const UserPicker = (props: UserPickerProps) => {
   const { t } = useTranslation();
-  const { workspaceSlug, form } = props;
+  const { workspaceSlug, onChange } = props;
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState<string>("");
+  const [value, setValue] = useState<UserPicker_UserFragment | null>(null);
+
   const debouncedQuery = useDebounce(query, 250);
   const { data, loading } = useGetUsersQuery({
     variables: {
@@ -32,7 +40,10 @@ export const UserPicker = (props: UserPickerProps) => {
   return (
     <Combobox
       required
-      onChange={(user) => form.setFieldValue("user", user)}
+      onChange={(user) => {
+        setValue(user!);
+        onChange(user!);
+      }}
       loading={loading}
       withPortal={true}
       displayValue={(user) => user?.email ?? ""}
@@ -41,7 +52,7 @@ export const UserPicker = (props: UserPickerProps) => {
         [],
       )}
       placeholder={t("Search users")}
-      value={form.formData.user}
+      value={value}
       onClose={useCallback(() => setQuery(""), [])}
     >
       <ComboboxOption
@@ -52,10 +63,18 @@ export const UserPicker = (props: UserPickerProps) => {
       </ComboboxOption>
       {data?.users.map((user) => (
         <Combobox.CheckOption key={user.id} value={user}>
-          {user.email}{" "}
-          {user.displayName !== user.email && `(${user.displayName})`}
+          <UserComponent user={user} subtext />
         </Combobox.CheckOption>
       ))}
     </Combobox>
   );
+};
+
+UserPicker.fragments = {
+  user: gql`
+    fragment UserPicker_user on User {
+      ...User_user
+    }
+    ${UserComponent.fragments.user}
+  `,
 };

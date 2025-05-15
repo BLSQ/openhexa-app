@@ -16,8 +16,9 @@ import { gql } from "@apollo/client";
 import { InviteMemberWorkspace_WorkspaceFragment } from "./InviteMemberDialog.generated";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useEffect } from "react";
-import { UserPicker } from "./UserPicker";
+import { UserPicker } from "../UserPicker/UserPicker";
 import useFeature from "identity/hooks/useFeature";
+import { UserPicker_UserFragment } from "../UserPicker/UserPicker.generated";
 
 type InviteMemberDialogProps = {
   onClose(): void;
@@ -26,7 +27,7 @@ type InviteMemberDialogProps = {
 };
 
 type Form = {
-  user: User | null;
+  user: UserPicker_UserFragment | null;
   role: WorkspaceMembershipRole;
 };
 
@@ -45,7 +46,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
           input: {
             role: values.role,
             workspaceSlug: workspace.slug,
-            userEmail: values.user.email,
+            userEmail: values.user!.email,
           },
         },
       });
@@ -108,7 +109,10 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
       <Dialog.Content className="space-y-4">
         <Field name="email" label={t("User")} type="email" required>
           {userSearchFeatureEnabled ? (
-            <UserPicker workspaceSlug={workspace.slug} form={form} />
+            <UserPicker
+              workspaceSlug={workspace.slug}
+              onChange={(user) => form.setFieldValue("user", user)}
+            />
           ) : (
             <Input
               placeholder={t("sabrina@bluesquarehub.com")}
