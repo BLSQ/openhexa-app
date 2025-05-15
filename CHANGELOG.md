@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0](https://github.com/BLSQ/openhexa-app/compare/1.6.4...1.7.0) (2025-05-15)
+
+
+### Features
+
+* add last run status to pipeline grid view (HEXA-1268) ([#1121](https://github.com/BLSQ/openhexa-app/issues/1121)) ([fc63258](https://github.com/BLSQ/openhexa-app/commit/fc632582ba9c76648ba11ba18a47a619501ff013))
+
+
+### Bug Fixes
+
+* search bar flickering on scroll due to on hover styles (HEXA-1267) ([#1119](https://github.com/BLSQ/openhexa-app/issues/1119)) ([0e1d52c](https://github.com/BLSQ/openhexa-app/commit/0e1d52cf6b4a66867f96906081bcca929e9c5e88))
+
 ## [1.6.4](https://github.com/BLSQ/openhexa-app/compare/1.6.3...1.6.4) (2025-05-14)
 
 
