@@ -3,7 +3,7 @@ import useFeature from "../useFeature";
 
 const FEATURES = [
   { code: "a_feature", config: {} },
-  { code: "b_feature", config: { specialConfig: "xyz" } },
+  { code: "b_feature", config: {} },
 ];
 
 const mockMe = jest.fn(() => ({
@@ -17,23 +17,23 @@ describe("useFeature", () => {
     const { result } = renderHook((props) => useFeature(props.code), {
       initialProps: { code: "unknown" },
     });
-    expect(result.current).toEqual([false, null]);
+    expect(result.current).toEqual([false]);
   });
   it("returns the feature and its config", async () => {
     const { result } = renderHook(() => useFeature("b_feature"));
-    expect(result.current).toEqual([true, { specialConfig: "xyz" }]);
+    expect(result.current).toEqual([true]);
   });
   it("returns the new feature if the code changes on render", async () => {
     const { result, rerender } = renderHook((props) => useFeature(props.code), {
       initialProps: { code: "unknown" },
     });
 
-    expect(result.current).toEqual([false, null]);
+    expect(result.current).toEqual([false]);
 
     rerender({ code: "a_feature" });
-    expect(result.current).toEqual([true, {}]);
+    expect(result.current).toEqual([true]);
 
     rerender({ code: "b_feature" });
-    expect(result.current).toEqual([true, { specialConfig: "xyz" }]);
+    expect(result.current).toEqual([true]);
   });
 });

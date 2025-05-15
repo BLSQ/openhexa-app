@@ -8,7 +8,6 @@ query GetUser {
     }
     features {
       code
-      config
     }
     user {
       ...UserAvatar_user

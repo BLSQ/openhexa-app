@@ -70,7 +70,7 @@ class SchemaTest(GraphQLTestCase):
 
         cls.FEATURE = Feature.objects.create(code="nice_feature")
         cls.TAYLOR_FEATURE_FLAG = FeatureFlag.objects.create(
-            feature=cls.FEATURE, user=cls.USER_TAYLOR, config={"config_argument": 10}
+            feature=cls.FEATURE, user=cls.USER_TAYLOR
         )
 
         cls.USER_JANE.emaildevice_set.create(name="default", user=cls.USER_JANE)
@@ -128,7 +128,6 @@ class SchemaTest(GraphQLTestCase):
                   }
                   features {
                     code
-                    config
                   }
                   permissions {
                     createTeam
@@ -168,7 +167,6 @@ class SchemaTest(GraphQLTestCase):
                 me {
                   features {
                     code
-                    config
                   }
                   user {
                     id
@@ -183,7 +181,6 @@ class SchemaTest(GraphQLTestCase):
                 "features": [
                     {
                         "code": self.TAYLOR_FEATURE_FLAG.feature.code,
-                        "config": self.TAYLOR_FEATURE_FLAG.config,
                     }
                 ],
                 "user": {
