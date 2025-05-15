@@ -26,7 +26,7 @@ const HighlightedLink = ({
   useHighlightRow(resultRefs, highlightedIndex, [isActive, data]);
 
   const index = data.indexOf(item);
-
+  const name = getObject(item).name;
   return (
     <div
       ref={(el) => {
@@ -36,7 +36,9 @@ const HighlightedLink = ({
       className="focus:outline-none"
     >
       <Link href={{ pathname: getLink(item, currentWorkspaceSlug) }}>
-        {getObject(item).name}
+        <div title={name} className="truncate">
+          {name}
+        </div>
       </Link>
     </div>
   );
