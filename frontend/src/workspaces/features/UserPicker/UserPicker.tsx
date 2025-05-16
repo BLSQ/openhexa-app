@@ -6,7 +6,7 @@ import { useTranslation } from "next-i18next";
 
 import useDebounce from "core/hooks/useDebounce";
 import { Combobox } from "core/components/forms/Combobox";
-import UserComponent from "core/features/User";
+import User from "core/features/User";
 
 import {
   useGetUsersQuery,
@@ -15,6 +15,7 @@ import {
 
 type UserPickerProps = {
   workspaceSlug: string;
+  value: UserPicker_UserFragment | null;
   onChange(user: UserPicker_UserFragment | null): void;
 };
 
@@ -24,10 +25,9 @@ const Classes = {
 
 export const UserPicker = (props: UserPickerProps) => {
   const { t } = useTranslation();
-  const { workspaceSlug, onChange } = props;
+  const { workspaceSlug, value, onChange } = props;
 
   const [query, setQuery] = useState<string>("");
-  const [value, setValue] = useState<UserPicker_UserFragment | null>(null);
 
   const debouncedQuery = useDebounce(query, 250);
   const { data, loading } = useGetUsersQuery({
@@ -40,10 +40,7 @@ export const UserPicker = (props: UserPickerProps) => {
   return (
     <Combobox
       required
-      onChange={(user) => {
-        setValue(user!);
-        onChange(user!);
-      }}
+      onChange={(user) => onChange(user!)}
       loading={loading}
       withPortal={true}
       displayValue={(user) => user?.email ?? ""}
@@ -63,7 +60,7 @@ export const UserPicker = (props: UserPickerProps) => {
       </ComboboxOption>
       {data?.users.map((user) => (
         <Combobox.CheckOption key={user.id} value={user}>
-          <UserComponent user={user} subtext />
+          <User user={user} subtext />
         </Combobox.CheckOption>
       ))}
     </Combobox>
@@ -75,6 +72,6 @@ UserPicker.fragments = {
     fragment UserPicker_user on User {
       ...User_user
     }
-    ${UserComponent.fragments.user}
+    ${User.fragments.user}
   `,
 };

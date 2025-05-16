@@ -8,7 +8,6 @@ import { useInviteWorkspaceMemberMutation } from "workspaces/graphql/mutations.g
 import useForm from "core/hooks/useForm";
 import {
   InviteWorkspaceMembershipError,
-  User,
   WorkspaceMembershipRole,
 } from "graphql/types";
 import SimpleSelect from "core/components/forms/SimpleSelect";
@@ -18,7 +17,6 @@ import useCacheKey from "core/hooks/useCacheKey";
 import { useEffect } from "react";
 import { UserPicker } from "../UserPicker/UserPicker";
 import useFeature from "identity/hooks/useFeature";
-import { UserPicker_UserFragment } from "../UserPicker/UserPicker.generated";
 
 type InviteMemberDialogProps = {
   onClose(): void;
@@ -27,7 +25,7 @@ type InviteMemberDialogProps = {
 };
 
 type Form = {
-  user: UserPicker_UserFragment | null;
+  user: React.ComponentProps<typeof UserPicker>["value"];
   role: WorkspaceMembershipRole;
 };
 
@@ -111,6 +109,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
           {userSearchFeatureEnabled ? (
             <UserPicker
               workspaceSlug={workspace.slug}
+              value={form.formData.user!}
               onChange={(user) => form.setFieldValue("user", user)}
             />
           ) : (
