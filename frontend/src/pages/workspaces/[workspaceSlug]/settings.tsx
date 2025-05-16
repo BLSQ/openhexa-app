@@ -173,7 +173,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                 onClick={() => setIsNewMemberDialogOpen(true)}
                 leadingIcon={<PlusCircleIcon className="mr-1 h-4 w-4" />}
               >
-                {t("Invite member")}
+                {t("Add/Invite member")}
               </Button>
             </div>
             <Block>
