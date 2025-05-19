@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pandas as pd
 from django.contrib.contenttypes.models import ContentType
 from django.test import override_settings
+from files import storage
 from pandas.errors import EmptyDataError
 
 from hexa.core.test import TestCase
@@ -36,6 +37,7 @@ class TestDataframeJsonEncoder(TestCase):
 class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
     @classmethod
     def setUpTestData(cls):
+        storage.reset()
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com", "serena's password", is_superuser=True
         )
