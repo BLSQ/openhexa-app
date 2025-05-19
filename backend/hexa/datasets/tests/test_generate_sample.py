@@ -22,7 +22,6 @@ from hexa.datasets.queue import (
 )
 from hexa.datasets.tests.fixtures.wkb_geometry_encoded import wkb_geometry
 from hexa.datasets.tests.testutils import DatasetTestMixin
-from hexa.files import storage
 from hexa.metadata.models import MetadataAttribute
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
@@ -37,7 +36,6 @@ class TestDataframeJsonEncoder(TestCase):
 class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
     @classmethod
     def setUpTestData(cls):
-        storage.reset()
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com", "serena's password", is_superuser=True
         )
@@ -268,7 +266,11 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
 
     def test_generate_profile(self):
         df = pd.DataFrame(
-            {1234: [2, 4, 6, 8, 10], "str_column": ["a", "b", "c", "d", "e"]}
+            {
+                1234: [2, 4, 6, 8, 10],
+                12345: [1.0, None, None, None, None],
+                "str_column": ["a", "b", "c", "d", "e"],
+            }
         )
         profile = generate_profile(df)
         self.assertEqual(
@@ -289,6 +291,22 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                     "maximum": 10,
                     "quantiles25": 4.0,
                     "quantiles75": 8.0,
+                },
+                {
+                    "column_name": "12345",
+                    "constant_values": True,
+                    "count": 1,
+                    "data_type": "float64",
+                    "distinct_values": 2,
+                    "missing_values": 4,
+                    "unique_values": 1,
+                    "mean": 1.0,
+                    "median": 1.0,
+                    "standard_deviation": 0.0,
+                    "minimum": 1.0,
+                    "maximum": 1.0,
+                    "quantiles25": 1.0,
+                    "quantiles75": 1.0,
                 },
                 {
                     "column_name": "str_column",
