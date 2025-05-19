@@ -2,6 +2,7 @@ import hashlib
 from logging import getLogger
 from typing import Type
 
+import numpy as np
 import pandas as pd
 from django.conf import settings
 from django.db import transaction
@@ -126,8 +127,7 @@ def generate_profile(df: pd.DataFrame) -> list:
         quantiles25 = numeric_df.quantile(0.25).to_dict()
         median = numeric_df.median().to_dict()
         quantiles75 = numeric_df.quantile(0.75).to_dict()
-        standard_deviation = numeric_df.std().to_dict()
-
+        standard_deviation = numeric_df.std().replace({np.nan: 0.0}).to_dict()
         metadata_per_column = [
             {
                 **{
