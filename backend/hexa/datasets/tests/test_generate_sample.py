@@ -4,7 +4,6 @@ from unittest.mock import patch
 import pandas as pd
 from django.contrib.contenttypes.models import ContentType
 from django.test import override_settings
-from files import storage
 from pandas.errors import EmptyDataError
 
 from hexa.core.test import TestCase
@@ -23,6 +22,7 @@ from hexa.datasets.queue import (
 )
 from hexa.datasets.tests.fixtures.wkb_geometry_encoded import wkb_geometry
 from hexa.datasets.tests.testutils import DatasetTestMixin
+from hexa.files import storage
 from hexa.metadata.models import MetadataAttribute
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
