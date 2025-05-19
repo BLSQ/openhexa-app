@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1](https://github.com/BLSQ/openhexa-app/compare/1.7.0...1.7.1) (2025-05-19)
+
+
+### Bug Fixes
+
+* file profiling is failing for only one cell in a column (HEXA-1275) ([#1124](https://github.com/BLSQ/openhexa-app/issues/1124)) ([884c468](https://github.com/BLSQ/openhexa-app/commit/884c468dd261b7e6e8b4d2135b662db26a8f70eb))
+
 ## [1.7.0](https://github.com/BLSQ/openhexa-app/compare/1.6.4...1.7.0) (2025-05-15)
 
 
