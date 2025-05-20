@@ -116,7 +116,9 @@ def generate_profile(df: pd.DataFrame) -> list:
         constant_values = df.apply(lambda x: x.nunique() == 1).astype("bool").to_dict()
         count = df.count().to_dict()
 
-        numeric_df = df.select_dtypes(include=["number"])
+        numeric_df = df.select_dtypes(include=["number"]).replace(
+            [np.inf, -np.inf], np.nan
+        )
         numeric_df = numeric_df.dropna(
             how="all", axis=1
         )  # Drop numeric columns with all NaN values

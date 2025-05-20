@@ -271,6 +271,7 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
             {
                 1234: [2, 4, 6, 8, 10],
                 12345: [1.0, None, None, None, None],
+                123456: ["inf", "-inf", "inf", "inf", "-inf"],
                 "str_column": ["a", "b", "c", "d", "e"],
             }
         )
@@ -309,6 +310,15 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                     "maximum": 1.0,
                     "quantiles25": 1.0,
                     "quantiles75": 1.0,
+                },
+                {
+                    "column_name": "123456",
+                    "constant_values": False,
+                    "count": 5,
+                    "data_type": "string",
+                    "distinct_values": 2,
+                    "missing_values": 0,
+                    "unique_values": 2,
                 },
                 {
                     "column_name": "str_column",
