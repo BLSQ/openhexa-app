@@ -456,6 +456,7 @@
   "Successfully created pipeline {{pipelineName}}": "Création réussie de la pipeline {{pipelineName}}",
   "Successfully deleted template {{ name }}": "Modèle {{ name }} supprimé avec succès",
   "Suggested help topics": "Sujets d'aide suggérés",
+  "Switching workspace": "Changement d'espace de travail",
   "Table": "Table",
   "Tables": "Tableaux",
   "Tabs": "Onglets",

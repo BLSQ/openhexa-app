@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/globals.css";
+import OverlayProgress from "./OverlayProgress";
 
 // Set the default timezone to use on the client
 if (typeof window !== "undefined") {
@@ -39,6 +40,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
     <ErrorBoundary>
       <MeProvider me={me}>
         <NavigationProgress color="#002C5F" height={3} />
+        <OverlayProgress />
         <ApolloProvider client={apolloClient}>
           <Head>
             <meta

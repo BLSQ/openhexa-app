@@ -454,6 +454,7 @@
   "Successfully created pipeline {{pipelineName}}": "Successfully created pipeline {{pipelineName}}",
   "Successfully deleted template {{ name }}": "Successfully deleted template {{ name }}",
   "Suggested help topics": "Suggested help topics",
+  "Switching workspace": "Switching workspace",
   "Table": "Table",
   "Tables": "Tables",
   "Tabs": "Tabs",
