@@ -60,9 +60,7 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
   });
 
   useEffect(() => {
-    if (searchQuery) {
-      setSearchQueryState(searchQuery);
-    }
+    setSearchQueryState(searchQuery);
   }, [searchQuery]);
 
   useEffect(() => {
