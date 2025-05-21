@@ -57,12 +57,16 @@ const DatasetResultTable = ({
       </BaseColumn>
       <TextColumn label={t("Description")} accessor="dataset.description" />
       <BaseColumn id="createdBy" label={t("Created by")}>
-        {(item) => (
-          <div className={"flex space-x-1"}>
-            <UserAvatar user={item.dataset.createdBy} size="xs" />
-            <p>{item.dataset.createdBy.displayName}</p>
-          </div>
-        )}
+        {(item) =>
+          item.dataset.createdBy ? (
+            <div className={"flex space-x-1"}>
+              <UserAvatar user={item.dataset.createdBy} size="xs" />
+              <p>{item.dataset.createdBy.displayName}</p>
+            </div>
+          ) : (
+            <div>-</div>
+          )
+        }
       </BaseColumn>
       <BaseColumn id="updatedAt" label={t("Last updated")}>
         {(item) => (
