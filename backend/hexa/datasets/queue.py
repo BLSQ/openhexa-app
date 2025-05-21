@@ -81,8 +81,8 @@ def generate_sample(
                 replace=True,
             )
             sample = sample.replace(
-                [np.inf, -np.inf], np.nan
-            )  # We are not supporting Infinity
+                {np.inf: "inf", -np.inf: "-inf"}
+            )  # We are not supporting Infinity as numbers
             dataset_file_sample.sample = sample.to_dict(orient="records")
         dataset_file_sample.status = DatasetFileSample.STATUS_FINISHED
     except Exception as e:
