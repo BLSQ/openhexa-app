@@ -142,7 +142,7 @@ export const getLink = (item: Item, currentWorkspaceSlug?: string): string => {
       encodeURIComponent(workspaceSlug),
       urlName,
       ...parentPath,
-      `?q=${encodeURIComponent(object.name)}`,
+      `?q=${object.name}`,
     ];
     if (object.type === FileType.Directory) {
       return fullPath.concat(encodeURIComponent(object.name)).join("/");
