@@ -142,11 +142,10 @@ export const getLink = (item: Item, currentWorkspaceSlug?: string): string => {
       encodeURIComponent(workspaceSlug),
       urlName,
       ...parentPath,
-      `?q=${object.name}`,
+      object.type === FileType.Directory
+        ? encodeURIComponent(object.name)
+        : `?q=${object.name}`,
     ];
-    if (object.type === FileType.Directory) {
-      return fullPath.concat(encodeURIComponent(object.name)).join("/");
-    }
     return fullPath.join("/");
   }
   return `/workspaces/${encodeURIComponent(workspaceSlug)}/${getUrlName(item.__typename)}/${getUrlId(item)}`;
