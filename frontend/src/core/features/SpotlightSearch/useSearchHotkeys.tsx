@@ -31,7 +31,7 @@ const useSearchHotkeys = ({
     () => {
       setIsOpen(!isOpen);
     },
-    { enableOnFormTags: ["INPUT", "TEXTAREA"] },
+    { enableOnFormTags: ["INPUT", "TEXTAREA"], preventDefault: true },
   );
 
   // Close the search when pressing escape
