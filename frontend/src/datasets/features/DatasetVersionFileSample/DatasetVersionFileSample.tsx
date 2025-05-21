@@ -6,7 +6,6 @@ import Spinner from "core/components/Spinner";
 import { ApolloComponent } from "core/helpers/types";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import useFeature from "identity/hooks/useFeature";
 import {
   DatasetVersionFileSample_FileFragment,
   DatasetVersionFileSample_VersionFragment,
@@ -107,7 +106,6 @@ export const DatasetVersionFileSample: ApolloComponent<
   DatasetVersionFileSampleProps
 > = ({ file, version }) => {
   const { t } = useTranslation();
-  const [isSmartPreviewerEnabled] = useFeature("datasets.smart_previewer");
   const { data, loading } = useQuery(GET_DATASET_VERSION_FILE_SAMPLE, {
     variables: {
       id: file.id,
@@ -163,12 +161,7 @@ export const DatasetVersionFileSample: ApolloComponent<
 
   switch (status) {
     case "UNSUPPORTED":
-      return isSmartPreviewerEnabled ? (
-        <SmartPreviewer file={file} />
-      ) : (
-        <NoPreviewMessage />
-      );
-
+      return <SmartPreviewer file={file} />;
     case "ERROR":
       return (
         <div className="text-sm text-gray-500 italic w-full flex justify-center p-4">
