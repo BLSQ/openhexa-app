@@ -5,6 +5,7 @@ import { Combobox } from "core/components/forms/Combobox";
 import WorkspaceDisplay from "./WorkspaceDisplay";
 import { GetWorkspacesQuery } from "./SpotlightSearch.generated";
 import { useTranslation } from "next-i18next";
+import Button from "core/components/Button";
 
 type Workspace = GetWorkspacesQuery["workspaces"]["items"][0];
 
@@ -45,7 +46,27 @@ const WorkspaceFilterPanel = ({
 
   return (
     <div className="bg-white p-4">
-      <p className="text-md font-medium mb-5">{t("Filter by Workspace")}</p>
+      <div className="flex justify-between items-center mb-5">
+        <p className="text-md font-medium">{t("Filter by Workspace")}</p>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="white"
+            disabled={selectedWorkspaces.length >= workspaces.length}
+            onClick={() => onChange(workspaces)}
+          >
+            {t("Select All")}
+          </Button>
+          <Button
+            size="sm"
+            variant="white"
+            disabled={selectedWorkspaces.length === 0}
+            onClick={() => onChange([])}
+          >
+            {t("Clear All")}
+          </Button>
+        </div>
+      </div>
       {workspaces.length <= 10 ? (
         <div className="flex gap-2 flex-wrap">
           {workspaces.map((workspace) => (
