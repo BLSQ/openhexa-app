@@ -110,7 +110,6 @@ const fetchMoreOptions = async (resetPagination: boolean = false) => {
     });
 
     setIsLoading(false);
-    console.log("IASOWidget result", result);
     if (result.data?.connectionBySlug?.__typename === "IASOConnection") {
         const connection = result.data.connectionBySlug;
         const newOptions = connection.queryMetadata?.items || [];

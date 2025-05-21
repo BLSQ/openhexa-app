@@ -1920,7 +1920,7 @@ enum IASOConnectionError {
 
 """IASO metadata item"""
 type IASOMetadataItem {
-  id: String
+  id: Int
   label: String!
 }
 

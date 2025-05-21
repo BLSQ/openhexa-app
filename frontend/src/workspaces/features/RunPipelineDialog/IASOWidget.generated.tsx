@@ -14,7 +14,7 @@ export type GetConnectionBySlugIasoQueryVariables = Types.Exact<{
 }>;
 
 
-export type GetConnectionBySlugIasoQuery = { __typename?: 'Query', connectionBySlug?: { __typename?: 'CustomConnection' } | { __typename?: 'DHIS2Connection' } | { __typename?: 'GCSConnection' } | { __typename?: 'IASOConnection', queryMetadata: { __typename?: 'IASOQueryResultPage', pageNumber: number, totalItems: number, error?: Types.IasoConnectionError | null, items?: Array<{ __typename?: 'IASOMetadataItem', id?: string | null, label: string }> | null } } | { __typename?: 'PostgreSQLConnection' } | { __typename?: 'S3Connection' } | null };
+export type GetConnectionBySlugIasoQuery = { __typename?: 'Query', connectionBySlug?: { __typename?: 'CustomConnection' } | { __typename?: 'DHIS2Connection' } | { __typename?: 'GCSConnection' } | { __typename?: 'IASOConnection', queryMetadata: { __typename?: 'IASOQueryResultPage', pageNumber: number, totalItems: number, error?: Types.IasoConnectionError | null, items?: Array<{ __typename?: 'IASOMetadataItem', id?: number | null, label: string }> | null } } | { __typename?: 'PostgreSQLConnection' } | { __typename?: 'S3Connection' } | null };
 
 
 export const GetConnectionBySlugIasoDocument = gql`

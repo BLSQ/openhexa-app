@@ -952,7 +952,7 @@ enum IASOConnectionError {
 IASO metadata item
 """
 type IASOMetadataItem {
-    id: String      # Unique identifier
+    id: Int      # Unique identifier
     label: String!   # Label of the metadata item
 }
 """

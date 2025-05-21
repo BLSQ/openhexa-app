@@ -87,9 +87,10 @@ class ConnectiontTest(GraphQLTestCase):
                 variables={
                     "workspaceSlug": self.WORKSPACE.slug,
                     "connectionSlug": "iaso-connection-1",
-                    "type": "ORG_UNITS",
+                    "type": "IASO_ORG_UNITS",
                 },
             )
+            print(response)
             self.assertEqual(
                 response["data"],
                 {
@@ -130,7 +131,7 @@ class ConnectiontTest(GraphQLTestCase):
                 variables={
                     "workspaceSlug": self.WORKSPACE.slug,
                     "connectionSlug": "iaso-connection-1",
-                    "type": "ORG_UNITS",
+                    "type": "IASO_ORG_UNITS",
                     "search": "Org Unit 1",
                 },
             )
@@ -182,7 +183,7 @@ class ConnectiontTest(GraphQLTestCase):
                 variables={
                     "workspaceSlug": self.WORKSPACE.slug,
                     "connectionSlug": "iaso-connection-1",
-                    "type": "ORG_UNITS",
+                    "type": "IASO_ORG_UNITS",
                 },
             )
             self.assertEqual(
@@ -364,7 +365,7 @@ class ConnectiontTest(GraphQLTestCase):
                 variables={
                     "workspaceSlug": self.WORKSPACE.slug,
                     "connectionSlug": "iaso-connection-1",
-                    "type": "ORG_UNITS",
+                    "type": "IASO_ORG_UNITS",
                 },
             )
             self.assertEqual(

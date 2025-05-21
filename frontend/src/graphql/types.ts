@@ -2049,7 +2049,7 @@ export enum IasoConnectionError {
 /** IASO metadata item */
 export type IasoMetadataItem = {
   __typename?: 'IASOMetadataItem';
-  id?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['Int']['output']>;
   label: Scalars['String']['output'];
 };
 
