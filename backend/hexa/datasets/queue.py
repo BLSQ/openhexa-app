@@ -80,6 +80,9 @@ def generate_sample(
                 random_state=SAMPLING_SEED,
                 replace=True,
             )
+            sample = sample.replace(
+                [np.inf, -np.inf], np.nan
+            )  # We are not supporting Infinity
             dataset_file_sample.sample = sample.to_dict(orient="records")
         dataset_file_sample.status = DatasetFileSample.STATUS_FINISHED
     except Exception as e:
