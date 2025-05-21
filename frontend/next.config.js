@@ -8,6 +8,7 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 const { i18n } = require("./next-i18next.config");
 
 let config = {
+  pageExtensions: ["page.tsx", "page.ts", "page.jsx", "page.js"],
   experimental: {
     optimizePackageImports: ["luxon"],
   },

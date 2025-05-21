@@ -6,8 +6,9 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import {
   NotebooksPageDocument,
+  NotebooksPageQuery,
   useNotebooksPageQuery,
-} from "notebooks/graphql/queries.generated";
+} from "./index.page.generated";
 
 const NotebooksPage = () => {
   const { data } = useNotebooksPageQuery();
@@ -54,7 +55,7 @@ const NotebooksPage = () => {
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   getServerSideProps: async (ctx, client) => {
-    await client.query({
+    await client.query<NotebooksPageQuery>({
       query: NotebooksPageDocument,
     });
   },

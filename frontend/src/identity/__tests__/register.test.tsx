@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { TestApp } from "core/helpers/testutils";
 import userEvent from "@testing-library/user-event";
 import mockRouter from "next-router-mock";
-import RegisterPage from "pages/register";
+import RegisterPage from "pages/register/index.page";
 import { useRegisterMutation } from "identity/graphql/mutations.generated";
 import { UserEvent } from "@testing-library/user-event/dist/types/setup/setup";
 

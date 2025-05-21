@@ -1,6 +1,6 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import WebappsPage from "pages/workspaces/[workspaceSlug]/webapps";
+import WebappsPage from "pages/workspaces/[workspaceSlug]/webapps/index.page";
 import { toast } from "react-toastify";
 import { TestApp } from "core/helpers/testutils";
 import { SidebarMenuDocument } from "workspaces/features/SidebarMenu/SidebarMenu.generated";

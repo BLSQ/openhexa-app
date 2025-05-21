@@ -2,16 +2,15 @@ import Breadcrumbs from "core/components/Breadcrumbs";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import BackLayout from "core/layouts/back/BackLayout";
-import DefaultLayout from "core/layouts/default";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import PipelineRunDataCard from "pipelines/features/PipelineRunDataCard";
+import { getPipelineRunLabel } from "pipelines/helpers/runs";
 import {
   PipelineRunPageDocument,
   PipelineRunPageQuery,
   usePipelineRunPageQuery,
-} from "pipelines/graphql/queries.generated";
-import { getPipelineRunLabel } from "pipelines/helpers/runs";
+} from "./[runId].page.generated";
 
 type Props = {
   page: number;
