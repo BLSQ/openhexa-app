@@ -100,13 +100,13 @@ class TestIASOClientMethods(TestCase):
         )
         responses.add(
             responses.GET,
-            "https://iaso-staging.bluesquare.org/api/orgunits/tree/?page=1&limit=10&validation_status=VALID",
+            "https://iaso-staging.bluesquare.org/api/orgunits/tree/search/?page=1&limit=10&validation_status=VALID",
             json=iaso_mocked_orgunits,
             status=200,
         )
         iaso = toolbox_client_from_connection(self.connection)
         self.assertIsNotNone(iaso)
-        org_units = iaso.get_org_units()
+        org_units = iaso.get_org_units(optimized=True)
         self.assertIsNotNone(org_units)
 
     @responses.activate
@@ -125,7 +125,7 @@ class TestIASOClientMethods(TestCase):
         )
         iaso = toolbox_client_from_connection(self.connection)
         self.assertIsNotNone(iaso)
-        org_units = iaso.get_org_units(search="test")
+        org_units = iaso.get_org_units(optimized=True, search="test")
         self.assertEqual(len(org_units), 1)
 
     @responses.activate

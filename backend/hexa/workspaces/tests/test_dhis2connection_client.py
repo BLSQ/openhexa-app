@@ -94,7 +94,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_org_units(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -111,7 +111,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_org_units_by_groups(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -131,7 +131,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_org_unit_groups(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -148,7 +148,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_org_unit_levels(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -165,7 +165,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_datasets(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -182,7 +182,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_data_elements(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -199,7 +199,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_data_elements_by_datasets(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -219,7 +219,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_data_elements_by_groups(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -239,7 +239,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_data_element_groups(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -256,7 +256,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_indicators(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -273,7 +273,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_indicators_by_groups(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -293,7 +293,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_indicator_groups(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
