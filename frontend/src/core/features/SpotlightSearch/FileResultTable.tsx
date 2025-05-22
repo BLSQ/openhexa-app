@@ -10,6 +10,7 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import TypeBadge from "./TypeBadge";
 import HighlightedLink from "./HighlightedLink";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
+import { getObject } from "./mapper";
 
 type FileResultTableProps = {
   isActive: boolean;
@@ -63,7 +64,7 @@ const FileResultTable = ({
           <TypeBadge
             typeName={item.__typename}
             type={item.file.type}
-            name={item.name}
+            name={getObject(item).name}
           />
         )}
       </BaseColumn>

@@ -3,7 +3,7 @@ import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import { useTranslation } from "next-i18next";
 import WorkspaceDisplay from "./WorkspaceDisplay";
 import TypeBadge from "./TypeBadge";
-import { getWorkspace } from "./mapper";
+import { getObject, getWorkspace } from "./mapper";
 import HighlightedLink from "./HighlightedLink";
 import PaginationItem from "core/components/Pagination/PaginationItem";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
@@ -49,7 +49,7 @@ const AllResultsTable = ({
             <TypeBadge
               typeName={item.__typename}
               type={item.file?.type}
-              name={item.name}
+              name={getObject(item).name}
             />
           )}
         </BaseColumn>
