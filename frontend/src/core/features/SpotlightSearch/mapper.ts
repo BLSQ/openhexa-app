@@ -122,6 +122,9 @@ const getUrlId = (item: Item): string => {
   }
 };
 
+// TODO : logo
+// TODO : path on clicking is incorrect
+
 export const getLink = (item: Item, currentWorkspaceSlug?: string): string => {
   const workspaceSlug =
     item.__typename === "PipelineTemplateResult" && currentWorkspaceSlug
