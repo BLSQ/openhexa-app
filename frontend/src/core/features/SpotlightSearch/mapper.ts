@@ -154,7 +154,7 @@ export const getUrl = (item: Item, currentWorkspaceSlug?: string): Url => {
         "workspaces",
         encodeURIComponent(workspaceSlug),
         urlName,
-        ...(object.type === FileType.Directory ? parentPath : objectPath),
+        ...(object.type === FileType.Directory ? objectPath : parentPath),
       ].join("/"),
       query,
     };
