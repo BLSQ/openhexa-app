@@ -236,7 +236,9 @@ class FileSystemStorage(Storage):
 
         def does_object_match(name):
             lower_name = name.lower()
-            if ignore_hidden_files and name.startswith("."):
+            if ignore_hidden_files and any(
+                part.startswith(".") for part in name.split("/")
+            ):
                 return False
             if query and query.lower() not in lower_name:
                 return False
@@ -248,7 +250,9 @@ class FileSystemStorage(Storage):
 
         def walk(path, relative_prefix, recursive=True):
             for entry in os.scandir(path):
-                if ignore_hidden_files and entry.name.startswith("."):
+                if ignore_hidden_files and any(
+                    part.startswith(".") for part in entry.name.split("/")
+                ):
                     continue
 
                 entry_key = Path(relative_prefix) / entry.name
