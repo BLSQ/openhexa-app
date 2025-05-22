@@ -133,21 +133,24 @@ export const getUrl = (item: Item, currentWorkspaceSlug?: string): Url => {
   if (!item.__typename) return "";
   if (item.__typename === "FileResult") {
     const object = getObject(item);
-    let urlName = object.name.endsWith(".ipynb")
-      ? "notebooks"
-      : getUrlName(item.__typename);
+    let urlName = getUrlName(item.__typename);
     const parentPath = object.path
       .replace(/\/$/, "") // rstrip trailing slash if any
       .split("/")
       .slice(1, -1)
       .map(encodeURIComponent);
     const objectPath = [...parentPath, encodeURIComponent(object.name)];
-    const query =
-      object.type === FileType.File
-        ? { q: object.name }
-        : object.name.endsWith(".ipynb")
-          ? { open: objectPath.join("/") }
-          : {};
+    if (object.name.endsWith(".ipynb")) {
+      return {
+        pathname: [
+          "",
+          "workspaces",
+          encodeURIComponent(workspaceSlug),
+          "notebooks",
+        ].join("/"),
+        query: { open: objectPath.join("/") },
+      };
+    }
     return {
       pathname: [
         "",
@@ -156,7 +159,7 @@ export const getUrl = (item: Item, currentWorkspaceSlug?: string): Url => {
         urlName,
         ...(object.type === FileType.Directory ? objectPath : parentPath),
       ].join("/"),
-      query,
+      query: object.type === FileType.File ? { q: object.name } : {},
     };
   }
   return `/workspaces/${encodeURIComponent(workspaceSlug)}/${getUrlName(item.__typename)}/${getUrlId(item)}`;
