@@ -33,6 +33,10 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
   });
 
   useEffect(() => {
+    setServer(props.server);
+  }, [props.server]);
+
+  useEffect(() => {
     let timeout: NodeJS.Timeout;
     if (!server?.ready) {
       timeout = setTimeout(() => {
