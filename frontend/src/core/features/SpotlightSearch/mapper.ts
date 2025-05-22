@@ -136,6 +136,11 @@ export const getLink = (item: Item, currentWorkspaceSlug?: string): string => {
       .split("/")
       .slice(1, -1)
       .map(encodeURIComponent);
+
+    if (object.name.endsWith(".ipynb")) {
+      return `/workspaces/${encodeURIComponent(workspaceSlug)}/notebooks/?open=${parentPath.join("/")}/${object.name}`;
+    }
+
     const fullPath = [
       "",
       "workspaces",
