@@ -1,5 +1,6 @@
 import {
   BoltIcon,
+  BookOpenIcon,
   CircleStackIcon,
   DocumentIcon,
   FolderOpenIcon,
@@ -35,8 +36,12 @@ const typeIconMap: Record<TypeName, typeof CircleStackIcon> = {
 export const getTypeIcon = (
   typeName: TypeName,
   type?: FileType,
+  name?: string,
 ): typeof BoltIcon => {
   if (typeName === "FileResult") {
+    if (name?.endsWith(".ipynb")) {
+      return BookOpenIcon;
+    }
     return type === FileType.Directory ? FolderOpenIcon : DocumentIcon;
   }
   return typeIconMap[typeName] || QuestionMarkCircleIcon;
@@ -54,9 +59,14 @@ export const getLabel = (
   typeName: TypeName,
   t: (key: string) => string,
   type?: FileType,
+  name?: string,
 ): string => {
   if (typeName === "FileResult") {
-    return type === FileType.Directory ? t("Directory") : t("File");
+    return type === FileType.Directory
+      ? t("Directory")
+      : name?.endsWith(".ipynb")
+        ? t("Notebook")
+        : t("File");
   }
   return labelMap(t)[typeName] ?? t("Unknown");
 };
@@ -122,8 +132,6 @@ const getUrlId = (item: Item): string => {
       return "";
   }
 };
-
-// TODO : logo
 
 export const getUrl = (item: Item, currentWorkspaceSlug?: string): Url => {
   const workspaceSlug =

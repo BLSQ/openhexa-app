@@ -6,15 +6,16 @@ import { FileType } from "graphql/types";
 type TypeBadgeProps = {
   typeName: TypeName;
   type?: FileType;
+  name?: string;
 };
 
-const TypeBadge = ({ typeName, type }: TypeBadgeProps) => {
+const TypeBadge = ({ typeName, type, name }: TypeBadgeProps) => {
   const { t } = useTranslation();
-  const Icon = getTypeIcon(typeName, type);
+  const Icon = getTypeIcon(typeName, type, name);
   return (
     <div className="flex">
       <Icon className="h-5 w-5" />
-      <div className="ml-1">{getLabel(typeName, t, type)}</div>
+      <div className="ml-1">{getLabel(typeName, t, type, name)}</div>
     </div>
   );
 };

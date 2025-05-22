@@ -46,7 +46,11 @@ const AllResultsTable = ({
         </BaseColumn>
         <BaseColumn id="type" label={t("Type")}>
           {(item) => (
-            <TypeBadge typeName={item.__typename} type={item.file?.type} />
+            <TypeBadge
+              typeName={item.__typename}
+              type={item.file?.type}
+              name={item.name}
+            />
           )}
         </BaseColumn>
         <BaseColumn id="workspace" label={t("Workspace")}>
