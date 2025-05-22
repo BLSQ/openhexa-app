@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import Link from "core/components/Link";
-import { getLink, getObject } from "./mapper";
+import { getUrl, getObject } from "./mapper";
 import useHighlightRow from "./useHighlightRow";
 import { useRouter } from "next/router";
 
@@ -35,7 +35,7 @@ const HighlightedLink = ({
       tabIndex={-1}
       className="focus:outline-none"
     >
-      <Link href={{ pathname: getLink(item, currentWorkspaceSlug) }}>
+      <Link href={getUrl(item, currentWorkspaceSlug)}>
         <div title={name} className="truncate">
           {name}
         </div>

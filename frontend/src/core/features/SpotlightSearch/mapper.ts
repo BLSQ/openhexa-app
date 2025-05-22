@@ -13,6 +13,7 @@ import { PipelineTemplatesPageFragment } from "./PipelineTemplateResultTable.gen
 import { DatasetsPageFragment } from "./DatasetResultTable.generated";
 import { FilesPageFragment } from "./FileResultTable.generated";
 import { FileType } from "graphql/types";
+import { Url } from "next-router-mock";
 
 export type Item =
   | DatabaseTablesPageFragment["items"][0]
@@ -123,9 +124,8 @@ const getUrlId = (item: Item): string => {
 };
 
 // TODO : logo
-// TODO : path on clicking is incorrect
 
-export const getLink = (item: Item, currentWorkspaceSlug?: string): string => {
+export const getUrl = (item: Item, currentWorkspaceSlug?: string): Url => {
   const workspaceSlug =
     item.__typename === "PipelineTemplateResult" && currentWorkspaceSlug
       ? currentWorkspaceSlug
@@ -133,28 +133,31 @@ export const getLink = (item: Item, currentWorkspaceSlug?: string): string => {
   if (!item.__typename) return "";
   if (item.__typename === "FileResult") {
     const object = getObject(item);
-    const urlName = getUrlName(item.__typename);
+    let urlName = object.name.endsWith(".ipynb")
+      ? "notebooks"
+      : getUrlName(item.__typename);
     const parentPath = object.path
       .replace(/\/$/, "") // rstrip trailing slash if any
       .split("/")
       .slice(1, -1)
       .map(encodeURIComponent);
-
-    if (object.name.endsWith(".ipynb")) {
-      return `/workspaces/${encodeURIComponent(workspaceSlug)}/notebooks/?open=${parentPath.join("/")}/${object.name}`;
-    }
-
-    const fullPath = [
-      "",
-      "workspaces",
-      encodeURIComponent(workspaceSlug),
-      urlName,
-      ...parentPath,
-      object.type === FileType.Directory
-        ? encodeURIComponent(object.name)
-        : `?q=${object.name}`,
-    ];
-    return fullPath.join("/");
+    const objectPath = [...parentPath, encodeURIComponent(object.name)];
+    const query =
+      object.type === FileType.File
+        ? { q: object.name }
+        : object.name.endsWith(".ipynb")
+          ? { open: objectPath.join("/") }
+          : {};
+    return {
+      pathname: [
+        "",
+        "workspaces",
+        encodeURIComponent(workspaceSlug),
+        urlName,
+        ...(object.type === FileType.Directory ? parentPath : objectPath),
+      ].join("/"),
+      query,
+    };
   }
   return `/workspaces/${encodeURIComponent(workspaceSlug)}/${getUrlName(item.__typename)}/${getUrlId(item)}`;
 };

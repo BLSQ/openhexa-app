@@ -1,6 +1,6 @@
 import { useHotkeys } from "react-hotkeys-hook";
 import { RefObject } from "react";
-import { getLink } from "./mapper";
+import { getUrl } from "./mapper";
 import { useRouter } from "next/router";
 
 type UseSearchHotkeysParams = {
@@ -73,7 +73,7 @@ const useSearchHotkeys = ({
   useHotkeys(
     "enter",
     () => {
-      const href = getLink(data[highlightedIndex], currentWorkspaceSlug);
+      const href = getUrl(data[highlightedIndex], currentWorkspaceSlug);
       href && router.push(href).then();
     },
     { enableOnFormTags: ["INPUT"], enabled: isOpen },
