@@ -60,6 +60,10 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
   });
 
   useEffect(() => {
+    setSearchQueryState(searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => {
     if (searchInputRef.current) {
       searchInputRef.current.focus();
 

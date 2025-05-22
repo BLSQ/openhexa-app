@@ -27,7 +27,7 @@ const InputSearch = ({ isSidebarOpen, isMac, onClick }: InputSearchProps) => {
       className="relative flex justify-center px-2 py-2 text-gray-400 hover:bg-gray-700 hover:text-white group text-md font-medium"
     >
       <MagnifyingGlassIcon className="text-gray-400 h-7 w-7 m-2" />
-      <div className="absolute inset-y-0 left-full ml-2 flex items-center text-xs opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100">
         <Badge className="text-white bg-gray-800 ring-gray-500/20">
           {t("Search")} {isMac ? "(⌘K)" : "(Ctrl+K)"}
         </Badge>

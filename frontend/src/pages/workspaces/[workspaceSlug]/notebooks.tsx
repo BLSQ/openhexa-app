@@ -19,6 +19,7 @@ import { ErrorAlert } from "core/components/Alert";
 
 type Props = {
   server: NotebookServer;
+  path?: string;
 };
 
 const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
@@ -30,6 +31,10 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
   const { data } = useWorkspaceNotebooksPageQuery({
     variables: { workspaceSlug },
   });
+
+  useEffect(() => {
+    setServer(props.server);
+  }, [props.server]);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
@@ -60,6 +65,8 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
       </ErrorAlert>
     );
   }
+
+  const serverUrl = `${server.url}${props.path ? `lab/tree/${props.path}` : ""}`;
 
   return (
     <Page title={data.workspace.name}>
@@ -96,7 +103,7 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
           <iframe
             width="100%"
             style={{ height: "calc(100vh - 4rem)" }}
-            src={server.url}
+            src={serverUrl}
           ></iframe>
         ) : (
           <div className="flex h-60 flex-1 flex-col items-center justify-center gap-4">
@@ -132,9 +139,12 @@ export const getServerSideProps = createGetServerSideProps({
       ctx.params?.workspaceSlug as string,
     );
 
+    const path = ctx.query.open as string | undefined;
+
     return {
       props: {
         server,
+        path: path || null,
       },
     };
   },

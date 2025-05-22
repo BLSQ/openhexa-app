@@ -1,5 +1,6 @@
 import {
   BoltIcon,
+  BookOpenIcon,
   CircleStackIcon,
   DocumentIcon,
   FolderOpenIcon,
@@ -13,6 +14,7 @@ import { PipelineTemplatesPageFragment } from "./PipelineTemplateResultTable.gen
 import { DatasetsPageFragment } from "./DatasetResultTable.generated";
 import { FilesPageFragment } from "./FileResultTable.generated";
 import { FileType } from "graphql/types";
+import { Url } from "next-router-mock";
 
 export type Item =
   | DatabaseTablesPageFragment["items"][0]
@@ -34,8 +36,12 @@ const typeIconMap: Record<TypeName, typeof CircleStackIcon> = {
 export const getTypeIcon = (
   typeName: TypeName,
   type?: FileType,
+  name?: string,
 ): typeof BoltIcon => {
   if (typeName === "FileResult") {
+    if (name?.endsWith(".ipynb")) {
+      return BookOpenIcon;
+    }
     return type === FileType.Directory ? FolderOpenIcon : DocumentIcon;
   }
   return typeIconMap[typeName] || QuestionMarkCircleIcon;
@@ -53,9 +59,14 @@ export const getLabel = (
   typeName: TypeName,
   t: (key: string) => string,
   type?: FileType,
+  name?: string,
 ): string => {
   if (typeName === "FileResult") {
-    return type === FileType.Directory ? t("Directory") : t("File");
+    return type === FileType.Directory
+      ? t("Directory")
+      : name?.endsWith(".ipynb")
+        ? t("Notebook")
+        : t("File");
   }
   return labelMap(t)[typeName] ?? t("Unknown");
 };
@@ -122,7 +133,7 @@ const getUrlId = (item: Item): string => {
   }
 };
 
-export const getLink = (item: Item, currentWorkspaceSlug?: string): string => {
+export const getUrl = (item: Item, currentWorkspaceSlug?: string): Url => {
   const workspaceSlug =
     item.__typename === "PipelineTemplateResult" && currentWorkspaceSlug
       ? currentWorkspaceSlug
@@ -130,23 +141,34 @@ export const getLink = (item: Item, currentWorkspaceSlug?: string): string => {
   if (!item.__typename) return "";
   if (item.__typename === "FileResult") {
     const object = getObject(item);
-    const urlName = getUrlName(item.__typename);
+    let urlName = getUrlName(item.__typename);
     const parentPath = object.path
       .replace(/\/$/, "") // rstrip trailing slash if any
       .split("/")
       .slice(1, -1)
       .map(encodeURIComponent);
-    const fullPath = [
-      "",
-      "workspaces",
-      encodeURIComponent(workspaceSlug),
-      urlName,
-      ...parentPath,
-    ];
-    if (object.type === FileType.Directory) {
-      return fullPath.concat(encodeURIComponent(object.name)).join("/");
+    const objectPath = [...parentPath, encodeURIComponent(object.name)];
+    if (object.name.endsWith(".ipynb")) {
+      return {
+        pathname: [
+          "",
+          "workspaces",
+          encodeURIComponent(workspaceSlug),
+          "notebooks",
+        ].join("/"),
+        query: { open: objectPath.join("/") },
+      };
     }
-    return fullPath.join("/");
+    return {
+      pathname: [
+        "",
+        "workspaces",
+        encodeURIComponent(workspaceSlug),
+        urlName,
+        ...(object.type === FileType.Directory ? objectPath : parentPath),
+      ].join("/"),
+      query: object.type === FileType.File ? { q: object.name } : {},
+    };
   }
   return `/workspaces/${encodeURIComponent(workspaceSlug)}/${getUrlName(item.__typename)}/${getUrlId(item)}`;
 };
