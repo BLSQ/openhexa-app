@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.8.0](https://github.com/BLSQ/openhexa-app/compare/1.7.1...1.8.0) (2025-05-22)
+
+
+### Features
+
+* remove dataset smart previewer feature flag (HEXA-1277) ([#1127](https://github.com/BLSQ/openhexa-app/issues/1127)) ([fbae842](https://github.com/BLSQ/openhexa-app/commit/fbae842d016c2e215d9845a0bbf5ca9d993f49e9))
+* search bar UI improvements (HEXA-1276) ([#1129](https://github.com/BLSQ/openhexa-app/issues/1129)) ([85a0e0c](https://github.com/BLSQ/openhexa-app/commit/85a0e0cddd4e9ecff4ed340ae41827933d0b1227))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @sentry/nextjs to v9.22.0 ([#1099](https://github.com/BLSQ/openhexa-app/issues/1099)) ([cd18d79](https://github.com/BLSQ/openhexa-app/commit/cd18d79c4ff98b73998456129da3d38618d8d7ad))
+* **deps:** update dependency cron-parser to v5.2.0 ([#1100](https://github.com/BLSQ/openhexa-app/issues/1100)) ([37b8b2e](https://github.com/BLSQ/openhexa-app/commit/37b8b2ee08134e72f4b051077a5c2198afd78702))
+* **deps:** update dependency cronstrue to v2.61.0 ([#1101](https://github.com/BLSQ/openhexa-app/issues/1101)) ([e05cc52](https://github.com/BLSQ/openhexa-app/commit/e05cc528aff4e0975680982f806578098e8fc91f))
+* **deps:** update dependency i18next to v25.2.0 ([#1102](https://github.com/BLSQ/openhexa-app/issues/1102)) ([0ec155b](https://github.com/BLSQ/openhexa-app/commit/0ec155b5f7f8a134adc1905fabcb1c3bc742891e))
+* profiling and sampling issue with infinity (HEXA-1278) ([#1126](https://github.com/BLSQ/openhexa-app/issues/1126)) ([2921abf](https://github.com/BLSQ/openhexa-app/commit/2921abfcce71f010e783625c003784fbff238ed3))
+
 ## [1.7.1](https://github.com/BLSQ/openhexa-app/compare/1.7.0...1.7.1) (2025-05-19)
 
 
