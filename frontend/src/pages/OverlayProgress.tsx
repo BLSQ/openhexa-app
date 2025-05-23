@@ -22,9 +22,11 @@ const OverlayProgress = () => {
 
     const handleRouteChangeEnd = () => setIsVisible(false);
 
-    router.events.on("routeChangeStart", handleRouteChangeStart);
-    router.events.on("routeChangeComplete", handleRouteChangeEnd);
-    router.events.on("routeChangeError", handleRouteChangeEnd);
+    if (router.isReady) {
+      router.events.on("routeChangeStart", handleRouteChangeStart);
+      router.events.on("routeChangeComplete", handleRouteChangeEnd);
+      router.events.on("routeChangeError", handleRouteChangeEnd);
+    }
 
     return () => {
       router.events.off("routeChangeStart", handleRouteChangeStart);
