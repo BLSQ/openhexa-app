@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.2](https://github.com/BLSQ/openhexa-app/compare/1.8.1...1.8.2) (2025-05-23)
+
+
+### Bug Fixes
+
+* **deps:** update dependency react-i18next to v15.5.2 ([#1142](https://github.com/BLSQ/openhexa-app/issues/1142)) ([228fa2c](https://github.com/BLSQ/openhexa-app/commit/228fa2ce3ca0864c7725a899f21a256bdb0f2ad8))
+* ignore hidden files in path of GCP (HEXA-1279) ([#1140](https://github.com/BLSQ/openhexa-app/issues/1140)) ([e172d14](https://github.com/BLSQ/openhexa-app/commit/e172d14cce3246925cec3b1c9eb481808ba9c770))
+
 ## [1.8.1](https://github.com/BLSQ/openhexa-app/compare/1.8.0...1.8.1) (2025-05-23)
 
 
