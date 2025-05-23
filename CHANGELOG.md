@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.8.1](https://github.com/BLSQ/openhexa-app/compare/1.8.0...1.8.1) (2025-05-23)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @headlessui/react to v2.2.4 ([#1135](https://github.com/BLSQ/openhexa-app/issues/1135)) ([5f57137](https://github.com/BLSQ/openhexa-app/commit/5f57137fdc3a3c46ce237ec954b6ab507d5b5400))
+* **deps:** update dependency @types/lodash to v4.17.17 ([#1137](https://github.com/BLSQ/openhexa-app/issues/1137)) ([96fcad3](https://github.com/BLSQ/openhexa-app/commit/96fcad3772e71e9d52e5a5e56596baa9130fb997))
+* **deps:** update dependency @types/node to v22.15.21 ([#1138](https://github.com/BLSQ/openhexa-app/issues/1138)) ([20e7bf5](https://github.com/BLSQ/openhexa-app/commit/20e7bf5d1d66ffd30ae37b868fa6d828a1a22178))
+* **deps:** update dependency @types/react to v18.3.22 ([#1139](https://github.com/BLSQ/openhexa-app/issues/1139)) ([dccba39](https://github.com/BLSQ/openhexa-app/commit/dccba3931a3dd2f81be070586c96c80c31debfbc))
+* ignore hidden files ([#1132](https://github.com/BLSQ/openhexa-app/issues/1132)) ([dbe0906](https://github.com/BLSQ/openhexa-app/commit/dbe09064be8e16f13a7a081e73645c055781504e))
+
 ## [1.8.0](https://github.com/BLSQ/openhexa-app/compare/1.7.1...1.8.0) (2025-05-22)
 
 
