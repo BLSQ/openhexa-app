@@ -277,7 +277,7 @@ class GoogleCloudStorage(Storage):
         def is_object_match_query(obj):
             lower_name = obj.name.lower()
             if ignore_hidden_files and any(
-                part.startswith(".") for part in lower_name.split("/")
+                part.startswith(".") for part in obj.path.lower().split("/")
             ):
                 return False
             if query and query.lower() not in lower_name:
