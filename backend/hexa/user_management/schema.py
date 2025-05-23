@@ -260,13 +260,16 @@ def resolve_users(_, info, query: str, workspace_slug: str):
         if not request.user.has_perm("workspaces.manage_members", workspace):
             raise PermissionDenied
 
-        users = User.objects.filter(
+        # Exclude current members of the workspace
+        users = User.objects.exclude(
+            id__in=workspace.members.values_list("id", flat=True)
+        )
+
+        users = users.filter(
             Q(email__icontains=query)
             | Q(first_name__icontains=query)
             | Q(last_name__icontains=query)
         )
-
-        users = users.exclude(id__in=workspace.members.values_list("id", flat=True))
 
         return users.order_by("email")[:10]
     except PermissionDenied:
