@@ -55,7 +55,11 @@ class SchemaTest(GraphQLTestCase):
             "alf@bluesquarehub.com", "alfdu96", is_superuser=True, is_staff=True
         )
         cls.USER_ADMIN = User.objects.create_user(
-            "admin@bluesquarehub.com", "adminadmin2022", is_staff=True
+            "admin@bluesquarehub.com",
+            "adminadmin2022",
+            is_staff=True,
+            first_name="Ad",
+            last_name="Min",
         )
         cls.TEAM_CORE = Team.objects.create(name="Core team")
         cls.MEMBERSHIP_JANE_CORE = Membership.objects.create(
@@ -1061,10 +1065,13 @@ class SchemaTest(GraphQLTestCase):
         )
 
         users = r["data"]["users"]
+        # There are 6 users created in `setUpTestData` method.
+        # The search finds all except the logged in user (Jane).
         self.assertEqual(User.objects.count(), 6)
-        self.assertEqual(len(users), 5)  # Finds all users except themselves
+        self.assertEqual(len(users), 5)
         self.assertEqual(
-            {"email": self.USER_ADMIN.email, "firstName": "", "lastName": ""}, users[0]
+            {"email": self.USER_ADMIN.email, "firstName": "Ad", "lastName": "Min"},
+            users[0],
         )
 
     def test_search_users_success_with_query(self):
