@@ -156,6 +156,7 @@ class FileSystemStorageTest(TestCase):
     def test_list_bucket_objects_with_prefix_and_query(self):
         self.storage.create_bucket("default-bucket")
         self.storage.save_object("default-bucket", "prefix/found.txt", b"Hello, world!")
+        self.storage.save_object("default-bucket", "prefix/.found.txt", b"Hidden file")
         self.storage.save_object("default-bucket", "tada/found-2.txt", b"Hello, world!")
 
         self.assertEqual(

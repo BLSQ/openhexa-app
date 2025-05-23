@@ -53,6 +53,7 @@ class GoogleCloudStorageTest(TestCase):
 
         bucket.blob("testAAA.txt").upload_from_string(b"test")
         bucket.blob("testAAB.txt").upload_from_string(b"test")
+        bucket.blob(".testAAB.txt").upload_from_string(b"Hidden file")
         bucket.blob("testABC.txt").upload_from_string(b"test")
         bucket.blob("testABD.txt").upload_from_string(b"test")
 
