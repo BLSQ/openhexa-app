@@ -20,6 +20,7 @@ from hexa.user_management.models import (
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceInvitation,
+    WorkspaceMembership,
     WorkspaceMembershipRole,
 )
 
@@ -54,7 +55,11 @@ class SchemaTest(GraphQLTestCase):
             "alf@bluesquarehub.com", "alfdu96", is_superuser=True, is_staff=True
         )
         cls.USER_ADMIN = User.objects.create_user(
-            "admin@blusqaurehub.com", "adminadmin2022", is_staff=True
+            "admin@bluesquarehub.com",
+            "adminadmin2022",
+            is_staff=True,
+            first_name="Ad",
+            last_name="Min",
         )
         cls.TEAM_CORE = Team.objects.create(name="Core team")
         cls.MEMBERSHIP_JANE_CORE = Membership.objects.create(
@@ -1037,6 +1042,101 @@ class SchemaTest(GraphQLTestCase):
             },
             r["data"]["me"],
         )
+
+    def test_search_users_success_all(self):
+        workspace = Workspace.objects.create(name="Workspace")
+        WorkspaceMembership.objects.create(
+            workspace=workspace,
+            user=self.USER_JANE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        self.client.force_login(self.USER_JANE)
+        r = self.run_query(
+            """
+            query ($query: String!, $workspaceSlug: String!) {
+                users (query: $query, workspaceSlug: $workspaceSlug) {
+                    email
+                    firstName
+                    lastName
+                }
+            }
+            """,
+            {"query": "", "workspaceSlug": workspace.slug},
+        )
+
+        users = r["data"]["users"]
+        # There are 6 users created in `setUpTestData` method.
+        # The search finds all except the logged in user (Jane).
+        self.assertEqual(User.objects.count(), 6)
+        self.assertEqual(len(users), 5)
+        self.assertEqual(
+            {"email": self.USER_ADMIN.email, "firstName": "Ad", "lastName": "Min"},
+            users[0],
+        )
+
+    def test_search_users_success_with_query(self):
+        workspace = Workspace.objects.create(name="Workspace")
+        WorkspaceMembership.objects.create(
+            workspace=workspace,
+            user=self.USER_JANE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        self.client.force_login(self.USER_JANE)
+        r = self.run_query(
+            """
+            query ($query: String!, $workspaceSlug: String!) {
+                users (query: $query, workspaceSlug: $workspaceSlug) {
+                    email
+                    firstName
+                    lastName
+                }
+            }
+            """,
+            {"query": "taylor", "workspaceSlug": workspace.slug},
+        )
+        self.assertEqual(len(r["data"]["users"]), 1)
+        self.assertEqual(
+            {"email": self.USER_TAYLOR.email, "firstName": "", "lastName": ""},
+            r["data"]["users"][0],
+        )
+
+    def test_search_users_invalid_workspace(self):
+        self.client.force_login(self.USER_JANE)
+        r = self.run_query(
+            """
+            query ($query: String!, $workspaceSlug: String!) {
+                users (query: $query, workspaceSlug: $workspaceSlug) {
+                    email
+                    firstName
+                    lastName
+                }
+            }
+            """,
+            {"query": "", "workspaceSlug": "unexisting"},
+        )
+        self.assertEqual([], r["data"]["users"])
+
+    def test_search_users_not_admin(self):
+        workspace = Workspace.objects.create(name="Workspace")
+        WorkspaceMembership.objects.create(
+            workspace=workspace,
+            user=self.USER_JANE,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+        self.client.force_login(self.USER_JANE)
+        r = self.run_query(
+            """
+            query ($query: String!, $workspaceSlug: String!) {
+                users (query: $query, workspaceSlug: $workspaceSlug) {
+                    email
+                    firstName
+                    lastName
+                }
+            }
+            """,
+            {"query": "", "workspaceSlug": workspace.slug},
+        )
+        self.assertEqual([], r["data"]["users"])
 
 
 class TwoFactorTest(GraphQLTestCase):

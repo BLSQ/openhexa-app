@@ -2,6 +2,7 @@ import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
 import Spinner from "core/components/Spinner";
+import Input from "core/components/forms/Input";
 import { useTranslation } from "next-i18next";
 import { useInviteWorkspaceMemberMutation } from "workspaces/graphql/mutations.generated";
 import useForm from "core/hooks/useForm";
@@ -9,12 +10,13 @@ import {
   InviteWorkspaceMembershipError,
   WorkspaceMembershipRole,
 } from "graphql/types";
-import Input from "core/components/forms/Input";
 import SimpleSelect from "core/components/forms/SimpleSelect";
 import { gql } from "@apollo/client";
 import { InviteMemberWorkspace_WorkspaceFragment } from "./InviteMemberDialog.generated";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useEffect } from "react";
+import { UserPicker } from "../UserPicker/UserPicker";
+import useFeature from "identity/hooks/useFeature";
 
 type InviteMemberDialogProps = {
   onClose(): void;
@@ -23,8 +25,8 @@ type InviteMemberDialogProps = {
 };
 
 type Form = {
+  user: React.ComponentProps<typeof UserPicker>["value"];
   role: WorkspaceMembershipRole;
-  email: string;
 };
 
 const InviteMemberDialog = (props: InviteMemberDialogProps) => {
@@ -33,6 +35,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
 
   const [createWorkspaceMember] = useInviteWorkspaceMemberMutation();
   const clearCache = useCacheKey(["workspaces", workspace.slug]);
+  const [userSearchFeatureEnabled] = useFeature("users.search");
 
   const form = useForm<Form>({
     onSubmit: async (values) => {
@@ -41,7 +44,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
           input: {
             role: values.role,
             workspaceSlug: workspace.slug,
-            userEmail: values.email,
+            userEmail: values.user!.email,
           },
         },
       });
@@ -75,11 +78,11 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
       clearCache();
       handleClose();
     },
-    initialState: { role: WorkspaceMembershipRole.Viewer, email: "" },
+    initialState: { role: WorkspaceMembershipRole.Viewer, user: null },
     validate: (values) => {
       const errors = {} as any;
-      if (!values.email) {
-        errors.email = t("Email address is mandatory");
+      if (!values.user) {
+        errors.user = t("Email address is mandatory");
       }
       if (!values.role) {
         errors.role = t("Member role is mandatory");
@@ -100,20 +103,30 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
 
   return (
     <Dialog open={open} onClose={handleClose} onSubmit={form.handleSubmit}>
-      <Dialog.Title>{t("Invite member")}</Dialog.Title>
+      <Dialog.Title>{t("Add or invite member")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
-        <Field name="email" label={t("Email address")} type="email" required>
-          <Input
-            placeholder={t("sabrina@bluesquarehub.com")}
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            fullWidth
-            value={form.formData.email}
-            onChange={form.handleInputChange}
-            error={form.touched.email && form.errors.email}
-          />
+        <Field name="email" label={t("User")} type="email" required>
+          {userSearchFeatureEnabled ? (
+            <UserPicker
+              workspaceSlug={workspace.slug}
+              value={form.formData.user!}
+              onChange={(user) => form.setFieldValue("user", user)}
+            />
+          ) : (
+            <Input
+              placeholder={t("sabrina@bluesquarehub.com")}
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              fullWidth
+              value={form.formData.user?.email}
+              onChange={(event) =>
+                form.setFieldValue("user", { email: event.target.value })
+              }
+              error={form.touched.user && form.errors.user}
+            />
+          )}
         </Field>
         <Field name="role" label={t("Role")} required>
           <SimpleSelect
