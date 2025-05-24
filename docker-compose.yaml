@@ -57,6 +57,7 @@ services:
 
   pipelines_runner:
     <<: *common
+    user: "root"
     build:
       context: ./backend
       dockerfile: Dockerfile
