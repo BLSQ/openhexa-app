@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.3](https://github.com/BLSQ/openhexa-app/compare/1.8.2...1.8.3) (2025-05-23)
+
+
+### Bug Fixes
+
+* overlay progress on initial page load ([#1144](https://github.com/BLSQ/openhexa-app/issues/1144)) ([b9e5e03](https://github.com/BLSQ/openhexa-app/commit/b9e5e03ea9b541cd18c2c35101b0381a8a46e198))
+
 ## [1.8.2](https://github.com/BLSQ/openhexa-app/compare/1.8.1...1.8.2) (2025-05-23)
 
 
