@@ -1924,11 +1924,11 @@ type IASOMetadataItem {
   label: String!
 }
 
-"""Enum representing the type of a IASO metadata item."""
+"""Enum representing the type for IASO metadata item."""
 enum IASOMetadataType {
-  FORMS
+  IASO_FORMS
   IASO_ORG_UNITS
-  PROJECTS
+  IASO_PROJECTS
 }
 
 input IASOQueryFilterInput {

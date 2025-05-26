@@ -109,9 +109,9 @@ class DHIS2MetadataQueryType(StrEnum):
 
 
 class IASOMetadataQueryType(StrEnum):
-    FORMS = "FORMS"
+    IASO_FORMS = "IASO_FORMS"
     IASO_ORG_UNITS = "IASO_ORG_UNITS"
-    PROJECTS = "PROJECTS"
+    IASO_PROJECTS = "IASO_PROJECTS"
 
 
 @dataclass
@@ -151,8 +151,8 @@ def query_iaso_metadata(
     """
     metadata_methods = {
         IASOMetadataQueryType.IASO_ORG_UNITS: iaso_client.get_org_units,
-        IASOMetadataQueryType.PROJECTS: iaso_client.get_projects,
-        IASOMetadataQueryType.FORMS: iaso_client.get_forms,
+        IASOMetadataQueryType.IASO_PROJECTS: iaso_client.get_projects,
+        IASOMetadataQueryType.IASO_FORMS: iaso_client.get_forms,
     }
 
     if query_type not in metadata_methods:
@@ -173,7 +173,7 @@ def toolbox_client_from_connection(connection: Connection) -> DHIS2 | IASO | Non
 
     if connection.connection_type == ConnectionType.IASO:
         return IASO(
-            server_url=connection_values.get("url"),
+            url=connection_values.get("url"),
             username=connection_values.get("username"),
             password=connection_values.get("password"),
         )

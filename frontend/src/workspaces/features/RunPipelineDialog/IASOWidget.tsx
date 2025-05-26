@@ -54,8 +54,8 @@ export const GET_CONNECTION_METADATA = gql`
 `;
 const iasoWidgetToQuery: { [key: string]: IasoMetadataType } = {
     IASO_ORG_UNITS: IasoMetadataType.IasoOrgUnits,
-    IASO_PROJECTS: IasoMetadataType.Projects,
-    IASO_FORMS: IasoMetadataType.Forms,
+    IASO_PROJECTS: IasoMetadataType.IasoProjects,
+    IASO_FORMS: IasoMetadataType.IasoForms,
 };
 
 const IASOWidget = ({

@@ -968,11 +968,11 @@ type IASOQueryResultPage {
 }
 
 """
-Enum representing the type of a IASO metadata item.
+Enum representing the type for IASO metadata item.
 """
 enum IASOMetadataType {
-    FORMS
-    PROJECTS
+    IASO_FORMS
+    IASO_PROJECTS
     IASO_ORG_UNITS
 }
 

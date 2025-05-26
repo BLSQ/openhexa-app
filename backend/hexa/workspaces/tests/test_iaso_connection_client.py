@@ -154,7 +154,7 @@ class TestIASOClientMethods(TestCase):
 
         iaso = toolbox_client_from_connection(self.connection)
         self.assertIsNotNone(iaso)
-        forms = query_iaso_metadata(iaso, IASOMetadataQueryType.FORMS, **params)
+        forms = query_iaso_metadata(iaso, IASOMetadataQueryType.IASO_FORMS, **params)
         self.assertEqual(len(forms.items), 1)
 
     @responses.activate
@@ -175,6 +175,6 @@ class TestIASOClientMethods(TestCase):
         iaso = toolbox_client_from_connection(self.connection)
         self.assertIsNotNone(iaso)
         projects = query_iaso_metadata(
-            iaso, IASOMetadataQueryType.PROJECTS, search="test"
+            iaso, IASOMetadataQueryType.IASO_PROJECTS, search="test"
         )
         self.assertEqual(len(projects.items), 1)

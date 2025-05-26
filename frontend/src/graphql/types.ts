@@ -2053,11 +2053,11 @@ export type IasoMetadataItem = {
   label: Scalars['String']['output'];
 };
 
-/** Enum representing the type of a IASO metadata item. */
+/** Enum representing the type for IASO metadata item. */
 export enum IasoMetadataType {
-  Forms = 'FORMS',
+  IasoForms = 'IASO_FORMS',
   IasoOrgUnits = 'IASO_ORG_UNITS',
-  Projects = 'PROJECTS'
+  IasoProjects = 'IASO_PROJECTS'
 }
 
 export type IasoQueryFilterInput = {

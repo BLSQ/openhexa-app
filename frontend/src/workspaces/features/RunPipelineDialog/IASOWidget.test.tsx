@@ -43,7 +43,7 @@ describe("IASOWidget", () => {
               variables: {
                 workspaceSlug: "mock_workspace",
                 connectionSlug: "mock_connection_slug",
-                type: "PROJECTS",
+                type: "IASO_PROJECTS",
                 search: null,
                 filters: [],
                 perPage: 15,
@@ -80,7 +80,7 @@ describe("IASOWidget", () => {
               variables: {
                 workspaceSlug: "mock_workspace",
                 connectionSlug: "mock_connection_slug",
-                type: "PROJECTS",
+                type: "IASO_PROJECTS",
                 search: null,
                 filters: [],
                 perPage: 15,
@@ -130,7 +130,7 @@ describe("IASOWidget", () => {
               variables: {
                 workspaceSlug: "mock_workspace",
                 connectionSlug: "mock_connection_slug",
-                type: "PROJECTS",
+                type: "IASO_PROJECTS",
                 search: null,
                 filters: [],
                 perPage: 15,
