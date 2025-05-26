@@ -31,8 +31,8 @@ connection_field_object = ObjectType("ConnectionField")
 connection_permissions_object = ObjectType("ConnectionPermissions")
 dhis2_connection = ObjectType("DHIS2Connection")
 dhis2_metadata_type = EnumType("DHIS2MetadataType", DHIS2MetadataQueryType)
-iaos_connection = ObjectType("IASOConnection")
-iaos_metadata_type = EnumType("IASOMetadataType", IASOMetadataQueryType)
+iaso_connection = ObjectType("IASOConnection")
+iaso_metadata_type = EnumType("IASOMetadataType", IASOMetadataQueryType)
 
 
 @connection_permissions_object.field("update")
@@ -221,7 +221,7 @@ def resolve_query(connection, info, page=1, per_page=10, filters=None, **kwargs)
         }
 
 
-@iaos_connection.field("queryMetadata")
+@iaso_connection.field("queryMetadata")
 def resolve_iaso_query(
     connection, info, search=None, page=1, per_page=10, filters=None, **kwargs
 ):
@@ -248,7 +248,6 @@ def resolve_iaso_query(
             **params,
         )
 
-        logging.info(f"IASO result: {response} , for {query_type} with params {params}")
         result = [
             {
                 "label": item.get("name"),
@@ -317,8 +316,8 @@ bindables = [
     connection_field_object,
     connection_interface,
     dhis2_connection,
-    iaos_connection,
-    iaos_metadata_type,
+    iaso_connection,
+    iaso_metadata_type,
     connection_permissions_object,
     dhis2_metadata_type,
 ]

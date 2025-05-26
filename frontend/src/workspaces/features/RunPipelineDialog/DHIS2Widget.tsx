@@ -67,7 +67,6 @@ const DHIS2Widget = ({
   workspaceSlug,
   ...delegated
 }: DHIS2WidgetProps) => {
-  console.log("DHIS2Widget", parameter, widget);
   const [query, _setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 250);
   const [isLoading, setIsLoading] = useState(false);
