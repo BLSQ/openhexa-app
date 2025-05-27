@@ -7,6 +7,7 @@ import { useTranslation } from "next-i18next";
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "core/components/Link";
 import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
+import { TextColumn } from "core/components/DataGrid/TextColumn";
 
 type GridViewProps = {
   items: any[];
@@ -54,6 +55,11 @@ const GridView = ({
             </span>
           )}
         </BaseColumn>
+        <TextColumn
+          id="worksapce"
+          label={t("Source Workspace")}
+          accessor="workspace.name"
+        />
         <DateColumn
           accessor={"currentVersion.createdAt"}
           label={t("Created At")}

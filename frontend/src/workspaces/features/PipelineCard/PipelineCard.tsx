@@ -73,6 +73,9 @@ PipelineCard.fragments = {
       schedule
       description
       type
+      workspace {
+        name
+      }
       currentVersion {
         user {
           ...User_user
