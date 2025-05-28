@@ -1905,10 +1905,45 @@ type IASOConnection implements Connection {
   id: String!
   name: String!
   permissions: ConnectionPermissions!
+  queryMetadata(filters: [IASOQueryFilterInput!], page: Int, perPage: Int, search: String, type: IASOMetadataType!): IASOQueryResultPage!
   slug: String!
   type: ConnectionType!
   updatedAt: DateTime
   user: User
+}
+
+"""IASO connection error"""
+enum IASOConnectionError {
+  REQUEST_ERROR
+  UNKNOWN_ERROR
+}
+
+"""IASO metadata item"""
+type IASOMetadataItem {
+  id: Int
+  label: String!
+}
+
+"""Enum representing the type for IASO metadata item."""
+enum IASOMetadataType {
+  IASO_FORMS
+  IASO_ORG_UNITS
+  IASO_PROJECTS
+}
+
+input IASOQueryFilterInput {
+  type: String!
+  value: [Int]!
+}
+
+"""IASO metadata query result"""
+type IASOQueryResultPage {
+  error: IASOConnectionError
+  items: [IASOMetadataItem!]
+  pageNumber: Int!
+  success: Boolean!
+  totalItems: Int!
+  totalPages: Int!
 }
 
 """Represents the input for inviting a member to a workspace."""
@@ -2485,6 +2520,9 @@ enum ParameterWidget {
   DHIS2_ORG_UNITS
   DHIS2_ORG_UNIT_GROUPS
   DHIS2_ORG_UNIT_LEVELS
+  IASO_FORMS
+  IASO_ORG_UNITS
+  IASO_PROJECTS
 }
 
 """The PermissionMode enum represents the mode of permissions for a team."""
