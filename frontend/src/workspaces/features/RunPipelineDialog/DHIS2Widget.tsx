@@ -17,38 +17,6 @@ type DHIS2WidgetProps = {
   workspaceSlug: string;
   name: string;
 };
-export const GET_CONNECTION_METADATA = gql`
-    query getConnectionBySlugDhis2(
-        $workspaceSlug: String!
-        $connectionSlug: String!
-        $type: DHIS2MetadataType!
-        $filters: [String!]
-        $perPage: Int
-        $page: Int
-    ) {
-        connectionBySlug(
-            workspaceSlug: $workspaceSlug
-            connectionSlug: $connectionSlug
-        ) {
-            ... on DHIS2Connection {
-                queryMetadata(
-                    type: $type
-                    filters: $filters
-                    perPage: $perPage
-                    page: $page
-                ) {
-                    items {
-                        id
-                        label
-                    }
-                    pageNumber
-                    totalItems
-                    error
-                }
-            }
-        }
-    }
-`;
 const dhis2WidgetToQuery: { [key: string]: Dhis2MetadataType } = {
   DHIS2_ORG_UNITS: Dhis2MetadataType.OrgUnits,
   DHIS2_ORG_UNIT_GROUPS: Dhis2MetadataType.OrgUnitGroups,

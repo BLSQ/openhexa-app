@@ -18,40 +18,6 @@ type IASOWidgetProps = {
   name: string;
 };
 
-export const GET_CONNECTION_METADATA = gql`
-    query getConnectionBySlugIaso(
-        $workspaceSlug: String!
-        $connectionSlug: String!
-        $type: IASOMetadataType!
-        $search: String
-        $filters: [IASOQueryFilterInput!]
-        $perPage: Int
-        $page: Int
-    ) {
-        connectionBySlug(
-            workspaceSlug: $workspaceSlug
-            connectionSlug: $connectionSlug
-        ) {
-            ... on IASOConnection {
-                queryMetadata(
-                    type: $type
-                    search: $search
-                    filters: $filters
-                    perPage: $perPage
-                    page: $page
-                ) {
-                    items {
-                        id
-                        label
-                    }
-                    pageNumber
-                    totalItems
-                    error
-                }
-            }
-        }
-    }
-`;
 const iasoWidgetToQuery: { [key: string]: IasoMetadataType } = {
   IASO_ORG_UNITS: IasoMetadataType.IasoOrgUnits,
   IASO_PROJECTS: IasoMetadataType.IasoProjects,
