@@ -440,7 +440,7 @@
   "Size": "Taille",
   "someone": "quelqu'un",
   "Source Template": "Modèle source",
-  "Source workspace": "Workspace de départ",
+  "Source workspace": "Workspace d'origine",
   "Standard pipeline": "Pipeline standard",
   "started {{relativeTime}}": "a commencé {{relativeTime}}",
   "Started on {{relativeTime}}": "Commencé le {{relativeTime}}",
