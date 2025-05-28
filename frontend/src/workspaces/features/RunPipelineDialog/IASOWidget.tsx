@@ -2,20 +2,20 @@ import {ParameterField_ParameterFragment} from "./ParameterField.generated";
 import {FormInstance} from "core/hooks/useForm";
 import {IasoMetadataType} from "graphql/types";
 import {gql} from "@apollo/client";
-import { useGetConnectionBySlugIasoLazyQuery } from "./IASOWidget.generated";
+import {useGetConnectionBySlugIasoLazyQuery} from "./IASOWidget.generated";
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import useIntersectionObserver from "core/hooks/useIntersectionObserver";
 import {Combobox, MultiCombobox} from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
 import {useTranslation} from "next-i18next";
-import { ensureArray } from "core/helpers/array";
+import {ensureArray} from "core/helpers/array";
 
 type IASOWidgetProps = {
-    parameter: ParameterField_ParameterFragment & { connection: string };
-    widget: string;
-    form: FormInstance<any>;
-    workspaceSlug: string;
-    name: string;
+  parameter: ParameterField_ParameterFragment & { connection: string };
+  widget: string;
+  form: FormInstance<any>;
+  workspaceSlug: string;
+  name: string;
 };
 
 export const GET_CONNECTION_METADATA = gql`
@@ -53,26 +53,26 @@ export const GET_CONNECTION_METADATA = gql`
     }
 `;
 const iasoWidgetToQuery: { [key: string]: IasoMetadataType } = {
-    IASO_ORG_UNITS: IasoMetadataType.IasoOrgUnits,
-    IASO_PROJECTS: IasoMetadataType.IasoProjects,
-    IASO_FORMS: IasoMetadataType.IasoForms,
+  IASO_ORG_UNITS: IasoMetadataType.IasoOrgUnits,
+  IASO_PROJECTS: IasoMetadataType.IasoProjects,
+  IASO_FORMS: IasoMetadataType.IasoForms,
 };
 
 const IASOWidget = ({
-                        parameter,
-                        widget,
-                        form,
-                        workspaceSlug,
-                        ...delegated
+                      parameter,
+                      widget,
+                      form,
+                      workspaceSlug,
+                      ...delegated
                     }: IASOWidgetProps) => {
 
   const [query, _setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 250);
   const [isLoading, setIsLoading] = useState(false);
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [options, setOptions] = useState<any[]>([]);
   const cachedSelectionsRef = useRef<Map<string, { id: string; label: string }>>(new Map());
-  const [fetchData, { data, error }] = useGetConnectionBySlugIasoLazyQuery();
+  const [fetchData, {data, error}] = useGetConnectionBySlugIasoLazyQuery();
   const hasConnection = useMemo(() => {
     return form.formData[parameter.connection];
   }, [form.formData[parameter.connection]]);
@@ -92,49 +92,48 @@ const IASOWidget = ({
     _setQuery(newQuery);
   }, []);
 
-const fetchMoreOptions = async (resetPagination: boolean = false) => {
+  const fetchMoreOptions = async (resetPagination: boolean = false) => {
     setIsLoading(true);
 
     const result = await fetchData({
-        variables: {
-            workspaceSlug,
-            connectionSlug: form.formData[parameter.connection],
-            type: iasoWidgetToQuery[widget],
-            search: debouncedQuery || null,
-            filters: [],
-            perPage: 15,
-            page: resetPagination
-                ? 1
-                : (iasoConnection?.queryMetadata?.pageNumber || 0) + 1,
-        },
+      variables: {
+        workspaceSlug,
+        connectionSlug: form.formData[parameter.connection],
+        type: iasoWidgetToQuery[widget],
+        search: debouncedQuery || null,
+        filters: [],
+        perPage: 15,
+        page: resetPagination
+          ? 1
+          : (iasoConnection?.queryMetadata?.pageNumber || 0) + 1,
+      },
     });
 
     setIsLoading(false);
     if (result.data?.connectionBySlug?.__typename === "IASOConnection") {
-        const connection = result.data.connectionBySlug;
-        const newOptions = connection.queryMetadata?.items || [];
-        setOptions((prevOptions) => {
-            if (connection.queryMetadata?.pageNumber === 1) {
-                return newOptions;
-            }
-            return [...prevOptions, ...newOptions];
-        });
+      const connection = result.data.connectionBySlug;
+      const newOptions = connection.queryMetadata?.items || [];
+      setOptions((prevOptions) => {
+        if (connection.queryMetadata?.pageNumber === 1) {
+          return newOptions;
+        }
+        return [...prevOptions, ...newOptions];
+      });
     }
-};
-
+  };
 
 
   const initializeCacheFromForm = () => {
-  const ids = ensureArray(form.formData[parameter.code]);
-  ids.forEach((id: string) => {
-    if (!cachedSelectionsRef.current.has(id)) {
-      cachedSelectionsRef.current.set(id, {
-        id,
-        label: t("Unknown ID: {{id}}", { id }),
-      });
-    }
-  });
-};
+    const ids = ensureArray(form.formData[parameter.code]);
+    ids.forEach((id: string) => {
+      if (!cachedSelectionsRef.current.has(id)) {
+        cachedSelectionsRef.current.set(id, {
+          id,
+          label: t("Unknown ID: {{id}}", {id}),
+        });
+      }
+    });
+  };
   useEffect(() => {
     // Initialize the cache with the current form data
     initializeCacheFromForm();
@@ -144,7 +143,6 @@ const fetchMoreOptions = async (resetPagination: boolean = false) => {
     if (!hasConnection) return;
     fetchMoreOptions(true);
   }, [hasConnection, debouncedQuery]);
-
 
 
   const errorMessage = useMemo(() => {
@@ -174,7 +172,7 @@ const fetchMoreOptions = async (resetPagination: boolean = false) => {
     const getLabel = (item: any) => {
       if (typeof item === "object" && item !== null) return item.label;
       const foundItem = options.find((opt) => opt.id === item);
-      return foundItem?.label ?? t("Unknown ID: {{id}}", { id: item });
+      return foundItem?.label ?? t("Unknown ID: {{id}}", {id: item});
     };
 
     if (Array.isArray(value)) {
@@ -205,28 +203,26 @@ const fetchMoreOptions = async (resetPagination: boolean = false) => {
   );
 
 
-const selectedObjects = useMemo(() => {
-  const ids = ensureArray(form.formData[parameter.code]);
+  const selectedObjects = useMemo(() => {
+    const ids = ensureArray(form.formData[parameter.code]);
 
-  const selectObject = (id: string) => {
-    return (
-      options.find((item) => item.id === id) ||
-      cachedSelectionsRef.current.get(id) || {
-        id,
-        label: t("Unknown ID: {{id}}", { id }),
-      }
-    );
-  };
+    const selectObject = (id: string) => {
+      return (
+        options.find((item) => item.id === id) ||
+        cachedSelectionsRef.current.get(id) || {
+          id,
+          label: t("Unknown ID: {{id}}", {id}),
+        }
+      );
+    };
 
-  if (parameter.multiple) {
-    return ids.map(selectObject);
-  }
+    if (parameter.multiple) {
+      return ids.map(selectObject);
+    }
 
-  const singleId = ids[0];
-  return singleId ? selectObject(singleId) : null;
-}, [form.formData[parameter.code], options]);
-
-
+    const singleId = ids[0];
+    return singleId ? selectObject(singleId) : null;
+  }, [form.formData[parameter.code], options]);
 
 
   const onScrollBottom = useCallback(() => {
@@ -239,52 +235,51 @@ const selectedObjects = useMemo(() => {
   }, [iasoConnection, options, isLoading]);
 
 
+  const PickerComponent = parameter.multiple ? MultiCombobox : Combobox;
 
-    const PickerComponent = parameter.multiple ? MultiCombobox : Combobox;
-
-    return (
-        <PickerComponent
-            onChange={handleSelectionChange}
-            loading={isLoading}
-            displayValue={displayValueHandler}
-            by="id"
-            onInputChange={(e) => setQuery(e.target.value)}
-            placeholder={t("Select options")}
-            value={selectedObjects}
-            disabled={!hasConnection}
-            withPortal
-            onClose={useCallback(() => setQuery(""), [])}
-            error={errorMessage}
-            {...delegated}
-        >
-            {options.map((option) => (
-                <Combobox.CheckOption key={option.id} value={option}>
-                    {option.label}
-                </Combobox.CheckOption>
-            ))}
-            {onScrollBottom && (
-                <IntersectionObserverWrapper onScrollBottom={onScrollBottom}/>
-            )}
-        </PickerComponent>
-    );
+  return (
+    <PickerComponent
+      onChange={handleSelectionChange}
+      loading={isLoading}
+      displayValue={displayValueHandler}
+      by="id"
+      onInputChange={(e) => setQuery(e.target.value)}
+      placeholder={t("Select options")}
+      value={selectedObjects}
+      disabled={!hasConnection}
+      withPortal
+      onClose={useCallback(() => setQuery(""), [])}
+      error={errorMessage}
+      {...delegated}
+    >
+      {options.map((option) => (
+        <Combobox.CheckOption key={option.id} value={option}>
+          {option.label}
+        </Combobox.CheckOption>
+      ))}
+      {onScrollBottom && (
+        <IntersectionObserverWrapper onScrollBottom={onScrollBottom}/>
+      )}
+    </PickerComponent>
+  );
 };
 
 
 const IntersectionObserverWrapper = ({
-                                         onScrollBottom,
+                                       onScrollBottom,
                                      }: {
-    onScrollBottom: () => void;
+  onScrollBottom: () => void;
 }) => {
-    const [lastElement, setLastElement] = useState<Element | null>(null);
-    const list = useIntersectionObserver(lastElement, {});
+  const [lastElement, setLastElement] = useState<Element | null>(null);
+  const list = useIntersectionObserver(lastElement, {});
 
-    useEffect(() => {
-        if (lastElement && list?.isIntersecting) {
-            onScrollBottom();
-        }
-    }, [onScrollBottom, list, lastElement]);
+  useEffect(() => {
+    if (lastElement && list?.isIntersecting) {
+      onScrollBottom();
+    }
+  }, [onScrollBottom, list, lastElement]);
 
-    return <div ref={setLastElement}></div>;
+  return <div ref={setLastElement}></div>;
 };
 
 export {IASOWidget, iasoWidgetToQuery};

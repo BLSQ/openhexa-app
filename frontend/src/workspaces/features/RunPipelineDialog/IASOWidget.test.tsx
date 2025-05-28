@@ -1,7 +1,7 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import {render, screen, waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { TestApp } from "core/helpers/testutils";
-import { IASOWidget, GET_CONNECTION_METADATA } from "./IASOWidget";
+import {TestApp} from "core/helpers/testutils";
+import {IASOWidget, GET_CONNECTION_METADATA} from "./IASOWidget";
 
 jest.mock("core/hooks/useDebounce", () => ({
   __esModule: true,
@@ -20,7 +20,7 @@ const generateMockedParameterField = (multiple = false) => ({
   },
   widget: "IASO_PROJECTS",
   form: {
-    formData: { test_connection: "mock_connection_slug", test_param: null },
+    formData: {test_connection: "mock_connection_slug", test_param: null},
     setFieldValue: jest.fn(),
   },
   workspaceSlug: "mock_workspace",
@@ -54,7 +54,7 @@ describe("IASOWidget", () => {
               data: {
                 connectionBySlug: {
                   __typename: "IASOConnection",
-                  queryMetadata: { items: [], totalItems: 0, pageNumber: 1 },
+                  queryMetadata: {items: [], totalItems: 0, pageNumber: 1},
                 },
               },
             },
@@ -93,8 +93,8 @@ describe("IASOWidget", () => {
                   __typename: "IASOConnection",
                   queryMetadata: {
                     items: [
-                      { id: "1", label: "Project 1" },
-                      { id: "2", label: "Project 2" },
+                      {id: "1", label: "Project 1"},
+                      {id: "2", label: "Project 2"},
                     ],
                     totalItems: 2,
                     pageNumber: 1,
@@ -143,8 +143,8 @@ describe("IASOWidget", () => {
                   __typename: "IASOConnection",
                   queryMetadata: {
                     items: [
-                      { id: "1", label: "Project 1" },
-                      { id: "2", label: "Project 2" },
+                      {id: "1", label: "Project 1"},
+                      {id: "2", label: "Project 2"},
                     ],
                     totalItems: 2,
                     pageNumber: 1,
