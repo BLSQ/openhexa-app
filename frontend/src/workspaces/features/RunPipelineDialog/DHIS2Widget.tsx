@@ -158,7 +158,7 @@ const DHIS2Widget = ({
     const apiError = connection.queryMetadata.error;
     if (apiError) {
       console.error("API Error:", apiError);
-      return t("Failed connect to DHIS2");
+      return t("Failed to connect to DHIS2");
     }
 
     return "";

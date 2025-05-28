@@ -162,7 +162,7 @@ const fetchMoreOptions = async (resetPagination: boolean = false) => {
     const apiError = connection.queryMetadata.error;
     if (apiError) {
       console.error("API Error:", apiError);
-      return t("Failed connect to IASO");
+      return t("Failed to connect to IASO");
     }
 
     return "";
