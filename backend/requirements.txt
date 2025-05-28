@@ -234,10 +234,14 @@ logzero==1.7.0
     # via dhis2-py
 markdown==3.8
     # via -r requirements.in
+markdown-it-py==3.0.0
+    # via rich
 markupsafe==3.0.2
     # via
     #   jinja2
     #   werkzeug
+mdurl==0.1.2
+    # via markdown-it-py
 mixpanel==4.10.1
     # via
     #   -r requirements.in
@@ -272,7 +276,7 @@ oauthlib==3.2.2
     #   requests-oauthlib
 openhexa-sdk==2.1.2
     # via openhexa-toolbox
-openhexa-toolbox==2.3.1
+openhexa-toolbox==2.6.5
     # via -r requirements.in
 openpyxl==3.1.5
     # via -r requirements.in
@@ -333,7 +337,9 @@ pydantic==2.11.3
 pydantic-core==2.33.1
     # via pydantic
 pygments==2.19.1
-    # via dhis2-py
+    # via
+    #   dhis2-py
+    #   rich
 pyjwt==2.10.1
     # via openhexa-toolbox
 pyogrio==0.10.0
@@ -404,6 +410,8 @@ responses==0.25.7
     # via
     #   -r requirements.in
     #   moto
+rich==14.0.0
+    # via openhexa-toolbox
 rio-cogeo==5.4.1
     # via -r requirements.in
 rsa==4.9.1
