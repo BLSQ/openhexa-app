@@ -59,8 +59,9 @@ class WorkspaceTest(GraphQLTestCase):
         )
         cls.USER_EXTERNAL = "user@external.com"
 
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             cls.WORKSPACE = Workspace.objects.create_if_has_perm(
                 cls.USER_JULIA,
@@ -209,11 +210,15 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_create_workspace_with_demo_data(self):
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
-        ) as mocked_load_database_sample, patch(
-            "hexa.workspaces.models.load_bucket_sample_data"
-        ) as mocked_load_bucket_sample:
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch(
+                "hexa.workspaces.models.load_database_sample_data"
+            ) as mocked_load_database_sample,
+            patch(
+                "hexa.workspaces.models.load_bucket_sample_data"
+            ) as mocked_load_bucket_sample,
+        ):
             self.client.force_login(self.USER_JULIA)
             r = self.run_query(
                 """
@@ -255,11 +260,15 @@ class WorkspaceTest(GraphQLTestCase):
             self.assertTrue(mocked_load_database_sample.called)
 
     def test_create_workspace_without_demo_data(self):
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
-        ) as mocked_load_database_sample, patch(
-            "hexa.workspaces.models.load_bucket_sample_data"
-        ) as mocked_load_bucket_sample:
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch(
+                "hexa.workspaces.models.load_database_sample_data"
+            ) as mocked_load_database_sample,
+            patch(
+                "hexa.workspaces.models.load_bucket_sample_data"
+            ) as mocked_load_bucket_sample,
+        ):
             self.client.force_login(self.USER_JULIA)
             r = self.run_query(
                 """
@@ -300,8 +309,9 @@ class WorkspaceTest(GraphQLTestCase):
             self.assertFalse(mocked_load_database_sample.called)
 
     def test_create_workspace_with_country(self):
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             self.client.force_login(self.USER_JULIA)
             r = self.run_query(
@@ -316,7 +326,7 @@ class WorkspaceTest(GraphQLTestCase):
                           code
                         }
                     }
-                   
+
                     errors
                 }
             }
@@ -568,7 +578,7 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["archiveWorkspace"],
         )
 
-    def test_invite_workspace_member(self):
+    def test_add_workspace_member(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
@@ -601,12 +611,14 @@ class WorkspaceTest(GraphQLTestCase):
 
         self.assertEqual(1, len(mail.outbox))
         self.assertEqual(
-            f"You've been added to the workspace {self.WORKSPACE.name}",
+            f"You've been added to the workspace {self.WORKSPACE.name} on OpenHEXA",
             mail.outbox[0].subject,
         )
         self.assertTrue(
-            f"{settings.NEW_FRONTEND_DOMAIN}/user/account" in mail.outbox[0].body
+            f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}"
+            in mail.outbox[0].body
         )
+        self.assertIn(self.WORKSPACE, self.USER_SABRINA.workspace_set.all())
 
     def test_invite_workspace_member_workspace_not_found(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
@@ -1520,7 +1532,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            f"You've been added to the workspace {self.WORKSPACE.name}",
+            f"You've been invited to join the workspace {self.WORKSPACE.name} on OpenHEXA",
             mail.outbox[0].subject,
         )
         self.assertListEqual([self.INVITATION_BAR.email], mail.outbox[0].recipients())
@@ -1568,35 +1580,6 @@ class WorkspaceTest(GraphQLTestCase):
                 f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
                 html.unescape(mail.outbox[0].body),
             )
-
-    def test_resend_workspace_member_invitation_existing_user(self):
-        self.client.force_login(self.USER_WORKSPACE_ADMIN)
-        r = self.run_query(
-            """
-                mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
-                    resendWorkspaceInvitation(input: $input) {
-                        success
-                        errors
-                    }
-                }
-                """,
-            {"input": {"invitationId": str(self.INVITATION_PENDING.id)}},
-        )
-        self.assertEqual(
-            {
-                "success": True,
-                "errors": [],
-            },
-            r["data"]["resendWorkspaceInvitation"],
-        )
-        self.assertEqual(1, len(mail.outbox))
-        self.assertEqual(
-            f"You've been added to the workspace {self.INVITATION_FOO.workspace.name}",
-            mail.outbox[0].subject,
-        )
-        self.assertTrue(
-            f"{settings.NEW_FRONTEND_DOMAIN}/user/account" in mail.outbox[0].body
-        )
 
     def test_delete_workspace_database_table_permission_denied(self):
         self.client.force_login(self.USER_REBECCA)

@@ -1,0 +1,30 @@
+{% load i18n %}
+
+{% blocktranslate with invitee=invitee %}
+Hi {{invitee}},
+{% endblocktranslate %}
+
+{% blocktranslate with owner=owner workspace=workspace %}
+{{owner}} ({{owner_email}}) has added you to the workspace "{{workspace}}" on OpenHEXA.
+{% endblocktranslate %}
+
+{% blocktranslate %}
+Start collaborating here: {{ url }}
+{% endblocktranslate %}
+
+
+---
+{% blocktranslate %}
+Unlock the power of your data where it matters the most.
+
+Explore OpenHEXA modules:
+- Data pipelines, connectors
+- Databases, datasets, files
+- Dashboards, reports, notebooks
+
+Need help? Check out:
+User Manual: https://github.com/BLSQ/openhexa/wiki/User-manual
+Wiki: https://github.com/BLSQ/openhexa/wiki
+
+© 2025 Bluesquare SA. All Rights Reserved
+{% endblocktranslate %}
