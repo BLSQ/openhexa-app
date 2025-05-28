@@ -3,6 +3,7 @@
   "extends": [
     "config:recommended"
   ],
+  "prCreation": "status-success",
   "automerge": false,
   "automergeStrategy": "squash",
   "patch": {
