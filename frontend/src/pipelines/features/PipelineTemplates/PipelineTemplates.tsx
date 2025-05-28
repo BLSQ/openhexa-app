@@ -164,6 +164,10 @@ const GET_PIPELINE_TEMPLATES = gql`
         permissions {
           delete
         }
+        workspace {
+          slug
+          name
+        }
         currentVersion {
           id
           versionNumber
