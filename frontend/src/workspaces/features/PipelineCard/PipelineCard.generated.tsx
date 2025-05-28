@@ -3,7 +3,7 @@ import * as Types from '../../../graphql/types';
 import { gql } from '@apollo/client';
 import { User_UserFragmentDoc } from '../../../core/features/User/User.generated';
 import { PipelineRunStatusBadge_RunFragmentDoc } from '../../../pipelines/features/PipelineRunStatusBadge.generated';
-export type PipelineCard_PipelineFragment = { __typename?: 'Pipeline', id: string, code: string, name?: string | null, schedule?: string | null, description?: string | null, type: Types.PipelineType, workspace: { __typename?: 'Workspace', name: string }, currentVersion?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } | null, lastRuns: { __typename?: 'PipelineRunPage', items: Array<{ __typename?: 'PipelineRun', id: string, status: Types.PipelineRunStatus }> } };
+export type PipelineCard_PipelineFragment = { __typename?: 'Pipeline', id: string, code: string, name?: string | null, schedule?: string | null, description?: string | null, type: Types.PipelineType, currentVersion?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } | null, lastRuns: { __typename?: 'PipelineRunPage', items: Array<{ __typename?: 'PipelineRun', id: string, status: Types.PipelineRunStatus }> } };
 
 export type PipelineCard_WorkspaceFragment = { __typename?: 'Workspace', slug: string };
 
@@ -15,9 +15,6 @@ export const PipelineCard_PipelineFragmentDoc = gql`
   schedule
   description
   type
-  workspace {
-    name
-  }
   currentVersion {
     user {
       ...User_user
