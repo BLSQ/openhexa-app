@@ -2,7 +2,6 @@ import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import StrEnum
-from typing import Optional
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -13,74 +12,99 @@ from hexa.core.utils import send_mail as send_mail
 from hexa.user_management.models import User
 
 from ..analytics.api import track
-from .models import Connection, ConnectionType, WorkspaceInvitation
+from .models import Connection, ConnectionType, Workspace, WorkspaceInvitation
 
 
-def send_workspace_invitation_email(
-    invitation: WorkspaceInvitation, user: Optional[User] = None
+def get_email_attachments():
+    return [
+        (
+            "logo_with_text_white.png",
+            open(
+                os.path.join(
+                    settings.BASE_DIR, "hexa/static/img/logo/logo_with_text_white.png"
+                ),
+                "rb",
+            ).read(),
+            "image/png",
+        ),
+        (
+            "services_openhexa.png",
+            open(
+                os.path.join(
+                    settings.BASE_DIR, "hexa/static/img/email/services_openhexa.png"
+                ),
+                "rb",
+            ).read(),
+            "image/png",
+        ),
+        (
+            "flow_openhexa.png",
+            open(
+                os.path.join(
+                    settings.BASE_DIR, "hexa/static/img/email/flow_openhexa.png"
+                ),
+                "rb",
+            ).read(),
+            "image/png",
+        ),
+    ]
+
+
+def send_workspace_add_user_email(
+    invited_by: User, workspace: Workspace, invitee: User, role: str
 ):
-    token = invitation.generate_invitation_token()
+    title = gettext_lazy(
+        f"You've been added to the workspace {workspace.name} on OpenHEXA"
+    )
+    action_url = f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}"
 
-    with override(user.language if user else invitation.invited_by.language):
-        if user:
-            title = gettext_lazy(
-                f"You've been added to the workspace {invitation.workspace.name}"
-            )
-            action_url = f"{settings.NEW_FRONTEND_DOMAIN}/user/account"
-        else:
-            title = gettext_lazy(
-                f"You've been invited to join the workspace {invitation.workspace.name} on OpenHEXA"
-            )
-            action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
-
-        attachments = [
-            (
-                "logo_with_text_white.png",
-                open(
-                    os.path.join(
-                        settings.BASE_DIR,
-                        "hexa/static/img/logo/logo_with_text_white.png",
-                    ),
-                    "rb",
-                ).read(),
-                "image/png",
-            ),
-            (
-                "services_openhexa.png",
-                open(
-                    os.path.join(
-                        settings.BASE_DIR,
-                        "hexa/static/img/email/services_openhexa.png",
-                    ),
-                    "rb",
-                ).read(),
-                "image/png",
-            ),
-            (
-                "flow_openhexa.png",
-                open(
-                    os.path.join(
-                        settings.BASE_DIR,
-                        "hexa/static/img/email/flow_openhexa.png",
-                    ),
-                    "rb",
-                ).read(),
-                "image/png",
-            ),
-        ]
-
+    with override(invitee.language):
         send_mail(
             title=title,
-            template_name="workspaces/mails/invite_user",
+            template_name="workspaces/mails/add_existing_user",
+            template_variables={
+                "workspace": workspace.name,
+                "owner": invited_by.display_name,
+                "owner_email": invited_by.email,
+                "invitee": invitee.display_name,
+                "url": action_url,
+            },
+            recipient_list=[invitee.email],
+            attachments=get_email_attachments(),
+        )
+
+        track(
+            request=None,
+            event="emails.workspace_invite_sent",
+            properties={
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "workspace": workspace.slug,
+                "invitee_email": invitee.email,
+                "invitee_role": role,
+            },
+        )
+
+
+def send_workspace_invite_new_user_email(invitation: WorkspaceInvitation):
+    title = gettext_lazy(
+        f"You've been invited to join the workspace {invitation.workspace.name} on OpenHEXA"
+    )
+    token = invitation.generate_invitation_token()
+    action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
+    invited_by = invitation.invited_by
+
+    with override(invited_by.language):
+        send_mail(
+            title=title,
+            template_name="workspaces/mails/invite_new_user",
             template_variables={
                 "workspace": invitation.workspace.name,
-                "owner": invitation.invited_by.display_name,
-                "owner_email": invitation.invited_by.email,
-                "user": user,
+                "owner": invited_by.display_name,
+                "owner_email": invited_by.email,
                 "url": action_url,
             },
             recipient_list=[invitation.email],
-            attachments=attachments,
+            attachments=get_email_attachments(),
         )
 
         track(
@@ -88,7 +112,7 @@ def send_workspace_invitation_email(
             event="emails.invite_sent",
             properties={
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "workspace_id": str(invitation.workspace.id),
+                "workspace": invitation.workspace.slug,
                 "invitee_email": invitation.email,
                 "invitee_role": invitation.role,
                 "status": invitation.status,

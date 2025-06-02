@@ -20,6 +20,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import BadSignature, SignatureExpired
 from django.db import transaction
+from django.db.models import Q
 from django.http import HttpRequest
 from django.utils.http import urlsafe_base64_decode
 from django_otp import devices_for_user
@@ -40,7 +41,12 @@ from hexa.user_management.models import (
     Team,
     User,
 )
-from hexa.workspaces.models import WorkspaceInvitation, WorkspaceInvitationStatus
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceInvitation,
+    WorkspaceInvitationStatus,
+    WorkspaceMembership,
+)
 
 from .utils import DEVICE_DEFAULT_NAME, default_device, has_configured_two_factor
 
@@ -240,6 +246,38 @@ def resolve_organizations(*_):
     return [o for o in Organization.objects.all()]
 
 
+# TODO To be moved to organizations
+@identity_query.field("users")
+def resolve_users(_, info, query: str, workspace_slug: str):
+    request = info.context["request"]
+    query = query.strip()
+
+    try:
+        workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=workspace_slug
+        )
+
+        if not request.user.has_perm("workspaces.manage_members", workspace):
+            raise PermissionDenied
+
+        # Exclude current members of the workspace
+        users = User.objects.exclude(
+            id__in=workspace.members.values_list("id", flat=True)
+        )
+
+        users = users.filter(
+            Q(email__icontains=query)
+            | Q(first_name__icontains=query)
+            | Q(last_name__icontains=query)
+        )
+
+        return users.order_by("email")[:10]
+    except PermissionDenied:
+        return []
+    except Workspace.DoesNotExist:
+        return []
+
+
 @identity_mutations.field("createTeam")
 def resolve_create_team(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -337,8 +375,8 @@ def resolve_register(_, info, **kwargs):
     if request.user.is_authenticated:
         return {"success": False, "errors": ["ALREADY_LOGGED_IN"]}
 
-    # We only accept registration if the invitation token to a workspace is valid and pending. Once the user is created,
-    # the user is redirected to the list of all his invitations where he can accept or decline them.
+    # We only accept registration if the invitation token to a workspace is valid and pending.
+    # Once the user is created, their invitation is automatically accepted.
     try:
         invitation = WorkspaceInvitation.objects.get_by_token(
             token=mutation_input["invitation_token"]
@@ -348,7 +386,7 @@ def resolve_register(_, info, **kwargs):
             event="emails.registration_landed",
             properties={
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "workspace_id": str(invitation.workspace.id),
+                "workspace": invitation.workspace.slug,
                 "invitee_email": invitation.email,
                 "invitee_role": invitation.role,
                 "status": invitation.status,
@@ -378,6 +416,13 @@ def resolve_register(_, info, **kwargs):
             first_name=mutation_input["first_name"],
             last_name=mutation_input["last_name"],
         )
+        WorkspaceMembership.objects.create(
+            workspace=invitation.workspace,
+            user=user,
+            role=invitation.role,
+        )
+        invitation.status = WorkspaceInvitationStatus.ACCEPTED
+        invitation.save()
 
         # Let's authenticate the user automatically
         authenticated_user = authenticate(
@@ -389,7 +434,7 @@ def resolve_register(_, info, **kwargs):
             event="emails.registration_complete",
             properties={
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "workspace_id": str(invitation.workspace.id),
+                "workspace": invitation.workspace.slug,
                 "invitee_email": invitation.email,
                 "invitee_role": invitation.role,
                 "status": invitation.status,

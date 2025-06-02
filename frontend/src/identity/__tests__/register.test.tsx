@@ -74,7 +74,7 @@ describe("RegisterPage", () => {
         },
       },
     });
-    expect(mockRouter).toMatchObject({ asPath: "/user/account" });
+    expect(mockRouter).toMatchObject({ asPath: "/workspaces" });
   });
 
   it("displays an error message when the passwords do not match", async () => {
