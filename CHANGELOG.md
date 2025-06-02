@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.9.0](https://github.com/BLSQ/openhexa-app/compare/1.8.2...1.9.0) (2025-06-02)
+
+
+### Features
+
+* add the source workspace in the template selection table (HEXA-1285 ) ([#1158](https://github.com/BLSQ/openhexa-app/issues/1158)) ([d15adaa](https://github.com/BLSQ/openhexa-app/commit/d15adaa320af91f26fe94d7139bb91cc8955c751))
+* Simplify flow of adding/inviting members to workspaces ([#1123](https://github.com/BLSQ/openhexa-app/issues/1123)) ([d258052](https://github.com/BLSQ/openhexa-app/commit/d258052d60c7666e2b34c7fdda2729fbef3fbef4))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @types/node to v22.15.23 ([#1152](https://github.com/BLSQ/openhexa-app/issues/1152)) ([63ae610](https://github.com/BLSQ/openhexa-app/commit/63ae61079bd2b806c91e2e061bb7549ff81a4495))
+* **deps:** update dependency @types/react to v18.3.23 ([#1153](https://github.com/BLSQ/openhexa-app/issues/1153)) ([3f0b496](https://github.com/BLSQ/openhexa-app/commit/3f0b496ea4373f9c5327e7e967ff8092c31a323d))
+* **deps:** update dependency i18next to v25.2.1 ([#1156](https://github.com/BLSQ/openhexa-app/issues/1156)) ([984d2b3](https://github.com/BLSQ/openhexa-app/commit/984d2b37c91510467800674a86af520bfdf13466))
+* **deps:** update dependency react-hotkeys-hook to v5.1.0 ([#1147](https://github.com/BLSQ/openhexa-app/issues/1147)) ([173645a](https://github.com/BLSQ/openhexa-app/commit/173645a484cf706d8d51e97a7f420f07a1259164))
+* **deps:** update linkifyjs monorepo to v4.3.1 ([#1148](https://github.com/BLSQ/openhexa-app/issues/1148)) ([00be4d7](https://github.com/BLSQ/openhexa-app/commit/00be4d71351c288fe262a7760963ca2b13ceff4d))
+* overlay progress on initial page load ([#1144](https://github.com/BLSQ/openhexa-app/issues/1144)) ([b9e5e03](https://github.com/BLSQ/openhexa-app/commit/b9e5e03ea9b541cd18c2c35101b0381a8a46e198))
+* revert codegen dependency upgrade ([#1159](https://github.com/BLSQ/openhexa-app/issues/1159)) ([f4fa37a](https://github.com/BLSQ/openhexa-app/commit/f4fa37a97728abb7f9d7340b9523d69f9e3a2db6))
+
 ## [1.8.2](https://github.com/BLSQ/openhexa-app/compare/1.8.1...1.8.2) (2025-05-23)
 
 
