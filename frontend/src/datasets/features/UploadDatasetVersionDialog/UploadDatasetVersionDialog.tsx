@@ -50,7 +50,7 @@ const UploadDatasetVersionDialog = ({
         files: values.files,
         async getXHROptions(file) {
           const contentType = file.type || "application/octet-stream";
-          const url = await generateDatasetUploadUrl(
+          const { url, headers } = await generateDatasetUploadUrl(
             version.id,
             file.name,
             contentType,
@@ -59,7 +59,7 @@ const UploadDatasetVersionDialog = ({
           return {
             url,
             method: "PUT",
-            headers: { "Content-Type": contentType },
+            headers: { ...headers, "Content-Type": contentType },
           };
         },
         onProgress: setProgress,

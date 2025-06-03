@@ -34,7 +34,7 @@ const DownloadBucketObject = (props: DownloadBucketObjectProps) => {
     setIsPreparing(true);
     try {
       const url = await getBucketObjectDownloadUrl(workspace.slug, object.key);
-      await downloadURL(url);
+      await downloadURL(url, "_blank");
     } finally {
       setIsPreparing(false);
     }
