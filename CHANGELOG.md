@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.9.1](https://github.com/BLSQ/openhexa-app/compare/1.9.0...1.9.1) (2025-06-03)
+
+
+### Bug Fixes
+
+* Add notebooks_server_hash and access_token to migration ([#1162](https://github.com/BLSQ/openhexa-app/issues/1162)) ([1d4ee4c](https://github.com/BLSQ/openhexa-app/commit/1d4ee4cf94f0d41a409bd85737100d5983f8035e))
+* **deps:** update dependency @types/node to v22.15.29 ([#1168](https://github.com/BLSQ/openhexa-app/issues/1168)) ([de780a9](https://github.com/BLSQ/openhexa-app/commit/de780a9606f1cdad8f5cb33b353aec2b3b562489))
+* **deps:** update nextjs monorepo to v15.3.3 ([#1170](https://github.com/BLSQ/openhexa-app/issues/1170)) ([c255c2e](https://github.com/BLSQ/openhexa-app/commit/c255c2e01644293be2a7d12e8be7970fb0733ccb))
+* HEXA-1283 Remove deprecated `requiredStatusChecks`... ([#1176](https://github.com/BLSQ/openhexa-app/issues/1176)) ([0921aa2](https://github.com/BLSQ/openhexa-app/commit/0921aa274412acbaa8214f70463fe6cd9820dc09))
+* revert "chore(deps): update graphqlcodegenerator monorepo ([#1165](https://github.com/BLSQ/openhexa-app/issues/1165))" ([#1177](https://github.com/BLSQ/openhexa-app/issues/1177)) ([1b205ca](https://github.com/BLSQ/openhexa-app/commit/1b205ca79e37526608047a4643e9cbdef64fd928))
+
 ## [1.9.0](https://github.com/BLSQ/openhexa-app/compare/1.8.2...1.9.0) (2025-06-02)
 
 
