@@ -1,7 +1,8 @@
 import {render, screen, waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {TestApp} from "core/helpers/testutils";
-import {IASOWidget, GET_CONNECTION_METADATA} from "./IASOWidget";
+import {IASOWidget} from "./IASOWidget";
+import {GetConnectionBySlugIasoDocument} from "./IASOWidget.generated"
 
 jest.mock("core/hooks/useDebounce", () => ({
   __esModule: true,
@@ -39,7 +40,7 @@ describe("IASOWidget", () => {
         mocks={[
           {
             request: {
-              query: GET_CONNECTION_METADATA,
+              query: GetConnectionBySlugIasoDocument,
               variables: {
                 workspaceSlug: "mock_workspace",
                 connectionSlug: "mock_connection_slug",
@@ -76,7 +77,7 @@ describe("IASOWidget", () => {
         mocks={[
           {
             request: {
-              query: GET_CONNECTION_METADATA,
+              query: GetConnectionBySlugIasoDocument,
               variables: {
                 workspaceSlug: "mock_workspace",
                 connectionSlug: "mock_connection_slug",
@@ -126,7 +127,7 @@ describe("IASOWidget", () => {
         mocks={[
           {
             request: {
-              query: GET_CONNECTION_METADATA,
+              query: GetConnectionBySlugIasoDocument,
               variables: {
                 workspaceSlug: "mock_workspace",
                 connectionSlug: "mock_connection_slug",

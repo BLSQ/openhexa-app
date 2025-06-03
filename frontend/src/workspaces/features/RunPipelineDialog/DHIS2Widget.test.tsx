@@ -1,7 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TestApp } from "core/helpers/testutils";
-import { DHIS2Widget, GET_CONNECTION_METADATA } from "./DHIS2Widget";
+import { DHIS2Widget } from "./DHIS2Widget";
+import {GetConnectionBySlugDhis2Document} from "./DHIS2Widget.generated"
 
 jest.mock("core/hooks/useDebounce", () => ({
   __esModule: true,
@@ -39,7 +40,7 @@ describe("DHIS2Widget", () => {
         mocks={[
           {
             request: {
-              query: GET_CONNECTION_METADATA,
+              query: GetConnectionBySlugDhis2Document,
               variables: {
                 workspaceSlug: "mock_workspace",
                 connectionSlug: "mock_connection_slug",
@@ -74,7 +75,7 @@ describe("DHIS2Widget", () => {
         mocks={[
           {
             request: {
-              query: GET_CONNECTION_METADATA,
+              query: GetConnectionBySlugDhis2Document,
               variables: {
                 workspaceSlug: "mock_workspace",
                 connectionSlug: "mock_connection_slug",
@@ -119,7 +120,7 @@ describe("DHIS2Widget", () => {
         mocks={[
           {
             request: {
-              query: GET_CONNECTION_METADATA,
+              query: GetConnectionBySlugDhis2Document,
               variables: {
                 workspaceSlug: "mock_workspace",
                 connectionSlug: "mock_connection_slug",
