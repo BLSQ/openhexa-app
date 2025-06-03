@@ -1,8 +1,8 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import {render, screen, waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { TestApp } from "core/helpers/testutils";
-import { DHIS2Widget } from "./DHIS2Widget";
-import {GetConnectionBySlugDhis2Document} from "./DHIS2Widget.generated"
+import {TestApp} from "core/helpers/testutils";
+import {IASOWidget} from "./IASOWidget";
+import {GetConnectionBySlugIasoDocument} from "./IASOWidget.generated"
 
 jest.mock("core/hooks/useDebounce", () => ({
   __esModule: true,
@@ -13,21 +13,21 @@ const generateMockedParameterField = (multiple = false) => ({
   parameter: {
     name: "Test Parameter",
     code: "test_param",
-    widget: "DHIS2_DATASETS",
-    multiple: true,
+    widget: "IASO_PROJECTS",
+    multiple,
     type: "str",
     connection: "test_connection",
     required: true,
   },
-  widget: "DHIS2_DATASETS",
+  widget: "IASO_PROJECTS",
   form: {
-    formData: { test_connection: "mock_connection_slug", test_param: null },
+    formData: {test_connection: "mock_connection_slug", test_param: null},
     setFieldValue: jest.fn(),
   },
   workspaceSlug: "mock_workspace",
 });
 
-describe("DHIS2Widget", () => {
+describe("IASOWidget", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -35,16 +35,17 @@ describe("DHIS2Widget", () => {
   it("renders the component correctly", async () => {
     const parameterField = generateMockedParameterField();
 
-    const { debug } = render(
+    render(
       <TestApp
         mocks={[
           {
             request: {
-              query: GetConnectionBySlugDhis2Document,
+              query: GetConnectionBySlugIasoDocument,
               variables: {
                 workspaceSlug: "mock_workspace",
                 connectionSlug: "mock_connection_slug",
-                type: "ORG_UNIT_LEVELS",
+                type: "IASO_PROJECTS",
+                search: null,
                 filters: [],
                 perPage: 15,
                 page: 1,
@@ -53,14 +54,15 @@ describe("DHIS2Widget", () => {
             result: {
               data: {
                 connectionBySlug: {
-                  queryMetadata: { items: [], totalItems: 0 },
+                  __typename: "IASOConnection",
+                  queryMetadata: {items: [], totalItems: 0, pageNumber: 1},
                 },
               },
             },
           },
         ]}
       >
-        <DHIS2Widget {...parameterField} />
+        <IASOWidget {...parameterField} />
       </TestApp>,
     );
 
@@ -75,11 +77,12 @@ describe("DHIS2Widget", () => {
         mocks={[
           {
             request: {
-              query: GetConnectionBySlugDhis2Document,
+              query: GetConnectionBySlugIasoDocument,
               variables: {
                 workspaceSlug: "mock_workspace",
                 connectionSlug: "mock_connection_slug",
-                type: "ORG_UNIT_LEVELS",
+                type: "IASO_PROJECTS",
+                search: null,
                 filters: [],
                 perPage: 15,
                 page: 1,
@@ -88,12 +91,14 @@ describe("DHIS2Widget", () => {
             result: {
               data: {
                 connectionBySlug: {
+                  __typename: "IASOConnection",
                   queryMetadata: {
                     items: [
-                      { id: "1", label: "Item 1" },
-                      { id: "2", label: "Item 2" },
+                      {id: "1", label: "Project 1"},
+                      {id: "2", label: "Project 2"},
                     ],
                     totalItems: 2,
+                    pageNumber: 1,
                   },
                 },
               },
@@ -101,30 +106,33 @@ describe("DHIS2Widget", () => {
           },
         ]}
       >
-        <DHIS2Widget {...pipeline} />
+        <IASOWidget {...pipeline} />
       </TestApp>,
     );
+
     const user = userEvent.setup();
     await user.click(await screen.findByTestId("combobox-button"));
-    waitFor(() => {
-      const options = screen.queryAllByTestId("combobox-options");
-      expect(options.length).toBe(2);
+
+    await waitFor(() => {
+      expect(screen.getByText("Project 1")).toBeInTheDocument();
+      expect(screen.getByText("Project 2")).toBeInTheDocument();
     });
   });
 
   it("updates selected value in single select mode", async () => {
     const pipeline = generateMockedParameterField(false);
 
-    const { container } = render(
+    render(
       <TestApp
         mocks={[
           {
             request: {
-              query: GetConnectionBySlugDhis2Document,
+              query: GetConnectionBySlugIasoDocument,
               variables: {
                 workspaceSlug: "mock_workspace",
                 connectionSlug: "mock_connection_slug",
-                type: "ORG_UNIT_LEVELS",
+                type: "IASO_PROJECTS",
+                search: null,
                 filters: [],
                 perPage: 15,
                 page: 1,
@@ -133,12 +141,14 @@ describe("DHIS2Widget", () => {
             result: {
               data: {
                 connectionBySlug: {
+                  __typename: "IASOConnection",
                   queryMetadata: {
                     items: [
-                      { id: "1", label: "Item 1" },
-                      { id: "2", label: "Item 2" },
+                      {id: "1", label: "Project 1"},
+                      {id: "2", label: "Project 2"},
                     ],
                     totalItems: 2,
+                    pageNumber: 1,
                   },
                 },
               },
@@ -146,17 +156,16 @@ describe("DHIS2Widget", () => {
           },
         ]}
       >
-        <DHIS2Widget {...pipeline} />
+        <IASOWidget {...pipeline} />
       </TestApp>,
     );
+
     const user = userEvent.setup();
     await user.click(await screen.findByTestId("combobox-button"));
-    waitFor(async () => {
-      const options = screen.queryAllByTestId("combobox-options");
-      expect(options.length).toBe(1);
-      await user.click(options[0]);
-    });
-    waitFor(() => {
+    await waitFor(() => screen.getByText("Project 1"));
+    await user.click(screen.getByText("Project 1"));
+
+    await waitFor(() => {
       expect(pipeline.form.setFieldValue).toHaveBeenCalledWith(
         "test_param",
         "1",

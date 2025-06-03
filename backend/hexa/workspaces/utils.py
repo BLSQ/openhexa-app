@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.utils.translation import gettext_lazy, override
 from openhexa.toolbox.dhis2 import DHIS2
+from openhexa.toolbox.iaso import IASO
 
 from hexa.core.utils import send_mail as send_mail
 from hexa.user_management.models import User
@@ -131,8 +132,14 @@ class DHIS2MetadataQueryType(StrEnum):
     INDICATOR_GROUPS = "INDICATOR_GROUPS"
 
 
+class IASOMetadataQueryType(StrEnum):
+    IASO_FORMS = "IASO_FORMS"
+    IASO_ORG_UNITS = "IASO_ORG_UNITS"
+    IASO_PROJECTS = "IASO_PROJECTS"
+
+
 @dataclass
-class DHIS2MetadataResponse:
+class PagedMetadataResponse:
     items: list[dict]
     total_items: int
     total_pages: int
@@ -141,7 +148,7 @@ class DHIS2MetadataResponse:
 
 def query_dhis2_metadata(
     dhis2_client: DHIS2, query_type: DHIS2MetadataQueryType, **kwargs
-) -> DHIS2MetadataResponse:
+) -> PagedMetadataResponse:
     """
     Gets metadata from DHIS2
     """
@@ -155,40 +162,68 @@ def query_dhis2_metadata(
         DHIS2MetadataQueryType.INDICATORS: dhis2_client.meta.indicators,
         DHIS2MetadataQueryType.INDICATOR_GROUPS: dhis2_client.meta.indicator_groups,
     }
-    response = metadata_methods[query_type](**kwargs)
+    if query_type not in metadata_methods:
+        raise ValueError(f"Unsupported query type: {query_type}")
+    return normalize_metadata_response(metadata_methods[query_type](**kwargs))
 
+
+def query_iaso_metadata(
+    iaso_client: IASO, query_type: IASOMetadataQueryType, **kwargs
+) -> PagedMetadataResponse:
+    """
+    Gets metadata from IASO
+    """
+    metadata_methods = {
+        IASOMetadataQueryType.IASO_ORG_UNITS: iaso_client.get_org_units,
+        IASOMetadataQueryType.IASO_PROJECTS: iaso_client.get_projects,
+        IASOMetadataQueryType.IASO_FORMS: iaso_client.get_forms,
+    }
+
+    if query_type not in metadata_methods:
+        raise ValueError(f"Unsupported query type: {query_type}")
+    return normalize_metadata_response(metadata_methods[query_type](**kwargs))
+
+
+def toolbox_client_from_connection(connection: Connection) -> DHIS2 | IASO | None:
+    """
+    Gets DHIS2, IASO toolbox client from workspace connection
+    """
+    supported_connection_types = [ConnectionType.DHIS2, ConnectionType.IASO]
+    if connection.connection_type not in supported_connection_types:
+        raise ValueError("Connection is not a DHIS2, IASO connection")
+
+    fields = connection.fields.all()
+    connection_values = {field.code: field.value for field in fields}
+
+    if connection.connection_type == ConnectionType.IASO:
+        return IASO(
+            url=connection_values.get("url"),
+            username=connection_values.get("username"),
+            password=connection_values.get("password"),
+        )
+    if connection.connection_type == ConnectionType.DHIS2:
+        return DHIS2(
+            url=connection_values.get("url"),
+            username=connection_values.get("username"),
+            password=connection_values.get("password"),
+        )
+
+
+def normalize_metadata_response(response) -> PagedMetadataResponse:
     if isinstance(response, dict):
         pager = response.get("pager", {})
-        return DHIS2MetadataResponse(
+        return PagedMetadataResponse(
             items=response.get("items", []),
             total_items=pager.get("total", len(response.get("items", []))),
             total_pages=pager.get("pageCount", 1),
             page_number=pager.get("page", 1),
         )
-
     elif isinstance(response, list):
-        return DHIS2MetadataResponse(
+        return PagedMetadataResponse(
             items=response,
             total_items=len(response),
             total_pages=1,
             page_number=1,
         )
     else:
-        raise ValueError("Unexpected response format from DHIS2")
-
-
-def dhis2_client_from_connection(connection: Connection) -> DHIS2 | None:
-    """
-    Gets DHIS2 toolbox client from workspace connection
-    """
-    if connection.connection_type != ConnectionType.DHIS2:
-        raise ValueError("Connection is not a DHIS2 connection")
-
-    fields = connection.fields.all()
-    dhis_connection_dict = {field.code: field.value for field in fields}
-
-    return DHIS2(
-        url=dhis_connection_dict.get("url"),
-        username=dhis_connection_dict.get("username"),
-        password=dhis_connection_dict.get("password"),
-    )
+        raise ValueError("Unexpected response format")

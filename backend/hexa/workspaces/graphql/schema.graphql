@@ -905,6 +905,7 @@ enum DHIS2MetadataType {
     INDICATOR_GROUPS
 }
 
+
 """
 DHIS2 connection object
 """
@@ -940,6 +941,48 @@ type PostgreSQLConnection implements Connection {
 }
 
 """
+IASO connection error
+"""
+enum IASOConnectionError {
+    REQUEST_ERROR
+    UNKNOWN_ERROR
+}
+
+"""
+IASO metadata item
+"""
+type IASOMetadataItem {
+    id: Int      # Unique identifier
+    label: String!   # Label of the metadata item
+}
+"""
+IASO metadata query result
+"""
+type IASOQueryResultPage {
+    items: [IASOMetadataItem!]  # List of metadata items
+    pageNumber: Int!                   # Current page number
+    totalPages: Int!                # Number of items per page
+    totalItems: Int!             # Total number of items
+    success: Boolean!           # Query success status
+    error: IASOConnectionError # Connection error
+}
+
+"""
+Enum representing the type for IASO metadata item.
+"""
+enum IASOMetadataType {
+    IASO_FORMS
+    IASO_PROJECTS
+    IASO_ORG_UNITS
+}
+
+
+input IASOQueryFilterInput {
+    type: String! # Type of the filter
+    value: [Int]! # Value of the filter
+}
+
+"""
 IASO connection object
 """
 type IASOConnection implements Connection {
@@ -953,6 +996,7 @@ type IASOConnection implements Connection {
     user: User # User associated with the connection
     fields: [ConnectionField!]! # Fields of the connection
     permissions: ConnectionPermissions! # Permissions of the connection
+    queryMetadata(type: IASOMetadataType!, search: String, filters: [IASOQueryFilterInput!], perPage: Int, page:Int): IASOQueryResultPage! # Query metadata items
 }
 
 """

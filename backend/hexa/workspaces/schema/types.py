@@ -3,6 +3,7 @@ import logging
 from ariadne import EnumType, InterfaceType, ObjectType
 from django.http import HttpRequest
 from openhexa.toolbox.dhis2.api import DHIS2ToolboxError
+from openhexa.toolbox.iaso.api_client import IASOError
 
 from hexa.core.graphql import result_page
 from hexa.pipelines.authentication import PipelineRunUser
@@ -17,8 +18,10 @@ from ..models import (
 )
 from ..utils import (
     DHIS2MetadataQueryType,
-    dhis2_client_from_connection,
+    IASOMetadataQueryType,
     query_dhis2_metadata,
+    query_iaso_metadata,
+    toolbox_client_from_connection,
 )
 
 workspace_object = ObjectType("Workspace")
@@ -28,6 +31,8 @@ connection_field_object = ObjectType("ConnectionField")
 connection_permissions_object = ObjectType("ConnectionPermissions")
 dhis2_connection = ObjectType("DHIS2Connection")
 dhis2_metadata_type = EnumType("DHIS2MetadataType", DHIS2MetadataQueryType)
+iaso_connection = ObjectType("IASOConnection")
+iaso_metadata_type = EnumType("IASOMetadataType", IASOMetadataQueryType)
 
 
 @connection_permissions_object.field("update")
@@ -175,7 +180,7 @@ def resolve_query(connection, info, page=1, per_page=10, filters=None, **kwargs)
             ["level"] if query_type == DHIS2MetadataQueryType.ORG_UNIT_LEVELS else []
         )
 
-        dhis2_client = dhis2_client_from_connection(connection)
+        dhis2_client = toolbox_client_from_connection(connection)
 
         response = query_dhis2_metadata(
             dhis2_client,
@@ -185,7 +190,6 @@ def resolve_query(connection, info, page=1, per_page=10, filters=None, **kwargs)
             pageSize=per_page,
             filters=filters,
         )
-
         result = [
             {
                 "label": item.get("name") or item.get("level"),
@@ -217,13 +221,68 @@ def resolve_query(connection, info, page=1, per_page=10, filters=None, **kwargs)
         }
 
 
+@iaso_connection.field("queryMetadata")
+def resolve_iaso_query(
+    connection, info, search=None, page=1, per_page=10, filters=None, **kwargs
+):
+    try:
+        query_type = IASOMetadataQueryType[kwargs["type"]]
+        iaso_client = toolbox_client_from_connection(connection)
+        params = {}
+        # Use tree search to accelerate the search on large IASO instances
+        if query_type == IASOMetadataQueryType.IASO_ORG_UNITS:
+            params["optimized"] = True
+
+        if filters:
+            for filter in filters:
+                if filter.get("value"):
+                    params[filter["type"]] = filter["value"]
+        if search:
+            params["search"] = search
+
+        response = query_iaso_metadata(
+            iaso_client,
+            query_type=query_type,
+            page=page,
+            limit=per_page,
+            **params,
+        )
+
+        result = [
+            {
+                "label": item.get("name"),
+                "id": item.get("id"),
+            }
+            for item in response.items
+        ]
+        return {
+            "items": result,
+            "total_items": response.total_items,
+            "total_pages": response.total_pages,
+            "page_number": response.page_number,
+            "success": True,
+            "error": None,
+        }
+
+    except Exception as e:
+        logging.error(f"IASO error: {e}")
+        return {
+            "items": [],
+            "total_items": 0,
+            "total_pages": 0,
+            "page_number": page,
+            "success": False,
+            "error": "REQUEST_ERROR" if isinstance(e, IASOError) else "UNKNOWN_ERROR",
+        }
+
+
 connection_interface.set_alias("type", "connection_type")
 
 
 @dhis2_connection.field("status")
 def resolve_dhis2_connection_status(connection, info, **kwargs):
     try:
-        dhis2_client_from_connection(connection)
+        toolbox_client_from_connection(connection)
         return "UP"
     except DHIS2ToolboxError as e:
         logging.error(f"DHIS2 error: {e}")
@@ -257,6 +316,8 @@ bindables = [
     connection_field_object,
     connection_interface,
     dhis2_connection,
+    iaso_connection,
+    iaso_metadata_type,
     connection_permissions_object,
     dhis2_metadata_type,
 ]

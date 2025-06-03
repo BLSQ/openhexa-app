@@ -12,21 +12,21 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
-from hexa.workspaces.tests.fixtures.data_elements import (
+from hexa.workspaces.tests.fixtures.dhis2.data_elements import (
     data_element_groups,
     data_elements_by_data_elements_group,
     datasets,
 )
-from hexa.workspaces.tests.fixtures.indicators import indicator_groups, indicators
-from hexa.workspaces.tests.fixtures.org_units import (
+from hexa.workspaces.tests.fixtures.dhis2.indicators import indicator_groups, indicators
+from hexa.workspaces.tests.fixtures.dhis2.org_units import (
     org_units,
     org_units_groups,
     org_units_levels,
 )
 from hexa.workspaces.utils import (
     DHIS2MetadataQueryType,
-    dhis2_client_from_connection,
     query_dhis2_metadata,
+    toolbox_client_from_connection,
 )
 
 
@@ -86,15 +86,15 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_connection_from_slug(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
-        dhis2 = dhis2_client_from_connection(self.connection)
+        dhis2 = toolbox_client_from_connection(self.connection)
         self.assertIsNotNone(dhis2)
 
     @responses.activate
     def test_dhis2_org_units(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -102,7 +102,7 @@ class TestDHIS2Methods(TestCase):
             json={"organisationUnits": org_units},
             status=200,
         )
-        dhis2 = dhis2_client_from_connection(self.connection)
+        dhis2 = toolbox_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2, DHIS2MetadataQueryType.ORG_UNITS, fields="id,name"
         )
@@ -111,7 +111,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_org_units_by_groups(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -119,7 +119,7 @@ class TestDHIS2Methods(TestCase):
             json={"organisationUnits": org_units},
             status=200,
         )
-        dhis2 = dhis2_client_from_connection(self.connection)
+        dhis2 = toolbox_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2,
             DHIS2MetadataQueryType.ORG_UNITS,
@@ -131,7 +131,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_org_unit_groups(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -139,7 +139,7 @@ class TestDHIS2Methods(TestCase):
             json={"organisationUnitGroups": org_units_groups},
             status=200,
         )
-        dhis2 = dhis2_client_from_connection(self.connection)
+        dhis2 = toolbox_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2, DHIS2MetadataQueryType.ORG_UNIT_GROUPS, fields="id,name"
         )
@@ -148,7 +148,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_org_unit_levels(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -156,7 +156,7 @@ class TestDHIS2Methods(TestCase):
             json=org_units_levels,
             status=200,
         )
-        dhis2 = dhis2_client_from_connection(self.connection)
+        dhis2 = toolbox_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2, DHIS2MetadataQueryType.ORG_UNIT_LEVELS, fields="id,name"
         )
@@ -165,7 +165,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_datasets(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -173,7 +173,7 @@ class TestDHIS2Methods(TestCase):
             json={"dataSets": datasets},
             status=200,
         )
-        dhis2 = dhis2_client_from_connection(self.connection)
+        dhis2 = toolbox_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2, DHIS2MetadataQueryType.DATASETS, fields="id,name"
         )
@@ -182,7 +182,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_data_elements(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -190,7 +190,7 @@ class TestDHIS2Methods(TestCase):
             json={"dataElements": data_elements_by_data_elements_group},
             status=200,
         )
-        dhis2 = dhis2_client_from_connection(self.connection)
+        dhis2 = toolbox_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2, DHIS2MetadataQueryType.DATA_ELEMENTS, fields="id,name"
         )
@@ -199,7 +199,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_data_elements_by_datasets(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -207,7 +207,7 @@ class TestDHIS2Methods(TestCase):
             json={"dataElements": data_elements_by_data_elements_group},
             status=200,
         )
-        dhis2 = dhis2_client_from_connection(self.connection)
+        dhis2 = toolbox_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2,
             DHIS2MetadataQueryType.DATA_ELEMENTS,
@@ -219,7 +219,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_data_elements_by_groups(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -227,7 +227,7 @@ class TestDHIS2Methods(TestCase):
             json={"dataElements": data_elements_by_data_elements_group},
             status=200,
         )
-        dhis2 = dhis2_client_from_connection(self.connection)
+        dhis2 = toolbox_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2,
             DHIS2MetadataQueryType.DATA_ELEMENTS,
@@ -239,7 +239,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_data_element_groups(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -247,7 +247,7 @@ class TestDHIS2Methods(TestCase):
             json={"dataElementGroups": data_element_groups},
             status=200,
         )
-        dhis2 = dhis2_client_from_connection(self.connection)
+        dhis2 = toolbox_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2, DHIS2MetadataQueryType.DATA_ELEMENT_GROUPS, fields="id,name"
         )
@@ -256,7 +256,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_indicators(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -264,7 +264,7 @@ class TestDHIS2Methods(TestCase):
             json={"indicators": indicators},
             status=200,
         )
-        dhis2 = dhis2_client_from_connection(self.connection)
+        dhis2 = toolbox_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2, DHIS2MetadataQueryType.INDICATORS, fields="id,name"
         )
@@ -273,7 +273,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_indicators_by_groups(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -281,7 +281,7 @@ class TestDHIS2Methods(TestCase):
             json={"indicators": indicators},
             status=200,
         )
-        dhis2 = dhis2_client_from_connection(self.connection)
+        dhis2 = toolbox_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2,
             DHIS2MetadataQueryType.INDICATORS,
@@ -293,7 +293,7 @@ class TestDHIS2Methods(TestCase):
     @responses.activate
     def test_dhis2_indicator_groups(self):
         responses._add_from_file(
-            Path("hexa", "workspaces", "tests", "fixtures", "dhis2_init.yaml")
+            Path("hexa", "workspaces", "tests", "fixtures", "dhis2", "dhis2_init.yaml")
         )
         responses.add(
             responses.GET,
@@ -301,8 +301,9 @@ class TestDHIS2Methods(TestCase):
             json={"indicatorGroups": indicator_groups},
             status=200,
         )
-        dhis2 = dhis2_client_from_connection(self.connection)
+        dhis2 = toolbox_client_from_connection(self.connection)
         metadata = query_dhis2_metadata(
             dhis2, DHIS2MetadataQueryType.INDICATOR_GROUPS, fields="id,name"
         )
+
         self.assertEqual(metadata.items, indicator_groups)
