@@ -166,20 +166,24 @@ const Sidebar = (props: SidebarProps) => {
     }
   }, [router.asPath]);
 
-  // TODO : chevron
   // TODO : design
   // TODO : switching workspace message
   // TODO : landing page with search
-  // TODO : compact mode
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
-        <Link
-          href="/organization"
-          className="group flex h-16 w-full items-center justify-center bg-gray-900 px-2 text-left hover:bg-gray-700"
-        >
-          <div title={workspace.name}>{workspace.organization?.name}</div>
-        </Link>
+        {workspace.organization && (
+          <>
+            <Link
+              title="Organization"
+              href={`/organization/${workspace.organization.id}`}
+              className="group flex h-16 w-full items-center justify-center text-gray-300 hover:bg-gray-700 hover:text-white"
+            >
+              <ChevronLeftIcon className="h-4 w-4"></ChevronLeftIcon>
+            </Link>
+            {isSidebarOpen && <div>{workspace.organization.name}</div>}
+          </>
+        )}
         {searchFeatureEnabled && (
           <SpotlightSearch isSidebarOpen={isSidebarOpen} isMac={getIsMac()} />
         )}

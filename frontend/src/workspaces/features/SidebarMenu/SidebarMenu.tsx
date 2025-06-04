@@ -342,6 +342,7 @@ SidebarMenu.fragments = {
         code
       }
       organization {
+        id
         name
       }
     }
