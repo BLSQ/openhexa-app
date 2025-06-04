@@ -17,8 +17,8 @@ const OverlayProgress = () => {
 
       if (
         workspaceSlug &&
-        url.startsWith("/workspaces/") &&
-        !url.startsWith("/workspaces/" + workspaceSlug)
+        url.startsWith(`/workspaces/`) &&
+        !url.startsWith(`/workspaces/${workspaceSlug}`)
       ) {
         setIsVisible(true);
       }
