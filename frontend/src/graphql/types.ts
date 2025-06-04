@@ -3831,42 +3831,47 @@ export type QueryPipelinesArgs = {
 
 
 export type QuerySearchDatabaseTablesArgs = {
+  organizationId?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
-  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
 export type QuerySearchDatasetsArgs = {
+  organizationId?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
-  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
 export type QuerySearchFilesArgs = {
+  organizationId?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
-  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
 export type QuerySearchPipelineTemplatesArgs = {
+  organizationId?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
-  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
 export type QuerySearchPipelinesArgs = {
+  organizationId?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
-  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 

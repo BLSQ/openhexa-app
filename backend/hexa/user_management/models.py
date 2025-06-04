@@ -139,9 +139,6 @@ class Organization(Base):
     contact_info = models.TextField(blank=True)
     members = models.ManyToManyField(User, through="OrganizationMembership")
 
-    def get_workspace_slugs(self):
-        return self.workspaces.values_list("slug", flat=True)
-
 
 class OrganizationMembershipRole(models.TextChoices):
     OWNER = "owner", _("Owner")

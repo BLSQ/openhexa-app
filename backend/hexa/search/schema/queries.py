@@ -1,5 +1,6 @@
 from ariadne import QueryType
 from django.db.models import Case, FloatField, QuerySet, Value, When
+from user_management.models import Organization
 
 from hexa.core.graphql import result_page
 from hexa.databases.utils import get_database_definition
@@ -39,9 +40,19 @@ def page_result_with_scores(queryset: QuerySet, page, per_page, key):
 
 @search_query.field("searchDatasets")
 def resolve_search_datasets(
-    _, info, query=None, page=1, per_page=15, workspace_slugs=None
+    _,
+    info,
+    query=None,
+    page=1,
+    per_page=15,
+    workspace_slugs=None,
+    organization_id=None,
 ):
     workspace_slugs = workspace_slugs or []
+    if organization_id:
+        workspace_slugs = Organization.objects.get(
+            id=organization_id
+        ).workspaces.values_list("slug", flat=True)
     request = info.context["request"]
     qs = Dataset.objects.filter_for_workspace_slugs(request.user, workspace_slugs)
     qs = apply_scored_search(qs, ["name", "slug", "description"], query)
@@ -50,9 +61,19 @@ def resolve_search_datasets(
 
 @search_query.field("searchPipelines")
 def resolve_search_pipelines(
-    _, info, query=None, page=1, per_page=15, workspace_slugs=None
+    _,
+    info,
+    query=None,
+    page=1,
+    per_page=15,
+    workspace_slugs=None,
+    organization_id=None,
 ):
     workspace_slugs = workspace_slugs or []
+    if organization_id:
+        workspace_slugs = Organization.objects.get(
+            id=organization_id
+        ).workspaces.values_list("slug", flat=True)
     request = info.context["request"]
     qs = Pipeline.objects.filter_for_workspace_slugs(request.user, workspace_slugs)
     qs = apply_scored_search(qs, ["name", "code", "description"], query)
@@ -61,7 +82,13 @@ def resolve_search_pipelines(
 
 @search_query.field("searchPipelineTemplates")
 def resolve_search_pipeline_templates(
-    _, info, query=None, page=1, per_page=15, workspace_slugs=None
+    _,
+    info,
+    query=None,
+    page=1,
+    per_page=15,
+    workspace_slugs=None,
+    organization_id=None,
 ):
     qs = PipelineTemplate.objects.all()
     qs = apply_scored_search(qs, ["name", "code", "description"], query)
@@ -70,9 +97,19 @@ def resolve_search_pipeline_templates(
 
 @search_query.field("searchDatabaseTables")
 def resolve_search_database_tables(
-    _, info, query=None, page=1, per_page=15, workspace_slugs=None
+    _,
+    info,
+    query=None,
+    page=1,
+    per_page=15,
+    workspace_slugs=None,
+    organization_id=None,
 ):
     workspace_slugs = workspace_slugs or []
+    if organization_id:
+        workspace_slugs = Organization.objects.get(
+            id=organization_id
+        ).workspaces.values_list("slug", flat=True)
     request = info.context["request"]
 
     tables = [
@@ -92,9 +129,19 @@ def resolve_search_database_tables(
 
 @search_query.field("searchFiles")
 def resolve_search_files(
-    _, info, query=None, page=1, per_page=15, workspace_slugs=None
+    _,
+    info,
+    query=None,
+    page=1,
+    per_page=15,
+    workspace_slugs=None,
+    organization_id=None,
 ):
     workspace_slugs = workspace_slugs or []
+    if organization_id:
+        workspace_slugs = Organization.objects.get(
+            id=organization_id
+        ).workspaces.values_list("slug", flat=True)
     request = info.context["request"]
 
     files = [
