@@ -24,6 +24,9 @@ type Workspace {
   # The countries associated with the workspace.
   countries: [Country!]!
 
+  # The organization that owns the workspace.
+  organization: Organization
+
   # The date and time when the workspace was created.
   createdAt: DateTime!
 

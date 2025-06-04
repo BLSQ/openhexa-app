@@ -988,7 +988,62 @@ type Organization {
     The contact information of the organization.
     """
     contactInfo: String!
+
+    """
+    The members of the organization.
+    """
+    members(page: Int, perPage: Int): OrganizationMembershipPage!
 }
+
+"""
+Represents a page of organization memberships.
+"""
+type OrganizationMembershipPage {
+  # The current page number.
+  pageNumber: Int!
+
+  # The total number of pages.
+  totalPages: Int!
+
+  # The total number of items.
+  totalItems: Int!
+
+  # The list of organization memberships on the current page.
+  items: [WorkspaceMembership!]!
+}
+
+"""
+Represents a membership in an organization.
+"""
+type OrganizationMembership {
+  # The unique identifier for the membership.
+  id: UUID!
+
+  # The user who is a member of the organization.
+  user: User!
+
+  # The workspace associated with the membership.
+  organization: Organization!
+
+  # The role of the member in the organization.
+  role: OrganizationMembershipRole!
+
+  # The date and time when the membership was created.
+  createdAt: DateTime!
+
+  # The date and time when the membership was last updated.
+  updatedAt: DateTime
+}
+
+"""
+Represents the role of a organization membership.
+"""
+enum OrganizationMembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
 
 """
 The OrganizationInput type represents the input for creating or updating an organization.

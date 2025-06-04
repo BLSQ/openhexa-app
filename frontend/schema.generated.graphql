@@ -2451,6 +2451,9 @@ type Organization {
   """The unique identifier of the organization."""
   id: UUID!
 
+  """The members of the organization."""
+  members(page: Int, perPage: Int): OrganizationMembershipPage!
+
   """The name of the organization."""
   name: String!
 
@@ -2479,6 +2482,31 @@ input OrganizationInput {
 
   """The updated URL of the organization."""
   url: String
+}
+
+"""Represents a membership in an organization."""
+type OrganizationMembership {
+  createdAt: DateTime!
+  id: UUID!
+  organization: Organization!
+  role: OrganizationMembershipRole!
+  updatedAt: DateTime
+  user: User!
+}
+
+"""Represents a page of organization memberships."""
+type OrganizationMembershipPage {
+  items: [WorkspaceMembership!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""Represents the role of a organization membership."""
+enum OrganizationMembershipRole {
+  ADMIN
+  MEMBER
+  OWNER
 }
 
 """Represents an input parameter of a pipeline."""
@@ -4103,6 +4131,7 @@ type Workspace {
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
   members(page: Int, perPage: Int): WorkspaceMembershipPage!
   name: String!
+  organization: Organization
   permissions: WorkspacePermissions!
   slug: String!
   updatedAt: DateTime

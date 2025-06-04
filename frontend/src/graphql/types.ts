@@ -3028,12 +3028,21 @@ export type Organization = {
   contactInfo: Scalars['String']['output'];
   /** The unique identifier of the organization. */
   id: Scalars['UUID']['output'];
+  /** The members of the organization. */
+  members: OrganizationMembershipPage;
   /** The name of the organization. */
   name: Scalars['String']['output'];
   /** The type of the organization. */
   type: Scalars['String']['output'];
   /** The URL of the organization. */
   url: Scalars['String']['output'];
+};
+
+
+/** The Organization type represents an organization in the system. */
+export type OrganizationMembersArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** The OrganizationInput type represents the input for creating or updating an organization. */
@@ -3049,6 +3058,33 @@ export type OrganizationInput = {
   /** The updated URL of the organization. */
   url?: InputMaybe<Scalars['String']['input']>;
 };
+
+/** Represents a membership in an organization. */
+export type OrganizationMembership = {
+  __typename?: 'OrganizationMembership';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['UUID']['output'];
+  organization: Organization;
+  role: OrganizationMembershipRole;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  user: User;
+};
+
+/** Represents a page of organization memberships. */
+export type OrganizationMembershipPage = {
+  __typename?: 'OrganizationMembershipPage';
+  items: Array<WorkspaceMembership>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
+/** Represents the role of a organization membership. */
+export enum OrganizationMembershipRole {
+  Admin = 'ADMIN',
+  Member = 'MEMBER',
+  Owner = 'OWNER'
+}
 
 /** Represents an input parameter of a pipeline. */
 export type ParameterInput = {
@@ -4897,6 +4933,7 @@ export type Workspace = {
   invitations: WorkspaceInvitationPage;
   members: WorkspaceMembershipPage;
   name: Scalars['String']['output'];
+  organization?: Maybe<Organization>;
   permissions: WorkspacePermissions;
   slug: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
