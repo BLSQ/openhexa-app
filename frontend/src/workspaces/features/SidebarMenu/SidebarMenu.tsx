@@ -341,6 +341,9 @@ SidebarMenu.fragments = {
         flag
         code
       }
+      organization {
+        name
+      }
     }
   `,
 };

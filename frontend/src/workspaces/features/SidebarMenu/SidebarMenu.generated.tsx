@@ -11,7 +11,7 @@ export type SidebarMenuQueryVariables = Types.Exact<{
 
 export type SidebarMenuQuery = { __typename?: 'Query', pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number }, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string, flag: string }> }> } };
 
-export type SidebarMenu_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', flag: string, code: string }> };
+export type SidebarMenu_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', name: string } | null };
 
 export const SidebarMenu_WorkspaceFragmentDoc = gql`
     fragment SidebarMenu_workspace on Workspace {
@@ -20,6 +20,9 @@ export const SidebarMenu_WorkspaceFragmentDoc = gql`
   countries {
     flag
     code
+  }
+  organization {
+    name
   }
 }
     `;
