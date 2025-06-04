@@ -9,7 +9,6 @@ from django.db.models.functions import Collate
 from django.utils.crypto import get_random_string
 
 from hexa.core.admin import country_list
-from hexa.workspaces.models import Workspace
 
 from .models import (
     Feature,
@@ -178,12 +177,6 @@ class OrganizationMembershipInline(admin.TabularInline):
     extra = 0
 
 
-class OrganizationWorkspaceInline(admin.TabularInline):
-    model = Workspace
-    fields = ["name"]
-    extra = 0
-
-
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = (
@@ -198,7 +191,7 @@ class OrganizationAdmin(admin.ModelAdmin):
     search_fields = ("name", "short_name")
     readonly_fields = ("created_at", "updated_at")
     ordering = ("-created_at",)
-    inlines = [OrganizationWorkspaceInline, OrganizationMembershipInline]
+    inlines = [OrganizationMembershipInline]
 
     def workspace_count(self, obj):
         return obj.workspaces.count()
