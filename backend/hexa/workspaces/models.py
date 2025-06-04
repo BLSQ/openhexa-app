@@ -31,7 +31,11 @@ from hexa.databases.api import (
 )
 from hexa.datasets.models import Dataset
 from hexa.files import storage
-from hexa.user_management.models import User
+from hexa.user_management.models import (
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    User,
+)
 
 
 class AlreadyExists(Exception):
@@ -342,6 +346,18 @@ class WorkspaceMembership(models.Model):
 
         if self.access_token == "":
             self.access_token = uuid.uuid4()
+
+        if (
+            self.workspace.organization
+            and not OrganizationMembership.objects.filter(
+                organization=self.workspace.organization, user=self.user
+            ).exists()
+        ):
+            OrganizationMembership.objects.create(
+                organization=self.workspace.organization,
+                user=self.user,
+                role=OrganizationMembershipRole.MEMBER,
+            )
 
         super().save(*args, **kwargs)
 
