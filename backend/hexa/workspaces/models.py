@@ -205,6 +205,12 @@ class Workspace(Base):
     datasets = models.ManyToManyField(
         Dataset, through="datasets.DatasetLink", related_name="+"
     )
+    organization = models.ForeignKey(
+        "user_management.Organization",
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="workspaces",
+    )
 
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 

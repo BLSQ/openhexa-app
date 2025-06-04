@@ -137,6 +137,56 @@ class Organization(Base):
     countries = CountryField(multiple=True, blank=True)
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)
+    members = models.ManyToManyField(User, through="OrganizationMembership")
+
+    def get_workspace_slugs(self):
+        return self.workspaces.values_list("slug", flat=True)
+
+
+class OrganizationMembershipRole(models.TextChoices):
+    OWNER = "owner", _("Owner")
+    ADMIN = "admin", _("Admin")
+    MEMBER = "member", _("Member")
+
+
+class OrganizationMembership(models.Model):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organization", "user"],
+                name="organization_membership_unique_organization_user",
+            )
+        ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+    )
+    user = models.ForeignKey(
+        "user_management.User",
+        on_delete=models.CASCADE,
+    )
+    role = models.CharField(choices=OrganizationMembershipRole.choices, max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def update_if_has_perm(self, *, principal: User, role: OrganizationMembershipRole):
+        if not principal.has_perm("user_management.manage_members", self.organization):
+            raise PermissionDenied
+        if principal.id == self.user.id:
+            raise PermissionDenied
+
+        self.role = role
+        return self.save()
+
+    def delete_if_has_perm(self, *, principal: User):
+        if not principal.has_perm("user_management.manage_members", self.organization):
+            raise PermissionDenied
+        if principal.id == self.user.id:
+            raise PermissionDenied
+
+        return self.delete()
 
 
 class TeamManager(models.Manager):
