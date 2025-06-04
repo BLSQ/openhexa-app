@@ -3036,11 +3036,20 @@ export type Organization = {
   type: Scalars['String']['output'];
   /** The URL of the organization. */
   url: Scalars['String']['output'];
+  /** The workspaces associated with the organization. */
+  workspaces: WorkspacePage;
 };
 
 
 /** The Organization type represents an organization in the system. */
 export type OrganizationMembersArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** The Organization type represents an organization in the system. */
+export type OrganizationWorkspacesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
 };

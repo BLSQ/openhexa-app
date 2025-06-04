@@ -506,6 +506,25 @@ def resolve_type(obj: Organization, *_):
     return obj.get_organization_type_display()
 
 
+@organization_object.field("members")
+def resolve_members(organization: Organization, info, **kwargs):
+    qs = organization.organizationmembership_set.all().order_by("-updated_at")
+    return result_page(
+        queryset=qs,
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", qs.count()),
+    )
+
+
+@organization_object.field("workspaces")
+def resolve_workspaces(organization: Organization, info, **kwargs):
+    return result_page(
+        queryset=organization.workspaces,
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", organization.workspaces.count()),
+    )
+
+
 @identity_mutations.field("createMembership")
 @transaction.atomic
 def resolve_create_membership(_, info, **kwargs):

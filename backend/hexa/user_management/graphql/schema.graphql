@@ -993,6 +993,11 @@ type Organization {
     The members of the organization.
     """
     members(page: Int, perPage: Int): OrganizationMembershipPage!
+
+    """
+    The workspaces associated with the organization.
+    """
+    workspaces(page: Int, perPage: Int): WorkspacePage!
 }
 
 """
@@ -1022,7 +1027,7 @@ type OrganizationMembership {
   # The user who is a member of the organization.
   user: User!
 
-  # The workspace associated with the membership.
+  # The organization associated with the membership.
   organization: Organization!
 
   # The role of the member in the organization.
