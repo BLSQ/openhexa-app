@@ -344,6 +344,7 @@ SidebarMenu.fragments = {
       organization {
         id
         name
+        shortName
       }
     }
   `,

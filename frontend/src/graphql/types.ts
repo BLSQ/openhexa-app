@@ -3032,6 +3032,8 @@ export type Organization = {
   members: OrganizationMembershipPage;
   /** The name of the organization. */
   name: Scalars['String']['output'];
+  /** The short name of the organization. */
+  shortName?: Maybe<Scalars['String']['output']>;
   /** The type of the organization. */
   type: Scalars['String']['output'];
   /** The URL of the organization. */

@@ -975,6 +975,11 @@ type Organization {
     name: String!
 
     """
+    The short name of the organization.
+    """
+    shortName: String
+
+    """
     The type of the organization.
     """
     type: String!

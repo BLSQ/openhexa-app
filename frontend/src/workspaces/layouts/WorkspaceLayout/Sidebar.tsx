@@ -179,7 +179,9 @@ const Sidebar = (props: SidebarProps) => {
             key="organization"
             href={"/organization/" + workspace.organization.id}
             Icon={ChevronLeftIcon}
-            label={workspace.organization.name}
+            label={
+              workspace.organization.shortName ?? workspace.organization.name
+            }
             isCurrent={false}
             compact={!isSidebarOpen}
           />
