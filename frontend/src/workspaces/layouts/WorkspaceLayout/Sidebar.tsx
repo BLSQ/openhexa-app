@@ -47,14 +47,16 @@ const NavItem = (props: {
   href: string;
   isCurrent: boolean;
   compact?: boolean;
+  className?: string;
 }) => {
-  const { Icon, compact, label, href, isCurrent } = props;
+  const { Icon, compact, label, href, isCurrent, className } = props;
 
   return (
     <Link
       href={href}
       noStyle
       className={clsx(
+        className,
         "text-md group relative flex items-center gap-3 px-2 py-2 font-medium",
         isCurrent
           ? "text-white"
@@ -166,23 +168,21 @@ const Sidebar = (props: SidebarProps) => {
     }
   }, [router.asPath]);
 
-  // TODO : design
   // TODO : switching workspace message
   // TODO : landing page with search
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
         {workspace.organization && (
-          <>
-            <Link
-              title="Organization"
-              href={`/organization/${workspace.organization.id}`}
-              className="group flex h-16 w-full items-center justify-center text-gray-300 hover:bg-gray-700 hover:text-white"
-            >
-              <ChevronLeftIcon className="h-4 w-4"></ChevronLeftIcon>
-            </Link>
-            {isSidebarOpen && <div>{workspace.organization.name}</div>}
-          </>
+          <NavItem
+            className="h-16"
+            key="organization"
+            href={"/organization/" + workspace.organization.id}
+            Icon={ChevronLeftIcon}
+            label={workspace.organization.name}
+            isCurrent={false}
+            compact={!isSidebarOpen}
+          />
         )}
         {searchFeatureEnabled && (
           <SpotlightSearch isSidebarOpen={isSidebarOpen} isMac={getIsMac()} />
