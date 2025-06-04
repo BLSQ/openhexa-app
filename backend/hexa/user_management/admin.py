@@ -7,9 +7,9 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.db.models.functions import Collate
 from django.utils.crypto import get_random_string
-from workspaces.models import Workspace
 
 from hexa.core.admin import country_list
+from hexa.workspaces.models import Workspace
 
 from .models import (
     Feature,

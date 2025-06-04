@@ -1,6 +1,5 @@
 from ariadne import QueryType
 from django.db.models import Case, FloatField, QuerySet, Value, When
-from user_management.models import Organization
 
 from hexa.core.graphql import result_page
 from hexa.databases.utils import get_database_definition
@@ -8,6 +7,7 @@ from hexa.datasets.models import Dataset
 from hexa.files import storage
 from hexa.pipeline_templates.models import PipelineTemplate
 from hexa.pipelines.models import Pipeline
+from hexa.user_management.models import Organization
 from hexa.workspaces.models import Workspace
 
 search_query = QueryType()
