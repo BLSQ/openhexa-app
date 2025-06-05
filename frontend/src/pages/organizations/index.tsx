@@ -18,7 +18,7 @@ const OrganizationsPage = () => {
 
   return (
     <OrganizationsLayout organizations={organizations}>
-      <p>Empty</p>
+      <p></p>
     </OrganizationsLayout>
   );
 };
