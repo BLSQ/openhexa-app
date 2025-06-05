@@ -98,7 +98,7 @@ const Sidebar = ({
           <div className="mt-5 flex grow flex-col">
             {organizations.map((organization) => (
               <NavItem
-                className="h-8 p-16 m-4 rounded-md"
+                className="rounded-md text-wrap m-2"
                 key={organization.id}
                 href={"/organizations/" + organization.id}
                 Icon={BuildingOfficeIcon}
