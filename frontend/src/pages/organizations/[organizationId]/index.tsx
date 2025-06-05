@@ -2,6 +2,8 @@ import { gql } from "@apollo/client";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "./OrganizationLayout";
+import { useTranslation } from "next-i18next";
+import Page from "core/components/Page";
 
 type Props = {
   organization: {
@@ -33,24 +35,27 @@ const ORGANIZATION_QUERY = gql`
 // TODO : clean code
 
 const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
+  const { t } = useTranslation();
   return (
-    <OrganizationLayout organization={organization}>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">{organization.name}</h1>
-        <ul>
-          {organization.workspaces.items.map((workspace) => (
-            <li key={workspace.slug} className="mb-2">
-              <a
-                href={`/workspaces/${workspace.slug}`}
-                className="text-blue-600 hover:underline"
-              >
-                {workspace.name}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </OrganizationLayout>
+    <Page title={t("Organization")}>
+      <OrganizationLayout organization={organization}>
+        <div className="p-6">
+          <h1 className="text-2xl font-bold mb-4">{organization.name}</h1>
+          <ul>
+            {organization.workspaces.items.map((workspace) => (
+              <li key={workspace.slug} className="mb-2">
+                <a
+                  href={`/workspaces/${workspace.slug}`}
+                  className="text-blue-600 hover:underline"
+                >
+                  {workspace.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </OrganizationLayout>
+    </Page>
   );
 };
 

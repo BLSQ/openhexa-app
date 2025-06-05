@@ -2,6 +2,8 @@ import { gql } from "@apollo/client";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationsLayout from "./OrganizationsLayout";
+import { useTranslation } from "next-i18next";
+import Page from "core/components/Page";
 
 type Props = {
   organizations: {
@@ -27,7 +29,12 @@ const ORGANIZATIONS_QUERY = gql`
 `;
 
 const OrganizationsPage: NextPageWithLayout<Props> = ({ organizations }) => {
-  return <OrganizationsLayout organizations={organizations} />;
+  const { t } = useTranslation();
+  return (
+    <Page title={t("Organizations")}>
+      <OrganizationsLayout organizations={organizations} />
+    </Page>
+  );
 };
 
 OrganizationsPage.getLayout = (page) => page;
