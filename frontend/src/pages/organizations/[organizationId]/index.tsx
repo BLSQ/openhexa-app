@@ -29,19 +29,34 @@ const OrganizationLandingPage = () => {
   const router = useRouter();
   const { organizationId } = router.query;
 
-  const { data, loading, error } = useQuery(ORGANIZATION_QUERY, {
+  const { data } = useQuery(ORGANIZATION_QUERY, {
     variables: { id: organizationId },
     skip: !organizationId,
   });
 
-  if (loading || !data) return <div>Loading...</div>;
-  if (error) return <div>Error loading organization</div>;
-
-  const { organization } = data;
+  const organization = data?.organization || {
+    id: organizationId,
+    name: "",
+    workspaces: { items: [] },
+  };
 
   return (
     <OrganizationLayout organization={organization}>
-      <div className="text-center text-xl">Welcome to {organization.name}</div>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">{organization.name}</h1>
+        <ul>
+          {organization.workspaces.items.map((workspace: any) => (
+            <li key={workspace.slug} className="mb-2">
+              <a
+                href={`/workspaces/${workspace.slug}`}
+                className="text-blue-600 hover:underline"
+              >
+                {workspace.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </OrganizationLayout>
   );
 };
