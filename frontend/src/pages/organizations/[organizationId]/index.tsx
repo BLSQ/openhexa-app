@@ -29,6 +29,7 @@ const ORGANIZATION_QUERY = gql`
 `;
 
 // TODO : fix cookie set open
+// TODO : correct search
 // TODO : clean UIs
 // TODO : clean code
 
