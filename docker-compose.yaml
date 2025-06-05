@@ -20,7 +20,7 @@ x-app: &common
 
 services:
   db:
-    image: postgis/postgis:16-3.5
+    image: postgis/postgis:17-3.5
     env_file:
       - path: ./.env
         required: true
