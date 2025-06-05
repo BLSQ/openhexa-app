@@ -16,6 +16,33 @@ exports[`Workspaces renders the workspace page 1`] = `
         class="flex h-full grow flex-col border-r border-gray-200 bg-gray-800"
       >
         <div
+          class="flex flex-col border-gray-200 bg-gray-800 p-2"
+        >
+          <button
+            class="text-gray-400 bg-gray-700 hover:bg-gray-600 flex gap-4 p-2 rounded items-center"
+          >
+            <svg
+              aria-hidden="true"
+              class="h-4 text-gray-400 ml-2"
+              data-slot="icon"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Search
+             
+            (Ctrl+K)
+          </button>
+        </div>
+        <div
           class="w-full"
         >
           <button
@@ -390,6 +417,33 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
       <div
         class="flex h-full grow flex-col border-r border-gray-200 bg-gray-800"
       >
+        <div
+          class="flex flex-col border-gray-200 bg-gray-800 p-2"
+        >
+          <button
+            class="text-gray-400 bg-gray-700 hover:bg-gray-600 flex gap-4 p-2 rounded items-center"
+          >
+            <svg
+              aria-hidden="true"
+              class="h-4 text-gray-400 ml-2"
+              data-slot="icon"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Search
+             
+            (Ctrl+K)
+          </button>
+        </div>
         <div
           class="w-full"
         >

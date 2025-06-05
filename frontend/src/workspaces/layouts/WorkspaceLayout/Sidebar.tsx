@@ -22,7 +22,6 @@ import SidebarMenu from "workspaces/features/SidebarMenu";
 import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
 import { LayoutContext } from "./WorkspaceLayout";
 import { useRouter } from "next/router";
-import useFeature from "identity/hooks/useFeature";
 import { GetServerSidePropsContext } from "next";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 
@@ -84,7 +83,6 @@ const Sidebar = (props: SidebarProps) => {
   const { workspace, className } = props;
   const { t } = useTranslation();
   const { isSidebarOpen, setSidebarOpen } = useContext(LayoutContext);
-  const [searchFeatureEnabled] = useFeature("search");
 
   const router = useRouter();
 
@@ -169,9 +167,7 @@ const Sidebar = (props: SidebarProps) => {
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
-        {searchFeatureEnabled && (
-          <SpotlightSearch isSidebarOpen={isSidebarOpen} isMac={getIsMac()} />
-        )}
+        <SpotlightSearch isSidebarOpen={isSidebarOpen} isMac={getIsMac()} />
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
         <div className="mt-5 flex grow flex-col">
