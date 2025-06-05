@@ -23,6 +23,7 @@ const ORGANIZATION_QUERY = gql`
 // TODO : Feature flag
 // TODO : list all workspaces
 // TODO : beautiful layout
+// TODO : check auth required for org pages
 
 const OrganizationLandingPage = () => {
   const router = useRouter();
