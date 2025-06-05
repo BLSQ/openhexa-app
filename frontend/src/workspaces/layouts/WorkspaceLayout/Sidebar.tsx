@@ -169,7 +169,6 @@ const Sidebar = (props: SidebarProps) => {
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
-        <SpotlightSearch isSidebarOpen={isSidebarOpen} isMac={getIsMac()} />
         {workspace.organization && (
           <NavItem
             className="h-16"
@@ -183,6 +182,7 @@ const Sidebar = (props: SidebarProps) => {
             compact={!isSidebarOpen}
           />
         )}
+        <SpotlightSearch isSidebarOpen={isSidebarOpen} isMac={getIsMac()} />
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
         <div className="mt-5 flex grow flex-col">
