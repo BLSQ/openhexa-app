@@ -3,6 +3,21 @@ import Sidebar from "./Sidebar";
 import clsx from "clsx";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
 import { useTranslation } from "next-i18next";
+import { GetServerSidePropsContext } from "next";
+import { CustomApolloClient } from "../../core/helpers/apollo";
+import { getCookie, hasCookie } from "cookies-next";
+
+export let cookieSidebarOpenState = true;
+
+function getDefaultSidebarOpen() {
+  if (typeof window === "undefined") {
+    return cookieSidebarOpenState;
+  } else if (hasCookie("sidebar-open")) {
+    return getCookie("sidebar-open") === "true";
+  } else {
+    return true;
+  }
+}
 
 type OrganizationsLayoutProps = {
   children?: React.ReactNode;
@@ -17,7 +32,7 @@ const OrganizationsLayout = ({
   children,
   organizations,
 }: OrganizationsLayoutProps) => {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(getDefaultSidebarOpen());
   const { t } = useTranslation();
 
   return (
@@ -52,6 +67,16 @@ const OrganizationsLayout = ({
       </div>
     </div>
   );
+};
+
+OrganizationsLayout.prefetch = async (
+  ctx: GetServerSidePropsContext,
+  client: CustomApolloClient,
+) => {
+  // Load the cookie value from the request to render it correctly on the server
+  cookieSidebarOpenState = (await hasCookie("sidebar-open", ctx))
+    ? (await getCookie("sidebar-open", ctx)) === "true"
+    : true;
 };
 
 export default OrganizationsLayout;

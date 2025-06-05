@@ -2,7 +2,6 @@ import { gql } from "@apollo/client";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "./OrganizationLayout";
-import WorkspaceLayout from "../../../workspaces/layouts/WorkspaceLayout";
 
 type Props = {
   organization: {
@@ -29,9 +28,9 @@ const ORGANIZATION_QUERY = gql`
   }
 `;
 
-// TODO : cookie organizations
+// TODO : fix cookie set open
 // TODO : clean UIs
-// TODO : fix prefetch + clean code
+// TODO : clean code
 
 const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
   return (
