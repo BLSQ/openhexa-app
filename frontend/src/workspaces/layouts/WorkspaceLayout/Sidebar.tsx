@@ -168,6 +168,7 @@ const Sidebar = (props: SidebarProps) => {
     }
   }, [router.asPath]);
 
+  // TODO : implement the filter for user
   // TODO : landing page with search
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>

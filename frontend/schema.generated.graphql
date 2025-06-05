@@ -3054,6 +3054,7 @@ type Query {
   me: Me!
   metadataAttributes(targetId: OpaqueID!): [MetadataAttribute]!
   notebooksUrl: URL!
+  organization(id: UUID!): Organization
 
   """Retrieves a list of organizations."""
   organizations: [Organization!]!

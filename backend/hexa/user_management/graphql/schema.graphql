@@ -1103,7 +1103,8 @@ extend type Query {
     """
     Retrieves a list of organizations.
     """
-    organizations: [Organization!]!
+    organizations: [Organization!]! @loginRequired
+    organization(id: UUID!): Organization @loginRequired
 }
 
 directive @loginRequired(withoutTwoFactor: Boolean) on FIELD_DEFINITION

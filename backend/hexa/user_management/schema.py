@@ -499,6 +499,7 @@ def resolve_avatar(obj: User, *_):
 
 
 organization_object = ObjectType("Organization")
+organization_queries = QueryType()
 
 
 @organization_object.field("type")
@@ -523,6 +524,15 @@ def resolve_workspaces(organization: Organization, info, **kwargs):
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", organization.workspaces.count()),
     )
+
+
+@organization_queries.field("organization")
+def resolve_organization(_, info, **kwargs):
+    request = info.context["request"]
+    try:
+        return Organization.objects.filter_for_user(request.user).get(id=kwargs["id"])
+    except Organization.DoesNotExist:
+        return None
 
 
 @identity_mutations.field("createMembership")
@@ -719,6 +729,7 @@ identity_bindables = [
     team_permissions_object,
     membership_permissions_object,
     organization_object,
+    organization_queries,
     identity_mutations,
 ]
 

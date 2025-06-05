@@ -3665,6 +3665,7 @@ export type Query = {
   me: Me;
   metadataAttributes: Array<Maybe<MetadataAttribute>>;
   notebooksUrl: Scalars['URL']['output'];
+  organization?: Maybe<Organization>;
   /** Retrieves a list of organizations. */
   organizations: Array<Organization>;
   pendingWorkspaceInvitations: WorkspaceInvitationPage;
@@ -3830,6 +3831,11 @@ export type QueryDatasetsArgs = {
 
 export type QueryMetadataAttributesArgs = {
   targetId: Scalars['OpaqueID']['input'];
+};
+
+
+export type QueryOrganizationArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 
