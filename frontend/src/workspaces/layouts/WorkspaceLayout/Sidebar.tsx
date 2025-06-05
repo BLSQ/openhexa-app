@@ -24,7 +24,7 @@ import { LayoutContext } from "./WorkspaceLayout";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
-import useFeature from "../../../identity/hooks/useFeature";
+import useFeature from "identity/hooks/useFeature";
 
 export let isMac = false;
 

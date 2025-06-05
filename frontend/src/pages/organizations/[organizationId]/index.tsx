@@ -2,6 +2,7 @@ import { gql } from "@apollo/client";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "./OrganizationLayout";
+import WorkspaceLayout from "../../../workspaces/layouts/WorkspaceLayout";
 
 type Props = {
   organization: {
@@ -59,6 +60,7 @@ OrganizationPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    await OrganizationLayout.prefetch(ctx, client);
     const { data } = await client.query({
       query: ORGANIZATION_QUERY,
       variables: { id: ctx.params?.organizationId },
