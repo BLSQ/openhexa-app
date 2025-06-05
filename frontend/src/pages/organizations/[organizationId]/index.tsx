@@ -8,6 +8,7 @@ const ORGANIZATION_QUERY = gql`
     organization(id: $id) {
       id
       name
+      shortName
       workspaces {
         items {
           slug

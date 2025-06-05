@@ -526,7 +526,7 @@ def resolve_workspaces(organization: Organization, info, **kwargs):
     return result_page(
         queryset=organization.workspaces.all(),
         page=kwargs.get("page", 1),
-        per_page=kwargs.get("per_page", organization.workspaces.count()),
+        per_page=kwargs.get("per_page", organization.workspaces.count() or 10),
     )
 
 

@@ -10,6 +10,7 @@ type SidebarProps = {
   organization: {
     id: string;
     name: string;
+    shortName?: string;
     workspaces: { items: { slug: string; name: string }[] };
   };
   isSidebarOpen: boolean;
@@ -77,7 +78,7 @@ const Sidebar = ({
             key="organization"
             href="/organizations/"
             Icon={ChevronLeftIcon}
-            label={t("Organizations")}
+            label={organization.shortName ?? organization.name}
             isCurrent={false}
             compact={!isSidebarOpen}
           />
