@@ -168,7 +168,6 @@ const Sidebar = (props: SidebarProps) => {
     }
   }, [router.asPath]);
 
-  // TODO : switching workspace message
   // TODO : landing page with search
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
