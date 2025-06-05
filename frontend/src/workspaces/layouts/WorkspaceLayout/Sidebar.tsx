@@ -87,7 +87,7 @@ const Sidebar = (props: SidebarProps) => {
   const { t } = useTranslation();
   const { isSidebarOpen, setSidebarOpen } = useContext(LayoutContext);
 
-  const organizationFeatureIsEnabled = useFeature("organizations");
+  const [organizationFeatureIsEnabled] = useFeature("organization");
 
   const router = useRouter();
 
