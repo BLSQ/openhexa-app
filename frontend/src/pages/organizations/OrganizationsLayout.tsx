@@ -5,7 +5,7 @@ import Help from "workspaces/layouts/WorkspaceLayout/Help";
 import { useTranslation } from "next-i18next";
 
 type OrganizationsLayoutProps = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   organizations: {
     id: string;
     name: string;

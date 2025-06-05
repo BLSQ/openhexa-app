@@ -6,7 +6,7 @@ const defaultOptions = {} as const;
 export type OrganizationsQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type OrganizationsQuery = { __typename?: 'Query', organizations: Array<{ __typename?: 'Organization', id: string, name: string }> };
+export type OrganizationsQuery = { __typename?: 'Query', organizations: Array<{ __typename?: 'Organization', id: string, name: string, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> } }> };
 
 
 export const OrganizationsDocument = gql`
@@ -14,6 +14,12 @@ export const OrganizationsDocument = gql`
   organizations {
     id
     name
+    workspaces {
+      items {
+        slug
+        name
+      }
+    }
   }
 }
     `;

@@ -24,8 +24,6 @@ const ORGANIZATION_QUERY = gql`
 // TODO : clean UIs
 // TODO : clean code
 
-// TODO : check auth required for org pages
-
 const OrganizationPage = () => {
   const router = useRouter();
   const { organizationId } = router.query;
