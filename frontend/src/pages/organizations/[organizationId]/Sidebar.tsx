@@ -23,7 +23,7 @@ const Sidebar = ({
     <div
       className={clsx(
         "fixed h-full bg-gray-800 transition-all duration-200",
-        isSidebarOpen ? "w-64" : "w-16",
+        isSidebarOpen ? "w-64 2xl:w-72" : "w-16",
       )}
     >
       <div className="relative z-20 flex h-full flex-col">
