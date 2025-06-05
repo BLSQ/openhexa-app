@@ -5,6 +5,18 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { useTranslation } from "next-i18next";
 import Badge from "core/components/Badge";
+import { GetServerSidePropsContext } from "next";
+import { CustomApolloClient } from "core/helpers/apollo";
+
+export let isMac = false;
+
+function getIsMac() {
+  if (typeof window === "undefined") {
+    return isMac;
+  }
+  const userAgent = window.navigator.userAgent;
+  return userAgent.includes("Mac");
+}
 
 type SidebarProps = {
   organization: {
@@ -82,7 +94,7 @@ const Sidebar = ({
             isCurrent={false}
             compact={!isSidebarOpen}
           />
-          <SpotlightSearch isSidebarOpen={isSidebarOpen} isMac={true} />
+          <SpotlightSearch isSidebarOpen={isSidebarOpen} isMac={getIsMac()} />
           <div className="mt-5 flex grow flex-col"></div>
           <div className="mb-5 flex shrink-0 flex-col items-center px-4">
             <Link noStyle href="/" className="flex h-8 items-center">
@@ -117,6 +129,13 @@ const Sidebar = ({
       </div>
     </div>
   );
+};
+
+Sidebar.prefetch = async (
+  ctx: GetServerSidePropsContext,
+  client: CustomApolloClient,
+) => {
+  isMac = ctx.req.headers["user-agent"]?.includes("Mac") ?? false;
 };
 
 export default Sidebar;

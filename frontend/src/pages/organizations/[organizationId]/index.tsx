@@ -28,9 +28,9 @@ const ORGANIZATION_QUERY = gql`
   }
 `;
 
-// TODO : get is mac
+// TODO : cookie organizations
 // TODO : clean UIs
-// TODO : clean code
+// TODO : fix prefetch + clean code
 
 const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
   return (
