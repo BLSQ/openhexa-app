@@ -6,7 +6,7 @@ type SidebarProps = {
   organization: {
     id: string;
     name: string;
-    workspaces: { items: { name: string }[] };
+    workspaces: { items: { slug: string; name: string }[] };
   };
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
@@ -31,8 +31,8 @@ const Sidebar = ({
         <nav className="flex-1 space-y-1 px-2">
           {organization.workspaces.items.map((workspace) => (
             <Link
-              key={workspace.name}
-              href={`/workspaces/${workspace.name}`}
+              key={workspace.slug}
+              href={`/workspaces/${workspace.slug}`}
               className="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white"
             >
               {workspace.name}

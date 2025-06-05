@@ -8,7 +8,7 @@ type OrganizationLayoutProps = {
   organization: {
     id: string;
     name: string;
-    workspaces: { items: { name: string }[] };
+    workspaces: { items: { slug: string; name: string }[] };
   };
 };
 
