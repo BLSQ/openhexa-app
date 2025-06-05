@@ -18,13 +18,13 @@ const ORGANIZATION_QUERY = gql`
   }
 `;
 
-// TODO : Organization layout
 // TODO : All workspaces to BLSQ + all users
 // TODO : Feature flag
 // TODO : list all workspaces
 // TODO : check auth required for org pages
+// TODO : clean code
 
-const OrganizationLandingPage = () => {
+const OrganizationPage = () => {
   const router = useRouter();
   const { organizationId } = router.query;
 
@@ -60,4 +60,4 @@ const OrganizationLandingPage = () => {
   );
 };
 
-export default OrganizationLandingPage;
+export default OrganizationPage;
