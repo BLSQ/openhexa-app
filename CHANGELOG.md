@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.10.0](https://github.com/BLSQ/openhexa-app/compare/1.9.1...1.10.0) (2025-06-05)
+
+
+### Features
+
+* Enable search bar by removing feature flag ([#1182](https://github.com/BLSQ/openhexa-app/issues/1182)) ([dc27321](https://github.com/BLSQ/openhexa-app/commit/dc273217a3f88767330ca043785dbc20149b4043))
+* removed promotion content from email template ([#1179](https://github.com/BLSQ/openhexa-app/issues/1179)) ([50c07b5](https://github.com/BLSQ/openhexa-app/commit/50c07b537715adfaa00d31a35d835f2a585df426))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @mdxeditor/editor to v3.35.0 ([#1172](https://github.com/BLSQ/openhexa-app/issues/1172)) ([626d390](https://github.com/BLSQ/openhexa-app/commit/626d3904315d66058832f0db2f6c36b6bd23e856))
+* **deps:** update dependency @sentry/nextjs to v9.26.0 ([#1173](https://github.com/BLSQ/openhexa-app/issues/1173)) ([5444bf6](https://github.com/BLSQ/openhexa-app/commit/5444bf628a796f84e9c8c4889c296777c18e6030))
+* **deps:** update dependency cookies-next to v6 ([#1175](https://github.com/BLSQ/openhexa-app/issues/1175)) ([2cec3dc](https://github.com/BLSQ/openhexa-app/commit/2cec3dccc0ecff9acd5237ea30b49257b57e5ad1))
+* progress overlay ([#1183](https://github.com/BLSQ/openhexa-app/issues/1183)) ([96d2aa8](https://github.com/BLSQ/openhexa-app/commit/96d2aa84e86b1ad9ae196e162ba275735ad2a0e2))
+* User search query not working on add member to workspace modal ([#1180](https://github.com/BLSQ/openhexa-app/issues/1180)) ([9bc1f38](https://github.com/BLSQ/openhexa-app/commit/9bc1f380d62c97003e764924741b0f7486556eb8))
+
 ## [1.9.1](https://github.com/BLSQ/openhexa-app/compare/1.9.0...1.9.1) (2025-06-03)
 
 
