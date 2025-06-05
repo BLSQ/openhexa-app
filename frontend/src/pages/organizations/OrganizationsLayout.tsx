@@ -4,8 +4,8 @@ import clsx from "clsx";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
 import { useTranslation } from "next-i18next";
 import { GetServerSidePropsContext } from "next";
-import { CustomApolloClient } from "../../core/helpers/apollo";
-import { getCookie, hasCookie } from "cookies-next";
+import { CustomApolloClient } from "core/helpers/apollo";
+import { getCookie, hasCookie, setCookie } from "cookies-next";
 
 export let cookieSidebarOpenState = true;
 
@@ -35,12 +35,17 @@ const OrganizationsLayout = ({
   const [isSidebarOpen, setSidebarOpen] = useState(getDefaultSidebarOpen());
   const { t } = useTranslation();
 
+  const onChangeSidebar = (open: boolean) => {
+    setCookie("sidebar-open", open);
+    setSidebarOpen(open);
+  };
+
   return (
     <div className="flex h-screen">
       <Sidebar
         organizations={organizations}
         isSidebarOpen={isSidebarOpen}
-        setSidebarOpen={(newValue) => setSidebarOpen(newValue)}
+        setSidebarOpen={onChangeSidebar}
       />
       <main
         className={clsx(
