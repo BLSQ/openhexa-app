@@ -28,7 +28,6 @@ const ORGANIZATION_QUERY = gql`
   }
 `;
 
-// TODO : orgs for user only
 // TODO : get is mac
 // TODO : clean UIs
 // TODO : clean code

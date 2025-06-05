@@ -243,8 +243,9 @@ def resolve_membership_permissions_delete(membership: Membership, info, **kwargs
 
 
 @identity_query.field("organizations")
-def resolve_organizations(*_):
-    return [o for o in Organization.objects.all()]
+def resolve_organizations(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return Organization.objects.filter_for_user(request.user).all()
 
 
 # TODO To be moved to organizations
