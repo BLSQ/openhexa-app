@@ -8,7 +8,7 @@ export type OrganizationQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', name: string }> } } | null };
+export type OrganizationQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> } } | null };
 
 
 export const OrganizationDocument = gql`
@@ -18,6 +18,7 @@ export const OrganizationDocument = gql`
     name
     workspaces {
       items {
+        slug
         name
       }
     }

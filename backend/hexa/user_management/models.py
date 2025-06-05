@@ -133,7 +133,7 @@ class OrganizationQuerySet(BaseQuerySet):
         return self._filter_for_user_and_query_object(
             user,
             Q(organizationmembership__user=user),
-            return_all_if_superuser=False,
+            return_all_if_superuser=True,
         )
 
 

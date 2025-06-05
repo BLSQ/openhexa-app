@@ -520,7 +520,7 @@ def resolve_members(organization: Organization, info, **kwargs):
 @organization_object.field("workspaces")
 def resolve_workspaces(organization: Organization, info, **kwargs):
     return result_page(
-        queryset=organization.workspaces,
+        queryset=organization.workspaces.all(),
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", organization.workspaces.count()),
     )
