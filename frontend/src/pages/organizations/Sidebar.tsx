@@ -1,8 +1,12 @@
 import React from "react";
 import clsx from "clsx";
 import Link from "core/components/Link";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
+import {
+  BuildingOfficeIcon,
+  BuildingOffice2Icon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "@heroicons/react/24/outline";
 import { useTranslation } from "next-i18next";
 import Badge from "core/components/Badge";
 
@@ -72,23 +76,36 @@ const Sidebar = ({
     >
       <div className="relative z-20 flex h-full flex-col">
         <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
-          <NavItem
-            className="h-16"
-            key="organization"
-            href="/organizations/"
-            Icon={ChevronLeftIcon}
-            label={t("Organizations")}
-            isCurrent={false}
-            compact={!isSidebarOpen}
-          />
-
+          <div
+            className={clsx(
+              "h-16 text-gray-300 text-md group relative flex items-center gap-3 px-2 py-2 font-medium",
+              !isSidebarOpen && "justify-center",
+            )}
+          >
+            <BuildingOffice2Icon
+              className={clsx(!isSidebarOpen ? "h-7 w-7" : "ml-1 h-5 w-5")}
+            />
+            {!isSidebarOpen ? (
+              <div className="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100">
+                <Badge className="bg-gray-800 ring-gray-500/20">
+                  {t("Organizations")}
+                </Badge>
+              </div>
+            ) : (
+              t("Organizations")
+            )}
+          </div>
           <div className="mt-5 flex grow flex-col">
             {organizations.map((organization) => (
-              <div key={organization.id} className="mb-2">
-                <h2 className="text-gray-400 text-sm px-3 mb-2">
-                  {organization.name}
-                </h2>
-              </div>
+              <NavItem
+                className="h-8 p-16 m-4 rounded-md"
+                key={organization.id}
+                href={"/organizations/" + organization.id}
+                Icon={BuildingOfficeIcon}
+                label={organization.name}
+                isCurrent={false}
+                compact={!isSidebarOpen}
+              />
             ))}
           </div>
           <div className="mb-5 flex shrink-0 flex-col items-center px-4">
