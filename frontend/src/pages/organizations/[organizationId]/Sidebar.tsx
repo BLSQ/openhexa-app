@@ -81,8 +81,7 @@ const Sidebar = ({
             isCurrent={false}
             compact={!isSidebarOpen}
           />
-          <SpotlightSearch isSidebarOpen={isSidebarOpen} isMac={true} />{" "}
-          {/** TODO: Implement getIsMac() */}
+          <SpotlightSearch isSidebarOpen={isSidebarOpen} isMac={true} />
           <div className="mt-5 flex grow flex-col"></div>
           <div className="mb-5 flex shrink-0 flex-col items-center px-4">
             <Link noStyle href="/" className="flex h-8 items-center">
