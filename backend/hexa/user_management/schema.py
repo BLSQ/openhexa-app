@@ -21,6 +21,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import BadSignature, SignatureExpired
 from django.db import transaction
 from django.db.models import Q
+from django.db.models.functions import Collate
 from django.http import HttpRequest
 from django.utils.http import urlsafe_base64_decode
 from django_otp import devices_for_user
@@ -265,8 +266,11 @@ def resolve_users(_, info, query: str, workspace_slug: str):
             id__in=workspace.members.values_list("id", flat=True)
         )
 
+        # Explicitely collate the email field to allow case insensive LIKE queries
+        users = users.annotate(case_insensitive_email=Collate("email", "und-x-icu"))
+
         users = users.filter(
-            Q(email__icontains=query)
+            Q(case_insensitive_email__contains=query)
             | Q(first_name__icontains=query)
             | Q(last_name__icontains=query)
         )
