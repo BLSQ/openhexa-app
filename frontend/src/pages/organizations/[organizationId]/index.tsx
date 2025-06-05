@@ -22,7 +22,6 @@ const ORGANIZATION_QUERY = gql`
 // TODO : All workspaces to BLSQ + all users
 // TODO : Feature flag
 // TODO : list all workspaces
-// TODO : beautiful layout
 // TODO : check auth required for org pages
 
 const OrganizationLandingPage = () => {
