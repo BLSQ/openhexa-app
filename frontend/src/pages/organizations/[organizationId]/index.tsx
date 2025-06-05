@@ -5,6 +5,9 @@ import Spinner from "core/components/Spinner";
 import Link from "core/components/Link";
 import { useTranslation } from "next-i18next";
 
+// TODO : implement the filter for user
+// TODO : landing page with search
+
 const ORGANIZATION_QUERY = gql`
   query Organization($id: UUID!) {
     organization(id: $id) {

@@ -168,8 +168,6 @@ const Sidebar = (props: SidebarProps) => {
     }
   }, [router.asPath]);
 
-  // TODO : implement the filter for user
-  // TODO : landing page with search
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
@@ -177,7 +175,7 @@ const Sidebar = (props: SidebarProps) => {
           <NavItem
             className="h-16"
             key="organization"
-            href={"/organization/" + workspace.organization.id}
+            href={"/organizations/" + workspace.organization.id}
             Icon={ChevronLeftIcon}
             label={
               workspace.organization.shortName ?? workspace.organization.name
