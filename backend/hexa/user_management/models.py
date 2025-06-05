@@ -124,6 +124,19 @@ class OrganizationType(models.TextChoices):
     NGO = "NGO", _("Non-governmental")
 
 
+class OrganizationManager(models.Manager):
+    pass
+
+
+class OrganizationQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(organizationmembership__user=user),
+            return_all_if_superuser=False,
+        )
+
+
 class Organization(Base):
     class Meta:
         db_table = "identity_organization"
@@ -138,6 +151,8 @@ class Organization(Base):
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)
     members = models.ManyToManyField(User, through="OrganizationMembership")
+
+    objects = OrganizationManager.from_queryset(OrganizationQuerySet)()
 
 
 class OrganizationMembershipRole(models.TextChoices):
