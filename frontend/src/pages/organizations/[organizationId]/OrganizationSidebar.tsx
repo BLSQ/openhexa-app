@@ -132,10 +132,7 @@ const OrganizationSidebar = ({
   );
 };
 
-OrganizationSidebar.prefetch = async (
-  ctx: GetServerSidePropsContext,
-  client: CustomApolloClient,
-) => {
+OrganizationSidebar.prefetch = async (ctx: GetServerSidePropsContext) => {
   isMac = ctx.req.headers["user-agent"]?.includes("Mac") ?? false;
 };
 
