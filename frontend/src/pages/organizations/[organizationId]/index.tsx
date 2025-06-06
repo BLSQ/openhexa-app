@@ -7,8 +7,8 @@ import Link from "core/components/Link";
 import Flag from "react-world-flags";
 import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import {
+  OrganizationDocument,
   OrganizationQuery,
-  useOrganizationQuery,
 } from "organizations/graphql/queries.generated";
 
 // TODO : fragment 2
@@ -75,11 +75,11 @@ export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
     await OrganizationLayout.prefetch(ctx, client);
-    const { data } = useOrganizationQuery({
+    const { data } = await client.query({
+      query: OrganizationDocument,
       variables: {
         id: ctx.params?.organizationId as string,
       },
-      client,
     });
 
     if (!data?.organization) {
