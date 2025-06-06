@@ -12,7 +12,6 @@ import {
 } from "organizations/graphql/queries.generated";
 
 // TODO : fragment 2
-// TODO : rename sidebar 2
 // TODO : cleanup code
 
 type Props = {
