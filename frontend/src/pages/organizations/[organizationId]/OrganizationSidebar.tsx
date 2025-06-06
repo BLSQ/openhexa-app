@@ -6,6 +6,7 @@ import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import Badge from "core/components/Badge";
 import { GetServerSidePropsContext } from "next";
 import { CustomApolloClient } from "core/helpers/apollo";
+import { OrganizationQuery } from "organizations/graphql/queries.generated";
 
 export let isMac = false;
 
@@ -17,13 +18,8 @@ function getIsMac() {
   return userAgent.includes("Mac");
 }
 
-type SidebarProps = {
-  organization: {
-    id: string;
-    name: string;
-    shortName?: string;
-    workspaces: { items: { slug: string; name: string }[] };
-  };
+type OrganizationSidebarProps = {
+  organization: OrganizationQuery["organization"];
   isSidebarOpen: boolean;
   setSidebarOpen: (newValue: boolean) => void;
 };
@@ -69,11 +65,14 @@ const NavItem = (props: {
   );
 };
 
-const Sidebar = ({
+const OrganizationSidebar = ({
   organization,
   isSidebarOpen,
   setSidebarOpen,
-}: SidebarProps) => {
+}: OrganizationSidebarProps) => {
+  if (!organization) {
+    return null; // or handle loading state
+  }
   return (
     <div
       className={clsx(
@@ -133,11 +132,11 @@ const Sidebar = ({
   );
 };
 
-Sidebar.prefetch = async (
+OrganizationSidebar.prefetch = async (
   ctx: GetServerSidePropsContext,
   client: CustomApolloClient,
 ) => {
   isMac = ctx.req.headers["user-agent"]?.includes("Mac") ?? false;
 };
 
-export default Sidebar;
+export default OrganizationSidebar;

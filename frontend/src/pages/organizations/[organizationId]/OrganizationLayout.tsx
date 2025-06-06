@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import Sidebar from "./Sidebar";
+import OrganizationSidebar from "./OrganizationSidebar";
 import clsx from "clsx";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
 import { useTranslation } from "next-i18next";
 import { GetServerSidePropsContext } from "next";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { getCookie, hasCookie, setCookie } from "cookies-next";
+import { OrganizationQuery } from "organizations/graphql/queries.generated";
 
 export let cookieSidebarOpenState = true;
 
@@ -21,12 +22,7 @@ function getDefaultSidebarOpen() {
 
 type OrganizationLayoutProps = {
   children: React.ReactNode;
-  organization: {
-    id: string;
-    name: string;
-    shortName?: string;
-    workspaces: { items: { slug: string; name: string }[] };
-  };
+  organization: OrganizationQuery["organization"];
 };
 
 const OrganizationLayout = ({
@@ -42,7 +38,7 @@ const OrganizationLayout = ({
 
   return (
     <div className="flex h-screen">
-      <Sidebar
+      <OrganizationSidebar
         organization={organization}
         isSidebarOpen={isSidebarOpen}
         setSidebarOpen={onChangeSidebar}
@@ -82,7 +78,7 @@ OrganizationLayout.prefetch = async (
   cookieSidebarOpenState = (await hasCookie("sidebar-open", ctx))
     ? (await getCookie("sidebar-open", ctx)) === "true"
     : true;
-  await Sidebar.prefetch(ctx, client);
+  await OrganizationSidebar.prefetch(ctx, client);
 };
 
 export default OrganizationLayout;
