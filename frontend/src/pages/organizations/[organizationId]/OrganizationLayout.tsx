@@ -78,7 +78,7 @@ OrganizationLayout.prefetch = async (
   cookieSidebarOpenState = (await hasCookie("sidebar-open", ctx))
     ? (await getCookie("sidebar-open", ctx)) === "true"
     : true;
-  await OrganizationSidebar.prefetch(ctx, client);
+  await OrganizationSidebar.prefetch(ctx);
 };
 
 export default OrganizationLayout;
