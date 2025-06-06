@@ -5,7 +5,6 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import Badge from "core/components/Badge";
 import { GetServerSidePropsContext } from "next";
-import { CustomApolloClient } from "core/helpers/apollo";
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
 
 export let isMac = false;

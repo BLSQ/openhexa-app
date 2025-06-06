@@ -4,7 +4,6 @@ import clsx from "clsx";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
 import { useTranslation } from "next-i18next";
 import { GetServerSidePropsContext } from "next";
-import { CustomApolloClient } from "core/helpers/apollo";
 import { getCookie, hasCookie, setCookie } from "cookies-next";
 import { OrganizationsQuery } from "organizations/graphql/queries.generated";
 
