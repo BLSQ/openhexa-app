@@ -4,6 +4,7 @@ import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "./OrganizationLayout";
 import { useTranslation } from "next-i18next";
 import Page from "core/components/Page";
+import Link from "core/components/Link";
 
 type Props = {
   organization: {
@@ -43,14 +44,9 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
           <h1 className="text-2xl font-bold mb-4">{organization.name}</h1>
           <ul>
             {organization.workspaces.items.map((workspace) => (
-              <li key={workspace.slug} className="mb-2">
-                <a
-                  href={`/workspaces/${workspace.slug}`}
-                  className="text-blue-600 hover:underline"
-                >
-                  {workspace.name}
-                </a>
-              </li>
+              <Link href={`/workspaces/${workspace.slug}`}>
+                {workspace.name}
+              </Link>
             ))}
           </ul>
         </div>
