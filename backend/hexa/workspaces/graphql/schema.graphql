@@ -186,7 +186,7 @@ extend type Query {
   # Returns a workspace by its unique identifier.
   workspace(slug: String!): Workspace @loginRequired
   # Returns a page of workspaces.
-  workspaces(query: String, page: Int, perPage: Int): WorkspacePage! @loginRequired
+  workspaces(query: String, organizationId:UUID, page: Int, perPage: Int): WorkspacePage! @loginRequired
   # Returns the invitations to workspaces of the current user.
   pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
 

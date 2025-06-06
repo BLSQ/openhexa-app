@@ -3970,6 +3970,7 @@ export type QueryWorkspaceArgs = {
 
 
 export type QueryWorkspacesArgs = {
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;

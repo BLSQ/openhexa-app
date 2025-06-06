@@ -31,7 +31,6 @@ const ORGANIZATION_QUERY = gql`
   }
 `;
 
-// TODO : correct search
 // TODO : clean UIs
 // TODO : clean code
 
