@@ -11,9 +11,6 @@ import {
   OrganizationQuery,
 } from "organizations/graphql/queries.generated";
 
-// TODO : fragment 2
-// TODO : cleanup code
-
 type Props = {
   organization: OrganizationQuery["organization"];
 };

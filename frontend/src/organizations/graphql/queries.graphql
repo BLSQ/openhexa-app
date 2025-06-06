@@ -14,3 +14,16 @@ query Organization($id: UUID!) {
         }
     }
 }
+
+query Organizations {
+    organizations {
+        id
+        name
+        workspaces {
+            items {
+                slug
+                name
+            }
+        }
+    }
+}

@@ -6,6 +6,7 @@ import { useTranslation } from "next-i18next";
 import { GetServerSidePropsContext } from "next";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { getCookie, hasCookie, setCookie } from "cookies-next";
+import { OrganizationsQuery } from "organizations/graphql/queries.generated";
 
 export let cookieSidebarOpenState = true;
 
@@ -21,11 +22,7 @@ function getDefaultSidebarOpen() {
 
 type OrganizationsLayoutProps = {
   children?: React.ReactNode;
-  organizations: {
-    id: string;
-    name: string;
-    workspaces: { items: { slug: string; name: string }[] };
-  }[];
+  organizations: OrganizationsQuery["organizations"];
 };
 
 const OrganizationsLayout = ({

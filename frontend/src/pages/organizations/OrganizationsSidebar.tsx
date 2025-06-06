@@ -8,13 +8,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "next-i18next";
 import Badge from "core/components/Badge";
+import { OrganizationsQuery } from "organizations/graphql/queries.generated";
 
 type OrganizationsSidebarProps = {
-  organizations: {
-    id: string;
-    name: string;
-    workspaces: { items: { slug: string; name: string }[] };
-  }[];
+  organizations: OrganizationsQuery["organizations"];
   isSidebarOpen: boolean;
   setSidebarOpen: (newValue: boolean) => void;
 };
