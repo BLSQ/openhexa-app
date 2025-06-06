@@ -8,6 +8,10 @@ import Link from "core/components/Link";
 import Flag from "react-world-flags";
 import { GlobeAltIcon } from "@heroicons/react/24/outline";
 
+// TODO : fragments
+// TODO : rename sidebars
+// TODO : cleanup code
+
 type Props = {
   organization: {
     id: string;
