@@ -9,7 +9,7 @@ import {
 import { useTranslation } from "next-i18next";
 import Badge from "core/components/Badge";
 
-type SidebarProps = {
+type OrganizationsSidebarProps = {
   organizations: {
     id: string;
     name: string;
@@ -49,11 +49,11 @@ const NavItem = (props: {
   );
 };
 
-const Sidebar = ({
+const OrganizationsSidebar = ({
   organizations,
   isSidebarOpen,
   setSidebarOpen,
-}: SidebarProps) => {
+}: OrganizationsSidebarProps) => {
   const { t } = useTranslation();
   return (
     <div
@@ -129,4 +129,4 @@ const Sidebar = ({
   );
 };
 
-export default Sidebar;
+export default OrganizationsSidebar;

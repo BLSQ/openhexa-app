@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Sidebar from "./Sidebar";
+import OrganizationsSidebar from "./OrganizationsSidebar";
 import clsx from "clsx";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
 import { useTranslation } from "next-i18next";
@@ -42,7 +42,7 @@ const OrganizationsLayout = ({
 
   return (
     <div className="flex h-screen">
-      <Sidebar
+      <OrganizationsSidebar
         organizations={organizations}
         isSidebarOpen={isSidebarOpen}
         setSidebarOpen={onChangeSidebar}
