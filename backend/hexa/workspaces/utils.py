@@ -28,26 +28,6 @@ def get_email_attachments():
             ).read(),
             "image/png",
         ),
-        (
-            "services_openhexa.png",
-            open(
-                os.path.join(
-                    settings.BASE_DIR, "hexa/static/img/email/services_openhexa.png"
-                ),
-                "rb",
-            ).read(),
-            "image/png",
-        ),
-        (
-            "flow_openhexa.png",
-            open(
-                os.path.join(
-                    settings.BASE_DIR, "hexa/static/img/email/flow_openhexa.png"
-                ),
-                "rb",
-            ).read(),
-            "image/png",
-        ),
     ]
 
 

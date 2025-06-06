@@ -37,18 +37,6 @@
       </mj-column>
     </mj-section>
     <mj-wrapper padding="20px 50px 40px 50px" border="none" text-align="center" background-color="#ffffff" border-radius="0 0 18px 18px">
-      <mj-section background-color="#fff2f2" padding="40px 20px 20px 20px">
-        <mj-column>
-          <mj-text font-size="20px" font-weight="800" font-family="'Inter Tight', sans-serif">
-            {% blocktranslate with span="<span style='color:#FF499C;'>where it matters the most</span>" %}
-            Unlock the power of your data {{ span }}
-            {% endblocktranslate %}
-          </mj-text>
-          <mj-image padding="20px 0" src="cid:services_openhexa.png" alt="OpenHEXA Overview" />
-          <mj-image padding="0" src="cid:flow_openhexa.png" alt="Modules Overview" />
-        </mj-column>
-      </mj-section>
-
       <mj-section background-color="#fff2f2">
         <mj-column>
           <mj-text font-size="14px" align="center" text-transform="uppercase" letter-spacing="2px">
@@ -72,24 +60,7 @@
           </mj-button>
         </mj-column>
       </mj-section>
-
-      <mj-section background-color="#2e2e2e" padding="20px 0">
-        <mj-column>
-          <mj-social mode="horizontal" align="center" icon-size="24px">
-            <mj-social-element name="github" href="https://github.com/BLSQ/openhexa" />
-            <mj-social-element name="web" href="https://openhexa.io" />
-          </mj-social>
-        </mj-column>
-      </mj-section>
     </mj-wrapper>
-
-    <mj-section background-repeat="repeat" background-size="auto"  border="none" direction="ltr" text-align="left" padding="0px 0px 60px 0px">
-      <mj-column border="none" vertical-align="top" padding="0px 0px 0px 0px">
-        <mj-text align="center" font-size="12px" padding="10px 25px 10px 25px">
-          © 2025 Bluesquare SA. {% trans "All Rights Reserved" %}
-        </mj-text>
-      </mj-column>
-    </mj-section>
 
   </mj-body>
 </mjml>
