@@ -71,7 +71,7 @@ OrganizationPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
-    await OrganizationLayout.prefetch(ctx, client);
+    await OrganizationLayout.prefetch(ctx);
     const { data } = await client.query({
       query: OrganizationDocument,
       variables: {

@@ -70,10 +70,7 @@ const OrganizationLayout = ({
   );
 };
 
-OrganizationLayout.prefetch = async (
-  ctx: GetServerSidePropsContext,
-  client: CustomApolloClient,
-) => {
+OrganizationLayout.prefetch = async (ctx: GetServerSidePropsContext) => {
   // Load the cookie value from the request to render it correctly on the server
   cookieSidebarOpenState = (await hasCookie("sidebar-open", ctx))
     ? (await getCookie("sidebar-open", ctx)) === "true"
