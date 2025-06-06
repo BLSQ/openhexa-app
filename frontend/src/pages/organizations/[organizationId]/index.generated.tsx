@@ -1,6 +1,7 @@
 import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
+import { WorkspaceDisplayFragmentFragmentDoc } from '../../../core/features/SpotlightSearch/WorkspaceDisplay.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type OrganizationQueryVariables = Types.Exact<{
@@ -8,7 +9,7 @@ export type OrganizationQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> } } | null };
+export type OrganizationQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> } } | null };
 
 
 export const OrganizationDocument = gql`
@@ -21,11 +22,12 @@ export const OrganizationDocument = gql`
       items {
         slug
         name
+        ...WorkspaceDisplayFragment
       }
     }
   }
 }
-    `;
+    ${WorkspaceDisplayFragmentFragmentDoc}`;
 
 /**
  * __useOrganizationQuery__
