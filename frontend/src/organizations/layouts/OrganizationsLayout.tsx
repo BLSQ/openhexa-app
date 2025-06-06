@@ -1,5 +1,5 @@
 import React from "react";
-import OrganizationsSidebar from "./OrganizationsSidebar";
+import OrganizationsSidebar from "./Sidebar/OrganizationsSidebar";
 import { GetServerSidePropsContext } from "next";
 import { OrganizationsQuery } from "organizations/graphql/queries.generated";
 import BaseLayout from "./BaseLayout";
