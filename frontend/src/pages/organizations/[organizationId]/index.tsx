@@ -5,7 +5,8 @@ import OrganizationLayout from "./OrganizationLayout";
 import { useTranslation } from "next-i18next";
 import Page from "core/components/Page";
 import Link from "core/components/Link";
-import WorkspaceDisplay from "core/features/SpotlightSearch/WorkspaceDisplay";
+import Flag from "react-world-flags";
+import { GlobeAltIcon } from "@heroicons/react/24/outline";
 
 type Props = {
   organization: {
@@ -26,7 +27,9 @@ const ORGANIZATION_QUERY = gql`
         items {
           slug
           name
-          ...WorkspaceDisplayFragment
+          countries {
+            code
+          }
         }
       }
     }
@@ -47,20 +50,30 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
               {t(totalWorkspaces > 1 ? "workspaces" : "workspace")}
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {organization.workspaces.items.map((workspace) => (
-              <div
-                key={workspace.slug}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 m-8">
+            {organization.workspaces.items.map((ws: any) => (
+              <Link
+                href={`/workspaces/${ws.slug}`}
+                className="font-medium mt-2 block text-gray-800"
+                noStyle
               >
-                <WorkspaceDisplay workspace={{ name: "", countries: [] }} />
-                <Link
-                  href={`/workspaces/${workspace.slug}`}
-                  className="text-blue-600 hover:text-blue-800 font-medium transition-colors mt-2 block"
+                <div
+                  key={ws.slug}
+                  className="hover:scale-105 bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 flex items-center gap-2"
                 >
-                  {t("View Workspace")}
-                </Link>
-              </div>
+                  <div className="flex h-full w-5 items-center">
+                    {ws.countries && ws.countries.length === 1 ? (
+                      <Flag
+                        code={ws.countries[0].code}
+                        className="w-5 shrink rounded-xs"
+                      />
+                    ) : (
+                      <GlobeAltIcon className="w-5 shrink rounded-xs text-gray-400" />
+                    )}
+                  </div>
+                  <div>{ws.name}</div>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
