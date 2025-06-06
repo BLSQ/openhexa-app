@@ -92,7 +92,11 @@ const OrganizationsSidebar = ({
             ))}
           </div>
           <div className="mb-5 flex shrink-0 flex-col items-center px-4">
-            <Link noStyle href="/" className="flex h-8 items-center">
+            <Link
+              noStyle
+              href="/frontend/public"
+              className="flex h-8 items-center"
+            >
               <img
                 className="h-full"
                 src={
