@@ -60,6 +60,7 @@ export type SearchFilesQueryVariables = Types.Exact<{
 export type SearchFilesQuery = { __typename?: 'Query', files: { __typename: 'FileResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'FileResult', score: number, file: { __typename?: 'File', name: string, path: string, size?: any | null, updated?: any | null, type: Types.FileType }, workspace: { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> } }> } };
 
 export type GetWorkspacesQueryVariables = Types.Exact<{
+  organizationId?: Types.InputMaybe<Types.Scalars['UUID']['input']>;
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
@@ -314,8 +315,8 @@ export type SearchFilesLazyQueryHookResult = ReturnType<typeof useSearchFilesLaz
 export type SearchFilesSuspenseQueryHookResult = ReturnType<typeof useSearchFilesSuspenseQuery>;
 export type SearchFilesQueryResult = Apollo.QueryResult<SearchFilesQuery, SearchFilesQueryVariables>;
 export const GetWorkspacesDocument = gql`
-    query GetWorkspaces($page: Int, $perPage: Int) {
-  workspaces(page: $page, perPage: $perPage) {
+    query GetWorkspaces($organizationId: UUID, $page: Int, $perPage: Int) {
+  workspaces(organizationId: $organizationId, page: $page, perPage: $perPage) {
     totalItems
     items {
       slug
@@ -337,6 +338,7 @@ export const GetWorkspacesDocument = gql`
  * @example
  * const { data, loading, error } = useGetWorkspacesQuery({
  *   variables: {
+ *      organizationId: // value for 'organizationId'
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *   },

@@ -59,9 +59,11 @@ const pageSize = 15;
 const SpotlightSearch = ({
   isMac,
   isSidebarOpen,
+  organizationId,
 }: {
   isMac: boolean;
   isSidebarOpen: boolean;
+  organizationId?: string;
 }) => {
   const { t } = useTranslation();
   const router = useRouter();
@@ -90,6 +92,7 @@ const SpotlightSearch = ({
     if (isOpen) {
       searchWorkspaces({
         variables: {
+          organizationId,
           perPage: 1000,
         },
       }).then();
@@ -521,8 +524,8 @@ SpotlightSearch.fragments = {
     }
   `,
   workspaces: gql`
-    query GetWorkspaces($page: Int, $perPage: Int) {
-      workspaces(page: $page, perPage: $perPage) {
+    query GetWorkspaces($organizationId: UUID, $page: Int, $perPage: Int) {
+      workspaces(organizationId: $organizationId, page: $page, perPage: $perPage) {
         totalItems
         items {
           slug
