@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.1](https://github.com/BLSQ/openhexa-app/compare/1.10.0...1.10.1) (2025-06-07)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @types/node to v22.15.30 ([#1189](https://github.com/BLSQ/openhexa-app/issues/1189)) ([a02eda9](https://github.com/BLSQ/openhexa-app/commit/a02eda9897d104e203fc9174f0caeda6d1df5f50))
+
 ## [1.10.0](https://github.com/BLSQ/openhexa-app/compare/1.9.1...1.10.0) (2025-06-05)
 
 
