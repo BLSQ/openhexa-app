@@ -3884,7 +3884,7 @@ export type QueryPipelinesArgs = {
 
 
 export type QuerySearchDatabaseTablesArgs = {
-  organizationId?: InputMaybe<Scalars['String']['input']>;
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
@@ -3893,7 +3893,7 @@ export type QuerySearchDatabaseTablesArgs = {
 
 
 export type QuerySearchDatasetsArgs = {
-  organizationId?: InputMaybe<Scalars['String']['input']>;
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
@@ -3902,7 +3902,7 @@ export type QuerySearchDatasetsArgs = {
 
 
 export type QuerySearchFilesArgs = {
-  organizationId?: InputMaybe<Scalars['String']['input']>;
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
@@ -3911,7 +3911,7 @@ export type QuerySearchFilesArgs = {
 
 
 export type QuerySearchPipelineTemplatesArgs = {
-  organizationId?: InputMaybe<Scalars['String']['input']>;
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
@@ -3920,7 +3920,7 @@ export type QuerySearchPipelineTemplatesArgs = {
 
 
 export type QuerySearchPipelinesArgs = {
-  organizationId?: InputMaybe<Scalars['String']['input']>;
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];

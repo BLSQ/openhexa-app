@@ -5,7 +5,12 @@ from hexa.datasets.models import Dataset
 from hexa.files.backends.base import StorageObject
 from hexa.pipeline_templates.models import PipelineTemplate
 from hexa.pipelines.models import Pipeline
-from hexa.user_management.models import User
+from hexa.user_management.models import (
+    Organization,
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    User,
+)
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -32,12 +37,21 @@ class SearchResolversTest(GraphQLTestCase):
             "standardpassword",
             is_superuser=False,
         )
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Test Organization",
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER,
+            role=OrganizationMembershipRole.MEMBER,
+        )
         cls.WORKSPACE1 = Workspace.objects.create(
             name="Workspace 1",
             slug="workspace1",
             description="First workspace",
             db_name="db_workspace1",
             bucket_name="bucket_workspace1",
+            organization=cls.ORGANIZATION,
         )
         cls.WORKSPACE2 = Workspace.objects.create(
             name="Workspace 2",
@@ -150,6 +164,37 @@ class SearchResolversTest(GraphQLTestCase):
             [
                 {"dataset": {"name": "Dataset", "slug": "dataset"}, "score": 1},
                 {"dataset": {"name": "Dataset 2", "slug": "dataset-2"}, "score": 0.5},
+            ],
+        )
+
+    def test_search_datasets_with_organization_id(self):
+        self.client.force_login(self.USER)
+
+        response = self.run_query(
+            """
+            query searchDatasets($query: String!, $page: Int, $perPage: Int, $organizationId: UUID!) {
+                searchDatasets(query: $query, page: $page, perPage: $perPage, organizationId: $organizationId) {
+                    items {
+                        dataset {
+                            name
+                            slug
+                        }
+                        score
+                    }
+                }
+            }
+            """,
+            {
+                "query": "Dataset",
+                "page": 1,
+                "perPage": 10,
+                "organizationId": str(self.ORGANIZATION.id),
+            },
+        )
+        self.assertEqual(
+            response["data"]["searchDatasets"]["items"],
+            [
+                {"dataset": {"name": "Dataset", "slug": "dataset"}, "score": 1},
             ],
         )
 
