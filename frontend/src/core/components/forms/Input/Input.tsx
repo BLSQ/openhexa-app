@@ -7,6 +7,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   leading?: ReactNode;
   fullWidth?: boolean;
   classNameOverrides?: string;
+  zIndex?: string;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
@@ -21,6 +22,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     leading = null,
     value,
     fullWidth = false,
+    zIndex = "focus:z-10",
     ...delegated
   } = props;
 
@@ -28,7 +30,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     classNameOverrides,
     "form-input appearance-none relative block",
     "px-3 py-2 border rounded-md focus:outline-hidden sm:text-sm",
-    classNameOverrides?.includes("focus:z-") && "focus:z-10",
+    zIndex,
     "disabled:opacity-50 disabled:cursor-not-allowed",
     error
       ? "border-red-300 placeholder-red-300  text-red-900  focus:ring-red-500  focus:border-red-500"
@@ -54,12 +56,22 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
         ref={ref}
       />
       {leading && (
-        <div className="absolute inset-y-0 left-0 z-10 inline-flex items-center justify-center pl-2.5">
+        <div
+          className={clsx(
+            "absolute inset-y-0 left-0 inline-flex items-center justify-center pl-2.5",
+            zIndex,
+          )}
+        >
           {leading}
         </div>
       )}
       {trailingIcon && (
-        <div className="absolute inset-y-0 right-0 z-10 inline-flex items-center justify-center pr-2.5">
+        <div
+          className={clsx(
+            "absolute inset-y-0 right-0 inline-flex items-center justify-center pr-2.5",
+            zIndex,
+          )}
+        >
           {trailingIcon}
         </div>
       )}
