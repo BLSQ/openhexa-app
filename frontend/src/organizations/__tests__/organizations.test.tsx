@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { OrganizationsQuery } from "organizations/graphql/queries.generated";
-import OrganizationsPage from "./index";
+import OrganizationsPage from "pages/organizations";
 
 const organizations = [
   { id: "1", name: "Organization 1" },

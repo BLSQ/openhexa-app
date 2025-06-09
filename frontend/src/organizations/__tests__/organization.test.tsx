@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
-import OrganizationPage from "./index";
+import OrganizationPage from "pages/organizations/[organizationId]";
 import { MockedProvider } from "@apollo/client/testing";
 
 const organization = {
