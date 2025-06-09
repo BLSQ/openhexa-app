@@ -186,16 +186,21 @@ class OrganizationMembership(models.Model):
     def update_if_has_perm(self, *, principal: User, role: OrganizationMembershipRole):
         if not principal.has_perm("user_management.manage_members", self.organization):
             raise PermissionDenied
-        if principal.id == self.user.id:
+        if (
+            principal.id == self.user.id
+            or self.role == OrganizationMembershipRole.OWNER
+        ):
             raise PermissionDenied
-
         self.role = role
         return self.save()
 
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("user_management.manage_members", self.organization):
             raise PermissionDenied
-        if principal.id == self.user.id:
+        if (
+            principal.id == self.user.id
+            or self.role == OrganizationMembershipRole.OWNER
+        ):
             raise PermissionDenied
 
         return self.delete()

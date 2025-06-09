@@ -53,5 +53,5 @@ def manage_members(principal: User, organization: Organization):
     """Only admin and owner users can manage members"""
     return organization.organizationmembership_set.filter(
         user=principal,
-        role_in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
+        role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
     ).exists()
