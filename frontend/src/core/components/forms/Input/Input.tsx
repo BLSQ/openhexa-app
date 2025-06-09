@@ -22,16 +22,16 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     leading = null,
     value,
     fullWidth = false,
-    zIndex = "focus:z-10",
+    zIndex = "z-10",
     ...delegated
   } = props;
 
   const inputClassName = clsx(
     classNameOverrides,
     "form-input appearance-none relative block",
-    "px-3 py-2 border rounded-md focus:outline-hidden sm:text-sm",
-    zIndex,
-    "disabled:opacity-50 disabled:cursor-not-allowed",
+    "px-3 py-2 border rounded-md focus:outline-hidden",
+    "focus:" + zIndex,
+    "sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed",
     error
       ? "border-red-300 placeholder-red-300  text-red-900  focus:ring-red-500  focus:border-red-500"
       : "border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500",
@@ -58,8 +58,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
       {leading && (
         <div
           className={clsx(
-            "absolute inset-y-0 left-0 inline-flex items-center justify-center pl-2.5",
+            "absolute inset-y-0 left-0",
             zIndex,
+            "inline-flex items-center justify-center pl-2.5",
           )}
         >
           {leading}
@@ -68,8 +69,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
       {trailingIcon && (
         <div
           className={clsx(
-            "absolute inset-y-0 right-0 inline-flex items-center justify-center pr-2.5",
+            "absolute inset-y-0 right-0",
             zIndex,
+            "inline-flex items-center justify-center pr-2.5",
           )}
         >
           {trailingIcon}
