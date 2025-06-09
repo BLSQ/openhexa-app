@@ -27,7 +27,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
   const inputClassName = clsx(
     classNameOverrides,
     "form-input appearance-none relative block",
-    "px-3 py-2 border rounded-md focus:outline-hidden sm:text-sm",
+    "px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm",
     "disabled:opacity-50 disabled:cursor-not-allowed",
     error
       ? "border-red-300 placeholder-red-300  text-red-900  focus:ring-red-500  focus:border-red-500"
@@ -53,12 +53,12 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
         ref={ref}
       />
       {leading && (
-        <div className="absolute inset-y-0 left-0 inline-flex items-center justify-center pl-2.5">
+        <div className="absolute inset-y-0 left-0 z-10 inline-flex items-center justify-center pl-2.5">
           {leading}
         </div>
       )}
       {trailingIcon && (
-        <div className="absolute inset-y-0 right-0 inline-flex items-center justify-center pr-2.5">
+        <div className="absolute inset-y-0 right-0 z-10 inline-flex items-center justify-center pr-2.5">
           {trailingIcon}
         </div>
       )}
