@@ -31,7 +31,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
             <h1 className="text-4xl font-bold">{organization.name}</h1>
             <p className="text-lg mt-2 text-gray-500">
               {totalWorkspaces}{" "}
-              {t(totalWorkspaces > 1 ? "workspaces" : "workspace")}
+              {totalWorkspaces > 1 ? t("workspaces") : t("workspace")}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 m-8">
@@ -42,10 +42,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
                 className="font-medium mt-2 block text-gray-800"
                 noStyle
               >
-                <div
-                  key={ws.slug}
-                  className="hover:scale-105 bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 flex items-center gap-2"
-                >
+                <div className="hover:scale-105 bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 flex items-center gap-2">
                   <div className="flex h-full w-5 items-center">
                     {ws.countries && ws.countries.length === 1 ? (
                       <Flag
