@@ -31,7 +31,7 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           autoComplete="off"
           trailingIcon={loading && <Spinner size="xs" />}
           className={className}
-          zIndex="z-0"
+          iconZIndex="z-0"
           placeholder={placeholder}
           {...delegated}
         />
