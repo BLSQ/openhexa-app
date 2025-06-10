@@ -22,7 +22,9 @@ const Pipelines = ({
   search: initialSearch,
 }: PipelinesProps) => {
   const [searchQuery, setSearchQuery] = useState(initialSearch);
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300, () => {
+    setPage(1); // Reset to first page when debounce completes
+  });
   const [view, setView] = useState<"grid" | "card">("grid");
   const [page, setPage] = useState(initialPage);
 
