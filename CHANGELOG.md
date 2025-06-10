@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.11.0](https://github.com/BLSQ/openhexa-app/compare/1.10.0...1.11.0) (2025-06-10)
+
+
+### Features
+
+* cleaner email invitation for existing ([#1187](https://github.com/BLSQ/openhexa-app/issues/1187)) ([d77d5cf](https://github.com/BLSQ/openhexa-app/commit/d77d5cf39f03b2d87cd452e7062a2908e671e7b1))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @types/node to v22.15.30 ([#1189](https://github.com/BLSQ/openhexa-app/issues/1189)) ([a02eda9](https://github.com/BLSQ/openhexa-app/commit/a02eda9897d104e203fc9174f0caeda6d1df5f50))
+* searching when changing page of results & UI glitch caused by z-index (HEXA-1293) ([#1200](https://github.com/BLSQ/openhexa-app/issues/1200)) ([ee79240](https://github.com/BLSQ/openhexa-app/commit/ee792401920a69b66dbc65e9013ff3440ba5ac5c))
+
 ## [1.10.0](https://github.com/BLSQ/openhexa-app/compare/1.9.1...1.10.0) (2025-06-05)
 
 
