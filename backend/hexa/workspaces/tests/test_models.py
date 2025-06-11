@@ -6,7 +6,14 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 from hexa.core.test import TestCase
 from hexa.files import storage
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import (
+    Feature,
+    FeatureFlag,
+    Organization,
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    User,
+)
 from hexa.workspaces.models import (
     Connection,
     ConnectionType,
@@ -156,6 +163,32 @@ class WorkspaceTest(TestCase):
                     user=self.USER_JULIA, workspace=workspace
                 ).notebooks_server_hash,
             )
+
+    def test_organization_membership_created(self):
+        organization = Organization.objects.create(name="Test Organization")
+        workspace = Workspace.objects.create(
+            name="Test Workspace",
+            slug="test-workspace",
+            organization=organization,
+        )
+
+        self.assertFalse(
+            OrganizationMembership.objects.filter(
+                organization=organization, user=self.USER_SERENA
+            ).exists()
+        )
+
+        WorkspaceMembership.objects.create(
+            user=self.USER_SERENA,
+            workspace=workspace,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
+        membership = OrganizationMembership.objects.get(
+            organization=organization, user=self.USER_SERENA
+        )
+        self.assertIsNotNone(membership)
+        self.assertEqual(membership.role, OrganizationMembershipRole.MEMBER)
 
     def test_add_external_user(self):
         with patch("hexa.workspaces.models.create_database"), patch(

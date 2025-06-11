@@ -10,7 +10,14 @@ from django.core.signing import Signer
 
 from hexa.core.test import GraphQLTestCase
 from hexa.databases.utils import TableNotFound
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import (
+    Feature,
+    FeatureFlag,
+    Organization,
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    User,
+)
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceInvitation,
@@ -59,6 +66,15 @@ class WorkspaceTest(GraphQLTestCase):
         )
         cls.USER_EXTERNAL = "user@external.com"
 
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Test Organization",
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_REBECCA,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
         with (
             patch("hexa.workspaces.models.create_database"),
             patch("hexa.workspaces.models.load_database_sample_data"),
@@ -69,6 +85,8 @@ class WorkspaceTest(GraphQLTestCase):
                 description="This is a workspace for Senegal",
                 countries=[{"code": "AL"}],
             )
+            cls.WORKSPACE.organization = cls.ORGANIZATION
+            cls.WORKSPACE.save()
             cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
                 cls.USER_JULIA,
                 name="Burundi Workspace",
@@ -401,6 +419,37 @@ class WorkspaceTest(GraphQLTestCase):
             }
             """,
             {"page": 1, "perPage": 1},
+        )
+
+        self.assertEqual(
+            {
+                "totalItems": 1,
+                "totalPages": 1,
+                "items": [{"slug": self.WORKSPACE.slug, "name": self.WORKSPACE.name}],
+            },
+            r["data"]["workspaces"],
+        )
+
+    def test_get_workspaces_in_organization(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+            query workspaces($page:Int!, $perPage:Int!, $organizationId:UUID!) {
+                workspaces(page:$page, perPage:$perPage, organizationId:$organizationId) {
+                   totalItems
+                   totalPages
+                   items {
+                        slug
+                        name
+                   }
+                }
+            }
+            """,
+            {
+                "page": 1,
+                "perPage": 1,
+                "organizationId": str(self.ORGANIZATION.id),
+            },
         )
 
         self.assertEqual(
