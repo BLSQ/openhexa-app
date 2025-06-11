@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.11.1](https://github.com/BLSQ/openhexa-app/compare/1.11.0...1.11.1) (2025-06-11)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @mdxeditor/editor to v3.35.1 ([#1204](https://github.com/BLSQ/openhexa-app/issues/1204)) ([b25a457](https://github.com/BLSQ/openhexa-app/commit/b25a457cc4c86a201d136e00dd78ba02003d14c1))
+* **deps:** update dependency @types/node to v22.15.31 ([#1207](https://github.com/BLSQ/openhexa-app/issues/1207)) ([9bb69b9](https://github.com/BLSQ/openhexa-app/commit/9bb69b9b249716ed5b9340bea4babdd4936db3fe))
+* **deps:** update dependency @uiw/react-codemirror to v4.23.13 ([#1208](https://github.com/BLSQ/openhexa-app/issues/1208)) ([00cce5b](https://github.com/BLSQ/openhexa-app/commit/00cce5b0ba59f64485e543dd6d7ae95ee55ce746))
+
 ## [1.11.0](https://github.com/BLSQ/openhexa-app/compare/1.10.0...1.11.0) (2025-06-10)
 
 
