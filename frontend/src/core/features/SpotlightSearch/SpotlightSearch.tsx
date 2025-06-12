@@ -374,7 +374,7 @@ const SpotlightSearch = ({
                   "focus:ring-0 focus:border-white border-white py-4"
                 }
               />
-              <div onClick={() => !showResults && setIsOpen(false)}>
+              <div onClick={showResults ? undefined : () => setIsOpen(false)}>
                 <div
                   className={clsx(
                     "transition-opacity duration-100 ease-in-out",
