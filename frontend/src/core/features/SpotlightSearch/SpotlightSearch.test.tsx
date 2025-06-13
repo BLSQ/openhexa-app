@@ -35,7 +35,7 @@ describe("SpotlightSearch", () => {
     await waitFor(() => {
       expect(screen.getByTestId("spotlight-search-results-panel")).toHaveClass(
         "visible",
-      ); // Wait for the animation to complete
+      );
     });
 
     fireEvent.click(screen.getByText("Test Workspace")); // The mock data has a workspace called "Test Workspace" and expecting only one workspace in the query
