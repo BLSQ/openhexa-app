@@ -378,8 +378,9 @@ const SpotlightSearch = ({
                 <div
                   className={clsx(
                     "transition-opacity duration-100 ease-in-out",
-                    showResults ? "opacity-100" : "opacity-0 invisible",
+                    showResults ? "opacity-100 visible" : "opacity-0 invisible",
                   )}
+                  data-testid="spotlight-search-results-panel"
                 >
                   <WorkspaceFilterPanel
                     workspaces={workspacesData?.workspaces?.items || []}
