@@ -144,8 +144,8 @@ class Organization(Base):
     organization_type = models.CharField(
         choices=OrganizationType.choices, max_length=100
     )
-    name = models.CharField(max_length=200)
-    short_name = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=200, unique=True)
+    short_name = models.CharField(max_length=100, blank=True, unique=True)
     description = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
     url = models.URLField(blank=True)
