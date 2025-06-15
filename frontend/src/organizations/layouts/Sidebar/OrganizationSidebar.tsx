@@ -1,9 +1,7 @@
 import React from "react";
 import clsx from "clsx";
-import Link from "core/components/Link";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
-import Badge from "core/components/Badge";
 import { GetServerSidePropsContext } from "next";
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
 import NavItem from "./NavItem";
