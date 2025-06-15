@@ -26,16 +26,6 @@ import { GetServerSidePropsContext } from "next";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import useFeature from "identity/hooks/useFeature";
 
-export let isMac = false;
-
-function getIsMac() {
-  if (typeof window === "undefined") {
-    return isMac;
-  }
-  const userAgent = window.navigator.userAgent;
-  return userAgent.includes("Mac");
-}
-
 type SidebarProps = {
   workspace: Sidebar_WorkspaceFragment;
   className?: string;
@@ -185,7 +175,7 @@ const Sidebar = (props: SidebarProps) => {
             compact={!isSidebarOpen}
           />
         )}
-        <SpotlightSearch isSidebarOpen={isSidebarOpen} isMac={getIsMac()} />
+        <SpotlightSearch isSidebarOpen={isSidebarOpen} />
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
         <div className="mt-5 flex grow flex-col">
@@ -256,8 +246,8 @@ Sidebar.prefetch = async (
   ctx: GetServerSidePropsContext,
   client: CustomApolloClient,
 ) => {
-  isMac = ctx.req.headers["user-agent"]?.includes("Mac") ?? false;
   await SidebarMenu.prefetch(client);
+  await SpotlightSearch.prefetch(ctx);
 };
 
 export default Sidebar;

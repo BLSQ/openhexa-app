@@ -8,16 +8,6 @@ import NavItem from "./NavItem";
 import SidebarToggleButton from "./SidebarToggleButton";
 import Logo from "./Logo";
 
-export let isMac = false;
-
-function getIsMac() {
-  if (typeof window === "undefined") {
-    return isMac;
-  }
-  const userAgent = window.navigator.userAgent;
-  return userAgent.includes("Mac");
-}
-
 type OrganizationSidebarProps = {
   organization: OrganizationQuery["organization"];
   isSidebarOpen: boolean;
@@ -51,7 +41,6 @@ const OrganizationSidebar = ({
           />
           <SpotlightSearch
             isSidebarOpen={isSidebarOpen}
-            isMac={getIsMac()}
             organizationId={organization.id}
           />
           <div className="mt-5 flex grow flex-col"></div>
@@ -67,7 +56,7 @@ const OrganizationSidebar = ({
 };
 
 OrganizationSidebar.prefetch = async (ctx: GetServerSidePropsContext) => {
-  isMac = ctx.req.headers["user-agent"]?.includes("Mac") ?? false;
+  await SpotlightSearch.prefetch(ctx);
 };
 
 export default OrganizationSidebar;
