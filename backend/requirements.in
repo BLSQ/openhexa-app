@@ -33,7 +33,7 @@ gunicorn
 dhis2.py
 
 # connector_s3
-boto3==1.38.32
+boto3==1.38.34
 moto[s3]
 
 # connector_airflow
@@ -55,7 +55,7 @@ rasterio
 rio-cogeo
 
 # need to pin requests to < 2.32 to avoid breaking docker-py
-requests==2.32.3
+requests==2.32.4
 requests-mock
 
 # analytics
@@ -71,7 +71,7 @@ openpyxl
 regex
 
 #toolbox
-openhexa-toolbox==2.6.5
+openhexa-toolbox==2.7.0
 
 # email templating
 mjml-python

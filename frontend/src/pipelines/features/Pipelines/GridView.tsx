@@ -20,6 +20,7 @@ type GridViewProps = {
 const GridView = ({
   items,
   workspace,
+  page,
   perPage,
   totalItems,
   setPage,
@@ -32,6 +33,7 @@ const GridView = ({
         data={items}
         defaultPageSize={perPage}
         totalItems={totalItems}
+        defaultPageIndex={page - 1}
         fetchData={({ page }) => setPage(page)}
         fixedLayout={false}
       >
