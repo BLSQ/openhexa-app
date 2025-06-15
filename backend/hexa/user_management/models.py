@@ -161,7 +161,7 @@ class OrganizationMembershipRole(models.TextChoices):
     MEMBER = "member", _("Member")
 
 
-class OrganizationMembership(models.Model):
+class OrganizationMembership(Base):
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -170,7 +170,6 @@ class OrganizationMembership(models.Model):
             )
         ]
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     organization = models.ForeignKey(
         Organization,
         on_delete=models.CASCADE,
@@ -180,8 +179,6 @@ class OrganizationMembership(models.Model):
         on_delete=models.CASCADE,
     )
     role = models.CharField(choices=OrganizationMembershipRole.choices, max_length=50)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def update_if_has_perm(self, *, principal: User, role: OrganizationMembershipRole):
         if not principal.has_perm("user_management.manage_members", self.organization):
