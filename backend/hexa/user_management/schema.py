@@ -518,7 +518,7 @@ def resolve_members(organization: Organization, info, **kwargs):
     return result_page(
         queryset=qs,
         page=kwargs.get("page", 1),
-        per_page=kwargs.get("per_page", qs.count()),
+        per_page=kwargs.get("per_page", qs.count() or 10),
     )
 
 
