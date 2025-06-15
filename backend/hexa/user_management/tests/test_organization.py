@@ -64,16 +64,19 @@ class OrganizationModelTests(TestCase):
         self.membership.refresh_from_db()
         self.assertEqual(self.membership.role, OrganizationMembershipRole.OWNER)
 
-    def test_update_membership_role_without_permission(self):
+    def test_promoting_to_owner(self):
+        """Test that a user cannot promote themselves to owner."""
         with self.assertRaises(PermissionDenied):
             self.membership.update_if_has_perm(
                 principal=self.user1, role=OrganizationMembershipRole.OWNER
             )
 
     def test_delete_own_membership(self):
+        """Test that a user cannot delete their own membership."""
         with self.assertRaises(PermissionDenied):
             self.membership.delete_if_has_perm(principal=self.user1)
 
     def test_delete_membership_without_permission(self):
+        """Test that an admin cannot delete the membership of an owner of the organization."""
         with self.assertRaises(PermissionDenied):
-            self.membership.delete_if_has_perm(principal=self.user1)
+            self.membership2.delete_if_has_perm(principal=self.user1)
