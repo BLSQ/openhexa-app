@@ -22,8 +22,8 @@ class WorkspaceInvitationInline(admin.TabularInline):
 
 @admin.register(Workspace)
 class WorkspaceAdmin(admin.ModelAdmin):
-    list_display = ("slug", "name", "created_at", "updated_at")
-    list_filter = ("archived",)
+    list_display = ("slug", "name", "organization", "created_at", "updated_at")
+    list_filter = ("archived", "organization")
 
     search_fields = (
         "slug",
