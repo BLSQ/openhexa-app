@@ -10,6 +10,10 @@ import {
   OrganizationDocument,
   OrganizationQuery,
 } from "organizations/graphql/queries.generated";
+import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
+import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
+import { useState } from "react";
+import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
 
 type Props = {
   organization: OrganizationQuery["organization"];
@@ -17,12 +21,24 @@ type Props = {
 
 const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
   const { t } = useTranslation();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+  const [selectedWorkspace, setSelectedWorkspace] =
+    useState<ArchiveWorkspace_WorkspaceFragment | null>(null);
 
   if (!organization) {
     return null;
   }
 
   const totalWorkspaces = organization.workspaces.items.length;
+
+  const handleArchiveClick = (
+    workspace: ArchiveWorkspace_WorkspaceFragment,
+  ) => {
+    setSelectedWorkspace(workspace);
+    setIsArchiveDialogOpen(true);
+  };
+
   return (
     <Page title={t("Organization")}>
       <OrganizationLayout organization={organization}>
@@ -33,33 +49,67 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
               {totalWorkspaces}{" "}
               {totalWorkspaces > 1 ? t("workspaces") : t("workspace")}
             </p>
+            <button
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+              onClick={() => setIsCreateDialogOpen(true)}
+            >
+              {t("Create Workspace")}
+            </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 m-8">
             {organization.workspaces.items.map((ws) => (
-              <Link
-                key={ws.slug}
-                href={`/workspaces/${ws.slug}`}
-                className="font-medium mt-2 block text-gray-800"
-                noStyle
-              >
-                <div className="hover:scale-105 bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 flex items-center gap-2">
-                  <div className="flex h-full w-5 items-center">
-                    {ws.countries && ws.countries.length === 1 ? (
-                      <Flag
-                        code={ws.countries[0].code}
-                        className="w-5 shrink rounded-xs"
-                      />
-                    ) : (
-                      <GlobeAltIcon className="w-5 shrink rounded-xs text-gray-400" />
-                    )}
+              <div key={ws.slug} className="space-y-2">
+                <Link
+                  href={`/workspaces/${ws.slug}`}
+                  className="font-medium mt-2 block text-gray-800"
+                  noStyle
+                >
+                  <div className="hover:scale-105 bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 flex items-center gap-2">
+                    <div className="flex h-full w-5 items-center">
+                      {ws.countries && ws.countries.length === 1 ? (
+                        <Flag
+                          code={ws.countries[0].code}
+                          className="w-5 shrink rounded-xs"
+                        />
+                      ) : (
+                        <GlobeAltIcon className="w-5 shrink rounded-xs text-gray-400" />
+                      )}
+                    </div>
+                    <div>{ws.name}</div>
                   </div>
-                  <div>{ws.name}</div>
+                </Link>
+                <div className="flex gap-2">
+                  <Link
+                    href={`/workspaces/${ws.slug}/settings`}
+                    className="text-blue-600"
+                  >
+                    {t("Settings")}
+                  </Link>
+                  <button
+                    className="text-red-600"
+                    onClick={() => handleArchiveClick(ws)}
+                  >
+                    {t("Archive")}
+                  </button>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
       </OrganizationLayout>
+
+      <CreateWorkspaceDialog
+        open={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+      />
+
+      {selectedWorkspace && (
+        <ArchiveWorkspaceDialog
+          workspace={selectedWorkspace}
+          open={isArchiveDialogOpen}
+          onClose={() => setIsArchiveDialogOpen(false)}
+        />
+      )}
     </Page>
   );
 };
