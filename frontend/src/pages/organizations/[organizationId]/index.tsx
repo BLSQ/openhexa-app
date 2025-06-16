@@ -1,6 +1,6 @@
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
-import OrganizationLayout from "../../../organizations/layouts/OrganizationLayout";
+import OrganizationLayout from "organizations/layouts/OrganizationLayout";
 import { useTranslation } from "next-i18next";
 import Page from "core/components/Page";
 import Link from "core/components/Link";
