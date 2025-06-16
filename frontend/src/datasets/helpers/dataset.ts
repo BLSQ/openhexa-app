@@ -212,6 +212,7 @@ export async function generateDatasetUploadUrl(
           success
           errors
           uploadUrl
+          headers
         }
       }
     `,
@@ -225,7 +226,10 @@ export async function generateDatasetUploadUrl(
   });
 
   if (data?.generateDatasetUploadUrl.success) {
-    return data.generateDatasetUploadUrl.uploadUrl!;
+    return {
+      url: data.generateDatasetUploadUrl.uploadUrl!,
+      headers: data.generateDatasetUploadUrl.headers!,
+    };
   } else {
     throw new Error(
       `An unknown error occurred: ${data?.generateDatasetUploadUrl.errors}`,
