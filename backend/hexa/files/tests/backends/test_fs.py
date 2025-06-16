@@ -180,8 +180,10 @@ class FileSystemStorageTest(TestCase):
 
     def test_generate_upload_url(self):
         self.storage.create_bucket("default-bucket")
-        url = self.storage.generate_upload_url(
-            "default-bucket", "file.txt", content_type="text/plain"
+        url, _ = self.storage.generate_upload_url(
+            bucket_name="default-bucket",
+            target_key="file.txt",
+            content_type="text/plain",
         )
         self.assertTrue(url.startswith("http://localhost:8000/files/up/"))
         token = url.split("/")[-2]
@@ -199,8 +201,10 @@ class FileSystemStorageTest(TestCase):
             "test_file.txt", file_data.getvalue(), content_type="text/plain"
         )
 
-        url = self.storage.generate_upload_url(
-            "default-bucket", "test_file.txt", "text/plain"
+        url, _ = self.storage.generate_upload_url(
+            bucket_name="default-bucket",
+            target_key="test_file.txt",
+            content_type="text/plain",
         )
         with patch("hexa.files.views.storage", self.storage):
             resp = self.client.post(
@@ -222,8 +226,10 @@ class FileSystemStorageTest(TestCase):
         # Expire the token
         self.storage._token_max_age = 0
 
-        url = self.storage.generate_upload_url(
-            "default-bucket", "test_file.txt", "text/plain"
+        url, _ = self.storage.generate_upload_url(
+            bucket_name="default-bucket",
+            target_key="test_file.txt",
+            content_type="text/plain",
         )
         with patch("hexa.files.views.storage", self.storage):
             resp = self.client.post(

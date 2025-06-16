@@ -73,7 +73,6 @@ services:
         - WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
     command: "manage pipelines_runner"
     restart: unless-stopped
-    user: root
     profiles:
       - "pipelines"
     depends_on:
@@ -137,6 +136,19 @@ services:
       - "8025:8025"
     networks:
       - openhexa
+
+  # Azurite is used to test the Azure storage backend locally. This has to be run separately when triggering tests.
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: "azurite"
+    hostname: azurite
+    restart: always
+    profiles:
+      - "test"
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
 
 
   # Legacy services

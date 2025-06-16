@@ -1,6 +1,10 @@
 from datetime import datetime, timedelta, timezone
 
-from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
+from azure.core.exceptions import (
+    HttpResponseError,
+    ResourceExistsError,
+    ResourceNotFoundError,
+)
 from azure.storage.blob import (
     BlobPrefix,
     BlobSasPermissions,
@@ -49,11 +53,18 @@ class AzureBlobStorage(Storage):
         except ResourceNotFoundError:
             return False
 
-    def create_bucket(self, bucket_name, labels: dict | None = None, *args, **kwargs):
+    def create_bucket(self, bucket_name, *args, **kwargs):
         try:
-            self.client.create_container(bucket_name, metadata=labels)
+            bucket = self.client.create_container(bucket_name)
+            return bucket.container_name
         except ResourceExistsError:
-            pass
+            raise Storage.exceptions.AlreadyExists(
+                f"Bucket {bucket_name} already exists"
+            )
+        except HttpResponseError as e:
+            raise Storage.exceptions.BadRequest(
+                f"Cannot create the bucket {bucket_name}: {e.message}"
+            ) from e
 
     def save_object(self, bucket_name, file_path, file):
         blob_client = self.client.get_blob_client(container=bucket_name, blob=file_path)
@@ -218,7 +229,7 @@ class AzureBlobStorage(Storage):
         blob_client = self.client.get_blob_client(container=bucket_name, blob=file_name)
         blob_client.delete_blob()
 
-    def delete_bucket(self, bucket_name):
+    def delete_bucket(self, bucket_name, force: bool = False):
         self.client.delete_container(bucket_name)
 
     def get_short_lived_access_token(self, bucket_name):
