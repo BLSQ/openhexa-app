@@ -1,4 +1,8 @@
-from .dev import *  # noqa: F403, F401
+import os
+
+STORAGE_BACKEND = "dummy"
+
+from .base import *  # noqa: E402, F401, F403
 
 DEBUG = False
 
@@ -19,3 +23,6 @@ if "hexa.plugins.connector_accessmod" in INSTALLED_APPS:  # noqa: F405
 
 NEW_FRONTEND_DOMAIN = "http://localhost:3000"
 NOTEBOOKS_URL = "http://localhost:8001"
+AZURITE_TEST_SERVER = os.getenv(
+    "AZURITE_TEST_SERVER", "http://host.docker.internal:10000/"
+)

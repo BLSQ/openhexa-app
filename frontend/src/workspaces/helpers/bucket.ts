@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
 import { constructFolderKey } from "core/helpers/files";
-import {
+import type {
   GetFileDownloadUrlMutation,
   GetFileDownloadUrlMutationVariables,
   DeleteBucketObjectMutation,
@@ -39,12 +39,11 @@ export async function getBucketObjectDownloadUrl(
 
   if (data?.prepareObjectDownload?.success) {
     return data.prepareObjectDownload.downloadUrl as string;
-  } else {
-    throw new Error("Object cannot be downloaded");
   }
+  throw new Error("Object cannot be downloaded");
 }
 
-export async function downloadURL(url: string, target: string = "") {
+export async function downloadURL(url: string, target = "") {
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.target = target;
@@ -91,7 +90,7 @@ export async function getBucketObjectUploadUrl(
   workspaceSlug: string,
   key: string,
   contentType: string,
-) {
+): Promise<{ uploadUrl: string; headers: Record<string, string> }> {
   const client = getApolloClient();
   const { data } = await client.mutate<
     GetBucketUploadUrlMutation,
@@ -101,6 +100,7 @@ export async function getBucketObjectUploadUrl(
       mutation GetBucketUploadUrl($input: PrepareObjectUploadInput!) {
         prepareObjectUpload(input: $input) {
           success
+          headers
           uploadUrl
         }
       }
@@ -115,10 +115,12 @@ export async function getBucketObjectUploadUrl(
   });
 
   if (data?.prepareObjectUpload?.success) {
-    return data.prepareObjectUpload.uploadUrl as string;
-  } else {
-    throw new Error("Object cannot be uploaded");
+    return {
+      uploadUrl: data.prepareObjectUpload.uploadUrl as string,
+      headers: data.prepareObjectUpload.headers as Record<string, string>,
+    };
   }
+  throw new Error("Object cannot be uploaded");
 }
 
 export async function createBucketFolder(
