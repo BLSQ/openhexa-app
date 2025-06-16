@@ -370,24 +370,26 @@ The address of the server must be the one of the database container gateway, on 
 ## Running the tests
 
 ### Backend
-Running the tests is as simple as:
+Running the tests is as simple as the following command:
 
 ```bash
-docker compose run app test --settings=config.settings.test
+docker compose run --profile test app test --settings=config.settings.test
 ```
 
 Some tests call external resources (such as the public DHIS2 API) and will slow down the suite. You can exclude them
 when running the test suite for unrelated parts of the codebase:
 
 ```bash
-docker compose run app test --exclude-tag=external --settings=config.settings.test
+docker compose run --profile test app test --exclude-tag=external --settings=config.settings.test
 ```
 
 You can run a specific test as it follows:
 
 ```bash
-docker compose run app test hexa.core.tests.CoreTest.test_ready_200 --settings=config.settings.test
+docker compose run --profile test app test hexa.core.tests.CoreTest.test_ready_200 --settings=config.settings.test
 ```
+
+Adding the `--profile test` will launch optional services that are needed for the tests to run (e.g. `azurite` to test the Azure storage backend).
 
 There are many other options, if you want to find out more, look at the [documentation of Django test harness](https://docs.djangoproject.com/en/4.2/topics/testing/overview/#running-tests),
 as it is what we are using.
