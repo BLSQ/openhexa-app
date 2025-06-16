@@ -39,6 +39,10 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
     setIsArchiveDialogOpen(true);
   };
 
+  // TODO : better UI
+  // TODO : on create link it to the organization
+  // TODO : check roles
+
   return (
     <Page title={t("Organization")}>
       <OrganizationLayout organization={organization}>
