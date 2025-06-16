@@ -33,7 +33,9 @@ describe("SpotlightSearch", () => {
     expect(searchInput).toHaveValue("test query");
 
     await waitFor(() => {
-      expect(screen.getByText("Filter by Workspace")).toBeInTheDocument();
+      expect(screen.getByTestId("spotlight-search-results-panel")).toHaveClass(
+        "visible",
+      );
     });
 
     fireEvent.click(screen.getByText("Test Workspace")); // The mock data has a workspace called "Test Workspace" and expecting only one workspace in the query

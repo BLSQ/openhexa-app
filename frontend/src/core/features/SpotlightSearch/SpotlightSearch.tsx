@@ -344,114 +344,116 @@ const SpotlightSearch = ({
         className="fixed inset-0 z-50 bg-gray-900/70 flex justify-center"
         tabIndex={0}
       >
-        <div className="flex w-2/3 mt-30" ref={searchBarRef}>
+        <div className="flex w-2/3 mt-30">
           <div className="relative">
-            <Input
-              id="search-input"
-              ref={inputRef}
-              value={unBouncedQuery}
-              data-testid="search-input"
-              leading={<MagnifyingGlassIcon className="h-5 text-gray-500" />}
-              autoComplete="off"
-              trailingIcon={
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center text-gray-500 hover:text-gray-700 focus:text-gray-700"
-                  aria-label="Close"
-                >
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              }
-              placeholder={t(
-                "Search for files, pipelines, templates, database, datasets,...",
-              )}
-              onChange={(event) => {
-                resetPages();
-                setUnBouncedQuery(event.target.value ?? "");
-              }}
-              className={clsx(
-                "w-full transition-all duration-100 ease-in-out",
-                showResults && "rounded-b-none",
-              )}
-              classNameOverrides={
-                "focus:ring-0 focus:border-white border-white py-4"
-              }
-            />
-            <div
-              className={clsx(
-                "transition-opacity duration-100 ease-in-out",
-                showResults ? "opacity-100" : "opacity-0",
-              )}
-            >
-              <WorkspaceFilterPanel
-                workspaces={workspacesData?.workspaces?.items || []}
-                selectedWorkspaces={selectedWorkspaces}
-                onChange={setSelectedWorkspaces}
+            <div ref={searchBarRef}>
+              <Input
+                id="search-input"
+                ref={inputRef}
+                value={unBouncedQuery}
+                data-testid="search-input"
+                leading={<MagnifyingGlassIcon className="h-5 text-gray-500" />}
+                autoComplete="off"
+                trailingIcon={
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center text-gray-500 hover:text-gray-700 focus:text-gray-700"
+                    aria-label="Close"
+                  >
+                    <XMarkIcon className="h-6 w-6" />
+                  </button>
+                }
+                placeholder={t(
+                  "Search for files, pipelines, templates, database, datasets,...",
+                )}
+                onChange={(event) => {
+                  resetPages();
+                  setUnBouncedQuery(event.target.value ?? "");
+                }}
+                className={clsx("w-full", showResults && "rounded-b-none")}
+                classNameOverrides={
+                  "focus:ring-0 focus:border-white border-white py-4"
+                }
               />
-              <Tabs
-                defaultIndex={0}
-                className="bg-white p-3 border-none"
-                onChange={handleTabChange}
-              >
-                <Tabs.Tab
-                  label={getTabLabel(t("All results"), numberOfResults)}
-                  className="bg-white rounded-b-md max-h-[50vh] overflow-y-auto"
+              <div onClick={showResults ? undefined : () => setIsOpen(false)}>
+                <div
+                  className={clsx(
+                    "transition-opacity duration-100 ease-in-out",
+                    showResults ? "opacity-100 visible" : "opacity-0 invisible",
+                  )}
+                  data-testid="spotlight-search-results-panel"
                 >
-                  <AllResultsTable
-                    isActive={activeTabIndex === 0}
-                    combinedResults={combinedResults}
-                    highlightedIndex={highlightedIndex}
-                    hasPreviousPage={hasPreviousPageOverall}
-                    hasNextPage={hasNextPageOverall}
-                    fetchNextPage={fetchNextPage}
-                    fetchPreviousPage={fetchPreviousPage}
-                    pageSize={pageSize * tabConfigs.length}
+                  <WorkspaceFilterPanel
+                    workspaces={workspacesData?.workspaces?.items || []}
+                    selectedWorkspaces={selectedWorkspaces}
+                    onChange={setSelectedWorkspaces}
                   />
-                </Tabs.Tab>
-                {tabConfigs.map(
-                  (
-                    {
-                      Component,
-                      typeName,
-                      loading,
-                      propsKey,
-                      label,
-                      data,
-                      setPage,
-                    },
-                    index,
-                  ) => (
+                  <Tabs
+                    defaultIndex={0}
+                    className="bg-white p-3 border-none"
+                    onChange={handleTabChange}
+                  >
                     <Tabs.Tab
-                      key={index}
-                      leadingElement={
-                        loading ? (
-                          <Spinner
-                            size="xs"
-                            className="h-4 w-4 text-pink-500"
-                          />
-                        ) : (
-                          React.createElement(getTypeIcon(typeName), {
-                            className: "h-4 w-4 text-gray-500",
-                          })
-                        )
-                      }
-                      label={getTabLabel(label, data?.totalItems)}
+                      label={getTabLabel(t("All results"), numberOfResults)}
                       className="bg-white rounded-b-md max-h-[50vh] overflow-y-auto"
                     >
-                      <Component
-                        {...{ [propsKey]: data }}
-                        isActive={activeTabIndex === index + 1}
+                      <AllResultsTable
+                        isActive={activeTabIndex === 0}
+                        combinedResults={combinedResults}
                         highlightedIndex={highlightedIndex}
-                        fetchData={(params: { page: number }) =>
-                          setPage(params.page)
-                        }
-                        setPage={setPage}
-                        pageSize={pageSize}
+                        hasPreviousPage={hasPreviousPageOverall}
+                        hasNextPage={hasNextPageOverall}
+                        fetchNextPage={fetchNextPage}
+                        fetchPreviousPage={fetchPreviousPage}
+                        pageSize={pageSize * tabConfigs.length}
                       />
                     </Tabs.Tab>
-                  ),
-                )}
-              </Tabs>
+                    {tabConfigs.map(
+                      (
+                        {
+                          Component,
+                          typeName,
+                          loading,
+                          propsKey,
+                          label,
+                          data,
+                          setPage,
+                        },
+                        index,
+                      ) => (
+                        <Tabs.Tab
+                          key={index}
+                          leadingElement={
+                            loading ? (
+                              <Spinner
+                                size="xs"
+                                className="h-4 w-4 text-pink-500"
+                              />
+                            ) : (
+                              React.createElement(getTypeIcon(typeName), {
+                                className: "h-4 w-4 text-gray-500",
+                              })
+                            )
+                          }
+                          label={getTabLabel(label, data?.totalItems)}
+                          className="bg-white rounded-b-md max-h-[50vh] overflow-y-auto"
+                        >
+                          <Component
+                            {...{ [propsKey]: data }}
+                            isActive={activeTabIndex === index + 1}
+                            highlightedIndex={highlightedIndex}
+                            fetchData={(params: { page: number }) =>
+                              setPage(params.page)
+                            }
+                            setPage={setPage}
+                            pageSize={pageSize}
+                          />
+                        </Tabs.Tab>
+                      ),
+                    )}
+                  </Tabs>
+                </div>
+              </div>
             </div>
           </div>
         </div>
