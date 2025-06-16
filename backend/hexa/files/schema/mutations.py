@@ -36,9 +36,10 @@ def resolve_prepare_download_object(_, info, **kwargs):
         if not request.user.has_perm("files.download_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
         object_key = mutation_input["object_key"]
-        force_attachment = mutation_input.get("force_attachment", True)
         download_url = storage.generate_download_url(
-            workspace.bucket_name, object_key, force_attachment=force_attachment
+            bucket_name=workspace.bucket_name,
+            target_key=object_key,
+            force_attachment=mutation_input.get("force_attachment", True),
         )
         track(
             request,
@@ -63,11 +64,18 @@ def resolve_prepare_upload_object(_, info, **kwargs):
         if not request.user.has_perm("files.create_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
         object_key = mutation_input["object_key"]
-        upload_url = storage.generate_upload_url(
-            workspace.bucket_name, object_key, mutation_input.get("content_type")
+        upload_url, headers = storage.generate_upload_url(
+            bucket_name=workspace.bucket_name,
+            target_key=object_key,
+            content_type=mutation_input.get("content_type"),
         )
 
-        return {"success": True, "upload_url": upload_url, "errors": []}
+        return {
+            "success": True,
+            "upload_url": upload_url,
+            "headers": headers,
+            "errors": [],
+        }
     except (storage.exceptions.NotFound, Workspace.DoesNotExist):
         return {"success": False, "errors": ["NOT_FOUND"]}
 

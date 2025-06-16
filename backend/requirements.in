@@ -80,3 +80,7 @@ openhexa-sdk==2.15.2
 mjml-python
 #
 filetype
+
+# Azure
+azure-storage-blob
+azure-identity

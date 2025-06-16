@@ -100,14 +100,16 @@ class GoogleCloudStorage(Storage):
             self._client = get_storage_client(self._service_account_key)
         return self._client
 
-    def bucket_exists(self, bucket_name: str):
+    def bucket_exists(self, bucket_name: str) -> bool:
         try:
             self.client.get_bucket(bucket_name)
             return True
         except NotFound:
             return False
 
-    def create_bucket(self, bucket_name: str, labels: dict = None, *args, **kwargs):
+    def create_bucket(
+        self, bucket_name: str, labels: dict | None = None, *args, **kwargs
+    ):
         if self.bucket_exists(bucket_name):
             raise self.exceptions.AlreadyExists(
                 f"GCS: Bucket {bucket_name} already exists!"
@@ -173,7 +175,7 @@ class GoogleCloudStorage(Storage):
         blob = bucket.blob(file_path)
         blob.upload_from_file(file)
 
-    def create_bucket_folder(self, bucket_name: str, folder_key: str):
+    def create_bucket_folder(self, bucket_name: str, folder_key: str) -> StorageObject:
         bucket = self.client.get_bucket(bucket_name)
         object = bucket.blob(ensure_is_folder(folder_key))
         object.upload_from_string(
@@ -183,7 +185,7 @@ class GoogleCloudStorage(Storage):
         return _blob_to_obj(object)
 
     def generate_download_url(
-        self, bucket_name: str, target_key: str, force_attachment=False, *args, **kwargs
+        self, *, bucket_name: str, target_key: str, force_attachment=False, **kwargs
     ):
         gcs_bucket = self.client.get_bucket(bucket_name)
         blob = gcs_bucket.get_blob(target_key)
@@ -203,11 +205,11 @@ class GoogleCloudStorage(Storage):
 
     def generate_upload_url(
         self,
+        *,
         bucket_name: str,
         target_key: str,
-        content_type: str = None,
+        content_type: str | None = None,
         raise_if_exists: bool = False,
-        *args,
         **kwargs,
     ):
         gcs_bucket = self.client.get_bucket(bucket_name)
@@ -216,7 +218,7 @@ class GoogleCloudStorage(Storage):
         blob = gcs_bucket.blob(target_key)
         return blob.generate_signed_url(
             expiration=3600, version="v4", method="PUT", content_type=content_type
-        )
+        ), None
 
     def get_bucket_object(self, bucket_name: str, object_key: str):
         bucket = self.client.get_bucket(bucket_name)
@@ -374,7 +376,7 @@ class GoogleCloudStorage(Storage):
     def load_bucket_sample_data(self, bucket_name: str):
         return load_bucket_sample_data_with(bucket_name, self)
 
-    def get_bucket_mount_config(self, bucket_name):
+    def get_bucket_mount_config(self, bucket_name) -> dict:
         token, _ = self.get_short_lived_downscoped_access_token(bucket_name)
         return {
             "WORKSPACE_STORAGE_ENGINE_GCP_BUCKET_NAME": bucket_name,
