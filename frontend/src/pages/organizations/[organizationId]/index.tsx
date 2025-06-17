@@ -39,8 +39,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
     setIsArchiveDialogOpen(true);
   };
 
-  // TODO : create button right
-  // TODO : 2 button beautify
+  // TODO : 3 buttons beautify
   // TODO : on create link it to the organization
   // TODO : check roles
 
@@ -48,12 +47,14 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
     <Page title={t("Organization")}>
       <OrganizationLayout organization={organization}>
         <div className="p-6">
-          <div className="m-8">
-            <h1 className="text-4xl font-bold">{organization.name}</h1>
-            <p className="text-lg mt-2 text-gray-500">
-              {totalWorkspaces}{" "}
-              {totalWorkspaces > 1 ? t("workspaces") : t("workspace")}
-            </p>
+          <div className="m-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold">{organization.name}</h1>
+              <p className="text-lg mt-2 text-gray-500">
+                {totalWorkspaces}{" "}
+                {totalWorkspaces > 1 ? t("workspaces") : t("workspace")}
+              </p>
+            </div>
             <button
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
               onClick={() => setIsCreateDialogOpen(true)}
