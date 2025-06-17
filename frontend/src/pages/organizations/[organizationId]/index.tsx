@@ -56,7 +56,6 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
     setIsArchiveDialogOpen(true);
   };
 
-  // TODO : check z index
   // TODO : check roles
 
   return (
@@ -72,7 +71,8 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
               </p>
             </div>
             <Button
-              variant={"primary"}
+              variant="primary"
+              className="static"
               onClick={() => setIsCreateDialogOpen(true)}
               leadingIcon={<PlusIcon className="w-4" />}
             >
@@ -107,6 +107,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
                   <div className="flex gap-2 justify-end">
                     <Button
                       variant="outlined"
+                      className="static"
                       onClick={async (e) => {
                         e.preventDefault();
                         await router.push({
@@ -120,6 +121,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
                     </Button>
                     <Button
                       variant="danger"
+                      className="static"
                       onClick={(e) => {
                         e.preventDefault();
                         handleArchiveClick(ws);
