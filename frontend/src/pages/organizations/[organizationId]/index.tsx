@@ -120,7 +120,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
                       {t("Settings")}
                     </Button>
                     <Button
-                      variant="danger"
+                      variant="outlined"
                       className="static"
                       onClick={(e) => {
                         e.preventDefault();
