@@ -524,7 +524,10 @@ def resolve_members(organization: Organization, info, **kwargs):
 
 @organization_object.field("workspaces")
 def resolve_workspaces(organization: Organization, info, **kwargs):
-    qs = organization.workspaces.exclude(archived=True).order_by("-updated_at")
+    request = info.context["request"]
+    qs = organization.filter_workspaces_for_user(user=request.user).order_by(
+        "-updated_at"
+    )
     return result_page(
         queryset=qs,
         page=kwargs.get("page", 1),

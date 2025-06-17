@@ -154,6 +154,11 @@ class Organization(Base):
 
     objects = OrganizationManager.from_queryset(OrganizationQuerySet)()
 
+    def filter_workspaces_for_user(self, user):
+        if user.is_superuser:
+            return self.workspaces.exclude(archived=True)
+        return self.workspaces.filter(members=user).exclude(archived=True)
+
 
 class OrganizationMembershipRole(models.TextChoices):
     OWNER = "owner", _("Owner")
