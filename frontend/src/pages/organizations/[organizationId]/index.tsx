@@ -93,14 +93,14 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
                   <div className="flex gap-2 justify-end">
                     <Link href={`/workspaces/${ws.slug}/settings`}>
                       <Button
-                        variant={"outlined"}
+                        variant="outlined"
                         leadingIcon={<GearIcon className="w-4" />}
                       >
                         {t("Settings")}
                       </Button>
                     </Link>
                     <Button
-                      variant={"danger"}
+                      variant="danger"
                       onClick={(e) => {
                         e.preventDefault();
                         handleArchiveClick(ws);
