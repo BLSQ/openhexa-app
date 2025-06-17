@@ -56,7 +56,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
     setIsArchiveDialogOpen(true);
   };
 
-  // TODO : check roles + only return ws if user has access to it
+  // TODO : check roles
 
   return (
     <Page title={t("Organization")}>
