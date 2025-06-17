@@ -16,6 +16,7 @@ import { useState } from "react";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
 import Button from "core/components/Button";
 import { GearIcon } from "@radix-ui/react-icons";
+import Card from "core/components/Card";
 
 type Props = {
   organization: OrganizationQuery["organization"];
@@ -41,7 +42,6 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
     setIsArchiveDialogOpen(true);
   };
 
-  // TODO : 1 button beautify
   // TODO : on create link it to the organization
   // TODO : check roles
 
@@ -67,13 +67,14 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 m-8">
             {organization.workspaces.items.map((ws) => (
-              <div key={ws.slug} className="space-y-2">
-                <Link
-                  href={`/workspaces/${ws.slug}`}
-                  className="font-medium mt-2 block text-gray-800"
-                  noStyle
-                >
-                  <div className="hover:scale-105 bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 flex items-center gap-2">
+              <Card
+                key={ws.slug}
+                href={{
+                  pathname: `/workspaces/[workspaceSlug]`,
+                  query: { workspaceSlug: ws.slug },
+                }}
+                title={
+                  <div className="flex items-center gap-2">
                     <div className="flex h-full w-5 items-center">
                       {ws.countries && ws.countries.length === 1 ? (
                         <Flag
@@ -84,27 +85,33 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
                         <GlobeAltIcon className="w-5 shrink rounded-xs text-gray-400" />
                       )}
                     </div>
-                    <div>{ws.name}</div>
+                    <span className="font-medium text-gray-800">{ws.name}</span>
                   </div>
-                </Link>
-                <div className="flex gap-2">
-                  <Link href={`/workspaces/${ws.slug}/settings`}>
+                }
+              >
+                <Card.Content>
+                  <div className="flex gap-2 justify-end">
+                    <Link href={`/workspaces/${ws.slug}/settings`}>
+                      <Button
+                        variant={"outlined"}
+                        leadingIcon={<GearIcon className="w-4" />}
+                      >
+                        {t("Settings")}
+                      </Button>
+                    </Link>
                     <Button
-                      variant={"secondary"}
-                      leadingIcon={<GearIcon className="w-4" />}
+                      variant={"danger"}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleArchiveClick(ws);
+                      }}
+                      leadingIcon={<TrashIcon className="w-4" />}
                     >
-                      {t("Settings")}
+                      {t("Archive")}
                     </Button>
-                  </Link>
-                  <Button
-                    variant={"danger"}
-                    onClick={() => handleArchiveClick(ws)}
-                    leadingIcon={<TrashIcon className="w-4" />}
-                  >
-                    {t("Archive")}
-                  </Button>
-                </div>
-              </div>
+                  </div>
+                </Card.Content>
+              </Card>
             ))}
           </div>
         </div>
