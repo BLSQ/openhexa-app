@@ -39,7 +39,8 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
     setIsArchiveDialogOpen(true);
   };
 
-  // TODO : better UI
+  // TODO : create button right
+  // TODO : 2 button beautify
   // TODO : on create link it to the organization
   // TODO : check roles
 
