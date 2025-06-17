@@ -40,7 +40,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
     setIsArchiveDialogOpen(true);
   };
 
-  // TODO : 2 buttons beautify
+  // TODO : 1 button beautify
   // TODO : on create link it to the organization
   // TODO : check roles
 
@@ -93,12 +93,13 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
                   >
                     {t("Settings")}
                   </Link>
-                  <button
-                    className="text-red-600"
+                  <Button
+                    variant={"danger"}
                     onClick={() => handleArchiveClick(ws)}
+                    leadingIcon={<TrashIcon className="w-4" />}
                   >
                     {t("Archive")}
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
