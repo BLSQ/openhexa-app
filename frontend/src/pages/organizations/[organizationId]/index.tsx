@@ -3,7 +3,6 @@ import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "organizations/layouts/OrganizationLayout";
 import { useTranslation } from "next-i18next";
 import Page from "core/components/Page";
-import Link from "core/components/Link";
 import Flag from "react-world-flags";
 import { GlobeAltIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import {
@@ -17,6 +16,7 @@ import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveW
 import Button from "core/components/Button";
 import { GearIcon } from "@radix-ui/react-icons";
 import Card from "core/components/Card";
+import router from "next/router";
 
 type Props = {
   organization: OrganizationQuery["organization"];
@@ -42,7 +42,6 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
     setIsArchiveDialogOpen(true);
   };
 
-  // TODO : error on load
   // TODO : redirect
   // TODO : check roles
 
@@ -94,6 +93,13 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
                   <div className="flex gap-2 justify-end">
                     <Button
                       variant="outlined"
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        await router.push({
+                          pathname: `/workspaces/[workspaceSlug]/settings`,
+                          query: { workspaceSlug: ws.slug },
+                        });
+                      }}
                       leadingIcon={<GearIcon className="w-4" />}
                     >
                       {t("Settings")}
