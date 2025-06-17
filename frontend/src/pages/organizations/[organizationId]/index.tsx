@@ -14,7 +14,8 @@ import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
 import { useState } from "react";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
-import Button from "../../../core/components/Button";
+import Button from "core/components/Button";
+import { GearIcon } from "@radix-ui/react-icons";
 
 type Props = {
   organization: OrganizationQuery["organization"];
@@ -87,11 +88,13 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
                   </div>
                 </Link>
                 <div className="flex gap-2">
-                  <Link
-                    href={`/workspaces/${ws.slug}/settings`}
-                    className="text-blue-600"
-                  >
-                    {t("Settings")}
+                  <Link href={`/workspaces/${ws.slug}/settings`}>
+                    <Button
+                      variant={"secondary"}
+                      leadingIcon={<GearIcon className="w-4" />}
+                    >
+                      {t("Settings")}
+                    </Button>
                   </Link>
                   <Button
                     variant={"danger"}
