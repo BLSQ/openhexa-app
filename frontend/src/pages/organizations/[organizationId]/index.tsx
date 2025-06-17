@@ -5,7 +5,7 @@ import { useTranslation } from "next-i18next";
 import Page from "core/components/Page";
 import Link from "core/components/Link";
 import Flag from "react-world-flags";
-import { GlobeAltIcon } from "@heroicons/react/24/outline";
+import { GlobeAltIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import {
   OrganizationDocument,
   OrganizationQuery,
@@ -14,6 +14,7 @@ import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
 import { useState } from "react";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
+import Button from "../../../core/components/Button";
 
 type Props = {
   organization: OrganizationQuery["organization"];
@@ -39,7 +40,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
     setIsArchiveDialogOpen(true);
   };
 
-  // TODO : 3 buttons beautify
+  // TODO : 2 buttons beautify
   // TODO : on create link it to the organization
   // TODO : check roles
 
@@ -55,12 +56,13 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
                 {totalWorkspaces > 1 ? t("workspaces") : t("workspace")}
               </p>
             </div>
-            <button
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+            <Button
+              variant={"primary"}
               onClick={() => setIsCreateDialogOpen(true)}
+              leadingIcon={<PlusIcon className="w-4" />}
             >
               {t("Create Workspace")}
-            </button>
+            </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 m-8">
             {organization.workspaces.items.map((ws) => (
