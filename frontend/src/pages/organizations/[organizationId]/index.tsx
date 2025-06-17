@@ -42,7 +42,6 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
     setIsArchiveDialogOpen(true);
   };
 
-  // TODO : redirect
   // TODO : check roles
 
   return (
@@ -132,6 +131,9 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
         <ArchiveWorkspaceDialog
           workspace={selectedWorkspace}
           open={isArchiveDialogOpen}
+          onArchive={() => {
+            router.reload();
+          }}
           onClose={() => setIsArchiveDialogOpen(false)}
         />
       )}

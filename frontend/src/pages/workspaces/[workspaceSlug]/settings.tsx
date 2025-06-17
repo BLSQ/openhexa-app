@@ -28,6 +28,7 @@ import WorkspaceInvitations from "workspaces/features/WorkspaceInvitations";
 import Title from "core/components/Title";
 import { InformationCircleIcon } from "@heroicons/react/24/solid";
 import Tooltip from "core/components/Tooltip";
+import { useRouter } from "next/router";
 
 type Props = {
   page: number;
@@ -41,6 +42,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
     variables: { slug: props.workspaceSlug },
   });
 
+  const router = useRouter();
   const [mutate] = useUpdateWorkspaceMutation();
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
   const [isNewMemberDialogOpen, setIsNewMemberDialogOpen] = useState(false);
@@ -190,6 +192,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           <ArchiveWorkspaceDialog
             workspace={workspace}
             open={isArchiveDialogOpen}
+            onArchive={async () => await router.push("/workspaces")}
             onClose={() => {
               setIsArchiveDialogOpen(false);
             }}
