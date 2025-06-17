@@ -42,6 +42,8 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
     setIsArchiveDialogOpen(true);
   };
 
+  // TODO : error on load
+  // TODO : redirect
   // TODO : check roles
 
   return (
@@ -90,14 +92,12 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
               >
                 <Card.Content>
                   <div className="flex gap-2 justify-end">
-                    <Link href={`/workspaces/${ws.slug}/settings`}>
-                      <Button
-                        variant="outlined"
-                        leadingIcon={<GearIcon className="w-4" />}
-                      >
-                        {t("Settings")}
-                      </Button>
-                    </Link>
+                    <Button
+                      variant="outlined"
+                      leadingIcon={<GearIcon className="w-4" />}
+                    >
+                      {t("Settings")}
+                    </Button>
                     <Button
                       variant="danger"
                       onClick={(e) => {
