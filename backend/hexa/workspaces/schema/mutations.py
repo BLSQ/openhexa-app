@@ -41,6 +41,7 @@ def resolve_create_workspace(_, info, **kwargs):
                 else None
             ),
             load_sample_data=create_input.get("load_sample_data"),
+            organization_id=create_input.get("organization_id"),
         )
 
         return {"success": True, "workspace": workspace, "errors": []}

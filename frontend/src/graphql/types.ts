@@ -937,6 +937,7 @@ export type CreateWorkspaceInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   loadSampleData?: InputMaybe<Scalars['Boolean']['input']>;
   name: Scalars['String']['input'];
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   slug?: InputMaybe<Scalars['String']['input']>;
 };
 

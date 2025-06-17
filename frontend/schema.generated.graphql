@@ -890,6 +890,7 @@ input CreateWorkspaceInput {
   description: String
   loadSampleData: Boolean
   name: String!
+  organizationId: UUID
   slug: String
 }
 

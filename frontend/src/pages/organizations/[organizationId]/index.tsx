@@ -42,7 +42,6 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
     setIsArchiveDialogOpen(true);
   };
 
-  // TODO : on create link it to the organization
   // TODO : check roles
 
   return (
@@ -118,6 +117,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
       </OrganizationLayout>
 
       <CreateWorkspaceDialog
+        organizationId={organization.id}
         open={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
       />
