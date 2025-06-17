@@ -8,6 +8,7 @@ import { GlobeAltIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import {
   OrganizationDocument,
   OrganizationQuery,
+  useOrganizationQuery,
 } from "organizations/graphql/queries.generated";
 import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
@@ -17,17 +18,30 @@ import Button from "core/components/Button";
 import { GearIcon } from "@radix-ui/react-icons";
 import Card from "core/components/Card";
 import router from "next/router";
+import useCacheKey from "core/hooks/useCacheKey";
 
 type Props = {
   organization: OrganizationQuery["organization"];
 };
 
-const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
+const OrganizationPage: NextPageWithLayout<Props> = ({
+  organization: SRROrganization,
+}) => {
   const { t } = useTranslation();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] =
     useState<ArchiveWorkspace_WorkspaceFragment | null>(null);
+
+  const { data, refetch } = useOrganizationQuery({
+    variables: { id: SRROrganization?.id },
+    fetchPolicy: "network-only",
+  });
+  const clearCache = useCacheKey(["organization", SRROrganization?.id], () =>
+    refetch(),
+  );
+
+  const organization = data?.organization || SRROrganization;
 
   if (!organization) {
     return null;
@@ -42,6 +56,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
     setIsArchiveDialogOpen(true);
   };
 
+  // TODO : check z index
   // TODO : check roles
 
   return (
@@ -132,7 +147,8 @@ const OrganizationPage: NextPageWithLayout<Props> = ({ organization }) => {
           workspace={selectedWorkspace}
           open={isArchiveDialogOpen}
           onArchive={() => {
-            router.reload();
+            clearCache();
+            setIsArchiveDialogOpen(false);
           }}
           onClose={() => setIsArchiveDialogOpen(false)}
         />
