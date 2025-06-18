@@ -56,8 +56,6 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
     setIsArchiveDialogOpen(true);
   };
 
-  // TODO : check roles
-
   return (
     <Page title={t("Organization")}>
       <OrganizationLayout organization={organization}>
@@ -75,6 +73,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
               className="static"
               onClick={() => setIsCreateDialogOpen(true)}
               leadingIcon={<PlusIcon className="w-4" />}
+              disabled={!organization.permissions.createWorkspace}
             >
               {t("Create Workspace")}
             </Button>
@@ -127,6 +126,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
                         handleArchiveClick(ws);
                       }}
                       leadingIcon={<TrashIcon className="w-4" />}
+                      disabled={!organization.permissions.archiveWorkspace}
                     >
                       {t("Archive")}
                     </Button>

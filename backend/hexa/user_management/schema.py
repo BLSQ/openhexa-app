@@ -555,7 +555,12 @@ organization_permissions_object = ObjectType("OrganizationPermissions")
 @organization_permissions_object.field("createWorkspace")
 def resolve_organization_permissions_create_workspace(organization: Organization, info):
     request: HttpRequest = info.context["request"]
-    return request.user.has_perm("user_management.create_workspace", organization)
+    user = request.user
+    return (
+        user.has_perm("user_management.create_workspace", organization)
+        if user.is_authenticated
+        else False
+    )
 
 
 @organization_permissions_object.field("archiveWorkspace")
@@ -563,7 +568,12 @@ def resolve_organization_permissions_archive_workspace(
     organization: Organization, info
 ):
     request: HttpRequest = info.context["request"]
-    return request.user.has_perm("user_management.archive_workspace", organization)
+    user = request.user
+    return (
+        user.has_perm("user_management.archive_workspace", organization)
+        if user.is_authenticated
+        else False
+    )
 
 
 @identity_mutations.field("createMembership")
@@ -761,6 +771,7 @@ identity_bindables = [
     membership_permissions_object,
     organization_object,
     organization_queries,
+    organization_permissions_object,
     identity_mutations,
 ]
 
