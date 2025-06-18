@@ -3,7 +3,6 @@ import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "organizations/layouts/OrganizationLayout";
 import { useTranslation } from "next-i18next";
 import Page from "core/components/Page";
-import Link from "core/components/Link";
 import Flag from "react-world-flags";
 import { GlobeAltIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import {

@@ -1057,29 +1057,6 @@ type OrganizationMembership {
 }
 
 """
-Represents a membership in an organization.
-"""
-type OrganizationMembership {
-  # The unique identifier for the membership.
-  id: UUID!
-
-  # The user who is a member of the organization.
-  user: User!
-
-  # The organization associated with the membership.
-  organization: Organization!
-
-  # The role of the member in the organization.
-  role: OrganizationMembershipRole!
-
-  # The date and time when the membership was created.
-  createdAt: DateTime!
-
-  # The date and time when the membership was last updated.
-  updatedAt: DateTime
-}
-
-"""
 Represents the role of a organization membership.
 """
 enum OrganizationMembershipRole {
