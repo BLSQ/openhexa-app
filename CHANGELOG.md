@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.12.0](https://github.com/BLSQ/openhexa-app/compare/1.11.0...1.12.0) (2025-06-18)
+
+
+### Features
+
+* F1 organizations landing page (PATHWAYS-557) ([#1190](https://github.com/BLSQ/openhexa-app/issues/1190)) ([f1b2d1c](https://github.com/BLSQ/openhexa-app/commit/f1b2d1c930db66d20cac8138c8d4052b919b26b4))
+
+
+### Bug Fixes
+
+* click outside search bar ([#1210](https://github.com/BLSQ/openhexa-app/issues/1210)) ([37b90db](https://github.com/BLSQ/openhexa-app/commit/37b90db69543e3e1f699830170e9e6fc755a3f8c))
+* **deps:** update dependency @mdxeditor/editor to v3.35.1 ([#1204](https://github.com/BLSQ/openhexa-app/issues/1204)) ([b25a457](https://github.com/BLSQ/openhexa-app/commit/b25a457cc4c86a201d136e00dd78ba02003d14c1))
+* **deps:** update dependency @types/node to v22.15.31 ([#1207](https://github.com/BLSQ/openhexa-app/issues/1207)) ([9bb69b9](https://github.com/BLSQ/openhexa-app/commit/9bb69b9b249716ed5b9340bea4babdd4936db3fe))
+* **deps:** update dependency @uiw/react-codemirror to v4.23.13 ([#1208](https://github.com/BLSQ/openhexa-app/issues/1208)) ([00cce5b](https://github.com/BLSQ/openhexa-app/commit/00cce5b0ba59f64485e543dd6d7ae95ee55ce746))
+
 ## [1.11.0](https://github.com/BLSQ/openhexa-app/compare/1.10.0...1.11.0) (2025-06-10)
 
 
