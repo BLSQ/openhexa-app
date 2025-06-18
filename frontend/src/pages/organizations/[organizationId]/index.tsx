@@ -36,6 +36,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   const { data, refetch } = useOrganizationQuery({
     variables: { id: SRROrganization?.id },
     fetchPolicy: "network-only",
+    skip: !!SRROrganization,
   });
   const clearCache = useCacheKey(["organization", SRROrganization?.id], () =>
     refetch(),
