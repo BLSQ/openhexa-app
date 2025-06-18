@@ -2458,6 +2458,9 @@ type Organization {
   """The name of the organization."""
   name: String!
 
+  """The permissions the current user has in the organization."""
+  permissions: OrganizationPermissions!
+
   """The short name of the organization."""
   shortName: String
 
@@ -2514,6 +2517,11 @@ enum OrganizationMembershipRole {
   ADMIN
   MEMBER
   OWNER
+}
+
+type OrganizationPermissions {
+  archiveWorkspace: Boolean!
+  createWorkspace: Boolean!
 }
 
 """Represents an input parameter of a pipeline."""

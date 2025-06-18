@@ -1003,7 +1003,18 @@ type Organization {
     The workspaces associated with the organization.
     """
     workspaces(page: Int, perPage: Int): WorkspacePage!
+
+    """
+    The permissions the current user has in the organization.
+    """
+    permissions: OrganizationPermissions!
 }
+
+type OrganizationPermissions {
+    createWorkspace: Boolean!
+    archiveWorkspace: Boolean!
+}
+
 
 """
 Represents a page of organization memberships.

@@ -55,3 +55,19 @@ def manage_members(principal: User, organization: Organization):
         user=principal,
         role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
     ).exists()
+
+
+def create_workspace(principal: User, organization: Organization):
+    """Only admin and owner users can create a workspace"""
+    return organization.organizationmembership_set.filter(
+        user=principal,
+        role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
+    ).exists()
+
+
+def archive_workspace(principal: User, organization: Organization):
+    """Only admin and owner users can archive a workspace"""
+    return organization.organizationmembership_set.filter(
+        user=principal,
+        role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
+    ).exists()

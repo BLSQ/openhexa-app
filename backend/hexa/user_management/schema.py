@@ -535,6 +535,11 @@ def resolve_workspaces(organization: Organization, info, **kwargs):
     )
 
 
+@organization_object.field("permissions")
+def resolve_organization_permissions(organization: Organization, info):
+    return organization
+
+
 @organization_queries.field("organization")
 def resolve_organization(_, info, **kwargs):
     request = info.context["request"]
@@ -542,6 +547,23 @@ def resolve_organization(_, info, **kwargs):
         return Organization.objects.filter_for_user(request.user).get(id=kwargs["id"])
     except Organization.DoesNotExist:
         return None
+
+
+organization_permissions_object = ObjectType("OrganizationPermissions")
+
+
+@organization_permissions_object.field("createWorkspace")
+def resolve_organization_permissions_create_workspace(organization: Organization, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("user_management.create_workspace", organization)
+
+
+@organization_permissions_object.field("archiveWorkspace")
+def resolve_organization_permissions_archive_workspace(
+    organization: Organization, info
+):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("user_management.archive_workspace", organization)
 
 
 @identity_mutations.field("createMembership")
