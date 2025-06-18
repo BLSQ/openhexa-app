@@ -3028,12 +3028,32 @@ export type Organization = {
   contactInfo: Scalars['String']['output'];
   /** The unique identifier of the organization. */
   id: Scalars['UUID']['output'];
+  /** The members of the organization. */
+  members: OrganizationMembershipPage;
   /** The name of the organization. */
   name: Scalars['String']['output'];
+  /** The short name of the organization. */
+  shortName?: Maybe<Scalars['String']['output']>;
   /** The type of the organization. */
   type: Scalars['String']['output'];
   /** The URL of the organization. */
   url: Scalars['String']['output'];
+  /** The workspaces associated with the organization. */
+  workspaces: WorkspacePage;
+};
+
+
+/** The Organization type represents an organization in the system. */
+export type OrganizationMembersArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** The Organization type represents an organization in the system. */
+export type OrganizationWorkspacesArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** The OrganizationInput type represents the input for creating or updating an organization. */
@@ -3049,6 +3069,33 @@ export type OrganizationInput = {
   /** The updated URL of the organization. */
   url?: InputMaybe<Scalars['String']['input']>;
 };
+
+/** Represents a membership in an organization. */
+export type OrganizationMembership = {
+  __typename?: 'OrganizationMembership';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['UUID']['output'];
+  organization: Organization;
+  role: OrganizationMembershipRole;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  user: User;
+};
+
+/** Represents a page of organization memberships. */
+export type OrganizationMembershipPage = {
+  __typename?: 'OrganizationMembershipPage';
+  items: Array<WorkspaceMembership>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
+/** Represents the role of a organization membership. */
+export enum OrganizationMembershipRole {
+  Admin = 'ADMIN',
+  Member = 'MEMBER',
+  Owner = 'OWNER'
+}
 
 /** Represents an input parameter of a pipeline. */
 export type ParameterInput = {
@@ -3618,6 +3665,7 @@ export type Query = {
   me: Me;
   metadataAttributes: Array<Maybe<MetadataAttribute>>;
   notebooksUrl: Scalars['URL']['output'];
+  organization?: Maybe<Organization>;
   /** Retrieves a list of organizations. */
   organizations: Array<Organization>;
   pendingWorkspaceInvitations: WorkspaceInvitationPage;
@@ -3786,6 +3834,11 @@ export type QueryMetadataAttributesArgs = {
 };
 
 
+export type QueryOrganizationArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
 export type QueryPendingWorkspaceInvitationsArgs = {
   page?: Scalars['Int']['input'];
   perPage?: InputMaybe<Scalars['Int']['input']>;
@@ -3831,42 +3884,47 @@ export type QueryPipelinesArgs = {
 
 
 export type QuerySearchDatabaseTablesArgs = {
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
-  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
 export type QuerySearchDatasetsArgs = {
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
-  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
 export type QuerySearchFilesArgs = {
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
-  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
 export type QuerySearchPipelineTemplatesArgs = {
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
-  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
 export type QuerySearchPipelinesArgs = {
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
-  workspaceSlugs: Array<InputMaybe<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
@@ -3912,6 +3970,7 @@ export type QueryWorkspaceArgs = {
 
 
 export type QueryWorkspacesArgs = {
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
@@ -4892,6 +4951,7 @@ export type Workspace = {
   invitations: WorkspaceInvitationPage;
   members: WorkspaceMembershipPage;
   name: Scalars['String']['output'];
+  organization?: Maybe<Organization>;
   permissions: WorkspacePermissions;
   slug: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['DateTime']['output']>;

@@ -1,0 +1,29 @@
+query Organization($id: UUID!) {
+    organization(id: $id) {
+        id
+        name
+        shortName
+        workspaces {
+            items {
+                slug
+                name
+                countries {
+                    code
+                }
+            }
+        }
+    }
+}
+
+query Organizations {
+    organizations {
+        id
+        name
+        workspaces {
+            items {
+                slug
+                name
+            }
+        }
+    }
+}

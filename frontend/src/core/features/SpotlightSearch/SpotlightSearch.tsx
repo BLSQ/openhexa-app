@@ -37,6 +37,7 @@ import useOnClickOutside from "use-onclickoutside";
 import { max } from "lodash";
 import InputSearch from "./InputSearch";
 import Spinner from "core/components/Spinner";
+import { GetServerSidePropsContext } from "next";
 
 type Workspace = GetWorkspacesQuery["workspaces"]["items"][0];
 
@@ -57,11 +58,11 @@ const getTabLabel = (label: string, totalItems?: number): string => {
 const pageSize = 15;
 
 const SpotlightSearch = ({
-  isMac,
   isSidebarOpen,
+  organizationId,
 }: {
-  isMac: boolean;
   isSidebarOpen: boolean;
+  organizationId?: string;
 }) => {
   const { t } = useTranslation();
   const router = useRouter();
@@ -90,6 +91,7 @@ const SpotlightSearch = ({
     if (isOpen) {
       searchWorkspaces({
         variables: {
+          organizationId,
           perPage: 1000,
         },
       }).then();
@@ -332,7 +334,6 @@ const SpotlightSearch = ({
     return (
       <InputSearch
         isSidebarOpen={isSidebarOpen}
-        isMac={isMac}
         onClick={() => setIsOpen((prev) => !prev)}
       />
     );
@@ -459,7 +460,6 @@ const SpotlightSearch = ({
       </div>
       <InputSearch
         isSidebarOpen={isSidebarOpen}
-        isMac={isMac}
         onClick={() => setIsOpen((prev) => !prev)}
       />
     </>
@@ -523,8 +523,8 @@ SpotlightSearch.fragments = {
     }
   `,
   workspaces: gql`
-    query GetWorkspaces($page: Int, $perPage: Int) {
-      workspaces(page: $page, perPage: $perPage) {
+    query GetWorkspaces($organizationId: UUID, $page: Int, $perPage: Int) {
+      workspaces(organizationId: $organizationId, page: $page, perPage: $perPage) {
         totalItems
         items {
           slug
@@ -534,6 +534,10 @@ SpotlightSearch.fragments = {
       ${WorkspaceDisplay.fragments.workspace}
     }
   `,
+};
+
+SpotlightSearch.prefetch = async (ctx: GetServerSidePropsContext) => {
+  await InputSearch.prefetch(ctx);
 };
 
 export default SpotlightSearch;

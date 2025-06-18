@@ -10,7 +10,15 @@ from django.utils.crypto import get_random_string
 
 from hexa.core.admin import country_list
 
-from .models import Feature, FeatureFlag, Membership, Organization, Team, User
+from .models import (
+    Feature,
+    FeatureFlag,
+    Membership,
+    Organization,
+    OrganizationMembership,
+    Team,
+    User,
+)
 
 # We won't be using the Django group feature
 admin.site.unregister(Group)
@@ -163,9 +171,32 @@ class CustomUserAdmin(UserAdmin):
         )
 
 
+class OrganizationMembershipInline(admin.TabularInline):
+    fields = ("user", "role")
+    model = OrganizationMembership
+    extra = 0
+
+
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ("name", "short_name", "organization_type", country_list)
+    list_display = (
+        "name",
+        "short_name",
+        "organization_type",
+        "workspace_count",
+        "created_at",
+        "updated_at",
+        country_list,
+    )
+    search_fields = ("name", "short_name")
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ("-created_at",)
+    inlines = [OrganizationMembershipInline]
+
+    def workspace_count(self, obj):
+        return obj.workspaces.count()
+
+    workspace_count.short_description = "Number of Workspaces"
 
 
 @admin.register(Team)
@@ -190,3 +221,14 @@ class FeatureAdmin(admin.ModelAdmin):
 class FeatureFlagAdmin(admin.ModelAdmin):
     list_display = ("feature", "user")
     list_filter = ("feature", "user")
+
+
+@admin.register(OrganizationMembership)
+class OrganizationMembershipAdmin(admin.ModelAdmin):
+    list_display = (
+        "organization",
+        "user",
+        "role",
+        "created_at",
+        "updated_at",
+    )

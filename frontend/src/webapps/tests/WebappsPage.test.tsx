@@ -27,6 +27,11 @@ const mockWorkspace = {
   slug: "test-workspace",
   name: "Test Workspace",
   countries: [],
+  organization: {
+    id: "org1",
+    name: "Test Organization",
+    shortName: "Test Organization",
+  },
   permissions: {
     launchNotebookServer: false,
     manageMembers: false,

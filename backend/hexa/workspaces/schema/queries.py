@@ -13,10 +13,12 @@ workspace_queries = QueryType()
 
 
 @workspace_queries.field("workspaces")
-def resolve_workspaces(_, info, query=None, page=1, per_page=15):
+def resolve_workspaces(_, info, query=None, organization_id=None, page=1, per_page=15):
     request = info.context["request"]
     queryset = Workspace.objects.filter_for_user(request.user).order_by("-updated_at")
-    if query is not None:
+    if organization_id:
+        queryset = queryset.filter(organization_id=organization_id)
+    if query:
         queryset = queryset.filter(name__icontains=query)
     return result_page(queryset=queryset, page=page, per_page=per_page)
 

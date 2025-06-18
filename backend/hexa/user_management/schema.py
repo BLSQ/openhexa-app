@@ -243,8 +243,9 @@ def resolve_membership_permissions_delete(membership: Membership, info, **kwargs
 
 
 @identity_query.field("organizations")
-def resolve_organizations(*_):
-    return [o for o in Organization.objects.all()]
+def resolve_organizations(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return Organization.objects.filter_for_user(request.user).all()
 
 
 # TODO To be moved to organizations
@@ -503,11 +504,40 @@ def resolve_avatar(obj: User, *_):
 
 
 organization_object = ObjectType("Organization")
+organization_queries = QueryType()
 
 
 @organization_object.field("type")
 def resolve_type(obj: Organization, *_):
     return obj.get_organization_type_display()
+
+
+@organization_object.field("members")
+def resolve_members(organization: Organization, info, **kwargs):
+    qs = organization.organizationmembership_set.all().order_by("-updated_at")
+    return result_page(
+        queryset=qs,
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", qs.count() or 10),
+    )
+
+
+@organization_object.field("workspaces")
+def resolve_workspaces(organization: Organization, info, **kwargs):
+    return result_page(
+        queryset=organization.workspaces.all(),
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", organization.workspaces.count() or 10),
+    )
+
+
+@organization_queries.field("organization")
+def resolve_organization(_, info, **kwargs):
+    request = info.context["request"]
+    try:
+        return Organization.objects.filter_for_user(request.user).get(id=kwargs["id"])
+    except Organization.DoesNotExist:
+        return None
 
 
 @identity_mutations.field("createMembership")
@@ -704,6 +734,7 @@ identity_bindables = [
     team_permissions_object,
     membership_permissions_object,
     organization_object,
+    organization_queries,
     identity_mutations,
 ]
 

@@ -1,4 +1,10 @@
-from hexa.user_management.models import Membership, Team, User
+from hexa.user_management.models import (
+    Membership,
+    Organization,
+    OrganizationMembershipRole,
+    Team,
+    User,
+)
 
 
 def create_team(principal: User):
@@ -41,3 +47,11 @@ def delete_membership(
 ):
     """Only team admins can remove users from a team, and the admin cannot remove himself from the team"""
     return principal.is_admin_of(membership.team) and principal != membership.user
+
+
+def manage_members(principal: User, organization: Organization):
+    """Only admin and owner users can manage members"""
+    return organization.organizationmembership_set.filter(
+        user=principal,
+        role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
+    ).exists()

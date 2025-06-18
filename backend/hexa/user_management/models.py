@@ -124,6 +124,19 @@ class OrganizationType(models.TextChoices):
     NGO = "NGO", _("Non-governmental")
 
 
+class OrganizationManager(models.Manager):
+    pass
+
+
+class OrganizationQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(organizationmembership__user=user),
+            return_all_if_superuser=True,
+        )
+
+
 class Organization(Base):
     class Meta:
         db_table = "identity_organization"
@@ -131,12 +144,63 @@ class Organization(Base):
     organization_type = models.CharField(
         choices=OrganizationType.choices, max_length=100
     )
-    name = models.CharField(max_length=200)
-    short_name = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=200, unique=True)
+    short_name = models.CharField(max_length=100, blank=True, unique=True)
     description = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)
+    members = models.ManyToManyField(User, through="OrganizationMembership")
+
+    objects = OrganizationManager.from_queryset(OrganizationQuerySet)()
+
+
+class OrganizationMembershipRole(models.TextChoices):
+    OWNER = "owner", _("Owner")
+    ADMIN = "admin", _("Admin")
+    MEMBER = "member", _("Member")
+
+
+class OrganizationMembership(Base):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organization", "user"],
+                name="organization_membership_unique_organization_user",
+            )
+        ]
+
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+    )
+    user = models.ForeignKey(
+        "user_management.User",
+        on_delete=models.CASCADE,
+    )
+    role = models.CharField(choices=OrganizationMembershipRole.choices, max_length=50)
+
+    def update_if_has_perm(self, *, principal: User, role: OrganizationMembershipRole):
+        if not principal.has_perm("user_management.manage_members", self.organization):
+            raise PermissionDenied
+        if (
+            principal.id == self.user.id
+            or self.role == OrganizationMembershipRole.OWNER
+        ):
+            raise PermissionDenied
+        self.role = role
+        return self.save()
+
+    def delete_if_has_perm(self, *, principal: User):
+        if not principal.has_perm("user_management.manage_members", self.organization):
+            raise PermissionDenied
+        if (
+            principal.id == self.user.id
+            or self.role == OrganizationMembershipRole.OWNER
+        ):
+            raise PermissionDenied
+
+        return self.delete()
 
 
 class TeamManager(models.Manager):

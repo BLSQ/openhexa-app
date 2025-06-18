@@ -2,13 +2,23 @@ import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
 import React from "react";
 import { useTranslation } from "next-i18next";
+import { GetServerSidePropsContext } from "next";
+
+export let isMac = false;
+
+function getIsMac() {
+  if (typeof window === "undefined") {
+    return isMac;
+  }
+  const userAgent = window.navigator.userAgent;
+  return userAgent.includes("Mac");
+}
 
 type InputSearchProps = {
   isSidebarOpen: boolean;
-  isMac: boolean;
   onClick: () => void;
 };
-const InputSearch = ({ isSidebarOpen, isMac, onClick }: InputSearchProps) => {
+const InputSearch = ({ isSidebarOpen, onClick }: InputSearchProps) => {
   const { t } = useTranslation();
 
   return isSidebarOpen ? (
@@ -18,7 +28,7 @@ const InputSearch = ({ isSidebarOpen, isMac, onClick }: InputSearchProps) => {
         className="text-gray-400 bg-gray-700 hover:bg-gray-600 flex gap-4 p-2 rounded items-center"
       >
         <MagnifyingGlassIcon className="h-4 text-gray-400 ml-2" />
-        {t("Search")} {isMac ? "(⌘K)" : "(Ctrl+K)"}
+        {t("Search")} {getIsMac() ? "(⌘K)" : "(Ctrl+K)"}
       </button>
     </div>
   ) : (
@@ -34,6 +44,10 @@ const InputSearch = ({ isSidebarOpen, isMac, onClick }: InputSearchProps) => {
       </div>
     </button>
   );
+};
+
+InputSearch.prefetch = async (ctx: GetServerSidePropsContext) => {
+  isMac = ctx.req.headers["user-agent"]?.includes("Mac") ?? false;
 };
 
 export default InputSearch;
