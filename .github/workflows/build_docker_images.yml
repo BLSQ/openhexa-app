@@ -68,7 +68,7 @@ jobs:
           tags: |
             blsq/openhexa-app:${{ steps.version.outputs.number }}
           build-args: |
-            DJANGO_SETTINGS_MODULE=config.settings.dev
+            DJANGO_SETTINGS_MODULE=config.settings.base
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
       
@@ -83,7 +83,7 @@ jobs:
             blsq/openhexa-app:main
             blsq/openhexa-app:latest
           build-args: |
-            DJANGO_SETTINGS_MODULE=config.settings.dev
+            DJANGO_SETTINGS_MODULE=config.settings.base
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
 
