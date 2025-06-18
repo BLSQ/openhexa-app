@@ -3,6 +3,7 @@ import { MockedProvider } from "@apollo/client/testing";
 import OrganizationPage from "pages/organizations/[organizationId]";
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
 import { act } from "react";
+import mockRouter from "next-router-mock";
 
 jest.mock("next-i18next", () => ({
   useTranslation: jest.fn().mockReturnValue({ t: (key: string) => key }),
@@ -74,6 +75,21 @@ describe("OrganizationPage", () => {
 
     waitFor(() =>
       expect(screen.getByText("Archive Workspace 1")).toBeInTheDocument(),
+    );
+  });
+
+  it("navigates to the settings page when 'Settings' button is clicked", async () => {
+    render(
+      <MockedProvider>
+        <OrganizationPage organization={organization} />
+      </MockedProvider>,
+    );
+
+    const settingsButton = screen.getAllByText("Settings")[0];
+    fireEvent.click(settingsButton);
+
+    await waitFor(() =>
+      expect(mockRouter.asPath).toBe("/workspaces/workspace-1/settings"),
     );
   });
 });
