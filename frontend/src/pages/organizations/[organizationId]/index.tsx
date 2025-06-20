@@ -18,7 +18,6 @@ import Button from "core/components/Button";
 import { GearIcon } from "@radix-ui/react-icons";
 import Card from "core/components/Card";
 import router from "next/router";
-import useCacheKey from "core/hooks/useCacheKey";
 
 type Props = {
   organization: OrganizationQuery["organization"];
@@ -36,11 +35,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   const { data, refetch } = useOrganizationQuery({
     variables: { id: SRROrganization?.id },
     fetchPolicy: "network-only",
-    skip: !!SRROrganization,
   });
-  const clearCache = useCacheKey(["organization", SRROrganization?.id], () =>
-    refetch(),
-  );
 
   const organization = data?.organization || SRROrganization;
 
@@ -150,7 +145,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
           workspace={selectedWorkspace}
           open={isArchiveDialogOpen}
           onArchive={() => {
-            clearCache();
+            refetch().then();
             setIsArchiveDialogOpen(false);
           }}
           onClose={() => setIsArchiveDialogOpen(false)}
