@@ -360,6 +360,9 @@ input CreateWorkspaceInput {
 
   # Indicates whether to load sample data into the workspace.
   loadSampleData: Boolean
+
+  # The organization ID to which the workspace belongs.
+  organizationId: UUID
 }
 
 """

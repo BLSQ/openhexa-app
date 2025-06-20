@@ -937,6 +937,7 @@ export type CreateWorkspaceInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   loadSampleData?: InputMaybe<Scalars['Boolean']['input']>;
   name: Scalars['String']['input'];
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   slug?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -3032,6 +3033,8 @@ export type Organization = {
   members: OrganizationMembershipPage;
   /** The name of the organization. */
   name: Scalars['String']['output'];
+  /** The permissions the current user has in the organization. */
+  permissions: OrganizationPermissions;
   /** The short name of the organization. */
   shortName?: Maybe<Scalars['String']['output']>;
   /** The type of the organization. */
@@ -3096,6 +3099,12 @@ export enum OrganizationMembershipRole {
   Member = 'MEMBER',
   Owner = 'OWNER'
 }
+
+export type OrganizationPermissions = {
+  __typename?: 'OrganizationPermissions';
+  archiveWorkspace: Scalars['Boolean']['output'];
+  createWorkspace: Scalars['Boolean']['output'];
+};
 
 /** Represents an input parameter of a pipeline. */
 export type ParameterInput = {

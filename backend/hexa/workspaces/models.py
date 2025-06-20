@@ -32,6 +32,7 @@ from hexa.databases.api import (
 from hexa.datasets.models import Dataset
 from hexa.files import storage
 from hexa.user_management.models import (
+    Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
@@ -102,8 +103,10 @@ class WorkspaceManager(models.Manager):
         description: str | None = None,
         countries: typing.Sequence[Country] | None = None,
         load_sample_data: bool = False,
+        organization_id: str | None = None,
     ):
         if not principal.has_perm("workspaces.create_workspace"):
+            # TODO : use the organization permission system instead, once workspaces and users have been migrated to the new system (https://bluesquare.atlassian.net/browse/PATHWAYS-615)
             raise PermissionDenied
 
         slug = create_workspace_slug(name)
@@ -119,6 +122,8 @@ class WorkspaceManager(models.Manager):
             create_kwargs["description"] = DEFAULT_WORKSPACE_DESCRIPTION.format(
                 workspace_name=name, workspace_slug=slug
             )
+        if organization_id:
+            create_kwargs["organization"] = Organization.objects.get(id=organization_id)
 
         db_password = make_random_password(length=16)
         db_name = generate_database_name()
@@ -249,6 +254,7 @@ class Workspace(Base):
 
     def archive_if_has_perm(self, *, principal: User):
         if not principal.has_perm("workspaces.archive_workspace", self):
+            # TODO : use the organization permission system instead, once workspaces and users have been migrated to the new system (https://bluesquare.atlassian.net/browse/PATHWAYS-615)
             raise PermissionDenied
         self.archived = True
         self.save()

@@ -12,14 +12,14 @@ import { ArchiveWorkspace_WorkspaceFragment } from "./ArchiveWorkspaceDialog.gen
 
 type ArchiveWorkspaceDialogProps = {
   onClose(): void;
+  onArchive?(): void;
   open: boolean;
   workspace: ArchiveWorkspace_WorkspaceFragment;
 };
 
 const ArchiveWorkspaceDialog = (props: ArchiveWorkspaceDialogProps) => {
-  const router = useRouter();
   const { t } = useTranslation();
-  const { open, onClose, workspace } = props;
+  const { open, onClose, workspace, onArchive } = props;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inputName, setInputName] = useState("");
 
@@ -43,7 +43,7 @@ const ArchiveWorkspaceDialog = (props: ArchiveWorkspaceDialogProps) => {
     if (data.archiveWorkspace.success) {
       clearCache();
       setIsSubmitting(false);
-      await router.push("/workspaces");
+      onArchive && onArchive();
     }
     if (
       data.archiveWorkspace.errors.includes(

@@ -12,6 +12,10 @@ query Organization($id: UUID!) {
                 }
             }
         }
+        permissions {
+            createWorkspace
+            archiveWorkspace
+        }
     }
 }
 

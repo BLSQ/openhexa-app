@@ -341,7 +341,7 @@ const SpotlightSearch = ({
   return (
     <>
       <div
-        className="fixed inset-0 z-50 bg-gray-900/70 flex justify-center"
+        className="fixed inset-0 z-50 bg-gray-900/70 flex justify-center backdrop-blur-xs"
         tabIndex={0}
       >
         <div className="flex w-2/3 mt-30">

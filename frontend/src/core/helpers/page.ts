@@ -64,7 +64,9 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
       // If the user doesn't have the legacy feature, redirect to workspaces page if the user
       // tries to access a page that is not /workspaces or /user or /register
       if (
-        !features.some((f) => f.code === "openhexa_legacy") &&
+        !features.some(
+          (f) => f.code === "openhexa_legacy" || f.code === "organization",
+        ) &&
         !["/workspaces", "/user", "/register"].some((path) =>
           ctx.resolvedUrl.startsWith(path),
         )
