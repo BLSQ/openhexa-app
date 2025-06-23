@@ -524,11 +524,20 @@ def resolve_members(organization: Organization, info, **kwargs):
 
 @organization_object.field("workspaces")
 def resolve_workspaces(organization: Organization, info, **kwargs):
-    return result_page(
-        queryset=organization.workspaces.all(),
-        page=kwargs.get("page", 1),
-        per_page=kwargs.get("per_page", organization.workspaces.count() or 10),
+    request = info.context["request"]
+    qs = organization.filter_workspaces_for_user(user=request.user).order_by(
+        "-updated_at"
     )
+    return result_page(
+        queryset=qs,
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", qs.count() or 10),
+    )
+
+
+@organization_object.field("permissions")
+def resolve_organization_permissions(organization: Organization, info):
+    return organization
 
 
 @organization_queries.field("organization")
@@ -538,6 +547,33 @@ def resolve_organization(_, info, **kwargs):
         return Organization.objects.filter_for_user(request.user).get(id=kwargs["id"])
     except Organization.DoesNotExist:
         return None
+
+
+organization_permissions_object = ObjectType("OrganizationPermissions")
+
+
+@organization_permissions_object.field("createWorkspace")
+def resolve_organization_permissions_create_workspace(organization: Organization, info):
+    request: HttpRequest = info.context["request"]
+    user = request.user
+    return (
+        user.has_perm("user_management.create_workspace", organization)
+        if user.is_authenticated
+        else False
+    )
+
+
+@organization_permissions_object.field("archiveWorkspace")
+def resolve_organization_permissions_archive_workspace(
+    organization: Organization, info
+):
+    request: HttpRequest = info.context["request"]
+    user = request.user
+    return (
+        user.has_perm("user_management.archive_workspace", organization)
+        if user.is_authenticated
+        else False
+    )
 
 
 @identity_mutations.field("createMembership")
@@ -735,6 +771,7 @@ identity_bindables = [
     membership_permissions_object,
     organization_object,
     organization_queries,
+    organization_permissions_object,
     identity_mutations,
 ]
 

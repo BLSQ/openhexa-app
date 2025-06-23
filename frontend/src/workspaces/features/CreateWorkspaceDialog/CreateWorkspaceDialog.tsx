@@ -14,6 +14,7 @@ import Checkbox from "core/components/forms/Checkbox/Checkbox";
 import useCacheKey from "core/hooks/useCacheKey";
 
 type CreateWorkspaceDialogProps = {
+  organizationId?: string;
   onClose(): void;
   showCancel?: boolean;
   open: boolean;
@@ -31,7 +32,7 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
   const clearCache = useCacheKey(["workspaces"]);
 
   const { t } = useTranslation();
-  const { open, onClose, showCancel = true } = props;
+  const { open, onClose, showCancel = true, organizationId } = props;
   const form = useForm<Form>({
     onSubmit: async (values) => {
       const { data } = await mutate({
@@ -42,6 +43,7 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
               ? [{ code: values.country.code }]
               : undefined,
             loadSampleData: values.loadSampleData,
+            organizationId,
           },
         },
       });
