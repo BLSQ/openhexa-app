@@ -83,7 +83,7 @@ jobs:
       - name: Build docker app image
         env:
           DOCKER_BUILDKIT: 1
-        run: docker compose build --build-arg DJANGO_SETTINGS_MODULE="config.settings.dev" app
+        run: docker compose build app
 
       - name: Run Django tests
         run: |
@@ -97,8 +97,6 @@ jobs:
           context: backend
           target: app
           file: backend/Dockerfile
-          build-args: |
-            DJANGO_SETTINGS_MODULE=config.settings.dev
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
           tags: |

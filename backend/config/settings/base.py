@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+import logging
 import os
 import re
 from pathlib import Path
@@ -118,7 +119,96 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 
 # CSRF
 if "CSRF_TRUSTED_ORIGINS" in os.environ:
-    CSRF_TRUSTED_ORIGINS += os.environ.get("CSRF_TRUSTED_ORIGINS").split(",")
+    CSRF_TRUSTED_ORIGINS += os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+
+
+###########
+# Logging #
+###########
+
+# Define a default handler class based on the LOGGING_HANDLER_CLASS environment variable
+LOGGING_HANDLER_CLASS = os.environ.get(
+    "LOGGING_HANDLER_CLASS",
+    "logging.StreamHandler",
+)
+# Logging configuration
+DEBUG_LOGGING = os.environ.get("DEBUG_LOGGING", "false") == "true"
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": not DEBUG_LOGGING,
+    "handlers": {
+        "default": {
+            "class": LOGGING_HANDLER_CLASS,
+        },
+    },
+    "loggers": {
+        "django.security.DisallowedHost": {
+            "level": "CRITICAL",
+            "propagate": True,
+        },
+        "django": {
+            "level": "INFO",
+            "propagate": True,
+        },
+        "gunicorn": {
+            "level": "INFO",
+            "propagate": True,
+        },
+        "": {
+            "handlers": ["default"],
+            "level": "DEBUG" if DEBUG_LOGGING else "INFO",
+            "propagate": False,
+        },
+    },
+}
+
+# Sentry
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
+if SENTRY_DSN:
+    # if sentry -> we are in production, use fluentd handlers
+    # inject sentry into logger config afterward.
+
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.logging import LoggingIntegration, ignore_logger
+
+    # Ignore "Invalid HTTP_HOST header" errors
+    # as crawlers/bots hit the production hundreds of times per day
+    # with the IP instead of the host
+    ignore_logger("django.security.DisallowedHost")
+
+    # Sampling rate
+    traces_sample_rate = float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "1.0"))
+
+    # Exclude /ready from sentry
+    def sentry_tracer_sampler(sampling_context):
+        transaction_context = sampling_context.get("transaction_context")
+        if transaction_context is None:
+            return 0
+
+        op = transaction_context.get("op")
+
+        if op == "http.server":
+            path = sampling_context.get("wsgi_environ", {}).get("PATH_INFO")
+            # Monitoring endpoints
+            if path.startswith("/ready"):
+                return 0
+
+        # Default sample rate for everything else
+        return traces_sample_rate
+
+    # inject sentry into logging config. set level to ERROR, we don't really want the rest?
+    sentry_logging = LoggingIntegration(level=logging.ERROR, event_level=logging.ERROR)
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration(), sentry_logging],
+        traces_sample_rate=traces_sample_rate,
+        traces_sampler=sentry_tracer_sampler,
+        send_default_pii=True,
+        environment=os.environ.get("SENTRY_ENVIRONMENT"),
+    )
+
 
 SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
 CSRF_COOKIE_DOMAIN = os.environ.get("CSRF_COOKIE_DOMAIN", None)
@@ -312,24 +402,6 @@ HUB_API_TOKEN = os.environ.get("HUB_API_TOKEN", "")
 GRAPHQL_DEFAULT_PAGE_SIZE = 10
 GRAPHQL_MAX_PAGE_SIZE = 10_000
 
-# Logging
-if os.environ.get("DEBUG_LOGGING", "false") == "true":
-    LOGGING = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "handlers": {
-            "console": {
-                "class": "logging.StreamHandler",
-            },
-        },
-        "loggers": {
-            "": {
-                "handlers": ["console"],
-                "level": "DEBUG",
-            },
-        },
-    }
-
 # Disabling the check on the size of the request body when using the file system storage backend
 # This is needed to allow the upload of large files when they are not stored by an external storage backend
 if os.environ.get("DISABLE_UPLOAD_MAX_SIZE_CHECK", "false") == "true":
@@ -361,7 +433,8 @@ AIRFLOW_SYNC_WAIT = 61
 GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME", 3600)
 
 # Pipeline settings
-PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "docker")
+PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kubernetes")
+
 DEFAULT_WORKSPACE_IMAGE = os.environ.get(
     "DEFAULT_WORKSPACE_IMAGE", "blsq/openhexa-base-environment:latest"
 )
@@ -398,40 +471,56 @@ WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET", "hexa-da
 WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE = int(
     os.environ.get("WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE", 50)
 )
-# Filesystem configuration
-WORKSPACE_STORAGE_LOCATION = os.environ.get("WORKSPACE_STORAGE_LOCATION")
-WORKSPACE_STORAGE_BACKEND = {
-    "engine": "hexa.files.backends.fs.FileSystemStorage",
-    "options": {
-        "data_dir": "/data",
-        "ext_bind_path": WORKSPACE_STORAGE_LOCATION,
-        "file_permissions_mode": 0o777,
-        "directory_permissions_mode": 0o777,
-    },
-}
+# Dynamically configure the storage backend based on the STORAGE_BACKEND environment variable
+STORAGE_BACKEND = os.environ.get("STORAGE_BACKEND", "fs")
 
-WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION", "europe-west1")
+if STORAGE_BACKEND == "gcp":
+    # GCP Settings if using GCS as a storage backend ###
+    # Base64 encoded service account key
+    # To generate a service account key, follow the instructions here:
+    # import base64
+    # import json
+    # WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY = base64.b64encode(json.dumps(service_account_key_content).encode("utf-8"))
+    if not os.environ.get("WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY"):
+        raise ValueError(
+            "WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY environment variable is required for GCS storage backend."
+        )
+    WORKSPACE_STORAGE_BACKEND = {
+        "engine": "hexa.files.backends.gcp.GoogleCloudStorage",
+        "options": {
+            "service_account_key": os.environ.get(
+                "WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY"
+            ),
+            "region": os.environ.get("WORKSPACE_BUCKET_REGION", "europe-west1"),
+            "enable_versioning": True,
+        },
+    }
+else:  # Default to filesystem storage
+    # Filesystem configuration
+    if not os.environ.get("WORKSPACE_STORAGE_LOCATION"):
+        raise ValueError(
+            "WORKSPACE_STORAGE_LOCATION environment variable is required for filesystem storage backend."
+        )
+    WORKSPACE_STORAGE_LOCATION = os.environ.get("WORKSPACE_STORAGE_LOCATION")
+    WORKSPACE_STORAGE_BACKEND = {
+        "engine": "hexa.files.backends.fs.FileSystemStorage",
+        "options": {
+            "data_dir": "/data",
+            "ext_bind_path": WORKSPACE_STORAGE_LOCATION,
+            "file_permissions_mode": 0o777,
+            "directory_permissions_mode": 0o777,
+        },
+    }
+
 WORKSPACE_BUCKET_PREFIX = os.environ.get("WORKSPACE_BUCKET_PREFIX", "")
 WORKSPACE_BUCKET_VERSIONING_ENABLED = False
 
-### AWS S3 Settings if using AWS S3 as a storage backend ###
-WORKSPACE_STORAGE_BACKEND_AWS_ENDPOINT_URL = os.environ.get(
-    "WORKSPACE_STORAGE_BACKEND_AWS_ENDPOINT_URL"
-)
-# This is the endpoint URL used when generating presigned URLs called by the client since the client
-# does not have access to storage engine in local mode (http://minio:9000)
-WORKSPACE_STORAGE_BACKEND_AWS_PUBLIC_ENDPOINT_URL = os.environ.get(
-    "WORKSPACE_STORAGE_BACKEND_AWS_PUBLIC_ENDPOINT_URL"
-)
-WORKSPACE_STORAGE_BACKEND_AWS_ACCESS_KEY_ID = os.environ.get(
-    "WORKSPACE_STORAGE_BACKEND_AWS_ACCESS_KEY_ID"
-)
-WORKSPACE_STORAGE_BACKEND_AWS_SECRET_ACCESS_KEY = os.environ.get(
-    "WORKSPACE_STORAGE_BACKEND_AWS_SECRET_ACCESS_KEY"
-)
-WORKSPACE_STORAGE_BACKEND_AWS_BUCKET_REGION = os.environ.get(
-    "WORKSPACE_STORAGE_BACKEND_AWS_BUCKET_REGION"
-)
+# MIXPANEL
+MIXPANEL_TOKEN = os.environ.get("MIXPANEL_TOKEN")
+
+#############
+# Legacy OH #
+#############
 
 # S3 settings (Used by OpenHEXA Legacy)
 AWS_USERNAME = os.environ.get("AWS_USERNAME", "")
@@ -445,5 +534,14 @@ AWS_PERMISSIONS_BOUNDARY_POLICY_ARN = os.environ.get(
     "AWS_PERMISSIONS_BOUNDARY_POLICY_ARN", ""
 )
 
-# MIXPANEL
-MIXPANEL_TOKEN = os.environ.get("MIXPANEL_TOKEN")
+if os.environ.get("STORAGE", "local") == "google-cloud":
+    # activate google cloud storage, used for dashboard screenshot, ...
+    # user generated content
+    DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+    GS_BUCKET_NAME = os.environ.get("STORAGE_BUCKET")
+    GS_FILE_OVERWRITE = False
+    MEDIA_ROOT = None
+
+ACCESSMOD_BUCKET_NAME = os.environ.get("ACCESSMOD_BUCKET_NAME")
+ACCESSMOD_MANAGE_REQUESTS_URL = os.environ.get("ACCESSMOD_MANAGE_REQUESTS_URL")
+ACCESSMOD_SET_PASSWORD_URL = os.environ.get("ACCESSMOD_SET_PASSWORD_URL")

@@ -27,8 +27,6 @@ RUN --mount=type=cache,target=/root/.cache \
 # Copy the rest of the application
 COPY . /code/
 
-ARG DJANGO_SETTINGS_MODULE
-
 # Rootless
 ARG UID=1000
 ARG GID=1000
@@ -39,26 +37,30 @@ RUN groupadd --gid $GID openhexa &&\
 RUN chown -R $UID:$GID /code/
 USER openhexa
 
-# Entry point
+####################################
+# APP: used to run the application #
+###################################
+
+FROM deps AS app
+
+ARG DJANGO_SETTINGS_MODULE
+ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-"config.settings.base"}
+
 ARG WORKSPACE_STORAGE_LOCATION
-ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
-ENV WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
+ENV WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION:-"/data"}
+
+RUN python manage.py collectstatic --noinput
+
 ENTRYPOINT ["/code/docker-entrypoint.sh"]
 CMD ["start"]
 
-FROM deps AS app
-ARG DJANGO_SETTINGS_MODULE
-ARG WORKSPACE_STORAGE_LOCATION
-ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
-ENV WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
-RUN python manage.py collectstatic --noinput
 
 # Staged used to run the pipelines scheduler and runner
 FROM app AS pipelines
 ARG DJANGO_SETTINGS_MODULE
 ARG WORKSPACE_STORAGE_LOCATION
-ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
-ENV WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
+ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-"config.settings.base"}
+ENV WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION:-"/data"}
 
 USER root
 

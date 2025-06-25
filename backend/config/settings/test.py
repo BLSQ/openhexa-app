@@ -1,4 +1,6 @@
-from .dev import *  # noqa: F403, F401
+STORAGE_BACKEND = "dummy"
+
+from .base import *  # noqa: E402, F401, F403
 
 DEBUG = False
 
