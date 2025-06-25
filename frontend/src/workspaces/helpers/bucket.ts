@@ -88,7 +88,7 @@ export async function getBucketObjectUploadUrl(
   workspaceSlug: string,
   key: string,
   contentType: string,
-) {
+): Promise<{ uploadUrl: string; headers: Record<string, string> }> {
   const client = getApolloClient();
   const { data } = await client.mutate<
     GetBucketUploadUrlMutation,
@@ -98,6 +98,7 @@ export async function getBucketObjectUploadUrl(
       mutation GetBucketUploadUrl($input: PrepareObjectUploadInput!) {
         prepareObjectUpload(input: $input) {
           success
+          headers
           uploadUrl
         }
       }
@@ -112,7 +113,10 @@ export async function getBucketObjectUploadUrl(
   });
 
   if (data?.prepareObjectUpload?.success) {
-    return data.prepareObjectUpload.uploadUrl as string;
+    return {
+      uploadUrl: data.prepareObjectUpload.uploadUrl as string,
+      headers: data.prepareObjectUpload.headers as Record<string, string>,
+    };
   } else {
     throw new Error("Object cannot be uploaded");
   }
