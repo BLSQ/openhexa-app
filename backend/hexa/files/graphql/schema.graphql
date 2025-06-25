@@ -114,6 +114,7 @@ The result of preparing to upload an object to a workspace's bucket. It contains
 type PrepareObjectUploadResult {
   "Url to upload the object to. The contentType passed with the PUT request should match the one passed in the input."
   uploadUrl: URL
+  headers: JSON
   success: Boolean!
   errors: [PrepareObjectUploadError!]!
 }

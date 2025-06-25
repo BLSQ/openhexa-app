@@ -230,9 +230,16 @@ def resolve_generate_upload_url(_, info, **kwargs):
         if get_blob(full_uri) is not None:
             return {"success": False, "errors": ["ALREADY_EXISTS"]}
 
-        upload_url = generate_upload_url(full_uri, mutation_input["content_type"])
+        upload_url, headers = generate_upload_url(
+            full_uri, mutation_input["content_type"]
+        )
 
-        return {"success": True, "errors": [], "upload_url": upload_url}
+        return {
+            "success": True,
+            "errors": [],
+            "upload_url": upload_url,
+            "headers": headers,
+        }
     except ValidationError:
         return {"success": False, "errors": ["INVALID_URI"]}
     except DatasetVersion.DoesNotExist:

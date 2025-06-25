@@ -1956,6 +1956,7 @@ export type GenerateDatasetUploadUrlInput = {
 export type GenerateDatasetUploadUrlResult = {
   __typename?: 'GenerateDatasetUploadUrlResult';
   errors: Array<CreateDatasetVersionFileError>;
+  headers?: Maybe<Scalars['JSON']['output']>;
   success: Scalars['Boolean']['output'];
   uploadUrl?: Maybe<Scalars['String']['output']>;
 };
@@ -3627,6 +3628,7 @@ export type PrepareObjectUploadInput = {
 export type PrepareObjectUploadResult = {
   __typename?: 'PrepareObjectUploadResult';
   errors: Array<PrepareObjectUploadError>;
+  headers?: Maybe<Scalars['JSON']['output']>;
   success: Scalars['Boolean']['output'];
   /** Url to upload the object to. The contentType passed with the PUT request should match the one passed in the input. */
   uploadUrl?: Maybe<Scalars['URL']['output']>;

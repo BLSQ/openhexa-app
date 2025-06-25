@@ -22,7 +22,7 @@ export type GetBucketUploadUrlMutationVariables = Types.Exact<{
 }>;
 
 
-export type GetBucketUploadUrlMutation = { __typename?: 'Mutation', prepareObjectUpload: { __typename?: 'PrepareObjectUploadResult', success: boolean, uploadUrl?: any | null } };
+export type GetBucketUploadUrlMutation = { __typename?: 'Mutation', prepareObjectUpload: { __typename?: 'PrepareObjectUploadResult', success: boolean, headers?: any | null, uploadUrl?: any | null } };
 
 export type CreateBucketFolderMutationVariables = Types.Exact<{
   input: Types.CreateBucketFolderInput;
@@ -104,6 +104,7 @@ export const GetBucketUploadUrlDocument = gql`
     mutation GetBucketUploadUrl($input: PrepareObjectUploadInput!) {
   prepareObjectUpload(input: $input) {
     success
+    headers
     uploadUrl
   }
 }

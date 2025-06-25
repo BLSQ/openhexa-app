@@ -23,7 +23,9 @@ class DummyStorageClient(Storage):
         # Mock checking if the bucket exists
         return bucket_name in dummy_buckets
 
-    def create_bucket(self, bucket_name: str, *args, **kwargs):
+    def create_bucket(
+        self, bucket_name: str, labels: dict | None = None, *args, **kwargs
+    ):
         # Mock bucket creation
         if bucket_name in dummy_buckets:
             raise self.exceptions.AlreadyExists(
@@ -151,11 +153,11 @@ class DummyStorageClient(Storage):
 
     def generate_upload_url(
         self,
+        *,
         bucket_name: str,
         target_key: str,
-        content_type: str,
+        content_type: str | None = None,
         raise_if_exists=False,
-        *args,
         **kwargs,
     ):
         # Mock generating an upload URL
@@ -165,7 +167,7 @@ class DummyStorageClient(Storage):
             raise self.exceptions.AlreadyExists(
                 f"Object '{target_key}' already exists."
             )
-        return f"http://mockstorage.com/{bucket_name}/{target_key}/upload"
+        return f"http://mockstorage.com/{bucket_name}/{target_key}/upload", None
 
     def get_bucket_mount_config(self, bucket_name):
         # Mock retrieving bucket mount config
