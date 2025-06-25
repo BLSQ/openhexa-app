@@ -80,18 +80,19 @@ validate_workspace_slug = RegexValidator(
 
 
 def create_workspace_bucket(workspace_slug: str):
+    suffix = ""
     while True:
-        suffix = get_random_string(
-            4, allowed_chars=string.ascii_lowercase + string.digits
-        )
         try:
             # Bucket names must be unique across all of Google Cloud, so we add a suffix to the workspace slug
             # When separated by a dot, each segment can be up to 63 characters long
             return storage.create_bucket(
-                f"{(settings.WORKSPACE_BUCKET_PREFIX + workspace_slug)[:63]}_{suffix}",
+                f"{(settings.WORKSPACE_BUCKET_PREFIX + workspace_slug)[: 63 - len(suffix)]}{suffix}",
                 labels={"hexa-workspace": workspace_slug},
             )
         except ValidationError:
+            suffix = "-" + get_random_string(
+                4, allowed_chars=string.ascii_lowercase + string.digits
+            )
             continue
 
 

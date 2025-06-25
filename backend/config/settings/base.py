@@ -495,6 +495,17 @@ if STORAGE_BACKEND == "gcp":
             "enable_versioning": True,
         },
     }
+elif STORAGE_BACKEND == "azure":
+    if not os.environ.get("AZURE_STORAGE_CONNECTION_STRING"):
+        raise ValueError(
+            "AZURE_STORAGE_CONNECTION_STRING environment variable is required for Azure storage backend."
+        )
+    WORKSPACE_STORAGE_BACKEND = {
+        "engine": "hexa.files.backends.azure.AzureBlobStorage",
+        "options": {
+            "connection_string": os.environ.get("AZURE_STORAGE_CONNECTION_STRING"),
+        },
+    }
 else:  # Default to filesystem storage
     # Filesystem configuration
     if not os.environ.get("WORKSPACE_STORAGE_LOCATION"):

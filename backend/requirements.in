@@ -77,3 +77,7 @@ openhexa-toolbox==2.8.1
 mjml-python
 #
 filetype
+
+# Azure
+azure-storage-blob
+azure-identity
