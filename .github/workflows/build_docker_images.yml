@@ -67,8 +67,6 @@ jobs:
           file: backend/Dockerfile
           tags: |
             blsq/openhexa-app:${{ steps.version.outputs.number }}
-          build-args: |
-            DJANGO_SETTINGS_MODULE=config.settings.dev
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
       
@@ -82,8 +80,6 @@ jobs:
           tags: |
             blsq/openhexa-app:main
             blsq/openhexa-app:latest
-          build-args: |
-            DJANGO_SETTINGS_MODULE=config.settings.dev
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
 
