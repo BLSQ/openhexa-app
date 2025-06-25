@@ -12,6 +12,12 @@ x-app: &common
         required: true
     environment:
       - ADDITIONAL_ALLOWED_HOSTS=*
+      - SESSION_COOKIE_SECURE=False
+      - CSRF_COOKIE_SECURE=False
+      - SECURE_SSL_REDIRECT=False
+      - STORAGE_BACKEND=azure
+      - PIPELINE_SCHEDULER_SPAWNER=docker
+
     networks:
       - openhexa
     volumes:  # only used for Github Codespaces
@@ -65,6 +71,7 @@ services:
       target: pipelines
       args:
         - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+        - WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
     command: "manage pipelines_runner"
     restart: unless-stopped
     profiles:
@@ -83,6 +90,7 @@ services:
       target: pipelines
       args:
         - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+        - WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
     command: "manage pipelines_scheduler"
     restart: unless-stopped
     profiles:
