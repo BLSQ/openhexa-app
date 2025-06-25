@@ -216,7 +216,7 @@ def resolve_version_permissions_delete(obj: DatasetVersion, info, **kwargs):
 def resolve_upload_url(obj, info, **kwargs):
     try:
         file = obj["file"]
-        upload_url = generate_upload_url(file.uri, file.content_type)
+        upload_url, _ = generate_upload_url(file.uri, file.content_type)
         return upload_url
     except storage.exceptions.AlreadyExists as exc:
         logging.error(f"Upload URL generation failed: {exc.message}")
