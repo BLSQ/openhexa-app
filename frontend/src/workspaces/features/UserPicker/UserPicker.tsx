@@ -11,6 +11,7 @@ import User from "core/features/User";
 import {
   useGetUsersQuery,
   UserPicker_UserFragment,
+  GetUsersQuery,
 } from "./UserPicker.generated";
 
 type UserPickerProps = {
@@ -28,7 +29,7 @@ export const UserPicker = (props: UserPickerProps) => {
   const { workspaceSlug, value, onChange } = props;
 
   const [query, setQuery] = useState<string>("");
-  const [displayData, setDisplayData] = useState<any>(null);
+  const [displayData, setDisplayData] = useState<GetUsersQuery | null>(null);
 
   const debouncedQuery = useDebounce(query, 250);
   const { data, loading } = useGetUsersQuery({
@@ -63,7 +64,9 @@ export const UserPicker = (props: UserPickerProps) => {
         value={{ email: query }}
         className={clsx(!displayData?.users.length && Classes.newUser)}
       >
-        {displayData?.users && !displayData?.users.length && t("Invite new user: ") + query}
+        {displayData?.users &&
+          !displayData?.users.length &&
+          t("Invite new user: ") + query}
       </ComboboxOption>
       {displayData?.users.map((user) => (
         <Combobox.CheckOption key={user.id} value={user}>
