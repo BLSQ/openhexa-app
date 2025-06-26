@@ -328,7 +328,7 @@ export const PipelineCodeViewer = ({
             {Object.keys(files).length} {t("files")}
           </div>
         </div>
-        <div className="py-2">
+        <div className="py-2 h-screen">
           {fileTree.map((node) => (
             <FileTreeNode
               key={node.path}
