@@ -120,6 +120,26 @@ query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
   }
 }
 
+query WorkspacePipelineCodePage($workspaceSlug: String!, $pipelineCode: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...PipelineLayout_workspace
+  }
+  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+    ...PipelineLayout_pipeline
+    id
+    code
+    name
+    type
+    currentVersion {
+      id
+      versionName
+      zipfile
+    }
+  }
+}
+
 query WorkspacePipelineRunsPage(
   $workspaceSlug: String!
   $pipelineCode: String!
