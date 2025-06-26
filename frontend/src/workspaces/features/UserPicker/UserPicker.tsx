@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { ComboboxOption } from "@headlessui/react";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
@@ -28,6 +28,7 @@ export const UserPicker = (props: UserPickerProps) => {
   const { workspaceSlug, value, onChange } = props;
 
   const [query, setQuery] = useState<string>("");
+  const [displayData, setDisplayData] = useState<any>(null);
 
   const debouncedQuery = useDebounce(query, 250);
   const { data, loading } = useGetUsersQuery({
@@ -36,6 +37,12 @@ export const UserPicker = (props: UserPickerProps) => {
       workspaceSlug: workspaceSlug,
     },
   });
+
+  useEffect(() => {
+    if (data?.users) {
+      setDisplayData(data);
+    }
+  }, [data]);
 
   return (
     <Combobox
@@ -54,11 +61,11 @@ export const UserPicker = (props: UserPickerProps) => {
     >
       <ComboboxOption
         value={{ email: query }}
-        className={clsx(!data?.users.length && Classes.newUser)}
+        className={clsx(!displayData?.users.length && Classes.newUser)}
       >
-        {data?.users && !data?.users.length && t("Invite new user: ") + query}
+        {displayData?.users && !displayData?.users.length && t("Invite new user: ") + query}
       </ComboboxOption>
-      {data?.users.map((user) => (
+      {displayData?.users.map((user) => (
         <Combobox.CheckOption key={user.id} value={user}>
           <User user={user} subtext />
         </Combobox.CheckOption>
