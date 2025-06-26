@@ -317,7 +317,7 @@ export const PipelineCodeViewer = ({
   }
 
   return (
-    <div className="flex h-[calc(100vh-200px)] border border-gray-200 rounded-lg overflow-hidden">
+    <div className="flex h-screen border border-gray-200 rounded-lg overflow-hidden">
       {/* File Tree Sidebar */}
       <div className="w-80 bg-gray-50 border-r border-gray-200 overflow-y-auto">
         <div className="p-3 border-b border-gray-200 bg-white">
@@ -355,26 +355,24 @@ export const PipelineCodeViewer = ({
                 {selectedContent.split("\n").length} lines
               </div>
             </div>
-            <div className="flex-1 overflow-hidden">
-              <CodeiumEditor
-                value={selectedContent}
-                language={getLanguageFromPath(selectedFile)}
-                theme="light"
-                onChange={() => {}} // Read-only
-                className="h-full"
-                options={{
-                  readOnly: false,
-                  minimap: { enabled: true },
-                  scrollBeyondLastLine: false,
-                  automaticLayout: true,
-                  fontSize: 14,
-                  lineNumbers: "on",
-                  wordWrap: "on",
-                  folding: true,
-                  selectOnLineNumbers: true,
-                }}
-              />
-            </div>
+            <CodeiumEditor
+              value={selectedContent}
+              language={getLanguageFromPath(selectedFile)}
+              theme="light"
+              onChange={() => {}} // Read-only
+              className="h-screen"
+              options={{
+                readOnly: false,
+                minimap: { enabled: true },
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                fontSize: 14,
+                lineNumbers: "on",
+                wordWrap: "on",
+                folding: true,
+                selectOnLineNumbers: true,
+              }}
+            />
           </>
         ) : (
           <div className="flex items-center justify-center h-full">
