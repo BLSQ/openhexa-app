@@ -31,7 +31,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
 
 # X Frame Options
-X_FRAME_OPTIONS = "DENY"
+# Allow OpenHEXA to embed itself, typical use is a Superset dashboards in a Web App
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "false") == "true"
