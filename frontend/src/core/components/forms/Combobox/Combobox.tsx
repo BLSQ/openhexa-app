@@ -100,7 +100,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
   const onClear = useCallback(() => onChange(), [onChange]);
   const close = useCallback(() => btnRef.current?.click(), [btnRef]);
 
-  const optionsElement = (
+  const optionsElement = children && (
     <UIComboboxOptions
       className={Classes.Options}
       ref={setPopperElement}
