@@ -87,7 +87,7 @@ click==8.1.8
     #   pip-tools
     #   rasterio
     #   rio-cogeo
-click-plugins==1.1.1
+click-plugins==1.1.1.2
     # via
     #   fiona
     #   rasterio
@@ -146,7 +146,7 @@ docker==7.1.0
     #   openhexa-sdk
 durationpy==0.10
     # via kubernetes
-eccodes==2.41.0
+eccodes==2.42.0
     # via cfgrib
 ecmwf-datastores-client==0.2.0
     # via cdsapi
@@ -160,7 +160,7 @@ findlibs==0.1.1
     # via eccodes
 fiona==1.10.1
     # via openhexa-toolbox
-geopandas==1.1.0
+geopandas==1.1.1
     # via
     #   -r requirements.in
     #   openhexa-toolbox
@@ -216,13 +216,13 @@ grpc-google-iam-v1==0.14.2
     # via
     #   google-cloud-iam
     #   google-cloud-logging
-grpcio==1.73.0
+grpcio==1.73.1
     # via
     #   google-api-core
     #   googleapis-common-protos
     #   grpc-google-iam-v1
     #   grpcio-status
-grpcio-status==1.73.0
+grpcio-status==1.73.1
     # via google-api-core
 gunicorn==23.0.0
     # via -r requirements.in
@@ -300,7 +300,7 @@ oauthlib==3.3.1
     # via
     #   kubernetes
     #   requests-oauthlib
-openhexa-sdk==2.5.0
+openhexa-sdk==2.7.2
     # via openhexa-toolbox
 openhexa-toolbox==2.7.0
     # via -r requirements.in
@@ -447,13 +447,13 @@ responses==0.25.7
     #   moto
 rich==14.0.0
     # via openhexa-toolbox
-rio-cogeo==5.4.1
+rio-cogeo==5.4.2
     # via -r requirements.in
 rsa==4.9.1
     # via google-auth
 s3transfer==0.13.0
     # via boto3
-sentry-sdk==2.30.0
+sentry-sdk==2.32.0
     # via -r requirements.in
 shapely==2.1.1
     # via
