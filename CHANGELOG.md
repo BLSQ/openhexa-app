@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.12.0](https://github.com/BLSQ/openhexa-app/compare/1.11.0...1.12.0) (2025-06-30)
+
+
+### Features
+
+* F1 organizations landing page (PATHWAYS-557) ([#1190](https://github.com/BLSQ/openhexa-app/issues/1190)) ([f1b2d1c](https://github.com/BLSQ/openhexa-app/commit/f1b2d1c930db66d20cac8138c8d4052b919b26b4))
+* F2 organization workspaces management (PATHWAYS-577) ([#1212](https://github.com/BLSQ/openhexa-app/issues/1212)) ([8dfd87a](https://github.com/BLSQ/openhexa-app/commit/8dfd87a5c4fcd0a58ae65cddb1fd6537a499fbc8))
+
+
+### Bug Fixes
+
+* click outside search bar ([#1210](https://github.com/BLSQ/openhexa-app/issues/1210)) ([37b90db](https://github.com/BLSQ/openhexa-app/commit/37b90db69543e3e1f699830170e9e6fc755a3f8c))
+* **deps:** update dependency @codemirror/lang-json to v6.0.2 ([#1221](https://github.com/BLSQ/openhexa-app/issues/1221)) ([83501b9](https://github.com/BLSQ/openhexa-app/commit/83501b9e04f7ad17edb7c77d571e0d699a8bde69))
+* **deps:** update dependency @mdxeditor/editor to v3.35.1 ([#1204](https://github.com/BLSQ/openhexa-app/issues/1204)) ([b25a457](https://github.com/BLSQ/openhexa-app/commit/b25a457cc4c86a201d136e00dd78ba02003d14c1))
+* **deps:** update dependency @sentry/nextjs to v9.31.0 ([#1195](https://github.com/BLSQ/openhexa-app/issues/1195)) ([ba192fe](https://github.com/BLSQ/openhexa-app/commit/ba192febfd3c2f457c25259b97edb5dab33d0824))
+* **deps:** update dependency @types/lodash to v4.17.19 ([#1222](https://github.com/BLSQ/openhexa-app/issues/1222)) ([dd6c31e](https://github.com/BLSQ/openhexa-app/commit/dd6c31e231144280c9dc6d8d156eda993fb9d70c))
+* **deps:** update dependency @types/node to v22.15.31 ([#1207](https://github.com/BLSQ/openhexa-app/issues/1207)) ([9bb69b9](https://github.com/BLSQ/openhexa-app/commit/9bb69b9b249716ed5b9340bea4babdd4936db3fe))
+* **deps:** update dependency @types/node to v22.15.33 ([#1224](https://github.com/BLSQ/openhexa-app/issues/1224)) ([80b3648](https://github.com/BLSQ/openhexa-app/commit/80b36489feb00286139651572989dcd79ea7a15b))
+* **deps:** update dependency @types/node to v22.15.34 ([#1234](https://github.com/BLSQ/openhexa-app/issues/1234)) ([b6df484](https://github.com/BLSQ/openhexa-app/commit/b6df48477fa5004c1d0f10c637ca01afdded994e))
+* **deps:** update dependency @uiw/react-codemirror to v4.23.13 ([#1208](https://github.com/BLSQ/openhexa-app/issues/1208)) ([00cce5b](https://github.com/BLSQ/openhexa-app/commit/00cce5b0ba59f64485e543dd6d7ae95ee55ce746))
+* **deps:** update dependency @uiw/react-codemirror to v4.23.14 ([#1225](https://github.com/BLSQ/openhexa-app/issues/1225)) ([f14b831](https://github.com/BLSQ/openhexa-app/commit/f14b8310a594160bee4c15126b110a4601b589b8))
+* **deps:** update dependency codemirror to v6.0.2 ([#1227](https://github.com/BLSQ/openhexa-app/issues/1227)) ([c38d25a](https://github.com/BLSQ/openhexa-app/commit/c38d25abfe92678c27eb37e01973536ad73f5bad))
+* **deps:** update dependency cron-parser to v5.3.0 ([#1198](https://github.com/BLSQ/openhexa-app/issues/1198)) ([ee7c88e](https://github.com/BLSQ/openhexa-app/commit/ee7c88ed6aa6ca98a78054b5ce0ac620794be56b))
+* **deps:** update dependency react-i18next to v15.5.3 ([#1228](https://github.com/BLSQ/openhexa-app/issues/1228)) ([76d671d](https://github.com/BLSQ/openhexa-app/commit/76d671d2d52c0516f6549a407cb307ca30d8b8eb))
+* **deps:** update nextjs monorepo to v15.3.4 ([#1229](https://github.com/BLSQ/openhexa-app/issues/1229)) ([7816e11](https://github.com/BLSQ/openhexa-app/commit/7816e11e797e74b827dae3c3d2e71d6d76e0e674))
+* New user invitation flow: fix small glitch and remove feature flag (HEXA-1296) ([b194a44](https://github.com/BLSQ/openhexa-app/commit/b194a44cc499c2cbddddf34ea4bf7446293c0cc4))
+
 ## [1.11.0](https://github.com/BLSQ/openhexa-app/compare/1.10.0...1.11.0) (2025-06-10)
 
 
