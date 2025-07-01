@@ -84,7 +84,7 @@ class BaseQuerySet(models.QuerySet):
             return self.all()
         elif user.__class__.__name__ == "PipelineRunUser":
             workspace_query = self._get_pipeline_run_user_workspace_query(user)
-            return self.filter(workspace_query)
+            return self.filter(workspace_query).distinct()
 
         return self.filter(query_object).distinct()
 
