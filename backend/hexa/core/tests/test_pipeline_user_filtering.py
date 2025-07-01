@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
 
+from core.models.base import BaseQuerySet
+from django.db.models import Q
 from django.test import TestCase
 
 from hexa.pipelines.authentication import PipelineRunUser
@@ -62,3 +64,22 @@ class TestPipelineRunUserFiltering(TestCase):
         filtered_orgs = Organization.objects.filter_for_user(self.pipeline_user)
         self.assertEqual(filtered_orgs.count(), 1)
         self.assertEqual(filtered_orgs.first(), org1)
+
+    def test_not_implemented_error_for_models_without_workspace(self):
+        class SomeModelQuerySet(BaseQuerySet):
+            def filter_for_user(self, user):
+                return self._filter_for_user_and_query_object(
+                    user,
+                    Q(organizationmembership__user=user),
+                    return_all_if_superuser=True,
+                )
+
+        class SomeModel:
+            objects = SomeModelQuerySet.as_manager()
+
+        with self.assertRaises(NotImplementedError) as context:
+            SomeModel.objects.filter_for_user(self.pipeline_user)
+            self.assertIn(
+                "Override _get_pipeline_run_user_workspace_query for SomeModel to allow pipeline run user access control",
+                str(context.exception),
+            )
