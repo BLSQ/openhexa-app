@@ -56,8 +56,12 @@ class TestPipelineRunUserFiltering(TestCase):
     def test_organization_filtering(self):
         from hexa.user_management.models import Organization
 
-        org1 = Organization.objects.create(name="Org 1", organization_type="CORPORATE")
-        Organization.objects.create(name="Org 2", organization_type="ACADEMIC")
+        org1 = Organization.objects.create(
+            name="Org 1", short_name="org1", organization_type="CORPORATE"
+        )
+        Organization.objects.create(
+            name="Org 2", short_name="org2", organization_type="ACADEMIC"
+        )
         self.WORKSPACE1.organization = org1
         self.WORKSPACE1.save()
 
