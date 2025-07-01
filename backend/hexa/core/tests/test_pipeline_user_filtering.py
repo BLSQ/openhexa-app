@@ -1,9 +1,9 @@
 from unittest.mock import MagicMock
 
-from core.models.base import BaseQuerySet
 from django.db.models import Q
 from django.test import TestCase
 
+from hexa.core.models.base import BaseQuerySet
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.user_management.models import User
