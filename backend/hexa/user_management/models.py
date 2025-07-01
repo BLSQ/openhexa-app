@@ -130,7 +130,7 @@ class OrganizationManager(models.Manager):
 
 class OrganizationQuerySet(BaseQuerySet):
     def _get_pipeline_run_user_workspace_query(self, user):
-        return Q(workspaces__in=user.pipeline_run.pipeline.workspace)
+        return Q(workspaces=user.pipeline_run.pipeline.workspace)
 
     def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
         return self._filter_for_user_and_query_object(
