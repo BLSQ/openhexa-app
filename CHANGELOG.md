@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.1](https://github.com/BLSQ/openhexa-app/compare/1.12.0...1.12.1) (2025-07-01)
+
+
+### Bug Fixes
+
+* Allow OpenHEXA to embed itself, needed for Superset dashboard in Web Apps ([d0f1a63](https://github.com/BLSQ/openhexa-app/commit/d0f1a632b30d6210b93e8340f1ad569c162704e7))
+
 ## [1.12.0](https://github.com/BLSQ/openhexa-app/compare/1.11.0...1.12.0) (2025-06-30)
 
 
