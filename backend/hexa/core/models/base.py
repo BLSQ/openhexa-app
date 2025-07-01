@@ -75,14 +75,26 @@ class BaseQuerySet(models.QuerySet):
 
         1. Inactive users (including anonymous users) will get an empty queryset
         2. Superusers will get the full, unfiltered queryset (unless return_all_if_superuser is set to False)
-        3. Regular, authenticated users will get the queryset filtered using the query_object argument
+        3. Pipeline users will get the queryset filtered using the workspace of the pipeline run or any custom logic defined in _get_pipeline_run_user_workspace_query
+        4. Regular, authenticated users will get the queryset filtered using the query_object argument
         """
         if not user.is_authenticated:
             return self.none()
         elif return_all_if_superuser and user.is_superuser:
             return self.all()
+        elif user.__class__.__name__ == "PipelineRunUser":
+            workspace_query = self._get_pipeline_run_user_workspace_query(user)
+            return self.filter(workspace_query)
 
         return self.filter(query_object).distinct()
+
+    def _get_pipeline_run_user_workspace_query(self, user):
+        """Get workspace query for PipelineRunUser - override for custom logic"""
+        if hasattr(self.model, "workspace"):
+            return models.Q(workspace=user.pipeline_run.pipeline.workspace)
+        raise NotImplementedError(
+            f"Override _get_pipeline_run_user_workspace_query for {self.model} to allow pipeline run user access control"
+        )
 
     def prefetch_indexes(self):
         if not hasattr(self.model, "indexes"):
