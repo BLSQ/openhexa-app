@@ -428,20 +428,11 @@ class DatasetFileSample(Base):
 
 class DatasetLinkQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User):
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        from hexa.pipelines.authentication import PipelineRunUser
-
-        if isinstance(user, PipelineRunUser):
-            return self._filter_for_user_and_query_object(
-                user,
-                models.Q(workspace=user.pipeline_run.pipeline.workspace),
-            )
-        else:
-            return self._filter_for_user_and_query_object(
-                user,
-                models.Q(workspace__members=user),
-                return_all_if_superuser=False,
-            )
+        return self._filter_for_user_and_query_object(
+            user,
+            models.Q(workspace__members=user),
+            return_all_if_superuser=False,
+        )
 
 
 class DatasetLink(Base):
