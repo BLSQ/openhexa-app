@@ -2,7 +2,6 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
-import { useState } from "react";
 import PipelineCodeViewer from "workspaces/features/PipelineCodeViewer";
 import {
   useWorkspacePipelineCodePageQuery,
@@ -16,6 +15,12 @@ type Props = {
   pipelineCode: string;
   workspaceSlug: string;
 };
+
+// TODO : fix query
+// TODO : fix landing page
+// TODO : fix code viewer
+// TODO : remove icon
+// TODO : SDK autocomplete
 
 const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const { pipelineCode, workspaceSlug } = props;
