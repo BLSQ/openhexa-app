@@ -3475,7 +3475,7 @@ export type PipelineVersion = {
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   externalLink?: Maybe<Scalars['URL']['output']>;
-  files: Array<File>;
+  files: Array<PipelineVersionFile>;
   id: Scalars['UUID']['output'];
   isLatestVersion: Scalars['Boolean']['output'];
   name?: Maybe<Scalars['String']['output']>;
@@ -3490,6 +3490,15 @@ export type PipelineVersion = {
   versionName: Scalars['String']['output'];
   versionNumber: Scalars['Int']['output'];
   zipfile: Scalars['String']['output'];
+};
+
+/** Represents a file within a pipeline version. */
+export type PipelineVersionFile = {
+  __typename?: 'PipelineVersionFile';
+  content?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+  type: FileType;
 };
 
 /** Represents a page of pipeline versions. */

@@ -2858,7 +2858,7 @@ type PipelineVersion {
   createdAt: DateTime!
   description: String
   externalLink: URL
-  files: [File!]!
+  files: [PipelineVersionFile!]!
   id: UUID!
   isLatestVersion: Boolean!
   name: String
@@ -2872,6 +2872,14 @@ type PipelineVersion {
   versionName: String!
   versionNumber: Int!
   zipfile: String!
+}
+
+"""Represents a file within a pipeline version."""
+type PipelineVersionFile {
+  content: String
+  name: String!
+  path: String!
+  type: FileType!
 }
 
 """Represents a page of pipeline versions."""

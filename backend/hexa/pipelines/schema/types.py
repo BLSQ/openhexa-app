@@ -1,4 +1,6 @@
 import base64
+import io
+import zipfile
 
 from ariadne import EnumType, ObjectType, UnionType
 from django.urls import reverse
@@ -281,6 +283,7 @@ pipeline_run_object.set_alias("version", "pipeline_version")
 
 
 pipeline_version_object = ObjectType("PipelineVersion")
+pipeline_version_file_object = ObjectType("PipelineVersionFile")
 
 
 @pipeline_version_object.field("versionName")
@@ -299,6 +302,33 @@ def resolve_pipeline_version_is_latest(version: PipelineVersion, info, **kwargs)
 @pipeline_version_object.field("zipfile")
 def resolve_pipeline_version_zipfile(version: PipelineVersion, info, **kwargs):
     return base64.b64encode(version.zipfile).decode("ascii")
+
+
+@pipeline_version_object.field("files")
+def resolve_pipeline_version_files(version: PipelineVersion, info, **kwargs):
+    """Extract and return the list of files from the pipeline version's zipfile."""
+    if not version.zipfile:
+        return []
+
+    files = []
+    with zipfile.ZipFile(io.BytesIO(version.zipfile), "r") as zip_file:
+        for zip_info in zip_file.infolist():
+            content = None
+            if not zip_info.is_dir():
+                file_content = zip_file.read(zip_info.filename)
+                content = base64.b64encode(file_content).decode("ascii")
+
+            file_entry = {
+                "name": zip_info.filename.rstrip("/").split("/")[-1]
+                if "/" in zip_info.filename
+                else zip_info.filename,
+                "path": zip_info.filename,
+                "type": "directory" if zip_info.is_dir() else "file",
+                "content": content,
+            }
+            files.append(file_entry)
+
+    return files
 
 
 @pipeline_version_object.field("permissions")
@@ -358,6 +388,7 @@ bindables = [
     pipeline_notification_level_enum,
     pipeline_run_order_by_enum,
     pipeline_version_object,
+    pipeline_version_file_object,
     pipeline_version_permissions,
     generic_output_object,
     pipeline_run_output_union,

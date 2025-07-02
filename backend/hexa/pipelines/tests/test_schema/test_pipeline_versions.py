@@ -1,3 +1,6 @@
+import base64
+import io
+import zipfile
 from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
@@ -354,3 +357,141 @@ class PipelineVersionsTest(GraphQLTestCase):
         self.assertEqual(third_version.version_number, 3)
         self.assertEqual(third_version.version_name, "v3")
         self.assertEqual(third_version.display_name, "My Pipeline - v3")
+
+    def create_version_with_files(self, version_name="Version with files"):
+        """Helper method to create a pipeline version with actual files in the ZIP."""
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            zip_file.writestr("main.py", "print('Hello World')\n")
+            zip_file.writestr("requirements.txt", "pandas==1.5.0\nnumpy==1.21.0\n")
+            zip_file.writestr("utils/", "")
+            zip_file.writestr(
+                "utils/helpers.py", "def helper_function():\n    return 'helper'\n"
+            )
+            zip_file.writestr(
+                "README.md", "# Test Pipeline\n\nThis is a test pipeline.\n"
+            )
+
+        zip_buffer.seek(0)
+        zipfile_b64 = base64.b64encode(zip_buffer.getvalue()).decode("ascii")
+
+        self.client.force_login(self.USER_ADMIN)
+        return self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                    pipelineVersion {
+                        id
+                        name
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "code": self.PIPELINE.code,
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "name": version_name,
+                    "parameters": [],
+                    "zipfile": zipfile_b64,
+                }
+            },
+        )
+
+    def test_pipeline_version_files_resolver(self):
+        """Test that the files resolver correctly extracts and returns files from the ZIP."""
+        create_response = self.create_version_with_files()
+        self.assertTrue(create_response["data"]["uploadPipeline"]["success"])
+
+        version_id = create_response["data"]["uploadPipeline"]["pipelineVersion"]["id"]
+
+        self.client.force_login(self.USER_ADMIN)
+        response = self.run_query(
+            """
+            query getPipelineVersion($id: UUID!) {
+                pipelineVersion(id: $id) {
+                    id
+                    name
+                    files {
+                        name
+                        path
+                        type
+                        content
+                    }
+                }
+            }
+            """,
+            {"id": version_id},
+        )
+
+        self.assertIsNotNone(response["data"]["pipelineVersion"])
+        files = response["data"]["pipelineVersion"]["files"]
+
+        self.assertEqual(len(files), 5)
+
+        main_py = next((f for f in files if f["name"] == "main.py"), None)
+        self.assertIsNotNone(main_py)
+        self.assertEqual(main_py["path"], "main.py")
+        self.assertEqual(main_py["type"], "file")
+        decoded_content = base64.b64decode(main_py["content"]).decode("utf-8")
+        self.assertEqual(decoded_content, "print('Hello World')\n")
+
+        requirements_txt = next(
+            (f for f in files if f["name"] == "requirements.txt"), None
+        )
+        self.assertIsNotNone(requirements_txt)
+        self.assertEqual(requirements_txt["type"], "file")
+        decoded_content = base64.b64decode(requirements_txt["content"]).decode("utf-8")
+        self.assertEqual(decoded_content, "pandas==1.5.0\nnumpy==1.21.0\n")
+
+        utils_dir = next((f for f in files if f["name"] == "utils"), None)
+        self.assertIsNotNone(utils_dir)
+        self.assertEqual(utils_dir["path"], "utils/")
+        self.assertEqual(utils_dir["type"], "directory")
+        self.assertIsNone(utils_dir["content"])  # Directories don't have content
+
+        helpers_py = next((f for f in files if f["name"] == "helpers.py"), None)
+        self.assertIsNotNone(helpers_py)
+        self.assertEqual(helpers_py["path"], "utils/helpers.py")
+        self.assertEqual(helpers_py["type"], "file")
+        decoded_content = base64.b64decode(helpers_py["content"]).decode("utf-8")
+        self.assertEqual(
+            decoded_content, "def helper_function():\n    return 'helper'\n"
+        )
+
+        readme = next((f for f in files if f["name"] == "README.md"), None)
+        self.assertIsNotNone(readme)
+        self.assertEqual(readme["type"], "file")
+        decoded_content = base64.b64decode(readme["content"]).decode("utf-8")
+        self.assertEqual(
+            decoded_content, "# Test Pipeline\n\nThis is a test pipeline.\n"
+        )
+
+    def test_pipeline_version_files_empty_zipfile(self):
+        """Test that the files resolver handles empty zipfiles gracefully."""
+        self.test_create_version("Empty Version")
+
+        version_id = str(self.PIPELINE.last_version.id)
+
+        self.client.force_login(self.USER_ADMIN)
+        response = self.run_query(
+            """
+            query getPipelineVersion($id: UUID!) {
+                pipelineVersion(id: $id) {
+                    id
+                    files {
+                        name
+                        path
+                        type
+                        content
+                    }
+                }
+            }
+            """,
+            {"id": version_id},
+        )
+
+        files = response["data"]["pipelineVersion"]["files"]
+        self.assertEqual(files, [])
