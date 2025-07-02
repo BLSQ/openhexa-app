@@ -16,9 +16,6 @@ type Props = {
   workspaceSlug: string;
 };
 
-// TODO : fix code viewer
-// TODO : no tab for notebooks pipelines
-
 const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const { pipelineCode, workspaceSlug } = props;
   const { t } = useTranslation();

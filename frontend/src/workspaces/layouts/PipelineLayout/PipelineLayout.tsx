@@ -99,12 +99,17 @@ const PipelineLayout = (props: PipelineLayoutProps) => {
           href: `/workspaces/${encodeURIComponent(workspace.slug)}/pipelines/${encodeURIComponent(pipeline.code)}/notifications`,
           id: "notifications",
         },
-        {
-          label: t("Code"),
-          href: `/workspaces/${encodeURIComponent(workspace.slug)}/pipelines/${encodeURIComponent(pipeline.code)}/code`,
-          id: "code",
-        },
-      ]}
+      ].concat(
+        pipeline.currentVersion
+          ? [
+              {
+                label: t("Code"),
+                href: `/workspaces/${encodeURIComponent(workspace.slug)}/pipelines/${encodeURIComponent(pipeline.code)}/code`,
+                id: "code",
+              },
+            ]
+          : [],
+      )}
       title={pipeline.name ?? t("Pipeline")}
       header={
         <>
