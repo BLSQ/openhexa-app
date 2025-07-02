@@ -16,10 +16,8 @@ type Props = {
   workspaceSlug: string;
 };
 
-// TODO : fix query
 // TODO : fix landing page
 // TODO : fix code viewer
-// TODO : remove icon
 // TODO : SDK autocomplete
 
 const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
