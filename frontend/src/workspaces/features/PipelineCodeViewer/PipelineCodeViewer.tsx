@@ -1,7 +1,4 @@
 import { gql, useQuery } from "@apollo/client";
-import { python } from "@codemirror/lang-python";
-import { json } from "@codemirror/lang-json";
-import { autocompletion, CompletionContext } from "@codemirror/autocomplete";
 import CodeMirror from "@uiw/react-codemirror";
 import {
   DocumentIcon,
@@ -11,6 +8,7 @@ import {
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
+import { python } from "@codemirror/lang-python";
 
 interface PipelineVersionFile {
   name: string;
@@ -73,59 +71,6 @@ const getLanguageFromPath = (path: string): string => {
   return (
     SUPPORTED_LANGUAGES[extension as keyof typeof SUPPORTED_LANGUAGES] || "text"
   );
-};
-
-// OpenHexa SDK autocomplete items
-const openHexaCompletions = [
-  { label: "openhexa.sdk", type: "module", info: "OpenHexa SDK main module" },
-  { label: "openhexa.sdk.current_run", type: "object", info: "Current pipeline run context" },
-  { label: "openhexa.sdk.workspace", type: "object", info: "Current workspace context" },
-  { label: "openhexa.sdk.parameter", type: "function", info: "Get pipeline parameter value" },
-  { label: "openhexa.sdk.file_output", type: "function", info: "Create file output" },
-  { label: "openhexa.sdk.dataset_output", type: "function", info: "Create dataset output" },
-  { label: "openhexa.sdk.get_connection", type: "function", info: "Get workspace connection" },
-  { label: "openhexa.sdk.get_dataset", type: "function", info: "Get dataset from workspace" },
-  { label: "openhexa.sdk.pipelines.PipelineStep", type: "class", info: "Base class for pipeline steps" },
-  { label: "openhexa.sdk.utils.Environment", type: "class", info: "Environment utilities" },
-  { label: "openhexa.sdk.utils.log", type: "function", info: "Log message to pipeline run" },
-  { label: "openhexa.sdk.utils.progress", type: "function", info: "Update pipeline progress" },
-];
-
-// Custom autocompletion source for OpenHexa SDK
-const openHexaAutocompletion = autocompletion({
-  override: [
-    (context: CompletionContext) => {
-      const word = context.matchBefore(/\w*/);
-      if (!word) return null;
-      if (word.from === word.to && !context.explicit) return null;
-      
-      return {
-        from: word.from,
-        options: openHexaCompletions.filter(
-          (completion) =>
-            completion.label.toLowerCase().includes(word.text.toLowerCase())
-        ),
-      };
-    },
-  ],
-});
-
-const getExtensionsForLanguage = (lang: string) => {
-  const extensions = [];
-  
-  switch (lang) {
-    case "json":
-      extensions.push(json());
-      break;
-    case "python":
-      extensions.push(python());
-      extensions.push(openHexaAutocompletion);
-      break;
-    default:
-      break;
-  }
-  
-  return extensions;
 };
 
 const buildFileTree = (files: PipelineVersionFile[]): FileNode[] => {
@@ -275,14 +220,17 @@ export const PipelineCodeViewer = ({
     if (files.length === 0) return;
 
     const mainFile = files.find(
-      (file: PipelineVersionFile) => 
-        file.type === "file" && 
-        (file.path.endsWith("main.py") || file.path.endsWith("__main__.py"))
+      (file: PipelineVersionFile) =>
+        file.type === "file" &&
+        (file.path.endsWith("main.py") || file.path.endsWith("__main__.py")),
     );
     const firstPythonFile = files.find(
-      (file: PipelineVersionFile) => file.type === "file" && file.path.endsWith(".py")
+      (file: PipelineVersionFile) =>
+        file.type === "file" && file.path.endsWith(".py"),
     );
-    const firstFile = files.find((file: PipelineVersionFile) => file.type === "file");
+    const firstFile = files.find(
+      (file: PipelineVersionFile) => file.type === "file",
+    );
 
     const autoSelectFile = mainFile || firstPythonFile || firstFile;
     if (autoSelectFile && autoSelectFile.content) {
@@ -353,14 +301,14 @@ export const PipelineCodeViewer = ({
 
   return (
     <div className="flex h-screen border border-gray-200 rounded-lg overflow-hidden">
-      {/* File Tree Sidebar */}
       <div className="w-80 bg-gray-50 border-r border-gray-200 overflow-y-auto">
         <div className="p-3 border-b border-gray-200 bg-white">
           <h3 className="text-sm font-medium text-gray-900">
             {t("Files")} - {versionName}
           </h3>
           <div className="text-xs text-gray-500 mt-1">
-            {files.filter((f: PipelineVersionFile) => f.type === "file").length} {t("files")}
+            {files.filter((f: PipelineVersionFile) => f.type === "file").length}{" "}
+            {t("files")}
           </div>
         </div>
         <div className="py-2 h-screen">
@@ -377,7 +325,6 @@ export const PipelineCodeViewer = ({
         </div>
       </div>
 
-      {/* Code Editor */}
       <div className="flex-1 flex flex-col">
         {selectedFile ? (
           <>
@@ -393,9 +340,9 @@ export const PipelineCodeViewer = ({
             <div className="overflow-y-auto rounded-md border h-screen">
               <CodeMirror
                 value={selectedContent}
-                readOnly={true}
+                readOnly={false}
                 height="100vh"
-                extensions={getExtensionsForLanguage(getLanguageFromPath(selectedFile))}
+                extensions={[python()]}
               />
             </div>
           </>
