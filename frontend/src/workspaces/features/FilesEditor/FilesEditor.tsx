@@ -1,4 +1,3 @@
-import { gql, useQuery } from "@apollo/client";
 import CodeMirror from "@uiw/react-codemirror";
 import {
   DocumentIcon,
@@ -9,6 +8,19 @@ import clsx from "clsx";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
 import { python } from "@codemirror/lang-python";
+
+const getLanguageFromPath = (path: string): string => {
+  const SUPPORTED_LANGUAGES = {
+    ".py": "python",
+    ".json": "json",
+    ".md": "markdown",
+  } as const;
+
+  const extension = path.substring(path.lastIndexOf("."));
+  return (
+    SUPPORTED_LANGUAGES[extension as keyof typeof SUPPORTED_LANGUAGES] || "text"
+  );
+};
 
 interface PipelineVersionFile {
   name: string;
@@ -25,53 +37,10 @@ interface FileNode {
   content?: string;
 }
 
-interface PipelineCodeViewerProps {
-  versionId: string;
-  versionName: string;
+interface FilesEditorProps {
+  name: string;
+  files: any;
 }
-
-const GET_PIPELINE_VERSION_FILES = gql`
-  query GetPipelineVersionFiles($versionId: UUID!) {
-    pipelineVersion(id: $versionId) {
-      id
-      versionName
-      files {
-        name
-        path
-        type
-        content
-      }
-    }
-  }
-`;
-
-const SUPPORTED_LANGUAGES = {
-  ".py": "python",
-  ".js": "javascript",
-  ".ts": "typescript",
-  ".jsx": "javascript",
-  ".tsx": "typescript",
-  ".json": "json",
-  ".yaml": "yaml",
-  ".yml": "yaml",
-  ".md": "markdown",
-  ".txt": "text",
-  ".sh": "shell",
-  ".sql": "sql",
-  ".r": "r",
-  ".R": "r",
-  ".csv": "text",
-  ".xml": "xml",
-  ".html": "html",
-  ".css": "css",
-} as const;
-
-const getLanguageFromPath = (path: string): string => {
-  const extension = path.substring(path.lastIndexOf("."));
-  return (
-    SUPPORTED_LANGUAGES[extension as keyof typeof SUPPORTED_LANGUAGES] || "text"
-  );
-};
 
 const buildFileTree = (files: PipelineVersionFile[]): FileNode[] => {
   const root: FileNode[] = [];
@@ -197,10 +166,7 @@ const FileTreeNode = ({
   );
 };
 
-export const PipelineCodeViewer = ({
-  versionId,
-  versionName,
-}: PipelineCodeViewerProps) => {
+export const FilesEditor = ({ name, files }: FilesEditorProps) => {
   const { t } = useTranslation();
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [selectedContent, setSelectedContent] = useState<string>("");
@@ -208,11 +174,6 @@ export const PipelineCodeViewer = ({
     new Set(),
   );
 
-  const { data, loading, error } = useQuery(GET_PIPELINE_VERSION_FILES, {
-    variables: { versionId },
-  });
-
-  const files = data?.pipelineVersion?.files || [];
   const fileTree = useMemo(() => buildFileTree(files), [files]);
 
   // Auto-select the first Python file or main.py if available
@@ -268,43 +229,12 @@ export const PipelineCodeViewer = ({
     });
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-gray-500">{t("Loading pipeline code...")}</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-red-500">{t("Failed to load pipeline code")}</div>
-      </div>
-    );
-  }
-
-  if (files.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="text-gray-500 text-lg mb-2">
-            {t("No files found")}
-          </div>
-          <div className="text-gray-400 text-sm">
-            {t("This pipeline version doesn't contain any files.")}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-screen border border-gray-200 rounded-lg overflow-hidden">
       <div className="w-80 bg-gray-50 border-r border-gray-200 overflow-y-auto">
         <div className="p-3 border-b border-gray-200 bg-white">
           <h3 className="text-sm font-medium text-gray-900">
-            {t("Files")} - {versionName}
+            {t("Files")} - {name}
           </h3>
           <div className="text-xs text-gray-500 mt-1">
             {files.filter((f: PipelineVersionFile) => f.type === "file").length}{" "}
@@ -363,5 +293,3 @@ export const PipelineCodeViewer = ({
     </div>
   );
 };
-
-export default PipelineCodeViewer;

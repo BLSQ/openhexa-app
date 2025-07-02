@@ -135,7 +135,12 @@ query WorkspacePipelineCodePage($workspaceSlug: String!, $pipelineCode: String!)
     currentVersion {
       id
       versionName
-      zipfile
+      files {
+        name
+        path
+        type
+        content
+      }
     }
   }
 }

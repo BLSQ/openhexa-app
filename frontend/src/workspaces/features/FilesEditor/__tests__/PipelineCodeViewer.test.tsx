@@ -1,11 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import { MockedProvider } from "@apollo/client/testing";
-import { PipelineCodeViewer } from "../PipelineCodeViewer";
+import { PipelineCodeViewer } from "../FilesEditor";
 
 // Mock @uiw/react-codemirror
 jest.mock("@uiw/react-codemirror", () => ({
   __esModule: true,
-  default: ({ value }: { value: string }) => <div data-testid="code-editor">{value}</div>,
+  default: ({ value }: { value: string }) => (
+    <div data-testid="code-editor">{value}</div>
+  ),
 }));
 
 // Mock CodeMirror language modules
@@ -34,7 +36,7 @@ const mockVersionData = {
       },
       {
         name: "requirements.txt",
-        path: "requirements.txt", 
+        path: "requirements.txt",
         type: "file",
         content: btoa("pandas==1.5.0"),
       },
@@ -61,9 +63,9 @@ describe("PipelineCodeViewer", () => {
     render(
       <MockedProvider mocks={[]} addTypename={false}>
         <PipelineCodeViewer versionId="test-version-id" versionName="v1.0" />
-      </MockedProvider>
+      </MockedProvider>,
     );
-    
+
     expect(screen.getByText("Loading pipeline code...")).toBeInTheDocument();
   });
 
@@ -71,9 +73,9 @@ describe("PipelineCodeViewer", () => {
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
         <PipelineCodeViewer versionId="test-version-id" versionName="v1.0" />
-      </MockedProvider>
+      </MockedProvider>,
     );
-    
+
     // Component should render without crashing
     expect(screen.getByText("Loading pipeline code...")).toBeInTheDocument();
   });

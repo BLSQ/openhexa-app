@@ -2,7 +2,7 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
-import PipelineCodeViewer from "workspaces/features/PipelineCodeViewer";
+import { FilesEditor } from "workspaces/features/FilesEditor";
 import {
   useWorkspacePipelineCodePageQuery,
   WorkspacePipelineCodePageDocument,
@@ -42,9 +42,9 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
         pipeline={pipeline}
         currentTab="code"
       >
-        <PipelineCodeViewer
-          versionId={pipeline.currentVersion.id}
-          versionName={pipeline.currentVersion.versionName}
+        <FilesEditor
+          name={pipeline.currentVersion.versionName}
+          files={pipeline.currentVersion.files}
         />
       </PipelineLayout>
     </Page>
