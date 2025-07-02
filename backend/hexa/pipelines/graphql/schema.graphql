@@ -144,6 +144,7 @@ type PipelineVersion {
   parameters: [PipelineParameter!]!  # The parameters of the pipeline version.
   isLatestVersion: Boolean!  # Indicates if the pipeline version is the latest version.
   zipfile: String!  # The ZIP file base64 encoded.
+  files: [File!]!  # The list of files associated with the pipeline version (unzipped version of zipFile).
   timeout: Int  # The timeout value for the pipeline version (in seconds).
   permissions: PipelineVersionPermissions!  # The permissions for the pipeline version.
   config: JSON  # The default configuration to set on newly created pipeline runs

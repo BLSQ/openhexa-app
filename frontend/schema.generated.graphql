@@ -2858,6 +2858,7 @@ type PipelineVersion {
   createdAt: DateTime!
   description: String
   externalLink: URL
+  files: [File!]!
   id: UUID!
   isLatestVersion: Boolean!
   name: String

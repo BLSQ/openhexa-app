@@ -3475,6 +3475,7 @@ export type PipelineVersion = {
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   externalLink?: Maybe<Scalars['URL']['output']>;
+  files: Array<File>;
   id: Scalars['UUID']['output'];
   isLatestVersion: Scalars['Boolean']['output'];
   name?: Maybe<Scalars['String']['output']>;
