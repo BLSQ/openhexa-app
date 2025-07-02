@@ -10,6 +10,7 @@ import {
   WorkspacePipelineCodePageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
+import DataCard from "../../../../../core/components/DataCard";
 
 type Props = {
   pipelineCode: string;
@@ -42,10 +43,12 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
         pipeline={pipeline}
         currentTab="code"
       >
-        <FilesEditor
-          name={pipeline.currentVersion.versionName}
-          files={pipeline.currentVersion.files}
-        />
+        <DataCard.FormSection>
+          <FilesEditor
+            name={pipeline.currentVersion.versionName}
+            files={pipeline.currentVersion.files}
+          />
+        </DataCard.FormSection>
       </PipelineLayout>
     </Page>
   );
