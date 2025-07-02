@@ -1,12 +1,8 @@
-import dynamic from "next/dynamic";
-
-const CodeiumEditor = dynamic(
-  () =>
-    import("@codeium/react-code-editor").then((mod) => ({
-      default: mod.CodeiumEditor,
-    })),
-  { ssr: false },
-);
+import { gql, useQuery } from "@apollo/client";
+import { python } from "@codemirror/lang-python";
+import { json } from "@codemirror/lang-json";
+import { autocompletion, CompletionContext } from "@codemirror/autocomplete";
+import CodeMirror from "@uiw/react-codemirror";
 import {
   DocumentIcon,
   FolderIcon,
@@ -14,8 +10,14 @@ import {
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import JSZip from "jszip";
+import { useCallback, useMemo, useState } from "react";
+
+interface PipelineVersionFile {
+  name: string;
+  path: string;
+  type: "file" | "directory";
+  content?: string;
+}
 
 interface FileNode {
   name: string;
@@ -26,9 +28,24 @@ interface FileNode {
 }
 
 interface PipelineCodeViewerProps {
-  zipfile: string;
+  versionId: string;
   versionName: string;
 }
+
+const GET_PIPELINE_VERSION_FILES = gql`
+  query GetPipelineVersionFiles($versionId: UUID!) {
+    pipelineVersion(id: $versionId) {
+      id
+      versionName
+      files {
+        name
+        path
+        type
+        content
+      }
+    }
+  }
+`;
 
 const SUPPORTED_LANGUAGES = {
   ".py": "python",
@@ -58,13 +75,66 @@ const getLanguageFromPath = (path: string): string => {
   );
 };
 
-const buildFileTree = (files: { [path: string]: string }): FileNode[] => {
+// OpenHexa SDK autocomplete items
+const openHexaCompletions = [
+  { label: "openhexa.sdk", type: "module", info: "OpenHexa SDK main module" },
+  { label: "openhexa.sdk.current_run", type: "object", info: "Current pipeline run context" },
+  { label: "openhexa.sdk.workspace", type: "object", info: "Current workspace context" },
+  { label: "openhexa.sdk.parameter", type: "function", info: "Get pipeline parameter value" },
+  { label: "openhexa.sdk.file_output", type: "function", info: "Create file output" },
+  { label: "openhexa.sdk.dataset_output", type: "function", info: "Create dataset output" },
+  { label: "openhexa.sdk.get_connection", type: "function", info: "Get workspace connection" },
+  { label: "openhexa.sdk.get_dataset", type: "function", info: "Get dataset from workspace" },
+  { label: "openhexa.sdk.pipelines.PipelineStep", type: "class", info: "Base class for pipeline steps" },
+  { label: "openhexa.sdk.utils.Environment", type: "class", info: "Environment utilities" },
+  { label: "openhexa.sdk.utils.log", type: "function", info: "Log message to pipeline run" },
+  { label: "openhexa.sdk.utils.progress", type: "function", info: "Update pipeline progress" },
+];
+
+// Custom autocompletion source for OpenHexa SDK
+const openHexaAutocompletion = autocompletion({
+  override: [
+    (context: CompletionContext) => {
+      const word = context.matchBefore(/\w*/);
+      if (!word) return null;
+      if (word.from === word.to && !context.explicit) return null;
+      
+      return {
+        from: word.from,
+        options: openHexaCompletions.filter(
+          (completion) =>
+            completion.label.toLowerCase().includes(word.text.toLowerCase())
+        ),
+      };
+    },
+  ],
+});
+
+const getExtensionsForLanguage = (lang: string) => {
+  const extensions = [];
+  
+  switch (lang) {
+    case "json":
+      extensions.push(json());
+      break;
+    case "python":
+      extensions.push(python());
+      extensions.push(openHexaAutocompletion);
+      break;
+    default:
+      break;
+  }
+  
+  return extensions;
+};
+
+const buildFileTree = (files: PipelineVersionFile[]): FileNode[] => {
   const root: FileNode[] = [];
   const allNodes: { [path: string]: FileNode } = {};
 
   // Create all nodes
-  Object.keys(files).forEach((path) => {
-    const parts = path.split("/").filter(Boolean);
+  files.forEach((file) => {
+    const parts = file.path.split("/").filter(Boolean);
     let currentPath = "";
 
     parts.forEach((part, index) => {
@@ -72,13 +142,13 @@ const buildFileTree = (files: { [path: string]: string }): FileNode[] => {
       currentPath = currentPath ? `${currentPath}/${part}` : part;
 
       if (!allNodes[currentPath]) {
-        const isFile = index === parts.length - 1;
+        const isFile = index === parts.length - 1 && file.type === "file";
         allNodes[currentPath] = {
           name: part,
           path: currentPath,
           type: isFile ? "file" : "folder",
           children: isFile ? undefined : [],
-          content: isFile ? files[path] : undefined,
+          content: isFile && file.content ? atob(file.content) : undefined,
         };
       }
     });
@@ -183,90 +253,55 @@ const FileTreeNode = ({
 };
 
 export const PipelineCodeViewer = ({
-  zipfile,
+  versionId,
   versionName,
 }: PipelineCodeViewerProps) => {
   const { t } = useTranslation();
-  const [files, setFiles] = useState<{ [path: string]: string }>({});
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [selectedContent, setSelectedContent] = useState<string>("");
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set(),
   );
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
+  const { data, loading, error } = useQuery(GET_PIPELINE_VERSION_FILES, {
+    variables: { versionId },
+  });
+
+  const files = data?.pipelineVersion?.files || [];
   const fileTree = useMemo(() => buildFileTree(files), [files]);
 
-  const extractZipFile = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // Auto-select the first Python file or main.py if available
+  useMemo(() => {
+    if (files.length === 0) return;
 
-      // Convert base64 to binary
-      const binaryString = atob(zipfile);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
+    const mainFile = files.find(
+      (file: PipelineVersionFile) => 
+        file.type === "file" && 
+        (file.path.endsWith("main.py") || file.path.endsWith("__main__.py"))
+    );
+    const firstPythonFile = files.find(
+      (file: PipelineVersionFile) => file.type === "file" && file.path.endsWith(".py")
+    );
+    const firstFile = files.find((file: PipelineVersionFile) => file.type === "file");
+
+    const autoSelectFile = mainFile || firstPythonFile || firstFile;
+    if (autoSelectFile && autoSelectFile.content) {
+      setSelectedFile(autoSelectFile.path);
+      setSelectedContent(atob(autoSelectFile.content));
+
+      // Auto-expand folders leading to the selected file
+      const pathParts = autoSelectFile.path.split("/");
+      const foldersToExpand = new Set<string>();
+      let currentPath = "";
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        currentPath = currentPath
+          ? `${currentPath}/${pathParts[i]}`
+          : pathParts[i];
+        foldersToExpand.add(currentPath);
       }
-
-      // Extract zip contents
-      const zip = new JSZip();
-      await zip.loadAsync(bytes);
-
-      const extractedFiles: { [path: string]: string } = {};
-      const promises: Promise<void>[] = [];
-
-      zip.forEach((relativePath, file) => {
-        if (!file.dir) {
-          promises.push(
-            file.async("text").then((content) => {
-              extractedFiles[relativePath] = content;
-            }),
-          );
-        }
-      });
-
-      await Promise.all(promises);
-      setFiles(extractedFiles);
-
-      // Auto-select the first Python file or main.py if available
-      const mainFile = Object.keys(extractedFiles).find(
-        (path) => path.endsWith("main.py") || path.endsWith("__main__.py"),
-      );
-      const firstPythonFile = Object.keys(extractedFiles).find((path) =>
-        path.endsWith(".py"),
-      );
-      const firstFile = Object.keys(extractedFiles)[0];
-
-      const autoSelectFile = mainFile || firstPythonFile || firstFile;
-      if (autoSelectFile) {
-        setSelectedFile(autoSelectFile);
-        setSelectedContent(extractedFiles[autoSelectFile]);
-
-        // Auto-expand folders leading to the selected file
-        const pathParts = autoSelectFile.split("/");
-        const foldersToExpand = new Set<string>();
-        let currentPath = "";
-        for (let i = 0; i < pathParts.length - 1; i++) {
-          currentPath = currentPath
-            ? `${currentPath}/${pathParts[i]}`
-            : pathParts[i];
-          foldersToExpand.add(currentPath);
-        }
-        setExpandedFolders(foldersToExpand);
-      }
-    } catch (err) {
-      console.error("Error extracting zip file:", err);
-      setError(t("Failed to extract pipeline code"));
-    } finally {
-      setLoading(false);
+      setExpandedFolders(foldersToExpand);
     }
-  }, [zipfile, t]);
-
-  useEffect(() => {
-    extractZipFile();
-  }, [extractZipFile]);
+  }, [files]);
 
   const handleFileSelect = useCallback((path: string, content: string) => {
     setSelectedFile(path);
@@ -288,7 +323,7 @@ export const PipelineCodeViewer = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-gray-500">{t("Extracting pipeline code...")}</div>
+        <div className="text-gray-500">{t("Loading pipeline code...")}</div>
       </div>
     );
   }
@@ -296,12 +331,12 @@ export const PipelineCodeViewer = ({
   if (error) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-red-500">{error}</div>
+        <div className="text-red-500">{t("Failed to load pipeline code")}</div>
       </div>
     );
   }
 
-  if (Object.keys(files).length === 0) {
+  if (files.length === 0) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
@@ -325,7 +360,7 @@ export const PipelineCodeViewer = ({
             {t("Files")} - {versionName}
           </h3>
           <div className="text-xs text-gray-500 mt-1">
-            {Object.keys(files).length} {t("files")}
+            {files.filter((f: PipelineVersionFile) => f.type === "file").length} {t("files")}
           </div>
         </div>
         <div className="py-2 h-screen">
@@ -355,24 +390,14 @@ export const PipelineCodeViewer = ({
                 {selectedContent.split("\n").length} lines
               </div>
             </div>
-            <CodeiumEditor
-              value={selectedContent}
-              language={getLanguageFromPath(selectedFile)}
-              theme="light"
-              onChange={() => {}} // Read-only
-              className="h-screen"
-              options={{
-                readOnly: false,
-                minimap: { enabled: true },
-                scrollBeyondLastLine: false,
-                automaticLayout: true,
-                fontSize: 14,
-                lineNumbers: "on",
-                wordWrap: "on",
-                folding: true,
-                selectOnLineNumbers: true,
-              }}
-            />
+            <div className="overflow-y-auto rounded-md border h-screen">
+              <CodeMirror
+                value={selectedContent}
+                readOnly={true}
+                height="100vh"
+                extensions={getExtensionsForLanguage(getLanguageFromPath(selectedFile))}
+              />
+            </div>
           </>
         ) : (
           <div className="flex items-center justify-center h-full">

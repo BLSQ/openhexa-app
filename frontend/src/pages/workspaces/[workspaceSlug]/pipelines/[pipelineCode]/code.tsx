@@ -111,7 +111,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
         currentTab="code"
       >
         <PipelineCodeViewer
-          zipfile={pipeline.currentVersion.zipfile}
+          versionId={pipeline.currentVersion.id}
           versionName={pipeline.currentVersion.versionName}
         />
       </PipelineLayout>
