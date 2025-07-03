@@ -12,6 +12,7 @@ import { PipelineLayout_WorkspaceFragmentDoc, PipelineLayout_PipelineFragmentDoc
 import { RunPipelineDialog_PipelineFragmentDoc, RunPipelineDialog_RunFragmentDoc } from '../features/RunPipelineDialog/RunPipelineDialog.generated';
 import { PipelineVersionParametersTable_VersionFragmentDoc } from '../../pipelines/features/PipelineVersionParametersTable/PipelineVersionParametersTable.generated';
 import { PipelineVersionConfigDialog_VersionFragmentDoc } from '../features/PipelineVersionConfigDialog/PipelineVersionConfigDialog.generated';
+import { FilesEditor_FileFragmentDoc } from '../features/FilesEditor/FilesEditor.generated';
 import { UserColumn_UserFragmentDoc } from '../../core/components/DataGrid/UserColumn.generated';
 import { PipelineRecipients_PipelineFragmentDoc } from '../features/PipelineRecipients/PipelineRecipients.generated';
 import { PipelineVersionCard_VersionFragmentDoc } from '../../pipelines/features/PipelineVersionCard/PipelineVersionCard.generated';
@@ -583,19 +584,14 @@ export const WorkspacePipelineCodePageDocument = gql`
       id
       versionName
       files {
-        id
-        name
-        path
-        type
-        content
-        parentId
-        autoSelect
+        ...FilesEditor_file
       }
     }
   }
 }
     ${PipelineLayout_WorkspaceFragmentDoc}
-${PipelineLayout_PipelineFragmentDoc}`;
+${PipelineLayout_PipelineFragmentDoc}
+${FilesEditor_FileFragmentDoc}`;
 
 /**
  * __useWorkspacePipelineCodePageQuery__

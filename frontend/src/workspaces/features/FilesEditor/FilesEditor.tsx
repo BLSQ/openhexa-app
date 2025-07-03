@@ -9,6 +9,8 @@ import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
 import { python } from "@codemirror/lang-python";
 import { r } from "codemirror-lang-r";
+import { gql } from "@apollo/client";
+import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 
 const getLanguageFromPath = (path: string): string => {
   const SUPPORTED_LANGUAGES = {
@@ -24,16 +26,6 @@ const getLanguageFromPath = (path: string): string => {
   );
 };
 
-interface FlatFileNode {
-  id: string;
-  name: string;
-  path: string;
-  type: "file" | "directory";
-  content?: string | null;
-  parentId?: string | null;
-  autoSelect: boolean;
-}
-
 interface FileNode {
   name: string;
   path: string;
@@ -45,11 +37,13 @@ interface FileNode {
 
 interface FilesEditorProps {
   name: string;
-  files: FlatFileNode[];
+  files: FilesEditor_FileFragment[];
 }
 
 // Reconstruct hierarchical tree from flattened data
-const buildTreeFromFlatData = (flatNodes: FlatFileNode[]): FileNode[] => {
+const buildTreeFromFlatData = (
+  flatNodes: FilesEditor_FileFragment[],
+): FileNode[] => {
   const nodeMap = new Map<string, FileNode>();
 
   // Create all nodes first
@@ -335,4 +329,18 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
       </div>
     </div>
   );
+};
+
+FilesEditor.fragment = {
+  files: gql`
+    fragment FilesEditor_file on FileNode {
+      id
+      name
+      path
+      type
+      content
+      parentId
+      autoSelect
+    }
+  `,
 };
