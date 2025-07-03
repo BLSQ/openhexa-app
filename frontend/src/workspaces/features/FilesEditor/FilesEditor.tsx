@@ -125,7 +125,7 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
   const numberOfFiles = files.filter((file) => file.type === "file").length;
 
   return (
-    <div className=" h-[80vh] flex border border-gray-200 rounded-lg overflow-hidden">
+    <div className=" h-[75vh] flex border border-gray-200 rounded-lg overflow-hidden">
       <div className="w-80 bg-gray-50 border-r border-gray-200">
         <div className="p-3 border-b border-gray-200 bg-white">
           <h3 className="text-sm font-medium text-gray-900">

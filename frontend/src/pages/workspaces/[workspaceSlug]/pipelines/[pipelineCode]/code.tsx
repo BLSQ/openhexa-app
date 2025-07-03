@@ -63,11 +63,18 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
         currentTab="code"
       >
         <DataCard.FormSection>
-          <PipelineVersionPicker
-            value={selectedVersion ?? pipeline.currentVersion}
-            pipeline={pipeline}
-            onChange={onVersionChange}
-          />
+          <div className="flex items-center gap-3">
+            <label className="text-md font-medium text-gray-700">
+              {t("Version")}:
+            </label>
+            <div className="w-70">
+              <PipelineVersionPicker
+                value={selectedVersion ?? pipeline.currentVersion}
+                pipeline={pipeline}
+                onChange={onVersionChange}
+              />
+            </div>
+          </div>
           <div className="relative">
             {(loading || versionLoading) && (
               <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
