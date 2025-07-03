@@ -2,7 +2,8 @@ import CodeMirror from "@uiw/react-codemirror";
 import {
   DocumentIcon,
   FolderIcon,
-  FolderOpenIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
@@ -76,7 +77,7 @@ const FileTreeNode = ({
           "flex items-center cursor-pointer px-2 py-1 text-sm",
           isSelected ? "bg-blue-50 text-blue-700" : "hover:bg-gray-200",
         )}
-        style={{ paddingLeft: `${level * 16 + 8}px` }}
+        style={{ paddingLeft: `${level * 24 + 8}px` }}
         onClick={() => setSelectedFile(node)}
       >
         <DocumentIcon className="w-4 h-4 mr-2 text-gray-400" />
@@ -89,14 +90,15 @@ const FileTreeNode = ({
     <div>
       <div
         className="flex items-center cursor-pointer hover:bg-gray-200 px-2 py-1 text-sm"
-        style={{ paddingLeft: `${level * 16 + 8}px` }}
+        style={{ paddingLeft: `${level * 24 + 8}px` }}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         {isExpanded ? (
-          <FolderOpenIcon className="w-4 h-4 mr-2 text-gray-400" />
+          <ChevronDownIcon className="w-4 h-4 mr-2 text-gray-400" />
         ) : (
-          <FolderIcon className="w-4 h-4 mr-2 text-gray-400" />
+          <ChevronRightIcon className="w-4 h-4 mr-2 text-gray-400" />
         )}
+        <FolderIcon className="w-4 h-4 mr-2 text-gray-400" />
         <span>{node.name}</span>
       </div>
       {isExpanded && node.children && (
