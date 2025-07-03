@@ -8,11 +8,13 @@ import clsx from "clsx";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
 import { python } from "@codemirror/lang-python";
+import { r } from "codemirror-lang-r";
 
 const getLanguageFromPath = (path: string): string => {
   const SUPPORTED_LANGUAGES = {
     ".py": "python",
     ".json": "json",
+    ".r": "r",
     ".md": "markdown",
   } as const;
 
@@ -22,72 +24,73 @@ const getLanguageFromPath = (path: string): string => {
   );
 };
 
-interface PipelineVersionFile {
+interface FlatFileNode {
+  id: string;
   name: string;
   path: string;
   type: "file" | "directory";
   content?: string;
+  parentId?: string;
+  autoSelect: boolean;
 }
 
 interface FileNode {
   name: string;
   path: string;
-  type: "file" | "folder";
+  type: "file" | "directory";
   children?: FileNode[];
   content?: string;
+  autoSelect: boolean;
 }
 
 interface FilesEditorProps {
   name: string;
-  files: any;
+  files: FlatFileNode[];
 }
 
-const buildFileTree = (files: PipelineVersionFile[]): FileNode[] => {
-  const root: FileNode[] = [];
-  const allNodes: { [path: string]: FileNode } = {};
-
-  // Create all nodes
-  files.forEach((file) => {
-    const parts = file.path.split("/").filter(Boolean);
-    let currentPath = "";
-
-    parts.forEach((part, index) => {
-      const parentPath = currentPath;
-      currentPath = currentPath ? `${currentPath}/${part}` : part;
-
-      if (!allNodes[currentPath]) {
-        const isFile = index === parts.length - 1 && file.type === "file";
-        allNodes[currentPath] = {
-          name: part,
-          path: currentPath,
-          type: isFile ? "file" : "folder",
-          children: isFile ? undefined : [],
-          content: isFile && file.content ? atob(file.content) : undefined,
-        };
-      }
+// Reconstruct hierarchical tree from flattened data
+const buildTreeFromFlatData = (flatNodes: FlatFileNode[]): FileNode[] => {
+  const nodeMap = new Map<string, FileNode>();
+  
+  // Create all nodes first
+  flatNodes.forEach((flatNode) => {
+    nodeMap.set(flatNode.id, {
+      name: flatNode.name,
+      path: flatNode.path,
+      type: flatNode.type,
+      content: flatNode.content,
+      autoSelect: flatNode.autoSelect,
+      children: flatNode.type === "directory" ? [] : undefined,
     });
   });
 
   // Build tree structure
-  Object.values(allNodes).forEach((node) => {
-    const parentPath = node.path.substring(0, node.path.lastIndexOf("/"));
-
-    if (parentPath && allNodes[parentPath]) {
-      allNodes[parentPath].children!.push(node);
+  const rootNodes: FileNode[] = [];
+  
+  flatNodes.forEach((flatNode) => {
+    const node = nodeMap.get(flatNode.id)!;
+    
+    if (!flatNode.parentId) {
+      // Root node
+      rootNodes.push(node);
     } else {
-      root.push(node);
+      // Child node - add to parent
+      const parentNode = nodeMap.get(flatNode.parentId);
+      if (parentNode && parentNode.children) {
+        parentNode.children.push(node);
+      }
     }
   });
 
-  // Sort folders first, then files, both alphabetically
-  const sortNodes = (nodes: FileNode[]) => {
+  // Sort nodes: directories first, then files, both alphabetically
+  const sortNodes = (nodes: FileNode[]): void => {
     nodes.sort((a, b) => {
       if (a.type !== b.type) {
-        return a.type === "folder" ? -1 : 1;
+        return a.type === "directory" ? -1 : 1;
       }
-      return a.name.localeCompare(b.name);
+      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
     });
-
+    
     nodes.forEach((node) => {
       if (node.children) {
         sortNodes(node.children);
@@ -95,8 +98,65 @@ const buildFileTree = (files: PipelineVersionFile[]): FileNode[] => {
     });
   };
 
-  sortNodes(root);
-  return root;
+  sortNodes(rootNodes);
+  return rootNodes;
+};
+
+// Find auto-selected file in the tree structure
+const findAutoSelectedFile = (nodes: FileNode[]): FileNode | null => {
+  for (const node of nodes) {
+    if (node.type === "file" && node.autoSelect) {
+      return node;
+    }
+    if (node.children) {
+      const found = findAutoSelectedFile(node.children);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+// Find all folders that need to be expanded to show a file
+const getExpandedFolders = (
+  nodes: FileNode[],
+  targetPath: string,
+  currentPath = "",
+): Set<string> => {
+  const expandedFolders = new Set<string>();
+
+  for (const node of nodes) {
+    const nodePath = currentPath ? `${currentPath}/${node.name}` : node.name;
+
+    if (targetPath.startsWith(nodePath + "/") || targetPath === nodePath) {
+      if (node.type === "directory") {
+        expandedFolders.add(nodePath);
+      }
+
+      if (node.children) {
+        const childExpanded = getExpandedFolders(
+          node.children,
+          targetPath,
+          nodePath,
+        );
+        childExpanded.forEach((path) => expandedFolders.add(path));
+      }
+    }
+  }
+
+  return expandedFolders;
+};
+
+// Count total files in the tree
+const countFiles = (nodes: FileNode[]): number => {
+  let count = 0;
+  for (const node of nodes) {
+    if (node.type === "file") {
+      count++;
+    } else if (node.children) {
+      count += countFiles(node.children);
+    }
+  }
+  return count;
 };
 
 const FileTreeNode = ({
@@ -174,43 +234,25 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
     new Set(),
   );
 
-  const fileTree = useMemo(() => buildFileTree(files), [files]);
+  // Reconstruct tree from flattened data
+  const treeFiles = useMemo(() => {
+    return buildTreeFromFlatData(files);
+  }, [files]);
 
-  // Auto-select the first Python file or main.py if available
+  // Auto-select file based on backend auto-selection
   useMemo(() => {
-    if (files.length === 0) return;
+    if (treeFiles.length === 0) return;
 
-    const mainFile = files.find(
-      (file: PipelineVersionFile) =>
-        file.type === "file" &&
-        (file.path.endsWith("main.py") || file.path.endsWith("__main__.py")),
-    );
-    const firstPythonFile = files.find(
-      (file: PipelineVersionFile) =>
-        file.type === "file" && file.path.endsWith(".py"),
-    );
-    const firstFile = files.find(
-      (file: PipelineVersionFile) => file.type === "file",
-    );
-
-    const autoSelectFile = mainFile || firstPythonFile || firstFile;
+    const autoSelectFile = findAutoSelectedFile(treeFiles);
     if (autoSelectFile && autoSelectFile.content) {
       setSelectedFile(autoSelectFile.path);
-      setSelectedContent(atob(autoSelectFile.content));
+      setSelectedContent(autoSelectFile.content);
 
       // Auto-expand folders leading to the selected file
-      const pathParts = autoSelectFile.path.split("/");
-      const foldersToExpand = new Set<string>();
-      let currentPath = "";
-      for (let i = 0; i < pathParts.length - 1; i++) {
-        currentPath = currentPath
-          ? `${currentPath}/${pathParts[i]}`
-          : pathParts[i];
-        foldersToExpand.add(currentPath);
-      }
+      const foldersToExpand = getExpandedFolders(treeFiles, autoSelectFile.path);
       setExpandedFolders(foldersToExpand);
     }
-  }, [files]);
+  }, [treeFiles]);
 
   const handleFileSelect = useCallback((path: string, content: string) => {
     setSelectedFile(path);
@@ -237,12 +279,11 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
             {t("Files")} - {name}
           </h3>
           <div className="text-xs text-gray-500 mt-1">
-            {files.filter((f: PipelineVersionFile) => f.type === "file").length}{" "}
-            {t("files")}
+            {countFiles(treeFiles)} {t("files")}
           </div>
         </div>
         <div className="py-2 h-screen">
-          {fileTree.map((node) => (
+          {treeFiles.map((node) => (
             <FileTreeNode
               key={node.path}
               node={node}
@@ -267,12 +308,12 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
                 {selectedContent.split("\n").length} lines
               </div>
             </div>
-            <div className="overflow-y-auto h-screen">
+            <div className="overflow-y-auto rounded-md border h-screen">
               <CodeMirror
                 value={selectedContent}
                 readOnly={false}
                 height="100vh"
-                extensions={[python()]}
+                extensions={[python(), r()]}
               />
             </div>
           </>

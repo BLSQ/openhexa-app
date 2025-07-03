@@ -1876,6 +1876,21 @@ export type File = {
   updated?: Maybe<Scalars['DateTime']['output']>;
 };
 
+/**
+ * Represents a file or directory node in a flattened structure.
+ * Optimized for unlimited depth handling with ID-based parent-child relationships.
+ */
+export type FileNode = {
+  __typename?: 'FileNode';
+  autoSelect: Scalars['Boolean']['output'];
+  content?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  parentId?: Maybe<Scalars['String']['output']>;
+  path: Scalars['String']['output'];
+  type: FileType;
+};
+
 export type FileResult = SearchResult & {
   __typename?: 'FileResult';
   file: File;
@@ -3475,7 +3490,7 @@ export type PipelineVersion = {
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   externalLink?: Maybe<Scalars['URL']['output']>;
-  files: Array<PipelineVersionFile>;
+  files: Array<FileNode>;
   id: Scalars['UUID']['output'];
   isLatestVersion: Scalars['Boolean']['output'];
   name?: Maybe<Scalars['String']['output']>;

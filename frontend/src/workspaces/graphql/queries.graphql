@@ -136,10 +136,13 @@ query WorkspacePipelineCodePage($workspaceSlug: String!, $pipelineCode: String!)
       id
       versionName
       files {
+        id
         name
         path
         type
         content
+        parentId
+        autoSelect
       }
     }
   }

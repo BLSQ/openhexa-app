@@ -1759,6 +1759,20 @@ type File {
   updated: DateTime
 }
 
+"""
+Represents a file or directory node in a flattened structure.
+Optimized for unlimited depth handling with ID-based parent-child relationships.
+"""
+type FileNode {
+  autoSelect: Boolean!
+  content: String
+  id: String!
+  name: String!
+  parentId: String
+  path: String!
+  type: FileType!
+}
+
 type FileResult implements SearchResult {
   file: File!
   score: Float!
@@ -2858,7 +2872,7 @@ type PipelineVersion {
   createdAt: DateTime!
   description: String
   externalLink: URL
-  files: [PipelineVersionFile!]!
+  files: [FileNode!]!
   id: UUID!
   isLatestVersion: Boolean!
   name: String

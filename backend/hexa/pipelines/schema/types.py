@@ -284,6 +284,7 @@ pipeline_run_object.set_alias("version", "pipeline_version")
 
 pipeline_version_object = ObjectType("PipelineVersion")
 pipeline_version_file_object = ObjectType("PipelineVersionFile")
+file_node_object = ObjectType("FileNode")
 
 
 @pipeline_version_object.field("versionName")
@@ -306,29 +307,89 @@ def resolve_pipeline_version_zipfile(version: PipelineVersion, info, **kwargs):
 
 @pipeline_version_object.field("files")
 def resolve_pipeline_version_files(version: PipelineVersion, info, **kwargs):
-    """Extract and return the list of files from the pipeline version's zipfile."""
+    """Extract and return flattened file structure for unlimited depth handling."""
     if not version.zipfile:
         return []
 
-    files = []
+    # Extract all files from ZIP
+    all_files = []
     with zipfile.ZipFile(io.BytesIO(version.zipfile), "r") as zip_file:
         for zip_info in zip_file.infolist():
             content = None
             if not zip_info.is_dir():
                 file_content = zip_file.read(zip_info.filename)
-                content = base64.b64encode(file_content).decode("ascii")
+                # Decode content instead of base64 encoding
+                try:
+                    content = file_content.decode("utf-8")
+                except UnicodeDecodeError:
+                    # For binary files, still use base64 but mark them
+                    content = base64.b64encode(file_content).decode("ascii")
 
-            file_entry = {
-                "name": zip_info.filename.rstrip("/").split("/")[-1]
-                if "/" in zip_info.filename
-                else zip_info.filename,
-                "path": zip_info.filename,
-                "type": "directory" if zip_info.is_dir() else "file",
-                "content": content,
-            }
-            files.append(file_entry)
+            path = zip_info.filename.rstrip("/")
+            all_files.append(
+                {
+                    "id": path,  # Use path as unique ID
+                    "name": path.split("/")[-1] if "/" in path else path,
+                    "path": path,
+                    "type": "directory" if zip_info.is_dir() else "file",
+                    "content": content,
+                    "parent_id": "/".join(path.split("/")[:-1])
+                    if "/" in path
+                    else None,
+                    "auto_select": False,
+                }
+            )
 
-    return files
+    # Create missing parent directories
+    existing_paths = {file["path"] for file in all_files}
+    missing_dirs = set()
+
+    for file in all_files:
+        parts = file["path"].split("/")
+        for i in range(1, len(parts)):
+            parent_path = "/".join(parts[:i])
+            if parent_path not in existing_paths and parent_path not in missing_dirs:
+                missing_dirs.add(parent_path)
+                all_files.append(
+                    {
+                        "id": parent_path,
+                        "name": parts[i - 1],
+                        "path": parent_path,
+                        "type": "directory",
+                        "content": None,
+                        "parent_id": "/".join(parts[: i - 1]) if i > 1 else None,
+                        "auto_select": False,
+                    }
+                )
+
+    # Sort files: directories first, then files, both alphabetically
+    all_files.sort(key=lambda x: (x["type"] == "file", x["name"].lower()))
+
+    # Auto-selection logic: main.py > first .py file > first file
+    file_candidates = [f for f in all_files if f["type"] == "file"]
+    auto_select_file = None
+
+    # Priority 1: main.py or __main__.py
+    for file in file_candidates:
+        if file["name"] in ["main.py", "__main__.py"]:
+            auto_select_file = file
+            break
+
+    # Priority 2: any .py file
+    if not auto_select_file:
+        for file in file_candidates:
+            if file["name"].endswith(".py"):
+                auto_select_file = file
+                break
+
+    # Priority 3: first file
+    if not auto_select_file and file_candidates:
+        auto_select_file = file_candidates[0]
+
+    if auto_select_file:
+        auto_select_file["auto_select"] = True
+
+    return all_files
 
 
 @pipeline_version_object.field("permissions")
@@ -339,6 +400,18 @@ def resolve_pipeline_version_permissions(version: PipelineVersion, info, **kwarg
 @pipeline_version_object.field("templateVersion")
 def resolve_pipeline_version_template_version(version: PipelineVersion, info, **kwargs):
     return version.template_version if hasattr(version, "template_version") else None
+
+
+@file_node_object.field("autoSelect")
+def resolve_file_node_auto_select(node, info, **kwargs):
+    """Map snake_case Python dict key to camelCase GraphQL field"""
+    return node.get("auto_select", False)
+
+
+@file_node_object.field("parentId")
+def resolve_file_node_parent_id(node, info, **kwargs):
+    """Map snake_case Python dict key to camelCase GraphQL field"""
+    return node.get("parent_id")
 
 
 @pipeline_run_object.field("outputs")
@@ -389,6 +462,7 @@ bindables = [
     pipeline_run_order_by_enum,
     pipeline_version_object,
     pipeline_version_file_object,
+    file_node_object,
     pipeline_version_permissions,
     generic_output_object,
     pipeline_run_output_union,
