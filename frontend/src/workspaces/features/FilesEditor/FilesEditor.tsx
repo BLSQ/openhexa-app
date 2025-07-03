@@ -62,6 +62,7 @@ const buildTreeFromFlatData = (
   );
 };
 
+// TODO
 const findAutoSelectedFile = (nodes: FileNode[]): FileNode | null => {
   for (const node of nodes) {
     if (node.type === "file" && node.autoSelect) {
@@ -75,7 +76,7 @@ const findAutoSelectedFile = (nodes: FileNode[]): FileNode | null => {
   return null;
 };
 
-// Find all folders that need to be expanded to show a file
+// TODO
 const getExpandedFolders = (
   nodes: FileNode[],
   targetPath: string,
@@ -105,19 +106,7 @@ const getExpandedFolders = (
   return expandedFolders;
 };
 
-// Count total files in the tree
-const countFiles = (nodes: FileNode[]): number => {
-  let count = 0;
-  for (const node of nodes) {
-    if (node.type === "file") {
-      count++;
-    } else if (node.children) {
-      count += countFiles(node.children);
-    }
-  }
-  return count;
-};
-
+// TODO
 const FileTreeNode = ({
   node,
   level = 0,
@@ -197,12 +186,10 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
     new Set(),
   );
 
-  // Reconstruct tree from flattened data
   const treeFiles = useMemo(() => {
     return buildTreeFromFlatData(files);
   }, [files]);
 
-  // Auto-select file based on backend auto-selection
   useMemo(() => {
     if (treeFiles.length === 0) return;
 
@@ -211,7 +198,6 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
       setSelectedFile(autoSelectFile.path);
       setSelectedContent(autoSelectFile.content);
 
-      // Auto-expand folders leading to the selected file
       const foldersToExpand = getExpandedFolders(
         treeFiles,
         autoSelectFile.path,
@@ -237,6 +223,8 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
     });
   }, []);
 
+  const numberOfFiles = files.filter((file) => file.type === "file").length;
+
   return (
     <div className=" h-[80vh] flex border border-gray-200 rounded-lg overflow-hidden">
       <div className="w-80 bg-gray-50 border-r border-gray-200">
@@ -245,7 +233,7 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
             {t("Files")} - {name}
           </h3>
           <div className="text-xs text-gray-500 mt-1">
-            {countFiles(treeFiles)} {t("files")}
+            {numberOfFiles} {t("files")}
           </div>
         </div>
         <div className="py-2 overflow-y-auto">
