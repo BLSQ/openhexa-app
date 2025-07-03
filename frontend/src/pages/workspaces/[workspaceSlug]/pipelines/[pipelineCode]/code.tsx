@@ -69,6 +69,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
             </label>
             <div className="w-70">
               <PipelineVersionPicker
+                required
                 value={selectedVersion ?? pipeline.currentVersion}
                 pipeline={pipeline}
                 onChange={onVersionChange}
