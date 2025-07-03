@@ -39,8 +39,6 @@ const buildTreeFromFlatData = (
   return Array.from(nodeMap.values());
 };
 
-// TODO : dropdown choose version
-
 const FileTreeNode = ({
   node,
   level = 0,

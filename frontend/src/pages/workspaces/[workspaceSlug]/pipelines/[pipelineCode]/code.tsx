@@ -11,7 +11,6 @@ import {
 } from "workspaces/graphql/queries.generated";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
 import DataCard from "core/components/DataCard";
-import { useMemo } from "react";
 
 type Props = {
   pipelineCode: string;
