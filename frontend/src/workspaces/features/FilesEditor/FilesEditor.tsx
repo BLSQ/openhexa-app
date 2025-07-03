@@ -35,11 +35,6 @@ interface FileNode {
   autoSelect: boolean;
 }
 
-interface FilesEditorProps {
-  name: string;
-  files: FilesEditor_FileFragment[];
-}
-
 // Reconstruct hierarchical tree from flattened data
 const buildTreeFromFlatData = (
   flatNodes: FilesEditor_FileFragment[],
@@ -220,6 +215,10 @@ const FileTreeNode = ({
   );
 };
 
+interface FilesEditorProps {
+  name: string;
+  files: FilesEditor_FileFragment[];
+}
 export const FilesEditor = ({ name, files }: FilesEditorProps) => {
   const { t } = useTranslation();
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
