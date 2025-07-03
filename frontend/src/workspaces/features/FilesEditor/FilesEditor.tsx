@@ -27,7 +27,6 @@ const getLanguageFromPath = (path: string): string => {
 // TODO : clean this file
 // TODO : clean backend resolver
 // TODO : update backend test
-// TODO : merge origin
 // TODO : H size
 interface FlatFileNode {
   id: string;
