@@ -82,6 +82,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
               </div>
             )}
             <FilesEditor
+              key={versionToShow.id}
               name={versionToShow.versionName}
               files={versionToShow.files}
             />
