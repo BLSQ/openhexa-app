@@ -54,7 +54,6 @@ const buildTreeFromFlatData = (
 
 // TODO : dropdown choose version
 // TODO : line count
-// TODO : design hover etc
 
 const FileTreeNode = ({
   node,
@@ -74,8 +73,8 @@ const FileTreeNode = ({
     return (
       <div
         className={clsx(
-          "flex items-center cursor-pointer hover:bg-gray-50 px-2 py-1 text-sm",
-          isSelected && "bg-blue-50 text-blue-700",
+          "flex items-center cursor-pointer px-2 py-1 text-sm",
+          isSelected ? "bg-blue-50 text-blue-700" : "hover:bg-gray-200",
         )}
         style={{ paddingLeft: `${level * 16 + 8}px` }}
         onClick={() => setSelectedFile(node)}
@@ -89,7 +88,7 @@ const FileTreeNode = ({
   return (
     <div>
       <div
-        className="flex items-center cursor-pointer hover:bg-gray-50 px-2 py-1 text-sm"
+        className="flex items-center cursor-pointer hover:bg-gray-200 px-2 py-1 text-sm"
         style={{ paddingLeft: `${level * 16 + 8}px` }}
         onClick={() => setIsExpanded(!isExpanded)}
       >
@@ -171,7 +170,7 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
                 {selectedFile.name}
               </div>
               <div className="text-xs text-gray-500 mt-1">
-                {getLanguageFromPath(selectedFile.path)} •
+                {getLanguageFromPath(selectedFile.path)} •{" "}
                 {selectedFile.content!.split("\n").length} lines
               </div>
             </div>
