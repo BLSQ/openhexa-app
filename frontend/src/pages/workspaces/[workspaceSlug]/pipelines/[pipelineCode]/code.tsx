@@ -26,7 +26,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const { pipelineCode, workspaceSlug } = props;
   const { t } = useTranslation();
   const [selectedVersion, setSelectedVersion] =
-    useState<PipelineVersionPicker_VersionFragment | null>();
+    useState<PipelineVersionPicker_VersionFragment | null>(null);
 
   const { data, loading } = useWorkspacePipelineCodePageQuery({
     variables: {
@@ -46,12 +46,14 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     return null;
   }
   const onVersionChange = (version: PipelineVersionPicker_VersionFragment) => {
-    setSelectedVersion(version);
-    fetchPipelineVersion({
-      variables: {
-        versionId: version.id,
-      },
-    }).then();
+    if (version) {
+      setSelectedVersion(version);
+      fetchPipelineVersion({
+        variables: {
+          versionId: version.id,
+        },
+      }).then();
+    }
   };
 
   const versionToShow = versionData?.pipelineVersion ?? pipeline.currentVersion;
