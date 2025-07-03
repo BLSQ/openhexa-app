@@ -1,6 +1,7 @@
 import base64
 import io
 import zipfile
+from pathlib import Path
 
 from ariadne import EnumType, ObjectType, UnionType
 from django.urls import reverse
@@ -282,6 +283,18 @@ pipeline_run_object.set_alias("logs", "run_logs")
 pipeline_run_object.set_alias("version", "pipeline_version")
 
 
+def get_language_from_path(path: str) -> str:
+    """Get language from file path extension."""
+    extension = Path(path).suffix
+    supported_languages = {
+        ".py": "python",
+        ".json": "json",
+        ".r": "r",
+        ".md": "markdown",
+    }
+    return supported_languages.get(extension, "text")
+
+
 pipeline_version_object = ObjectType("PipelineVersion")
 file_node_object = ObjectType("FileNode")
 
@@ -330,13 +343,19 @@ def resolve_pipeline_version_files(version: PipelineVersion, info, **kwargs):
                         "content": None,
                         "parent_id": "/".join(parts[: i - 1]) if i > 1 else None,
                         "auto_select": False,
+                        "language": None,
+                        "line_count": None,
                     }
 
             if path not in files_dict:  # Add the file or directory if not already added
                 content = None
+                language = None
+                line_count = None
                 if not zip_entry.is_dir():
                     file_content = zip_file.read(zip_entry.filename)
                     content = file_content.decode("utf-8")
+                    language = get_language_from_path(path)
+                    line_count = content.count("\n") + 1 if content else 0
                 files_dict[path] = {
                     "id": path,
                     "name": path.split("/")[-1] if "/" in path else path,
@@ -347,6 +366,8 @@ def resolve_pipeline_version_files(version: PipelineVersion, info, **kwargs):
                     if "/" in path
                     else None,
                     "auto_select": False,
+                    "language": language,
+                    "line_count": line_count,
                 }
 
     all_files = sorted(files_dict.values(), key=lambda f: f["name"].lower())

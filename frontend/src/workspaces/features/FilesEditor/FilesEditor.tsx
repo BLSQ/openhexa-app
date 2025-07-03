@@ -13,20 +13,6 @@ import { r } from "codemirror-lang-r";
 import { gql } from "@apollo/client";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 
-const SUPPORTED_LANGUAGES = {
-  ".py": "python",
-  ".json": "json",
-  ".r": "r",
-  ".md": "markdown",
-} as const;
-
-const getLanguageFromPath = (path: string): string => {
-  const extension = path.substring(path.lastIndexOf("."));
-  return (
-    SUPPORTED_LANGUAGES[extension as keyof typeof SUPPORTED_LANGUAGES] || "text"
-  );
-};
-
 const buildTreeFromFlatData = (
   flatNodes: FilesEditor_FileFragment[],
 ): FileNode[] => {
@@ -54,7 +40,6 @@ const buildTreeFromFlatData = (
 };
 
 // TODO : dropdown choose version
-// TODO : line count
 
 const FileTreeNode = ({
   node,
@@ -172,8 +157,10 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
                 {selectedFile.name}
               </div>
               <div className="text-xs text-gray-500 mt-1">
-                {getLanguageFromPath(selectedFile.path)} •{" "}
-                {selectedFile.content!.split("\n").length} lines
+                {selectedFile.language}
+                {" • "}
+                {selectedFile.lineCount}
+                {` ${t("lines")}`}
               </div>
             </div>
             <div className="overflow-y-auto border-b">
@@ -212,6 +199,8 @@ FilesEditor.fragment = {
       content
       parentId
       autoSelect
+      language
+      lineCount
     }
   `,
 };

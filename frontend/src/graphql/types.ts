@@ -1882,6 +1882,8 @@ export type FileNode = {
   autoSelect: Scalars['Boolean']['output'];
   content?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  language?: Maybe<Scalars['String']['output']>;
+  lineCount?: Maybe<Scalars['Int']['output']>;
   name: Scalars['String']['output'];
   parentId?: Maybe<Scalars['String']['output']>;
   path: Scalars['String']['output'];

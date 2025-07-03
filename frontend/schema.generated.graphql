@@ -1764,6 +1764,8 @@ type FileNode {
   autoSelect: Boolean!
   content: String
   id: String!
+  language: String
+  lineCount: Int
   name: String!
   parentId: String
   path: String!

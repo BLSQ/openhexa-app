@@ -138,6 +138,8 @@ type FileNode {
   content: String  # The decoded content of the file (null for directories).
   parentId: String  # The ID of the parent node (null for root nodes).
   autoSelect: Boolean!  # Whether this file should be auto-selected in the UI.
+  language: String  # The detected programming language of the file.
+  lineCount: Int  # The number of lines in the file.
 }
 
 """
