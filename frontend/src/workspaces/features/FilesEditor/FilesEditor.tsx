@@ -27,14 +27,14 @@ const getLanguageFromPath = (path: string): string => {
 // TODO : clean this file
 // TODO : clean backend resolver
 // TODO : update backend test
-// TODO : H size
+
 interface FlatFileNode {
   id: string;
   name: string;
   path: string;
   type: "file" | "directory";
-  content?: string;
-  parentId?: string;
+  content?: string | null;
+  parentId?: string | null;
   autoSelect: boolean;
 }
 
@@ -43,7 +43,7 @@ interface FileNode {
   path: string;
   type: "file" | "directory";
   children?: FileNode[];
-  content?: string;
+  content?: string | null;
   autoSelect: boolean;
 }
 
@@ -279,8 +279,8 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
   }, []);
 
   return (
-    <div className="flex h-screen border border-gray-200 rounded-lg overflow-hidden">
-      <div className="w-80 bg-gray-50 border-r border-gray-200 overflow-y-auto">
+    <div className=" h-[80vh] flex border border-gray-200 rounded-lg overflow-hidden">
+      <div className="w-80 bg-gray-50 border-r border-gray-200">
         <div className="p-3 border-b border-gray-200 bg-white">
           <h3 className="text-sm font-medium text-gray-900">
             {t("Files")} - {name}
@@ -289,7 +289,7 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
             {countFiles(treeFiles)} {t("files")}
           </div>
         </div>
-        <div className="py-2 h-screen">
+        <div className="py-2 overflow-y-auto">
           {treeFiles.map((node) => (
             <FileTreeNode
               key={node.path}
@@ -315,11 +315,10 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
                 {selectedContent.split("\n").length} lines
               </div>
             </div>
-            <div className="overflow-y-auto rounded-md border h-screen">
+            <div className="overflow-y-auto">
               <CodeMirror
                 value={selectedContent}
                 readOnly={false}
-                height="100vh"
                 extensions={[python(), r()]}
               />
             </div>
