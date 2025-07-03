@@ -265,7 +265,7 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
             <div className="overflow-y-auto">
               <CodeMirror
                 value={selectedContent}
-                readOnly={false}
+                readOnly={true}
                 extensions={[python(), r()]}
               />
             </div>
