@@ -336,12 +336,14 @@ def resolve_pipeline_version_files(version: PipelineVersion, info, **kwargs):
                 parent_path = "/".join(parts[:i])
                 if parent_path not in files_dict:
                     files_dict[parent_path] = {
-                        "id": parent_path,
+                        "id": version.version_name + "/" + parent_path,
                         "name": parts[i - 1],
                         "path": parent_path,
                         "type": "directory",
                         "content": None,
-                        "parent_id": "/".join(parts[: i - 1]) if i > 1 else None,
+                        "parent_id": "/".join([version.version_name] + parts[: i - 1])
+                        if i > 1
+                        else None,
                         "auto_select": False,
                         "language": None,
                         "line_count": None,
@@ -357,12 +359,12 @@ def resolve_pipeline_version_files(version: PipelineVersion, info, **kwargs):
                     language = get_language_from_path(path)
                     line_count = content.count("\n") + 1 if content else 0
                 files_dict[path] = {
-                    "id": path,
+                    "id": version.version_name + "/" + path,
                     "name": path.split("/")[-1] if "/" in path else path,
                     "path": path,
                     "type": "directory" if zip_entry.is_dir() else "file",
                     "content": content,
-                    "parent_id": "/".join(path.split("/")[:-1])
+                    "parent_id": "/".join([version.version_name] + path.split("/")[:-1])
                     if "/" in path
                     else None,
                     "auto_select": False,
