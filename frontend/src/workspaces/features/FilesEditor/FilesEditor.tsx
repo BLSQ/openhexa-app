@@ -262,7 +262,7 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
                 {selectedContent.split("\n").length} lines
               </div>
             </div>
-            <div className="overflow-y-auto">
+            <div className="overflow-y-auto border-b">
               <CodeMirror
                 value={selectedContent}
                 readOnly={true}
