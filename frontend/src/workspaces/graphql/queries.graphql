@@ -142,6 +142,16 @@ query WorkspacePipelineCodePage($workspaceSlug: String!, $pipelineCode: String!)
   }
 }
 
+query GetPipelineVersionFiles($versionId: UUID!) {
+    pipelineVersion(id: $versionId) {
+      id
+      versionName
+      files {
+        ...FilesEditor_file
+      }
+    }
+}
+
 query WorkspacePipelineRunsPage(
   $workspaceSlug: String!
   $pipelineCode: String!

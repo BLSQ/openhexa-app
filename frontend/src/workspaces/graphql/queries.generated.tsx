@@ -85,6 +85,13 @@ export type WorkspacePipelineCodePageQueryVariables = Types.Exact<{
 
 export type WorkspacePipelineCodePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null, pipeline?: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, type: Types.PipelineType, currentVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, name?: string | null, description?: string | null, config?: any | null, externalLink?: any | null, createdAt: any, files: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null }>, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, widget?: Types.ParameterWidget | null, connection?: string | null, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null, pipeline: { __typename?: 'Pipeline', id: string, code: string } } | null, permissions: { __typename?: 'PipelinePermissions', run: boolean, delete: boolean, update: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null, workspace: { __typename?: 'Workspace', slug: string } } | null };
 
+export type GetPipelineVersionFilesQueryVariables = Types.Exact<{
+  versionId: Types.Scalars['UUID']['input'];
+}>;
+
+
+export type GetPipelineVersionFilesQuery = { __typename?: 'Query', pipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, files: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null }> } | null };
+
 export type WorkspacePipelineRunsPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
   pipelineCode: Types.Scalars['String']['input'];
@@ -626,6 +633,50 @@ export type WorkspacePipelineCodePageQueryHookResult = ReturnType<typeof useWork
 export type WorkspacePipelineCodePageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelineCodePageLazyQuery>;
 export type WorkspacePipelineCodePageSuspenseQueryHookResult = ReturnType<typeof useWorkspacePipelineCodePageSuspenseQuery>;
 export type WorkspacePipelineCodePageQueryResult = Apollo.QueryResult<WorkspacePipelineCodePageQuery, WorkspacePipelineCodePageQueryVariables>;
+export const GetPipelineVersionFilesDocument = gql`
+    query GetPipelineVersionFiles($versionId: UUID!) {
+  pipelineVersion(id: $versionId) {
+    id
+    versionName
+    files {
+      ...FilesEditor_file
+    }
+  }
+}
+    ${FilesEditor_FileFragmentDoc}`;
+
+/**
+ * __useGetPipelineVersionFilesQuery__
+ *
+ * To run a query within a React component, call `useGetPipelineVersionFilesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPipelineVersionFilesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPipelineVersionFilesQuery({
+ *   variables: {
+ *      versionId: // value for 'versionId'
+ *   },
+ * });
+ */
+export function useGetPipelineVersionFilesQuery(baseOptions: Apollo.QueryHookOptions<GetPipelineVersionFilesQuery, GetPipelineVersionFilesQueryVariables> & ({ variables: GetPipelineVersionFilesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPipelineVersionFilesQuery, GetPipelineVersionFilesQueryVariables>(GetPipelineVersionFilesDocument, options);
+      }
+export function useGetPipelineVersionFilesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPipelineVersionFilesQuery, GetPipelineVersionFilesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPipelineVersionFilesQuery, GetPipelineVersionFilesQueryVariables>(GetPipelineVersionFilesDocument, options);
+        }
+export function useGetPipelineVersionFilesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPipelineVersionFilesQuery, GetPipelineVersionFilesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPipelineVersionFilesQuery, GetPipelineVersionFilesQueryVariables>(GetPipelineVersionFilesDocument, options);
+        }
+export type GetPipelineVersionFilesQueryHookResult = ReturnType<typeof useGetPipelineVersionFilesQuery>;
+export type GetPipelineVersionFilesLazyQueryHookResult = ReturnType<typeof useGetPipelineVersionFilesLazyQuery>;
+export type GetPipelineVersionFilesSuspenseQueryHookResult = ReturnType<typeof useGetPipelineVersionFilesSuspenseQuery>;
+export type GetPipelineVersionFilesQueryResult = Apollo.QueryResult<GetPipelineVersionFilesQuery, GetPipelineVersionFilesQueryVariables>;
 export const WorkspacePipelineRunsPageDocument = gql`
     query WorkspacePipelineRunsPage($workspaceSlug: String!, $pipelineCode: String!, $page: Int = 1, $perPage: Int = 10) {
   workspace(slug: $workspaceSlug) {
