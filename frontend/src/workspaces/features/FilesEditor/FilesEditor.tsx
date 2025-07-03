@@ -48,7 +48,7 @@ const FileTreeNode = ({
   node: FileNode;
   level?: number;
   selectedFile: FileNode | null;
-  setSelectedFile: (file: FileNode) => void;
+  setSelectedFile: (file: FileNode | null) => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const isSelected = selectedFile?.id === node.id;
@@ -61,7 +61,7 @@ const FileTreeNode = ({
           isSelected ? "bg-blue-50 text-blue-700" : "hover:bg-gray-200",
         )}
         style={{ paddingLeft: `${level * 24 + 8}px` }}
-        onClick={() => setSelectedFile(node)}
+        onClick={() => setSelectedFile(isSelected ? null : node)}
       >
         <DocumentIcon className="w-4 h-4 mr-2 text-gray-400" />
         <span>{node.name}</span>
@@ -125,9 +125,9 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
   const numberOfFiles = files.filter((file) => file.type === "file").length;
 
   return (
-    <div className=" h-[75vh] flex border border-gray-200 rounded-lg overflow-hidden">
-      <div className="w-80 bg-gray-50 border-r border-gray-200">
-        <div className="p-3 border-b border-gray-200 bg-white">
+    <div className="flex border border-gray-200 rounded-lg overflow-hidden min-h-[400px] max-h-[75vh]">
+      <div className="w-80 bg-gray-50 border-r border-gray-200 flex flex-col">
+        <div className="p-3 border-b border-gray-200 bg-white flex-shrink-0">
           <h3 className="text-sm font-medium text-gray-900">
             {t("Files")} - {name}
           </h3>
@@ -135,7 +135,7 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
             {numberOfFiles} {t("files")}
           </div>
         </div>
-        <div className="py-2 overflow-y-auto">
+        <div className="py-2 overflow-y-auto flex-1">
           {rootFiles.map((node) => (
             <FileTreeNode
               key={node.path}
@@ -147,10 +147,10 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {selectedFile ? (
           <>
-            <div className="p-3 border-b border-gray-200 bg-white">
+            <div className="p-3 border-b border-gray-200 bg-white flex-shrink-0">
               <div className="text-sm font-medium text-gray-900">
                 {selectedFile.name}
               </div>
@@ -161,16 +161,18 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
                 {` ${t("lines")}`}
               </div>
             </div>
-            <div className="overflow-y-auto border-b">
+            <div className="flex-1 overflow-hidden">
               <CodeMirror
                 value={selectedFile.content!}
                 readOnly={true}
                 extensions={[python(), r()]}
+                height="100%"
+                style={{ height: "100%" }}
               />
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center justify-center flex-1 min-h-[300px]">
             <div className="text-center">
               <DocumentIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <div className="text-gray-500 text-lg mb-2">
