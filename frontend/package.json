@@ -133,7 +133,7 @@
     "postcss": "^8.4.47",
     "prettier": "3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.10",
-    "tailwindcss": "4.1.8"
+    "tailwindcss": "4.1.11"
   },
-  "version": "1.11.0"
+  "version": "1.12.0"
 }

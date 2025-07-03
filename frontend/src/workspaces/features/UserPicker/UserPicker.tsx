@@ -1,7 +1,6 @@
 import { gql } from "@apollo/client";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { ComboboxOption } from "@headlessui/react";
-import clsx from "clsx";
 import { useTranslation } from "next-i18next";
 
 import useDebounce from "core/hooks/useDebounce";
@@ -11,6 +10,7 @@ import User from "core/features/User";
 import {
   useGetUsersQuery,
   UserPicker_UserFragment,
+  GetUsersQuery,
 } from "./UserPicker.generated";
 
 type UserPickerProps = {
@@ -28,6 +28,7 @@ export const UserPicker = (props: UserPickerProps) => {
   const { workspaceSlug, value, onChange } = props;
 
   const [query, setQuery] = useState<string>("");
+  const [displayData, setDisplayData] = useState<GetUsersQuery | null>(null);
 
   const debouncedQuery = useDebounce(query, 250);
   const { data, loading } = useGetUsersQuery({
@@ -35,7 +36,48 @@ export const UserPicker = (props: UserPickerProps) => {
       query: debouncedQuery,
       workspaceSlug: workspaceSlug,
     },
+    skip: !debouncedQuery,
   });
+
+  useEffect(() => {
+    if (data?.users) {
+      setDisplayData(data);
+    }
+  }, [data]);
+
+  const renderOptions = () => {
+    // No query - don't show options
+    if (!debouncedQuery) return null;
+
+    // Use cached displayData to prevent flickering during loading
+    const users = displayData?.users || [];
+
+    // Show cached user results
+    if (users.length > 0) {
+      return users.map((user) => (
+        <Combobox.CheckOption key={user.id} value={user}>
+          <User user={user} subtext />
+        </Combobox.CheckOption>
+      ));
+    }
+
+    // Show invite option when:
+    // 1. We have search results but no users found
+    // 2. Or we're not loading and have a query (prevents showing during initial load)
+    if (displayData || !loading) {
+      return (
+        <ComboboxOption
+          value={{ email: debouncedQuery }}
+          className={Classes.newUser}
+        >
+          {t("Invite new user: ") + debouncedQuery}
+        </ComboboxOption>
+      );
+    }
+
+    // Still loading initial query - don't show anything to prevent flickering
+    return null;
+  };
 
   return (
     <Combobox
@@ -50,19 +92,8 @@ export const UserPicker = (props: UserPickerProps) => {
       )}
       placeholder={t("Search users")}
       value={value}
-      onClose={useCallback(() => setQuery(""), [])}
     >
-      <ComboboxOption
-        value={{ email: query }}
-        className={clsx(!data?.users.length && Classes.newUser)}
-      >
-        {data?.users && !data?.users.length && t("Invite new user: ") + query}
-      </ComboboxOption>
-      {data?.users.map((user) => (
-        <Combobox.CheckOption key={user.id} value={user}>
-          <User user={user} subtext />
-        </Combobox.CheckOption>
-      ))}
+      {renderOptions()}
     </Combobox>
   );
 };
