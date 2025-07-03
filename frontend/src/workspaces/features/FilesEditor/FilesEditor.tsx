@@ -24,6 +24,11 @@ const getLanguageFromPath = (path: string): string => {
   );
 };
 
+// TODO : clean this file
+// TODO : clean backend resolver
+// TODO : update backend test
+// TODO : merge origin
+// TODO : H size
 interface FlatFileNode {
   id: string;
   name: string;
@@ -51,7 +56,7 @@ interface FilesEditorProps {
 // Reconstruct hierarchical tree from flattened data
 const buildTreeFromFlatData = (flatNodes: FlatFileNode[]): FileNode[] => {
   const nodeMap = new Map<string, FileNode>();
-  
+
   // Create all nodes first
   flatNodes.forEach((flatNode) => {
     nodeMap.set(flatNode.id, {
@@ -66,10 +71,10 @@ const buildTreeFromFlatData = (flatNodes: FlatFileNode[]): FileNode[] => {
 
   // Build tree structure
   const rootNodes: FileNode[] = [];
-  
+
   flatNodes.forEach((flatNode) => {
     const node = nodeMap.get(flatNode.id)!;
-    
+
     if (!flatNode.parentId) {
       // Root node
       rootNodes.push(node);
@@ -90,7 +95,7 @@ const buildTreeFromFlatData = (flatNodes: FlatFileNode[]): FileNode[] => {
       }
       return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
     });
-    
+
     nodes.forEach((node) => {
       if (node.children) {
         sortNodes(node.children);
@@ -249,7 +254,10 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
       setSelectedContent(autoSelectFile.content);
 
       // Auto-expand folders leading to the selected file
-      const foldersToExpand = getExpandedFolders(treeFiles, autoSelectFile.path);
+      const foldersToExpand = getExpandedFolders(
+        treeFiles,
+        autoSelectFile.path,
+      );
       setExpandedFolders(foldersToExpand);
     }
   }, [treeFiles]);
