@@ -26,6 +26,29 @@ const getLanguageFromPath = (path: string): string => {
   );
 };
 
+const buildTreeFromFlatData = (
+  flatNodes: FilesEditor_FileFragment[],
+): FileNode[] => {
+  const nodeMap = new Map<string, FileNode>();
+
+  flatNodes.forEach((flatNode) => {
+    nodeMap.set(flatNode.id, { ...flatNode, children: [] });
+  });
+
+  flatNodes.forEach((flatNode) => {
+    if (flatNode.parentId) {
+      const parentNode = nodeMap.get(flatNode.parentId);
+      parentNode?.children!.push(nodeMap.get(flatNode.id)!);
+    }
+  });
+
+  nodeMap.forEach((node) => {
+    node.children.sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  return Array.from(nodeMap.values());
+};
+
 // TODO
 const findAutoSelectedFile = (nodes: FileNode[]): FileNode | null => {
   for (const node of nodes) {
@@ -144,10 +167,13 @@ export type FileNode = FilesEditor_FileFragment & {
 
 interface FilesEditorProps {
   name: string;
-  files: FileNode[];
+  files: FilesEditor_FileFragment[];
 }
-export const FilesEditor = ({ name, files }: FilesEditorProps) => {
+export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
   const { t } = useTranslation();
+  const files = useMemo(() => {
+    return buildTreeFromFlatData(flatFiles);
+  }, [flatFiles]);
   const rootFiles = useMemo(() => {
     return files.filter((file) => !file.parentId);
   }, [files]);

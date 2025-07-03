@@ -11,36 +11,11 @@ import {
 } from "workspaces/graphql/queries.generated";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
 import DataCard from "core/components/DataCard";
-import { FilesEditor_FileFragment } from "workspaces/features/FilesEditor/FilesEditor.generated";
-import { FileNode } from "workspaces/features/FilesEditor/FilesEditor";
 import { useMemo } from "react";
 
 type Props = {
   pipelineCode: string;
   workspaceSlug: string;
-};
-
-const buildTreeFromFlatData = (
-  flatNodes: FilesEditor_FileFragment[],
-): FileNode[] => {
-  const nodeMap = new Map<string, FileNode>();
-
-  flatNodes.forEach((flatNode) => {
-    nodeMap.set(flatNode.id, { ...flatNode, children: [] });
-  });
-
-  flatNodes.forEach((flatNode) => {
-    if (flatNode.parentId) {
-      const parentNode = nodeMap.get(flatNode.parentId);
-      parentNode?.children!.push(nodeMap.get(flatNode.id)!);
-    }
-  });
-
-  nodeMap.forEach((node) => {
-    node.children.sort((a, b) => a.name.localeCompare(b.name));
-  });
-
-  return Array.from(nodeMap.values());
 };
 
 const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
@@ -63,10 +38,6 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     return null;
   }
 
-  const files = useMemo(() => {
-    return buildTreeFromFlatData(pipeline.currentVersion!.files);
-  }, [pipeline.currentVersion.files]);
-
   return (
     <Page title={pipeline.name ?? t("Pipeline Code")}>
       <PipelineLayout
@@ -77,7 +48,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
         <DataCard.FormSection>
           <FilesEditor
             name={pipeline.currentVersion.versionName}
-            files={files}
+            files={pipeline.currentVersion.files}
           />
         </DataCard.FormSection>
       </PipelineLayout>
