@@ -26,42 +26,6 @@ const getLanguageFromPath = (path: string): string => {
   );
 };
 
-type FileNode = FilesEditor_FileFragment & {
-  children: FileNode[];
-};
-
-const buildTreeFromFlatData = (
-  flatNodes: FilesEditor_FileFragment[],
-): FileNode[] => {
-  const nodeMap = new Map<string, FileNode>();
-
-  flatNodes.forEach((flatNode) => {
-    nodeMap.set(flatNode.id, { ...flatNode, children: [] });
-  });
-
-  flatNodes.forEach((flatNode) => {
-    if (flatNode.parentId) {
-      const parentNode = nodeMap.get(flatNode.parentId);
-      parentNode?.children!.push(nodeMap.get(flatNode.id)!);
-    }
-  });
-
-  const sortNodes = (nodes: FileNode[]): FileNode[] => {
-    return nodes
-      .map((node) => ({
-        ...node,
-        children: sortNodes(node.children).sort((a, b) =>
-          a.name.localeCompare(b.name),
-        ),
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  };
-
-  return sortNodes(
-    Array.from(nodeMap.values()).filter((node) => !node.parentId),
-  );
-};
-
 // TODO
 const findAutoSelectedFile = (nodes: FileNode[]): FileNode | null => {
   for (const node of nodes) {
@@ -174,37 +138,38 @@ const FileTreeNode = ({
   );
 };
 
+export type FileNode = FilesEditor_FileFragment & {
+  children: FileNode[];
+};
+
 interface FilesEditorProps {
   name: string;
-  files: FilesEditor_FileFragment[];
+  files: FileNode[];
 }
 export const FilesEditor = ({ name, files }: FilesEditorProps) => {
   const { t } = useTranslation();
+  const rootFiles = useMemo(() => {
+    return files.filter((file) => !file.parentId);
+  }, [files]);
+
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [selectedContent, setSelectedContent] = useState<string>("");
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set(),
   );
 
-  const treeFiles = useMemo(() => {
-    return buildTreeFromFlatData(files);
-  }, [files]);
-
   useMemo(() => {
-    if (treeFiles.length === 0) return;
+    if (files.length === 0) return;
 
-    const autoSelectFile = findAutoSelectedFile(treeFiles);
+    const autoSelectFile = findAutoSelectedFile(files);
     if (autoSelectFile && autoSelectFile.content) {
       setSelectedFile(autoSelectFile.path);
       setSelectedContent(autoSelectFile.content);
 
-      const foldersToExpand = getExpandedFolders(
-        treeFiles,
-        autoSelectFile.path,
-      );
+      const foldersToExpand = getExpandedFolders(files, autoSelectFile.path);
       setExpandedFolders(foldersToExpand);
     }
-  }, [treeFiles]);
+  }, [files]);
 
   const handleFileSelect = useCallback((path: string, content: string) => {
     setSelectedFile(path);
@@ -237,7 +202,7 @@ export const FilesEditor = ({ name, files }: FilesEditorProps) => {
           </div>
         </div>
         <div className="py-2 overflow-y-auto">
-          {treeFiles.map((node) => (
+          {rootFiles.map((node) => (
             <FileTreeNode
               key={node.path}
               node={node}
