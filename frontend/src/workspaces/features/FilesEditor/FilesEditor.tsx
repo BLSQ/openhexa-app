@@ -35,7 +35,6 @@ const buildTreeFromFlatData = (
     nodeMap.set(flatNode.id, {
       ...flatNode,
       children: [],
-      expanded: false,
     });
   });
 
@@ -54,7 +53,6 @@ const buildTreeFromFlatData = (
 };
 
 // TODO : line count
-// TODO : folder
 // TODO : design hover etc
 
 const FileTreeNode = ({
@@ -68,6 +66,7 @@ const FileTreeNode = ({
   selectedFile: FileNode | null;
   setSelectedFile: (file: FileNode) => void;
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const isSelected = selectedFile?.id === node.id;
 
   if (node.type === "file") {
@@ -91,16 +90,16 @@ const FileTreeNode = ({
       <div
         className="flex items-center cursor-pointer hover:bg-gray-50 px-2 py-1 text-sm"
         style={{ paddingLeft: `${level * 16 + 8}px` }}
-        onClick={() => (node.expanded = !node.expanded)}
+        onClick={() => setIsExpanded(!isExpanded)}
       >
-        {node.expanded ? (
+        {isExpanded ? (
           <FolderOpenIcon className="w-4 h-4 mr-2 text-gray-400" />
         ) : (
           <FolderIcon className="w-4 h-4 mr-2 text-gray-400" />
         )}
         <span>{node.name}</span>
       </div>
-      {node.expanded && node.children && (
+      {isExpanded && node.children && (
         <div>
           {node.children.map((child) => (
             <FileTreeNode
@@ -119,7 +118,6 @@ const FileTreeNode = ({
 
 export type FileNode = FilesEditor_FileFragment & {
   children: FileNode[];
-  expanded: boolean;
 };
 
 interface FilesEditorProps {
