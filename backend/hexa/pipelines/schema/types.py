@@ -283,7 +283,7 @@ pipeline_run_object.set_alias("version", "pipeline_version")
 
 
 pipeline_version_object = ObjectType("PipelineVersion")
-pipeline_version_file_object = ObjectType("PipelineVersionFile")
+file_node_object = ObjectType("FileNode")
 
 
 @pipeline_version_object.field("versionName")
@@ -427,7 +427,7 @@ bindables = [
     pipeline_notification_level_enum,
     pipeline_run_order_by_enum,
     pipeline_version_object,
-    pipeline_version_file_object,
+    file_node_object,
     pipeline_version_permissions,
     generic_output_object,
     pipeline_run_output_union,
