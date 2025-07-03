@@ -10,7 +10,7 @@ import {
   WorkspacePipelineCodePageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
-import DataCard from "../../../../../core/components/DataCard";
+import DataCard from "core/components/DataCard";
 
 type Props = {
   pipelineCode: string;
