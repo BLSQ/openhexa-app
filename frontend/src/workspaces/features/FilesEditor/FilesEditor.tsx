@@ -6,7 +6,7 @@ import {
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { python } from "@codemirror/lang-python";
 import { r } from "codemirror-lang-r";
 import { gql } from "@apollo/client";
@@ -32,7 +32,11 @@ const buildTreeFromFlatData = (
   const nodeMap = new Map<string, FileNode>();
 
   flatNodes.forEach((flatNode) => {
-    nodeMap.set(flatNode.id, { ...flatNode, children: [] });
+    nodeMap.set(flatNode.id, {
+      ...flatNode,
+      children: [],
+      expanded: false,
+    });
   });
 
   flatNodes.forEach((flatNode) => {
@@ -49,68 +53,22 @@ const buildTreeFromFlatData = (
   return Array.from(nodeMap.values());
 };
 
-// TODO
-const findAutoSelectedFile = (nodes: FileNode[]): FileNode | null => {
-  for (const node of nodes) {
-    if (node.type === "file" && node.autoSelect) {
-      return node;
-    }
-    if (node.children) {
-      const found = findAutoSelectedFile(node.children);
-      if (found) return found;
-    }
-  }
-  return null;
-};
+// TODO : line count
+// TODO : folder
+// TODO : design hover etc
 
-// TODO
-const getExpandedFolders = (
-  nodes: FileNode[],
-  targetPath: string,
-  currentPath = "",
-): Set<string> => {
-  const expandedFolders = new Set<string>();
-
-  for (const node of nodes) {
-    const nodePath = currentPath ? `${currentPath}/${node.name}` : node.name;
-
-    if (targetPath.startsWith(nodePath + "/") || targetPath === nodePath) {
-      if (node.type === "directory") {
-        expandedFolders.add(nodePath);
-      }
-
-      if (node.children) {
-        const childExpanded = getExpandedFolders(
-          node.children,
-          targetPath,
-          nodePath,
-        );
-        childExpanded.forEach((path) => expandedFolders.add(path));
-      }
-    }
-  }
-
-  return expandedFolders;
-};
-
-// TODO
 const FileTreeNode = ({
   node,
   level = 0,
   selectedFile,
-  onFileSelect,
-  expandedFolders,
-  onToggleFolder,
+  setSelectedFile,
 }: {
   node: FileNode;
   level?: number;
-  selectedFile: string | null;
-  onFileSelect: (path: string, content: string) => void;
-  expandedFolders: Set<string>;
-  onToggleFolder: (path: string) => void;
+  selectedFile: FileNode | null;
+  setSelectedFile: (file: FileNode) => void;
 }) => {
-  const isExpanded = expandedFolders.has(node.path);
-  const isSelected = selectedFile === node.path;
+  const isSelected = selectedFile?.id === node.id;
 
   if (node.type === "file") {
     return (
@@ -120,7 +78,7 @@ const FileTreeNode = ({
           isSelected && "bg-blue-50 text-blue-700",
         )}
         style={{ paddingLeft: `${level * 16 + 8}px` }}
-        onClick={() => onFileSelect(node.path, node.content || "")}
+        onClick={() => setSelectedFile(node)}
       >
         <DocumentIcon className="w-4 h-4 mr-2 text-gray-400" />
         <span>{node.name}</span>
@@ -133,16 +91,16 @@ const FileTreeNode = ({
       <div
         className="flex items-center cursor-pointer hover:bg-gray-50 px-2 py-1 text-sm"
         style={{ paddingLeft: `${level * 16 + 8}px` }}
-        onClick={() => onToggleFolder(node.path)}
+        onClick={() => (node.expanded = !node.expanded)}
       >
-        {isExpanded ? (
+        {node.expanded ? (
           <FolderOpenIcon className="w-4 h-4 mr-2 text-gray-400" />
         ) : (
           <FolderIcon className="w-4 h-4 mr-2 text-gray-400" />
         )}
         <span>{node.name}</span>
       </div>
-      {isExpanded && node.children && (
+      {node.expanded && node.children && (
         <div>
           {node.children.map((child) => (
             <FileTreeNode
@@ -150,9 +108,7 @@ const FileTreeNode = ({
               node={child}
               level={level + 1}
               selectedFile={selectedFile}
-              onFileSelect={onFileSelect}
-              expandedFolders={expandedFolders}
-              onToggleFolder={onToggleFolder}
+              setSelectedFile={setSelectedFile}
             />
           ))}
         </div>
@@ -163,6 +119,7 @@ const FileTreeNode = ({
 
 export type FileNode = FilesEditor_FileFragment & {
   children: FileNode[];
+  expanded: boolean;
 };
 
 interface FilesEditorProps {
@@ -178,41 +135,9 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
     return files.filter((file) => !file.parentId);
   }, [files]);
 
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [selectedContent, setSelectedContent] = useState<string>("");
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(),
+  const [selectedFile, setSelectedFile] = useState<FileNode | null>(
+    files.filter((file) => file.autoSelect)[0] || null,
   );
-
-  useMemo(() => {
-    if (files.length === 0) return;
-
-    const autoSelectFile = findAutoSelectedFile(files);
-    if (autoSelectFile && autoSelectFile.content) {
-      setSelectedFile(autoSelectFile.path);
-      setSelectedContent(autoSelectFile.content);
-
-      const foldersToExpand = getExpandedFolders(files, autoSelectFile.path);
-      setExpandedFolders(foldersToExpand);
-    }
-  }, [files]);
-
-  const handleFileSelect = useCallback((path: string, content: string) => {
-    setSelectedFile(path);
-    setSelectedContent(content);
-  }, []);
-
-  const handleToggleFolder = useCallback((path: string) => {
-    setExpandedFolders((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) {
-        next.delete(path);
-      } else {
-        next.add(path);
-      }
-      return next;
-    });
-  }, []);
 
   const numberOfFiles = files.filter((file) => file.type === "file").length;
 
@@ -233,9 +158,7 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
               key={node.path}
               node={node}
               selectedFile={selectedFile}
-              onFileSelect={handleFileSelect}
-              expandedFolders={expandedFolders}
-              onToggleFolder={handleToggleFolder}
+              setSelectedFile={setSelectedFile}
             />
           ))}
         </div>
@@ -246,16 +169,16 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
           <>
             <div className="p-3 border-b border-gray-200 bg-white">
               <div className="text-sm font-medium text-gray-900">
-                {selectedFile}
+                {selectedFile.name}
               </div>
               <div className="text-xs text-gray-500 mt-1">
-                {getLanguageFromPath(selectedFile)} •{" "}
-                {selectedContent.split("\n").length} lines
+                {getLanguageFromPath(selectedFile.path)} •
+                {selectedFile.content!.split("\n").length} lines
               </div>
             </div>
             <div className="overflow-y-auto border-b">
               <CodeMirror
-                value={selectedContent}
+                value={selectedFile.content!}
                 readOnly={true}
                 extensions={[python(), r()]}
               />
