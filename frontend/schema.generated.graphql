@@ -1759,10 +1759,7 @@ type File {
   updated: DateTime
 }
 
-"""
-Represents a file or directory node in a flattened structure.
-Optimized for unlimited depth handling with ID-based parent-child relationships.
-"""
+"""Represents a file or directory node in a flattened structure."""
 type FileNode {
   autoSelect: Boolean!
   content: String
@@ -2886,14 +2883,6 @@ type PipelineVersion {
   versionName: String!
   versionNumber: Int!
   zipfile: String!
-}
-
-"""Represents a file within a pipeline version."""
-type PipelineVersionFile {
-  content: String
-  name: String!
-  path: String!
-  type: FileType!
 }
 
 """Represents a page of pipeline versions."""

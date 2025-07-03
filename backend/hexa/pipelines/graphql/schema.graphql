@@ -128,18 +128,7 @@ type PipelineVersionPermissions {
 }
 
 """
-Represents a file within a pipeline version.
-"""
-type PipelineVersionFile {
-  name: String!  # The name of the file.
-  path: String!  # The path of the file.
-  type: FileType!  # The type of the file (file or directory).
-  content: String  # The content of the file (base64 encoded for binary files).
-}
-
-"""
 Represents a file or directory node in a flattened structure.
-Optimized for unlimited depth handling with ID-based parent-child relationships.
 """
 type FileNode {
   id: String!  # Unique identifier for this node (same as path).

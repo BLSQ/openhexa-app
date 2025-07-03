@@ -1876,10 +1876,7 @@ export type File = {
   updated?: Maybe<Scalars['DateTime']['output']>;
 };
 
-/**
- * Represents a file or directory node in a flattened structure.
- * Optimized for unlimited depth handling with ID-based parent-child relationships.
- */
+/** Represents a file or directory node in a flattened structure. */
 export type FileNode = {
   __typename?: 'FileNode';
   autoSelect: Scalars['Boolean']['output'];
@@ -3505,15 +3502,6 @@ export type PipelineVersion = {
   versionName: Scalars['String']['output'];
   versionNumber: Scalars['Int']['output'];
   zipfile: Scalars['String']['output'];
-};
-
-/** Represents a file within a pipeline version. */
-export type PipelineVersionFile = {
-  __typename?: 'PipelineVersionFile';
-  content?: Maybe<Scalars['String']['output']>;
-  name: Scalars['String']['output'];
-  path: Scalars['String']['output'];
-  type: FileType;
 };
 
 /** Represents a page of pipeline versions. */
