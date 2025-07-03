@@ -12,86 +12,56 @@ import { r } from "codemirror-lang-r";
 import { gql } from "@apollo/client";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 
-const getLanguageFromPath = (path: string): string => {
-  const SUPPORTED_LANGUAGES = {
-    ".py": "python",
-    ".json": "json",
-    ".r": "r",
-    ".md": "markdown",
-  } as const;
+const SUPPORTED_LANGUAGES = {
+  ".py": "python",
+  ".json": "json",
+  ".r": "r",
+  ".md": "markdown",
+} as const;
 
+const getLanguageFromPath = (path: string): string => {
   const extension = path.substring(path.lastIndexOf("."));
   return (
     SUPPORTED_LANGUAGES[extension as keyof typeof SUPPORTED_LANGUAGES] || "text"
   );
 };
 
-interface FileNode {
-  name: string;
-  path: string;
-  type: "file" | "directory";
-  children?: FileNode[];
-  content?: string | null;
-  autoSelect: boolean;
-}
+type FileNode = FilesEditor_FileFragment & {
+  children: FileNode[];
+};
 
-// Reconstruct hierarchical tree from flattened data
 const buildTreeFromFlatData = (
   flatNodes: FilesEditor_FileFragment[],
 ): FileNode[] => {
   const nodeMap = new Map<string, FileNode>();
 
-  // Create all nodes first
   flatNodes.forEach((flatNode) => {
-    nodeMap.set(flatNode.id, {
-      name: flatNode.name,
-      path: flatNode.path,
-      type: flatNode.type,
-      content: flatNode.content,
-      autoSelect: flatNode.autoSelect,
-      children: flatNode.type === "directory" ? [] : undefined,
-    });
+    nodeMap.set(flatNode.id, { ...flatNode, children: [] });
   });
 
-  // Build tree structure
-  const rootNodes: FileNode[] = [];
-
   flatNodes.forEach((flatNode) => {
-    const node = nodeMap.get(flatNode.id)!;
-
-    if (!flatNode.parentId) {
-      // Root node
-      rootNodes.push(node);
-    } else {
-      // Child node - add to parent
+    if (flatNode.parentId) {
       const parentNode = nodeMap.get(flatNode.parentId);
-      if (parentNode && parentNode.children) {
-        parentNode.children.push(node);
-      }
+      parentNode?.children!.push(nodeMap.get(flatNode.id)!);
     }
   });
 
-  // Sort nodes: directories first, then files, both alphabetically
-  const sortNodes = (nodes: FileNode[]): void => {
-    nodes.sort((a, b) => {
-      if (a.type !== b.type) {
-        return a.type === "directory" ? -1 : 1;
-      }
-      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-    });
-
-    nodes.forEach((node) => {
-      if (node.children) {
-        sortNodes(node.children);
-      }
-    });
+  const sortNodes = (nodes: FileNode[]): FileNode[] => {
+    return nodes
+      .map((node) => ({
+        ...node,
+        children: sortNodes(node.children).sort((a, b) =>
+          a.name.localeCompare(b.name),
+        ),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   };
 
-  sortNodes(rootNodes);
-  return rootNodes;
+  return sortNodes(
+    Array.from(nodeMap.values()).filter((node) => !node.parentId),
+  );
 };
 
-// Find auto-selected file in the tree structure
 const findAutoSelectedFile = (nodes: FileNode[]): FileNode | null => {
   for (const node of nodes) {
     if (node.type === "file" && node.autoSelect) {
