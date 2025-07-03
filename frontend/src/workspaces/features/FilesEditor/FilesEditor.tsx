@@ -25,7 +25,6 @@ const getLanguageFromPath = (path: string): string => {
 };
 
 // TODO : clean this file
-// TODO : clean backend resolver
 // TODO : update backend test
 
 interface FlatFileNode {
