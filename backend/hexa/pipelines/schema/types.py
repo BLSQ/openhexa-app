@@ -296,7 +296,6 @@ def get_language_from_path(path: str) -> str:
 
 
 pipeline_version_object = ObjectType("PipelineVersion")
-file_node_object = ObjectType("FileNode")
 
 
 @pipeline_version_object.field("versionName")
@@ -450,7 +449,6 @@ bindables = [
     pipeline_notification_level_enum,
     pipeline_run_order_by_enum,
     pipeline_version_object,
-    file_node_object,
     pipeline_version_permissions,
     generic_output_object,
     pipeline_run_output_union,
