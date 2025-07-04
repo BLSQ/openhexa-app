@@ -100,3 +100,38 @@ class TestPipelineRunUserFiltering(TestCase):
         filtered_webapps = Webapp.objects.filter_for_user(self.pipeline_user)
         self.assertEqual(filtered_webapps.count(), 1)
         self.assertEqual(filtered_webapps.first(), webapp1)
+
+    def test_pipeline_template_filtering(self):
+        from hexa.pipeline_templates.models import PipelineTemplate
+
+        source_pipeline1 = Pipeline.objects.create(
+            name="Source Pipeline1",
+            code="source_pipeline1_code",
+            description="A source pipeline for template",
+            workspace=self.WORKSPACE1,
+        )
+
+        source_pipeline2 = Pipeline.objects.create(
+            name="Source Pipeline2",
+            code="source_pipeline2_code",
+            description="A source pipeline for template",
+            workspace=self.WORKSPACE1,
+        )
+
+        PipelineTemplate.objects.create(
+            name="Template 1",
+            description="A test template 1",
+            workspace=self.WORKSPACE1,
+            source_pipeline=source_pipeline1,
+        )
+        PipelineTemplate.objects.create(
+            name="Template 2",
+            description="A test template 2",
+            workspace=self.WORKSPACE2,
+            source_pipeline=source_pipeline2,
+        )
+
+        filtered_templates = PipelineTemplate.objects.filter_for_user(
+            self.pipeline_user
+        )
+        self.assertEqual(filtered_templates.count(), 2)  # Expect all templates
