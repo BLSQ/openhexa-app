@@ -136,7 +136,7 @@ class OrganizationQuerySet(BaseQuerySet):
         if isinstance(user, PipelineRunUser):
             return self._filter_for_user_and_query_object(
                 user,
-                models.Q(workspace=user.pipeline_run.pipeline.workspace),
+                models.Q(workspaces=user.pipeline_run.pipeline.workspace),
             )
         return self._filter_for_user_and_query_object(
             user,
