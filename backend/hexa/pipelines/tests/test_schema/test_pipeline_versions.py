@@ -439,7 +439,7 @@ class PipelineVersionsTest(GraphQLTestCase):
 
         main_py = next((f for f in files if f["name"] == "main1.py"), None)
         self.assertIsNotNone(main_py)
-        self.assertEqual(main_py["id"], "main1.py")
+        self.assertEqual(main_py["id"], "Version with files [v1]/main1.py")
         self.assertEqual(main_py["path"], "main1.py")
         self.assertEqual(main_py["type"], "file")
         self.assertEqual(main_py["parentId"], None)
@@ -448,7 +448,7 @@ class PipelineVersionsTest(GraphQLTestCase):
 
         pipeline_py = next((f for f in files if f["name"] == "pipeline.py"), None)
         self.assertIsNotNone(pipeline_py)
-        self.assertEqual(pipeline_py["id"], "pipeline.py")
+        self.assertEqual(pipeline_py["id"], "Version with files [v1]/pipeline.py")
         self.assertEqual(pipeline_py["path"], "pipeline.py")
         self.assertEqual(pipeline_py["type"], "file")
         self.assertEqual(pipeline_py["parentId"], None)
@@ -462,7 +462,9 @@ class PipelineVersionsTest(GraphQLTestCase):
             (f for f in files if f["name"] == "requirements.txt"), None
         )
         self.assertIsNotNone(requirements_txt)
-        self.assertEqual(requirements_txt["id"], "requirements.txt")
+        self.assertEqual(
+            requirements_txt["id"], "Version with files [v1]/requirements.txt"
+        )
         self.assertEqual(requirements_txt["type"], "file")
         self.assertEqual(requirements_txt["parentId"], None)
         self.assertFalse(requirements_txt["autoSelect"])
@@ -470,7 +472,7 @@ class PipelineVersionsTest(GraphQLTestCase):
 
         utils_dir = next((f for f in files if f["name"] == "utils"), None)
         self.assertIsNotNone(utils_dir)
-        self.assertEqual(utils_dir["id"], "utils")
+        self.assertEqual(utils_dir["id"], "Version with files [v1]/utils")
         self.assertEqual(utils_dir["path"], "utils")
         self.assertEqual(utils_dir["type"], "directory")
         self.assertEqual(utils_dir["parentId"], None)
@@ -479,10 +481,10 @@ class PipelineVersionsTest(GraphQLTestCase):
 
         helpers_py = next((f for f in files if f["name"] == "helpers.py"), None)
         self.assertIsNotNone(helpers_py)
-        self.assertEqual(helpers_py["id"], "utils/helpers.py")
+        self.assertEqual(helpers_py["id"], "Version with files [v1]/utils/helpers.py")
         self.assertEqual(helpers_py["path"], "utils/helpers.py")
         self.assertEqual(helpers_py["type"], "file")
-        self.assertEqual(helpers_py["parentId"], "utils")
+        self.assertEqual(helpers_py["parentId"], "Version with files [v1]/utils")
         self.assertFalse(helpers_py["autoSelect"])
         self.assertEqual(
             helpers_py["content"], "def helper_function():\n    return 'helper'\n"
@@ -490,7 +492,7 @@ class PipelineVersionsTest(GraphQLTestCase):
 
         readme = next((f for f in files if f["name"] == "README.md"), None)
         self.assertIsNotNone(readme)
-        self.assertEqual(readme["id"], "README.md")
+        self.assertEqual(readme["id"], "Version with files [v1]/README.md")
         self.assertEqual(readme["type"], "file")
         self.assertEqual(readme["parentId"], None)  # Root file
         self.assertFalse(readme["autoSelect"])
