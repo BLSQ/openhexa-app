@@ -204,3 +204,5 @@ FilesEditor.fragment = {
     }
   `,
 };
+
+export default FilesEditor;
