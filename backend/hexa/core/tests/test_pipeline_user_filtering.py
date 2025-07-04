@@ -1,9 +1,7 @@
 from unittest.mock import MagicMock
 
-from django.db.models import Q
 from django.test import TestCase
 
-from hexa.core.models.base import BaseQuerySet
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.user_management.models import User
@@ -69,21 +67,36 @@ class TestPipelineRunUserFiltering(TestCase):
         self.assertEqual(filtered_orgs.count(), 1)
         self.assertEqual(filtered_orgs.first(), org1)
 
-    def test_not_implemented_error_for_models_without_workspace(self):
-        class SomeModelQuerySet(BaseQuerySet):
-            def filter_for_user(self, user):
-                return self._filter_for_user_and_query_object(
-                    user,
-                    Q(organizationmembership__user=user),
-                    return_all_if_superuser=True,
-                )
+    def test_dataset_filtering(self):
+        from hexa.datasets.models import Dataset
 
-        class SomeModel:
-            objects = SomeModelQuerySet.as_manager()
+        dataset1 = Dataset.objects.create_if_has_perm(
+            principal=self.USER_ROOT,
+            name="Dataset 1",
+            description="Dataset 1",
+            workspace=self.WORKSPACE1,
+        )
+        Dataset.objects.create_if_has_perm(
+            principal=self.USER_ROOT,
+            name="Dataset 2",
+            description="Dataset 2",
+            workspace=self.WORKSPACE2,
+        )
 
-        with self.assertRaises(NotImplementedError) as context:
-            SomeModel.objects.filter_for_user(self.pipeline_user)
-            self.assertIn(
-                "Override _get_pipeline_run_user_workspace_query for SomeModel to allow pipeline run user access control",
-                str(context.exception),
-            )
+        filtered_datasets = Dataset.objects.filter_for_user(self.pipeline_user)
+        self.assertEqual(filtered_datasets.count(), 1)
+        self.assertEqual(filtered_datasets.first(), dataset1)
+
+    def test_webapp_filtering(self):
+        from hexa.webapps.models import Webapp
+
+        webapp1 = Webapp.objects.create(
+            name="WebApp 1", workspace=self.WORKSPACE1, created_by=self.USER_ROOT
+        )
+        Webapp.objects.create(
+            name="WebApp 2", workspace=self.WORKSPACE2, created_by=self.USER_ROOT
+        )
+
+        filtered_webapps = Webapp.objects.filter_for_user(self.pipeline_user)
+        self.assertEqual(filtered_webapps.count(), 1)
+        self.assertEqual(filtered_webapps.first(), webapp1)
