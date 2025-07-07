@@ -3036,6 +3036,9 @@ type Query {
   connectionBySlug(connectionSlug: String!, workspaceSlug: String!): Connection
   countries: [Country!]!
   country(alpha3: String, code: String): Country
+
+  """Retrieves a pipeline run for pipeline run user"""
+  currentPipelineRun: PipelineRun
   dag(id: UUID!): DAG
   dagRun(id: UUID!): DAGRun
   dags(page: Int, perPage: Int): DAGPage!
