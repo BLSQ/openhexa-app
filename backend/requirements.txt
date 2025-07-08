@@ -34,6 +34,7 @@ attrs==25.3.0
     #   ecmwf-datastores-client
     #   fiona
     #   morecantile
+    #   openlineage-python
     #   rasterio
 autoflake==2.3.1
     # via ariadne-codegen
@@ -302,8 +303,10 @@ oauthlib==3.3.1
     #   requests-oauthlib
 openhexa-sdk==2.8.0
     # via openhexa-toolbox
-openhexa-toolbox==2.7.0
+openhexa-toolbox==2.8.1
     # via -r requirements.in
+openlineage-python==1.34.0
+    # via openhexa-toolbox
 openpyxl==3.1.5
     # via -r requirements.in
 opentelemetry-api==1.34.1
@@ -314,6 +317,7 @@ packaging==25.0
     #   build
     #   geopandas
     #   gunicorn
+    #   openlineage-python
     #   pyogrio
     #   xarray
 pandas==2.3.0
@@ -396,6 +400,7 @@ python-dateutil==2.9.0.post0
     #   moto
     #   multiurl
     #   openhexa-toolbox
+    #   openlineage-python
     #   pandas
 python-slugify==8.0.4
     # via -r requirements.in
@@ -409,6 +414,7 @@ pyyaml==6.0.2
     #   kubernetes
     #   moto
     #   openhexa-sdk
+    #   openlineage-python
     #   responses
 rasterio==1.4.3
     # via
@@ -434,6 +440,7 @@ requests==2.32.4
     #   multiurl
     #   openhexa-sdk
     #   openhexa-toolbox
+    #   openlineage-python
     #   requests-mock
     #   requests-oauthlib
     #   responses
