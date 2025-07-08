@@ -888,6 +888,61 @@ class PipelinesV2Test(GraphQLTestCase):
                 ],
             )
 
+    def test_pipeline_get_current_run_id(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+        pipeline = Pipeline.objects.get(code="monbeaupipeline")
+        run = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=pipeline.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+        run.state = PipelineRunState.RUNNING
+        run.save()
+
+        access_token = Signer().sign_object(str(run.access_token))
+        r = self.run_query(
+            """
+            query currentPipelineRun {  
+                currentPipelineRun {
+                    id
+                    status
+                    pipeline {
+                        id
+                        code
+                        name
+                        type
+                        currentVersion {
+                            id
+                            name
+                            versionNumber
+                        }
+                    }
+                }   
+            }
+            """,
+            headers={"HTTP_Authorization": f"bearer {access_token}"},
+        )
+        self.assertEqual(
+            r["data"]["currentPipelineRun"],
+            {
+                "id": str(run.id),
+                "status": "running",
+                "pipeline": {
+                    "id": str(pipeline.id),
+                    "code": "monbeaupipeline",
+                    "name": "MonBeauPipeline",
+                    "type": "zipFile",
+                    "currentVersion": {
+                        "id": str(pipeline.last_version.id),
+                        "name": pipeline.last_version.name,
+                        "versionNumber": pipeline.last_version.version_number,
+                    },
+                },
+            },
+        )
+
     def test_pipeline_run_file_output_failed(self):
         self.test_create_pipeline_version()
         self.client.force_login(self.USER_ROOT)

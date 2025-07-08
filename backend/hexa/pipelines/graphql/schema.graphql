@@ -675,6 +675,10 @@ extend type Query {
   Retrieves a pipeline run by ID.
   """
   pipelineRun(id: UUID!): PipelineRun @loginRequired
+  """
+  Retrieves a pipeline run for pipeline run user
+  """
+  currentPipelineRun: PipelineRun @loginRequired
 }
 
 extend type Mutation {

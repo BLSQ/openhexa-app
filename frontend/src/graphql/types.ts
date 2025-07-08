@@ -3654,6 +3654,8 @@ export type Query = {
   connectionBySlug?: Maybe<Connection>;
   countries: Array<Country>;
   country?: Maybe<Country>;
+  /** Retrieves a pipeline run for pipeline run user */
+  currentPipelineRun?: Maybe<PipelineRun>;
   dag?: Maybe<Dag>;
   dagRun?: Maybe<DagRun>;
   dags: DagPage;

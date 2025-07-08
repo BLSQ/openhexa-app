@@ -92,6 +92,19 @@ def resolve_pipeline_run(_, info, **kwargs):
         return None
 
 
+@pipelines_query.field("currentPipelineRun")
+def resolve_current_pipeline_run(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    if not request.user.is_authenticated:
+        return None
+    try:
+        if isinstance(request.user, PipelineRunUser):
+            return request.user.pipeline_run
+    except PipelineRun.DoesNotExist:
+        return None
+
+
 @pipelines_query.field("pipelineVersion")
 def resolve_pipeline_version(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
