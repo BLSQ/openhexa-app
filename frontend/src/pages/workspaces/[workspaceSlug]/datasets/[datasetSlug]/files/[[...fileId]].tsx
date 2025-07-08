@@ -87,6 +87,7 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
               },
             })
           }
+          perPage={DEFAULT_PAGE_SIZE}
           onPageChange={(newPage) =>
             router.push({
               pathname: router.pathname,

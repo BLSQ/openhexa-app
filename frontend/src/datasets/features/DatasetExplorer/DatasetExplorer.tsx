@@ -15,12 +15,13 @@ import {
 } from "./DatasetExplorer.generated";
 import ErrorBoundary from "core/components/ErrorBoundary";
 import DatasetVersionFileColumns from "../DatasetVersionFileColumns";
-import SimplePagination from "core/components/Pagination/SimplePagination";
+import Pagination from "core/components/Pagination";
 
 type DatasetExplorerProps = {
   version: DatasetExplorer_VersionFragment;
   currentFile: NonNullable<DatasetExplorer_FileFragment>;
   onClickFile: (file: DatasetExplorer_FileFragment) => void;
+  perPage: number;
   onPageChange: (page: number) => void;
 };
 
@@ -28,44 +29,42 @@ const DatasetExplorer = ({
   version,
   currentFile,
   onClickFile,
+  perPage,
   onPageChange,
 }: DatasetExplorerProps) => {
   const { t } = useTranslation();
   const { files } = version;
 
   return (
-    <div className="flex divide-x divide-b-50 ">
-      <Overflow
-        vertical
-        className="min-w-42 xl:min-w-60 xl:max-w-max shrink overflow-hidden my-1"
-      >
-        <ul>
-          {version.files.items.map((file) => (
-            <li
-              key={file.id}
-              onClick={() => onClickFile(file)}
-              title={file.filename}
-              className={clsx(
-                "pl-6 pr-3 py-2 text-xs font-mono tracking-tighter hover:bg-gray-100 hover:text-gray-900 cursor-pointer truncate text-ellipsis max-w-[30ch] xl:max-w-[50ch]",
-                currentFile.id === file.id &&
-                  "bg-gray-100 text-gray-800 font-semibold",
-              )}
-            >
-              {file.filename}
-            </li>
-          ))}
-        </ul>
-        {files.totalPages > 1 && (
-          <div className="px-2 py-1">
-            <SimplePagination
-              page={files.pageNumber}
-              onChange={onPageChange}
-              hasNextPage={files.pageNumber < files.totalPages}
-              hasPreviousPage={files.pageNumber > 1}
-            />
-          </div>
-        )}
-      </Overflow>
+    <div className="flex divide-x divide-b-50 h-full">
+      <div className="min-w-42 xl:min-w-60 xl:max-w-max shrink flex flex-col my-1">
+        <Overflow vertical className="flex-1 overflow-hidden">
+          <ul>
+            {version.files.items.map((file) => (
+              <li
+                key={file.id}
+                onClick={() => onClickFile(file)}
+                title={file.filename}
+                className={clsx(
+                  "pl-6 pr-3 py-2 text-xs font-mono tracking-tighter hover:bg-gray-100 hover:text-gray-900 cursor-pointer truncate text-ellipsis max-w-[30ch] xl:max-w-[50ch]",
+                  currentFile.id === file.id &&
+                    "bg-gray-100 text-gray-800 font-semibold",
+                )}
+              >
+                {file.filename}
+              </li>
+            ))}
+          </ul>
+        </Overflow>
+        <Pagination
+          className="border-t px-2 py-2"
+          page={files.pageNumber}
+          perPage={perPage}
+          countItems={files.items.length}
+          totalItems={files.totalItems}
+          onChange={onPageChange}
+        />
+      </div>
       <div className="flex-1 py-2 space-y-4 min-w-0">
         <div className="px-4 py-1 space-y-6">
           <Title level={3} className="flex justify-between gap-4">
