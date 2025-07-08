@@ -23,7 +23,7 @@ import { DatasetCard_LinkFragmentDoc } from '../../datasets/features/DatasetCard
 import { PinDatasetButton_LinkFragmentDoc } from '../../datasets/features/PinDatasetButton/PinDatasetButton.generated';
 import { DatasetLayout_WorkspaceFragmentDoc, DatasetLayout_DatasetLinkFragmentDoc, DatasetLayout_VersionFragmentDoc } from '../../datasets/layouts/DatasetLayout.generated';
 import { DatasetLinksDataGrid_DatasetFragmentDoc } from '../../datasets/features/DatasetLinksDataGrid/DatasetLinksDataGrid.generated';
-import { DatasetExplorer_VersionFragmentDoc } from '../../datasets/features/DatasetExplorer/DatasetExplorer.generated';
+import { DatasetExplorer_VersionFragmentDoc, DatasetExplorer_FileFragmentDoc } from '../../datasets/features/DatasetExplorer/DatasetExplorer.generated';
 import { BucketExplorer_WorkspaceFragmentDoc, BucketExplorer_ObjectsFragmentDoc } from '../features/BucketExplorer/BucketExplorer.generated';
 import { UploadObjectDialog_WorkspaceFragmentDoc } from '../features/UploadObjectDialog/UploadObjectDialog.generated';
 import { CreateBucketFolderDialog_WorkspaceFragmentDoc } from '../features/CreateBucketFolderDialog/CreateBucketFolderDialog.generated';
@@ -154,10 +154,12 @@ export type WorkspaceDatasetFilesPageQueryVariables = Types.Exact<{
   datasetSlug: Types.Scalars['String']['input'];
   versionId: Types.Scalars['ID']['input'];
   isSpecificVersion: Types.Scalars['Boolean']['input'];
+  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
 
 
-export type WorkspaceDatasetFilesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null, datasetLink?: { __typename?: 'DatasetLink', id: string, isPinned: boolean, dataset: { __typename?: 'Dataset', name: string, slug: string, id: string, version?: { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any, files: { __typename?: 'DatasetVersionFilePage', items: Array<{ __typename?: 'DatasetVersionFile', id: string, filename: string, createdAt: any, contentType: string, size: any, uri: string, downloadUrl?: string | null, targetId: any, properties?: any | null, createdBy?: { __typename?: 'User', displayName: string } | null, attributes: Array<{ __typename: 'MetadataAttribute', id: string, key: string, value?: any | null, label?: string | null, system: boolean }> }> }, dataset: { __typename?: 'Dataset', slug: string, workspace?: { __typename?: 'Workspace', slug: string } | null, permissions: { __typename?: 'DatasetPermissions', update: boolean } } } | null, latestVersion?: { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any, files: { __typename?: 'DatasetVersionFilePage', items: Array<{ __typename?: 'DatasetVersionFile', id: string, filename: string, createdAt: any, contentType: string, size: any, uri: string, downloadUrl?: string | null, targetId: any, properties?: any | null, createdBy?: { __typename?: 'User', displayName: string } | null, attributes: Array<{ __typename: 'MetadataAttribute', id: string, key: string, value?: any | null, label?: string | null, system: boolean }> }> }, dataset: { __typename?: 'Dataset', slug: string, workspace?: { __typename?: 'Workspace', slug: string } | null, permissions: { __typename?: 'DatasetPermissions', update: boolean } } } | null, workspace?: { __typename?: 'Workspace', slug: string } | null, permissions: { __typename?: 'DatasetPermissions', delete: boolean, createVersion: boolean } }, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'DatasetLinkPermissions', pin: boolean } } | null };
+export type WorkspaceDatasetFilesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null, datasetLink?: { __typename?: 'DatasetLink', id: string, isPinned: boolean, dataset: { __typename?: 'Dataset', name: string, slug: string, id: string, version?: { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any, files: { __typename?: 'DatasetVersionFilePage', totalPages: number, pageNumber: number, totalItems: number, items: Array<{ __typename?: 'DatasetVersionFile', id: string, filename: string, createdAt: any, contentType: string, size: any, uri: string, downloadUrl?: string | null, targetId: any, properties?: any | null, createdBy?: { __typename?: 'User', displayName: string } | null, attributes: Array<{ __typename: 'MetadataAttribute', id: string, key: string, value?: any | null, label?: string | null, system: boolean }> }> }, dataset: { __typename?: 'Dataset', slug: string, workspace?: { __typename?: 'Workspace', slug: string } | null, permissions: { __typename?: 'DatasetPermissions', update: boolean } } } | null, latestVersion?: { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any, files: { __typename?: 'DatasetVersionFilePage', totalPages: number, pageNumber: number, totalItems: number, items: Array<{ __typename?: 'DatasetVersionFile', id: string, filename: string, createdAt: any, contentType: string, size: any, uri: string, downloadUrl?: string | null, targetId: any, properties?: any | null, createdBy?: { __typename?: 'User', displayName: string } | null, attributes: Array<{ __typename: 'MetadataAttribute', id: string, key: string, value?: any | null, label?: string | null, system: boolean }> }> }, dataset: { __typename?: 'Dataset', slug: string, workspace?: { __typename?: 'Workspace', slug: string } | null, permissions: { __typename?: 'DatasetPermissions', update: boolean } } } | null, workspace?: { __typename?: 'Workspace', slug: string } | null, permissions: { __typename?: 'DatasetPermissions', delete: boolean, createVersion: boolean } }, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'DatasetLinkPermissions', pin: boolean } } | null };
 
 export type WorkspaceFilesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -1136,7 +1138,7 @@ export type WorkspaceDatasetAccessPageLazyQueryHookResult = ReturnType<typeof us
 export type WorkspaceDatasetAccessPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceDatasetAccessPageSuspenseQuery>;
 export type WorkspaceDatasetAccessPageQueryResult = Apollo.QueryResult<WorkspaceDatasetAccessPageQuery, WorkspaceDatasetAccessPageQueryVariables>;
 export const WorkspaceDatasetFilesPageDocument = gql`
-    query WorkspaceDatasetFilesPage($workspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!) {
+    query WorkspaceDatasetFilesPage($workspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!, $page: Int = 1, $perPage: Int = 20) {
   workspace(slug: $workspaceSlug) {
     slug
     ...DatasetLayout_workspace
@@ -1153,10 +1155,20 @@ export const WorkspaceDatasetFilesPageDocument = gql`
       version(id: $versionId) @include(if: $isSpecificVersion) {
         ...DatasetLayout_version
         ...DatasetExplorer_version
+        files(page: $page, perPage: $perPage) {
+          items {
+            ...DatasetExplorer_file
+          }
+        }
       }
       latestVersion @skip(if: $isSpecificVersion) {
         ...DatasetLayout_version
         ...DatasetExplorer_version
+        files(page: $page, perPage: $perPage) {
+          items {
+            ...DatasetExplorer_file
+          }
+        }
       }
     }
   }
@@ -1165,7 +1177,8 @@ export const WorkspaceDatasetFilesPageDocument = gql`
 ${DatasetLayout_DatasetLinkFragmentDoc}
 ${DatasetLinksDataGrid_DatasetFragmentDoc}
 ${DatasetLayout_VersionFragmentDoc}
-${DatasetExplorer_VersionFragmentDoc}`;
+${DatasetExplorer_VersionFragmentDoc}
+${DatasetExplorer_FileFragmentDoc}`;
 
 /**
  * __useWorkspaceDatasetFilesPageQuery__
@@ -1183,6 +1196,8 @@ ${DatasetExplorer_VersionFragmentDoc}`;
  *      datasetSlug: // value for 'datasetSlug'
  *      versionId: // value for 'versionId'
  *      isSpecificVersion: // value for 'isSpecificVersion'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
  *   },
  * });
  */
