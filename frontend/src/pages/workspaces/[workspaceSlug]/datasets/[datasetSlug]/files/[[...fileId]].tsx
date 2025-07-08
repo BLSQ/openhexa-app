@@ -29,6 +29,7 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
   const { t } = useTranslation();
   const router = useRouter();
   const [isLinkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [page, setPage] = useState(1);
   const {
     currentFile,
     isSpecificVersion,
@@ -36,8 +37,16 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
     datasetSlug,
     versionId,
   } = props;
+
   const { data } = useWorkspaceDatasetFilesPageQuery({
-    variables: { isSpecificVersion, workspaceSlug, datasetSlug, versionId },
+    variables: {
+      isSpecificVersion,
+      workspaceSlug,
+      datasetSlug,
+      versionId,
+      page,
+      perPage: 20,
+    },
   });
   if (!data || !data.datasetLink || !data.workspace) {
     return null;
@@ -75,6 +84,7 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
               },
             })
           }
+          onPageChange={setPage}
         />
       </DatasetLayout>
       <LinkDatasetDialog
@@ -99,6 +109,8 @@ export const getServerSideProps = createGetServerSideProps({
       datasetSlug: ctx.params!.datasetSlug as string,
       versionId: versionId,
       isSpecificVersion: Boolean(versionId),
+      page: Number(ctx.query.page) || 1,
+      perPage: Number(ctx.query.perPage) || 20,
     };
 
     const { data } = await client.query<

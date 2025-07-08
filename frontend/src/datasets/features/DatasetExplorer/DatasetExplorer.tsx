@@ -15,19 +15,23 @@ import {
 } from "./DatasetExplorer.generated";
 import ErrorBoundary from "core/components/ErrorBoundary";
 import DatasetVersionFileColumns from "../DatasetVersionFileColumns";
+import SimplePagination from "core/components/Pagination/SimplePagination";
 
 type DatasetExplorerProps = {
   version: DatasetExplorer_VersionFragment;
   currentFile: NonNullable<DatasetExplorer_FileFragment>;
   onClickFile: (file: DatasetExplorer_FileFragment) => void;
+  onPageChange: (page: number) => void;
 };
 
 const DatasetExplorer = ({
   version,
   currentFile,
   onClickFile,
+  onPageChange,
 }: DatasetExplorerProps) => {
   const { t } = useTranslation();
+  const { files } = version;
 
   return (
     <div className="flex divide-x divide-b-50 ">
@@ -51,6 +55,16 @@ const DatasetExplorer = ({
             </li>
           ))}
         </ul>
+        {files.totalPages > 1 && (
+          <div className="px-2 py-1">
+            <SimplePagination
+              page={files.pageNumber}
+              onChange={onPageChange}
+              hasNextPage={files.pageNumber < files.totalPages}
+              hasPreviousPage={files.pageNumber > 1}
+            />
+          </div>
+        )}
       </Overflow>
       <div className="flex-1 py-2 space-y-4 min-w-0">
         <div className="px-4 py-1 space-y-6">
@@ -130,7 +144,10 @@ DatasetExplorer.fragments = {
   version: gql`
     fragment DatasetExplorer_version on DatasetVersion {
       id
-      files {
+      files(page: $page, perPage: $perPage) {
+        totalPages
+        pageNumber
+        totalItems
         items {
           ...DatasetExplorer_file
         }
