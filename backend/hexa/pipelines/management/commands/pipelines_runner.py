@@ -314,6 +314,7 @@ def run_pipeline(run: PipelineRun):
         "HEXA_TOKEN": Signer().sign_object(run.access_token),
         "HEXA_WORKSPACE": run.pipeline.workspace.slug,
         "HEXA_RUN_ID": str(run.id),
+        "HEXA_PIPELINE_CODE": run.pipeline.code,
         "HEXA_PIPELINE_NAME": run.pipeline.name,
         "HEXA_PIPELINE_TYPE": run.pipeline.type,
         "HEXA_LOG_LEVEL": str(run.log_level),
