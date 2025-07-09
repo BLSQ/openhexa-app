@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.13.0](https://github.com/BLSQ/openhexa-app/compare/1.12.1...1.13.0) (2025-07-09)
+
+
+### Features
+
+* View pipeline code (HEXA-1302) ([#1239](https://github.com/BLSQ/openhexa-app/issues/1239)) ([cb37aa3](https://github.com/BLSQ/openhexa-app/commit/cb37aa3b3bdba7f0872915629538b3fd675d8dcb))
+
+
+### Bug Fixes
+
+* **deps:** update nextjs monorepo to v15.3.5 ([#1244](https://github.com/BLSQ/openhexa-app/issues/1244)) ([6e1427b](https://github.com/BLSQ/openhexa-app/commit/6e1427b93071cfd065538a815d39414ffb852916))
+
 ## [1.12.1](https://github.com/BLSQ/openhexa-app/compare/1.12.0...1.12.1) (2025-07-08)
 
 
