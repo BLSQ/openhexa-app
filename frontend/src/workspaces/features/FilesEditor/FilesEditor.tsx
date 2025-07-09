@@ -9,6 +9,7 @@ import clsx from "clsx";
 import { useTranslation } from "next-i18next";
 import { useMemo, useState } from "react";
 import { python } from "@codemirror/lang-python";
+import { json } from "@codemirror/lang-json";
 import { r } from "codemirror-lang-r";
 import { gql } from "@apollo/client";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
@@ -165,7 +166,7 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
               <CodeMirror
                 value={selectedFile.content!}
                 readOnly={true}
-                extensions={[python(), r()]}
+                extensions={[python(), r(), json()]}
                 height="100%"
                 style={{ height: "100%" }}
               />
