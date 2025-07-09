@@ -289,6 +289,8 @@ def get_language_from_path(path: str) -> str:
     supported_languages = {
         ".py": "python",
         ".json": "json",
+        ".ipynb": "jupyter",
+        ".R": "r",
         ".r": "r",
         ".md": "markdown",
     }
