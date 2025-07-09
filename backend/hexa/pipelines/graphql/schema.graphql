@@ -128,6 +128,21 @@ type PipelineVersionPermissions {
 }
 
 """
+Represents a file or directory node in a flattened structure.
+"""
+type FileNode {
+  id: String!  # Unique identifier for this node (same as path).
+  name: String!  # The name of the file or directory.
+  path: String!  # The full path of the file or directory.
+  type: FileType!  # The type (file or directory).
+  content: String  # The decoded content of the file (null for directories).
+  parentId: String  # The ID of the parent node (null for root nodes).
+  autoSelect: Boolean!  # Whether this file should be auto-selected in the UI.
+  language: String  # The detected programming language of the file.
+  lineCount: Int  # The number of lines in the file.
+}
+
+"""
 Represents a version of a pipeline.
 """
 type PipelineVersion {
@@ -144,6 +159,7 @@ type PipelineVersion {
   parameters: [PipelineParameter!]!  # The parameters of the pipeline version.
   isLatestVersion: Boolean!  # Indicates if the pipeline version is the latest version.
   zipfile: String!  # The ZIP file base64 encoded.
+  files: [FileNode!]!  # Optimized hierarchical file tree structure with decoded content and auto-selection.
   timeout: Int  # The timeout value for the pipeline version (in seconds).
   permissions: PipelineVersionPermissions!  # The permissions for the pipeline version.
   config: JSON  # The default configuration to set on newly created pipeline runs
