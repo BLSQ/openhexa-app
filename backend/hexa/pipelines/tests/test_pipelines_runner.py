@@ -39,6 +39,7 @@ class TestRunPipeline(TestCase):
             "HEXA_RUN_ID": "123",
             "HEXA_PIPELINE_NAME": "test_pipeline",
             "HEXA_PIPELINE_TYPE": PipelineType.NOTEBOOK,
+            "HEXA_PIPELINE_CODE": "pipeline_code",
             "HEXA_LOG_LEVEL": str(PipelineRunLogLevel.DEBUG),
             "HEXA_NOTEBOOK_PATH": "/path/to/notebook",
         }
