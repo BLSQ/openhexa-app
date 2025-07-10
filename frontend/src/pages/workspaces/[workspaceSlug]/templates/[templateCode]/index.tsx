@@ -15,8 +15,6 @@ import { updateTemplate } from "workspaces/helpers/templates";
 import Link from "core/components/Link";
 import RenderProperty from "core/components/DataCard/RenderProperty";
 import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
-import { FilesEditor } from "workspaces/features/FilesEditor";
-import Spinner from "core/components/Spinner";
 
 type Props = {
   templateCode: string;
@@ -27,7 +25,7 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
   const { templateCode, workspaceSlug } = props;
   const { t } = useTranslation();
 
-  const { data, loading } = useWorkspaceTemplatePageQuery({
+  const { data } = useWorkspaceTemplatePageQuery({
     variables: {
       workspaceSlug,
       templateCode,
@@ -50,58 +48,43 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
   return (
     <Page title={template.name ?? t("Template")}>
       <TemplateLayout workspace={workspace} template={template}>
-        <DataCard item={template} className="divide-y divide-gray-100">
-          <DataCard.FormSection
-            title={t("Information")}
-            onSave={template.permissions.update ? onSaveTemplate : undefined}
-            collapsible={false}
+        <DataCard.FormSection
+          title={t("Information")}
+          onSave={template.permissions.update ? onSaveTemplate : undefined}
+          collapsible={false}
+        >
+          <TextProperty
+            id="name"
+            accessor={"name"}
+            label={t("Name")}
+            visible={(value, isEditing) => isEditing}
+          />
+          <MarkdownProperty
+            id="description"
+            label="Description"
+            accessor={"description"}
+          />
+          <RenderProperty
+            id="version_name"
+            accessor={"currentVersion"}
+            label={t("Version")}
+            readonly
           >
-            <TextProperty
-              id="name"
-              accessor={"name"}
-              label={t("Name")}
-              visible={(value, isEditing) => isEditing}
-            />
-            <MarkdownProperty
-              id="description"
-              label="Description"
-              accessor={"description"}
-            />
-            <RenderProperty
-              id="version_name"
-              accessor={"currentVersion"}
-              label={t("Version")}
-              readonly
-            >
-              {(property) => (
-                <div className="flex items-center gap-3">
-                  <Link
-                    href={`/workspaces/${encodeURIComponent(
-                      workspace.slug,
-                    )}/templates/${encodeURIComponent(template.code)}/versions`}
-                  >
-                    {property.displayValue
-                      ? property.displayValue.versionNumber
-                      : t("No version yet")}
-                  </Link>
-                </div>
-              )}
-            </RenderProperty>
-            {template.currentVersion?.sourcePipelineVersion.files && (
-              <div className="relative">
-                {loading && (
-                  <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
-                    <Spinner size="md" />
-                  </div>
-                )}
-                <FilesEditor
-                  name={template.name}
-                  files={template.currentVersion.sourcePipelineVersion.files}
-                />
+            {(property) => (
+              <div className="flex items-center gap-3">
+                <Link
+                  href={`/workspaces/${encodeURIComponent(
+                    workspace.slug,
+                  )}/templates/${encodeURIComponent(template.code)}/versions`}
+                >
+                  {property.displayValue
+                    ? property.displayValue.versionNumber
+                    : t("No version yet")}
+                </Link>
               </div>
             )}
-          </DataCard.FormSection>
-        </DataCard>
+          </RenderProperty>
+        </DataCard.FormSection>
       </TemplateLayout>
     </Page>
   );

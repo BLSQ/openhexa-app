@@ -25,15 +25,47 @@ type TemplateLayoutProps = {
 };
 
 const TemplateLayout = (props: TemplateLayoutProps) => {
-  const { children, workspace, template, extraBreadcrumbs = [] } = props;
+  const {
+    children,
+    workspace,
+    template,
+    currentTab = "general",
+    extraBreadcrumbs = [],
+  } = props;
 
   const { t } = useTranslation();
   const [isDeleteTemplateDialogOpen, setDeleteTemplateDialogOpen] =
     useState(false);
 
   return (
-    <WorkspaceLayout
+    <TabLayout
       workspace={workspace}
+      helpLinks={[
+        {
+          label: t("About templates"),
+          href: "https://github.com/BLSQ/openhexa/wiki/User-manual#using-templates",
+        },
+      ]}
+      item={template}
+      currentTab={currentTab}
+      tabs={[
+        {
+          label: t("General"),
+          href: `/workspaces/${encodeURIComponent(workspace.slug)}/templates/${encodeURIComponent(template.code)}`,
+          id: "general",
+        },
+      ].concat(
+        template.currentVersion
+          ? [
+              {
+                label: t("Code"),
+                href: `/workspaces/${encodeURIComponent(workspace.slug)}/templates/${encodeURIComponent(template.code)}/code`,
+                id: "files",
+              },
+            ]
+          : [],
+      )}
+      title={template.name ?? t("Template")}
       header={
         <>
           <Breadcrumbs withHome={false} className="flex-1">
@@ -66,22 +98,21 @@ const TemplateLayout = (props: TemplateLayoutProps) => {
               </Breadcrumbs.Part>
             ))}
           </Breadcrumbs>
-          {template.permissions.delete && (
-            <Button
-              onClick={() => setDeleteTemplateDialogOpen(true)}
-              className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
-              leadingIcon={<TrashIcon className="w-4" />}
-            >
-              {t("Delete")}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {template.permissions.delete && (
+              <Button
+                onClick={() => setDeleteTemplateDialogOpen(true)}
+                className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
+                leadingIcon={<TrashIcon className="w-4" />}
+              >
+                {t("Delete")}
+              </Button>
+            )}
+          </div>
         </>
       }
     >
-      <WorkspaceLayout.PageContent>
-        <Title level={2}>{template.name ?? t("Template")}</Title>
-        {children}
-      </WorkspaceLayout.PageContent>
+      {children}
       <DeleteTemplateDialog
         open={isDeleteTemplateDialogOpen}
         onDelete={() =>
@@ -94,7 +125,7 @@ const TemplateLayout = (props: TemplateLayoutProps) => {
         }}
         pipelineTemplate={template}
       />
-    </WorkspaceLayout>
+    </TabLayout>
   );
 };
 

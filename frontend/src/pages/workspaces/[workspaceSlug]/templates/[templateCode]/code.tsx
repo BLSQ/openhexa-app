@@ -1,0 +1,106 @@
+import Page from "core/components/Page";
+import { createGetServerSideProps } from "core/helpers/page";
+import { NextPageWithLayout } from "core/helpers/types";
+import { useTranslation } from "next-i18next";
+import { FilesEditor } from "workspaces/features/FilesEditor";
+import {
+  useWorkspaceTemplatePageQuery,
+  WorkspaceTemplatePageDocument,
+  WorkspaceTemplatePageQuery,
+  WorkspaceTemplatePageQueryVariables,
+} from "workspaces/graphql/queries.generated";
+import TemplateLayout from "workspaces/layouts/TemplateLayout";
+import DataCard from "core/components/DataCard";
+import Spinner from "core/components/Spinner";
+
+type WorkspaceTemplateCodePageProps = {
+  templateCode: string;
+  workspaceSlug: string;
+};
+
+const WorkspaceTemplateCodePage: NextPageWithLayout = (
+  props: WorkspaceTemplateCodePageProps,
+) => {
+  const { templateCode, workspaceSlug } = props;
+  const { t } = useTranslation();
+
+  const { data, loading } = useWorkspaceTemplatePageQuery({
+    variables: {
+      workspaceSlug,
+      templateCode,
+    },
+  });
+
+  if (!data?.workspace || !data?.template) {
+    return null;
+  }
+
+  const { workspace, template } = data;
+
+  if (!template.currentVersion) {
+    return null;
+  }
+
+  return (
+    <Page title={template.name ?? t("Template Files")}>
+      <TemplateLayout
+        workspace={workspace}
+        template={template}
+        currentTab="files"
+      >
+        <DataCard.FormSection>
+          {template.currentVersion?.sourcePipelineVersion.files ? (
+            <div className="relative overflow-hidden">
+              {loading && (
+                <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
+                  <Spinner size="md" />
+                </div>
+              )}
+              <div className="w-full overflow-x-auto">
+                <FilesEditor
+                  name={template.name}
+                  files={template.currentVersion.sourcePipelineVersion.files}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              {t("No files available for this template")}
+            </div>
+          )}
+        </DataCard.FormSection>
+      </TemplateLayout>
+    </Page>
+  );
+};
+
+WorkspaceTemplateCodePage.getLayout = (page) => page;
+
+export const getServerSideProps = createGetServerSideProps({
+  requireAuth: true,
+  async getServerSideProps(ctx, client) {
+    await TemplateLayout.prefetch(ctx, client);
+    const { data } = await client.query<
+      WorkspaceTemplatePageQuery,
+      WorkspaceTemplatePageQueryVariables
+    >({
+      query: WorkspaceTemplatePageDocument,
+      variables: {
+        workspaceSlug: ctx.params!.workspaceSlug as string,
+        templateCode: ctx.params!.templateCode as string,
+      },
+    });
+
+    if (!data.workspace || !data.template) {
+      return { notFound: true };
+    }
+    return {
+      props: {
+        workspaceSlug: ctx.params!.workspaceSlug,
+        templateCode: ctx.params!.templateCode,
+      },
+    };
+  },
+});
+
+export default WorkspaceTemplateCodePage;
