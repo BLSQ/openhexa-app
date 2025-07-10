@@ -65,7 +65,7 @@ const TemplateLayout = (props: TemplateLayoutProps) => {
             ]
           : [],
       )}
-      title={template.name ?? t("Template")}
+      title={template.name}
       header={
         <>
           <Breadcrumbs withHome={false} className="flex-1">

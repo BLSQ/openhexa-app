@@ -42,7 +42,7 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
   };
 
   return (
-    <Page title={template.name ?? t("Template")}>
+    <Page title={template.name}>
       <TemplateLayout workspace={workspace} template={template}>
         <DataCard.FormSection
           title={t("Information")}
