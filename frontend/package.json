@@ -128,7 +128,7 @@
     "next-router-mock": "^1.0.0",
     "npm-run-all2": "^8.0.0",
     "postcss": "^8.4.47",
-    "prettier": "3.5.3",
+    "prettier": "3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.10",
     "tailwindcss": "4.1.11"
   },
