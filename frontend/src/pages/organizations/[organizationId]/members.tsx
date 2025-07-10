@@ -19,6 +19,14 @@ type Props = {
   organization: OrganizationQuery["organization"];
 };
 
+// TODO : search user
+// TODO : show org and workspace roles
+// TODO : actions
+// TODO : add
+// TODO : update
+// TODO : delete
+// TODO : show invite
+
 const OrganizationMembersPage: NextPageWithLayout<Props> = ({
   organization,
 }) => {
