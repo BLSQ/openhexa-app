@@ -98,17 +98,15 @@ const TemplateLayout = (props: TemplateLayoutProps) => {
               </Breadcrumbs.Part>
             ))}
           </Breadcrumbs>
-          <div className="flex items-center gap-2">
-            {template.permissions.delete && (
-              <Button
-                onClick={() => setDeleteTemplateDialogOpen(true)}
-                className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
-                leadingIcon={<TrashIcon className="w-4" />}
-              >
-                {t("Delete")}
-              </Button>
-            )}
-          </div>
+          {template.permissions.delete && (
+            <Button
+              onClick={() => setDeleteTemplateDialogOpen(true)}
+              className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
+              leadingIcon={<TrashIcon className="w-4" />}
+            >
+              {t("Delete")}
+            </Button>
+          )}
         </>
       }
     >
