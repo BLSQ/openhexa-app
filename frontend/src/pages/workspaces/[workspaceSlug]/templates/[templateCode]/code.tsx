@@ -38,7 +38,7 @@ const WorkspaceTemplateCodePage: NextPageWithLayout = (
   }
 
   return (
-    <Page title={template.name ?? t("Template Files")}>
+    <Page title={template.name}>
       <TemplateLayout
         workspace={workspace}
         template={template}
