@@ -60,7 +60,7 @@ const TemplateLayout = (props: TemplateLayoutProps) => {
               {
                 label: t("Code"),
                 href: `/workspaces/${encodeURIComponent(workspace.slug)}/templates/${encodeURIComponent(template.code)}/code`,
-                id: "files",
+                id: "code",
               },
             ]
           : [],

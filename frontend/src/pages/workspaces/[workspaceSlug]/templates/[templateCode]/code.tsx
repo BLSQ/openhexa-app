@@ -3,15 +3,11 @@ import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import { FilesEditor } from "workspaces/features/FilesEditor";
-import {
-  useWorkspaceTemplatePageQuery,
-  WorkspaceTemplatePageDocument,
-  WorkspaceTemplatePageQuery,
-  WorkspaceTemplatePageQueryVariables,
-} from "workspaces/graphql/queries.generated";
+import { useWorkspaceTemplatePageQuery } from "workspaces/graphql/queries.generated";
 import TemplateLayout from "workspaces/layouts/TemplateLayout";
 import DataCard from "core/components/DataCard";
 import Spinner from "core/components/Spinner";
+import { createTemplatePageServerSideProps } from "workspaces/helpers/templatePages";
 
 type WorkspaceTemplateCodePageProps = {
   templateCode: string;
@@ -46,7 +42,7 @@ const WorkspaceTemplateCodePage: NextPageWithLayout = (
       <TemplateLayout
         workspace={workspace}
         template={template}
-        currentTab="files"
+        currentTab="code"
       >
         <DataCard.FormSection>
           {template.currentVersion?.sourcePipelineVersion.files ? (
@@ -76,31 +72,8 @@ const WorkspaceTemplateCodePage: NextPageWithLayout = (
 
 WorkspaceTemplateCodePage.getLayout = (page) => page;
 
-export const getServerSideProps = createGetServerSideProps({
-  requireAuth: true,
-  async getServerSideProps(ctx, client) {
-    await TemplateLayout.prefetch(ctx, client);
-    const { data } = await client.query<
-      WorkspaceTemplatePageQuery,
-      WorkspaceTemplatePageQueryVariables
-    >({
-      query: WorkspaceTemplatePageDocument,
-      variables: {
-        workspaceSlug: ctx.params!.workspaceSlug as string,
-        templateCode: ctx.params!.templateCode as string,
-      },
-    });
-
-    if (!data.workspace || !data.template) {
-      return { notFound: true };
-    }
-    return {
-      props: {
-        workspaceSlug: ctx.params!.workspaceSlug,
-        templateCode: ctx.params!.templateCode,
-      },
-    };
-  },
-});
+export const getServerSideProps = createGetServerSideProps(
+  createTemplatePageServerSideProps(),
+);
 
 export default WorkspaceTemplateCodePage;
