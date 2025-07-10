@@ -29,7 +29,7 @@ ${DatasetVersionFileColumns_FileFragmentDoc}`;
 export const DatasetExplorer_VersionFragmentDoc = gql`
     fragment DatasetExplorer_version on DatasetVersion {
   id
-  files {
+  files(page: $page, perPage: $perPage) {
     items {
       ...DatasetExplorer_file
     }
