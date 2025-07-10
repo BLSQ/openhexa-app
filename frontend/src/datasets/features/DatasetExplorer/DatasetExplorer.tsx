@@ -6,7 +6,7 @@ import Overflow from "core/components/Overflow";
 import Tabs from "core/components/Tabs";
 import Time from "core/components/Time";
 import Title from "core/components/Title";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import DatasetVersionFileSample from "../DatasetVersionFileSample";
 import DownloadVersionFile from "../DownloadVersionFile";
 import {
