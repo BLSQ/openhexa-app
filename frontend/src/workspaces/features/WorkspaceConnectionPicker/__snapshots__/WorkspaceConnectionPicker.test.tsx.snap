@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`WorkspaceConnectionPicker display all connections 1`] = `
 <div>
@@ -80,7 +80,7 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
       data-testid="combobox-options"
       id="headlessui-combobox-options-d88d149f-80c3-4c6d-9b82-01013b801f93"
       role="listbox"
-      style="position: absolute; left: 0px; top: 0px; --input-width: 0px; --button-width: 0px; transform: translate(0px, 4px);"
+      style="position: absolute; left: 0px; top: 0px; --input-width: 0px; --button-width: 0px; right: auto; bottom: auto; transform: translate(0px, 4px);"
     >
       <div
         class="overflow-auto flex-1"
