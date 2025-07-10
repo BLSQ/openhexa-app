@@ -35,7 +35,7 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
       <OrganizationLayout organization={organization}>
         <div className="p-6">
           <div>
-            <h1 className="text-4xl font-bold m-8">{organization.name}</h1>
+            <h1 className="text-4xl font-bold m-8">{t("Manage Members")}</h1>
           </div>
         </div>
         <div className="m-8 flex justify-end">
