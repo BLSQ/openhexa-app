@@ -15,6 +15,8 @@ import { updateTemplate } from "workspaces/helpers/templates";
 import Link from "core/components/Link";
 import RenderProperty from "core/components/DataCard/RenderProperty";
 import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
+import { FilesEditor } from "workspaces/features/FilesEditor";
+import Spinner from "core/components/Spinner";
 
 type Props = {
   templateCode: string;
@@ -25,7 +27,7 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
   const { templateCode, workspaceSlug } = props;
   const { t } = useTranslation();
 
-  const { data } = useWorkspaceTemplatePageQuery({
+  const { data, loading } = useWorkspaceTemplatePageQuery({
     variables: {
       workspaceSlug,
       templateCode,
@@ -85,6 +87,19 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
                 </div>
               )}
             </RenderProperty>
+            {template.currentVersion?.sourcePipelineVersion.files && (
+              <div className="relative">
+                {loading && (
+                  <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
+                    <Spinner size="md" />
+                  </div>
+                )}
+                <FilesEditor
+                  name={template.name}
+                  files={template.currentVersion.sourcePipelineVersion.files}
+                />
+              </div>
+            )}
           </DataCard.FormSection>
         </DataCard>
       </TemplateLayout>

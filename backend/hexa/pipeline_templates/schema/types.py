@@ -122,6 +122,13 @@ def resolve_template_version_permissions_update(
     )
 
 
+@pipeline_template_version_object.field("sourcePipelineVersion")
+def resolve_pipeline_template_version_source_pipeline_version(
+    pipeline_template_version: PipelineTemplateVersion, info, **kwargs
+):
+    return pipeline_template_version.source_pipeline_version
+
+
 bindables = [
     pipeline_template_object,
     pipeline_template_version_object,

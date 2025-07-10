@@ -187,6 +187,7 @@ type PipelineTemplateVersion {
   changelog: String  # The changelog of the pipeline template version.
   createdAt: DateTime!  # The creation date of the pipeline template version.
   template: PipelineTemplate!  # The pipeline template associated with the version.
+  sourcePipelineVersion: PipelineVersion!  # The source pipeline version of the template version.
   user: User  # The user who created the version.
   permissions: PipelineTemplateVersionPermissions!  # The permissions for the pipeline version template.
   isLatestVersion: Boolean!  # Indicates if the template version is the latest version.
