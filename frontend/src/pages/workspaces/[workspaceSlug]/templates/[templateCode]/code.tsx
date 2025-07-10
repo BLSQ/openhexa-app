@@ -45,25 +45,19 @@ const WorkspaceTemplateCodePage: NextPageWithLayout = (
         currentTab="code"
       >
         <DataCard.FormSection>
-          {template.currentVersion?.sourcePipelineVersion.files ? (
-            <div className="relative overflow-hidden">
-              {loading && (
-                <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
-                  <Spinner size="md" />
-                </div>
-              )}
-              <div className="w-full overflow-x-auto">
-                <FilesEditor
-                  name={template.name}
-                  files={template.currentVersion.sourcePipelineVersion.files}
-                />
+          <div className="relative overflow-hidden">
+            {loading && (
+              <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
+                <Spinner size="md" />
               </div>
+            )}
+            <div className="w-full overflow-x-auto">
+              <FilesEditor
+                name={template.name}
+                files={template.currentVersion.sourcePipelineVersion.files}
+              />
             </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              {t("No files available for this template")}
-            </div>
-          )}
+          </div>
         </DataCard.FormSection>
       </TemplateLayout>
     </Page>
