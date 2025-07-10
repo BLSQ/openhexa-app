@@ -1,12 +1,18 @@
 import React from "react";
 import clsx from "clsx";
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronLeftIcon,
+  UsersIcon,
+  BriefcaseIcon,
+} from "@heroicons/react/24/outline";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { GetServerSidePropsContext } from "next";
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
 import NavItem from "./NavItem";
 import SidebarToggleButton from "./SidebarToggleButton";
 import Logo from "./Logo";
+import { useTranslation } from "next-i18next";
+import { HomeIcon } from "@heroicons/react/20/solid";
 
 type OrganizationSidebarProps = {
   organization: OrganizationQuery["organization"];
@@ -19,6 +25,7 @@ const OrganizationSidebar = ({
   isSidebarOpen,
   setSidebarOpen,
 }: OrganizationSidebarProps) => {
+  const { t } = useTranslation();
   if (!organization) {
     return null;
   }
@@ -43,7 +50,20 @@ const OrganizationSidebar = ({
             isSidebarOpen={isSidebarOpen}
             organizationId={organization.id}
           />
-          <div className="mt-5 flex grow flex-col"></div>
+          <div className="mt-5 flex grow flex-col gap-y-2">
+            <NavItem
+              href={`/organizations/${organization.id}`}
+              Icon={HomeIcon}
+              label={t("Workspaces")}
+              compact={!isSidebarOpen}
+            />
+            <NavItem
+              href={`/organizations/${organization.id}/members`}
+              Icon={UsersIcon}
+              label={t("Members")}
+              compact={!isSidebarOpen}
+            />
+          </div>
           <Logo isSidebarOpen={isSidebarOpen} />
         </div>
         <SidebarToggleButton
