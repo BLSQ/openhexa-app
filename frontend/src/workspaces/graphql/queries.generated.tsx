@@ -24,7 +24,7 @@ import { DatasetCard_LinkFragmentDoc } from '../../datasets/features/DatasetCard
 import { PinDatasetButton_LinkFragmentDoc } from '../../datasets/features/PinDatasetButton/PinDatasetButton.generated';
 import { DatasetLayout_WorkspaceFragmentDoc, DatasetLayout_DatasetLinkFragmentDoc, DatasetLayout_VersionFragmentDoc } from '../../datasets/layouts/DatasetLayout.generated';
 import { DatasetLinksDataGrid_DatasetFragmentDoc } from '../../datasets/features/DatasetLinksDataGrid/DatasetLinksDataGrid.generated';
-import { DatasetExplorer_VersionFragmentDoc } from '../../datasets/features/DatasetExplorer/DatasetExplorer.generated';
+import { DatasetExplorer_VersionFragmentDoc, DatasetExplorer_FileFragmentDoc } from '../../datasets/features/DatasetExplorer/DatasetExplorer.generated';
 import { BucketExplorer_WorkspaceFragmentDoc, BucketExplorer_ObjectsFragmentDoc } from '../features/BucketExplorer/BucketExplorer.generated';
 import { UploadObjectDialog_WorkspaceFragmentDoc } from '../features/UploadObjectDialog/UploadObjectDialog.generated';
 import { CreateBucketFolderDialog_WorkspaceFragmentDoc } from '../features/CreateBucketFolderDialog/CreateBucketFolderDialog.generated';
@@ -170,6 +170,8 @@ export type WorkspaceDatasetFilesPageQueryVariables = Types.Exact<{
   datasetSlug: Types.Scalars['String']['input'];
   versionId: Types.Scalars['ID']['input'];
   isSpecificVersion: Types.Scalars['Boolean']['input'];
+  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
 
 
@@ -1255,7 +1257,7 @@ export type WorkspaceDatasetAccessPageLazyQueryHookResult = ReturnType<typeof us
 export type WorkspaceDatasetAccessPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceDatasetAccessPageSuspenseQuery>;
 export type WorkspaceDatasetAccessPageQueryResult = Apollo.QueryResult<WorkspaceDatasetAccessPageQuery, WorkspaceDatasetAccessPageQueryVariables>;
 export const WorkspaceDatasetFilesPageDocument = gql`
-    query WorkspaceDatasetFilesPage($workspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!) {
+    query WorkspaceDatasetFilesPage($workspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!, $page: Int = 1, $perPage: Int = 20) {
   workspace(slug: $workspaceSlug) {
     slug
     ...DatasetLayout_workspace
@@ -1272,10 +1274,20 @@ export const WorkspaceDatasetFilesPageDocument = gql`
       version(id: $versionId) @include(if: $isSpecificVersion) {
         ...DatasetLayout_version
         ...DatasetExplorer_version
+        files(page: $page, perPage: $perPage) {
+          items {
+            ...DatasetExplorer_file
+          }
+        }
       }
       latestVersion @skip(if: $isSpecificVersion) {
         ...DatasetLayout_version
         ...DatasetExplorer_version
+        files(page: $page, perPage: $perPage) {
+          items {
+            ...DatasetExplorer_file
+          }
+        }
       }
     }
   }
@@ -1284,7 +1296,8 @@ export const WorkspaceDatasetFilesPageDocument = gql`
 ${DatasetLayout_DatasetLinkFragmentDoc}
 ${DatasetLinksDataGrid_DatasetFragmentDoc}
 ${DatasetLayout_VersionFragmentDoc}
-${DatasetExplorer_VersionFragmentDoc}`;
+${DatasetExplorer_VersionFragmentDoc}
+${DatasetExplorer_FileFragmentDoc}`;
 
 /**
  * __useWorkspaceDatasetFilesPageQuery__
@@ -1302,6 +1315,8 @@ ${DatasetExplorer_VersionFragmentDoc}`;
  *      datasetSlug: // value for 'datasetSlug'
  *      versionId: // value for 'versionId'
  *      isSpecificVersion: // value for 'isSpecificVersion'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
  *   },
  * });
  */

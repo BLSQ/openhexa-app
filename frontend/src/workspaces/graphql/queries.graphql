@@ -454,6 +454,8 @@ query WorkspaceDatasetFilesPage(
   $datasetSlug: String!
   $versionId: ID!
   $isSpecificVersion: Boolean!
+  $page: Int = 1
+  $perPage: Int = 20
 ) {
   workspace(slug: $workspaceSlug) {
     slug
@@ -472,11 +474,21 @@ query WorkspaceDatasetFilesPage(
       version(id: $versionId) @include(if: $isSpecificVersion) {
         ...DatasetLayout_version
         ...DatasetExplorer_version
+        files(page: $page, perPage: $perPage) {
+           items {
+            ...DatasetExplorer_file
+          }
+        }
       }
       # Or the last version
       latestVersion @skip(if: $isSpecificVersion) {
         ...DatasetLayout_version
         ...DatasetExplorer_version
+        files(page: $page, perPage: $perPage) {
+           items {
+            ...DatasetExplorer_file
+          }
+        }
       }
     }
   }

@@ -130,7 +130,7 @@ DatasetExplorer.fragments = {
   version: gql`
     fragment DatasetExplorer_version on DatasetVersion {
       id
-      files {
+      files(page: $page, perPage: $perPage) {
         items {
           ...DatasetExplorer_file
         }
