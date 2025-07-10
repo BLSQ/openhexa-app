@@ -1,4 +1,7 @@
 import base64
+import io
+import zipfile
+from pathlib import Path
 
 from ariadne import EnumType, ObjectType, UnionType
 from django.urls import reverse
@@ -280,6 +283,20 @@ pipeline_run_object.set_alias("logs", "run_logs")
 pipeline_run_object.set_alias("version", "pipeline_version")
 
 
+def get_language_from_path(path: str) -> str:
+    """Get language from file path extension."""
+    extension = Path(path).suffix
+    supported_languages = {
+        ".py": "python",
+        ".json": "json",
+        ".ipynb": "jupyter",
+        ".R": "r",
+        ".r": "r",
+        ".md": "markdown",
+    }
+    return supported_languages.get(extension, "text")
+
+
 pipeline_version_object = ObjectType("PipelineVersion")
 
 
@@ -299,6 +316,82 @@ def resolve_pipeline_version_is_latest(version: PipelineVersion, info, **kwargs)
 @pipeline_version_object.field("zipfile")
 def resolve_pipeline_version_zipfile(version: PipelineVersion, info, **kwargs):
     return base64.b64encode(version.zipfile).decode("ascii")
+
+
+@pipeline_version_object.field("files")
+def resolve_pipeline_version_files(version: PipelineVersion, info, **kwargs):
+    """Extract and return flattened file structure."""
+    if not version.zipfile:
+        return []
+
+    files_dict = {}
+
+    with zipfile.ZipFile(io.BytesIO(version.zipfile), "r") as zip_file:
+        for zip_entry in zip_file.infolist():
+            path = zip_entry.filename.rstrip("/")
+
+            parts = path.split("/")
+            for i in range(
+                1, len(parts)
+            ):  # Add directories up to the current file/directory
+                parent_path = "/".join(parts[:i])
+                if parent_path not in files_dict:
+                    files_dict[parent_path] = {
+                        "id": version.version_name + "/" + parent_path,
+                        "name": parts[i - 1],
+                        "path": parent_path,
+                        "type": "directory",
+                        "content": None,
+                        "parent_id": "/".join([version.version_name] + parts[: i - 1])
+                        if i > 1
+                        else None,
+                        "auto_select": False,
+                        "language": None,
+                        "line_count": None,
+                    }
+
+            if path not in files_dict:  # Add the file or directory if not already added
+                content = None
+                language = None
+                line_count = None
+                if not zip_entry.is_dir():
+                    file_content = zip_file.read(zip_entry.filename)
+                    content = file_content.decode("utf-8")
+                    language = get_language_from_path(path)
+                    line_count = content.count("\n") + 1 if content else 0
+                files_dict[path] = {
+                    "id": version.version_name + "/" + path,
+                    "name": path.split("/")[-1] if "/" in path else path,
+                    "path": path,
+                    "type": "directory" if zip_entry.is_dir() else "file",
+                    "content": content,
+                    "parent_id": "/".join([version.version_name] + path.split("/")[:-1])
+                    if "/" in path
+                    else None,
+                    "auto_select": False,
+                    "language": language,
+                    "line_count": line_count,
+                }
+
+    all_files = sorted(files_dict.values(), key=lambda f: f["name"].lower())
+
+    file_candidates = [f for f in all_files if f["type"] == "file"]
+
+    if file_candidates:  # Auto-selection
+
+        def get_file_priority(file_name):
+            if file_name in ["main.py", "__main__.py", "pipeline.py"]:
+                return 1
+            elif file_name.endswith(".py"):
+                return 2
+            return 3
+
+        auto_select_file = min(
+            file_candidates, key=lambda f: get_file_priority(f["name"])
+        )
+        auto_select_file["auto_select"] = True
+
+    return all_files
 
 
 @pipeline_version_object.field("permissions")

@@ -20,7 +20,7 @@ ariadne-codegen==0.14.0
     # via openhexa-sdk
 ariadne-django==0.3.0
     # via -r requirements.in
-asgiref==3.8.1
+asgiref==3.9.0
     # via
     #   django
     #   django-cors-headers
@@ -34,6 +34,7 @@ attrs==25.3.0
     #   ecmwf-datastores-client
     #   fiona
     #   morecantile
+    #   openlineage-python
     #   rasterio
 autoflake==2.3.1
     # via ariadne-codegen
@@ -97,11 +98,11 @@ cligj==0.7.2
     #   rasterio
 colorhash==2.1.0
     # via -r requirements.in
-coverage[toml]==7.9.1
+coverage[toml]==7.9.2
     # via -r requirements.in
 croniter==6.0.0
     # via -r requirements.in
-cryptography==45.0.4
+cryptography==45.0.5
     # via
     #   -r requirements.in
     #   moto
@@ -113,7 +114,7 @@ dill==0.4.0
     # via multiprocess
 diskcache==5.6.3
     # via openhexa-toolbox
-django==5.2.3
+django==5.2.4
     # via
     #   -r requirements.in
     #   ariadne-django
@@ -193,7 +194,7 @@ google-cloud-iam==2.19.1
     # via -r requirements.in
 google-cloud-logging==3.12.1
     # via -r requirements.in
-google-cloud-storage==3.1.1
+google-cloud-storage==3.2.0
     # via django-storages
 google-crc32c==1.7.1
     # via
@@ -275,7 +276,7 @@ mjml-python==1.3.5
     # via -r requirements.in
 morecantile==6.2.0
     # via rio-cogeo
-moto[s3]==5.1.6
+moto[s3]==5.1.8
     # via -r requirements.in
 multiprocess==0.70.18
     # via openhexa-sdk
@@ -300,10 +301,12 @@ oauthlib==3.3.1
     # via
     #   kubernetes
     #   requests-oauthlib
-openhexa-sdk==2.7.2
+openhexa-sdk==2.8.0
     # via openhexa-toolbox
-openhexa-toolbox==2.7.0
+openhexa-toolbox==2.8.1
     # via -r requirements.in
+openlineage-python==1.34.0
+    # via openhexa-toolbox
 openpyxl==3.1.5
     # via -r requirements.in
 opentelemetry-api==1.34.1
@@ -314,6 +317,7 @@ packaging==25.0
     #   build
     #   geopandas
     #   gunicorn
+    #   openlineage-python
     #   pyogrio
     #   xarray
 pandas==2.3.0
@@ -396,6 +400,7 @@ python-dateutil==2.9.0.post0
     #   moto
     #   multiurl
     #   openhexa-toolbox
+    #   openlineage-python
     #   pandas
 python-slugify==8.0.4
     # via -r requirements.in
@@ -409,6 +414,7 @@ pyyaml==6.0.2
     #   kubernetes
     #   moto
     #   openhexa-sdk
+    #   openlineage-python
     #   responses
 rasterio==1.4.3
     # via
@@ -434,6 +440,7 @@ requests==2.32.4
     #   multiurl
     #   openhexa-sdk
     #   openhexa-toolbox
+    #   openlineage-python
     #   requests-mock
     #   requests-oauthlib
     #   responses
@@ -486,7 +493,7 @@ tqdm==4.67.1
     #   -r requirements.in
     #   cdsapi
     #   multiurl
-typing-extensions==4.14.0
+typing-extensions==4.14.1
     # via
     #   ariadne
     #   cads-api-client
@@ -523,7 +530,7 @@ wheel==0.45.1
     # via pip-tools
 whitenoise==6.9.0
     # via -r requirements.in
-xarray==2025.6.1
+xarray==2025.7.0
     # via openhexa-toolbox
 xmltodict==0.14.2
     # via moto

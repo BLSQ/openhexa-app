@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.13.0](https://github.com/BLSQ/openhexa-app/compare/1.12.1...1.13.0) (2025-07-09)
+
+
+### Features
+
+* View pipeline code (HEXA-1302) ([#1239](https://github.com/BLSQ/openhexa-app/issues/1239)) ([cb37aa3](https://github.com/BLSQ/openhexa-app/commit/cb37aa3b3bdba7f0872915629538b3fd675d8dcb))
+
+
+### Bug Fixes
+
+* **deps:** update nextjs monorepo to v15.3.5 ([#1244](https://github.com/BLSQ/openhexa-app/issues/1244)) ([6e1427b](https://github.com/BLSQ/openhexa-app/commit/6e1427b93071cfd065538a815d39414ffb852916))
+
+## [1.12.1](https://github.com/BLSQ/openhexa-app/compare/1.12.0...1.12.1) (2025-07-08)
+
+
+### Bug Fixes
+
+* Allow OpenHEXA to embed itself, needed for Superset dashboard in Web Apps ([d0f1a63](https://github.com/BLSQ/openhexa-app/commit/d0f1a632b30d6210b93e8340f1ad569c162704e7))
+* **deps:** update dependency @types/lodash to v4.17.20 ([#1243](https://github.com/BLSQ/openhexa-app/issues/1243)) ([d734113](https://github.com/BLSQ/openhexa-app/commit/d7341130c99c1fa21f6063281a6b1645b9d309a4))
+* filter for user methods to support pipeline token for most methods (HEXA-1316 ) ([#1237](https://github.com/BLSQ/openhexa-app/issues/1237)) ([5fc18ec](https://github.com/BLSQ/openhexa-app/commit/5fc18ecf81dd2a7db8e0e2c72ba1641efed3177c))
+
 ## [1.12.0](https://github.com/BLSQ/openhexa-app/compare/1.11.0...1.12.0) (2025-06-30)
 
 
