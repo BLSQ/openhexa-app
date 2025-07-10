@@ -8,6 +8,12 @@ import {
   OrganizationQuery,
 } from "organizations/graphql/queries.generated";
 import Page from "core/components/Page";
+import Title from "../../../core/components/Title";
+import Button from "../../../core/components/Button";
+import { PlusCircleIcon } from "@heroicons/react/24/outline";
+import WorkspaceMembers from "../../../workspaces/features/WorkspaceMembers";
+import { useState } from "react";
+import Block from "../../../core/components/Block";
 
 type Props = {
   organization: OrganizationQuery["organization"];
@@ -16,6 +22,8 @@ type Props = {
 const OrganizationMembersPage: NextPageWithLayout<Props> = ({
   organization,
 }) => {
+  const [isNewMemberDialogOpen, setIsNewMemberDialogOpen] = useState(false);
+
   const { t } = useTranslation();
 
   if (!organization) {
@@ -25,13 +33,23 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
   return (
     <Page title={t("Members")}>
       <OrganizationLayout organization={organization}>
-        <div className="mx-auto max-w-6xl p-4">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">{t("Members")}</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              {t("Manage organization members and send invitations")}
-            </p>
+        <div className="p-6">
+          <div>
+            <h1 className="text-4xl font-bold m-8">{organization.name}</h1>
           </div>
+        </div>
+        <div className="m-8 flex justify-end">
+          <Button
+            onClick={() => setIsNewMemberDialogOpen(true)}
+            leadingIcon={<PlusCircleIcon className="mr-1 h-4 w-4" />}
+          >
+            {t("Add/Invite member")}
+          </Button>
+        </div>
+        <div className="m-8">
+          <Block>
+            <WorkspaceMembers workspaceSlug={"test"} />
+          </Block>
         </div>
       </OrganizationLayout>
     </Page>
