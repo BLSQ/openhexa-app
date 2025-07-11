@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.13.1](https://github.com/BLSQ/openhexa-app/compare/1.13.0...1.13.1) (2025-07-11)
+
+
+### Bug Fixes
+
+* add paging to dataset files (HEXA-1329 ) ([#1241](https://github.com/BLSQ/openhexa-app/issues/1241)) ([c3ee15e](https://github.com/BLSQ/openhexa-app/commit/c3ee15e1a9bf3f27b3bf0145869cc5d911f20d8b))
+* codegen generation issue  ([#1253](https://github.com/BLSQ/openhexa-app/issues/1253)) ([902c3bb](https://github.com/BLSQ/openhexa-app/commit/902c3bb48da1fcd2d7f48985d3afe1884ba2a820))
+* exposes pipeline code in kubernetes ([#1251](https://github.com/BLSQ/openhexa-app/issues/1251)) ([adc3199](https://github.com/BLSQ/openhexa-app/commit/adc319917811c507787b890a0f96f8e91e87b4e8))
+
 ## [1.13.0](https://github.com/BLSQ/openhexa-app/compare/1.12.1...1.13.0) (2025-07-09)
 
 
