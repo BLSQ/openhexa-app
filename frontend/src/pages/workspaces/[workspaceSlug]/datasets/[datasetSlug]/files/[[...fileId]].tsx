@@ -23,12 +23,16 @@ export type WorkspaceDatasetFilesPageProps = {
   currentFile: NonNullable<DatasetExplorer_FileFragment>;
 };
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 20;
+
 const WorkspaceDatasetFilesPage: NextPageWithLayout = (
   props: WorkspaceDatasetFilesPageProps,
 ) => {
   const { t } = useTranslation();
   const router = useRouter();
   const [isLinkDialogOpen, setLinkDialogOpen] = useState(false);
+  const page = parseInt(router.query.page as string) || DEFAULT_PAGE;
   const {
     currentFile,
     isSpecificVersion,
@@ -36,8 +40,16 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
     datasetSlug,
     versionId,
   } = props;
+
   const { data } = useWorkspaceDatasetFilesPageQuery({
-    variables: { isSpecificVersion, workspaceSlug, datasetSlug, versionId },
+    variables: {
+      isSpecificVersion,
+      workspaceSlug,
+      datasetSlug,
+      versionId,
+      page,
+      perPage: DEFAULT_PAGE_SIZE,
+    },
   });
   if (!data || !data.datasetLink || !data.workspace) {
     return null;
@@ -75,6 +87,16 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
               },
             })
           }
+          perPage={DEFAULT_PAGE_SIZE}
+          onPageChange={(newPage) =>
+            router.push({
+              pathname: router.pathname,
+              query: {
+                ...router.query,
+                page: newPage,
+              },
+            })
+          }
         />
       </DatasetLayout>
       <LinkDatasetDialog
@@ -99,6 +121,8 @@ export const getServerSideProps = createGetServerSideProps({
       datasetSlug: ctx.params!.datasetSlug as string,
       versionId: versionId,
       isSpecificVersion: Boolean(versionId),
+      page: Number(ctx.query.page) || DEFAULT_PAGE,
+      perPage: Number(ctx.query.perPage) || DEFAULT_PAGE_SIZE,
     };
 
     const { data } = await client.query<
@@ -122,6 +146,17 @@ export const getServerSideProps = createGetServerSideProps({
       const currentFile = version.files.items.find(
         (f) => f.id === currentFileId,
       );
+      // If file not found on current page, redirect to first file of current page
+      if (!currentFile && version.files.items.length > 0) {
+        return {
+          redirect: {
+            destination: `/workspaces/${encodeURIComponent(
+              data.workspace.slug,
+            )}/datasets/${encodeURIComponent(data.datasetLink.dataset.slug)}/files/${encodeURIComponent(version.files.items[0].id)}?version=${encodeURIComponent(version.id)}&page=${variables.page}`,
+            permanent: false,
+          },
+        };
+      }
       if (!currentFile) {
         return { notFound: true };
       }
@@ -137,7 +172,7 @@ export const getServerSideProps = createGetServerSideProps({
           redirect: {
             destination: `/workspaces/${encodeURIComponent(
               data.workspace.slug,
-            )}/datasets/${encodeURIComponent(data.datasetLink.dataset.slug)}/files/${encodeURIComponent(version.files.items[0].id)}?version=${encodeURIComponent(version.id)}`,
+            )}/datasets/${encodeURIComponent(data.datasetLink.dataset.slug)}/files/${encodeURIComponent(version.files.items[0].id)}?version=${encodeURIComponent(version.id)}&page=${variables.page}`,
             permanent: false,
           },
         };
