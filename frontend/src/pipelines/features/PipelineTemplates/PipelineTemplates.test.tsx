@@ -113,7 +113,7 @@ describe("PipelineTemplates", () => {
     fireEvent.change(searchInput, { target: { value: "Template 1" } });
 
     await waitFor(() => {
-      expect(useQueryMock).lastCalledWith(
+      expect(useQueryMock).toHaveBeenLastCalledWith(
         "GQL",
         expect.objectContaining({
           variables: expect.objectContaining({
