@@ -25,15 +25,47 @@ type TemplateLayoutProps = {
 };
 
 const TemplateLayout = (props: TemplateLayoutProps) => {
-  const { children, workspace, template, extraBreadcrumbs = [] } = props;
+  const {
+    children,
+    workspace,
+    template,
+    currentTab = "general",
+    extraBreadcrumbs = [],
+  } = props;
 
   const { t } = useTranslation();
   const [isDeleteTemplateDialogOpen, setDeleteTemplateDialogOpen] =
     useState(false);
 
   return (
-    <WorkspaceLayout
+    <TabLayout
       workspace={workspace}
+      helpLinks={[
+        {
+          label: t("About templates"),
+          href: "https://github.com/BLSQ/openhexa/wiki/User-manual",
+        },
+      ]}
+      item={template}
+      currentTab={currentTab}
+      tabs={[
+        {
+          label: t("General"),
+          href: `/workspaces/${encodeURIComponent(workspace.slug)}/templates/${encodeURIComponent(template.code)}`,
+          id: "general",
+        },
+      ].concat(
+        template.currentVersion
+          ? [
+              {
+                label: t("Code"),
+                href: `/workspaces/${encodeURIComponent(workspace.slug)}/templates/${encodeURIComponent(template.code)}/code`,
+                id: "code",
+              },
+            ]
+          : [],
+      )}
+      title={template.name}
       header={
         <>
           <Breadcrumbs withHome={false} className="flex-1">
@@ -78,10 +110,7 @@ const TemplateLayout = (props: TemplateLayoutProps) => {
         </>
       }
     >
-      <WorkspaceLayout.PageContent>
-        <Title level={2}>{template.name ?? t("Template")}</Title>
-        {children}
-      </WorkspaceLayout.PageContent>
+      {children}
       <DeleteTemplateDialog
         open={isDeleteTemplateDialogOpen}
         onDelete={() =>
@@ -94,7 +123,7 @@ const TemplateLayout = (props: TemplateLayoutProps) => {
         }}
         pipelineTemplate={template}
       />
-    </WorkspaceLayout>
+    </TabLayout>
   );
 };
 

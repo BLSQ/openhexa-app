@@ -676,6 +676,11 @@ query WorkspaceTemplatePage($workspaceSlug: String!, $templateCode: String!) {
     currentVersion {
       id
       versionNumber
+      sourcePipelineVersion {
+        files {
+            ...FilesEditor_file
+        }
+      }
     }
   }
 }
