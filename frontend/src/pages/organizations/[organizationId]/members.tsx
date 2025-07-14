@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
@@ -8,24 +7,18 @@ import {
   OrganizationQuery,
 } from "organizations/graphql/queries.generated";
 import Page from "core/components/Page";
-import Title from "../../../core/components/Title";
-import Button from "../../../core/components/Button";
+import Button from "core/components/Button";
 import { PlusCircleIcon } from "@heroicons/react/24/outline";
-import WorkspaceMembers from "../../../workspaces/features/WorkspaceMembers";
+import OrganizationMembers from "organizations/features/OrganizationMembers";
+import AddOrganizationMemberDialog from "organizations/features/OrganizationMembers/AddOrganizationMemberDialog";
 import { useState } from "react";
-import Block from "../../../core/components/Block";
+import Block from "core/components/Block";
+import OrganizationInvitations from "organizations/features/OrganizationInvitations";
+import Title from "core/components/Title";
 
 type Props = {
   organization: OrganizationQuery["organization"];
 };
-
-// TODO : search user
-// TODO : show org and workspace roles
-// TODO : actions
-// TODO : add
-// TODO : update
-// TODO : delete
-// TODO : show invite
 
 const OrganizationMembersPage: NextPageWithLayout<Props> = ({
   organization,
@@ -55,10 +48,17 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
           </Button>
         </div>
         <div className="m-8">
-          <Block>
-            <WorkspaceMembers workspaceSlug={"test"} />
-          </Block>
+          <OrganizationMembers organizationId={organization.id} />
         </div>
+        <div className="m-8">
+          <Title level={2}>{t("Pending & Declined invitations")}</Title>
+          <OrganizationInvitations organizationId={organization.id} />
+        </div>
+        <AddOrganizationMemberDialog
+          open={isNewMemberDialogOpen}
+          onClose={() => setIsNewMemberDialogOpen(false)}
+          organizationId={organization.id}
+        />
       </OrganizationLayout>
     </Page>
   );
