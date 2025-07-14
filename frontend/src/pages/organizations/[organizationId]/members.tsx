@@ -12,7 +12,6 @@ import { PlusCircleIcon } from "@heroicons/react/24/outline";
 import OrganizationMembers from "organizations/features/OrganizationMembers";
 import AddOrganizationMemberDialog from "organizations/features/OrganizationMembers/AddOrganizationMemberDialog";
 import { useState } from "react";
-import Block from "core/components/Block";
 import OrganizationInvitations from "organizations/features/OrganizationInvitations";
 import Title from "core/components/Title";
 
