@@ -39,6 +39,9 @@ from hexa.user_management.models import (
     Feature,
     Membership,
     Organization,
+    OrganizationInvitation,
+    OrganizationInvitationStatus,
+    OrganizationMembership,
     Team,
     User,
 )
@@ -515,6 +518,15 @@ def resolve_type(obj: Organization, *_):
 @organization_object.field("members")
 def resolve_members(organization: Organization, info, **kwargs):
     qs = organization.organizationmembership_set.all().order_by("-updated_at")
+
+    term = kwargs.get("term")
+    if term:
+        qs = qs.filter(
+            Q(user__first_name__icontains=term)
+            | Q(user__last_name__icontains=term)
+            | Q(user__email__icontains=term)
+        )
+
     return result_page(
         queryset=qs,
         page=kwargs.get("page", 1),
@@ -538,6 +550,25 @@ def resolve_workspaces(organization: Organization, info, **kwargs):
 @organization_object.field("permissions")
 def resolve_organization_permissions(organization: Organization, info):
     return organization
+
+
+@organization_object.field("invitations")
+def resolve_organization_invitations(organization: Organization, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    qs = (
+        OrganizationInvitation.objects.filter_for_user(request.user)
+        .filter(organization=organization)
+        .order_by("-updated_at")
+    )
+    if not kwargs.get("include_accepted"):
+        qs = qs.exclude(status=OrganizationInvitationStatus.ACCEPTED)
+
+    return result_page(
+        queryset=qs,
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", 5),
+    )
 
 
 @organization_queries.field("organization")
@@ -571,6 +602,17 @@ def resolve_organization_permissions_archive_workspace(
     user = request.user
     return (
         user.has_perm("user_management.archive_workspace", organization)
+        if user.is_authenticated
+        else False
+    )
+
+
+@organization_permissions_object.field("manageMembers")
+def resolve_organization_permissions_manage_members(organization: Organization, info):
+    request: HttpRequest = info.context["request"]
+    user = request.user
+    return (
+        user.has_perm("user_management.manage_members", organization)
         if user.is_authenticated
         else False
     )
@@ -760,6 +802,124 @@ def resolve_update_user(_, info, **kwargs):
     return {"success": True, "errors": [], "user": user}
 
 
+@identity_mutations.field("addOrganizationMember")
+@transaction.atomic
+def resolve_add_organization_member(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    create_input = kwargs["input"]
+
+    try:
+        user = User.objects.get(email=create_input["user_email"])
+        organization = Organization.objects.get(id=create_input["organization_id"])
+
+        # Check permission to manage members
+        if not principal.has_perm("user_management.manage_members", organization):
+            raise PermissionDenied
+
+        # Check if user is already a member
+        if OrganizationMembership.objects.filter(
+            user=user, organization=organization
+        ).exists():
+            return {"success": False, "membership": None, "errors": ["ALREADY_EXISTS"]}
+
+        # Create the membership (convert uppercase enum to lowercase)
+        membership = OrganizationMembership.objects.create(
+            user=user,
+            organization=organization,
+            role=create_input["role"].lower(),
+        )
+        return {"success": True, "membership": membership, "errors": []}
+
+    except User.DoesNotExist:
+        return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}
+    except Organization.DoesNotExist:
+        return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
+
+
+@identity_mutations.field("updateOrganizationMember")
+@transaction.atomic
+def resolve_update_organization_member(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    update_input = kwargs["input"]
+
+    try:
+        membership = OrganizationMembership.objects.get(id=update_input["id"])
+
+        # Check permission to manage members
+        if not principal.has_perm(
+            "user_management.manage_members", membership.organization
+        ):
+            raise PermissionDenied
+
+        # Update the role (convert uppercase enum to lowercase)
+        membership.role = update_input["role"].lower()
+        membership.save()
+
+        return {"success": True, "membership": membership, "errors": []}
+
+    except OrganizationMembership.DoesNotExist:
+        return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
+
+
+@identity_mutations.field("deleteOrganizationMember")
+@transaction.atomic
+def resolve_delete_organization_member(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    delete_input = kwargs["input"]
+
+    try:
+        membership = OrganizationMembership.objects.get(id=delete_input["id"])
+
+        # Check permission to manage members
+        if not principal.has_perm(
+            "user_management.manage_members", membership.organization
+        ):
+            raise PermissionDenied
+
+        # Prevent user from deleting themselves
+        if membership.user == principal:
+            return {"success": False, "errors": ["CANNOT_DELETE_SELF"]}
+
+        # Delete the membership
+        membership.delete()
+
+        return {"success": True, "errors": []}
+
+    except OrganizationMembership.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
+# Organization membership object type resolver
+organization_membership_object = ObjectType("OrganizationMembership")
+
+
+@organization_membership_object.field("role")
+def resolve_organization_membership_role(
+    membership: OrganizationMembership, info, **kwargs
+):
+    """Convert lowercase role to uppercase for GraphQL enum"""
+    return membership.role.upper()
+
+
+@organization_membership_object.field("workspaceMemberships")
+def resolve_organization_membership_workspace_memberships(
+    membership: OrganizationMembership, info, **kwargs
+):
+    """Return workspace memberships for this user within the organization"""
+    return WorkspaceMembership.objects.filter(
+        user=membership.user, workspace__organization=membership.organization
+    ).select_related("workspace")
+
+
 identity_bindables = [
     identity_query,
     user_object,
@@ -772,6 +932,7 @@ identity_bindables = [
     organization_object,
     organization_queries,
     organization_permissions_object,
+    organization_membership_object,
     identity_mutations,
 ]
 

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import base64
 import uuid
 
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.signing import TimestampSigner
 from django.db import models
 from django.db.models import EmailField, Q
 from django.utils.translation import gettext_lazy as _
@@ -424,3 +426,75 @@ class Permission(Base):
 
     def index_object(self):
         raise NotImplementedError
+
+
+class OrganizationInvitationStatus(models.TextChoices):
+    PENDING = "PENDING"
+    DECLINED = "DECLINED"
+    ACCEPTED = "ACCEPTED"
+
+
+class OrganizationInvitationQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(organization__organizationmembership__user=user),
+            return_all_if_superuser=False,
+        )
+
+
+class OrganizationInvitationManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        *,
+        organization: Organization,
+        email: str,
+        role: OrganizationMembershipRole,
+    ):
+        if not principal.has_perm("user_management.manage_members", organization):
+            raise PermissionDenied
+
+        return self.create(
+            email=email, organization=organization, role=role, invited_by=principal
+        )
+
+    def get_by_token(self, token: str):
+        signer = TimestampSigner()
+        decoded_value = base64.b64decode(token).decode("utf-8")
+        # the token is valid for 48h
+        invitation_id = signer.unsign(decoded_value, max_age=48 * 3600)
+        return self.get(id=invitation_id)
+
+
+class OrganizationInvitation(Base):
+    email = EmailField(db_collation="case_insensitive")
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+    )
+    invited_by = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    role = models.CharField(choices=OrganizationMembershipRole.choices, max_length=50)
+    status = models.CharField(
+        max_length=50,
+        choices=OrganizationInvitationStatus.choices,
+        default=OrganizationInvitationStatus.PENDING,
+    )
+
+    objects = OrganizationInvitationManager.from_queryset(
+        OrganizationInvitationQuerySet
+    )()
+
+    def generate_invitation_token(self):
+        signer = TimestampSigner()
+        return base64.b64encode(signer.sign(self.id).encode("utf-8")).decode()
+
+    def delete_if_has_perm(self, principal: User):
+        if not principal.has_perm("user_management.manage_members", self.organization):
+            raise PermissionDenied
+
+        return self.delete()
