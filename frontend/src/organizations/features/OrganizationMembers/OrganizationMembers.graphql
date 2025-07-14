@@ -1,0 +1,27 @@
+query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String) {
+  organization(id: $id) {
+    id
+      permissions {
+          manageMembers
+      }
+    members(page: $page, perPage: $perPage, term: $term) {
+        totalItems
+      items {
+        id
+        role
+        workspaceMemberships {
+            id
+            workspace {
+                name
+            }
+        }
+        user {
+            id
+            displayName
+            email
+        }
+        createdAt
+      }
+    }
+  }
+}

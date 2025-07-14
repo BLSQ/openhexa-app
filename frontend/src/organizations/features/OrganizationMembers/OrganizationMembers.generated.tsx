@@ -11,7 +11,7 @@ export type OrganizationMembersQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationMembersQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number, items: Array<{ __typename?: 'OrganizationMembership', id: string, role: Types.OrganizationMembershipRole, createdAt: any, user: { __typename?: 'User', id: string, displayName: string, email: string }, workspaceMemberships: Array<{ __typename?: 'WorkspaceMembership', id: string, role: Types.WorkspaceMembershipRole, workspace: { __typename?: 'Workspace', slug: string, name: string } }> }> } } | null };
+export type OrganizationMembersQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number, items: Array<{ __typename?: 'OrganizationMembership', id: string, role: Types.OrganizationMembershipRole, createdAt: any, workspaceMemberships: Array<{ __typename?: 'WorkspaceMembership', id: string, workspace: { __typename?: 'Workspace', name: string } }>, user: { __typename?: 'User', id: string, displayName: string, email: string } }> } } | null };
 
 
 export const OrganizationMembersDocument = gql`
@@ -26,18 +26,16 @@ export const OrganizationMembersDocument = gql`
       items {
         id
         role
+        workspaceMemberships {
+          id
+          workspace {
+            name
+          }
+        }
         user {
           id
           displayName
           email
-        }
-        workspaceMemberships {
-          id
-          role
-          workspace {
-            slug
-            name
-          }
         }
         createdAt
       }
