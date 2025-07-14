@@ -997,7 +997,7 @@ type Organization {
     """
     The members of the organization.
     """
-    members(page: Int, perPage: Int): OrganizationMembershipPage!
+    members(page: Int, perPage: Int, term: String): OrganizationMembershipPage!
 
     """
     The workspaces associated with the organization.
@@ -1008,11 +1008,62 @@ type Organization {
     The permissions the current user has in the organization.
     """
     permissions: OrganizationPermissions!
+
+    """
+    The invitations sent to join the organization.
+    """
+    invitations(includeAccepted: Boolean, page: Int, perPage: Int): OrganizationInvitationPage!
 }
 
 type OrganizationPermissions {
     createWorkspace: Boolean!
     archiveWorkspace: Boolean!
+    manageMembers: Boolean!
+}
+
+"""
+Represents a page of organization invitations.
+"""
+type OrganizationInvitationPage {
+  # The current page number.
+  pageNumber: Int!
+  # The total number of pages.
+  totalPages: Int!
+  # The total number of items.
+  totalItems: Int!
+  # The list of organization invitations on the current page.
+  items: [OrganizationInvitation!]!
+}
+
+"""
+Represents an invitation to join an organization.
+"""
+type OrganizationInvitation {
+  # The unique identifier for the invitation.
+  id: UUID!
+  # The email address of the invitee.
+  email: String!
+  # The organization associated with the invitation.
+  organization: Organization!
+  # The role of the invitee in the organization.
+  role: OrganizationMembershipRole!
+  # The status of the invitation.
+  status: OrganizationInvitationStatus!
+  # The user who sent the invitation.
+  invitedBy: User
+  # The date and time when the invitation was created.
+  createdAt: DateTime!
+  # The date and time when the invitation was last updated.
+  updatedAt: DateTime
+}
+
+"""
+Represents the status of an organization invitation.
+"""
+enum OrganizationInvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }
 
 
@@ -1030,7 +1081,7 @@ type OrganizationMembershipPage {
   totalItems: Int!
 
   # The list of organization memberships on the current page.
-  items: [WorkspaceMembership!]!
+  items: [OrganizationMembership!]!
 }
 
 """
@@ -1048,6 +1099,9 @@ type OrganizationMembership {
 
   # The role of the member in the organization.
   role: OrganizationMembershipRole!
+
+  # The workspace memberships of the user within this organization.
+  workspaceMemberships: [WorkspaceMembership!]!
 
   # The date and time when the membership was created.
   createdAt: DateTime!
@@ -1208,4 +1262,209 @@ type EnableTwoFactorResult {
     success: Boolean!
     verified: Boolean
     errors: [EnableTwoFactorError!]
+}
+
+"""
+The AddOrganizationMemberInput type represents the input for the addOrganizationMember mutation.
+"""
+input AddOrganizationMemberInput {
+    """
+    The email address of the user to add to the organization.
+    """
+    userEmail: String!
+
+    """
+    The unique identifier of the organization.
+    """
+    organizationId: UUID!
+
+    """
+    The role of the user in the organization.
+    """
+    role: OrganizationMembershipRole!
+}
+
+"""
+The AddOrganizationMemberResult type represents the result of the addOrganizationMember mutation.
+"""
+type AddOrganizationMemberResult {
+    """
+    Indicates whether the addOrganizationMember mutation was successful.
+    """
+    success: Boolean!
+
+    """
+    The created organization membership object.
+    """
+    membership: OrganizationMembership
+
+    """
+    The list of errors that occurred during the addOrganizationMember mutation.
+    """
+    errors: [AddOrganizationMemberError!]!
+}
+
+"""
+The AddOrganizationMemberError enum represents the possible errors that can occur during the addOrganizationMember mutation.
+"""
+enum AddOrganizationMemberError {
+    """
+    Indicates that the user does not have permission to add members to the organization.
+    """
+    PERMISSION_DENIED
+}
+
+"""
+The UpdateOrganizationMemberInput type represents the input for the updateOrganizationMember mutation.
+"""
+input UpdateOrganizationMemberInput {
+    """
+    The unique identifier of the organization membership to update.
+    """
+    id: UUID!
+
+    """
+    The updated role of the user in the organization.
+    """
+    role: OrganizationMembershipRole!
+}
+
+"""
+The UpdateOrganizationMemberResult type represents the result of the updateOrganizationMember mutation.
+"""
+type UpdateOrganizationMemberResult {
+    """
+    Indicates whether the updateOrganizationMember mutation was successful.
+    """
+    success: Boolean!
+
+    """
+    The updated organization membership object.
+    """
+    membership: OrganizationMembership
+
+    """
+    The list of errors that occurred during the updateOrganizationMember mutation.
+    """
+    errors: [UpdateOrganizationMemberError!]!
+}
+
+"""
+The UpdateOrganizationMemberError enum represents the possible errors that can occur during the updateOrganizationMember mutation.
+"""
+enum UpdateOrganizationMemberError {
+    """
+    Indicates that the user does not have permission to update the organization membership.
+    """
+    PERMISSION_DENIED
+
+    """
+    Indicates that the organization membership was not found.
+    """
+    NOT_FOUND
+
+    """
+    Indicates that the provided role is invalid.
+    """
+    INVALID_ROLE
+}
+
+"""
+The DeleteOrganizationMemberInput type represents the input for the deleteOrganizationMember mutation.
+"""
+input DeleteOrganizationMemberInput {
+    """
+    The unique identifier of the organization membership to delete.
+    """
+    id: UUID!
+}
+
+"""
+The DeleteOrganizationMemberResult type represents the result of the deleteOrganizationMember mutation.
+"""
+type DeleteOrganizationMemberResult {
+    """
+    Indicates whether the deleteOrganizationMember mutation was successful.
+    """
+    success: Boolean!
+
+    """
+    The list of errors that occurred during the deleteOrganizationMember mutation.
+    """
+    errors: [DeleteOrganizationMemberError!]!
+}
+
+"""
+The DeleteOrganizationMemberError enum represents the possible errors that can occur during the deleteOrganizationMember mutation.
+"""
+enum DeleteOrganizationMemberError {
+    """
+    Indicates that the user does not have permission to delete the organization membership.
+    """
+    PERMISSION_DENIED
+
+    """
+    Indicates that the organization membership was not found.
+    """
+    NOT_FOUND
+}
+
+"""
+The DeleteOrganizationInvitationInput type represents the input for the deleteOrganizationInvitation mutation.
+"""
+input DeleteOrganizationInvitationInput {
+    """
+    The unique identifier of the organization invitation to delete.
+    """
+    id: UUID!
+}
+
+"""
+The DeleteOrganizationInvitationResult type represents the result of the deleteOrganizationInvitation mutation.
+"""
+type DeleteOrganizationInvitationResult {
+  success: Boolean!
+  errors: [DeleteOrganizationInvitationError!]!
+}
+
+"""
+The DeleteOrganizationInvitationError enum represents the possible errors that can occur during the deleteOrganizationInvitation mutation.
+"""
+enum DeleteOrganizationInvitationError {
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""
+The ResendOrganizationInvitationInput type represents the input for the resendOrganizationInvitation mutation.
+"""
+input ResendOrganizationInvitationInput {
+    """
+    The unique identifier of the organization invitation to resend.
+    """
+    id: UUID!
+}
+
+"""
+The ResendOrganizationInvitationResult type represents the result of the resendOrganizationInvitation mutation.
+"""
+type ResendOrganizationInvitationResult {
+  success: Boolean!
+  errors: [ResendOrganizationInvitationError!]!
+}
+
+"""
+The ResendOrganizationInvitationError enum represents the possible errors that can occur during the resendOrganizationInvitation mutation.
+"""
+enum ResendOrganizationInvitationError {
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+extend type Mutation {
+    addOrganizationMember(input: AddOrganizationMemberInput!): AddOrganizationMemberResult! @loginRequired
+    updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult! @loginRequired
+    deleteOrganizationMember(input: DeleteOrganizationMemberInput!): DeleteOrganizationMemberResult! @loginRequired
+    deleteOrganizationInvitation(input: DeleteOrganizationInvitationInput!): DeleteOrganizationInvitationResult! @loginRequired
+    resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult! @loginRequired
 }

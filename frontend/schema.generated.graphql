@@ -283,6 +283,46 @@ type AccessmodZonalStatistics implements AccessmodAnalysis & AccessmodOwnership 
   zonalStatisticsTable: AccessmodFileset
 }
 
+"""
+The AddOrganizationMemberError enum represents the possible errors that can occur during the addOrganizationMember mutation.
+"""
+enum AddOrganizationMemberError {
+  """
+  Indicates that the user does not have permission to add members to the organization.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The AddOrganizationMemberInput type represents the input for the addOrganizationMember mutation.
+"""
+input AddOrganizationMemberInput {
+  """The unique identifier of the organization."""
+  organizationId: UUID!
+
+  """The role of the user in the organization."""
+  role: OrganizationMembershipRole!
+
+  """The email address of the user to add to the organization."""
+  userEmail: String!
+}
+
+"""
+The AddOrganizationMemberResult type represents the result of the addOrganizationMember mutation.
+"""
+type AddOrganizationMemberResult {
+  """
+  The list of errors that occurred during the addOrganizationMember mutation.
+  """
+  errors: [AddOrganizationMemberError!]!
+
+  """The created organization membership object."""
+  membership: OrganizationMembership
+
+  """Indicates whether the addOrganizationMember mutation was successful."""
+  success: Boolean!
+}
+
 """Represents the input for adding an output to a pipeline."""
 input AddPipelineOutputInput {
   name: String
@@ -1496,6 +1536,66 @@ type DeleteMetadataAttributeResult {
   success: Boolean!
 }
 
+"""
+The DeleteOrganizationInvitationError enum represents the possible errors that can occur during the deleteOrganizationInvitation mutation.
+"""
+enum DeleteOrganizationInvitationError {
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""
+The DeleteOrganizationInvitationInput type represents the input for the deleteOrganizationInvitation mutation.
+"""
+input DeleteOrganizationInvitationInput {
+  """The unique identifier of the organization invitation to delete."""
+  id: UUID!
+}
+
+"""
+The DeleteOrganizationInvitationResult type represents the result of the deleteOrganizationInvitation mutation.
+"""
+type DeleteOrganizationInvitationResult {
+  errors: [DeleteOrganizationInvitationError!]!
+  success: Boolean!
+}
+
+"""
+The DeleteOrganizationMemberError enum represents the possible errors that can occur during the deleteOrganizationMember mutation.
+"""
+enum DeleteOrganizationMemberError {
+  """Indicates that the organization membership was not found."""
+  NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to delete the organization membership.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The DeleteOrganizationMemberInput type represents the input for the deleteOrganizationMember mutation.
+"""
+input DeleteOrganizationMemberInput {
+  """The unique identifier of the organization membership to delete."""
+  id: UUID!
+}
+
+"""
+The DeleteOrganizationMemberResult type represents the result of the deleteOrganizationMember mutation.
+"""
+type DeleteOrganizationMemberResult {
+  """
+  The list of errors that occurred during the deleteOrganizationMember mutation.
+  """
+  errors: [DeleteOrganizationMemberError!]!
+
+  """
+  Indicates whether the deleteOrganizationMember mutation was successful.
+  """
+  success: Boolean!
+}
+
 """Represents the input for deleting a pipeline."""
 input DeletePipelineInput {
   id: UUID!
@@ -2230,6 +2330,8 @@ interface MetadataObject {
 scalar MovingSpeeds
 
 type Mutation {
+  addOrganizationMember(input: AddOrganizationMemberInput!): AddOrganizationMemberResult!
+
   """Adds an output to a pipeline."""
   addPipelineOutput(input: AddPipelineOutputInput!): AddPipelineOutputResult!
 
@@ -2290,6 +2392,8 @@ type Mutation {
 
   """Delete an metadata attribute from an object instance"""
   deleteMetadataAttribute(input: DeleteMetadataAttributeInput!): DeleteMetadataAttributeResult!
+  deleteOrganizationInvitation(input: DeleteOrganizationInvitationInput!): DeleteOrganizationInvitationResult!
+  deleteOrganizationMember(input: DeleteOrganizationMemberInput!): DeleteOrganizationMemberResult!
 
   """Deletes a pipeline."""
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult!
@@ -2375,6 +2479,7 @@ type Mutation {
   register(input: RegisterInput!): RegisterResult!
   removeFromFavorites(input: RemoveFromFavoritesInput!): RemoveFromFavoritesResult!
   requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
+  resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult!
   resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult!
 
   """Sends a password reset email to the user."""
@@ -2407,6 +2512,7 @@ type Mutation {
   """Update a dataset version."""
   updateDatasetVersion(input: UpdateDatasetVersionInput!): UpdateDatasetVersionResult!
   updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
+  updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult!
 
   """Updates an existing pipeline."""
   updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult!
@@ -2465,8 +2571,11 @@ type Organization {
   """The unique identifier of the organization."""
   id: UUID!
 
+  """The invitations sent to join the organization."""
+  invitations(includeAccepted: Boolean, page: Int, perPage: Int): OrganizationInvitationPage!
+
   """The members of the organization."""
-  members(page: Int, perPage: Int): OrganizationMembershipPage!
+  members(page: Int, perPage: Int, term: String): OrganizationMembershipPage!
 
   """The name of the organization."""
   name: String!
@@ -2507,6 +2616,33 @@ input OrganizationInput {
   url: String
 }
 
+"""Represents an invitation to join an organization."""
+type OrganizationInvitation {
+  createdAt: DateTime!
+  email: String!
+  id: UUID!
+  invitedBy: User
+  organization: Organization!
+  role: OrganizationMembershipRole!
+  status: OrganizationInvitationStatus!
+  updatedAt: DateTime
+}
+
+"""Represents a page of organization invitations."""
+type OrganizationInvitationPage {
+  items: [OrganizationInvitation!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""Represents the status of an organization invitation."""
+enum OrganizationInvitationStatus {
+  ACCEPTED
+  DECLINED
+  PENDING
+}
+
 """Represents a membership in an organization."""
 type OrganizationMembership {
   createdAt: DateTime!
@@ -2515,11 +2651,12 @@ type OrganizationMembership {
   role: OrganizationMembershipRole!
   updatedAt: DateTime
   user: User!
+  workspaceMemberships: [WorkspaceMembership!]!
 }
 
 """Represents a page of organization memberships."""
 type OrganizationMembershipPage {
-  items: [WorkspaceMembership!]!
+  items: [OrganizationMembership!]!
   pageNumber: Int!
   totalItems: Int!
   totalPages: Int!
@@ -2535,6 +2672,7 @@ enum OrganizationMembershipRole {
 type OrganizationPermissions {
   archiveWorkspace: Boolean!
   createWorkspace: Boolean!
+  manageMembers: Boolean!
 }
 
 """Represents an input parameter of a pipeline."""
@@ -3204,6 +3342,30 @@ type RequestAccessmodAccessInputResult {
   success: Boolean!
 }
 
+"""
+The ResendOrganizationInvitationError enum represents the possible errors that can occur during the resendOrganizationInvitation mutation.
+"""
+enum ResendOrganizationInvitationError {
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""
+The ResendOrganizationInvitationInput type represents the input for the resendOrganizationInvitation mutation.
+"""
+input ResendOrganizationInvitationInput {
+  """The unique identifier of the organization invitation to resend."""
+  id: UUID!
+}
+
+"""
+The ResendOrganizationInvitationResult type represents the result of the resendOrganizationInvitation mutation.
+"""
+type ResendOrganizationInvitationResult {
+  errors: [ResendOrganizationInvitationError!]!
+  success: Boolean!
+}
+
 """Represents the error types for resending a workspace invitation."""
 enum ResendWorkspaceInvitationError {
   INVITATION_NOT_FOUND
@@ -3728,6 +3890,51 @@ type UpdateMembershipResult {
   membership: Membership
 
   """Indicates whether the updateMembership mutation was successful."""
+  success: Boolean!
+}
+
+"""
+The UpdateOrganizationMemberError enum represents the possible errors that can occur during the updateOrganizationMember mutation.
+"""
+enum UpdateOrganizationMemberError {
+  """Indicates that the provided role is invalid."""
+  INVALID_ROLE
+
+  """Indicates that the organization membership was not found."""
+  NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to update the organization membership.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The UpdateOrganizationMemberInput type represents the input for the updateOrganizationMember mutation.
+"""
+input UpdateOrganizationMemberInput {
+  """The unique identifier of the organization membership to update."""
+  id: UUID!
+
+  """The updated role of the user in the organization."""
+  role: OrganizationMembershipRole!
+}
+
+"""
+The UpdateOrganizationMemberResult type represents the result of the updateOrganizationMember mutation.
+"""
+type UpdateOrganizationMemberResult {
+  """
+  The list of errors that occurred during the updateOrganizationMember mutation.
+  """
+  errors: [UpdateOrganizationMemberError!]!
+
+  """The updated organization membership object."""
+  membership: OrganizationMembership
+
+  """
+  Indicates whether the updateOrganizationMember mutation was successful.
+  """
   success: Boolean!
 }
 
