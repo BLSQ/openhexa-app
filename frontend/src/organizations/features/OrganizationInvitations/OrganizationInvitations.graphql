@@ -1,0 +1,35 @@
+query OrganizationInvitations($id: UUID!, $page: Int, $perPage: Int) {
+  organization(id: $id) {
+    id
+    permissions {
+      manageMembers
+    }
+    invitations(page: $page, perPage: $perPage) {
+      totalItems
+      items {
+        id
+        role
+        email
+        status
+        invitedBy {
+          displayName
+        }
+        createdAt
+      }
+    }
+  }
+}
+
+mutation DeleteOrganizationInvitation($input: DeleteOrganizationInvitationInput!) {
+  deleteOrganizationInvitation(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation ResendOrganizationInvitation($input: ResendOrganizationInvitationInput!) {
+  resendOrganizationInvitation(input: $input) {
+    success
+    errors
+  }
+}
