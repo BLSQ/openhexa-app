@@ -25,3 +25,37 @@ query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String) 
     }
   }
 }
+
+mutation UpdateOrganizationMember($input: UpdateOrganizationMemberInput!) {
+        updateOrganizationMember(input: $input) {
+          success
+          errors
+          membership {
+            id
+            role
+          }
+        }
+}
+
+mutation AddOrganizationMember($input: AddOrganizationMemberInput!) {
+  addOrganizationMember(input: $input) {
+    success
+    errors
+    membership {
+      id
+      user {
+        id
+        displayName
+        email
+      }
+      role
+    }
+  }
+}
+
+mutation DeleteOrganizationMember($input: DeleteOrganizationMemberInput!) {
+  deleteOrganizationMember(input: $input) {
+    success
+    errors
+  }
+}
