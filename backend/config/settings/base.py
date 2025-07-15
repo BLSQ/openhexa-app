@@ -507,11 +507,6 @@ elif STORAGE_BACKEND == "azure":
         },
     }
 else:  # Default to filesystem storage
-    # Filesystem configuration
-    if not os.environ.get("WORKSPACE_STORAGE_LOCATION"):
-        raise ValueError(
-            "WORKSPACE_STORAGE_LOCATION environment variable is required for filesystem storage backend."
-        )
     WORKSPACE_STORAGE_LOCATION = os.environ.get("WORKSPACE_STORAGE_LOCATION")
     WORKSPACE_STORAGE_BACKEND = {
         "engine": "hexa.files.backends.fs.FileSystemStorage",

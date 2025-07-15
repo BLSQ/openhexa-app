@@ -48,6 +48,8 @@ def create_database(db_name: str, pwd: str):
     """
     validate_db_name(db_name)
     conn = None
+
+    credentials = get_db_server_credentials()
     try:
         conn = get_database_connection(settings.WORKSPACES_DATABASE_DEFAULT_DB)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
@@ -74,6 +76,13 @@ def create_database(db_name: str, pwd: str):
             cursor.execute(
                 sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password};").format(
                     role_name=sql.Identifier(db_name), password=sql.Literal(pwd)
+                )
+            )
+            # Grant the newly created rol to the db user used to connect to this server. This is needed in PG16+
+            cursor.execute(
+                sql.SQL("GRANT {role} TO {admin_role} WITH ADMIN OPTION").format(
+                    role=sql.Identifier(db_name),
+                    admin_role=sql.Identifier(credentials["role"]),
                 )
             )
             cursor.execute(
