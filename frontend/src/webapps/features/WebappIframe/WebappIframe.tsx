@@ -18,6 +18,14 @@ const WebappIframe = ({ url, className, style }: WebappIframeProps) => {
   const isSameOrigin = useMemo(() => {
     try {
       const { origin } = new URL(url);
+      // TEMP: Early return, consider a Superset dashboard as not same origin,
+      // even though it is. Using "allow-same-origin" without "allow-scripts" is a
+      // no-go for Superset, the embedding SDK adds both to the sandbox param and 
+      // they appear required for proper loading of the page:
+      // https://github.com/apache/superset/blob/0aa48b656446764b2e71d9d65cc14365398faa8b/superset-embedded-sdk/src/index.ts#L170-L171
+      if (url.includes("/superset/dashboard/")) {
+        return false
+      }
       return origin === window.location.origin;
     } catch {
       return false;
