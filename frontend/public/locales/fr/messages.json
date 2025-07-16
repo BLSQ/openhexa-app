@@ -445,7 +445,7 @@
   "Show debug messages": "Activer les messages de débogage",
   "Show hidden files": "Afficher les fichiers cachés",
   "Show more": "Afficher plus",
-  "Showing {{ start }} to {{ end }} of {{ totalItems }} results": "Afficher les résultats de {{ start }} à {{ end }} de {{ totalItems }}.",
+  "Showing {{ start }} to {{ end }} of {{ totalItems }} results": "Afficher les résultats de {{ start }} à {{ end }} de {{ totalItems }}",
   "Sign in": "Connexion",
   "Sign out": "Se déconnecter",
   "Size": "Taille",
