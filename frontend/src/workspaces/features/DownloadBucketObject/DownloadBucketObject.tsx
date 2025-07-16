@@ -1,14 +1,14 @@
 import { gql } from "@apollo/client";
 import Button from "core/components/Button";
-import { ButtonProps } from "core/components/Button/Button";
+import type { ButtonProps } from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
-import { ReactElement, ReactNode, useState } from "react";
+import { type ReactElement, useState } from "react";
 import { useTranslation } from "next-i18next";
 import {
   downloadURL,
   getBucketObjectDownloadUrl,
 } from "workspaces/helpers/bucket";
-import {
+import type {
   DownloadBucketObject_ObjectFragment,
   DownloadBucketObject_WorkspaceFragment,
 } from "./DownloadBucketObject.generated";
