@@ -1,6 +1,7 @@
 import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
+import { User_UserFragmentDoc } from '../../../core/features/User/User.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type OrganizationMembersQueryVariables = Types.Exact<{
@@ -11,7 +12,7 @@ export type OrganizationMembersQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationMembersQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number, items: Array<{ __typename?: 'OrganizationMembership', id: string, role: Types.OrganizationMembershipRole, createdAt: any, workspaceMemberships: Array<{ __typename?: 'WorkspaceMembership', id: string, workspace: { __typename?: 'Workspace', name: string } }>, user: { __typename?: 'User', id: string, displayName: string, email: string } }> } } | null };
+export type OrganizationMembersQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number, items: Array<{ __typename?: 'OrganizationMembership', id: string, role: Types.OrganizationMembershipRole, createdAt: any, workspaceMemberships: Array<{ __typename?: 'WorkspaceMembership', id: string, role: Types.WorkspaceMembershipRole, workspace: { __typename?: 'Workspace', slug: string, name: string } }>, user: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } }> } } | null };
 
 export type UpdateOrganizationMemberMutationVariables = Types.Exact<{
   input: Types.UpdateOrganizationMemberInput;
@@ -49,21 +50,21 @@ export const OrganizationMembersDocument = gql`
         role
         workspaceMemberships {
           id
+          role
           workspace {
+            slug
             name
           }
         }
         user {
-          id
-          displayName
-          email
+          ...User_user
         }
         createdAt
       }
     }
   }
 }
-    `;
+    ${User_UserFragmentDoc}`;
 
 /**
  * __useOrganizationMembersQuery__

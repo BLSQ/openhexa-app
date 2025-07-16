@@ -15,6 +15,7 @@ import { ArrowPathIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useCallback, useState } from "react";
 import DeleteOrganizationInvitationDialog from "./DeleteOrganizationInvitationDialog";
 import ResendOrganizationInvitationDialog from "./ResendOrganizationInvitationDialog";
+import Block from "core/components/Block";
 
 const DEFAULT_PAGE_SIZE = 5;
 
@@ -30,7 +31,7 @@ export default function OrganizationInvitations({
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openResendDialog, setOpenResendDialog] = useState(false);
 
-  const { data, refetch } = useOrganizationInvitationsQuery({
+  const { data, refetch, loading } = useOrganizationInvitationsQuery({
     variables: {
       id: organizationId,
       page: 1,
@@ -44,7 +45,7 @@ export default function OrganizationInvitations({
     refetch({
       page,
       id: organizationId,
-    });
+    }).then();
   };
 
   const formatInvitationStatus = useCallback(
@@ -61,11 +62,15 @@ export default function OrganizationInvitations({
     [t],
   );
 
-  if (!data?.organization) {
-    return null;
-  }
-
-  const { invitations } = data.organization;
+  const invitations = data?.organization?.invitations ?? {
+    items: [],
+    totalItems: 0,
+  };
+  const organization = data?.organization ?? {
+    permissions: {
+      manageMembers: false,
+    },
+  };
 
   const handleDeleteClicked = (invitationId: string) => {
     const invitation = invitations.items.filter(
@@ -83,18 +88,17 @@ export default function OrganizationInvitations({
     setOpenResendDialog(true);
   };
 
-  const { organization } = data;
-
   return (
-    <>
+    <Block>
       <DataGrid
-        className="bg-white shadow-md"
         defaultPageSize={DEFAULT_PAGE_SIZE}
         totalItems={invitations.totalItems}
         fixedLayout={false}
         data={invitations.items}
         fetchData={onChangePage}
         emptyLabel={t("No pending invitations")}
+        loading={loading}
+        className="min-h-30"
       >
         <TextColumn
           className="max-w-[20ch] py-3 "
@@ -172,6 +176,6 @@ export default function OrganizationInvitations({
           }}
         />
       )}
-    </>
+    </Block>
   );
 }

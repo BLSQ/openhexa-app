@@ -10,7 +10,10 @@ type SearchInputProps = {
   className?: string;
   onSubmit?: React.FormEventHandler<HTMLFormElement>;
   required?: boolean;
-} & Pick<React.ComponentProps<typeof Input>, "onChange" | "value" | "name">;
+} & Pick<
+  React.ComponentProps<typeof Input>,
+  "onChange" | "value" | "name" | "fitWidth"
+>;
 
 const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
   (props, ref) => {

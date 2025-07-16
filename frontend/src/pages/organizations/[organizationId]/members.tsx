@@ -8,7 +8,7 @@ import {
 } from "organizations/graphql/queries.generated";
 import Page from "core/components/Page";
 import Button from "core/components/Button";
-import { PlusCircleIcon } from "@heroicons/react/24/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import OrganizationMembers from "organizations/features/OrganizationMembers";
 import AddOrganizationMemberDialog from "organizations/features/OrganizationMembers/AddOrganizationMemberDialog";
 import { useState } from "react";
@@ -18,6 +18,18 @@ import Title from "core/components/Title";
 type Props = {
   organization: OrganizationQuery["organization"];
 };
+
+// TODO : search bar z index
+
+// TODO : roles badges
+
+// TODO : invite layout
+
+// TODO : add
+// TODO : update
+// TODO : delete
+
+// TODO : tests
 
 const OrganizationMembersPage: NextPageWithLayout<Props> = ({
   organization,
@@ -34,24 +46,33 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
     <Page title={t("Members")}>
       <OrganizationLayout organization={organization}>
         <div className="p-6">
-          <div>
-            <h1 className="text-4xl font-bold m-8">{t("Members")}</h1>
+          <div className="m-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold">{t("Members")}</h1>
+              <p className="text-lg mt-2 text-gray-500">
+                {organization.members.totalItems}{" "}
+                {organization.members.totalItems > 1
+                  ? t("members")
+                  : t("member")}
+              </p>
+            </div>
+            <Button
+              variant="primary"
+              className="static"
+              onClick={() => setIsNewMemberDialogOpen(true)}
+              leadingIcon={<PlusIcon className="w-4" />}
+              disabled={!organization.permissions.manageMembers}
+            >
+              {t("Invite member")}
+            </Button>
           </div>
-        </div>
-        <div className="m-8 flex justify-end">
-          <Button
-            onClick={() => setIsNewMemberDialogOpen(true)}
-            leadingIcon={<PlusCircleIcon className="mr-1 h-4 w-4" />}
-          >
-            {t("Add/Invite member")}
-          </Button>
-        </div>
-        <div className="m-8">
-          <OrganizationMembers organizationId={organization.id} />
-        </div>
-        <div className="m-8">
-          <Title level={2}>{t("Pending & Declined invitations")}</Title>
-          <OrganizationInvitations organizationId={organization.id} />
+          <div className="m-8">
+            <OrganizationMembers organizationId={organization.id} />
+          </div>
+          <div className="m-8">
+            <Title level={2}>{t("Pending invitations")}</Title>
+            <OrganizationInvitations organizationId={organization.id} />
+          </div>
         </div>
         <AddOrganizationMemberDialog
           open={isNewMemberDialogOpen}

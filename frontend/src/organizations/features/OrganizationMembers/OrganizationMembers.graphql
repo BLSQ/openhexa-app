@@ -11,14 +11,14 @@ query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String) 
         role
         workspaceMemberships {
             id
+            role
             workspace {
+                slug
                 name
             }
         }
         user {
-            id
-            displayName
-            email
+            ...User_user
         }
         createdAt
       }

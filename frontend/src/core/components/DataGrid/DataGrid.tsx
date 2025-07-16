@@ -40,6 +40,7 @@ import {
 import { BaseColumnProps } from "./BaseColumn";
 import { CellContextProvider } from "./helpers";
 import Overflow from "../Overflow";
+import Spinner from "../Spinner";
 
 export type { Cell, SortingRule } from "react-table";
 
@@ -77,6 +78,7 @@ interface IDataGridProps {
   headerClassName?: string;
   rowClassName?: string;
   spacing?: TableCellProps["spacing"];
+  loading?: boolean;
 }
 
 type DataGridProps = IDataGridProps;
@@ -103,9 +105,11 @@ function DataGrid(props: DataGridProps) {
     defaultPageSize = 10,
     defaultPageIndex = 0,
     spacing,
+    loading: externalLoading,
   } = props;
 
-  const [loading, setLoading] = useState(false);
+  const [internalLoading, setInternalLoading] = useState(false);
+  const loading = externalLoading || internalLoading;
   const hooks = useMemo(() => {
     const hooks: Array<PluginHook<{}>> = [
       useSortBy,
@@ -225,13 +229,13 @@ function DataGrid(props: DataGridProps) {
       if (!fetchData) {
         return;
       }
-      setLoading(true);
+      setInternalLoading(true);
       try {
         await fetchData(params);
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        setInternalLoading(false);
       }
     },
     [fetchData],
@@ -264,7 +268,7 @@ function DataGrid(props: DataGridProps) {
   }, [defaultPageIndex, gotoPage]);
 
   return (
-    <div className={className}>
+    <div className={clsx("relative", className)}>
       <Overflow horizontal gradientWidth="w-12">
         <Table
           {...getTableProps()}
@@ -376,6 +380,15 @@ function DataGrid(props: DataGridProps) {
           perPage={pageSize}
           perPageOptions={pageSizeOptions}
         />
+      )}
+
+      {loading && (
+        <div className="absolute inset-0 bg-white/50 backdrop-blur-xs flex items-center justify-center z-10">
+          <div className="flex items-center space-x-2">
+            <Spinner size="md" />
+            <span className="text-gray-400">{t("Loading...")}</span>
+          </div>
+        </div>
       )}
     </div>
   );

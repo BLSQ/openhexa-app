@@ -58,7 +58,9 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
     WorkspacePermissions: {
       merge: true,
     },
-
+    OrganizationPermissions: {
+      merge: true,
+    },
     DatasetPermissions: {
       merge: true,
     },

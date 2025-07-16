@@ -6,16 +6,21 @@ import { TextColumn } from "core/components/DataGrid/TextColumn";
 import useCacheKey from "core/hooks/useCacheKey";
 import useDebounce from "core/hooks/useDebounce";
 import SearchInput from "core/features/SearchInput";
-import { User, OrganizationMembership } from "graphql/types";
+import { User as UserType, OrganizationMembership } from "graphql/types";
 import { DateTime } from "luxon";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "next-i18next";
 import DeleteOrganizationMemberDialog from "./DeleteOrganizationMemberDialog";
 import UpdateOrganizationMemberDialog from "./UpdateOrganizationMemberDialog";
 import useMe from "identity/hooks/useMe";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
 import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
-import { useOrganizationMembersQuery } from "./OrganizationMembers.generated";
+import {
+  useOrganizationMembersQuery,
+  OrganizationMembersQuery,
+} from "./OrganizationMembers.generated";
+import Block from "core/components/Block";
+import User from "core/features/User";
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -23,7 +28,7 @@ type OrganizationMember = Pick<
   OrganizationMembership,
   "id" | "role" | "workspaceMemberships"
 > & {
-  user: Pick<User, "id" | "displayName" | "email">;
+  user: Pick<UserType, "id" | "displayName" | "email">;
 };
 
 export default function OrganizationMembers({
@@ -37,6 +42,8 @@ export default function OrganizationMembers({
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [previousData, setPreviousData] =
+    useState<OrganizationMembersQuery | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -50,6 +57,12 @@ export default function OrganizationMembers({
     fetchPolicy: "cache-and-network",
   });
 
+  useEffect(() => {
+    if (data && !loading) {
+      setPreviousData(data);
+    }
+  }, [data, loading]);
+
   useCacheKey("organization", () => refetch());
 
   const onChangePage = ({ page }: { page: number }) => {
@@ -60,11 +73,11 @@ export default function OrganizationMembers({
     }).then();
   };
 
-  if (!data?.organization) {
-    return null;
-  }
-
-  const { organization } = data;
+  const displayData = data || previousData;
+  const organization = displayData?.organization ?? {
+    members: { items: [], totalItems: 0 },
+    permissions: { manageMembers: false },
+  };
 
   const handleDeleteClicked = (member: OrganizationMember) => {
     setSelectedMember(member);
@@ -100,53 +113,45 @@ export default function OrganizationMembers({
           placeholder={t("Search members...")}
           loading={loading}
           className="max-w-md"
+          fitWidth
         />
       </div>
-      <DataGrid
-        className="bg-white shadow-md"
-        defaultPageSize={DEFAULT_PAGE_SIZE}
-        totalItems={organization.members.totalItems}
-        fixedLayout={false}
-        data={organization.members.items}
-        fetchData={onChangePage}
-      >
-        <TextColumn
-          className="max-w-[20ch] py-3"
-          accessor={({ user }) => user.displayName}
-          id="name"
-          label={t("Name")}
-          defaultValue="-"
-        />
-        <TextColumn
-          className="max-w-[25ch] py-3"
-          accessor={({ user }) => user.email}
-          id="email"
-          label={t("Email")}
-        />
-        <TextColumn
-          className="max-w-[15ch] py-3"
-          accessor={(member) => formatOrganizationMembershipRole(member.role)}
-          label={t("Organization Role")}
-          id="org_role"
-        />
-        <TextColumn
-          className="max-w-[40ch] py-3"
-          accessor={(member) =>
-            formatWorkspaceRoles(member.workspaceMemberships)
-          }
-          label={t("Workspace Roles")}
-          id="workspace_roles"
-        />
-        <DateColumn
-          className="max-w-[15ch] py-3"
-          accessor="createdAt"
-          id="createdAt"
-          label={t("Joined")}
-          format={DateTime.DATE_FULL}
-        />
-        {organization.permissions.manageMembers && (
+      <Block>
+        <DataGrid
+          defaultPageSize={DEFAULT_PAGE_SIZE}
+          totalItems={organization.members.totalItems}
+          data={organization.members.items}
+          fetchData={onChangePage}
+          className="min-h-30"
+        >
+          <BaseColumn label={t("User")} id="user" minWidth={200}>
+            {(membership) => <User user={membership.user} subtext />}
+          </BaseColumn>
+          <TextColumn
+            className="py-4"
+            accessor={(member) => formatOrganizationMembershipRole(member.role)}
+            label={t("Organization Role")}
+            id="org_role"
+          />
+          <TextColumn
+            className="py-4"
+            minWidth={300}
+            accessor={(member) =>
+              formatWorkspaceRoles(member.workspaceMemberships)
+            }
+            label={t("Workspace Roles")}
+            id="workspace_roles"
+          />
+          <DateColumn
+            className="py-4"
+            accessor="createdAt"
+            id="createdAt"
+            label={t("Joined")}
+            format={DateTime.DATE_FULL}
+          />
           <BaseColumn className="flex justify-end gap-x-2">
             {(member) =>
+              organization.permissions.manageMembers &&
               me.user?.id !== member.user.id ? (
                 <>
                   <Button
@@ -169,8 +174,8 @@ export default function OrganizationMembers({
               )
             }
           </BaseColumn>
-        )}
-      </DataGrid>
+        </DataGrid>
+      </Block>
       {selectedMember && (
         <DeleteOrganizationMemberDialog
           open={openDeleteDialog}
