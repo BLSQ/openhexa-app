@@ -78,9 +78,9 @@ def create_database(db_name: str, pwd: str):
                     role_name=sql.Identifier(db_name), password=sql.Literal(pwd)
                 )
             )
-            # Grant the newly created rol to the db user used to connect to this server. This is needed in PG16+
+            # Grant the newly created role to the db user used to connect to this server. This is needed in PG16+
             cursor.execute(
-                sql.SQL("GRANT {role} TO {admin_role} WITH ADMIN OPTION").format(
+                sql.SQL("GRANT {role} TO {admin_role}").format(
                     role=sql.Identifier(db_name),
                     admin_role=sql.Identifier(credentials["role"]),
                 )
