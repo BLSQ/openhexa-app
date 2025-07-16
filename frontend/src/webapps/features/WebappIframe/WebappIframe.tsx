@@ -24,11 +24,30 @@ const WebappIframe = ({ url, className, style }: WebappIframeProps) => {
     }
   }, [url]);
 
+  const isSupersetDashboard = useMemo(() => {
+    try {
+      const { origin } = new URL(url);
+      return (
+        origin === window.location.origin &&
+        url.includes("/superset/dashboard/")
+      );
+    } catch {
+      return false;
+    }
+  }, [url]);
+
   const commonPermissions =
     "allow-forms allow-popups allow-downloads allow-presentation allow-modals allow-scripts";
-  const sandboxPermissions = isSameOrigin
-    ? commonPermissions // Do not allow same origin requests if it's an OpenHexa URL
-    : `${commonPermissions} allow-same-origin`;
+
+  // Do not allow same origin requests if it's an OpenHexa URL.
+  // Note: Exceptionally allow it for Superset dashboards since using "allow-same-origin"
+  // without "allow-scripts" is a no-go for Superset. The embedding SDK adds both
+  // to the sandbox param and they appear required for proper loading of the page:
+  // https://github.com/apache/superset/blob/0aa48b656446764b2e71d9d65cc14365398faa8b/superset-embedded-sdk/src/index.ts#L170-L171
+  const sandboxPermissions =
+    isSameOrigin && !isSupersetDashboard
+      ? commonPermissions
+      : `${commonPermissions} allow-same-origin`;
 
   return (
     <div
