@@ -19,7 +19,6 @@ type Props = {
   organization: OrganizationQuery["organization"];
 };
 
-// TODO : return only workspaces from organization
 // TODO : invite layout
 
 // TODO : add
