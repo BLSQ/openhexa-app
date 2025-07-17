@@ -2,7 +2,6 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
-import { TextColumn } from "core/components/DataGrid/TextColumn";
 import useCacheKey from "core/hooks/useCacheKey";
 import useDebounce from "core/hooks/useDebounce";
 import SearchInput from "core/features/SearchInput";
@@ -13,14 +12,14 @@ import { useTranslation } from "next-i18next";
 import DeleteOrganizationMemberDialog from "./DeleteOrganizationMemberDialog";
 import UpdateOrganizationMemberDialog from "./UpdateOrganizationMemberDialog";
 import useMe from "identity/hooks/useMe";
-import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
-import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
 import {
   useOrganizationMembersQuery,
   OrganizationMembersQuery,
 } from "./OrganizationMembers.generated";
 import Block from "core/components/Block";
 import User from "core/features/User";
+import OrganizationRoleBadge from "organizations/components/OrganizationRoleBadge";
+import WorkspaceRolesList from "organizations/components/WorkspaceRolesList";
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -89,21 +88,6 @@ export default function OrganizationMembers({
     setOpenEditDialog(true);
   };
 
-  const formatWorkspaceRoles = (
-    workspaceMemberships: OrganizationMember["workspaceMemberships"],
-  ) => {
-    if (!workspaceMemberships || workspaceMemberships.length === 0) {
-      return t("No workspace access");
-    }
-
-    return workspaceMemberships
-      .map(
-        (membership) =>
-          `${membership.workspace.name}: ${formatWorkspaceMembershipRole(membership.role)}`,
-      )
-      .join(", ");
-  };
-
   return (
     <>
       <div className="mb-4">
@@ -127,21 +111,22 @@ export default function OrganizationMembers({
           <BaseColumn label={t("User")} id="user" minWidth={200}>
             {(membership) => <User user={membership.user} subtext />}
           </BaseColumn>
-          <TextColumn
-            className="py-4"
-            accessor={(member) => formatOrganizationMembershipRole(member.role)}
-            label={t("Organization Role")}
-            id="org_role"
-          />
-          <TextColumn
-            className="py-4"
-            minWidth={300}
-            accessor={(member) =>
-              formatWorkspaceRoles(member.workspaceMemberships)
-            }
+          <BaseColumn label={t("Organization Role")} id="org_role">
+            {(member) => <OrganizationRoleBadge role={member.role} size="sm" />}
+          </BaseColumn>
+          <BaseColumn
             label={t("Workspace Roles")}
             id="workspace_roles"
-          />
+            minWidth={300}
+          >
+            {(member) => (
+              <WorkspaceRolesList
+                workspaceMemberships={member.workspaceMemberships}
+                size="sm"
+                maxVisible={2}
+              />
+            )}
+          </BaseColumn>
           <DateColumn
             className="py-4"
             accessor="createdAt"

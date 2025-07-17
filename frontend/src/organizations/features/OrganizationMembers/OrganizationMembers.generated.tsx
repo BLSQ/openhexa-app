@@ -1,6 +1,7 @@
 import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
+import { WorkspaceRoleFragmentDoc } from '../../components/WorkspaceRolesList.generated';
 import { User_UserFragmentDoc } from '../../../core/features/User/User.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
@@ -49,6 +50,7 @@ export const OrganizationMembersDocument = gql`
         id
         role
         workspaceMemberships {
+          ...WorkspaceRole
           id
           role
           workspace {
@@ -64,7 +66,8 @@ export const OrganizationMembersDocument = gql`
     }
   }
 }
-    ${User_UserFragmentDoc}`;
+    ${WorkspaceRoleFragmentDoc}
+${User_UserFragmentDoc}`;
 
 /**
  * __useOrganizationMembersQuery__

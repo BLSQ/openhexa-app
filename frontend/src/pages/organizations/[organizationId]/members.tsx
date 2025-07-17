@@ -19,8 +19,7 @@ type Props = {
   organization: OrganizationQuery["organization"];
 };
 
-// TODO : roles badges
-
+// TODO : return only workspaces from organization
 // TODO : invite layout
 
 // TODO : add

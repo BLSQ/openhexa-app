@@ -10,6 +10,7 @@ query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String) 
         id
         role
         workspaceMemberships {
+            ...WorkspaceRole
             id
             role
             workspace {
