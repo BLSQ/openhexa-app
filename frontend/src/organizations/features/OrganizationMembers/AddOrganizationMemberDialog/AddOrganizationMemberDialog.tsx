@@ -25,7 +25,9 @@ type Form = {
   role: OrganizationMembershipRole;
 };
 
-const AddOrganizationMemberDialog = (props: AddOrganizationMemberDialogProps) => {
+const AddOrganizationMemberDialog = (
+  props: AddOrganizationMemberDialogProps,
+) => {
   const { t } = useTranslation();
   const { open, onClose, organizationId } = props;
 
@@ -66,9 +68,9 @@ const AddOrganizationMemberDialog = (props: AddOrganizationMemberDialogProps) =>
       clearCache();
       handleClose();
     },
-    initialState: { 
-      userEmail: "", 
-      role: OrganizationMembershipRole.Member 
+    initialState: {
+      userEmail: "",
+      role: OrganizationMembershipRole.Member,
     },
     validate: (values) => {
       const errors = {} as any;
@@ -96,7 +98,12 @@ const AddOrganizationMemberDialog = (props: AddOrganizationMemberDialogProps) =>
     <Dialog open={open} onClose={handleClose} onSubmit={form.handleSubmit}>
       <Dialog.Title>{t("Add Organization Member")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
-        <Field name="userEmail" label={t("Email Address")} type="email" required>
+        <Field
+          name="userEmail"
+          label={t("Email address")}
+          type="email"
+          required
+        >
           <Input
             name="userEmail"
             type="email"
@@ -113,9 +120,15 @@ const AddOrganizationMemberDialog = (props: AddOrganizationMemberDialogProps) =>
             onChange={form.handleInputChange}
             required
           >
-            <option value={OrganizationMembershipRole.Member}>{t("Member")}</option>
-            <option value={OrganizationMembershipRole.Admin}>{t("Admin")}</option>
-            <option value={OrganizationMembershipRole.Owner}>{t("Owner")}</option>
+            <option value={OrganizationMembershipRole.Member}>
+              {t("Member")}
+            </option>
+            <option value={OrganizationMembershipRole.Admin}>
+              {t("Admin")}
+            </option>
+            <option value={OrganizationMembershipRole.Owner}>
+              {t("Owner")}
+            </option>
           </SimpleSelect>
         </Field>
 
