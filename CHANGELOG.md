@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.14.0](https://github.com/BLSQ/openhexa-app/compare/1.13.0...1.14.0) (2025-07-17)
+
+
+### Features
+
+* as a user i want to view the code of the template (HEXA-1309) ([#1254](https://github.com/BLSQ/openhexa-app/issues/1254)) ([22e2bb0](https://github.com/BLSQ/openhexa-app/commit/22e2bb0ce6298514ccf343b71baf875877cbd634))
+
+
+### Bug Fixes
+
+* add paging to dataset files (HEXA-1329 ) ([#1241](https://github.com/BLSQ/openhexa-app/issues/1241)) ([c3ee15e](https://github.com/BLSQ/openhexa-app/commit/c3ee15e1a9bf3f27b3bf0145869cc5d911f20d8b))
+* Allow Superset dashboard in web apps ([#1264](https://github.com/BLSQ/openhexa-app/issues/1264)) ([be2c1ef](https://github.com/BLSQ/openhexa-app/commit/be2c1ef0f73a8f626c337228e643d50d3936df2e))
+* codegen generation issue  ([#1253](https://github.com/BLSQ/openhexa-app/issues/1253)) ([902c3bb](https://github.com/BLSQ/openhexa-app/commit/902c3bb48da1fcd2d7f48985d3afe1884ba2a820))
+* **deps:** update dependency @mdxeditor/editor to v3.39.1 ([#1257](https://github.com/BLSQ/openhexa-app/issues/1257)) ([e11090d](https://github.com/BLSQ/openhexa-app/commit/e11090d59ccc1047862ade11ddb9040ab196f321))
+* **deps:** update dependency @sentry/nextjs to v9.38.0 ([#1258](https://github.com/BLSQ/openhexa-app/issues/1258)) ([84464cb](https://github.com/BLSQ/openhexa-app/commit/84464cbcf877a2596cdada23d67e60abe0bc7e6f))
+* **deps:** update dependency @types/node to v22.16.3 ([#1259](https://github.com/BLSQ/openhexa-app/issues/1259)) ([9753d12](https://github.com/BLSQ/openhexa-app/commit/9753d1223d596bdf98912f015e635b2285a6fc24))
+* **deps:** update dependency @types/node to v22.16.4 ([#1266](https://github.com/BLSQ/openhexa-app/issues/1266)) ([f0730f4](https://github.com/BLSQ/openhexa-app/commit/f0730f4ae70a1eec5d572538fa18f8023af25634))
+* **deps:** update dependency @uiw/react-codemirror to v4.24.1 ([#1261](https://github.com/BLSQ/openhexa-app/issues/1261)) ([86fcebf](https://github.com/BLSQ/openhexa-app/commit/86fcebf8e0abf39c1f34b588dc6b4e6f96b2558b))
+* **deps:** update dependency dotenv to v16.6.1 ([#1262](https://github.com/BLSQ/openhexa-app/issues/1262)) ([0dc8ac8](https://github.com/BLSQ/openhexa-app/commit/0dc8ac8278638013709b434bf5611058eee7281c))
+* **deps:** update dependency i18next to v25.3.2 ([#1263](https://github.com/BLSQ/openhexa-app/issues/1263)) ([2838c64](https://github.com/BLSQ/openhexa-app/commit/2838c641400370eec19a009eea8c032d705a625a))
+* **deps:** update jest monorepo to v30 (major) ([#1209](https://github.com/BLSQ/openhexa-app/issues/1209)) ([50ebd48](https://github.com/BLSQ/openhexa-app/commit/50ebd486454bbbbb5c116dd8090e66cd921d8d3a))
+* exposes pipeline code in kubernetes ([#1251](https://github.com/BLSQ/openhexa-app/issues/1251)) ([adc3199](https://github.com/BLSQ/openhexa-app/commit/adc319917811c507787b890a0f96f8e91e87b4e8))
+
 ## [1.13.0](https://github.com/BLSQ/openhexa-app/compare/1.12.1...1.13.0) (2025-07-09)
 
 
