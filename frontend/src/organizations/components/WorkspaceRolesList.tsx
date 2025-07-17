@@ -42,20 +42,14 @@ const WorkspaceRolesList = ({
           size={size}
         />
       ))}
-      {shouldShowToggle && !isExpanded && (
+      {shouldShowToggle && (
         <button
-          onClick={() => setIsExpanded(true)}
-          className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer pl-1"
         >
-          +{remainingCount} more
-        </button>
-      )}
-      {shouldShowToggle && isExpanded && (
-        <button
-          onClick={() => setIsExpanded(false)}
-          className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
-        >
-          {t("Show less")}
+          {isExpanded
+            ? t("Show less")
+            : t("+{{remainingCount}} more", { remainingCount })}
         </button>
       )}
     </div>
