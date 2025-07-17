@@ -19,8 +19,7 @@ type Props = {
   organization: OrganizationQuery["organization"];
 };
 
-// TODO : search bar z index
-
+// TODO : permission on nav item
 // TODO : roles badges
 
 // TODO : invite layout

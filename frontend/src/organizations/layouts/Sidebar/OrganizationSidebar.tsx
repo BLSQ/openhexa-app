@@ -1,10 +1,6 @@
 import React from "react";
 import clsx from "clsx";
-import {
-  ChevronLeftIcon,
-  UsersIcon,
-  BriefcaseIcon,
-} from "@heroicons/react/24/outline";
+import { ChevronLeftIcon, UsersIcon } from "@heroicons/react/24/outline";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { GetServerSidePropsContext } from "next";
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
