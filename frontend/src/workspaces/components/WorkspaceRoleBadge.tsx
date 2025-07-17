@@ -1,6 +1,7 @@
 import { WorkspaceMembershipRole } from "graphql/types";
 import Badge from "core/components/Badge";
 import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
+import clsx from "clsx";
 
 type WorkspaceRoleBadgeProps = {
   role: WorkspaceMembershipRole;
@@ -8,7 +9,11 @@ type WorkspaceRoleBadgeProps = {
   size?: "xs" | "sm" | "md";
 };
 
-const WorkspaceRoleBadge = ({ role, workspaceName, size = "xs" }: WorkspaceRoleBadgeProps) => {
+const WorkspaceRoleBadge = ({
+  role,
+  workspaceName,
+  size = "xs",
+}: WorkspaceRoleBadgeProps) => {
   const getRoleColors = (role: WorkspaceMembershipRole) => {
     switch (role) {
       case WorkspaceMembershipRole.Admin:
@@ -22,12 +27,12 @@ const WorkspaceRoleBadge = ({ role, workspaceName, size = "xs" }: WorkspaceRoleB
     }
   };
 
-  const badgeContent = workspaceName 
+  const badgeContent = workspaceName
     ? `${workspaceName} · ${formatWorkspaceMembershipRole(role)}`
     : formatWorkspaceMembershipRole(role);
 
   return (
-    <Badge size={size} className={getRoleColors(role)}>
+    <Badge size={size} className={clsx("text-xs", getRoleColors(role))}>
       {badgeContent}
     </Badge>
   );

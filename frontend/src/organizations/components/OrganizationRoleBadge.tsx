@@ -1,13 +1,17 @@
 import { OrganizationMembershipRole } from "graphql/types";
 import Badge from "core/components/Badge";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
+import clsx from "clsx";
 
 type OrganizationRoleBadgeProps = {
   role: OrganizationMembershipRole;
   size?: "xs" | "sm" | "md";
 };
 
-const OrganizationRoleBadge = ({ role, size = "xs" }: OrganizationRoleBadgeProps) => {
+const OrganizationRoleBadge = ({
+  role,
+  size = "xs",
+}: OrganizationRoleBadgeProps) => {
   const getRoleColors = (role: OrganizationMembershipRole) => {
     switch (role) {
       case OrganizationMembershipRole.Owner:
@@ -22,7 +26,7 @@ const OrganizationRoleBadge = ({ role, size = "xs" }: OrganizationRoleBadgeProps
   };
 
   return (
-    <Badge size={size} className={getRoleColors(role)}>
+    <Badge size={size} className={clsx("text-xs", getRoleColors(role))}>
       {formatOrganizationMembershipRole(role)}
     </Badge>
   );
