@@ -53,12 +53,14 @@ const OrganizationSidebar = ({
               label={t("Workspaces")}
               compact={!isSidebarOpen}
             />
-            <NavItem
-              href={`/organizations/${organization.id}/members`}
-              Icon={UsersIcon}
-              label={t("Members")}
-              compact={!isSidebarOpen}
-            />
+            {organization.permissions.manageMembers && (
+              <NavItem
+                href={`/organizations/${organization.id}/members`}
+                Icon={UsersIcon}
+                label={t("Members")}
+                compact={!isSidebarOpen}
+              />
+            )}
           </div>
           <Logo isSidebarOpen={isSidebarOpen} />
         </div>
