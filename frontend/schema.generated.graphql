@@ -2108,9 +2108,6 @@ type InviteOrganizationMemberResult {
   """
   errors: [InviteOrganizationMemberError!]!
 
-  """The created organization membership object."""
-  membership: OrganizationMembership
-
   """
   Indicates whether the inviteOrganizationMember mutation was successful.
   """

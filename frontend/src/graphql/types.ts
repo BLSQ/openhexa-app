@@ -2191,8 +2191,6 @@ export type InviteOrganizationMemberResult = {
   __typename?: 'InviteOrganizationMemberResult';
   /** The list of errors that occurred during the inviteOrganizationMember mutation. */
   errors: Array<InviteOrganizationMemberError>;
-  /** The created organization membership object. */
-  membership?: Maybe<OrganizationMembership>;
   /** Indicates whether the inviteOrganizationMember mutation was successful. */
   success: Scalars['Boolean']['output'];
 };

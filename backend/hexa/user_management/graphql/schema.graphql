@@ -1511,11 +1511,6 @@ type InviteOrganizationMemberResult {
     success: Boolean!
 
     """
-    The created organization membership object.
-    """
-    membership: OrganizationMembership
-
-    """
     The list of errors that occurred during the inviteOrganizationMember mutation.
     """
     errors: [InviteOrganizationMemberError!]!

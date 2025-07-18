@@ -11,7 +11,6 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "next-i18next";
 import DeleteOrganizationMemberDialog from "./DeleteOrganizationMemberDialog";
 import UpdateOrganizationMemberDialog from "./UpdateOrganizationMemberDialog";
-import useMe from "identity/hooks/useMe";
 import {
   useOrganizationMembersQuery,
   OrganizationMembersQuery,
@@ -35,7 +34,6 @@ export default function OrganizationMembers({
 }: {
   organizationId: string;
 }) {
-  const me = useMe();
   const { t } = useTranslation();
   const [selectedMember, setSelectedMember] = useState<OrganizationMember>();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);

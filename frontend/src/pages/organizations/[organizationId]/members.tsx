@@ -24,7 +24,6 @@ type Props = {
 
 // TODO : verify permissions on workspace invitations
 // TODO : on acceptance of the invitation, the user should be added to the workspaces
-// TODO : check what needs to be returned
 
 // TODO : fe for invitations
 // TODO : update

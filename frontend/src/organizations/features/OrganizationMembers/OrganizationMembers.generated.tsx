@@ -41,7 +41,7 @@ export type InviteOrganizationMemberMutationVariables = Types.Exact<{
 }>;
 
 
-export type InviteOrganizationMemberMutation = { __typename?: 'Mutation', inviteOrganizationMember: { __typename?: 'InviteOrganizationMemberResult', success: boolean, errors: Array<Types.InviteOrganizationMemberError>, membership?: { __typename?: 'OrganizationMembership', id: string, role: Types.OrganizationMembershipRole, user: { __typename?: 'User', id: string, displayName: string, email: string } } | null } };
+export type InviteOrganizationMemberMutation = { __typename?: 'Mutation', inviteOrganizationMember: { __typename?: 'InviteOrganizationMemberResult', success: boolean, errors: Array<Types.InviteOrganizationMemberError> } };
 
 
 export const OrganizationMembersDocument = gql`
@@ -231,15 +231,6 @@ export const InviteOrganizationMemberDocument = gql`
   inviteOrganizationMember(input: $input) {
     success
     errors
-    membership {
-      id
-      user {
-        id
-        displayName
-        email
-      }
-      role
-    }
   }
 }
     `;
