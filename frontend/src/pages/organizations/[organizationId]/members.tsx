@@ -25,6 +25,7 @@ type Props = {
 // TODO : update
 // TODO : delete
 
+// TODO : prevent adding existing members
 // TODO : permissions on actions from the backend
 // TODO : tests
 
