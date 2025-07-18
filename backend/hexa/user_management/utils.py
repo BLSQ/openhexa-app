@@ -61,12 +61,13 @@ def send_organization_invite(invitation):
     with override(invited_by.language):
         send_mail(
             title=title,
-            template_name="user_management/mails/invite_new_user",
+            template_name="user_management/invite_organization",
             template_variables={
                 "organization": invitation.organization.name,
                 "owner": invited_by.display_name,
                 "owner_email": invited_by.email,
                 "url": action_url,
+                "workspace_invitations": invitation.workspace_invitations,
             },
             recipient_list=[invitation.email],
             attachments=get_email_attachments(),
