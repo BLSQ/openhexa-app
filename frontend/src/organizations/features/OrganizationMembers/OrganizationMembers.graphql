@@ -60,3 +60,19 @@ mutation DeleteOrganizationMember($input: DeleteOrganizationMemberInput!) {
     errors
   }
 }
+
+mutation InviteOrganizationMember($input: InviteOrganizationMemberInput!) {
+  inviteOrganizationMember(input: $input) {
+    success
+    errors
+    membership {
+      id
+      user {
+        id
+        displayName
+        email
+      }
+      role
+    }
+  }
+}

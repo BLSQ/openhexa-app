@@ -20,8 +20,8 @@ type Props = {
 };
 
 // TODO : invite layout
+// TODO : invites delete and resend
 
-// TODO : add
 // TODO : update
 // TODO : delete
 

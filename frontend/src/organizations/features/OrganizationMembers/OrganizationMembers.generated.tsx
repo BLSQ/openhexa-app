@@ -36,6 +36,13 @@ export type DeleteOrganizationMemberMutationVariables = Types.Exact<{
 
 export type DeleteOrganizationMemberMutation = { __typename?: 'Mutation', deleteOrganizationMember: { __typename?: 'DeleteOrganizationMemberResult', success: boolean, errors: Array<Types.DeleteOrganizationMemberError> } };
 
+export type InviteOrganizationMemberMutationVariables = Types.Exact<{
+  input: Types.InviteOrganizationMemberInput;
+}>;
+
+
+export type InviteOrganizationMemberMutation = { __typename?: 'Mutation', inviteOrganizationMember: { __typename?: 'InviteOrganizationMemberResult', success: boolean, errors: Array<Types.InviteOrganizationMemberError>, membership?: { __typename?: 'OrganizationMembership', id: string, role: Types.OrganizationMembershipRole, user: { __typename?: 'User', id: string, displayName: string, email: string } } | null } };
+
 
 export const OrganizationMembersDocument = gql`
     query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String) {
@@ -219,3 +226,46 @@ export function useDeleteOrganizationMemberMutation(baseOptions?: Apollo.Mutatio
 export type DeleteOrganizationMemberMutationHookResult = ReturnType<typeof useDeleteOrganizationMemberMutation>;
 export type DeleteOrganizationMemberMutationResult = Apollo.MutationResult<DeleteOrganizationMemberMutation>;
 export type DeleteOrganizationMemberMutationOptions = Apollo.BaseMutationOptions<DeleteOrganizationMemberMutation, DeleteOrganizationMemberMutationVariables>;
+export const InviteOrganizationMemberDocument = gql`
+    mutation InviteOrganizationMember($input: InviteOrganizationMemberInput!) {
+  inviteOrganizationMember(input: $input) {
+    success
+    errors
+    membership {
+      id
+      user {
+        id
+        displayName
+        email
+      }
+      role
+    }
+  }
+}
+    `;
+export type InviteOrganizationMemberMutationFn = Apollo.MutationFunction<InviteOrganizationMemberMutation, InviteOrganizationMemberMutationVariables>;
+
+/**
+ * __useInviteOrganizationMemberMutation__
+ *
+ * To run a mutation, you first call `useInviteOrganizationMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInviteOrganizationMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [inviteOrganizationMemberMutation, { data, loading, error }] = useInviteOrganizationMemberMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useInviteOrganizationMemberMutation(baseOptions?: Apollo.MutationHookOptions<InviteOrganizationMemberMutation, InviteOrganizationMemberMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InviteOrganizationMemberMutation, InviteOrganizationMemberMutationVariables>(InviteOrganizationMemberDocument, options);
+      }
+export type InviteOrganizationMemberMutationHookResult = ReturnType<typeof useInviteOrganizationMemberMutation>;
+export type InviteOrganizationMemberMutationResult = Apollo.MutationResult<InviteOrganizationMemberMutation>;
+export type InviteOrganizationMemberMutationOptions = Apollo.BaseMutationOptions<InviteOrganizationMemberMutation, InviteOrganizationMemberMutationVariables>;
