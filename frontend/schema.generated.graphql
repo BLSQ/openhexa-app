@@ -3023,6 +3023,7 @@ type PipelineTemplateVersion {
   id: UUID!
   isLatestVersion: Boolean!
   permissions: PipelineTemplateVersionPermissions!
+  sourcePipelineVersion: PipelineVersion!
   template: PipelineTemplate!
   user: User
   versionNumber: Int!

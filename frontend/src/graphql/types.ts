@@ -3624,6 +3624,7 @@ export type PipelineTemplateVersion = {
   id: Scalars['UUID']['output'];
   isLatestVersion: Scalars['Boolean']['output'];
   permissions: PipelineTemplateVersionPermissions;
+  sourcePipelineVersion: PipelineVersion;
   template: PipelineTemplate;
   user?: Maybe<User>;
   versionNumber: Scalars['Int']['output'];
