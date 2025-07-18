@@ -1000,6 +1000,69 @@ def resolve_invite_organization_member(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
+@identity_mutations.field("deleteOrganizationInvitation")
+def resolve_delete_organization_invitation(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        invitation = OrganizationInvitation.objects.get(id=input["invitation_id"])
+
+        if not request.user.has_perm(
+            "user_management.manage_members", invitation.organization
+        ):
+            raise PermissionDenied
+
+        invitation.delete()
+        return {"success": True, "errors": []}
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+    except OrganizationInvitation.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["INVITATION_NOT_FOUND"],
+        }
+
+
+@identity_mutations.field("resendOrganizationInvitation")
+def resolve_resend_organization_invitation(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        invitation = OrganizationInvitation.objects.exclude(
+            status=OrganizationInvitationStatus.ACCEPTED
+        ).get(id=input["invitation_id"])
+
+        if not request.user.has_perm(
+            "user_management.manage_members", invitation.organization
+        ):
+            raise PermissionDenied
+
+        invitation.status = OrganizationInvitationStatus.PENDING
+        invitation.updated_at = datetime.now(timezone.utc)
+        invitation.save()
+
+        send_organization_invite(invitation)
+        return {
+            "success": True,
+            "errors": [],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+    except OrganizationInvitation.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["INVITATION_NOT_FOUND"],
+        }
+
+
 # Organization membership object type resolver
 organization_membership_object = ObjectType("OrganizationMembership")
 

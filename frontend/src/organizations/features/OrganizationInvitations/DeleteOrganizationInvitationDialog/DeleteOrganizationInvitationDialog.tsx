@@ -1,10 +1,9 @@
-import { gql } from "@apollo/client";
 import Dialog from "core/components/Dialog";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useState } from "react";
 import { useDeleteOrganizationInvitationMutation } from "../OrganizationInvitations.generated";
 import { DeleteOrganizationInvitationError } from "graphql/types";
-import { useTranslation } from "next-i18next";
+import { Trans, useTranslation } from "next-i18next";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
 
@@ -23,7 +22,8 @@ const DeleteOrganizationInvitationDialog = (
   const { onClose, open, invitation } = props;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useTranslation();
-  const [deleteOrganizationInvitation] = useDeleteOrganizationInvitationMutation();
+  const [deleteOrganizationInvitation] =
+    useDeleteOrganizationInvitationMutation();
   const clearCache = useCacheKey("organization");
 
   const onSubmit = async () => {
@@ -59,14 +59,10 @@ const DeleteOrganizationInvitationDialog = (
     <Dialog maxWidth="max-w-xl" open={open} onClose={onClose}>
       <Dialog.Title>{t("Delete invitation")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
-        <p>
-          {t(
-            "By proceeding, the invitation link for {{email}} will no longer be usable.",
-            {
-              email: invitation.email,
-            },
-          )}
-        </p>
+        <Trans>
+          By proceeding, the invitation link for <b>{invitation.email}</b> will
+          no longer be usable.
+        </Trans>
       </Dialog.Content>
       <Dialog.Actions>
         <Button variant="white" onClick={onClose}>

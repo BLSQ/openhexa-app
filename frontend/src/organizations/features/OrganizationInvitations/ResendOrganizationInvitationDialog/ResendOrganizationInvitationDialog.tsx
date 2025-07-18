@@ -1,10 +1,9 @@
-import { gql } from "@apollo/client";
 import Dialog from "core/components/Dialog";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useState } from "react";
 import { useResendOrganizationInvitationMutation } from "../OrganizationInvitations.generated";
 import { ResendOrganizationInvitationError } from "graphql/types";
-import { useTranslation } from "next-i18next";
+import { Trans, useTranslation } from "next-i18next";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
 
@@ -23,7 +22,8 @@ const ResendOrganizationInvitationDialog = (
   const { onClose, open, invitation } = props;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useTranslation();
-  const [resendOrganizationInvitation] = useResendOrganizationInvitationMutation();
+  const [resendOrganizationInvitation] =
+    useResendOrganizationInvitationMutation();
   const clearCache = useCacheKey("organization");
 
   const onSubmit = async () => {
@@ -51,7 +51,7 @@ const ResendOrganizationInvitationDialog = (
         ResendOrganizationInvitationError.PermissionDenied,
       )
     ) {
-      throw new Error("You are not authorized to perform this action");
+      throw new Error(t("You are not authorized to perform this action"));
     }
   };
 
@@ -59,11 +59,9 @@ const ResendOrganizationInvitationDialog = (
     <Dialog maxWidth="max-w-xl" open={open} onClose={onClose}>
       <Dialog.Title>{t("Resend invitation")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
-        <p>
-          {t("Resend invitation for {{email}} ?", {
-            email: invitation.email,
-          })}
-        </p>
+        <Trans>
+          Resend invitation to <b>{invitation.email}</b> ?
+        </Trans>
       </Dialog.Content>
       <Dialog.Actions>
         <Button variant="white" onClick={onClose}>
