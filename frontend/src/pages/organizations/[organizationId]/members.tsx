@@ -25,6 +25,7 @@ type Props = {
 // TODO : update
 // TODO : delete
 
+// TODO : permissions on actions from the backend
 // TODO : tests
 
 const OrganizationMembersPage: NextPageWithLayout<Props> = ({
