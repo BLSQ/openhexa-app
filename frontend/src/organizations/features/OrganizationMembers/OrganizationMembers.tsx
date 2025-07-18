@@ -117,9 +117,13 @@ export default function OrganizationMembers({
             id="workspace_roles"
             minWidth={300}
           >
-            {(member) => (
+            {(member: OrganizationMember) => (
               <WorkspaceRolesList
-                workspaceMemberships={member.workspaceMemberships}
+                items={member.workspaceMemberships.map((membership) => ({
+                  role: membership.role,
+                  workspaceName: membership.workspace.name,
+                  workspaceSlug: membership.workspace.slug,
+                }))}
                 size="sm"
                 maxVisible={2}
               />

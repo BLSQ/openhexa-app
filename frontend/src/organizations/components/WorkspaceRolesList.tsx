@@ -2,43 +2,49 @@ import { useState } from "react";
 import { useTranslation } from "next-i18next";
 import { gql } from "@apollo/client";
 import WorkspaceRoleBadge from "workspaces/components/WorkspaceRoleBadge";
-import { WorkspaceRoleFragment } from "./WorkspaceRolesList.generated";
+import { WorkspaceMembershipRole } from "graphql/types";
+
+interface WorkspaceRoleItem {
+  role: WorkspaceMembershipRole;
+  workspaceName: string;
+  workspaceSlug: string;
+}
 
 type WorkspaceRolesListProps = {
-  workspaceMemberships: WorkspaceRoleFragment[];
+  items: WorkspaceRoleItem[];
   maxVisible?: number;
   size?: "xs" | "sm" | "md";
+  emptyMessage?: string;
 };
 
 const WorkspaceRolesList = ({
-  workspaceMemberships,
+  items,
   maxVisible = 3,
   size = "xs",
+  emptyMessage,
 }: WorkspaceRolesListProps) => {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (workspaceMemberships.length === 0) {
+  if (items.length === 0) {
     return (
       <span className="text-gray-500 text-sm italic">
-        {t("No workspace access")}
+        {emptyMessage || t("No workspace access")}
       </span>
     );
   }
 
-  const shouldShowToggle = workspaceMemberships.length > maxVisible;
-  const visibleMemberships = isExpanded
-    ? workspaceMemberships
-    : workspaceMemberships.slice(0, maxVisible);
-  const remainingCount = workspaceMemberships.length - maxVisible;
+  const shouldShowToggle = items.length > maxVisible;
+  const visibleItems = isExpanded ? items : items.slice(0, maxVisible);
+  const remainingCount = items.length - maxVisible;
 
   return (
     <div className="flex flex-wrap gap-1">
-      {visibleMemberships.map((membership) => (
+      {visibleItems.map((item) => (
         <WorkspaceRoleBadge
-          key={membership.workspace.slug}
-          role={membership.role}
-          workspaceName={membership.workspace.name}
+          key={item.workspaceSlug}
+          role={item.role}
+          workspaceName={item.workspaceName}
           size={size}
         />
       ))}

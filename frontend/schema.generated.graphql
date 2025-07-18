@@ -2676,6 +2676,7 @@ type OrganizationInvitation {
   role: OrganizationMembershipRole!
   status: OrganizationInvitationStatus!
   updatedAt: DateTime
+  workspaceInvitations: [OrganizationWorkspaceInvitation!]!
 }
 
 """Represents a page of organization invitations."""
@@ -2723,6 +2724,13 @@ type OrganizationPermissions {
   archiveWorkspace: Boolean!
   createWorkspace: Boolean!
   manageMembers: Boolean!
+}
+
+"""Represents a workspace invitation within an organization invitation."""
+type OrganizationWorkspaceInvitation {
+  role: WorkspaceMembershipRole!
+  workspaceName: String!
+  workspaceSlug: String!
 }
 
 """Represents an input parameter of a pipeline."""
@@ -4443,6 +4451,9 @@ The WorkspaceInvitationInput type represents a workspace invitation within an or
 input WorkspaceInvitationInput {
   """The role of the user in the workspace."""
   role: WorkspaceMembershipRole!
+
+  """The name of the workspace to invite the user to."""
+  workspaceName: String!
 
   """The slug of the workspace to invite the user to."""
   workspaceSlug: String!

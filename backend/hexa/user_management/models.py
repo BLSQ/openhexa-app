@@ -491,7 +491,7 @@ class OrganizationInvitation(Base):
     )
     workspace_invitations = models.JSONField(
         default=list,
-        help_text="List of workspace invitations with workspace_slug and role",
+        help_text="List of workspace invitations with workspace_slug, workspace_name, and role",
     )
 
     objects = OrganizationInvitationManager.from_queryset(

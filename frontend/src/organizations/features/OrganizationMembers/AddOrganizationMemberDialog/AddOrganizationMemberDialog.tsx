@@ -80,10 +80,16 @@ const AddOrganizationMemberDialog = (
       // Convert workspaceRoles to workspaceInvitations format
       const workspaceInvitations = Object.entries(workspaceRoles)
         .filter(([_, role]) => role !== "NONE")
-        .map(([workspaceSlug, role]) => ({
-          workspaceSlug,
-          role: role as WorkspaceMembershipRole,
-        }));
+        .map(([workspaceSlug, role]) => {
+          const workspace = workspacesData?.workspaces?.items?.find(
+            (w) => w.slug === workspaceSlug,
+          );
+          return {
+            workspaceSlug,
+            role: role as WorkspaceMembershipRole,
+            workspaceName: workspace?.name || workspaceSlug,
+          };
+        });
 
       const { data } = await inviteOrganizationMember({
         variables: {
@@ -103,9 +109,6 @@ const AddOrganizationMemberDialog = (
       const errors = data.inviteOrganizationMember.errors;
       if (errors.includes(InviteOrganizationMemberError.PermissionDenied)) {
         throw new Error("You are not authorized to perform this action");
-      }
-      if (errors.includes(InviteOrganizationMemberError.UserNotFound)) {
-        throw new Error("User not found with this email address");
       }
       if (errors.includes(InviteOrganizationMemberError.WorkspaceNotFound)) {
         throw new Error("One or more workspaces were not found");

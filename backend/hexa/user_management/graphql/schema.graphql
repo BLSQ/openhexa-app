@@ -1055,6 +1055,20 @@ type OrganizationInvitation {
   createdAt: DateTime!
   # The date and time when the invitation was last updated.
   updatedAt: DateTime
+  # The workspace invitations associated with this organization invitation.
+  workspaceInvitations: [OrganizationWorkspaceInvitation!]!
+}
+
+"""
+Represents a workspace invitation within an organization invitation.
+"""
+type OrganizationWorkspaceInvitation {
+  # The slug of the workspace.
+  workspaceSlug: String!
+  # The name of the workspace.
+  workspaceName: String!
+  # The role of the invitee in the workspace.
+  role: WorkspaceMembershipRole!
 }
 
 """
@@ -1469,6 +1483,11 @@ input WorkspaceInvitationInput {
     The slug of the workspace to invite the user to.
     """
     workspaceSlug: String!
+    
+    """
+    The name of the workspace to invite the user to.
+    """
+    workspaceName: String!
     
     """
     The role of the user in the workspace.

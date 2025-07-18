@@ -10,7 +10,7 @@ export type OrganizationInvitationsQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationInvitationsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean }, invitations: { __typename?: 'OrganizationInvitationPage', totalItems: number, items: Array<{ __typename?: 'OrganizationInvitation', id: string, role: Types.OrganizationMembershipRole, email: string, status: Types.OrganizationInvitationStatus, createdAt: any, invitedBy?: { __typename?: 'User', displayName: string } | null }> } } | null };
+export type OrganizationInvitationsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean }, invitations: { __typename?: 'OrganizationInvitationPage', totalItems: number, items: Array<{ __typename?: 'OrganizationInvitation', id: string, role: Types.OrganizationMembershipRole, email: string, status: Types.OrganizationInvitationStatus, createdAt: any, invitedBy?: { __typename?: 'User', displayName: string } | null, workspaceInvitations: Array<{ __typename?: 'OrganizationWorkspaceInvitation', workspaceSlug: string, workspaceName: string, role: Types.WorkspaceMembershipRole }> }> } } | null };
 
 export type DeleteOrganizationInvitationMutationVariables = Types.Exact<{
   input: Types.DeleteOrganizationInvitationInput;
@@ -45,6 +45,11 @@ export const OrganizationInvitationsDocument = gql`
           displayName
         }
         createdAt
+        workspaceInvitations {
+          workspaceSlug
+          workspaceName
+          role
+        }
       }
     }
   }

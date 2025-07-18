@@ -3241,6 +3241,7 @@ export type OrganizationInvitation = {
   role: OrganizationMembershipRole;
   status: OrganizationInvitationStatus;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  workspaceInvitations: Array<OrganizationWorkspaceInvitation>;
 };
 
 /** Represents a page of organization invitations. */
@@ -3292,6 +3293,14 @@ export type OrganizationPermissions = {
   archiveWorkspace: Scalars['Boolean']['output'];
   createWorkspace: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
+};
+
+/** Represents a workspace invitation within an organization invitation. */
+export type OrganizationWorkspaceInvitation = {
+  __typename?: 'OrganizationWorkspaceInvitation';
+  role: WorkspaceMembershipRole;
+  workspaceName: Scalars['String']['output'];
+  workspaceSlug: Scalars['String']['output'];
 };
 
 /** Represents an input parameter of a pipeline. */
@@ -5245,6 +5254,8 @@ export type WorkspaceInvitation = {
 export type WorkspaceInvitationInput = {
   /** The role of the user in the workspace. */
   role: WorkspaceMembershipRole;
+  /** The name of the workspace to invite the user to. */
+  workspaceName: Scalars['String']['input'];
   /** The slug of the workspace to invite the user to. */
   workspaceSlug: Scalars['String']['input'];
 };
