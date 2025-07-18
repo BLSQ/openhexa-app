@@ -1,21 +1,18 @@
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
-import { TextColumn } from "core/components/DataGrid/TextColumn";
 import useCacheKey from "core/hooks/useCacheKey";
-import capitalize from "lodash/capitalize";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import { useOrganizationInvitationsQuery } from "./OrganizationInvitations.generated";
-import {
-  OrganizationInvitation,
-  OrganizationInvitationStatus,
-} from "graphql/types";
+import { OrganizationInvitation } from "graphql/types";
 import Button from "core/components/Button/Button";
 import { ArrowPathIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import DeleteOrganizationInvitationDialog from "./DeleteOrganizationInvitationDialog";
 import ResendOrganizationInvitationDialog from "./ResendOrganizationInvitationDialog";
 import Block from "core/components/Block";
+import OrganizationRoleBadge from "organizations/components/OrganizationRoleBadge";
+import WorkspaceRolesList from "organizations/components/WorkspaceRolesList";
 
 const DEFAULT_PAGE_SIZE = 5;
 
@@ -48,20 +45,6 @@ export default function OrganizationInvitations({
     }).then();
   };
 
-  const formatInvitationStatus = useCallback(
-    (status: OrganizationInvitationStatus) => {
-      switch (status) {
-        case OrganizationInvitationStatus.Pending:
-          return t("Pending");
-        case OrganizationInvitationStatus.Accepted:
-          return t("Accepted");
-        case OrganizationInvitationStatus.Declined:
-          return t("Declined");
-      }
-    },
-    [t],
-  );
-
   const invitations = data?.organization?.invitations ?? {
     items: [],
     totalItems: 0,
@@ -72,18 +55,12 @@ export default function OrganizationInvitations({
     },
   };
 
-  const handleDeleteClicked = (invitationId: string) => {
-    const invitation = invitations.items.filter(
-      (x) => x.id === invitationId,
-    )[0];
+  const handleDeleteClicked = (invitation: OrganizationInvitation) => {
     setSelectedInvitation(invitation);
     setOpenDeleteDialog(true);
   };
 
-  const handleResendClicked = (invitationId: string) => {
-    const invitation = invitations.items.filter(
-      (x) => x.id === invitationId,
-    )[0];
+  const handleResendClicked = (invitation: OrganizationInvitation) => {
     setSelectedInvitation(invitation);
     setOpenResendDialog(true);
   };
@@ -93,59 +70,65 @@ export default function OrganizationInvitations({
       <DataGrid
         defaultPageSize={DEFAULT_PAGE_SIZE}
         totalItems={invitations.totalItems}
-        fixedLayout={false}
         data={invitations.items}
         fetchData={onChangePage}
         emptyLabel={t("No pending invitations")}
         loading={loading}
         className="min-h-30"
       >
-        <TextColumn
-          className="max-w-[20ch] py-3 "
-          accessor="email"
-          id="email"
-          label={t("Email")}
-          defaultValue="-"
-        />
-        <TextColumn
-          className="max-w-[20ch] py-3 "
-          accessor={(member) => capitalize(member.role)}
-          label={t("Role")}
-          id="member_role"
-        />
-        <TextColumn
-          className="max-w-[20ch] py-3 "
-          accessor={(invitation) => invitation.invitedBy?.displayName || "-"}
-          label={t("Invited by")}
-          id="invitedBy"
-        />
+        <BaseColumn label={t("Email")} id="email" minWidth={200}>
+          {(invitation) => (
+            <div className="truncate">
+              <div className="font-medium">{invitation.email}</div>
+              <div className="text-xs text-gray-400">
+                {invitation.invitedBy?.displayName
+                  ? t("Invited by {{name}}", {
+                      name: invitation.invitedBy.displayName,
+                    })
+                  : t("Invited")}
+              </div>
+            </div>
+          )}
+        </BaseColumn>
+        <BaseColumn label={t("Organization Role")} id="org_role">
+          {(invitation) => (
+            <OrganizationRoleBadge role={invitation.role} size="sm" />
+          )}
+        </BaseColumn>
+        <BaseColumn
+          label={t("Workspace Invitations")}
+          id="workspace_invitations"
+          minWidth={300}
+        >
+          {(invitation) => (
+            <WorkspaceRolesList
+              items={invitation.workspaceInvitations}
+              size="sm"
+              maxVisible={2}
+              emptyMessage={t("No workspace invitations")}
+            />
+          )}
+        </BaseColumn>
         <DateColumn
-          className="max-w-[20ch] py-3 "
+          className="py-4"
           accessor="createdAt"
           id="createdAt"
           label={t("Date sent")}
           format={DateTime.DATE_FULL}
         />
-        <BaseColumn<OrganizationInvitationStatus>
-          id="status"
-          accessor="status"
-          label={t("Status")}
-        >
-          {(value) => <span>{formatInvitationStatus(value)}</span>}
-        </BaseColumn>
         {organization.permissions.manageMembers && (
           <BaseColumn className="flex justify-end gap-x-2">
             {(invitation) => (
               <>
                 <Button
-                  onClick={() => handleResendClicked(invitation.id)}
+                  onClick={() => handleResendClicked(invitation)}
                   size="sm"
                   variant="secondary"
                 >
                   <ArrowPathIcon className="h-4" />
                 </Button>
                 <Button
-                  onClick={() => handleDeleteClicked(invitation.id)}
+                  onClick={() => handleDeleteClicked(invitation)}
                   size="sm"
                   variant="secondary"
                 >
