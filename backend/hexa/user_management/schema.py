@@ -1024,6 +1024,17 @@ def resolve_organization_membership_workspace_memberships(
     ).select_related("workspace")
 
 
+organization_invitation_object = ObjectType("OrganizationInvitation")
+
+
+@organization_invitation_object.field("role")
+def resolve_organization_invitation_role(
+    invitation: OrganizationInvitation, info, **kwargs
+):
+    """Convert lowercase role to uppercase for GraphQL enum"""
+    return invitation.role.upper()
+
+
 identity_bindables = [
     identity_query,
     user_object,
@@ -1037,6 +1048,7 @@ identity_bindables = [
     organization_queries,
     organization_permissions_object,
     organization_membership_object,
+    organization_invitation_object,
     identity_mutations,
 ]
 
