@@ -2446,7 +2446,6 @@ export type MetadataObject = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  addOrganizationMember: AddOrganizationMemberResult;
   /** Adds an output to a pipeline. */
   addPipelineOutput: AddPipelineOutputResult;
   /** Adds a recipient to a pipeline. */
@@ -2609,11 +2608,6 @@ export type Mutation = {
   uploadPipeline: UploadPipelineResult;
   /** Verifies a device for two-factor authentication. */
   verifyDevice: VerifyDeviceResult;
-};
-
-
-export type MutationAddOrganizationMemberArgs = {
-  input: AddOrganizationMemberInput;
 };
 
 

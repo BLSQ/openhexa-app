@@ -1542,10 +1542,9 @@ enum InviteOrganizationMemberError {
 }
 
 extend type Mutation {
-    addOrganizationMember(input: AddOrganizationMemberInput!): AddOrganizationMemberResult! @loginRequired
+    inviteOrganizationMember(input: InviteOrganizationMemberInput!): InviteOrganizationMemberResult! @loginRequired
     updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult! @loginRequired
     deleteOrganizationMember(input: DeleteOrganizationMemberInput!): DeleteOrganizationMemberResult! @loginRequired
     deleteOrganizationInvitation(input: DeleteOrganizationInvitationInput!): DeleteOrganizationInvitationResult! @loginRequired
     resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult! @loginRequired
-    inviteOrganizationMember(input: InviteOrganizationMemberInput!): InviteOrganizationMemberResult! @loginRequired
 }
