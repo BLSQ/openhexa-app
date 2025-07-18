@@ -19,6 +19,7 @@ type Props = {
   organization: OrganizationQuery["organization"];
 };
 
+// TODO : admin page for invitations
 // TODO : handle existing user when inviting
 // TODO : invite layout
 // TODO : invites delete and resend

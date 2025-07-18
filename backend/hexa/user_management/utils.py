@@ -61,7 +61,7 @@ def send_organization_invite(invitation):
     with override(invited_by.language):
         send_mail(
             title=title,
-            template_name="user_management/invite_organization",
+            template_name="user_management/mails/invite_organization",
             template_variables={
                 "organization": invitation.organization.name,
                 "owner": invited_by.display_name,
