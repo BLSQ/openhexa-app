@@ -2160,6 +2160,43 @@ export type IasoQueryResultPage = {
   totalPages: Scalars['Int']['output'];
 };
 
+/** The InviteOrganizationMemberError enum represents the possible errors that can occur during the inviteOrganizationMember mutation. */
+export enum InviteOrganizationMemberError {
+  /** Indicates that the user is already a member of the organization. */
+  AlreadyMember = 'ALREADY_MEMBER',
+  /** Indicates that the organization was not found. */
+  OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
+  /** Indicates that the user does not have permission to invite members to the organization. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** Indicates that the user was not found. */
+  UserNotFound = 'USER_NOT_FOUND',
+  /** Indicates that one or more workspaces were not found. */
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+/** The InviteOrganizationMemberInput type represents the input for the inviteOrganizationMember mutation. */
+export type InviteOrganizationMemberInput = {
+  /** The unique identifier of the organization. */
+  organizationId: Scalars['UUID']['input'];
+  /** The role of the user in the organization. */
+  organizationRole: OrganizationMembershipRole;
+  /** The email address of the user to invite to the organization. */
+  userEmail: Scalars['String']['input'];
+  /** The list of workspaces to invite the user to. */
+  workspaceInvitations: Array<WorkspaceInvitationInput>;
+};
+
+/** The InviteOrganizationMemberResult type represents the result of the inviteOrganizationMember mutation. */
+export type InviteOrganizationMemberResult = {
+  __typename?: 'InviteOrganizationMemberResult';
+  /** The list of errors that occurred during the inviteOrganizationMember mutation. */
+  errors: Array<InviteOrganizationMemberError>;
+  /** The created organization membership object. */
+  membership?: Maybe<OrganizationMembership>;
+  /** Indicates whether the inviteOrganizationMember mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
 /** Represents the input for inviting a member to a workspace. */
 export type InviteWorkspaceMemberInput = {
   role: WorkspaceMembershipRole;
@@ -2494,6 +2531,7 @@ export type Mutation = {
   /** Generates a webhook URL for a pipeline. */
   generatePipelineWebhookUrl: GeneratePipelineWebhookUrlResult;
   generateWorkspaceToken: GenerateWorkspaceTokenResult;
+  inviteOrganizationMember: InviteOrganizationMemberResult;
   inviteWorkspaceMember: InviteWorkspaceMemberResult;
   joinWorkspace: JoinWorkspaceResult;
   launchAccessmodAnalysis: LaunchAccessmodAnalysisResult;
@@ -2855,6 +2893,11 @@ export type MutationGeneratePipelineWebhookUrlArgs = {
 
 export type MutationGenerateWorkspaceTokenArgs = {
   input: GenerateWorkspaceTokenInput;
+};
+
+
+export type MutationInviteOrganizationMemberArgs = {
+  input: InviteOrganizationMemberInput;
 };
 
 
@@ -5205,6 +5248,14 @@ export type WorkspaceInvitation = {
   status: WorkspaceInvitationStatus;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   workspace: Workspace;
+};
+
+/** The WorkspaceInvitationInput type represents a workspace invitation within an organization member invitation. */
+export type WorkspaceInvitationInput = {
+  /** The role of the user in the workspace. */
+  role: WorkspaceMembershipRole;
+  /** The slug of the workspace to invite the user to. */
+  workspaceSlug: Scalars['String']['input'];
 };
 
 /** Represents a page of workspace invitations. */

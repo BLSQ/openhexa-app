@@ -2060,6 +2060,63 @@ type IASOQueryResultPage {
   totalPages: Int!
 }
 
+"""
+The InviteOrganizationMemberError enum represents the possible errors that can occur during the inviteOrganizationMember mutation.
+"""
+enum InviteOrganizationMemberError {
+  """Indicates that the user is already a member of the organization."""
+  ALREADY_MEMBER
+
+  """Indicates that the organization was not found."""
+  ORGANIZATION_NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to invite members to the organization.
+  """
+  PERMISSION_DENIED
+
+  """Indicates that the user was not found."""
+  USER_NOT_FOUND
+
+  """Indicates that one or more workspaces were not found."""
+  WORKSPACE_NOT_FOUND
+}
+
+"""
+The InviteOrganizationMemberInput type represents the input for the inviteOrganizationMember mutation.
+"""
+input InviteOrganizationMemberInput {
+  """The unique identifier of the organization."""
+  organizationId: UUID!
+
+  """The role of the user in the organization."""
+  organizationRole: OrganizationMembershipRole!
+
+  """The email address of the user to invite to the organization."""
+  userEmail: String!
+
+  """The list of workspaces to invite the user to."""
+  workspaceInvitations: [WorkspaceInvitationInput!]!
+}
+
+"""
+The InviteOrganizationMemberResult type represents the result of the inviteOrganizationMember mutation.
+"""
+type InviteOrganizationMemberResult {
+  """
+  The list of errors that occurred during the inviteOrganizationMember mutation.
+  """
+  errors: [InviteOrganizationMemberError!]!
+
+  """The created organization membership object."""
+  membership: OrganizationMembership
+
+  """
+  Indicates whether the inviteOrganizationMember mutation was successful.
+  """
+  success: Boolean!
+}
+
 """Represents the input for inviting a member to a workspace."""
 input InviteWorkspaceMemberInput {
   role: WorkspaceMembershipRole!
@@ -2439,6 +2496,7 @@ type Mutation {
   """Generates a webhook URL for a pipeline."""
   generatePipelineWebhookUrl(input: GeneratePipelineWebhookUrlInput!): GeneratePipelineWebhookUrlResult!
   generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult!
+  inviteOrganizationMember(input: InviteOrganizationMemberInput!): InviteOrganizationMemberResult!
   inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult!
   joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult!
   launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult!
@@ -4384,6 +4442,17 @@ type WorkspaceInvitation {
   status: WorkspaceInvitationStatus!
   updatedAt: DateTime
   workspace: Workspace!
+}
+
+"""
+The WorkspaceInvitationInput type represents a workspace invitation within an organization member invitation.
+"""
+input WorkspaceInvitationInput {
+  """The role of the user in the workspace."""
+  role: WorkspaceMembershipRole!
+
+  """The slug of the workspace to invite the user to."""
+  workspaceSlug: String!
 }
 
 """Represents a page of workspace invitations."""
