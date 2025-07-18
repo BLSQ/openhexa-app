@@ -451,12 +451,17 @@ class OrganizationInvitationManager(models.Manager):
         organization: Organization,
         email: str,
         role: OrganizationMembershipRole,
+        workspace_invitations: list = None,
     ):
         if not principal.has_perm("user_management.manage_members", organization):
             raise PermissionDenied
 
         return self.create(
-            email=email, organization=organization, role=role, invited_by=principal
+            email=email,
+            organization=organization,
+            role=role,
+            invited_by=principal,
+            workspace_invitations=workspace_invitations or [],
         )
 
     def get_by_token(self, token: str):
@@ -483,6 +488,10 @@ class OrganizationInvitation(Base):
         max_length=50,
         choices=OrganizationInvitationStatus.choices,
         default=OrganizationInvitationStatus.PENDING,
+    )
+    workspace_invitations = models.JSONField(
+        default=list,
+        help_text="List of workspace invitations with workspace_slug and role",
     )
 
     objects = OrganizationInvitationManager.from_queryset(

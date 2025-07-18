@@ -52,7 +52,12 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
 )
 
-from .utils import DEVICE_DEFAULT_NAME, default_device, has_configured_two_factor
+from .utils import (
+    DEVICE_DEFAULT_NAME,
+    default_device,
+    has_configured_two_factor,
+    send_organization_invite,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -898,6 +903,48 @@ def resolve_delete_organization_member(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
+@identity_mutations.field("inviteOrganizationMember")
+def resolve_invite_organization_member(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        organization: Organization = Organization.objects.filter_for_user(
+            request.user
+        ).get(id=input["organization_id"])
+        user = User.objects.filter(email=input["user_email"]).first()
+
+        if user and (
+            OrganizationMembership.objects.filter(
+                user=user, organization=organization
+            ).exists()
+            or OrganizationInvitation.objects.filter(
+                organization=organization,
+                email=input["user_email"],
+                status=OrganizationInvitationStatus.PENDING,
+            ).exists()
+        ):
+            raise AlreadyExists
+
+        with transaction.atomic():
+            invitation = OrganizationInvitation.objects.create_if_has_perm(
+                principal=request.user,
+                organization=organization,
+                email=input["user_email"],
+                role=input["organization_role"].lower(),
+                workspace_invitations=input["workspace_invitations"],
+            )
+            send_organization_invite(invitation)
+
+        return {"success": True, "errors": []}
+    except Organization.DoesNotExist:
+        return {"success": False, "errors": ["ORGANIZATION_NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except AlreadyExists:
+        return {"success": False, "errors": ["ALREADY_EXISTS"]}
+
+
 # Organization membership object type resolver
 organization_membership_object = ObjectType("OrganizationMembership")
 
@@ -916,7 +963,9 @@ def resolve_organization_membership_workspace_memberships(
 ):
     """Return workspace memberships for this user within the organization"""
     return WorkspaceMembership.objects.filter(
-        user=membership.user, workspace__organization=membership.organization
+        user=membership.user,
+        workspace__organization=membership.organization,
+        workspace__archived=False,
     ).select_related("workspace")
 
 
