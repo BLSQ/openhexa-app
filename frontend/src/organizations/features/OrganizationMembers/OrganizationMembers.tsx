@@ -136,8 +136,7 @@ export default function OrganizationMembers({
           />
           <BaseColumn className="flex justify-end gap-x-2">
             {(member) =>
-              organization.permissions.manageMembers &&
-              me.user?.id !== member.user.id ? (
+              organization.permissions.manageMembers ? (
                 <>
                   <Button
                     onClick={() => handleUpdateClicked(member)}
