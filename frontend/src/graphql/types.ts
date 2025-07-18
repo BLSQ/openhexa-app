@@ -2168,8 +2168,6 @@ export enum InviteOrganizationMemberError {
   OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
   /** Indicates that the user does not have permission to invite members to the organization. */
   PermissionDenied = 'PERMISSION_DENIED',
-  /** Indicates that the user was not found. */
-  UserNotFound = 'USER_NOT_FOUND',
   /** Indicates that one or more workspaces were not found. */
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }

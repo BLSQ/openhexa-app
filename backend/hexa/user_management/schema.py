@@ -912,6 +912,22 @@ def resolve_invite_organization_member(_, info, **kwargs):
         organization: Organization = Organization.objects.filter_for_user(
             request.user
         ).get(id=input["organization_id"])
+
+        if not request.user.has_perm("user_management.manage_members", organization):
+            raise PermissionDenied
+
+        workspace_slugs = [
+            ws["workspace_slug"] for ws in input["workspace_invitations"]
+        ]
+        if workspace_slugs:
+            existing_workspace_slugs = set(
+                organization.workspaces.filter(
+                    slug__in=workspace_slugs, archived=False
+                ).values_list("slug", flat=True)
+            )
+            if not set(workspace_slugs).issubset(existing_workspace_slugs):
+                return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
+
         user = User.objects.filter(email=input["user_email"]).first()
 
         if user and (
@@ -924,7 +940,7 @@ def resolve_invite_organization_member(_, info, **kwargs):
                 status=OrganizationInvitationStatus.PENDING,
             ).exists()
         ):
-            raise AlreadyExists
+            return {"success": False, "errors": ["ALREADY_MEMBER"]}
 
         with transaction.atomic():
             invitation = OrganizationInvitation.objects.create_if_has_perm(
@@ -941,8 +957,6 @@ def resolve_invite_organization_member(_, info, **kwargs):
         return {"success": False, "errors": ["ORGANIZATION_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
-    except AlreadyExists:
-        return {"success": False, "errors": ["ALREADY_EXISTS"]}
 
 
 # Organization membership object type resolver

@@ -1539,11 +1539,6 @@ enum InviteOrganizationMemberError {
     Indicates that the user is already a member of the organization.
     """
     ALREADY_MEMBER
-    
-    """
-    Indicates that the user was not found.
-    """
-    USER_NOT_FOUND
 }
 
 extend type Mutation {

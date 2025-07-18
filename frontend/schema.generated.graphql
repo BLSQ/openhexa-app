@@ -2075,9 +2075,6 @@ enum InviteOrganizationMemberError {
   """
   PERMISSION_DENIED
 
-  """Indicates that the user was not found."""
-  USER_NOT_FOUND
-
   """Indicates that one or more workspaces were not found."""
   WORKSPACE_NOT_FOUND
 }
