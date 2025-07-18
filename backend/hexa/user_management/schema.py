@@ -1006,7 +1006,7 @@ def resolve_delete_organization_invitation(_, info, **kwargs):
     input = kwargs["input"]
 
     try:
-        invitation = OrganizationInvitation.objects.get(id=input["invitation_id"])
+        invitation = OrganizationInvitation.objects.get(id=input["id"])
 
         if not request.user.has_perm(
             "user_management.manage_members", invitation.organization
@@ -1035,7 +1035,7 @@ def resolve_resend_organization_invitation(_, info, **kwargs):
     try:
         invitation = OrganizationInvitation.objects.exclude(
             status=OrganizationInvitationStatus.ACCEPTED
-        ).get(id=input["invitation_id"])
+        ).get(id=input["id"])
 
         if not request.user.has_perm(
             "user_management.manage_members", invitation.organization
