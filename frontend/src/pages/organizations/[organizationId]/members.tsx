@@ -21,7 +21,7 @@ type Props = {
 
 // TODO : sidebar overlay transition and tooltips
 // TODO : handle existing user when inviting + resending invitation
-// TODO : fe for invitations
+// TODO : fe for invitations (changing roles, prevent overriding)
 // TODO : update
 // TODO : delete
 // TODO : prevent adding existing members
