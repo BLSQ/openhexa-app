@@ -15,6 +15,7 @@ from .models import (
     FeatureFlag,
     Membership,
     Organization,
+    OrganizationInvitation,
     OrganizationMembership,
     Team,
     User,
@@ -231,4 +232,18 @@ class OrganizationMembershipAdmin(admin.ModelAdmin):
         "role",
         "created_at",
         "updated_at",
+    )
+
+
+@admin.register(OrganizationInvitation)
+class OrganizationInvitationAdmin(admin.ModelAdmin):
+    list_display = (
+        "email",
+        "invited_by",
+        "organization",
+        "status",
+        "created_at",
+        "updated_at",
+        "role",
+        "workspace_invitations",
     )

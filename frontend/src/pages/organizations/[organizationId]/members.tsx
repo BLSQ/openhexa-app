@@ -20,7 +20,6 @@ type Props = {
 };
 
 // TODO : sidebar overlay transition and tooltips
-// TODO : admin page for invitations
 // TODO : handle existing user when inviting
 // TODO : invite layout
 // TODO : invites delete and resend
