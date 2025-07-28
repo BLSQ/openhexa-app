@@ -19,6 +19,7 @@ from django.views.decorators.http import require_POST
 from hexa.analytics.api import track
 from hexa.app import get_hexa_app_configs
 from hexa.core.views_utils import disable_cors
+from hexa.files import storage
 from hexa.pipelines.models import Environment, PipelineRunLogLevel
 
 from .credentials import PipelinesCredentials
@@ -166,6 +167,26 @@ def run_pipeline(
                 values = [int(v) for v in values]
             elif parameter["type"] == "float":
                 values = [float(v) for v in values]
+            elif parameter["type"] == "file":
+                # Validate file paths exist in workspace bucket
+                validated_values = []
+                for file_path in values:
+                    if file_path:  # Skip empty values
+                        try:
+                            # Check if file exists in workspace bucket
+                            storage.get_bucket_object(
+                                pipeline.workspace.bucket_name, file_path
+                            )
+                            validated_values.append(file_path)
+                        except storage.exceptions.NotFound:
+                            return JsonResponse(
+                                {"error": f"File not found: {file_path}"}, status=400
+                            )
+                        except storage.exceptions.SuspiciousFileOperation:
+                            return JsonResponse(
+                                {"error": f"Invalid file path: {file_path}"}, status=400
+                            )
+                values = validated_values
 
             if parameter.get("multiple", False):
                 config[parameter["code"]] = values
@@ -179,6 +200,50 @@ def run_pipeline(
             config = json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+        # Validate file parameters for JSON requests
+        if pipeline_version:
+            for parameter in pipeline_version.parameters:
+                if parameter["type"] == "file" and parameter["code"] in config:
+                    file_value = config[parameter["code"]]
+                    if parameter.get("multiple", False):
+                        # Handle multiple file parameters
+                        if isinstance(file_value, list):
+                            for file_path in file_value:
+                                if file_path:  # Skip empty values
+                                    try:
+                                        storage.get_bucket_object(
+                                            pipeline.workspace.bucket_name, file_path
+                                        )
+                                    except storage.exceptions.NotFound:
+                                        return JsonResponse(
+                                            {"error": f"File not found: {file_path}"},
+                                            status=400,
+                                        )
+                                    except storage.exceptions.SuspiciousFileOperation:
+                                        return JsonResponse(
+                                            {
+                                                "error": f"Invalid file path: {file_path}"
+                                            },
+                                            status=400,
+                                        )
+                    else:
+                        # Handle single file parameter
+                        if file_value:  # Skip empty values
+                            try:
+                                storage.get_bucket_object(
+                                    pipeline.workspace.bucket_name, file_value
+                                )
+                            except storage.exceptions.NotFound:
+                                return JsonResponse(
+                                    {"error": f"File not found: {file_value}"},
+                                    status=400,
+                                )
+                            except storage.exceptions.SuspiciousFileOperation:
+                                return JsonResponse(
+                                    {"error": f"Invalid file path: {file_value}"},
+                                    status=400,
+                                )
     else:
         return JsonResponse(
             {"error": f"Unsupported content type '{content_type}'"}, status=400

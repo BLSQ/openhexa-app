@@ -65,6 +65,7 @@ enum ParameterType {
   s3
   gcs
   custom
+  file
 }
 
 """

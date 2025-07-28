@@ -2762,6 +2762,7 @@ enum ParameterType {
   custom
   dataset
   dhis2
+  file
   float
   gcs
   iaso
