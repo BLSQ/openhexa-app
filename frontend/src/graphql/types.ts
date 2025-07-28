@@ -3328,6 +3328,7 @@ export enum ParameterType {
   Custom = 'custom',
   Dataset = 'dataset',
   Dhis2 = 'dhis2',
+  File = 'file',
   Float = 'float',
   Gcs = 'gcs',
   Iaso = 'iaso',
