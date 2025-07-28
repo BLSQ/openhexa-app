@@ -19,15 +19,6 @@ type Props = {
   organization: OrganizationQuery["organization"];
 };
 
-// TODO : sidebar overlay transition and tooltips
-// TODO : handle existing user when inviting + resending invitation
-// TODO : fe for invitations (changing roles, prevent overriding)
-// TODO : update
-// TODO : delete
-// TODO : prevent adding existing members
-// TODO : permissions on actions from the backend
-// TODO : tests
-
 const OrganizationMembersPage: NextPageWithLayout<Props> = ({
   organization,
 }) => {
@@ -74,7 +65,7 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
         <AddOrganizationMemberDialog
           open={isNewMemberDialogOpen}
           onClose={() => setIsNewMemberDialogOpen(false)}
-          organizationId={organization.id}
+          organization={organization}
         />
       </OrganizationLayout>
     </Page>

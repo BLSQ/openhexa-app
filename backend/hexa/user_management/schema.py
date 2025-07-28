@@ -56,6 +56,7 @@ from .utils import (
     DEVICE_DEFAULT_NAME,
     default_device,
     has_configured_two_factor,
+    send_organization_add_user_email,
     send_organization_invite,
 )
 
@@ -256,39 +257,61 @@ def resolve_organizations(_, info, **kwargs):
     return Organization.objects.filter_for_user(request.user).all()
 
 
-# TODO To be moved to organizations
 @identity_query.field("users")
-def resolve_users(_, info, query: str, workspace_slug: str):
+def resolve_users(_, info, query: str, workspace_slug: str, organization_id: str):
     request = info.context["request"]
     query = query.strip()
 
-    try:
-        workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=workspace_slug
-        )
+    users = User.objects.all()
 
-        if not request.user.has_perm("workspaces.manage_members", workspace):
-            raise PermissionDenied
+    # If workspace_slug is provided, exclude current members of that workspace
+    if workspace_slug:
+        try:
+            workspace = Workspace.objects.filter_for_user(request.user).get(
+                slug=workspace_slug
+            )
 
-        # Exclude current members of the workspace
-        users = User.objects.exclude(
-            id__in=workspace.members.values_list("id", flat=True)
-        )
+            if not request.user.has_perm("workspaces.manage_members", workspace):
+                raise PermissionDenied
 
-        # Explicitely collate the email field to allow case insensive LIKE queries
-        users = users.annotate(case_insensitive_email=Collate("email", "und-x-icu"))
+            # Exclude current members of the workspace
+            users = users.exclude(id__in=workspace.members.values_list("id", flat=True))
+        except PermissionDenied:
+            return []
+        except Workspace.DoesNotExist:
+            return []
 
-        users = users.filter(
-            Q(case_insensitive_email__contains=query)
-            | Q(first_name__icontains=query)
-            | Q(last_name__icontains=query)
-        )
+    # If organization_id is provided, exclude current members of that organization
+    if organization_id:
+        try:
+            organization = Organization.objects.filter_for_user(request.user).get(
+                id=organization_id
+            )
+            if not request.user.has_perm(
+                "user_management.manage_members", organization
+            ):
+                raise PermissionDenied
 
-        return users.order_by("email")[:10]
-    except PermissionDenied:
-        return []
-    except Workspace.DoesNotExist:
-        return []
+            users = users.exclude(
+                id__in=organization.organizationmembership_set.values_list(
+                    "user_id", flat=True
+                )
+            )
+        except PermissionDenied:
+            return []
+        except Organization.DoesNotExist:
+            return []
+
+    # Explicitly collate the email field to allow case-insensitive LIKE queries
+    users = users.annotate(case_insensitive_email=Collate("email", "und-x-icu"))
+
+    users = users.filter(
+        Q(case_insensitive_email__contains=query)
+        | Q(first_name__icontains=query)
+        | Q(last_name__icontains=query)
+    )
+
+    return users.order_by("email")[:10]
 
 
 @identity_mutations.field("createTeam")
@@ -894,19 +917,50 @@ def resolve_update_organization_member(_, info, **kwargs):
 
     try:
         membership = OrganizationMembership.objects.get(id=update_input["id"])
+        organization = membership.organization
 
-        # Check permission to manage members
-        if not principal.has_perm(
-            "user_management.manage_members", membership.organization
-        ):
+        if not principal.has_perm("user_management.manage_members", organization):
             raise PermissionDenied
 
-        # Update the role (convert uppercase enum to lowercase)
         membership.role = update_input["role"].lower()
         membership.save()
 
-        return {"success": True, "membership": membership, "errors": []}
+        workspace_permissions = update_input.get("workspace_permissions", [])
+        if workspace_permissions:
+            user = membership.user
 
+            for workspace_permission in workspace_permissions:
+                workspace_slug = workspace_permission["workspace_slug"]
+                role = workspace_permission.get("role")
+
+                try:
+                    workspace = Workspace.objects.get(
+                        slug=workspace_slug,
+                        organization=organization,
+                        archived=False,
+                    )
+
+                    existing_membership = WorkspaceMembership.objects.filter(
+                        user=user, workspace=workspace
+                    ).first()
+
+                    if role is None:
+                        if existing_membership:
+                            existing_membership.delete()
+                    else:
+                        if existing_membership:
+                            existing_membership.role = role
+                            existing_membership.save()
+                        else:
+                            WorkspaceMembership.objects.create(
+                                user=user,
+                                workspace=workspace,
+                                role=role,
+                            )
+
+                except Workspace.DoesNotExist:
+                    continue
+        return {"success": True, "membership": membership, "errors": []}
     except OrganizationMembership.DoesNotExist:
         return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
@@ -923,18 +977,22 @@ def resolve_delete_organization_member(_, info, **kwargs):
     try:
         membership = OrganizationMembership.objects.get(id=delete_input["id"])
 
-        # Check permission to manage members
         if not principal.has_perm(
             "user_management.manage_members", membership.organization
         ):
             raise PermissionDenied
 
-        # Prevent user from deleting themselves
         if membership.user == principal:
             return {"success": False, "errors": ["CANNOT_DELETE_SELF"]}
 
-        # Delete the membership
-        membership.delete()
+        user = membership.user
+        organization = membership.organization
+        with transaction.atomic():
+            WorkspaceMembership.objects.filter(
+                user=user, workspace__organization=organization
+            ).delete()
+
+            membership.delete()
 
         return {"success": True, "errors": []}
 
@@ -971,33 +1029,69 @@ def resolve_invite_organization_member(_, info, **kwargs):
 
         user = User.objects.filter(email=input["user_email"]).first()
 
-        if user and (
-            OrganizationMembership.objects.filter(
+        if user:
+            is_organization_member = OrganizationMembership.objects.filter(
                 user=user, organization=organization
             ).exists()
-            or OrganizationInvitation.objects.filter(
+            if is_organization_member:
+                raise AlreadyExists
+
+            # We directly add existing users to the organization
+            with transaction.atomic():
+                OrganizationMembership.objects.create(
+                    organization=organization,
+                    user=user,
+                    role=input["organization_role"].lower(),
+                )
+                # Also add user to any specified workspaces
+                for workspace_invitation in input["workspace_invitations"]:
+                    try:
+                        workspace = Workspace.objects.get(
+                            slug=workspace_invitation["workspace_slug"],
+                            organization=organization,
+                            archived=False,
+                        )
+                        WorkspaceMembership.objects.create(
+                            workspace=workspace,
+                            user=user,
+                            role=workspace_invitation["role"],
+                        )
+                    except Workspace.DoesNotExist:
+                        continue
+
+                send_organization_add_user_email(
+                    invited_by=request.user,
+                    organization=organization,
+                    invitee=user,
+                    role=input["organization_role"].lower(),
+                    workspace_invitations=input["workspace_invitations"],
+                )
+        else:
+            is_already_invited = OrganizationInvitation.objects.filter(
                 organization=organization,
                 email=input["user_email"],
                 status=OrganizationInvitationStatus.PENDING,
             ).exists()
-        ):
-            return {"success": False, "errors": ["ALREADY_MEMBER"]}
+            if is_already_invited:
+                raise AlreadyExists
 
-        with transaction.atomic():
-            invitation = OrganizationInvitation.objects.create_if_has_perm(
-                principal=request.user,
-                organization=organization,
-                email=input["user_email"],
-                role=input["organization_role"].lower(),
-                workspace_invitations=input["workspace_invitations"],
-            )
-            send_organization_invite(invitation)
+            with transaction.atomic():
+                invitation = OrganizationInvitation.objects.create_if_has_perm(
+                    principal=request.user,
+                    organization=organization,
+                    email=input["user_email"],
+                    role=input["organization_role"].lower(),
+                    workspace_invitations=input["workspace_invitations"],
+                )
+                send_organization_invite(invitation)
 
         return {"success": True, "errors": []}
     except Organization.DoesNotExist:
         return {"success": False, "errors": ["ORGANIZATION_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except AlreadyExists:
+        return {"success": False, "errors": ["ALREADY_MEMBER"]}
 
 
 @identity_mutations.field("deleteOrganizationInvitation")
@@ -1063,7 +1157,6 @@ def resolve_resend_organization_invitation(_, info, **kwargs):
         }
 
 
-# Organization membership object type resolver
 organization_membership_object = ObjectType("OrganizationMembership")
 
 

@@ -84,3 +84,48 @@ def send_organization_invite(invitation):
                 "status": invitation.status,
             },
         )
+
+
+def send_organization_add_user_email(
+    invited_by, organization, invitee, role, workspace_invitations=None
+):
+    """Send email to existing user when added to organization"""
+    from datetime import datetime, timezone
+
+    from django.conf import settings
+    from django.utils.translation import gettext_lazy, override
+
+    from hexa.analytics.api import track
+    from hexa.core.utils import send_mail
+
+    title = gettext_lazy(
+        f"You've been added to the organization {organization.name} on OpenHEXA"
+    )
+    action_url = f"{settings.NEW_FRONTEND_DOMAIN}/organizations/{organization.slug}"
+
+    with override(invitee.language):
+        send_mail(
+            title=title,
+            template_name="user_management/mails/add_existing_user_organization",
+            template_variables={
+                "organization": organization.name,
+                "owner": invited_by.display_name,
+                "owner_email": invited_by.email,
+                "invitee": invitee.display_name,
+                "url": action_url,
+                "workspace_invitations": workspace_invitations or [],
+            },
+            recipient_list=[invitee.email],
+            attachments=get_email_attachments(),
+        )
+
+        track(
+            request=None,
+            event="emails.organization_add_user_sent",
+            properties={
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "organization": organization.id,
+                "invitee_email": invitee.email,
+                "invitee_role": role,
+            },
+        )

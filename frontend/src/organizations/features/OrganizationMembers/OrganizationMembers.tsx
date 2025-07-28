@@ -90,6 +90,7 @@ export default function OrganizationMembers({
     <>
       <div className="mb-4">
         <SearchInput
+          name="search-members"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder={t("Search members...")}
@@ -144,6 +145,7 @@ export default function OrganizationMembers({
                     onClick={() => handleUpdateClicked(member)}
                     size="sm"
                     variant="secondary"
+                    aria-label="edit"
                   >
                     <PencilIcon className="h-4" />
                   </Button>
@@ -151,6 +153,7 @@ export default function OrganizationMembers({
                     onClick={() => handleDeleteClicked(member)}
                     size="sm"
                     variant="secondary"
+                    aria-label="delete"
                   >
                     <TrashIcon className="h-4" />
                   </Button>
@@ -180,6 +183,7 @@ export default function OrganizationMembers({
             setOpenEditDialog(false);
           }}
           member={selectedMember}
+          organization={displayData?.organization!}
         />
       )}
     </>

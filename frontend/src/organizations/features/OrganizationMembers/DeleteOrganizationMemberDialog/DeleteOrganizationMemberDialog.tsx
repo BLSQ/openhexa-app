@@ -1,4 +1,4 @@
-import { useTranslation } from "next-i18next";
+import { Trans, useTranslation } from "next-i18next";
 import Dialog from "core/components/Dialog";
 import Button from "core/components/Button";
 import { useDeleteOrganizationMemberMutation } from "../OrganizationMembers.generated";
@@ -21,49 +21,37 @@ export default function DeleteOrganizationMemberDialog({
 }: DeleteOrganizationMemberDialogProps) {
   const { t } = useTranslation();
 
-  const [deleteOrganizationMember, { loading }] = useDeleteOrganizationMemberMutation({
-    onCompleted: (data) => {
-      if (data.deleteOrganizationMember.success) {
-        onClose();
-      }
-    },
-    refetchQueries: ["OrganizationMembers"],
-  });
+  const [deleteOrganizationMember, { loading }] =
+    useDeleteOrganizationMemberMutation({
+      refetchQueries: ["OrganizationMembers"],
+    });
 
   const handleSubmit = async () => {
-    await deleteOrganizationMember({
+    deleteOrganizationMember({
       variables: {
         input: {
           id: member.id,
         },
       },
-    });
+    }).then(() => onClose());
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      centered
-      maxWidth="max-w-md"
-    >
-      <Dialog.Title>{t("Remove Organization Member")}</Dialog.Title>
+    <Dialog open={open} onClose={onClose} centered>
+      <Dialog.Title>{t("Remove Member")}</Dialog.Title>
       <Dialog.Content>
-        <p className="text-sm text-gray-600">
-          {t("Are you sure you want to remove {{name}} from this organization?", {
-            name: member.user.displayName,
-          })}
-        </p>
+        <Trans>
+          <p>
+            Are you sure you want to remove <b>{member.user.displayName}</b>{" "}
+            from this organization and associated workspaces ?
+          </p>
+        </Trans>
       </Dialog.Content>
       <Dialog.Actions>
         <Button onClick={onClose} variant="white">
           {t("Cancel")}
         </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={loading}
-          variant="danger"
-        >
+        <Button onClick={handleSubmit} disabled={loading} variant="danger">
           {loading ? t("Removing...") : t("Remove")}
         </Button>
       </Dialog.Actions>

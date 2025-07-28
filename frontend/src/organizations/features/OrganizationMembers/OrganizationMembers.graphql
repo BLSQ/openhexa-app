@@ -4,6 +4,12 @@ query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String) 
       permissions {
           manageMembers
       }
+    workspaces(perPage: 1000, page: 1) {
+      items {
+        slug
+        name
+      }
+    }
     members(page: $page, perPage: $perPage, term: $term) {
         totalItems
       items {

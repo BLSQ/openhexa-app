@@ -25,21 +25,21 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
       onSubmit,
       ...delegated
     } = props;
-    return (
-      <form onSubmit={onSubmit}>
-        <Input
-          ref={ref}
-          data-testid="search-input"
-          leading={<MagnifyingGlassIcon className="h-5 text-gray-500" />}
-          autoComplete="off"
-          trailingIcon={loading && <Spinner size="xs" />}
-          className={className}
-          iconZIndex="z-0"
-          placeholder={placeholder}
-          {...delegated}
-        />
-      </form>
+    const content = (
+      <Input
+        ref={ref}
+        data-testid="search-input"
+        leading={<MagnifyingGlassIcon className="h-5 text-gray-500" />}
+        autoComplete="off"
+        trailingIcon={loading && <Spinner size="xs" />}
+        className={className}
+        iconZIndex="z-0"
+        placeholder={placeholder}
+        {...delegated}
+      />
     );
+
+    return onSubmit ? <form onSubmit={onSubmit}>{content}</form> : content;
   },
 );
 

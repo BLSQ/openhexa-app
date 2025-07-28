@@ -14,7 +14,9 @@ import {
 } from "./UserPicker.generated";
 
 type UserPickerProps = {
-  workspaceSlug: string;
+  id?: string;
+  workspaceSlug?: string;
+  organizationId?: string;
   value: UserPicker_UserFragment | null;
   onChange(user: UserPicker_UserFragment | null): void;
 };
@@ -25,7 +27,7 @@ const Classes = {
 
 export const UserPicker = (props: UserPickerProps) => {
   const { t } = useTranslation();
-  const { workspaceSlug, value, onChange } = props;
+  const { id, workspaceSlug, value, onChange, organizationId } = props;
 
   const [query, setQuery] = useState<string>("");
   const [displayData, setDisplayData] = useState<GetUsersQuery | null>(null);
@@ -35,6 +37,7 @@ export const UserPicker = (props: UserPickerProps) => {
     variables: {
       query: debouncedQuery,
       workspaceSlug: workspaceSlug,
+      organizationId: organizationId,
     },
     skip: !debouncedQuery,
   });
@@ -81,6 +84,7 @@ export const UserPicker = (props: UserPickerProps) => {
 
   return (
     <Combobox
+      id={id}
       required
       onChange={(user) => onChange(user!)}
       loading={loading}

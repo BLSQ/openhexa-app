@@ -259,9 +259,9 @@ extend type Query {
     """
     me: Me!
     """
-    Search users, to be moved to "Organizations"
+    Search users.
     """
-    users(query: String!, workspaceSlug: String!): [User!]! @loginRequired
+    users(query: String!, workspaceSlug: String, organizationId: UUID): [User!]! @loginRequired
 }
 
 """
@@ -1341,6 +1341,11 @@ input UpdateOrganizationMemberInput {
     The updated role of the user in the organization.
     """
     role: OrganizationMembershipRole!
+    
+    """
+    The list of workspace permissions to update for the user.
+    """
+    workspacePermissions: [WorkspacePermissionInput!]
 }
 
 """
@@ -1485,14 +1490,24 @@ input WorkspaceInvitationInput {
     workspaceSlug: String!
     
     """
-    The name of the workspace to invite the user to.
-    """
-    workspaceName: String!
-    
-    """
     The role of the user in the workspace.
     """
     role: WorkspaceMembershipRole!
+}
+
+"""
+The WorkspacePermissionInput type represents workspace permission updates for an existing organization member.
+"""
+input WorkspacePermissionInput {
+    """
+    The slug of the workspace to update permissions for.
+    """
+    workspaceSlug: String!
+    
+    """
+    The role of the user in the workspace. If null, the user will be removed from the workspace.
+    """
+    role: WorkspaceMembershipRole
 }
 
 """

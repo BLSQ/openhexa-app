@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { HTMLAttributes } from "react";
+import { HTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from "react";
 
 export const TableClasses = {
   table: "w-full divide-y divide-gray-200 ",
@@ -38,7 +38,7 @@ export const TableRow = (props: HTMLAttributes<HTMLTableRowElement>) => (
   <tr className={props.className ?? TableClasses.tr} {...props} />
 );
 
-export type TableCellProps = HTMLAttributes<HTMLTableCellElement> & {
+export type TableCellProps = (TdHTMLAttributes<HTMLTableCellElement> | ThHTMLAttributes<HTMLTableCellElement>) & {
   width?: string;
   heading?: boolean;
   wrap?: boolean;

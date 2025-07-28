@@ -1,102 +1,287 @@
-import { useTranslation } from "next-i18next";
-import { useState } from "react";
+import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
-import Select from "core/components/forms/Select";
-import Button from "core/components/Button";
-import { useUpdateOrganizationMemberMutation } from "../OrganizationMembers.generated";
-import { User, OrganizationMembership, OrganizationMembershipRole } from "graphql/types";
+import Spinner from "core/components/Spinner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "core/components/Table";
+import { Trans, useTranslation } from "next-i18next";
+import useForm from "core/hooks/useForm";
+import {
+  OrganizationMembershipRole,
+  WorkspaceMembershipRole,
+  UpdateOrganizationMemberError,
+  WorkspacePermissionInput,
+} from "graphql/types";
+import SimpleSelect from "core/components/forms/SimpleSelect";
+import useCacheKey from "core/hooks/useCacheKey";
+import React, { useEffect, useState } from "react";
+import { useUpdateOrganizationMemberMutation } from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
+import SearchInput from "core/features/SearchInput";
+import { gql } from "@apollo/client";
+import { OrganizationMembersQuery } from "../OrganizationMembers.generated";
+import { UpdateOrganizationMemberDialog_OrganizationMemberFragment } from "./UpdateOrganizationMemberDialog.generated";
 
-type OrganizationMember = Pick<OrganizationMembership, "id" | "role"> & {
-  user: Pick<User, "id" | "displayName">;
+type UpdateOrganizationMemberDialogProps = {
+  onClose(): void;
+  open: boolean;
+  member: UpdateOrganizationMemberDialog_OrganizationMemberFragment;
+  organization: NonNullable<OrganizationMembersQuery["organization"]>;
 };
 
-interface UpdateOrganizationMemberDialogProps {
-  open: boolean;
-  onClose: () => void;
-  member: OrganizationMember;
-}
+type Form = {
+  organizationRole: OrganizationMembershipRole;
+  workspacePermissions: WorkspacePermissionInput[];
+};
 
-export default function UpdateOrganizationMemberDialog({
-  open,
-  onClose,
-  member,
-}: UpdateOrganizationMemberDialogProps) {
+const UpdateOrganizationMemberDialog = (
+  props: UpdateOrganizationMemberDialogProps,
+) => {
   const { t } = useTranslation();
-  const [role, setRole] = useState<OrganizationMembershipRole>(member.role);
+  const { open, onClose, member, organization } = props;
 
-  const [updateOrganizationMember, { loading }] = useUpdateOrganizationMemberMutation({
-    onCompleted: (data) => {
-      if (data.updateOrganizationMember.success) {
-        onClose();
-      }
-    },
+  const [updateOrganizationMember] = useUpdateOrganizationMemberMutation({
     refetchQueries: ["OrganizationMembers"],
   });
 
-  const handleSubmit = async () => {
-    await updateOrganizationMember({
-      variables: {
-        input: {
-          id: member.id,
-          role,
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const clearCache = useCacheKey(["organization", organization.id]);
+
+  const form = useForm<Form>({
+    onSubmit: async (values) => {
+      const result = await updateOrganizationMember({
+        variables: {
+          input: {
+            id: member.id,
+            role: values.organizationRole,
+            workspacePermissions: values.workspacePermissions,
+          },
         },
-      },
+      });
+
+      if (!result.data?.updateOrganizationMember.success) {
+        const errors = result.data?.updateOrganizationMember.errors || [];
+        if (errors.includes(UpdateOrganizationMemberError.PermissionDenied)) {
+          throw new Error(t("You are not authorized to perform this action"));
+        }
+        if (errors.includes(UpdateOrganizationMemberError.NotFound)) {
+          throw new Error(t("Organization member not found"));
+        }
+        throw new Error(t("Failed to update member permissions"));
+      }
+      clearCache();
+      onClose();
+    },
+    initialState: {
+      organizationRole: member.role,
+      workspacePermissions: organization.workspaces.items.map((workspace) => {
+        const existingMembership = member.workspaceMemberships.find(
+          ({ workspace: { slug } }) => slug === workspace.slug,
+        );
+        return {
+          workspaceSlug: workspace.slug,
+          role: existingMembership?.role || null,
+        };
+      }),
+    },
+  });
+
+  useEffect(() => {
+    if (open) {
+      setSearchTerm("");
+    }
+  }, [open]);
+
+  const handleRoleChange = (
+    workspaceSlug: string,
+    role: WorkspaceMembershipRole | null,
+  ) => {
+    const currentPermissions = form.formData.workspacePermissions || [];
+    const updatedPermissions = currentPermissions.map((permission) =>
+      permission.workspaceSlug === workspaceSlug
+        ? { ...permission, role }
+        : permission,
+    );
+    form.setFormData({
+      ...form.formData,
+      workspacePermissions: updatedPermissions,
     });
   };
 
-  const roleOptions = Object.values(OrganizationMembershipRole).map((roleValue) => ({
-    value: roleValue,
-    label: formatOrganizationMembershipRole(roleValue),
-  }));
-
-  const handleRoleChange = (selectedOption: { value: OrganizationMembershipRole; label: string } | null) => {
-    if (selectedOption) {
-      setRole(selectedOption.value);
-    }
-  };
+  const filteredWorkspaces = organization.workspaces.items.filter((workspace) =>
+    workspace.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      centered
-      maxWidth="max-w-md"
-    >
-      <Dialog.Title>{t("Update Organization Member")}</Dialog.Title>
-      <Dialog.Content>
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm text-gray-600 mb-2">
-              {t("Updating role for {{name}}", {
-                name: member.user.displayName,
-              })}
-            </p>
-          </div>
-          <Field name="role" label={t("Role")} required>
-            <Select
-              value={roleOptions.find(option => option.value === role)}
-              onChange={handleRoleChange}
-              options={roleOptions}
-              getOptionLabel={(option) => option?.label || ""}
-              placeholder={t("Select role")}
-            />
-          </Field>
+    <Dialog open={open} onClose={onClose} onSubmit={form.handleSubmit}>
+      <Dialog.Title>{t("Update Member Permissions")}</Dialog.Title>
+      <Dialog.Content className="space-y-4">
+        <div>
+          <p className="text-sm text-gray-600 mb-4">
+            <Trans>
+              Updating permissions for{" "}
+              <b className="font-medium">{member.user.displayName}</b>
+            </Trans>
+          </p>
         </div>
+
+        <Field name="organizationRole" label={t("Organization Role")} required>
+          <SimpleSelect
+            id="organizationRole"
+            name="organizationRole"
+            value={form.formData.organizationRole}
+            onChange={form.handleInputChange}
+            required
+          >
+            {Object.values(OrganizationMembershipRole).map((role) => (
+              <option key={role} value={role}>
+                {formatOrganizationMembershipRole(role)}
+              </option>
+            ))}
+          </SimpleSelect>
+        </Field>
+
+        <Field name="workspaces" label={t("Workspaces")} required>
+          <div className="space-y-3">
+            <SearchInput
+              name="workspaces"
+              placeholder={t("Search workspaces...")}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="max-h-64 overflow-y-auto">
+                <Table className="table-fixed">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell heading className="w-1/2"></TableCell>
+                      <TableCell heading className="text-center w-1/8">
+                        {t("Admin")}
+                      </TableCell>
+                      <TableCell heading className="text-center w-1/8">
+                        {t("Editor")}
+                      </TableCell>
+                      <TableCell heading className="text-center w-1/8">
+                        {t("Viewer")}
+                      </TableCell>
+                      <TableCell heading className="text-center w-1/8">
+                        {t("None")}
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredWorkspaces.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          className="text-center py-8 text-gray-500"
+                          colSpan={5}
+                        >
+                          <p className="text-sm">
+                            {searchTerm
+                              ? t("No workspace found")
+                              : t("No workspace available")}
+                          </p>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredWorkspaces.map((workspace) => {
+                        const permissions =
+                          form.formData.workspacePermissions || [];
+                        const permission = permissions.find(
+                          (p) => p.workspaceSlug === workspace.slug,
+                        );
+                        const currentRole = permission?.role || null;
+
+                        return (
+                          <TableRow key={workspace.slug}>
+                            <TableCell
+                              className="truncate font-medium max-w-0"
+                              title={workspace.name}
+                            >
+                              {workspace.name}
+                            </TableCell>
+
+                            {[
+                              ...Object.values(WorkspaceMembershipRole),
+                              null,
+                            ].map((role) => (
+                              <TableCell
+                                key={workspace.slug + (role || "NONE")}
+                                className="text-center"
+                              >
+                                <input
+                                  type="radio"
+                                  name={`workspace-${workspace.slug}`}
+                                  checked={currentRole === role}
+                                  onChange={() =>
+                                    handleRoleChange(workspace.slug, role)
+                                  }
+                                  className="h-4 w-4 text-blue-600 cursor-pointer"
+                                  aria-label={`${workspace.slug} ${role || "NONE"}`}
+                                />
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </div>
+        </Field>
+
+        {form.submitError && (
+          <div className="text-danger mt-3 text-sm">{form.submitError}</div>
+        )}
       </Dialog.Content>
       <Dialog.Actions>
         <Button onClick={onClose} variant="white">
           {t("Cancel")}
         </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={loading || role === member.role}
-          variant="primary"
-        >
-          {loading ? t("Updating...") : t("Update")}
+        <Button type="submit" disabled={form.isSubmitting}>
+          {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
+          {t("Update")}
         </Button>
       </Dialog.Actions>
     </Dialog>
   );
-}
+};
+
+UpdateOrganizationMemberDialog.fragments = {
+  organizationMember: gql`
+    fragment UpdateOrganizationMemberDialog_organizationMember on OrganizationMembership {
+      id
+      role
+      workspaceMemberships {
+        id
+        role
+        workspace {
+          slug
+          name
+        }
+      }
+      user {
+        id
+        displayName
+        email
+      }
+    }
+  `,
+  workspace: gql`
+    fragment UpdateOrganizationMemberDialog_workspace on Workspace {
+      slug
+      name
+    }
+  `,
+};
+
+export default UpdateOrganizationMemberDialog;

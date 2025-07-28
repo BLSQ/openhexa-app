@@ -3898,7 +3898,7 @@ export type Query = {
   teams: TeamPage;
   /** Retrieves a template by workspace slug and code. */
   templateByCode?: Maybe<PipelineTemplate>;
-  /** Search users, to be moved to "Organizations" */
+  /** Search users. */
   users: Array<User>;
   webapp?: Maybe<Webapp>;
   webapps: WebappsPage;
@@ -4154,8 +4154,9 @@ export type QueryTemplateByCodeArgs = {
 
 
 export type QueryUsersArgs = {
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   query: Scalars['String']['input'];
-  workspaceSlug: Scalars['String']['input'];
+  workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -4800,6 +4801,8 @@ export type UpdateOrganizationMemberInput = {
   id: Scalars['UUID']['input'];
   /** The updated role of the user in the organization. */
   role: OrganizationMembershipRole;
+  /** The list of workspace permissions to update for the user. */
+  workspacePermissions?: InputMaybe<Array<WorkspacePermissionInput>>;
 };
 
 /** The UpdateOrganizationMemberResult type represents the result of the updateOrganizationMember mutation. */
@@ -5254,8 +5257,6 @@ export type WorkspaceInvitation = {
 export type WorkspaceInvitationInput = {
   /** The role of the user in the workspace. */
   role: WorkspaceMembershipRole;
-  /** The name of the workspace to invite the user to. */
-  workspaceName: Scalars['String']['input'];
   /** The slug of the workspace to invite the user to. */
   workspaceSlug: Scalars['String']['input'];
 };
@@ -5310,6 +5311,14 @@ export type WorkspacePage = {
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
+};
+
+/** The WorkspacePermissionInput type represents workspace permission updates for an existing organization member. */
+export type WorkspacePermissionInput = {
+  /** The role of the user in the workspace. If null, the user will be removed from the workspace. */
+  role?: InputMaybe<WorkspaceMembershipRole>;
+  /** The slug of the workspace to update permissions for. */
+  workspaceSlug: Scalars['String']['input'];
 };
 
 /** Represents the permissions of a workspace. */

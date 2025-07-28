@@ -28,7 +28,9 @@ const InputSearch = ({ isSidebarOpen, onClick }: InputSearchProps) => {
         className="text-gray-400 bg-gray-700 hover:bg-gray-600 flex gap-4 p-2 rounded items-center"
       >
         <MagnifyingGlassIcon className="h-4 text-gray-400 ml-2" />
-        {t("Search")} {getIsMac() ? "(⌘K)" : "(Ctrl+K)"}
+        <span className="whitespace-nowrap overflow-hidden transition-opacity duration-200">
+          {t("Search")} {getIsMac() ? "(⌘K)" : "(Ctrl+K)"}
+        </span>
       </button>
     </div>
   ) : (
@@ -39,7 +41,7 @@ const InputSearch = ({ isSidebarOpen, onClick }: InputSearchProps) => {
       <MagnifyingGlassIcon className="text-gray-400 h-7 w-7 m-2" />
       <div className="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100">
         <Badge className="text-white bg-gray-800 ring-gray-500/20">
-          {t("Search")} {isMac ? "(⌘K)" : "(Ctrl+K)"}
+          {t("Search")} {getIsMac() ? "(⌘K)" : "(Ctrl+K)"}
         </Badge>
       </div>
     </button>
