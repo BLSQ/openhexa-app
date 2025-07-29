@@ -13,7 +13,6 @@ from django.core.signing import TimestampSigner
 from django.core.validators import RegexValidator, validate_slug
 from django.db import models
 from django.db.models import EmailField, Q
-from django.forms import ValidationError
 from django.utils.crypto import get_random_string
 from django.utils.regex_helper import _lazy_re_compile
 from django.utils.translation import gettext_lazy as _
@@ -89,7 +88,7 @@ def create_workspace_bucket(workspace_slug: str):
                 f"{(settings.WORKSPACE_BUCKET_PREFIX + workspace_slug)[: 63 - len(suffix)]}{suffix}",
                 labels={"hexa-workspace": workspace_slug},
             )
-        except ValidationError:
+        except storage.exceptions.AlreadyExists:
             suffix = "-" + get_random_string(
                 4, allowed_chars=string.ascii_lowercase + string.digits
             )

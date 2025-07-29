@@ -7,6 +7,7 @@ from azure.core.exceptions import (
 )
 from azure.storage.blob import (
     BlobPrefix,
+    BlobProperties,
     BlobSasPermissions,
     BlobServiceClient,
     ContainerSasPermissions,
@@ -17,8 +18,15 @@ from azure.storage.blob import (
 from .base import ObjectsPage, Storage, StorageObject, load_bucket_sample_data_with
 
 
+def _is_dir(blob_properties: BlobProperties | BlobPrefix) -> bool:
+    return (
+        isinstance(blob_properties, BlobPrefix)
+        or blob_properties.metadata.get("hdi_isfolder", "false") == "true"
+    )
+
+
 def _blob_to_obj(blob_properties, container_name):
-    if isinstance(blob_properties, BlobPrefix):
+    if _is_dir(blob_properties):
         return StorageObject(
             name=blob_properties.name.rstrip("/").split("/")[-1],
             key=blob_properties.name,
@@ -41,6 +49,7 @@ def _blob_to_obj(blob_properties, container_name):
 
 class AzureBlobStorage(Storage):
     storage_type = "azure"
+    folder_placeholder = ".keep"
 
     def __init__(self, connection_string):
         super().__init__()
@@ -75,7 +84,7 @@ class AzureBlobStorage(Storage):
         folder_key = folder_key.rstrip("/") + "/"
 
         blob_client = self.client.get_blob_client(
-            container=bucket_name, blob=folder_key + ".placeholder"
+            container=bucket_name, blob=folder_key + self.folder_placeholder
         )
         blob_client.upload_blob(b"", overwrite=True)
 
@@ -169,7 +178,7 @@ class AzureBlobStorage(Storage):
             we would need to implement a Blob Indexer
             (https://learn.microsoft.com/en-us/azure/search/search-blob-storage-integration?toc=%2Fazure%2Fstorage%2Fblobs%2Ftoc.json&bc=%2Fazure%2Fstorage%2Fblobs%2Fbreadcrumb%2Ftoc.json)
 
-            It's not possible to create a empty directory using the Azure SDK/API. To simulate it, we create a empty `.placeholder` blob and filter it out.
+            It's not possible to create a empty directory using the Azure SDK/API. To simulate it, we create a empty `.keep` blob and filter it out.
 
         Args:
             bucket_name (_type_): _description_
@@ -191,8 +200,8 @@ class AzureBlobStorage(Storage):
         objects = []
 
         def is_object_match_query(obj):
-            # Filter out ".placeholder" files used to create folders
-            if obj.name.endswith(".placeholder"):
+            # Filter out ".keep" files used to create folders
+            if obj.name.endswith(self.folder_placeholder):
                 return False
             if ignore_hidden_files and obj.name.startswith("."):
                 return False
@@ -226,8 +235,20 @@ class AzureBlobStorage(Storage):
         )
 
     def delete_object(self, bucket_name, file_name):
-        blob_client = self.client.get_blob_client(container=bucket_name, blob=file_name)
-        blob_client.delete_blob()
+        container_client = self.client.get_container_client(container=bucket_name)
+
+        def _delete_object(blob_name: str):
+            blob_client = container_client.get_blob_client(blob=blob_name)
+            if not _is_dir(blob_client.get_blob_properties()):
+                blob_client.delete_blob()
+            else:
+                # As it's not possible to delete folders that are no empty, we first need to delete all files and folders inside the folder
+                for blob_properties in container_client.walk_blobs(
+                    delimiter="/", name_starts_with=blob_name
+                ):
+                    _delete_object(blob_properties.name)
+
+        return _delete_object(file_name)
 
     def delete_bucket(self, bucket_name, force: bool = False):
         self.client.delete_container(bucket_name)
