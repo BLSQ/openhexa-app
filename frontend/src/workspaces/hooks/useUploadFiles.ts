@@ -34,16 +34,16 @@ export const useUploadFiles = ({
         files,
         async getXHROptions(file) {
           const contentType = file.type || "application/octet-stream";
-          const url = await getBucketObjectUploadUrl(
+          const { uploadUrl, headers } = await getBucketObjectUploadUrl(
             workspace.slug,
             (prefix ?? "") + file.name,
             contentType,
           );
 
           return {
-            url,
+            url: uploadUrl,
             method: "PUT",
-            headers: { "Content-Type": contentType },
+            headers: { "Content-Type": contentType, ...headers },
           };
         },
         onProgress,
