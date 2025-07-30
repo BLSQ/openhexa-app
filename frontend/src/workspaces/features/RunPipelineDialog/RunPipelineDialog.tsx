@@ -166,7 +166,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
         }
 
         if (
-          ["str", "dataset"].includes(parameter.type) &&
+          ["str", "dataset", "file"].includes(parameter.type) &&
           parameter.required &&
           ensureArray(val).length === 0
         ) {
