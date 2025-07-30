@@ -1,7 +1,6 @@
 import { gql, useLazyQuery } from "@apollo/client";
 import {
   ChevronRightIcon,
-  DocumentIcon,
   FolderIcon,
   MagnifyingGlassIcon,
   PlusIcon,
@@ -23,6 +22,7 @@ import {
   FileBrowserDialog_BucketObjectFragment,
   FileBrowserDialogDocument,
 } from "./FileBrowserDialog.generated";
+import { getFileIcon, getFileIconColor } from "./utils";
 
 interface FileBrowserDialogProps {
   open: boolean;
@@ -115,40 +115,44 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="max-w-4xl"
-      className="h-[80vh]"
+      maxWidth="max-w-5xl"
+      className="h-[85vh] sm:h-[80vh]"
     >
       <Dialog.Title onClose={onClose}>{t("Select Input File")}</Dialog.Title>
 
-      <Dialog.Content className="flex flex-col space-y-4">
+      <Dialog.Content className="flex flex-col space-y-4 h-full">
         {/* Breadcrumb Navigation */}
-        {prefixes.length > 0 && (
-          <div className="flex items-center gap-1 text-sm text-gray-500 px-2">
-            <button
-              className="flex items-center hover:text-gray-700"
-              onClick={() => setPrefix(null)}
-            >
-              <HomeIcon className="h-4 w-4" />
-            </button>
-            {prefixes.length > 2 && (
-              <>
-                <ChevronRightIcon className="h-3 w-3" />
-                <span>...</span>
-              </>
-            )}
-            {prefixes.slice(-2).map((part, index) => (
-              <div key={index} className="flex items-center">
-                <ChevronRightIcon className="h-3 w-3" />
-                <button
-                  className="hover:text-gray-700"
-                  onClick={() => setPrefix(part.value)}
-                >
-                  {part.label}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="flex items-center gap-1 text-sm text-gray-500 px-2 min-h-[2rem]">
+          <button
+            className="flex items-center hover:text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded p-1"
+            onClick={() => setPrefix(null)}
+            aria-label={t("Go to root directory")}
+          >
+            <HomeIcon className="h-4 w-4" />
+          </button>
+          {prefixes.length > 0 && (
+            <>
+              {prefixes.length > 2 && (
+                <>
+                  <ChevronRightIcon className="h-3 w-3" />
+                  <span className="hidden sm:inline">...</span>
+                </>
+              )}
+              {prefixes.slice(-2).map((part, index) => (
+                <div key={index} className="flex items-center">
+                  <ChevronRightIcon className="h-3 w-3" />
+                  <button
+                    className="hover:text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1 py-0.5 max-w-[120px] sm:max-w-none truncate"
+                    onClick={() => setPrefix(part.value)}
+                    title={part.label}
+                  >
+                    {part.label}
+                  </button>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
 
         {/* Search Bar */}
         <div className="px-2">
@@ -156,25 +160,29 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
             placeholder={t("Search files...")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            leadingIcon={<MagnifyingGlassIcon className="h-4 w-4" />}
+            leading={<MagnifyingGlassIcon className="h-4 w-4" />}
           />
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 px-2">
+        <div className="flex flex-col sm:flex-row gap-2 px-2">
           <Button
             variant="outlined"
             size="sm"
             leadingIcon={<PlusIcon className="h-4 w-4" />}
+            className="justify-center sm:justify-start"
           >
-            {t("Create a folder")}
+            <span className="hidden sm:inline">{t("Create a folder")}</span>
+            <span className="sm:hidden">{t("Create folder")}</span>
           </Button>
           <Button
             variant="outlined"
             size="sm"
             leadingIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
+            className="justify-center sm:justify-start"
           >
-            {t("Upload files")}
+            <span className="hidden sm:inline">{t("Upload files")}</span>
+            <span className="sm:hidden">{t("Upload")}</span>
           </Button>
         </div>
 
@@ -187,10 +195,15 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
           ) : (
             <div className="border rounded-lg">
               {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 p-3 bg-gray-50 border-b text-sm font-medium text-gray-700 rounded-t-lg">
+              <div className="hidden sm:grid sm:grid-cols-12 gap-4 p-3 bg-gray-50 border-b text-sm font-medium text-gray-700 rounded-t-lg">
                 <div className="col-span-6">{t("Name")}</div>
                 <div className="col-span-2">{t("Size")}</div>
                 <div className="col-span-4">{t("Last Updated")}</div>
+              </div>
+
+              {/* Mobile Header */}
+              <div className="sm:hidden p-3 bg-gray-50 border-b text-sm font-medium text-gray-700 rounded-t-lg">
+                {t("Files and folders")}
               </div>
 
               {/* Table Body */}
@@ -206,31 +219,84 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
                     <button
                       key={index}
                       className={clsx(
-                        "w-full grid grid-cols-12 gap-4 p-3 text-left hover:bg-gray-50 transition-colors",
-                        selectedFile === item.path && "bg-blue-50",
+                        "w-full text-left hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50",
+                        "sm:grid sm:grid-cols-12 sm:gap-4 sm:p-3",
+                        "flex flex-col p-3 space-y-1 sm:space-y-0",
+                        selectedFile === item.path &&
+                          "bg-blue-50 hover:bg-blue-100",
                       )}
                       onClick={() => onItemClick(item)}
+                      aria-label={
+                        item.type === BucketObjectType.Directory
+                          ? t("Open folder {{name}}", { name: item.name })
+                          : t("Select file {{name}}", { name: item.name })
+                      }
                     >
-                      <div className="col-span-6 flex items-center gap-2">
-                        {item.type === BucketObjectType.Directory ? (
-                          <FolderIcon className="h-5 w-5 text-blue-500" />
-                        ) : (
-                          <DocumentIcon className="h-5 w-5 text-gray-400" />
-                        )}
-                        <span className="truncate">
-                          {item.name}
-                          {item.type === BucketObjectType.Directory && "/"}
-                        </span>
+                      {/* Desktop Layout */}
+                      <div className="hidden sm:contents">
+                        <div className="col-span-6 flex items-center gap-2">
+                          {item.type === BucketObjectType.Directory ? (
+                            <FolderIcon className="h-5 w-5 text-blue-500" />
+                          ) : (
+                            (() => {
+                              const IconComponent = getFileIcon(item.name);
+                              const iconColor = getFileIconColor(item.name);
+                              return (
+                                <IconComponent
+                                  className={clsx("h-5 w-5", iconColor)}
+                                />
+                              );
+                            })()
+                          )}
+                          <span className="truncate font-medium">
+                            {item.name}
+                            {item.type === BucketObjectType.Directory && "/"}
+                          </span>
+                        </div>
+                        <div className="col-span-2 text-gray-500 text-sm">
+                          {item.type === BucketObjectType.Directory ? (
+                            "-"
+                          ) : (
+                            <Filesize size={item.size} />
+                          )}
+                        </div>
+                        <div className="col-span-4 text-gray-500 text-sm">
+                          {item.updatedAt ? formatDate(item.updatedAt) : "-"}
+                        </div>
                       </div>
-                      <div className="col-span-2 text-gray-500">
-                        {item.type === BucketObjectType.Directory ? (
-                          "-"
-                        ) : (
-                          <Filesize size={item.size} />
+
+                      {/* Mobile Layout */}
+                      <div className="sm:hidden">
+                        <div className="flex items-center gap-2">
+                          {item.type === BucketObjectType.Directory ? (
+                            <FolderIcon className="h-5 w-5 text-blue-500" />
+                          ) : (
+                            (() => {
+                              const IconComponent = getFileIcon(item.name);
+                              const iconColor = getFileIconColor(item.name);
+                              return (
+                                <IconComponent
+                                  className={clsx("h-5 w-5", iconColor)}
+                                />
+                              );
+                            })()
+                          )}
+                          <span className="truncate font-medium">
+                            {item.name}
+                            {item.type === BucketObjectType.Directory && "/"}
+                          </span>
+                        </div>
+                        {item.type !== BucketObjectType.Directory && (
+                          <div className="text-xs text-gray-500 ml-7 flex items-center gap-2">
+                            <Filesize size={item.size} />
+                            {item.updatedAt && (
+                              <>
+                                <span>•</span>
+                                <span>{formatDate(item.updatedAt)}</span>
+                              </>
+                            )}
+                          </div>
                         )}
-                      </div>
-                      <div className="col-span-4 text-gray-500">
-                        {item.updatedAt ? formatDate(item.updatedAt) : "-"}
                       </div>
                     </button>
                   ))
@@ -245,6 +311,7 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
                     size="sm"
                     onClick={loadMore}
                     disabled={loading}
+                    className="min-w-[100px]"
                   >
                     {loading ? <Spinner size="xs" /> : t("Show more")}
                   </Button>
@@ -255,10 +322,15 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
         </div>
       </Dialog.Content>
 
-      <Dialog.Actions>
+      <Dialog.Actions className="flex-shrink-0">
         <Button variant="outlined" onClick={onClose}>
           {t("Cancel")}
         </Button>
+        {selectedFile && (
+          <Button variant="primary" onClick={onClose}>
+            {t("Select file")}
+          </Button>
+        )}
       </Dialog.Actions>
     </Dialog>
   );
