@@ -1,8 +1,9 @@
-import { FolderIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import Button from "core/components/Button";
-import Input from "core/components/forms/Input";
-import { useTranslation } from "next-i18next";
 import { useState } from "react";
+import { FolderIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useTranslation } from "next-i18next";
+
+import Input from "core/components/forms/Input";
+
 import FileBrowserDialog from "../FileBrowserDialog";
 import { FileBrowserDialog_BucketObjectFragment } from "../FileBrowserDialog/FileBrowserDialog.generated";
 
@@ -82,7 +83,6 @@ const FileParameterField: React.FC<FileParameterFieldProps> = ({
         onClose={() => setModalOpen(false)}
         workspaceSlug={workspaceSlug}
         onSelect={handleSelect}
-        selectedFile={value}
       />
     </div>
   );
