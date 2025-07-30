@@ -88,7 +88,7 @@ const ParameterField = (props: ParameterFieldProps) => {
       <FileParameterField
         workspaceSlug={workspaceSlug || ""}
         value={value}
-        onChange={(file) => handleChange(file?.path)}
+        onChange={(file) => handleChange(file?.key)}
         parameter={parameter}
       />
     );

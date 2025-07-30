@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { gql, useLazyQuery } from "@apollo/client";
 import {
   ChevronRightIcon,
@@ -7,15 +8,16 @@ import {
   ArrowUpTrayIcon,
 } from "@heroicons/react/24/outline";
 import { HomeIcon } from "@heroicons/react/20/solid";
+import { BucketObjectType } from "graphql/types";
+import { useTranslation } from "next-i18next";
+import clsx from "clsx";
+
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Input from "core/components/forms/Input";
 import Spinner from "core/components/Spinner";
 import Filesize from "core/components/Filesize";
-import { BucketObjectType } from "graphql/types";
-import { useTranslation } from "next-i18next";
-import { useEffect, useMemo, useState } from "react";
-import clsx from "clsx";
+
 import {
   FileBrowserDialogQuery,
   FileBrowserDialogQueryVariables,
@@ -29,7 +31,6 @@ interface FileBrowserDialogProps {
   onClose: () => void;
   workspaceSlug: string;
   onSelect: (file: FileBrowserDialog_BucketObjectFragment) => void;
-  selectedFile?: string | null;
 }
 
 const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
@@ -37,12 +38,13 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
   onClose,
   workspaceSlug,
   onSelect,
-  selectedFile,
 }) => {
   const { t } = useTranslation();
   const [prefix, _setPrefix] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [perPage, setPerPage] = useState(20);
+  const [currentSelectedFile, setCurrentSelectedFile] =
+    useState<FileBrowserDialog_BucketObjectFragment | null>(null);
 
   const [fetch, { data, previousData, loading }] = useLazyQuery<
     FileBrowserDialogQuery,
@@ -59,6 +61,7 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
           perPage,
         },
       });
+      setCurrentSelectedFile(null);
     }
   }, [prefix, fetch, workspaceSlug, perPage, open]);
 
@@ -75,7 +78,7 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
     if (item.type === BucketObjectType.Directory) {
       setPrefix(item.key);
     } else {
-      onSelect(item);
+      setCurrentSelectedFile(item);
     }
   };
 
@@ -222,7 +225,7 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
                         "w-full text-left hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50",
                         "sm:grid sm:grid-cols-12 sm:gap-4 sm:p-3",
                         "flex flex-col p-3 space-y-1 sm:space-y-0",
-                        selectedFile === item.path &&
+                        currentSelectedFile?.path === item.path &&
                           "bg-blue-50 hover:bg-blue-100",
                       )}
                       onClick={() => onItemClick(item)}
@@ -326,8 +329,14 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
         <Button variant="outlined" onClick={onClose}>
           {t("Cancel")}
         </Button>
-        {selectedFile && (
-          <Button variant="primary" onClick={onClose}>
+        {currentSelectedFile && (
+          <Button
+            variant="primary"
+            onClick={() => {
+              onSelect(currentSelectedFile);
+              onClose();
+            }}
+          >
             {t("Select file")}
           </Button>
         )}
