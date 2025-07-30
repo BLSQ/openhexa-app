@@ -1,4 +1,4 @@
-import { FolderIcon } from "@heroicons/react/24/outline";
+import { FolderIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import Input from "core/components/forms/Input";
 import { useTranslation } from "next-i18next";
@@ -36,34 +36,46 @@ const FileParameterField: React.FC<FileParameterFieldProps> = ({
 
   return (
     <div className="flex space-x-2">
-      <Input
-        fullWidth
-        readOnly
-        value={value || ""}
-        placeholder={t("No file selected")}
-        className="flex-1"
-        name={parameter.code}
-        required={Boolean(parameter.required)}
-        data-testid={`${parameter.code}-input`}
-      />
-      <Button
-        type="button"
-        variant="outlined"
-        onClick={() => setModalOpen(true)}
-        leadingIcon={<FolderIcon className="h-4 w-4" />}
-      >
-        {t("Browse")}
-      </Button>
-      {value && (
-        <Button
-          type="button"
-          variant="outlined"
-          onClick={handleClear}
-          className="text-gray-500 hover:text-gray-700"
-        >
-          {t("Clear")}
-        </Button>
-      )}
+      <div className="flex-1 cursor-pointer" onClick={() => setModalOpen(true)}>
+        <Input
+          fullWidth
+          readOnly
+          value={value || ""}
+          placeholder={t("No file selected")}
+          className="cursor-pointer"
+          name={parameter.code}
+          required={Boolean(parameter.required)}
+          data-testid={`${parameter.code}-input`}
+          trailingIcon={
+            <div className="flex items-center space-x-3">
+              {value && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleClear();
+                  }}
+                  className="text-gray-500 hover:text-gray-700 focus:text-gray-700 cursor-pointer"
+                  title={t("Clear")}
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setModalOpen(true);
+                }}
+                className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer"
+              >
+                <FolderIcon className="h-4 w-4" />
+                <span>{t("Browse")}</span>
+              </button>
+            </div>
+          }
+        />
+      </div>
 
       <FileBrowserDialog
         open={modalOpen}
