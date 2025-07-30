@@ -58,7 +58,7 @@ const FileParameterField: React.FC<FileParameterFieldProps> = ({
                   className="text-gray-500 hover:text-gray-700 focus:text-gray-700 cursor-pointer"
                   title={t("Clear")}
                 >
-                  <XMarkIcon className="h-6 w-6" />
+                  <XMarkIcon className="h-6 w-6 mr-3" />
                 </button>
               )}
               <button
@@ -67,7 +67,7 @@ const FileParameterField: React.FC<FileParameterFieldProps> = ({
                   e.stopPropagation();
                   setModalOpen(true);
                 }}
-                className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer"
+                className="flex items-center mr-3 space-x-1 text-sm font-medium cursor-pointer"
               >
                 <FolderIcon className="h-4 w-4" />
                 <span>{t("Browse")}</span>
