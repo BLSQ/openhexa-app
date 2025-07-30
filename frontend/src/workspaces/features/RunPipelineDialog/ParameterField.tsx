@@ -10,6 +10,7 @@ import { isConnectionParameter } from "workspaces/helpers/pipelines";
 import DatasetPicker from "datasets/features/DatasetPicker";
 import { ensureArray } from "core/helpers/array";
 import GenericConnectionWidget from "./GenericConnectionWidget";
+import FileParameterField from "./FileParameterField";
 
 type ParameterFieldProps = {
   parameter: any;
@@ -78,6 +79,17 @@ const ParameterField = (props: ParameterFieldProps) => {
         onChange={(option) => handleChange(option?.dataset.slug)}
         withPortal
         aria-label={parameter.code}
+      />
+    );
+  }
+
+  if (parameter.type === "file") {
+    return (
+      <FileParameterField
+        workspaceSlug={workspaceSlug || ""}
+        value={value}
+        onChange={(file) => handleChange(file?.path)}
+        parameter={parameter}
       />
     );
   }
