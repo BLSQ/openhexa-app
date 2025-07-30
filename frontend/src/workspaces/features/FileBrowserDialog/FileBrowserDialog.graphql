@@ -1,4 +1,4 @@
-query FileBrowserModal(
+query FileBrowserDialog(
   $slug: String!
   $page: Int
   $perPage: Int
@@ -15,7 +15,7 @@ query FileBrowserModal(
           type
           updatedAt
           size
-          ...FileBrowserModal_bucketObject
+          ...FileBrowserDialog_bucketObject
         }
         pageNumber
         hasNextPage
@@ -24,7 +24,7 @@ query FileBrowserModal(
   }
 }
 
-fragment FileBrowserModal_bucketObject on BucketObject {
+fragment FileBrowserDialog_bucketObject on BucketObject {
   key
   name
   path
