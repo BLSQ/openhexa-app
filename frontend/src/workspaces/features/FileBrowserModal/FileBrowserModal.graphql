@@ -1,0 +1,34 @@
+query FileBrowserModal(
+  $slug: String!
+  $page: Int
+  $perPage: Int
+  $prefix: String
+) {
+  workspace(slug: $slug) {
+    slug
+    bucket {
+      objects(page: $page, perPage: $perPage, prefix: $prefix) {
+        items {
+          name
+          key
+          path
+          type
+          updatedAt
+          size
+          ...FileBrowserModal_bucketObject
+        }
+        pageNumber
+        hasNextPage
+      }
+    }
+  }
+}
+
+fragment FileBrowserModal_bucketObject on BucketObject {
+  key
+  name
+  path
+  size
+  updatedAt
+  type
+}
