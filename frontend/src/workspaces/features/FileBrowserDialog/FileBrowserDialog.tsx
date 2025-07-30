@@ -18,21 +18,21 @@ import { useTranslation } from "next-i18next";
 import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import {
-  FileBrowserModalQuery,
-  FileBrowserModalQueryVariables,
-  FileBrowserModal_BucketObjectFragment,
-  FileBrowserModalDocument,
-} from "./FileBrowserModal.generated";
+  FileBrowserDialogQuery,
+  FileBrowserDialogQueryVariables,
+  FileBrowserDialog_BucketObjectFragment,
+  FileBrowserDialogDocument,
+} from "./FileBrowserDialog.generated";
 
-interface FileBrowserModalProps {
+interface FileBrowserDialogProps {
   open: boolean;
   onClose: () => void;
   workspaceSlug: string;
-  onSelect: (file: FileBrowserModal_BucketObjectFragment) => void;
+  onSelect: (file: FileBrowserDialog_BucketObjectFragment) => void;
   selectedFile?: string | null;
 }
 
-const FileBrowserModal: React.FC<FileBrowserModalProps> = ({
+const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
   open,
   onClose,
   workspaceSlug,
@@ -45,9 +45,9 @@ const FileBrowserModal: React.FC<FileBrowserModalProps> = ({
   const [perPage, setPerPage] = useState(20);
 
   const [fetch, { data, previousData, loading }] = useLazyQuery<
-    FileBrowserModalQuery,
-    FileBrowserModalQueryVariables
-  >(FileBrowserModalDocument);
+    FileBrowserDialogQuery,
+    FileBrowserDialogQueryVariables
+  >(FileBrowserDialogDocument);
 
   useEffect(() => {
     if (open) {
@@ -71,7 +71,7 @@ const FileBrowserModal: React.FC<FileBrowserModalProps> = ({
     setPerPage((prev) => prev + 20);
   };
 
-  const onItemClick = (item: FileBrowserModal_BucketObjectFragment) => {
+  const onItemClick = (item: FileBrowserDialog_BucketObjectFragment) => {
     if (item.type === BucketObjectType.Directory) {
       setPrefix(item.key);
     } else {
@@ -264,4 +264,4 @@ const FileBrowserModal: React.FC<FileBrowserModalProps> = ({
   );
 };
 
-export default FileBrowserModal;
+export default FileBrowserDialog;

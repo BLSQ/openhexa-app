@@ -3,13 +3,13 @@ import Button from "core/components/Button";
 import Input from "core/components/forms/Input";
 import { useTranslation } from "next-i18next";
 import { useState } from "react";
-import FileBrowserModal from "../FileBrowserModal";
-import { FileBrowserModal_BucketObjectFragment } from "../FileBrowserModal/FileBrowserModal.generated";
+import FileBrowserDialog from "../FileBrowserDialog";
+import { FileBrowserDialog_BucketObjectFragment } from "../FileBrowserDialog/FileBrowserDialog.generated";
 
 interface FileParameterFieldProps {
   workspaceSlug: string;
   value: string | null;
-  onChange: (file: FileBrowserModal_BucketObjectFragment | null) => void;
+  onChange: (file: FileBrowserDialog_BucketObjectFragment | null) => void;
   parameter: {
     code: string;
     required?: boolean;
@@ -25,7 +25,7 @@ const FileParameterField: React.FC<FileParameterFieldProps> = ({
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
 
-  const handleSelect = (file: FileBrowserModal_BucketObjectFragment) => {
+  const handleSelect = (file: FileBrowserDialog_BucketObjectFragment) => {
     onChange(file);
     setModalOpen(false);
   };
@@ -65,7 +65,7 @@ const FileParameterField: React.FC<FileParameterFieldProps> = ({
         </Button>
       )}
 
-      <FileBrowserModal
+      <FileBrowserDialog
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         workspaceSlug={workspaceSlug}
