@@ -21,6 +21,7 @@ import {
   FileBrowserModalQuery,
   FileBrowserModalQueryVariables,
   FileBrowserModal_BucketObjectFragment,
+  FileBrowserModalDocument,
 } from "./FileBrowserModal.generated";
 
 interface FileBrowserModalProps {
@@ -46,35 +47,7 @@ const FileBrowserModal: React.FC<FileBrowserModalProps> = ({
   const [fetch, { data, previousData, loading }] = useLazyQuery<
     FileBrowserModalQuery,
     FileBrowserModalQueryVariables
-  >(
-    gql`
-      query FileBrowserModal(
-        $slug: String!
-        $page: Int
-        $perPage: Int
-        $prefix: String
-      ) {
-        workspace(slug: $slug) {
-          slug
-          bucket {
-            objects(page: $page, perPage: $perPage, prefix: $prefix) {
-              items {
-                name
-                key
-                path
-                type
-                updatedAt
-                size
-                ...FileBrowserModal_bucketObject
-              }
-              pageNumber
-              hasNextPage
-            }
-          }
-        }
-      }
-    `,
-  );
+  >(FileBrowserModalDocument);
 
   useEffect(() => {
     if (open) {
@@ -130,7 +103,7 @@ const FileBrowserModal: React.FC<FileBrowserModalProps> = ({
     if (!searchQuery.trim()) return bucket.objects.items;
 
     return bucket.objects.items.filter((item) =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [bucket?.objects.items, searchQuery]);
 
@@ -145,9 +118,7 @@ const FileBrowserModal: React.FC<FileBrowserModalProps> = ({
       maxWidth="max-w-4xl"
       className="h-[80vh]"
     >
-      <Dialog.Title onClose={onClose}>
-        {t("Select Input File")}
-      </Dialog.Title>
+      <Dialog.Title onClose={onClose}>{t("Select Input File")}</Dialog.Title>
 
       <Dialog.Content className="flex flex-col space-y-4">
         {/* Breadcrumb Navigation */}
@@ -226,7 +197,9 @@ const FileBrowserModal: React.FC<FileBrowserModalProps> = ({
               <div className="divide-y divide-gray-200">
                 {filteredItems.length === 0 ? (
                   <div className="p-8 text-center text-gray-500">
-                    {searchQuery ? t("No files match your search") : t("Empty directory")}
+                    {searchQuery
+                      ? t("No files match your search")
+                      : t("Empty directory")}
                   </div>
                 ) : (
                   filteredItems.map((item, index) => (
@@ -234,7 +207,7 @@ const FileBrowserModal: React.FC<FileBrowserModalProps> = ({
                       key={index}
                       className={clsx(
                         "w-full grid grid-cols-12 gap-4 p-3 text-left hover:bg-gray-50 transition-colors",
-                        selectedFile === item.path && "bg-blue-50"
+                        selectedFile === item.path && "bg-blue-50",
                       )}
                       onClick={() => onItemClick(item)}
                     >
@@ -289,19 +262,6 @@ const FileBrowserModal: React.FC<FileBrowserModalProps> = ({
       </Dialog.Actions>
     </Dialog>
   );
-};
-
-FileBrowserModal.fragments = {
-  bucketObject: gql`
-    fragment FileBrowserModal_bucketObject on BucketObject {
-      key
-      name
-      path
-      size
-      updatedAt
-      type
-    }
-  `,
 };
 
 export default FileBrowserModal;
