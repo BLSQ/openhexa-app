@@ -22,7 +22,7 @@ const FileParameterField = (props: FileParameterFieldProps) => {
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
 
-  const handleSelect = useCallback(
+  const handleSelectFile = useCallback(
     (file: FileBrowserDialog_BucketObjectFragment) => {
       onChange(file);
       setModalOpen(false);
@@ -81,7 +81,7 @@ const FileParameterField = (props: FileParameterFieldProps) => {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         workspaceSlug={workspaceSlug}
-        onSelect={handleSelect}
+        onSelectFile={handleSelectFile}
       />
     </div>
   );
