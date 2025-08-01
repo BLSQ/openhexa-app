@@ -25,7 +25,7 @@ import {
   FileBrowserDialog_BucketObjectFragment,
   FileBrowserDialogDocument,
 } from "./FileBrowserDialog.generated";
-import { getFileIcon, getFileIconColor } from "./utils";
+import { getFileIconAndColor } from "./utils";
 
 type FileBrowserDialogProps = {
   open: boolean;
@@ -229,8 +229,8 @@ const FileBrowserDialog = ({
                       <FolderIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
                     ) : (
                       (() => {
-                        const IconComponent = getFileIcon(item.name);
-                        const iconColor = getFileIconColor(item.name);
+                        const { icon: IconComponent, color: iconColor } =
+                          getFileIconAndColor(item.name);
                         return (
                           <IconComponent
                             className={clsx("h-5 w-5 flex-shrink-0", iconColor)}
