@@ -214,21 +214,13 @@ const FileBrowserDialog = ({
               )}
               className="border rounded-lg"
             >
-              <BaseColumn
-                id="name"
-                label={t("Name")}
-                accessor={(item: FileBrowserDialog_BucketObjectFragment) =>
-                  item
-                }
-                minWidth={200}
-                width={300}
-              >
+              <BaseColumn id="name" label={t("Name")} minWidth={400}>
                 {(item: FileBrowserDialog_BucketObjectFragment) => (
                   <button
                     className={clsx(
                       "w-full text-left flex items-center gap-2 p-0 border-0 bg-transparent focus:outline-none",
                       currentSelectedFile?.path === item.path &&
-                        "text-blue-600 font-medium",
+                        "bg-blue-100 text-blue-600 font-medium",
                     )}
                     onClick={() => onItemClick(item)}
                     aria-label={
@@ -257,15 +249,7 @@ const FileBrowserDialog = ({
                   </button>
                 )}
               </BaseColumn>
-              <BaseColumn
-                id="size"
-                label={t("Size")}
-                accessor={(item: FileBrowserDialog_BucketObjectFragment) =>
-                  item
-                }
-                minWidth={80}
-                width={120}
-              >
+              <BaseColumn id="size" label={t("Size")}>
                 {(item: FileBrowserDialog_BucketObjectFragment) =>
                   item.type === BucketObjectType.Directory ? (
                     <span className="text-gray-500">-</span>
@@ -274,15 +258,7 @@ const FileBrowserDialog = ({
                   )
                 }
               </BaseColumn>
-              <BaseColumn
-                id="lastUpdated"
-                label={t("Last Updated")}
-                accessor={(item: FileBrowserDialog_BucketObjectFragment) =>
-                  item
-                }
-                minWidth={120}
-                width={180}
-              >
+              <BaseColumn id="lastUpdated" label={t("Last Updated")}>
                 {(item: FileBrowserDialog_BucketObjectFragment) => (
                   <span className="text-gray-500 text-sm">
                     {item.updatedAt ? formatDate(item.updatedAt) : "-"}
