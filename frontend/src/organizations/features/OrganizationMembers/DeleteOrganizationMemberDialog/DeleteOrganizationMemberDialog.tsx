@@ -3,6 +3,7 @@ import Dialog from "core/components/Dialog";
 import Button from "core/components/Button";
 import { useDeleteOrganizationMemberMutation } from "../OrganizationMembers.generated";
 import { User, OrganizationMembership } from "graphql/types";
+import { useApolloClient } from "@apollo/client";
 
 type OrganizationMember = Pick<OrganizationMembership, "id" | "role"> & {
   user: Pick<User, "id" | "displayName">;
@@ -20,10 +21,11 @@ export default function DeleteOrganizationMemberDialog({
   member,
 }: DeleteOrganizationMemberDialogProps) {
   const { t } = useTranslation();
+  const client = useApolloClient();
 
   const [deleteOrganizationMember, { loading }] =
     useDeleteOrganizationMemberMutation({
-      refetchQueries: ["OrganizationMembers", "GetUsers", "Organization"],
+      refetchQueries: ["OrganizationMembers", "Organization"]
     });
 
   const handleSubmit = async () => {
@@ -33,7 +35,12 @@ export default function DeleteOrganizationMemberDialog({
           id: member.id,
         },
       },
-    }).then(() => onClose());
+    }).then(() => {
+      // Clear users cache so UserPicker gets fresh data, used instead of refetchQueries because the refetch is not happening when the dialog is closed
+      client.cache.evict({ fieldName: "users" });
+      client.cache.gc();
+      onClose();
+    });
   };
 
   return (
