@@ -157,7 +157,6 @@ const AddOrganizationMemberDialog = (
   }, [
     form.formData.organizationRole,
     organization?.workspaces?.items,
-    manuallyEditedWorkspaces,
   ]);
 
   const handleRoleChange = (
