@@ -3,7 +3,7 @@ import Switch from "core/components/Switch/Switch";
 import Input from "core/components/forms/Input/Input";
 import Select from "core/components/forms/Select";
 import Textarea from "core/components/forms/Textarea/Textarea";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useTranslation } from "next-i18next";
 import WorkspaceConnectionPicker from "../WorkspaceConnectionPicker/WorkspaceConnectionPicker";
 import { isConnectionParameter } from "workspaces/helpers/pipelines";
