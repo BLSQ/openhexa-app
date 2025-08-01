@@ -58,7 +58,7 @@ const AddOrganizationMemberDialog = (
   const { open, onClose, organization } = props;
 
   const [inviteOrganizationMember] = useInviteOrganizationMemberMutation({
-    refetchQueries: ["OrganizationMembers", "GetUsers"],
+    refetchQueries: ["OrganizationMembers", "GetUsers", "Organization"],
   });
 
   const [searchTerm, setSearchTerm] = useState("");

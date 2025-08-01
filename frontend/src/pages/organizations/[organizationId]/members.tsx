@@ -4,7 +4,7 @@ import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "organizations/layouts/OrganizationLayout";
 import {
   OrganizationDocument,
-  OrganizationQuery,
+  OrganizationQuery, useOrganizationQuery
 } from "organizations/graphql/queries.generated";
 import Page from "core/components/Page";
 import Button from "core/components/Button";
@@ -20,11 +20,18 @@ type Props = {
 };
 
 const OrganizationMembersPage: NextPageWithLayout<Props> = ({
-  organization,
+  organization: SRROrganization,
 }) => {
   const [isNewMemberDialogOpen, setIsNewMemberDialogOpen] = useState(false);
 
   const { t } = useTranslation();
+
+  const { data: clientOrganization } = useOrganizationQuery({
+    variables: { id: SRROrganization?.id },
+    skip: !SRROrganization?.id
+  });
+
+  const organization = clientOrganization?.organization || SRROrganization;
 
   if (!organization) {
     return null;
