@@ -31,14 +31,14 @@ type FileBrowserDialogProps = {
   open: boolean;
   onClose: () => void;
   workspaceSlug: string;
-  onSelect: (file: FileBrowserDialog_BucketObjectFragment) => void;
+  onSelectFile: (file: FileBrowserDialog_BucketObjectFragment) => void;
 };
 
 const FileBrowserDialog = ({
   open,
   onClose,
   workspaceSlug,
-  onSelect,
+  onSelectFile,
 }: FileBrowserDialogProps) => {
   const { t } = useTranslation();
 
@@ -209,26 +209,22 @@ const FileBrowserDialog = ({
                   ? t("No files match your search")
                   : t("Empty directory")
               }
-              rowClassName={clsx(
-                "cursor-pointer hover:bg-gray-50 focus:bg-gray-50",
-              )}
+              rowClassName={(item) =>
+                clsx(
+                  "cursor-pointer",
+                  currentSelectedFile?.path === item.path
+                    ? "bg-blue-100 hover:bg-blue-100 focus:bg-blue-100 font-medium"
+                    : "hover:bg-gray-50 focus:bg-gray-50",
+                )
+              }
               className="border rounded-lg"
+              onRowClick={(item) =>
+                onItemClick(item as FileBrowserDialog_BucketObjectFragment)
+              }
             >
               <BaseColumn id="name" label={t("Name")} minWidth={400}>
-                {(item: FileBrowserDialog_BucketObjectFragment) => (
-                  <button
-                    className={clsx(
-                      "w-full text-left flex items-center gap-2 p-0 border-0 bg-transparent focus:outline-none",
-                      currentSelectedFile?.path === item.path &&
-                        "bg-blue-100 text-blue-600 font-medium",
-                    )}
-                    onClick={() => onItemClick(item)}
-                    aria-label={
-                      item.type === BucketObjectType.Directory
-                        ? t("Open folder {{name}}", { name: item.name })
-                        : t("Select file {{name}}", { name: item.name })
-                    }
-                  >
+                {(item) => (
+                  <div className="flex items-center gap-2">
                     {item.type === BucketObjectType.Directory ? (
                       <FolderIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
                     ) : (
@@ -246,21 +242,21 @@ const FileBrowserDialog = ({
                       {item.name}
                       {item.type === BucketObjectType.Directory && "/"}
                     </span>
-                  </button>
+                  </div>
                 )}
               </BaseColumn>
               <BaseColumn id="size" label={t("Size")}>
-                {(item: FileBrowserDialog_BucketObjectFragment) =>
+                {(item) =>
                   item.type === BucketObjectType.Directory ? (
-                    <span className="text-gray-500">-</span>
+                    <span>-</span>
                   ) : (
                     <Filesize size={item.size} />
                   )
                 }
               </BaseColumn>
               <BaseColumn id="lastUpdated" label={t("Last Updated")}>
-                {(item: FileBrowserDialog_BucketObjectFragment) => (
-                  <span className="text-gray-500 text-sm">
+                {(item) => (
+                  <span>
                     {item.updatedAt ? formatDate(item.updatedAt) : "-"}
                   </span>
                 )}
@@ -274,17 +270,18 @@ const FileBrowserDialog = ({
         <Button variant="outlined" onClick={onClose}>
           {t("Cancel")}
         </Button>
-        {currentSelectedFile && (
-          <Button
-            variant="primary"
-            onClick={() => {
-              onSelect(currentSelectedFile);
-              onClose();
-            }}
-          >
-            {t("Select file")}
-          </Button>
-        )}
+        <Button
+          variant="primary"
+          onClick={() => {
+            onSelectFile(
+              currentSelectedFile as FileBrowserDialog_BucketObjectFragment,
+            );
+            onClose();
+          }}
+          disabled={!currentSelectedFile}
+        >
+          {t("Select file")}
+        </Button>
       </Dialog.Actions>
     </Dialog>
   );

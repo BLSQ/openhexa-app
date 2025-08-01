@@ -75,8 +75,9 @@ interface IDataGridProps {
   defaultSortBy?: SortingRule<object>[];
   pageSizeOptions?: number[];
   headerClassName?: string;
-  rowClassName?: string;
+  rowClassName?: string | ((row: object) => string);
   spacing?: TableCellProps["spacing"];
+  onRowClick?: (row: object) => void;
 }
 
 type DataGridProps = IDataGridProps;
@@ -103,6 +104,7 @@ function DataGrid(props: DataGridProps) {
     defaultPageSize = 10,
     defaultPageIndex = 0,
     spacing,
+    onRowClick,
   } = props;
 
   const [loading, setLoading] = useState(false);
@@ -334,7 +336,8 @@ function DataGrid(props: DataGridProps) {
                 <TableRow
                   key={rowKey}
                   {...otherRowProps}
-                  className={rowClassName}
+                  className={typeof rowClassName === 'function' ? rowClassName(row.original) : rowClassName}
+                  onClick={onRowClick ? () => onRowClick(row.original) : undefined}
                 >
                   {row.cells.map((cell) => {
                     const cellProps = cell.getCellProps({
