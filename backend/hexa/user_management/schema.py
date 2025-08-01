@@ -1043,14 +1043,12 @@ def resolve_invite_organization_member(_, info, **kwargs):
             if is_organization_member:
                 raise AlreadyExists
 
-            # We directly add existing users to the organization
             with transaction.atomic():
                 OrganizationMembership.objects.create(
                     organization=organization,
                     user=user,
                     role=input["organization_role"].lower(),
                 )
-                # Also add user to any specified workspaces
                 for workspace_invitation in input["workspace_invitations"]:
                     try:
                         workspace = Workspace.objects.get(
