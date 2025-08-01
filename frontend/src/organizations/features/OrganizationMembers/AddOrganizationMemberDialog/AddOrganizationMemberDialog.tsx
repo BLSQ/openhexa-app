@@ -17,7 +17,6 @@ import {
   WorkspaceMembershipRole
 } from "graphql/types";
 import SimpleSelect from "core/components/forms/SimpleSelect";
-import useCacheKey from "core/hooks/useCacheKey";
 import React, { ComponentProps, useEffect, useState } from "react";
 import { useInviteOrganizationMemberMutation } from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
 import { UserPicker } from "workspaces/features/UserPicker/UserPicker";
@@ -69,8 +68,6 @@ const AddOrganizationMemberDialog = (
     Set<string>
   >(new Set());
 
-  const clearCache = useCacheKey(["organization", organization?.id]);
-
   const form = useForm<Form>({
     onSubmit: async (values) => {
       const { data } = await inviteOrganizationMember({
@@ -104,7 +101,6 @@ const AddOrganizationMemberDialog = (
         throw new Error("An error occurred while inviting the member.");
       }
 
-      clearCache();
       onClose();
     },
     initialState: {
