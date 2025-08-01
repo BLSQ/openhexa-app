@@ -258,11 +258,18 @@ def resolve_organizations(_, info, **kwargs):
 
 
 @identity_query.field("users")
-def resolve_users(_, info, query: str, workspace_slug: str, organization_id: str):
+def resolve_users(
+    _, info, query: str, workspace_slug: str = None, organization_id: str = None
+):
     request = info.context["request"]
     query = query.strip()
 
     users = User.objects.all()
+
+    if not workspace_slug and not organization_id:
+        raise ValidationError(
+            "You must specify either a workspaceSlug or an organizationId"
+        )
 
     # If workspace_slug is provided, exclude current members of that workspace
     if workspace_slug:
