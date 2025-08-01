@@ -13,8 +13,8 @@ import { useTranslation } from "next-i18next";
 import useForm from "core/hooks/useForm";
 import {
   InviteOrganizationMemberError,
-  OrganizationMembershipRole,
-  WorkspaceMembershipRole,
+  OrganizationMembershipRole, WorkspaceInvitationInput,
+  WorkspaceMembershipRole
 } from "graphql/types";
 import SimpleSelect from "core/components/forms/SimpleSelect";
 import useCacheKey from "core/hooks/useCacheKey";
@@ -34,15 +34,7 @@ type AddOrganizationMemberDialogProps = {
 type Form = {
   user: ComponentProps<typeof UserPicker>["value"];
   organizationRole: OrganizationMembershipRole;
-  workspaceInvitations: Array<{
-    workspaceSlug: string;
-    role: WorkspaceMembershipRole;
-  }>;
-};
-
-type WorkspaceInvitation = {
-  workspaceSlug: string;
-  role: WorkspaceMembershipRole;
+  workspaceInvitations: WorkspaceInvitationInput[]
 };
 
 const getDefaultWorkspaceRole = (
@@ -71,7 +63,7 @@ const AddOrganizationMemberDialog = (
 
   const [searchTerm, setSearchTerm] = useState("");
   const [workspaceInvitations, setWorkspaceInvitations] = useState<
-    WorkspaceInvitation[]
+    WorkspaceInvitationInput[]
   >([]);
   const [manuallyEditedWorkspaces, setManuallyEditedWorkspaces] = useState<
     Set<string>
@@ -144,6 +136,7 @@ const AddOrganizationMemberDialog = (
       const initialWorkspaceInvitations = organization.workspaces.items.map(
         (workspace) => ({
           workspaceSlug: workspace.slug,
+          workspaceName: workspace.name,
           role: defaultRole,
         }),
       );
@@ -173,6 +166,7 @@ const AddOrganizationMemberDialog = (
 
   const handleRoleChange = (
     workspaceSlug: string,
+    workspaceName: string,
     role: WorkspaceMembershipRole | "NONE",
   ) => {
     setManuallyEditedWorkspaces((prev) => new Set(prev).add(workspaceSlug));
@@ -183,7 +177,7 @@ const AddOrganizationMemberDialog = (
       );
       return role === "NONE"
         ? filtered
-        : [...filtered, { workspaceSlug, role }];
+        : [...filtered, { workspaceSlug, workspaceName, role }];
     });
   };
 
@@ -298,7 +292,7 @@ const AddOrganizationMemberDialog = (
                                   name={`workspace-${workspace.slug}-${role}`}
                                   checked={currentRole === role}
                                   onChange={() =>
-                                    handleRoleChange(workspace.slug, role)
+                                    handleRoleChange(workspace.slug, workspace.name, role)
                                   }
                                   className="h-4 w-4 text-blue-600 cursor-pointer"
                                 />

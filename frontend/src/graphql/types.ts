@@ -5257,6 +5257,8 @@ export type WorkspaceInvitation = {
 export type WorkspaceInvitationInput = {
   /** The role of the user in the workspace. */
   role: WorkspaceMembershipRole;
+  /** The name of the workspace to invite the user to. */
+  workspaceName: Scalars['String']['input'];
   /** The slug of the workspace to invite the user to. */
   workspaceSlug: Scalars['String']['input'];
 };

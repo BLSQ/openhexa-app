@@ -4453,6 +4453,9 @@ input WorkspaceInvitationInput {
   """The role of the user in the workspace."""
   role: WorkspaceMembershipRole!
 
+  """The name of the workspace to invite the user to."""
+  workspaceName: String!
+
   """The slug of the workspace to invite the user to."""
   workspaceSlug: String!
 }
