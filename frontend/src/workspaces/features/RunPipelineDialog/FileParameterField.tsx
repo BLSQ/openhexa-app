@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { FolderIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "next-i18next";
 
@@ -7,7 +7,7 @@ import Input from "core/components/forms/Input";
 import FileBrowserDialog from "../FileBrowserDialog";
 import { FileBrowserDialog_BucketObjectFragment } from "../FileBrowserDialog/FileBrowserDialog.generated";
 
-interface FileParameterFieldProps {
+type FileParameterFieldProps = {
   workspaceSlug: string;
   value: string | null;
   onChange: (file: FileBrowserDialog_BucketObjectFragment | null) => void;
@@ -15,21 +15,20 @@ interface FileParameterFieldProps {
     code: string;
     required?: boolean;
   };
-}
+};
 
-const FileParameterField: React.FC<FileParameterFieldProps> = ({
-  workspaceSlug,
-  value,
-  onChange,
-  parameter,
-}) => {
+const FileParameterField = (props: FileParameterFieldProps) => {
+  const { workspaceSlug, value, onChange, parameter } = props;
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
 
-  const handleSelect = (file: FileBrowserDialog_BucketObjectFragment) => {
-    onChange(file);
-    setModalOpen(false);
-  };
+  const handleSelect = useCallback(
+    (file: FileBrowserDialog_BucketObjectFragment) => {
+      onChange(file);
+      setModalOpen(false);
+    },
+    [onChange, setModalOpen],
+  );
 
   const handleClear = () => {
     onChange(null);
