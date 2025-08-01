@@ -471,9 +471,13 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 stroke-linejoin="round"
               />
             </svg>
-            Search
-             
-            (Ctrl+K)
+            <span
+              class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+            >
+              Search
+               
+              (Ctrl+K)
+            </span>
           </button>
         </div>
         <div
@@ -537,7 +541,11 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                   stroke-linejoin="round"
                 />
               </svg>
-              Home
+              <span
+                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+              >
+                Home
+              </span>
             </a>
             <a
               class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -563,7 +571,11 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                   stroke-linejoin="round"
                 />
               </svg>
-              Files
+              <span
+                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+              >
+                Files
+              </span>
             </a>
             <a
               class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -589,7 +601,11 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                   stroke-linejoin="round"
                 />
               </svg>
-              Database
+              <span
+                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+              >
+                Database
+              </span>
             </a>
             <a
               class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -615,7 +631,11 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                   stroke-linejoin="round"
                 />
               </svg>
-              Datasets
+              <span
+                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+              >
+                Datasets
+              </span>
             </a>
             <a
               class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -641,7 +661,11 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                   stroke-linejoin="round"
                 />
               </svg>
-              Connections
+              <span
+                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+              >
+                Connections
+              </span>
             </a>
             <a
               class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -667,7 +691,11 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                   stroke-linejoin="round"
                 />
               </svg>
-              Pipelines
+              <span
+                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+              >
+                Pipelines
+              </span>
             </a>
             <a
               class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -693,7 +721,11 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                   stroke-linejoin="round"
                 />
               </svg>
-              JupyterHub
+              <span
+                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+              >
+                JupyterHub
+              </span>
             </a>
             <a
               class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -719,7 +751,11 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                   stroke-linejoin="round"
                 />
               </svg>
-              Apps
+              <span
+                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+              >
+                Apps
+              </span>
             </a>
           </nav>
         </div>
