@@ -14,9 +14,9 @@ import clsx from "clsx";
 
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
+import Filesize from "core/components/Filesize";
 import Input from "core/components/forms/Input";
 import Spinner from "core/components/Spinner";
-import Filesize from "core/components/Filesize";
 
 import {
   FileBrowserDialogQuery,
@@ -33,13 +33,14 @@ interface FileBrowserDialogProps {
   onSelect: (file: FileBrowserDialog_BucketObjectFragment) => void;
 }
 
-const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
+const FileBrowserDialog = ({
   open,
   onClose,
   workspaceSlug,
   onSelect,
-}) => {
+}: FileBrowserDialogProps) => {
   const { t } = useTranslation();
+
   const [prefix, _setPrefix] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [perPage, setPerPage] = useState(20);
@@ -127,7 +128,7 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
         {/* Breadcrumb Navigation */}
         <div className="flex items-center gap-1 text-sm text-gray-500 px-2 min-h-[2rem]">
           <button
-            className="flex items-center hover:text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded p-1"
+            className="flex items-center hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded p-1"
             onClick={() => setPrefix(null)}
             aria-label={t("Go to root directory")}
           >
@@ -145,7 +146,7 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
                 <div key={index} className="flex items-center">
                   <ChevronRightIcon className="h-3 w-3" />
                   <button
-                    className="hover:text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1 py-0.5 max-w-[120px] sm:max-w-none truncate"
+                    className="hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1 py-0.5 max-w-[120px] sm:max-w-none truncate"
                     onClick={() => setPrefix(part.value)}
                     title={part.label}
                   >
@@ -222,7 +223,7 @@ const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
                     <button
                       key={index}
                       className={clsx(
-                        "w-full text-left hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50",
+                        "w-full text-left hover:bg-gray-50 focus:outline-none focus:bg-gray-50",
                         "sm:grid sm:grid-cols-12 sm:gap-4 sm:p-3",
                         "flex flex-col p-3 space-y-1 sm:space-y-0",
                         currentSelectedFile?.path === item.path &&
