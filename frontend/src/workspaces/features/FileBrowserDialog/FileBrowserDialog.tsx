@@ -14,6 +14,7 @@ import clsx from "clsx";
 
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
+import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import Filesize from "core/components/Filesize";
 import Input from "core/components/forms/Input";
 import Spinner from "core/components/Spinner";
@@ -26,12 +27,12 @@ import {
 } from "./FileBrowserDialog.generated";
 import { getFileIcon, getFileIconColor } from "./utils";
 
-interface FileBrowserDialogProps {
+type FileBrowserDialogProps = {
   open: boolean;
   onClose: () => void;
   workspaceSlug: string;
   onSelect: (file: FileBrowserDialog_BucketObjectFragment) => void;
-}
+};
 
 const FileBrowserDialog = ({
   open,
@@ -43,7 +44,7 @@ const FileBrowserDialog = ({
 
   const [prefix, _setPrefix] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [perPage, setPerPage] = useState(20);
+  const [pageSize, setPageSize] = useState(20);
   const [currentSelectedFile, setCurrentSelectedFile] =
     useState<FileBrowserDialog_BucketObjectFragment | null>(null);
 
@@ -59,20 +60,27 @@ const FileBrowserDialog = ({
           slug: workspaceSlug,
           prefix,
           page: 1,
-          perPage,
+          perPage: pageSize,
         },
       });
       setCurrentSelectedFile(null);
     }
-  }, [prefix, fetch, workspaceSlug, perPage, open]);
+  }, [prefix, fetch, workspaceSlug, pageSize, open]);
 
   const setPrefix = (prefix: string | null) => {
-    setPerPage(20);
+    setPageSize(20);
     _setPrefix(prefix);
   };
 
-  const loadMore = () => {
-    setPerPage((prev) => prev + 20);
+  const fetchData = ({ page }: { page: number }) => {
+    fetch({
+      variables: {
+        slug: workspaceSlug,
+        prefix,
+        page,
+        perPage: pageSize,
+      },
+    });
   };
 
   const onItemClick = (item: FileBrowserDialog_BucketObjectFragment) => {
@@ -81,6 +89,10 @@ const FileBrowserDialog = ({
     } else {
       setCurrentSelectedFile(item);
     }
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString();
   };
 
   const prefixes: { label: string; value: string }[] = useMemo(() => {
@@ -111,16 +123,12 @@ const FileBrowserDialog = ({
     );
   }, [bucket?.objects.items, searchQuery]);
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString();
-  };
-
   return (
     <Dialog
       open={open}
       onClose={onClose}
       maxWidth="max-w-5xl"
-      className="h-[85vh] sm:h-[80vh]"
+      className="h-[80vh]"
     >
       <Dialog.Title onClose={onClose}>{t("Select Input File")}</Dialog.Title>
 
@@ -139,14 +147,14 @@ const FileBrowserDialog = ({
               {prefixes.length > 2 && (
                 <>
                   <ChevronRightIcon className="h-3 w-3" />
-                  <span className="hidden sm:inline">...</span>
+                  <span>...</span>
                 </>
               )}
               {prefixes.slice(-2).map((part, index) => (
                 <div key={index} className="flex items-center">
                   <ChevronRightIcon className="h-3 w-3" />
                   <button
-                    className="hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1 py-0.5 max-w-[120px] sm:max-w-none truncate"
+                    className="hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1 py-0.5 truncate"
                     onClick={() => setPrefix(part.value)}
                     title={part.label}
                   >
@@ -169,24 +177,20 @@ const FileBrowserDialog = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-2 px-2">
+        <div className="flex gap-2 px-2">
           <Button
             variant="outlined"
             size="sm"
             leadingIcon={<PlusIcon className="h-4 w-4" />}
-            className="justify-center sm:justify-start"
           >
-            <span className="hidden sm:inline">{t("Create a folder")}</span>
-            <span className="sm:hidden">{t("Create folder")}</span>
+            {t("Create a folder")}
           </Button>
           <Button
             variant="outlined"
             size="sm"
             leadingIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
-            className="justify-center sm:justify-start"
           >
-            <span className="hidden sm:inline">{t("Upload files")}</span>
-            <span className="sm:hidden">{t("Upload")}</span>
+            {t("Upload files")}
           </Button>
         </div>
 
@@ -197,131 +201,95 @@ const FileBrowserDialog = ({
               <Spinner size="lg" />
             </div>
           ) : (
-            <div className="border rounded-lg">
-              {/* Table Header */}
-              <div className="hidden sm:grid sm:grid-cols-12 gap-4 p-3 bg-gray-50 border-b text-sm font-medium text-gray-700 rounded-t-lg">
-                <div className="col-span-6">{t("Name")}</div>
-                <div className="col-span-2">{t("Size")}</div>
-                <div className="col-span-4">{t("Last Updated")}</div>
-              </div>
-
-              {/* Mobile Header */}
-              <div className="sm:hidden p-3 bg-gray-50 border-b text-sm font-medium text-gray-700 rounded-t-lg">
-                {t("Files and folders")}
-              </div>
-
-              {/* Table Body */}
-              <div className="divide-y divide-gray-200">
-                {filteredItems.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
-                    {searchQuery
-                      ? t("No files match your search")
-                      : t("Empty directory")}
-                  </div>
-                ) : (
-                  filteredItems.map((item, index) => (
-                    <button
-                      key={index}
-                      className={clsx(
-                        "w-full text-left hover:bg-gray-50 focus:outline-none focus:bg-gray-50",
-                        "sm:grid sm:grid-cols-12 sm:gap-4 sm:p-3",
-                        "flex flex-col p-3 space-y-1 sm:space-y-0",
-                        currentSelectedFile?.path === item.path &&
-                          "bg-blue-50 hover:bg-blue-100",
-                      )}
-                      onClick={() => onItemClick(item)}
-                      aria-label={
-                        item.type === BucketObjectType.Directory
-                          ? t("Open folder {{name}}", { name: item.name })
-                          : t("Select file {{name}}", { name: item.name })
-                      }
-                    >
-                      {/* Desktop Layout */}
-                      <div className="hidden sm:contents">
-                        <div className="col-span-6 flex items-center gap-2">
-                          {item.type === BucketObjectType.Directory ? (
-                            <FolderIcon className="h-5 w-5 text-blue-500" />
-                          ) : (
-                            (() => {
-                              const IconComponent = getFileIcon(item.name);
-                              const iconColor = getFileIconColor(item.name);
-                              return (
-                                <IconComponent
-                                  className={clsx("h-5 w-5", iconColor)}
-                                />
-                              );
-                            })()
-                          )}
-                          <span className="truncate font-medium">
-                            {item.name}
-                            {item.type === BucketObjectType.Directory && "/"}
-                          </span>
-                        </div>
-                        <div className="col-span-2 text-gray-500 text-sm">
-                          {item.type === BucketObjectType.Directory ? (
-                            "-"
-                          ) : (
-                            <Filesize size={item.size} />
-                          )}
-                        </div>
-                        <div className="col-span-4 text-gray-500 text-sm">
-                          {item.updatedAt ? formatDate(item.updatedAt) : "-"}
-                        </div>
-                      </div>
-
-                      {/* Mobile Layout */}
-                      <div className="sm:hidden">
-                        <div className="flex items-center gap-2">
-                          {item.type === BucketObjectType.Directory ? (
-                            <FolderIcon className="h-5 w-5 text-blue-500" />
-                          ) : (
-                            (() => {
-                              const IconComponent = getFileIcon(item.name);
-                              const iconColor = getFileIconColor(item.name);
-                              return (
-                                <IconComponent
-                                  className={clsx("h-5 w-5", iconColor)}
-                                />
-                              );
-                            })()
-                          )}
-                          <span className="truncate font-medium">
-                            {item.name}
-                            {item.type === BucketObjectType.Directory && "/"}
-                          </span>
-                        </div>
-                        {item.type !== BucketObjectType.Directory && (
-                          <div className="text-xs text-gray-500 ml-7 flex items-center gap-2">
-                            <Filesize size={item.size} />
-                            {item.updatedAt && (
-                              <>
-                                <span>•</span>
-                                <span>{formatDate(item.updatedAt)}</span>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
-
-              {/* Load More */}
-              {bucket?.objects.hasNextPage && (
-                <div className="p-4 border-t bg-gray-50 text-center">
-                  <Button
-                    variant="outlined"
-                    size="sm"
-                    onClick={loadMore}
-                    disabled={loading}
-                    className="min-w-[100px]"
-                  >
-                    {loading ? <Spinner size="xs" /> : t("Show more")}
-                  </Button>
-                </div>
+            <DataGrid
+              data={filteredItems}
+              defaultPageSize={pageSize}
+              emptyLabel={
+                searchQuery
+                  ? t("No files match your search")
+                  : t("Empty directory")
+              }
+              rowClassName={clsx(
+                "cursor-pointer hover:bg-gray-50 focus:bg-gray-50",
               )}
-            </div>
+              className="border rounded-lg"
+            >
+              <BaseColumn
+                id="name"
+                label={t("Name")}
+                accessor={(item: FileBrowserDialog_BucketObjectFragment) =>
+                  item
+                }
+                minWidth={200}
+                width={300}
+              >
+                {(item: FileBrowserDialog_BucketObjectFragment) => (
+                  <button
+                    className={clsx(
+                      "w-full text-left flex items-center gap-2 p-0 border-0 bg-transparent focus:outline-none",
+                      currentSelectedFile?.path === item.path &&
+                        "text-blue-600 font-medium",
+                    )}
+                    onClick={() => onItemClick(item)}
+                    aria-label={
+                      item.type === BucketObjectType.Directory
+                        ? t("Open folder {{name}}", { name: item.name })
+                        : t("Select file {{name}}", { name: item.name })
+                    }
+                  >
+                    {item.type === BucketObjectType.Directory ? (
+                      <FolderIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                    ) : (
+                      (() => {
+                        const IconComponent = getFileIcon(item.name);
+                        const iconColor = getFileIconColor(item.name);
+                        return (
+                          <IconComponent
+                            className={clsx("h-5 w-5 flex-shrink-0", iconColor)}
+                          />
+                        );
+                      })()
+                    )}
+                    <span className="truncate">
+                      {item.name}
+                      {item.type === BucketObjectType.Directory && "/"}
+                    </span>
+                  </button>
+                )}
+              </BaseColumn>
+              <BaseColumn
+                id="size"
+                label={t("Size")}
+                accessor={(item: FileBrowserDialog_BucketObjectFragment) =>
+                  item
+                }
+                minWidth={80}
+                width={120}
+              >
+                {(item: FileBrowserDialog_BucketObjectFragment) =>
+                  item.type === BucketObjectType.Directory ? (
+                    <span className="text-gray-500">-</span>
+                  ) : (
+                    <Filesize size={item.size} />
+                  )
+                }
+              </BaseColumn>
+              <BaseColumn
+                id="lastUpdated"
+                label={t("Last Updated")}
+                accessor={(item: FileBrowserDialog_BucketObjectFragment) =>
+                  item
+                }
+                minWidth={120}
+                width={180}
+              >
+                {(item: FileBrowserDialog_BucketObjectFragment) => (
+                  <span className="text-gray-500 text-sm">
+                    {item.updatedAt ? formatDate(item.updatedAt) : "-"}
+                  </span>
+                )}
+              </BaseColumn>
+            </DataGrid>
           )}
         </div>
       </Dialog.Content>
