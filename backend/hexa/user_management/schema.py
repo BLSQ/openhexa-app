@@ -46,6 +46,9 @@ from hexa.user_management.models import (
     User,
 )
 from hexa.workspaces.models import (
+    AlreadyExists as WorkspaceAlreadyExists,
+)
+from hexa.workspaces.models import (
     Workspace,
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
@@ -1056,11 +1059,14 @@ def resolve_invite_organization_member(_, info, **kwargs):
                             organization=organization,
                             archived=False,
                         )
-                        WorkspaceMembership.objects.create(
+                        WorkspaceMembership.objects.create_if_has_perm(
+                            principal=request.user,
                             workspace=workspace,
                             user=user,
                             role=workspace_invitation["role"],
                         )
+                    except WorkspaceAlreadyExists:
+                        continue
                     except Workspace.DoesNotExist:
                         continue
 

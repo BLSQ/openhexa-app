@@ -1,5 +1,7 @@
 from django_otp import devices_for_user, user_has_device
 
+from hexa.user_management.models import Organization
+
 USER_DEFAULT_DEVICE_ATTR_NAME = "_default_device"
 DEVICE_DEFAULT_NAME = "default"
 
@@ -87,7 +89,7 @@ def send_organization_invite(invitation):
 
 
 def send_organization_add_user_email(
-    invited_by, organization, invitee, role, workspace_invitations=None
+    invited_by, organization: Organization, invitee, role, workspace_invitations=None
 ):
     """Send email to existing user when added to organization"""
     from datetime import datetime, timezone
@@ -101,7 +103,7 @@ def send_organization_add_user_email(
     title = gettext_lazy(
         f"You've been added to the organization {organization.name} on OpenHEXA"
     )
-    action_url = f"{settings.NEW_FRONTEND_DOMAIN}/organizations/{organization.slug}"
+    action_url = f"{settings.NEW_FRONTEND_DOMAIN}/organizations/{organization.id}"
 
     with override(invitee.language):
         send_mail(
