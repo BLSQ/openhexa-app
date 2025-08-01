@@ -23,7 +23,7 @@ export default function DeleteOrganizationMemberDialog({
 
   const [deleteOrganizationMember, { loading }] =
     useDeleteOrganizationMemberMutation({
-      refetchQueries: ["OrganizationMembers"],
+      refetchQueries: ["OrganizationMembers", "GetUsers", "Organization"],
     });
 
   const handleSubmit = async () => {
