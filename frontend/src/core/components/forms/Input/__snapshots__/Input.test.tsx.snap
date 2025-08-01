@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Input renders 1`] = `
 <div>
@@ -8,12 +8,15 @@ exports[`Input renders 1`] = `
     <input
       aria-describedby="a_field-description"
       aria-invalid="false"
-      class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500"
+      class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 pr-4"
       data-testid="input"
       id="a_field"
       name="a_field"
       type="text"
       value=""
+    />
+    <div
+      class="absolute inset-y-0 right-0 z-10 inline-flex items-center justify-center pr-2.5 invisible"
     />
   </div>
 </div>
@@ -32,7 +35,7 @@ exports[`Input renders a trailing icon 1`] = `
       value=""
     />
     <div
-      class="absolute inset-y-0 right-0 z-10 inline-flex items-center justify-center pr-2.5"
+      class="absolute inset-y-0 right-0 z-10 inline-flex items-center justify-center pr-2.5 visible"
     >
       <svg
         aria-hidden="true"

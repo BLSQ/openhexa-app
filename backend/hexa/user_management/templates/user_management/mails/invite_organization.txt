@@ -1,0 +1,23 @@
+{% load i18n %}
+{% autoescape off %}
+{% blocktranslate with owner=owner owner_email=owner_email organization=organization %}
+{{owner}} ({{owner_email}}) has invited you to join the organization "{{organization}}" on OpenHEXA.
+{% endblocktranslate %}
+
+{% trans "Click the link below to create your account and start collaborating:" %}
+
+{% if workspace_invitations %}
+{% trans "You will also be given access to the following workspaces:" %}
+{% for workspace_invitation in workspace_invitations %}
+- {{ workspace_invitation.workspace_slug }}{% if workspace_invitation.role == "ADMIN" %} {% trans "as Admin" %}{% elif workspace_invitation.role == "EDITOR" %} {% trans "as Editor" %}{% elif workspace_invitation.role == "VIEWER" %} {% trans "as Viewer" %}{% endif %}
+{% endfor %}
+
+{% endif %}
+{{url}}
+
+{% trans "Need help? Check out our resources:" %}
+- {% trans "User Manual" %}: https://github.com/BLSQ/openhexa/wiki/User-manual
+- Wiki: https://github.com/BLSQ/openhexa/wiki
+
+{% trans "The OpenHEXA Team" %}
+{% endautoescape %}

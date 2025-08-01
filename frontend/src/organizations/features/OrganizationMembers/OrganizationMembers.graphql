@@ -1,0 +1,59 @@
+query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String) {
+  organization(id: $id) {
+    id
+      permissions {
+          manageMembers
+      }
+    workspaces(perPage: 1000, page: 1) {
+      items {
+        slug
+        name
+      }
+    }
+    members(page: $page, perPage: $perPage, term: $term) {
+        totalItems
+      items {
+        id
+        role
+        workspaceMemberships {
+            ...WorkspaceRole
+            id
+            role
+            workspace {
+                slug
+                name
+            }
+        }
+        user {
+            ...User_user
+        }
+        createdAt
+      }
+    }
+  }
+}
+
+mutation UpdateOrganizationMember($input: UpdateOrganizationMemberInput!) {
+    updateOrganizationMember(input: $input) {
+        success
+        errors
+        membership {
+            id
+            role
+        }
+    }
+}
+
+mutation DeleteOrganizationMember($input: DeleteOrganizationMemberInput!) {
+  deleteOrganizationMember(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation InviteOrganizationMember($input: InviteOrganizationMemberInput!) {
+  inviteOrganizationMember(input: $input) {
+    success
+    errors
+  }
+}
