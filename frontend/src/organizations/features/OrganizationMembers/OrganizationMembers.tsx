@@ -49,9 +49,9 @@ export default function OrganizationMembers({
       id: organizationId,
       page: 1,
       perPage: DEFAULT_PAGE_SIZE,
-      term: debouncedSearchTerm || undefined,
+      term: debouncedSearchTerm,
     },
-    fetchPolicy: "cache-and-network",
+    fetchPolicy: "no-cache",
   });
 
   useEffect(() => {
