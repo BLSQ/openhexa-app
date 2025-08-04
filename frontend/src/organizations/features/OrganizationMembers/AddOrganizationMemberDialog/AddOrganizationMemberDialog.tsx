@@ -61,9 +61,6 @@ const AddOrganizationMemberDialog = (
   });
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [workspaceInvitations, setWorkspaceInvitations] = useState<
-    WorkspaceInvitationInput[]
-  >([]);
   const [manuallyEditedWorkspaces, setManuallyEditedWorkspaces] = useState<
     Set<string>
   >(new Set());
@@ -76,7 +73,7 @@ const AddOrganizationMemberDialog = (
             userEmail: values.user!.email,
             organizationId: organization?.id!,
             organizationRole: values.organizationRole,
-            workspaceInvitations,
+            workspaceInvitations: values.workspaceInvitations,
           },
         },
       });
@@ -136,7 +133,7 @@ const AddOrganizationMemberDialog = (
           role: defaultRole,
         }),
       );
-      setWorkspaceInvitations(initialWorkspaceInvitations);
+      form.setFieldValue("workspaceInvitations", initialWorkspaceInvitations);
     }
   }, [open, form, organization?.workspaces]);
 
@@ -146,14 +143,13 @@ const AddOrganizationMemberDialog = (
 
     const defaultRole = getDefaultWorkspaceRole(form.formData.organizationRole);
 
-    setWorkspaceInvitations((prev) =>
-      prev.map((invitation) => {
-        if (manuallyEditedWorkspaces.has(invitation.workspaceSlug)) {
-          return invitation;
-        }
-        return { ...invitation, role: defaultRole };
-      }),
-    );
+    const updatedInvitations = (form.formData.workspaceInvitations || []).map((invitation) => {
+      if (manuallyEditedWorkspaces.has(invitation.workspaceSlug)) {
+        return invitation;
+      }
+      return { ...invitation, role: defaultRole };
+    });
+    form.setFieldValue("workspaceInvitations", updatedInvitations);
   }, [
     form.formData.organizationRole,
     organization?.workspaces?.items,
@@ -166,14 +162,15 @@ const AddOrganizationMemberDialog = (
   ) => {
     setManuallyEditedWorkspaces((prev) => new Set(prev).add(workspaceSlug));
 
-    setWorkspaceInvitations((prev) => {
-      const filtered = prev.filter(
-        (inv) => inv.workspaceSlug !== workspaceSlug,
-      );
-      return role === "NONE"
-        ? filtered
-        : [...filtered, { workspaceSlug, workspaceName, role }];
-    });
+    const currentInvitations = form.formData.workspaceInvitations || [];
+    const filtered = currentInvitations.filter(
+      (inv) => inv.workspaceSlug !== workspaceSlug,
+    );
+    const updatedInvitations = role === "NONE"
+      ? filtered
+      : [...filtered, { workspaceSlug, workspaceName, role }];
+    
+    form.setFieldValue("workspaceInvitations", updatedInvitations);
   };
 
   const filteredWorkspaces =
@@ -259,7 +256,7 @@ const AddOrganizationMemberDialog = (
                       </TableRow>
                     ) : (
                       filteredWorkspaces.map((workspace) => {
-                        const invitation = workspaceInvitations.find(
+                        const invitation = (form.formData.workspaceInvitations || []).find(
                           (inv) => inv.workspaceSlug === workspace.slug,
                         );
                         const currentRole =
