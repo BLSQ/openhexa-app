@@ -198,7 +198,7 @@ describe("OrganizationMembers", () => {
       id: ORGANIZATION_ID,
       page: 1,
       perPage: 10,
-      term: undefined,
+      term: "",
     });
 
     await user.type(searchInput, "John");
