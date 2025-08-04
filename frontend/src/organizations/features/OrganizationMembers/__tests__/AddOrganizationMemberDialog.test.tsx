@@ -380,7 +380,17 @@ describe("AddOrganizationMemberDialog", () => {
     useInviteOrganizationMemberMutationMock.mockReturnValue([jest.fn(), {}]);
     const user = userEvent.setup();
 
-    render(
+    const { rerender } = render(
+      <TestApp mocks={[]}>
+        <AddOrganizationMemberDialog
+          open={false}
+          onClose={mockOnClose}
+          organization={MOCK_ORGANIZATION}
+        />
+      </TestApp>,
+    );
+
+    rerender(
       <TestApp mocks={[]}>
         <AddOrganizationMemberDialog
           open={true}
@@ -390,18 +400,24 @@ describe("AddOrganizationMemberDialog", () => {
       </TestApp>,
     );
 
-    const roleSelect = screen.getByDisplayValue("Member");
+    const roleSelect = screen.getByRole("combobox", { name: "Organization Role" });
+    await waitFor(() => {
+      expect(roleSelect).toBeInTheDocument();
+    });
+
     await user.selectOptions(roleSelect, OrganizationMembershipRole.Admin);
 
-    const editorRadios = screen
-      .getAllByRole("radio")
-      .filter(
-        (radio) =>
-          radio.getAttribute("name")?.includes("EDITOR") &&
-          (radio as HTMLInputElement).checked,
-      );
+    await waitFor(() => {
+      const editorRadios = screen
+        .getAllByRole("radio")
+        .filter(
+          (radio) =>
+            radio.getAttribute("name")?.includes("EDITOR") &&
+            (radio as HTMLInputElement).checked,
+        );
 
-    expect(editorRadios).toHaveLength(2);
+      expect(editorRadios).toHaveLength(2);
+    });
   });
 
   it("handles empty workspace list", async () => {

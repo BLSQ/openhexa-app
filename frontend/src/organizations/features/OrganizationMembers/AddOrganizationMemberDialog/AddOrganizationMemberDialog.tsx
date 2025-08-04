@@ -135,7 +135,7 @@ const AddOrganizationMemberDialog = (
       );
       form.setFieldValue("workspaceInvitations", initialWorkspaceInvitations);
     }
-  }, [open, form, organization?.workspaces]);
+  }, [open, organization?.workspaces]);
 
   useEffect(() => {
     if (!organization?.workspaces?.items || !form.formData.organizationRole)
