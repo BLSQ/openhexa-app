@@ -268,6 +268,23 @@ describe("AddOrganizationMemberDialog", () => {
     const userPicker = screen.getByTestId("user-picker");
     await user.click(userPicker);
 
+    await waitFor(() => {
+      expect(screen.getByText("Test Workspace 1")).toBeInTheDocument();
+      expect(screen.getByText("Test Workspace 2")).toBeInTheDocument();
+    });
+
+    const viewerRadio1 = screen.getAllByRole("radio").find(
+      radio => radio.getAttribute("name")?.includes("workspace-1") && 
+               radio.getAttribute("name")?.includes("VIEWER")
+    );
+    const viewerRadio2 = screen.getAllByRole("radio").find(
+      radio => radio.getAttribute("name")?.includes("workspace-2") && 
+               radio.getAttribute("name")?.includes("ADMIN")
+    );
+    
+    await user.click(viewerRadio1!);
+    await user.click(viewerRadio2!);
+
     const submitButton = screen.getByRole("button", { name: "Invite Member" });
     await user.click(submitButton);
 
@@ -281,11 +298,13 @@ describe("AddOrganizationMemberDialog", () => {
             workspaceInvitations: [
               {
                 workspaceSlug: "workspace-1",
+                workspaceName: "Test Workspace 1",
                 role: WorkspaceMembershipRole.Viewer,
               },
               {
                 workspaceSlug: "workspace-2",
-                role: WorkspaceMembershipRole.Viewer,
+                workspaceName: "Test Workspace 2",
+                role: WorkspaceMembershipRole.Admin,
               },
             ],
           },
