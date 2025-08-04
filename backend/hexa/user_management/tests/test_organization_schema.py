@@ -329,6 +329,7 @@ class OrganizationInvitationTest(GraphQLTestCase, OrganizationTestMixin):
                     "workspaceInvitations": [
                         {
                             "workspaceSlug": self.workspace.slug,
+                            "workspaceName": self.workspace.name,
                             "role": WorkspaceMembershipRole.VIEWER,
                         }
                     ],
@@ -354,6 +355,7 @@ class OrganizationInvitationTest(GraphQLTestCase, OrganizationTestMixin):
                 {
                     "workspace_slug": self.workspace.slug,
                     "role": WorkspaceMembershipRole.VIEWER.upper(),
+                    "workspace_name": self.workspace.name,
                 }
             ],
         )
