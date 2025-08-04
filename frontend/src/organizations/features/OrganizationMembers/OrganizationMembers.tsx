@@ -51,7 +51,9 @@ export default function OrganizationMembers({
       perPage: DEFAULT_PAGE_SIZE,
       term: debouncedSearchTerm,
     },
-    fetchPolicy: "no-cache",
+    fetchPolicy: "network-only",
+    nextFetchPolicy: "cache-first",
+    notifyOnNetworkStatusChange: true,
   });
 
   useEffect(() => {
