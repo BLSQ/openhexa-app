@@ -11,7 +11,7 @@ import { CreatePipelineTemplateVersionError } from "graphql/types";
 import { isEmpty } from "lodash";
 import { useRouter } from "next/router";
 import { useCreatePipelineTemplateVersionMutation } from "pipelines/graphql/mutations.generated";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import {
@@ -35,7 +35,6 @@ const PublishPipelineDialog = ({
   const { t } = useTranslation();
   const templateAlreadyExists = !!pipeline.template;
   const router = useRouter();
-  const [isFormValid, setIsFormValid] = useState(false);
   const [createPipelineTemplateVersion] =
     useCreatePipelineTemplateVersionMutation();
 
@@ -100,27 +99,29 @@ const PublishPipelineDialog = ({
     },
     validate(values) {
       const errors: any = {};
-      if (!templateAlreadyExists && isEmpty(values.name)) {
+      if (!templateAlreadyExists && isEmpty(values.name?.trim())) {
         errors.name = t("Name is required");
       }
-      if (!templateAlreadyExists && isEmpty(values.description)) {
+      if (!templateAlreadyExists && isEmpty(values.description?.trim())) {
         errors.description = t("Description is required");
       }
       if (!values.confirmPublishing) {
         errors.confirmPublishing = t("You must confirm publishing");
       }
-      setIsFormValid(isEmpty(errors));
       return errors;
     },
   });
 
   useEffect(() => {
-    form.validate();
-  }, [form.formData]);
+    if (open) {
+      form.resetForm();
+      form.validate();
+    }
+  }, [open, form]);
 
   useEffect(() => {
-    form.resetForm();
-  }, [open, form]);
+    form.validate();
+  }, [form.formData]);
 
   const successMessage = templateAlreadyExists
     ? t("New Template Version for '{{templateName}}' created successfully.", {
@@ -172,7 +173,9 @@ const PublishPipelineDialog = ({
                   contentEditableClassName="min-h-[240px] p-2 prose prose-headings:font-medium"
                   markdown={form.formData.description || ""}
                   onChange={(markdown) =>
-                    (form.formData.description = markdown)
+                    form.handleInputChange({
+                      target: { name: "description", value: markdown },
+                    } as any)
                   }
                 />
               </Field>
@@ -205,7 +208,7 @@ const PublishPipelineDialog = ({
           <Button variant="white" onClick={onClose}>
             {t("Cancel")}
           </Button>
-          <Button disabled={form.isSubmitting || !isFormValid} type={"submit"}>
+          <Button disabled={form.isSubmitting || !isEmpty(form.errors)} type={"submit"}>
             {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
             {actionMessage}
           </Button>
