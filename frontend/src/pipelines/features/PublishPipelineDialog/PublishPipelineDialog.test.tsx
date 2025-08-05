@@ -101,6 +101,25 @@ describe("PublishPipelineDialog", () => {
     });
   });
 
+  it("is possible to create template with pre-filled name by only adding description and confirming", async () => {
+    renderPublishPipelineDialog({
+      name: "My Pipeline",
+      description: "",
+    });
+
+    fireEvent.click(screen.getByLabelText("Confirm publishing"));
+
+    const editor = screen.getByLabelText("Template description");
+    fireEvent.input(editor, {
+      target: { textContent: "New template description" },
+    });
+
+    const submitButton = screen.getByRole("button", {
+      name: "Create a new Template",
+    });
+    expect(submitButton).not.toBeDisabled();
+  });
+
   it("submits the form successfully for a new template", async () => {
     renderPublishPipelineDialog();
 
