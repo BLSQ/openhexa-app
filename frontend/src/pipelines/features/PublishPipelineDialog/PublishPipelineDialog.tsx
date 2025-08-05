@@ -46,7 +46,7 @@ const PublishPipelineDialog = ({
     changelog: string;
   }>({
     initialState: {
-      name: pipeline.name ?? "",
+      name: pipeline.name?.trim() ?? "",
       description: pipeline.description ?? "",
       confirmPublishing: false,
       changelog: "",
@@ -60,8 +60,8 @@ const PublishPipelineDialog = ({
       const { data } = await createPipelineTemplateVersion({
         variables: {
           input: {
-            name: values.name,
-            code: values.name,
+            name: values.name.trim(),
+            code: values.name.trim(),
             description: values.description,
             changelog: values.changelog,
             workspaceSlug: workspace.slug,
