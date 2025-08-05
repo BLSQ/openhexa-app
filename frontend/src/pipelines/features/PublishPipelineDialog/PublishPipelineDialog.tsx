@@ -11,7 +11,7 @@ import { CreatePipelineTemplateVersionError } from "graphql/types";
 import { isEmpty } from "lodash";
 import { useRouter } from "next/router";
 import { useCreatePipelineTemplateVersionMutation } from "pipelines/graphql/mutations.generated";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import {
@@ -37,6 +37,8 @@ const PublishPipelineDialog = ({
   const router = useRouter();
   const [createPipelineTemplateVersion] =
     useCreatePipelineTemplateVersionMutation();
+
+  const [validationErrors, setValidationErrors] = useState<any>({});
 
   const form = useForm<{
     name: string;
@@ -108,6 +110,7 @@ const PublishPipelineDialog = ({
       if (!values.confirmPublishing) {
         errors.confirmPublishing = t("You must confirm publishing");
       }
+      setValidationErrors(errors);
       return errors;
     },
   });
@@ -208,7 +211,7 @@ const PublishPipelineDialog = ({
           <Button variant="white" onClick={onClose}>
             {t("Cancel")}
           </Button>
-          <Button disabled={form.isSubmitting || !isEmpty(form.errors)} type={"submit"}>
+          <Button disabled={form.isSubmitting || !isEmpty(validationErrors)} type={"submit"}>
             {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
             {actionMessage}
           </Button>
