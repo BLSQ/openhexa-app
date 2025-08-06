@@ -11,7 +11,7 @@ import { getCookie, hasCookie, setCookie } from "cookies-next";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { GetServerSidePropsContext } from "next";
 import { useTranslation } from "next-i18next";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { python } from "@codemirror/lang-python";
 import { json } from "@codemirror/lang-json";
 import { r } from "codemirror-lang-r";
@@ -141,6 +141,11 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
   );
 
   const [isPanelOpen, setIsPanelOpen] = useState(getDefaultFilesEditorPanelOpen());
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handlePanelToggle = (newState: boolean) => {
     setIsPanelOpen(newState);
@@ -222,13 +227,19 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
               </div>
             </div>
             <div className="flex-1 overflow-hidden">
-              <CodeMirror
-                value={selectedFile.content!}
-                readOnly={true}
-                extensions={[python(), r(), json()]}
-                height="100%"
-                style={{ height: "100%" }}
-              />
+              {isClient ? (
+                <CodeMirror
+                  value={selectedFile.content!}
+                  readOnly={true}
+                  extensions={[python(), r(), json()]}
+                  height="100%"
+                  style={{ height: "100%" }}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full bg-gray-50">
+                  <div className="text-gray-500">{t("Loading editor...")}</div>
+                </div>
+              )}
             </div>
           </>
         ) : (
