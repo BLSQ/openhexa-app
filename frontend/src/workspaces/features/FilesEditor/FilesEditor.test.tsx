@@ -2,6 +2,17 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { FilesEditor } from "./FilesEditor";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 import { FileType } from "graphql/types";
+import * as cookiesNext from "cookies-next";
+
+jest.mock("cookies-next", () => ({
+  setCookie: jest.fn(),
+  getCookie: jest.fn(),
+  hasCookie: jest.fn(),
+}));
+
+const mockSetCookie = jest.mocked(cookiesNext.setCookie);
+const mockGetCookie = jest.mocked(cookiesNext.getCookie);
+const mockHasCookie = jest.mocked(cookiesNext.hasCookie);
 
 const mockFiles: FilesEditor_FileFragment[] = [
   {
@@ -50,18 +61,6 @@ const mockFiles: FilesEditor_FileFragment[] = [
   },
 ];
 
-const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-};
-
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-  writable: true,
-});
-
 jest.mock("next-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
@@ -70,8 +69,9 @@ jest.mock("next-i18next", () => ({
 
 describe("FilesEditor", () => {
   beforeEach(() => {
-    localStorageMock.getItem.mockReturnValue(null);
-    localStorageMock.setItem.mockClear();
+    mockHasCookie.mockReturnValue(false);
+    mockGetCookie.mockReturnValue("true");
+    mockSetCookie.mockClear();
   });
 
   afterEach(() => {
@@ -108,15 +108,15 @@ describe("FilesEditor", () => {
       expect(filePanel).toHaveClass("overflow-hidden");
     });
 
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+    expect(mockSetCookie).toHaveBeenCalledWith(
       "files-editor-panel-open",
-      "false",
+      false,
     );
   });
 
-
-  it("loads state from localStorage on mount", async () => {
-    localStorageMock.getItem.mockReturnValue("false");
+  it("loads state from cookie on mount", async () => {
+    mockHasCookie.mockReturnValue(true);
+    mockGetCookie.mockReturnValue("false");
 
     render(<FilesEditor name="Test Project" files={mockFiles} />);
 
@@ -124,10 +124,6 @@ describe("FilesEditor", () => {
       const filePanel = screen.getByTestId("files-panel");
       expect(filePanel).toHaveClass("w-0");
     });
-
-    expect(localStorageMock.getItem).toHaveBeenCalledWith(
-      "files-editor-panel-open",
-    );
   });
 
 
