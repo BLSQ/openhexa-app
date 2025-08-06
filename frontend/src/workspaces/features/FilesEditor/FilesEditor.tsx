@@ -150,6 +150,7 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
   return (
     <div className="relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[400px] max-h-[75vh]">
       <div
+        data-testid="files-panel"
         className={clsx(
           "relative bg-gray-50 border-r border-gray-200 flex flex-col transition-all duration-75",
           isPanelOpen ? "w-80" : "w-0 overflow-hidden",

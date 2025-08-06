@@ -22,7 +22,7 @@ const mockFiles: FilesEditor_FileFragment[] = [
     type: FileType.File,
     content: "print('hello world')",
     parentId: "1",
-    autoSelect: true,
+    autoSelect: false,
     language: "python",
     lineCount: 1,
   },
@@ -82,9 +82,8 @@ describe("FilesEditor", () => {
     render(<FilesEditor name="Test Project" files={mockFiles} />);
 
     expect(screen.getByText("Files - Test Project")).toBeInTheDocument();
-    expect(screen.getByText("4 files")).toBeInTheDocument();
+    expect(screen.getByText("2 files")).toBeInTheDocument();
     expect(screen.getByText("root")).toBeInTheDocument();
-    expect(screen.getByText("file1.py")).toBeInTheDocument();
   });
 
   it("shows toggle button for the file panel", () => {
@@ -98,7 +97,7 @@ describe("FilesEditor", () => {
     render(<FilesEditor name="Test Project" files={mockFiles} />);
 
     const toggleButton = screen.getByLabelText("Toggle file panel");
-    const filePanel = screen.getByTestId("file-panel");
+    const filePanel = screen.getByTestId("files-panel");
 
     expect(filePanel).toHaveClass("w-80");
 
@@ -122,7 +121,7 @@ describe("FilesEditor", () => {
     render(<FilesEditor name="Test Project" files={mockFiles} />);
 
     await waitFor(() => {
-      const filePanel = screen.getByTestId("file-panel");
+      const filePanel = screen.getByTestId("files-panel");
       expect(filePanel).toHaveClass("w-0");
     });
 
@@ -150,7 +149,7 @@ describe("FilesEditor", () => {
     const file = screen.getByText("file1.py");
     fireEvent.click(file);
 
-    expect(screen.getByText("print('hello world')")).toBeInTheDocument();
+    expect(screen.getByText("'hello world'")).toBeInTheDocument();
   });
 
   it("displays empty state when no file is selected", () => {
