@@ -7,14 +7,17 @@ import {
   FolderIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
+import { getCookie, hasCookie, setCookie } from "cookies-next";
+import { CustomApolloClient } from "core/helpers/apollo";
+import { GetServerSidePropsContext } from "next";
 import { useTranslation } from "next-i18next";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { python } from "@codemirror/lang-python";
 import { json } from "@codemirror/lang-json";
 import { r } from "codemirror-lang-r";
 import { gql } from "@apollo/client";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import { FileType } from "../../../graphql/types";
+import { FileType } from "graphql/types";
 
 const buildTreeFromFlatData = (
   flatNodes: FilesEditor_FileFragment[],
@@ -108,6 +111,18 @@ export type FileNode = FilesEditor_FileFragment & {
   children: FileNode[];
 };
 
+export let cookieFilesEditorPanelOpenState = true;
+
+function getDefaultFilesEditorPanelOpen() {
+  if (typeof window === "undefined") {
+    return cookieFilesEditorPanelOpenState;
+  } else if (hasCookie("files-editor-panel-open")) {
+    return getCookie("files-editor-panel-open") === "true";
+  } else {
+    return true;
+  }
+}
+
 interface FilesEditorProps {
   name: string;
   files: FilesEditor_FileFragment[];
@@ -125,22 +140,11 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
     files.filter((file) => file.autoSelect)[0] || null,
   );
 
-  const [isPanelOpen, setIsPanelOpen] = useState(true);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-    const stored = localStorage.getItem("files-editor-panel-open");
-    if (stored !== null) {
-      setIsPanelOpen(JSON.parse(stored));
-    }
-  }, []);
+  const [isPanelOpen, setIsPanelOpen] = useState(getDefaultFilesEditorPanelOpen());
 
   const handlePanelToggle = (newState: boolean) => {
     setIsPanelOpen(newState);
-    if (isClient) {
-      localStorage.setItem("files-editor-panel-open", JSON.stringify(newState));
-    }
+    setCookie("files-editor-panel-open", newState);
   };
 
   const numberOfFiles = files.filter(
@@ -259,6 +263,15 @@ FilesEditor.fragment = {
       lineCount
     }
   `,
+};
+
+FilesEditor.prefetch = async (
+  ctx: GetServerSidePropsContext,
+  _client: CustomApolloClient,
+) => {
+  cookieFilesEditorPanelOpenState = (await hasCookie("files-editor-panel-open", ctx))
+    ? (await getCookie("files-editor-panel-open", ctx)) === "true"
+    : true;
 };
 
 export default FilesEditor;
