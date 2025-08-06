@@ -1,18 +1,20 @@
 import CodeMirror from "@uiw/react-codemirror";
 import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   DocumentIcon,
   FolderIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { python } from "@codemirror/lang-python";
 import { json } from "@codemirror/lang-json";
 import { r } from "codemirror-lang-r";
 import { gql } from "@apollo/client";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
+import { FileType } from "../../../graphql/types";
 
 const buildTreeFromFlatData = (
   flatNodes: FilesEditor_FileFragment[],
@@ -123,11 +125,36 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
     files.filter((file) => file.autoSelect)[0] || null,
   );
 
-  const numberOfFiles = files.filter((file) => file.type === "file").length;
+  const [isPanelOpen, setIsPanelOpen] = useState(true);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    const stored = localStorage.getItem("files-editor-panel-open");
+    if (stored !== null) {
+      setIsPanelOpen(JSON.parse(stored));
+    }
+  }, []);
+
+  const handlePanelToggle = (newState: boolean) => {
+    setIsPanelOpen(newState);
+    if (isClient) {
+      localStorage.setItem("files-editor-panel-open", JSON.stringify(newState));
+    }
+  };
+
+  const numberOfFiles = files.filter(
+    (file) => file.type === FileType.File,
+  ).length;
 
   return (
-    <div className="flex border border-gray-200 rounded-lg overflow-hidden min-h-[400px] max-h-[75vh]">
-      <div className="w-80 bg-gray-50 border-r border-gray-200 flex flex-col">
+    <div className="relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[400px] max-h-[75vh]">
+      <div
+        className={clsx(
+          "relative bg-gray-50 border-r border-gray-200 flex flex-col transition-all duration-75",
+          isPanelOpen ? "w-80" : "w-0 overflow-hidden",
+        )}
+      >
         <div className="p-3 border-b border-gray-200 bg-white flex-shrink-0">
           <h3 className="text-sm font-medium text-gray-900">
             {t("Files")} - {name}
@@ -146,7 +173,34 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
             />
           ))}
         </div>
+
+        <button
+          onClick={() => handlePanelToggle(false)}
+          className="group absolute inset-y-0 right-0 border-r-2 border-transparent after:absolute after:inset-y-0 after:-left-1.5 after:block after:w-3 after:content-[''] hover:border-r-gray-300"
+          aria-label="Toggle file panel"
+        >
+          <div className="relative h-full">
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
+              <div className="pointer-events-auto invisible rounded-l-md bg-gray-400 p-0.5 pr-0.5 align-middle text-white group-hover:visible">
+                <ChevronLeftIcon className="h-5 w-5" />
+              </div>
+            </div>
+          </div>
+        </button>
       </div>
+
+      {!isPanelOpen && (
+        <div
+          className="group absolute left-0 top-0 z-30 h-full w-3 cursor-pointer"
+          onClick={() => handlePanelToggle(true)}
+        >
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center">
+            <div className="pointer-events-auto invisible rounded-r-md bg-gray-400 p-0.5 pl-0.5 align-middle text-white group-hover:visible">
+              <ChevronRightIcon className="h-5 w-5" />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 flex flex-col min-w-0">
         {selectedFile ? (
