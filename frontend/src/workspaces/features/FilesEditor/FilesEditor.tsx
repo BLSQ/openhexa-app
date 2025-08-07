@@ -385,16 +385,18 @@ export const FilesEditor = ({
                 </button>
               )}
             </div>
-            <div className="overflow-auto max-w-4xl">
+            <div className="flex-1 overflow-hidden relative">
               {isClient ? (
-                <CodeMirror
-                  value={currentFileContent}
-                  readOnly={!isEditable}
-                  onChange={handleContentChange}
-                  extensions={[python(), r(), json()]}
-                  height="100%"
-                  style={{ height: "100%" }}
-                />
+                <div className="absolute inset-0">
+                  <CodeMirror
+                    value={currentFileContent}
+                    readOnly={!isEditable}
+                    onChange={handleContentChange}
+                    extensions={[python(), r(), json()]}
+                    height="100%"
+                    style={{ width: "100%", height: "100%" }}
+                  />
+                </div>
               ) : (
                 <div className="flex items-center justify-center h-full bg-gray-50">
                   <div className="text-gray-500">{t("Loading editor...")}</div>
