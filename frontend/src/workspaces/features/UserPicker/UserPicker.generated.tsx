@@ -6,7 +6,8 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type GetUsersQueryVariables = Types.Exact<{
   query: Types.Scalars['String']['input'];
-  workspaceSlug: Types.Scalars['String']['input'];
+  workspaceSlug?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  organizationId?: Types.InputMaybe<Types.Scalars['UUID']['input']>;
 }>;
 
 
@@ -20,8 +21,12 @@ export const UserPicker_UserFragmentDoc = gql`
 }
     ${User_UserFragmentDoc}`;
 export const GetUsersDocument = gql`
-    query GetUsers($query: String!, $workspaceSlug: String!) {
-  users(query: $query, workspaceSlug: $workspaceSlug) {
+    query GetUsers($query: String!, $workspaceSlug: String, $organizationId: UUID) {
+  users(
+    query: $query
+    workspaceSlug: $workspaceSlug
+    organizationId: $organizationId
+  ) {
     ...User_user
   }
 }
@@ -41,6 +46,7 @@ export const GetUsersDocument = gql`
  *   variables: {
  *      query: // value for 'query'
  *      workspaceSlug: // value for 'workspaceSlug'
+ *      organizationId: // value for 'organizationId'
  *   },
  * });
  */
