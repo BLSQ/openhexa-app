@@ -23,7 +23,6 @@ import JSZip from "jszip";
 import { FileType } from "graphql/types";
 import { PipelineVersionPicker_VersionFragment } from "../PipelineVersionPicker/PipelineVersionPicker.generated";
 
-// TODO : screensize issue
 // TODO : on route out
 // TODO : move logic out
 // TODO : add unit tests
@@ -290,7 +289,7 @@ export const FilesEditor = ({
   ).length;
 
   return (
-    <div className="relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[400px] max-h-[75vh]">
+    <div className="relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[400px] max-h-[75vh] max-w-12/12">
       <div
         data-testid="files-panel"
         className={clsx(
@@ -390,7 +389,7 @@ export const FilesEditor = ({
                 </button>
               )}
             </div>
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden max-w-[75vw]">
               {isClient ? (
                 <CodeMirror
                   value={currentFileContent}
