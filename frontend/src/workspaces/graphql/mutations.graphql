@@ -210,3 +210,10 @@ mutation deleteWebapp($input: DeleteWebappInput!) {
     errors
   }
 }
+
+mutation uploadPipeline($input: UploadPipelineInput!) {
+  uploadPipeline(input: $input) {
+    success
+    errors
+  }
+}
