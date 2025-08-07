@@ -1,7 +1,6 @@
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
-import { useTranslation } from "next-i18next";
 import { FilesEditor } from "workspaces/features/FilesEditor";
 import { useWorkspaceTemplatePageQuery } from "workspaces/graphql/queries.generated";
 import TemplateLayout from "workspaces/layouts/TemplateLayout";
@@ -18,7 +17,6 @@ const WorkspaceTemplateCodePage: NextPageWithLayout = (
   props: WorkspaceTemplateCodePageProps,
 ) => {
   const { templateCode, workspaceSlug } = props;
-  const { t } = useTranslation();
 
   const { data, loading } = useWorkspaceTemplatePageQuery({
     variables: {
