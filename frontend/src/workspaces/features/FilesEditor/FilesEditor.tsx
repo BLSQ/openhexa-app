@@ -289,7 +289,7 @@ export const FilesEditor = ({
   ).length;
 
   return (
-    <div className="relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[400px] max-h-[75vh] max-w-full">
+    <div className="relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[60vh] max-h-[75vh] max-w-full">
       {isPanelOpen && (
         <div
           data-testid="files-panel"
@@ -385,7 +385,7 @@ export const FilesEditor = ({
                 </button>
               )}
             </div>
-            <div className="flex-1 overflow-hidden relative">
+            <div className="flex-1 relative overflow-hidden h-full">
               {isClient ? (
                 <div className="absolute inset-0">
                   <CodeMirror
