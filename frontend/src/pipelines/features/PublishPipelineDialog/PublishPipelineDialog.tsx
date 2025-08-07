@@ -35,9 +35,10 @@ const PublishPipelineDialog = ({
   const { t } = useTranslation();
   const templateAlreadyExists = !!pipeline.template;
   const router = useRouter();
-  const [isFormValid, setIsFormValid] = useState(false);
   const [createPipelineTemplateVersion] =
     useCreatePipelineTemplateVersionMutation();
+
+  const [validationErrors, setValidationErrors] = useState<any>({});
 
   const form = useForm<{
     name: string;
@@ -46,7 +47,7 @@ const PublishPipelineDialog = ({
     changelog: string;
   }>({
     initialState: {
-      name: pipeline.name ?? "",
+      name: pipeline.name?.trim() ?? "",
       description: pipeline.description ?? "",
       confirmPublishing: false,
       changelog: "",
@@ -60,8 +61,8 @@ const PublishPipelineDialog = ({
       const { data } = await createPipelineTemplateVersion({
         variables: {
           input: {
-            name: values.name,
-            code: values.name,
+            name: values.name.trim(),
+            code: values.name.trim(),
             description: values.description,
             changelog: values.changelog,
             workspaceSlug: workspace.slug,
@@ -100,27 +101,30 @@ const PublishPipelineDialog = ({
     },
     validate(values) {
       const errors: any = {};
-      if (!templateAlreadyExists && isEmpty(values.name)) {
+      if (!templateAlreadyExists && isEmpty(values.name?.trim())) {
         errors.name = t("Name is required");
       }
-      if (!templateAlreadyExists && isEmpty(values.description)) {
+      if (!templateAlreadyExists && isEmpty(values.description?.trim())) {
         errors.description = t("Description is required");
       }
       if (!values.confirmPublishing) {
         errors.confirmPublishing = t("You must confirm publishing");
       }
-      setIsFormValid(isEmpty(errors));
+      setValidationErrors(errors);
       return errors;
     },
   });
 
   useEffect(() => {
-    form.validate();
-  }, [form.formData]);
+    if (open) {
+      form.resetForm();
+      form.validate();
+    }
+  }, [open, form]);
 
   useEffect(() => {
-    form.resetForm();
-  }, [open, form]);
+    form.validate();
+  }, [form.formData]);
 
   const successMessage = templateAlreadyExists
     ? t("New Template Version for '{{templateName}}' created successfully.", {
@@ -172,7 +176,9 @@ const PublishPipelineDialog = ({
                   contentEditableClassName="min-h-[240px] p-2 prose prose-headings:font-medium"
                   markdown={form.formData.description || ""}
                   onChange={(markdown) =>
-                    (form.formData.description = markdown)
+                    form.handleInputChange({
+                      target: { name: "description", value: markdown },
+                    } as any)
                   }
                 />
               </Field>
@@ -205,7 +211,7 @@ const PublishPipelineDialog = ({
           <Button variant="white" onClick={onClose}>
             {t("Cancel")}
           </Button>
-          <Button disabled={form.isSubmitting || !isFormValid} type={"submit"}>
+          <Button disabled={form.isSubmitting || !isEmpty(validationErrors)} type={"submit"}>
             {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
             {actionMessage}
           </Button>
