@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.1](https://github.com/BLSQ/openhexa-app/compare/1.14.0...1.14.1) (2025-08-07)
+
+
+### Bug Fixes
+
+* Minor improvements to Pipeline Templates UI and Admin (HEXA-1338, HEXA-1339, HEXA-1340) ([#1276](https://github.com/BLSQ/openhexa-app/issues/1276)) ([e3828c9](https://github.com/BLSQ/openhexa-app/commit/e3828c9102c5c82398a09c71d07f193517d90487))
+
 ## [1.14.0](https://github.com/BLSQ/openhexa-app/compare/1.13.0...1.14.0) (2025-07-17)
 
 
