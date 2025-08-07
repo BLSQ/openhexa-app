@@ -56,6 +56,17 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     }
   };
 
+  const handleVersionCreated = (version: PipelineVersionPicker_VersionFragment) => {
+    if (version) {
+      setSelectedVersion(version);
+      fetchPipelineVersion({
+        variables: {
+          versionId: version.id,
+        },
+      }).then();
+    }
+  };
+
   const versionToShow = versionData?.pipelineVersion ?? pipeline.currentVersion;
   return (
     <Page title={pipeline.name ?? t("Pipeline Code")}>
@@ -91,6 +102,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
               isEditable={true}
               workspaceSlug={workspaceSlug}
               pipelineCode={pipelineCode}
+              onVersionCreated={handleVersionCreated}
             />
           </div>
         </DataCard.FormSection>

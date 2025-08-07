@@ -20,6 +20,7 @@ import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 import { useUploadPipelineMutation } from "workspaces/graphql/mutations.generated";
 import JSZip from "jszip";
 import { FileType } from "graphql/types";
+import { PipelineVersionPicker_VersionFragment } from "../PipelineVersionPicker/PipelineVersionPicker.generated";
 
 // TODO : on route out
 // TODO : move logic out
@@ -145,6 +146,7 @@ interface FilesEditorProps {
   isEditable?: boolean;
   workspaceSlug?: string;
   pipelineCode?: string;
+  onVersionCreated?: (version: PipelineVersionPicker_VersionFragment) => void
 }
 export const FilesEditor = ({ 
   name, 
@@ -152,6 +154,7 @@ export const FilesEditor = ({
   isEditable = false, 
   workspaceSlug, 
   pipelineCode,
+  onVersionCreated,
 }: FilesEditorProps) => {
   const { t } = useTranslation();
   const files = useMemo(() => {
@@ -254,6 +257,11 @@ export const FilesEditor = ({
 
       if (result.data?.uploadPipeline.success) {
         setModifiedFiles(new Map());
+        
+        const newVersion = result.data.uploadPipeline.pipelineVersion;
+        if (newVersion && onVersionCreated) {
+          onVersionCreated(newVersion);
+        }
       } else {
         const errors = result.data?.uploadPipeline.errors || ["Unknown error"];
         setSaveError(errors.join(", "));

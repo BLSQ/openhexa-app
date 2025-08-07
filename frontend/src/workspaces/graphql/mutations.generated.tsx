@@ -2,6 +2,7 @@ import * as Types from '../../graphql/types';
 
 import { gql } from '@apollo/client';
 import { User_UserFragmentDoc } from '../../core/features/User/User.generated';
+import { PipelineVersionPicker_VersionFragmentDoc } from '../features/PipelineVersionPicker/PipelineVersionPicker.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type CreateWorkspaceMutationVariables = Types.Exact<{
@@ -156,7 +157,7 @@ export type UploadPipelineMutationVariables = Types.Exact<{
 }>;
 
 
-export type UploadPipelineMutation = { __typename?: 'Mutation', uploadPipeline: { __typename?: 'UploadPipelineResult', success: boolean, errors: Array<Types.PipelineError> } };
+export type UploadPipelineMutation = { __typename?: 'Mutation', uploadPipeline: { __typename?: 'UploadPipelineResult', success: boolean, errors: Array<Types.PipelineError>, pipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, isLatestVersion: boolean, createdAt: any, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, widget?: Types.ParameterWidget | null, connection?: string | null, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null } | null } };
 
 
 export const CreateWorkspaceDocument = gql`
@@ -943,9 +944,16 @@ export const UploadPipelineDocument = gql`
   uploadPipeline(input: $input) {
     success
     errors
+    pipelineVersion {
+      id
+      versionNumber
+      versionName
+      isLatestVersion
+      ...PipelineVersionPicker_version
+    }
   }
 }
-    `;
+    ${PipelineVersionPicker_VersionFragmentDoc}`;
 export type UploadPipelineMutationFn = Apollo.MutationFunction<UploadPipelineMutation, UploadPipelineMutationVariables>;
 
 /**
