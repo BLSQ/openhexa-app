@@ -385,7 +385,7 @@ export const FilesEditor = ({
                 </button>
               )}
             </div>
-            <div className="flex-1 overflow-hidden max-w-[75vw]">
+            <div className="overflow-auto max-w-4xl">
               {isClient ? (
                 <CodeMirror
                   value={currentFileContent}
