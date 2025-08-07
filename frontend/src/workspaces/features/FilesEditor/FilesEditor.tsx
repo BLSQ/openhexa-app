@@ -9,6 +9,7 @@ import {
 import clsx from "clsx";
 import { getCookie, hasCookie, setCookie } from "cookies-next";
 import { CustomApolloClient } from "core/helpers/apollo";
+import useCacheKey from "core/hooks/useCacheKey";
 import { GetServerSidePropsContext } from "next";
 import { useTranslation } from "next-i18next";
 import { useEffect, useMemo, useState } from "react";
@@ -146,6 +147,7 @@ interface FilesEditorProps {
   isEditable?: boolean;
   workspaceSlug?: string;
   pipelineCode?: string;
+  pipelineId?: string;
   onVersionCreated?: (version: PipelineVersionPicker_VersionFragment) => void
 }
 export const FilesEditor = ({ 
@@ -154,6 +156,7 @@ export const FilesEditor = ({
   isEditable = false, 
   workspaceSlug, 
   pipelineCode,
+  pipelineId,
   onVersionCreated,
 }: FilesEditorProps) => {
   const { t } = useTranslation();
@@ -176,9 +179,11 @@ export const FilesEditor = ({
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [uploadPipeline] = useUploadPipelineMutation({
-    refetchQueries: ["WorkspacePipelineCodePage", "PipelineVersionPicker"],
+    refetchQueries: ["WorkspacePipelineCodePage"],
     awaitRefetchQueries: true,
   });
+
+  const clearCache = useCacheKey(["pipeline", pipelineId]);
 
   useEffect(() => {
     setIsClient(true);
@@ -257,6 +262,7 @@ export const FilesEditor = ({
 
       if (result.data?.uploadPipeline.success) {
         setModifiedFiles(new Map());
+        clearCache();
         
         const newVersion = result.data.uploadPipeline.pipelineVersion;
         if (newVersion && onVersionCreated) {

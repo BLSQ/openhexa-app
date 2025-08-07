@@ -102,6 +102,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
               isEditable={true}
               workspaceSlug={workspaceSlug}
               pipelineCode={pipelineCode}
+              pipelineId={pipeline.id}
               onVersionCreated={handleVersionCreated}
             />
           </div>

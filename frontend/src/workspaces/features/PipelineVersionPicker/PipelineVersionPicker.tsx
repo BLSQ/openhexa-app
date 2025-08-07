@@ -1,6 +1,7 @@
 import { gql, useLazyQuery } from "@apollo/client";
 import { Combobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
+import useCacheKey from "core/hooks/useCacheKey";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
@@ -31,7 +32,7 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);
-  const [fetch, { data, loading }] = useLazyQuery<PipelineVersionPickerQuery>(
+  const [fetch, { data, loading, refetch }] = useLazyQuery<PipelineVersionPickerQuery>(
     gql`
       query PipelineVersionPicker($pipelineId: UUID!) {
         pipeline(id: $pipelineId) {
@@ -45,6 +46,14 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
       ${PipelineVersionPicker.fragments.version}
     `,
   );
+
+  useCacheKey(["pipeline", pipeline.id], () => {
+      if(data) {
+        refetch().then();
+      } else {
+        fetch({ variables: { pipelineId: pipeline.id } }).then();
+      }
+  });
 
   const displayValue = useCallback(
     (option: Option) =>
