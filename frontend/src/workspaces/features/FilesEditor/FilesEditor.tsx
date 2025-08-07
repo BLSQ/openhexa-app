@@ -289,48 +289,47 @@ export const FilesEditor = ({
   ).length;
 
   return (
-    <div className="relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[400px] max-h-[75vh] max-w-12/12">
-      <div
-        data-testid="files-panel"
-        className={clsx(
-          "relative bg-gray-50 border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out w-80",
-          !isPanelOpen && "-translate-x-full",
-        )}
-      >
-        <div className="p-3 border-b border-gray-200 bg-white">
-          <h3 className="text-sm font-medium text-gray-900">
-            {t("Files")} - {name}
-          </h3>
-          <div className="text-xs text-gray-500 mt-1">
-            {numberOfFiles} {t("files")}
-          </div>
-        </div>
-        <div className="py-2 overflow-y-auto flex-1">
-          {rootFiles.map((node) => (
-            <FileTreeNode
-              key={node.path}
-              node={node}
-              selectedFile={selectedFile}
-              setSelectedFile={setSelectedFile}
-              modifiedFiles={modifiedFiles}
-            />
-          ))}
-        </div>
-
-        <button
-          onClick={() => handlePanelToggle(false)}
-          className="group absolute inset-y-0 right-0 border-r-2 border-transparent after:absolute after:inset-y-0 after:-left-1.5 after:block after:w-3 after:content-[''] hover:border-r-gray-300"
-          aria-label="Toggle file panel"
+    <div className="relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[400px] max-h-[75vh] max-w-full">
+      {isPanelOpen && (
+        <div
+          data-testid="files-panel"
+          className="relative bg-gray-50 border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out w-80"
         >
-          <div className="relative h-full">
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
-              <div className="pointer-events-auto invisible rounded-l-md bg-gray-400 p-0.5 pr-0.5 align-middle text-white group-hover:visible">
-                <ChevronLeftIcon className="h-5 w-5" />
-              </div>
+          <div className="p-3 border-b border-gray-200 bg-white">
+            <h3 className="text-sm font-medium text-gray-900">
+              {t("Files")} - {name}
+            </h3>
+            <div className="text-xs text-gray-500 mt-1">
+              {numberOfFiles} {t("files")}
             </div>
           </div>
-        </button>
-      </div>
+          <div className="py-2 overflow-y-auto flex-1">
+            {rootFiles.map((node) => (
+              <FileTreeNode
+                key={node.path}
+                node={node}
+                selectedFile={selectedFile}
+                setSelectedFile={setSelectedFile}
+                modifiedFiles={modifiedFiles}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() => handlePanelToggle(false)}
+            className="group absolute inset-y-0 right-0 border-r-2 border-transparent after:absolute after:inset-y-0 after:-left-1.5 after:block after:w-3 after:content-[''] hover:border-r-gray-300"
+            aria-label="Toggle file panel"
+          >
+            <div className="relative h-full">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
+                <div className="pointer-events-auto invisible rounded-l-md bg-gray-400 p-0.5 pr-0.5 align-middle text-white group-hover:visible">
+                  <ChevronLeftIcon className="h-5 w-5" />
+                </div>
+              </div>
+            </div>
+          </button>
+        </div>
+      )}
 
       {!isPanelOpen && (
         <div
@@ -346,10 +345,7 @@ export const FilesEditor = ({
       )}
 
       <div 
-        className={clsx(
-          "flex-1 flex flex-col transition-[margin-left] duration-300 ease-in-out",
-          !isPanelOpen && "-ml-80"
-        )}
+        className="flex-1 flex flex-col transition-all duration-300 ease-in-out"
       >
         {selectedFile ? (
           <>
