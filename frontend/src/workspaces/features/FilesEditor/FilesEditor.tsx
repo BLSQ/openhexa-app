@@ -21,7 +21,6 @@ import { useUploadPipelineMutation } from "workspaces/graphql/mutations.generate
 import JSZip from "jszip";
 import { FileType } from "graphql/types";
 
-// TODO : flicker on save
 // TODO : on route out
 // TODO : move logic out
 // TODO : add unit tests
@@ -173,7 +172,10 @@ export const FilesEditor = ({
   const [currentFileContent, setCurrentFileContent] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [uploadPipeline] = useUploadPipelineMutation({refetchQueries : ["WorkspacePipelineCodePage", "PipelineVersionPicker"]});
+  const [uploadPipeline] = useUploadPipelineMutation({
+    refetchQueries: ["WorkspacePipelineCodePage", "PipelineVersionPicker"],
+    awaitRefetchQueries: true,
+  });
 
   useEffect(() => {
     setIsClient(true);
