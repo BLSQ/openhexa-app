@@ -293,7 +293,7 @@ export const FilesEditor = ({
       {isPanelOpen && (
         <div
           data-testid="files-panel"
-          className="relative bg-gray-50 border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out w-80"
+          className="relative bg-gray-50 border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out"
         >
           <div className="p-3 border-b border-gray-200 bg-white">
             <h3 className="text-sm font-medium text-gray-900">
