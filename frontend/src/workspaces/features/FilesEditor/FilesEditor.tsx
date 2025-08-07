@@ -277,11 +277,11 @@ export const FilesEditor = ({
       <div
         data-testid="files-panel"
         className={clsx(
-          "relative bg-gray-50 border-r border-gray-200 flex flex-col transition-all duration-75",
-          isPanelOpen ? "w-80" : "w-0 overflow-hidden",
+          "relative bg-gray-50 border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out w-80",
+          !isPanelOpen && "-translate-x-full",
         )}
       >
-        <div className="p-3 border-b border-gray-200 bg-white flex-shrink-0">
+        <div className="p-3 border-b border-gray-200 bg-white">
           <h3 className="text-sm font-medium text-gray-900">
             {t("Files")} - {name}
           </h3>
@@ -329,10 +329,15 @@ export const FilesEditor = ({
         </div>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div 
+        className={clsx(
+          "flex-1 flex flex-col transition-[margin-left] duration-300 ease-in-out",
+          !isPanelOpen && "-ml-80"
+        )}
+      >
         {selectedFile ? (
           <>
-            <div className="p-3 border-b border-gray-200 bg-white flex-shrink-0 flex items-center justify-between">
+            <div className="p-3 border-b border-gray-200 bg-white flex items-center justify-between">
               <div>
                 <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
                   {selectedFile.name}
