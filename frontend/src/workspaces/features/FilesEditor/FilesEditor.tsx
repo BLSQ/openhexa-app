@@ -17,7 +17,15 @@ import { json } from "@codemirror/lang-json";
 import { r } from "codemirror-lang-r";
 import { gql } from "@apollo/client";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
+import { useUploadPipelineMutation } from "workspaces/graphql/mutations.generated";
+import JSZip from "jszip";
 import { FileType } from "graphql/types";
+
+// TODO : flicker on save
+// TODO : on route out
+// TODO : move logic out
+// TODO : add unit tests
+
 
 const buildTreeFromFlatData = (
   flatNodes: FilesEditor_FileFragment[],
@@ -50,14 +58,17 @@ const FileTreeNode = ({
   level = 0,
   selectedFile,
   setSelectedFile,
+  modifiedFiles,
 }: {
   node: FileNode;
   level?: number;
   selectedFile: FileNode | null;
   setSelectedFile: (file: FileNode | null) => void;
+  modifiedFiles: Map<string, string>;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const isSelected = selectedFile?.id === node.id;
+  const isModified = modifiedFiles.has(node.id);
 
   if (node.type === "file") {
     return (
@@ -70,7 +81,12 @@ const FileTreeNode = ({
         onClick={() => setSelectedFile(isSelected ? null : node)}
       >
         <DocumentIcon className="w-4 h-4 mr-2 text-gray-400" />
-        <span>{node.name}</span>
+        <span className="flex items-center gap-2">
+          {node.name}
+          {isModified && (
+            <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full" />
+          )}
+        </span>
       </div>
     );
   }
@@ -99,6 +115,7 @@ const FileTreeNode = ({
               level={level + 1}
               selectedFile={selectedFile}
               setSelectedFile={setSelectedFile}
+              modifiedFiles={modifiedFiles}
             />
           ))}
         </div>
@@ -126,8 +143,17 @@ function getDefaultFilesEditorPanelOpen() {
 interface FilesEditorProps {
   name: string;
   files: FilesEditor_FileFragment[];
+  isEditable?: boolean;
+  workspaceSlug?: string;
+  pipelineCode?: string;
 }
-export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
+export const FilesEditor = ({ 
+  name, 
+  files: flatFiles, 
+  isEditable = false, 
+  workspaceSlug, 
+  pipelineCode,
+}: FilesEditorProps) => {
   const { t } = useTranslation();
   const files = useMemo(() => {
     return buildTreeFromFlatData(flatFiles);
@@ -142,15 +168,105 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
 
   const [isPanelOpen, setIsPanelOpen] = useState(getDefaultFilesEditorPanelOpen());
   const [isClient, setIsClient] = useState(false);
+  
+  const [modifiedFiles, setModifiedFiles] = useState<Map<string, string>>(new Map());
+  const [currentFileContent, setCurrentFileContent] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [uploadPipeline] = useUploadPipelineMutation({refetchQueries : ["WorkspacePipelineCodePage", "PipelineVersionPicker"]});
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  useEffect(() => {
+    if (selectedFile) {
+      const modifiedContent = modifiedFiles.get(selectedFile.id);
+      setCurrentFileContent(modifiedContent || selectedFile.content || "");
+    }
+  }, [selectedFile, modifiedFiles]);
+
   const handlePanelToggle = (newState: boolean) => {
     setIsPanelOpen(newState);
     setCookie("files-editor-panel-open", newState);
   };
+
+  const handleContentChange = (content: string) => {
+    if (selectedFile && isEditable) {
+      setCurrentFileContent(content);
+      
+      if (content !== (selectedFile.content || "")) {
+        setModifiedFiles(prev => new Map(prev).set(selectedFile.id, content));
+      } else {
+        setModifiedFiles(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(selectedFile.id);
+          return newMap;
+        });
+      }
+    }
+  };
+
+  const createZipFromFiles = async (files: FilesEditor_FileFragment[], modifications: Map<string, string>): Promise<string> => {
+    const zip = new JSZip();
+    
+    files.forEach((file) => {
+      if (file.type === FileType.File) {
+        const content = modifications.get(file.id) || file.content || "";
+        zip.file(file.path, content);
+      }
+    });
+
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(zipBlob);
+    });
+  };
+
+  const handleSave = async () => {
+    if (!selectedFile || !isEditable || !workspaceSlug || !pipelineCode) return;
+    
+    setIsSaving(true);
+    setSaveError(null);
+    
+    try {
+      const zipBase64 = await createZipFromFiles(flatFiles, modifiedFiles);
+      
+      const result = await uploadPipeline({
+        variables: {
+          input: {
+            workspaceSlug: workspaceSlug,
+            pipelineCode: pipelineCode,
+            zipfile: zipBase64,
+            parameters: [],
+          }
+        }
+      });
+
+      if (result.data?.uploadPipeline.success) {
+        setModifiedFiles(new Map());
+      } else {
+        const errors = result.data?.uploadPipeline.errors || ["Unknown error"];
+        setSaveError(errors.join(", "));
+        console.error("Save failed with errors:", errors);
+      }
+    } catch (error) {
+      console.error("Save failed:", error);
+      setSaveError(error instanceof Error ? error.message : "Failed to save");
+      setCurrentFileContent(selectedFile.content || "");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const currentFileIsModified = selectedFile ? modifiedFiles.has(selectedFile.id) : false;
 
   const numberOfFiles = files.filter(
     (file) => file.type === FileType.File,
@@ -180,6 +296,7 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
               node={node}
               selectedFile={selectedFile}
               setSelectedFile={setSelectedFile}
+              modifiedFiles={modifiedFiles}
             />
           ))}
         </div>
@@ -215,22 +332,48 @@ export const FilesEditor = ({ name, files: flatFiles }: FilesEditorProps) => {
       <div className="flex-1 flex flex-col min-w-0">
         {selectedFile ? (
           <>
-            <div className="p-3 border-b border-gray-200 bg-white flex-shrink-0">
-              <div className="text-sm font-medium text-gray-900">
-                {selectedFile.name}
+            <div className="p-3 border-b border-gray-200 bg-white flex-shrink-0 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                  {selectedFile.name}
+                  {currentFileIsModified && (
+                    <span className="inline-block w-2 h-2 bg-blue-500 rounded-full" title={t("Modified")} />
+                  )}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {selectedFile.language}
+                  {" • "}
+                  {selectedFile.lineCount}
+                  {` ${t("lines")}`}
+                  {currentFileIsModified && ` • ${t("Modified")}`}
+                </div>
+                {saveError && (
+                  <div className="text-xs text-red-600 mt-1">
+                    {t("Save error")}: {saveError}
+                  </div>
+                )}
               </div>
-              <div className="text-xs text-gray-500 mt-1">
-                {selectedFile.language}
-                {" • "}
-                {selectedFile.lineCount}
-                {` ${t("lines")}`}
-              </div>
+              {isEditable && currentFileIsModified && (
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className={clsx(
+                    "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                    isSaving
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+                  )}
+                >
+                  {isSaving ? t("Saving...") : t("Save")}
+                </button>
+              )}
             </div>
             <div className="flex-1 overflow-hidden">
               {isClient ? (
                 <CodeMirror
-                  value={selectedFile.content!}
-                  readOnly={true}
+                  value={currentFileContent}
+                  readOnly={!isEditable}
+                  onChange={handleContentChange}
                   extensions={[python(), r(), json()]}
                   height="100%"
                   style={{ height: "100%" }}
