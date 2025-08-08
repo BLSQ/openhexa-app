@@ -18,9 +18,7 @@ import { r } from "codemirror-lang-r";
 import { gql } from "@apollo/client";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 import { FileType } from "graphql/types";
-
-// TODO : on route out
-// TODO : add unit tests
+import useNavigationWarning from "core/hooks/useNavigationWarning";
 
 
 const buildTreeFromFlatData = (
@@ -183,6 +181,10 @@ export const FilesEditor = ({
       setCurrentFileContent(modifiedContent || selectedFile.content || "");
     }
   }, [selectedFile, modifiedFiles]);
+
+  useNavigationWarning({
+    when: () => isEditable && modifiedFiles.size > 0,
+  });
 
   const handlePanelToggle = (newState: boolean) => {
     setIsPanelOpen(newState);
