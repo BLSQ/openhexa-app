@@ -309,7 +309,7 @@ export const FilesEditor = ({
                   {selectedFile.language}
                   {" • "}
                   {selectedFile.lineCount}
-                  {` ${t("lines")}`}
+                  {` ${(selectedFile.lineCount ?? 0) > 1 ? t("lines") : t("line")}`}
                   {currentFileIsModified && ` • ${t("Modified")}`}
                 </div>
                 {saveError && (

@@ -3,6 +3,7 @@ import { FilesEditor } from "./FilesEditor";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 import { FileType } from "graphql/types";
 import * as cookiesNext from "cookies-next";
+import mockRouter from "next-router-mock";
 
 jest.mock("cookies-next", () => ({
   setCookie: jest.fn(),
@@ -61,11 +62,29 @@ const mockFiles: FilesEditor_FileFragment[] = [
   },
 ];
 
-jest.mock("next-i18next", () => ({
+jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (str: string) => str,
+    i18n: { changeLanguage: jest.fn() },
   }),
 }));
+
+const mockOnChange = jest.fn();
+jest.mock("@uiw/react-codemirror", () => {
+  return function MockCodeMirror({ value, onChange, readOnly }: any) {
+    mockOnChange.mockImplementation(onChange);
+    return (
+      <div data-testid="code-mirror">
+        <textarea
+          data-testid="code-editor"
+          value={value}
+          onChange={(e) => onChange && onChange(e.target.value)}
+          readOnly={readOnly}
+        />
+      </div>
+    );
+  };
+});
 
 describe("FilesEditor", () => {
   beforeEach(() => {
@@ -143,7 +162,7 @@ describe("FilesEditor", () => {
     const file = screen.getByText("file1.py");
     fireEvent.click(file);
 
-    expect(screen.getByText("'hello world'")).toBeInTheDocument();
+    expect(screen.getByText(/hello world/i)).toBeInTheDocument();
   });
 
   it("displays empty state when no file is selected", () => {
@@ -153,5 +172,110 @@ describe("FilesEditor", () => {
     expect(
       screen.getByText("Choose a file from the sidebar to view its contents"),
     ).toBeInTheDocument();
+  });
+
+  it("shows file info when a file is selected", () => {
+    render(<FilesEditor name="Test Project" files={mockFiles} />);
+
+    fireEvent.click(screen.getByText("root"));
+    fireEvent.click(screen.getByText("file1.py"));
+
+    expect(screen.getByText(/python/i)).toBeInTheDocument();
+    expect(screen.getByText(/1\s+line/)).toBeInTheDocument();
+  });
+
+  it("displays modified indicator when file is changed in editable mode and call save action on save", async () => {
+    const mockOnSave = jest.fn().mockResolvedValue({ success: true });
+
+    render(
+      <FilesEditor
+        name="Test Project"
+        files={mockFiles}
+        isEditable={true}
+        onSave={mockOnSave}
+      />
+    );
+
+    fireEvent.click(screen.getByText("root"));
+    fireEvent.click(screen.getByText("file1.py"));
+
+    expect(screen.getByText(/'hello world'/i)).toBeInTheDocument();
+
+    const codeEditor = screen.getByTestId("code-editor");
+    expect(codeEditor).toBeInTheDocument();
+
+    expect(screen.queryByText("Save")).not.toBeInTheDocument();
+    fireEvent.change(codeEditor, { target: { value: "print('hello world v2')" } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Modified/i)).toBeInTheDocument();
+      expect(screen.getByTitle(/Modified/i)).toBeInTheDocument();
+    });
+
+    const saveButton = screen.getByText(/Save/i);
+    expect(saveButton).toBeInTheDocument();
+    expect(saveButton).toBeEnabled();
+    fireEvent.click(saveButton);
+
+    expect(mockOnSave).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.queryByText(/Modified/i)).not.toBeInTheDocument();
+      expect(screen.queryByTitle(/Modified/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("prompts user when trying to navigate away with unsaved changes", async () => {
+    render(
+      <FilesEditor
+        name="Test Project"
+        files={mockFiles}
+        isEditable={true}
+        onSave={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByText("root"));
+    fireEvent.click(screen.getByText("file1.py"));
+
+    const codeEditor = screen.getByTestId("code-editor");
+    expect(codeEditor).toBeInTheDocument();
+
+    fireEvent.change(codeEditor, { target: { value: "print('hello world v2')" } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Modified/i)).toBeInTheDocument();
+      expect(screen.getByTitle(/Modified/i)).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Save/i)).toBeInTheDocument();
+
+    const mockConfirm = jest.fn().mockReturnValue(false); // User cancels navigation
+    const originalConfirm = window.confirm;
+    window.confirm = mockConfirm;
+
+    await expect(mockRouter.push('/new-route')).rejects.toBe("Route change aborted");
+
+    expect(mockConfirm).toHaveBeenCalledWith("You have unsaved changes. Leave anyway?");
+
+    window.confirm = originalConfirm;
+  });
+
+  it("displays correct file count", () => {
+    render(<FilesEditor name="Test Project" files={mockFiles} />);
+
+    expect(screen.getByText("2 files")).toBeInTheDocument();
+  });
+
+  it("handles nested directory structure", () => {
+    render(<FilesEditor name="Test Project" files={mockFiles} />);
+
+    fireEvent.click(screen.getByText("root"));
+    expect(screen.getByText("subdirectory")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("subdirectory"));
+    expect(screen.getByText("file2.json")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("file2.json"));
+    expect(screen.getByText(/value/i)).toBeInTheDocument();
   });
 });
