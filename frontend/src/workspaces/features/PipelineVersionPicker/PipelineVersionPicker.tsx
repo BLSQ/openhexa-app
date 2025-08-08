@@ -1,9 +1,10 @@
 import { gql, useLazyQuery } from "@apollo/client";
 import { Combobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
+import useCacheKey from "core/hooks/useCacheKey";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import {
   PipelineVersionPickerQuery,
   PipelineVersionPicker_PipelineFragment,
@@ -30,12 +31,17 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
   const { pipeline, value, ...delegated } = props;
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [allVersions, setAllVersions] = useState<Option[]>([]);
   const debouncedQuery = useDebounce(query, 150);
-  const [fetch, { data, loading }] = useLazyQuery<PipelineVersionPickerQuery>(
+  const [fetch, { data, loading, refetch, fetchMore }] = useLazyQuery<PipelineVersionPickerQuery>(
     gql`
-      query PipelineVersionPicker($pipelineId: UUID!) {
+      query PipelineVersionPicker($pipelineId: UUID!, $page: Int, $perPage: Int) {
         pipeline(id: $pipelineId) {
-          versions {
+          versions(page: $page, perPage: $perPage) {
+            pageNumber
+            totalPages
+            totalItems
             items {
               ...PipelineVersionPicker_version
             }
@@ -45,6 +51,25 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
       ${PipelineVersionPicker.fragments.version}
     `,
   );
+  useEffect(() => {
+    if (data?.pipeline?.versions.items) {
+      if (data.pipeline.versions.pageNumber === 1) {
+        setAllVersions(data.pipeline.versions.items);
+      } else {
+        setAllVersions(prev => [...prev, ...data.pipeline?.versions.items || []]);
+      }
+    }
+  }, [data]);
+
+  useCacheKey(["pipeline", pipeline.id], () => {
+    setCurrentPage(1);
+    setAllVersions([]);
+    if (data) {
+      refetch({ page: 1, perPage: 20 }).then();
+    } else {
+      fetch({ variables: { pipelineId: pipeline.id, page: 1, perPage: 20 } }).then();
+    }
+  });
 
   const displayValue = useCallback(
     (option: Option) =>
@@ -71,13 +96,32 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
   );
 
   const filteredVersions = useMemo(
-    () => filterOptions(data?.pipeline?.versions.items ?? [], debouncedQuery),
-    [data, debouncedQuery, filterOptions],
+    () => filterOptions(allVersions, debouncedQuery),
+    [allVersions, debouncedQuery, filterOptions],
   );
 
   const onOpen = useCallback(() => {
-    fetch({ variables: { pipelineId: pipeline.id } });
-  }, [fetch, pipeline.id]);
+    if (allVersions.length === 0) {
+      fetch({ variables: { pipelineId: pipeline.id, page: 1, perPage: 20 } }).then();
+    }
+  }, [fetch, pipeline.id, allVersions.length]);
+
+  const loadMore = useCallback(() => {
+    if (!loading && data?.pipeline?.versions) {
+      const nextPage = (data.pipeline.versions.pageNumber || 0) + 1;
+      setCurrentPage(nextPage);
+      fetch({ 
+        variables: { 
+          pipelineId: pipeline.id, 
+          page: nextPage, 
+          perPage: 20 
+        },
+      }).then();
+    }
+  }, [loading, data, fetch, pipeline.id]);
+
+  const hasMorePages = data?.pipeline?.versions && 
+    data.pipeline.versions.pageNumber < data.pipeline.versions.totalPages;
 
   return (
     <Combobox
@@ -97,6 +141,17 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
           {displayValue(version)}
         </Combobox.CheckOption>
       ))}
+      {hasMorePages && (
+        <div className="px-3 py-2 border-t">
+          <button
+            onClick={loadMore}
+            disabled={loading}
+            className="w-full text-sm text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+          >
+            {loading ? t("Loading...") : t("Load more versions")}
+          </button>
+        </div>
+      )}
     </Combobox>
   );
 };

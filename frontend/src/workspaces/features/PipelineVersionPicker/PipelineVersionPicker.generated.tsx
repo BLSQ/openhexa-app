@@ -5,10 +5,12 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type PipelineVersionPickerQueryVariables = Types.Exact<{
   pipelineId: Types.Scalars['UUID']['input'];
+  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
 
 
-export type PipelineVersionPickerQuery = { __typename?: 'Query', pipeline?: { __typename?: 'Pipeline', versions: { __typename?: 'PipelineVersionPage', items: Array<{ __typename?: 'PipelineVersion', id: string, versionName: string, createdAt: any, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, widget?: Types.ParameterWidget | null, connection?: string | null, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null }> } } | null };
+export type PipelineVersionPickerQuery = { __typename?: 'Query', pipeline?: { __typename?: 'Pipeline', versions: { __typename?: 'PipelineVersionPage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'PipelineVersion', id: string, versionName: string, createdAt: any, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, widget?: Types.ParameterWidget | null, connection?: string | null, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null }> } } | null };
 
 export type PipelineVersionPicker_PipelineFragment = { __typename?: 'Pipeline', id: string };
 
@@ -43,9 +45,12 @@ export const PipelineVersionPicker_VersionFragmentDoc = gql`
 }
     `;
 export const PipelineVersionPickerDocument = gql`
-    query PipelineVersionPicker($pipelineId: UUID!) {
+    query PipelineVersionPicker($pipelineId: UUID!, $page: Int, $perPage: Int) {
   pipeline(id: $pipelineId) {
-    versions {
+    versions(page: $page, perPage: $perPage) {
+      pageNumber
+      totalPages
+      totalItems
       items {
         ...PipelineVersionPicker_version
       }
@@ -67,6 +72,8 @@ export const PipelineVersionPickerDocument = gql`
  * const { data, loading, error } = usePipelineVersionPickerQuery({
  *   variables: {
  *      pipelineId: // value for 'pipelineId'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
  *   },
  * });
  */
