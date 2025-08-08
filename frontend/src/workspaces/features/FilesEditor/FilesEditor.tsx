@@ -9,7 +9,6 @@ import {
 import clsx from "clsx";
 import { getCookie, hasCookie, setCookie } from "cookies-next";
 import { CustomApolloClient } from "core/helpers/apollo";
-import useCacheKey from "core/hooks/useCacheKey";
 import { GetServerSidePropsContext } from "next";
 import { useTranslation } from "next-i18next";
 import { useEffect, useMemo, useState } from "react";
@@ -18,13 +17,9 @@ import { json } from "@codemirror/lang-json";
 import { r } from "codemirror-lang-r";
 import { gql } from "@apollo/client";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import { useUploadPipelineMutation } from "workspaces/graphql/mutations.generated";
-import JSZip from "jszip";
 import { FileType } from "graphql/types";
-import { PipelineVersionPicker_VersionFragment } from "../PipelineVersionPicker/PipelineVersionPicker.generated";
 
 // TODO : on route out
-// TODO : move logic out
 // TODO : add unit tests
 
 
@@ -141,23 +136,22 @@ function getDefaultFilesEditorPanelOpen() {
   }
 }
 
+export interface SaveResult {
+  success: boolean;
+  error?: string;
+}
+
 interface FilesEditorProps {
   name: string;
   files: FilesEditor_FileFragment[];
   isEditable?: boolean;
-  workspaceSlug?: string;
-  pipelineCode?: string;
-  pipelineId?: string;
-  onVersionCreated?: (version: PipelineVersionPicker_VersionFragment) => void
+  onSave?: (modifiedFiles: Map<string, string>, allFiles: FilesEditor_FileFragment[]) => Promise<SaveResult>;
 }
 export const FilesEditor = ({ 
   name, 
   files: flatFiles, 
-  isEditable = false, 
-  workspaceSlug, 
-  pipelineCode,
-  pipelineId,
-  onVersionCreated,
+  isEditable = false,
+  onSave,
 }: FilesEditorProps) => {
   const { t } = useTranslation();
   const files = useMemo(() => {
@@ -178,12 +172,6 @@ export const FilesEditor = ({
   const [currentFileContent, setCurrentFileContent] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [uploadPipeline] = useUploadPipelineMutation({
-    refetchQueries: ["WorkspacePipelineCodePage"],
-    awaitRefetchQueries: true,
-  });
-
-  const clearCache = useCacheKey(["pipeline", pipelineId]);
 
   useEffect(() => {
     setIsClient(true);
@@ -217,66 +205,24 @@ export const FilesEditor = ({
     }
   };
 
-  const createZipFromFiles = async (files: FilesEditor_FileFragment[], modifications: Map<string, string>): Promise<string> => {
-    const zip = new JSZip();
-    
-    files.forEach((file) => {
-      if (file.type === FileType.File) {
-        const content = modifications.get(file.id) || file.content || "";
-        zip.file(file.path, content);
-      }
-    });
-
-    const zipBlob = await zip.generateAsync({ type: "blob" });
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        const base64 = result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(zipBlob);
-    });
-  };
 
   const handleSave = async () => {
-    if (!selectedFile || !isEditable || !workspaceSlug || !pipelineCode) return;
+    if (!selectedFile || !isEditable || !onSave || modifiedFiles.size === 0) return;
     
     setIsSaving(true);
     setSaveError(null);
     
     try {
-      const zipBase64 = await createZipFromFiles(flatFiles, modifiedFiles);
+      const result = await onSave(modifiedFiles, flatFiles);
       
-      const result = await uploadPipeline({
-        variables: {
-          input: {
-            workspaceSlug: workspaceSlug,
-            pipelineCode: pipelineCode,
-            zipfile: zipBase64,
-            parameters: [],
-          }
-        }
-      });
-
-      if (result.data?.uploadPipeline.success) {
+      if (result.success) {
         setModifiedFiles(new Map());
-        clearCache();
-        
-        const newVersion = result.data.uploadPipeline.pipelineVersion;
-        if (newVersion && onVersionCreated) {
-          onVersionCreated(newVersion);
-        }
       } else {
-        const errors = result.data?.uploadPipeline.errors || ["Unknown error"];
-        setSaveError(errors.join(", "));
-        console.error("Save failed with errors:", errors);
+        setSaveError(result.error || "Save failed");
       }
     } catch (error) {
       console.error("Save failed:", error);
       setSaveError(error instanceof Error ? error.message : "Failed to save");
-      setCurrentFileContent(selectedFile.content || "");
     } finally {
       setIsSaving(false);
     }
@@ -370,7 +316,7 @@ export const FilesEditor = ({
                   </div>
                 )}
               </div>
-              {isEditable && currentFileIsModified && (
+              {isEditable && currentFileIsModified && onSave && (
                 <button
                   onClick={handleSave}
                   disabled={isSaving}

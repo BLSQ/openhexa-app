@@ -99,13 +99,12 @@ describe("FilesEditor", () => {
     const toggleButton = screen.getByLabelText("Toggle file panel");
     const filePanel = screen.getByTestId("files-panel");
 
-    expect(filePanel).toHaveClass("w-80");
+    expect(filePanel).toBeInTheDocument();
 
     fireEvent.click(toggleButton);
 
     await waitFor(() => {
-      expect(filePanel).toHaveClass("w-0");
-      expect(filePanel).toHaveClass("overflow-hidden");
+      expect(screen.queryByTestId("files-panel")).not.toBeInTheDocument();
     });
 
     expect(mockSetCookie).toHaveBeenCalledWith(
@@ -121,8 +120,7 @@ describe("FilesEditor", () => {
     render(<FilesEditor name="Test Project" files={mockFiles} />);
 
     await waitFor(() => {
-      const filePanel = screen.getByTestId("files-panel");
-      expect(filePanel).toHaveClass("w-0");
+      expect(screen.queryByTestId("files-panel")).not.toBeInTheDocument();
     });
   });
 

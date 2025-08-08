@@ -2,6 +2,7 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
+import { PipelineFilesEditor } from "workspaces/features/FilesEditor/PipelineFilesEditor";
 import { FilesEditor } from "workspaces/features/FilesEditor";
 import {
   useGetPipelineVersionFilesLazyQuery,
@@ -95,7 +96,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 <Spinner size="md" />
               </div>
             )}
-            <FilesEditor
+            <PipelineFilesEditor
               key={versionToShow.id}
               name={versionToShow.versionName}
               files={versionToShow.files}
