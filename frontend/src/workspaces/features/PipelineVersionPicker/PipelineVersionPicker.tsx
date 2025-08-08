@@ -51,21 +51,16 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
       ${PipelineVersionPicker.fragments.version}
     `,
   );
-
-  // Update allVersions when new data is received
   useEffect(() => {
     if (data?.pipeline?.versions.items) {
       if (data.pipeline.versions.pageNumber === 1) {
-        // First page - replace all versions
         setAllVersions(data.pipeline.versions.items);
       } else {
-        // Additional page - append to existing versions
         setAllVersions(prev => [...prev, ...data.pipeline?.versions.items || []]);
       }
     }
   }, [data]);
 
-  // Reset state when cache is cleared
   useCacheKey(["pipeline", pipeline.id], () => {
     setCurrentPage(1);
     setAllVersions([]);
@@ -107,15 +102,13 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
 
   const onOpen = useCallback(() => {
     if (allVersions.length === 0) {
-      fetch({ variables: { pipelineId: pipeline.id, page: 1, perPage: 20 } });
+      fetch({ variables: { pipelineId: pipeline.id, page: 1, perPage: 20 } }).then();
     }
   }, [fetch, pipeline.id, allVersions.length]);
 
   const loadMore = useCallback(() => {
-    console.log('Load more clicked', { loading, data: data?.pipeline?.versions });
     if (!loading && data?.pipeline?.versions) {
       const nextPage = (data.pipeline.versions.pageNumber || 0) + 1;
-      console.log('Loading page', nextPage);
       setCurrentPage(nextPage);
       fetch({ 
         variables: { 
@@ -123,7 +116,7 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
           page: nextPage, 
           perPage: 20 
         },
-      });
+      }).then();
     }
   }, [loading, data, fetch, pipeline.id]);
 
