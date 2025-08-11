@@ -87,7 +87,7 @@ jobs:
 
       - name: Run Django tests
         run: |
-          docker compose run -u $(id -u):$(id -g) app coveraged-test
+          docker compose --profile test run -u $(id -u):$(id -g) app coveraged-test
 
       # Push on main
       - name: Build and push (on main)
