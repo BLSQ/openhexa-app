@@ -86,6 +86,8 @@ jobs:
         run: docker compose build app
 
       - name: Run Django tests
+        env:
+          AZURITE_TEST_SERVER: http://azurite:1000/
         run: |
           docker compose --profile test run -u $(id -u):$(id -g) app coveraged-test
 

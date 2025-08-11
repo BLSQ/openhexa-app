@@ -2,6 +2,7 @@ import io
 from unittest.mock import patch
 
 import requests
+from django.conf import settings
 
 from hexa.core.test import TestCase
 from hexa.files.backends.azure import AzureBlobStorage
@@ -12,14 +13,14 @@ class AzureBlobStorageTest(TestCase):
         super().setUp()
         # Check that Azurite is running
         try:
-            response = requests.get("http://host.docker.internal:10000/")
+            response = requests.get(settings.AZURITE_TEST_SERVER)
             if not response.headers.get("Server").startswith("Azurite-Blob"):
                 raise Exception("Azurite is not running")
         except Exception:
             raise Exception("Azurite is not running")
         # Use Azurite connection string (Azure Storage emulator)
         self.storage = AzureBlobStorage(
-            connection_string="DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://host.docker.internal:10000/devstoreaccount1;"
+            connection_string=f"DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint={settings.AZURITE_TEST_SERVER}devstoreaccount1;"
         )
         # Clean up any existing test containers
         self._cleanup_test_containers()

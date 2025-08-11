@@ -140,7 +140,7 @@ services:
   # Azurite is used to test the Azure storage backend locally. This has to be run separately when triggering tests.
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite
-    container_name: "azurite"
+    container_name: azurite
     hostname: azurite
     restart: always
     profiles:
