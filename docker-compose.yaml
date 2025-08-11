@@ -15,7 +15,6 @@ x-app: &common
       - SESSION_COOKIE_SECURE=False
       - CSRF_COOKIE_SECURE=False
       - SECURE_SSL_REDIRECT=False
-      - STORAGE_BACKEND=azure
       - PIPELINE_SCHEDULER_SPAWNER=docker
 
     networks:
