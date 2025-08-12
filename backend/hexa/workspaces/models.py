@@ -105,8 +105,13 @@ class WorkspaceManager(models.Manager):
         load_sample_data: bool = False,
         organization_id: str | None = None,
     ):
-        if not principal.has_perm("workspaces.create_workspace"):
-            # TODO : use the organization permission system instead, once workspaces and users have been migrated to the new system (https://bluesquare.atlassian.net/browse/PATHWAYS-615)
+        organization = (
+            Organization.objects.get(id=organization_id)
+            if organization_id
+            else Organization.objects.get(name="Bluesquare")
+        )
+
+        if not principal.has_perm("user_management.create_workspace", organization):
             raise PermissionDenied
 
         slug = create_workspace_slug(name)
@@ -115,6 +120,7 @@ class WorkspaceManager(models.Manager):
             "description": description,
             "slug": slug,
             "created_by": principal,
+            "organization": organization,
         }
         if countries is not None:
             create_kwargs["countries"] = countries
@@ -122,8 +128,6 @@ class WorkspaceManager(models.Manager):
             create_kwargs["description"] = DEFAULT_WORKSPACE_DESCRIPTION.format(
                 workspace_name=name, workspace_slug=slug
             )
-        if organization_id:
-            create_kwargs["organization"] = Organization.objects.get(id=organization_id)
 
         db_password = make_random_password(length=16)
         db_name = generate_database_name()
@@ -253,8 +257,11 @@ class Workspace(Base):
         self.delete()
 
     def archive_if_has_perm(self, *, principal: User):
-        if not principal.has_perm("workspaces.archive_workspace", self):
-            # TODO : use the organization permission system instead, once workspaces and users have been migrated to the new system (https://bluesquare.atlassian.net/browse/PATHWAYS-615)
+        if self.organization and not principal.has_perm(
+            "user_management.archive_workspace", self.organization
+        ):
+            raise PermissionDenied
+        elif not principal.has_perm("workspaces.archive_workspace", self):
             raise PermissionDenied
         self.archived = True
         self.save()
