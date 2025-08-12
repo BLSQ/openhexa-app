@@ -6,7 +6,7 @@ from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVer
 
 @admin.register(PipelineTemplate)
 class PipelineTemplateAdmin(GlobalObjectsModelAdmin):
-    list_display = ("name", "code", "workspace")
+    list_display = ("name", "code", "workspace", "is_deleted")
     list_filter = ("workspace",)
     search_fields = ("id", "code", "name")
 
@@ -16,3 +16,4 @@ class PipelineTemplateVersionAdmin(admin.ModelAdmin):
     list_display = ("version_number", "template", "created_at")
     list_filter = ("template", "template__workspace")
     search_fields = ("template__name", "template__code", "template__id")
+    autocomplete_fields = ["source_pipeline_version"]

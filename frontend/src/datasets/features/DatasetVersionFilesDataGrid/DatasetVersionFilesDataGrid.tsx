@@ -77,11 +77,23 @@ const DatasetVersionFilesDataGrid = (
       fetchData={onFetchData}
       fixedLayout={false}
     >
-      <TextColumn label={t("Filename")} accessor="filename" />
-      <DateColumn label={t("Created at")} accessor="createdAt" />
-      <TextColumn label={t("Content type")} accessor="contentType" />
+      <TextColumn 
+        label={t("Filename")} 
+        accessor="filename"
+        className="min-w-0 flex-1"
+      />
+      <DateColumn 
+        label={t("Created at")} 
+        accessor="createdAt"
+        className="whitespace-nowrap"
+      />
+      <TextColumn 
+        label={t("Content type")} 
+        accessor="contentType"
+        className="whitespace-nowrap"
+      />
       {version.permissions.download && (
-        <BaseColumn className="text-right">
+        <BaseColumn className="flex-shrink-0 text-right whitespace-nowrap">
           {(item) => (
             <DownloadVersionFile file={item} variant="outlined" size="sm" />
           )}

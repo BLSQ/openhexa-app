@@ -46,6 +46,7 @@ const DeleteTemplateDialog = (props: DeleteTemplateDialogProps) => {
 
     if (data.deletePipelineTemplate.success) {
       clearTemplateCache();
+      onClose();
       toast.success(t("Successfully deleted template {{ name }}", { name }));
     }
     if (
