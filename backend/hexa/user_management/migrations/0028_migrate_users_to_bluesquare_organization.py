@@ -6,9 +6,6 @@ from django.db import migrations
 def migrate_users(apps, schema_editor):
     Organization = apps.get_model("user_management", "Organization")
     OrganizationMembership = apps.get_model("user_management", "OrganizationMembership")
-    OrganizationMembershipRole = apps.get_model(
-        "user_management", "OrganizationMembershipRole"
-    )
     User = apps.get_model("user_management", "User")
 
     try:
@@ -18,7 +15,7 @@ def migrate_users(apps, schema_editor):
             OrganizationMembership(
                 organization=organization,
                 user=user,
-                role=OrganizationMembershipRole.MEMBER,
+                role="member",
             )
             for user in User.objects.exclude(
                 id__in=organization.members.values_list("id", flat=True)
@@ -41,5 +38,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(migrate_users),
+        migrations.RunPython(migrate_users, migrations.RunPython.noop),
     ]

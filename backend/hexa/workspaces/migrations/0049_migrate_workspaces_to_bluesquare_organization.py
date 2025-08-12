@@ -28,5 +28,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(migrate_workspaces_to_organization),
+        migrations.RunPython(
+            migrate_workspaces_to_organization, migrations.RunPython.noop
+        ),
     ]
