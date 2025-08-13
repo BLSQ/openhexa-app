@@ -24,5 +24,5 @@ if "hexa.plugins.connector_accessmod" in INSTALLED_APPS:  # noqa: F405
 NEW_FRONTEND_DOMAIN = "http://localhost:3000"
 NOTEBOOKS_URL = "http://localhost:8001"
 AZURITE_TEST_SERVER = os.getenv(
-    "AZURITE_TEST_SERVER", "http://host.docker.inter^nal:10000/"
+    "AZURITE_TEST_SERVER", "http://host.docker.internal:10000/"
 )
