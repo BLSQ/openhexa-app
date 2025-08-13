@@ -22,7 +22,6 @@ class Migration0028Test(TestCase):
         return self.migrator.apps.get_model("user_management", "OrganizationMembership")
 
     def test_migrate_users_with_existing_organization(self):
-        """Test that users are added to existing Bluesquare organization"""
         Organization = self.get_organization_model()
         User = self.get_user_model()
         OrganizationMembership = self.get_organization_membership_model()
@@ -37,7 +36,6 @@ class Migration0028Test(TestCase):
         user1 = User.objects.create(email="user1@example.com")
         user2 = User.objects.create(email="user2@example.com")
 
-        # Add user1 to organization
         OrganizationMembership.objects.create(
             organization=organization, user=user1, role="member"
         )
@@ -47,7 +45,6 @@ class Migration0028Test(TestCase):
                 "user_management", "0028_migrate_users_to_bluesquare_organization"
             )
 
-        # Verify user2 was added to organization
         self.assertEqual(
             OrganizationMembership.objects.filter(organization=organization).count(), 2
         )
@@ -60,7 +57,6 @@ class Migration0028Test(TestCase):
         mock_print.assert_called_with("Added 1 users to Bluesquare organization")
 
     def test_migrate_users_no_organization(self):
-        """Test that migration skips when Bluesquare organization doesn't exist"""
         User = self.get_user_model()
         OrganizationMembership = self.get_organization_membership_model()
 
@@ -77,7 +73,6 @@ class Migration0028Test(TestCase):
         )
 
     def test_migrate_users_all_users_already_members(self):
-        """Test when all users are already organization members"""
         Organization = self.get_organization_model()
         User = self.get_user_model()
         OrganizationMembership = self.get_organization_membership_model()
@@ -105,7 +100,6 @@ class Migration0028Test(TestCase):
         mock_print.assert_called_with("No users needed to be added to organizations")
 
     def test_migrate_users_empty_database(self):
-        """Test migration with no users"""
         Organization = self.get_organization_model()
         OrganizationMembership = self.get_organization_membership_model()
 
