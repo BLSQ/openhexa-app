@@ -8,11 +8,9 @@ from hexa.core.test.migrator import Migrator
 class Migration0049Test(TestCase):
     def setUp(self):
         self.migrator = Migrator()
-        # First migrate user_management to have the user migration ready
         self.migrator.migrate(
             "user_management", "0028_migrate_users_to_bluesquare_organization"
         )
-        # Then migrate workspaces to just before our target migration
         self.migrator.migrate("workspaces", "0048_workspace_organization")
 
     def get_organization_model(self):
@@ -22,7 +20,6 @@ class Migration0049Test(TestCase):
         return self.migrator.apps.get_model("workspaces", "Workspace")
 
     def test_migrate_workspaces_with_existing_organization(self):
-        """Test that workspaces are assigned to existing Bluesquare organization"""
         Organization = self.get_organization_model()
         Workspace = self.get_workspace_model()
 
@@ -55,7 +52,7 @@ class Migration0049Test(TestCase):
         workspace3.refresh_from_db()
 
         self.assertEqual(workspace1.organization, organization)
-        self.assertEqual(workspace2.organization, organization)  # Already assigned
+        self.assertEqual(workspace2.organization, organization)
         self.assertEqual(workspace3.organization, organization)
 
         mock_print.assert_called_with(
@@ -63,7 +60,6 @@ class Migration0049Test(TestCase):
         )
 
     def test_migrate_workspaces_no_organization(self):
-        """Test that migration skips when Bluesquare organization doesn't exist"""
         Workspace = self.get_workspace_model()
 
         workspace = Workspace.objects.create(
@@ -82,7 +78,6 @@ class Migration0049Test(TestCase):
         )
 
     def test_migrate_workspaces_all_assigned(self):
-        """Test when all workspaces already have organization assigned"""
         Organization = self.get_organization_model()
         Workspace = self.get_workspace_model()
 
@@ -111,7 +106,6 @@ class Migration0049Test(TestCase):
         )
 
     def test_migrate_workspaces_empty_database(self):
-        """Test migration with no workspaces"""
         Organization = self.get_organization_model()
         Workspace = self.get_workspace_model()
 
