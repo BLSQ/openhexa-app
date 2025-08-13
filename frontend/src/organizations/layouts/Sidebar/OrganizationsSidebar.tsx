@@ -6,6 +6,7 @@ import Badge from "core/components/Badge";
 import SidebarToggleButton from "./SidebarToggleButton";
 import Logo from "./Logo";
 import NavItem from "./NavItem";
+import { useTranslation } from "next-i18next";
 
 type OrganizationsSidebarProps = {
   organizations: OrganizationsQuery["organizations"];
@@ -18,6 +19,7 @@ const OrganizationsSidebar = ({
   isSidebarOpen,
   setSidebarOpen,
 }: OrganizationsSidebarProps) => {
+  const { t } = useTranslation();
   return (
     <div
       className={clsx(
@@ -39,16 +41,17 @@ const OrganizationsSidebar = ({
             {!isSidebarOpen ? (
               <div className="absolute inset-y-0 left-full ml-1.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100">
                 <Badge className="bg-gray-800 ring-gray-500/20">
-                  Organizations
+                  {t("Organizations")}
                 </Badge>
               </div>
             ) : (
-              "Organizations"
+              t("Organizations")
             )}
           </div>
           <div className="mt-5 flex grow flex-col">
             {organizations.map((organization) => (
               <NavItem
+                Icon={BuildingOffice2Icon}
                 className="rounded-md text-wrap m-2"
                 key={organization.id}
                 href={"/organizations/" + organization.id}

@@ -1,0 +1,29 @@
+{% load i18n %}
+
+{% blocktranslate with invitee=invitee %}
+Hi {{invitee}},
+{% endblocktranslate %}
+
+{% blocktranslate with owner=owner owner_email=owner_email organization=organization %}
+{{owner}} ({{owner_email}}) has added you to the organization "{{organization}}" on OpenHEXA.
+{% endblocktranslate %}
+
+{% if workspace_invitations %}
+{% trans "You have also been added to the following workspaces:" %}
+{% for workspace_invitation in workspace_invitations %}
+• {{ workspace_invitation.workspace_slug }}
+{% endfor %}
+{% endif %}
+
+{% blocktranslate %}
+Start collaborating here: {{ url }}
+{% endblocktranslate %}
+
+
+---
+{% blocktranslate %}
+
+Need help? Check out:
+User Manual: https://github.com/BLSQ/openhexa/wiki/User-manual
+Wiki: https://github.com/BLSQ/openhexa/wiki
+{% endblocktranslate %}
