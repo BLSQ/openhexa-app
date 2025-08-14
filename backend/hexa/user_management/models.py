@@ -165,7 +165,10 @@ class Organization(Base):
     objects = OrganizationManager.from_queryset(OrganizationQuerySet)()
 
     def filter_workspaces_for_user(self, user):
-        return self.workspaces.filter(members=user).exclude(archived=True)
+        workspaces = self.workspaces.exclude(archived=True)
+        if user.has_perm("user_management.list_all_workspaces"):
+            return workspaces
+        return workspaces.filter(members=user)
 
 
 class OrganizationMembershipRole(models.TextChoices):
