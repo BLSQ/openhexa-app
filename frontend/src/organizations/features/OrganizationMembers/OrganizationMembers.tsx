@@ -74,8 +74,10 @@ export default function OrganizationMembers({
 
   const displayData = data || previousData;
   const organization = displayData?.organization ?? {
+    id: organizationId,
     members: { items: [], totalItems: 0 },
     permissions: { manageMembers: false },
+    workspaces: { items: [] },
   };
 
   const handleDeleteClicked = (member: OrganizationMember) => {
@@ -185,7 +187,7 @@ export default function OrganizationMembers({
             setOpenEditDialog(false);
           }}
           member={selectedMember}
-          organization={displayData?.organization!}
+          organization={organization}
         />
       )}
     </>
