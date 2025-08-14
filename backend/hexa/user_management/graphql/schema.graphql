@@ -1426,7 +1426,11 @@ enum DeleteOrganizationMemberError {
     Indicates that the organization membership was not found.
     """
     NOT_FOUND
-}
+  """
+  Indicates that users cannot delete themselves from an organization.
+  """
+   CANNOT_DELETE_SELF
+   }
 
 """
 The DeleteOrganizationInvitationInput type represents the input for the deleteOrganizationInvitation mutation.
