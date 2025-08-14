@@ -19,6 +19,7 @@ import Block from "core/components/Block";
 import User from "core/features/User";
 import OrganizationRoleBadge from "organizations/components/OrganizationRoleBadge";
 import WorkspaceRolesList from "organizations/components/WorkspaceRolesList";
+import useMe from "identity/hooks/useMe";
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -35,6 +36,7 @@ export default function OrganizationMembers({
   organizationId: string;
 }) {
   const { t } = useTranslation();
+  const me = useMe();
   const [selectedMember, setSelectedMember] = useState<OrganizationMember>();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
@@ -138,8 +140,10 @@ export default function OrganizationMembers({
             format={DateTime.DATE_FULL}
           />
           <BaseColumn className="flex justify-end gap-x-2">
-            {(member) =>
-              organization.permissions.manageMembers ? (
+            {(member) => {
+              const isCurrentUser = me?.user?.id === member.user.id;
+              
+              return organization.permissions.manageMembers ? (
                 <>
                   <Button
                     onClick={() => handleUpdateClicked(member)}
@@ -149,19 +153,21 @@ export default function OrganizationMembers({
                   >
                     <PencilIcon className="h-4" />
                   </Button>
-                  <Button
-                    onClick={() => handleDeleteClicked(member)}
-                    size="sm"
-                    variant="secondary"
-                    aria-label="delete"
-                  >
-                    <TrashIcon className="h-4" />
-                  </Button>
+                  {!isCurrentUser && (
+                    <Button
+                      onClick={() => handleDeleteClicked(member)}
+                      size="sm"
+                      variant="secondary"
+                      aria-label="delete"
+                    >
+                      <TrashIcon className="h-4" />
+                    </Button>
+                  )}
                 </>
               ) : (
                 <></>
-              )
-            }
+              );
+            }}
           </BaseColumn>
         </DataGrid>
       </Block>
