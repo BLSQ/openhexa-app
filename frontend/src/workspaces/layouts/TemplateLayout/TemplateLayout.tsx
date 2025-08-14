@@ -13,8 +13,6 @@ import {
 } from "./TemplateLayout.generated";
 import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import router from "next/router";
-import WorkspaceLayout from "../WorkspaceLayout";
-import Title from "core/components/Title";
 
 type TemplateLayoutProps = {
   template: TemplateLayout_TemplateFragment;
