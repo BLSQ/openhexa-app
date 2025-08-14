@@ -2,16 +2,10 @@ import { useState } from "react";
 import { useTranslation } from "next-i18next";
 import { gql } from "@apollo/client";
 import WorkspaceRoleBadge from "workspaces/components/WorkspaceRoleBadge";
-import { WorkspaceMembershipRole } from "graphql/types";
-
-interface WorkspaceRoleItem {
-  role: WorkspaceMembershipRole;
-  workspaceName: string;
-  workspaceSlug: string;
-}
+import { WorkspaceRoleFragment } from "./WorkspaceRolesList.generated";
 
 type WorkspaceRolesListProps = {
-  items: WorkspaceRoleItem[];
+  items: WorkspaceRoleFragment[];
   maxVisible?: number;
   size?: "xs" | "sm" | "md";
   emptyMessage?: string;
@@ -42,9 +36,9 @@ const WorkspaceRolesList = ({
     <div className="flex flex-wrap gap-1">
       {visibleItems.map((item) => (
         <WorkspaceRoleBadge
-          key={item.workspaceSlug}
+          key={item.workspace.slug}
           role={item.role}
-          workspaceName={item.workspaceName}
+          workspaceName={item.workspace.name}
           size={size}
         />
       ))}

@@ -529,7 +529,7 @@ def resolve_register(_, info, **kwargs):
                 )
                 for (
                     workspace_invitation
-                ) in organization_invitation.workspace_invitations:
+                ) in organization_invitation.workspace_invitations.all():
                     try:
                         WorkspaceMembership.objects.create(
                             workspace=workspace_invitation.workspace,
@@ -1195,6 +1195,14 @@ def resolve_organization_invitation_role(
 ):
     """Convert lowercase role to uppercase for GraphQL enum"""
     return invitation.role.upper()
+
+
+@organization_invitation_object.field("workspaceInvitations")
+def resolve_organization_invitation_workspace_invitations(
+    invitation: OrganizationInvitation, info, **kwargs
+):
+    """Resolve workspace invitations for this organization invitation"""
+    return invitation.workspace_invitations.all()
 
 
 identity_bindables = [

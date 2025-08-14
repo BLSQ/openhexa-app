@@ -69,7 +69,7 @@ def send_organization_invite(invitation):
                 "owner": invited_by.display_name,
                 "owner_email": invited_by.email,
                 "url": action_url,
-                "workspace_invitations": invitation.workspace_invitations,
+                "workspace_invitations": invitation.workspace_invitations.all(),
             },
             recipient_list=[invitation.email],
             attachments=get_email_attachments(),

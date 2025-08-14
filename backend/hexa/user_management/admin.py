@@ -235,6 +235,14 @@ class OrganizationMembershipAdmin(admin.ModelAdmin):
     )
 
 
+class OrganizationWorkspaceInvitationInline(admin.TabularInline):
+    from hexa.workspaces.models import OrganizationWorkspaceInvitation
+
+    model = OrganizationWorkspaceInvitation
+    extra = 0
+    fields = ("workspace", "role")
+
+
 @admin.register(OrganizationInvitation)
 class OrganizationInvitationAdmin(admin.ModelAdmin):
     list_display = (
@@ -245,15 +253,5 @@ class OrganizationInvitationAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
         "role",
-        "workspaces",
     )
-
-    def workspaces(self, obj):
-        return ", ".join(
-            [
-                f"{inv.workspace.name} ({inv.role})"
-                for inv in obj.workspace_invitations.all()
-            ]
-        )
-
-    workspaces.short_description = "Workspaces"
+    inlines = [OrganizationWorkspaceInvitationInline]
