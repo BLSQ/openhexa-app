@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.15.0](https://github.com/BLSQ/openhexa-app/compare/1.14.0...1.15.0) (2025-08-14)
+
+
+### Features
+
+* edit pipeline Python code from the UI  🎉 (HEXA-1341) ([#1278](https://github.com/BLSQ/openhexa-app/issues/1278)) ([fc4c77d](https://github.com/BLSQ/openhexa-app/commit/fc4c77d2f7669b5f9479a3577a9071e1c84cfa0c))
+
+
+### Bug Fixes
+
+* **dataset:** wraps long filename to display download button, PATHWAYS-754 ([#1279](https://github.com/BLSQ/openhexa-app/issues/1279)) ([70511fa](https://github.com/BLSQ/openhexa-app/commit/70511faa4c458ba7cb1669add2a4d413ce657429))
+* Minor improvements to Pipeline Templates UI and Admin (HEXA-1338, HEXA-1339, HEXA-1340) ([#1276](https://github.com/BLSQ/openhexa-app/issues/1276)) ([e3828c9](https://github.com/BLSQ/openhexa-app/commit/e3828c9102c5c82398a09c71d07f193517d90487))
+
 ## [1.14.0](https://github.com/BLSQ/openhexa-app/compare/1.13.0...1.14.0) (2025-07-17)
 
 
