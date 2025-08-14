@@ -53,8 +53,7 @@ export default function OrganizationMembers({
       perPage: DEFAULT_PAGE_SIZE,
       term: debouncedSearchTerm,
     },
-    fetchPolicy: "network-only",
-    nextFetchPolicy: "cache-first",
+    fetchPolicy: "cache-and-network",
     notifyOnNetworkStatusChange: true,
   });
 
