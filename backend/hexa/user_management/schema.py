@@ -633,7 +633,7 @@ def resolve_type(obj: Organization, *_):
 
 @organization_object.field("members")
 def resolve_members(organization: Organization, info, **kwargs):
-    qs = organization.organizationmembership_set.all().order_by("-updated_at")
+    qs = organization.organizationmembership_set
 
     term = kwargs.get("term")
     if term:
@@ -644,7 +644,7 @@ def resolve_members(organization: Organization, info, **kwargs):
         )
 
     return result_page(
-        queryset=qs,
+        queryset=qs.order_by("-updated_at"),
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", qs.count() or 10),
     )
