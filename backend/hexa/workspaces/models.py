@@ -33,6 +33,7 @@ from hexa.datasets.models import Dataset
 from hexa.files import storage
 from hexa.user_management.models import (
     Organization,
+    OrganizationInvitation,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
@@ -674,3 +675,42 @@ Now that your workspace has been created, you can (depending on your privileges)
 - Create and run code [notebooks](/workspaces/{workspace_slug}/notebooks)
 - Monitor and launch [data pipelines](/workspaces/{workspace_slug}/pipelines)
 - Manage users and permissions [notebooks](/workspaces/{workspace_slug}/settings)"""
+
+
+class OrganizationWorkspaceInvitation(Base):
+    """
+    Represents a workspace invitation within an organization invitation.
+    """
+
+    organization_invitation = models.ForeignKey(
+        OrganizationInvitation,
+        on_delete=models.CASCADE,
+        related_name="workspace_invitations",
+    )
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
+    role = models.CharField(choices=WorkspaceMembershipRole.choices, max_length=50)
+
+    class Meta:
+        unique_together = ("organization_invitation", "workspace")
+
+    @classmethod
+    def create_invitations_for_organization_invitation(
+        cls, organization_invitation, workspace_invitations
+    ):
+        """
+        Creates workspace invitations for an organization invitation.
+        """
+        for ws_invitation in workspace_invitations:
+            try:
+                workspace = Workspace.objects.get(
+                    slug=ws_invitation["workspace_slug"],
+                    organization=organization_invitation.organization,
+                    archived=False,
+                )
+                cls.objects.create(
+                    organization_invitation=organization_invitation,
+                    workspace=workspace,
+                    role=ws_invitation["role"],
+                )
+            except Workspace.DoesNotExist:
+                continue

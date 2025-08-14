@@ -1,5 +1,5 @@
-query GetUsers($query: String!, $workspaceSlug: String!) {
-  users(query: $query, workspaceSlug: $workspaceSlug) {
+query GetUsers($query: String!, $workspaceSlug: String, $organizationId: UUID) {
+  users(query: $query, workspaceSlug: $workspaceSlug, organizationId: $organizationId) {
     ...User_user
   }
 }

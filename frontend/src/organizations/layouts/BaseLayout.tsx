@@ -33,20 +33,19 @@ const BaseLayout = ({ children, Sidebar, sidebarProps }: BaseLayoutProps) => {
 
   return (
     <div className="flex h-screen">
-      <Sidebar
-        {...sidebarProps}
-        isSidebarOpen={isSidebarOpen}
-        setSidebarOpen={onChangeSidebar}
-      />
       <main
         className={clsx(
-          "w-full mb-12",
+          "w-full mb-12 transition-all duration-200",
           isSidebarOpen ? "pl-64 2xl:pl-72" : "pl-16",
         )}
       >
         {children}
       </main>
-
+      <Sidebar
+        {...sidebarProps}
+        isSidebarOpen={isSidebarOpen}
+        setSidebarOpen={onChangeSidebar}
+      />
       <div className="fixed bottom-6 right-6">
         <Help
           links={[

@@ -71,3 +71,11 @@ def archive_workspace(principal: User, organization: Organization):
         user=principal,
         role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
     ).exists()
+
+
+def list_all_workspaces(principal: User, organization: Organization):
+    """Only admin and owner users can list all workspaces"""
+    return organization.organizationmembership_set.filter(
+        user=principal,
+        role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
+    ).exists()

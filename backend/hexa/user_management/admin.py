@@ -15,6 +15,7 @@ from .models import (
     FeatureFlag,
     Membership,
     Organization,
+    OrganizationInvitation,
     OrganizationMembership,
     Team,
     User,
@@ -232,3 +233,25 @@ class OrganizationMembershipAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
+
+
+class OrganizationWorkspaceInvitationInline(admin.TabularInline):
+    from hexa.workspaces.models import OrganizationWorkspaceInvitation
+
+    model = OrganizationWorkspaceInvitation
+    extra = 0
+    fields = ("workspace", "role")
+
+
+@admin.register(OrganizationInvitation)
+class OrganizationInvitationAdmin(admin.ModelAdmin):
+    list_display = (
+        "email",
+        "invited_by",
+        "organization",
+        "status",
+        "created_at",
+        "updated_at",
+        "role",
+    )
+    inlines = [OrganizationWorkspaceInvitationInline]

@@ -6,6 +6,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   trailingIcon?: ReactNode;
   leading?: ReactNode;
   fullWidth?: boolean;
+  fitWidth?: boolean;
   classNameOverrides?: string;
   iconZIndex?: string;
 }
@@ -22,6 +23,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     leading = null,
     value,
     fullWidth = false,
+    fitWidth = false,
     iconZIndex = "z-10",
     ...delegated
   } = props;
@@ -35,14 +37,20 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     error
       ? "border-red-300 placeholder-red-300  text-red-900  focus:ring-red-500  focus:border-red-500"
       : "border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500",
-    trailingIcon && "pr-4",
+    "pr-4",
     leading && "pl-10",
     fullWidth && "w-full",
     className,
   );
 
   return (
-    <div className={clsx("group relative", fullWidth && "w-full")}>
+    <div
+      className={clsx(
+        "group relative",
+        fullWidth && "w-full",
+        fitWidth && "w-fit",
+      )}
+    >
       <input
         id={name}
         name={name}
@@ -66,17 +74,16 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
           {leading}
         </div>
       )}
-      {trailingIcon && (
-        <div
-          className={clsx(
-            "absolute inset-y-0 right-0",
-            iconZIndex,
-            "inline-flex items-center justify-center pr-2.5",
-          )}
-        >
-          {trailingIcon}
-        </div>
-      )}
+      <div
+        className={clsx(
+          "absolute inset-y-0 right-0",
+          iconZIndex,
+          "inline-flex items-center justify-center pr-2.5",
+          trailingIcon ? "visible" : "invisible",
+        )}
+      >
+        {trailingIcon}
+      </div>
     </div>
   );
 });

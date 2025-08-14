@@ -39,8 +39,14 @@ from hexa.user_management.models import (
     Feature,
     Membership,
     Organization,
+    OrganizationInvitation,
+    OrganizationInvitationStatus,
+    OrganizationMembership,
     Team,
     User,
+)
+from hexa.workspaces.models import (
+    AlreadyExists as WorkspaceAlreadyExists,
 )
 from hexa.workspaces.models import (
     Workspace,
@@ -49,7 +55,13 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
 )
 
-from .utils import DEVICE_DEFAULT_NAME, default_device, has_configured_two_factor
+from .utils import (
+    DEVICE_DEFAULT_NAME,
+    default_device,
+    has_configured_two_factor,
+    send_organization_add_user_email,
+    send_organization_invite,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -248,39 +260,68 @@ def resolve_organizations(_, info, **kwargs):
     return Organization.objects.filter_for_user(request.user).all()
 
 
-# TODO To be moved to organizations
 @identity_query.field("users")
-def resolve_users(_, info, query: str, workspace_slug: str):
+def resolve_users(
+    _, info, query: str, workspace_slug: str = None, organization_id: str = None
+):
     request = info.context["request"]
     query = query.strip()
 
-    try:
-        workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=workspace_slug
+    users = User.objects.all()
+
+    if not workspace_slug and not organization_id:
+        raise ValidationError(
+            "You must specify either a workspaceSlug or an organizationId"
         )
 
-        if not request.user.has_perm("workspaces.manage_members", workspace):
-            raise PermissionDenied
+    # If workspace_slug is provided, exclude current members of that workspace
+    if workspace_slug:
+        try:
+            workspace = Workspace.objects.filter_for_user(request.user).get(
+                slug=workspace_slug
+            )
 
-        # Exclude current members of the workspace
-        users = User.objects.exclude(
-            id__in=workspace.members.values_list("id", flat=True)
-        )
+            if not request.user.has_perm("workspaces.manage_members", workspace):
+                raise PermissionDenied
 
-        # Explicitely collate the email field to allow case insensive LIKE queries
-        users = users.annotate(case_insensitive_email=Collate("email", "und-x-icu"))
+            # Exclude current members of the workspace
+            users = users.exclude(id__in=workspace.members.values_list("id", flat=True))
+        except PermissionDenied:
+            return []
+        except Workspace.DoesNotExist:
+            return []
 
-        users = users.filter(
-            Q(case_insensitive_email__contains=query)
-            | Q(first_name__icontains=query)
-            | Q(last_name__icontains=query)
-        )
+    # If organization_id is provided, exclude current members of that organization
+    if organization_id:
+        try:
+            organization = Organization.objects.filter_for_user(request.user).get(
+                id=organization_id
+            )
+            if not request.user.has_perm(
+                "user_management.manage_members", organization
+            ):
+                raise PermissionDenied
 
-        return users.order_by("email")[:10]
-    except PermissionDenied:
-        return []
-    except Workspace.DoesNotExist:
-        return []
+            users = users.exclude(
+                id__in=organization.organizationmembership_set.values_list(
+                    "user_id", flat=True
+                )
+            )
+        except PermissionDenied:
+            return []
+        except Organization.DoesNotExist:
+            return []
+
+    # Explicitly collate the email field to allow case-insensitive LIKE queries
+    users = users.annotate(case_insensitive_email=Collate("email", "und-x-icu"))
+
+    users = users.filter(
+        Q(case_insensitive_email__contains=query)
+        | Q(first_name__icontains=query)
+        | Q(last_name__icontains=query)
+    )
+
+    return users.order_by("email")[:10]
 
 
 @identity_mutations.field("createTeam")
@@ -380,71 +421,144 @@ def resolve_register(_, info, **kwargs):
     if request.user.is_authenticated:
         return {"success": False, "errors": ["ALREADY_LOGGED_IN"]}
 
-    # We only accept registration if the invitation token to a workspace is valid and pending.
+    # We only accept registration if the invitation token to a workspace/organization is valid and pending.
     # Once the user is created, their invitation is automatically accepted.
+
+    workspace_invitation = None
+    organization_invitation = None
+
     try:
-        invitation = WorkspaceInvitation.objects.get_by_token(
+        workspace_invitation = WorkspaceInvitation.objects.get_by_token(
             token=mutation_input["invitation_token"]
         )
+        if workspace_invitation.status != WorkspaceInvitationStatus.PENDING:
+            return {"success": False, "errors": ["INVALID_TOKEN"]}
+
         track(
             request=request,
             event="emails.registration_landed",
             properties={
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "workspace": invitation.workspace.slug,
-                "invitee_email": invitation.email,
-                "invitee_role": invitation.role,
-                "status": invitation.status,
+                "workspace": workspace_invitation.workspace.slug,
+                "invitee_email": workspace_invitation.email,
+                "invitee_role": workspace_invitation.role,
+                "status": workspace_invitation.status,
             },
         )
-        if invitation.status != WorkspaceInvitationStatus.PENDING:
+
+    except (
+        UnicodeDecodeError,
+        SignatureExpired,
+        binascii.Error,
+        BadSignature,
+        WorkspaceInvitation.DoesNotExist,
+    ):
+        try:
+            organization_invitation = OrganizationInvitation.objects.get_by_token(
+                token=mutation_input["invitation_token"]
+            )
+            if organization_invitation.status != OrganizationInvitationStatus.PENDING:
+                return {"success": False, "errors": ["INVALID_TOKEN"]}
+
+            track(
+                request=request,
+                event="emails.registration_landed",
+                properties={
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "organization": organization_invitation.organization.slug,
+                    "invitee_email": organization_invitation.email,
+                    "invitee_role": organization_invitation.role,
+                    "status": organization_invitation.status,
+                },
+            )
+        except (
+            UnicodeDecodeError,
+            SignatureExpired,
+            binascii.Error,
+            BadSignature,
+            OrganizationInvitation.DoesNotExist,
+        ):
             return {"success": False, "errors": ["INVALID_TOKEN"]}
-    except (UnicodeDecodeError, SignatureExpired, binascii.Error, BadSignature):
-        return {
-            "success": False,
-            "errors": ["INVALID_TOKEN"],
-        }
 
-    except WorkspaceInvitation.DoesNotExist:
-        return {"success": False, "errors": ["INVALID_TOKEN"]}
-
-    if User.objects.filter(email=invitation.email).exists():
+    invitation_email = (
+        workspace_invitation.email
+        if workspace_invitation
+        else organization_invitation.email
+    )
+    if User.objects.filter(email=invitation_email).exists():
         return {"success": False, "errors": ["EMAIL_TAKEN"]}
 
     try:
         if mutation_input["password1"] != mutation_input["password2"]:
             return {"success": False, "errors": ["PASSWORD_MISMATCH"]}
         validate_password(password=mutation_input["password1"])
-        user = User.objects.create_user(
-            email=invitation.email,
-            password=mutation_input["password1"],
-            first_name=mutation_input["first_name"],
-            last_name=mutation_input["last_name"],
-        )
-        WorkspaceMembership.objects.create(
-            workspace=invitation.workspace,
-            user=user,
-            role=invitation.role,
-        )
-        invitation.status = WorkspaceInvitationStatus.ACCEPTED
-        invitation.save()
+
+        with transaction.atomic():
+            user = User.objects.create_user(
+                email=invitation_email,
+                password=mutation_input["password1"],
+                first_name=mutation_input["first_name"],
+                last_name=mutation_input["last_name"],
+            )
+
+            if workspace_invitation:
+                WorkspaceMembership.objects.create(
+                    workspace=workspace_invitation.workspace,
+                    user=user,
+                    role=workspace_invitation.role,
+                )
+                workspace_invitation.status = WorkspaceInvitationStatus.ACCEPTED
+                workspace_invitation.save()
+
+                track(
+                    request,
+                    event="emails.registration_complete",
+                    properties={
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "workspace": workspace_invitation.workspace.slug,
+                        "invitee_email": workspace_invitation.email,
+                        "invitee_role": workspace_invitation.role,
+                        "status": workspace_invitation.status,
+                    },
+                )
+            else:
+                OrganizationMembership.objects.create(
+                    organization=organization_invitation.organization,
+                    user=user,
+                    role=organization_invitation.role,
+                )
+                for (
+                    workspace_invitation
+                ) in organization_invitation.workspace_invitations.all():
+                    try:
+                        WorkspaceMembership.objects.create(
+                            workspace=workspace_invitation.workspace,
+                            user=user,
+                            role=workspace_invitation.role,
+                        )
+                    except Exception:
+                        continue
+
+                organization_invitation.status = OrganizationInvitationStatus.ACCEPTED
+                organization_invitation.save()
+
+                track(
+                    request,
+                    event="emails.registration_complete",
+                    properties={
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "organization": organization_invitation.organization.slug,
+                        "invitee_email": organization_invitation.email,
+                        "invitee_role": organization_invitation.role,
+                        "status": organization_invitation.status,
+                    },
+                )
 
         # Let's authenticate the user automatically
         authenticated_user = authenticate(
             username=user.email, password=mutation_input["password1"]
         )
         login(request, authenticated_user)
-        track(
-            request,
-            event="emails.registration_complete",
-            properties={
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "workspace": invitation.workspace.slug,
-                "invitee_email": invitation.email,
-                "invitee_role": invitation.role,
-                "status": invitation.status,
-            },
-        )
         return {"success": True, "errors": []}
 
     except ValidationError:
@@ -514,9 +628,18 @@ def resolve_type(obj: Organization, *_):
 
 @organization_object.field("members")
 def resolve_members(organization: Organization, info, **kwargs):
-    qs = organization.organizationmembership_set.all().order_by("-updated_at")
+    qs = organization.organizationmembership_set
+
+    term = kwargs.get("term")
+    if term:
+        qs = qs.filter(
+            Q(user__first_name__icontains=term)
+            | Q(user__last_name__icontains=term)
+            | Q(user__email__icontains=term)
+        )
+
     return result_page(
-        queryset=qs,
+        queryset=qs.order_by("-updated_at"),
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", qs.count() or 10),
     )
@@ -538,6 +661,25 @@ def resolve_workspaces(organization: Organization, info, **kwargs):
 @organization_object.field("permissions")
 def resolve_organization_permissions(organization: Organization, info):
     return organization
+
+
+@organization_object.field("invitations")
+def resolve_organization_invitations(organization: Organization, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    qs = (
+        OrganizationInvitation.objects.filter_for_user(request.user)
+        .filter(organization=organization)
+        .order_by("-updated_at")
+    )
+    if not kwargs.get("include_accepted"):
+        qs = qs.exclude(status=OrganizationInvitationStatus.ACCEPTED)
+
+    return result_page(
+        queryset=qs,
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", 5),
+    )
 
 
 @organization_queries.field("organization")
@@ -571,6 +713,17 @@ def resolve_organization_permissions_archive_workspace(
     user = request.user
     return (
         user.has_perm("user_management.archive_workspace", organization)
+        if user.is_authenticated
+        else False
+    )
+
+
+@organization_permissions_object.field("manageMembers")
+def resolve_organization_permissions_manage_members(organization: Organization, info):
+    request: HttpRequest = info.context["request"]
+    user = request.user
+    return (
+        user.has_perm("user_management.manage_members", organization)
         if user.is_authenticated
         else False
     )
@@ -760,6 +913,298 @@ def resolve_update_user(_, info, **kwargs):
     return {"success": True, "errors": [], "user": user}
 
 
+@identity_mutations.field("updateOrganizationMember")
+@transaction.atomic
+def resolve_update_organization_member(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    update_input = kwargs["input"]
+
+    try:
+        membership = OrganizationMembership.objects.get(id=update_input["id"])
+        organization = membership.organization
+
+        if not principal.has_perm("user_management.manage_members", organization):
+            raise PermissionDenied
+
+        membership.role = update_input["role"].lower()
+        membership.save()
+
+        workspace_permissions = update_input.get("workspace_permissions", [])
+        if workspace_permissions:
+            user = membership.user
+
+            for workspace_permission in workspace_permissions:
+                workspace_slug = workspace_permission["workspace_slug"]
+                role = workspace_permission.get("role")
+
+                try:
+                    workspace = Workspace.objects.get(
+                        slug=workspace_slug,
+                        organization=organization,
+                        archived=False,
+                    )
+
+                    existing_membership = WorkspaceMembership.objects.filter(
+                        user=user, workspace=workspace
+                    ).first()
+
+                    if role is None:
+                        if existing_membership:
+                            existing_membership.delete()
+                    else:
+                        if existing_membership:
+                            existing_membership.role = role
+                            existing_membership.save()
+                        else:
+                            WorkspaceMembership.objects.create(
+                                user=user,
+                                workspace=workspace,
+                                role=role,
+                            )
+
+                except Workspace.DoesNotExist:
+                    continue
+        return {"success": True, "membership": membership, "errors": []}
+    except OrganizationMembership.DoesNotExist:
+        return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
+
+
+@identity_mutations.field("deleteOrganizationMember")
+@transaction.atomic
+def resolve_delete_organization_member(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    delete_input = kwargs["input"]
+
+    try:
+        membership = OrganizationMembership.objects.get(id=delete_input["id"])
+
+        if not principal.has_perm(
+            "user_management.manage_members", membership.organization
+        ):
+            raise PermissionDenied
+
+        if membership.user == principal:
+            return {"success": False, "errors": ["CANNOT_DELETE_SELF"]}
+
+        user = membership.user
+        organization = membership.organization
+        with transaction.atomic():
+            WorkspaceMembership.objects.filter(
+                user=user, workspace__organization=organization
+            ).delete()
+
+            membership.delete()
+
+        return {"success": True, "errors": []}
+
+    except OrganizationMembership.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
+@identity_mutations.field("inviteOrganizationMember")
+def resolve_invite_organization_member(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        organization: Organization = Organization.objects.filter_for_user(
+            request.user
+        ).get(id=input["organization_id"])
+
+        if not request.user.has_perm("user_management.manage_members", organization):
+            raise PermissionDenied
+
+        workspace_slugs = [
+            ws["workspace_slug"] for ws in input["workspace_invitations"]
+        ]
+        if workspace_slugs:
+            existing_workspace_slugs = set(
+                organization.workspaces.filter(
+                    slug__in=workspace_slugs, archived=False
+                ).values_list("slug", flat=True)
+            )
+            if not set(workspace_slugs).issubset(existing_workspace_slugs):
+                return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
+
+        user = User.objects.filter(email=input["user_email"]).first()
+
+        if user:
+            is_organization_member = OrganizationMembership.objects.filter(
+                user=user, organization=organization
+            ).exists()
+            if is_organization_member:
+                raise AlreadyExists
+
+            with transaction.atomic():
+                OrganizationMembership.objects.create(
+                    organization=organization,
+                    user=user,
+                    role=input["organization_role"].lower(),
+                )
+                for workspace_invitation in input["workspace_invitations"]:
+                    try:
+                        workspace = Workspace.objects.get(
+                            slug=workspace_invitation["workspace_slug"],
+                            organization=organization,
+                            archived=False,
+                        )
+                        WorkspaceMembership.objects.create_if_has_perm(
+                            principal=request.user,
+                            workspace=workspace,
+                            user=user,
+                            role=workspace_invitation["role"],
+                        )
+                    except WorkspaceAlreadyExists:
+                        continue
+                    except Workspace.DoesNotExist:
+                        continue
+
+                send_organization_add_user_email(
+                    invited_by=request.user,
+                    organization=organization,
+                    invitee=user,
+                    role=input["organization_role"].lower(),
+                    workspace_invitations=input["workspace_invitations"],
+                )
+        else:
+            is_already_invited = OrganizationInvitation.objects.filter(
+                organization=organization,
+                email=input["user_email"],
+                status=OrganizationInvitationStatus.PENDING,
+            ).exists()
+            if is_already_invited:
+                raise AlreadyExists
+
+            with transaction.atomic():
+                invitation = OrganizationInvitation.objects.create_if_has_perm(
+                    principal=request.user,
+                    organization=organization,
+                    email=input["user_email"],
+                    role=input["organization_role"].lower(),
+                    workspace_invitations=input["workspace_invitations"],
+                )
+                send_organization_invite(invitation)
+
+        return {"success": True, "errors": []}
+    except Organization.DoesNotExist:
+        return {"success": False, "errors": ["ORGANIZATION_NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except AlreadyExists:
+        return {"success": False, "errors": ["ALREADY_MEMBER"]}
+
+
+@identity_mutations.field("deleteOrganizationInvitation")
+def resolve_delete_organization_invitation(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        invitation = OrganizationInvitation.objects.get(id=input["id"])
+
+        if not request.user.has_perm(
+            "user_management.manage_members", invitation.organization
+        ):
+            raise PermissionDenied
+
+        invitation.delete()
+        return {"success": True, "errors": []}
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+    except OrganizationInvitation.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["INVITATION_NOT_FOUND"],
+        }
+
+
+@identity_mutations.field("resendOrganizationInvitation")
+def resolve_resend_organization_invitation(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        invitation = OrganizationInvitation.objects.exclude(
+            status=OrganizationInvitationStatus.ACCEPTED
+        ).get(id=input["id"])
+
+        if not request.user.has_perm(
+            "user_management.manage_members", invitation.organization
+        ):
+            raise PermissionDenied
+
+        invitation.status = OrganizationInvitationStatus.PENDING
+        invitation.updated_at = datetime.now(timezone.utc)
+        invitation.save()
+
+        send_organization_invite(invitation)
+        return {
+            "success": True,
+            "errors": [],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+    except OrganizationInvitation.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["INVITATION_NOT_FOUND"],
+        }
+
+
+organization_membership_object = ObjectType("OrganizationMembership")
+
+
+@organization_membership_object.field("role")
+def resolve_organization_membership_role(
+    membership: OrganizationMembership, info, **kwargs
+):
+    """Convert lowercase role to uppercase for GraphQL enum"""
+    return membership.role.upper()
+
+
+@organization_membership_object.field("workspaceMemberships")
+def resolve_organization_membership_workspace_memberships(
+    membership: OrganizationMembership, info, **kwargs
+):
+    """Return workspace memberships for this user within the organization"""
+    return WorkspaceMembership.objects.filter(
+        user=membership.user,
+        workspace__organization=membership.organization,
+        workspace__archived=False,
+    ).select_related("workspace")
+
+
+organization_invitation_object = ObjectType("OrganizationInvitation")
+
+
+@organization_invitation_object.field("role")
+def resolve_organization_invitation_role(
+    invitation: OrganizationInvitation, info, **kwargs
+):
+    """Convert lowercase role to uppercase for GraphQL enum"""
+    return invitation.role.upper()
+
+
+@organization_invitation_object.field("workspaceInvitations")
+def resolve_organization_invitation_workspace_invitations(
+    invitation: OrganizationInvitation, info, **kwargs
+):
+    """Resolve workspace invitations for this organization invitation"""
+    return invitation.workspace_invitations.all()
+
+
 identity_bindables = [
     identity_query,
     user_object,
@@ -772,6 +1217,8 @@ identity_bindables = [
     organization_object,
     organization_queries,
     organization_permissions_object,
+    organization_membership_object,
+    organization_invitation_object,
     identity_mutations,
 ]
 

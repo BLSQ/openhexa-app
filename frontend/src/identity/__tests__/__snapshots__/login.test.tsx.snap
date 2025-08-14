@@ -46,7 +46,7 @@ exports[`LoginPage: No Two Factor Authentication renders the login page 1`] = `
           aria-describedby="email-description"
           aria-invalid="false"
           autocomplete="email"
-          class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 w-full rounded-b-none"
+          class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 pr-4 w-full rounded-b-none"
           data-testid="email"
           id="email"
           name="email"
@@ -54,6 +54,9 @@ exports[`LoginPage: No Two Factor Authentication renders the login page 1`] = `
           required=""
           type="text"
           value=""
+        />
+        <div
+          class="absolute inset-y-0 right-0 z-10 inline-flex items-center justify-center pr-2.5 invisible"
         />
       </div>
       <label
@@ -69,7 +72,7 @@ exports[`LoginPage: No Two Factor Authentication renders the login page 1`] = `
           aria-describedby="password-description"
           aria-invalid="false"
           autocomplete="current-password"
-          class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 w-full rounded-t-none"
+          class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 pr-4 w-full rounded-t-none"
           data-testid="password"
           id="password"
           name="password"
@@ -77,6 +80,9 @@ exports[`LoginPage: No Two Factor Authentication renders the login page 1`] = `
           required=""
           type="password"
           value=""
+        />
+        <div
+          class="absolute inset-y-0 right-0 z-10 inline-flex items-center justify-center pr-2.5 invisible"
         />
       </div>
     </div>

@@ -1,0 +1,78 @@
+{% load i18n static static_with_domain %}
+{% autoescape off %}
+
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-font name="Inter Tight" href="https://fonts.googleapis.com/css?family=Inter Tight" />
+      <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans','Helvetica Neue', sans-serif" />
+      <mj-text font-size="14px" color="#1c2024" line-height="1.7" font-weight="400" />
+      <mj-button font-weight="800" font-size="12px" text-transform="uppercase" letter-spacing="2px" border-radius="40px" />
+    </mj-attributes>
+  </mj-head>
+
+  <mj-body background-color="#efeeea" width="600px">
+    <mj-section padding="60px 0 0 0"></mj-section>
+    <mj-section background-color="#2e2e2e" border-radius="18px 18px 0 0" padding="30px 0">
+      <mj-column>
+        <mj-image title="OpenHEXA" align="center" width="339px" src="cid:logo_with_text_white.png" padding="10px 25px 10px 25px"></mj-image>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#ffffff" padding="40px 40px 0 40px">
+      <mj-column>
+        <mj-text font-size="24px" font-weight="800" font-family="'Inter Tight', sans-serif" line-height="1.5">
+          {% blocktranslate with invitee=invitee %}
+          Hi {{invitee}},
+          {% endblocktranslate %}
+        </mj-text>
+        <mj-text color="#333333" padding-top="10px">
+          {% blocktranslate with owner=owner owner_email=owner_email organization=organization %}
+          {{owner}} ({{owner_email}}) has added you to the organization "{{organization}}" on OpenHEXA.
+          {% endblocktranslate %}
+        </mj-text>
+        {% if workspace_invitations %}
+        <mj-text color="#333333" padding-top="10px">
+          {% trans "You have also been added to the following workspaces:" %}
+        </mj-text>
+        {% for workspace_invitation in workspace_invitations %}
+        <mj-text color="#666666" padding="5px 0 0 20px">
+          • {{ workspace_invitation.workspace_slug }}
+        </mj-text>
+        {% endfor %}
+        {% endif %}
+        <mj-button href="{{url}}" background-color="#FF499C" color="#ffffff" padding="30px 0 10px 0">
+          {% trans "Start collaborating now"%}
+        </mj-button>
+      </mj-column>
+    </mj-section>
+    <mj-wrapper padding="20px 50px 40px 50px" border="none" text-align="center" background-color="#ffffff" border-radius="0 0 18px 18px">
+      <mj-section background-color="#fff2f2">
+        <mj-column>
+          <mj-text font-size="14px" align="center" text-transform="uppercase" letter-spacing="2px">
+            {% trans "Need Help?" %}
+          </mj-text>
+          <mj-text font-size="20px" font-weight="800" align="center" font-family="'Inter Tight', sans-serif">
+            {% trans "Resources to help you get started" %}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section background-color="#fff2f2" padding="40px 30px 30px 30px">
+        <mj-column width="50%">
+          <mj-button href="https://github.com/BLSQ/openhexa/wiki/User-manual" width="100%" background-color="#FF499C" color="#ffffff">
+            {% trans "User Manual" %}
+          </mj-button>
+        </mj-column>
+        <mj-column width="50%">
+          <mj-button href="https://github.com/BLSQ/openhexa/wiki" width="100%" background-color="#FF499C" color="#ffffff">
+            Wiki
+          </mj-button>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+
+  </mj-body>
+</mjml>
+
+{% endautoescape %}

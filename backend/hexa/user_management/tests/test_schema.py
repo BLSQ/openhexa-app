@@ -1044,7 +1044,7 @@ class SchemaTest(GraphQLTestCase):
         )
 
     def test_search_users_success_all(self):
-        workspace = Workspace.objects.create(name="Workspace")
+        workspace = Workspace.objects.create(name="Workspace", slug="workspace")
         WorkspaceMembership.objects.create(
             workspace=workspace,
             user=self.USER_JANE,
@@ -1075,7 +1075,7 @@ class SchemaTest(GraphQLTestCase):
         )
 
     def test_search_users_success_with_query(self):
-        workspace = Workspace.objects.create(name="Workspace")
+        workspace = Workspace.objects.create(name="Workspace", slug="workspace")
         WorkspaceMembership.objects.create(
             workspace=workspace,
             user=self.USER_JANE,
@@ -1117,7 +1117,7 @@ class SchemaTest(GraphQLTestCase):
         self.assertEqual([], r["data"]["users"])
 
     def test_search_users_not_admin(self):
-        workspace = Workspace.objects.create(name="Workspace")
+        workspace = Workspace.objects.create(name="Workspace", slug="workspace")
         WorkspaceMembership.objects.create(
             workspace=workspace,
             user=self.USER_JANE,
@@ -1137,6 +1137,26 @@ class SchemaTest(GraphQLTestCase):
             {"query": "", "workspaceSlug": workspace.slug},
         )
         self.assertEqual([], r["data"]["users"])
+
+    def test_search_users_missing_parameters(self):
+        self.client.force_login(self.USER_JANE)
+        r = self.run_query(
+            """
+            query ($query: String!) {
+                users (query: $query) {
+                    email
+                    firstName
+                    lastName
+                }
+            }
+            """,
+            {"query": ""},
+        )
+        self.assertIn("errors", r)
+        self.assertIn(
+            "You must specify either a workspaceSlug or an organizationId",
+            str(r["errors"]),
+        )
 
 
 class TwoFactorTest(GraphQLTestCase):
