@@ -281,7 +281,7 @@ const AddOrganizationMemberDialog = (
                               >
                                 <input
                                   type="radio"
-                                  name={`workspace-${workspace.slug}-${role}`}
+                                  name={`workspace-${workspace.slug}`}
                                   checked={currentRole === role}
                                   onChange={() =>
                                     handleRoleChange(workspace.slug, workspace.name, role)
