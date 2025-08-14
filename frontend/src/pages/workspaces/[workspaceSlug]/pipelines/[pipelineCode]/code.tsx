@@ -2,6 +2,7 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
+import { PipelineFilesEditor } from "workspaces/features/FilesEditor/PipelineFilesEditor";
 import { FilesEditor } from "workspaces/features/FilesEditor";
 import {
   useGetPipelineVersionFilesLazyQuery,
@@ -56,6 +57,15 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     }
   };
 
+  const handleVersionCreated = (version: PipelineVersionPicker_VersionFragment) => {
+      setSelectedVersion(version);
+      fetchPipelineVersion({
+        variables: {
+          versionId: version.id,
+        },
+      }).then();
+  };
+
   const versionToShow = versionData?.pipelineVersion ?? pipeline.currentVersion;
   return (
     <Page title={pipeline.name ?? t("Pipeline Code")}>
@@ -84,10 +94,15 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 <Spinner size="md" />
               </div>
             )}
-            <FilesEditor
+            <PipelineFilesEditor
               key={versionToShow.id}
               name={versionToShow.versionName}
               files={versionToShow.files}
+              isEditable={true}
+              workspaceSlug={workspaceSlug}
+              pipelineCode={pipelineCode}
+              pipelineId={pipeline.id}
+              onVersionCreated={handleVersionCreated}
             />
           </div>
         </DataCard.FormSection>
@@ -102,6 +117,7 @@ export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
     await PipelineLayout.prefetch(ctx, client);
+    await FilesEditor.prefetch(ctx, client);
 
     const { data } = await client.query<
       WorkspacePipelineCodePageQuery,

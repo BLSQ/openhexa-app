@@ -2,6 +2,7 @@ import * as Types from '../../graphql/types';
 
 import { gql } from '@apollo/client';
 import { User_UserFragmentDoc } from '../../core/features/User/User.generated';
+import { PipelineVersionPicker_VersionFragmentDoc } from '../features/PipelineVersionPicker/PipelineVersionPicker.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type CreateWorkspaceMutationVariables = Types.Exact<{
@@ -150,6 +151,13 @@ export type DeleteWebappMutationVariables = Types.Exact<{
 
 
 export type DeleteWebappMutation = { __typename?: 'Mutation', deleteWebapp: { __typename?: 'DeleteWebappResult', success: boolean, errors: Array<Types.DeleteWebappError> } };
+
+export type UploadPipelineMutationVariables = Types.Exact<{
+  input: Types.UploadPipelineInput;
+}>;
+
+
+export type UploadPipelineMutation = { __typename?: 'Mutation', uploadPipeline: { __typename?: 'UploadPipelineResult', success: boolean, errors: Array<Types.PipelineError>, pipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, isLatestVersion: boolean, createdAt: any, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, widget?: Types.ParameterWidget | null, connection?: string | null, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null } | null } };
 
 
 export const CreateWorkspaceDocument = gql`
@@ -931,3 +939,44 @@ export function useDeleteWebappMutation(baseOptions?: Apollo.MutationHookOptions
 export type DeleteWebappMutationHookResult = ReturnType<typeof useDeleteWebappMutation>;
 export type DeleteWebappMutationResult = Apollo.MutationResult<DeleteWebappMutation>;
 export type DeleteWebappMutationOptions = Apollo.BaseMutationOptions<DeleteWebappMutation, DeleteWebappMutationVariables>;
+export const UploadPipelineDocument = gql`
+    mutation uploadPipeline($input: UploadPipelineInput!) {
+  uploadPipeline(input: $input) {
+    success
+    errors
+    pipelineVersion {
+      id
+      versionNumber
+      versionName
+      isLatestVersion
+      ...PipelineVersionPicker_version
+    }
+  }
+}
+    ${PipelineVersionPicker_VersionFragmentDoc}`;
+export type UploadPipelineMutationFn = Apollo.MutationFunction<UploadPipelineMutation, UploadPipelineMutationVariables>;
+
+/**
+ * __useUploadPipelineMutation__
+ *
+ * To run a mutation, you first call `useUploadPipelineMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUploadPipelineMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [uploadPipelineMutation, { data, loading, error }] = useUploadPipelineMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUploadPipelineMutation(baseOptions?: Apollo.MutationHookOptions<UploadPipelineMutation, UploadPipelineMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UploadPipelineMutation, UploadPipelineMutationVariables>(UploadPipelineDocument, options);
+      }
+export type UploadPipelineMutationHookResult = ReturnType<typeof useUploadPipelineMutation>;
+export type UploadPipelineMutationResult = Apollo.MutationResult<UploadPipelineMutation>;
+export type UploadPipelineMutationOptions = Apollo.BaseMutationOptions<UploadPipelineMutation, UploadPipelineMutationVariables>;
