@@ -15,7 +15,6 @@ from django_countries.fields import CountryField
 
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
-from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 
 
 class UserManager(BaseUserManager):
@@ -465,20 +464,11 @@ class OrganizationInvitationManager(models.Manager):
         )
 
         if workspace_invitations:
-            for ws_invitation in workspace_invitations:
-                try:
-                    workspace = Workspace.objects.get(
-                        slug=ws_invitation["workspace_slug"],
-                        organization=organization,
-                        archived=False,
-                    )
-                    OrganizationWorkspaceInvitation.objects.create(
-                        organization_invitation=invitation,
-                        workspace=workspace,
-                        role=ws_invitation["role"],
-                    )
-                except Workspace.DoesNotExist:
-                    continue
+            from hexa.workspaces.models import OrganizationWorkspaceInvitation
+
+            OrganizationWorkspaceInvitation.create_invitations_for_organization_invitation(
+                invitation, workspace_invitations
+            )
 
         return invitation
 
@@ -521,20 +511,3 @@ class OrganizationInvitation(Base):
             raise PermissionDenied
 
         return self.delete()
-
-
-class OrganizationWorkspaceInvitation(Base):
-    """
-    Represents a workspace invitation within an organization invitation.
-    """
-
-    organization_invitation = models.ForeignKey(
-        OrganizationInvitation,
-        on_delete=models.CASCADE,
-        related_name="workspace_invitations",
-    )
-    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
-    role = models.CharField(choices=WorkspaceMembershipRole.choices, max_length=50)
-
-    class Meta:
-        unique_together = ("organization_invitation", "workspace")

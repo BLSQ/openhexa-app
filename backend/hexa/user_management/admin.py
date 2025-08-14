@@ -245,5 +245,15 @@ class OrganizationInvitationAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
         "role",
-        "workspace_invitations",
+        "workspaces",
     )
+
+    def workspaces(self, obj):
+        return ", ".join(
+            [
+                f"{inv.workspace.name} ({inv.role})"
+                for inv in obj.workspace_invitations.all()
+            ]
+        )
+
+    workspaces.short_description = "Workspaces"
