@@ -1564,6 +1564,9 @@ type DeleteOrganizationInvitationResult {
 The DeleteOrganizationMemberError enum represents the possible errors that can occur during the deleteOrganizationMember mutation.
 """
 enum DeleteOrganizationMemberError {
+  """Indicates that users cannot delete themselves from an organization."""
+  CANNOT_DELETE_SELF
+
   """Indicates that the organization membership was not found."""
   NOT_FOUND
 
