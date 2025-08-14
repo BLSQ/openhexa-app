@@ -2732,8 +2732,7 @@ type OrganizationPermissions {
 """Represents a workspace invitation within an organization invitation."""
 type OrganizationWorkspaceInvitation {
   role: WorkspaceMembershipRole!
-  workspaceName: String!
-  workspaceSlug: String!
+  workspace: Workspace!
 }
 
 """Represents an input parameter of a pipeline."""

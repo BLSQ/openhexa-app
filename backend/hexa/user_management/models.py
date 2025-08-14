@@ -15,6 +15,7 @@ from django_countries.fields import CountryField
 
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
+from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 
 
 class UserManager(BaseUserManager):
@@ -456,13 +457,30 @@ class OrganizationInvitationManager(models.Manager):
         if not principal.has_perm("user_management.manage_members", organization):
             raise PermissionDenied
 
-        return self.create(
+        invitation = self.create(
             email=email,
             organization=organization,
             role=role,
             invited_by=principal,
-            workspace_invitations=workspace_invitations or [],
         )
+
+        if workspace_invitations:
+            for ws_invitation in workspace_invitations:
+                try:
+                    workspace = Workspace.objects.get(
+                        slug=ws_invitation["workspace_slug"],
+                        organization=organization,
+                        archived=False,
+                    )
+                    OrganizationWorkspaceInvitation.objects.create(
+                        organization_invitation=invitation,
+                        workspace=workspace,
+                        role=ws_invitation["role"],
+                    )
+                except Workspace.DoesNotExist:
+                    continue
+
+        return invitation
 
     def get_by_token(self, token: str):
         signer = TimestampSigner()
@@ -489,10 +507,6 @@ class OrganizationInvitation(Base):
         choices=OrganizationInvitationStatus.choices,
         default=OrganizationInvitationStatus.PENDING,
     )
-    workspace_invitations = models.JSONField(
-        default=list,
-        help_text="List of workspace invitations with workspace_slug, workspace_name, and role",
-    )
 
     objects = OrganizationInvitationManager.from_queryset(
         OrganizationInvitationQuerySet
@@ -507,3 +521,20 @@ class OrganizationInvitation(Base):
             raise PermissionDenied
 
         return self.delete()
+
+
+class OrganizationWorkspaceInvitation(Base):
+    """
+    Represents a workspace invitation within an organization invitation.
+    """
+
+    organization_invitation = models.ForeignKey(
+        OrganizationInvitation,
+        on_delete=models.CASCADE,
+        related_name="workspace_invitations",
+    )
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
+    role = models.CharField(choices=WorkspaceMembershipRole.choices, max_length=50)
+
+    class Meta:
+        unique_together = ("organization_invitation", "workspace")

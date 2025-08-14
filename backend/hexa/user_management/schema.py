@@ -531,17 +531,12 @@ def resolve_register(_, info, **kwargs):
                     workspace_invitation
                 ) in organization_invitation.workspace_invitations:
                     try:
-                        workspace = Workspace.objects.get(
-                            slug=workspace_invitation["workspace_slug"],
-                            organization=organization_invitation.organization,
-                            archived=False,
-                        )
                         WorkspaceMembership.objects.create(
-                            workspace=workspace,
+                            workspace=workspace_invitation.workspace,
                             user=user,
-                            role=workspace_invitation["role"],
+                            role=workspace_invitation.role,
                         )
-                    except Workspace.DoesNotExist:
+                    except Exception:
                         continue
 
                 organization_invitation.status = OrganizationInvitationStatus.ACCEPTED

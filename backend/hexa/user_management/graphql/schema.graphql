@@ -1063,10 +1063,8 @@ type OrganizationInvitation {
 Represents a workspace invitation within an organization invitation.
 """
 type OrganizationWorkspaceInvitation {
-  # The slug of the workspace.
-  workspaceSlug: String!
-  # The name of the workspace.
-  workspaceName: String!
+  # The workspace associated with this invitation.
+  workspace: Workspace!
   # The role of the invitee in the workspace.
   role: WorkspaceMembershipRole!
 }

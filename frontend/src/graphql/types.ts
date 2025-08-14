@@ -3301,8 +3301,7 @@ export type OrganizationPermissions = {
 export type OrganizationWorkspaceInvitation = {
   __typename?: 'OrganizationWorkspaceInvitation';
   role: WorkspaceMembershipRole;
-  workspaceName: Scalars['String']['output'];
-  workspaceSlug: Scalars['String']['output'];
+  workspace: Workspace;
 };
 
 /** Represents an input parameter of a pipeline. */
