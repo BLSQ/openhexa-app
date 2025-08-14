@@ -50,6 +50,9 @@ const getDefaultWorkspaceRole = (
   }
 };
 
+const WORKSPACE_ROLE_NONE = "NONE" as const;
+type WORKSPACE_ROLE_NONE = typeof WORKSPACE_ROLE_NONE;
+
 const AddOrganizationMemberDialog = (
   props: AddOrganizationMemberDialogProps,
 ) => {
@@ -158,7 +161,7 @@ const AddOrganizationMemberDialog = (
   const handleRoleChange = (
     workspaceSlug: string,
     workspaceName: string,
-    role: WorkspaceMembershipRole | "NONE",
+    role: WorkspaceMembershipRole | WORKSPACE_ROLE_NONE,
   ) => {
     setManuallyEditedWorkspaces((prev) => new Set(prev).add(workspaceSlug));
 
@@ -166,7 +169,7 @@ const AddOrganizationMemberDialog = (
     const filtered = currentInvitations.filter(
       (inv) => inv.workspaceSlug !== workspaceSlug,
     );
-    const updatedInvitations = role === "NONE"
+    const updatedInvitations = role === WORKSPACE_ROLE_NONE
       ? filtered
       : [...filtered, { workspaceSlug, workspaceName, role }];
     
@@ -260,7 +263,7 @@ const AddOrganizationMemberDialog = (
                           (inv) => inv.workspaceSlug === workspace.slug,
                         );
                         const currentRole =
-                          invitation?.role || ("NONE" as const);
+                          invitation?.role || WORKSPACE_ROLE_NONE;
 
                         return (
                           <TableRow key={workspace.slug}>
@@ -273,7 +276,7 @@ const AddOrganizationMemberDialog = (
 
                             {[
                               ...Object.values(WorkspaceMembershipRole),
-                              "NONE" as const,
+                              WORKSPACE_ROLE_NONE,
                             ].map((role) => (
                               <TableCell
                                 key={workspace.slug + role}
