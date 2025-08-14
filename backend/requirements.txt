@@ -478,7 +478,7 @@ sqlparse==0.5.3
     # via
     #   django
     #   django-debug-toolbar
-starlette==0.47.1
+starlette==0.47.2
     # via ariadne
 stringcase==1.2.0
     # via -r requirements.in
