@@ -325,6 +325,33 @@ export type AccessmodZonalStatistics = AccessmodAnalysis & AccessmodOwnership & 
   zonalStatisticsTable?: Maybe<AccessmodFileset>;
 };
 
+/** The AddOrganizationMemberError enum represents the possible errors that can occur during the addOrganizationMember mutation. */
+export enum AddOrganizationMemberError {
+  /** Indicates that the user does not have permission to add members to the organization. */
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** The AddOrganizationMemberInput type represents the input for the addOrganizationMember mutation. */
+export type AddOrganizationMemberInput = {
+  /** The unique identifier of the organization. */
+  organizationId: Scalars['UUID']['input'];
+  /** The role of the user in the organization. */
+  role: OrganizationMembershipRole;
+  /** The email address of the user to add to the organization. */
+  userEmail: Scalars['String']['input'];
+};
+
+/** The AddOrganizationMemberResult type represents the result of the addOrganizationMember mutation. */
+export type AddOrganizationMemberResult = {
+  __typename?: 'AddOrganizationMemberResult';
+  /** The list of errors that occurred during the addOrganizationMember mutation. */
+  errors: Array<AddOrganizationMemberError>;
+  /** The created organization membership object. */
+  membership?: Maybe<OrganizationMembership>;
+  /** Indicates whether the addOrganizationMember mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
 /** Represents the input for adding an output to a pipeline. */
 export type AddPipelineOutputInput = {
   name?: InputMaybe<Scalars['String']['input']>;
@@ -1619,6 +1646,50 @@ export type DeleteMetadataAttributeResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** The DeleteOrganizationInvitationError enum represents the possible errors that can occur during the deleteOrganizationInvitation mutation. */
+export enum DeleteOrganizationInvitationError {
+  InvitationNotFound = 'INVITATION_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** The DeleteOrganizationInvitationInput type represents the input for the deleteOrganizationInvitation mutation. */
+export type DeleteOrganizationInvitationInput = {
+  /** The unique identifier of the organization invitation to delete. */
+  id: Scalars['UUID']['input'];
+};
+
+/** The DeleteOrganizationInvitationResult type represents the result of the deleteOrganizationInvitation mutation. */
+export type DeleteOrganizationInvitationResult = {
+  __typename?: 'DeleteOrganizationInvitationResult';
+  errors: Array<DeleteOrganizationInvitationError>;
+  success: Scalars['Boolean']['output'];
+};
+
+/** The DeleteOrganizationMemberError enum represents the possible errors that can occur during the deleteOrganizationMember mutation. */
+export enum DeleteOrganizationMemberError {
+  /** Indicates that users cannot delete themselves from an organization. */
+  CannotDeleteSelf = 'CANNOT_DELETE_SELF',
+  /** Indicates that the organization membership was not found. */
+  NotFound = 'NOT_FOUND',
+  /** Indicates that the user does not have permission to delete the organization membership. */
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** The DeleteOrganizationMemberInput type represents the input for the deleteOrganizationMember mutation. */
+export type DeleteOrganizationMemberInput = {
+  /** The unique identifier of the organization membership to delete. */
+  id: Scalars['UUID']['input'];
+};
+
+/** The DeleteOrganizationMemberResult type represents the result of the deleteOrganizationMember mutation. */
+export type DeleteOrganizationMemberResult = {
+  __typename?: 'DeleteOrganizationMemberResult';
+  /** The list of errors that occurred during the deleteOrganizationMember mutation. */
+  errors: Array<DeleteOrganizationMemberError>;
+  /** Indicates whether the deleteOrganizationMember mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
 /** Represents the input for deleting a pipeline. */
 export type DeletePipelineInput = {
   id: Scalars['UUID']['input'];
@@ -2091,6 +2162,39 @@ export type IasoQueryResultPage = {
   totalPages: Scalars['Int']['output'];
 };
 
+/** The InviteOrganizationMemberError enum represents the possible errors that can occur during the inviteOrganizationMember mutation. */
+export enum InviteOrganizationMemberError {
+  /** Indicates that the user is already a member of the organization. */
+  AlreadyMember = 'ALREADY_MEMBER',
+  /** Indicates that the organization was not found. */
+  OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
+  /** Indicates that the user does not have permission to invite members to the organization. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** Indicates that one or more workspaces were not found. */
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+/** The InviteOrganizationMemberInput type represents the input for the inviteOrganizationMember mutation. */
+export type InviteOrganizationMemberInput = {
+  /** The unique identifier of the organization. */
+  organizationId: Scalars['UUID']['input'];
+  /** The role of the user in the organization. */
+  organizationRole: OrganizationMembershipRole;
+  /** The email address of the user to invite to the organization. */
+  userEmail: Scalars['String']['input'];
+  /** The list of workspaces to invite the user to. */
+  workspaceInvitations: Array<WorkspaceInvitationInput>;
+};
+
+/** The InviteOrganizationMemberResult type represents the result of the inviteOrganizationMember mutation. */
+export type InviteOrganizationMemberResult = {
+  __typename?: 'InviteOrganizationMemberResult';
+  /** The list of errors that occurred during the inviteOrganizationMember mutation. */
+  errors: Array<InviteOrganizationMemberError>;
+  /** Indicates whether the inviteOrganizationMember mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
 /** Represents the input for inviting a member to a workspace. */
 export type InviteWorkspaceMemberInput = {
   role: WorkspaceMembershipRole;
@@ -2392,6 +2496,8 @@ export type Mutation = {
   deleteMembership: DeleteMembershipResult;
   /** Delete an metadata attribute from an object instance */
   deleteMetadataAttribute: DeleteMetadataAttributeResult;
+  deleteOrganizationInvitation: DeleteOrganizationInvitationResult;
+  deleteOrganizationMember: DeleteOrganizationMemberResult;
   /** Deletes a pipeline. */
   deletePipeline: DeletePipelineResult;
   /** Deletes a pipeline recipient. */
@@ -2422,6 +2528,7 @@ export type Mutation = {
   /** Generates a webhook URL for a pipeline. */
   generatePipelineWebhookUrl: GeneratePipelineWebhookUrlResult;
   generateWorkspaceToken: GenerateWorkspaceTokenResult;
+  inviteOrganizationMember: InviteOrganizationMemberResult;
   inviteWorkspaceMember: InviteWorkspaceMemberResult;
   joinWorkspace: JoinWorkspaceResult;
   launchAccessmodAnalysis: LaunchAccessmodAnalysisResult;
@@ -2452,6 +2559,7 @@ export type Mutation = {
   register: RegisterResult;
   removeFromFavorites: RemoveFromFavoritesResult;
   requestAccessmodAccess: RequestAccessmodAccessInputResult;
+  resendOrganizationInvitation: ResendOrganizationInvitationResult;
   resendWorkspaceInvitation: ResendWorkspaceInvitationResult;
   /** Sends a password reset email to the user. */
   resetPassword: ResetPasswordResult;
@@ -2477,6 +2585,7 @@ export type Mutation = {
   /** Update a dataset version. */
   updateDatasetVersion: UpdateDatasetVersionResult;
   updateMembership: UpdateMembershipResult;
+  updateOrganizationMember: UpdateOrganizationMemberResult;
   /** Updates an existing pipeline. */
   updatePipeline: UpdatePipelineResult;
   /** Updates the progress of a pipeline. */
@@ -2679,6 +2788,16 @@ export type MutationDeleteMetadataAttributeArgs = {
 };
 
 
+export type MutationDeleteOrganizationInvitationArgs = {
+  input: DeleteOrganizationInvitationInput;
+};
+
+
+export type MutationDeleteOrganizationMemberArgs = {
+  input: DeleteOrganizationMemberInput;
+};
+
+
 export type MutationDeletePipelineArgs = {
   input?: InputMaybe<DeletePipelineInput>;
 };
@@ -2766,6 +2885,11 @@ export type MutationGeneratePipelineWebhookUrlArgs = {
 
 export type MutationGenerateWorkspaceTokenArgs = {
   input: GenerateWorkspaceTokenInput;
+};
+
+
+export type MutationInviteOrganizationMemberArgs = {
+  input: InviteOrganizationMemberInput;
 };
 
 
@@ -2864,6 +2988,11 @@ export type MutationRequestAccessmodAccessArgs = {
 };
 
 
+export type MutationResendOrganizationInvitationArgs = {
+  input: ResendOrganizationInvitationInput;
+};
+
+
 export type MutationResendWorkspaceInvitationArgs = {
   input: ResendWorkspaceInvitationInput;
 };
@@ -2951,6 +3080,11 @@ export type MutationUpdateDatasetVersionArgs = {
 
 export type MutationUpdateMembershipArgs = {
   input: UpdateMembershipInput;
+};
+
+
+export type MutationUpdateOrganizationMemberArgs = {
+  input: UpdateOrganizationMemberInput;
 };
 
 
@@ -3043,6 +3177,8 @@ export type Organization = {
   contactInfo: Scalars['String']['output'];
   /** The unique identifier of the organization. */
   id: Scalars['UUID']['output'];
+  /** The invitations sent to join the organization. */
+  invitations: OrganizationInvitationPage;
   /** The members of the organization. */
   members: OrganizationMembershipPage;
   /** The name of the organization. */
@@ -3061,9 +3197,18 @@ export type Organization = {
 
 
 /** The Organization type represents an organization in the system. */
+export type OrganizationInvitationsArgs = {
+  includeAccepted?: InputMaybe<Scalars['Boolean']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** The Organization type represents an organization in the system. */
 export type OrganizationMembersArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
+  term?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -3087,6 +3232,36 @@ export type OrganizationInput = {
   url?: InputMaybe<Scalars['String']['input']>;
 };
 
+/** Represents an invitation to join an organization. */
+export type OrganizationInvitation = {
+  __typename?: 'OrganizationInvitation';
+  createdAt: Scalars['DateTime']['output'];
+  email: Scalars['String']['output'];
+  id: Scalars['UUID']['output'];
+  invitedBy?: Maybe<User>;
+  organization: Organization;
+  role: OrganizationMembershipRole;
+  status: OrganizationInvitationStatus;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  workspaceInvitations: Array<OrganizationWorkspaceInvitation>;
+};
+
+/** Represents a page of organization invitations. */
+export type OrganizationInvitationPage = {
+  __typename?: 'OrganizationInvitationPage';
+  items: Array<OrganizationInvitation>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
+/** Represents the status of an organization invitation. */
+export enum OrganizationInvitationStatus {
+  Accepted = 'ACCEPTED',
+  Declined = 'DECLINED',
+  Pending = 'PENDING'
+}
+
 /** Represents a membership in an organization. */
 export type OrganizationMembership = {
   __typename?: 'OrganizationMembership';
@@ -3096,12 +3271,13 @@ export type OrganizationMembership = {
   role: OrganizationMembershipRole;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   user: User;
+  workspaceMemberships: Array<WorkspaceMembership>;
 };
 
 /** Represents a page of organization memberships. */
 export type OrganizationMembershipPage = {
   __typename?: 'OrganizationMembershipPage';
-  items: Array<WorkspaceMembership>;
+  items: Array<OrganizationMembership>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
@@ -3118,6 +3294,14 @@ export type OrganizationPermissions = {
   __typename?: 'OrganizationPermissions';
   archiveWorkspace: Scalars['Boolean']['output'];
   createWorkspace: Scalars['Boolean']['output'];
+  manageMembers: Scalars['Boolean']['output'];
+};
+
+/** Represents a workspace invitation within an organization invitation. */
+export type OrganizationWorkspaceInvitation = {
+  __typename?: 'OrganizationWorkspaceInvitation';
+  role: WorkspaceMembershipRole;
+  workspace: Workspace;
 };
 
 /** Represents an input parameter of a pipeline. */
@@ -3715,7 +3899,7 @@ export type Query = {
   teams: TeamPage;
   /** Retrieves a template by workspace slug and code. */
   templateByCode?: Maybe<PipelineTemplate>;
-  /** Search users, to be moved to "Organizations" */
+  /** Search users. */
   users: Array<User>;
   webapp?: Maybe<Webapp>;
   webapps: WebappsPage;
@@ -3971,8 +4155,9 @@ export type QueryTemplateByCodeArgs = {
 
 
 export type QueryUsersArgs = {
+  organizationId?: InputMaybe<Scalars['UUID']['input']>;
   query: Scalars['String']['input'];
-  workspaceSlug: Scalars['String']['input'];
+  workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -4071,6 +4256,25 @@ export type RequestAccessmodAccessInput = {
 export type RequestAccessmodAccessInputResult = {
   __typename?: 'RequestAccessmodAccessInputResult';
   errors: Array<RequestAccessmodAccessError>;
+  success: Scalars['Boolean']['output'];
+};
+
+/** The ResendOrganizationInvitationError enum represents the possible errors that can occur during the resendOrganizationInvitation mutation. */
+export enum ResendOrganizationInvitationError {
+  InvitationNotFound = 'INVITATION_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** The ResendOrganizationInvitationInput type represents the input for the resendOrganizationInvitation mutation. */
+export type ResendOrganizationInvitationInput = {
+  /** The unique identifier of the organization invitation to resend. */
+  id: Scalars['UUID']['input'];
+};
+
+/** The ResendOrganizationInvitationResult type represents the result of the resendOrganizationInvitation mutation. */
+export type ResendOrganizationInvitationResult = {
+  __typename?: 'ResendOrganizationInvitationResult';
+  errors: Array<ResendOrganizationInvitationError>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -4582,6 +4786,37 @@ export type UpdateMembershipResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** The UpdateOrganizationMemberError enum represents the possible errors that can occur during the updateOrganizationMember mutation. */
+export enum UpdateOrganizationMemberError {
+  /** Indicates that the provided role is invalid. */
+  InvalidRole = 'INVALID_ROLE',
+  /** Indicates that the organization membership was not found. */
+  NotFound = 'NOT_FOUND',
+  /** Indicates that the user does not have permission to update the organization membership. */
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** The UpdateOrganizationMemberInput type represents the input for the updateOrganizationMember mutation. */
+export type UpdateOrganizationMemberInput = {
+  /** The unique identifier of the organization membership to update. */
+  id: Scalars['UUID']['input'];
+  /** The updated role of the user in the organization. */
+  role: OrganizationMembershipRole;
+  /** The list of workspace permissions to update for the user. */
+  workspacePermissions?: InputMaybe<Array<WorkspacePermissionInput>>;
+};
+
+/** The UpdateOrganizationMemberResult type represents the result of the updateOrganizationMember mutation. */
+export type UpdateOrganizationMemberResult = {
+  __typename?: 'UpdateOrganizationMemberResult';
+  /** The list of errors that occurred during the updateOrganizationMember mutation. */
+  errors: Array<UpdateOrganizationMemberError>;
+  /** The updated organization membership object. */
+  membership?: Maybe<OrganizationMembership>;
+  /** Indicates whether the updateOrganizationMember mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
 /** Enum representing the possible errors that can occur when updating a pipeline. */
 export enum UpdatePipelineError {
   InvalidConfig = 'INVALID_CONFIG',
@@ -5019,6 +5254,16 @@ export type WorkspaceInvitation = {
   workspace: Workspace;
 };
 
+/** The WorkspaceInvitationInput type represents a workspace invitation within an organization member invitation. */
+export type WorkspaceInvitationInput = {
+  /** The role of the user in the workspace. */
+  role: WorkspaceMembershipRole;
+  /** The name of the workspace to invite the user to. */
+  workspaceName: Scalars['String']['input'];
+  /** The slug of the workspace to invite the user to. */
+  workspaceSlug: Scalars['String']['input'];
+};
+
 /** Represents a page of workspace invitations. */
 export type WorkspaceInvitationPage = {
   __typename?: 'WorkspaceInvitationPage';
@@ -5069,6 +5314,14 @@ export type WorkspacePage = {
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
+};
+
+/** The WorkspacePermissionInput type represents workspace permission updates for an existing organization member. */
+export type WorkspacePermissionInput = {
+  /** The role of the user in the workspace. If null, the user will be removed from the workspace. */
+  role?: InputMaybe<WorkspaceMembershipRole>;
+  /** The slug of the workspace to update permissions for. */
+  workspaceSlug: Scalars['String']['input'];
 };
 
 /** Represents the permissions of a workspace. */

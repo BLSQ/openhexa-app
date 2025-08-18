@@ -25,6 +25,7 @@ import CheckOption from "./CheckOption";
 import OptionsWrapper from "./OptionsWrapper";
 
 export type ComboboxProps<T> = {
+  id?: string;
   renderIcon?(value?: T): ReactElement;
   onInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
@@ -59,6 +60,7 @@ const Classes = {
 
 function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
   const {
+    id,
     loading = false,
     withPortal = false,
     children,
@@ -156,7 +158,11 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
               </UIComboboxInput>
             </div>
             {value && renderIcon && renderIcon(value)}
-            <UIComboboxButton ref={btnRef} data-testid="combobox-button">
+            <UIComboboxButton
+              ref={btnRef}
+              id={id}
+              data-testid="combobox-button"
+            >
               <div className="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-hidden">
                 {value && !required && !disabled && (
                   <XMarkIcon

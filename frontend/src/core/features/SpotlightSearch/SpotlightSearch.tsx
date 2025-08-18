@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import clsx from "clsx";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import Input from "core/components/forms/Input";
@@ -330,138 +331,136 @@ const SpotlightSearch = ({
 
   const showResults = unBouncedQuery && query === unBouncedQuery;
 
-  if (!isOpen) {
-    return (
-      <InputSearch
-        isSidebarOpen={isSidebarOpen}
-        onClick={() => setIsOpen((prev) => !prev)}
-      />
-    );
-  }
-  return (
-    <>
-      <div
-        className="fixed inset-0 z-50 bg-gray-900/70 flex justify-center backdrop-blur-xs"
-        tabIndex={0}
-      >
-        <div className="flex w-2/3 mt-30">
-          <div className="relative">
-            <div ref={searchBarRef}>
-              <Input
-                id="search-input"
-                ref={inputRef}
-                value={unBouncedQuery}
-                data-testid="search-input"
-                leading={<MagnifyingGlassIcon className="h-5 text-gray-500" />}
-                autoComplete="off"
-                trailingIcon={
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center text-gray-500 hover:text-gray-700 focus:text-gray-700"
-                    aria-label="Close"
-                  >
-                    <XMarkIcon className="h-6 w-6" />
-                  </button>
-                }
-                placeholder={t(
-                  "Search for files, pipelines, templates, database, datasets,...",
-                )}
-                onChange={(event) => {
-                  resetPages();
-                  setUnBouncedQuery(event.target.value ?? "");
-                }}
-                className={clsx("w-full", showResults && "rounded-b-none")}
-                classNameOverrides={
-                  "focus:ring-0 focus:border-white border-white py-4"
-                }
-              />
-              <div onClick={showResults ? undefined : () => setIsOpen(false)}>
-                <div
-                  className={clsx(
-                    "transition-opacity duration-100 ease-in-out",
-                    showResults ? "opacity-100 visible" : "opacity-0 invisible",
-                  )}
-                  data-testid="spotlight-search-results-panel"
+  const overlay = (
+    <div
+      className="fixed inset-0 z-50 bg-gray-900/70 flex justify-center backdrop-blur-xs"
+      tabIndex={0}
+    >
+      <div className="flex w-2/3 mt-30">
+        <div className="relative">
+          <div ref={searchBarRef}>
+            <Input
+              id="search-input"
+              ref={inputRef}
+              value={unBouncedQuery}
+              data-testid="search-input"
+              leading={<MagnifyingGlassIcon className="h-5 text-gray-500" />}
+              autoComplete="off"
+              trailingIcon={
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center text-gray-500 hover:text-gray-700 focus:text-gray-700"
+                  aria-label="Close"
                 >
-                  <WorkspaceFilterPanel
-                    workspaces={workspacesData?.workspaces?.items || []}
-                    selectedWorkspaces={selectedWorkspaces}
-                    onChange={setSelectedWorkspaces}
-                  />
-                  <Tabs
-                    defaultIndex={0}
-                    className="bg-white p-3 border-none"
-                    onChange={handleTabChange}
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              }
+              placeholder={t(
+                "Search for files, pipelines, templates, database, datasets,...",
+              )}
+              onChange={(event) => {
+                resetPages();
+                setUnBouncedQuery(event.target.value ?? "");
+              }}
+              className={clsx("w-full", showResults && "rounded-b-none")}
+              classNameOverrides={
+                "focus:ring-0 focus:border-white border-white py-4"
+              }
+            />
+            <div onClick={showResults ? undefined : () => setIsOpen(false)}>
+              <div
+                className={clsx(
+                  "transition-opacity duration-100 ease-in-out",
+                  showResults ? "opacity-100 visible" : "opacity-0 invisible",
+                )}
+                data-testid="spotlight-search-results-panel"
+              >
+                <WorkspaceFilterPanel
+                  workspaces={workspacesData?.workspaces?.items || []}
+                  selectedWorkspaces={selectedWorkspaces}
+                  onChange={setSelectedWorkspaces}
+                />
+                <Tabs
+                  defaultIndex={0}
+                  className="bg-white p-3 border-none"
+                  onChange={handleTabChange}
+                >
+                  <Tabs.Tab
+                    label={getTabLabel(t("All results"), numberOfResults)}
+                    className="bg-white rounded-b-md max-h-[50vh] overflow-y-auto"
                   >
-                    <Tabs.Tab
-                      label={getTabLabel(t("All results"), numberOfResults)}
-                      className="bg-white rounded-b-md max-h-[50vh] overflow-y-auto"
-                    >
-                      <AllResultsTable
-                        isActive={activeTabIndex === 0}
-                        combinedResults={combinedResults}
-                        highlightedIndex={highlightedIndex}
-                        hasPreviousPage={hasPreviousPageOverall}
-                        hasNextPage={hasNextPageOverall}
-                        fetchNextPage={fetchNextPage}
-                        fetchPreviousPage={fetchPreviousPage}
-                        pageSize={pageSize * tabConfigs.length}
-                      />
-                    </Tabs.Tab>
-                    {tabConfigs.map(
-                      (
-                        {
-                          Component,
-                          typeName,
-                          loading,
-                          propsKey,
-                          label,
-                          data,
-                          setPage,
-                        },
-                        index,
-                      ) => (
-                        <Tabs.Tab
-                          key={index}
-                          leadingElement={
-                            loading ? (
-                              <Spinner
-                                size="xs"
-                                className="h-4 w-4 text-pink-500"
-                              />
-                            ) : (
-                              React.createElement(getTypeIcon(typeName), {
-                                className: "h-4 w-4 text-gray-500",
-                              })
-                            )
+                    <AllResultsTable
+                      isActive={activeTabIndex === 0}
+                      combinedResults={combinedResults}
+                      highlightedIndex={highlightedIndex}
+                      hasPreviousPage={hasPreviousPageOverall}
+                      hasNextPage={hasNextPageOverall}
+                      fetchNextPage={fetchNextPage}
+                      fetchPreviousPage={fetchPreviousPage}
+                      pageSize={pageSize * tabConfigs.length}
+                    />
+                  </Tabs.Tab>
+                  {tabConfigs.map(
+                    (
+                      {
+                        Component,
+                        typeName,
+                        loading,
+                        propsKey,
+                        label,
+                        data,
+                        setPage,
+                      },
+                      index,
+                    ) => (
+                      <Tabs.Tab
+                        key={index}
+                        leadingElement={
+                          loading ? (
+                            <Spinner
+                              size="xs"
+                              className="h-4 w-4 text-pink-500"
+                            />
+                          ) : (
+                            React.createElement(getTypeIcon(typeName), {
+                              className: "h-4 w-4 text-gray-500",
+                            })
+                          )
+                        }
+                        label={getTabLabel(label, data?.totalItems)}
+                        className="bg-white rounded-b-md max-h-[50vh] overflow-y-auto"
+                      >
+                        <Component
+                          {...{ [propsKey]: data }}
+                          isActive={activeTabIndex === index + 1}
+                          highlightedIndex={highlightedIndex}
+                          fetchData={(params: { page: number }) =>
+                            setPage(params.page)
                           }
-                          label={getTabLabel(label, data?.totalItems)}
-                          className="bg-white rounded-b-md max-h-[50vh] overflow-y-auto"
-                        >
-                          <Component
-                            {...{ [propsKey]: data }}
-                            isActive={activeTabIndex === index + 1}
-                            highlightedIndex={highlightedIndex}
-                            fetchData={(params: { page: number }) =>
-                              setPage(params.page)
-                            }
-                            setPage={setPage}
-                            pageSize={pageSize}
-                          />
-                        </Tabs.Tab>
-                      ),
-                    )}
-                  </Tabs>
-                </div>
+                          setPage={setPage}
+                          pageSize={pageSize}
+                        />
+                      </Tabs.Tab>
+                    ),
+                  )}
+                </Tabs>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+
+  return (
+    <>
       <InputSearch
         isSidebarOpen={isSidebarOpen}
         onClick={() => setIsOpen((prev) => !prev)}
       />
+      {typeof window !== "undefined" &&
+        isOpen &&
+        createPortal(overlay, document.body)}
     </>
   );
 };

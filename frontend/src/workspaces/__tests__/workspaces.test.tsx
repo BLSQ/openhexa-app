@@ -238,7 +238,7 @@ describe("Workspaces", () => {
         <WorkspacePage page={1} perPage={1} workspaceSlug={slug} />
       </TestApp>,
     );
-    const elm = await screen.findByText("JupyterHub", { selector: "a" });
+    const elm = await screen.findByText("JupyterHub");
     expect(elm).toBeInTheDocument();
     expect(container).toMatchSnapshot();
   });

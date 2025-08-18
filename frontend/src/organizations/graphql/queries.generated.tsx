@@ -8,7 +8,7 @@ export type OrganizationQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean } } | null };
+export type OrganizationQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null };
 
 export type OrganizationsQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
@@ -34,6 +34,10 @@ export const OrganizationDocument = gql`
     permissions {
       createWorkspace
       archiveWorkspace
+      manageMembers
+    }
+    members {
+      totalItems
     }
   }
 }

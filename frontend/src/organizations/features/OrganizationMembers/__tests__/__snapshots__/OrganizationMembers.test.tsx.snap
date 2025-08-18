@@ -1,0 +1,411 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`OrganizationMembers renders organization members list correctly 1`] = `
+<div>
+  <div
+    class="mb-4"
+  >
+    <div
+      class="group relative w-fit"
+    >
+      <input
+        aria-describedby="search-members-description"
+        aria-invalid="false"
+        autocomplete="off"
+        class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-0 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 pr-4 pl-10 max-w-md"
+        data-testid="search-input"
+        id="search-members"
+        name="search-members"
+        placeholder="Search members..."
+        type="text"
+        value=""
+      />
+      <div
+        class="absolute inset-y-0 left-0 z-0 inline-flex items-center justify-center pl-2.5"
+      >
+        <svg
+          aria-hidden="true"
+          class="h-5 text-gray-500"
+          data-slot="icon"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+      <div
+        class="absolute inset-y-0 right-0 z-0 inline-flex items-center justify-center pr-2.5 invisible"
+      />
+    </div>
+  </div>
+  <article
+    class="sm:rounded-lg overflow-hidden shadow-xs border-b border-gray-200 bg-white"
+  >
+    <div
+      class="relative min-h-30"
+    >
+      <div
+        class="relative"
+      >
+        <div
+          class="h-full overflow-x-auto"
+        >
+          <div
+            class="pointer-events-none absolute bottom-0 left-0 top-0 bg-linear-to-r to-transparent transition-opacity duration-100 from-white w-12 opacity-0"
+          />
+          <div
+            id="child"
+          >
+            <table
+              class="w-full divide-y divide-gray-200  table-fixed"
+              role="table"
+              style="min-width: 590px;"
+            >
+              <thead>
+                <tr
+                  class=""
+                  role="row"
+                  style="display: flex; flex: 1 0 auto; min-width: 590px;"
+                >
+                  <th
+                    class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-5 first:pl-6 last:pr-6 whitespace-nowrap"
+                    colspan="1"
+                    role="columnheader"
+                    scope="col"
+                    style="box-sizing: border-box; flex: 200 0 auto; min-width: 200px; width: 200px;"
+                  >
+                    User
+                  </th>
+                  <th
+                    class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-5 first:pl-6 last:pr-6 whitespace-nowrap"
+                    colspan="1"
+                    role="columnheader"
+                    scope="col"
+                    style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                  >
+                    Organization Role
+                  </th>
+                  <th
+                    class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-5 first:pl-6 last:pr-6 whitespace-nowrap"
+                    colspan="1"
+                    role="columnheader"
+                    scope="col"
+                    style="box-sizing: border-box; flex: 300 0 auto; min-width: 300px; width: 300px;"
+                  >
+                    Workspace Roles
+                  </th>
+                  <th
+                    class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-5 first:pl-6 last:pr-6 whitespace-nowrap"
+                    colspan="1"
+                    role="columnheader"
+                    scope="col"
+                    style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                  >
+                    Joined
+                  </th>
+                  <th
+                    class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-5 first:pl-6 last:pr-6 whitespace-nowrap"
+                    colspan="1"
+                    role="columnheader"
+                    scope="col"
+                    style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                  />
+                </tr>
+              </thead>
+              <tbody
+                class="divide-y divide-gray-200"
+                role="rowgroup"
+              >
+                <tr
+                  role="row"
+                  style="display: flex; flex: 1 0 auto; min-width: 590px;"
+                >
+                  <td
+                    class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    role="cell"
+                    style="box-sizing: border-box; flex: 200 0 auto; min-width: 200px; width: 200px;"
+                  >
+                    <div
+                      class="flex items-center gap-2"
+                    >
+                      <span
+                        class="inline-flex shrink-0 items-center justify-center rounded-full bg-gray-500 text-sm h-8 w-8"
+                        style="background: blue;"
+                        title="John Doe"
+                      >
+                        <span
+                          class="font-medium leading-none text-white"
+                        >
+                          JD
+                        </span>
+                      </span>
+                      <div
+                        class="truncate"
+                      >
+                        <div
+                          class="text-inherit"
+                        >
+                          John Doe
+                        </div>
+                        <div
+                          class="text-xs text-gray-400"
+                        >
+                          john.doe@example.com
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    role="cell"
+                    style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                  >
+                    <span
+                      class="inline-flex items-center truncate whitespace-nowrap rounded-md font-medium ring-1 ring-inset px-2.5 py-1 text-sm text-xs bg-orange-50 text-orange-800 ring-orange-600/20"
+                    >
+                      Admin
+                    </span>
+                  </td>
+                  <td
+                    class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    role="cell"
+                    style="box-sizing: border-box; flex: 300 0 auto; min-width: 300px; width: 300px;"
+                  >
+                    <div
+                      class="flex flex-wrap gap-1"
+                    >
+                      <span
+                        class="inline-flex items-center truncate whitespace-nowrap rounded-md font-medium ring-1 ring-inset px-2.5 py-1 text-sm text-xs bg-green-50 text-green-800 ring-green-600/20"
+                      >
+                        Test Workspace 1 · Editor
+                      </span>
+                    </div>
+                  </td>
+                  <td
+                    class="text-sm text-gray-500 h-full py-4 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    role="cell"
+                    style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                  >
+                    <time
+                      class="whitespace-nowrap truncate"
+                      datetime="2023-01-15T11:00:00.000+01:00"
+                      title="2023-01-15T11:00:00.000+01:00"
+                    >
+                      January 15, 2023
+                    </time>
+                  </td>
+                  <td
+                    class="text-sm text-gray-500 h-full flex justify-end gap-x-2 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    role="cell"
+                    style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                  >
+                    <button
+                      aria-label="edit"
+                      class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+                      type="button"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="h-4"
+                        data-slot="icon"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      aria-label="delete"
+                      class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+                      type="button"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="h-4"
+                        data-slot="icon"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+                <tr
+                  role="row"
+                  style="display: flex; flex: 1 0 auto; min-width: 590px;"
+                >
+                  <td
+                    class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    role="cell"
+                    style="box-sizing: border-box; flex: 200 0 auto; min-width: 200px; width: 200px;"
+                  >
+                    <div
+                      class="flex items-center gap-2"
+                    >
+                      <span
+                        class="inline-flex shrink-0 items-center justify-center rounded-full bg-gray-500 text-sm h-8 w-8"
+                        style="background: green;"
+                        title="Jane Smith"
+                      >
+                        <span
+                          class="font-medium leading-none text-white"
+                        >
+                          JS
+                        </span>
+                      </span>
+                      <div
+                        class="truncate"
+                      >
+                        <div
+                          class="text-inherit"
+                        >
+                          Jane Smith
+                        </div>
+                        <div
+                          class="text-xs text-gray-400"
+                        >
+                          jane.smith@example.com
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    role="cell"
+                    style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                  >
+                    <span
+                      class="inline-flex items-center truncate whitespace-nowrap rounded-md font-medium ring-1 ring-inset px-2.5 py-1 text-sm text-xs bg-blue-50 text-blue-800 ring-blue-600/20"
+                    >
+                      Member
+                    </span>
+                  </td>
+                  <td
+                    class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    role="cell"
+                    style="box-sizing: border-box; flex: 300 0 auto; min-width: 300px; width: 300px;"
+                  >
+                    <div
+                      class="flex flex-wrap gap-1"
+                    >
+                      <span
+                        class="inline-flex items-center truncate whitespace-nowrap rounded-md font-medium ring-1 ring-inset px-2.5 py-1 text-sm text-xs bg-gray-50 text-gray-800 ring-gray-600/20"
+                      >
+                        Test Workspace 2 · Viewer
+                      </span>
+                    </div>
+                  </td>
+                  <td
+                    class="text-sm text-gray-500 h-full py-4 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    role="cell"
+                    style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                  >
+                    <time
+                      class="whitespace-nowrap truncate"
+                      datetime="2023-02-20T15:30:00.000+01:00"
+                      title="2023-02-20T15:30:00.000+01:00"
+                    >
+                      February 20, 2023
+                    </time>
+                  </td>
+                  <td
+                    class="text-sm text-gray-500 h-full flex justify-end gap-x-2 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    role="cell"
+                    style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                  >
+                    <button
+                      aria-label="edit"
+                      class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+                      type="button"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="h-4"
+                        data-slot="icon"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      aria-label="delete"
+                      class="relative h-fit
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 text-xs px-2 py-1 shadow-xs border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
+                      type="button"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="h-4"
+                        data-slot="icon"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div
+            class="pointer-events-none absolute bottom-0 right-0 top-0 bg-linear-to-l to-transparent transition-opacity duration-100 from-white w-12 opacity-0"
+          />
+        </div>
+      </div>
+    </div>
+  </article>
+</div>
+`;

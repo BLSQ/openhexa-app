@@ -38,7 +38,7 @@ describe("Sidebar", () => {
     );
 
     const homeLink = getByText("Home");
-    expect(homeLink).toHaveClass("text-white");
+    expect(homeLink.parentElement).toHaveClass("text-white");
   });
 
   it("should highlight the pipelines link when on templates path", () => {
@@ -57,6 +57,6 @@ describe("Sidebar", () => {
     );
 
     const pipelinesLink = getByText("Pipelines");
-    expect(pipelinesLink).toHaveClass("text-white");
+    expect(pipelinesLink.parentElement).toHaveClass("text-white");
   });
 });
