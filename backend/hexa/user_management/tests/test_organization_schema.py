@@ -49,10 +49,10 @@ class OrganizationTestMixin:
         return membership
 
     @staticmethod
-    def create_workspace(principal: User, organization_id, name, description, **kwargs):
+    def create_workspace(principal: User, organization, name, description, **kwargs):
         workspace = Workspace.objects.create_if_has_perm(
             principal=principal,
-            organization_id=organization_id,
+            organization=organization,
             name=name,
             description=description,
             **kwargs,
@@ -304,7 +304,7 @@ class OrganizationInvitationTest(GraphQLTestCase, OrganizationTestMixin):
         )
         self.workspace = self.create_workspace(
             self.owner,
-            self.organization.id,
+            self.organization,
             "some_workspace",
             "Some workspace description",
         )

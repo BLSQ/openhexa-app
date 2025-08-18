@@ -955,6 +955,7 @@ export type CreateWebappResult = {
 /** Enum representing the possible errors that can occur when creating a workspace. */
 export enum CreateWorkspaceError {
   InvalidSlug = 'INVALID_SLUG',
+  OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 

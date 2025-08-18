@@ -8,7 +8,7 @@ from django.http import HttpRequest
 
 from hexa.countries.models import Country
 from hexa.databases.utils import TableNotFound, delete_table
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 
 from ..models import (
     AlreadyExists,
@@ -29,8 +29,15 @@ def resolve_create_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     create_input = kwargs["input"]
+    organization_id = create_input.get("organization_id", None)
 
     try:
+        organization = (
+            Organization.objects.get(id=organization_id)
+            if organization_id
+            else Organization.objects.get(name="Bluesquare")
+        )
+
         workspace = Workspace.objects.create_if_has_perm(
             principal,
             create_input["name"],
@@ -41,10 +48,12 @@ def resolve_create_workspace(_, info, **kwargs):
                 else None
             ),
             load_sample_data=create_input.get("load_sample_data"),
-            organization_id=create_input.get("organization_id"),
+            organization=organization,
         )
 
         return {"success": True, "workspace": workspace, "errors": []}
+    except Organization.DoesNotExist:
+        return {"success": False, "errors": ["ORGANIZATION_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 

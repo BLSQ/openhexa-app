@@ -200,6 +200,7 @@ Enum representing the possible errors that can occur when creating a workspace.
 """
 enum CreateWorkspaceError {
   PERMISSION_DENIED
+  ORGANIZATION_NOT_FOUND
   INVALID_SLUG
 }
 

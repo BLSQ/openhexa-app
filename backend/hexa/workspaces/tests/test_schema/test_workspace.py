@@ -74,6 +74,21 @@ class WorkspaceTest(GraphQLTestCase):
             user=cls.USER_REBECCA,
             role=OrganizationMembershipRole.MEMBER,
         )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_WORKSPACE_ADMIN,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_JULIA,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_JOE,
+            role=OrganizationMembershipRole.ADMIN,
+        )
 
         with (
             patch("hexa.workspaces.models.create_database"),
@@ -84,6 +99,7 @@ class WorkspaceTest(GraphQLTestCase):
                 name="Senegal Workspace",
                 description="This is a workspace for Senegal",
                 countries=[{"code": "AL"}],
+                organization=cls.ORGANIZATION,
             )
             cls.WORKSPACE.organization = cls.ORGANIZATION
             cls.WORKSPACE.save()
@@ -154,6 +170,7 @@ class WorkspaceTest(GraphQLTestCase):
                 "input": {
                     "name": "Cameroon workspace",
                     "description": "Description",
+                    "organizationId": str(self.ORGANIZATION.id),
                 }
             },
         )
@@ -181,6 +198,7 @@ class WorkspaceTest(GraphQLTestCase):
                 "input": {
                     "name": "Cameroon workspace",
                     "description": "Description",
+                    "organizationId": str(self.ORGANIZATION.id),
                 }
             },
         )
@@ -219,6 +237,7 @@ class WorkspaceTest(GraphQLTestCase):
                 "input": {
                     "name": "Cameroon workspace",
                     "description": "Description",
+                    "organizationId": str(self.ORGANIZATION.id),
                 }
             },
         )
@@ -259,6 +278,7 @@ class WorkspaceTest(GraphQLTestCase):
                         "name": "Cameroon workspace",
                         "description": "Description",
                         "loadSampleData": True,
+                        "organizationId": str(self.ORGANIZATION.id),
                     }
                 },
             )
@@ -308,6 +328,7 @@ class WorkspaceTest(GraphQLTestCase):
                     "input": {
                         "name": "Cameroon workspace",
                         "description": "Description",
+                        "organizationId": str(self.ORGANIZATION.id),
                     }
                 },
             )
@@ -354,6 +375,7 @@ class WorkspaceTest(GraphQLTestCase):
                         "name": "Cameroon workspace",
                         "description": "Description",
                         "countries": [{"code": "AD"}],
+                        "organizationId": str(self.ORGANIZATION.id),
                     }
                 },
             )
