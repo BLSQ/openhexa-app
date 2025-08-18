@@ -49,6 +49,7 @@ def resolve_create_workspace(_, info, **kwargs):
             ),
             load_sample_data=create_input.get("load_sample_data"),
             organization=organization,
+            configuration=create_input.get("configuration"),
         )
 
         return {"success": True, "workspace": workspace, "errors": []}
@@ -80,6 +81,9 @@ def resolve_update_workspace(_, info, **kwargs):
                 Country.objects.get(code=c["code"]) for c in input["countries"]
             ]
             args["countries"] = countries
+
+        if "configuration" in input:
+            args["configuration"] = input["configuration"]
 
         workspace.update_if_has_perm(principal=request.user, **args)
 

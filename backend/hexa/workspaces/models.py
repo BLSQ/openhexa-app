@@ -105,6 +105,7 @@ class WorkspaceManager(models.Manager):
         countries: typing.Sequence[Country] | None = None,
         load_sample_data: bool = False,
         organization: Organization | None = None,
+        configuration: dict | None = None,
     ):
         if organization:
             if not principal.has_perm("user_management.create_workspace", organization):
@@ -128,6 +129,8 @@ class WorkspaceManager(models.Manager):
             )
         if organization:
             create_kwargs["organization"] = organization
+        if configuration is not None:
+            create_kwargs["configuration"] = configuration
 
         db_password = make_random_password(length=16)
         db_name = generate_database_name()
@@ -224,6 +227,11 @@ class Workspace(Base):
         on_delete=models.SET_NULL,
         related_name="workspaces",
     )
+    configuration = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Custom configuration properties for the workspace as key-value pairs",
+    )
 
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
@@ -243,7 +251,14 @@ class Workspace(Base):
         if not principal.has_perm("workspaces.update_workspace", self):
             raise PermissionDenied
 
-        for key in ["name", "slug", "countries", "description", "docker_image"]:
+        for key in [
+            "name",
+            "slug",
+            "countries",
+            "description",
+            "docker_image",
+            "configuration",
+        ]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 

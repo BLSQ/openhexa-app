@@ -1722,3 +1722,126 @@ class WorkspaceTest(GraphQLTestCase):
                 },
                 r["data"]["deleteWorkspaceDatabaseTable"],
             )
+
+    def test_workspace_configuration_field_exists(self):
+        """Test that workspace has a configuration field that can store key-value pairs"""
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            query workspace($slug: String!) {
+                workspace(slug: $slug) {
+                    name
+                    configuration
+                }
+            }
+            """,
+            {"slug": self.WORKSPACE.slug},
+        )
+        self.assertIsNotNone(r["data"]["workspace"])
+        self.assertIn("configuration", r["data"]["workspace"])
+
+    def test_update_workspace_configuration_as_admin(self):
+        """Test that workspace admin can update configuration"""
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation updateWorkspace($input:UpdateWorkspaceInput!) {
+                updateWorkspace(input: $input) {
+                    success
+                    workspace {
+                        configuration
+                    }
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "slug": self.WORKSPACE.slug,
+                    "configuration": {
+                        "custom_key": "custom_value",
+                        "number_setting": 42,
+                    },
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspace": {
+                    "configuration": {
+                        "custom_key": "custom_value",
+                        "number_setting": 42,
+                    },
+                },
+            },
+            r["data"]["updateWorkspace"],
+        )
+
+    def test_update_workspace_configuration_as_editor(self):
+        """Test that workspace editor can update configuration"""
+        # First create an editor membership
+        WorkspaceMembership.objects.create(
+            user=self.USER_SABRINA,
+            workspace=self.WORKSPACE,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+            mutation updateWorkspace($input:UpdateWorkspaceInput!) {
+                updateWorkspace(input: $input) {
+                    success
+                    workspace {
+                        configuration
+                    }
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "slug": self.WORKSPACE.slug,
+                    "configuration": {"editor_setting": "value_from_editor"},
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspace": {
+                    "configuration": {"editor_setting": "value_from_editor"},
+                },
+            },
+            r["data"]["updateWorkspace"],
+        )
+
+    def test_update_workspace_configuration_as_viewer_denied(self):
+        """Test that workspace viewer cannot update configuration"""
+        self.client.force_login(self.USER_REBECCA)  # VIEWER role
+        r = self.run_query(
+            """
+            mutation updateWorkspace($input:UpdateWorkspaceInput!) {
+                updateWorkspace(input: $input) {
+                    success
+                    workspace {
+                        configuration
+                    }
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "slug": self.WORKSPACE.slug,
+                    "configuration": {"unauthorized": "attempt"},
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
+            r["data"]["updateWorkspace"],
+        )
