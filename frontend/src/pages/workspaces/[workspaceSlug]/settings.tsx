@@ -29,6 +29,7 @@ import Title from "core/components/Title";
 import { InformationCircleIcon } from "@heroicons/react/24/solid";
 import Tooltip from "core/components/Tooltip";
 import { useRouter } from "next/router";
+import Tabs from "core/components/Tabs";
 
 type Props = {
   page: number;
@@ -47,6 +48,8 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
   const [isNewMemberDialogOpen, setIsNewMemberDialogOpen] = useState(false);
   const [isGeneratePwdDialogOpen, setIsGeneratePwdDialogOpen] = useState(false);
+
+  const tab = router.query.tab === "members" ? "members" : router.query.tab === "advanced" ? "advanced" : "general";
 
   const onSectionSave: OnSaveFn = async (values) => {
     await mutate({
@@ -92,14 +95,21 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
         ]}
         header={
           <>
-            <Breadcrumbs withHome={false}>
+            <Breadcrumbs withHome={false} className="flex-1">
               <Breadcrumbs.Part
                 isFirst
                 href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
               >
                 {workspace.name}
               </Breadcrumbs.Part>
-              <Breadcrumbs.Part isLast>{t("Settings")}</Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                isLast
+                href={`/workspaces/${encodeURIComponent(
+                  workspace.slug,
+                )}/settings/?tab=${tab}`}
+              >
+                {t("Settings")}
+              </Breadcrumbs.Part>
             </Breadcrumbs>
             {workspace.permissions.delete && (
               <Button
@@ -113,103 +123,128 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           </>
         }
       >
-        <WorkspaceLayout.PageContent className="space-y-10">
-          <DataCard className="w-full" item={workspace}>
-            <DataCard.FormSection
-              onSave={onSectionSave}
-              title={t("General settings")}
-            >
-              <TextProperty
-                required
-                id="name"
-                accessor="name"
-                label={t("Name")}
-                defaultValue="-"
-              />
-              <CountryProperty
-                id="countries"
-                accessor="countries"
-                multiple
-                visible={(value, isEditing) => isEditing || value?.length > 0}
-                label={t("Countries")}
-                defaultValue="-"
-              />
-              <TextProperty
-                id="dockerImage"
-                accessor="dockerImage"
-                label={t("Image")}
-                defaultValue="-"
-                help={t(
-                  "You can set a custom docker image that will be used to run pipelines and jupyterlab. That image can be created, for example, by extending blsq/openhexa-blsq-environment.",
-                )}
-              />
-            </DataCard.FormSection>
-            <DataCard.Section title={t("Database")}>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => setIsGeneratePwdDialogOpen(true)}
-              >
-                {t("Regenerate password")}
-              </Button>
-              <p className="my-4 text-sm text-gray-500 flex items-center">
-                <Tooltip
-                  label={t(
-                    "Regenerating the database password can be helpful in the case of a security incident, for " +
-                      "example if the password has been exposed, leaked or erroneously shared with someone.",
-                  )}
+        <WorkspaceLayout.PageContent className="divide divide-y-2">
+          <Tabs
+            onChange={(newIndex) =>
+              router.push(
+                {
+                  pathname: router.pathname,
+                  query: {
+                    ...router.query,
+                    tab: newIndex === 1 ? "members" : newIndex === 2 ? "advanced" : "general",
+                  },
+                },
+                undefined,
+                { shallow: true },
+              )
+            }
+            defaultIndex={tab === "members" ? 1 : tab === "advanced" ? 2 : 0}
+          >
+            <Tabs.Tab label={t("General")} className={"space-y-6 pt-6"}>
+              <DataCard className="w-full" item={workspace}>
+                <DataCard.FormSection
+                  onSave={onSectionSave}
+                  title={t("General settings")}
                 >
-                  <InformationCircleIcon className="ml-1 h-4 w-4 mr-1" />
-                </Tooltip>
-                {t(
-                  "This action will replace the current password of the workspace database.",
-                )}
-              </p>
-            </DataCard.Section>
-          </DataCard>
-
-          <div>
-            <Title level={2}>{t("Members")}</Title>
-            <div className="mb-4 flex justify-end">
-              <Button
-                onClick={() => setIsNewMemberDialogOpen(true)}
-                leadingIcon={<PlusCircleIcon className="mr-1 h-4 w-4" />}
-              >
-                {t("Add/Invite member")}
-              </Button>
-            </div>
-            <Block>
-              <WorkspaceMembers workspaceSlug={workspace.slug} />
-            </Block>
-          </div>
-          <div>
-            <Title level={2}>{t("Pending & Declined invitations")}</Title>
-            <Block>
-              <WorkspaceInvitations workspaceSlug={workspace.slug} />
-            </Block>
-          </div>
-          <div></div>
-          <ArchiveWorkspaceDialog
-            workspace={workspace}
-            open={isArchiveDialogOpen}
-            onArchive={async () => await router.push("/workspaces")}
-            onClose={() => {
-              setIsArchiveDialogOpen(false);
-            }}
-          />
-          <InviteMemberDialog
-            open={isNewMemberDialogOpen}
-            onClose={() => {
-              setIsNewMemberDialogOpen(false);
-            }}
-            workspace={workspace}
-          />
-          <GenerateWorkspaceDatabasePasswordDialog
-            open={isGeneratePwdDialogOpen}
-            onClose={() => setIsGeneratePwdDialogOpen(false)}
-            workspace={workspace}
-          />
+                  <TextProperty
+                    required
+                    id="name"
+                    accessor="name"
+                    label={t("Name")}
+                    defaultValue="-"
+                  />
+                  <CountryProperty
+                    id="countries"
+                    accessor="countries"
+                    multiple
+                    visible={(value, isEditing) => isEditing || value?.length > 0}
+                    label={t("Countries")}
+                    defaultValue="-"
+                  />
+                  <TextProperty
+                    id="dockerImage"
+                    accessor="dockerImage"
+                    label={t("Image")}
+                    defaultValue="-"
+                    help={t(
+                      "You can set a custom docker image that will be used to run pipelines and jupyterlab. That image can be created, for example, by extending blsq/openhexa-blsq-environment.",
+                    )}
+                  />
+                </DataCard.FormSection>
+              </DataCard>
+            </Tabs.Tab>
+            
+            <Tabs.Tab label={t("Members")} className={"space-y-6 pt-6"}>
+              <div>
+                <div className="mb-4 flex justify-end">
+                  <Button
+                    onClick={() => setIsNewMemberDialogOpen(true)}
+                    leadingIcon={<PlusCircleIcon className="mr-1 h-4 w-4" />}
+                  >
+                    {t("Add/Invite member")}
+                  </Button>
+                </div>
+                <Block>
+                  <WorkspaceMembers workspaceSlug={workspace.slug} />
+                </Block>
+              </div>
+              <div>
+                <Title level={2}>{t("Pending & Declined invitations")}</Title>
+                <Block>
+                  <WorkspaceInvitations workspaceSlug={workspace.slug} />
+                </Block>
+              </div>
+            </Tabs.Tab>
+            
+            <Tabs.Tab label={t("Advanced")} className={"space-y-6 pt-6"}>
+              <DataCard className="w-full" item={workspace}>
+                <DataCard.Section title={t("Database")}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setIsGeneratePwdDialogOpen(true)}
+                  >
+                    {t("Regenerate password")}
+                  </Button>
+                  <p className="my-4 text-sm text-gray-500 flex items-center">
+                    <Tooltip
+                      label={t(
+                        "Regenerating the database password can be helpful in the case of a security incident, for " +
+                          "example if the password has been exposed, leaked or erroneously shared with someone.",
+                      )}
+                    >
+                      <InformationCircleIcon className="ml-1 h-4 w-4 mr-1" />
+                    </Tooltip>
+                    {t(
+                      "This action will replace the current password of the workspace database.",
+                    )}
+                  </p>
+                </DataCard.Section>
+              </DataCard>
+            </Tabs.Tab>
+          </Tabs>
         </WorkspaceLayout.PageContent>
+        
+        <ArchiveWorkspaceDialog
+          workspace={workspace}
+          open={isArchiveDialogOpen}
+          onArchive={async () => await router.push("/workspaces")}
+          onClose={() => {
+            setIsArchiveDialogOpen(false);
+          }}
+        />
+        <InviteMemberDialog
+          open={isNewMemberDialogOpen}
+          onClose={() => {
+            setIsNewMemberDialogOpen(false);
+          }}
+          workspace={workspace}
+        />
+        <GenerateWorkspaceDatabasePasswordDialog
+          open={isGeneratePwdDialogOpen}
+          onClose={() => setIsGeneratePwdDialogOpen(false)}
+          workspace={workspace}
+        />
       </WorkspaceLayout>
     </Page>
   );
