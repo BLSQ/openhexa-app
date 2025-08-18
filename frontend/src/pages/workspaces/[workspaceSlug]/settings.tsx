@@ -30,6 +30,7 @@ import { InformationCircleIcon } from "@heroicons/react/24/solid";
 import Tooltip from "core/components/Tooltip";
 import { useRouter } from "next/router";
 import Tabs from "core/components/Tabs";
+import ConfigurationProperty from "workspaces/features/ConfigurationProperty";
 
 type Props = {
   page: number;
@@ -58,6 +59,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           slug: workspace.slug,
           name: values.name,
           dockerImage: values.dockerImage,
+          configuration: values.configuration || {},
           countries: ensureArray(values.countries || workspace.countries).map(
             ({ code }) => ({
               code,
@@ -168,6 +170,14 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                     defaultValue="-"
                     help={t(
                       "You can set a custom docker image that will be used to run pipelines and jupyterlab. That image can be created, for example, by extending blsq/openhexa-blsq-environment.",
+                    )}
+                  />
+                  <ConfigurationProperty
+                    id="configuration"
+                    accessor="configuration"
+                    label={t("Configuration")}
+                    help={t(
+                      "Custom configuration properties for the workspace. Each property has a name (string) and a value (JSON).",
                     )}
                   />
                 </DataCard.FormSection>
