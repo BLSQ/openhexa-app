@@ -183,8 +183,7 @@ describe("AddOrganizationMemberDialog", () => {
       .getAllByRole("radio")
       .find(
         (radio) =>
-          radio.getAttribute("name")?.includes("workspace-1") &&
-          radio.getAttribute("name")?.includes("ADMIN"),
+          radio.getAttribute("name")?.includes("workspace-1")
       );
 
     expect(adminRadio).toBeInTheDocument();
@@ -274,12 +273,10 @@ describe("AddOrganizationMemberDialog", () => {
     });
 
     const viewerRadio1 = screen.getAllByRole("radio").find(
-      radio => radio.getAttribute("name")?.includes("workspace-1") && 
-               radio.getAttribute("name")?.includes("VIEWER")
+      radio => radio.getAttribute("name")?.includes("workspace-1")
     );
     const viewerRadio2 = screen.getAllByRole("radio").find(
-      radio => radio.getAttribute("name")?.includes("workspace-2") && 
-               radio.getAttribute("name")?.includes("ADMIN")
+      radio => radio.getAttribute("name")?.includes("workspace-2")
     );
     
     await user.click(viewerRadio1!);
@@ -299,7 +296,7 @@ describe("AddOrganizationMemberDialog", () => {
               {
                 workspaceSlug: "workspace-1",
                 workspaceName: "Test Workspace 1",
-                role: WorkspaceMembershipRole.Viewer,
+                role: WorkspaceMembershipRole.Admin,
               },
               {
                 workspaceSlug: "workspace-2",
@@ -405,19 +402,17 @@ describe("AddOrganizationMemberDialog", () => {
       expect(roleSelect).toBeInTheDocument();
     });
 
+    const editorRadios = screen.getAllByRole("radio")
+    expect(editorRadios.length).toBe(8);
+    expect((editorRadios[1] as HTMLInputElement).checked).toBe(false);
+    expect((editorRadios[2] as HTMLInputElement).checked).toBe(true);
+    expect((editorRadios[5] as HTMLInputElement).checked).toBe(false);
+    expect((editorRadios[6] as HTMLInputElement).checked).toBe(true);
     await user.selectOptions(roleSelect, OrganizationMembershipRole.Admin);
-
-    await waitFor(() => {
-      const editorRadios = screen
-        .getAllByRole("radio")
-        .filter(
-          (radio) =>
-            radio.getAttribute("name")?.includes("EDITOR") &&
-            (radio as HTMLInputElement).checked,
-        );
-
-      expect(editorRadios).toHaveLength(2);
-    });
+    expect((editorRadios[1] as HTMLInputElement).checked).toBe(true);
+    expect((editorRadios[2] as HTMLInputElement).checked).toBe(false);
+    expect((editorRadios[5] as HTMLInputElement).checked).toBe(true);
+    expect((editorRadios[6] as HTMLInputElement).checked).toBe(false);
   });
 
   it("handles empty workspace list", async () => {

@@ -349,15 +349,16 @@ class OrganizationInvitationTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(invitation.organization, self.organization)
         self.assertEqual(invitation.role, OrganizationMembershipRole.MEMBER)
         self.assertEqual(invitation.status, OrganizationInvitationStatus.PENDING)
-        self.assertListEqual(
-            invitation.workspace_invitations,
-            [
-                {
-                    "workspace_slug": self.workspace.slug,
-                    "role": WorkspaceMembershipRole.VIEWER.upper(),
-                    "workspace_name": self.workspace.name,
-                }
-            ],
+        workspace_invitations = invitation.workspace_invitations.all()
+        self.assertEqual(workspace_invitations.count(), 1)
+        self.assertEqual(
+            workspace_invitations.first().workspace.slug, self.workspace.slug
+        )
+        self.assertEqual(
+            workspace_invitations.first().workspace.name, self.workspace.name
+        )
+        self.assertEqual(
+            workspace_invitations.first().role, WorkspaceMembershipRole.VIEWER
         )
         mock_send_invite.assert_called_once()
 

@@ -1667,6 +1667,8 @@ export type DeleteOrganizationInvitationResult = {
 
 /** The DeleteOrganizationMemberError enum represents the possible errors that can occur during the deleteOrganizationMember mutation. */
 export enum DeleteOrganizationMemberError {
+  /** Indicates that users cannot delete themselves from an organization. */
+  CannotDeleteSelf = 'CANNOT_DELETE_SELF',
   /** Indicates that the organization membership was not found. */
   NotFound = 'NOT_FOUND',
   /** Indicates that the user does not have permission to delete the organization membership. */
@@ -3299,8 +3301,7 @@ export type OrganizationPermissions = {
 export type OrganizationWorkspaceInvitation = {
   __typename?: 'OrganizationWorkspaceInvitation';
   role: WorkspaceMembershipRole;
-  workspaceName: Scalars['String']['output'];
-  workspaceSlug: Scalars['String']['output'];
+  workspace: Workspace;
 };
 
 /** Represents an input parameter of a pipeline. */

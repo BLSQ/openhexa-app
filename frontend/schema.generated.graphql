@@ -1564,6 +1564,9 @@ type DeleteOrganizationInvitationResult {
 The DeleteOrganizationMemberError enum represents the possible errors that can occur during the deleteOrganizationMember mutation.
 """
 enum DeleteOrganizationMemberError {
+  """Indicates that users cannot delete themselves from an organization."""
+  CANNOT_DELETE_SELF
+
   """Indicates that the organization membership was not found."""
   NOT_FOUND
 
@@ -2729,8 +2732,7 @@ type OrganizationPermissions {
 """Represents a workspace invitation within an organization invitation."""
 type OrganizationWorkspaceInvitation {
   role: WorkspaceMembershipRole!
-  workspaceName: String!
-  workspaceSlug: String!
+  workspace: Workspace!
 }
 
 """Represents an input parameter of a pipeline."""

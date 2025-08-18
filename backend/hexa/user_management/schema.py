@@ -529,19 +529,14 @@ def resolve_register(_, info, **kwargs):
                 )
                 for (
                     workspace_invitation
-                ) in organization_invitation.workspace_invitations:
+                ) in organization_invitation.workspace_invitations.all():
                     try:
-                        workspace = Workspace.objects.get(
-                            slug=workspace_invitation["workspace_slug"],
-                            organization=organization_invitation.organization,
-                            archived=False,
-                        )
                         WorkspaceMembership.objects.create(
-                            workspace=workspace,
+                            workspace=workspace_invitation.workspace,
                             user=user,
-                            role=workspace_invitation["role"],
+                            role=workspace_invitation.role,
                         )
-                    except Workspace.DoesNotExist:
+                    except Exception:
                         continue
 
                 organization_invitation.status = OrganizationInvitationStatus.ACCEPTED
@@ -633,7 +628,7 @@ def resolve_type(obj: Organization, *_):
 
 @organization_object.field("members")
 def resolve_members(organization: Organization, info, **kwargs):
-    qs = organization.organizationmembership_set.all().order_by("-updated_at")
+    qs = organization.organizationmembership_set
 
     term = kwargs.get("term")
     if term:
@@ -644,7 +639,7 @@ def resolve_members(organization: Organization, info, **kwargs):
         )
 
     return result_page(
-        queryset=qs,
+        queryset=qs.order_by("-updated_at"),
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", qs.count() or 10),
     )
@@ -1200,6 +1195,14 @@ def resolve_organization_invitation_role(
 ):
     """Convert lowercase role to uppercase for GraphQL enum"""
     return invitation.role.upper()
+
+
+@organization_invitation_object.field("workspaceInvitations")
+def resolve_organization_invitation_workspace_invitations(
+    invitation: OrganizationInvitation, info, **kwargs
+):
+    """Resolve workspace invitations for this organization invitation"""
+    return invitation.workspace_invitations.all()
 
 
 identity_bindables = [

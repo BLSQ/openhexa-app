@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useDeleteOrganizationMemberMutation } from "../OrganizationMembers.generated";
 import { TestApp } from "core/helpers/testutils";
@@ -177,25 +177,38 @@ describe("DeleteOrganizationMemberDialog", () => {
   });
 
   it("shows loading state during deletion", async () => {
-    const mockDeleteMutation = jest.fn();
-    useDeleteOrganizationMemberMutationMock.mockReturnValue([
-      mockDeleteMutation,
-      { loading: true },
-    ]);
+          const mockDeleteMutation = jest.fn(() =>
+        Promise.resolve({
+          data: {
+            deleteOrganizationMember: {
+              success: true,
+              errors: [],
+            },
+          },
+        })
+      );
 
-    render(
-      <TestApp mocks={[]}>
-        <DeleteOrganizationMemberDialog
-          open={true}
-          onClose={mockOnClose}
-          member={MOCK_MEMBER}
-        />
-      </TestApp>,
-    );
+      useDeleteOrganizationMemberMutationMock.mockReturnValue([
+        mockDeleteMutation,
+        { loading: false },
+      ]);
 
-    expect(
-      screen.getByRole("button", { name: "Removing..." }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Removing..." })).toBeDisabled();
+      render(
+        <TestApp mocks={[]}>
+          <DeleteOrganizationMemberDialog
+            open={true}
+            onClose={mockOnClose}
+            member={MOCK_MEMBER}
+          />
+        </TestApp>
+      );
+
+      const removeButton = screen.getByRole("button", { name: "Remove" });
+      fireEvent.click(removeButton);
+
+      expect(
+        await screen.findByRole("button", { name: "Removing..." })
+      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Removing..." })).toBeDisabled();
   });
 });

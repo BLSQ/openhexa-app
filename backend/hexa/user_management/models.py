@@ -165,7 +165,10 @@ class Organization(Base):
     objects = OrganizationManager.from_queryset(OrganizationQuerySet)()
 
     def filter_workspaces_for_user(self, user):
-        return self.workspaces.filter(members=user).exclude(archived=True)
+        workspaces = self.workspaces.exclude(archived=True)
+        if user.has_perm("user_management.list_all_workspaces"):
+            return workspaces
+        return workspaces.filter(members=user)
 
 
 class OrganizationMembershipRole(models.TextChoices):
@@ -456,13 +459,21 @@ class OrganizationInvitationManager(models.Manager):
         if not principal.has_perm("user_management.manage_members", organization):
             raise PermissionDenied
 
-        return self.create(
+        invitation = self.create(
             email=email,
             organization=organization,
             role=role,
             invited_by=principal,
-            workspace_invitations=workspace_invitations or [],
         )
+
+        if workspace_invitations:
+            from hexa.workspaces.models import OrganizationWorkspaceInvitation
+
+            OrganizationWorkspaceInvitation.create_invitations_for_organization_invitation(
+                invitation, workspace_invitations
+            )
+
+        return invitation
 
     def get_by_token(self, token: str):
         signer = TimestampSigner()
@@ -488,10 +499,6 @@ class OrganizationInvitation(Base):
         max_length=50,
         choices=OrganizationInvitationStatus.choices,
         default=OrganizationInvitationStatus.PENDING,
-    )
-    workspace_invitations = models.JSONField(
-        default=list,
-        help_text="List of workspace invitations with workspace_slug, workspace_name, and role",
     )
 
     objects = OrganizationInvitationManager.from_queryset(
