@@ -62,7 +62,7 @@ def create_workspace(principal: User, organization: Organization):
     return organization.organizationmembership_set.filter(
         user=principal,
         role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
-    ).exists()
+    ).exists() and not principal.has_feature_flag("workspaces.prevent_create")
 
 
 def archive_workspace(principal: User, organization: Organization):
