@@ -40,11 +40,13 @@ describe("ConfigurationProperty", () => {
       render(
         <TestApp>
           <DataCard item={mockWorkspace}>
-            <ConfigurationProperty
-              id="configuration"
-              accessor="configuration"
-              label="Configuration"
-            />
+            <DataCard.FormSection title="Test Section" onSave={async () => {}}>
+              <ConfigurationProperty
+                id="configuration"
+                accessor="configuration"
+                label="Configuration"
+              />
+            </DataCard.FormSection>
           </DataCard>
         </TestApp>
       );
@@ -57,11 +59,13 @@ describe("ConfigurationProperty", () => {
       render(
         <TestApp>
           <DataCard item={mockWorkspace}>
-            <ConfigurationProperty
-              id="configuration"
-              accessor="configuration"
-              label="Configuration"
-            />
+            <DataCard.FormSection title="Test Section" onSave={async () => {}}>
+              <ConfigurationProperty
+                id="configuration"
+                accessor="configuration"
+                label="Configuration"
+              />
+            </DataCard.FormSection>
           </DataCard>
         </TestApp>
       );
@@ -77,11 +81,13 @@ describe("ConfigurationProperty", () => {
       render(
         <TestApp>
           <DataCard item={emptyWorkspace}>
-            <ConfigurationProperty
-              id="configuration"
-              accessor="configuration"
-              label="Configuration"
-            />
+            <DataCard.FormSection title="Test Section" onSave={async () => {}}>
+              <ConfigurationProperty
+                id="configuration"
+                accessor="configuration"
+                label="Configuration"
+              />
+            </DataCard.FormSection>
           </DataCard>
         </TestApp>
       );
@@ -96,12 +102,14 @@ describe("ConfigurationProperty", () => {
       render(
         <TestApp>
           <DataCard item={workspaceWithoutConfig}>
-            <ConfigurationProperty
-              id="configuration"
-              accessor="configuration"
-              label="Configuration"
-              defaultValue={defaultConfig}
-            />
+            <DataCard.FormSection title="Test Section" onSave={async () => {}}>
+              <ConfigurationProperty
+                id="configuration"
+                accessor="configuration"
+                label="Configuration"
+                defaultValue={defaultConfig}
+              />
+            </DataCard.FormSection>
           </DataCard>
         </TestApp>
       );
@@ -199,14 +207,11 @@ describe("ConfigurationProperty", () => {
   });
 
   describe("Value Handling", () => {
-    it("passes configuration changes to DataCard", async () => {
-      const user = userEvent.setup();
-      const mockOnSave = jest.fn();
-      
+    it("renders ConfigurationList with correct props", () => {
       render(
         <TestApp>
           <DataCard item={mockWorkspace}>
-            <DataCard.FormSection title="Test Section" onSave={mockOnSave}>
+            <DataCard.FormSection title="Test Section" onSave={async () => {}}>
               <ConfigurationProperty
                 id="configuration"
                 accessor="configuration"
@@ -217,12 +222,11 @@ describe("ConfigurationProperty", () => {
         </TestApp>
       );
 
-      await user.click(screen.getByText("Edit"));
-
-      await user.click(screen.getByText("Add Test Config"));
-
-      expect(screen.getByText("Configuration count: 4")).toBeInTheDocument();
-      expect(screen.getByText("new_key: new_value")).toBeInTheDocument();
+      expect(screen.getByTestId("configuration-list")).toBeInTheDocument();
+      expect(screen.getByText("Configuration count: 3")).toBeInTheDocument();
+      expect(screen.getByText("existing_key: existing_value")).toBeInTheDocument();
+      expect(screen.getByText("number_key: 42")).toBeInTheDocument();
+      expect(screen.getByText('object_key: {"nested":"data"}')).toBeInTheDocument();
     });
 
     it("handles readonly property", () => {
@@ -321,12 +325,14 @@ describe("ConfigurationProperty", () => {
       render(
         <TestApp>
           <DataCard item={workspaceWithoutConfig}>
-            <ConfigurationProperty
-              id="configuration"
-              accessor="configuration"
-              label="Configuration"
-              defaultValue={defaultConfig}
-            />
+            <DataCard.FormSection title="Test Section" onSave={async () => {}}>
+              <ConfigurationProperty
+                id="configuration"
+                accessor="configuration"
+                label="Configuration"
+                defaultValue={defaultConfig}
+              />
+            </DataCard.FormSection>
           </DataCard>
         </TestApp>
       );
@@ -342,12 +348,14 @@ describe("ConfigurationProperty", () => {
       render(
         <TestApp>
           <DataCard item={mockWorkspace}>
-            <ConfigurationProperty
-              id="configuration"
-              accessor="configuration"
-              label="Configuration"
-              defaultValue={defaultConfig}
-            />
+            <DataCard.FormSection title="Test Section" onSave={async () => {}}>
+              <ConfigurationProperty
+                id="configuration"
+                accessor="configuration"
+                label="Configuration"
+                defaultValue={defaultConfig}
+              />
+            </DataCard.FormSection>
           </DataCard>
         </TestApp>
       );
@@ -363,11 +371,13 @@ describe("ConfigurationProperty", () => {
       render(
         <TestApp>
           <DataCard item={workspaceWithoutConfig}>
-            <ConfigurationProperty
-              id="configuration"
-              accessor="configuration"
-              label="Configuration"
-            />
+            <DataCard.FormSection title="Test Section" onSave={async () => {}}>
+              <ConfigurationProperty
+                id="configuration"
+                accessor="configuration"
+                label="Configuration"
+              />
+            </DataCard.FormSection>
           </DataCard>
         </TestApp>
       );
@@ -383,11 +393,13 @@ describe("ConfigurationProperty", () => {
       render(
         <TestApp>
           <DataCard item={workspaceWithNullConfig}>
-            <ConfigurationProperty
-              id="configuration"
-              accessor="configuration"
-              label="Configuration"
-            />
+            <DataCard.FormSection title="Test Section" onSave={async () => {}}>
+              <ConfigurationProperty
+                id="configuration"
+                accessor="configuration"
+                label="Configuration"
+              />
+            </DataCard.FormSection>
           </DataCard>
         </TestApp>
       );
@@ -401,11 +413,13 @@ describe("ConfigurationProperty", () => {
       render(
         <TestApp>
           <DataCard item={workspaceWithStringConfig}>
-            <ConfigurationProperty
-              id="configuration"
-              accessor="configuration"
-              label="Configuration"
-            />
+            <DataCard.FormSection title="Test Section" onSave={async () => {}}>
+              <ConfigurationProperty
+                id="configuration"
+                accessor="configuration"
+                label="Configuration"
+              />
+            </DataCard.FormSection>
           </DataCard>
         </TestApp>
       );

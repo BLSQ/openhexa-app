@@ -233,7 +233,6 @@ class WorkspaceTest(TestCase):
                 description="Test workspace for configuration",
             )
 
-        # Set initial configuration
         initial_config = {"api_key": "test123", "timeout": 30}
         workspace.update_if_has_perm(
             principal=self.USER_JULIA, configuration=initial_config
@@ -241,7 +240,6 @@ class WorkspaceTest(TestCase):
         workspace.refresh_from_db()
         self.assertEqual(workspace.configuration, initial_config)
 
-        # Update configuration
         updated_config = {"api_key": "updated456", "timeout": 60, "new_setting": True}
         workspace.update_if_has_perm(
             principal=self.USER_JULIA, configuration=updated_config
@@ -260,14 +258,12 @@ class WorkspaceTest(TestCase):
                 description="Test workspace for configuration",
             )
 
-        # Create a viewer membership for USER_SERENA
         WorkspaceMembership.objects.create(
             user=self.USER_SERENA,
             workspace=workspace,
             role=WorkspaceMembershipRole.VIEWER,
         )
 
-        # Try to update configuration as viewer - should fail
         with self.assertRaises(PermissionDenied):
             workspace.update_if_has_perm(
                 principal=self.USER_SERENA, configuration={"unauthorized": "update"}
@@ -284,14 +280,12 @@ class WorkspaceTest(TestCase):
                 description="Test workspace for configuration",
             )
 
-        # Create an editor membership for USER_SERENA
         WorkspaceMembership.objects.create(
             user=self.USER_SERENA,
             workspace=workspace,
             role=WorkspaceMembershipRole.EDITOR,
         )
 
-        # Update configuration as editor - should succeed
         editor_config = {"editor_setting": "value_from_editor"}
         workspace.update_if_has_perm(
             principal=self.USER_SERENA, configuration=editor_config

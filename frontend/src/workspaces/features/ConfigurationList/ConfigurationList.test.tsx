@@ -120,7 +120,8 @@ describe("ConfigurationList", () => {
       expect(screen.getByText("true")).toBeInTheDocument();
       expect(screen.getByText("[1,2,3]")).toBeInTheDocument();
       expect(screen.getByText('{"nested":"value"}')).toBeInTheDocument();
-      expect(screen.getByText("null")).toBeInTheDocument();
+      const nullElements = screen.getAllByText("null");
+      expect(nullElements.length).toBeGreaterThan(0);
     });
   });
 
@@ -149,7 +150,8 @@ describe("ConfigurationList", () => {
       expect(screen.getByText("boolean")).toBeInTheDocument();
       expect(screen.getByText("array")).toBeInTheDocument();
       expect(screen.getByText("object")).toBeInTheDocument();
-      expect(screen.getByText("null")).toBeInTheDocument();
+      const nullElements = screen.getAllByText("null");
+      expect(nullElements.length).toBeGreaterThan(0);
     });
 
     it("applies correct CSS classes for type colors", () => {
@@ -167,7 +169,8 @@ describe("ConfigurationList", () => {
       const booleanBadge = screen.getByText("boolean");
       const arrayBadge = screen.getByText("array");
       const objectBadge = screen.getByText("object");
-      const nullBadge = screen.getByText("null");
+      const nullElements = screen.getAllByText("null");
+      const nullBadge = nullElements.find(el => el.tagName === 'SPAN')!;
 
       expect(textBadge).toHaveClass("bg-green-100", "text-green-800");
       expect(numberBadge).toHaveClass("bg-blue-100", "text-blue-800");
@@ -283,7 +286,7 @@ describe("ConfigurationList", () => {
           if (!open) return null;
           
           const handleSave = () => {
-            onSave("renamed_key", "existing_value");
+            onSave("edited_key", "edited_value");
           };
 
           return (
@@ -316,7 +319,7 @@ describe("ConfigurationList", () => {
       await user.click(screen.getByText("Save"));
 
       expect(mockOnChange).toHaveBeenCalledWith({
-        renamed_key: "existing_value"
+        edited_key: "edited_value"
       });
     });
   });
