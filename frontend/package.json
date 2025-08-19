@@ -109,6 +109,7 @@
     "@testing-library/user-event": "^14.5.2",
     "@types/express": "^5.0.0",
     "@types/luxon": "^3.4.2",
+    "@types/react-dom": "^18.0.0",
     "@types/pluralize": "^0.0.33",
     "@types/react-table": "^7.7.20",
     "@types/react-world-flags": "^1.6.0",
