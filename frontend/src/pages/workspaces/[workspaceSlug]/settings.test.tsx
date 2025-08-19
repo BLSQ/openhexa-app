@@ -154,7 +154,7 @@ describe("WorkspaceSettingsPage Integration", () => {
       await user.click(screen.getByText("Members"));
       expect(screen.getByText("Add/Invite member")).toBeInTheDocument();
 
-      await user.click(screen.getByText("Advanced"));
+      await user.click(screen.getByText("Database"));
       expect(screen.getByText("Database")).toBeInTheDocument();
       expect(screen.getByText("Regenerate password")).toBeInTheDocument();
 

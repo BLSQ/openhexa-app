@@ -54,7 +54,7 @@ describe("AddConfigurationDialog", () => {
         </TestApp>
       );
 
-      expect(screen.getByDisplayValue("")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Configuration name")).toHaveValue("");
       expect(screen.getByPlaceholderText("Enter value as text or JSON...")).toHaveValue("");
       expect(screen.getByText("Add")).toBeInTheDocument();
     });
@@ -151,7 +151,8 @@ describe("AddConfigurationDialog", () => {
       );
 
       expect(screen.getByDisplayValue("config")).toBeInTheDocument();
-      expect(screen.getByDisplayValue(JSON.stringify(jsonConfig.value, null, 2))).toBeInTheDocument();
+      const textarea = screen.getByPlaceholderText("Enter value as text or JSON...");
+      expect(textarea).toHaveValue(JSON.stringify(jsonConfig.value, null, 2));
     });
 
     it("pre-populates form with array", () => {
@@ -172,7 +173,8 @@ describe("AddConfigurationDialog", () => {
       );
 
       expect(screen.getByDisplayValue("items")).toBeInTheDocument();
-      expect(screen.getByDisplayValue(JSON.stringify(arrayConfig.value, null, 2))).toBeInTheDocument();
+      const textarea = screen.getByPlaceholderText("Enter value as text or JSON...");
+      expect(textarea).toHaveValue(JSON.stringify(arrayConfig.value, null, 2));
     });
 
     it("updates configuration when saving edited values", async () => {
@@ -258,7 +260,8 @@ describe("AddConfigurationDialog", () => {
       );
 
       await user.type(screen.getByPlaceholderText("Configuration name"), "obj_val");
-      await user.type(screen.getByPlaceholderText("Enter value as text or JSON..."), '{"key": "value"}');
+      await user.click(screen.getByPlaceholderText("Enter value as text or JSON..."));
+      await user.paste('{"key": "value"}');
       await user.click(screen.getByText("Add"));
 
       expect(mockOnSave).toHaveBeenCalledWith("obj_val", { key: "value" });
@@ -278,7 +281,8 @@ describe("AddConfigurationDialog", () => {
       );
 
       await user.type(screen.getByPlaceholderText("Configuration name"), "array_val");
-      await user.type(screen.getByPlaceholderText("Enter value as text or JSON..."), "[1, 2, 3]");
+      await user.click(screen.getByPlaceholderText("Enter value as text or JSON..."));
+      await user.paste("[1, 2, 3]");
       await user.click(screen.getByText("Add"));
 
       expect(mockOnSave).toHaveBeenCalledWith("array_val", [1, 2, 3]);
@@ -298,7 +302,8 @@ describe("AddConfigurationDialog", () => {
       );
 
       await user.type(screen.getByPlaceholderText("Configuration name"), "invalid_json");
-      await user.type(screen.getByPlaceholderText("Enter value as text or JSON..."), "{invalid json}");
+      await user.click(screen.getByPlaceholderText("Enter value as text or JSON..."));
+      await user.paste("{invalid json}");
       await user.click(screen.getByText("Add"));
 
       expect(mockOnSave).toHaveBeenCalledWith("invalid_json", "{invalid json}");
