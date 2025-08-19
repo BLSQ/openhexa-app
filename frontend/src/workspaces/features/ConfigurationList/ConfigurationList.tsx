@@ -98,9 +98,6 @@ const ConfigurationList = ({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h4 className="text-sm font-medium text-gray-900">
-          {t("Configuration Properties")}
-        </h4>
         {!disabled && (
           <Button
             size="sm"

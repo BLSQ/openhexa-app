@@ -1781,7 +1781,6 @@ class WorkspaceTest(GraphQLTestCase):
 
     def test_update_workspace_configuration_as_editor(self):
         """Test that workspace editor can update configuration"""
-        # First create an editor membership
         WorkspaceMembership.objects.create(
             user=self.USER_SABRINA,
             workspace=self.WORKSPACE,
@@ -1821,7 +1820,7 @@ class WorkspaceTest(GraphQLTestCase):
 
     def test_update_workspace_configuration_as_viewer_denied(self):
         """Test that workspace viewer cannot update configuration"""
-        self.client.force_login(self.USER_REBECCA)  # VIEWER role
+        self.client.force_login(self.USER_REBECCA)
         r = self.run_query(
             """
             mutation updateWorkspace($input:UpdateWorkspaceInput!) {

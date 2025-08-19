@@ -50,7 +50,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
   const [isNewMemberDialogOpen, setIsNewMemberDialogOpen] = useState(false);
   const [isGeneratePwdDialogOpen, setIsGeneratePwdDialogOpen] = useState(false);
 
-  const tab = router.query.tab === "members" ? "members" : router.query.tab === "advanced" ? "advanced" : "general";
+  const tab = router.query.tab === "members" ? "members" : router.query.tab === "database" ? "database" : "general";
 
   const onSectionSave: OnSaveFn = async (values) => {
     await mutate({
@@ -133,20 +133,19 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                   pathname: router.pathname,
                   query: {
                     ...router.query,
-                    tab: newIndex === 1 ? "members" : newIndex === 2 ? "advanced" : "general",
+                    tab: newIndex === 1 ? "members" : newIndex === 2 ? "database" : "general",
                   },
                 },
                 undefined,
                 { shallow: true },
               )
             }
-            defaultIndex={tab === "members" ? 1 : tab === "advanced" ? 2 : 0}
+            defaultIndex={tab === "members" ? 1 : tab === "database" ? 2 : 0}
           >
             <Tabs.Tab label={t("General")} className={"space-y-6 pt-6"}>
               <DataCard className="w-full" item={workspace}>
                 <DataCard.FormSection
                   onSave={onSectionSave}
-                  title={t("General settings")}
                 >
                   <TextProperty
                     required
@@ -206,7 +205,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
               </div>
             </Tabs.Tab>
             
-            <Tabs.Tab label={t("Advanced")} className={"space-y-6 pt-6"}>
+            <Tabs.Tab label={t("Database")} className={"space-y-6 pt-6"}>
               <DataCard className="w-full" item={workspace}>
                 <DataCard.Section title={t("Database")}>
                   <Button
