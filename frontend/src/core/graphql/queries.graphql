@@ -1,0 +1,5 @@
+query CountryPicker {
+        countries {
+          ...CountryPicker_country
+        }
+      }

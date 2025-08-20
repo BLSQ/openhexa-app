@@ -1,14 +1,13 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { Combobox, MultiCombobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
 import {
-  CountryPickerQuery,
-  CountryPickerQueryVariables,
-  CountryPicker_CountryFragment,
+  CountryPicker_CountryFragment
 } from "./CountryPicker.generated";
 import Flag from "react-world-flags";
+import { useCountryPickerQuery } from "core/graphql/queries.generated";
 
 type CountryPickerProps = {
   disabled?: boolean;
@@ -34,18 +33,7 @@ function CountryPicker(props: CountryPickerProps) {
     placeholder = t("Select a country"),
   } = props;
 
-  const { data, loading } = useQuery<
-    CountryPickerQuery,
-    CountryPickerQueryVariables
-  >(
-    gql`
-      query CountryPicker {
-        countries {
-          ...CountryPicker_country
-        }
-      }
-      ${CountryPicker.fragments.country}
-    `,
+  const { data, loading } = useCountryPickerQuery(
     { fetchPolicy: "cache-first" },
   );
   const [query, setQuery] = useState("");
