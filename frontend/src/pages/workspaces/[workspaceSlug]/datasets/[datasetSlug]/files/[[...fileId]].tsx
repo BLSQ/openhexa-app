@@ -2,7 +2,6 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import DatasetExplorer from "datasets/features/DatasetExplorer";
-import { DatasetExplorer_FileFragment } from "datasets/features/DatasetExplorer/DatasetExplorer.generated";
 import LinkDatasetDialog from "datasets/features/LinkDatasetDialog";
 import DatasetLayout from "datasets/layouts/DatasetLayout";
 import { useTranslation } from "next-i18next";
@@ -14,6 +13,7 @@ import {
   WorkspaceDatasetFilesPageQuery,
   WorkspaceDatasetFilesPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
+import { DatasetExplorer_FileFragment } from "datasets/features/DatasetExplorer/fragments.generated";
 
 export type WorkspaceDatasetFilesPageProps = {
   isSpecificVersion: boolean;
