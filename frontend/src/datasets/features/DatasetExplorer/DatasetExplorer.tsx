@@ -121,25 +121,6 @@ const DatasetExplorer = ({
 };
 
 DatasetExplorer.fragments = {
-  file: gql`
-    fragment DatasetExplorer_file on DatasetVersionFile {
-      id
-      filename
-      createdAt
-      createdBy {
-        displayName
-      }
-      ...DownloadVersionFile_file
-      ...DatasetVersionFileSample_file
-      ...DatasetVersionFileColumns_file
-      contentType
-      size
-      uri
-    }
-    ${DownloadVersionFile.fragments.file}
-    ${DatasetVersionFileSample.fragments.file}
-    ${DatasetVersionFileColumns.fragments.file}
-  `,
   version: gql`
     fragment DatasetExplorer_version on DatasetVersion {
       id
