@@ -1,9 +1,9 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "next-i18next";
 import useDebounce from "core/hooks/useDebounce";
 import { Combobox } from "core/components/forms/Combobox";
-import { DatasetPickerQuery } from "./DatasetPicker.generated";
+import { useDatasetPickerQuery } from "datasets/graphql/queries.generated";
 
 type Option = {
   id: string;
@@ -32,16 +32,7 @@ const DatasetPicker = (props: DatasetPickerProps) => {
     placeholder = t("Select dataset"),
   } = props;
 
-  const { data, loading } = useQuery<DatasetPickerQuery>(
-    gql`
-      query DatasetPicker($slug: String!) {
-        workspace(slug: $slug) {
-          slug
-          ...DatasetPicker_workspace
-        }
-      }
-      ${DatasetPicker.fragments.workspace}
-    `,
+  const { data, loading } = useDatasetPickerQuery(
     { variables: { slug: workspaceSlug } },
   );
 

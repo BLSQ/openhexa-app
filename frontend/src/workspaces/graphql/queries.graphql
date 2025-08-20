@@ -770,3 +770,39 @@ query WorkspaceWebappPage($workspaceSlug: String!, $webappId: UUID!) {
     ...WebappForm_webapp
   }
 }
+
+query PipelineVersionPicker($pipelineId: UUID!, $page: Int, $perPage: Int) {
+        pipeline(id: $pipelineId) {
+          versions(page: $page, perPage: $perPage) {
+            pageNumber
+            totalPages
+            totalItems
+            items {
+              ...PipelineVersionPicker_version
+            }
+          }
+        }
+}
+
+ query WorkspacePicker($query: String, $perPage: Int = 10) {
+      workspaces(query: $query, page: 1, perPage: $perPage) {
+        totalItems
+        items {
+          ...WorkspacePicker_value
+        }
+      }
+ }
+
+query WorkspaceMemberPicker($slug: String!) {
+      workspace(slug: $slug) {
+        slug
+        ...WorkspaceMemberPicker_workspace
+      }
+}
+
+query WorkspaceConnectionPicker($slug: String!) {
+        workspace(slug: $slug) {
+          slug
+          ...WorkspaceConnectionPicker_workspace
+        }
+}

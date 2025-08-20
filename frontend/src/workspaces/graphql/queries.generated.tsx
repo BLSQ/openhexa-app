@@ -10,6 +10,7 @@ import { User_UserFragmentDoc } from '../../core/features/User/User.generated';
 import { PipelineRunStatusBadge_RunFragmentDoc } from '../../pipelines/features/PipelineRunStatusBadge.generated';
 import { PipelineLayout_WorkspaceFragmentDoc, PipelineLayout_PipelineFragmentDoc } from '../layouts/PipelineLayout/PipelineLayout.generated';
 import { RunPipelineDialog_PipelineFragmentDoc, RunPipelineDialog_RunFragmentDoc } from '../features/RunPipelineDialog/RunPipelineDialog.generated';
+import { PipelineVersionPicker_VersionFragmentDoc } from '../features/PipelineVersionPicker/PipelineVersionPicker.generated';
 import { PipelineVersionParametersTable_VersionFragmentDoc } from '../../pipelines/features/PipelineVersionParametersTable/PipelineVersionParametersTable.generated';
 import { PipelineVersionConfigDialog_VersionFragmentDoc } from '../features/PipelineVersionConfigDialog/PipelineVersionConfigDialog.generated';
 import { FilesEditor_FileFragmentDoc } from '../features/FilesEditor/FilesEditor.generated';
@@ -24,7 +25,8 @@ import { DatasetCard_LinkFragmentDoc } from '../../datasets/features/DatasetCard
 import { PinDatasetButton_LinkFragmentDoc } from '../../datasets/features/PinDatasetButton/PinDatasetButton.generated';
 import { DatasetLayout_WorkspaceFragmentDoc, DatasetLayout_DatasetLinkFragmentDoc, DatasetLayout_VersionFragmentDoc } from '../../datasets/layouts/DatasetLayout.generated';
 import { DatasetLinksDataGrid_DatasetFragmentDoc } from '../../datasets/features/DatasetLinksDataGrid/DatasetLinksDataGrid.generated';
-import { DatasetExplorer_VersionFragmentDoc, DatasetExplorer_FileFragmentDoc } from '../../datasets/features/DatasetExplorer/DatasetExplorer.generated';
+import { DatasetExplorer_VersionFragmentDoc } from '../../datasets/features/DatasetExplorer/DatasetExplorer.generated';
+import { DatasetExplorer_FileFragmentDoc } from '../../datasets/features/DatasetExplorer/fragments.generated';
 import { BucketExplorer_WorkspaceFragmentDoc, BucketExplorer_ObjectsFragmentDoc } from '../features/BucketExplorer/BucketExplorer.generated';
 import { UploadObjectDialog_WorkspaceFragmentDoc } from '../features/UploadObjectDialog/UploadObjectDialog.generated';
 import { CreateBucketFolderDialog_WorkspaceFragmentDoc } from '../features/CreateBucketFolderDialog/CreateBucketFolderDialog.generated';
@@ -38,6 +40,9 @@ import { TemplateLayout_TemplateFragmentDoc } from '../layouts/TemplateLayout/Te
 import { TemplateVersionCard_VersionFragmentDoc } from '../../pipelines/features/TemplateVersionCard/TemplateVersionCard.generated';
 import { WebappCard_WebappFragmentDoc } from '../../webapps/features/WebappCard/WebappCard.generated';
 import { WebappForm_WorkspaceFragmentDoc, WebappForm_WebappFragmentDoc } from '../../webapps/features/WebappForm/WebappForm.generated';
+import { WorkspacePicker_ValueFragmentDoc } from '../features/WorkspacePicker/WorkspacePicker.generated';
+import { WorkspaceMemberPicker_WorkspaceFragmentDoc } from '../features/WorkspaceMemberPicker/WorkspaceMemberPicker.generated';
+import { WorkspaceConnectionPicker_WorkspaceFragmentDoc } from '../features/WorkspaceConnectionPicker/WorkspaceConnectionPicker.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type WorkspacesPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
@@ -271,6 +276,37 @@ export type WorkspaceWebappPageQueryVariables = Types.Exact<{
 
 
 export type WorkspaceWebappPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null, webapp?: { __typename?: 'Webapp', id: string, name: string, description?: string | null, url: string, icon?: string | null, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } } | null };
+
+export type PipelineVersionPickerQueryVariables = Types.Exact<{
+  pipelineId: Types.Scalars['UUID']['input'];
+  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+}>;
+
+
+export type PipelineVersionPickerQuery = { __typename?: 'Query', pipeline?: { __typename?: 'Pipeline', versions: { __typename?: 'PipelineVersionPage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'PipelineVersion', id: string, versionName: string, createdAt: any, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, widget?: Types.ParameterWidget | null, connection?: string | null, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null }> } } | null };
+
+export type WorkspacePickerQueryVariables = Types.Exact<{
+  query?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+}>;
+
+
+export type WorkspacePickerQuery = { __typename?: 'Query', workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string }> } };
+
+export type WorkspaceMemberPickerQueryVariables = Types.Exact<{
+  slug: Types.Scalars['String']['input'];
+}>;
+
+
+export type WorkspaceMemberPickerQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, members: { __typename?: 'WorkspaceMembershipPage', items: Array<{ __typename?: 'WorkspaceMembership', id: string, user: { __typename?: 'User', id: string, displayName: string } }> } } | null };
+
+export type WorkspaceConnectionPickerQueryVariables = Types.Exact<{
+  slug: Types.Scalars['String']['input'];
+}>;
+
+
+export type WorkspaceConnectionPickerQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, connections: Array<{ __typename?: 'CustomConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'DHIS2Connection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'GCSConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'IASOConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'PostgreSQLConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'S3Connection', id: string, name: string, slug: string, type: Types.ConnectionType }> } | null };
 
 
 export const WorkspacesPageDocument = gql`
@@ -1992,3 +2028,178 @@ export type WorkspaceWebappPageQueryHookResult = ReturnType<typeof useWorkspaceW
 export type WorkspaceWebappPageLazyQueryHookResult = ReturnType<typeof useWorkspaceWebappPageLazyQuery>;
 export type WorkspaceWebappPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceWebappPageSuspenseQuery>;
 export type WorkspaceWebappPageQueryResult = Apollo.QueryResult<WorkspaceWebappPageQuery, WorkspaceWebappPageQueryVariables>;
+export const PipelineVersionPickerDocument = gql`
+    query PipelineVersionPicker($pipelineId: UUID!, $page: Int, $perPage: Int) {
+  pipeline(id: $pipelineId) {
+    versions(page: $page, perPage: $perPage) {
+      pageNumber
+      totalPages
+      totalItems
+      items {
+        ...PipelineVersionPicker_version
+      }
+    }
+  }
+}
+    ${PipelineVersionPicker_VersionFragmentDoc}`;
+
+/**
+ * __usePipelineVersionPickerQuery__
+ *
+ * To run a query within a React component, call `usePipelineVersionPickerQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePipelineVersionPickerQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePipelineVersionPickerQuery({
+ *   variables: {
+ *      pipelineId: // value for 'pipelineId'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
+ *   },
+ * });
+ */
+export function usePipelineVersionPickerQuery(baseOptions: Apollo.QueryHookOptions<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables> & ({ variables: PipelineVersionPickerQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables>(PipelineVersionPickerDocument, options);
+      }
+export function usePipelineVersionPickerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables>(PipelineVersionPickerDocument, options);
+        }
+export function usePipelineVersionPickerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables>(PipelineVersionPickerDocument, options);
+        }
+export type PipelineVersionPickerQueryHookResult = ReturnType<typeof usePipelineVersionPickerQuery>;
+export type PipelineVersionPickerLazyQueryHookResult = ReturnType<typeof usePipelineVersionPickerLazyQuery>;
+export type PipelineVersionPickerSuspenseQueryHookResult = ReturnType<typeof usePipelineVersionPickerSuspenseQuery>;
+export type PipelineVersionPickerQueryResult = Apollo.QueryResult<PipelineVersionPickerQuery, PipelineVersionPickerQueryVariables>;
+export const WorkspacePickerDocument = gql`
+    query WorkspacePicker($query: String, $perPage: Int = 10) {
+  workspaces(query: $query, page: 1, perPage: $perPage) {
+    totalItems
+    items {
+      ...WorkspacePicker_value
+    }
+  }
+}
+    ${WorkspacePicker_ValueFragmentDoc}`;
+
+/**
+ * __useWorkspacePickerQuery__
+ *
+ * To run a query within a React component, call `useWorkspacePickerQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWorkspacePickerQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkspacePickerQuery({
+ *   variables: {
+ *      query: // value for 'query'
+ *      perPage: // value for 'perPage'
+ *   },
+ * });
+ */
+export function useWorkspacePickerQuery(baseOptions?: Apollo.QueryHookOptions<WorkspacePickerQuery, WorkspacePickerQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WorkspacePickerQuery, WorkspacePickerQueryVariables>(WorkspacePickerDocument, options);
+      }
+export function useWorkspacePickerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspacePickerQuery, WorkspacePickerQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WorkspacePickerQuery, WorkspacePickerQueryVariables>(WorkspacePickerDocument, options);
+        }
+export function useWorkspacePickerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspacePickerQuery, WorkspacePickerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WorkspacePickerQuery, WorkspacePickerQueryVariables>(WorkspacePickerDocument, options);
+        }
+export type WorkspacePickerQueryHookResult = ReturnType<typeof useWorkspacePickerQuery>;
+export type WorkspacePickerLazyQueryHookResult = ReturnType<typeof useWorkspacePickerLazyQuery>;
+export type WorkspacePickerSuspenseQueryHookResult = ReturnType<typeof useWorkspacePickerSuspenseQuery>;
+export type WorkspacePickerQueryResult = Apollo.QueryResult<WorkspacePickerQuery, WorkspacePickerQueryVariables>;
+export const WorkspaceMemberPickerDocument = gql`
+    query WorkspaceMemberPicker($slug: String!) {
+  workspace(slug: $slug) {
+    slug
+    ...WorkspaceMemberPicker_workspace
+  }
+}
+    ${WorkspaceMemberPicker_WorkspaceFragmentDoc}`;
+
+/**
+ * __useWorkspaceMemberPickerQuery__
+ *
+ * To run a query within a React component, call `useWorkspaceMemberPickerQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWorkspaceMemberPickerQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkspaceMemberPickerQuery({
+ *   variables: {
+ *      slug: // value for 'slug'
+ *   },
+ * });
+ */
+export function useWorkspaceMemberPickerQuery(baseOptions: Apollo.QueryHookOptions<WorkspaceMemberPickerQuery, WorkspaceMemberPickerQueryVariables> & ({ variables: WorkspaceMemberPickerQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WorkspaceMemberPickerQuery, WorkspaceMemberPickerQueryVariables>(WorkspaceMemberPickerDocument, options);
+      }
+export function useWorkspaceMemberPickerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspaceMemberPickerQuery, WorkspaceMemberPickerQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WorkspaceMemberPickerQuery, WorkspaceMemberPickerQueryVariables>(WorkspaceMemberPickerDocument, options);
+        }
+export function useWorkspaceMemberPickerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspaceMemberPickerQuery, WorkspaceMemberPickerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WorkspaceMemberPickerQuery, WorkspaceMemberPickerQueryVariables>(WorkspaceMemberPickerDocument, options);
+        }
+export type WorkspaceMemberPickerQueryHookResult = ReturnType<typeof useWorkspaceMemberPickerQuery>;
+export type WorkspaceMemberPickerLazyQueryHookResult = ReturnType<typeof useWorkspaceMemberPickerLazyQuery>;
+export type WorkspaceMemberPickerSuspenseQueryHookResult = ReturnType<typeof useWorkspaceMemberPickerSuspenseQuery>;
+export type WorkspaceMemberPickerQueryResult = Apollo.QueryResult<WorkspaceMemberPickerQuery, WorkspaceMemberPickerQueryVariables>;
+export const WorkspaceConnectionPickerDocument = gql`
+    query WorkspaceConnectionPicker($slug: String!) {
+  workspace(slug: $slug) {
+    slug
+    ...WorkspaceConnectionPicker_workspace
+  }
+}
+    ${WorkspaceConnectionPicker_WorkspaceFragmentDoc}`;
+
+/**
+ * __useWorkspaceConnectionPickerQuery__
+ *
+ * To run a query within a React component, call `useWorkspaceConnectionPickerQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWorkspaceConnectionPickerQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkspaceConnectionPickerQuery({
+ *   variables: {
+ *      slug: // value for 'slug'
+ *   },
+ * });
+ */
+export function useWorkspaceConnectionPickerQuery(baseOptions: Apollo.QueryHookOptions<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables> & ({ variables: WorkspaceConnectionPickerQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>(WorkspaceConnectionPickerDocument, options);
+      }
+export function useWorkspaceConnectionPickerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>(WorkspaceConnectionPickerDocument, options);
+        }
+export function useWorkspaceConnectionPickerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>(WorkspaceConnectionPickerDocument, options);
+        }
+export type WorkspaceConnectionPickerQueryHookResult = ReturnType<typeof useWorkspaceConnectionPickerQuery>;
+export type WorkspaceConnectionPickerLazyQueryHookResult = ReturnType<typeof useWorkspaceConnectionPickerLazyQuery>;
+export type WorkspaceConnectionPickerSuspenseQueryHookResult = ReturnType<typeof useWorkspaceConnectionPickerSuspenseQuery>;
+export type WorkspaceConnectionPickerQueryResult = Apollo.QueryResult<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>;

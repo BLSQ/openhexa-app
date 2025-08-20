@@ -1,4 +1,4 @@
-import { gql, useMutation } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { ArrowDownTrayIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
 import Block from "core/components/Block";
@@ -21,10 +21,8 @@ import DownloadPipelineVersion from "../DownloadPipelineVersion";
 import PipelineVersionParametersTable from "../PipelineVersionParametersTable";
 import {
   PipelineVersionCard_VersionFragment,
-  UpdatePipelineVersionMutation,
-  UpdatePipelineVersionMutationVariables,
 } from "./PipelineVersionCard.generated";
-import useFeature from "identity/hooks/useFeature";
+import { useUpdatePipelineVersionMutation } from "pipelines/graphql/mutations.generated";
 
 type PipelineVersionCardProps = {
   version: PipelineVersionCard_VersionFragment;
@@ -34,21 +32,7 @@ type PipelineVersionCardProps = {
 const PipelineVersionCard = (props: PipelineVersionCardProps) => {
   const { t } = useTranslation();
   const { version } = props;
-  const [updateVersion] = useMutation<
-    UpdatePipelineVersionMutation,
-    UpdatePipelineVersionMutationVariables
-  >(gql`
-    mutation UpdatePipelineVersion($input: UpdatePipelineVersionInput!) {
-      updatePipelineVersion(input: $input) {
-        success
-        errors
-        pipelineVersion {
-          ...PipelineVersionCard_version
-        }
-      }
-    }
-    ${PipelineVersionCard.fragments.version}
-  `);
+  const [updateVersion] = useUpdatePipelineVersionMutation();
 
   const onSave: OnSaveFn = async (values) => {
     const { data } = await updateVersion({

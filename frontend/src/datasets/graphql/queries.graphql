@@ -1,0 +1,17 @@
+query DatasetPicker($slug: String!) {
+        workspace(slug: $slug) {
+          slug
+          ...DatasetPicker_workspace
+        }
+}
+
+query DatasetVersionPicker($datasetId: ID!, $perPage: Int!) {
+        dataset(id: $datasetId) {
+          versions(perPage: $perPage) {
+            totalItems
+            items {
+              ...DatasetVersionPicker_version
+            }
+          }
+        }
+}

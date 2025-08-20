@@ -1,4 +1,4 @@
-import { gql, useMutation } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
 import Block from "core/components/Block";
@@ -12,9 +12,8 @@ import { Trans, useTranslation } from "next-i18next";
 import DeleteTemplateVersionTrigger from "workspaces/features/DeleteTemplateVersionTrigger";
 import {
   TemplateVersionCard_VersionFragment,
-  UpdateTemplateVersionMutation,
-  UpdateTemplateVersionMutationVariables,
 } from "./TemplateVersionCard.generated";
+import { useUpdateTemplateVersionMutation } from "pipelines/graphql/mutations.generated";
 import { OnSaveFn } from "core/components/DataCard/FormSection";
 import { UpdateTemplateVersionError } from "graphql/types";
 
@@ -26,21 +25,7 @@ type TemplateVersionCardProps = {
 const TemplateVersionCard = (props: TemplateVersionCardProps) => {
   const { t } = useTranslation();
   const { version } = props;
-  const [updateVersion] = useMutation<
-    UpdateTemplateVersionMutation,
-    UpdateTemplateVersionMutationVariables
-  >(gql`
-    mutation UpdateTemplateVersion($input: UpdateTemplateVersionInput!) {
-      updateTemplateVersion(input: $input) {
-        success
-        errors
-        templateVersion {
-          ...TemplateVersionCard_version
-        }
-      }
-    }
-    ${TemplateVersionCard.fragments.version}
-  `);
+  const [updateVersion] = useUpdateTemplateVersionMutation();
 
   const onSave: OnSaveFn = async (values) => {
     const { data } = await updateVersion({

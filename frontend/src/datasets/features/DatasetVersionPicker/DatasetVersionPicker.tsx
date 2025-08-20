@@ -1,4 +1,4 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
 import Listbox from "core/components/Listbox/Listbox";
 import {
   DatasetVersionPicker_DatasetFragment,
@@ -6,6 +6,7 @@ import {
 } from "./DatasetVersionPicker.generated";
 import { DateTime } from "luxon";
 import { useState } from "react";
+import { useDatasetVersionPickerQuery } from "datasets/graphql/queries.generated";
 
 type DatasetVersionPickerProps = {
   onChange(version: any | null): void;
@@ -17,25 +18,11 @@ type DatasetVersionPickerProps = {
 const DatasetVersionPicker = (props: DatasetVersionPickerProps) => {
   const { onChange, dataset, version, className } = props;
   const [perPage, setPerPage] = useState(10);
-  const { data, previousData, loading } = useQuery(
-    gql`
-      query DatasetVersionPicker($datasetId: ID!, $perPage: Int!) {
-        dataset(id: $datasetId) {
-          versions(perPage: $perPage) {
-            totalItems
-            items {
-              ...DatasetVersionPicker_version
-            }
-          }
-        }
-      }
-
-      ${DatasetVersionPicker.fragments.version}
-    `,
+  const { data, previousData, loading } = useDatasetVersionPickerQuery(
     { variables: { datasetId: dataset.id, perPage } },
   );
 
-  const versions = (data ?? previousData)?.dataset.versions ?? {
+  const versions = (data ?? previousData)?.dataset?.versions ?? {
     items: [],
     totalItems: 0,
   };
