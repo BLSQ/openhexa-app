@@ -54,3 +54,13 @@ mutation UpdatePipelineVersion($input: UpdatePipelineVersionInput!) {
         }
       }
 }
+
+mutation UpdateTemplateVersion($input: UpdateTemplateVersionInput!) {
+  updateTemplateVersion(input: $input) {
+    success
+    errors
+    templateVersion {
+      ...TemplateVersionCard_version
+    }
+  }
+}

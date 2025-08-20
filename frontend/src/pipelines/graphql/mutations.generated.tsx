@@ -2,6 +2,7 @@ import * as Types from '../../graphql/types';
 
 import { gql } from '@apollo/client';
 import { PipelineVersionCard_VersionFragmentDoc } from '../features/PipelineVersionCard/PipelineVersionCard.generated';
+import { TemplateVersionCard_VersionFragmentDoc } from '../features/TemplateVersionCard/TemplateVersionCard.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type UpdatePipelineMutationVariables = Types.Exact<{
@@ -38,6 +39,13 @@ export type UpdatePipelineVersionMutationVariables = Types.Exact<{
 
 
 export type UpdatePipelineVersionMutation = { __typename?: 'Mutation', updatePipelineVersion: { __typename?: 'UpdatePipelineVersionResult', success: boolean, errors: Array<Types.UpdatePipelineVersionError>, pipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, name?: string | null, description?: string | null, externalLink?: any | null, isLatestVersion: boolean, createdAt: any, user?: { __typename?: 'User', displayName: string } | null, permissions: { __typename?: 'PipelineVersionPermissions', update: boolean, delete: boolean }, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, type: Types.ParameterType, multiple: boolean, required: boolean, help?: string | null }>, pipeline: { __typename?: 'Pipeline', id: string, code: string }, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, template: { __typename?: 'PipelineTemplate', id: string, name: string } } | null } | null } };
+
+export type UpdateTemplateVersionMutationVariables = Types.Exact<{
+  input: Types.UpdateTemplateVersionInput;
+}>;
+
+
+export type UpdateTemplateVersionMutation = { __typename?: 'Mutation', updateTemplateVersion: { __typename?: 'UpdateTemplateVersionResult', success: boolean, errors: Array<Types.UpdateTemplateVersionError>, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, changelog?: string | null, createdAt: any, isLatestVersion: boolean, user?: { __typename?: 'User', displayName: string } | null, permissions: { __typename?: 'PipelineTemplateVersionPermissions', update: boolean, delete: boolean }, template: { __typename?: 'PipelineTemplate', id: string, code: string } } | null } };
 
 
 export const UpdatePipelineDocument = gql`
@@ -228,3 +236,40 @@ export function useUpdatePipelineVersionMutation(baseOptions?: Apollo.MutationHo
 export type UpdatePipelineVersionMutationHookResult = ReturnType<typeof useUpdatePipelineVersionMutation>;
 export type UpdatePipelineVersionMutationResult = Apollo.MutationResult<UpdatePipelineVersionMutation>;
 export type UpdatePipelineVersionMutationOptions = Apollo.BaseMutationOptions<UpdatePipelineVersionMutation, UpdatePipelineVersionMutationVariables>;
+export const UpdateTemplateVersionDocument = gql`
+    mutation UpdateTemplateVersion($input: UpdateTemplateVersionInput!) {
+  updateTemplateVersion(input: $input) {
+    success
+    errors
+    templateVersion {
+      ...TemplateVersionCard_version
+    }
+  }
+}
+    ${TemplateVersionCard_VersionFragmentDoc}`;
+export type UpdateTemplateVersionMutationFn = Apollo.MutationFunction<UpdateTemplateVersionMutation, UpdateTemplateVersionMutationVariables>;
+
+/**
+ * __useUpdateTemplateVersionMutation__
+ *
+ * To run a mutation, you first call `useUpdateTemplateVersionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateTemplateVersionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateTemplateVersionMutation, { data, loading, error }] = useUpdateTemplateVersionMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateTemplateVersionMutation(baseOptions?: Apollo.MutationHookOptions<UpdateTemplateVersionMutation, UpdateTemplateVersionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateTemplateVersionMutation, UpdateTemplateVersionMutationVariables>(UpdateTemplateVersionDocument, options);
+      }
+export type UpdateTemplateVersionMutationHookResult = ReturnType<typeof useUpdateTemplateVersionMutation>;
+export type UpdateTemplateVersionMutationResult = Apollo.MutationResult<UpdateTemplateVersionMutation>;
+export type UpdateTemplateVersionMutationOptions = Apollo.BaseMutationOptions<UpdateTemplateVersionMutation, UpdateTemplateVersionMutationVariables>;
