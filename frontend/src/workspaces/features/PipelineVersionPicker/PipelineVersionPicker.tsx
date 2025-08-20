@@ -1,4 +1,4 @@
-import { gql, useLazyQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { Combobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
 import useCacheKey from "core/hooks/useCacheKey";
@@ -6,10 +6,10 @@ import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import {
-  PipelineVersionPickerQuery,
   PipelineVersionPicker_PipelineFragment,
-  PipelineVersionPicker_VersionFragment,
+  PipelineVersionPicker_VersionFragment
 } from "./PipelineVersionPicker.generated";
+import { usePipelineVersionPickerLazyQuery } from "workspaces/graphql/queries.generated";
 
 type Option = {
   id: string;
@@ -31,26 +31,9 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
   const { pipeline, value, ...delegated } = props;
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const [allVersions, setAllVersions] = useState<Option[]>([]);
   const debouncedQuery = useDebounce(query, 150);
-  const [fetch, { data, loading, refetch, fetchMore }] = useLazyQuery<PipelineVersionPickerQuery>(
-    gql`
-      query PipelineVersionPicker($pipelineId: UUID!, $page: Int, $perPage: Int) {
-        pipeline(id: $pipelineId) {
-          versions(page: $page, perPage: $perPage) {
-            pageNumber
-            totalPages
-            totalItems
-            items {
-              ...PipelineVersionPicker_version
-            }
-          }
-        }
-      }
-      ${PipelineVersionPicker.fragments.version}
-    `,
-  );
+  const [fetch, { data, loading, refetch }] = usePipelineVersionPickerLazyQuery();
   useEffect(() => {
     if (data?.pipeline?.versions.items) {
       if (data.pipeline.versions.pageNumber === 1) {
@@ -62,7 +45,6 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
   }, [data]);
 
   useCacheKey(["pipeline", pipeline.id], () => {
-    setCurrentPage(1);
     setAllVersions([]);
     if (data) {
       refetch({ page: 1, perPage: 20 }).then();
@@ -109,8 +91,7 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
   const loadMore = useCallback(() => {
     if (!loading && data?.pipeline?.versions) {
       const nextPage = (data.pipeline.versions.pageNumber || 0) + 1;
-      setCurrentPage(nextPage);
-      fetch({ 
+      fetch({
         variables: { 
           pipelineId: pipeline.id, 
           page: nextPage, 

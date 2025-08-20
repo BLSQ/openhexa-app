@@ -770,3 +770,16 @@ query WorkspaceWebappPage($workspaceSlug: String!, $webappId: UUID!) {
     ...WebappForm_webapp
   }
 }
+
+query PipelineVersionPicker($pipelineId: UUID!, $page: Int, $perPage: Int) {
+        pipeline(id: $pipelineId) {
+          versions(page: $page, perPage: $perPage) {
+            pageNumber
+            totalPages
+            totalItems
+            items {
+              ...PipelineVersionPicker_version
+            }
+          }
+        }
+}
