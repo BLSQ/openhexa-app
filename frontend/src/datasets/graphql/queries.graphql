@@ -1,0 +1,6 @@
+query DatasetPicker($slug: String!) {
+        workspace(slug: $slug) {
+          slug
+          ...DatasetPicker_workspace
+        }
+      }
