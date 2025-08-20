@@ -12,16 +12,3 @@ fragment DatasetExplorer_file on DatasetVersionFile {
       size
       uri
     }
-fragment DatasetExplorer_version on DatasetVersion {
-      id
-      files(page: $page, perPage: $perPage) {
-        totalPages
-        pageNumber
-        totalItems
-        items {
-          ...DatasetExplorer_file
-        }
-      }
-      ...DatasetVersionFileSample_version
-      ...DatasetVersionFileColumns_version
-    }
