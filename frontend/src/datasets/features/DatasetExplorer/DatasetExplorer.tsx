@@ -1,4 +1,3 @@
-import { gql } from "@apollo/client";
 import clsx from "clsx";
 import DescriptionList from "core/components/DescriptionList";
 import Filesize from "core/components/Filesize";
@@ -9,13 +8,10 @@ import Title from "core/components/Title";
 import { useTranslation } from "next-i18next";
 import DatasetVersionFileSample from "../DatasetVersionFileSample";
 import DownloadVersionFile from "../DownloadVersionFile";
-import {
-  DatasetExplorer_VersionFragment,
-} from "./DatasetExplorer.generated";
 import ErrorBoundary from "core/components/ErrorBoundary";
 import DatasetVersionFileColumns from "../DatasetVersionFileColumns";
 import Pagination from "core/components/Pagination";
-import { DatasetExplorer_FileFragment } from "./fragments.generated";
+import { DatasetExplorer_FileFragment, DatasetExplorer_VersionFragment } from "./fragments.generated";
 
 type DatasetExplorerProps = {
   version: DatasetExplorer_VersionFragment;
@@ -118,26 +114,6 @@ const DatasetExplorer = ({
       </div>
     </div>
   );
-};
-
-DatasetExplorer.fragments = {
-  version: gql`
-    fragment DatasetExplorer_version on DatasetVersion {
-      id
-      files(page: $page, perPage: $perPage) {
-        totalPages
-        pageNumber
-        totalItems
-        items {
-          ...DatasetExplorer_file
-        }
-      }
-      ...DatasetVersionFileSample_version
-      ...DatasetVersionFileColumns_version
-    }
-    ${DatasetVersionFileSample.fragments.version}
-    ${DatasetVersionFileColumns.fragments.version}
-  `,
 };
 
 export default DatasetExplorer;
