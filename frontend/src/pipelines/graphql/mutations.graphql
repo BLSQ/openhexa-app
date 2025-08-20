@@ -44,3 +44,13 @@ mutation upgradePipelineVersionFromTemplate(
     errors
   }
 }
+
+mutation UpdatePipelineVersion($input: UpdatePipelineVersionInput!) {
+      updatePipelineVersion(input: $input) {
+        success
+        errors
+        pipelineVersion {
+          ...PipelineVersionCard_version
+        }
+      }
+}
