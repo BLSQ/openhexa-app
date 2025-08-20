@@ -799,3 +799,10 @@ query WorkspaceMemberPicker($slug: String!) {
         ...WorkspaceMemberPicker_workspace
       }
 }
+
+query WorkspaceConnectionPicker($slug: String!) {
+        workspace(slug: $slug) {
+          slug
+          ...WorkspaceConnectionPicker_workspace
+        }
+}

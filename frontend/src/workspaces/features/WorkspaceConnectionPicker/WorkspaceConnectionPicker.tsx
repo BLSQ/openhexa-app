@@ -1,11 +1,11 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "next-i18next";
 import useDebounce from "core/hooks/useDebounce";
 import { Combobox } from "core/components/forms/Combobox";
 import { ConnectionType } from "graphql/types";
 import Connections from "workspaces/helpers/connections";
-import { WorkspaceConnectionPickerQuery } from "./WorkspaceConnectionPicker.generated";
+import { useWorkspaceConnectionPickerQuery } from "workspaces/graphql/queries.generated";
 
 type Option = {
   id: string;
@@ -38,16 +38,7 @@ const WorkspaceConnectionPicker = (props: WorkspaceConnectionPickerProps) => {
     type,
   } = props;
 
-  const { data, loading } = useQuery<WorkspaceConnectionPickerQuery>(
-    gql`
-      query WorkspaceConnectionPicker($slug: String!) {
-        workspace(slug: $slug) {
-          slug
-          ...WorkspaceConnectionPicker_workspace
-        }
-      }
-      ${WorkspaceConnectionPicker.fragments.workspace}
-    `,
+  const { data, loading } = useWorkspaceConnectionPickerQuery(
     { variables: { slug: workspaceSlug } },
   );
 
