@@ -1,5 +1,32 @@
 # Changelog
 
+## [2.0.0](https://github.com/BLSQ/openhexa-app/compare/1.14.0...2.0.0) (2025-08-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* Manage users at the Organization level (PATHWAYS-631) ([#1272](https://github.com/BLSQ/openhexa-app/issues/1272))
+
+### Features
+
+* edit pipeline Python code from the UI  🎉 (HEXA-1341) ([#1278](https://github.com/BLSQ/openhexa-app/issues/1278)) ([fc4c77d](https://github.com/BLSQ/openhexa-app/commit/fc4c77d2f7669b5f9479a3577a9071e1c84cfa0c))
+* Manage users at the Organization level (PATHWAYS-631) ([#1272](https://github.com/BLSQ/openhexa-app/issues/1272)) ([85dfac9](https://github.com/BLSQ/openhexa-app/commit/85dfac9d5028b30adf0415a64b64d104a05cde21))
+
+
+### Bug Fixes
+
+* **dataset:** wraps long filename to display download button, PATHWAYS-754 ([#1279](https://github.com/BLSQ/openhexa-app/issues/1279)) ([70511fa](https://github.com/BLSQ/openhexa-app/commit/70511faa4c458ba7cb1669add2a4d413ce657429))
+* **deps:** update dependency @apollo/client to v3.13.9 ([#1292](https://github.com/BLSQ/openhexa-app/issues/1292)) ([2cb70ff](https://github.com/BLSQ/openhexa-app/commit/2cb70fffd9a00ee08a5ae8bc03f09f714cd4009d))
+* **deps:** update dependency @headlessui/react to v2.2.7 ([#1293](https://github.com/BLSQ/openhexa-app/issues/1293)) ([6c4e0e0](https://github.com/BLSQ/openhexa-app/commit/6c4e0e0361114889a5918f94f0de9cd0a01bbc1d))
+* **deps:** update dependency @sentry/nextjs to v9.46.0 ([#1267](https://github.com/BLSQ/openhexa-app/issues/1267)) ([f0e21c6](https://github.com/BLSQ/openhexa-app/commit/f0e21c6a93a57e6c8d8f7ad8323f22725a7274d4))
+* **deps:** update dependency cookies-next to v6.1.0 ([#1268](https://github.com/BLSQ/openhexa-app/issues/1268)) ([4c12e3d](https://github.com/BLSQ/openhexa-app/commit/4c12e3d447b426d831d63aecf9bd88695598cf20))
+* **deps:** update dependency i18next to v25.3.6 ([#1294](https://github.com/BLSQ/openhexa-app/issues/1294)) ([5dccfd6](https://github.com/BLSQ/openhexa-app/commit/5dccfd6c31705df56621f423416f2b46483f06c1))
+* **deps:** update dependency linkify-react to v4.3.2 ([#1295](https://github.com/BLSQ/openhexa-app/issues/1295)) ([2a040d9](https://github.com/BLSQ/openhexa-app/commit/2a040d9a23910549a1863634754024cb9fd21bcf))
+* **deps:** update dependency luxon to v3.7.1 ([#1270](https://github.com/BLSQ/openhexa-app/issues/1270)) ([4e18dc2](https://github.com/BLSQ/openhexa-app/commit/4e18dc2bc1e95ae666ca44f3e4dc93f6f13df8ed))
+* **deps:** update dependency react-i18next to v15.6.1 ([#1271](https://github.com/BLSQ/openhexa-app/issues/1271)) ([8e1f6bb](https://github.com/BLSQ/openhexa-app/commit/8e1f6bbbaa7377c38b646991e83ea399d21bca80))
+* **deps:** update graphqlcodegenerator monorepo ([#1185](https://github.com/BLSQ/openhexa-app/issues/1185)) ([5bbbbf8](https://github.com/BLSQ/openhexa-app/commit/5bbbbf8bc349b984cf3291b0ab6c0437b0ae1e33))
+* Minor improvements to Pipeline Templates UI and Admin (HEXA-1338, HEXA-1339, HEXA-1340) ([#1276](https://github.com/BLSQ/openhexa-app/issues/1276)) ([e3828c9](https://github.com/BLSQ/openhexa-app/commit/e3828c9102c5c82398a09c71d07f193517d90487))
+
 ## [1.14.0](https://github.com/BLSQ/openhexa-app/compare/1.13.0...1.14.0) (2025-07-17)
 
 
