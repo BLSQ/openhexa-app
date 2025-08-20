@@ -1,12 +1,9 @@
-import { gql, useLazyQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { Combobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
-import {
-  WorkspacePickerQuery,
-  WorkspacePickerQueryVariables,
-} from "workspaces/features/WorkspacePicker/WorkspacePicker.generated";
+import { useWorkspacePickerLazyQuery } from "workspaces/graphql/queries.generated";
 
 type Option = {
   slug: string;
@@ -26,20 +23,7 @@ const WorkspacePicker = (props: WorkspacePickerProps) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);
-  const [fetch, { data, previousData, loading }] = useLazyQuery<
-    WorkspacePickerQuery,
-    WorkspacePickerQueryVariables
-  >(gql`
-    query WorkspacePicker($query: String, $perPage: Int = 10) {
-      workspaces(query: $query, page: 1, perPage: $perPage) {
-        totalItems
-        items {
-          ...WorkspacePicker_value
-        }
-      }
-    }
-    ${WorkspacePicker.fragments.value}
-  `);
+  const [fetch, { data, previousData, loading }] = useWorkspacePickerLazyQuery();
 
   const displayValue = (option: Option) => option?.name ?? "";
 
@@ -48,7 +32,7 @@ const WorkspacePicker = (props: WorkspacePickerProps) => {
   }, []);
 
   useEffect(() => {
-    fetch({ variables: { query: debouncedQuery } });
+    fetch({ variables: { query: debouncedQuery } }).then();
   }, [fetch, debouncedQuery]);
 
   const workspaces = (data ?? previousData)?.workspaces ?? {
