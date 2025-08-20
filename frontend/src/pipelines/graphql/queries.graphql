@@ -107,3 +107,11 @@ query PipelinesPicker {
           }
         }
 }
+
+query PipelineRunPoller($runId: UUID!) {
+      run: pipelineRun(id: $runId) {
+        ...usePipelineRunPoller_run
+        duration
+        progress
+      }
+}
