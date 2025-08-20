@@ -100,3 +100,10 @@ query PipelineConfigureRunPage($pipelineId: UUID!) {
     ...PipelineRunForm_dag
   }
 }
+query PipelinesPicker {
+        dags {
+          items {
+            ...PipelinesPicker_value
+          }
+        }
+}

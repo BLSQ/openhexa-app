@@ -1,14 +1,13 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { Combobox } from "core/components/forms/Combobox";
 import { ensureArray } from "core/helpers/array";
 import useDebounce from "core/hooks/useDebounce";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
 import {
-  PipelinesPickerQuery,
-  PipelinesPickerQueryVariables,
   PipelinesPicker_ValueFragment,
 } from "./PipelinesPicker.generated";
+import { usePipelinesPickerQuery } from "pipelines/graphql/queries.generated";
 
 type PipelinesPickerProps = {
   disabled?: boolean;
@@ -30,20 +29,7 @@ const PipelinesPicker = (props: PipelinesPickerProps) => {
     placeholder = t("Select a pipeline"),
   } = props;
 
-  const { data, loading } = useQuery<
-    PipelinesPickerQuery,
-    PipelinesPickerQueryVariables
-  >(
-    gql`
-      query PipelinesPicker {
-        dags {
-          items {
-            ...PipelinesPicker_value
-          }
-        }
-      }
-      ${PipelinesPicker.fragments.value}
-    `,
+  const { data, loading } = usePipelinesPickerQuery(
     { fetchPolicy: "cache-first" },
   );
   const [query, setQuery] = useState("");
