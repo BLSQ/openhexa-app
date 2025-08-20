@@ -149,7 +149,7 @@ describe("ConfigurationList", () => {
       expect(screen.getByText("number")).toBeInTheDocument();
       expect(screen.getByText("boolean")).toBeInTheDocument();
       expect(screen.getByText("array")).toBeInTheDocument();
-      expect(screen.getByText("object")).toBeInTheDocument();
+      expect(screen.getByText("JSON")).toBeInTheDocument();
       const nullElements = screen.getAllByText("null");
       expect(nullElements.length).toBeGreaterThan(0);
     });
@@ -168,7 +168,7 @@ describe("ConfigurationList", () => {
       const numberBadge = screen.getByText("number");
       const booleanBadge = screen.getByText("boolean");
       const arrayBadge = screen.getByText("array");
-      const objectBadge = screen.getByText("object");
+      const objectBadge = screen.getByText("JSON");
       const nullElements = screen.getAllByText("null");
       const nullBadge = nullElements.find(el => el.tagName === 'SPAN')!;
 

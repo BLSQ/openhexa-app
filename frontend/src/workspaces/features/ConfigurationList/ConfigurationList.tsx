@@ -78,7 +78,7 @@ const ConfigurationList = ({
     if (typeof value === "string") return "text";
     if (Array.isArray(value)) return "array";
     if (value === null) return "null";
-    if (typeof value === "object") return "object";
+    if (typeof value === "object") return "JSON";
     return typeof value;
   };
 
@@ -89,7 +89,7 @@ const ConfigurationList = ({
       case "number": return "bg-blue-100 text-blue-800";
       case "boolean": return "bg-purple-100 text-purple-800";
       case "array": return "bg-orange-100 text-orange-800";
-      case "object": return "bg-gray-100 text-gray-800";
+      case "JSON": return "bg-gray-100 text-gray-800";
       case "null": return "bg-red-100 text-red-800";
       default: return "bg-blue-100 text-blue-800";
     }
