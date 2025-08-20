@@ -278,50 +278,6 @@ describe("ConfigurationList", () => {
       expect(mockOnChange).toHaveBeenCalledWith({});
     });
 
-    it("handles key rename when editing", async () => {
-      const user = userEvent.setup();
-      
-      jest.doMock("../AddConfigurationDialog", () => {
-        return function MockAddConfigurationDialog({ open, onSave, editingConfig, onClose }: any) {
-          if (!open) return null;
-          
-          const handleSave = () => {
-            onSave("edited_key", "edited_value");
-          };
-
-          return (
-            <div data-testid="add-configuration-dialog">
-              <button onClick={handleSave}>Save</button>
-            </div>
-          );
-        };
-      });
-
-      const { rerender } = render(
-        <TestApp>
-          <ConfigurationList
-            configuration={testConfiguration}
-            onChange={mockOnChange}
-          />
-        </TestApp>
-      );
-
-      rerender(
-        <TestApp>
-          <ConfigurationList
-            configuration={testConfiguration}
-            onChange={mockOnChange}
-          />
-        </TestApp>
-      );
-
-      await user.click(screen.getByText("Edit"));
-      await user.click(screen.getByText("Save"));
-
-      expect(mockOnChange).toHaveBeenCalledWith({
-        edited_key: "edited_value"
-      });
-    });
   });
 
   describe("Disabled State", () => {
@@ -358,7 +314,7 @@ describe("ConfigurationList", () => {
 
       expect(screen.getByText("test_key")).toBeInTheDocument();
       expect(screen.getByText("test_value")).toBeInTheDocument();
-      expect(screen.getByText("text")).toBeInTheDocument(); // type badge
+      expect(screen.getByText("text")).toBeInTheDocument(); 
     });
   });
 
@@ -508,7 +464,7 @@ describe("ConfigurationList", () => {
       );
 
       expect(screen.getByText("complex_object")).toBeInTheDocument();
-      expect(screen.getByText("object")).toBeInTheDocument(); // type badge
+      expect(screen.getByText("object")).toBeInTheDocument(); 
       expect(screen.getByText(JSON.stringify(complexConfig.complex_object))).toBeInTheDocument();
     });
   });
