@@ -303,7 +303,7 @@ oauthlib==3.3.1
     #   requests-oauthlib
 openhexa-sdk==2.8.0
     # via openhexa-toolbox
-openhexa-toolbox==2.8.1
+openhexa-toolbox==2.8.3
     # via -r requirements.in
 openlineage-python==1.34.0
     # via openhexa-toolbox
@@ -423,7 +423,7 @@ rasterio==1.4.3
     #   rio-cogeo
 regex==2024.11.6
     # via -r requirements.in
-requests==2.32.4
+requests==2.32.5
     # via
     #   -r requirements.in
     #   cads-api-client

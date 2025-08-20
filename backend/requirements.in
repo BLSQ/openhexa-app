@@ -55,7 +55,7 @@ rasterio
 rio-cogeo
 
 # need to pin requests to < 2.32 to avoid breaking docker-py
-requests==2.32.4
+requests==2.32.5
 requests-mock
 
 # analytics
@@ -71,7 +71,7 @@ openpyxl
 regex
 
 #toolbox
-openhexa-toolbox==2.8.1
+openhexa-toolbox==2.8.3
 
 # email templating
 mjml-python
