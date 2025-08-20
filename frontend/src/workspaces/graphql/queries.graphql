@@ -792,3 +792,10 @@ query PipelineVersionPicker($pipelineId: UUID!, $page: Int, $perPage: Int) {
         }
       }
  }
+
+query WorkspaceMemberPicker($slug: String!) {
+      workspace(slug: $slug) {
+        slug
+        ...WorkspaceMemberPicker_workspace
+      }
+}
