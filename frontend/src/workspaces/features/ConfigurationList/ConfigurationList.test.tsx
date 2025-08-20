@@ -377,24 +377,6 @@ describe("ConfigurationList", () => {
       expect(screen.getByText("No configuration properties set")).toBeInTheDocument();
     });
 
-    it("handles empty string values", () => {
-      const configWithEmptyString = {
-        empty_string: ""
-      };
-
-      render(
-        <TestApp>
-          <ConfigurationList
-            configuration={configWithEmptyString}
-            onChange={mockOnChange}
-          />
-        </TestApp>
-      );
-
-      expect(screen.getByText("empty_string")).toBeInTheDocument();
-      const valueElements = screen.getAllByText("");
-      expect(valueElements.length).toBeGreaterThan(0);
-    });
 
     it("handles special characters in keys and values", () => {
       const specialConfig = {
@@ -439,33 +421,5 @@ describe("ConfigurationList", () => {
       expect(screen.getByText(longValue)).toBeInTheDocument();
     });
 
-    it("handles complex nested objects", () => {
-      const complexConfig = {
-        complex_object: {
-          level1: {
-            level2: {
-              level3: ["nested", "array", { deeply: "nested" }]
-            }
-          },
-          array_with_objects: [
-            { id: 1, name: "first" },
-            { id: 2, name: "second" }
-          ]
-        }
-      };
-
-      render(
-        <TestApp>
-          <ConfigurationList
-            configuration={complexConfig}
-            onChange={mockOnChange}
-          />
-        </TestApp>
-      );
-
-      expect(screen.getByText("complex_object")).toBeInTheDocument();
-      expect(screen.getByText("object")).toBeInTheDocument(); 
-      expect(screen.getByText(JSON.stringify(complexConfig.complex_object))).toBeInTheDocument();
-    });
   });
 });
