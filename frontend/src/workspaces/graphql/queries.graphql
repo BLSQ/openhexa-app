@@ -12,6 +12,7 @@ query WorkspacePage($slug: String!) {
     name
     description
     dockerImage
+    configuration
     countries {
       code
       flag

@@ -210,6 +210,89 @@ class WorkspaceTest(TestCase):
             self.assertEqual(invitation.status, WorkspaceInvitationStatus.PENDING)
             self.assertEqual(invitation.invited_by, self.USER_JULIA)
 
+    def test_workspace_configuration_default(self):
+        """Test that workspace configuration field has a default empty dict"""
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="Test Workspace",
+                description="Test workspace for configuration",
+            )
+        self.assertEqual(workspace.configuration, {})
+
+    def test_workspace_configuration_set_and_update(self):
+        """Test that workspace configuration can be set and updated"""
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="Test Workspace",
+                description="Test workspace for configuration",
+            )
+
+        initial_config = {"api_key": "test123", "timeout": 30}
+        workspace.update_if_has_perm(
+            principal=self.USER_JULIA, configuration=initial_config
+        )
+        workspace.refresh_from_db()
+        self.assertEqual(workspace.configuration, initial_config)
+
+        updated_config = {"api_key": "updated456", "timeout": 60, "new_setting": True}
+        workspace.update_if_has_perm(
+            principal=self.USER_JULIA, configuration=updated_config
+        )
+        workspace.refresh_from_db()
+        self.assertEqual(workspace.configuration, updated_config)
+
+    def test_workspace_configuration_permission_denied(self):
+        """Test that non-admin users cannot update configuration"""
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="Test Workspace",
+                description="Test workspace for configuration",
+            )
+
+        WorkspaceMembership.objects.create(
+            user=self.USER_SERENA,
+            workspace=workspace,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        with self.assertRaises(PermissionDenied):
+            workspace.update_if_has_perm(
+                principal=self.USER_SERENA, configuration={"unauthorized": "update"}
+            )
+
+    def test_workspace_configuration_editor_can_update(self):
+        """Test that editor users can update configuration"""
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="Test Workspace",
+                description="Test workspace for configuration",
+            )
+
+        WorkspaceMembership.objects.create(
+            user=self.USER_SERENA,
+            workspace=workspace,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+
+        editor_config = {"editor_setting": "value_from_editor"}
+        workspace.update_if_has_perm(
+            principal=self.USER_SERENA, configuration=editor_config
+        )
+        workspace.refresh_from_db()
+        self.assertEqual(workspace.configuration, editor_config)
+
 
 class ConnectionTest(TestCase):
     USER_SERENA = None

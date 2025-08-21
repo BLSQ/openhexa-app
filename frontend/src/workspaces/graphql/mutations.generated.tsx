@@ -17,7 +17,7 @@ export type UpdateWorkspaceMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateWorkspaceMutation = { __typename?: 'Mutation', updateWorkspace: { __typename?: 'UpdateWorkspaceResult', success: boolean, errors: Array<Types.UpdateWorkspaceError>, workspace?: { __typename?: 'Workspace', slug: string, name: string, description?: string | null, countries: Array<{ __typename?: 'Country', code: string, alpha3: string, name: string }> } | null } };
+export type UpdateWorkspaceMutation = { __typename?: 'Mutation', updateWorkspace: { __typename?: 'UpdateWorkspaceResult', success: boolean, errors: Array<Types.UpdateWorkspaceError>, workspace?: { __typename?: 'Workspace', slug: string, name: string, description?: string | null, configuration: any, countries: Array<{ __typename?: 'Country', code: string, alpha3: string, name: string }> } | null } };
 
 export type DeleteWorkspaceMutationVariables = Types.Exact<{
   input: Types.DeleteWorkspaceInput;
@@ -212,6 +212,7 @@ export const UpdateWorkspaceDocument = gql`
       slug
       name
       description
+      configuration
       countries {
         code
         alpha3

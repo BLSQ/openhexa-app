@@ -30,7 +30,9 @@ const CountryProperty = (props: CountryPropertyProps) => {
         />
       ) : (
         <div className="flex flex-wrap items-center gap-1.5">
-          {countriesArray.length === 0 && defaultValue}
+          {countriesArray.length === 0 && (
+            <span className="text-gray-500 italic text-sm">{defaultValue}</span>
+          )}
           {countriesArray.map((country, i) => (
             <CountryBadge key={i} country={country} />
           ))}
