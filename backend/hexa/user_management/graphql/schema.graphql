@@ -1019,6 +1019,7 @@ type OrganizationPermissions {
     createWorkspace: Boolean!
     archiveWorkspace: Boolean!
     manageMembers: Boolean!
+    manageOwners: Boolean!
 }
 
 """

@@ -3297,6 +3297,7 @@ export type OrganizationPermissions = {
   archiveWorkspace: Scalars['Boolean']['output'];
   createWorkspace: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
+  manageOwners: Scalars['Boolean']['output'];
 };
 
 /** Represents a workspace invitation within an organization invitation. */

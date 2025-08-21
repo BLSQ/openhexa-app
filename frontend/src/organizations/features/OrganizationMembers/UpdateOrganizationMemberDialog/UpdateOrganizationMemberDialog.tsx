@@ -119,7 +119,7 @@ const UpdateOrganizationMemberDialog = (
   );
 
   return (
-    <Dialog open={open} onClose={onClose} onSubmit={form.handleSubmit}>
+    <Dialog open={open} onClose={onClose} onSubmit={form.handleSubmit} maxWidth="max-w-4xl">
       <Dialog.Title>{t("Update Member Permissions")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
         <div>
@@ -138,12 +138,20 @@ const UpdateOrganizationMemberDialog = (
             value={form.formData.organizationRole}
             onChange={form.handleInputChange}
             required
+            disabled={member.role === OrganizationMembershipRole.Owner}
           >
-            {Object.values(OrganizationMembershipRole).map((role) => (
-              <option key={role} value={role}>
-                {formatOrganizationMembershipRole(role)}
-              </option>
-            ))}
+            {Object.values(OrganizationMembershipRole)
+              .filter((role) => {
+                if (role === OrganizationMembershipRole.Owner) {
+                  return organization.permissions.manageOwners;
+                }
+                return true;
+              })
+              .map((role) => (
+                <option key={role} value={role}>
+                  {formatOrganizationMembershipRole(role)}
+                </option>
+              ))}
           </SimpleSelect>
         </Field>
 
@@ -154,24 +162,25 @@ const UpdateOrganizationMemberDialog = (
               placeholder={t("Search workspaces...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
             />
 
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <div className="max-h-64 overflow-y-auto">
-                <Table className="table-fixed">
+                <Table className="w-full">
                   <TableHead>
                     <TableRow>
-                      <TableCell heading className="w-1/2"></TableCell>
-                      <TableCell heading className="text-center w-1/8">
+                      <TableCell heading className=""></TableCell>
+                      <TableCell heading className="text-center w-24">
                         {t("Admin")}
                       </TableCell>
-                      <TableCell heading className="text-center w-1/8">
+                      <TableCell heading className="text-center w-24">
                         {t("Editor")}
                       </TableCell>
-                      <TableCell heading className="text-center w-1/8">
+                      <TableCell heading className="text-center w-24">
                         {t("Viewer")}
                       </TableCell>
-                      <TableCell heading className="text-center w-1/8">
+                      <TableCell heading className="text-center w-24">
                         {t("None")}
                       </TableCell>
                     </TableRow>
