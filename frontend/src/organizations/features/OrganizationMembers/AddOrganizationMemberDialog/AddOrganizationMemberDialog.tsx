@@ -208,9 +208,8 @@ const AddOrganizationMemberDialog = (
           >
             {Object.values(OrganizationMembershipRole)
               .filter((role) => {
-                // Only show Owner role if current user can manage owners
                 if (role === OrganizationMembershipRole.Owner) {
-                  return organization.permissions.manageOwners;
+                  return organization?.permissions.manageOwners;
                 }
                 return true;
               })

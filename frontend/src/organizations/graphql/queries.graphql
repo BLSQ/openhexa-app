@@ -16,6 +16,7 @@ query Organization($id: UUID!) {
             createWorkspace
             archiveWorkspace
             manageMembers
+            manageOwners
         }
         members {
             totalItems
