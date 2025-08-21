@@ -465,7 +465,7 @@ def resolve_register(_, info, **kwargs):
                 event="emails.registration_landed",
                 properties={
                     "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "organization": organization_invitation.organization.slug,
+                    "organization": organization_invitation.organization.name,
                     "invitee_email": organization_invitation.email,
                     "invitee_role": organization_invitation.role,
                     "status": organization_invitation.status,
@@ -547,7 +547,7 @@ def resolve_register(_, info, **kwargs):
                     event="emails.registration_complete",
                     properties={
                         "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "organization": organization_invitation.organization.slug,
+                        "organization": organization_invitation.organization.name,
                         "invitee_email": organization_invitation.email,
                         "invitee_role": organization_invitation.role,
                         "status": organization_invitation.status,
