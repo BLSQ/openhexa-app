@@ -2728,6 +2728,7 @@ type OrganizationPermissions {
   archiveWorkspace: Boolean!
   createWorkspace: Boolean!
   manageMembers: Boolean!
+  manageOwners: Boolean!
 }
 
 """Represents a workspace invitation within an organization invitation."""

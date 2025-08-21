@@ -3,6 +3,7 @@ query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String) 
     id
       permissions {
           manageMembers
+          manageOwners
       }
     workspaces(perPage: 1000, page: 1) {
       items {

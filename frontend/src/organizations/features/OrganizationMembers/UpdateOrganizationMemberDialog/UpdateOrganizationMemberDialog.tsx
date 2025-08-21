@@ -138,12 +138,20 @@ const UpdateOrganizationMemberDialog = (
             value={form.formData.organizationRole}
             onChange={form.handleInputChange}
             required
+            disabled={member.role === OrganizationMembershipRole.Owner}
           >
-            {Object.values(OrganizationMembershipRole).map((role) => (
-              <option key={role} value={role}>
-                {formatOrganizationMembershipRole(role)}
-              </option>
-            ))}
+            {Object.values(OrganizationMembershipRole)
+              .filter((role) => {
+                if (role === OrganizationMembershipRole.Owner) {
+                  return organization.permissions.manageOwners;
+                }
+                return true;
+              })
+              .map((role) => (
+                <option key={role} value={role}>
+                  {formatOrganizationMembershipRole(role)}
+                </option>
+              ))}
           </SimpleSelect>
         </Field>
 

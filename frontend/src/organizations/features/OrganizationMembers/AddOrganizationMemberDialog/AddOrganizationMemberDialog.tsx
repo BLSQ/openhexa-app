@@ -206,11 +206,19 @@ const AddOrganizationMemberDialog = (
             onChange={form.handleInputChange}
             required
           >
-            {Object.values(OrganizationMembershipRole).map((role) => (
-              <option key={role} value={role}>
-                {formatOrganizationMembershipRole(role)}
-              </option>
-            ))}
+            {Object.values(OrganizationMembershipRole)
+              .filter((role) => {
+                // Only show Owner role if current user can manage owners
+                if (role === OrganizationMembershipRole.Owner) {
+                  return organization.permissions.manageOwners;
+                }
+                return true;
+              })
+              .map((role) => (
+                <option key={role} value={role}>
+                  {formatOrganizationMembershipRole(role)}
+                </option>
+              ))}
           </SimpleSelect>
         </Field>
 
