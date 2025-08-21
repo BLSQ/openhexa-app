@@ -209,7 +209,7 @@ class OrganizationMembership(Base):
             raise PermissionDenied
 
         if role == OrganizationMembershipRole.OWNER:
-            if not principal.has_perm("user_management.can_manage_owner", organization):
+            if not principal.has_perm("user_management.manage_owners", organization):
                 raise PermissionDenied
 
         return cls.objects.create(
@@ -229,7 +229,7 @@ class OrganizationMembership(Base):
 
         if role == OrganizationMembershipRole.OWNER:
             if not principal.has_perm(
-                "user_management.can_manage_owner", self.organization
+                "user_management.manage_owners", self.organization
             ):
                 raise PermissionDenied
 
@@ -489,7 +489,7 @@ class OrganizationInvitationManager(models.Manager):
             raise PermissionDenied
 
         if role == OrganizationMembershipRole.OWNER:
-            if not principal.has_perm("user_management.can_manage_owner", organization):
+            if not principal.has_perm("user_management.manage_owners", organization):
                 raise PermissionDenied
 
         invitation = self.create(

@@ -731,6 +731,17 @@ def resolve_organization_permissions_manage_members(organization: Organization, 
     )
 
 
+@organization_permissions_object.field("manageOwners")
+def resolve_organization_permissions_manage_owners(organization: Organization, info):
+    request: HttpRequest = info.context["request"]
+    user = request.user
+    return (
+        user.has_perm("user_management.manage_owners", organization)
+        if user.is_authenticated
+        else False
+    )
+
+
 @identity_mutations.field("createMembership")
 @transaction.atomic
 def resolve_create_membership(_, info, **kwargs):
