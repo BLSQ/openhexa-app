@@ -23,6 +23,7 @@ const TextProperty = (props: TextPropertyProps) => {
     sm = false,
     rows,
     onChange,
+    defaultValue,
     ...delegated
   } = props;
 
@@ -67,8 +68,8 @@ const TextProperty = (props: TextPropertyProps) => {
         {markdown && property.displayValue ? (
           <MarkdownViewer sm={sm} markdown={property.displayValue} />
         ) : (
-          <div className={clsx("prose text-sm text-gray-900", className)}>
-            {property.displayValue ?? property.defaultValue}
+          <div className={clsx("prose text-sm", property.displayValue ? "text-gray-900" : "text-gray-500 italic", className)}>
+            {property.displayValue || defaultValue}
           </div>
         )}
       </DataCard.Property>

@@ -36,6 +36,9 @@ type Workspace {
   # The user who created the workspace.
   createdBy: User!
 
+  # Custom configuration properties for the workspace as key-value pairs.
+  configuration: JSON!
+
   # The connections associated with the workspace.
   connections: [Connection!]!
 
@@ -364,6 +367,9 @@ input CreateWorkspaceInput {
 
   # The organization ID to which the workspace belongs.
   organizationId: UUID
+
+  # Initial configuration properties for the workspace.
+  configuration: JSON
 }
 
 """
@@ -384,6 +390,9 @@ input UpdateWorkspaceInput {
 
   # The new Docker image associated with the workspace.
   dockerImage: String
+
+  # The new configuration properties for the workspace.
+  configuration: JSON
 }
 
 """

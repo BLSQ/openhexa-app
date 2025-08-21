@@ -927,6 +927,7 @@ enum CreateWorkspaceError {
 
 """Represents the input for creating a workspace."""
 input CreateWorkspaceInput {
+  configuration: JSON
   countries: [CountryInput!]
   description: String
   loadSampleData: Boolean
@@ -4232,6 +4233,7 @@ enum UpdateWorkspaceError {
 
 """Represents the input for updating a workspace."""
 input UpdateWorkspaceInput {
+  configuration: JSON
   countries: [CountryInput!]
   description: String
   dockerImage: String
@@ -4419,6 +4421,7 @@ Represents a workspace. A workspace is a shared environment where users can coll
 type Workspace {
   """File storage of the workspace represented as a bucket"""
   bucket: Bucket!
+  configuration: JSON!
   connections: [Connection!]!
   countries: [Country!]!
   createdAt: DateTime!
