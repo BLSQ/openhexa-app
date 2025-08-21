@@ -39,6 +39,9 @@ type Workspace {
   # Custom configuration properties for the workspace as key-value pairs.
   configuration: JSON!
 
+  # Automatically update pipelines when their source template is updated.
+  autoUpdatePipelinesFromTemplate: Boolean!
+
   # The connections associated with the workspace.
   connections: [Connection!]!
 
@@ -370,6 +373,9 @@ input CreateWorkspaceInput {
 
   # Initial configuration properties for the workspace.
   configuration: JSON
+
+  # Automatically update pipelines when their source template is updated.
+  autoUpdatePipelinesFromTemplate: Boolean
 }
 
 """
@@ -393,6 +399,9 @@ input UpdateWorkspaceInput {
 
   # The new configuration properties for the workspace.
   configuration: JSON
+
+  # Automatically update pipelines when their source template is updated.
+  autoUpdatePipelinesFromTemplate: Boolean
 }
 
 """

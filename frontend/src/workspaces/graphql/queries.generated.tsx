@@ -55,7 +55,7 @@ export type WorkspacePageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspacePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, description?: string | null, dockerImage?: string | null, configuration: any, countries: Array<{ __typename?: 'Country', code: string, flag: string, name: string }>, permissions: { __typename?: 'WorkspacePermissions', delete: boolean, update: boolean, manageMembers: boolean, launchNotebookServer: boolean }, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null };
+export type WorkspacePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, description?: string | null, dockerImage?: string | null, configuration: any, autoUpdatePipelinesFromTemplate: boolean, countries: Array<{ __typename?: 'Country', code: string, flag: string, name: string }>, permissions: { __typename?: 'WorkspacePermissions', delete: boolean, update: boolean, manageMembers: boolean, launchNotebookServer: boolean }, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null };
 
 export type WorkspacePipelinesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -358,6 +358,7 @@ export const WorkspacePageDocument = gql`
     description
     dockerImage
     configuration
+    autoUpdatePipelinesFromTemplate
     countries {
       code
       flag

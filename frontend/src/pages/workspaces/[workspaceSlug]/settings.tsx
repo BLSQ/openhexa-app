@@ -31,6 +31,7 @@ import Tooltip from "core/components/Tooltip";
 import { useRouter } from "next/router";
 import Tabs from "core/components/Tabs";
 import ConfigurationProperty from "workspaces/features/ConfigurationProperty";
+import SwitchProperty from "core/components/DataCard/SwitchProperty";
 
 type Props = {
   page: number;
@@ -60,6 +61,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           name: values.name,
           dockerImage: values.dockerImage,
           configuration: values.configuration || {},
+          autoUpdatePipelinesFromTemplate: values.autoUpdatePipelinesFromTemplate,
           countries: ensureArray(values.countries || workspace.countries).map(
             ({ code }) => ({
               code,
@@ -176,6 +178,14 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                     label={t("Configuration")}
                     help={t(
                       "Custom configuration properties for the workspace. Each property has a name (string) and a value (JSON).",
+                    )}
+                  />
+                  <SwitchProperty
+                    id="autoUpdatePipelinesFromTemplate"
+                    accessor="autoUpdatePipelinesFromTemplate"
+                    label={t("Auto-update pipelines from templates")}
+                    help={t(
+                      "When enabled, pipelines created from templates will be automatically updated when new template versions are released.",
                     )}
                   />
                 </DataCard.FormSection>

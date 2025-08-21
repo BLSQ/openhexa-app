@@ -23,6 +23,7 @@ mutation updateWorkspace($input: UpdateWorkspaceInput!) {
       name
       description
       configuration
+      autoUpdatePipelinesFromTemplate
       countries {
         code
         alpha3

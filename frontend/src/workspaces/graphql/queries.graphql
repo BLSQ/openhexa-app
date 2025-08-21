@@ -13,6 +13,7 @@ query WorkspacePage($slug: String!) {
     description
     dockerImage
     configuration
+    autoUpdatePipelinesFromTemplate
     countries {
       code
       flag

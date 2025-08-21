@@ -106,6 +106,7 @@ class WorkspaceManager(models.Manager):
         load_sample_data: bool = False,
         organization: Organization | None = None,
         configuration: dict | None = None,
+        auto_update_pipelines_from_template: bool = False,
     ):
         if organization:
             if not principal.has_perm("user_management.create_workspace", organization):
@@ -131,6 +132,9 @@ class WorkspaceManager(models.Manager):
             create_kwargs["organization"] = organization
         if configuration is not None:
             create_kwargs["configuration"] = configuration
+        create_kwargs[
+            "auto_update_pipelines_from_template"
+        ] = auto_update_pipelines_from_template
 
         db_password = make_random_password(length=16)
         db_name = generate_database_name()
@@ -232,6 +236,10 @@ class Workspace(Base):
         blank=True,
         help_text="Custom configuration properties for the workspace as key-value pairs",
     )
+    auto_update_pipelines_from_template = models.BooleanField(
+        default=False,
+        help_text="Automatically update pipelines when their source template is updated",
+    )
 
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
@@ -258,6 +266,7 @@ class Workspace(Base):
             "description",
             "docker_image",
             "configuration",
+            "auto_update_pipelines_from_template",
         ]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
