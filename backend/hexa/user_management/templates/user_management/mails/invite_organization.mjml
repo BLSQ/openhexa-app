@@ -26,7 +26,7 @@
         </mj-text>
         <mj-text color="#333333" padding-top="10px">
           {% blocktranslate with owner=owner owner_email=owner_email organization=organization %}
-          {{owner}} ({{owner_email}}) has invited you to join the organization "{{organization}}" on OpenHEXA.
+          <strong>{{owner}}</strong> ({{owner_email}}) has invited you to join the organization <strong>{{organization}}</strong> on OpenHEXA.
           {% endblocktranslate %}
         </mj-text>
         <mj-text color="#333333" padding-top="10px">
@@ -37,16 +37,30 @@
           {% trans "You will also be given access to the following workspaces:" %}
         </mj-text>
         {% for workspace_invitation in workspace_invitations %}
-        <mj-text color="#666666" padding-top="5px" padding-left="15px">
-          • <strong>{{ workspace_invitation.workspace_slug }}</strong> 
-          {% if workspace_invitation.role == "ADMIN" %}
-          {% trans "as Admin" %}
-          {% elif workspace_invitation.role == "EDITOR" %}
-          {% trans "as Editor" %}
-          {% elif workspace_invitation.role == "VIEWER" %}
-          {% trans "as Viewer" %}
-          {% endif %}
-        </mj-text>
+        <mj-table padding="10px 0">
+          <tr style="background-color: #f8f9fa; border-radius: 8px;">
+            <td style="padding: 15px 20px; border-radius: 8px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="flex: 1;">
+                  <div style="font-weight: 700; color: #1c2024; font-size: 16px; margin-bottom: 4px;">
+                    {{ workspace_invitation.workspace.name }}
+                  </div>
+                </div>
+                <div style="margin-left: 15px;">
+                  <span style="background-color: #FF499C; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                    {% if workspace_invitation.role == "ADMIN" %}
+                    {% trans "ADMIN" %}
+                    {% elif workspace_invitation.role == "EDITOR" %}
+                    {% trans "EDITOR" %}
+                    {% elif workspace_invitation.role == "VIEWER" %}
+                    {% trans "VIEWER" %}
+                    {% endif %}
+                  </span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </mj-table>
         {% endfor %}
         {% endif %}
         <mj-button href="{{url}}" background-color="#FF499C" color="#ffffff" padding="30px 0 10px 0">
