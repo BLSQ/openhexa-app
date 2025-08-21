@@ -242,7 +242,6 @@ class OrganizationMembership(Base):
         if principal.id == self.user.id:
             raise PermissionDenied
 
-        # Only owners can delete owners (but not themselves)
         if self.role == OrganizationMembershipRole.OWNER:
             if not principal.has_perm(
                 "user_management.manage_owners", self.organization
