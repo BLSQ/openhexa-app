@@ -79,3 +79,11 @@ def list_all_workspaces(principal: User, organization: Organization):
         user=principal,
         role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
     ).exists()
+
+
+def can_manage_owner(principal: User, organization: Organization):
+    """Only owner users can manage owner roles"""
+    return organization.organizationmembership_set.filter(
+        user=principal,
+        role=OrganizationMembershipRole.OWNER,
+    ).exists()

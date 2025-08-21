@@ -924,13 +924,9 @@ def resolve_update_organization_member(_, info, **kwargs):
 
     try:
         membership = OrganizationMembership.objects.get(id=update_input["id"])
-        organization = membership.organization
-
-        if not principal.has_perm("user_management.manage_members", organization):
-            raise PermissionDenied
-
-        membership.role = update_input["role"].lower()
-        membership.save()
+        membership.update_if_has_perm(
+            principal=principal, role=update_input["role"].lower()
+        )
 
         workspace_permissions = update_input.get("workspace_permissions", [])
         if workspace_permissions:
@@ -943,7 +939,7 @@ def resolve_update_organization_member(_, info, **kwargs):
                 try:
                     workspace = Workspace.objects.get(
                         slug=workspace_slug,
-                        organization=organization,
+                        organization=membership.organization,
                         archived=False,
                     )
 
@@ -983,23 +979,11 @@ def resolve_delete_organization_member(_, info, **kwargs):
 
     try:
         membership = OrganizationMembership.objects.get(id=delete_input["id"])
-
-        if not principal.has_perm(
-            "user_management.manage_members", membership.organization
-        ):
-            raise PermissionDenied
-
-        if membership.user == principal:
-            return {"success": False, "errors": ["CANNOT_DELETE_SELF"]}
-
-        user = membership.user
-        organization = membership.organization
         with transaction.atomic():
             WorkspaceMembership.objects.filter(
-                user=user, workspace__organization=organization
+                user=membership.user, workspace__organization=membership.organization
             ).delete()
-
-            membership.delete()
+            membership.delete_if_has_perm(principal=principal)
 
         return {"success": True, "errors": []}
 
@@ -1012,15 +996,13 @@ def resolve_delete_organization_member(_, info, **kwargs):
 @identity_mutations.field("inviteOrganizationMember")
 def resolve_invite_organization_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     input = kwargs["input"]
 
     try:
         organization: Organization = Organization.objects.filter_for_user(
             request.user
         ).get(id=input["organization_id"])
-
-        if not request.user.has_perm("user_management.manage_members", organization):
-            raise PermissionDenied
 
         workspace_slugs = [
             ws["workspace_slug"] for ws in input["workspace_invitations"]
@@ -1044,7 +1026,8 @@ def resolve_invite_organization_member(_, info, **kwargs):
                 raise AlreadyExists
 
             with transaction.atomic():
-                OrganizationMembership.objects.create(
+                OrganizationMembership.create_if_has_perm(
+                    principal=principal,
                     organization=organization,
                     user=user,
                     role=input["organization_role"].lower(),

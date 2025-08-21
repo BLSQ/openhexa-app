@@ -196,6 +196,28 @@ class OrganizationMembership(Base):
     )
     role = models.CharField(choices=OrganizationMembershipRole.choices, max_length=50)
 
+    @classmethod
+    def create_if_has_perm(
+        cls,
+        principal: User,
+        *,
+        organization: Organization,
+        user: User,
+        role: OrganizationMembershipRole,
+    ):
+        if not principal.has_perm("user_management.manage_members", organization):
+            raise PermissionDenied
+
+        if role == OrganizationMembershipRole.OWNER:
+            if not principal.has_perm("user_management.can_manage_owner", organization):
+                raise PermissionDenied
+
+        return cls.objects.create(
+            organization=organization,
+            user=user,
+            role=role,
+        )
+
     def update_if_has_perm(self, *, principal: User, role: OrganizationMembershipRole):
         if not principal.has_perm("user_management.manage_members", self.organization):
             raise PermissionDenied
@@ -204,6 +226,13 @@ class OrganizationMembership(Base):
             or self.role == OrganizationMembershipRole.OWNER
         ):
             raise PermissionDenied
+
+        if role == OrganizationMembershipRole.OWNER:
+            if not principal.has_perm(
+                "user_management.can_manage_owner", self.organization
+            ):
+                raise PermissionDenied
+
         self.role = role
         return self.save()
 
@@ -458,6 +487,10 @@ class OrganizationInvitationManager(models.Manager):
     ):
         if not principal.has_perm("user_management.manage_members", organization):
             raise PermissionDenied
+
+        if role == OrganizationMembershipRole.OWNER:
+            if not principal.has_perm("user_management.can_manage_owner", organization):
+                raise PermissionDenied
 
         invitation = self.create(
             email=email,
