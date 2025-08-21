@@ -158,15 +158,14 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                     id="countries"
                     accessor="countries"
                     multiple
-                    visible={(value, isEditing) => isEditing || value?.length > 0}
                     label={t("Countries")}
-                    defaultValue="-"
+                    defaultValue={t("Not set")}
                   />
                   <TextProperty
                     id="dockerImage"
                     accessor="dockerImage"
                     label={t("Image")}
-                    defaultValue="-"
+                    defaultValue={t("Not set")}
                     help={t(
                       "You can set a custom docker image that will be used to run pipelines and jupyterlab. That image can be created, for example, by extending blsq/openhexa-blsq-environment.",
                     )}
