@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("workspaces", "0049_organizationworkspaceinvitation"),
+        ("workspaces", "0050_merge_20250818_0957"),
     ]
 
     operations = [
