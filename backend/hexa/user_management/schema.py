@@ -632,10 +632,12 @@ def resolve_members(organization: Organization, info, **kwargs):
 
     term = kwargs.get("term")
     if term:
+        # Annotate with collated email field to handle case-insensitive email search
+        qs = qs.annotate(case_insensitive_email=Collate("user__email", "und-x-icu"))
         qs = qs.filter(
             Q(user__first_name__icontains=term)
             | Q(user__last_name__icontains=term)
-            | Q(user__email__icontains=term)
+            | Q(case_insensitive_email__contains=term)
         )
 
     return result_page(
