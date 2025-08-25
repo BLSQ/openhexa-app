@@ -1251,6 +1251,7 @@ export type Dataset = MetadataObject & {
   links: DatasetLinkPage;
   name: Scalars['String']['output'];
   permissions: DatasetPermissions;
+  sharedWithOrganization: Scalars['Boolean']['output'];
   slug: Scalars['String']['output'];
   targetId: Scalars['OpaqueID']['output'];
   updatedAt: Scalars['DateTime']['output'];
@@ -4727,6 +4728,7 @@ export type UpdateDatasetInput = {
   datasetId: Scalars['ID']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  sharedWithOrganization?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 /** Result of updating a dataset. */

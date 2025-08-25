@@ -1183,6 +1183,7 @@ type Dataset implements MetadataObject {
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
   name: String!
   permissions: DatasetPermissions!
+  sharedWithOrganization: Boolean!
   slug: String!
   targetId: OpaqueID!
   updatedAt: DateTime!
@@ -3883,6 +3884,7 @@ input UpdateDatasetInput {
   datasetId: ID!
   description: String
   name: String
+  sharedWithOrganization: Boolean
 }
 
 """Result of updating a dataset."""

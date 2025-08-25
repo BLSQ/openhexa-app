@@ -370,15 +370,22 @@ query WorkspaceDatasetIndexPage(
     ...DatasetLayout_datasetLink
     id
     dataset {
+      id
+      name
+      slug
       permissions {
         update
       }
       description
+      sharedWithOrganization
       updatedAt
       createdAt
       workspace {
         name
         slug
+        organization {
+          name
+        }
       }
       createdBy {
         ...User_user
