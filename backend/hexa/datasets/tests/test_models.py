@@ -8,7 +8,12 @@ from django.utils.crypto import get_random_string
 from hexa.core.test import TestCase
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
 from hexa.files import storage
-from hexa.user_management.models import User
+from hexa.user_management.models import (
+    Organization,
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    User,
+)
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -346,3 +351,276 @@ class DatasetVersionUpdateTest(BaseTestMixin, TestCase):
                 name="Updated v3",
                 changelog="Updated changelog v3",
             )
+
+
+class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        BaseTestMixin.setUpTestData()
+
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Test Organization",
+            short_name="test-org",
+            organization_type="CORPORATE",
+        )
+        cls.ORGANIZATION_2 = Organization.objects.create(
+            name="Another Organization",
+            short_name="another-org",
+            organization_type="ACADEMIC",
+        )
+
+        cls.WORKSPACE.organization = cls.ORGANIZATION
+        cls.WORKSPACE.save()
+        cls.WORKSPACE_2.organization = cls.ORGANIZATION_2
+        cls.WORKSPACE_2.save()
+
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_ADMIN,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_EDITOR,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_VIEWER,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION_2,
+            user=cls.USER_ADMIN,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+
+        cls.DATASET = Dataset.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            cls.WORKSPACE,
+            name="My Dataset",
+            description="Description of dataset",
+        )
+
+    def test_dataset_shared_with_organization_field_defaults_to_false(self):
+        self.assertFalse(self.DATASET.shared_with_organization)
+
+    def test_dataset_shared_with_organization_can_be_set_to_true(self):
+        self.DATASET.shared_with_organization = True
+        self.DATASET.save()
+        self.DATASET.refresh_from_db()
+        self.assertTrue(self.DATASET.shared_with_organization)
+
+    def test_dataset_filter_for_user_includes_organization_shared_datasets(self):
+        org_dataset = Dataset.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            self.WORKSPACE,
+            name="Org Dataset",
+            description="Organization shared dataset",
+        )
+        org_dataset.shared_with_organization = True
+        org_dataset.save()
+
+        datasets = Dataset.objects.filter_for_user(self.USER_EDITOR)
+        self.assertIn(org_dataset, datasets)
+
+        datasets = Dataset.objects.filter_for_user(self.USER_VIEWER)
+        self.assertIn(org_dataset, datasets)
+
+    def test_dataset_filter_for_user_excludes_non_organization_members(self):
+        org_dataset = Dataset.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            self.WORKSPACE,
+            name="Org Dataset",
+            description="Organization shared dataset",
+        )
+        org_dataset.shared_with_organization = True
+        org_dataset.save()
+
+        datasets = Dataset.objects.filter_for_user(self.USER_SERENA)
+        self.assertNotIn(org_dataset, datasets)
+
+    def test_dataset_filter_for_user_excludes_non_shared_datasets(self):
+        other_workspace = Workspace.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            name="Other Workspace",
+            description="Workspace USER_EDITOR is not a member of",
+            organization=self.ORGANIZATION,
+        )
+
+        private_dataset = Dataset.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            other_workspace,
+            name="Private Dataset",
+            description="Private dataset",
+        )
+
+        datasets = Dataset.objects.filter_for_user(self.USER_EDITOR)
+        self.assertNotIn(private_dataset, datasets)
+
+    def test_dataset_filter_for_user_different_organization(self):
+        different_org_workspace = Workspace.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            name="Different Org Workspace",
+            description="Workspace in different org",
+            organization=self.ORGANIZATION_2,
+        )
+
+        different_org_dataset = Dataset.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            different_org_workspace,
+            name="Different Org Dataset",
+            description="Dataset in different organization",
+        )
+        different_org_dataset.shared_with_organization = True
+        different_org_dataset.save()
+
+        datasets = Dataset.objects.filter_for_user(self.USER_EDITOR)
+        self.assertNotIn(different_org_dataset, datasets)
+
+    def test_update_dataset_shared_with_organization_field(self):
+        self.assertFalse(self.DATASET.shared_with_organization)
+
+        self.DATASET.update_if_has_perm(
+            principal=self.USER_ADMIN,
+            shared_with_organization=True,
+        )
+
+        self.DATASET.refresh_from_db()
+        self.assertTrue(self.DATASET.shared_with_organization)
+
+
+class DatasetOrganizationSharingPermissionsTest(BaseTestMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        BaseTestMixin.setUpTestData()
+
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Test Organization",
+            short_name="test-org-perm",
+            organization_type="CORPORATE",
+        )
+
+        cls.WORKSPACE.organization = cls.ORGANIZATION
+        cls.WORKSPACE.save()
+
+        cls.ORG_MEMBER_USER = User.objects.create_user(
+            "org_member@bluesquarehub.com", "password"
+        )
+        cls.ORG_ADMIN_USER = User.objects.create_user(
+            "org_admin@bluesquarehub.com", "password"
+        )
+
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_ADMIN,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_MEMBER_USER,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_ADMIN_USER,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+
+        cls.ORG_DATASET = Dataset.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            cls.WORKSPACE,
+            name="Org Shared Dataset",
+            description="Dataset shared with organization",
+        )
+        cls.ORG_DATASET.shared_with_organization = True
+        cls.ORG_DATASET.save()
+
+    def test_organization_admin_can_update_dataset_organization_sharing(self):
+        self.assertTrue(
+            self.ORG_ADMIN_USER.has_perm("datasets.update_dataset", self.ORG_DATASET)
+        )
+
+    def test_workspace_admin_can_update_dataset_organization_sharing(self):
+        self.assertTrue(
+            self.USER_ADMIN.has_perm("datasets.update_dataset", self.ORG_DATASET)
+        )
+
+    def test_organization_member_cannot_update_dataset_organization_sharing(self):
+        self.assertFalse(
+            self.ORG_MEMBER_USER.has_perm("datasets.update_dataset", self.ORG_DATASET)
+        )
+
+    def test_non_organization_member_cannot_update_dataset_organization_sharing(self):
+        self.assertFalse(
+            self.USER_SERENA.has_perm("datasets.update_dataset", self.ORG_DATASET)
+        )
+
+    def test_organization_members_can_view_organization_shared_dataset(self):
+        self.assertTrue(
+            self.ORG_MEMBER_USER.has_perm("datasets.view_dataset", self.ORG_DATASET)
+        )
+        self.assertTrue(
+            self.ORG_ADMIN_USER.has_perm("datasets.view_dataset", self.ORG_DATASET)
+        )
+
+    def test_non_organization_members_cannot_view_organization_shared_dataset(self):
+        self.assertFalse(
+            self.USER_SERENA.has_perm("datasets.view_dataset", self.ORG_DATASET)
+        )
+
+    def test_organization_members_can_download_organization_shared_dataset(self):
+        version = self.ORG_DATASET.create_version(
+            principal=self.USER_ADMIN,
+            name="v1",
+            changelog="Version 1",
+        )
+
+        self.assertTrue(
+            self.ORG_MEMBER_USER.has_perm("datasets.download_dataset_version", version)
+        )
+        self.assertTrue(
+            self.ORG_ADMIN_USER.has_perm("datasets.download_dataset_version", version)
+        )
+
+    def test_non_organization_members_cannot_download_organization_shared_dataset(self):
+        version = self.ORG_DATASET.create_version(
+            principal=self.USER_ADMIN,
+            name="v1",
+            changelog="Version 1",
+        )
+
+        self.assertFalse(
+            self.USER_SERENA.has_perm("datasets.download_dataset_version", version)
+        )
+
+    def test_non_shared_dataset_organization_permissions(self):
+        regular_dataset = Dataset.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            self.WORKSPACE,
+            name="Regular Dataset",
+            description="Non-shared dataset",
+        )
+        self.assertFalse(
+            self.ORG_MEMBER_USER.has_perm("datasets.view_dataset", regular_dataset)
+        )
+        self.assertFalse(
+            self.ORG_ADMIN_USER.has_perm("datasets.view_dataset", regular_dataset)
+        )
+
+    def test_workspace_level_permissions_still_work_with_organization_sharing(self):
+        workspace_dataset = Dataset.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            self.WORKSPACE,
+            name="Workspace Dataset",
+            description="Dataset accessible through workspace membership",
+        )
+
+        # USER_EDITOR should be able to view both
+        self.assertTrue(
+            self.USER_EDITOR.has_perm("datasets.view_dataset", self.ORG_DATASET)
+        )
+        self.assertTrue(
+            self.USER_EDITOR.has_perm("datasets.view_dataset", workspace_dataset)
+        )

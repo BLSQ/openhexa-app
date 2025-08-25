@@ -40,7 +40,11 @@ class DatasetQuerySet(BaseQuerySet):
         else:
             return self._filter_for_user_and_query_object(
                 user,
-                models.Q(links__workspace__members=user),
+                models.Q(links__workspace__members=user)
+                | models.Q(
+                    shared_with_organization=True,
+                    workspace__organization__organizationmembership__user=user,
+                ),
                 return_all_if_superuser=False,
             )
 
@@ -107,6 +111,7 @@ class Dataset(MetadataMixin, Base):
     name = models.TextField(max_length=64, null=False, blank=False)
     slug = models.TextField(null=False, blank=False, max_length=255)
     description = models.TextField(blank=True, null=True)
+    shared_with_organization = models.BooleanField(default=False)
 
     objects = DatasetManager.from_queryset(DatasetQuerySet)()
 
@@ -118,7 +123,7 @@ class Dataset(MetadataMixin, Base):
         if not principal.has_perm("datasets.update_dataset", self):
             raise PermissionDenied
 
-        for key in ["name", "description"]:
+        for key in ["name", "description", "shared_with_organization"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 

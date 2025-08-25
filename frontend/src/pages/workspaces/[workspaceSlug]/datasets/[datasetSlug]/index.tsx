@@ -3,6 +3,7 @@ import Clipboard from "core/components/Clipboard";
 import DateProperty from "core/components/DataCard/DateProperty";
 import FormSection from "core/components/DataCard/FormSection";
 import RenderProperty from "core/components/DataCard/RenderProperty";
+import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
 import UserProperty from "core/components/DataCard/UserProperty";
 import Page from "core/components/Page";
@@ -84,6 +85,18 @@ const WorkspaceDatasetPage: NextPageWithLayout = (
               accessor={"description"}
               label={t("Description")}
             />
+            {dataset.workspace?.organization && isWorkspaceSource && (
+              <SwitchProperty
+                id="sharedWithOrganization"
+                accessor="sharedWithOrganization"
+                label={t("Share with entire organization")}
+                help={t(
+                  "When enabled, all members of {{orgName}} will be able to access this dataset",
+                  { orgName: dataset.workspace?.organization?.name || "this organization" }
+                )}
+                visible={(_, isEditing) => isEditing}
+              />
+            )}
             <RenderProperty
               id="slug"
               accessor="slug"
@@ -121,6 +134,22 @@ const WorkspaceDatasetPage: NextPageWithLayout = (
             >
               {(property) => <Badge>{property.displayValue}</Badge>}
             </RenderProperty>
+            {dataset.sharedWithOrganization && dataset.workspace?.organization && (
+              <RenderProperty
+                id="organizationSharing"
+                accessor="sharedWithOrganization"
+                label={t("Organization sharing")}
+                readonly
+              >
+                {() => (
+                  <Badge color="green">
+                    {t("Shared with {{orgName}}", {
+                      orgName: dataset.workspace?.organization?.name || "Organization",
+                    })}
+                  </Badge>
+                )}
+              </RenderProperty>
+            )}
           </FormSection>
         </ItemProvider>
         {version && (
