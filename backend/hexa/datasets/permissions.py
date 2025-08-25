@@ -4,7 +4,10 @@ from hexa.datasets.models import (
     DatasetVersion,
     DatasetVersionFile,
 )
-from hexa.user_management.models import User
+from hexa.user_management.models import (
+    OrganizationMembershipRole,
+    User,
+)
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -14,10 +17,20 @@ from hexa.workspaces.models import (
 
 def create_dataset(principal: User, workspace: Workspace):
     """Only workspace admins & editors can create datasets"""
-    return workspace.workspacemembership_set.filter(
-        user=principal,
-        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-    ).exists()
+    return (
+        workspace.workspacemembership_set.filter(
+            user=principal,
+            role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
+        ).exists()
+        or workspace.organization
+        and workspace.organization.organizationmembership_set.filter(
+            user=principal,
+            role__in=[
+                OrganizationMembershipRole.ADMIN,
+                OrganizationMembershipRole.OWNER,
+            ],
+        ).exists()
+    )
 
 
 def update_dataset(principal, dataset: Dataset):
@@ -47,24 +60,54 @@ def delete_dataset_version(principal: User, version: DatasetVersion):
 
 def download_dataset_version(principal: User, version: DatasetVersion):
     """Only workspace members can download dataset versions.
-    This also includes members of workspaces that have been shared this dataset.
+    This also includes members of workspaces that have been shared this dataset
+    and organization members for organization-shared datasets.
     """
-    return version.dataset.links.filter(
+    # Check if user has access through workspace links
+    if version.dataset.links.filter(
         workspace__in=principal.workspace_set.all()
-    ).exists()
+    ).exists():
+        return True
+
+    # Check if user has access through organization sharing
+    if (
+        version.dataset.shared_with_organization
+        and version.dataset.workspace.organization
+        and version.dataset.workspace.organization.organizationmembership_set.filter(
+            user=principal
+        ).exists()
+    ):
+        return True
+
+    return False
 
 
 def view_dataset(principal: User, dataset: Dataset):
-    """Only workspace members can view dataset.
-    This also includes members of workspaces that have been shared this dataset.
+    """Users can view datasets if they are workspace members, have access through dataset links,
+    or have access through organization sharing.
     """
-    return (
-        dataset.links.filter(workspace__in=principal.workspace_set.all()).exists()
-        or dataset.workspace.workspacemembership_set.filter(
-            user=principal,
-            role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
+    # Check if user has access through dataset links to their workspaces
+    if dataset.links.filter(workspace__in=principal.workspace_set.all()).exists():
+        return True
+
+    # Check if user is a member of the dataset's workspace
+    if dataset.workspace.workspacemembership_set.filter(
+        user=principal,
+        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
+    ).exists():
+        return True
+
+    # Check if user has access through organization sharing
+    if (
+        dataset.shared_with_organization
+        and dataset.workspace.organization
+        and dataset.workspace.organization.organizationmembership_set.filter(
+            user=principal
         ).exists()
-    )
+    ):
+        return True
+
+    return False
 
 
 def link_dataset(principal: User, datasetAndWorkspace):
