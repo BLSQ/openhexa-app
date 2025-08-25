@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.1.1](https://github.com/BLSQ/openhexa-app/compare/2.1.0...2.1.1) (2025-08-25)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @apollo/client to v3.14.0 ([#1312](https://github.com/BLSQ/openhexa-app/issues/1312)) ([847692e](https://github.com/BLSQ/openhexa-app/commit/847692e2198d9d7bf931edfd05e5bdfe8cfe1371))
+* **deps:** update dependency i18next to v25.4.2 ([#1318](https://github.com/BLSQ/openhexa-app/issues/1318)) ([bc743d3](https://github.com/BLSQ/openhexa-app/commit/bc743d3c0b23f0964b7708b3bb3283642cfb13ae))
+* **deps:** update dependency react-i18next to v15.7.2 ([#1319](https://github.com/BLSQ/openhexa-app/issues/1319)) ([c198687](https://github.com/BLSQ/openhexa-app/commit/c19868702e9c4d443587e017b90deb8e4415fb46))
+* **deps:** update nextjs monorepo to v15.5.0 ([#1310](https://github.com/BLSQ/openhexa-app/issues/1310)) ([666fa5f](https://github.com/BLSQ/openhexa-app/commit/666fa5f55b3aa40c6ae089789eac97d037fb518d))
+
 ## [2.1.0](https://github.com/BLSQ/openhexa-app/compare/2.0.0...2.1.0) (2025-08-21)
 
 
