@@ -8,7 +8,7 @@ export type UpdateDatasetMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateDatasetMutation = { __typename?: 'Mutation', updateDataset: { __typename?: 'UpdateDatasetResult', success: boolean, errors: Array<Types.UpdateDatasetError>, dataset?: { __typename?: 'Dataset', id: string, name: string, description?: string | null, updatedAt: any } | null } };
+export type UpdateDatasetMutation = { __typename?: 'Mutation', updateDataset: { __typename?: 'UpdateDatasetResult', success: boolean, errors: Array<Types.UpdateDatasetError>, dataset?: { __typename?: 'Dataset', id: string, name: string, description?: string | null, sharedWithOrganization: boolean, updatedAt: any } | null } };
 
 export type UpdateDatasetVersionMutationVariables = Types.Exact<{
   input: Types.UpdateDatasetVersionInput;
@@ -81,6 +81,7 @@ export const UpdateDatasetDocument = gql`
       id
       name
       description
+      sharedWithOrganization
       updatedAt
     }
     success
