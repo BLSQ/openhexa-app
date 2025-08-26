@@ -1,14 +1,17 @@
 import { LinkIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
+import Switch from "core/components/Switch";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
+import { updateDataset } from "datasets/helpers/dataset";
 import DatasetLinksDataGrid from "datasets/features/DatasetLinksDataGrid";
 import LinkDatasetDialog from "datasets/features/LinkDatasetDialog";
 import DatasetLayout from "datasets/layouts/DatasetLayout";
 import { useTranslation } from "next-i18next";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import {
   useWorkspaceDatasetAccessPageQuery,
   WorkspaceDatasetAccessPageDocument,
@@ -39,6 +42,20 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
   const version = props.isSpecificVersion
     ? datasetLink.dataset.version
     : datasetLink.dataset.latestVersion;
+  
+  const isWorkspaceSource = dataset.workspace?.slug === workspace.slug;
+
+  const handleOrganizationSharingChange = async (checked: boolean) => {
+    try {
+      if (dataset.permissions.update && isWorkspaceSource) {
+        await updateDataset(dataset.id, {
+          sharedWithOrganization: checked
+        });
+      }
+    } catch (error: any) {
+      toast.error(error.message || t("Failed to update dataset sharing"));
+    }
+  };
 
   return (
     <Page title={dataset.name ?? t("Dataset")}>
@@ -56,17 +73,63 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
         ]}
         tab="access"
       >
-        <DatasetLinksDataGrid dataset={datasetLink.dataset} />
-        <Block.Content className="flex justify-end">
-          {workspace.permissions.update && (
-            <Button
-              leadingIcon={<LinkIcon className={"h-4 w-4"} />}
-              onClick={() => setLinkDialogOpen(true)}
-            >
-              {t("Share with a workspace")}
-            </Button>
-          )}
-        </Block.Content>
+        {dataset.workspace?.organization && isWorkspaceSource && (
+            <div className="bg-white shadow sm:rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-base font-semibold leading-6 text-gray-900">
+                  {t("Internal Sharing")}
+                </h3>
+                <div className="mt-4">
+                  <Switch
+                    checked={dataset.sharedWithOrganization}
+                    onChange={handleOrganizationSharingChange}
+                    disabled={!dataset.permissions.update || !isWorkspaceSource}
+                    label={dataset.sharedWithOrganization ? t("Published to the whole Organization") : t("Workspace Sharing")}
+                  />
+                  <p className="mt-2 text-sm text-gray-500">
+                    {dataset.sharedWithOrganization 
+                      ? t("All workspaces in this organization have access")
+                      : t("Only accessible by the owner workspace and explicitly shared workspaces")
+                    }
+                  </p>
+                </div>
+                {dataset.sharedWithOrganization && (
+                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-green-800">
+                          {t("Published to all workspaces")}
+                        </h3>
+                        <div className="mt-1 text-sm text-green-700">
+                          {t("This dataset is available to all workspaces in your organization.")}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+        )}
+        {(!dataset.sharedWithOrganization || !dataset.workspace?.organization || !isWorkspaceSource) && (
+          <>
+            <DatasetLinksDataGrid dataset={datasetLink.dataset} />
+            <Block.Content className="flex justify-end">
+              {workspace.permissions.update && (
+                <Button
+                  leadingIcon={<LinkIcon className={"h-4 w-4"} />}
+                  onClick={() => setLinkDialogOpen(true)}
+                >
+                  {t("Share with a workspace")}
+                </Button>
+              )}
+            </Block.Content>
+          </>
+        )}
       </DatasetLayout>
       <LinkDatasetDialog
         dataset={datasetLink.dataset}
