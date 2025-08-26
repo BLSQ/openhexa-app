@@ -105,6 +105,7 @@ class WorkspaceManager(models.Manager):
         countries: typing.Sequence[Country] | None = None,
         load_sample_data: bool = False,
         organization: Organization | None = None,
+        configuration: dict | None = None,
     ):
         if organization:
             if not principal.has_perm("user_management.create_workspace", organization):
@@ -128,6 +129,8 @@ class WorkspaceManager(models.Manager):
             )
         if organization:
             create_kwargs["organization"] = organization
+        if configuration is not None:
+            create_kwargs["configuration"] = configuration
 
         db_password = make_random_password(length=16)
         db_name = generate_database_name()
