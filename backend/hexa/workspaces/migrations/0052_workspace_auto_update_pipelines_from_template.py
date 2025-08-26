@@ -1,5 +1,3 @@
-# Generated migration for auto-update pipelines from template feature
-
 from django.db import migrations, models
 
 

@@ -31,7 +31,6 @@ def auto_update_pipelines_from_template(sender, instance, created, **kwargs):
         f"New template version created: {template.name} v{instance.version_number}"
     )
 
-    # Find all pipelines that use this template in workspaces with auto-update enabled
     pipelines_to_update = (
         Pipeline.objects.filter(
             source_template=template,
@@ -50,7 +49,6 @@ def auto_update_pipelines_from_template(sender, instance, created, **kwargs):
 
     for pipeline in pipelines_to_update:
         try:
-            # Create new pipeline version from the template version
             new_version = instance.create_pipeline_version(
                 principal=instance.user,
                 workspace=pipeline.workspace,
@@ -73,7 +71,6 @@ def auto_update_pipelines_from_template(sender, instance, created, **kwargs):
                 exc_info=True,
             )
 
-    # Summary logging
     if updated_pipelines:
         logger.info(
             f"Successfully auto-updated {len(updated_pipelines)} pipelines from template '{template.name}' v{instance.version_number}"

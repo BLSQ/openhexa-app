@@ -110,14 +110,19 @@ const ConfigurationList = ({
         )}
       </div>
 
-      {configEntries.length === 0 ? (
-        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-          <p className="text-sm">{t("No configuration properties set")}</p>
-          {!disabled && (
-            <p className="text-xs mt-1">
-              {t("Click 'Add Configuration' to create your first property")}
-            </p>
-          )}
+      {configEntries.length === 0 && !disabled ? (
+        <div className="space-y-2">
+          <textarea
+            className="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm resize-none bg-gray-50"
+            rows={3}
+            placeholder="{}"
+            value=""
+            disabled
+          />
+        </div>
+      ) : configEntries.length === 0 ? (
+        <div className="prose text-sm text-gray-500 italic">
+          Not set
         </div>
       ) : (
         <div className="space-y-2">
