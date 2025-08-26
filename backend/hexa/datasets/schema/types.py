@@ -49,7 +49,18 @@ def resolve_dataset_link_permissions_pin(obj: DatasetLink, info, **kwargs):
 
 @workspace_object.field("datasets")
 def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **kwargs):
-    qs = DatasetLink.objects.filter(workspace=obj).order_by("-updated_at")
+    directly_linked_q = Q(workspace=obj)
+
+    organization_shared_q = Q()
+    if obj.organization:
+        organization_shared_q = Q(
+            dataset__shared_with_organization=True,
+            dataset__workspace__organization=obj.organization,
+        ) & ~Q(workspace=obj)
+
+    qs = DatasetLink.objects.filter(directly_linked_q | organization_shared_q).order_by(
+        "-updated_at"
+    )
 
     if query is not None:
         qs = qs.filter(name__icontains=query)
