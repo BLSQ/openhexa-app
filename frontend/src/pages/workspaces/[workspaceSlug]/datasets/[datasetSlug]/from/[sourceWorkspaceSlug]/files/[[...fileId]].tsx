@@ -18,6 +18,7 @@ import { DatasetExplorer_FileFragment } from "datasets/features/DatasetExplorer/
 export type WorkspaceDatasetFilesPageProps = {
   isSpecificVersion: boolean;
   workspaceSlug: string;
+  sourceWorkspaceSlug: string;
   datasetSlug: string;
   versionId: string;
   currentFile: NonNullable<DatasetExplorer_FileFragment>;
@@ -37,6 +38,7 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
     currentFile,
     isSpecificVersion,
     workspaceSlug,
+    sourceWorkspaceSlug,
     datasetSlug,
     versionId,
   } = props;
@@ -45,6 +47,7 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
     variables: {
       isSpecificVersion,
       workspaceSlug,
+      sourceWorkspaceSlug,
       datasetSlug,
       versionId,
       page,
@@ -55,6 +58,7 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
     return null;
   }
   const { datasetLink, workspace } = data;
+  const sourceWorkspace = datasetLink?.dataset.workspace!;
   const { dataset } = datasetLink;
   const version = isSpecificVersion ? dataset.version! : dataset.latestVersion!;
 
@@ -69,7 +73,7 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
             title: t("Files"),
             href: `/workspaces/${encodeURIComponent(
               workspace.slug,
-            )}/datasets/${encodeURIComponent(datasetLink.dataset.slug)}/files`,
+            )}/datasets/${encodeURIComponent(datasetLink.dataset.slug)}/from/${encodeURIComponent(sourceWorkspace.slug)}/files`,
           },
         ]}
         tab="files"
@@ -118,6 +122,8 @@ export const getServerSideProps = createGetServerSideProps({
 
     const variables = {
       workspaceSlug: ctx.params!.workspaceSlug as string,
+      sourceWorkspaceSlug: (ctx.params!.sourceWorkspaceSlug ||
+        ctx.params!.workspaceSlug) as string,
       datasetSlug: ctx.params!.datasetSlug as string,
       versionId: versionId,
       isSpecificVersion: Boolean(versionId),
@@ -152,7 +158,7 @@ export const getServerSideProps = createGetServerSideProps({
           redirect: {
             destination: `/workspaces/${encodeURIComponent(
               data.workspace.slug,
-            )}/datasets/${encodeURIComponent(data.datasetLink.dataset.slug)}/files/${encodeURIComponent(version.files.items[0].id)}?version=${encodeURIComponent(version.id)}&page=${variables.page}`,
+            )}/datasets/${encodeURIComponent(data.datasetLink.dataset.slug)}/from/${encodeURIComponent(data.datasetLink.dataset.workspace?.slug || "")}/files/${encodeURIComponent(version.files.items[0].id)}?version=${encodeURIComponent(version.id)}&page=${variables.page}`,
             permanent: false,
           },
         };
@@ -172,7 +178,7 @@ export const getServerSideProps = createGetServerSideProps({
           redirect: {
             destination: `/workspaces/${encodeURIComponent(
               data.workspace.slug,
-            )}/datasets/${encodeURIComponent(data.datasetLink.dataset.slug)}/files/${encodeURIComponent(version.files.items[0].id)}?version=${encodeURIComponent(version.id)}&page=${variables.page}`,
+            )}/datasets/${encodeURIComponent(data.datasetLink.dataset.slug)}/from/${encodeURIComponent(data.datasetLink.dataset.workspace?.slug || "")}/files/${encodeURIComponent(version.files.items[0].id)}?version=${encodeURIComponent(version.id)}&page=${variables.page}`,
             permanent: false,
           },
         };

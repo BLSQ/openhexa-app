@@ -40,8 +40,10 @@ class DatasetQuerySet(BaseQuerySet):
         else:
             return self._filter_for_user_and_query_object(
                 user,
-                models.Q(links__workspace__members=user)
-                | models.Q(
+                Q(
+                    links__workspace__members=user
+                )  # 1. It exists a link to a workspace where user is member
+                | Q(  # 2. The dataset is shared with organization and user is member of the organization
                     shared_with_organization=True,
                     workspace__organization__organizationmembership__user=user,
                 ),
@@ -53,7 +55,14 @@ class DatasetQuerySet(BaseQuerySet):
     ):
         return self._filter_for_user_and_query_object(
             user,
-            Q(workspace__members=user, workspace__slug__in=workspace_slugs),
+            Q(
+                workspace__members=user, workspace__slug__in=workspace_slugs
+            )  # 1. It exists a link to a workspace where user is member and the workspace slug is in the list
+            | Q(  # 2. The dataset is shared with organization and user is member of the organization and a link exists to a workspace with slug in the list
+                shared_with_organization=True,
+                workspace__organization__organizationmembership__user=user,
+                links__workspace__slug__in=workspace_slugs,
+            ),
             return_all_if_superuser=False,
         )
 
@@ -441,11 +450,32 @@ class DatasetLinkQuerySet(BaseQuerySet):
                 user,
                 models.Q(workspace=user.pipeline_run.pipeline.workspace),
             )
+        # TODO : implement for pipeline runs
+        # TODO : list of workspaces should be limited to organization
         else:
-            return self._filter_for_user_and_query_object(
-                user,
-                models.Q(workspace__members=user),
-                return_all_if_superuser=False,
+            return (
+                self._filter_for_user_and_query_object(
+                    user,
+                    models.Q(workspace__members=user)
+                    | models.Q(
+                        dataset__shared_with_organization=True,
+                        workspace__organization__organizationmembership__user=user,
+                    ),
+                    return_all_if_superuser=False,
+                )
+                .annotate(
+                    is_original_link=models.Case(
+                        models.When(
+                            models.Q(dataset__shared_with_organization=True)
+                            & ~models.Q(dataset__workspace=models.F("workspace")),
+                            then=models.Value(0),
+                        ),
+                        default=models.Value(1),
+                        output_field=models.IntegerField(),
+                    )
+                )
+                .filter(is_original_link=1)
+                .distinct("dataset_id")
             )
 
 

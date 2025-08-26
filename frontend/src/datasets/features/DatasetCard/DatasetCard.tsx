@@ -13,8 +13,13 @@ const DatasetCard = ({ link }: DatasetCardProps) => {
   return (
     <Card
       href={{
-        pathname: "/workspaces/[workspaceSlug]/datasets/[datasetSlug]",
-        query: { workspaceSlug: workspace.slug, datasetSlug: dataset.slug },
+        pathname:
+          "/workspaces/[workspaceSlug]/datasets/[datasetSlug]/from/[sourceWorkspaceSlug]",
+        query: {
+          workspaceSlug: workspace.slug,
+          sourceWorkspaceSlug: dataset.workspace?.slug || workspace.slug,
+          datasetSlug: dataset.slug,
+        },
       }}
       title={dataset.name}
       subtitle={dataset.workspace?.name}

@@ -152,6 +152,7 @@ export type WorkspaceDatasetsPageQuery = { __typename?: 'Query', workspace?: { _
 
 export type WorkspaceDatasetIndexPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
+  sourceWorkspaceSlug: Types.Scalars['String']['input'];
   datasetSlug: Types.Scalars['String']['input'];
   versionId: Types.Scalars['ID']['input'];
   isSpecificVersion: Types.Scalars['Boolean']['input'];
@@ -162,6 +163,7 @@ export type WorkspaceDatasetIndexPageQuery = { __typename?: 'Query', workspace?:
 
 export type WorkspaceDatasetAccessPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
+  sourceWorkspaceSlug: Types.Scalars['String']['input'];
   datasetSlug: Types.Scalars['String']['input'];
   versionId: Types.Scalars['ID']['input'];
   isSpecificVersion: Types.Scalars['Boolean']['input'];
@@ -172,6 +174,7 @@ export type WorkspaceDatasetAccessPageQuery = { __typename?: 'Query', workspace?
 
 export type WorkspaceDatasetFilesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
+  sourceWorkspaceSlug: Types.Scalars['String']['input'];
   datasetSlug: Types.Scalars['String']['input'];
   versionId: Types.Scalars['ID']['input'];
   isSpecificVersion: Types.Scalars['Boolean']['input'];
@@ -1132,13 +1135,13 @@ export type WorkspaceDatasetsPageLazyQueryHookResult = ReturnType<typeof useWork
 export type WorkspaceDatasetsPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceDatasetsPageSuspenseQuery>;
 export type WorkspaceDatasetsPageQueryResult = Apollo.QueryResult<WorkspaceDatasetsPageQuery, WorkspaceDatasetsPageQueryVariables>;
 export const WorkspaceDatasetIndexPageDocument = gql`
-    query WorkspaceDatasetIndexPage($workspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!) {
+    query WorkspaceDatasetIndexPage($workspaceSlug: String!, $sourceWorkspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!) {
   workspace(slug: $workspaceSlug) {
     slug
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(
-    workspaceSlug: $workspaceSlug
+    workspaceSlug: $sourceWorkspaceSlug
     datasetSlug: $datasetSlug
   ) {
     ...DatasetLayout_datasetLink
@@ -1211,6 +1214,7 @@ ${DatasetLayout_VersionFragmentDoc}`;
  * const { data, loading, error } = useWorkspaceDatasetIndexPageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
+ *      sourceWorkspaceSlug: // value for 'sourceWorkspaceSlug'
  *      datasetSlug: // value for 'datasetSlug'
  *      versionId: // value for 'versionId'
  *      isSpecificVersion: // value for 'isSpecificVersion'
@@ -1234,13 +1238,13 @@ export type WorkspaceDatasetIndexPageLazyQueryHookResult = ReturnType<typeof use
 export type WorkspaceDatasetIndexPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceDatasetIndexPageSuspenseQuery>;
 export type WorkspaceDatasetIndexPageQueryResult = Apollo.QueryResult<WorkspaceDatasetIndexPageQuery, WorkspaceDatasetIndexPageQueryVariables>;
 export const WorkspaceDatasetAccessPageDocument = gql`
-    query WorkspaceDatasetAccessPage($workspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!) {
+    query WorkspaceDatasetAccessPage($workspaceSlug: String!, $sourceWorkspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!) {
   workspace(slug: $workspaceSlug) {
     slug
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(
-    workspaceSlug: $workspaceSlug
+    workspaceSlug: $sourceWorkspaceSlug
     datasetSlug: $datasetSlug
   ) {
     ...DatasetLayout_datasetLink
@@ -1285,6 +1289,7 @@ ${DatasetLayout_VersionFragmentDoc}`;
  * const { data, loading, error } = useWorkspaceDatasetAccessPageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
+ *      sourceWorkspaceSlug: // value for 'sourceWorkspaceSlug'
  *      datasetSlug: // value for 'datasetSlug'
  *      versionId: // value for 'versionId'
  *      isSpecificVersion: // value for 'isSpecificVersion'
@@ -1308,13 +1313,13 @@ export type WorkspaceDatasetAccessPageLazyQueryHookResult = ReturnType<typeof us
 export type WorkspaceDatasetAccessPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceDatasetAccessPageSuspenseQuery>;
 export type WorkspaceDatasetAccessPageQueryResult = Apollo.QueryResult<WorkspaceDatasetAccessPageQuery, WorkspaceDatasetAccessPageQueryVariables>;
 export const WorkspaceDatasetFilesPageDocument = gql`
-    query WorkspaceDatasetFilesPage($workspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!, $page: Int = 1, $perPage: Int = 20) {
+    query WorkspaceDatasetFilesPage($workspaceSlug: String!, $sourceWorkspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!, $page: Int = 1, $perPage: Int = 20) {
   workspace(slug: $workspaceSlug) {
     slug
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(
-    workspaceSlug: $workspaceSlug
+    workspaceSlug: $sourceWorkspaceSlug
     datasetSlug: $datasetSlug
   ) {
     ...DatasetLayout_datasetLink
@@ -1363,6 +1368,7 @@ ${DatasetExplorer_FileFragmentDoc}`;
  * const { data, loading, error } = useWorkspaceDatasetFilesPageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
+ *      sourceWorkspaceSlug: // value for 'sourceWorkspaceSlug'
  *      datasetSlug: // value for 'datasetSlug'
  *      versionId: // value for 'versionId'
  *      isSpecificVersion: // value for 'isSpecificVersion'

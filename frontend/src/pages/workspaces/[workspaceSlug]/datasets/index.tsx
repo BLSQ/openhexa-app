@@ -155,9 +155,10 @@ const WorkspaceDatasetsPage: NextPageWithLayout = (props: Props) => {
                       customStyle="font-medium text-gray-600 hover:text-gray-800 text-ellipsis overflow-hidden"
                       href={{
                         pathname:
-                          "/workspaces/[workspaceSlug]/datasets/[datasetSlug]",
+                          "/workspaces/[workspaceSlug]/datasets/[datasetSlug]/from/[sourceWorkspaceSlug]",
                         query: {
                           workspaceSlug: workspace.slug,
+                          sourceWorkspaceSlug: value.dataset.workspace.slug,
                           datasetSlug: value.dataset.slug,
                         },
                       }}
@@ -184,9 +185,10 @@ const WorkspaceDatasetsPage: NextPageWithLayout = (props: Props) => {
               <ChevronLinkColumn
                 url={(item) => ({
                   pathname:
-                    "/workspaces/[workspaceSlug]/datasets/[datasetSlug]",
+                    "/workspaces/[workspaceSlug]/datasets/[datasetSlug]/from/[sourceWorkspaceSlug]",
                   query: {
                     workspaceSlug: workspace.slug,
+                    sourceWorkspaceSlug: item.dataset.workspace.slug,
                     datasetSlug: item.dataset.slug,
                   },
                 })}

@@ -356,6 +356,7 @@ query WorkspaceDatasetsPage(
 
 query WorkspaceDatasetIndexPage(
   $workspaceSlug: String!
+  $sourceWorkspaceSlug: String!
   $datasetSlug: String!
   $versionId: ID!
   $isSpecificVersion: Boolean!
@@ -365,7 +366,7 @@ query WorkspaceDatasetIndexPage(
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(
-    workspaceSlug: $workspaceSlug
+    workspaceSlug: $sourceWorkspaceSlug
     datasetSlug: $datasetSlug
   ) {
     ...DatasetLayout_datasetLink
@@ -425,6 +426,7 @@ query WorkspaceDatasetIndexPage(
 
 query WorkspaceDatasetAccessPage(
   $workspaceSlug: String!
+  $sourceWorkspaceSlug: String!
   $datasetSlug: String!
   $versionId: ID!
   $isSpecificVersion: Boolean!
@@ -434,7 +436,7 @@ query WorkspaceDatasetAccessPage(
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(
-    workspaceSlug: $workspaceSlug
+    workspaceSlug: $sourceWorkspaceSlug
     datasetSlug: $datasetSlug
   ) {
     ...DatasetLayout_datasetLink
@@ -466,6 +468,7 @@ query WorkspaceDatasetAccessPage(
 
 query WorkspaceDatasetFilesPage(
   $workspaceSlug: String!
+  $sourceWorkspaceSlug: String!
   $datasetSlug: String!
   $versionId: ID!
   $isSpecificVersion: Boolean!
@@ -477,7 +480,7 @@ query WorkspaceDatasetFilesPage(
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(
-    workspaceSlug: $workspaceSlug
+    workspaceSlug: $sourceWorkspaceSlug
     datasetSlug: $datasetSlug
   ) {
     ...DatasetLayout_datasetLink

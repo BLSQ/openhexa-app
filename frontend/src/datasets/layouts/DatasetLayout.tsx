@@ -63,12 +63,13 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
     });
   }, []);
 
-  if (!datasetLink) {
+  if (!datasetLink || !datasetLink.dataset || !datasetLink.dataset.workspace) {
     return null;
   }
 
   const { dataset } = datasetLink;
-  const isWorkspaceSource = workspace.slug === dataset.workspace?.slug;
+  const sourceWorkspace = dataset.workspace!;
+  const isWorkspaceSource = workspace.slug === sourceWorkspace.slug;
 
   return (
     <WorkspaceLayout
@@ -101,7 +102,7 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
               isLast={!extraBreadcrumbs.length}
               href={`/workspaces/${encodeURIComponent(
                 workspace.slug,
-              )}/datasets/${encodeURIComponent(dataset.slug)}`}
+              )}/datasets/${encodeURIComponent(dataset.slug)}/from/${encodeURIComponent(sourceWorkspace.slug)}`}
             >
               {dataset.name}
             </Breadcrumbs.Part>
@@ -167,21 +168,21 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
             tabs={[
               {
                 label: t("General"),
-                href: `/workspaces/${encodeURIComponent(workspace.slug)}/datasets/${encodeURIComponent(dataset.slug)}`,
+                href: `/workspaces/${encodeURIComponent(workspace.slug)}/datasets/${encodeURIComponent(dataset.slug)}/from/${encodeURIComponent(sourceWorkspace.slug)}`,
                 id: "general",
               },
               ...(version
                 ? [
                     {
                       label: t("Files"),
-                      href: `/workspaces/${encodeURIComponent(workspace.slug)}/datasets/${encodeURIComponent(dataset.slug)}/files`,
+                      href: `/workspaces/${encodeURIComponent(workspace.slug)}/datasets/${encodeURIComponent(dataset.slug)}/from/${encodeURIComponent(sourceWorkspace.slug)}/files`,
                       id: "files",
                     },
                   ]
                 : []),
               {
                 label: t("Access management"),
-                href: `/workspaces/${encodeURIComponent(workspace.slug)}/datasets/${encodeURIComponent(dataset.slug)}/access`,
+                href: `/workspaces/${encodeURIComponent(workspace.slug)}/datasets/${encodeURIComponent(dataset.slug)}/from/${encodeURIComponent(sourceWorkspace.slug)}/access`,
                 id: "access",
               },
             ]}

@@ -23,6 +23,7 @@ import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 export type WorkspaceDatasetPageProps = {
   isSpecificVersion: boolean;
   workspaceSlug: string;
+  sourceWorkspaceSlug: string;
   datasetSlug: string;
   versionId: string;
 };
@@ -121,22 +122,25 @@ const WorkspaceDatasetPage: NextPageWithLayout = (
             >
               {(property) => <Badge>{property.displayValue}</Badge>}
             </RenderProperty>
-            {dataset.sharedWithOrganization && dataset.workspace?.organization && (
-              <RenderProperty
-                id="organizationSharing"
-                accessor="sharedWithOrganization"
-                label={t("Organization sharing")}
-                readonly
-              >
-                {() => (
-                  <Badge color="green">
-                    {t("Shared with {{orgName}}", {
-                      orgName: dataset.workspace?.organization?.name || "Organization",
-                    })}
-                  </Badge>
-                )}
-              </RenderProperty>
-            )}
+            {dataset.sharedWithOrganization &&
+              dataset.workspace?.organization && (
+                <RenderProperty
+                  id="organizationSharing"
+                  accessor="sharedWithOrganization"
+                  label={t("Organization sharing")}
+                  readonly
+                >
+                  {() => (
+                    <Badge color="green">
+                      {t("Shared with {{orgName}}", {
+                        orgName:
+                          dataset.workspace?.organization?.name ||
+                          "Organization",
+                      })}
+                    </Badge>
+                  )}
+                </RenderProperty>
+              )}
           </FormSection>
         </ItemProvider>
         {version && (
@@ -191,6 +195,8 @@ export const getServerSideProps = createGetServerSideProps({
 
     const variables = {
       workspaceSlug: ctx.params!.workspaceSlug as string,
+      sourceWorkspaceSlug: (ctx.params!.sourceWorkspaceSlug ||
+        ctx.params!.workspaceSlug) as string,
       datasetSlug: ctx.params!.datasetSlug as string,
       versionId: versionId,
       isSpecificVersion: Boolean(versionId),

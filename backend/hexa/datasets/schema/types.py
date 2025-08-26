@@ -1,6 +1,7 @@
 import logging
 
 from ariadne import ObjectType
+from django.db import models
 from django.db.models import Q
 from django.http import HttpRequest
 
@@ -56,10 +57,23 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
         organization_shared_q = Q(
             dataset__shared_with_organization=True,
             dataset__workspace__organization=obj.organization,
-        ) & ~Q(workspace=obj)
+        )
 
-    qs = DatasetLink.objects.filter(directly_linked_q | organization_shared_q).order_by(
-        "-updated_at"
+    qs = (
+        DatasetLink.objects.filter(directly_linked_q | organization_shared_q)
+        .annotate(
+            is_original_link=models.Case(
+                models.When(
+                    models.Q(dataset__shared_with_organization=True)
+                    & ~models.Q(dataset__workspace=models.F("workspace")),
+                    then=models.Value(0),
+                ),
+                default=models.Value(1),
+                output_field=models.IntegerField(),
+            )
+        )
+        .filter(is_original_link=1)
+        .distinct("dataset_id")
     )
 
     if query is not None:
