@@ -82,6 +82,9 @@ def resolve_update_workspace(_, info, **kwargs):
             ]
             args["countries"] = countries
 
+        if "configuration" in input:
+            args["configuration"] = input["configuration"]
+
         workspace.update_if_has_perm(principal=request.user, **args)
 
         return {"success": True, "workspace": workspace, "errors": []}

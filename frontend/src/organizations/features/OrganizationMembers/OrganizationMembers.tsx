@@ -5,7 +5,7 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import useCacheKey from "core/hooks/useCacheKey";
 import useDebounce from "core/hooks/useDebounce";
 import SearchInput from "core/features/SearchInput";
-import { User as UserType, OrganizationMembership } from "graphql/types";
+import { User as UserType, OrganizationMembership, OrganizationMembershipRole } from "graphql/types";
 import { DateTime } from "luxon";
 import { useState, useEffect } from "react";
 import { useTranslation } from "next-i18next";
@@ -77,7 +77,7 @@ export default function OrganizationMembers({
   const organization = displayData?.organization ?? {
     id: organizationId,
     members: { items: [], totalItems: 0 },
-    permissions: { manageMembers: false },
+    permissions: { manageMembers: false, manageOwners: false },
     workspaces: { items: [] },
   };
 
@@ -141,18 +141,26 @@ export default function OrganizationMembers({
           <BaseColumn className="flex justify-end gap-x-2">
             {(member) => {
               const isCurrentUser = me?.user?.id === member.user.id;
+              const isOwner = member.role === OrganizationMembershipRole.Owner;
+              const canManageOwners = organization.permissions.manageOwners;
+              const canManageMembers = organization.permissions.manageMembers;
               
-              return organization.permissions.manageMembers ? (
+              const canUpdateMember = canManageMembers && (!isOwner || canManageOwners);
+              const canDeleteMember = canUpdateMember && !isCurrentUser;
+              
+              return (
                 <>
-                  <Button
-                    onClick={() => handleUpdateClicked(member)}
-                    size="sm"
-                    variant="secondary"
-                    aria-label="edit"
-                  >
-                    <PencilIcon className="h-4" />
-                  </Button>
-                  {!isCurrentUser && (
+                  {canUpdateMember && (
+                    <Button
+                      onClick={() => handleUpdateClicked(member)}
+                      size="sm"
+                      variant="secondary"
+                      aria-label="edit"
+                    >
+                      <PencilIcon className="h-4" />
+                    </Button>
+                  )}
+                  {canDeleteMember && (
                     <Button
                       onClick={() => handleDeleteClicked(member)}
                       size="sm"
@@ -163,8 +171,6 @@ export default function OrganizationMembers({
                     </Button>
                   )}
                 </>
-              ) : (
-                <></>
               );
             }}
           </BaseColumn>

@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.1.0](https://github.com/BLSQ/openhexa-app/compare/2.0.0...2.1.0) (2025-08-21)
+
+
+### Features
+
+* workspace specific configuration (PATHWAYS-634 ) ([#1283](https://github.com/BLSQ/openhexa-app/issues/1283)) ([09cf074](https://github.com/BLSQ/openhexa-app/commit/09cf074972c1ba6e6caebf5cb417bec6e1c0a2c1))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @mdxeditor/editor to v3.42.0 ([#1300](https://github.com/BLSQ/openhexa-app/issues/1300)) ([5760ad0](https://github.com/BLSQ/openhexa-app/commit/5760ad097860ac8194437f54062b1c7c5ce52349))
+* **deps:** update dependency @types/node to v22.17.2 ([#1302](https://github.com/BLSQ/openhexa-app/issues/1302)) ([cdefe13](https://github.com/BLSQ/openhexa-app/commit/cdefe13da2718b5830161c7e6b3d6276185772ef))
+* **deps:** update dependency @uiw/react-codemirror to v4.25.1 ([#1304](https://github.com/BLSQ/openhexa-app/issues/1304)) ([7e393af](https://github.com/BLSQ/openhexa-app/commit/7e393af30eb0c6c0abf28024fb7373f54c0d3c4d))
+* **deps:** update dependency i18next to v25.4.0 ([#1306](https://github.com/BLSQ/openhexa-app/issues/1306)) ([2e10075](https://github.com/BLSQ/openhexa-app/commit/2e10075c2bf2657f3f9db57c8522ddaa2c40dd13))
+* **deps:** update dependency react-i18next to v15.7.1 ([#1307](https://github.com/BLSQ/openhexa-app/issues/1307)) ([f80f9d9](https://github.com/BLSQ/openhexa-app/commit/f80f9d9484a20feae03a0306973db6f4e42a7c3c))
+* UI organization issues (PATHWAYS-834) ([#1308](https://github.com/BLSQ/openhexa-app/issues/1308)) ([0c672d1](https://github.com/BLSQ/openhexa-app/commit/0c672d1686f52dc7ecfc0d82002f6deb8799df63))
+
 ## [2.0.0](https://github.com/BLSQ/openhexa-app/compare/1.14.0...2.0.0) (2025-08-20)
 
 

@@ -166,7 +166,7 @@ class Organization(Base):
 
     def filter_workspaces_for_user(self, user):
         workspaces = self.workspaces.exclude(archived=True)
-        if user.has_perm("user_management.list_all_workspaces"):
+        if user.has_perm("user_management.list_all_workspaces", self):
             return workspaces
         return workspaces.filter(members=user)
 
@@ -196,6 +196,28 @@ class OrganizationMembership(Base):
     )
     role = models.CharField(choices=OrganizationMembershipRole.choices, max_length=50)
 
+    @classmethod
+    def create_if_has_perm(
+        cls,
+        principal: User,
+        *,
+        organization: Organization,
+        user: User,
+        role: OrganizationMembershipRole,
+    ):
+        if not principal.has_perm("user_management.manage_members", organization):
+            raise PermissionDenied
+
+        if role == OrganizationMembershipRole.OWNER:
+            if not principal.has_perm("user_management.manage_owners", organization):
+                raise PermissionDenied
+
+        return cls.objects.create(
+            organization=organization,
+            user=user,
+            role=role,
+        )
+
     def update_if_has_perm(self, *, principal: User, role: OrganizationMembershipRole):
         if not principal.has_perm("user_management.manage_members", self.organization):
             raise PermissionDenied
@@ -204,17 +226,27 @@ class OrganizationMembership(Base):
             or self.role == OrganizationMembershipRole.OWNER
         ):
             raise PermissionDenied
+
+        if role == OrganizationMembershipRole.OWNER:
+            if not principal.has_perm(
+                "user_management.manage_owners", self.organization
+            ):
+                raise PermissionDenied
+
         self.role = role
         return self.save()
 
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("user_management.manage_members", self.organization):
             raise PermissionDenied
-        if (
-            principal.id == self.user.id
-            or self.role == OrganizationMembershipRole.OWNER
-        ):
+        if principal.id == self.user.id:
             raise PermissionDenied
+
+        if self.role == OrganizationMembershipRole.OWNER:
+            if not principal.has_perm(
+                "user_management.manage_owners", self.organization
+            ):
+                raise PermissionDenied
 
         return self.delete()
 
@@ -458,6 +490,10 @@ class OrganizationInvitationManager(models.Manager):
     ):
         if not principal.has_perm("user_management.manage_members", organization):
             raise PermissionDenied
+
+        if role == OrganizationMembershipRole.OWNER:
+            if not principal.has_perm("user_management.manage_owners", organization):
+                raise PermissionDenied
 
         invitation = self.create(
             email=email,

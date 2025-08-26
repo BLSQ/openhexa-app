@@ -961,6 +961,7 @@ export enum CreateWorkspaceError {
 
 /** Represents the input for creating a workspace. */
 export type CreateWorkspaceInput = {
+  configuration?: InputMaybe<Scalars['JSON']['input']>;
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']['input']>;
   loadSampleData?: InputMaybe<Scalars['Boolean']['input']>;
@@ -3297,6 +3298,7 @@ export type OrganizationPermissions = {
   archiveWorkspace: Scalars['Boolean']['output'];
   createWorkspace: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
+  manageOwners: Scalars['Boolean']['output'];
 };
 
 /** Represents a workspace invitation within an organization invitation. */
@@ -5025,6 +5027,7 @@ export enum UpdateWorkspaceError {
 
 /** Represents the input for updating a workspace. */
 export type UpdateWorkspaceInput = {
+  configuration?: InputMaybe<Scalars['JSON']['input']>;
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']['input']>;
   dockerImage?: InputMaybe<Scalars['String']['input']>;
@@ -5202,6 +5205,7 @@ export type Workspace = {
   __typename?: 'Workspace';
   /** File storage of the workspace represented as a bucket */
   bucket: Bucket;
+  configuration: Scalars['JSON']['output'];
   connections: Array<Connection>;
   countries: Array<Country>;
   createdAt: Scalars['DateTime']['output'];
