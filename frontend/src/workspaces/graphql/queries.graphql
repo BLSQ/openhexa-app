@@ -443,6 +443,13 @@ query WorkspaceDatasetAccessPage(
       permissions {
         update
       }
+      sharedWithOrganization
+      workspace {
+        organization {
+            id
+            name
+        }
+      }
       ...DatasetLinksDataGrid_dataset
       # If we have a specific version, fetch it
       version(id: $versionId) @include(if: $isSpecificVersion) {
