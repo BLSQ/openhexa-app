@@ -1,12 +1,15 @@
-mutation UpdatePipeline($input: UpdateDAGInput!) {
-  updateDAG(input: $input) {
+mutation UpdatePipeline($input: UpdatePipelineInput!) {
+  updatePipeline(input: $input) {
     success
     errors
-    dag {
+    pipeline {
       id
-      label
+      code
+      name
       description
       schedule
+      webhookEnabled
+      autoUpdateFromTemplate
     }
   }
 }

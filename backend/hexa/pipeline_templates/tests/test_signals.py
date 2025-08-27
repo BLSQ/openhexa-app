@@ -27,26 +27,17 @@ class AutoUpdatePipelineSignalTestCase(TestCase):
         )
 
     def setUp(self):
-        self.workspace_auto = Workspace.objects.create_if_has_perm(
+        self.workspace = Workspace.objects.create_if_has_perm(
             principal=self.user,
-            name="Auto-Update Workspace",
-            description="Workspace with auto-update enabled",
-            auto_update_pipelines_from_template=True,
-            organization=self.organization,
-        )
-
-        self.workspace_manual = Workspace.objects.create_if_has_perm(
-            principal=self.user,
-            name="Manual Update Workspace",
-            description="Workspace with auto-update disabled",
-            auto_update_pipelines_from_template=False,
+            name="Test Workspace",
+            description="Workspace for testing auto-update",
             organization=self.organization,
         )
 
         self.source_pipeline = Pipeline.objects.create(
             name="Source Pipeline",
             code="source-pipeline",
-            workspace=self.workspace_auto,
+            workspace=self.workspace,
         )
 
         self.initial_version = PipelineVersion.objects.create(
@@ -69,7 +60,7 @@ class AutoUpdatePipelineSignalTestCase(TestCase):
             name="Test Template",
             code="test-template",
             description="A test template",
-            workspace=self.workspace_auto,
+            workspace=self.workspace,
             source_pipeline=self.source_pipeline,
         )
 
@@ -85,26 +76,28 @@ class AutoUpdatePipelineSignalTestCase(TestCase):
             name="Auto Update Pipeline",
             code="auto-update-pipeline",
             source_template=self.template,
-            workspace=self.workspace_auto,
+            workspace=self.workspace,
+            auto_update_from_template=True,
         )
 
         self.pipeline_manual = Pipeline.objects.create(
             name="Manual Update Pipeline",
             code="manual-update-pipeline",
             source_template=self.template,
-            workspace=self.workspace_manual,
+            workspace=self.workspace,
+            auto_update_from_template=False,
         )
 
         self.pipeline_version_auto = self.template_version_1.create_pipeline_version(
-            self.user, self.workspace_auto, self.pipeline_auto
+            self.user, self.workspace, self.pipeline_auto
         )
 
         self.pipeline_version_manual = self.template_version_1.create_pipeline_version(
-            self.user, self.workspace_manual, self.pipeline_manual
+            self.user, self.workspace, self.pipeline_manual
         )
 
-    def test_auto_update_signal_enabled_workspace(self):
-        """Test that pipelines are auto-updated in workspaces with auto-update enabled"""
+    def test_auto_update_signal_enabled_pipeline(self):
+        """Test that pipelines are auto-updated when auto-update is enabled on the pipeline"""
         initial_auto_versions = self.pipeline_auto.versions.count()
         initial_manual_versions = self.pipeline_manual.versions.count()
 
@@ -143,10 +136,10 @@ class AutoUpdatePipelineSignalTestCase(TestCase):
 
         self.assertEqual(self.pipeline_manual.versions.count(), initial_manual_versions)
 
-    def test_auto_update_signal_disabled_workspace(self):
-        """Test that pipelines are not auto-updated in workspaces with auto-update disabled"""
-        self.workspace_auto.auto_update_pipelines_from_template = False
-        self.workspace_auto.save()
+    def test_auto_update_signal_disabled_pipeline(self):
+        """Test that pipelines are not auto-updated when auto-update is disabled on the pipeline"""
+        self.pipeline_auto.auto_update_from_template = False
+        self.pipeline_auto.save()
 
         initial_versions = self.pipeline_auto.versions.count()
 
@@ -198,8 +191,8 @@ class AutoUpdatePipelineSignalTestCase(TestCase):
         """Test that signal is skipped when no principal is available"""
         initial_versions = self.pipeline_auto.versions.count()
 
-        self.workspace_auto.created_by = None
-        self.workspace_auto.save()
+        self.workspace.created_by = None
+        self.workspace.save()
 
         new_source_version = PipelineVersion.objects.create(
             user=self.user,

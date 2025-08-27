@@ -75,6 +75,12 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
     });
   };
 
+  const onSaveAutoUpdate = async (values: any) => {
+    await updatePipeline(pipeline.id, {
+      autoUpdateFromTemplate: values.autoUpdateFromTemplate,
+    });
+  };
+
   return (
     <Page title={pipeline.name ?? t("Pipeline")}>
       <PipelineLayout workspace={workspace} pipeline={pipeline}>
@@ -157,7 +163,31 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               )}
             </RenderProperty>
           )}
-          {pipeline.sourceTemplate && (
+          {pipeline?.template && (
+            <RenderProperty
+              id="template"
+              accessor={"template.name"}
+              label={t("Template")}
+              readonly
+            >
+              {(templateName) => (
+                <Link
+                  href={`/workspaces/${encodeURIComponent(
+                    workspace.slug,
+                  )}/templates/${pipeline?.template?.code}`}
+                >
+                  {templateName.displayValue}
+                </Link>
+              )}
+            </RenderProperty>
+          )}
+        </DataCard.FormSection>
+        {pipeline.sourceTemplate && (
+          <DataCard.FormSection
+            title={t("Template Settings")}
+            onSave={pipeline.permissions.update ? onSaveAutoUpdate : undefined}
+            collapsible={false}
+          >
             <RenderProperty
               id="source_template"
               accessor={"sourceTemplate.name"}
@@ -186,26 +216,34 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 </div>
               )}
             </RenderProperty>
-          )}
-          {pipeline?.template && (
             <RenderProperty
-              id="template"
-              accessor={"template.name"}
-              label={t("Template")}
-              readonly
+              label={t("Auto-update from template")}
+              id="autoUpdateFromTemplate"
+              accessor="autoUpdateFromTemplate"
             >
-              {(templateName) => (
-                <Link
-                  href={`/workspaces/${encodeURIComponent(
-                    workspace.slug,
-                  )}/templates/${pipeline?.template?.code}`}
-                >
-                  {templateName.displayValue}
-                </Link>
+              {(property, section) => (
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={
+                      section.isEdited
+                        ? property.formValue
+                        : property.displayValue
+                    }
+                    onChange={property.setValue}
+                    disabled={!section.isEdited}
+                  />
+                  {section.isEdited && (
+                    <span className="text-xs text-gray-500">
+                      {t(
+                        "When enabled, this pipeline will be automatically updated when new template versions are released"
+                      )}
+                    </span>
+                  )}
+                </div>
               )}
             </RenderProperty>
-          )}
-        </DataCard.FormSection>
+          </DataCard.FormSection>
+        )}
         {pipeline.type === PipelineType.ZipFile && pipeline.currentVersion ? (
           <DataCard.Section title={t("Parameters")} collapsible={false}>
             {pipeline.currentVersion.parameters.length > 0 ? (

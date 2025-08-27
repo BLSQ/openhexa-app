@@ -13,7 +13,6 @@ query WorkspacePage($slug: String!) {
     description
     dockerImage
     configuration
-    autoUpdatePipelinesFromTemplate
     countries {
       code
       flag
@@ -97,6 +96,7 @@ query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
       code
       name
     }
+    autoUpdateFromTemplate
     hasNewTemplateVersions
     newTemplateVersions {
       id

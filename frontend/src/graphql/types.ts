@@ -961,7 +961,6 @@ export enum CreateWorkspaceError {
 
 /** Represents the input for creating a workspace. */
 export type CreateWorkspaceInput = {
-  autoUpdatePipelinesFromTemplate?: InputMaybe<Scalars['Boolean']['input']>;
   configuration?: InputMaybe<Scalars['JSON']['input']>;
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']['input']>;
@@ -3386,6 +3385,7 @@ export type PinDatasetResult = {
 /** Represents a pipeline. */
 export type Pipeline = {
   __typename?: 'Pipeline';
+  autoUpdateFromTemplate: Scalars['Boolean']['output'];
   code: Scalars['String']['output'];
   config: Scalars['JSON']['output'];
   createdAt: Scalars['DateTime']['output'];
@@ -4831,6 +4831,7 @@ export enum UpdatePipelineError {
 
 /** Represents the input for updating a pipeline. */
 export type UpdatePipelineInput = {
+  autoUpdateFromTemplate?: InputMaybe<Scalars['Boolean']['input']>;
   config?: InputMaybe<Scalars['JSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
@@ -5026,7 +5027,6 @@ export enum UpdateWorkspaceError {
 
 /** Represents the input for updating a workspace. */
 export type UpdateWorkspaceInput = {
-  autoUpdatePipelinesFromTemplate?: InputMaybe<Scalars['Boolean']['input']>;
   configuration?: InputMaybe<Scalars['JSON']['input']>;
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']['input']>;
@@ -5203,7 +5203,6 @@ export type WebappsPage = {
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type Workspace = {
   __typename?: 'Workspace';
-  autoUpdatePipelinesFromTemplate: Scalars['Boolean']['output'];
   /** File storage of the workspace represented as a bucket */
   bucket: Bucket;
   configuration: Scalars['JSON']['output'];

@@ -49,7 +49,7 @@ def auto_update_pipelines_from_template(sender, instance, created, **kwargs):
 
     pipelines_to_update = Pipeline.objects.filter(
         source_template=template,
-        workspace__auto_update_pipelines_from_template=True,
+        auto_update_from_template=True,
         deleted_at__isnull=True,
     ).select_related("workspace")
 

@@ -354,6 +354,10 @@ class Pipeline(SoftDeletedModel):
         on_delete=models.SET_NULL,
         related_name="pipelines",
     )
+    auto_update_from_template = models.BooleanField(
+        default=False,
+        help_text="Automatically update this pipeline when its source template is updated",
+    )
 
     objects = PipelineManager()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()

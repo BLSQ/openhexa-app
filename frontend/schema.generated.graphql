@@ -927,7 +927,6 @@ enum CreateWorkspaceError {
 
 """Represents the input for creating a workspace."""
 input CreateWorkspaceInput {
-  autoUpdatePipelinesFromTemplate: Boolean
   configuration: JSON
   countries: [CountryInput!]
   description: String
@@ -2819,6 +2818,7 @@ type PinDatasetResult {
 
 """Represents a pipeline."""
 type Pipeline {
+  autoUpdateFromTemplate: Boolean!
   code: String!
   config: JSON!
   createdAt: DateTime!
@@ -4016,6 +4016,7 @@ enum UpdatePipelineError {
 
 """Represents the input for updating a pipeline."""
 input UpdatePipelineInput {
+  autoUpdateFromTemplate: Boolean
   config: JSON
   description: String
   id: UUID!
@@ -4234,7 +4235,6 @@ enum UpdateWorkspaceError {
 
 """Represents the input for updating a workspace."""
 input UpdateWorkspaceInput {
-  autoUpdatePipelinesFromTemplate: Boolean
   configuration: JSON
   countries: [CountryInput!]
   description: String
@@ -4421,8 +4421,6 @@ type WebappsPage {
 Represents a workspace. A workspace is a shared environment where users can collaborate on data projects.
 """
 type Workspace {
-  autoUpdatePipelinesFromTemplate: Boolean!
-
   """File storage of the workspace represented as a bucket"""
   bucket: Bucket!
   configuration: JSON!
