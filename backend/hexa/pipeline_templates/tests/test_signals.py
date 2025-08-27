@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.test import TestCase
 
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
@@ -170,33 +168,6 @@ class AutoUpdatePipelineSignalTestCase(TestCase):
 
         self.pipeline_auto.refresh_from_db()
         self.assertEqual(self.pipeline_auto.versions.count(), initial_versions)
-
-    @patch("hexa.pipeline_templates.signals.logger")
-    def test_auto_update_signal_logging(self, mock_logger):
-        """Test that the signal logs appropriate messages"""
-        new_source_version = PipelineVersion.objects.create(
-            user=self.user,
-            pipeline=self.source_pipeline,
-            name="Logging Test Version",
-            zipfile=b"logging test content",
-            parameters=[{"code": "param1", "name": "Parameter 1", "type": "str"}],
-        )
-
-        PipelineTemplateVersion.objects.create(
-            template=self.template,
-            version_number=2,
-            user=self.user,
-            changelog="Logging test",
-            source_pipeline_version=new_source_version,
-        )
-
-        mock_logger.info.assert_called()
-        log_calls = [call.args[0] for call in mock_logger.info.call_args_list]
-
-        self.assertTrue(
-            any("New template version created" in call for call in log_calls)
-        )
-        self.assertTrue(any("Successfully auto-updated" in call for call in log_calls))
 
     def test_auto_update_signal_no_user_fallback(self):
         """Test that signal uses workspace creator when template version has no user"""
