@@ -198,8 +198,8 @@ class AutoUpdatePipelineSignalTestCase(TestCase):
         )
         self.assertTrue(any("Successfully auto-updated" in call for call in log_calls))
 
-    def test_auto_update_signal_no_user(self):
-        """Test that signal handles template versions without a user gracefully"""
+    def test_auto_update_signal_no_user_fallback(self):
+        """Test that signal uses workspace creator when template version has no user"""
         initial_versions = self.pipeline_auto.versions.count()
 
         new_source_version = PipelineVersion.objects.create(
@@ -210,11 +210,39 @@ class AutoUpdatePipelineSignalTestCase(TestCase):
             parameters=[{"code": "param1", "name": "Parameter 1", "type": "str"}],
         )
 
+        new_template_version = PipelineTemplateVersion.objects.create(
+            template=self.template,
+            version_number=2,
+            user=None,
+            changelog="CI/CD generated version",
+            source_pipeline_version=new_source_version,
+        )
+
+        self.pipeline_auto.refresh_from_db()
+        self.assertEqual(self.pipeline_auto.versions.count(), initial_versions + 1)
+        latest_version = self.pipeline_auto.versions.first()
+        self.assertEqual(latest_version.source_template_version, new_template_version)
+
+    def test_auto_update_signal_no_principal_available(self):
+        """Test that signal is skipped when no principal is available"""
+        initial_versions = self.pipeline_auto.versions.count()
+
+        self.workspace_auto.created_by = None
+        self.workspace_auto.save()
+
+        new_source_version = PipelineVersion.objects.create(
+            user=self.user,
+            pipeline=self.source_pipeline,
+            name="No Principal Version",
+            zipfile=b"no principal content",
+            parameters=[{"code": "param1", "name": "Parameter 1", "type": "str"}],
+        )
+
         PipelineTemplateVersion.objects.create(
             template=self.template,
             version_number=2,
             user=None,
-            changelog="No user test",
+            changelog="No principal available",
             source_pipeline_version=new_source_version,
         )
 

@@ -28,13 +28,21 @@ def auto_update_pipelines_from_template(sender, instance, created, **kwargs):
             "Signal ignored: PipelineTemplateVersion was updated, not created."
         )
         return
-    if not instance.user:
-        logger.debug(
-            "Signal ignored: PipelineTemplateVersion instance has no user associated."
-        )
-        return
 
     template = instance.template
+
+    principal = instance.user
+    if not principal:
+        principal = template.source_pipeline.workspace.created_by
+        logger.debug(
+            f"Using workspace creator as principal for system-generated template version: {principal}"
+        )
+
+    if not principal:
+        logger.debug(
+            "Signal ignored: No principal available for auto-update operations."
+        )
+        return
     logger.debug(
         f"New template version created: {template.name} v{instance.version_number}"
     )
@@ -54,16 +62,12 @@ def auto_update_pipelines_from_template(sender, instance, created, **kwargs):
 
     for pipeline in pipelines_to_update:
         try:
-            new_version = instance.create_pipeline_version(
-                principal=instance.user,
+            instance.create_pipeline_version(
+                principal=principal,
                 workspace=pipeline.workspace,
                 pipeline=pipeline,
             )
             updated_pipelines.append(pipeline)
-            logger.info(
-                f"Auto-updated pipeline '{pipeline.name}' (ID: {pipeline.id}) in workspace '{pipeline.workspace.name}' "
-                f"to template version {instance.version_number} (new pipeline version: {new_version.version_number})"
-            )
         except PermissionDenied as e:
             failed_pipelines.append((pipeline, f"Permission denied: {e}"))
             logger.warning(
