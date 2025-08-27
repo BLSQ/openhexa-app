@@ -1254,6 +1254,93 @@ class PipelinesV2Test(GraphQLTestCase):
             pipeline.refresh_from_db()
             self.assertEqual(pipeline.webhook_enabled, True)
 
+    def test_update_pipeline_auto_update_from_template(self):
+        self.test_create_pipeline_version()
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        self.assertEqual(pipeline.auto_update_from_template, False)
+
+        r = self.run_query(
+            """
+            mutation updatePipeline($input: UpdatePipelineInput!) {
+                updatePipeline(input: $input) {
+                    success
+                    errors
+                    pipeline {
+                        autoUpdateFromTemplate
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(pipeline.id),
+                    "autoUpdateFromTemplate": True,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipeline": {
+                    "autoUpdateFromTemplate": True,
+                },
+            },
+            r["data"]["updatePipeline"],
+        )
+        pipeline.refresh_from_db()
+        self.assertEqual(pipeline.auto_update_from_template, True)
+
+    def test_pipeline_auto_update_from_template_field_in_query(self):
+        self.test_create_pipeline_version()
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+
+        # Test default value is False
+        r = self.run_query(
+            """
+            query ($id: UUID!) {
+                pipeline(id: $id) {
+                    id
+                    autoUpdateFromTemplate
+                }
+            }
+            """,
+            {"id": str(pipeline.id)},
+        )
+
+        self.assertEqual(
+            {
+                "id": str(pipeline.id),
+                "autoUpdateFromTemplate": False,
+            },
+            r["data"]["pipeline"],
+        )
+
+        # Update and test changed value
+        pipeline.auto_update_from_template = True
+        pipeline.save()
+
+        r = self.run_query(
+            """
+            query ($id: UUID!) {
+                pipeline(id: $id) {
+                    id
+                    autoUpdateFromTemplate
+                }
+            }
+            """,
+            {"id": str(pipeline.id)},
+        )
+
+        self.assertEqual(
+            {
+                "id": str(pipeline.id),
+                "autoUpdateFromTemplate": True,
+            },
+            r["data"]["pipeline"],
+        )
+
     def test_delete_pipeline_workspace_members(self):
         self.test_create_pipeline_version()
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
