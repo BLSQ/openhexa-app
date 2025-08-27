@@ -47,7 +47,7 @@ describe("ConfigurationList", () => {
       expect(textarea).toBeInTheDocument();
       expect(textarea).toBeDisabled();
       expect(textarea).toHaveValue("");
-      expect(textarea).toHaveAttribute("placeholder", "{}");
+      expect(textarea).toHaveAttribute("placeholder", "Click 'Add Configuration' to create your first property");
     });
 
     it("shows add button in empty state", () => {

@@ -114,8 +114,8 @@ const ConfigurationList = ({
         <div className="space-y-2">
           <textarea
             className="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm resize-none bg-gray-50"
-            rows={3}
-            placeholder="{}"
+            rows={1}
+            placeholder={t("Click 'Add Configuration' to create your first property")}
             value=""
             disabled
           />

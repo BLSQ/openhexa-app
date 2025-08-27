@@ -23,7 +23,13 @@ def auto_update_pipelines_from_template(sender, instance, created, **kwargs):
     This signal is triggered whenever a PipelineTemplateVersion is saved.
     It only processes newly created versions (not updates to existing ones).
     """
-    if not created or not instance.user:
+    if not created:
+        logger.info("Signal ignored: PipelineTemplateVersion was updated, not created.")
+        return
+    if not instance.user:
+        logger.info(
+            "Signal ignored: PipelineTemplateVersion instance has no user associated."
+        )
         return
 
     template = instance.template
@@ -31,14 +37,11 @@ def auto_update_pipelines_from_template(sender, instance, created, **kwargs):
         f"New template version created: {template.name} v{instance.version_number}"
     )
 
-    pipelines_to_update = (
-        Pipeline.objects.filter(
-            source_template=template,
-            workspace__auto_update_pipelines_from_template=True,
-        )
-        .exclude(deleted_at__isnull=False)
-        .select_related("workspace")
-    )
+    pipelines_to_update = Pipeline.objects.filter(
+        source_template=template,
+        workspace__auto_update_pipelines_from_template=True,
+        deleted_at__isnull=True,
+    ).select_related("workspace")
 
     if not pipelines_to_update.exists():
         logger.info(f"No pipelines to auto-update for template '{template.name}'")
