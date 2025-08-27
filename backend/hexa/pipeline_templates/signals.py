@@ -24,16 +24,18 @@ def auto_update_pipelines_from_template(sender, instance, created, **kwargs):
     It only processes newly created versions (not updates to existing ones).
     """
     if not created:
-        logger.info("Signal ignored: PipelineTemplateVersion was updated, not created.")
+        logger.debug(
+            "Signal ignored: PipelineTemplateVersion was updated, not created."
+        )
         return
     if not instance.user:
-        logger.info(
+        logger.debug(
             "Signal ignored: PipelineTemplateVersion instance has no user associated."
         )
         return
 
     template = instance.template
-    logger.info(
+    logger.debug(
         f"New template version created: {template.name} v{instance.version_number}"
     )
 
@@ -44,7 +46,7 @@ def auto_update_pipelines_from_template(sender, instance, created, **kwargs):
     ).select_related("workspace")
 
     if not pipelines_to_update.exists():
-        logger.info(f"No pipelines to auto-update for template '{template.name}'")
+        logger.debug(f"No pipelines to auto-update for template '{template.name}'")
         return
 
     updated_pipelines = []
