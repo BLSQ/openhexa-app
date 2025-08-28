@@ -13,7 +13,11 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     User,
 )
-from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 from ...metadata.models import MetadataAttribute
 from ..models import Dataset, DatasetFileSample, DatasetVersion, DatasetVersionFile
@@ -770,13 +774,22 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
         )
 
         cls.org_admin = User.objects.create_user(
-            "org_admin@bluesquarehub.com", "password", is_superuser=True
+            "org_admin@bluesquarehub.com", "password"
         )
         cls.org_member = User.objects.create_user(
             "org_member@bluesquarehub.com", "password"
         )
+        cls.org_member_from_different_workspace = User.objects.create_user(
+            "org_member_from_different_workspace@bluesquarehub.com", "password"
+        )
         cls.non_member = User.objects.create_user(
             "non_member@bluesquarehub.com", "password"
+        )
+
+        OrganizationMembership.objects.get_or_create(
+            organization=cls.organization,
+            user=cls.org_admin,
+            defaults={"role": OrganizationMembershipRole.ADMIN},
         )
 
         cls.workspace = Workspace.objects.create_if_has_perm(
@@ -785,14 +798,11 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
             description="Test workspace",
             organization=cls.organization,
         )
-
-        cls.org_admin.is_superuser = False
-        cls.org_admin.save()
-
-        OrganizationMembership.objects.get_or_create(
+        cls.workspace2 = Workspace.objects.create_if_has_perm(
+            principal=cls.org_admin,
+            name="Test Workspace2",
+            description="Test workspace2",
             organization=cls.organization,
-            user=cls.org_admin,
-            defaults={"role": OrganizationMembershipRole.ADMIN},
         )
         OrganizationMembership.objects.get_or_create(
             organization=cls.organization,
@@ -805,6 +815,17 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
             cls.workspace,
             name="Test Dataset",
             description="Test dataset for organization sharing",
+        )
+
+        WorkspaceMembership.objects.get_or_create(
+            workspace=cls.workspace,
+            user=cls.org_member,
+            defaults={"role": WorkspaceMembershipRole.VIEWER},
+        )
+        WorkspaceMembership.objects.get_or_create(
+            workspace=cls.workspace2,
+            user=cls.org_member_from_different_workspace,
+            defaults={"role": WorkspaceMembershipRole.VIEWER},
         )
 
     def test_update_dataset_with_organization_sharing_by_org_admin(self):
@@ -876,7 +897,7 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
         self.assertEqual(
             {
                 "success": False,
-                "errors": ["DATASET_NOT_FOUND"],
+                "errors": ["PERMISSION_DENIED"],
                 "dataset": None,
             },
             r["data"]["updateDataset"],
@@ -949,7 +970,7 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
         self.dataset.shared_with_organization = True
         self.dataset.save()
 
-        self.client.force_login(self.org_member)
+        self.client.force_login(self.org_member_from_different_workspace)
 
         r = self.run_query(
             """
