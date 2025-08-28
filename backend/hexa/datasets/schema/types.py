@@ -83,7 +83,7 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
         qs = qs.filter(is_pinned=pinned)
 
     return result_page(
-        queryset=qs,
+        queryset=qs.order_by("-updated_at"),
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", 15),
     )
