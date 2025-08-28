@@ -166,7 +166,7 @@ class Organization(Base):
 
     def filter_workspaces_for_user(self, user):
         workspaces = self.workspaces.exclude(archived=True)
-        if user.has_perm("user_management.list_all_workspaces", self):
+        if user.has_perm("user_management.has_admin_privileges", self):
             return workspaces
         return workspaces.filter(members=user)
 

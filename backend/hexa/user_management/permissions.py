@@ -73,8 +73,8 @@ def archive_workspace(principal: User, organization: Organization):
     ).exists()
 
 
-def list_all_workspaces(principal: User, organization: Organization):
-    """Only admin and owner users can list all workspaces"""
+def has_admin_privileges(principal: User, organization: Organization):
+    """Check if user has admin or owner privileges in the organization"""
     return organization.organizationmembership_set.filter(
         user=principal,
         role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
