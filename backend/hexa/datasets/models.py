@@ -450,8 +450,6 @@ class DatasetLinkQuerySet(BaseQuerySet):
                 user,
                 models.Q(workspace=user.pipeline_run.pipeline.workspace),
             )
-        # TODO : implement for pipeline runs
-        # TODO : list of workspaces should be limited to organization
         else:
             return (
                 self._filter_for_user_and_query_object(
