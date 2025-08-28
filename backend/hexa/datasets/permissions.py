@@ -55,23 +55,15 @@ def delete_dataset_version(principal: User, version: DatasetVersion):
 def download_dataset_version(principal: User, version: DatasetVersion):
     """Only workspace members can download dataset versions.
     This also includes members of workspaces that have been shared this dataset
-    and organization members for organization-shared datasets.
     """
-    return (
-        version.dataset.workspace.workspacemembership_set.filter(
-            user=principal,
-            role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-        ).exists()
-        or version.dataset.links.filter(
-            workspace__in=principal.workspace_set.all()
-        ).exists()
-        or (
-            version.dataset.shared_with_organization
-            and version.dataset.workspace.organization
-            and principal.has_perm(
-                "user_management.has_admin_privileges",
-                version.dataset.workspace.organization,
-            )
+    return version.dataset.links.filter(
+        workspace__in=principal.workspace_set.all()
+    ).exists() or (
+        version.dataset.shared_with_organization
+        and version.dataset.workspace.organization
+        and principal.has_perm(
+            "user_management.has_admin_privileges",
+            version.dataset.workspace.organization,
         )
     )
 
