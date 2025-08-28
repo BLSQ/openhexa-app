@@ -63,10 +63,9 @@ const PipelinePage = (props: Props) => {
       variables: {
         input: {
           id: dag.id,
-          label: values.label,
+          name: values.label,
           schedule: values.schedule,
           description: values.description,
-          countries: values.countries?.map((c: Country) => ({ code: c.code })),
         },
       },
     });
