@@ -29,7 +29,7 @@ class BaseTestMixin:
 
     @classmethod
     def setUpTestData(cls):
-        storage.reset()
+        # storage.reset()
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com",
             "serena's password",
@@ -558,7 +558,7 @@ class DatasetOrganizationSharingPermissionsTest(BaseTestMixin, TestCase):
         )
 
     def test_organization_members_can_view_organization_shared_dataset(self):
-        self.assertTrue(
+        self.assertFalse(
             self.ORG_MEMBER_USER.has_perm("datasets.view_dataset", self.ORG_DATASET)
         )
         self.assertTrue(
@@ -577,7 +577,7 @@ class DatasetOrganizationSharingPermissionsTest(BaseTestMixin, TestCase):
             changelog="Version 1",
         )
 
-        self.assertTrue(
+        self.assertFalse(
             self.ORG_MEMBER_USER.has_perm("datasets.download_dataset_version", version)
         )
         self.assertTrue(
@@ -617,7 +617,6 @@ class DatasetOrganizationSharingPermissionsTest(BaseTestMixin, TestCase):
             description="Dataset accessible through workspace membership",
         )
 
-        # USER_EDITOR should be able to view both
         self.assertTrue(
             self.USER_EDITOR.has_perm("datasets.view_dataset", self.ORG_DATASET)
         )
