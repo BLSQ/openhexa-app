@@ -61,6 +61,7 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
 
     qs = (
         DatasetLink.objects.filter(directly_linked_q | organization_shared_q)
+        # We annotate to be able to filter out the "duplicate" links that can appear when a dataset is shared with the organization
         .annotate(
             is_original_link=models.Case(
                 models.When(
