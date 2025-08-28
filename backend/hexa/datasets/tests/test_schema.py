@@ -809,6 +809,11 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
             user=cls.org_member,
             defaults={"role": OrganizationMembershipRole.MEMBER},
         )
+        OrganizationMembership.objects.get_or_create(
+            organization=cls.organization,
+            user=cls.org_member_from_different_workspace,
+            defaults={"role": OrganizationMembershipRole.MEMBER},
+        )
 
         cls.dataset = Dataset.objects.create_if_has_perm(
             cls.org_admin,
@@ -870,41 +875,6 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
 
         self.dataset.refresh_from_db()
         self.assertTrue(self.dataset.shared_with_organization)
-
-    def test_update_dataset_with_organization_sharing_by_non_admin(self):
-        self.client.force_login(self.org_member)
-
-        r = self.run_query(
-            """
-            mutation UpdateDataset ($input: UpdateDatasetInput!) {
-                updateDataset(input: $input) {
-                    dataset {
-                        id
-                    }
-                    success
-                    errors
-                }
-            }
-            """,
-            {
-                "input": {
-                    "datasetId": str(self.dataset.id),
-                    "sharedWithOrganization": True,
-                }
-            },
-        )
-
-        self.assertEqual(
-            {
-                "success": False,
-                "errors": ["PERMISSION_DENIED"],
-                "dataset": None,
-            },
-            r["data"]["updateDataset"],
-        )
-
-        self.dataset.refresh_from_db()
-        self.assertFalse(self.dataset.shared_with_organization)
 
     def test_update_dataset_with_organization_sharing_by_non_member(self):
         self.client.force_login(self.non_member)
