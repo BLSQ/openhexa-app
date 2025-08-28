@@ -3,8 +3,35 @@ query FileBrowserDialog(
   $page: Int
   $perPage: Int
   $prefix: String
+  $query: String!
+  $workspaceSlugs: [String!]
+  $useSearch: Boolean!
 ) {
-  workspace(slug: $slug) {
+  # Root-level searchFiles query for search mode
+  searchResults: searchFiles(
+    query: $query
+    workspaceSlugs: $workspaceSlugs
+    page: $page
+    perPage: $perPage
+  ) @include(if: $useSearch) {
+    totalItems
+    totalPages
+    pageNumber
+    items {
+      file {
+        name
+        key
+        path
+        type
+        updated
+        size
+      }
+      score
+    }
+  }
+
+  # Workspace-level bucket.objects for directory browsing
+  workspace(slug: $slug) @skip(if: $useSearch) {
     slug
     bucket {
       objects(page: $page, perPage: $perPage, prefix: $prefix) {
@@ -19,6 +46,7 @@ query FileBrowserDialog(
         }
         pageNumber
         hasNextPage
+        hasPreviousPage
       }
     }
   }

@@ -8,10 +8,13 @@ export type FileBrowserDialogQueryVariables = Types.Exact<{
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   prefix?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  query: Types.Scalars['String']['input'];
+  workspaceSlugs?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
+  useSearch: Types.Scalars['Boolean']['input'];
 }>;
 
 
-export type FileBrowserDialogQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, bucket: { __typename?: 'Bucket', objects: { __typename?: 'BucketObjectPage', pageNumber: number, hasNextPage: boolean, items: Array<{ __typename?: 'BucketObject', name: string, key: string, path: string, type: Types.BucketObjectType, updatedAt?: any | null, size?: any | null }> } } } | null };
+export type FileBrowserDialogQuery = { __typename?: 'Query', searchResults?: { __typename?: 'FileResultPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<{ __typename?: 'FileResult', score: number, file: { __typename?: 'File', name: string, key: string, path: string, type: Types.FileType, updated?: any | null, size?: any | null } }> }, workspace?: { __typename?: 'Workspace', slug: string, bucket: { __typename?: 'Bucket', objects: { __typename?: 'BucketObjectPage', pageNumber: number, hasNextPage: boolean, hasPreviousPage: boolean, items: Array<{ __typename?: 'BucketObject', name: string, key: string, path: string, type: Types.BucketObjectType, updatedAt?: any | null, size?: any | null }> } } } | null };
 
 export type FileBrowserDialog_BucketObjectFragment = { __typename?: 'BucketObject', key: string, name: string, path: string, size?: any | null, updatedAt?: any | null, type: Types.BucketObjectType };
 
@@ -26,8 +29,29 @@ export const FileBrowserDialog_BucketObjectFragmentDoc = gql`
 }
     `;
 export const FileBrowserDialogDocument = gql`
-    query FileBrowserDialog($slug: String!, $page: Int, $perPage: Int, $prefix: String) {
-  workspace(slug: $slug) {
+    query FileBrowserDialog($slug: String!, $page: Int, $perPage: Int, $prefix: String, $query: String!, $workspaceSlugs: [String!], $useSearch: Boolean!) {
+  searchResults: searchFiles(
+    query: $query
+    workspaceSlugs: $workspaceSlugs
+    page: $page
+    perPage: $perPage
+  ) @include(if: $useSearch) {
+    totalItems
+    totalPages
+    pageNumber
+    items {
+      file {
+        name
+        key
+        path
+        type
+        updated
+        size
+      }
+      score
+    }
+  }
+  workspace(slug: $slug) @skip(if: $useSearch) {
     slug
     bucket {
       objects(page: $page, perPage: $perPage, prefix: $prefix) {
@@ -42,6 +66,7 @@ export const FileBrowserDialogDocument = gql`
         }
         pageNumber
         hasNextPage
+        hasPreviousPage
       }
     }
   }
@@ -64,6 +89,9 @@ export const FileBrowserDialogDocument = gql`
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *      prefix: // value for 'prefix'
+ *      query: // value for 'query'
+ *      workspaceSlugs: // value for 'workspaceSlugs'
+ *      useSearch: // value for 'useSearch'
  *   },
  * });
  */
