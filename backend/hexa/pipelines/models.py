@@ -499,6 +499,9 @@ class Pipeline(SoftDeletedModel):
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 
+        if "auto_update_from_template" in kwargs:
+            self.auto_update_from_template = kwargs["auto_update_from_template"]
+
         if "webhook_enabled" in kwargs:
             self.set_webhook_state(kwargs["webhook_enabled"])
 

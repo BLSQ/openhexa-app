@@ -50,9 +50,6 @@ def resolve_create_workspace(_, info, **kwargs):
             load_sample_data=create_input.get("load_sample_data"),
             organization=organization,
             configuration=create_input.get("configuration"),
-            auto_update_pipelines_from_template=create_input.get(
-                "auto_update_pipelines_from_template", False
-            ),
         )
 
         return {"success": True, "workspace": workspace, "errors": []}
@@ -87,11 +84,6 @@ def resolve_update_workspace(_, info, **kwargs):
 
         if "configuration" in input:
             args["configuration"] = input["configuration"]
-
-        if "auto_update_pipelines_from_template" in input:
-            args["auto_update_pipelines_from_template"] = input[
-                "auto_update_pipelines_from_template"
-            ]
 
         workspace.update_if_has_perm(principal=request.user, **args)
 

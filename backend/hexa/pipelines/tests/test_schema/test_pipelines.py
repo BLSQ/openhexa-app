@@ -1296,7 +1296,6 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline_version()
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
 
-        # Test default value is False
         r = self.run_query(
             """
             query ($id: UUID!) {
@@ -1317,7 +1316,6 @@ class PipelinesV2Test(GraphQLTestCase):
             r["data"]["pipeline"],
         )
 
-        # Update and test changed value
         pipeline.auto_update_from_template = True
         pipeline.save()
 
