@@ -54,7 +54,7 @@ def delete_dataset_version(principal: User, version: DatasetVersion):
 
 def download_dataset_version(principal: User, version: DatasetVersion):
     """Only workspace members can download dataset versions.
-    This also includes members of workspaces that have been shared this dataset
+    This also includes members of workspaces that have been shared this dataset.
     """
     return version.dataset.links.filter(
         workspace__in=principal.workspace_set.all()
