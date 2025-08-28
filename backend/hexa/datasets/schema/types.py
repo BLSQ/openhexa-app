@@ -74,7 +74,6 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
             )
         )
         .filter(is_original_link=1)
-        .distinct("dataset_id")
     )
 
     if query is not None:
