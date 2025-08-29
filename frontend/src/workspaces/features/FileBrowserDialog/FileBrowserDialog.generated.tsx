@@ -8,7 +8,7 @@ export type FileBrowserDialogQueryVariables = Types.Exact<{
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   prefix?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  query: Types.Scalars['String']['input'];
+  query?: Types.InputMaybe<Types.Scalars['String']['input']>;
   workspaceSlugs?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
   useSearch: Types.Scalars['Boolean']['input'];
 }>;
@@ -29,7 +29,7 @@ export const FileBrowserDialog_BucketObjectFragmentDoc = gql`
 }
     `;
 export const FileBrowserDialogDocument = gql`
-    query FileBrowserDialog($slug: String!, $page: Int, $perPage: Int, $prefix: String, $query: String!, $workspaceSlugs: [String!], $useSearch: Boolean!) {
+    query FileBrowserDialog($slug: String!, $page: Int, $perPage: Int, $prefix: String, $query: String = "", $workspaceSlugs: [String!] = [], $useSearch: Boolean!) {
   searchResults: searchFiles(
     query: $query
     workspaceSlugs: $workspaceSlugs
