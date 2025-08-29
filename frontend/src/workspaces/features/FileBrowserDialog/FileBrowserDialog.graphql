@@ -3,11 +3,11 @@ query FileBrowserDialog(
   $page: Int
   $perPage: Int
   $prefix: String
-  $query: String!
-  $workspaceSlugs: [String!]
+  $query: String = ""
+  $workspaceSlugs: [String!] = []
   $useSearch: Boolean!
 ) {
-  # Root-level searchFiles query for search mode
+  # Search results when in search mode
   searchResults: searchFiles(
     query: $query
     workspaceSlugs: $workspaceSlugs
@@ -30,7 +30,7 @@ query FileBrowserDialog(
     }
   }
 
-  # Workspace-level bucket.objects for directory browsing
+  # Browse results when in directory browsing mode
   workspace(slug: $slug) @skip(if: $useSearch) {
     slug
     bucket {
