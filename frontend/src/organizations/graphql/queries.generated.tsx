@@ -15,6 +15,16 @@ export type OrganizationsQueryVariables = Types.Exact<{ [key: string]: never; }>
 
 export type OrganizationsQuery = { __typename?: 'Query', organizations: Array<{ __typename?: 'Organization', id: string, name: string, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> } }> };
 
+export type OrganizationDatasetsQueryVariables = Types.Exact<{
+  organizationId: Types.Scalars['UUID']['input'];
+  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  query?: Types.InputMaybe<Types.Scalars['String']['input']>;
+}>;
+
+
+export type OrganizationDatasetsQuery = { __typename?: 'Query', searchDatasets: { __typename?: 'DatasetResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'DatasetResult', dataset: { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } } }> } };
+
 
 export const OrganizationDocument = gql`
     query Organization($id: UUID!) {
@@ -122,3 +132,75 @@ export type OrganizationsQueryHookResult = ReturnType<typeof useOrganizationsQue
 export type OrganizationsLazyQueryHookResult = ReturnType<typeof useOrganizationsLazyQuery>;
 export type OrganizationsSuspenseQueryHookResult = ReturnType<typeof useOrganizationsSuspenseQuery>;
 export type OrganizationsQueryResult = Apollo.QueryResult<OrganizationsQuery, OrganizationsQueryVariables>;
+export const OrganizationDatasetsDocument = gql`
+    query OrganizationDatasets($organizationId: UUID!, $page: Int = 1, $perPage: Int = 15, $query: String = "") {
+  searchDatasets(
+    organizationId: $organizationId
+    page: $page
+    perPage: $perPage
+    query: $query
+  ) {
+    totalItems
+    pageNumber
+    totalPages
+    items {
+      dataset {
+        id
+        slug
+        name
+        description
+        updatedAt
+        sharedWithOrganization
+        workspace {
+          slug
+          name
+        }
+        links(page: 1, perPage: 50) {
+          items {
+            workspace {
+              slug
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useOrganizationDatasetsQuery__
+ *
+ * To run a query within a React component, call `useOrganizationDatasetsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useOrganizationDatasetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOrganizationDatasetsQuery({
+ *   variables: {
+ *      organizationId: // value for 'organizationId'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useOrganizationDatasetsQuery(baseOptions: Apollo.QueryHookOptions<OrganizationDatasetsQuery, OrganizationDatasetsQueryVariables> & ({ variables: OrganizationDatasetsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<OrganizationDatasetsQuery, OrganizationDatasetsQueryVariables>(OrganizationDatasetsDocument, options);
+      }
+export function useOrganizationDatasetsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OrganizationDatasetsQuery, OrganizationDatasetsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<OrganizationDatasetsQuery, OrganizationDatasetsQueryVariables>(OrganizationDatasetsDocument, options);
+        }
+export function useOrganizationDatasetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<OrganizationDatasetsQuery, OrganizationDatasetsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<OrganizationDatasetsQuery, OrganizationDatasetsQueryVariables>(OrganizationDatasetsDocument, options);
+        }
+export type OrganizationDatasetsQueryHookResult = ReturnType<typeof useOrganizationDatasetsQuery>;
+export type OrganizationDatasetsLazyQueryHookResult = ReturnType<typeof useOrganizationDatasetsLazyQuery>;
+export type OrganizationDatasetsSuspenseQueryHookResult = ReturnType<typeof useOrganizationDatasetsSuspenseQuery>;
+export type OrganizationDatasetsQueryResult = Apollo.QueryResult<OrganizationDatasetsQuery, OrganizationDatasetsQueryVariables>;

@@ -36,3 +36,33 @@ query Organizations {
         }
     }
 }
+
+query OrganizationDatasets($organizationId: UUID!, $page: Int = 1, $perPage: Int = 15, $query: String = "") {
+    searchDatasets(organizationId: $organizationId, page: $page, perPage: $perPage, query: $query) {
+        totalItems
+        pageNumber
+        totalPages
+        items {
+            dataset {
+                id
+                slug
+                name
+                description
+                updatedAt
+                sharedWithOrganization
+                workspace {
+                    slug
+                    name
+                }
+                links(page: 1, perPage: 50) {
+                    items {
+                        workspace {
+                            slug
+                            name
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
