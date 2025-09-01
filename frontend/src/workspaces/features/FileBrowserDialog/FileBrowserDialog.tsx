@@ -276,23 +276,10 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
         </div>
 
         {/* Item Count Display */}
-        {!loading && itemCounts.mode !== "none" && (
+        {!loading && itemCounts.mode === "search" && itemCounts.showTotal && (
           <div className="px-2">
             <div className="text-xs text-gray-600">
-              {itemCounts.mode === "search" && itemCounts.showTotal
-                ? t("{{count}} total results", { count: itemCounts.total })
-                : itemCounts.mode === "browse" && itemCounts.showTotal
-                  ? t("{{count}} total items", { count: itemCounts.total })
-                  : itemCounts.mode === "browse" &&
-                      "estimatedMinTotal" in itemCounts
-                    ? itemCounts.hasMore
-                      ? t("{{count}}+ items", {
-                          count: itemCounts.estimatedMinTotal,
-                        })
-                      : t("{{count}} items", {
-                          count: itemCounts.estimatedMinTotal,
-                        })
-                    : null}
+              {t("{{count}} total results", { count: itemCounts.total })}
             </div>
           </div>
         )}
