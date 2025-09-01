@@ -72,11 +72,11 @@ const BucketExplorer = (props: BucketExplorerProps) => {
     <FileSystemDataGrid
       data={objects.items}
       fixedLayout={false}
-      onDroppingFiles={uploadFiles}
-      directoryLinkGenerator={directoryLinkGenerator}
-      actionsRenderer={actionsRenderer}
       pagination={objects}
       perPage={perPage}
+      actionsRenderer={actionsRenderer}
+      directoryLinkGenerator={directoryLinkGenerator}
+      onDroppingFiles={uploadFiles}
       onChangePage={onChangePage}
     />
   );
