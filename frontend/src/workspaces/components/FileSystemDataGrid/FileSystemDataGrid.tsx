@@ -32,6 +32,7 @@ export interface FileSystemDataGridProps {
   onChangePage: (page: number, perPage: number) => void;
   onDroppingFiles?: (files: File[]) => void;
   onRowClick?: (item: BucketObject) => void;
+  showPageSizeSelect?: boolean;
 }
 
 const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
@@ -46,6 +47,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
   onChangePage,
   onDroppingFiles,
   onRowClick,
+  showPageSizeSelect = true,
 }) => {
   const { t } = useTranslation();
 
@@ -141,25 +143,27 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
       {data.length > 0 && (
         <div className="px-4 flex justify-between items-center">
           <div>
-            <SimpleSelect
-              required
-              onChange={(event) =>
-                onChangePage(
-                  1,
-                  event.target.value
-                    ? parseInt(event.target.value, 10)
-                    : perPage,
-                )
-              }
-              className="h-[30px] w-fit py-0"
-              value={perPage.toString()}
-            >
-              {[10, 20, 50, 100].map((opt) => (
-                <option key={opt} value={opt.toString()}>
-                  {opt}
-                </option>
-              ))}
-            </SimpleSelect>
+            {showPageSizeSelect && (
+              <SimpleSelect
+                required
+                onChange={(event) =>
+                  onChangePage(
+                    1,
+                    event.target.value
+                      ? parseInt(event.target.value, 10)
+                      : perPage,
+                  )
+                }
+                className="h-[30px] w-fit py-0"
+                value={perPage.toString()}
+              >
+                {[10, 20, 50, 100].map((opt) => (
+                  <option key={opt} value={opt.toString()}>
+                    {opt}
+                  </option>
+                ))}
+              </SimpleSelect>
+            )}
           </div>
           <SimplePagination
             hasNextPage={pagination.hasNextPage}
