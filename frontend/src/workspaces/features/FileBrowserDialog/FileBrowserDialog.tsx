@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { useLazyQuery } from "@apollo/client";
 
@@ -27,6 +27,7 @@ import {
 import FileSystemDataGrid, {
   FileSystemDataGridPagination,
 } from "../../components/FileSystemDataGrid";
+import { useUploadFiles } from "../../hooks/useUploadFiles";
 
 type FileBrowserDialogProps = {
   open: boolean;
@@ -48,6 +49,28 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [currentSelectedFile, setCurrentSelectedFile] =
     useState<FileBrowserDialog_BucketObjectFragment | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadFiles = useUploadFiles({
+    workspace: { slug: workspaceSlug },
+    prefix,
+    onFileUploaded: () => {
+      // Refetch the data to show newly uploaded files
+      if (open) {
+        const variables: FileBrowserDialogQueryVariables = {
+          slug: workspaceSlug,
+          page: currentPage,
+          perPage: pageSize,
+          useSearch: isSearchMode && Boolean(debouncedSearchQuery),
+          query: debouncedSearchQuery || "",
+          workspaceSlugs: isSearchMode ? [workspaceSlug] : [],
+          prefix,
+        };
+        fetch({ variables });
+      }
+    },
+  });
 
   const [fetch, { data, previousData, loading }] = useLazyQuery<
     FileBrowserDialogQuery,
@@ -125,6 +148,19 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     }
   };
 
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      uploadFiles(Array.from(files));
+    }
+    // Reset the input so the same files can be selected again if needed
+    event.target.value = "";
+  };
+
   const prefixes: { label: string; value: string }[] = useMemo(() => {
     const arr = [] as any[];
     let last = "";
@@ -165,48 +201,6 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     }
     return [];
   }, [isSearchMode, searchResults, bucket?.objects.items, searchQuery]);
-
-  // Calculate item counts - use server totals for search, estimation for browse
-  const itemCounts = useMemo(() => {
-    if (isSearchMode && searchResults) {
-      // For search mode, we have the actual total from the server
-      return {
-        total: searchResults.totalItems,
-        showTotal: true,
-        mode: "search" as const,
-      };
-    } else if (bucket?.objects) {
-      // For browse mode, estimate based on pagination since we don't have server totals
-      const currentPageItems = normalizedItems.length;
-      const hasMore = bucket.objects.hasNextPage;
-      const pageNumber = bucket.objects.pageNumber;
-
-      // If we're on first page and there are no more items, we know the exact total
-      if (pageNumber === 1 && !hasMore) {
-        return {
-          total: currentPageItems,
-          showTotal: true,
-          mode: "browse" as const,
-        };
-      }
-
-      // Otherwise, show estimated count
-      const estimatedMinTotal = (pageNumber - 1) * pageSize + currentPageItems;
-      return {
-        estimatedMinTotal,
-        hasMore,
-        showTotal: false,
-        mode: "browse" as const,
-      };
-    }
-    return { total: 0, showTotal: false, mode: "none" as const };
-  }, [
-    isSearchMode,
-    searchResults,
-    bucket?.objects,
-    normalizedItems.length,
-    pageSize,
-  ]);
 
   return (
     <Dialog
@@ -276,10 +270,12 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
         </div>
 
         {/* Item Count Display */}
-        {!loading && itemCounts.mode === "search" && itemCounts.showTotal && (
+        {!loading && isSearchMode && searchResults && (
           <div className="px-2">
             <div className="text-xs text-gray-600">
-              {t("{{count}} total results", { count: itemCounts.total })}
+              {t("{{count}} total results", {
+                count: searchResults.totalItems,
+              })}
             </div>
           </div>
         )}
@@ -297,10 +293,20 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
             variant="outlined"
             size="sm"
             leadingIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
+            onClick={handleUploadClick}
           >
             {t("Upload files")}
           </Button>
         </div>
+
+        {/* Hidden file input for upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={handleFileSelect}
+        />
 
         {/* File List */}
         <div className="flex-1 overflow-auto">
@@ -324,6 +330,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
               }
               pagination={bucket?.objects as FileSystemDataGridPagination}
               onChangePage={fetchData}
+              onDroppingFiles={uploadFiles}
               onRowClick={(item: BucketObject) =>
                 onItemClick(item as FileBrowserDialog_BucketObjectFragment)
               }
