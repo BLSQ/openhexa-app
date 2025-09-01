@@ -108,7 +108,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   };
 
   const fetchData = useCallback(
-    ({ page, pageSize: newPageSize }: { page: number; pageSize?: number }) => {
+    (page: number, newPageSize?: number) => {
       if (newPageSize && newPageSize !== pageSize) {
         setPageSize(newPageSize);
       }
@@ -325,6 +325,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
             <FileSystemDataGrid
               data={normalizedItems as BucketObject[]}
               perPage={pageSize}
+              showPageSizeSelect={false}
               loading={isSearching || loading}
               rowClassName={(item: BucketObject) =>
                 clsx(
@@ -335,6 +336,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
                 )
               }
               pagination={bucket?.objects as FileSystemDataGridPagination}
+              onChangePage={fetchData}
               onRowClick={(item: BucketObject) =>
                 onItemClick(item as FileBrowserDialog_BucketObjectFragment)
               }
