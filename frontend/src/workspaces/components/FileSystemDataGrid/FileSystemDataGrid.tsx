@@ -6,6 +6,7 @@ import { FolderIcon, DocumentIcon } from "@heroicons/react/24/outline";
 import { BucketObject, BucketObjectType } from "graphql/types";
 
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
+import DateColumn from "core/components/DataGrid/DateColumn";
 import Filesize from "core/components/Filesize";
 import Link from "core/components/Link";
 import SimplePagination from "core/components/Pagination/SimplePagination";
@@ -125,11 +126,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
         }
       </BaseColumn>
 
-      <BaseColumn id="lastUpdated" label={t("Last Updated")}>
-        {(item: BucketObject) => (
-          <span>{item.updatedAt ? formatDate(item.updatedAt) : "-"}</span>
-        )}
-      </BaseColumn>
+      <DateColumn accessor={"updatedAt"} label={t("Last Updated")} relative />
 
       {actionsRenderer && (
         <BaseColumn id="actions">{actionsRenderer}</BaseColumn>
