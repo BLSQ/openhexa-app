@@ -21,6 +21,10 @@ import DatasetWorkspacesList from "./DatasetWorkspacesList";
 
 const DEFAULT_PAGE_SIZE = 10;
 
+// TODO : workspace tag
+// TODO : SHaring icon
+// TODO : Shared with
+
 export default function OrganizationDatasets({
   organizationId,
 }: {
@@ -89,22 +93,12 @@ export default function OrganizationDatasets({
         >
           <BaseColumn label={t("Dataset")} id="dataset" minWidth={250}>
             {(dataset: OrganizationDataset_DatasetFragment) => (
-              <div className="flex items-center gap-2">
-                <CircleStackIcon className="w-4 h-4 text-gray-400" />
-                <div>
-                  <Link
-                    href={`/workspaces/${dataset.workspace?.slug}/datasets/${dataset.slug}/from/${dataset.workspace?.slug}`}
-                    className="font-medium text-blue-600 hover:text-blue-800"
-                  >
-                    {dataset.name}
-                  </Link>
-                  {dataset.description && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      {dataset.description}
-                    </p>
-                  )}
-                </div>
-              </div>
+              <Link
+                href={`/workspaces/${dataset.workspace?.slug}/datasets/${dataset.slug}/from/${dataset.workspace?.slug}`}
+                className="font-medium text-blue-600 hover:text-blue-800"
+              >
+                {dataset.name}
+              </Link>
             )}
           </BaseColumn>
           <BaseColumn
