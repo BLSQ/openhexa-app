@@ -5,18 +5,15 @@ import { useLazyQuery } from "@apollo/client";
 import {
   ArrowUpTrayIcon,
   ChevronRightIcon,
-  FolderIcon,
   HomeIcon,
   MagnifyingGlassIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
-import { BucketObjectType, FileType } from "graphql/types";
+import { BucketObject, BucketObjectType, FileType } from "graphql/types";
 import clsx from "clsx";
 
 import Dialog from "core/components/Dialog";
 import Button from "core/components/Button";
-import DataGrid, { BaseColumn } from "core/components/DataGrid";
-import Filesize from "core/components/Filesize";
 import Input from "core/components/forms/Input";
 import Spinner from "core/components/Spinner";
 import useDebounce from "core/hooks/useDebounce";
@@ -27,7 +24,9 @@ import {
   FileBrowserDialog_BucketObjectFragment,
   FileBrowserDialogDocument,
 } from "./FileBrowserDialog.generated";
-import { getFileIconAndColor } from "./utils";
+import FileSystemDataGrid, {
+  FileSystemDataGridPagination,
+} from "../../components/FileSystemDataGrid";
 
 type FileBrowserDialogProps = {
   open: boolean;
@@ -124,10 +123,6 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     } else {
       setCurrentSelectedFile(item);
     }
-  };
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString();
   };
 
   const prefixes: { label: string; value: string }[] = useMemo(() => {
@@ -327,11 +322,11 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
               <Spinner size="lg" />
             </div>
           ) : (
-            <DataGrid
-              data={normalizedItems}
-              defaultPageSize={pageSize}
+            <FileSystemDataGrid
+              data={normalizedItems as BucketObject[]}
+              perPage={pageSize}
               loading={isSearching || loading}
-              rowClassName={(item: any) =>
+              rowClassName={(item: BucketObject) =>
                 clsx(
                   "cursor-pointer",
                   currentSelectedFile?.path === item.path
@@ -339,51 +334,11 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
                     : "hover:bg-gray-50 focus:bg-gray-50",
                 )
               }
-              className="border rounded-lg"
-              onRowClick={(item: any) =>
+              pagination={bucket?.objects as FileSystemDataGridPagination}
+              onRowClick={(item: BucketObject) =>
                 onItemClick(item as FileBrowserDialog_BucketObjectFragment)
               }
-            >
-              <BaseColumn id="name" label={t("Name")} minWidth={400}>
-                {(item: any) => (
-                  <div className="flex items-center gap-2">
-                    {item.type === BucketObjectType.Directory ? (
-                      <FolderIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
-                    ) : (
-                      (() => {
-                        const { icon: IconComponent, color: iconColor } =
-                          getFileIconAndColor(item.name);
-                        return (
-                          <IconComponent
-                            className={clsx("h-5 w-5 flex-shrink-0", iconColor)}
-                          />
-                        );
-                      })()
-                    )}
-                    <span className="truncate">
-                      {item.name}
-                      {item.type === BucketObjectType.Directory && "/"}
-                    </span>
-                  </div>
-                )}
-              </BaseColumn>
-              <BaseColumn id="size" label={t("Size")}>
-                {(item: any) =>
-                  item.type === BucketObjectType.Directory ? (
-                    <span>-</span>
-                  ) : (
-                    <Filesize size={item.size} />
-                  )
-                }
-              </BaseColumn>
-              <BaseColumn id="lastUpdated" label={t("Last Updated")}>
-                {(item: any) => (
-                  <span>
-                    {item.updatedAt ? formatDate(item.updatedAt) : "-"}
-                  </span>
-                )}
-              </BaseColumn>
-            </DataGrid>
+            />
           )}
         </div>
       </Dialog.Content>
