@@ -26,6 +26,7 @@ export interface FileSystemDataGridProps {
   fixedLayout?: boolean;
   pagination: FileSystemDataGridPagination;
   perPage: number;
+  rowClassName?: string | ((row: BucketObject) => string);
   actionsRenderer?: (item: BucketObject) => ReactNode;
   directoryLinkGenerator?: (item: BucketObject) => string;
   onChangePage: (page: number, perPage: number) => void;
@@ -39,6 +40,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
   fixedLayout = false,
   pagination,
   perPage,
+  rowClassName,
   actionsRenderer,
   directoryLinkGenerator,
   onChangePage,
@@ -104,6 +106,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
       defaultPageSize={perPage}
       fixedLayout={fixedLayout}
       loading={loading}
+      rowClassName={rowClassName}
       onRowClick={onRowClick}
     >
       <BaseColumn id="name" label={t("Name")} minWidth={400}>
