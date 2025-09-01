@@ -1,23 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
-import { gql, useLazyQuery } from "@apollo/client";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "next-i18next";
+import { useLazyQuery } from "@apollo/client";
+
 import {
+  ArrowUpTrayIcon,
   ChevronRightIcon,
   FolderIcon,
+  HomeIcon,
   MagnifyingGlassIcon,
   PlusIcon,
-  ArrowUpTrayIcon,
 } from "@heroicons/react/24/outline";
-import { HomeIcon } from "@heroicons/react/20/solid";
-import { BucketObjectType } from "graphql/types";
-import { useTranslation } from "next-i18next";
+import { BucketObjectType, FileType } from "graphql/types";
 import clsx from "clsx";
 
-import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
+import Button from "core/components/Button";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import Filesize from "core/components/Filesize";
 import Input from "core/components/forms/Input";
 import Spinner from "core/components/Spinner";
+import useDebounce from "core/hooks/useDebounce";
 
 import {
   FileBrowserDialogQuery,
@@ -34,17 +36,17 @@ type FileBrowserDialogProps = {
   onSelectFile: (file: FileBrowserDialog_BucketObjectFragment) => void;
 };
 
-const FileBrowserDialog = ({
-  open,
-  onClose,
-  workspaceSlug,
-  onSelectFile,
-}: FileBrowserDialogProps) => {
+const FileBrowserDialog = (props: FileBrowserDialogProps) => {
+  const { open, onClose, workspaceSlug, onSelectFile } = props;
   const { t } = useTranslation();
 
   const [prefix, _setPrefix] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [pageSize, setPageSize] = useState(20);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
   const [currentSelectedFile, setCurrentSelectedFile] =
     useState<FileBrowserDialog_BucketObjectFragment | null>(null);
 
@@ -53,35 +55,68 @@ const FileBrowserDialog = ({
     FileBrowserDialogQueryVariables
   >(FileBrowserDialogDocument);
 
+  // Mode detection logic
+  useEffect(() => {
+    const newIsSearchMode = Boolean(debouncedSearchQuery.trim());
+    if (newIsSearchMode !== isSearchMode) {
+      setIsSearchMode(newIsSearchMode);
+      // Reset pagination when switching modes
+      setCurrentPage(1);
+    }
+  }, [debouncedSearchQuery, isSearchMode]);
+
   useEffect(() => {
     if (open) {
-      fetch({
-        variables: {
-          slug: workspaceSlug,
-          prefix,
-          page: 1,
-          perPage: pageSize,
-        },
-      });
+      const variables: FileBrowserDialogQueryVariables = {
+        slug: workspaceSlug,
+        page: currentPage,
+        perPage: pageSize,
+        useSearch: isSearchMode && Boolean(debouncedSearchQuery),
+        // Search parameters (required by schema but ignored when useSearch=false)
+        query: debouncedSearchQuery || "",
+        workspaceSlugs: isSearchMode ? [workspaceSlug] : [],
+        // Browse parameters (ignored when useSearch=true)
+        prefix,
+      };
+
+      fetch({ variables });
+      setIsSearching(false);
       setCurrentSelectedFile(null);
     }
-  }, [prefix, fetch, workspaceSlug, pageSize, open]);
+  }, [
+    open,
+    isSearchMode,
+    debouncedSearchQuery,
+    workspaceSlug,
+    prefix,
+    currentPage,
+    pageSize,
+    fetch,
+  ]);
+
+  const updateSearchQuery = useCallback(
+    (searchValue: string) => {
+      setIsSearching(true);
+      setSearchQuery(searchValue);
+    },
+    [setIsSearching, setSearchQuery],
+  );
 
   const setPrefix = (prefix: string | null) => {
     setPageSize(20);
+    setCurrentPage(1);
     _setPrefix(prefix);
   };
 
-  const fetchData = ({ page }: { page: number }) => {
-    fetch({
-      variables: {
-        slug: workspaceSlug,
-        prefix,
-        page,
-        perPage: pageSize,
-      },
-    });
-  };
+  const fetchData = useCallback(
+    ({ page, pageSize: newPageSize }: { page: number; pageSize?: number }) => {
+      if (newPageSize && newPageSize !== pageSize) {
+        setPageSize(newPageSize);
+      }
+      setCurrentPage(page);
+    },
+    [pageSize],
+  );
 
   const onItemClick = (item: FileBrowserDialog_BucketObjectFragment) => {
     if (item.type === BucketObjectType.Directory) {
@@ -111,17 +146,72 @@ const FileBrowserDialog = ({
     return arr;
   }, [prefix]);
 
+  // Get data from combined query
+  const searchResults =
+    data?.searchResults ?? previousData?.searchResults ?? null;
   const bucket =
     data?.workspace?.bucket ?? previousData?.workspace?.bucket ?? null;
 
-  const filteredItems = useMemo(() => {
-    if (!bucket?.objects.items) return [];
-    if (!searchQuery.trim()) return bucket.objects.items;
+  // Normalize and combine data from both sources
+  const normalizedItems = useMemo(() => {
+    if (isSearchMode && searchResults) {
+      // Convert search results to bucket object format
+      return searchResults.items.map((result) => ({
+        ...result.file,
+        // Map search result fields to bucket object fields
+        updatedAt: result.file.updated,
+        type:
+          result.file.type === FileType.Directory
+            ? BucketObjectType.Directory
+            : BucketObjectType.File,
+      }));
+    } else if (bucket?.objects.items) {
+      return bucket.objects.items;
+    }
+    return [];
+  }, [isSearchMode, searchResults, bucket?.objects.items, searchQuery]);
 
-    return bucket.objects.items.filter((item) =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [bucket?.objects.items, searchQuery]);
+  // Calculate item counts - use server totals for search, estimation for browse
+  const itemCounts = useMemo(() => {
+    if (isSearchMode && searchResults) {
+      // For search mode, we have the actual total from the server
+      return {
+        total: searchResults.totalItems,
+        showTotal: true,
+        mode: "search" as const,
+      };
+    } else if (bucket?.objects) {
+      // For browse mode, estimate based on pagination since we don't have server totals
+      const currentPageItems = normalizedItems.length;
+      const hasMore = bucket.objects.hasNextPage;
+      const pageNumber = bucket.objects.pageNumber;
+
+      // If we're on first page and there are no more items, we know the exact total
+      if (pageNumber === 1 && !hasMore) {
+        return {
+          total: currentPageItems,
+          showTotal: true,
+          mode: "browse" as const,
+        };
+      }
+
+      // Otherwise, show estimated count
+      const estimatedMinTotal = (pageNumber - 1) * pageSize + currentPageItems;
+      return {
+        estimatedMinTotal,
+        hasMore,
+        showTotal: false,
+        mode: "browse" as const,
+      };
+    }
+    return { total: 0, showTotal: false, mode: "none" as const };
+  }, [
+    isSearchMode,
+    searchResults,
+    bucket?.objects,
+    normalizedItems.length,
+    pageSize,
+  ]);
 
   return (
     <Dialog
@@ -131,13 +221,21 @@ const FileBrowserDialog = ({
       className="h-[80vh]"
     >
       <Dialog.Title onClose={onClose}>{t("Select Input File")}</Dialog.Title>
-
       <Dialog.Content className="flex flex-col space-y-4 h-full">
         {/* Breadcrumb Navigation */}
-        <div className="flex items-center gap-1 text-sm text-gray-500 px-2 min-h-[2rem]">
+        <div
+          className={clsx(
+            "flex items-center gap-1 text-sm px-2 min-h-[2rem]",
+            isSearchMode ? "text-gray-400" : "text-gray-500",
+          )}
+        >
           <button
-            className="flex items-center hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded p-1"
-            onClick={() => setPrefix(null)}
+            className={clsx(
+              "flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded p-1",
+              isSearchMode ? "cursor-not-allowed" : "hover:text-gray-700",
+            )}
+            onClick={() => !isSearchMode && setPrefix(null)}
+            disabled={isSearchMode}
             aria-label={t("Go to root directory")}
           >
             <HomeIcon className="h-4 w-4" />
@@ -154,8 +252,14 @@ const FileBrowserDialog = ({
                 <div key={index} className="flex items-center">
                   <ChevronRightIcon className="h-3 w-3" />
                   <button
-                    className="hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1 py-0.5 truncate"
-                    onClick={() => setPrefix(part.value)}
+                    className={clsx(
+                      "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1 py-0.5 truncate",
+                      isSearchMode
+                        ? "cursor-not-allowed"
+                        : "hover:text-gray-700",
+                    )}
+                    onClick={() => !isSearchMode && setPrefix(part.value)}
+                    disabled={isSearchMode}
                     title={part.label}
                   >
                     {part.label}
@@ -171,10 +275,32 @@ const FileBrowserDialog = ({
           <Input
             placeholder={t("Search files...")}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => updateSearchQuery(e.target.value)}
             leading={<MagnifyingGlassIcon className="h-4 w-4" />}
           />
         </div>
+
+        {/* Item Count Display */}
+        {!loading && itemCounts.mode !== "none" && (
+          <div className="px-2">
+            <div className="text-xs text-gray-600">
+              {itemCounts.mode === "search" && itemCounts.showTotal
+                ? t("{{count}} total results", { count: itemCounts.total })
+                : itemCounts.mode === "browse" && itemCounts.showTotal
+                  ? t("{{count}} total items", { count: itemCounts.total })
+                  : itemCounts.mode === "browse" &&
+                      "estimatedMinTotal" in itemCounts
+                    ? itemCounts.hasMore
+                      ? t("{{count}}+ items", {
+                          count: itemCounts.estimatedMinTotal,
+                        })
+                      : t("{{count}} items", {
+                          count: itemCounts.estimatedMinTotal,
+                        })
+                    : null}
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex gap-2 px-2">
@@ -202,14 +328,10 @@ const FileBrowserDialog = ({
             </div>
           ) : (
             <DataGrid
-              data={filteredItems}
+              data={normalizedItems}
               defaultPageSize={pageSize}
-              emptyLabel={
-                searchQuery
-                  ? t("No files match your search")
-                  : t("Empty directory")
-              }
-              rowClassName={(item) =>
+              loading={isSearching || loading}
+              rowClassName={(item: any) =>
                 clsx(
                   "cursor-pointer",
                   currentSelectedFile?.path === item.path
@@ -218,12 +340,12 @@ const FileBrowserDialog = ({
                 )
               }
               className="border rounded-lg"
-              onRowClick={(item) =>
+              onRowClick={(item: any) =>
                 onItemClick(item as FileBrowserDialog_BucketObjectFragment)
               }
             >
               <BaseColumn id="name" label={t("Name")} minWidth={400}>
-                {(item) => (
+                {(item: any) => (
                   <div className="flex items-center gap-2">
                     {item.type === BucketObjectType.Directory ? (
                       <FolderIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
@@ -246,7 +368,7 @@ const FileBrowserDialog = ({
                 )}
               </BaseColumn>
               <BaseColumn id="size" label={t("Size")}>
-                {(item) =>
+                {(item: any) =>
                   item.type === BucketObjectType.Directory ? (
                     <span>-</span>
                   ) : (
@@ -255,7 +377,7 @@ const FileBrowserDialog = ({
                 }
               </BaseColumn>
               <BaseColumn id="lastUpdated" label={t("Last Updated")}>
-                {(item) => (
+                {(item: any) => (
                   <span>
                     {item.updatedAt ? formatDate(item.updatedAt) : "-"}
                   </span>
@@ -265,7 +387,6 @@ const FileBrowserDialog = ({
           )}
         </div>
       </Dialog.Content>
-
       <Dialog.Actions className="flex-shrink-0">
         <Button variant="outlined" onClick={onClose}>
           {t("Cancel")}
