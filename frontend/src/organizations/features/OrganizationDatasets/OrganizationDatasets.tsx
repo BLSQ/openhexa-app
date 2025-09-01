@@ -93,7 +93,7 @@ export default function OrganizationDatasets({
                 <CircleStackIcon className="w-4 h-4 text-gray-400" />
                 <div>
                   <Link
-                    href={`/workspaces/${dataset.workspace?.slug}/datasets/${dataset.slug}`}
+                    href={`/workspaces/${dataset.workspace?.slug}/datasets/${dataset.slug}/from/${dataset.workspace?.slug}`}
                     className="font-medium text-blue-600 hover:text-blue-800"
                   >
                     {dataset.name}
