@@ -43,12 +43,13 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   const [prefix, _setPrefix] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
-  const [isSearchMode, setIsSearchMode] = useState(false);
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentSelectedFile, setCurrentSelectedFile] =
     useState<FileBrowserDialog_BucketObjectFragment | null>(null);
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const isSearchMode = Boolean(debouncedSearchQuery);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,7 +63,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
           slug: workspaceSlug,
           page: currentPage,
           perPage: pageSize,
-          useSearch: isSearchMode && Boolean(debouncedSearchQuery),
+          useSearch: isSearchMode,
           query: debouncedSearchQuery || "",
           workspaceSlugs: isSearchMode ? [workspaceSlug] : [],
           prefix,
@@ -77,23 +78,13 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     FileBrowserDialogQueryVariables
   >(FileBrowserDialogDocument);
 
-  // Mode detection logic
-  useEffect(() => {
-    const newIsSearchMode = Boolean(debouncedSearchQuery.trim());
-    if (newIsSearchMode !== isSearchMode) {
-      setIsSearchMode(newIsSearchMode);
-      // Reset pagination when switching modes
-      setCurrentPage(1);
-    }
-  }, [debouncedSearchQuery, isSearchMode]);
-
   useEffect(() => {
     if (open) {
       const variables: FileBrowserDialogQueryVariables = {
         slug: workspaceSlug,
         page: currentPage,
         perPage: pageSize,
-        useSearch: isSearchMode && Boolean(debouncedSearchQuery),
+        useSearch: isSearchMode,
         // Search parameters (required by schema but ignored when useSearch=false)
         query: debouncedSearchQuery || "",
         workspaceSlugs: isSearchMode ? [workspaceSlug] : [],
@@ -107,7 +98,6 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     }
   }, [
     open,
-    isSearchMode,
     debouncedSearchQuery,
     workspaceSlug,
     prefix,
@@ -119,6 +109,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   const updateSearchQuery = useCallback(
     (searchValue: string) => {
       setIsSearching(true);
+      setCurrentPage(1);
       setSearchQuery(searchValue);
     },
     [setIsSearching, setSearchQuery],
@@ -268,17 +259,6 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
             leading={<MagnifyingGlassIcon className="h-4 w-4" />}
           />
         </div>
-
-        {/* Item Count Display */}
-        {!loading && isSearchMode && searchResults && (
-          <div className="px-2">
-            <div className="text-xs text-gray-600">
-              {t("{{count}} total results", {
-                count: searchResults.totalItems,
-              })}
-            </div>
-          </div>
-        )}
 
         {/* Action Buttons */}
         <div className="flex gap-2 px-2">
