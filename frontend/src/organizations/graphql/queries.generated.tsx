@@ -15,17 +15,40 @@ export type OrganizationsQueryVariables = Types.Exact<{ [key: string]: never; }>
 
 export type OrganizationsQuery = { __typename?: 'Query', organizations: Array<{ __typename?: 'Organization', id: string, name: string, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> } }> };
 
+export type OrganizationDataset_DatasetFragment = { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
+
 export type OrganizationDatasetsQueryVariables = Types.Exact<{
-  organizationId: Types.Scalars['UUID']['input'];
+  id: Types.Scalars['UUID']['input'];
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   query?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
 
 
-export type OrganizationDatasetsQuery = { __typename?: 'Query', searchDatasets: { __typename?: 'DatasetResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'DatasetResult', dataset: { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } } }> } };
+export type OrganizationDatasetsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', datasets: { __typename?: 'DatasetPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } }> } } | null };
 
-
+export const OrganizationDataset_DatasetFragmentDoc = gql`
+    fragment OrganizationDataset_dataset on Dataset {
+  id
+  slug
+  name
+  description
+  updatedAt
+  sharedWithOrganization
+  workspace {
+    slug
+    name
+  }
+  links(page: 1, perPage: 50) {
+    items {
+      workspace {
+        slug
+        name
+      }
+    }
+  }
+}
+    `;
 export const OrganizationDocument = gql`
     query Organization($id: UUID!) {
   organization(id: $id) {
@@ -133,41 +156,19 @@ export type OrganizationsLazyQueryHookResult = ReturnType<typeof useOrganization
 export type OrganizationsSuspenseQueryHookResult = ReturnType<typeof useOrganizationsSuspenseQuery>;
 export type OrganizationsQueryResult = Apollo.QueryResult<OrganizationsQuery, OrganizationsQueryVariables>;
 export const OrganizationDatasetsDocument = gql`
-    query OrganizationDatasets($organizationId: UUID!, $page: Int = 1, $perPage: Int = 15, $query: String = "") {
-  searchDatasets(
-    organizationId: $organizationId
-    page: $page
-    perPage: $perPage
-    query: $query
-  ) {
-    totalItems
-    pageNumber
-    totalPages
-    items {
-      dataset {
-        id
-        slug
-        name
-        description
-        updatedAt
-        sharedWithOrganization
-        workspace {
-          slug
-          name
-        }
-        links(page: 1, perPage: 50) {
-          items {
-            workspace {
-              slug
-              name
-            }
-          }
-        }
+    query OrganizationDatasets($id: UUID!, $page: Int = 1, $perPage: Int = 15, $query: String) {
+  organization(id: $id) {
+    datasets(page: $page, perPage: $perPage, query: $query) {
+      totalItems
+      pageNumber
+      totalPages
+      items {
+        ...OrganizationDataset_dataset
       }
     }
   }
 }
-    `;
+    ${OrganizationDataset_DatasetFragmentDoc}`;
 
 /**
  * __useOrganizationDatasetsQuery__
@@ -181,7 +182,7 @@ export const OrganizationDatasetsDocument = gql`
  * @example
  * const { data, loading, error } = useOrganizationDatasetsQuery({
  *   variables: {
- *      organizationId: // value for 'organizationId'
+ *      id: // value for 'id'
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *      query: // value for 'query'

@@ -12,19 +12,14 @@ import { useTranslation } from "next-i18next";
 import {
   useOrganizationDatasetsQuery,
   OrganizationDatasetsQuery,
+  OrganizationDataset_DatasetFragment,
 } from "organizations/graphql/queries.generated";
 import Block from "core/components/Block";
 import Link from "core/components/Link";
 import { DateTime } from "luxon";
 import DatasetWorkspacesList from "./DatasetWorkspacesList";
 
-// TODO : check layout
-// TODO : why empty
-
 const DEFAULT_PAGE_SIZE = 10;
-
-type OrganizationDataset =
-  OrganizationDatasetsQuery["searchDatasets"]["items"][0]["dataset"];
 
 export default function OrganizationDatasets({
   organizationId,
@@ -40,11 +35,13 @@ export default function OrganizationDatasets({
 
   const { data, refetch, loading } = useOrganizationDatasetsQuery({
     variables: {
-      organizationId,
+      id: organizationId,
       page: 1,
       perPage: DEFAULT_PAGE_SIZE,
-      query: debouncedSearchTerm,
+      query: debouncedSearchTerm || undefined,
     },
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: true,
   });
 
   useEffect(() => {
@@ -56,13 +53,13 @@ export default function OrganizationDatasets({
   const onChangePage = ({ page }: { page: number }) => {
     refetch({
       page,
-      organizationId,
-      query: debouncedSearchTerm || "",
+      id: organizationId,
+      query: debouncedSearchTerm || undefined,
     }).then();
   };
 
   const displayData = data || previousData;
-  const searchResults = displayData?.searchDatasets ?? {
+  const datasets = displayData?.organization?.datasets ?? {
     items: [],
     totalItems: 0,
     pageNumber: 1,
@@ -85,13 +82,13 @@ export default function OrganizationDatasets({
       <Block>
         <DataGrid
           defaultPageSize={DEFAULT_PAGE_SIZE}
-          totalItems={searchResults.totalItems}
-          data={searchResults.items.map((item) => item.dataset)}
+          totalItems={datasets.totalItems}
+          data={datasets.items}
           fetchData={onChangePage}
           className="min-h-30"
         >
           <BaseColumn label={t("Dataset")} id="dataset" minWidth={250}>
-            {(dataset: OrganizationDataset) => (
+            {(dataset: OrganizationDataset_DatasetFragment) => (
               <div className="flex items-center gap-2">
                 <CircleStackIcon className="w-4 h-4 text-gray-400" />
                 <div>
@@ -115,7 +112,7 @@ export default function OrganizationDatasets({
             id="source_workspace"
             minWidth={150}
           >
-            {(dataset: OrganizationDataset) => (
+            {(dataset: OrganizationDataset_DatasetFragment) => (
               <Link
                 href={`/workspaces/${dataset.workspace?.slug}`}
                 className="text-blue-600 hover:text-blue-800"
@@ -125,7 +122,7 @@ export default function OrganizationDatasets({
             )}
           </BaseColumn>
           <BaseColumn label={t("Sharing")} id="sharing" minWidth={200}>
-            {(dataset: OrganizationDataset) => (
+            {(dataset: OrganizationDataset_DatasetFragment) => (
               <div className="flex items-center gap-2">
                 {dataset.sharedWithOrganization ? (
                   <div className="flex items-center gap-1 text-green-600">
@@ -146,7 +143,7 @@ export default function OrganizationDatasets({
             id="shared_workspaces"
             minWidth={300}
           >
-            {(dataset: OrganizationDataset) => (
+            {(dataset: OrganizationDataset_DatasetFragment) => (
               <DatasetWorkspacesList
                 dataset={dataset}
                 size="sm"

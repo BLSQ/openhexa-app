@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
 import Badge from "core/components/Badge";
-import { OrganizationDatasetsQuery } from "organizations/graphql/queries.generated";
-
-type OrganizationDataset =
-  OrganizationDatasetsQuery["searchDatasets"]["items"][0]["dataset"];
+import { OrganizationDataset_DatasetFragment } from "organizations/graphql/queries.generated";
 
 type DatasetWorkspacesListProps = {
-  dataset: OrganizationDataset;
+  dataset: OrganizationDataset_DatasetFragment;
   maxVisible?: number;
   size?: "xs" | "sm" | "md";
   emptyMessage?: string;

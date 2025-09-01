@@ -32,6 +32,7 @@ from hexa.analytics.api import track
 from hexa.core.graphql import result_page
 from hexa.core.string import remove_whitespace
 from hexa.core.templatetags.colors import hash_color
+from hexa.datasets.models import Dataset
 from hexa.user_management.models import (
     AlreadyExists,
     CannotDelete,
@@ -681,6 +682,29 @@ def resolve_organization_invitations(organization: Organization, info, **kwargs)
         queryset=qs,
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", 5),
+    )
+
+
+@organization_object.field("datasets")
+def resolve_organization_datasets(obj, info, query=None, **kwargs):
+    request: HttpRequest = info.context["request"]
+    organization: Organization = obj
+
+    workspace_slugs = list(organization.workspaces.values_list("slug", flat=True))
+
+    qs = Dataset.objects.filter_for_workspace_slugs(request.user, workspace_slugs)
+
+    if query:
+        qs = qs.filter(
+            Q(name__icontains=query)
+            | Q(description__icontains=query)
+            | Q(slug__icontains=query)
+        )
+
+    return result_page(
+        queryset=qs.order_by("-updated_at"),
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", 15),
     )
 
 
