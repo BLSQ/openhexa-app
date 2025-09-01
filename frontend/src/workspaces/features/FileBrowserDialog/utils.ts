@@ -1,14 +1,14 @@
 import {
+  ArchiveBoxIcon,
   BookOpenIcon,
   CodeBracketIcon,
   DocumentArrowDownIcon,
   DocumentIcon,
   DocumentTextIcon,
-  PhotoIcon,
-  TableCellsIcon,
   FilmIcon,
   MusicalNoteIcon,
-  ArchiveBoxIcon,
+  PhotoIcon,
+  TableCellsIcon,
 } from "@heroicons/react/24/outline";
 
 const FILE_TYPES = {
