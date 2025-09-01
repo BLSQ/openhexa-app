@@ -20,7 +20,6 @@ import DatasetWorkspacesList from "./DatasetWorkspacesList";
 
 // TODO : check layout
 // TODO : why empty
-// TODO : icon nav item
 
 const DEFAULT_PAGE_SIZE = 10;
 

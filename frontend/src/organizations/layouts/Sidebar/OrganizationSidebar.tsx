@@ -3,7 +3,7 @@ import clsx from "clsx";
 import {
   ChevronLeftIcon,
   UsersIcon,
-  CircleStackIcon,
+  Square2StackIcon,
 } from "@heroicons/react/24/outline";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { GetServerSidePropsContext } from "next";
@@ -67,7 +67,7 @@ const OrganizationSidebar = ({
             )}
             <NavItem
               href={`/organizations/${organization.id}/datasets`}
-              Icon={CircleStackIcon}
+              Icon={Square2StackIcon}
               label={t("Datasets")}
               compact={!isSidebarOpen}
             />
