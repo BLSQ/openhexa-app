@@ -328,7 +328,15 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
                     : "hover:bg-gray-50 focus:bg-gray-50",
                 )
               }
-              pagination={bucket?.objects as FileSystemDataGridPagination}
+              pagination={
+                isSearchMode && searchResults
+                  ? {
+                      totalItems: searchResults.totalItems,
+                      totalPages: searchResults.totalPages,
+                      pageNumber: searchResults.pageNumber,
+                    }
+                  : (bucket?.objects as FileSystemDataGridPagination)
+              }
               onChangePage={fetchData}
               onDroppingFiles={uploadFiles}
               onRowClick={(item: BucketObject) =>

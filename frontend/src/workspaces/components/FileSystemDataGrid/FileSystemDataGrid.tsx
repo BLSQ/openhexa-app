@@ -10,16 +10,33 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import Filesize from "core/components/Filesize";
 import Link from "core/components/Link";
 import SimplePagination from "core/components/Pagination/SimplePagination";
+import Pagination from "core/components/Pagination/Pagination";
 import SimpleSelect from "core/components/forms/SimpleSelect";
 import DropzoneOverlay from "core/components/DropzoneOverlay";
 
 import { getFileIconAndColor } from "../../features/FileBrowserDialog/utils";
 
-export interface FileSystemDataGridPagination {
+export interface FileSystemDataGridSimplePagination {
   hasNextPage: boolean;
   hasPreviousPage: boolean;
   pageNumber: number;
 }
+
+export interface FileSystemDataGridFullPagination {
+  totalItems: number;
+  totalPages: number;
+  pageNumber: number;
+}
+
+export type FileSystemDataGridPagination =
+  | FileSystemDataGridSimplePagination
+  | FileSystemDataGridFullPagination;
+
+const isFullPagination = (
+  pagination: FileSystemDataGridPagination,
+): pagination is FileSystemDataGridFullPagination => {
+  return "totalItems" in pagination && "totalPages" in pagination;
+};
 
 export interface FileSystemDataGridProps {
   data: BucketObject[];
@@ -28,7 +45,7 @@ export interface FileSystemDataGridProps {
   pagination: FileSystemDataGridPagination;
   perPage: number;
   rowClassName?: string | ((row: BucketObject) => string);
-  actionsRenderer?: (item: BucketObject) => ReactNode;
+  actionsRenderer?: (item: BucketObject) => React.ReactElement | null;
   directoryLinkGenerator?: (item: BucketObject) => string;
   onChangePage: (page: number, perPage: number) => void;
   onDroppingFiles?: (files: File[]) => void;
@@ -162,12 +179,27 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
               </SimpleSelect>
             )}
           </div>
-          <SimplePagination
-            hasNextPage={pagination.hasNextPage}
-            hasPreviousPage={pagination.hasPreviousPage}
-            page={pagination.pageNumber}
-            onChange={(page) => onChangePage(page, perPage)}
-          />
+          {isFullPagination(pagination) ? (
+            <Pagination
+              page={pagination.pageNumber}
+              perPage={perPage}
+              perPageOptions={
+                showPageSizeSelect ? [10, 20, 50, 100] : undefined
+              }
+              totalPages={pagination.totalPages}
+              countItems={data.length}
+              totalItems={pagination.totalItems}
+              onChange={onChangePage}
+              loading={loading}
+            />
+          ) : (
+            <SimplePagination
+              hasNextPage={pagination.hasNextPage}
+              hasPreviousPage={pagination.hasPreviousPage}
+              page={pagination.pageNumber}
+              onChange={(page) => onChangePage(page, perPage)}
+            />
+          )}
         </div>
       )}
     </>
