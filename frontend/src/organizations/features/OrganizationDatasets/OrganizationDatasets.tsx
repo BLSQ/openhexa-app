@@ -1,5 +1,4 @@
 import {
-  CircleStackIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
