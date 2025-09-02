@@ -297,6 +297,13 @@ class WorkspaceTest(TestCase):
 class WorkspaceOrganizationRoleTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.USER_ADMIN = User.objects.create_user(
+            "admin@bluesquarehub.com",
+            "admin",
+            analytics_enabled=True,
+            is_superuser=True,
+        )
+
         cls.organization = Organization.objects.create(name="Test Organization")
 
         cls.org_owner = User.objects.create_user("owner@example.com", "password")
@@ -323,20 +330,14 @@ class WorkspaceOrganizationRoleTest(TestCase):
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
         ):
-            cls.org_workspace = Workspace.objects.create(
+            cls.org_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.USER_ADMIN,
                 name="Organization Workspace",
-                slug="org-workspace",
                 organization=cls.organization,
-                db_name="org_workspace_db",
-                db_password="test_password",
-                bucket_name="org-workspace-bucket",
             )
-            cls.standalone_workspace = Workspace.objects.create(
+            cls.standalone_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.USER_ADMIN,
                 name="Standalone Workspace",
-                slug="standalone-workspace",
-                db_name="standalone_workspace_db",
-                db_password="test_password",
-                bucket_name="standalone-workspace-bucket",
             )
 
         WorkspaceMembership.objects.create(
