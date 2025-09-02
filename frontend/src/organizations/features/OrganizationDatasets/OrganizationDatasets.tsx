@@ -15,9 +15,6 @@ import DatasetWorkspacesList from "./DatasetWorkspacesList";
 
 const DEFAULT_PAGE_SIZE = 10;
 
-// TODO : workspace tag
-// TODO : SRR
-
 export default function OrganizationDatasets({
   organizationId,
 }: {

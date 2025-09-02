@@ -20,7 +20,11 @@ const DatasetWorkspacesList = ({
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (dataset.sharedWithOrganization) {
-    return <Badge size={size}>{t("All workspaces")}</Badge>;
+    return (
+      <Badge className="bg-green-100 text-green-800" size={size}>
+        {t("Organization")}
+      </Badge>
+    );
   }
 
   const sharedWorkspaces = dataset.links.items.filter(
