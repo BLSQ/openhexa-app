@@ -16,21 +16,6 @@ from .models import (
 )
 
 
-def get_email_attachments():
-    return [
-        (
-            "logo_with_text_white.png",
-            open(
-                os.path.join(
-                    settings.BASE_DIR, "hexa/static/img/logo/logo_with_text_white.svg"
-                ),
-                "rb",
-            ).read(),
-            "image/png",
-        ),
-    ]
-
-
 def mail_run_recipients(run: PipelineRun):
     workspace_slug = run.pipeline.workspace.slug
     for recipient in run.pipeline.pipelinerecipient_set.all():
@@ -58,7 +43,19 @@ def mail_run_recipients(run: PipelineRun):
                     "run_url": f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace_slug}/pipelines/{run.pipeline.code}/runs/{run.id}",
                 },
                 recipient_list=[recipient.user.email],
-                attachments=get_email_attachments(),
+                attachments=[
+                    (
+                        "logo_with_text_white.svg",
+                        open(
+                            os.path.join(
+                                settings.BASE_DIR,
+                                "hexa/static/img/logo/logo_with_text_white.svg",
+                            ),
+                            "rb",
+                        ).read(),
+                        "image/svg+xml",
+                    ),
+                ],
             )
 
 

@@ -22,26 +22,6 @@ def has_configured_two_factor(user):
     return user.is_authenticated and user_has_device(user)
 
 
-def get_email_attachments():
-    """Get standard email attachments including OpenHEXA logo"""
-    import os
-
-    from django.conf import settings
-
-    return [
-        (
-            "logo_with_text_white.png",
-            open(
-                os.path.join(
-                    settings.BASE_DIR, "hexa/static/img/logo/logo_with_text_white.png"
-                ),
-                "rb",
-            ).read(),
-            "image/png",
-        ),
-    ]
-
-
 def send_organization_invite(invitation):
     """Send invitation email to organization"""
     from datetime import datetime, timezone
@@ -51,7 +31,7 @@ def send_organization_invite(invitation):
     from django.utils.translation import gettext_lazy, override
 
     from hexa.analytics.api import track
-    from hexa.core.utils import send_mail
+    from hexa.core.utils import get_email_attachments, send_mail
 
     title = gettext_lazy(
         f"You've been invited to join the organization {invitation.organization.name} on OpenHEXA"
@@ -98,7 +78,7 @@ def send_organization_add_user_email(
     from django.utils.translation import gettext_lazy, override
 
     from hexa.analytics.api import track
-    from hexa.core.utils import send_mail
+    from hexa.core.utils import get_email_attachments, send_mail
 
     title = gettext_lazy(
         f"You've been added to the organization {organization.name} on OpenHEXA"

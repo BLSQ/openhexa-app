@@ -1,3 +1,4 @@
+import os
 import typing
 from email.mime.image import MIMEImage
 
@@ -5,6 +6,22 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from mjml import mjml2html
+
+
+def get_email_attachments():
+    """Get standard email attachments including OpenHEXA logo"""
+    return [
+        (
+            "logo_with_text_white.png",
+            open(
+                os.path.join(
+                    settings.BASE_DIR, "hexa/static/img/logo/logo_with_text_white.png"
+                ),
+                "rb",
+            ).read(),
+            "image/png",
+        ),
+    ]
 
 
 def send_mail(
