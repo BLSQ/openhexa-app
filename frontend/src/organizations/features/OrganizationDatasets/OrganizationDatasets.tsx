@@ -1,7 +1,3 @@
-import {
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-} from "@heroicons/react/24/outline";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import useDebounce from "core/hooks/useDebounce";
@@ -15,14 +11,11 @@ import {
 } from "organizations/graphql/queries.generated";
 import Block from "core/components/Block";
 import Link from "core/components/Link";
-import { DateTime } from "luxon";
 import DatasetWorkspacesList from "./DatasetWorkspacesList";
 
 const DEFAULT_PAGE_SIZE = 10;
 
 // TODO : workspace tag
-// TODO : SHaring icon
-// TODO : Shared with
 // TODO : SRR
 
 export default function OrganizationDatasets({
@@ -44,8 +37,6 @@ export default function OrganizationDatasets({
       perPage: DEFAULT_PAGE_SIZE,
       query: debouncedSearchTerm || undefined,
     },
-    fetchPolicy: "cache-and-network",
-    notifyOnNetworkStatusChange: true,
   });
 
   useEffect(() => {
@@ -115,23 +106,6 @@ export default function OrganizationDatasets({
               </Link>
             )}
           </BaseColumn>
-          <BaseColumn label={t("Sharing")} id="sharing" minWidth={200}>
-            {(dataset: OrganizationDataset_DatasetFragment) => (
-              <div className="flex items-center gap-2">
-                {dataset.sharedWithOrganization ? (
-                  <div className="flex items-center gap-1 text-green-600">
-                    <CheckCircleIcon className="w-4 h-4" />
-                    <span className="text-sm">{t("Organization")}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1 text-orange-600">
-                    <ExclamationCircleIcon className="w-4 h-4" />
-                    <span className="text-sm">{t("Limited")}</span>
-                  </div>
-                )}
-              </div>
-            )}
-          </BaseColumn>
           <BaseColumn
             label={t("Shared With")}
             id="shared_workspaces"
@@ -150,7 +124,7 @@ export default function OrganizationDatasets({
             accessor="updatedAt"
             id="updatedAt"
             label={t("Last Updated")}
-            format={DateTime.DATE_FULL}
+            relative
           />
         </DataGrid>
       </Block>
