@@ -48,7 +48,7 @@ def send_mail(
 
     if attachments:
         for filename, content, mimetype in attachments:
-            if mimetype.startswith("image/"):
+            if mimetype.startswith("image/") and not mimetype == "image/svg+xml":
                 image = MIMEImage(content)
                 image.add_header("Content-ID", f"<{filename}>")
                 mail.attach(image)
