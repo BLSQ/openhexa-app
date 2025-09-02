@@ -1,3 +1,5 @@
+import logging
+
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
@@ -9,7 +11,80 @@ from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
+logger = logging.getLogger(__name__)
+
 pipeline_template_mutations = MutationType()
+
+
+def auto_update_pipelines_from_template(
+    template_version: PipelineTemplateVersion, principal: User
+):
+    """
+    Synchronously update pipelines when a new template version is created
+    if the pipeline has auto_update_from_template enabled.
+
+    Args:
+        template_version: The newly created PipelineTemplateVersion
+        principal: The user principal for permission checks and operations
+
+    Returns
+    -------
+        dict: Summary of update results including counts and any errors
+    """
+    template = template_version.template
+
+    logger.debug(
+        f"Starting auto-update for template '{template.name}' v{template_version.version_number}"
+    )
+
+    pipelines_to_update = Pipeline.objects.filter(
+        source_template=template,
+        auto_update_from_template=True,
+        deleted_at__isnull=True,
+    ).select_related("workspace")
+
+    if not pipelines_to_update.exists():
+        logger.debug(f"No pipelines to auto-update for template '{template.name}'")
+        return {"updated_count": 0, "failed_count": 0, "failed_pipelines": []}
+
+    updated_pipelines = []
+    failed_pipelines = []
+
+    for pipeline in pipelines_to_update:
+        try:
+            template_version.create_pipeline_version(
+                principal=principal,
+                workspace=pipeline.workspace,
+                pipeline=pipeline,
+            )
+            updated_pipelines.append(pipeline)
+        except PermissionDenied as e:
+            failed_pipelines.append((pipeline, f"Permission denied: {e}"))
+            logger.warning(
+                f"Permission denied when auto-updating pipeline '{pipeline.name}' in workspace '{pipeline.workspace.name}': {e}"
+            )
+        except Exception as e:
+            failed_pipelines.append((pipeline, str(e)))
+            logger.error(
+                f"Failed to auto-update pipeline '{pipeline.name}' in workspace '{pipeline.workspace.name}': {e}",
+                exc_info=True,
+            )
+
+    if updated_pipelines:
+        logger.info(
+            f"Successfully auto-updated {len(updated_pipelines)} pipelines from template '{template.name}' v{template_version.version_number}"
+        )
+
+    if failed_pipelines:
+        logger.error(
+            f"Failed to auto-update {len(failed_pipelines)} pipelines from template '{template.name}' v{template_version.version_number}"
+        )
+
+    return {
+        "updated_count": len(updated_pipelines),
+        "failed_count": len(failed_pipelines),
+        "failed_pipelines": failed_pipelines,
+    }
 
 
 def get_workspace(user: User, workspace_slug: str) -> Workspace | None:
@@ -99,7 +174,20 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
             "workspace": workspace.slug,
         },
     )
-    return {"pipeline_template": pipeline_template, "success": True, "errors": []}
+
+    auto_update_result = auto_update_pipelines_from_template(
+        pipeline_template_version, request.user
+    )
+
+    return {
+        "pipeline_template": pipeline_template,
+        "success": True,
+        "errors": [],
+        "auto_update_summary": {
+            "updated_count": auto_update_result["updated_count"],
+            "failed_count": auto_update_result["failed_count"],
+        },
+    }
 
 
 @pipeline_template_mutations.field("updateTemplateVersion")

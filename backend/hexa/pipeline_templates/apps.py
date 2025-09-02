@@ -7,4 +7,3 @@ class PipelineTemplatesConfig(CoreAppConfig):
 
     def ready(self):
         super().ready()
-        import hexa.pipeline_templates.signals  # noqa
