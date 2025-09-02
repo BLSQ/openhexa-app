@@ -34,7 +34,7 @@ export default function OrganizationDatasets({
       id: organizationId,
       page: 1,
       perPage: DEFAULT_PAGE_SIZE,
-      query: debouncedSearchTerm || undefined,
+      query: debouncedSearchTerm,
     },
     skip: !!SRRDatasets && !debouncedSearchTerm,
   });
@@ -54,7 +54,8 @@ export default function OrganizationDatasets({
   };
 
   const displayData = data || previousData;
-  const datasets = displayData?.organization?.datasets ||
+  const datasets = (!debouncedSearchTerm && SRRDatasets) ||
+    displayData?.organization?.datasets ||
     SRRDatasets || {
       items: [],
       totalItems: 0,
