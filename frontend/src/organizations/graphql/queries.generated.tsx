@@ -3,6 +3,8 @@ import * as Types from '../../graphql/types';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
+export type Organization_OrganizationFragment = { __typename?: 'Organization', id: string, name: string, shortName?: string | null, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } };
+
 export type OrganizationQueryVariables = Types.Exact<{
   id: Types.Scalars['UUID']['input'];
 }>;
@@ -25,8 +27,33 @@ export type OrganizationDatasetsQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationDatasetsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', datasets: { __typename?: 'DatasetPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } }> } } | null };
+export type OrganizationDatasetsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, datasets: { __typename?: 'DatasetPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } }> }, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null };
 
+export const Organization_OrganizationFragmentDoc = gql`
+    fragment Organization_organization on Organization {
+  id
+  name
+  shortName
+  workspaces {
+    items {
+      slug
+      name
+      countries {
+        code
+      }
+    }
+  }
+  permissions {
+    createWorkspace
+    archiveWorkspace
+    manageMembers
+    manageOwners
+  }
+  members {
+    totalItems
+  }
+}
+    `;
 export const OrganizationDataset_DatasetFragmentDoc = gql`
     fragment OrganizationDataset_dataset on Dataset {
   id
@@ -52,30 +79,10 @@ export const OrganizationDataset_DatasetFragmentDoc = gql`
 export const OrganizationDocument = gql`
     query Organization($id: UUID!) {
   organization(id: $id) {
-    id
-    name
-    shortName
-    workspaces {
-      items {
-        slug
-        name
-        countries {
-          code
-        }
-      }
-    }
-    permissions {
-      createWorkspace
-      archiveWorkspace
-      manageMembers
-      manageOwners
-    }
-    members {
-      totalItems
-    }
+    ...Organization_organization
   }
 }
-    `;
+    ${Organization_OrganizationFragmentDoc}`;
 
 /**
  * __useOrganizationQuery__
@@ -158,6 +165,7 @@ export type OrganizationsQueryResult = Apollo.QueryResult<OrganizationsQuery, Or
 export const OrganizationDatasetsDocument = gql`
     query OrganizationDatasets($id: UUID!, $page: Int = 1, $perPage: Int = 15, $query: String) {
   organization(id: $id) {
+    ...Organization_organization
     datasets(page: $page, perPage: $perPage, query: $query) {
       totalItems
       pageNumber
@@ -168,7 +176,8 @@ export const OrganizationDatasetsDocument = gql`
     }
   }
 }
-    ${OrganizationDataset_DatasetFragmentDoc}`;
+    ${Organization_OrganizationFragmentDoc}
+${OrganizationDataset_DatasetFragmentDoc}`;
 
 /**
  * __useOrganizationDatasetsQuery__

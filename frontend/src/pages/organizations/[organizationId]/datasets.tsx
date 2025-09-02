@@ -3,28 +3,20 @@ import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "organizations/layouts/OrganizationLayout";
 import {
-  OrganizationDocument,
-  OrganizationQuery,
-  useOrganizationQuery
+  OrganizationDatasetsDocument,
+  OrganizationDatasetsQuery,
 } from "organizations/graphql/queries.generated";
 import Page from "core/components/Page";
 import OrganizationDatasets from "organizations/features/OrganizationDatasets";
 
 type Props = {
-  organization: OrganizationQuery["organization"];
+  organization: OrganizationDatasetsQuery["organization"];
 };
 
 const OrganizationDatasetsPage: NextPageWithLayout<Props> = ({
-  organization: SRROrganization,
+  organization,
 }) => {
   const { t } = useTranslation();
-
-  const { data: clientOrganization } = useOrganizationQuery({
-    variables: { id: SRROrganization?.id },
-    skip: !SRROrganization?.id
-  });
-
-  const organization = clientOrganization?.organization || SRROrganization;
 
   if (!organization) {
     return null;
@@ -43,7 +35,10 @@ const OrganizationDatasetsPage: NextPageWithLayout<Props> = ({
             </div>
           </div>
           <div className="m-8">
-            <OrganizationDatasets organizationId={organization.id} />
+            <OrganizationDatasets
+              organizationId={organization.id}
+              datasets={organization.datasets}
+            />
           </div>
         </div>
       </OrganizationLayout>
@@ -58,7 +53,7 @@ export const getServerSideProps = createGetServerSideProps({
   async getServerSideProps(ctx, client) {
     await OrganizationLayout.prefetch(ctx);
     const { data } = await client.query({
-      query: OrganizationDocument,
+      query: OrganizationDatasetsDocument,
       variables: {
         id: ctx.params?.organizationId as string,
       },

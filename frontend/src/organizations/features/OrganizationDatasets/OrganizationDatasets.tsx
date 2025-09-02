@@ -17,8 +17,10 @@ const DEFAULT_PAGE_SIZE = 10;
 
 export default function OrganizationDatasets({
   organizationId,
+  datasets: SRRDatasets,
 }: {
   organizationId: string;
+  datasets: NonNullable<OrganizationDatasetsQuery["organization"]>["datasets"];
 }) {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,6 +36,7 @@ export default function OrganizationDatasets({
       perPage: DEFAULT_PAGE_SIZE,
       query: debouncedSearchTerm || undefined,
     },
+    skip: !!SRRDatasets && !debouncedSearchTerm,
   });
 
   useEffect(() => {
@@ -51,12 +54,13 @@ export default function OrganizationDatasets({
   };
 
   const displayData = data || previousData;
-  const datasets = displayData?.organization?.datasets ?? {
-    items: [],
-    totalItems: 0,
-    pageNumber: 1,
-    totalPages: 1,
-  };
+  const datasets = displayData?.organization?.datasets ||
+    SRRDatasets || {
+      items: [],
+      totalItems: 0,
+      pageNumber: 1,
+      totalPages: 1,
+    };
 
   return (
     <>
