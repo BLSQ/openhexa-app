@@ -29,6 +29,8 @@ import FileSystemDataGrid, {
 } from "../../components/FileSystemDataGrid";
 import { useUploadFiles } from "../../hooks/useUploadFiles";
 
+const PAGE_SIZE = 10;
+
 type FileBrowserDialogProps = {
   open: boolean;
   onClose: () => void;
@@ -40,10 +42,9 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   const { open, onClose, workspaceSlug, onSelectFile } = props;
   const { t } = useTranslation();
 
-  const [prefix, _setPrefix] = useState<string | null>(null);
+  const [prefix, setPrefix] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentSelectedFile, setCurrentSelectedFile] =
     useState<FileBrowserDialog_BucketObjectFragment | null>(null);
@@ -62,7 +63,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
         const variables: FileBrowserDialogQueryVariables = {
           slug: workspaceSlug,
           page: currentPage,
-          perPage: pageSize,
+          perPage: PAGE_SIZE,
           useSearch: isSearchMode,
           query: debouncedSearchQuery || "",
           workspaceSlugs: isSearchMode ? [workspaceSlug] : [],
@@ -83,7 +84,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
       const variables: FileBrowserDialogQueryVariables = {
         slug: workspaceSlug,
         page: currentPage,
-        perPage: pageSize,
+        perPage: PAGE_SIZE,
         useSearch: isSearchMode,
         // Search parameters (required by schema but ignored when useSearch=false)
         query: debouncedSearchQuery || "",
@@ -96,15 +97,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
       setIsSearching(false);
       setCurrentSelectedFile(null);
     }
-  }, [
-    open,
-    debouncedSearchQuery,
-    workspaceSlug,
-    prefix,
-    currentPage,
-    pageSize,
-    fetch,
-  ]);
+  }, [open, debouncedSearchQuery, workspaceSlug, prefix, currentPage, fetch]);
 
   const updateSearchQuery = useCallback(
     (searchValue: string) => {
@@ -115,25 +108,20 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     [setIsSearching, setSearchQuery],
   );
 
-  const setPrefix = (prefix: string | null) => {
-    setPageSize(20);
+  const setCurrentFolder = (prefix: string | null) => {
+    setSearchQuery("");
     setCurrentPage(1);
-    _setPrefix(prefix);
+    setPrefix(prefix);
   };
 
   const fetchData = useCallback(
-    (page: number, newPageSize?: number) => {
-      if (newPageSize && newPageSize !== pageSize) {
-        setPageSize(newPageSize);
-      }
-      setCurrentPage(page);
-    },
-    [pageSize],
+    (page: number) => setCurrentPage(page),
+    [setCurrentPage],
   );
 
   const onItemClick = (item: FileBrowserDialog_BucketObjectFragment) => {
     if (item.type === BucketObjectType.Directory) {
-      setPrefix(item.key);
+      setCurrentFolder(item.key);
     } else {
       setCurrentSelectedFile(item);
     }
@@ -214,7 +202,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
               "flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded p-1",
               isSearchMode ? "cursor-not-allowed" : "hover:text-gray-700",
             )}
-            onClick={() => !isSearchMode && setPrefix(null)}
+            onClick={() => !isSearchMode && setCurrentFolder(null)}
             disabled={isSearchMode}
             aria-label={t("Go to root directory")}
           >
@@ -238,7 +226,9 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
                         ? "cursor-not-allowed"
                         : "hover:text-gray-700",
                     )}
-                    onClick={() => !isSearchMode && setPrefix(part.value)}
+                    onClick={() =>
+                      !isSearchMode && setCurrentFolder(part.value)
+                    }
                     disabled={isSearchMode}
                     title={part.label}
                   >
@@ -297,7 +287,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
           ) : (
             <FileSystemDataGrid
               data={normalizedItems as BucketObject[]}
-              perPage={pageSize}
+              perPage={PAGE_SIZE}
               showPageSizeSelect={false}
               loading={isSearching || loading}
               rowClassName={(item: BucketObject) =>
