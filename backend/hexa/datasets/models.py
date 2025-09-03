@@ -30,6 +30,17 @@ def create_dataset_slug(name: str, workspace):
 
 
 class DatasetQuerySet(BaseQuerySet):
+    @staticmethod
+    def _workspace_query(user):
+        return Q(links__workspace__members=user)
+
+    @staticmethod
+    def _org_shared_query(user):
+        return Q(
+            shared_with_organization=True,
+            workspace__organization__organizationmembership__user=user,
+        )
+
     def filter_for_user(self, user: AnonymousUser | User):
         from hexa.pipelines.authentication import PipelineRunUser
 
@@ -40,13 +51,7 @@ class DatasetQuerySet(BaseQuerySet):
         else:
             return self._filter_for_user_and_query_object(
                 user,
-                Q(
-                    links__workspace__members=user
-                )  # 1. It exists a link to a workspace where user is member
-                | Q(  # 2. The dataset is shared with organization and user is member of the organization
-                    shared_with_organization=True,
-                    workspace__organization__organizationmembership__user=user,
-                ),
+                self._workspace_query(user) | self._org_shared_query(user),
                 return_all_if_superuser=False,
             )
 
@@ -55,13 +60,10 @@ class DatasetQuerySet(BaseQuerySet):
     ):
         return self._filter_for_user_and_query_object(
             user,
-            Q(
-                workspace__members=user, workspace__slug__in=workspace_slugs
-            )  # 1. It exists a link to a workspace where user is member and the workspace slug is in the list
-            | Q(  # 2. The dataset is shared with organization and user is member of the organization and a link exists to a workspace with slug in the list
-                shared_with_organization=True,
-                workspace__organization__organizationmembership__user=user,
-                links__workspace__slug__in=workspace_slugs,
+            self._workspace_query(user) & Q(workspace__slug__in=workspace_slugs)
+            | (
+                self._org_shared_query(user)
+                & Q(links__workspace__slug__in=workspace_slugs)
             ),
             return_all_if_superuser=False,
         )
