@@ -17,6 +17,7 @@ import Button from "core/components/Button";
 import Input from "core/components/forms/Input";
 import Spinner from "core/components/Spinner";
 import useDebounce from "core/hooks/useDebounce";
+import { generateBreadcrumbs } from "../../helpers/breadcrumbs";
 
 import {
   FileBrowserDialogQuery,
@@ -157,21 +158,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     event.target.value = "";
   };
 
-  const prefixes: { label: string; value: string }[] = useMemo(() => {
-    const arr = [] as any[];
-    let last = "";
-    prefix
-      ?.split("/")
-      .filter(Boolean)
-      .forEach((part) => {
-        last = last ? last + "/" + part : part;
-        arr.push({
-          label: part,
-          value: last + "/",
-        });
-      });
-    return arr;
-  }, [prefix]);
+  const prefixes = useMemo(() => generateBreadcrumbs(prefix), [prefix]);
 
   // Get data from combined query
   const searchResults =

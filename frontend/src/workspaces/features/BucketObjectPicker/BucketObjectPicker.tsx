@@ -10,6 +10,7 @@ import Input from "core/components/forms/Input";
 import { BucketObject, BucketObjectType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useEffect, useMemo, useState } from "react";
+import { generateBreadcrumbs } from "../../helpers/breadcrumbs";
 import {
   BucketObjectPicker_WorkspaceFragment,
   ObjectPickerQuery,
@@ -96,21 +97,7 @@ const InnerBucketObjectPicker = (props: InnerBucketObjectPickerProps) => {
     _setPrefix(prefix);
   };
 
-  const prefixes: { label: string; value: string }[] = useMemo(() => {
-    const arr = [] as any[];
-    let last = "";
-    prefix
-      ?.split("/")
-      .filter(Boolean)
-      .forEach((part, index) => {
-        last = last ? last + "/" + part : part;
-        arr.push({
-          label: part,
-          value: last + "/",
-        });
-      });
-    return arr;
-  }, [prefix]);
+  const prefixes = useMemo(() => generateBreadcrumbs(prefix), [prefix]);
 
   const bucket =
     data?.workspace?.bucket ?? previousData?.workspace?.bucket ?? null;
