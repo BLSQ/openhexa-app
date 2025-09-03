@@ -453,29 +453,14 @@ class DatasetLinkQuerySet(BaseQuerySet):
                 models.Q(workspace=user.pipeline_run.pipeline.workspace),
             )
         else:
-            return (
-                self._filter_for_user_and_query_object(
-                    user,
-                    models.Q(workspace__members=user)
-                    | models.Q(
-                        dataset__shared_with_organization=True,
-                        workspace__organization__organizationmembership__user=user,
-                    ),
-                    return_all_if_superuser=False,
-                )
-                .annotate(
-                    is_original_link=models.Case(
-                        models.When(
-                            models.Q(dataset__shared_with_organization=True)
-                            & ~models.Q(dataset__workspace=models.F("workspace")),
-                            then=models.Value(0),
-                        ),
-                        default=models.Value(1),
-                        output_field=models.IntegerField(),
-                    )
-                )
-                .filter(is_original_link=1)
-                .distinct("dataset_id")
+            return self._filter_for_user_and_query_object(
+                user,
+                models.Q(workspace__members=user)
+                | models.Q(
+                    dataset__shared_with_organization=True,
+                    workspace__organization__organizationmembership__user=user,
+                ),
+                return_all_if_superuser=False,
             )
 
 

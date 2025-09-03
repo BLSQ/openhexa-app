@@ -1,7 +1,7 @@
 import logging
 
 from ariadne import ObjectType
-from django.db.models import Q
+from django.db.models import F, Q
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
@@ -54,6 +54,7 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
         organization_shared_q = Q(
             dataset__shared_with_organization=True,
             dataset__workspace__organization=obj.organization,
+            dataset__workspace=F("workspace"),
         )
 
     org_shared = DatasetLink.objects.filter(organization_shared_q)
