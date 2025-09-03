@@ -5,9 +5,9 @@ import { useLazyQuery } from "@apollo/client";
 import {
   ArrowUpTrayIcon,
   ChevronRightIcon,
+  FolderPlusIcon,
   HomeIcon,
   MagnifyingGlassIcon,
-  PlusIcon,
 } from "@heroicons/react/24/outline";
 import { BucketObject, BucketObjectType, FileType } from "graphql/types";
 import clsx from "clsx";
@@ -197,7 +197,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
         {/* Breadcrumb Navigation */}
         <div
           className={clsx(
-            "flex items-center gap-1 text-sm px-2 min-h-[2rem]",
+            "flex items-center gap-1 text-sm min-h-[2rem]",
             isSearchMode ? "text-gray-400" : "text-gray-500",
           )}
         >
@@ -244,43 +244,38 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
           )}
         </div>
 
-        {/* Search Bar */}
-        <div className="px-2">
+        <div className="flex items-center justify-between gap-2">
           <Input
             placeholder={t("Search files...")}
             value={searchQuery}
             onChange={(e) => updateSearchQuery(e.target.value)}
             leading={<MagnifyingGlassIcon className="h-4 w-4" />}
           />
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2 px-2">
-          <Button
-            variant="outlined"
-            size="sm"
-            leadingIcon={<PlusIcon className="h-4 w-4" />}
-          >
-            {t("Create a folder")}
-          </Button>
-          <Button
-            variant="outlined"
-            size="sm"
-            leadingIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
-            onClick={handleUploadClick}
-          >
-            {t("Upload files")}
-          </Button>
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="secondary"
+              leadingIcon={<FolderPlusIcon className="h-4 w-4" />}
+            >
+              {t("Create a folder")}
+            </Button>
+            <Button
+              variant="primary"
+              leadingIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
+              onClick={handleUploadClick}
+            >
+              {t("Upload files")}
+            </Button>
+            {/* Hidden file input for upload */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+          </div>
         </div>
-
-        {/* Hidden file input for upload */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={handleFileSelect}
-        />
 
         {/* File List */}
         <div className="flex-1 overflow-auto">
