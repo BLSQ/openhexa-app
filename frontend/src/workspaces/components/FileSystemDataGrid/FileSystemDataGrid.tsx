@@ -50,6 +50,7 @@ export interface FileSystemDataGridProps {
   onDroppingFiles?: (files: File[]) => void;
   onRowClick?: (item: BucketObject) => void;
   showPageSizeSelect?: boolean;
+  displayField?: "name" | "key";
 }
 
 const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
@@ -65,6 +66,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
   onDroppingFiles,
   onRowClick,
   showPageSizeSelect = true,
+  displayField = "name",
 }) => {
   const { t } = useTranslation();
 
@@ -87,6 +89,8 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
       <IconComponent className={clsx("h-5 w-5 flex-shrink-0", iconColor)} />
     );
 
+    const displayText = displayField === "key" ? item.key : item.name;
+
     // If directory and link generator provided, wrap in Link
     if (isDirectory && directoryLinkGenerator) {
       return (
@@ -96,14 +100,14 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
           className="flex items-center gap-1.5 font-medium text-gray-700 hover:text-gray-800"
         >
           {iconElement}
-          {item.name}
+          {displayText}
         </Link>
       );
     }
 
     const textElement = (
       <span className="truncate">
-        {item.name}
+        {displayText}
         {isDirectory && "/"}
       </span>
     );
