@@ -290,6 +290,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
               perPage={PAGE_SIZE}
               showPageSizeSelect={false}
               loading={isSearching || loading}
+              displayField={isSearchMode ? "key" : "name"}
               rowClassName={(item: BucketObject) =>
                 clsx(
                   "cursor-pointer",
