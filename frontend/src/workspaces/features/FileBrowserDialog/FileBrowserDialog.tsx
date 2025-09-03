@@ -54,27 +54,19 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const uploadFiles = useUploadFiles({
-    workspace: { slug: workspaceSlug },
-    prefix,
-    onFileUploaded: () => {
-      // Refetch the data to show newly uploaded files
-      if (open) {
-        const variables: FileBrowserDialogQueryVariables = {
-          slug: workspaceSlug,
-          page: currentPage,
-          perPage: PAGE_SIZE,
-          useSearch: isSearchMode,
-          query: debouncedSearchQuery || "",
-          workspaceSlugs: isSearchMode ? [workspaceSlug] : [],
-          prefix,
-        };
-        fetch({ variables });
-      }
-    },
-  });
+  // Reset dialog when it closes
+  useEffect(() => {
+    if (!open) {
+      setPrefix(null);
+      setIsSearching(false);
+      setSearchQuery("");
+      setCurrentPage(1);
+      setCurrentSelectedFile(null);
+    }
+  }, [open]);
 
-  const [fetch, { data, previousData, loading }] = useLazyQuery<
+  // Browsing or searching
+  const [searchOrBrowseBucket, { data, previousData, loading }] = useLazyQuery<
     FileBrowserDialogQuery,
     FileBrowserDialogQueryVariables
   >(FileBrowserDialogDocument);
@@ -93,17 +85,25 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
         prefix,
       };
 
-      fetch({ variables });
+      searchOrBrowseBucket({ variables });
       setIsSearching(false);
       setCurrentSelectedFile(null);
     }
-  }, [open, debouncedSearchQuery, workspaceSlug, prefix, currentPage, fetch]);
+  }, [
+    open,
+    debouncedSearchQuery,
+    workspaceSlug,
+    prefix,
+    currentPage,
+    searchOrBrowseBucket,
+  ]);
 
   const updateSearchQuery = useCallback(
     (searchValue: string) => {
       setIsSearching(true);
       setCurrentPage(1);
       setSearchQuery(searchValue);
+      setPrefix(null); // Search is across the entire bucket
     },
     [setIsSearching, setSearchQuery],
   );
@@ -114,11 +114,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     setPrefix(prefix);
   };
 
-  const fetchData = useCallback(
-    (page: number) => setCurrentPage(page),
-    [setCurrentPage],
-  );
-
+  // File or folder selection
   const onItemClick = (item: FileBrowserDialog_BucketObjectFragment) => {
     if (item.type === BucketObjectType.Directory) {
       setCurrentFolder(item.key);
@@ -126,6 +122,27 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
       setCurrentSelectedFile(item);
     }
   };
+
+  // Uploading files
+  const uploadFiles = useUploadFiles({
+    workspace: { slug: workspaceSlug },
+    prefix,
+    onFileUploaded: () => {
+      // Refetch the data to show newly uploaded files
+      if (open) {
+        const variables: FileBrowserDialogQueryVariables = {
+          slug: workspaceSlug,
+          page: currentPage,
+          perPage: PAGE_SIZE,
+          useSearch: isSearchMode,
+          query: debouncedSearchQuery || "",
+          workspaceSlugs: isSearchMode ? [workspaceSlug] : [],
+          prefix,
+        };
+        searchOrBrowseBucket({ variables });
+      }
+    },
+  });
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -308,7 +325,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
                     }
                   : (bucket?.objects as FileSystemDataGridPagination)
               }
-              onChangePage={fetchData}
+              onChangePage={(page: number) => setCurrentPage(page)}
               onDroppingFiles={uploadFiles}
               onRowClick={(item: BucketObject) =>
                 onItemClick(item as FileBrowserDialog_BucketObjectFragment)
