@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 pipeline_template_mutations = MutationType()
 
 
-def auto_update_pipelines_from_template(
+def auto_update_pipelines_from_template_version(
     template_version: PipelineTemplateVersion, principal: User
 ):
     """
@@ -38,9 +38,6 @@ def auto_update_pipelines_from_template(
         auto_update_from_template=True,
         deleted_at__isnull=True,
     ).select_related("workspace")
-
-    if not pipelines_to_update.exists():
-        return
 
     for pipeline in pipelines_to_update:
         try:
@@ -145,7 +142,7 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
         },
     )
 
-    auto_update_pipelines_from_template(pipeline_template_version, request.user)
+    auto_update_pipelines_from_template_version(pipeline_template_version, request.user)
 
     return {"pipeline_template": pipeline_template, "success": True, "errors": []}
 
