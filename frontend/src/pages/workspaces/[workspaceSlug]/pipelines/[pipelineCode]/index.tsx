@@ -218,37 +218,34 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               )}
             </RenderProperty>
           )}
-          <RenderProperty
-            label={t("Auto-update from template")}
-            id="autoUpdateFromTemplate"
-            accessor="autoUpdateFromTemplate"
-          >
-            {(property, section) => (
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={
-                    section.isEdited
-                      ? property.formValue
-                      : property.displayValue
-                  }
-                  onChange={property.setValue}
-                  disabled={!section.isEdited || !pipeline.sourceTemplate}
-                />
-                {section.isEdited && pipeline.sourceTemplate && (
-                  <span className="text-xs text-gray-500">
-                    {t(
-                      "When enabled, this pipeline will be automatically updated when new template versions are released"
-                    )}
-                  </span>
-                )}
-                {!pipeline.sourceTemplate && (
-                  <span className="text-xs text-gray-500 italic">
-                    {t("Only available for pipelines created from templates")}
-                  </span>
-                )}
-              </div>
-            )}
-          </RenderProperty>
+          {pipeline.sourceTemplate && (
+            <RenderProperty
+              label={t("Auto-update from template")}
+              id="autoUpdateFromTemplate"
+              accessor="autoUpdateFromTemplate"
+            >
+              {(property, section) => (
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={
+                      section.isEdited
+                        ? property.formValue
+                        : property.displayValue
+                    }
+                    onChange={property.setValue}
+                    disabled={!section.isEdited}
+                  />
+                  {section.isEdited && (
+                    <span className="text-xs text-gray-500">
+                      {t(
+                        "When enabled, this pipeline will be automatically updated when new template versions are released"
+                      )}
+                    </span>
+                  )}
+                </div>
+              )}
+            </RenderProperty>
+          )}
         </DataCard.FormSection>
         {pipeline.type === PipelineType.ZipFile && pipeline.currentVersion ? (
           <DataCard.Section title={t("Parameters")} collapsible={false}>
