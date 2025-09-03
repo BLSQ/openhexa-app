@@ -170,7 +170,7 @@ export type WorkspaceDatasetAccessPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceDatasetAccessPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null, datasetLink?: { __typename?: 'DatasetLink', id: string, isPinned: boolean, dataset: { __typename?: 'Dataset', name: string, sharedWithOrganization: boolean, slug: string, id: string, permissions: { __typename?: 'DatasetPermissions', update: boolean, delete: boolean, createVersion: boolean }, workspace?: { __typename?: 'Workspace', slug: string, organization?: { __typename?: 'Organization', id: string, name: string } | null } | null, version?: { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any } | null, latestVersion?: { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any } | null }, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'DatasetLinkPermissions', pin: boolean } } | null };
+export type WorkspaceDatasetAccessPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, datasetLink?: { __typename?: 'DatasetLink', id: string, isPinned: boolean, dataset: { __typename?: 'Dataset', name: string, sharedWithOrganization: boolean, slug: string, id: string, permissions: { __typename?: 'DatasetPermissions', update: boolean, delete: boolean, createVersion: boolean }, workspace?: { __typename?: 'Workspace', slug: string, organization?: { __typename?: 'Organization', id: string, name: string } | null } | null, version?: { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any } | null, latestVersion?: { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any } | null }, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'DatasetLinkPermissions', pin: boolean } } | null };
 
 export type WorkspaceDatasetFilesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -1241,6 +1241,10 @@ export const WorkspaceDatasetAccessPageDocument = gql`
     query WorkspaceDatasetAccessPage($workspaceSlug: String!, $sourceWorkspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!) {
   workspace(slug: $workspaceSlug) {
     slug
+    organization {
+      id
+      name
+    }
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(
