@@ -29,6 +29,8 @@ import FileSystemDataGrid, {
   FileSystemDataGridPagination,
 } from "../../components/FileSystemDataGrid";
 import { useUploadFiles } from "../../hooks/useUploadFiles";
+import { createBucketFolder } from "../../helpers/bucket";
+import { toast } from "react-toastify";
 
 const PAGE_SIZE = 10;
 
@@ -50,6 +52,11 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   const [currentSelectedFile, setCurrentSelectedFile] =
     useState<FileBrowserDialog_BucketObjectFragment | null>(null);
 
+  // Inline folder creation state
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [isCreatingFolderLoading, setIsCreatingFolderLoading] = useState(false);
+
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const isSearchMode = Boolean(debouncedSearchQuery);
 
@@ -63,6 +70,9 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
       setSearchQuery("");
       setCurrentPage(1);
       setCurrentSelectedFile(null);
+      setIsCreatingFolder(false);
+      setNewFolderName("");
+      setIsCreatingFolderLoading(false);
     }
   }, [open]);
 
@@ -126,7 +136,10 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
 
   // Uploading files
   const uploadFiles = useUploadFiles({
-    workspace: { slug: workspaceSlug },
+    workspace: {
+      slug: workspaceSlug,
+      permissions: { createObject: true }, // Assume permission for file browser dialog
+    },
     prefix,
     onFileUploaded: () => {
       // Refetch the data to show newly uploaded files
@@ -158,6 +171,53 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     event.target.value = "";
   };
 
+  // Folder creation handlers
+  const handleCreateFolderClick = () => {
+    if (isSearchMode) return; // Disable in search mode
+    setIsCreatingFolder(true);
+    setNewFolderName("New folder");
+  };
+
+  const handleConfirmFolderCreation = async () => {
+    if (!newFolderName.trim()) return;
+
+    setIsCreatingFolderLoading(true);
+    try {
+      const folderKey = (prefix || "") + newFolderName.trim();
+      await createBucketFolder(workspaceSlug, folderKey);
+
+      // Refetch the data to show newly created folder
+      const variables: FileBrowserDialogQueryVariables = {
+        slug: workspaceSlug,
+        page: currentPage,
+        perPage: PAGE_SIZE,
+        useSearch: isSearchMode,
+        query: debouncedSearchQuery || "",
+        workspaceSlugs: isSearchMode ? [workspaceSlug] : [],
+        prefix,
+      };
+      await searchOrBrowseBucket({ variables });
+
+      // Reset folder creation state
+      setIsCreatingFolder(false);
+      setNewFolderName("");
+    } catch (err) {
+      toast.error(t("An error occurred while creating the folder"));
+    } finally {
+      setIsCreatingFolderLoading(false);
+    }
+  };
+
+  const handleCancelFolderCreation = () => {
+    setIsCreatingFolder(false);
+    setNewFolderName("");
+    setIsCreatingFolderLoading(false);
+  };
+
+  const handleNewFolderNameChange = (name: string) => {
+    setNewFolderName(name);
+  };
+
   const prefixes = useMemo(() => generateBreadcrumbs(prefix), [prefix]);
 
   // Get data from combined query
@@ -186,12 +246,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   }, [isSearchMode, searchResults, bucket?.objects.items, searchQuery]);
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="max-w-5xl"
-      className="h-[80vh]"
-    >
+    <Dialog open={open} onClose={onClose} maxWidth="max-w-5xl">
       <Dialog.Title onClose={onClose}>{t("Select Input File")}</Dialog.Title>
       <Dialog.Content className="flex flex-col space-y-4 h-full">
         {/* Breadcrumb Navigation */}
@@ -256,6 +311,8 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
             <Button
               variant="secondary"
               leadingIcon={<FolderPlusIcon className="h-4 w-4" />}
+              onClick={handleCreateFolderClick}
+              disabled={isSearchMode}
             >
               {t("Create a folder")}
             </Button>
@@ -312,6 +369,12 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
               onRowClick={(item: BucketObject) =>
                 onItemClick(item as FileBrowserDialog_BucketObjectFragment)
               }
+              isCreatingFolder={isCreatingFolder}
+              newFolderName={newFolderName}
+              onNewFolderNameChange={handleNewFolderNameChange}
+              onConfirmFolderCreation={handleConfirmFolderCreation}
+              onCancelFolderCreation={handleCancelFolderCreation}
+              folderCreationLoading={isCreatingFolderLoading}
             />
           )}
         </div>
