@@ -17,20 +17,8 @@ pipeline_template_mutations = MutationType()
 
 
 def auto_update_pipelines_from_template_version(
-    template_version: PipelineTemplateVersion, principal: User
+    template_version: PipelineTemplateVersion,
 ):
-    """
-    Synchronously update pipelines when a new template version is created
-    if the pipeline has auto_update_from_template enabled.
-
-    Args:
-        template_version: The newly created PipelineTemplateVersion
-        principal: The user principal for create_pipeline_version
-
-    Raises
-    ------
-        Exception: If any pipeline update fails
-    """
     template = template_version.template
 
     pipelines_to_update = Pipeline.objects.filter(
@@ -42,9 +30,7 @@ def auto_update_pipelines_from_template_version(
     for pipeline in pipelines_to_update:
         try:
             template_version.create_pipeline_version(
-                principal=principal,
-                workspace=pipeline.workspace,
-                pipeline=pipeline,
+                workspace=pipeline.workspace, pipeline=pipeline
             )
         except Exception as e:
             logger.error(
@@ -142,7 +128,7 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
         },
     )
 
-    auto_update_pipelines_from_template_version(pipeline_template_version, request.user)
+    auto_update_pipelines_from_template_version(pipeline_template_version)
 
     return {"pipeline_template": pipeline_template, "success": True, "errors": []}
 
@@ -214,7 +200,9 @@ def resolve_create_pipeline_from_template_version(_, info, **kwargs):
     except PipelineTemplateVersion.DoesNotExist:
         return {"success": False, "errors": ["PIPELINE_TEMPLATE_VERSION_NOT_FOUND"]}
 
-    pipeline_version = template_version.create_pipeline_version(user, workspace)
+    pipeline_version = template_version.create_pipeline_version(
+        workspace, principal=user
+    )
 
     track(
         request,
