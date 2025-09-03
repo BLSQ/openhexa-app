@@ -1,7 +1,6 @@
 import logging
 
 from ariadne import ObjectType
-from django.db import models
 from django.db.models import Q
 from django.http import HttpRequest
 
@@ -50,8 +49,6 @@ def resolve_dataset_link_permissions_pin(obj: DatasetLink, info, **kwargs):
 
 @workspace_object.field("datasets")
 def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **kwargs):
-    directly_linked_q = Q(workspace=obj)
-
     organization_shared_q = Q()
     if obj.organization:
         organization_shared_q = Q(
@@ -59,28 +56,20 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
             dataset__workspace__organization=obj.organization,
         )
 
-    qs = (
-        DatasetLink.objects.filter(directly_linked_q | organization_shared_q)
-        # We annotate to be able to filter out the "duplicate" links that can appear when a dataset is shared with the organization
-        .annotate(
-            is_original_link=models.Case(
-                models.When(
-                    models.Q(dataset__shared_with_organization=True)
-                    & ~models.Q(dataset__workspace=models.F("workspace")),
-                    then=models.Value(0),
-                ),
-                default=models.Value(1),
-                output_field=models.IntegerField(),
-            )
-        )
-        .filter(is_original_link=1)
+    org_shared = DatasetLink.objects.filter(organization_shared_q)
+    direct_links = DatasetLink.objects.filter(workspace=obj).exclude(
+        dataset_id__in=org_shared.values("dataset_id")
     )
 
     if query is not None:
-        qs = qs.filter(name__icontains=query)
+        org_shared = org_shared.filter(name__icontains=query)
+        direct_links = direct_links.filter(name__icontains=query)
 
     if pinned is not None:
-        qs = qs.filter(is_pinned=pinned)
+        org_shared = org_shared.filter(is_pinned=pinned)
+        direct_links = direct_links.filter(is_pinned=pinned)
+
+    qs = org_shared.union(direct_links)
 
     return result_page(
         queryset=qs.order_by("-updated_at"),
