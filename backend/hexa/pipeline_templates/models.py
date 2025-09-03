@@ -233,7 +233,7 @@ class PipelineTemplateVersion(models.Model):
 
         return PipelineVersion.objects.create(
             source_template_version=self,
-            user=principal or pipeline.created_by,
+            user=principal,
             pipeline=pipeline,
             zipfile=source_version.zipfile,
             parameters=source_version.parameters,
