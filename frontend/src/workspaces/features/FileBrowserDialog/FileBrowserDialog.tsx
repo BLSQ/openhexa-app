@@ -82,32 +82,26 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     FileBrowserDialogQueryVariables
   >(FileBrowserDialogDocument);
 
+  const getQueryVariables = useCallback(
+    (): FileBrowserDialogQueryVariables => ({
+      slug: workspaceSlug,
+      page: currentPage,
+      perPage: PAGE_SIZE,
+      useSearch: isSearchMode,
+      query: debouncedSearchQuery || "",
+      workspaceSlugs: isSearchMode ? [workspaceSlug] : [],
+      prefix,
+    }),
+    [workspaceSlug, currentPage, isSearchMode, debouncedSearchQuery, prefix],
+  );
+
   useEffect(() => {
     if (open) {
-      const variables: FileBrowserDialogQueryVariables = {
-        slug: workspaceSlug,
-        page: currentPage,
-        perPage: PAGE_SIZE,
-        useSearch: isSearchMode,
-        // Search parameters (required by schema but ignored when useSearch=false)
-        query: debouncedSearchQuery || "",
-        workspaceSlugs: isSearchMode ? [workspaceSlug] : [],
-        // Browse parameters (ignored when useSearch=true)
-        prefix,
-      };
-
-      searchOrBrowseBucket({ variables });
+      searchOrBrowseBucket({ variables: getQueryVariables() });
       setIsSearching(false);
       setCurrentSelectedFile(null);
     }
-  }, [
-    open,
-    debouncedSearchQuery,
-    workspaceSlug,
-    prefix,
-    currentPage,
-    searchOrBrowseBucket,
-  ]);
+  }, [open, getQueryVariables, searchOrBrowseBucket]);
 
   const updateSearchQuery = useCallback(
     (searchValue: string) => {
@@ -144,16 +138,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     onFileUploaded: () => {
       // Refetch the data to show newly uploaded files
       if (open) {
-        const variables: FileBrowserDialogQueryVariables = {
-          slug: workspaceSlug,
-          page: currentPage,
-          perPage: PAGE_SIZE,
-          useSearch: isSearchMode,
-          query: debouncedSearchQuery || "",
-          workspaceSlugs: isSearchMode ? [workspaceSlug] : [],
-          prefix,
-        };
-        searchOrBrowseBucket({ variables });
+        searchOrBrowseBucket({ variables: getQueryVariables() });
       }
     },
   });
@@ -187,16 +172,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
       await createBucketFolder(workspaceSlug, folderKey);
 
       // Refetch the data to show newly created folder
-      const variables: FileBrowserDialogQueryVariables = {
-        slug: workspaceSlug,
-        page: currentPage,
-        perPage: PAGE_SIZE,
-        useSearch: isSearchMode,
-        query: debouncedSearchQuery || "",
-        workspaceSlugs: isSearchMode ? [workspaceSlug] : [],
-        prefix,
-      };
-      await searchOrBrowseBucket({ variables });
+      await searchOrBrowseBucket({ variables: getQueryVariables() });
 
       // Reset folder creation state
       setIsCreatingFolder(false);
