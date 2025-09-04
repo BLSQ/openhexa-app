@@ -59,12 +59,6 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
     }
   };
 
-  console.log(
-    dataset,
-    dataset.workspace,
-    dataset.workspace?.organization,
-    isWorkspaceSource,
-  );
   return (
     <Page title={dataset.name ?? t("Dataset")}>
       <DatasetLayout
