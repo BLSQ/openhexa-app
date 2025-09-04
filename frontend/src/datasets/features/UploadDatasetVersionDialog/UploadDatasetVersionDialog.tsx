@@ -73,9 +73,12 @@ const UploadDatasetVersionDialog = ({
       }
       if (datasetLink.workspace) {
         await router.push({
-          pathname: "/workspaces/[workspaceSlug]/datasets/[datasetSlug]",
+          pathname:
+            "/workspaces/[workspaceSlug]/datasets/[datasetSlug]/from/[sourceWorkspaceSlug]",
           query: {
             workspaceSlug: datasetLink.workspace.slug,
+            sourceWorkspaceSlug:
+              datasetLink.dataset.workspace?.slug || datasetLink.workspace.slug,
             datasetSlug: datasetLink.dataset.slug,
             version: version.id,
           },

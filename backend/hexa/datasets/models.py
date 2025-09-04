@@ -30,6 +30,17 @@ def create_dataset_slug(name: str, workspace):
 
 
 class DatasetQuerySet(BaseQuerySet):
+    @staticmethod
+    def _workspace_query(user):
+        return Q(links__workspace__members=user)
+
+    @staticmethod
+    def _org_shared_query(user):
+        return Q(
+            shared_with_organization=True,
+            workspace__organization__organizationmembership__user=user,
+        )
+
     def filter_for_user(self, user: AnonymousUser | User):
         from hexa.pipelines.authentication import PipelineRunUser
 
@@ -40,7 +51,7 @@ class DatasetQuerySet(BaseQuerySet):
         else:
             return self._filter_for_user_and_query_object(
                 user,
-                models.Q(links__workspace__members=user),
+                self._workspace_query(user) | self._org_shared_query(user),
                 return_all_if_superuser=False,
             )
 
@@ -49,7 +60,11 @@ class DatasetQuerySet(BaseQuerySet):
     ):
         return self._filter_for_user_and_query_object(
             user,
-            Q(workspace__members=user, workspace__slug__in=workspace_slugs),
+            self._workspace_query(user) & Q(workspace__slug__in=workspace_slugs)
+            | (
+                self._org_shared_query(user)
+                & Q(links__workspace__slug__in=workspace_slugs)
+            ),
             return_all_if_superuser=False,
         )
 
@@ -107,6 +122,7 @@ class Dataset(MetadataMixin, Base):
     name = models.TextField(max_length=64, null=False, blank=False)
     slug = models.TextField(null=False, blank=False, max_length=255)
     description = models.TextField(blank=True, null=True)
+    shared_with_organization = models.BooleanField(default=False)
 
     objects = DatasetManager.from_queryset(DatasetQuerySet)()
 
@@ -118,7 +134,7 @@ class Dataset(MetadataMixin, Base):
         if not principal.has_perm("datasets.update_dataset", self):
             raise PermissionDenied
 
-        for key in ["name", "description"]:
+        for key in ["name", "description", "shared_with_organization"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 
@@ -439,7 +455,11 @@ class DatasetLinkQuerySet(BaseQuerySet):
         else:
             return self._filter_for_user_and_query_object(
                 user,
-                models.Q(workspace__members=user),
+                models.Q(workspace__members=user)
+                | models.Q(
+                    dataset__shared_with_organization=True,
+                    workspace__organization__organizationmembership__user=user,
+                ),
                 return_all_if_superuser=False,
             )
 

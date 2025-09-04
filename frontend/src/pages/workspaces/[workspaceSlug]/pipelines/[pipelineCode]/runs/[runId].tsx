@@ -113,7 +113,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
         <Link
           href={`/workspaces/${encodeURIComponent(
             workspace.slug,
-          )}/datasets/${encodeURIComponent(entry.value)}`}
+          )}/datasets/${encodeURIComponent(entry.value)}/from/${encodeURIComponent(workspace.slug)}`}
         >
           {entry.value}
         </Link>

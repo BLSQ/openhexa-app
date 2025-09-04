@@ -24,6 +24,9 @@ const CreateDatasetDialog = (props: CreateDatasetDialogProps) => {
         dataset {
           id
           slug
+          workspace {
+            slug
+          }
         }
         link {
           id
@@ -48,9 +51,10 @@ const CreateDatasetDialog = (props: CreateDatasetDialogProps) => {
 
       if (data?.createDataset.success) {
         await router.push({
-          pathname: `/workspaces/[workspaceSlug]/datasets/[datasetSlug]`,
+          pathname: `/workspaces/[workspaceSlug]/datasets/[datasetSlug]/from/[sourceWorkspaceSlug]`,
           query: {
             workspaceSlug: workspace.slug,
+            sourceWorkspaceSlug: data.createDataset.dataset.workspace.slug,
             datasetSlug: data.createDataset.dataset.slug,
           },
         });

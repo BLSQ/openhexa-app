@@ -11,6 +11,7 @@ type Dataset implements MetadataObject{
   updatedAt: DateTime!
   createdBy: User
   workspace: Workspace
+  sharedWithOrganization: Boolean!
   permissions: DatasetPermissions!
   versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
   version(id: ID!): DatasetVersion
@@ -206,6 +207,7 @@ input UpdateDatasetInput {
   datasetId: ID!
   name: String
   description: String
+  sharedWithOrganization: Boolean
 }
 
 """

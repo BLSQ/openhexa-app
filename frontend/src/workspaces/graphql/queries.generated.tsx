@@ -152,26 +152,29 @@ export type WorkspaceDatasetsPageQuery = { __typename?: 'Query', workspace?: { _
 
 export type WorkspaceDatasetIndexPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
+  sourceWorkspaceSlug: Types.Scalars['String']['input'];
   datasetSlug: Types.Scalars['String']['input'];
   versionId: Types.Scalars['ID']['input'];
   isSpecificVersion: Types.Scalars['Boolean']['input'];
 }>;
 
 
-export type WorkspaceDatasetIndexPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null, datasetLink?: { __typename?: 'DatasetLink', id: string, isPinned: boolean, dataset: { __typename?: 'Dataset', description?: string | null, updatedAt: any, createdAt: any, slug: string, id: string, name: string, permissions: { __typename?: 'DatasetPermissions', update: boolean, delete: boolean, createVersion: boolean }, workspace?: { __typename?: 'Workspace', name: string, slug: string } | null, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, version?: { __typename?: 'DatasetVersion', id: string, createdAt: any, changelog?: string | null, name: string, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'DatasetVersionPermissions', update: boolean } } | null, latestVersion?: { __typename?: 'DatasetVersion', id: string, changelog?: string | null, createdAt: any, name: string, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'DatasetVersionPermissions', update: boolean } } | null }, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'DatasetLinkPermissions', pin: boolean } } | null };
+export type WorkspaceDatasetIndexPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null, datasetLink?: { __typename?: 'DatasetLink', id: string, isPinned: boolean, dataset: { __typename?: 'Dataset', id: string, name: string, slug: string, description?: string | null, sharedWithOrganization: boolean, updatedAt: any, createdAt: any, permissions: { __typename?: 'DatasetPermissions', update: boolean, delete: boolean, createVersion: boolean }, workspace?: { __typename?: 'Workspace', name: string, slug: string, organization?: { __typename?: 'Organization', name: string } | null } | null, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, version?: { __typename?: 'DatasetVersion', id: string, createdAt: any, changelog?: string | null, name: string, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'DatasetVersionPermissions', update: boolean } } | null, latestVersion?: { __typename?: 'DatasetVersion', id: string, changelog?: string | null, createdAt: any, name: string, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'DatasetVersionPermissions', update: boolean } } | null }, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'DatasetLinkPermissions', pin: boolean } } | null };
 
 export type WorkspaceDatasetAccessPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
+  sourceWorkspaceSlug: Types.Scalars['String']['input'];
   datasetSlug: Types.Scalars['String']['input'];
   versionId: Types.Scalars['ID']['input'];
   isSpecificVersion: Types.Scalars['Boolean']['input'];
 }>;
 
 
-export type WorkspaceDatasetAccessPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null, datasetLink?: { __typename?: 'DatasetLink', id: string, isPinned: boolean, dataset: { __typename?: 'Dataset', name: string, slug: string, id: string, permissions: { __typename?: 'DatasetPermissions', update: boolean, delete: boolean, createVersion: boolean }, version?: { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any } | null, latestVersion?: { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any } | null, workspace?: { __typename?: 'Workspace', slug: string } | null }, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'DatasetLinkPermissions', pin: boolean } } | null };
+export type WorkspaceDatasetAccessPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, datasetLink?: { __typename?: 'DatasetLink', id: string, isPinned: boolean, dataset: { __typename?: 'Dataset', name: string, sharedWithOrganization: boolean, slug: string, id: string, permissions: { __typename?: 'DatasetPermissions', update: boolean, delete: boolean, createVersion: boolean }, workspace?: { __typename?: 'Workspace', slug: string, organization?: { __typename?: 'Organization', id: string, name: string } | null } | null, version?: { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any } | null, latestVersion?: { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any } | null }, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'DatasetLinkPermissions', pin: boolean } } | null };
 
 export type WorkspaceDatasetFilesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
+  sourceWorkspaceSlug: Types.Scalars['String']['input'];
   datasetSlug: Types.Scalars['String']['input'];
   versionId: Types.Scalars['ID']['input'];
   isSpecificVersion: Types.Scalars['Boolean']['input'];
@@ -1132,27 +1135,34 @@ export type WorkspaceDatasetsPageLazyQueryHookResult = ReturnType<typeof useWork
 export type WorkspaceDatasetsPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceDatasetsPageSuspenseQuery>;
 export type WorkspaceDatasetsPageQueryResult = Apollo.QueryResult<WorkspaceDatasetsPageQuery, WorkspaceDatasetsPageQueryVariables>;
 export const WorkspaceDatasetIndexPageDocument = gql`
-    query WorkspaceDatasetIndexPage($workspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!) {
+    query WorkspaceDatasetIndexPage($workspaceSlug: String!, $sourceWorkspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!) {
   workspace(slug: $workspaceSlug) {
     slug
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(
-    workspaceSlug: $workspaceSlug
+    workspaceSlug: $sourceWorkspaceSlug
     datasetSlug: $datasetSlug
   ) {
     ...DatasetLayout_datasetLink
     id
     dataset {
+      id
+      name
+      slug
       permissions {
         update
       }
       description
+      sharedWithOrganization
       updatedAt
       createdAt
       workspace {
         name
         slug
+        organization {
+          name
+        }
       }
       createdBy {
         ...User_user
@@ -1204,6 +1214,7 @@ ${DatasetLayout_VersionFragmentDoc}`;
  * const { data, loading, error } = useWorkspaceDatasetIndexPageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
+ *      sourceWorkspaceSlug: // value for 'sourceWorkspaceSlug'
  *      datasetSlug: // value for 'datasetSlug'
  *      versionId: // value for 'versionId'
  *      isSpecificVersion: // value for 'isSpecificVersion'
@@ -1227,13 +1238,17 @@ export type WorkspaceDatasetIndexPageLazyQueryHookResult = ReturnType<typeof use
 export type WorkspaceDatasetIndexPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceDatasetIndexPageSuspenseQuery>;
 export type WorkspaceDatasetIndexPageQueryResult = Apollo.QueryResult<WorkspaceDatasetIndexPageQuery, WorkspaceDatasetIndexPageQueryVariables>;
 export const WorkspaceDatasetAccessPageDocument = gql`
-    query WorkspaceDatasetAccessPage($workspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!) {
+    query WorkspaceDatasetAccessPage($workspaceSlug: String!, $sourceWorkspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!) {
   workspace(slug: $workspaceSlug) {
     slug
+    organization {
+      id
+      name
+    }
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(
-    workspaceSlug: $workspaceSlug
+    workspaceSlug: $sourceWorkspaceSlug
     datasetSlug: $datasetSlug
   ) {
     ...DatasetLayout_datasetLink
@@ -1242,6 +1257,13 @@ export const WorkspaceDatasetAccessPageDocument = gql`
       name
       permissions {
         update
+      }
+      sharedWithOrganization
+      workspace {
+        organization {
+          id
+          name
+        }
       }
       ...DatasetLinksDataGrid_dataset
       version(id: $versionId) @include(if: $isSpecificVersion) {
@@ -1271,6 +1293,7 @@ ${DatasetLayout_VersionFragmentDoc}`;
  * const { data, loading, error } = useWorkspaceDatasetAccessPageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
+ *      sourceWorkspaceSlug: // value for 'sourceWorkspaceSlug'
  *      datasetSlug: // value for 'datasetSlug'
  *      versionId: // value for 'versionId'
  *      isSpecificVersion: // value for 'isSpecificVersion'
@@ -1294,13 +1317,13 @@ export type WorkspaceDatasetAccessPageLazyQueryHookResult = ReturnType<typeof us
 export type WorkspaceDatasetAccessPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceDatasetAccessPageSuspenseQuery>;
 export type WorkspaceDatasetAccessPageQueryResult = Apollo.QueryResult<WorkspaceDatasetAccessPageQuery, WorkspaceDatasetAccessPageQueryVariables>;
 export const WorkspaceDatasetFilesPageDocument = gql`
-    query WorkspaceDatasetFilesPage($workspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!, $page: Int = 1, $perPage: Int = 20) {
+    query WorkspaceDatasetFilesPage($workspaceSlug: String!, $sourceWorkspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!, $page: Int = 1, $perPage: Int = 20) {
   workspace(slug: $workspaceSlug) {
     slug
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(
-    workspaceSlug: $workspaceSlug
+    workspaceSlug: $sourceWorkspaceSlug
     datasetSlug: $datasetSlug
   ) {
     ...DatasetLayout_datasetLink
@@ -1349,6 +1372,7 @@ ${DatasetExplorer_FileFragmentDoc}`;
  * const { data, loading, error } = useWorkspaceDatasetFilesPageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
+ *      sourceWorkspaceSlug: // value for 'sourceWorkspaceSlug'
  *      datasetSlug: // value for 'datasetSlug'
  *      versionId: // value for 'versionId'
  *      isSpecificVersion: // value for 'isSpecificVersion'
