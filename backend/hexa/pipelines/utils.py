@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from django.conf import settings
 from django.utils import timezone
@@ -42,6 +43,19 @@ def mail_run_recipients(run: PipelineRun):
                     "run_url": f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace_slug}/pipelines/{run.pipeline.code}/runs/{run.id}",
                 },
                 recipient_list=[recipient.user.email],
+                attachments=[
+                    (
+                        "logo_with_text_white.svg",
+                        open(
+                            os.path.join(
+                                settings.BASE_DIR,
+                                "hexa/static/img/logo/logo_with_text_white.svg",
+                            ),
+                            "rb",
+                        ).read(),
+                        "image/svg+xml",
+                    ),
+                ],
             )
 
 
