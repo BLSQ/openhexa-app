@@ -1,5 +1,12 @@
+from datetime import datetime, timezone
+from urllib.parse import urlencode
+
+from django.utils.translation import gettext_lazy, override
 from django_otp import devices_for_user, user_has_device
 
+from config import settings
+from hexa.analytics.api import track
+from hexa.core.utils import get_email_attachments, send_mail
 from hexa.user_management.models import Organization
 
 USER_DEFAULT_DEVICE_ATTR_NAME = "_default_device"
@@ -24,15 +31,6 @@ def has_configured_two_factor(user):
 
 def send_organization_invite(invitation):
     """Send invitation email to organization"""
-    from datetime import datetime, timezone
-    from urllib.parse import urlencode
-
-    from django.conf import settings
-    from django.utils.translation import gettext_lazy, override
-
-    from hexa.analytics.api import track
-    from hexa.core.utils import get_email_attachments, send_mail
-
     title = gettext_lazy(
         f"You've been invited to join the organization {invitation.organization.name} on OpenHEXA"
     )
@@ -72,14 +70,6 @@ def send_organization_add_user_email(
     invited_by, organization: Organization, invitee, role, workspace_invitations=None
 ):
     """Send email to existing user when added to organization"""
-    from datetime import datetime, timezone
-
-    from django.conf import settings
-    from django.utils.translation import gettext_lazy, override
-
-    from hexa.analytics.api import track
-    from hexa.core.utils import get_email_attachments, send_mail
-
     title = gettext_lazy(
         f"You've been added to the organization {organization.name} on OpenHEXA"
     )
