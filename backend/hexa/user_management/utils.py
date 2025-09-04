@@ -1,10 +1,10 @@
 from datetime import datetime, timezone
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.utils.translation import gettext_lazy, override
 from django_otp import devices_for_user, user_has_device
 
-from config import settings
 from hexa.analytics.api import track
 from hexa.core.utils import get_email_attachments, send_mail
 from hexa.user_management.models import Organization
