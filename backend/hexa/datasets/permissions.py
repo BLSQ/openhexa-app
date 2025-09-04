@@ -21,9 +21,7 @@ def create_dataset(principal: User, workspace: Workspace):
         role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
     ).exists() or (
         workspace.organization
-        and workspace.organization.organizationmembership_set.filter(
-            user=principal
-        ).exists()
+        and principal.is_organization_member(workspace.organization)
     )
 
 
@@ -61,9 +59,7 @@ def download_dataset_version(principal: User, version: DatasetVersion):
     ).exists() or (
         version.dataset.shared_with_organization
         and version.dataset.workspace.organization
-        and version.dataset.workspace.organization.organizationmembership_set.filter(
-            user=principal
-        ).exists()
+        and principal.is_organization_member(version.dataset.workspace.organization)
     )
 
 
@@ -80,9 +76,7 @@ def view_dataset(principal: User, dataset: Dataset):
         or (
             dataset.shared_with_organization
             and dataset.workspace.organization
-            and dataset.workspace.organization.organizationmembership_set.filter(
-                user=principal
-            ).exists()
+            and principal.is_organization_member(dataset.workspace.organization)
         )
     )
 

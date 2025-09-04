@@ -8,7 +8,7 @@ export type CreateDatasetDialogMutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateDatasetDialogMutation = { __typename?: 'Mutation', createDataset: { __typename?: 'CreateDatasetResult', success: boolean, errors: Array<Types.CreateDatasetError>, dataset?: { __typename?: 'Dataset', id: string, slug: string } | null, link?: { __typename?: 'DatasetLink', id: string } | null } };
+export type CreateDatasetDialogMutation = { __typename?: 'Mutation', createDataset: { __typename?: 'CreateDatasetResult', success: boolean, errors: Array<Types.CreateDatasetError>, dataset?: { __typename?: 'Dataset', id: string, slug: string, workspace?: { __typename?: 'Workspace', slug: string } | null } | null, link?: { __typename?: 'DatasetLink', id: string } | null } };
 
 export type CreateDatasetDialog_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', createDataset: boolean } };
 
@@ -27,6 +27,9 @@ export const CreateDatasetDialogDocument = gql`
     dataset {
       id
       slug
+      workspace {
+        slug
+      }
     }
     link {
       id

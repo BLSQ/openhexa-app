@@ -24,6 +24,9 @@ const CreateDatasetDialog = (props: CreateDatasetDialogProps) => {
         dataset {
           id
           slug
+          workspace {
+            slug
+          }
         }
         link {
           id

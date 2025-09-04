@@ -433,6 +433,10 @@ query WorkspaceDatasetAccessPage(
 ) {
   workspace(slug: $workspaceSlug) {
     slug
+    organization {
+        id
+        name
+    }
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(

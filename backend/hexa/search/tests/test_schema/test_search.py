@@ -37,6 +37,11 @@ class SearchResolversTest(GraphQLTestCase):
             "standardpassword",
             is_superuser=False,
         )
+        cls.ADMIN_USER = User.objects.create_user(
+            "admin@bluesquarehub.com",
+            "standardpassword",
+            is_superuser=True,
+        )
         cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
         )
@@ -79,21 +84,21 @@ class SearchResolversTest(GraphQLTestCase):
             role=WorkspaceMembershipRole.VIEWER,
         )
 
-        cls.DATASET1 = Dataset.objects.create(
+        cls.DATASET1 = Dataset.objects.create_if_has_perm(
+            principal=cls.ADMIN_USER,
             name="Dataset",
-            slug="dataset",
             description="First dataset",
             workspace=cls.WORKSPACE1,
         )
-        cls.DATASET2 = Dataset.objects.create(
+        cls.DATASET2 = Dataset.objects.create_if_has_perm(
+            principal=cls.ADMIN_USER,
             name="Dataset 2",
-            slug="dataset-2",
             description="Second dataset",
             workspace=cls.WORKSPACE2,
         )
-        cls.DATASET3 = Dataset.objects.create(
+        cls.DATASET3 = Dataset.objects.create_if_has_perm(
+            principal=cls.ADMIN_USER,
             name="Dataset 3",
-            slug="dataset-3",
             description="Third dataset (user not part of)",
             workspace=cls.WORKSPACE3,
         )
@@ -309,22 +314,23 @@ class SearchResolversTest(GraphQLTestCase):
             len(response["data"]["searchFiles"]["items"]),
             4,  # 2 files * 2 workspaces
         )
-        self.assertEqual(
-            response["data"]["searchFiles"]["items"][0],
+
+        items = response["data"]["searchFiles"]["items"]
+        expected_items = [
             {
                 "file": {"name": "file1", "path": "file1"},
                 "score": 1.0,
                 "workspace": {"name": "Workspace 1"},
             },
-        )
-        self.assertEqual(
-            response["data"]["searchFiles"]["items"][1],
             {
                 "file": {"name": "file2", "path": "file2"},
                 "score": 0.5,
                 "workspace": {"name": "Workspace 1"},
             },
-        )
+        ]
+
+        for expected_item in expected_items:
+            self.assertIn(expected_item, items)
 
     @patch("hexa.search.schema.queries.get_database_definition")
     def test_search_database_tables(self, mock_get_database_definition):

@@ -294,6 +294,109 @@ class WorkspaceTest(TestCase):
         self.assertEqual(workspace.configuration, editor_config)
 
 
+class WorkspaceOrganizationRoleTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER_ADMIN = User.objects.create_user(
+            "admin@bluesquarehub.com",
+            "admin",
+            analytics_enabled=True,
+            is_superuser=True,
+        )
+
+        cls.organization = Organization.objects.create(name="Test Organization")
+
+        cls.org_owner = User.objects.create_user("owner@example.com", "password")
+        cls.org_admin = User.objects.create_user("admin@example.com", "password")
+        cls.org_member = User.objects.create_user("member@example.com", "password")
+        cls.external_user = User.objects.create_user("external@example.com", "password")
+
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_owner,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_admin,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_member,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
+            cls.org_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.USER_ADMIN,
+                name="Organization Workspace",
+                organization=cls.organization,
+            )
+            cls.standalone_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.USER_ADMIN,
+                name="Standalone Workspace",
+            )
+
+        WorkspaceMembership.objects.create(
+            user=cls.external_user,
+            workspace=cls.standalone_workspace,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+    def test_organization_owner_can_access_all_workspaces(self):
+        """Organization owners should have access to all workspaces in their organization"""
+        accessible_workspaces = Workspace.objects.filter_for_user(self.org_owner)
+
+        self.assertIn(self.org_workspace, accessible_workspaces)
+        self.assertNotIn(self.standalone_workspace, accessible_workspaces)
+
+    def test_organization_admin_can_access_all_workspaces(self):
+        """Organization admins should have access to all workspaces in their organization"""
+        accessible_workspaces = Workspace.objects.filter_for_user(self.org_admin)
+
+        self.assertIn(self.org_workspace, accessible_workspaces)
+        self.assertNotIn(self.standalone_workspace, accessible_workspaces)
+
+    def test_organization_member_cannot_access_workspaces_without_membership(self):
+        """Organization members should NOT have automatic access to all workspaces"""
+        accessible_workspaces = Workspace.objects.filter_for_user(self.org_member)
+
+        self.assertNotIn(self.org_workspace, accessible_workspaces)
+        self.assertNotIn(self.standalone_workspace, accessible_workspaces)
+
+    def test_external_user_only_accesses_direct_memberships(self):
+        """External users should only access workspaces they're directly members of"""
+        accessible_workspaces = Workspace.objects.filter_for_user(self.external_user)
+
+        self.assertNotIn(self.org_workspace, accessible_workspaces)
+        self.assertIn(self.standalone_workspace, accessible_workspaces)
+
+    def test_organization_admin_with_workspace_membership(self):
+        """Organization admin with explicit workspace membership should have access"""
+        WorkspaceMembership.objects.create(
+            user=self.org_admin,
+            workspace=self.standalone_workspace,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        accessible_workspaces = Workspace.objects.filter_for_user(self.org_admin)
+
+        self.assertIn(self.org_workspace, accessible_workspaces)
+        self.assertIn(self.standalone_workspace, accessible_workspaces)
+
+    def test_archived_workspace_not_accessible(self):
+        """Archived workspaces should not be accessible even for organization admins"""
+        self.org_workspace.archived = True
+        self.org_workspace.save()
+
+        accessible_workspaces = Workspace.objects.filter_for_user(self.org_owner)
+
+        self.assertNotIn(self.org_workspace, accessible_workspaces)
+
+
 class ConnectionTest(TestCase):
     USER_SERENA = None
     USER_ADMIN = None
