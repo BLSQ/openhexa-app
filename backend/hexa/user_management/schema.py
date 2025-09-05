@@ -686,9 +686,10 @@ def resolve_organization_invitations(organization: Organization, info, **kwargs)
 
 
 @organization_object.field("datasets")
-def resolve_organization_datasets(obj, info, query=None, **kwargs):
+def resolve_organization_datasets(
+    organization: Organization, info, query=None, **kwargs
+):
     request: HttpRequest = info.context["request"]
-    organization: Organization = obj
 
     workspace_slugs = list(organization.workspaces.values_list("slug", flat=True))
 
