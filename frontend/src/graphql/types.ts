@@ -3386,6 +3386,7 @@ export type PinDatasetResult = {
 /** Represents a pipeline. */
 export type Pipeline = {
   __typename?: 'Pipeline';
+  autoUpdateFromTemplate: Scalars['Boolean']['output'];
   code: Scalars['String']['output'];
   config: Scalars['JSON']['output'];
   createdAt: Scalars['DateTime']['output'];
@@ -4832,6 +4833,7 @@ export enum UpdatePipelineError {
 
 /** Represents the input for updating a pipeline. */
 export type UpdatePipelineInput = {
+  autoUpdateFromTemplate?: InputMaybe<Scalars['Boolean']['input']>;
   config?: InputMaybe<Scalars['JSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];

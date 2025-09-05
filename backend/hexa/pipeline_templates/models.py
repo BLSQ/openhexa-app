@@ -92,7 +92,7 @@ class PipelineTemplate(SoftDeletedModel):
 
         template_version = template_version or self.last_version
         return template_version.create_pipeline_version(
-            principal, pipeline.workspace, pipeline
+            pipeline.workspace, principal=principal, pipeline=pipeline
         )
 
     def new_versions(self, pipeline: Pipeline) -> list["PipelineTemplateVersion"]:
@@ -221,11 +221,16 @@ class PipelineTemplateVersion(models.Model):
         return new_version_config
 
     def create_pipeline_version(
-        self, principal: User, workspace: Workspace, pipeline=None
+        self, workspace: Workspace, principal: User = None, pipeline=None
     ) -> PipelineVersion:
-        pipeline = pipeline or self._create_pipeline(principal, workspace)
+        if pipeline is None:
+            if principal is None:
+                raise ValueError("principal is required when creating a new pipeline")
+            pipeline = self._create_pipeline(principal, workspace)
+
         new_version_config = self._extract_config(pipeline)
         source_version = self.source_pipeline_version
+
         return PipelineVersion.objects.create(
             source_template_version=self,
             user=principal,

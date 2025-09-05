@@ -33,7 +33,7 @@ describe("ConfigurationList", () => {
   });
 
   describe("Empty State", () => {
-    it("displays empty state when no configurations exist", () => {
+    it("displays empty textarea when no configurations exist", () => {
       render(
         <TestApp>
           <ConfigurationList
@@ -43,8 +43,11 @@ describe("ConfigurationList", () => {
         </TestApp>
       );
 
-      expect(screen.getByText("No configuration properties set")).toBeInTheDocument();
-      expect(screen.getByText("Click 'Add Configuration' to create your first property")).toBeInTheDocument();
+      const textarea = screen.getByRole("textbox");
+      expect(textarea).toBeInTheDocument();
+      expect(textarea).toBeDisabled();
+      expect(textarea).toHaveValue("");
+      expect(textarea).toHaveAttribute("placeholder", "Click 'Add Configuration' to create your first property");
     });
 
     it("shows add button in empty state", () => {
@@ -60,7 +63,7 @@ describe("ConfigurationList", () => {
       expect(screen.getByText("Add Configuration")).toBeInTheDocument();
     });
 
-    it("hides instructional text when disabled", () => {
+    it("shows 'Not set' message when disabled and empty", () => {
       render(
         <TestApp>
           <ConfigurationList
@@ -71,8 +74,8 @@ describe("ConfigurationList", () => {
         </TestApp>
       );
 
-      expect(screen.getByText("No configuration properties set")).toBeInTheDocument();
-      expect(screen.queryByText("Click 'Add Configuration' to create your first property")).not.toBeInTheDocument();
+      expect(screen.getByText("Not set")).toBeInTheDocument();
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
       expect(screen.queryByText("Add Configuration")).not.toBeInTheDocument();
     });
   });
@@ -374,7 +377,9 @@ describe("ConfigurationList", () => {
         </TestApp>
       );
 
-      expect(screen.getByText("No configuration properties set")).toBeInTheDocument();
+      const textarea = screen.getByRole("textbox");
+      expect(textarea).toBeInTheDocument();
+      expect(textarea).toBeDisabled();
     });
 
 

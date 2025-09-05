@@ -6,11 +6,11 @@ import { TemplateVersionCard_VersionFragmentDoc } from '../features/TemplateVers
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type UpdatePipelineMutationVariables = Types.Exact<{
-  input: Types.UpdateDagInput;
+  input: Types.UpdatePipelineInput;
 }>;
 
 
-export type UpdatePipelineMutation = { __typename?: 'Mutation', updateDAG: { __typename?: 'UpdateDAGResult', success: boolean, errors: Array<Types.UpdateDagError>, dag?: { __typename?: 'DAG', id: string, label: string, description?: string | null, schedule?: string | null } | null } };
+export type UpdatePipelineMutation = { __typename?: 'Mutation', updatePipeline: { __typename?: 'UpdatePipelineResult', success: boolean, errors: Array<Types.UpdatePipelineError>, pipeline?: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, description?: string | null, schedule?: string | null, webhookEnabled: boolean, autoUpdateFromTemplate: boolean } | null } };
 
 export type CreatePipelineTemplateVersionMutationVariables = Types.Exact<{
   input: Types.CreatePipelineTemplateVersionInput;
@@ -49,15 +49,18 @@ export type UpdateTemplateVersionMutation = { __typename?: 'Mutation', updateTem
 
 
 export const UpdatePipelineDocument = gql`
-    mutation UpdatePipeline($input: UpdateDAGInput!) {
-  updateDAG(input: $input) {
+    mutation UpdatePipeline($input: UpdatePipelineInput!) {
+  updatePipeline(input: $input) {
     success
     errors
-    dag {
+    pipeline {
       id
-      label
+      code
+      name
       description
       schedule
+      webhookEnabled
+      autoUpdateFromTemplate
     }
   }
 }
