@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React from "react";
 import { useTranslation } from "next-i18next";
 import clsx from "clsx";
 
@@ -6,14 +6,11 @@ import { FolderIcon } from "@heroicons/react/24/outline";
 import { BucketObject, BucketObjectType } from "graphql/types";
 
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
-import DateColumn from "core/components/DataGrid/DateColumn";
 import Filesize from "core/components/Filesize";
 import Link from "core/components/Link";
 import SimplePagination from "core/components/Pagination/SimplePagination";
 import Pagination from "core/components/Pagination/Pagination";
 import DropzoneOverlay from "core/components/DropzoneOverlay";
-import Input from "core/components/forms/Input";
-import Spinner from "core/components/Spinner";
 import Time from "core/components/Time";
 
 import { getFileIconAndColor } from "../../features/FileBrowserDialog/utils";
@@ -54,11 +51,6 @@ export interface FileSystemDataGridProps {
   onRowClick?: (item: BucketObject) => void;
   showPageSizeSelect?: boolean;
   displayField?: "name" | "key";
-  // Folder creation props
-  isCreatingFolder?: boolean;
-  onConfirmFolderCreation: (folderName: string) => void;
-  onCancelFolderCreation: () => void;
-  folderCreationLoading: boolean;
 }
 
 const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
@@ -75,67 +67,10 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
   onRowClick,
   showPageSizeSelect = true,
   displayField = "name",
-  // Folder creation props
-  isCreatingFolder = false,
-  onConfirmFolderCreation,
-  onCancelFolderCreation,
-  folderCreationLoading = false,
 }) => {
   const { t } = useTranslation();
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Internal state for folder name
-  const NEW_FOLDER_NAME = t("New folder");
-  const [newFolderName, setNewFolderName] = useState(NEW_FOLDER_NAME);
-
-  // Auto-focus and select text when creating folder
-  useEffect(() => {
-    if (isCreatingFolder && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [isCreatingFolder]);
 
   const renderNameColumn = (item: BucketObject) => {
-    // Handle temporary folder creation row
-    if ((item as any).isTemporaryFolderCreation) {
-      const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          onConfirmFolderCreation(newFolderName.trim());
-          setNewFolderName(NEW_FOLDER_NAME);
-        } else if (e.key === "Escape") {
-          e.preventDefault();
-          onCancelFolderCreation();
-          setNewFolderName(NEW_FOLDER_NAME);
-        }
-      };
-
-      return (
-        <div className="flex items-center gap-2">
-          <FolderIcon className="h-5 w-5 flex-shrink-0 text-blue-500" />
-          <div className="flex-1">
-            {folderCreationLoading ? (
-              <div className="flex items-center gap-2">
-                <Spinner size="sm" />
-                <span className="text-gray-500">{t("Creating folder...")}</span>
-              </div>
-            ) : (
-              <Input
-                ref={inputRef}
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onBlur={onCancelFolderCreation}
-                className="text-sm"
-                placeholder={t("Folder name")}
-              />
-            )}
-          </div>
-        </div>
-      );
-    }
-
     const isDirectory = item.type === BucketObjectType.Directory;
 
     let IconComponent;
@@ -184,46 +119,14 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
     );
   };
 
-  // Create temporary folder creation row
-  const temporaryFolderRow = isCreatingFolder
-    ? ({
-        key: "__temp_folder_creation__",
-        name: "",
-        type: BucketObjectType.Directory,
-        size: 0,
-        updatedAt: new Date().toISOString(),
-        path: "",
-        isTemporaryFolderCreation: true,
-      } as BucketObject & { isTemporaryFolderCreation: boolean })
-    : null;
-
-  // Prepend temporary row to data when creating folder
-  const displayData =
-    isCreatingFolder && temporaryFolderRow
-      ? [temporaryFolderRow as BucketObject, ...data]
-      : data;
-
   const dataGridContent = (
-    // TODO: optionally add border here
     <DataGrid
-      data={displayData}
+      data={data}
       defaultPageSize={perPage}
       fixedLayout={fixedLayout}
       loading={loading}
-      rowClassName={(item) => {
-        // Don't apply custom row styling to temporary folder creation row
-        if ((item as any).isTemporaryFolderCreation) {
-          return "bg-blue-50 hover:bg-blue-50";
-        }
-        return typeof rowClassName === "function"
-          ? rowClassName(item as BucketObject)
-          : rowClassName || "";
-      }}
-      onRowClick={(item) => {
-        // Don't trigger row click for temporary folder creation row
-        if ((item as any).isTemporaryFolderCreation) return;
-        onRowClick?.(item as BucketObject);
-      }}
+      rowClassName={rowClassName}
+      onRowClick={onRowClick}
     >
       <BaseColumn id="name" label={t("Name")}>
         {renderNameColumn}
@@ -231,7 +134,6 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
 
       <BaseColumn id="size" label={t("Size")}>
         {(item: BucketObject) => {
-          if ((item as any).isTemporaryFolderCreation) return <span>-</span>;
           return item.type === BucketObjectType.Directory ? (
             <span>-</span>
           ) : (
@@ -242,7 +144,6 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
 
       <BaseColumn id="updatedAt" label={t("Last Updated")}>
         {(item: BucketObject) => {
-          if ((item as any).isTemporaryFolderCreation) return <span>-</span>;
           return (
             <Time
               className="truncate"
@@ -254,12 +155,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
       </BaseColumn>
 
       {actionsRenderer && (
-        <BaseColumn id="actions">
-          {(item: BucketObject) => {
-            if ((item as any).isTemporaryFolderCreation) return null;
-            return actionsRenderer(item);
-          }}
-        </BaseColumn>
+        <BaseColumn id="actions">{actionsRenderer}</BaseColumn>
       )}
     </DataGrid>
   );

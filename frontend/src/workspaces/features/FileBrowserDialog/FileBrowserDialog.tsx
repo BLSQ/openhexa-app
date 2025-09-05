@@ -55,6 +55,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   // Inline folder creation state
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [isCreatingFolderLoading, setIsCreatingFolderLoading] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
 
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const isSearchMode = Boolean(debouncedSearchQuery);
@@ -71,6 +72,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
       setCurrentSelectedFile(null);
       setIsCreatingFolder(false);
       setIsCreatingFolderLoading(false);
+      setNewFolderName("");
     }
   }, [open]);
 
@@ -159,12 +161,15 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   const handleCreateFolderClick = () => {
     if (isSearchMode) return; // Disable in search mode
     setIsCreatingFolder(true);
+    setNewFolderName(t("New folder"));
   };
 
-  const handleConfirmFolderCreation = async (folderName: string) => {
+  const handleConfirmFolderCreation = async () => {
+    if (!newFolderName.trim()) return;
+
     setIsCreatingFolderLoading(true);
     try {
-      const folderKey = (prefix || "") + folderName;
+      const folderKey = (prefix || "") + newFolderName.trim();
       await createBucketFolder(workspaceSlug, folderKey);
 
       // Refetch the data to show newly created folder
@@ -172,6 +177,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
 
       // Reset folder creation state
       setIsCreatingFolder(false);
+      setNewFolderName("");
     } catch (err) {
       toast.error(t("An error occurred while creating the folder"));
     } finally {
@@ -182,6 +188,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   const handleCancelFolderCreation = () => {
     setIsCreatingFolder(false);
     setIsCreatingFolderLoading(false);
+    setNewFolderName("");
   };
 
   const prefixes = useMemo(() => generateBreadcrumbs(prefix), [prefix]);
@@ -274,14 +281,45 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
           />
 
           <div className="flex items-center justify-end gap-2">
-            <Button
-              variant="secondary"
-              leadingIcon={<FolderPlusIcon className="h-4 w-4" />}
-              onClick={handleCreateFolderClick}
-              disabled={isSearchMode}
-            >
-              {t("Create a folder")}
-            </Button>
+            {isCreatingFolder ? (
+              <div className="flex items-center gap-2">
+                {isCreatingFolderLoading ? (
+                  <div className="flex items-center gap-2 px-3 py-2">
+                    <Spinner size="sm" />
+                    <span className="text-gray-500">
+                      {t("Creating folder...")}
+                    </span>
+                  </div>
+                ) : (
+                  <Input
+                    autoFocus
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleConfirmFolderCreation();
+                      } else if (e.key === "Escape") {
+                        e.preventDefault();
+                        handleCancelFolderCreation();
+                      }
+                    }}
+                    onBlur={handleCancelFolderCreation}
+                    placeholder={t("Folder name")}
+                    className="w-48"
+                  />
+                )}
+              </div>
+            ) : (
+              <Button
+                variant="secondary"
+                leadingIcon={<FolderPlusIcon className="h-4 w-4" />}
+                onClick={handleCreateFolderClick}
+                disabled={isSearchMode}
+              >
+                {t("Create a folder")}
+              </Button>
+            )}
             <Button
               variant="primary"
               leadingIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
@@ -335,10 +373,6 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
               onRowClick={(item: BucketObject) =>
                 onItemClick(item as FileBrowserDialog_BucketObjectFragment)
               }
-              isCreatingFolder={isCreatingFolder}
-              onConfirmFolderCreation={handleConfirmFolderCreation}
-              onCancelFolderCreation={handleCancelFolderCreation}
-              folderCreationLoading={isCreatingFolderLoading}
             />
           )}
         </div>
