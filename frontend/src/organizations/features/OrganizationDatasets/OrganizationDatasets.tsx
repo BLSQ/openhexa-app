@@ -16,13 +16,12 @@ import DatasetWorkspacesList from "./DatasetWorkspacesList";
 const DEFAULT_PAGE_SIZE = 10;
 
 export default function OrganizationDatasets({
-  organizationId,
-  datasets: SRRDatasets,
+  organization,
 }: {
-  organizationId: string;
-  datasets: NonNullable<OrganizationDatasetsQuery["organization"]>["datasets"];
+  organization: OrganizationDatasetsQuery["organization"];
 }) {
   const { t } = useTranslation();
+  const { id: organizationId, datasets: SRRDatasets } = organization || {};
   const [searchTerm, setSearchTerm] = useState("");
   const [previousData, setPreviousData] =
     useState<OrganizationDatasetsQuery | null>(null);
