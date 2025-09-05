@@ -54,7 +54,6 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
 
   // Inline folder creation state
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
   const [isCreatingFolderLoading, setIsCreatingFolderLoading] = useState(false);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -71,7 +70,6 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
       setCurrentPage(1);
       setCurrentSelectedFile(null);
       setIsCreatingFolder(false);
-      setNewFolderName("");
       setIsCreatingFolderLoading(false);
     }
   }, [open]);
@@ -132,6 +130,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   const uploadFiles = useUploadFiles({
     workspace: {
       slug: workspaceSlug,
+      // TODO: check this
       permissions: { createObject: true }, // Assume permission for file browser dialog
     },
     prefix,
@@ -160,15 +159,12 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   const handleCreateFolderClick = () => {
     if (isSearchMode) return; // Disable in search mode
     setIsCreatingFolder(true);
-    setNewFolderName("New folder");
   };
 
-  const handleConfirmFolderCreation = async () => {
-    if (!newFolderName.trim()) return;
-
+  const handleConfirmFolderCreation = async (folderName: string) => {
     setIsCreatingFolderLoading(true);
     try {
-      const folderKey = (prefix || "") + newFolderName.trim();
+      const folderKey = (prefix || "") + folderName;
       await createBucketFolder(workspaceSlug, folderKey);
 
       // Refetch the data to show newly created folder
@@ -176,7 +172,6 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
 
       // Reset folder creation state
       setIsCreatingFolder(false);
-      setNewFolderName("");
     } catch (err) {
       toast.error(t("An error occurred while creating the folder"));
     } finally {
@@ -186,12 +181,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
 
   const handleCancelFolderCreation = () => {
     setIsCreatingFolder(false);
-    setNewFolderName("");
     setIsCreatingFolderLoading(false);
-  };
-
-  const handleNewFolderNameChange = (name: string) => {
-    setNewFolderName(name);
   };
 
   const prefixes = useMemo(() => generateBreadcrumbs(prefix), [prefix]);
@@ -346,8 +336,6 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
                 onItemClick(item as FileBrowserDialog_BucketObjectFragment)
               }
               isCreatingFolder={isCreatingFolder}
-              newFolderName={newFolderName}
-              onNewFolderNameChange={handleNewFolderNameChange}
               onConfirmFolderCreation={handleConfirmFolderCreation}
               onCancelFolderCreation={handleCancelFolderCreation}
               folderCreationLoading={isCreatingFolderLoading}
