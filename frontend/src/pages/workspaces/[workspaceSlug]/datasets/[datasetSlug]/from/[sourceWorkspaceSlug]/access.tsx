@@ -18,7 +18,7 @@ import {
   WorkspaceDatasetAccessPageQuery,
   WorkspaceDatasetAccessPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
-import useFeature from "../../../../../../../identity/hooks/useFeature";
+import useFeature from "identity/hooks/useFeature";
 
 export type WorkspaceDatasetAccessPageProps = {
   isSpecificVersion: boolean;
