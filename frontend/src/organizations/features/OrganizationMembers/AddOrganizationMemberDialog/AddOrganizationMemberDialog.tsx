@@ -47,7 +47,7 @@ const getDefaultWorkspaceRole = (
       return WorkspaceMembershipRole.Admin;
     case OrganizationMembershipRole.Member:
     default:
-      return WorkspaceMembershipRole.Viewer;
+      return WorkspaceMembershipRole.Editor;
   }
 };
 
