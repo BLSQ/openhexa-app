@@ -21,6 +21,7 @@ const MOCK_ORGANIZATION = {
     manageMembers: true,
     createWorkspace: true,
     archiveWorkspace: true,
+    manageOwners: true,
   },
   members: {
     totalItems: 0,
@@ -181,10 +182,7 @@ describe("AddOrganizationMemberDialog", () => {
 
     const adminRadio = screen
       .getAllByRole("radio")
-      .find(
-        (radio) =>
-          radio.getAttribute("name")?.includes("workspace-1")
-      );
+      .find((radio) => radio.getAttribute("name")?.includes("workspace-1"));
 
     expect(adminRadio).toBeInTheDocument();
     expect(adminRadio).not.toBeChecked();
@@ -272,13 +270,13 @@ describe("AddOrganizationMemberDialog", () => {
       expect(screen.getByText("Test Workspace 2")).toBeInTheDocument();
     });
 
-    const viewerRadio1 = screen.getAllByRole("radio").find(
-      radio => radio.getAttribute("name")?.includes("workspace-1")
-    );
-    const viewerRadio2 = screen.getAllByRole("radio").find(
-      radio => radio.getAttribute("name")?.includes("workspace-2")
-    );
-    
+    const viewerRadio1 = screen
+      .getAllByRole("radio")
+      .find((radio) => radio.getAttribute("name")?.includes("workspace-1"));
+    const viewerRadio2 = screen
+      .getAllByRole("radio")
+      .find((radio) => radio.getAttribute("name")?.includes("workspace-2"));
+
     await user.click(viewerRadio1!);
     await user.click(viewerRadio2!);
 
@@ -397,21 +395,25 @@ describe("AddOrganizationMemberDialog", () => {
       </TestApp>,
     );
 
-    const roleSelect = screen.getByRole("combobox", { name: "Organization Role" });
+    const roleSelect = screen.getByRole("combobox", {
+      name: "Organization Role",
+    });
     await waitFor(() => {
       expect(roleSelect).toBeInTheDocument();
     });
 
-    const editorRadios = screen.getAllByRole("radio")
+    const editorRadios = screen.getAllByRole("radio");
     expect(editorRadios.length).toBe(8);
-    expect((editorRadios[1] as HTMLInputElement).checked).toBe(false);
-    expect((editorRadios[2] as HTMLInputElement).checked).toBe(true);
-    expect((editorRadios[5] as HTMLInputElement).checked).toBe(false);
-    expect((editorRadios[6] as HTMLInputElement).checked).toBe(true);
-    await user.selectOptions(roleSelect, OrganizationMembershipRole.Admin);
     expect((editorRadios[1] as HTMLInputElement).checked).toBe(true);
     expect((editorRadios[2] as HTMLInputElement).checked).toBe(false);
     expect((editorRadios[5] as HTMLInputElement).checked).toBe(true);
+    expect((editorRadios[6] as HTMLInputElement).checked).toBe(false);
+    await user.selectOptions(roleSelect, OrganizationMembershipRole.Admin);
+    expect((editorRadios[0] as HTMLInputElement).checked).toBe(true);
+    expect((editorRadios[1] as HTMLInputElement).checked).toBe(false);
+    expect((editorRadios[2] as HTMLInputElement).checked).toBe(false);
+    expect((editorRadios[4] as HTMLInputElement).checked).toBe(true);
+    expect((editorRadios[5] as HTMLInputElement).checked).toBe(false);
     expect((editorRadios[6] as HTMLInputElement).checked).toBe(false);
   });
 
