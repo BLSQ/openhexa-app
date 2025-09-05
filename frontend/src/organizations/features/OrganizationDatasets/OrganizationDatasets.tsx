@@ -95,7 +95,7 @@ export default function OrganizationDatasets({
             )}
           </BaseColumn>
           <BaseColumn
-            label={t("Source Workspace")}
+            label={t("Source workspace")}
             id="source_workspace"
             minWidth={150}
           >
@@ -125,7 +125,7 @@ export default function OrganizationDatasets({
             className="py-4"
             accessor="updatedAt"
             id="updatedAt"
-            label={t("Last Updated")}
+            label={t("Last updated")}
             relative
           />
         </DataGrid>
