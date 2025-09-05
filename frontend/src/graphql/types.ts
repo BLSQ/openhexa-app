@@ -3178,6 +3178,8 @@ export type Organization = {
   __typename?: 'Organization';
   /** The contact information of the organization. */
   contactInfo: Scalars['String']['output'];
+  /** Datasets available in the organization */
+  datasets: DatasetPage;
   /** The unique identifier of the organization. */
   id: Scalars['UUID']['output'];
   /** The invitations sent to join the organization. */
@@ -3196,6 +3198,14 @@ export type Organization = {
   url: Scalars['String']['output'];
   /** The workspaces associated with the organization. */
   workspaces: WorkspacePage;
+};
+
+
+/** The Organization type represents an organization in the system. */
+export type OrganizationDatasetsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
 };
 
 

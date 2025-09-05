@@ -1,6 +1,10 @@
 import React from "react";
 import clsx from "clsx";
-import { ChevronLeftIcon, UsersIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronLeftIcon,
+  UsersIcon,
+  Square2StackIcon,
+} from "@heroicons/react/24/outline";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { GetServerSidePropsContext } from "next";
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
@@ -61,6 +65,12 @@ const OrganizationSidebar = ({
                 compact={!isSidebarOpen}
               />
             )}
+            <NavItem
+              href={`/organizations/${organization.id}/datasets`}
+              Icon={Square2StackIcon}
+              label={t("Datasets")}
+              compact={!isSidebarOpen}
+            />
           </div>
           <Logo isSidebarOpen={isSidebarOpen} />
         </div>

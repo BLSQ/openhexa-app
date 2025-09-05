@@ -496,6 +496,11 @@ extend type Query {
 }
 
 
+extend type Organization {
+  "Datasets available in the organization"
+  datasets(page: Int = 1, perPage: Int = 15, query: String): DatasetPage!
+}
+
 extend type Mutation {
   "Create a new dataset."
   createDataset(input: CreateDatasetInput!): CreateDatasetResult! @loginRequired
