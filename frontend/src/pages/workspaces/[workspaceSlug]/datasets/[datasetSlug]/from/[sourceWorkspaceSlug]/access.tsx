@@ -18,6 +18,7 @@ import {
   WorkspaceDatasetAccessPageQuery,
   WorkspaceDatasetAccessPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
+import useFeature from "../../../../../../../identity/hooks/useFeature";
 
 export type WorkspaceDatasetAccessPageProps = {
   isSpecificVersion: boolean;
@@ -35,6 +36,7 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
     variables: props,
   });
   const [isLinkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [organizationFeatureIsEnabled] = useFeature("organization");
   if (!data || !data.datasetLink || !data.workspace) {
     return null;
   }
@@ -75,57 +77,60 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
         ]}
         tab="access"
       >
-        {dataset.workspace?.organization && isWorkspaceSource && (
-          <div>
-            <div className="px-4 py-5 sm:p-6">
-              <div className="mt-4">
-                <Switch
-                  checked={dataset.sharedWithOrganization}
-                  onChange={handleOrganizationSharingChange}
-                  disabled={!dataset.permissions.update || !isWorkspaceSource}
-                  label={t("Share with the whole Organization")}
-                />
-                {!dataset.sharedWithOrganization && (
-                  <p className="mt-2 text-sm text-gray-500">
-                    {t(
-                      "Only accessible by the owner workspace and explicitly shared workspaces",
-                    )}
-                  </p>
-                )}
-              </div>
-              {dataset.sharedWithOrganization && (
-                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <svg
-                        className="h-5 w-5 text-green-400"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-green-800">
-                        {t("Shared with all workspaces")}
-                      </h3>
-                      <div className="mt-1 text-sm text-green-700">
-                        {t(
-                          "This dataset is available to all workspaces in your organization.",
-                        )}
+        {organizationFeatureIsEnabled &&
+          dataset.workspace?.organization &&
+          isWorkspaceSource && (
+            <div>
+              <div className="px-4 py-5 sm:p-6">
+                <div className="mt-4">
+                  <Switch
+                    checked={dataset.sharedWithOrganization}
+                    onChange={handleOrganizationSharingChange}
+                    disabled={!dataset.permissions.update || !isWorkspaceSource}
+                    label={t("Share with the whole Organization")}
+                  />
+                  {!dataset.sharedWithOrganization && (
+                    <p className="mt-2 text-sm text-gray-500">
+                      {t(
+                        "Only accessible by the owner workspace and explicitly shared workspaces",
+                      )}
+                    </p>
+                  )}
+                </div>
+                {dataset.sharedWithOrganization && (
+                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <svg
+                          className="h-5 w-5 text-green-400"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-green-800">
+                          {t("Shared with all workspaces")}
+                        </h3>
+                        <div className="mt-1 text-sm text-green-700">
+                          {t(
+                            "This dataset is available to all workspaces in your organization.",
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        )}
-        {(!dataset.sharedWithOrganization ||
+          )}
+        {(!organizationFeatureIsEnabled ||
+          !dataset.sharedWithOrganization ||
           !dataset.workspace?.organization ||
           !isWorkspaceSource) && (
           <>
