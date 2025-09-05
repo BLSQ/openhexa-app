@@ -47,6 +47,7 @@ export default function OrganizationDatasets({
   const onChangePage = ({ page }: { page: number }) => {
     refetch({
       page,
+      perPage: DEFAULT_PAGE_SIZE,
       id: organizationId,
       query: debouncedSearchTerm || undefined,
     }).then();
