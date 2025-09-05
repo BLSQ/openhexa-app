@@ -357,6 +357,7 @@ query WorkspaceDatasetsPage(
 
 query WorkspaceDatasetIndexPage(
   $workspaceSlug: String!
+  $sourceWorkspaceSlug: String!
   $datasetSlug: String!
   $versionId: ID!
   $isSpecificVersion: Boolean!
@@ -366,21 +367,28 @@ query WorkspaceDatasetIndexPage(
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(
-    workspaceSlug: $workspaceSlug
+    workspaceSlug: $sourceWorkspaceSlug
     datasetSlug: $datasetSlug
   ) {
     ...DatasetLayout_datasetLink
     id
     dataset {
+      id
+      name
+      slug
       permissions {
         update
       }
       description
+      sharedWithOrganization
       updatedAt
       createdAt
       workspace {
         name
         slug
+        organization {
+          name
+        }
       }
       createdBy {
         ...User_user
@@ -419,16 +427,21 @@ query WorkspaceDatasetIndexPage(
 
 query WorkspaceDatasetAccessPage(
   $workspaceSlug: String!
+  $sourceWorkspaceSlug: String!
   $datasetSlug: String!
   $versionId: ID!
   $isSpecificVersion: Boolean!
 ) {
   workspace(slug: $workspaceSlug) {
     slug
+    organization {
+        id
+        name
+    }
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(
-    workspaceSlug: $workspaceSlug
+    workspaceSlug: $sourceWorkspaceSlug
     datasetSlug: $datasetSlug
   ) {
     ...DatasetLayout_datasetLink
@@ -437,6 +450,13 @@ query WorkspaceDatasetAccessPage(
       name
       permissions {
         update
+      }
+      sharedWithOrganization
+      workspace {
+        organization {
+            id
+            name
+        }
       }
       ...DatasetLinksDataGrid_dataset
       # If we have a specific version, fetch it
@@ -453,6 +473,7 @@ query WorkspaceDatasetAccessPage(
 
 query WorkspaceDatasetFilesPage(
   $workspaceSlug: String!
+  $sourceWorkspaceSlug: String!
   $datasetSlug: String!
   $versionId: ID!
   $isSpecificVersion: Boolean!
@@ -464,7 +485,7 @@ query WorkspaceDatasetFilesPage(
     ...DatasetLayout_workspace
   }
   datasetLink: datasetLinkBySlug(
-    workspaceSlug: $workspaceSlug
+    workspaceSlug: $sourceWorkspaceSlug
     datasetSlug: $datasetSlug
   ) {
     ...DatasetLayout_datasetLink

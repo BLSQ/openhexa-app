@@ -1,4 +1,3 @@
-import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import StrEnum
@@ -9,26 +8,11 @@ from django.utils.translation import gettext_lazy, override
 from openhexa.toolbox.dhis2 import DHIS2
 from openhexa.toolbox.iaso import IASO
 
-from hexa.core.utils import send_mail as send_mail
+from hexa.core.utils import get_email_attachments, send_mail
 from hexa.user_management.models import User
 
 from ..analytics.api import track
 from .models import Connection, ConnectionType, Workspace, WorkspaceInvitation
-
-
-def get_email_attachments():
-    return [
-        (
-            "logo_with_text_white.png",
-            open(
-                os.path.join(
-                    settings.BASE_DIR, "hexa/static/img/logo/logo_with_text_white.png"
-                ),
-                "rb",
-            ).read(),
-            "image/png",
-        ),
-    ]
 
 
 def send_workspace_add_user_email(

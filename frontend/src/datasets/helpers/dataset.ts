@@ -34,7 +34,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export async function updateDataset(
   datasetId: string,
-  values: { name?: string; description?: string },
+  values: { name?: string; description?: string; sharedWithOrganization?: boolean },
 ) {
   const client = getApolloClient();
 
@@ -49,6 +49,7 @@ export async function updateDataset(
             id
             name
             description
+            sharedWithOrganization
             updatedAt
           }
           success
@@ -61,6 +62,7 @@ export async function updateDataset(
         datasetId,
         name: values.name,
         description: values.description,
+        sharedWithOrganization: values.sharedWithOrganization,
       },
     },
   });

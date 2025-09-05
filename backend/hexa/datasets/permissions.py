@@ -4,7 +4,9 @@ from hexa.datasets.models import (
     DatasetVersion,
     DatasetVersionFile,
 )
-from hexa.user_management.models import User
+from hexa.user_management.models import (
+    User,
+)
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -17,10 +19,13 @@ def create_dataset(principal: User, workspace: Workspace):
     return workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-    ).exists()
+    ).exists() or (
+        workspace.organization
+        and principal.is_organization_member(workspace.organization)
+    )
 
 
-def update_dataset(principal, dataset: Dataset):
+def update_dataset(principal: User, dataset: Dataset):
     """Only workspace admins can update datasets"""
     return create_dataset(principal, dataset.workspace)
 
@@ -51,12 +56,16 @@ def download_dataset_version(principal: User, version: DatasetVersion):
     """
     return version.dataset.links.filter(
         workspace__in=principal.workspace_set.all()
-    ).exists()
+    ).exists() or (
+        version.dataset.shared_with_organization
+        and version.dataset.workspace.organization
+        and principal.is_organization_member(version.dataset.workspace.organization)
+    )
 
 
 def view_dataset(principal: User, dataset: Dataset):
-    """Only workspace members can view dataset.
-    This also includes members of workspaces that have been shared this dataset.
+    """Users can view datasets if they are workspace members, have access through dataset links,
+    or have access through organization sharing.
     """
     return (
         dataset.links.filter(workspace__in=principal.workspace_set.all()).exists()
@@ -64,11 +73,16 @@ def view_dataset(principal: User, dataset: Dataset):
             user=principal,
             role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
         ).exists()
+        or (
+            dataset.shared_with_organization
+            and dataset.workspace.organization
+            and principal.is_organization_member(dataset.workspace.organization)
+        )
     )
 
 
-def link_dataset(principal: User, datasetAndWorkspace):
-    dataset, workspace = datasetAndWorkspace
+def link_dataset(principal: User, dataset_and_workspace):
+    dataset, workspace = dataset_and_workspace
     """
     A user can link a dataset with a workspace if:
     - they are a member of the workspace as an admin or editor

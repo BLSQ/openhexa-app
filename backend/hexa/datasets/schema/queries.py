@@ -65,9 +65,13 @@ def resolve_dataset_link(_, info, **kwargs):
 def resolve_dataset_link_by_slug(_, info, **kwargs):
     request = info.context["request"]
     try:
-        return DatasetLink.objects.filter_for_user(request.user).get(
-            dataset__slug=kwargs["dataset_slug"],
-            workspace__slug=kwargs["workspace_slug"],
+        return (
+            DatasetLink.objects.filter_for_user(request.user)
+            .distinct("dataset_id")
+            .get(
+                dataset__slug=kwargs["dataset_slug"],
+                dataset__workspace__slug=kwargs["workspace_slug"],
+            )
         )
     except DatasetLink.DoesNotExist:
         return None

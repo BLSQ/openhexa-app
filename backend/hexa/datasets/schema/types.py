@@ -1,7 +1,7 @@
 import logging
 
 from ariadne import ObjectType
-from django.db.models import Q
+from django.db.models import F, Q
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
@@ -49,16 +49,31 @@ def resolve_dataset_link_permissions_pin(obj: DatasetLink, info, **kwargs):
 
 @workspace_object.field("datasets")
 def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **kwargs):
-    qs = DatasetLink.objects.filter(workspace=obj).order_by("-updated_at")
+    organization_shared_q = Q()
+    if obj.organization:
+        organization_shared_q = Q(
+            dataset__shared_with_organization=True,
+            dataset__workspace__organization=obj.organization,
+            dataset__workspace=F("workspace"),
+        )
+
+    org_shared = DatasetLink.objects.filter(organization_shared_q)
+    direct_links = DatasetLink.objects.filter(workspace=obj).exclude(
+        dataset_id__in=org_shared.values("dataset_id")
+    )
 
     if query is not None:
-        qs = qs.filter(name__icontains=query)
+        org_shared = org_shared.filter(name__icontains=query)
+        direct_links = direct_links.filter(name__icontains=query)
 
     if pinned is not None:
-        qs = qs.filter(is_pinned=pinned)
+        org_shared = org_shared.filter(is_pinned=pinned)
+        direct_links = direct_links.filter(is_pinned=pinned)
+
+    qs = org_shared.union(direct_links)
 
     return result_page(
-        queryset=qs,
+        queryset=qs.order_by("-updated_at"),
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", 15),
     )

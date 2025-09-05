@@ -1,7 +1,6 @@
 from hexa.user_management.models import (
     Membership,
     Organization,
-    OrganizationMembershipRole,
     Team,
     User,
 )
@@ -51,39 +50,26 @@ def delete_membership(
 
 def manage_members(principal: User, organization: Organization):
     """Only admin and owner users can manage members"""
-    return organization.organizationmembership_set.filter(
-        user=principal,
-        role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
-    ).exists()
+    return principal.is_organization_admin_or_owner(organization)
 
 
 def create_workspace(principal: User, organization: Organization):
     """Only admin and owner users can create a workspace"""
-    return organization.organizationmembership_set.filter(
-        user=principal,
-        role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
-    ).exists() and not principal.has_feature_flag("workspaces.prevent_create")
+    return principal.is_organization_admin_or_owner(
+        organization
+    ) and not principal.has_feature_flag("workspaces.prevent_create")
 
 
 def archive_workspace(principal: User, organization: Organization):
     """Only admin and owner users can archive a workspace"""
-    return organization.organizationmembership_set.filter(
-        user=principal,
-        role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
-    ).exists()
+    return principal.is_organization_admin_or_owner(organization)
 
 
-def list_all_workspaces(principal: User, organization: Organization):
-    """Only admin and owner users can list all workspaces"""
-    return organization.organizationmembership_set.filter(
-        user=principal,
-        role__in=[OrganizationMembershipRole.ADMIN, OrganizationMembershipRole.OWNER],
-    ).exists()
+def has_admin_privileges(principal: User, organization: Organization):
+    """Check if user has admin or owner privileges in the organization"""
+    return principal.is_organization_admin_or_owner(organization)
 
 
 def manage_owners(principal: User, organization: Organization):
     """Only owner users can manage owner roles"""
-    return organization.organizationmembership_set.filter(
-        user=principal,
-        role=OrganizationMembershipRole.OWNER,
-    ).exists()
+    return principal.is_organization_owner(organization)

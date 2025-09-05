@@ -61,9 +61,11 @@ const RunOutputsTable = (props: RunOutputsTableProps) => {
             <Link
               noStyle
               href={{
-                pathname: "/workspaces/[workspaceSlug]/datasets/[dataset]",
+                pathname:
+                  "/workspaces/[workspaceSlug]/datasets/[dataset]/from/[sourceWorkspaceSlug]",
                 query: {
                   workspaceSlug: workspace.slug,
+                  sourceWorkspaceSlug: output.dataset.workspace.slug,
                   dataset: output.dataset.slug,
                 },
               }}

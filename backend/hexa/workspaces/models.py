@@ -166,9 +166,18 @@ class WorkspaceQuerySet(BaseQuerySet):
                 return_all_if_superuser=False,
             )
         else:
+            organization_access = Q(
+                organization__organizationmembership__user=user,
+                organization__organizationmembership__role__in=[
+                    OrganizationMembershipRole.OWNER,
+                    OrganizationMembershipRole.ADMIN,
+                ],
+                archived=False,
+            )
+            workspace_access = Q(workspacemembership__user=user, archived=False)
             return self._filter_for_user_and_query_object(
                 user,
-                Q(workspacemembership__user=user, archived=False),
+                organization_access | workspace_access,
                 return_all_if_superuser=False,
             )
 

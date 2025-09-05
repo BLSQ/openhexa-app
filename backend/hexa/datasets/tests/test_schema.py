@@ -7,8 +7,17 @@ from django.db import IntegrityError
 
 from hexa.core.test import GraphQLTestCase
 from hexa.files import storage
-from hexa.user_management.models import User
-from hexa.workspaces.models import WorkspaceMembershipRole
+from hexa.user_management.models import (
+    Organization,
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    User,
+)
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 from ...metadata.models import MetadataAttribute
 from ..models import Dataset, DatasetFileSample, DatasetVersion, DatasetVersionFile
@@ -750,4 +759,207 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
                 "version": {"name": "New name", "changelog": "New changelog"},
             },
             r["data"]["updateDatasetVersion"],
+        )
+
+
+class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        cls.organization = Organization.objects.create(
+            name="Test Organization",
+            short_name="test-org-gql",
+            organization_type="CORPORATE",
+        )
+
+        cls.org_admin = User.objects.create_user(
+            "org_admin@bluesquarehub.com", "password"
+        )
+        cls.org_member = User.objects.create_user(
+            "org_member@bluesquarehub.com", "password"
+        )
+        cls.org_member_from_different_workspace = User.objects.create_user(
+            "org_member_from_different_workspace@bluesquarehub.com", "password"
+        )
+        cls.non_member = User.objects.create_user(
+            "non_member@bluesquarehub.com", "password"
+        )
+
+        OrganizationMembership.objects.get_or_create(
+            organization=cls.organization,
+            user=cls.org_admin,
+            defaults={"role": OrganizationMembershipRole.ADMIN},
+        )
+
+        cls.workspace = Workspace.objects.create_if_has_perm(
+            principal=cls.org_admin,
+            name="Test Workspace",
+            description="Test workspace",
+            organization=cls.organization,
+        )
+        cls.workspace2 = Workspace.objects.create_if_has_perm(
+            principal=cls.org_admin,
+            name="Test Workspace2",
+            description="Test workspace2",
+            organization=cls.organization,
+        )
+        OrganizationMembership.objects.get_or_create(
+            organization=cls.organization,
+            user=cls.org_member,
+            defaults={"role": OrganizationMembershipRole.MEMBER},
+        )
+        OrganizationMembership.objects.get_or_create(
+            organization=cls.organization,
+            user=cls.org_member_from_different_workspace,
+            defaults={"role": OrganizationMembershipRole.MEMBER},
+        )
+
+        cls.dataset = Dataset.objects.create_if_has_perm(
+            cls.org_admin,
+            cls.workspace,
+            name="Test Dataset",
+            description="Test dataset for organization sharing",
+        )
+
+        WorkspaceMembership.objects.get_or_create(
+            workspace=cls.workspace,
+            user=cls.org_member,
+            defaults={"role": WorkspaceMembershipRole.VIEWER},
+        )
+        WorkspaceMembership.objects.get_or_create(
+            workspace=cls.workspace2,
+            user=cls.org_member_from_different_workspace,
+            defaults={"role": WorkspaceMembershipRole.VIEWER},
+        )
+
+    def test_update_dataset_with_organization_sharing_by_org_admin(self):
+        self.client.force_login(self.org_admin)
+
+        self.assertFalse(self.dataset.shared_with_organization)
+
+        r = self.run_query(
+            """
+            mutation UpdateDataset ($input: UpdateDatasetInput!) {
+                updateDataset(input: $input) {
+                    dataset {
+                        id
+                        name
+                        sharedWithOrganization
+                    }
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "datasetId": str(self.dataset.id),
+                    "sharedWithOrganization": True,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "dataset": {
+                    "id": str(self.dataset.id),
+                    "name": "Test Dataset",
+                    "sharedWithOrganization": True,
+                },
+            },
+            r["data"]["updateDataset"],
+        )
+
+        self.dataset.refresh_from_db()
+        self.assertTrue(self.dataset.shared_with_organization)
+
+    def test_update_dataset_with_organization_sharing_by_non_member(self):
+        self.client.force_login(self.non_member)
+
+        r = self.run_query(
+            """
+            mutation UpdateDataset ($input: UpdateDatasetInput!) {
+                updateDataset(input: $input) {
+                    dataset {
+                        id
+                    }
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "datasetId": str(self.dataset.id),
+                    "sharedWithOrganization": True,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["DATASET_NOT_FOUND"],
+                "dataset": None,
+            },
+            r["data"]["updateDataset"],
+        )
+
+    def test_query_dataset_shared_with_organization_field(self):
+        self.client.force_login(self.org_admin)
+
+        self.dataset.shared_with_organization = True
+        self.dataset.save()
+
+        r = self.run_query(
+            """
+            query GetDataset($id: ID!) {
+                dataset(id: $id) {
+                    id
+                    name
+                    sharedWithOrganization
+                }
+            }
+            """,
+            {"id": str(self.dataset.id)},
+        )
+
+        self.assertEqual(
+            {
+                "id": str(self.dataset.id),
+                "name": "Test Dataset",
+                "sharedWithOrganization": True,
+            },
+            r["data"]["dataset"],
+        )
+
+    def test_organization_member_can_access_shared_dataset_via_graphql(self):
+        self.dataset.shared_with_organization = True
+        self.dataset.save()
+
+        self.client.force_login(self.org_member_from_different_workspace)
+
+        r = self.run_query(
+            """
+            query GetDataset($id: ID!) {
+                dataset(id: $id) {
+                    id
+                    name
+                    sharedWithOrganization
+                }
+            }
+            """,
+            {"id": str(self.dataset.id)},
+        )
+
+        self.assertEqual(
+            {
+                "id": str(self.dataset.id),
+                "name": "Test Dataset",
+                "sharedWithOrganization": True,
+            },
+            r["data"]["dataset"],
         )
