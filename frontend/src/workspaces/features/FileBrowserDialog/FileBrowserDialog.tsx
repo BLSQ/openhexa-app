@@ -5,7 +5,6 @@ import { useLazyQuery } from "@apollo/client";
 import {
   ArrowUpTrayIcon,
   ChevronRightIcon,
-  FolderPlusIcon,
   HomeIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
@@ -31,6 +30,7 @@ import FileSystemDataGrid, {
 import { useUploadFiles } from "../../hooks/useUploadFiles";
 import { createBucketFolder } from "../../helpers/bucket";
 import { toast } from "react-toastify";
+import CreateFolderButton from "./CreateFolderButton";
 
 const PAGE_SIZE = 10;
 
@@ -52,11 +52,6 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   const [currentSelectedFile, setCurrentSelectedFile] =
     useState<FileBrowserDialog_BucketObjectFragment | null>(null);
 
-  // Inline folder creation state
-  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
-  const [isCreatingFolderLoading, setIsCreatingFolderLoading] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
-
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const isSearchMode = Boolean(debouncedSearchQuery);
 
@@ -70,9 +65,6 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
       setSearchQuery("");
       setCurrentPage(1);
       setCurrentSelectedFile(null);
-      setIsCreatingFolder(false);
-      setIsCreatingFolderLoading(false);
-      setNewFolderName("");
     }
   }, [open]);
 
@@ -157,38 +149,18 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     event.target.value = "";
   };
 
-  // Folder creation handlers
-  const handleCreateFolderClick = () => {
-    if (isSearchMode) return; // Disable in search mode
-    setIsCreatingFolder(true);
-    setNewFolderName(t("New folder"));
-  };
-
-  const handleConfirmFolderCreation = async () => {
-    if (!newFolderName.trim()) return;
-
-    setIsCreatingFolderLoading(true);
+  // Folder creation handler
+  const handleCreateFolder = async (folderName: string) => {
     try {
-      const folderKey = (prefix || "") + newFolderName.trim();
+      const folderKey = (prefix || "") + folderName;
       await createBucketFolder(workspaceSlug, folderKey);
 
       // Refetch the data to show newly created folder
-      await searchOrBrowseBucket({ variables: getQueryVariables() });
-
-      // Reset folder creation state
-      setIsCreatingFolder(false);
-      setNewFolderName("");
+      searchOrBrowseBucket({ variables: getQueryVariables() });
     } catch (err) {
       toast.error(t("An error occurred while creating the folder"));
-    } finally {
-      setIsCreatingFolderLoading(false);
+      throw err; // Re-throw so the component knows the operation failed
     }
-  };
-
-  const handleCancelFolderCreation = () => {
-    setIsCreatingFolder(false);
-    setIsCreatingFolderLoading(false);
-    setNewFolderName("");
   };
 
   const prefixes = useMemo(() => generateBreadcrumbs(prefix), [prefix]);
@@ -281,45 +253,10 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
           />
 
           <div className="flex items-center justify-end gap-2">
-            {isCreatingFolder ? (
-              <div className="flex items-center gap-2">
-                {isCreatingFolderLoading ? (
-                  <div className="flex items-center gap-2 px-3 py-2">
-                    <Spinner size="sm" />
-                    <span className="text-gray-500">
-                      {t("Creating folder...")}
-                    </span>
-                  </div>
-                ) : (
-                  <Input
-                    autoFocus
-                    value={newFolderName}
-                    onChange={(e) => setNewFolderName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleConfirmFolderCreation();
-                      } else if (e.key === "Escape") {
-                        e.preventDefault();
-                        handleCancelFolderCreation();
-                      }
-                    }}
-                    onBlur={handleCancelFolderCreation}
-                    placeholder={t("Folder name")}
-                    className="w-48"
-                  />
-                )}
-              </div>
-            ) : (
-              <Button
-                variant="secondary"
-                leadingIcon={<FolderPlusIcon className="h-4 w-4" />}
-                onClick={handleCreateFolderClick}
-                disabled={isSearchMode}
-              >
-                {t("Create a folder")}
-              </Button>
-            )}
+            <CreateFolderButton
+              disabled={isSearchMode}
+              onCreateFolder={handleCreateFolder}
+            />
             <Button
               variant="primary"
               leadingIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
