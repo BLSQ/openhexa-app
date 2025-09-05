@@ -163,7 +163,7 @@ export type OrganizationsLazyQueryHookResult = ReturnType<typeof useOrganization
 export type OrganizationsSuspenseQueryHookResult = ReturnType<typeof useOrganizationsSuspenseQuery>;
 export type OrganizationsQueryResult = Apollo.QueryResult<OrganizationsQuery, OrganizationsQueryVariables>;
 export const OrganizationDatasetsDocument = gql`
-    query OrganizationDatasets($id: UUID!, $page: Int = 1, $perPage: Int = 15, $query: String) {
+    query OrganizationDatasets($id: UUID!, $page: Int = 1, $perPage: Int = 10, $query: String) {
   organization(id: $id) {
     ...Organization_organization
     datasets(page: $page, perPage: $perPage, query: $query) {

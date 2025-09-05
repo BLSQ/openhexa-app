@@ -23,19 +23,20 @@ export default function OrganizationDatasets({
   const { t } = useTranslation();
   const { id: organizationId, datasets: SRRDatasets } = organization || {};
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
   const [previousData, setPreviousData] =
     useState<OrganizationDatasetsQuery | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const debouncedPage = useDebounce(page, 300);
 
-  const { data, refetch, loading } = useOrganizationDatasetsQuery({
+  const { data, loading } = useOrganizationDatasetsQuery({
     variables: {
       id: organizationId,
-      page: 1,
+      page: debouncedPage,
       perPage: DEFAULT_PAGE_SIZE,
       query: debouncedSearchTerm,
     },
-    skip: !!SRRDatasets && !debouncedSearchTerm,
   });
 
   useEffect(() => {
@@ -44,18 +45,8 @@ export default function OrganizationDatasets({
     }
   }, [data, loading]);
 
-  const onChangePage = ({ page }: { page: number }) => {
-    refetch({
-      page,
-      perPage: DEFAULT_PAGE_SIZE,
-      id: organizationId,
-      query: debouncedSearchTerm || undefined,
-    }).then();
-  };
-
   const displayData = data || previousData;
-  const datasets = (!debouncedSearchTerm && SRRDatasets) ||
-    displayData?.organization?.datasets ||
+  const datasets = displayData?.organization?.datasets ||
     SRRDatasets || {
       items: [],
       totalItems: 0,
@@ -69,7 +60,10 @@ export default function OrganizationDatasets({
         <SearchInput
           name="search-datasets"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(1);
+          }}
           placeholder={t("Search datasets...")}
           loading={loading}
           className="max-w-md"
@@ -78,10 +72,11 @@ export default function OrganizationDatasets({
       </div>
       <Block>
         <DataGrid
+          defaultPageIndex={debouncedPage - 1}
           defaultPageSize={DEFAULT_PAGE_SIZE}
           totalItems={datasets.totalItems}
           data={datasets.items}
-          fetchData={onChangePage}
+          fetchData={({ page }) => setPage(page)}
           className="min-h-30"
         >
           <BaseColumn label={t("Dataset")} id="dataset" minWidth={250}>
