@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 import clsx from "clsx";
 
@@ -56,11 +56,9 @@ export interface FileSystemDataGridProps {
   displayField?: "name" | "key";
   // Folder creation props
   isCreatingFolder?: boolean;
-  newFolderName?: string;
-  onNewFolderNameChange?: (name: string) => void;
-  onConfirmFolderCreation?: () => void;
-  onCancelFolderCreation?: () => void;
-  folderCreationLoading?: boolean;
+  onConfirmFolderCreation: (folderName: string) => void;
+  onCancelFolderCreation: () => void;
+  folderCreationLoading: boolean;
 }
 
 const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
@@ -79,14 +77,16 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
   displayField = "name",
   // Folder creation props
   isCreatingFolder = false,
-  newFolderName = "",
-  onNewFolderNameChange,
   onConfirmFolderCreation,
   onCancelFolderCreation,
   folderCreationLoading = false,
 }) => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Internal state for folder name
+  const NEW_FOLDER_NAME = t("New folder");
+  const [newFolderName, setNewFolderName] = useState(NEW_FOLDER_NAME);
 
   // Auto-focus and select text when creating folder
   useEffect(() => {
@@ -101,10 +101,14 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
     const handleKeyDown = (e: React.KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        onConfirmFolderCreation?.();
+        if (newFolderName.trim()) {
+          onConfirmFolderCreation(newFolderName.trim());
+          setNewFolderName(NEW_FOLDER_NAME);
+        }
       } else if (e.key === "Escape") {
         e.preventDefault();
-        onCancelFolderCreation?.();
+        onCancelFolderCreation();
+        setNewFolderName(NEW_FOLDER_NAME);
       }
     };
 
@@ -121,7 +125,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
             <Input
               ref={inputRef}
               value={newFolderName}
-              onChange={(e) => onNewFolderNameChange?.(e.target.value)}
+              onChange={(e) => setNewFolderName(e.target.value)}
               onKeyDown={handleKeyDown}
               onBlur={onCancelFolderCreation}
               className="text-sm"
@@ -269,7 +273,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
         onRowClick?.(item as BucketObject);
       }}
     >
-      <BaseColumn id="name" label={t("Name")} minWidth={400}>
+      <BaseColumn id="name" label={t("Name")}>
         {(item: BucketObject) => renderRow(item, "name")}
       </BaseColumn>
 
