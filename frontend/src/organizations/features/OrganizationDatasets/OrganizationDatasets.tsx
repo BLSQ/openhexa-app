@@ -28,12 +28,11 @@ export default function OrganizationDatasets({
     useState<OrganizationDatasetsQuery | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const debouncedPage = useDebounce(page, 300);
 
   const { data, loading } = useOrganizationDatasetsQuery({
     variables: {
       id: organizationId,
-      page: debouncedPage,
+      page: page,
       perPage: DEFAULT_PAGE_SIZE,
       query: debouncedSearchTerm,
     },
@@ -72,7 +71,7 @@ export default function OrganizationDatasets({
       </div>
       <Block>
         <DataGrid
-          defaultPageIndex={debouncedPage - 1}
+          defaultPageIndex={page - 1}
           defaultPageSize={DEFAULT_PAGE_SIZE}
           totalItems={datasets.totalItems}
           data={datasets.items}
