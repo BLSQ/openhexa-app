@@ -131,7 +131,10 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     onFileUploaded: () => {
       // Refetch the data to show newly uploaded files
       if (open) {
-        searchOrBrowseBucket({ variables: getQueryVariables() });
+        searchOrBrowseBucket({
+          variables: getQueryVariables(),
+          fetchPolicy: "network-only",
+        });
       }
     },
   });
@@ -145,18 +148,20 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     if (files && files.length > 0) {
       uploadFiles(Array.from(files));
     }
-    // Reset the input so the same files can be selected again if needed
     event.target.value = "";
   };
 
-  // Folder creation handler
+  // Creating folders
   const handleCreateFolder = async (folderName: string) => {
     try {
-      const folderKey = (prefix || "") + folderName;
+      const folderKey = prefix ? `${prefix}/${folderName}` : folderName;
       await createBucketFolder(workspaceSlug, folderKey);
 
       // Refetch the data to show newly created folder
-      searchOrBrowseBucket({ variables: getQueryVariables() });
+      await searchOrBrowseBucket({
+        variables: getQueryVariables(),
+        fetchPolicy: "network-only",
+      });
     } catch (err) {
       toast.error(t("An error occurred while creating the folder"));
       throw err; // Re-throw so the component knows the operation failed
@@ -214,13 +219,13 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
           </button>
           {prefixes.length > 0 && (
             <>
-              {prefixes.length > 2 && (
+              {prefixes.length > 6 && (
                 <>
                   <ChevronRightIcon className="h-3 w-3" />
                   <span>...</span>
                 </>
               )}
-              {prefixes.slice(-2).map((part, index) => (
+              {prefixes.slice(-6).map((part, index) => (
                 <div key={index} className="flex items-center">
                   <ChevronRightIcon className="h-3 w-3" />
                   <button
