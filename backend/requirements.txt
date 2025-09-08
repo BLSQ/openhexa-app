@@ -40,11 +40,11 @@ autoflake==2.3.1
     # via ariadne-codegen
 black==25.1.0
     # via ariadne-codegen
-boto3==1.40.17
+boto3==1.40.25
     # via
     #   -r requirements.in
     #   moto
-botocore==1.40.17
+botocore==1.40.25
     # via
     #   boto3
     #   moto
@@ -470,6 +470,7 @@ six==1.17.0
     # via
     #   django-ltree
     #   kubernetes
+    #   mixpanel
     #   python-dateutil
 sniffio==1.3.1
     # via anyio
@@ -516,6 +517,7 @@ urllib3==2.5.0
     #   botocore
     #   docker
     #   kubernetes
+    #   mixpanel
     #   openhexa-sdk
     #   requests
     #   responses
