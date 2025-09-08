@@ -23,9 +23,6 @@ def resolve_get_file_by_path(_, info, workspace_slug, path):
     if workspace.bucket_name is None:
         raise ImproperlyConfigured("Workspace does not have a bucket")
 
-    if not request.user.has_perm("files.download_object", workspace):
-        return {"success": False, "errors": ["PERMISSION_DENIED"]}
-
     try:
         return storage.get_bucket_object(workspace.bucket_name, path)
     except NotFound:
