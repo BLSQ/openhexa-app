@@ -16,7 +16,7 @@ import FileSystemDataGrid from "../../components/FileSystemDataGrid";
 type BucketExplorerProps = {
   workspace: BucketExplorer_WorkspaceFragment;
   objects: BucketExplorer_ObjectsFragment;
-  prefix?: string | null;
+  prefix: string | null;
   perPage: number;
   onChangePage(page: number, perPage: number): void;
 };

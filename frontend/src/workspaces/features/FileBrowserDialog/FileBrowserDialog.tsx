@@ -114,7 +114,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   // File or folder selection
   const onItemClick = (item: FileBrowserDialog_BucketObjectFragment) => {
     if (item.type === BucketObjectType.Directory) {
-      setCurrentFolder(item.key);
+      setCurrentFolder(item.key + "/");
     } else {
       setCurrentSelectedFile(item);
     }
@@ -154,7 +154,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   // Creating folders
   const handleCreateFolder = async (folderName: string) => {
     try {
-      const folderKey = prefix ? `${prefix}/${folderName}` : folderName;
+      const folderKey = (prefix || "") + folderName;
       await createBucketFolder(workspaceSlug, folderKey);
 
       // Refetch the data to show newly created folder
