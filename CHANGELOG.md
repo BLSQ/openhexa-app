@@ -1,5 +1,34 @@
 # Changelog
 
+## [2.2.0](https://github.com/BLSQ/openhexa-app/compare/2.1.0...2.2.0) (2025-09-08)
+
+
+### Features
+
+* **organization:** F4 - Internal dataset governance (PATHWAYS-809, HEXA-1349) ([#1325](https://github.com/BLSQ/openhexa-app/issues/1325)) ([9bb3353](https://github.com/BLSQ/openhexa-app/commit/9bb3353ecc3dadc4d3a4d6157bfcb333eb891df6))
+* **Organization:** list of all datasets in the organization landing page (PATHWAYS-866) ([#1326](https://github.com/BLSQ/openhexa-app/issues/1326)) ([9dd1940](https://github.com/BLSQ/openhexa-app/commit/9dd194096b71c9923b3f41d23aa14771dc9a516d))
+* **pipelines:** update pipelines from template toggle PATHWAYS-635 ([#1324](https://github.com/BLSQ/openhexa-app/issues/1324)) ([e780f95](https://github.com/BLSQ/openhexa-app/commit/e780f95cf04d3b381a056c7f6ee27021536a03d0))
+
+
+### Bug Fixes
+
+* Admin and organization owners should have access to all workspaces in the organization (PATHWAYS-842) ([#1327](https://github.com/BLSQ/openhexa-app/issues/1327)) ([ae42512](https://github.com/BLSQ/openhexa-app/commit/ae425120c13b11403f3d892170415abd2a71c9eb))
+* apollo deprecated config after dependency upgrade (HEXA-1357) ([#1337](https://github.com/BLSQ/openhexa-app/issues/1337)) ([ef46518](https://github.com/BLSQ/openhexa-app/commit/ef465189cf47fcb625a053a1e6a493f0706abe9b))
+* **deps:** update dependency @apollo/client to v3.14.0 ([#1312](https://github.com/BLSQ/openhexa-app/issues/1312)) ([847692e](https://github.com/BLSQ/openhexa-app/commit/847692e2198d9d7bf931edfd05e5bdfe8cfe1371))
+* **deps:** update dependency @types/node to v22.18.1 ([#1321](https://github.com/BLSQ/openhexa-app/issues/1321)) ([4efadb8](https://github.com/BLSQ/openhexa-app/commit/4efadb8965a6c3bd3c70d65b8bc18c41e3db7277))
+* **deps:** update dependency @types/react to v18.3.24 ([#1317](https://github.com/BLSQ/openhexa-app/issues/1317)) ([d9e0211](https://github.com/BLSQ/openhexa-app/commit/d9e0211750c4f71f0297ba791ffef155d03f6658))
+* **deps:** update dependency cron-parser to v5.3.1 ([#1334](https://github.com/BLSQ/openhexa-app/issues/1334)) ([8ddb3ce](https://github.com/BLSQ/openhexa-app/commit/8ddb3ce4c1a4222a7d3e0f0733dc038acc3c3656))
+* **deps:** update dependency i18next to v25.4.2 ([#1318](https://github.com/BLSQ/openhexa-app/issues/1318)) ([bc743d3](https://github.com/BLSQ/openhexa-app/commit/bc743d3c0b23f0964b7708b3bb3283642cfb13ae))
+* **deps:** update dependency luxon to v3.7.2 ([#1335](https://github.com/BLSQ/openhexa-app/issues/1335)) ([ab39637](https://github.com/BLSQ/openhexa-app/commit/ab3963768107f04692b184ec399fc30f5a7335bf))
+* **deps:** update dependency react-i18next to v15.7.2 ([#1319](https://github.com/BLSQ/openhexa-app/issues/1319)) ([c198687](https://github.com/BLSQ/openhexa-app/commit/c19868702e9c4d443587e017b90deb8e4415fb46))
+* **deps:** update dependency react-i18next to v15.7.3 ([#1340](https://github.com/BLSQ/openhexa-app/issues/1340)) ([89e65c0](https://github.com/BLSQ/openhexa-app/commit/89e65c05ef63365212fe835e581e6e594319dee3))
+* **deps:** update dependency typescript to v5.9.2 ([#1309](https://github.com/BLSQ/openhexa-app/issues/1309)) ([cf33919](https://github.com/BLSQ/openhexa-app/commit/cf339193ff71ae74c94cf25ff528908b6ee3c133))
+* **deps:** update nextjs monorepo to v15.5.0 ([#1310](https://github.com/BLSQ/openhexa-app/issues/1310)) ([666fa5f](https://github.com/BLSQ/openhexa-app/commit/666fa5f55b3aa40c6ae089789eac97d037fb518d))
+* images in emails are not shown correctly, at least in gmail (HEXA-1351) ([#1328](https://github.com/BLSQ/openhexa-app/issues/1328)) ([3347c1e](https://github.com/BLSQ/openhexa-app/commit/3347c1e5d05d7c153e3e52b54af12d847ca61281))
+* new org admin should have admin permissions on workspaces by default (PATHWAYS-879) ([#1329](https://github.com/BLSQ/openhexa-app/issues/1329)) ([b30a437](https://github.com/BLSQ/openhexa-app/commit/b30a43764bae5054c707f52ce97069089ff9c902))
+* permissions and redirect when revoking access to a shared dataset (HEXA-1353) ([#1338](https://github.com/BLSQ/openhexa-app/issues/1338)) ([90d7bc6](https://github.com/BLSQ/openhexa-app/commit/90d7bc6d56f30e0b30de28d0a4aa23e726f41f1f))
+* when inviting new users in the organization no suggestion should be made to prevent leaking users emails (PATHWAYS-843) ([#1336](https://github.com/BLSQ/openhexa-app/issues/1336)) ([d14c410](https://github.com/BLSQ/openhexa-app/commit/d14c41000b1949cfecbdcf13be4a0ec1aa4498a7))
+
 ## [2.1.0](https://github.com/BLSQ/openhexa-app/compare/2.0.0...2.1.0) (2025-08-21)
 
 
