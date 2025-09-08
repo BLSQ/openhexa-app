@@ -63,6 +63,9 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
     DatasetPermissions: {
       merge: true,
     },
+    DatasetLinkPermissions: {
+      merge: true,
+    },
     DatabaseTable: {
       merge: true,
     },

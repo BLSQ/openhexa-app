@@ -14,6 +14,7 @@ type DeleteDatasetLinkTriggerProps = {
 
 const DeleteDatasetLinkTrigger = (props: DeleteDatasetLinkTriggerProps) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const {
     datasetLink,
     children,
@@ -33,6 +34,9 @@ const DeleteDatasetLinkTrigger = (props: DeleteDatasetLinkTriggerProps) => {
     }
     try {
       await deleteDatasetLink(datasetLink.id);
+      if(datasetLink.workspace.slug == router.query.workspaceSlug) { // If we are in the same workspace, redirect to datasets list
+        await router.push(`/workspaces/${datasetLink.workspace.slug}/datasets`);
+      }
     } catch (err: any) {
       toast.error(err.message);
     }
