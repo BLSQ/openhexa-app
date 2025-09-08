@@ -24,7 +24,6 @@ let apolloClient: CustomApolloClient | undefined;
 const CACHE_CONFIG: InMemoryCacheConfig = {
   // possibleTypes must be provided to cache correctly unions and interfaces
   // https://www.apollographql.com/docs/react/data/fragments/#using-fragments-with-unions-and-interfaces
-  addTypename: true,
   possibleTypes: require("graphql/possibleTypes.json").possibleTypes,
   typePolicies: {
     Team: {
