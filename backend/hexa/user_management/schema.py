@@ -960,9 +960,9 @@ def resolve_update_organization_member(_, info, **kwargs):
 
     try:
         membership = OrganizationMembership.objects.get(id=update_input["id"])
-        membership.update_if_has_perm(
-            principal=principal, role=update_input["role"].lower()
-        )
+        new_role = update_input["role"].lower()
+        if new_role != membership.role:
+            membership.update_if_has_perm(principal=principal, role=new_role)
 
         workspace_permissions = update_input.get("workspace_permissions", [])
         if workspace_permissions:

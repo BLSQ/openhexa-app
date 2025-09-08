@@ -13,8 +13,9 @@ import { useTranslation } from "next-i18next";
 import useForm from "core/hooks/useForm";
 import {
   InviteOrganizationMemberError,
-  OrganizationMembershipRole, WorkspaceInvitationInput,
-  WorkspaceMembershipRole
+  OrganizationMembershipRole,
+  WorkspaceInvitationInput,
+  WorkspaceMembershipRole,
 } from "graphql/types";
 import SimpleSelect from "core/components/forms/SimpleSelect";
 import React, { ComponentProps, useEffect, useState } from "react";
@@ -33,7 +34,7 @@ type AddOrganizationMemberDialogProps = {
 type Form = {
   user: ComponentProps<typeof UserPicker>["value"];
   organizationRole: OrganizationMembershipRole;
-  workspaceInvitations: WorkspaceInvitationInput[]
+  workspaceInvitations: WorkspaceInvitationInput[];
 };
 
 const getDefaultWorkspaceRole = (
@@ -41,12 +42,12 @@ const getDefaultWorkspaceRole = (
 ): WorkspaceMembershipRole => {
   switch (orgRole) {
     case OrganizationMembershipRole.Admin:
-      return WorkspaceMembershipRole.Editor;
+      return WorkspaceMembershipRole.Admin;
     case OrganizationMembershipRole.Owner:
       return WorkspaceMembershipRole.Admin;
     case OrganizationMembershipRole.Member:
     default:
-      return WorkspaceMembershipRole.Viewer;
+      return WorkspaceMembershipRole.Editor;
   }
 };
 
@@ -60,7 +61,12 @@ const AddOrganizationMemberDialog = (
   const { open, onClose, organization } = props;
 
   const [inviteOrganizationMember] = useInviteOrganizationMemberMutation({
-    refetchQueries: ["OrganizationMembers", "GetUsers", "Organization", "OrganizationInvitations"],
+    refetchQueries: [
+      "OrganizationMembers",
+      "GetUsers",
+      "Organization",
+      "OrganizationInvitations",
+    ],
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -146,17 +152,16 @@ const AddOrganizationMemberDialog = (
 
     const defaultRole = getDefaultWorkspaceRole(form.formData.organizationRole);
 
-    const updatedInvitations = (form.formData.workspaceInvitations || []).map((invitation) => {
-      if (manuallyEditedWorkspaces.has(invitation.workspaceSlug)) {
-        return invitation;
-      }
-      return { ...invitation, role: defaultRole };
-    });
+    const updatedInvitations = (form.formData.workspaceInvitations || []).map(
+      (invitation) => {
+        if (manuallyEditedWorkspaces.has(invitation.workspaceSlug)) {
+          return invitation;
+        }
+        return { ...invitation, role: defaultRole };
+      },
+    );
     form.setFieldValue("workspaceInvitations", updatedInvitations);
-  }, [
-    form.formData.organizationRole,
-    organization?.workspaces?.items,
-  ]);
+  }, [form.formData.organizationRole, organization?.workspaces?.items]);
 
   const handleRoleChange = (
     workspaceSlug: string,
@@ -169,10 +174,11 @@ const AddOrganizationMemberDialog = (
     const filtered = currentInvitations.filter(
       (inv) => inv.workspaceSlug !== workspaceSlug,
     );
-    const updatedInvitations = role === WORKSPACE_ROLE_NONE
-      ? filtered
-      : [...filtered, { workspaceSlug, workspaceName, role }];
-    
+    const updatedInvitations =
+      role === WORKSPACE_ROLE_NONE
+        ? filtered
+        : [...filtered, { workspaceSlug, workspaceName, role }];
+
     form.setFieldValue("workspaceInvitations", updatedInvitations);
   };
 
@@ -182,7 +188,12 @@ const AddOrganizationMemberDialog = (
     ) || [];
 
   return (
-    <Dialog open={open} onClose={onClose} onSubmit={form.handleSubmit} maxWidth="max-w-4xl">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      onSubmit={form.handleSubmit}
+      maxWidth="max-w-4xl"
+    >
       <Dialog.Title>{t("Invite Member")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
         <Field
@@ -267,9 +278,9 @@ const AddOrganizationMemberDialog = (
                       </TableRow>
                     ) : (
                       filteredWorkspaces.map((workspace) => {
-                        const invitation = (form.formData.workspaceInvitations || []).find(
-                          (inv) => inv.workspaceSlug === workspace.slug,
-                        );
+                        const invitation = (
+                          form.formData.workspaceInvitations || []
+                        ).find((inv) => inv.workspaceSlug === workspace.slug);
                         const currentRole =
                           invitation?.role || WORKSPACE_ROLE_NONE;
 
@@ -295,7 +306,11 @@ const AddOrganizationMemberDialog = (
                                   name={`workspace-${workspace.slug}`}
                                   checked={currentRole === role}
                                   onChange={() =>
-                                    handleRoleChange(workspace.slug, workspace.name, role)
+                                    handleRoleChange(
+                                      workspace.slug,
+                                      workspace.name,
+                                      role,
+                                    )
                                   }
                                   className="h-4 w-4 text-blue-600 cursor-pointer"
                                 />
