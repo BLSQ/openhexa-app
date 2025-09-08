@@ -18,9 +18,9 @@ import {
   WorkspaceMembershipRole,
 } from "graphql/types";
 import SimpleSelect from "core/components/forms/SimpleSelect";
-import React, { ComponentProps, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useInviteOrganizationMemberMutation } from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
-import { UserPicker } from "workspaces/features/UserPicker/UserPicker";
+import Input from "core/components/forms/Input";
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
 import SearchInput from "core/features/SearchInput";
@@ -32,7 +32,7 @@ type AddOrganizationMemberDialogProps = {
 };
 
 type Form = {
-  user: ComponentProps<typeof UserPicker>["value"];
+  email: string;
   organizationRole: OrganizationMembershipRole;
   workspaceInvitations: WorkspaceInvitationInput[];
 };
@@ -61,12 +61,7 @@ const AddOrganizationMemberDialog = (
   const { open, onClose, organization } = props;
 
   const [inviteOrganizationMember] = useInviteOrganizationMemberMutation({
-    refetchQueries: [
-      "OrganizationMembers",
-      "GetUsers",
-      "Organization",
-      "OrganizationInvitations",
-    ],
+    refetchQueries: ["OrganizationMembers", "Organization", "OrganizationInvitations"],
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -79,7 +74,7 @@ const AddOrganizationMemberDialog = (
       const { data } = await inviteOrganizationMember({
         variables: {
           input: {
-            userEmail: values.user!.email,
+            userEmail: values.email,
             organizationId: organization?.id!,
             organizationRole: values.organizationRole,
             workspaceInvitations: values.workspaceInvitations,
@@ -110,14 +105,14 @@ const AddOrganizationMemberDialog = (
       onClose();
     },
     initialState: {
-      user: null,
+      email: "",
       organizationRole: OrganizationMembershipRole.Member,
       workspaceInvitations: [],
     },
     validate: (values) => {
       const errors = {} as any;
-      if (!values.user) {
-        errors.user = t("User is required");
+      if (!values.email) {
+        errors.email = t("Email address is mandatory");
       }
       if (!values.organizationRole) {
         errors.organizationRole = t("Organization role is mandatory");
@@ -197,16 +192,19 @@ const AddOrganizationMemberDialog = (
       <Dialog.Title>{t("Invite Member")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
         <Field
-          name="user-picker"
+          name="email"
           label={t("User")}
           required
-          error={form.errors.user}
+          error={form.errors.email}
         >
-          <UserPicker
-            id="user-picker"
-            value={form.formData.user!}
-            onChange={(user) => form.setFieldValue("user", user)}
-            organizationId={organization?.id}
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder={t("Enter email address")}
+            value={form.formData.email}
+            onChange={form.handleInputChange}
+            className="w-full"
           />
         </Field>
         <Field name="organizationRole" label={t("Organization Role")} required>

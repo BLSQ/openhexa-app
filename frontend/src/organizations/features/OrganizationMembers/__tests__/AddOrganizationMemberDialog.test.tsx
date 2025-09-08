@@ -58,13 +58,6 @@ jest.mock("../OrganizationMembers.generated", () => ({
   useInviteOrganizationMemberMutation: jest.fn(),
 }));
 
-jest.mock("workspaces/features/UserPicker/UserPicker", () => ({
-  UserPicker: ({ value, onChange }: any) => (
-    <button onClick={() => onChange(MOCK_USER)} data-testid="user-picker">
-      {value ? value.displayName : "Select User"}
-    </button>
-  ),
-}));
 
 jest.mock("next-i18next", () => ({
   useTranslation: () => ({
@@ -90,7 +83,7 @@ describe("AddOrganizationMemberDialog", () => {
   it("is displayed when open is true", async () => {
     useInviteOrganizationMemberMutationMock.mockReturnValue([jest.fn(), {}]);
 
-    const { container } = render(
+    render(
       <TestApp mocks={[]}>
         <AddOrganizationMemberDialog
           open={true}
@@ -140,10 +133,10 @@ describe("AddOrganizationMemberDialog", () => {
       </TestApp>,
     );
 
-    const userPicker = screen.getByTestId("user-picker");
-    await user.click(userPicker);
+    const emailInput = screen.getByPlaceholderText("Enter email address");
+    await user.type(emailInput, "newuser@example.com");
 
-    expect(screen.getByText("New User")).toBeInTheDocument();
+    expect(emailInput).toHaveValue("newuser@example.com");
   });
 
   it("handles organization role change", async () => {
@@ -232,7 +225,7 @@ describe("AddOrganizationMemberDialog", () => {
     const submitButton = screen.getByRole("button", { name: "Invite Member" });
     await user.click(submitButton);
 
-    expect(screen.getByText("User is required")).toBeInTheDocument();
+    expect(screen.getByText("Email address is mandatory")).toBeInTheDocument();
     expect(mockInviteMutation).not.toHaveBeenCalled();
   });
 
@@ -262,8 +255,8 @@ describe("AddOrganizationMemberDialog", () => {
       </TestApp>,
     );
 
-    const userPicker = screen.getByTestId("user-picker");
-    await user.click(userPicker);
+    const emailInput = screen.getByPlaceholderText("Enter email address");
+    await user.type(emailInput, MOCK_USER.email);
 
     await waitFor(() => {
       expect(screen.getByText("Test Workspace 1")).toBeInTheDocument();
@@ -336,8 +329,8 @@ describe("AddOrganizationMemberDialog", () => {
       </TestApp>,
     );
 
-    const userPicker = screen.getByTestId("user-picker");
-    await user.click(userPicker);
+    const emailInput = screen.getByPlaceholderText("Enter email address");
+    await user.type(emailInput, MOCK_USER.email);
 
     const submitButton = screen.getByRole("button", { name: "Invite Member" });
     await user.click(submitButton);
