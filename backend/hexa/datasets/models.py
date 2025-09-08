@@ -41,6 +41,12 @@ class DatasetQuerySet(BaseQuerySet):
             workspace__organization__organizationmembership__user=user,
         )
 
+    @staticmethod
+    def optimize_query(qs: models.QuerySet) -> models.QuerySet:
+        return qs.select_related(
+            "workspace", "workspace__organization", "created_by"
+        ).prefetch_related("versions", "links", "links__workspace")
+
     def filter_for_user(self, user: AnonymousUser | User):
         from hexa.pipelines.authentication import PipelineRunUser
 
@@ -49,23 +55,27 @@ class DatasetQuerySet(BaseQuerySet):
                 user, models.Q(links__workspace=user.pipeline_run.pipeline.workspace)
             )
         else:
-            return self._filter_for_user_and_query_object(
-                user,
-                self._workspace_query(user) | self._org_shared_query(user),
-                return_all_if_superuser=False,
+            return self.optimize_query(
+                self._filter_for_user_and_query_object(
+                    user,
+                    self._workspace_query(user) | self._org_shared_query(user),
+                    return_all_if_superuser=False,
+                )
             )
 
     def filter_for_workspace_slugs(
         self, user: AnonymousUser | User, workspace_slugs: list[str]
     ):
-        return self._filter_for_user_and_query_object(
-            user,
-            self._workspace_query(user) & Q(workspace__slug__in=workspace_slugs)
-            | (
-                self._org_shared_query(user)
-                & Q(links__workspace__slug__in=workspace_slugs)
-            ),
-            return_all_if_superuser=False,
+        return self.optimize_query(
+            self._filter_for_user_and_query_object(
+                user,
+                self._workspace_query(user) & Q(workspace__slug__in=workspace_slugs)
+                | (
+                    self._org_shared_query(user)
+                    & Q(links__workspace__slug__in=workspace_slugs)
+                ),
+                return_all_if_superuser=False,
+            )
         )
 
 
@@ -443,6 +453,16 @@ class DatasetFileSample(Base):
 
 
 class DatasetLinkQuerySet(BaseQuerySet):
+    @staticmethod
+    def optimize_query(qs: models.QuerySet) -> models.QuerySet:
+        return qs.select_related(
+            "dataset",
+            "dataset__workspace",
+            "dataset__workspace__organization",
+            "dataset__created_by",
+            "workspace",
+        ).prefetch_related("dataset__versions", "dataset__links")
+
     def filter_for_user(self, user: AnonymousUser | User):
         # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
         from hexa.pipelines.authentication import PipelineRunUser
@@ -453,14 +473,16 @@ class DatasetLinkQuerySet(BaseQuerySet):
                 models.Q(workspace=user.pipeline_run.pipeline.workspace),
             )
         else:
-            return self._filter_for_user_and_query_object(
-                user,
-                models.Q(workspace__members=user)
-                | models.Q(
-                    dataset__shared_with_organization=True,
-                    workspace__organization__organizationmembership__user=user,
-                ),
-                return_all_if_superuser=False,
+            return self.optimize_query(
+                self._filter_for_user_and_query_object(
+                    user,
+                    models.Q(workspace__members=user)
+                    | models.Q(
+                        dataset__shared_with_organization=True,
+                        workspace__organization__organizationmembership__user=user,
+                    ),
+                    return_all_if_superuser=False,
+                )
             )
 
 
