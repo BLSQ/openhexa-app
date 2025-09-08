@@ -1,3 +1,5 @@
+import logging
+
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
@@ -9,7 +11,33 @@ from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
+logger = logging.getLogger(__name__)
+
 pipeline_template_mutations = MutationType()
+
+
+def auto_update_pipelines_from_template_version(
+    template_version: PipelineTemplateVersion,
+):
+    template = template_version.template
+
+    pipelines_to_update = Pipeline.objects.filter(
+        source_template=template,
+        auto_update_from_template=True,
+        deleted_at__isnull=True,
+    ).select_related("workspace")
+
+    for pipeline in pipelines_to_update:
+        try:
+            template_version.create_pipeline_version(
+                workspace=pipeline.workspace, pipeline=pipeline
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to auto-update pipeline '{pipeline.name}' in workspace '{pipeline.workspace.name}': {e}",
+                exc_info=True,
+            )
+            raise
 
 
 def get_workspace(user: User, workspace_slug: str) -> Workspace | None:
@@ -99,6 +127,9 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
             "workspace": workspace.slug,
         },
     )
+
+    auto_update_pipelines_from_template_version(pipeline_template_version)
+
     return {"pipeline_template": pipeline_template, "success": True, "errors": []}
 
 
@@ -169,7 +200,9 @@ def resolve_create_pipeline_from_template_version(_, info, **kwargs):
     except PipelineTemplateVersion.DoesNotExist:
         return {"success": False, "errors": ["PIPELINE_TEMPLATE_VERSION_NOT_FOUND"]}
 
-    pipeline_version = template_version.create_pipeline_version(user, workspace)
+    pipeline_version = template_version.create_pipeline_version(
+        workspace, principal=user
+    )
 
     track(
         request,

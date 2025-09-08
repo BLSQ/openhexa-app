@@ -354,6 +354,10 @@ class Pipeline(SoftDeletedModel):
         on_delete=models.SET_NULL,
         related_name="pipelines",
     )
+    auto_update_from_template = models.BooleanField(
+        default=False,
+        help_text="Automatically update this pipeline when its source template is updated",
+    )
 
     objects = PipelineManager()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()
@@ -494,6 +498,9 @@ class Pipeline(SoftDeletedModel):
         for key in ["name", "description", "schedule", "config"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
+
+        if "auto_update_from_template" in kwargs:
+            self.auto_update_from_template = kwargs["auto_update_from_template"]
 
         if "webhook_enabled" in kwargs:
             self.set_webhook_state(kwargs["webhook_enabled"])

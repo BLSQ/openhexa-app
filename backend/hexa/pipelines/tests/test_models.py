@@ -352,7 +352,7 @@ class PipelineTest(TestCase):
         )
 
         created_pipeline_version = template_version.create_pipeline_version(
-            self.USER_ADMIN, self.WORKSPACE2
+            self.WORKSPACE2, principal=self.USER_ADMIN
         )
         created_pipeline = created_pipeline_version.pipeline
         self.assertFalse(created_pipeline.has_new_template_versions)

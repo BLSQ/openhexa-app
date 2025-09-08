@@ -2822,6 +2822,7 @@ type PinDatasetResult {
 
 """Represents a pipeline."""
 type Pipeline {
+  autoUpdateFromTemplate: Boolean!
   code: String!
   config: JSON!
   createdAt: DateTime!
@@ -4020,6 +4021,7 @@ enum UpdatePipelineError {
 
 """Represents the input for updating a pipeline."""
 input UpdatePipelineInput {
+  autoUpdateFromTemplate: Boolean
   config: JSON
   description: String
   id: UUID!

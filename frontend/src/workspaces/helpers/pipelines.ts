@@ -41,6 +41,7 @@ export async function updatePipeline(
             updatedAt
             webhookEnabled
             webhookUrl
+            autoUpdateFromTemplate
             recipients {
               user {
                 id
