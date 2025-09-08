@@ -3,11 +3,7 @@ from unittest.mock import patch
 from hexa.core.test import GraphQLTestCase
 from hexa.files.backends.base import StorageObject
 from hexa.user_management.models import User
-from hexa.workspaces.models import (
-    Workspace,
-    WorkspaceMembership,
-    WorkspaceMembershipRole,
-)
+from hexa.workspaces.models import Workspace
 
 
 class FilesTest(GraphQLTestCase):

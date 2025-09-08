@@ -197,7 +197,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="max-w-5xl">
-      <Dialog.Title onClose={onClose}>{t("Select Input File")}</Dialog.Title>
+      <Dialog.Title onClose={onClose}>{t("Select file")}</Dialog.Title>
       <Dialog.Content className="flex flex-col space-y-4 h-full">
         {/* Breadcrumb Navigation */}
         <div

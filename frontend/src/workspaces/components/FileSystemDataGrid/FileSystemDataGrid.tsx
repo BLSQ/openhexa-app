@@ -43,12 +43,12 @@ export interface FileSystemDataGridProps {
   fixedLayout?: boolean;
   pagination: FileSystemDataGridPagination;
   perPage: number;
-  rowClassName?: string | ((row: BucketObject) => string);
+  rowClassName?: string | ((row: object) => string);
   actionsRenderer?: (item: BucketObject) => React.ReactElement | null;
   directoryLinkGenerator?: (item: BucketObject) => string;
   onChangePage: (page: number, perPage: number) => void;
   onDroppingFiles?: (files: File[]) => void;
-  onRowClick?: (item: BucketObject) => void;
+  onRowClick?: (item: object) => void;
   showPageSizeSelect?: boolean;
   displayField?: "name" | "key";
 }
@@ -142,7 +142,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
         }}
       </BaseColumn>
 
-      <BaseColumn id="updatedAt" label={t("Last Updated")}>
+      <BaseColumn id="updatedAt" label={t("Last updated")}>
         {(item: BucketObject) => {
           return (
             <Time

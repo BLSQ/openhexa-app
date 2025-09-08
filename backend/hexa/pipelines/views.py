@@ -19,7 +19,6 @@ from django.views.decorators.http import require_POST
 from hexa.analytics.api import track
 from hexa.app import get_hexa_app_configs
 from hexa.core.views_utils import disable_cors
-from hexa.files import storage
 from hexa.pipelines.models import Environment, PipelineRunLogLevel
 
 from .credentials import PipelinesCredentials
