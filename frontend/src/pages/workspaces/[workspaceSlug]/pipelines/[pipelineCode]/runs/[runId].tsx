@@ -119,6 +119,9 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
         </Link>
       );
     }
+    if (entry.type === "file" && entry.value) {
+      return entry.value;
+    }
 
     return "-";
   };

@@ -53,7 +53,7 @@ export const useUploadFiles = ({
           () =>
             toast.update(toastId.current as Id, {
               type: "success",
-              render: t("Upload successful !") + " 🎉",
+              render: t("Upload successful!") + " 🎉",
               isLoading: false,
               autoClose: 2000,
             }),
