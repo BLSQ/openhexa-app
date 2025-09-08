@@ -499,7 +499,7 @@ class DatasetLink(Base):
     objects = DatasetLinkQuerySet.as_manager()
 
     def delete_if_has_perm(self, *, principal: User):
-        if not principal.has_perm("datasets.delete_linked_dataset", self):
+        if not principal.has_perm("datasets.delete_dataset_link", self):
             raise PermissionDenied
         self.delete()
 
