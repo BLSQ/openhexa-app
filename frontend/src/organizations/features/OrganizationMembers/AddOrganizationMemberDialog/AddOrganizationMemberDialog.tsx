@@ -198,6 +198,7 @@ const AddOrganizationMemberDialog = (
             placeholder={t("Enter email address")}
             value={form.formData.email}
             onChange={form.handleInputChange}
+            className="w-full"
             required
           />
         </Field>
