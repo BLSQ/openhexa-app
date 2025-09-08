@@ -25,7 +25,7 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
     onClose();
   };
   const uploadFiles = useUploadFiles({
-    workspace,
+    workspaceSlug: workspace.slug,
     prefix,
     onProgress: setProgress,
     onFileUploaded: handleClose,

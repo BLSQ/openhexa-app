@@ -43,12 +43,12 @@ export interface FileSystemDataGridProps {
   fixedLayout?: boolean;
   pagination: FileSystemDataGridPagination;
   perPage: number;
-  rowClassName?: string | ((row: object) => string);
+  rowClassName?: string | ((row: BucketObject | object) => string);
   actionsRenderer?: (item: BucketObject) => React.ReactElement | null;
   directoryLinkGenerator?: (item: BucketObject) => string;
   onChangePage: (page: number, perPage: number) => void;
   onDroppingFiles?: (files: File[]) => void;
-  onRowClick?: (item: object) => void;
+  onRowClick?: (item: BucketObject | object) => void;
   showPageSizeSelect?: boolean;
   displayField?: "name" | "key";
 }

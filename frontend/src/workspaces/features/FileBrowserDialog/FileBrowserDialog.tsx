@@ -112,7 +112,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   };
 
   // File or folder selection
-  const onItemClick = (item: FileBrowserDialog_BucketObjectFragment) => {
+  const onItemClick = (item: BucketObject) => {
     if (item.type === BucketObjectType.Directory) {
       setCurrentFolder(item.key + "/");
     } else {
@@ -122,11 +122,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
 
   // Uploading files
   const uploadFiles = useUploadFiles({
-    workspace: {
-      slug: workspaceSlug,
-      // TODO: check this
-      permissions: { createObject: true }, // Assume permission for file browser dialog
-    },
+    workspaceSlug,
     prefix,
     onFileUploaded: () => {
       // Refetch the data to show newly uploaded files
@@ -293,10 +289,10 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
               showPageSizeSelect={false}
               loading={isSearching || loading}
               displayField={isSearchMode ? "key" : "name"}
-              rowClassName={(item: BucketObject) =>
+              rowClassName={(item) =>
                 clsx(
                   "cursor-pointer",
-                  currentSelectedFile?.path === item.path
+                  currentSelectedFile?.path === (item as BucketObject).path
                     ? "bg-blue-100 hover:bg-blue-100 focus:bg-blue-100 font-medium"
                     : "hover:bg-gray-50 focus:bg-gray-50",
                 )
@@ -312,9 +308,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
               }
               onChangePage={(page: number) => setCurrentPage(page)}
               onDroppingFiles={uploadFiles}
-              onRowClick={(item: BucketObject) =>
-                onItemClick(item as FileBrowserDialog_BucketObjectFragment)
-              }
+              onRowClick={(item) => onItemClick(item as BucketObject)}
             />
           )}
         </div>

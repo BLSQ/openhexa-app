@@ -24,7 +24,7 @@ type BucketExplorerProps = {
 const BucketExplorer = (props: BucketExplorerProps) => {
   const { t } = useTranslation();
   const { workspace, objects, prefix, perPage, onChangePage } = props;
-  const uploadFiles = useUploadFiles({ workspace, prefix });
+  const uploadFiles = useUploadFiles({ workspaceSlug: workspace.slug, prefix });
 
   const directoryLinkGenerator = (item: BucketObject) =>
     `/workspaces/${encodeURIComponent(workspace.slug)}/files/${item.key}`;
@@ -70,7 +70,7 @@ const BucketExplorer = (props: BucketExplorerProps) => {
 
   return (
     <FileSystemDataGrid
-      data={objects.items}
+      data={objects.items as BucketObject[]}
       fixedLayout={false}
       pagination={objects}
       perPage={perPage}

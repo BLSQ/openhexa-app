@@ -1,16 +1,12 @@
 import { uploader } from "../../core/helpers/files";
 import { Id, toast } from "react-toastify";
-import { BucketExplorer_WorkspaceFragment } from "workspaces/features/BucketExplorer/BucketExplorer.generated";
 import useCacheKey from "../../core/hooks/useCacheKey";
 import { useRef } from "react";
 import { getBucketObjectUploadUrl } from "workspaces/helpers/bucket";
 import { useTranslation } from "next-i18next";
-import { UploadObjectDialog_WorkspaceFragment } from "workspaces/features/UploadObjectDialog/UploadObjectDialog.generated";
 
 type UseUploadFilesProps = {
-  workspace:
-    | UploadObjectDialog_WorkspaceFragment
-    | BucketExplorer_WorkspaceFragment;
+  workspaceSlug: string;
   prefix?: string | null;
   onProgress?: (progress: number) => void;
   onFileUploaded?: () => void;
@@ -18,7 +14,7 @@ type UseUploadFilesProps = {
 
 export const useUploadFiles = ({
   prefix,
-  workspace,
+  workspaceSlug,
   onFileUploaded,
   onProgress,
 }: UseUploadFilesProps) => {
@@ -35,7 +31,7 @@ export const useUploadFiles = ({
         async getXHROptions(file) {
           const contentType = file.type || "application/octet-stream";
           const url = await getBucketObjectUploadUrl(
-            workspace.slug,
+            workspaceSlug,
             (prefix ?? "") + file.name,
             contentType,
           );
