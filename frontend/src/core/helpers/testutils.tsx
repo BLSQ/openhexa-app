@@ -24,7 +24,7 @@ export function TestApp(props: TestAppProps) {
     ...(props.me ?? {}),
   };
   return (
-    <MockedProvider addTypename={true} mocks={props.mocks ?? []}>
+    <MockedProvider mocks={props.mocks ?? []}>
       <MeProvider me={me}>{props.children}</MeProvider>
     </MockedProvider>
   );
