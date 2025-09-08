@@ -10,6 +10,7 @@ from hexa.datasets.models import (
     Dataset,
     DatasetFileSample,
     DatasetLink,
+    DatasetLinkQuerySet,
     DatasetVersion,
     DatasetVersionFile,
 )
@@ -57,9 +58,13 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
             dataset__workspace=F("workspace"),
         )
 
-    org_shared = DatasetLink.objects.filter(organization_shared_q)
-    direct_links = DatasetLink.objects.filter(workspace=obj).exclude(
-        dataset_id__in=org_shared.values("dataset_id")
+    org_shared = DatasetLinkQuerySet.optimize_query(
+        DatasetLink.objects.filter(organization_shared_q)
+    )
+    direct_links = DatasetLinkQuerySet.optimize_query(
+        DatasetLink.objects.filter(workspace=obj).exclude(
+            dataset_id__in=org_shared.values("dataset_id")
+        )
     )
 
     if query is not None:

@@ -1,6 +1,5 @@
-query Organization($id: UUID!) {
-    organization(id: $id) {
-        id
+fragment Organization_organization on Organization {
+    id
         name
         shortName
         workspaces {
@@ -21,6 +20,10 @@ query Organization($id: UUID!) {
         members {
             totalItems
         }
+}
+query Organization($id: UUID!) {
+    organization(id: $id) {
+        ...Organization_organization
     }
 }
 
@@ -32,6 +35,41 @@ query Organizations {
             items {
                 slug
                 name
+            }
+        }
+    }
+}
+
+fragment OrganizationDataset_dataset on Dataset {
+    id
+    slug
+    name
+    description
+    updatedAt
+    sharedWithOrganization
+    workspace {
+        slug
+        name
+    }
+    links(page: 1, perPage: 50) {
+        items {
+            workspace {
+                slug
+                name
+            }
+        }
+    }
+}
+
+query OrganizationDatasets($id: UUID!, $page: Int = 1, $perPage: Int = 10, $query: String) {
+    organization(id: $id) {
+        ...Organization_organization
+        datasets(page: $page, perPage: $perPage, query: $query) {
+            totalItems
+            pageNumber
+            totalPages
+            items {
+                ...OrganizationDataset_dataset
             }
         }
     }

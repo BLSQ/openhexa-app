@@ -32,6 +32,7 @@ from hexa.analytics.api import track
 from hexa.core.graphql import result_page
 from hexa.core.string import remove_whitespace
 from hexa.core.templatetags.colors import hash_color
+from hexa.datasets.models import Dataset
 from hexa.user_management.models import (
     AlreadyExists,
     CannotDelete,
@@ -684,6 +685,30 @@ def resolve_organization_invitations(organization: Organization, info, **kwargs)
     )
 
 
+@organization_object.field("datasets")
+def resolve_organization_datasets(
+    organization: Organization, info, query=None, **kwargs
+):
+    request: HttpRequest = info.context["request"]
+
+    workspace_slugs = list(organization.workspaces.values_list("slug", flat=True))
+
+    qs = Dataset.objects.filter_for_workspace_slugs(request.user, workspace_slugs)
+
+    if query:
+        qs = qs.filter(
+            Q(name__icontains=query)
+            | Q(description__icontains=query)
+            | Q(slug__icontains=query)
+        )
+
+    return result_page(
+        queryset=qs.order_by("-updated_at"),
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", 15),
+    )
+
+
 @organization_queries.field("organization")
 def resolve_organization(_, info, **kwargs):
     request = info.context["request"]
@@ -935,9 +960,9 @@ def resolve_update_organization_member(_, info, **kwargs):
 
     try:
         membership = OrganizationMembership.objects.get(id=update_input["id"])
-        membership.update_if_has_perm(
-            principal=principal, role=update_input["role"].lower()
-        )
+        new_role = update_input["role"].lower()
+        if new_role != membership.role:
+            membership.update_if_has_perm(principal=principal, role=new_role)
 
         workspace_permissions = update_input.get("workspace_permissions", [])
         if workspace_permissions:
