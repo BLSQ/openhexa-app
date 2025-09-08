@@ -225,7 +225,7 @@ describe("AddOrganizationMemberDialog", () => {
     const submitButton = screen.getByRole("button", { name: "Invite Member" });
     await user.click(submitButton);
 
-    expect(screen.getByText("Email is mandatory")).toBeInTheDocument();
+    expect(screen.getByText("Email address is mandatory")).toBeInTheDocument();
     expect(mockInviteMutation).not.toHaveBeenCalled();
   });
 

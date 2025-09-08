@@ -205,7 +205,6 @@ const AddOrganizationMemberDialog = (
             value={form.formData.email}
             onChange={form.handleInputChange}
             className="w-full"
-            required
           />
         </Field>
         <Field name="organizationRole" label={t("Organization Role")} required>
