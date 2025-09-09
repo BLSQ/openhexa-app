@@ -36,12 +36,6 @@ query FileBrowserDialog(
     bucket {
       objects(page: $page, perPage: $perPage, prefix: $prefix) {
         items {
-          name
-          key
-          path
-          type
-          updatedAt
-          size
           ...FileBrowserDialog_bucketObject
         }
         pageNumber

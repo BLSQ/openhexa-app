@@ -1,7 +1,5 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Common Development Commands
 
 ### Backend (Django)
@@ -118,9 +116,25 @@ The frontend uses **domain-driven architecture** with TypeScript:
 ### GraphQL Development
 
 -   Backend GraphQL schemas in `{app}/graphql/schema.graphql`
--   Frontend queries in `{domain}/graphql/*.graphql`
--   Run `npm run codegen` to regenerate TypeScript types
+-   Frontend queries in `{domain}/graphql/*.graphql`, these are picked up by codegen to auto-generate Typescripts typed queries
 -   Schema combines all Django app schemas into unified API
+-   Use fragments to reuse parts of a query.
+
+Example fragment in `frontend/src/core/features/User/User.tsx`:
+
+```ts
+User.fragments = {
+    user: gql`
+        fragment User_user on User {
+            id
+            email
+            displayName
+            ...UserAvatar_user
+        }
+        ${UserAvatar.fragments.user}
+    `,
+};
+```
 
 ### Database & Models
 

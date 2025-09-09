@@ -10,8 +10,8 @@ import {
   BucketExplorer_ObjectsFragment,
   BucketExplorer_WorkspaceFragment,
 } from "./BucketExplorer.generated";
+import FileSystemDataGrid from "workspaces/components/FileSystemDataGrid";
 import { useUploadFiles } from "workspaces/hooks/useUploadFiles";
-import FileSystemDataGrid from "../../components/FileSystemDataGrid";
 
 type BucketExplorerProps = {
   workspace: BucketExplorer_WorkspaceFragment;

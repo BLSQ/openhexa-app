@@ -13,7 +13,7 @@ import Pagination from "core/components/Pagination/Pagination";
 import DropzoneOverlay from "core/components/DropzoneOverlay";
 import Time from "core/components/Time";
 
-import { getFileIconAndColor } from "../../features/FileBrowserDialog/utils";
+import { getFileIconAndColor } from "workspaces/features/FileBrowserDialog/utils";
 
 export interface FileSystemDataGridSimplePagination {
   hasNextPage: boolean;
