@@ -77,11 +77,10 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
         ]}
         tab="access"
       >
-        {organizationFeatureIsEnabled &&
-          dataset.workspace?.organization &&
-          isWorkspaceSource && (
-            <div>
-              <div className="px-4 py-5 sm:p-6">
+        {organizationFeatureIsEnabled && dataset.workspace?.organization && (
+          <div>
+            <div className="px-4 py-5 sm:p-6">
+              {isWorkspaceSource && (
                 <div className="mt-4">
                   <Switch
                     checked={dataset.sharedWithOrganization}
@@ -97,42 +96,42 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
                     </p>
                   )}
                 </div>
-                {dataset.sharedWithOrganization && (
-                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <svg
-                          className="h-5 w-5 text-green-400"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                      <div className="ml-3">
-                        <h3 className="text-sm font-medium text-green-800">
-                          {t("Shared with all workspaces")}
-                        </h3>
-                        <div className="mt-1 text-sm text-green-700">
-                          {t(
-                            "This dataset is available to all workspaces in your organization.",
-                          )}
-                        </div>
+              )}
+              {dataset.sharedWithOrganization && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg
+                        className="h-5 w-5 text-green-400"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-green-800">
+                        {t("Shared with all workspaces")}
+                      </h3>
+                      <div className="mt-1 text-sm text-green-700">
+                        {t(
+                          "This dataset is available to all workspaces in your organization.",
+                        )}
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+        )}
         {(!organizationFeatureIsEnabled ||
           !dataset.sharedWithOrganization ||
-          !dataset.workspace?.organization ||
-          !isWorkspaceSource) && (
+          !dataset.workspace?.organization) && (
           <>
             <DatasetLinksDataGrid dataset={datasetLink.dataset} />
             <Block.Content className="flex justify-end">
