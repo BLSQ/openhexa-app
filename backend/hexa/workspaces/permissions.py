@@ -13,7 +13,7 @@ def update_workspace(principal: User, workspace: Workspace):
     return workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-    ).exists()
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
 def create_connection(principal: User, workspace: Workspace):
@@ -21,7 +21,7 @@ def create_connection(principal: User, workspace: Workspace):
     return workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-    ).exists()
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
 def update_connection(principal: User, connection: Connection):
@@ -29,7 +29,9 @@ def update_connection(principal: User, connection: Connection):
     return connection.workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-    ).exists()
+    ).exists() or principal.is_organization_admin_or_owner(
+        connection.workspace.organization
+    )
 
 
 def delete_connection(principal: User, connection: Connection):
@@ -37,28 +39,30 @@ def delete_connection(principal: User, connection: Connection):
     return connection.workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-    ).exists()
+    ).exists() or principal.is_organization_admin_or_owner(
+        connection.workspace.organization
+    )
 
 
 def delete_workspace(principal: User, workspace: Workspace):
     """Only admin users of a workspace can delete a workspace"""
     return workspace.workspacemembership_set.filter(
         user=principal, role=WorkspaceMembershipRole.ADMIN
-    ).exists()
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
 def archive_workspace(principal: User, workspace: Workspace):
     """Only admin users of a workspace can archive a workspacce"""
     return workspace.workspacemembership_set.filter(
         user=principal, role=WorkspaceMembershipRole.ADMIN
-    ).exists()
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
 def manage_members(principal: User, workspace: Workspace):
     """Only admin users of a workspace can manage members"""
     return workspace.workspacemembership_set.filter(
         user=principal, role=WorkspaceMembershipRole.ADMIN
-    ).exists()
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
 def launch_notebooks(principal: User, workspace: Workspace):
@@ -66,7 +70,7 @@ def launch_notebooks(principal: User, workspace: Workspace):
     return workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.EDITOR, WorkspaceMembershipRole.ADMIN],
-    ).exists()
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
 def delete_database_table(principal: User, workspace: Workspace):
@@ -74,4 +78,4 @@ def delete_database_table(principal: User, workspace: Workspace):
     return workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.EDITOR, WorkspaceMembershipRole.ADMIN],
-    ).exists()
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
