@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/BLSQ/openhexa-app/compare/2.3.0...2.3.1) (2025-09-09)
+
+
+### Bug Fixes
+
+* Inconsistent behavior when dataset is published at the org level (PATHWAYS-888) ([#1351](https://github.com/BLSQ/openhexa-app/issues/1351)) ([a20249c](https://github.com/BLSQ/openhexa-app/commit/a20249c00bc1456b5fed411e774decb2c2e81f1b))
+
 ## [2.3.0](https://github.com/BLSQ/openhexa-app/compare/2.2.0...2.3.0) (2025-09-09)
 
 
