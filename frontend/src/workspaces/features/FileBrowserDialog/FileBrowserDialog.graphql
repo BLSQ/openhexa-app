@@ -1,0 +1,56 @@
+query FileBrowserDialog(
+  $slug: String!
+  $page: Int
+  $perPage: Int
+  $prefix: String
+  $query: String = ""
+  $workspaceSlugs: [String!] = []
+  $useSearch: Boolean!
+) {
+  # Search results when in search mode
+  searchResults: searchFiles(
+    query: $query
+    workspaceSlugs: $workspaceSlugs
+    page: $page
+    perPage: $perPage
+  ) @include(if: $useSearch) {
+    totalItems
+    totalPages
+    pageNumber
+    items {
+      file {
+        name
+        key
+        path
+        type
+        updated
+        size
+      }
+      score
+    }
+  }
+
+  # Browse results when in directory browsing mode
+  workspace(slug: $slug) @skip(if: $useSearch) {
+    slug
+    bucket {
+      objects(page: $page, perPage: $perPage, prefix: $prefix) {
+        items {
+          ...FileBrowserDialog_bucketObject
+        }
+        pageNumber
+        hasNextPage
+        hasPreviousPage
+      }
+    }
+  }
+}
+
+fragment FileBrowserDialog_bucketObject on BucketObject {
+  key
+  name
+  path
+  size
+  updatedAt
+  type
+}

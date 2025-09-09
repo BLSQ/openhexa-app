@@ -215,6 +215,7 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
             <BucketExplorer
               workspace={workspace}
               objects={workspace.bucket.objects}
+              prefix={prefix}
               onChangePage={onChangePage}
               perPage={perPage}
             />

@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
+from hexa.files.backends.base import StorageObject
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -95,3 +96,86 @@ class FilesTest(GraphQLTestCase):
         mock_storage.create_bucket_folder.assert_called_once_with(
             self.WORKSPACE.bucket_name, self.FOLDER_NAME
         )
+
+    @patch("hexa.files.schema.queries.storage")
+    def test_get_file_by_path(self, mock_storage):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+
+        file_path = "test/file.txt"
+        mock_file = StorageObject(
+            key="file.txt",
+            name="file.txt",
+            path=file_path,
+            size=1024,
+            updated=None,
+            type="file",
+        )
+        mock_storage.get_bucket_object.return_value = mock_file
+
+        r = self.run_query(
+            """
+            query GetFileByPath($workspaceSlug: String!, $path: String!) {
+                getFileByPath(workspaceSlug: $workspaceSlug, path: $path) {
+                    key
+                    name
+                    path
+                    size
+                    type
+                }
+            }
+            """,
+            {"workspaceSlug": self.WORKSPACE.slug, "path": file_path},
+        )
+
+        self.assertEqual(
+            {
+                "key": "file.txt",
+                "name": "file.txt",
+                "path": file_path,
+                "size": 1024,
+                "type": "FILE",  # converted to uppercase by the type resolver
+            },
+            r["data"]["getFileByPath"],
+        )
+        mock_storage.get_bucket_object.assert_called_once_with(
+            self.WORKSPACE.bucket_name, file_path
+        )
+
+    @patch("hexa.files.schema.queries.storage")
+    def test_get_file_by_path_file_not_found(self, mock_storage):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+
+        # Mock file not found by importing the correct exception
+        from hexa.files.backends.exceptions import NotFound
+
+        mock_storage.get_bucket_object.side_effect = NotFound("File not found")
+
+        r = self.run_query(
+            """
+            query GetFileByPath($workspaceSlug: String!, $path: String!) {
+                getFileByPath(workspaceSlug: $workspaceSlug, path: $path) {
+                    key
+                }
+            }
+            """,
+            {"workspaceSlug": self.WORKSPACE.slug, "path": "nonexistent/file.txt"},
+        )
+
+        self.assertIsNone(r["data"]["getFileByPath"])
+
+    def test_get_file_by_path_workspace_not_found(self):
+        non_workspace_member = User.objects.create_user("regular@blsq.org", "password")
+        self.client.force_login(non_workspace_member)
+
+        r = self.run_query(
+            """
+            query GetFileByPath($workspaceSlug: String!, $path: String!) {
+                getFileByPath(workspaceSlug: $workspaceSlug, path: $path) {
+                    key
+                }
+            }
+            """,
+            {"workspaceSlug": self.WORKSPACE.slug, "path": "test/file.txt"},
+        )
+
+        self.assertIsNone(r["data"]["getFileByPath"])

@@ -2762,6 +2762,7 @@ enum ParameterType {
   custom
   dataset
   dhis2
+  file
   float
   gcs
   iaso
@@ -3279,6 +3280,9 @@ type Query {
 
   """Search datasets."""
   datasets(page: Int = 1, perPage: Int = 15, query: String): DatasetPage!
+
+  """Get a file by its path within a workspace."""
+  getFileByPath(path: String!, workspaceSlug: String!): BucketObject
 
   """Retrieves the currently authenticated user."""
   me: Me!

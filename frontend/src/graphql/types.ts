@@ -3338,6 +3338,7 @@ export enum ParameterType {
   Custom = 'custom',
   Dataset = 'dataset',
   Dhis2 = 'dhis2',
+  File = 'file',
   Float = 'float',
   Gcs = 'gcs',
   Iaso = 'iaso',
@@ -3885,6 +3886,8 @@ export type Query = {
   datasetVersionFile?: Maybe<DatasetVersionFile>;
   /** Search datasets. */
   datasets: DatasetPage;
+  /** Get a file by its path within a workspace. */
+  getFileByPath?: Maybe<BucketObject>;
   /** Retrieves the currently authenticated user. */
   me: Me;
   metadataAttributes: Array<Maybe<MetadataAttribute>>;
@@ -4050,6 +4053,12 @@ export type QueryDatasetsArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryGetFileByPathArgs = {
+  path: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
 };
 
 

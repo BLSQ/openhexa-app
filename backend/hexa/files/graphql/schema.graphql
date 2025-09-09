@@ -166,6 +166,13 @@ extend type Mutation {
   createBucketFolder(input: CreateBucketFolderInput!): CreateBucketFolderResult!
 }
 
+extend type Query {
+  """
+  Get a file by its path within a workspace.
+  """
+  getFileByPath(workspaceSlug: String!, path: String!): BucketObject @loginRequired
+}
+
 extend type WorkspacePermissions {
   "User can create objects in the workspace's bucket."
   createObject: Boolean!
