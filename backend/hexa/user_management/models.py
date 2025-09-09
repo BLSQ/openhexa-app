@@ -112,28 +112,37 @@ class User(AbstractUser, UserInterface):
     def is_admin_of(self, team):
         return self.membership_set.filter(team=team, role=MembershipRole.ADMIN).exists()
 
-    def is_organization_member(self, organization: Organization):
+    def is_organization_member(self, organization: Organization | None):
         """Check if user is a member of the organization (any role)"""
-        return self.organizationmembership_set.filter(
-            organization=organization
-        ).exists()
+        return (
+            organization
+            and self.organizationmembership_set.filter(
+                organization=organization
+            ).exists()
+        )
 
-    def is_organization_admin_or_owner(self, organization: Organization):
+    def is_organization_admin_or_owner(self, organization: Organization | None):
         """Check if user has admin or owner privileges in the organization"""
-        return self.organizationmembership_set.filter(
-            organization=organization,
-            role__in=[
-                OrganizationMembershipRole.ADMIN,
-                OrganizationMembershipRole.OWNER,
-            ],
-        ).exists()
+        return (
+            organization
+            and self.organizationmembership_set.filter(
+                organization=organization,
+                role__in=[
+                    OrganizationMembershipRole.ADMIN,
+                    OrganizationMembershipRole.OWNER,
+                ],
+            ).exists()
+        )
 
-    def is_organization_owner(self, organization: Organization):
+    def is_organization_owner(self, organization: Organization | None):
         """Check if user is an owner of the organization"""
-        return self.organizationmembership_set.filter(
-            organization=organization,
-            role=OrganizationMembershipRole.OWNER,
-        ).exists()
+        return (
+            organization
+            and self.organizationmembership_set.filter(
+                organization=organization,
+                role=OrganizationMembershipRole.OWNER,
+            ).exists()
+        )
 
     def __str__(self):
         if self.first_name or self.last_name:
