@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.3.0](https://github.com/BLSQ/openhexa-app/compare/2.2.0...2.3.0) (2025-09-09)
+
+
+### Features
+
+* File browser parameter ([#1333](https://github.com/BLSQ/openhexa-app/issues/1333)) ([6c1e29d](https://github.com/BLSQ/openhexa-app/commit/6c1e29d440d9c0844638b80f49d8b1e43dc03460))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @mdxeditor/editor to v3.43.0 ([#1345](https://github.com/BLSQ/openhexa-app/issues/1345)) ([a1cfcc7](https://github.com/BLSQ/openhexa-app/commit/a1cfcc7de9ec3e7d0af6423f184f90d871745c38))
+* **deps:** update dependency i18next to v25.5.2 ([#1346](https://github.com/BLSQ/openhexa-app/issues/1346)) ([50af974](https://github.com/BLSQ/openhexa-app/commit/50af974bfed2f79482b2ae2435529537cd0a929e))
+* **deps:** update nextjs monorepo to v15.5.2 ([#1341](https://github.com/BLSQ/openhexa-app/issues/1341)) ([2a63cd6](https://github.com/BLSQ/openhexa-app/commit/2a63cd6f4745065821fbfac15aa80082f140c602))
+
 ## [2.2.0](https://github.com/BLSQ/openhexa-app/compare/2.1.0...2.2.0) (2025-09-08)
 
 
