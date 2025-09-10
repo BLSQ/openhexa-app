@@ -314,7 +314,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
             )
 
         zipfile_data = base64.b64decode(input.get("zipfile").encode("ascii"))
-        parameters = input["parameters"]
+        parameters = input.get("parameters")
 
         # TODO : test
         if not parameters:
