@@ -1,10 +1,15 @@
 import base64
+import io
+import tempfile
+from pathlib import Path
+from zipfile import ZipFile
 
 from ariadne import MutationType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
+from openhexa.sdk.pipelines.runtime import get_pipeline
 from psycopg2.errors import UniqueViolation
 
 from hexa.analytics.api import track
@@ -308,13 +313,26 @@ def resolve_upload_pipeline(_, info, **kwargs):
                 "Pipeline timeout value cannot be negative or greater than the maximum allowed value."
             )
 
+        zipfile_data = base64.b64decode(input.get("zipfile").encode("ascii"))
+        parameters = input["parameters"]
+
+        # TODO : test
+        # TODO : relax the schema
+        # TODO : in the frontend adapt the call with the relaxed schema
+        if not parameters:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                with ZipFile(io.BytesIO(zipfile_data), "r") as zip_file:
+                    zip_file.extractall(temp_dir)
+                    sdk_pipeline = get_pipeline(Path(temp_dir))
+                    parameters = [p.to_dict() for p in sdk_pipeline.parameters]
+
         version = pipeline.upload_new_version(
             user=request.user,
             name=input.get("name"),
             description=input.get("description"),
             external_link=input.get("external_link"),
-            zipfile=base64.b64decode(input.get("zipfile").encode("ascii")),
-            parameters=input["parameters"],
+            zipfile=zipfile_data,
+            parameters=parameters,
             timeout=input.get("timeout"),
             config=input.get("config"),
         )
