@@ -317,8 +317,6 @@ def resolve_upload_pipeline(_, info, **kwargs):
         parameters = input["parameters"]
 
         # TODO : test
-        # TODO : relax the schema
-        # TODO : in the frontend adapt the call with the relaxed schema
         if not parameters:
             with tempfile.TemporaryDirectory() as temp_dir:
                 with ZipFile(io.BytesIO(zipfile_data), "r") as zip_file:

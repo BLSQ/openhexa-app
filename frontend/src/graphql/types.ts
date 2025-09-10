@@ -5112,7 +5112,7 @@ export type UploadPipelineInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   externalLink?: InputMaybe<Scalars['URL']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
-  parameters: Array<ParameterInput>;
+  parameters?: InputMaybe<Array<ParameterInput>>;
   pipelineCode?: InputMaybe<Scalars['String']['input']>;
   timeout?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug: Scalars['String']['input'];

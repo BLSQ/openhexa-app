@@ -4312,7 +4312,7 @@ input UploadPipelineInput {
   description: String
   externalLink: URL
   name: String
-  parameters: [ParameterInput!]!
+  parameters: [ParameterInput!]
   pipelineCode: String
   timeout: Int
   workspaceSlug: String!

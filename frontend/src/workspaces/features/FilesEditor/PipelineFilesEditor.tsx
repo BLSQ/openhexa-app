@@ -35,7 +35,7 @@ export const PipelineFilesEditor = ({
 
   const createZipFromFiles = async (
     files: FilesEditor_FileFragment[],
-    modifications: Map<string, string>
+    modifications: Map<string, string>,
   ): Promise<string> => {
     const zip = new JSZip();
 
@@ -62,7 +62,7 @@ export const PipelineFilesEditor = ({
   const handleSave = useCallback(
     async (
       modifiedFiles: Map<string, string>,
-      allFiles: FilesEditor_FileFragment[]
+      allFiles: FilesEditor_FileFragment[],
     ): Promise<SaveResult> => {
       try {
         const zipBase64 = await createZipFromFiles(allFiles, modifiedFiles);
@@ -73,7 +73,6 @@ export const PipelineFilesEditor = ({
               workspaceSlug: workspaceSlug,
               pipelineCode: pipelineCode,
               zipfile: zipBase64,
-              parameters: [],
             },
           },
         });
@@ -88,7 +87,9 @@ export const PipelineFilesEditor = ({
 
           return { success: true };
         } else {
-          const errors = result.data?.uploadPipeline.errors || ["Unknown error"];
+          const errors = result.data?.uploadPipeline.errors || [
+            "Unknown error",
+          ];
           return { success: false, error: errors.join(", ") };
         }
       } catch (error) {
@@ -99,7 +100,7 @@ export const PipelineFilesEditor = ({
         };
       }
     },
-    [workspaceSlug, pipelineCode, uploadPipeline, clearCache, onVersionCreated]
+    [workspaceSlug, pipelineCode, uploadPipeline, clearCache, onVersionCreated],
   );
 
   return (
