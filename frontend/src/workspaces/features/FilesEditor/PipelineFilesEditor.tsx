@@ -3,9 +3,11 @@ import { useUploadPipelineMutation } from "workspaces/graphql/mutations.generate
 import JSZip from "jszip";
 import { FilesEditor, SaveResult } from "./FilesEditor";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import { FileType } from "graphql/types";
+import { FileType, PipelineError } from "graphql/types";
 import { PipelineVersionPicker_VersionFragment } from "../PipelineVersionPicker/PipelineVersionPicker.generated";
 import useCacheKey from "core/hooks/useCacheKey";
+import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 interface PipelineFilesEditorProps {
   name: string;
@@ -30,6 +32,7 @@ export const PipelineFilesEditor = ({
     refetchQueries: ["WorkspacePipelineCodePage"],
     awaitRefetchQueries: true,
   });
+  const { t } = useTranslation();
 
   const clearCache = useCacheKey(["pipeline", pipelineId]);
 
@@ -86,6 +89,14 @@ export const PipelineFilesEditor = ({
           }
 
           return { success: true };
+        } else if (
+          result.data?.uploadPipeline.errors?.includes(
+            PipelineError.PipelineParametersImpossibleToExtract,
+          )
+        ) {
+          const message = t("A pipeline with this code already exists.");
+          toast.error(message);
+          return { success: false, error: message };
         } else {
           const errors = result.data?.uploadPipeline.errors || [
             "Unknown error",
@@ -93,7 +104,6 @@ export const PipelineFilesEditor = ({
           return { success: false, error: errors.join(", ") };
         }
       } catch (error) {
-        console.error("Save failed:", error);
         return {
           success: false,
           error: error instanceof Error ? error.message : "Failed to save",
