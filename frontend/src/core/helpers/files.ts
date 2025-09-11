@@ -138,13 +138,13 @@ class Job<T extends JobFile = JobFile> {
 
 /*
   The UploadManager is the main part of the upload mechanism. It keeps the list of all upload jobs in the app.
-  User can create new upload job with: 
-  
+  User can create new upload job with:
+
     manager.createUploadJob({
       files: [],
       getXHROptions: () => {} // Returns the required options to execute the request
     })
-  
+
 */
 class UploadManager<T extends JobFile = JobFile> {
   pendingJobs: JobItem<T>[];
@@ -215,3 +215,15 @@ class UploadManager<T extends JobFile = JobFile> {
 export const uploader = new UploadManager(
   parseInt(process.env.MAX_CONCURRENT_UPLOADS ?? "10", 10),
 );
+
+export const constructFolderKey = (
+  folderName: string,
+  prefix: string | null,
+) => {
+  if (prefix) {
+    // Remove trailing slash from prefix if any to avoid double slash
+    return `${prefix.replace(/\/$/, "")}/${folderName}`;
+  } else {
+    return folderName;
+  }
+};

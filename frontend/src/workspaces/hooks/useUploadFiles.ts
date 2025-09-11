@@ -1,9 +1,10 @@
-import { uploader } from "../../core/helpers/files";
-import { Id, toast } from "react-toastify";
-import useCacheKey from "../../core/hooks/useCacheKey";
 import { useRef } from "react";
-import { getBucketObjectUploadUrl } from "workspaces/helpers/bucket";
+import { Id, toast } from "react-toastify";
 import { useTranslation } from "next-i18next";
+
+import { constructFolderKey, uploader } from "core/helpers/files";
+import useCacheKey from "core/hooks/useCacheKey";
+import { getBucketObjectUploadUrl } from "workspaces/helpers/bucket";
 
 type UseUploadFilesProps = {
   workspaceSlug: string;
@@ -32,7 +33,7 @@ export const useUploadFiles = ({
           const contentType = file.type || "application/octet-stream";
           const url = await getBucketObjectUploadUrl(
             workspaceSlug,
-            (prefix ?? "") + file.name,
+            constructFolderKey(file.name, prefix || ""),
             contentType,
           );
 
