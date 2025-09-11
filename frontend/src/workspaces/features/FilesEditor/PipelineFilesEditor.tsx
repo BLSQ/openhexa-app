@@ -98,7 +98,12 @@ export const PipelineFilesEditor = ({
             PipelineError.PipelineCodeParsingError,
           )
         ) {
-          return { success: false, error: t("Error parsing your code") };
+          return {
+            success: false,
+            error: t("Error parsing your code ({{details}})", {
+              details: result.data?.uploadPipeline.details,
+            }),
+          };
         } else {
           const errors = result.data?.uploadPipeline.errors || [
             t("Unknown error"),

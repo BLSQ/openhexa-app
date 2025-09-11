@@ -4322,6 +4322,7 @@ input UploadPipelineInput {
 
 """Represents the result of uploading a pipeline."""
 type UploadPipelineResult {
+  details: String
   errors: [PipelineError!]!
   pipelineVersion: PipelineVersion
   success: Boolean!

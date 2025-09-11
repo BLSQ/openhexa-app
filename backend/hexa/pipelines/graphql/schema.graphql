@@ -555,6 +555,7 @@ type UploadPipelineResult {
   success: Boolean!  # Indicates if the pipeline was uploaded successfully.
   pipelineVersion: PipelineVersion  # The uploaded pipeline version.
   errors: [PipelineError!]!  # The list of errors that occurred during the upload of the pipeline.
+  details: String  # Additional details about the upload process.
 }
 
 """

@@ -5123,6 +5123,7 @@ export type UploadPipelineInput = {
 /** Represents the result of uploading a pipeline. */
 export type UploadPipelineResult = {
   __typename?: 'UploadPipelineResult';
+  details?: Maybe<Scalars['String']['output']>;
   errors: Array<PipelineError>;
   pipelineVersion?: Maybe<PipelineVersion>;
   success: Scalars['Boolean']['output'];

@@ -344,8 +344,12 @@ def resolve_upload_pipeline(_, info, **kwargs):
         }
     except PipelineDoesNotSupportParametersError:
         return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
-    except PipelineCodeParsingError:
-        return {"success": False, "errors": ["PIPELINE_CODE_PARSING_ERROR"]}
+    except PipelineCodeParsingError as e:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_CODE_PARSING_ERROR"],
+            "details": str(e),
+        }
     except InvalidTimeoutValueError:
         return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
     except PermissionDenied:
