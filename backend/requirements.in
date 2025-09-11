@@ -73,6 +73,9 @@ regex
 #toolbox
 openhexa-toolbox==2.8.3
 
+#sdk
+openhexa-sdk==2.12.0
+
 # email templating
 mjml-python
 #
