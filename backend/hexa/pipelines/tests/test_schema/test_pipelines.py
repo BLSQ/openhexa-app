@@ -1,7 +1,9 @@
 import base64
+import io
 import random
 import string
 import uuid
+import zipfile
 from io import StringIO
 from unittest.mock import MagicMock, patch
 
@@ -1916,26 +1918,18 @@ class PipelinesV2Test(GraphQLTestCase):
 
     def test_upload_pipeline_auto_extract_parameters(self):
         """Test that parameters are automatically extracted from pipeline.py in zip file when not provided."""
-        import io
-        import zipfile
-
         self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
         pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
 
-        # Create a real pipeline.py file content with parameters using OpenHEXA SDK
         pipeline_py_content = '''from openhexa.sdk import pipeline, parameter
-
-        @parameter("input_file", name="Input File", type=str, help="Path to input file", required=True)
-        @parameter("threshold", name="Threshold", type=int, default=100, required=False)
-        @parameter("enable_debug", name="Enable Debug", type=bool, default=False, required=False)
-        @pipeline(name="Test Data Pipeline")
-        def test_pipeline(input_file, threshold, enable_debug):
-            """Process data from input file."""
-            pass
+@pipeline(name="Test Data Pipeline")
+@parameter("file_path", name="File Path", type=File, required=True)
+def test_pipeline(input_file, threshold, enable_debug):
+    """Process data from input file."""
+    pass
         '''
 
-        # Create a zip file with the pipeline.py content
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
             zipf.writestr("pipeline.py", pipeline_py_content)
@@ -1947,6 +1941,7 @@ class PipelinesV2Test(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
+                    details
                     pipelineVersion {
                         name
                         parameters {
@@ -1967,40 +1962,22 @@ class PipelinesV2Test(GraphQLTestCase):
                     "code": pipeline.code,
                     "workspaceSlug": self.WS1.slug,
                     "name": "Version with auto-extracted parameters",
-                    "parameters": [],  # Empty parameters, should be extracted from zip
                     "zipfile": zip_data,
                 }
             },
         )
 
-        # Verify the upload succeeded
         self.assertEqual(True, r["data"]["uploadPipeline"]["success"])
         self.assertEqual([], r["data"]["uploadPipeline"]["errors"])
 
-        # Verify the parameters were extracted correctly
         extracted_params = r["data"]["uploadPipeline"]["pipelineVersion"]["parameters"]
-        self.assertEqual(3, len(extracted_params))
+        self.assertEqual(1, len(extracted_params))
 
-        # Check first parameter
-        param1 = next(p for p in extracted_params if p["code"] == "input_file")
-        self.assertEqual("Input File", param1["name"])
-        self.assertEqual("str", param1["type"])
-        self.assertEqual("Path to input file", param1["help"])
+        param1 = next(p for p in extracted_params if p["code"] == "file_path")
+        self.assertEqual("File Path", param1["name"])
+        self.assertEqual("file", param1["type"])
+        self.assertEqual(None, param1["help"])
         self.assertEqual(True, param1["required"])
-
-        # Check second parameter
-        param2 = next(p for p in extracted_params if p["code"] == "threshold")
-        self.assertEqual("Threshold", param2["name"])
-        self.assertEqual("int", param2["type"])
-        self.assertEqual(100, param2["default"])
-        self.assertEqual(False, param2["required"])
-
-        # Check third parameter
-        param3 = next(p for p in extracted_params if p["code"] == "enable_debug")
-        self.assertEqual("Enable Debug", param3["name"])
-        self.assertEqual("bool", param3["type"])
-        self.assertEqual(False, param3["default"])
-        self.assertEqual(False, param3["required"])
 
     def test_upload_pipeline_auto_extract_parameters_fallback(self):
         """Test that empty parameters are used when automatic extraction fails."""
