@@ -61,6 +61,18 @@ class PipelineVersionsTest(GraphQLTestCase):
         cls.PIPELINE = Pipeline.objects.create(
             code="pipeline", name="My Pipeline", workspace=cls.WORKSPACE
         )
+        cls.pipeline_py_content = '''from openhexa.sdk import pipeline, parameter
+@pipeline(name="Test Data Pipeline")
+@parameter("file_path", name="File Path", type=File, required=True)
+def test_pipeline(input_file, threshold, enable_debug):
+    """Process data from input file."""
+    pass
+'''
+
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+            zipf.writestr("pipeline.py", cls.pipeline_py_content)
+        cls.zip_pipeline_py = base64.b64encode(zip_buffer.getvalue()).decode("ascii")
 
     def create_version(self, version, user=None):
         user = user or self.USER_ADMIN
@@ -71,6 +83,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
+                    details
                 }
             }
             """,
@@ -79,8 +92,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                     "code": self.PIPELINE.code,
                     "workspaceSlug": self.WORKSPACE.slug,
                     "name": version,
-                    "parameters": [],
-                    "zipfile": "",
+                    "zipfile": self.zip_pipeline_py,
                 }
             },
         )
