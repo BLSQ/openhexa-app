@@ -22,7 +22,6 @@ from hexa.pipelines.models import (
     MissingPipelineConfiguration,
     Pipeline,
     PipelineDoesNotSupportParametersError,
-    PipelineParametersImpossibleToExtract,
     PipelineRecipient,
     PipelineRun,
     PipelineRunLogLevel,
@@ -318,16 +317,12 @@ def resolve_upload_pipeline(_, info, **kwargs):
         parameters = input.get("parameters")
 
         if not parameters:
-            try:
-                with tempfile.TemporaryDirectory() as temp_dir:
-                    with ZipFile(io.BytesIO(zipfile_data), "r") as zip_file:
-                        zip_file.extractall(temp_dir)
+            with tempfile.TemporaryDirectory() as temp_dir:
+                with ZipFile(io.BytesIO(zipfile_data), "r") as zip_file:
+                    zip_file.extractall(temp_dir)
 
-                    sdk_pipeline = get_pipeline(Path(temp_dir))
-                    parameters = [p.to_dict() for p in sdk_pipeline.parameters]
-            except Exception:
-                raise PipelineParametersImpossibleToExtract
-
+                sdk_pipeline = get_pipeline(Path(temp_dir))
+                parameters = [p.to_dict() for p in sdk_pipeline.parameters]
         version = pipeline.upload_new_version(
             user=request.user,
             name=input.get("name"),
@@ -349,11 +344,6 @@ def resolve_upload_pipeline(_, info, **kwargs):
         return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
-    except PipelineParametersImpossibleToExtract:
-        return {
-            "success": False,
-            "errors": ["PIPELINE_PARAMETERS_IMPOSSIBLE_TO_EXTRACT"],
-        }
     except IntegrityError as e:
         if isinstance(
             e.__cause__, UniqueViolation

@@ -89,15 +89,6 @@ export const PipelineFilesEditor = ({
           }
 
           return { success: true };
-        } else if (
-          result.data?.uploadPipeline.errors?.includes(
-            PipelineError.PipelineParametersImpossibleToExtract,
-          )
-        ) {
-          const message = t(
-            "The pipeline parameters could not be extracted. Please ensure that the pipeline code is correct and try again.",
-          );
-          return { success: false, error: message };
         } else {
           const errors = result.data?.uploadPipeline.errors || [
             t("Unknown error"),

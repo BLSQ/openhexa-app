@@ -3448,7 +3448,6 @@ export enum PipelineError {
   PipelineAlreadyStopped = 'PIPELINE_ALREADY_STOPPED',
   PipelineDoesNotSupportParameters = 'PIPELINE_DOES_NOT_SUPPORT_PARAMETERS',
   PipelineNotFound = 'PIPELINE_NOT_FOUND',
-  PipelineParametersImpossibleToExtract = 'PIPELINE_PARAMETERS_IMPOSSIBLE_TO_EXTRACT',
   PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND',
   TableNotFound = 'TABLE_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
