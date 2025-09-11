@@ -3,14 +3,9 @@ import { useUploadPipelineMutation } from "workspaces/graphql/mutations.generate
 import JSZip from "jszip";
 import { FilesEditor, SaveResult } from "./FilesEditor";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import {
-  CreatePipelineTemplateVersionError,
-  FileType,
-  PipelineError,
-} from "graphql/types";
+import { FileType, PipelineError } from "graphql/types";
 import { PipelineVersionPicker_VersionFragment } from "../PipelineVersionPicker/PipelineVersionPicker.generated";
 import useCacheKey from "core/hooks/useCacheKey";
-import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 
 interface PipelineFilesEditorProps {
@@ -108,7 +103,6 @@ export const PipelineFilesEditor = ({
           const errors = result.data?.uploadPipeline.errors || [
             t("Unknown error"),
           ];
-          console.log(errors);
           return { success: false, error: errors.join(", ") };
         }
       } catch (error) {
