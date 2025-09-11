@@ -21,6 +21,7 @@ from hexa.pipelines.models import (
     InvalidTimeoutValueError,
     MissingPipelineConfiguration,
     Pipeline,
+    PipelineCodeParsingError,
     PipelineDoesNotSupportParametersError,
     PipelineRecipient,
     PipelineRun,
@@ -317,12 +318,15 @@ def resolve_upload_pipeline(_, info, **kwargs):
         parameters = input.get("parameters")
 
         if not parameters:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                with ZipFile(io.BytesIO(zipfile_data), "r") as zip_file:
-                    zip_file.extractall(temp_dir)
+            try:
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    with ZipFile(io.BytesIO(zipfile_data), "r") as zip_file:
+                        zip_file.extractall(temp_dir)
 
-                sdk_pipeline = get_pipeline(Path(temp_dir))
-                parameters = [p.to_dict() for p in sdk_pipeline.parameters]
+                    sdk_pipeline = get_pipeline(Path(temp_dir))
+                    parameters = [p.to_dict() for p in sdk_pipeline.parameters]
+            except Exception as e:
+                raise PipelineCodeParsingError(str(e))
         version = pipeline.upload_new_version(
             user=request.user,
             name=input.get("name"),
@@ -340,6 +344,8 @@ def resolve_upload_pipeline(_, info, **kwargs):
         }
     except PipelineDoesNotSupportParametersError:
         return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
+    except PipelineCodeParsingError:
+        return {"success": False, "errors": ["PIPELINE_CODE_PARSING_ERROR"]}
     except InvalidTimeoutValueError:
         return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
     except PermissionDenied:

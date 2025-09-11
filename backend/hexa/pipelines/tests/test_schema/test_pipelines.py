@@ -1926,14 +1926,14 @@ class PipelinesV2Test(GraphQLTestCase):
         # Create a real pipeline.py file content with parameters using OpenHEXA SDK
         pipeline_py_content = '''from openhexa.sdk import pipeline, parameter
 
-@parameter("input_file", name="Input File", type=str, help="Path to input file", required=True)
-@parameter("threshold", name="Threshold", type=int, default=100, required=False)
-@parameter("enable_debug", name="Enable Debug", type=bool, default=False, required=False)
-@pipeline(name="Test Data Pipeline")
-def test_pipeline(input_file, threshold, enable_debug):
-    """Process data from input file."""
-    pass
-'''
+        @parameter("input_file", name="Input File", type=str, help="Path to input file", required=True)
+        @parameter("threshold", name="Threshold", type=int, default=100, required=False)
+        @parameter("enable_debug", name="Enable Debug", type=bool, default=False, required=False)
+        @pipeline(name="Test Data Pipeline")
+        def test_pipeline(input_file, threshold, enable_debug):
+            """Process data from input file."""
+            pass
+        '''
 
         # Create a zip file with the pipeline.py content
         zip_buffer = io.BytesIO()

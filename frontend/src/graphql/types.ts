@@ -3446,6 +3446,7 @@ export enum PipelineError {
   PermissionDenied = 'PERMISSION_DENIED',
   PipelineAlreadyCompleted = 'PIPELINE_ALREADY_COMPLETED',
   PipelineAlreadyStopped = 'PIPELINE_ALREADY_STOPPED',
+  PipelineCodeParsingError = 'PIPELINE_CODE_PARSING_ERROR',
   PipelineDoesNotSupportParameters = 'PIPELINE_DOES_NOT_SUPPORT_PARAMETERS',
   PipelineNotFound = 'PIPELINE_NOT_FOUND',
   PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND',

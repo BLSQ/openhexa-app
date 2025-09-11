@@ -39,6 +39,10 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 
+class PipelineCodeParsingError(Exception):
+    pass
+
+
 class PipelineParametersImpossibleToExtract(Exception):
     pass
 
