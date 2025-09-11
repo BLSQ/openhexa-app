@@ -97,18 +97,17 @@ export const PipelineFilesEditor = ({
           const message = t(
             "The pipeline parameters could not be extracted. Please ensure that the pipeline code is correct and try again.",
           );
-          toast.error(message);
           return { success: false, error: message };
         } else {
           const errors = result.data?.uploadPipeline.errors || [
-            "Unknown error",
+            t("Unknown error"),
           ];
           return { success: false, error: errors.join(", ") };
         }
       } catch (error) {
         return {
           success: false,
-          error: error instanceof Error ? error.message : "Failed to save",
+          error: error instanceof Error ? error.message : t("Failed to save"),
         };
       }
     },
