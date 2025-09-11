@@ -3446,6 +3446,7 @@ export enum PipelineError {
   PermissionDenied = 'PERMISSION_DENIED',
   PipelineAlreadyCompleted = 'PIPELINE_ALREADY_COMPLETED',
   PipelineAlreadyStopped = 'PIPELINE_ALREADY_STOPPED',
+  PipelineCodeParsingError = 'PIPELINE_CODE_PARSING_ERROR',
   PipelineDoesNotSupportParameters = 'PIPELINE_DOES_NOT_SUPPORT_PARAMETERS',
   PipelineNotFound = 'PIPELINE_NOT_FOUND',
   PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND',
@@ -5112,7 +5113,7 @@ export type UploadPipelineInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   externalLink?: InputMaybe<Scalars['URL']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
-  parameters: Array<ParameterInput>;
+  parameters?: InputMaybe<Array<ParameterInput>>;
   pipelineCode?: InputMaybe<Scalars['String']['input']>;
   timeout?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug: Scalars['String']['input'];
@@ -5122,6 +5123,7 @@ export type UploadPipelineInput = {
 /** Represents the result of uploading a pipeline. */
 export type UploadPipelineResult = {
   __typename?: 'UploadPipelineResult';
+  details?: Maybe<Scalars['String']['output']>;
   errors: Array<PipelineError>;
   pipelineVersion?: Maybe<PipelineVersion>;
   success: Scalars['Boolean']['output'];

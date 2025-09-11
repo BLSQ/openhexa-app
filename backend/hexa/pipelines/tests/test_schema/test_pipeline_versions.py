@@ -61,8 +61,20 @@ class PipelineVersionsTest(GraphQLTestCase):
         cls.PIPELINE = Pipeline.objects.create(
             code="pipeline", name="My Pipeline", workspace=cls.WORKSPACE
         )
+        cls.pipeline_py_content = '''from openhexa.sdk import pipeline, parameter
+@pipeline(name="Test Data Pipeline")
+@parameter("file_path", name="File Path", type=File, required=True)
+def test_pipeline(input_file, threshold, enable_debug):
+    """Process data from input file."""
+    pass
+'''
 
-    def create_version(self, version, user=None):
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+            zipf.writestr("pipeline.py", cls.pipeline_py_content)
+        cls.zip_pipeline_py = base64.b64encode(zip_buffer.getvalue()).decode("ascii")
+
+    def create_version(self, version, user=None, zip_file=None):
         user = user or self.USER_ADMIN
         self.client.force_login(user)
         return self.run_query(
@@ -71,6 +83,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                 uploadPipeline(input: $input) {
                     success
                     errors
+                    details
                 }
             }
             """,
@@ -79,14 +92,13 @@ class PipelineVersionsTest(GraphQLTestCase):
                     "code": self.PIPELINE.code,
                     "workspaceSlug": self.WORKSPACE.slug,
                     "name": version,
-                    "parameters": [],
-                    "zipfile": "",
+                    "zipfile": zip_file or self.zip_pipeline_py,
                 }
             },
         )
 
-    def test_create_version(self, version="First Version", user=None):
-        r = self.create_version(version, user)
+    def test_create_version(self, version="First Version", user=None, zip_file=None):
+        r = self.create_version(version, user, zip_file)
         self.assertEqual(r["data"]["uploadPipeline"]["success"], True)
 
     def test_duplicate_versions(self):
@@ -245,8 +257,7 @@ class PipelineVersionsTest(GraphQLTestCase):
                     "code": self.PIPELINE.code,
                     "workspaceSlug": self.WORKSPACE.slug,
                     "name": "version",
-                    "parameters": [],
-                    "zipfile": "",
+                    "zipfile": self.zip_pipeline_py,
                 }
             },
         )
@@ -502,7 +513,11 @@ class PipelineVersionsTest(GraphQLTestCase):
 
     def test_pipeline_version_files_empty_zipfile(self):
         """Test that the files resolver handles empty zipfiles gracefully."""
-        self.test_create_version("Empty Version")
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED):
+            pass
+        empty_zip_b64 = base64.b64encode(zip_buffer.getvalue()).decode("ascii")
+        self.test_create_version("Empty Version", zip_file=empty_zip_b64)
 
         version_id = str(self.PIPELINE.last_version.id)
 
@@ -524,5 +539,4 @@ class PipelineVersionsTest(GraphQLTestCase):
             {"id": version_id},
         )
 
-        files = response["data"]["pipelineVersion"]["files"]
-        self.assertEqual(files, [])
+        self.assertEqual(response["data"]["pipelineVersion"]["files"], [])

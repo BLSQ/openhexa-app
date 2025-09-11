@@ -157,7 +157,7 @@ export type UploadPipelineMutationVariables = Types.Exact<{
 }>;
 
 
-export type UploadPipelineMutation = { __typename?: 'Mutation', uploadPipeline: { __typename?: 'UploadPipelineResult', success: boolean, errors: Array<Types.PipelineError>, pipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, isLatestVersion: boolean, createdAt: any, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, widget?: Types.ParameterWidget | null, connection?: string | null, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null } | null } };
+export type UploadPipelineMutation = { __typename?: 'Mutation', uploadPipeline: { __typename?: 'UploadPipelineResult', success: boolean, errors: Array<Types.PipelineError>, details?: string | null, pipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, isLatestVersion: boolean, createdAt: any, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, widget?: Types.ParameterWidget | null, connection?: string | null, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null } | null } };
 
 
 export const CreateWorkspaceDocument = gql`
@@ -945,6 +945,7 @@ export const UploadPipelineDocument = gql`
   uploadPipeline(input: $input) {
     success
     errors
+    details
     pipelineVersion {
       id
       versionNumber

@@ -3,9 +3,10 @@ import { useUploadPipelineMutation } from "workspaces/graphql/mutations.generate
 import JSZip from "jszip";
 import { FilesEditor, SaveResult } from "./FilesEditor";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import { FileType } from "graphql/types";
+import { FileType, PipelineError } from "graphql/types";
 import { PipelineVersionPicker_VersionFragment } from "../PipelineVersionPicker/PipelineVersionPicker.generated";
 import useCacheKey from "core/hooks/useCacheKey";
+import { useTranslation } from "react-i18next";
 
 interface PipelineFilesEditorProps {
   name: string;
@@ -30,12 +31,13 @@ export const PipelineFilesEditor = ({
     refetchQueries: ["WorkspacePipelineCodePage"],
     awaitRefetchQueries: true,
   });
+  const { t } = useTranslation();
 
   const clearCache = useCacheKey(["pipeline", pipelineId]);
 
   const createZipFromFiles = async (
     files: FilesEditor_FileFragment[],
-    modifications: Map<string, string>
+    modifications: Map<string, string>,
   ): Promise<string> => {
     const zip = new JSZip();
 
@@ -62,7 +64,7 @@ export const PipelineFilesEditor = ({
   const handleSave = useCallback(
     async (
       modifiedFiles: Map<string, string>,
-      allFiles: FilesEditor_FileFragment[]
+      allFiles: FilesEditor_FileFragment[],
     ): Promise<SaveResult> => {
       try {
         const zipBase64 = await createZipFromFiles(allFiles, modifiedFiles);
@@ -73,7 +75,6 @@ export const PipelineFilesEditor = ({
               workspaceSlug: workspaceSlug,
               pipelineCode: pipelineCode,
               zipfile: zipBase64,
-              parameters: [],
             },
           },
         });
@@ -87,19 +88,31 @@ export const PipelineFilesEditor = ({
           }
 
           return { success: true };
+        } else if (
+          result.data?.uploadPipeline.errors.includes(
+            PipelineError.PipelineCodeParsingError,
+          )
+        ) {
+          return {
+            success: false,
+            error: t("Error parsing your code ({{details}})", {
+              details: result.data?.uploadPipeline.details,
+            }),
+          };
         } else {
-          const errors = result.data?.uploadPipeline.errors || ["Unknown error"];
+          const errors = result.data?.uploadPipeline.errors || [
+            t("Unknown error"),
+          ];
           return { success: false, error: errors.join(", ") };
         }
       } catch (error) {
-        console.error("Save failed:", error);
         return {
           success: false,
-          error: error instanceof Error ? error.message : "Failed to save",
+          error: error instanceof Error ? error.message : t("Failed to save"),
         };
       }
     },
-    [workspaceSlug, pipelineCode, uploadPipeline, clearCache, onVersionCreated]
+    [workspaceSlug, pipelineCode, uploadPipeline, clearCache, onVersionCreated],
   );
 
   return (

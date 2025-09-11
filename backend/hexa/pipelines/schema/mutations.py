@@ -1,10 +1,16 @@
 import base64
+import io
+import tempfile
+from pathlib import Path
+from zipfile import ZipFile
 
 from ariadne import MutationType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
+from openhexa.sdk.pipelines.exceptions import PipelineNotFound
+from openhexa.sdk.pipelines.runtime import get_pipeline
 from psycopg2.errors import UniqueViolation
 
 from hexa.analytics.api import track
@@ -16,6 +22,7 @@ from hexa.pipelines.models import (
     InvalidTimeoutValueError,
     MissingPipelineConfiguration,
     Pipeline,
+    PipelineCodeParsingError,
     PipelineDoesNotSupportParametersError,
     PipelineRecipient,
     PipelineRun,
@@ -308,13 +315,28 @@ def resolve_upload_pipeline(_, info, **kwargs):
                 "Pipeline timeout value cannot be negative or greater than the maximum allowed value."
             )
 
+        zipfile_data = base64.b64decode(input.get("zipfile").encode("ascii"))
+        parameters = input.get("parameters")
+
+        if not parameters:
+            try:
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    with ZipFile(io.BytesIO(zipfile_data), "r") as zip_file:
+                        zip_file.extractall(temp_dir)
+
+                    sdk_pipeline = get_pipeline(Path(temp_dir))
+                    parameters = [p.to_dict() for p in sdk_pipeline.parameters]
+            except PipelineNotFound:  # Support empty zip files
+                parameters = []
+            except Exception as e:
+                raise PipelineCodeParsingError(str(e))
         version = pipeline.upload_new_version(
             user=request.user,
             name=input.get("name"),
             description=input.get("description"),
             external_link=input.get("external_link"),
-            zipfile=base64.b64decode(input.get("zipfile").encode("ascii")),
-            parameters=input["parameters"],
+            zipfile=zipfile_data,
+            parameters=parameters,
             timeout=input.get("timeout"),
             config=input.get("config"),
         )
@@ -325,6 +347,12 @@ def resolve_upload_pipeline(_, info, **kwargs):
         }
     except PipelineDoesNotSupportParametersError:
         return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
+    except PipelineCodeParsingError as e:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_CODE_PARSING_ERROR"],
+            "details": str(e),
+        }
     except InvalidTimeoutValueError:
         return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
     except PermissionDenied:

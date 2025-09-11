@@ -326,6 +326,7 @@ enum PipelineError {
   PIPELINE_NOT_FOUND
   PIPELINE_VERSION_NOT_FOUND
   PIPELINE_DOES_NOT_SUPPORT_PARAMETERS
+  PIPELINE_CODE_PARSING_ERROR
   WORKSPACE_NOT_FOUND
   INVALID_CONFIG
   PIPELINE_ALREADY_COMPLETED
@@ -524,7 +525,7 @@ input UploadPipelineInput {
   name: String  # The name of the pipeline version.
   description: String  # The description of the pipeline.
   externalLink: URL  # The external link associated with the pipeline.
-  parameters: [ParameterInput!]!  # The parameters of the pipeline.
+  parameters: [ParameterInput!]  # The parameters of the pipeline.
   zipfile: String!  # The path to the ZIP file containing the pipeline.
   config: JSON # The default configuration to set on newly created pipeline runs
   timeout: Int  # The timeout value for the pipeline.
@@ -554,6 +555,7 @@ type UploadPipelineResult {
   success: Boolean!  # Indicates if the pipeline was uploaded successfully.
   pipelineVersion: PipelineVersion  # The uploaded pipeline version.
   errors: [PipelineError!]!  # The list of errors that occurred during the upload of the pipeline.
+  details: String  # Additional details about the upload process.
 }
 
 """

@@ -216,6 +216,7 @@ mutation uploadPipeline($input: UploadPipelineInput!) {
   uploadPipeline(input: $input) {
     success
     errors
+    details
     pipelineVersion {
       id
       versionNumber
