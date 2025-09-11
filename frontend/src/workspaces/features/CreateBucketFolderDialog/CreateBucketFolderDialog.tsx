@@ -28,7 +28,8 @@ const CreateBucketFolderDialog = (props: CreateBucketFolderDialogProps) => {
     try {
       const folder = await createBucketFolder(
         workspace.slug,
-        (prefix || "") + folderName,
+        folderName,
+        prefix,
       );
       await router.push(`/workspaces/${workspace.slug}/files/${folder.key}`);
       onClose();

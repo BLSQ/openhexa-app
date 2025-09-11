@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
+import { constructFolderKey } from "core/helpers/files";
 import {
   GetFileDownloadUrlMutation,
   GetFileDownloadUrlMutationVariables,
@@ -120,8 +121,10 @@ export async function getBucketObjectUploadUrl(
 
 export async function createBucketFolder(
   workspaceSlug: string,
-  folderKey: string,
+  folderName: string,
+  prefix: string = "",
 ) {
+  const folderKey = constructFolderKey(folderName, prefix);
   const client = getApolloClient();
   const { data } = await client.mutate({
     mutation: gql`
