@@ -2044,7 +2044,7 @@ def test_pipeline(input_file, threshold, enable_debug):
                     "workspaceSlug": self.WS1.slug,
                     "name": "Version with timeout",
                     "parameters": [],
-                    "zipfile": "",
+                    "zipfile": self.zip_pipeline_py,
                     "timeout": 3600,
                 }
             },
