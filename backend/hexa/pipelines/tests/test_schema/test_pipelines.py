@@ -1985,9 +1985,17 @@ def test_pipeline(input_file, threshold, enable_debug):
         self.client.force_login(self.USER_ROOT)
         pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
 
+        pipeline_py_content = '''from openhexa.sdk import pipeline, parameter
+@pipeline(name="Test Data Pipeline")
+@parameter("file_path", name="File Path", type=TypeNotYetSupported, required=True)
+def test_pipeline(input_file, threshold, enable_debug):
+    """Process data from input file."""
+    pass
+'''
+
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
-            zipf.writestr("invalid_file.txt", "This is not a valid pipeline file")
+            zipf.writestr("pipeline.py", pipeline_py_content)
         zip_data = base64.b64encode(zip_buffer.getvalue()).decode("ascii")
 
         r = self.run_query(
@@ -2019,8 +2027,9 @@ def test_pipeline(input_file, threshold, enable_debug):
         self.assertEqual(
             ["PIPELINE_CODE_PARSING_ERROR"], r["data"]["uploadPipeline"]["errors"]
         )
-        self.assertIn(
-            "Could not read pipeline file", r["data"]["uploadPipeline"]["details"]
+        self.assertEqual(
+            "Unsupported parameter type: TypeNotYetSupported",
+            r["data"]["uploadPipeline"]["details"],
         )
 
     def test_pipeline_new_run_with_timeout(self):
