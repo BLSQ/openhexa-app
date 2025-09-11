@@ -9,6 +9,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
+from openhexa.sdk.pipelines.exceptions import PipelineNotFound
 from openhexa.sdk.pipelines.runtime import get_pipeline
 from psycopg2.errors import UniqueViolation
 
@@ -325,6 +326,8 @@ def resolve_upload_pipeline(_, info, **kwargs):
 
                     sdk_pipeline = get_pipeline(Path(temp_dir))
                     parameters = [p.to_dict() for p in sdk_pipeline.parameters]
+            except PipelineNotFound:  # Support empty zip files
+                parameters = []
             except Exception as e:
                 raise PipelineCodeParsingError(str(e))
         version = pipeline.upload_new_version(
