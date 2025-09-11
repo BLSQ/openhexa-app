@@ -257,8 +257,7 @@ def test_pipeline(input_file, threshold, enable_debug):
                     "code": self.PIPELINE.code,
                     "workspaceSlug": self.WORKSPACE.slug,
                     "name": "version",
-                    "parameters": [],
-                    "zipfile": "",
+                    "zipfile": self.zip_pipeline_py,
                 }
             },
         )
