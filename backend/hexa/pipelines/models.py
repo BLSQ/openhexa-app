@@ -43,10 +43,6 @@ class PipelineCodeParsingError(Exception):
     pass
 
 
-class PipelineParametersImpossibleToExtract(Exception):
-    pass
-
-
 class PipelineAlreadyExistsError(Exception):
     pass
 
