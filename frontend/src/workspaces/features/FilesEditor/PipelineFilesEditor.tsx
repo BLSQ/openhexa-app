@@ -94,7 +94,9 @@ export const PipelineFilesEditor = ({
             PipelineError.PipelineParametersImpossibleToExtract,
           )
         ) {
-          const message = t("A pipeline with this code already exists.");
+          const message = t(
+            "The pipeline parameters could not be extracted. Please ensure that the pipeline code is correct and try again.",
+          );
           toast.error(message);
           return { success: false, error: message };
         } else {
