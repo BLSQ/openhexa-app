@@ -1979,16 +1979,12 @@ def test_pipeline(input_file, threshold, enable_debug):
         self.assertEqual(None, param1["help"])
         self.assertEqual(True, param1["required"])
 
-    def test_upload_pipeline_auto_extract_parameters_fallback(self):
-        """Test that empty parameters are used when automatic extraction fails."""
-        import io
-        import zipfile
-
+    def test_upload_pipeline_parsing_fallback(self):
+        """Test that parsing incorrect fails gracefully."""
         self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
         pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
 
-        # Create a zip file with invalid pipeline content (no pipeline.py)
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
             zipf.writestr("invalid_file.txt", "This is not a valid pipeline file")
@@ -2000,6 +1996,7 @@ def test_pipeline(input_file, threshold, enable_debug):
                 uploadPipeline(input: $input) {
                     success
                     errors
+                    details
                     pipelineVersion {
                         name
                         parameters {
@@ -2013,19 +2010,18 @@ def test_pipeline(input_file, threshold, enable_debug):
                     "code": pipeline.code,
                     "workspaceSlug": self.WS1.slug,
                     "name": "Version with fallback parameters",
-                    "parameters": [],  # Empty parameters
                     "zipfile": zip_data,
                 }
             },
         )
 
-        # Verify the upload still succeeded with empty parameters
-        self.assertEqual(True, r["data"]["uploadPipeline"]["success"])
-        self.assertEqual([], r["data"]["uploadPipeline"]["errors"])
-
-        # Verify empty parameters were used as fallback
-        extracted_params = r["data"]["uploadPipeline"]["pipelineVersion"]["parameters"]
-        self.assertEqual(0, len(extracted_params))
+        self.assertEqual(False, r["data"]["uploadPipeline"]["success"])
+        self.assertEqual(
+            ["PIPELINE_CODE_PARSING_ERROR"], r["data"]["uploadPipeline"]["errors"]
+        )
+        self.assertIn(
+            "Could not read pipeline file", r["data"]["uploadPipeline"]["details"]
+        )
 
     def test_pipeline_new_run_with_timeout(self):
         self.test_create_pipeline()
