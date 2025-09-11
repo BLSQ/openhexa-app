@@ -95,6 +95,19 @@ class PipelinesV2Test(GraphQLTestCase):
             role=WorkspaceMembershipRole.VIEWER,
         )
 
+        cls.pipeline_py_content = '''from openhexa.sdk import pipeline, parameter
+@pipeline(name="Test Data Pipeline")
+@parameter("file_path", name="File Path", type=File, required=True)
+def test_pipeline(input_file, threshold, enable_debug):
+    """Process data from input file."""
+    pass
+        '''
+
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+            zipf.writestr("pipeline.py", cls.pipeline_py_content)
+        cls.zip_pipeline_py = base64.b64encode(zip_buffer.getvalue()).decode("ascii")
+
     def test_create_pipeline_without_name(self):
         self.client.force_login(self.USER_ROOT)
         r = self.run_query(
@@ -292,7 +305,7 @@ class PipelinesV2Test(GraphQLTestCase):
                     "workspaceSlug": self.WS1.slug,
                     "name": "Version 1",
                     "parameters": parameters,
-                    "zipfile": "",
+                    "zipfile": self.zip_pipeline_py,
                     "config": config,
                 }
             },
@@ -1922,19 +1935,6 @@ class PipelinesV2Test(GraphQLTestCase):
         self.client.force_login(self.USER_ROOT)
         pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
 
-        pipeline_py_content = '''from openhexa.sdk import pipeline, parameter
-@pipeline(name="Test Data Pipeline")
-@parameter("file_path", name="File Path", type=File, required=True)
-def test_pipeline(input_file, threshold, enable_debug):
-    """Process data from input file."""
-    pass
-        '''
-
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
-            zipf.writestr("pipeline.py", pipeline_py_content)
-        zip_data = base64.b64encode(zip_buffer.getvalue()).decode("ascii")
-
         r = self.run_query(
             """
             mutation uploadPipeline($input: UploadPipelineInput!) {
@@ -1962,7 +1962,7 @@ def test_pipeline(input_file, threshold, enable_debug):
                     "code": pipeline.code,
                     "workspaceSlug": self.WS1.slug,
                     "name": "Version with auto-extracted parameters",
-                    "zipfile": zip_data,
+                    "zipfile": self.zip_pipeline_py,
                 }
             },
         )
