@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.3.2](https://github.com/BLSQ/openhexa-app/compare/2.3.1...2.3.2) (2025-09-11)
+
+
+### Bug Fixes
+
+* **deps:** update dependency express-http-proxy to v2.1.2 ([#1349](https://github.com/BLSQ/openhexa-app/issues/1349)) ([5af2eaf](https://github.com/BLSQ/openhexa-app/commit/5af2eaf9cf47c99ebad2729d67512cef81168c97))
+* editing pipeline code in the browser should keep the parameters (HEXA-1364) ([#1358](https://github.com/BLSQ/openhexa-app/issues/1358)) ([770a018](https://github.com/BLSQ/openhexa-app/commit/770a0187bd3bbb37a6008c19383339f1bc0c74d8))
+* File paths for folder creation and file upload ([#1359](https://github.com/BLSQ/openhexa-app/issues/1359)) ([55525fb](https://github.com/BLSQ/openhexa-app/commit/55525fbd9b0120125dd7aa4e9399911f60d4860d))
+
 ## [2.3.1](https://github.com/BLSQ/openhexa-app/compare/2.3.0...2.3.1) (2025-09-09)
 
 
