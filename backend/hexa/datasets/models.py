@@ -19,8 +19,6 @@ from hexa.user_management.models import OrganizationMembershipRole, User
 
 logger = logging.getLogger(__name__)
 
-# TODO : unit tests
-
 
 def create_dataset_slug(name: str, workspace):
     suffix = ""
