@@ -693,7 +693,9 @@ def resolve_organization_datasets(
 
     workspace_slugs = list(organization.workspaces.values_list("slug", flat=True))
 
-    qs = Dataset.objects.filter_for_workspace_slugs(request.user, workspace_slugs)
+    qs = Dataset.objects.filter_for_workspace_slugs(
+        request.user, workspace_slugs
+    ).filter(workspace__organization=organization)
 
     if query:
         qs = qs.filter(

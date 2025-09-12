@@ -6,7 +6,12 @@ from django.test import override_settings
 from django.utils.crypto import get_random_string
 
 from hexa.core.test import TestCase
-from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
+from hexa.datasets.models import (
+    Dataset,
+    DatasetLink,
+    DatasetVersion,
+    DatasetVersionFile,
+)
 from hexa.files import storage
 from hexa.user_management.models import (
     Organization,
@@ -618,3 +623,162 @@ class DatasetOrganizationSharingPermissionsTest(BaseTestMixin, TestCase):
         self.assertTrue(
             self.USER_EDITOR.has_perm("datasets.view_dataset", workspace_dataset)
         )
+
+
+class DatasetOrganizationAdminOwnerPermissionsTest(BaseTestMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        BaseTestMixin.setUpTestData()
+
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Test Organization",
+            short_name="test-org-admin-owner",
+            organization_type="CORPORATE",
+        )
+
+        cls.ORG_OWNER_USER = User.objects.create_user(
+            "owner@bluesquarehub.com", "password"
+        )
+        cls.ORG_ADMIN_USER = User.objects.create_user(
+            "admin@bluesquarehub.com", "password"
+        )
+        cls.ORG_MEMBER_USER = User.objects.create_user(
+            "member@bluesquarehub.com", "password"
+        )
+
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_OWNER_USER,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_ADMIN_USER,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_MEMBER_USER,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
+        cls.WORKSPACE.organization = cls.ORGANIZATION
+        cls.WORKSPACE.save()
+
+        cls.WORKSPACE_3 = Workspace.objects.create_if_has_perm(
+            cls.ORG_OWNER_USER,
+            name="Workspace 3",
+            description="Another workspace in same org",
+            organization=cls.ORGANIZATION,
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=cls.WORKSPACE_3,
+            user=cls.USER_ADMIN,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
+        cls.DATASET_WORKSPACE = Dataset.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            cls.WORKSPACE,
+            name="Dataset in workspace",
+            description="Dataset in workspace where org admin/owner is not a member",
+        )
+
+        cls.DATASET_WORKSPACE_3 = Dataset.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            cls.WORKSPACE_3,
+            name="Dataset in workspace 3",
+            description="Dataset in another workspace in same org",
+        )
+
+    def test_organization_owner_can_access_all_datasets_in_organization(self):
+        datasets = Dataset.objects.filter_for_user(self.ORG_OWNER_USER)
+
+        self.assertIn(self.DATASET_WORKSPACE, datasets)
+        self.assertIn(self.DATASET_WORKSPACE_3, datasets)
+
+    def test_organization_admin_can_access_all_datasets_in_organization(self):
+        datasets = Dataset.objects.filter_for_user(self.ORG_ADMIN_USER)
+
+        self.assertIn(self.DATASET_WORKSPACE, datasets)
+        self.assertIn(self.DATASET_WORKSPACE_3, datasets)
+
+    def test_organization_member_cannot_access_datasets_from_non_member_workspaces(
+        self,
+    ):
+        datasets = Dataset.objects.filter_for_user(self.ORG_MEMBER_USER)
+
+        self.assertNotIn(self.DATASET_WORKSPACE, datasets)
+        self.assertNotIn(self.DATASET_WORKSPACE_3, datasets)
+
+    def test_organization_owner_can_access_datasets_via_filter_for_workspace_slugs(
+        self,
+    ):
+        workspace_slugs = [self.WORKSPACE.slug, self.WORKSPACE_3.slug]
+        datasets = Dataset.objects.filter_for_workspace_slugs(
+            self.ORG_OWNER_USER, workspace_slugs
+        )
+
+        self.assertIn(self.DATASET_WORKSPACE, datasets)
+        self.assertIn(self.DATASET_WORKSPACE_3, datasets)
+
+    def test_organization_admin_can_access_datasets_via_filter_for_workspace_slugs(
+        self,
+    ):
+        workspace_slugs = [self.WORKSPACE.slug, self.WORKSPACE_3.slug]
+        datasets = Dataset.objects.filter_for_workspace_slugs(
+            self.ORG_ADMIN_USER, workspace_slugs
+        )
+
+        self.assertIn(self.DATASET_WORKSPACE, datasets)
+        self.assertIn(self.DATASET_WORKSPACE_3, datasets)
+
+    def test_organization_member_cannot_access_datasets_via_filter_for_workspace_slugs(
+        self,
+    ):
+        workspace_slugs = [self.WORKSPACE.slug, self.WORKSPACE_3.slug]
+        datasets = Dataset.objects.filter_for_workspace_slugs(
+            self.ORG_MEMBER_USER, workspace_slugs
+        )
+
+        self.assertNotIn(self.DATASET_WORKSPACE, datasets)
+        self.assertNotIn(self.DATASET_WORKSPACE_3, datasets)
+
+    def test_dataset_links_access(self):
+        expected_links = DatasetLink.objects.filter(
+            workspace__organization=self.ORGANIZATION
+        )
+
+        owner_dataset_links = DatasetLink.objects.filter_for_user(self.ORG_OWNER_USER)
+        admin_dataset_links = DatasetLink.objects.filter_for_user(self.ORG_ADMIN_USER)
+        member_dataset_links = DatasetLink.objects.filter_for_user(self.ORG_MEMBER_USER)
+
+        for link in expected_links:
+            self.assertIn(link, owner_dataset_links)
+            self.assertIn(link, admin_dataset_links)
+            self.assertNotIn(link, member_dataset_links)
+
+    def test_organization_admin_owner_access_combined_with_workspace_membership(self):
+        WorkspaceMembership.objects.create(
+            workspace=self.WORKSPACE,
+            user=self.ORG_ADMIN_USER,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        datasets = Dataset.objects.filter_for_user(self.ORG_ADMIN_USER)
+
+        self.assertIn(self.DATASET_WORKSPACE, datasets)
+        self.assertIn(self.DATASET_WORKSPACE_3, datasets)
+
+    def test_organization_shared_dataset_plus_admin_owner_permissions(self):
+        self.DATASET_WORKSPACE.shared_with_organization = True
+        self.DATASET_WORKSPACE.save()
+
+        datasets_owner = Dataset.objects.filter_for_user(self.ORG_OWNER_USER)
+        datasets_admin = Dataset.objects.filter_for_user(self.ORG_ADMIN_USER)
+        datasets_member = Dataset.objects.filter_for_user(self.ORG_MEMBER_USER)
+
+        self.assertIn(self.DATASET_WORKSPACE, datasets_owner)
+        self.assertIn(self.DATASET_WORKSPACE, datasets_admin)
+        self.assertIn(self.DATASET_WORKSPACE, datasets_member)
