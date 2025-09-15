@@ -43,6 +43,17 @@ class WorkspaceMembershipAdmin(admin.ModelAdmin):
         "updated_at",
     )
     readonly_fields = ("notebooks_server_hash",)
+    search_fields = (
+        "user__email",
+        "user__first_name",
+        "user__last_name",
+        "workspace__name",
+        "workspace__slug",
+    )
+    autocomplete_fields = (
+        "workspace",
+        "user",
+    )
 
 
 class ConnectionFieldInline(admin.StackedInline):

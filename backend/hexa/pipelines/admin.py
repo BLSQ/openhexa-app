@@ -26,6 +26,7 @@ class PipelineAdmin(GlobalObjectsModelAdmin):
 
 @admin.register(PipelineRun)
 class PipelineRunAdmin(admin.ModelAdmin):
+    readonly_fields = ("pipeline", "pipeline_version")
     list_display = ("pipeline", "trigger_mode", "state", "execution_date")
     list_filter = ("trigger_mode", "state", "execution_date", "pipeline")
     search_fields = ("pipeline__name", "pipeline__code", "pipeline__id", "id")
