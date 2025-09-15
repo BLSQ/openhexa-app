@@ -51,9 +51,10 @@ type Props = {
 };
 
 const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
+  const { workspaceSlug, runId } = props;
   const { t } = useTranslation();
   const { data, refetch } = useWorkspacePipelineRunPageQuery({
-    variables: { workspaceSlug: props.workspaceSlug, runId: props.runId },
+    variables: { workspaceSlug, runId },
   });
 
   const config = useMemo(
@@ -112,8 +113,8 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
       return (
         <Link
           href={`/workspaces/${encodeURIComponent(
-            workspace.slug,
-          )}/datasets/${encodeURIComponent(entry.value)}/from/${encodeURIComponent(workspace.slug)}`}
+            workspaceSlug,
+          )}/datasets/${encodeURIComponent(entry.value)}/from/${encodeURIComponent(workspaceSlug)}`}
         >
           {entry.value}
         </Link>
@@ -145,27 +146,27 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
             <Breadcrumbs withHome={false}>
               <Breadcrumbs.Part
                 isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+                href={`/workspaces/${encodeURIComponent(workspaceSlug)}`}
               >
                 {workspace.name}
               </Breadcrumbs.Part>
               <Breadcrumbs.Part
                 href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
+                  workspaceSlug,
                 )}/pipelines`}
               >
                 {t("Pipelines")}
               </Breadcrumbs.Part>
               <Breadcrumbs.Part
                 href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
+                  workspaceSlug,
                 )}/pipelines/${encodeURIComponent(run.pipeline.code)}`}
               >
                 {run.pipeline.name}
               </Breadcrumbs.Part>
               <Breadcrumbs.Part
                 href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
+                  workspaceSlug,
                 )}/pipelines/${encodeURIComponent(run.pipeline.code)}/runs`}
               >
                 {t("Runs")}
@@ -176,7 +177,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                   pathname:
                     "/workspaces/[workspaceSlug]/pipelines/[pipelineCode]/runs/[runId]",
                   query: {
-                    workspaceSlug: workspace.slug,
+                    workspaceSlug: workspaceSlug,
                     pipelineCode: run.pipeline.code,
                     runId: run.id,
                   },
@@ -266,7 +267,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                 <DescriptionList.Item label={t("Pipeline")}>
                   <Link
                     href={`/workspaces/${encodeURIComponent(
-                      workspace.slug,
+                      workspaceSlug,
                     )}/pipelines/${encodeURIComponent(run.pipeline.code)}`}
                   >
                     {run.pipeline.name}
