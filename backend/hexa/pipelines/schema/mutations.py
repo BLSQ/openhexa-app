@@ -32,6 +32,7 @@ from hexa.pipelines.models import (
     PipelineType,
     PipelineVersion,
 )
+from hexa.tags.models import Tag
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -98,6 +99,20 @@ def resolve_update_pipeline(_, info, **kwargs):
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
             id=input.pop("id")
         )
+
+        if "tags" in input:
+            tag_ids = input["tags"]
+            if tag_ids:
+                existing_tags = Tag.objects.filter(id__in=tag_ids)
+                if existing_tags.count() != len(tag_ids):
+                    return {
+                        "success": False,
+                        "errors": ["INVALID_CONFIG"],
+                    }
+                input["tags"] = existing_tags
+            else:
+                input["tags"] = []
+
         pipeline.update_if_has_perm(request.user, **input)
         return {"pipeline": pipeline, "success": True, "errors": []}
     except PermissionDenied:
