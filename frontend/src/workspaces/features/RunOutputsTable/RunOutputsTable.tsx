@@ -184,6 +184,9 @@ RunOutputsTable.fragments = {
         dataset {
           slug
           name
+          workspace {
+            slug
+          }
         }
       }
     }
