@@ -170,6 +170,9 @@ export const getUrl = (item: Item, currentWorkspaceSlug?: string): Url => {
       query: object.type === FileType.File ? { q: object.name } : {},
     };
   }
+  if (item.__typename === "DatasetResult") {
+    return `/workspaces/${encodeURIComponent(workspaceSlug)}/${getUrlName(item.__typename)}/${getUrlId(item)}/from/${encodeURIComponent(item.dataset.workspace?.slug ?? workspaceSlug)}`;
+  }
   return `/workspaces/${encodeURIComponent(workspaceSlug)}/${getUrlName(item.__typename)}/${getUrlId(item)}`;
 };
 
