@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.4](https://github.com/BLSQ/openhexa-app/compare/2.3.3...2.3.4) (2025-09-15)
+
+
+### Bug Fixes
+
+* viewing certain succeeded pipeline runs result in 500 errors (HEXA-1368) ([#1366](https://github.com/BLSQ/openhexa-app/issues/1366)) ([ed59dad](https://github.com/BLSQ/openhexa-app/commit/ed59dad40836bd893f52653fec850c88eaa76ae4))
+
 ## [2.3.3](https://github.com/BLSQ/openhexa-app/compare/2.3.2...2.3.3) (2025-09-15)
 
 
