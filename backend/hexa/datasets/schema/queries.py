@@ -2,6 +2,7 @@ from ariadne import QueryType
 
 from hexa.core.graphql import result_page
 
+from ...workspaces.models import Workspace
 from ..models import (
     Dataset,
     DatasetLink,
@@ -64,17 +65,44 @@ def resolve_dataset_link(_, info, **kwargs):
 @datasets_queries.field("datasetLinkBySlug")
 def resolve_dataset_link_by_slug(_, info, **kwargs):
     request = info.context["request"]
-    try:
-        return (
-            DatasetLink.objects.filter_for_user(request.user)
-            .distinct("dataset_id")
-            .get(
-                dataset__slug=kwargs["dataset_slug"],
-                dataset__workspace__slug=kwargs["workspace_slug"],
-            )
-        )
-    except DatasetLink.DoesNotExist:
+    user_links = DatasetLink.objects.filter_for_user(request.user)
+    dataset_slug = kwargs["dataset_slug"]
+    workspace_slug = kwargs["workspace_slug"]
+
+    # First: dataset link in the specific workspace
+    result = user_links.filter(
+        dataset__slug=dataset_slug,
+        dataset__workspace__slug=workspace_slug,
+        workspace__slug=workspace_slug,
+    ).first()
+    if result:
+        return result
+
+    # Second: dataset shared to the specified workspace
+    result = user_links.filter(
+        dataset__slug=dataset_slug,
+        workspace__slug=workspace_slug,
+    ).first()
+    if result:
+        return result
+
+    # Third: organization shared datasets - ensure workspace is in same org as dataset
+    workspace = (
+        Workspace.objects.filter_for_user(request.user)
+        .filter(slug=workspace_slug)
+        .first()
+    )
+    if not workspace or not workspace.organization:
         return None
+    result = user_links.filter(
+        dataset__slug=dataset_slug,
+        dataset__shared_with_organization=True,
+        dataset__workspace__organization=workspace.organization,
+    ).first()
+    if result:
+        return result
+
+    return None
 
 
 bindables = [datasets_queries]

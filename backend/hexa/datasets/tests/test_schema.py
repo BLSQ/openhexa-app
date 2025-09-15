@@ -20,7 +20,13 @@ from hexa.workspaces.models import (
 )
 
 from ...metadata.models import MetadataAttribute
-from ..models import Dataset, DatasetFileSample, DatasetVersion, DatasetVersionFile
+from ..models import (
+    Dataset,
+    DatasetFileSample,
+    DatasetLink,
+    DatasetVersion,
+    DatasetVersionFile,
+)
 from .testutils import DatasetTestMixin
 
 
@@ -962,4 +968,298 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
                 "sharedWithOrganization": True,
             },
             r["data"]["dataset"],
+        )
+
+
+class DatasetLinkBySlugTest(GraphQLTestCase, DatasetTestMixin):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        cls.organization = Organization.objects.create(
+            name="Test Org",
+            short_name="test-org",
+            organization_type="CORPORATE",
+        )
+        cls.unrelated_organization = Organization.objects.create(
+            name="Test Unrelated Org",
+            short_name="test-unrelated-org",
+            organization_type="CORPORATE",
+        )
+
+        cls.org_admin = User.objects.create_user("admin@test.org", "password")
+        cls.org_member = User.objects.create_user("member@test.org", "password")
+        cls.external_user = User.objects.create_user("external@test.org", "password")
+
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_admin,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_member,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.unrelated_organization,
+            user=cls.org_member,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
+        cls.source_workspace = Workspace.objects.create_if_has_perm(
+            principal=cls.org_admin,
+            name="Source Workspace",
+            description="Source workspace",
+            organization=cls.organization,
+        )
+
+        cls.target_workspace = Workspace.objects.create_if_has_perm(
+            principal=cls.org_admin,
+            name="Target Workspace",
+            description="Target workspace",
+            organization=cls.organization,
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=cls.target_workspace,
+            user=cls.org_member,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        cls.dataset = Dataset.objects.create_if_has_perm(
+            cls.org_admin,
+            cls.source_workspace,
+            name="Test Dataset",
+            description="Test dataset",
+        )
+
+    def test_dataset_link_by_slug_direct_workspace_access(self):
+        WorkspaceMembership.objects.create(
+            workspace=self.source_workspace,
+            user=self.org_member,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        self.client.force_login(self.org_member)
+        r = self.run_query(
+            """
+            query DatasetLinkBySlug($datasetSlug: String!, $workspaceSlug: String!) {
+                datasetLinkBySlug(datasetSlug: $datasetSlug, workspaceSlug: $workspaceSlug) {
+                    id
+                    dataset {
+                        name
+                        slug
+                    }
+                    workspace {
+                        slug
+                    }
+                }
+            }
+            """,
+            {
+                "datasetSlug": self.dataset.slug,
+                "workspaceSlug": self.source_workspace.slug,
+            },
+        )
+
+        dataset_link = DatasetLink.objects.get(
+            dataset=self.dataset, workspace=self.source_workspace
+        )
+
+        self.assertEqual(
+            {
+                "datasetLinkBySlug": {
+                    "id": str(dataset_link.id),
+                    "dataset": {
+                        "name": "Test Dataset",
+                        "slug": self.dataset.slug,
+                    },
+                    "workspace": {
+                        "slug": self.source_workspace.slug,
+                    },
+                }
+            },
+            r["data"],
+        )
+
+    def test_dataset_link_by_slug_shared_to_workspace(self):
+        self.dataset.link(principal=self.org_admin, workspace=self.target_workspace)
+
+        self.client.force_login(self.org_member)
+        r = self.run_query(
+            """
+            query DatasetLinkBySlug($datasetSlug: String!, $workspaceSlug: String!) {
+                datasetLinkBySlug(datasetSlug: $datasetSlug, workspaceSlug: $workspaceSlug) {
+                    id
+                    dataset {
+                        name
+                        slug
+                    }
+                    workspace {
+                        slug
+                    }
+                }
+            }
+            """,
+            {
+                "datasetSlug": self.dataset.slug,
+                "workspaceSlug": self.target_workspace.slug,
+            },
+        )
+
+        dataset_link = DatasetLink.objects.get(
+            dataset=self.dataset, workspace=self.target_workspace
+        )
+
+        self.assertEqual(
+            {
+                "datasetLinkBySlug": {
+                    "id": str(dataset_link.id),
+                    "dataset": {
+                        "name": "Test Dataset",
+                        "slug": self.dataset.slug,
+                    },
+                    "workspace": {
+                        "slug": self.target_workspace.slug,
+                    },
+                }
+            },
+            r["data"],
+        )
+
+    def test_dataset_link_by_slug_organization_shared(self):
+        self.dataset.shared_with_organization = True
+        self.dataset.save()
+
+        self.client.force_login(self.org_member)
+        r = self.run_query(
+            """
+            query DatasetLinkBySlug($datasetSlug: String!, $workspaceSlug: String!) {
+                datasetLinkBySlug(datasetSlug: $datasetSlug, workspaceSlug: $workspaceSlug) {
+                    id
+                    dataset {
+                        name
+                        slug
+                        sharedWithOrganization
+                    }
+                }
+            }
+            """,
+            {
+                "datasetSlug": self.dataset.slug,
+                "workspaceSlug": self.target_workspace.slug,
+            },
+        )
+
+        dataset_link = DatasetLink.objects.get(
+            dataset=self.dataset, workspace=self.source_workspace
+        )
+
+        self.assertEqual(
+            {
+                "datasetLinkBySlug": {
+                    "id": str(dataset_link.id),
+                    "dataset": {
+                        "name": "Test Dataset",
+                        "slug": self.dataset.slug,
+                        "sharedWithOrganization": True,
+                    },
+                }
+            },
+            r["data"],
+        )
+
+    def test_dataset_link_by_slug_unrelated_organization_not_shared(self):
+        self.dataset.shared_with_organization = True
+        self.dataset.workspace.organization = self.unrelated_organization
+
+        self.dataset.workspace.save()
+        self.dataset.save()
+
+        self.client.force_login(self.org_member)
+        r = self.run_query(
+            """
+            query DatasetLinkBySlug($datasetSlug: String!, $workspaceSlug: String!) {
+                datasetLinkBySlug(datasetSlug: $datasetSlug, workspaceSlug: $workspaceSlug) {
+                    id
+                    dataset {
+                        name
+                        slug
+                        sharedWithOrganization
+                    }
+                }
+            }
+            """,
+            {
+                "datasetSlug": self.dataset.slug,
+                "workspaceSlug": self.target_workspace.slug,
+            },
+        )
+
+        self.assertEqual({"datasetLinkBySlug": None}, r["data"])
+
+    def test_dataset_link_by_slug_not_found(self):
+        self.client.force_login(self.external_user)
+        r = self.run_query(
+            """
+            query DatasetLinkBySlug($datasetSlug: String!, $workspaceSlug: String!) {
+                datasetLinkBySlug(datasetSlug: $datasetSlug, workspaceSlug: $workspaceSlug) {
+                    id
+                }
+            }
+            """,
+            {
+                "datasetSlug": self.dataset.slug,
+                "workspaceSlug": self.source_workspace.slug,
+            },
+        )
+
+        self.assertEqual({"datasetLinkBySlug": None}, r["data"])
+
+    def test_dataset_link_by_slug_priority_order(self):
+        WorkspaceMembership.objects.create(
+            workspace=self.source_workspace,
+            user=self.org_member,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        self.dataset.link(principal=self.org_admin, workspace=self.target_workspace)
+
+        self.dataset.shared_with_organization = True
+        self.dataset.save()
+
+        self.client.force_login(self.org_member)
+
+        r = self.run_query(
+            """
+            query DatasetLinkBySlug($datasetSlug: String!, $workspaceSlug: String!) {
+                datasetLinkBySlug(datasetSlug: $datasetSlug, workspaceSlug: $workspaceSlug) {
+                    id
+                    workspace {
+                        slug
+                    }
+                }
+            }
+            """,
+            {
+                "datasetSlug": self.dataset.slug,
+                "workspaceSlug": self.source_workspace.slug,
+            },
+        )
+
+        source_link = DatasetLink.objects.get(
+            dataset=self.dataset, workspace=self.source_workspace
+        )
+
+        self.assertEqual(
+            {
+                "datasetLinkBySlug": {
+                    "id": str(source_link.id),
+                    "workspace": {
+                        "slug": self.source_workspace.slug,
+                    },
+                }
+            },
+            r["data"],
         )
