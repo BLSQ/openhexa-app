@@ -174,6 +174,7 @@ class CustomUserAdmin(UserAdmin):
 
 class OrganizationMembershipInline(admin.TabularInline):
     fields = ("user", "role")
+    autocomplete_fields = ("user",)
     model = OrganizationMembership
     extra = 0
 
@@ -226,6 +227,7 @@ class FeatureFlagAdmin(admin.ModelAdmin):
 
 @admin.register(OrganizationMembership)
 class OrganizationMembershipAdmin(admin.ModelAdmin):
+    autocomplete_fields = ("user",)
     list_display = (
         "organization",
         "user",

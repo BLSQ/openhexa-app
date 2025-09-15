@@ -23,12 +23,17 @@ class DatasetVersionAdmin(admin.ModelAdmin):
 
 
 @admin.register(DatasetVersionFile)
-class DatasetVersionObjectAdmin(admin.ModelAdmin):
+class DatasetVersionFileAdmin(admin.ModelAdmin):
     list_display = (
         "filename",
         "dataset_version",
     )
     list_filter = ("dataset_version__dataset", "created_by")
+    search_fields = (
+        "id",
+        "uri",
+        "dataset_version__id",
+    )
 
 
 @admin.register(DatasetLink)
