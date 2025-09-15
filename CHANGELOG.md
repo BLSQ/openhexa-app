@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.3.3](https://github.com/BLSQ/openhexa-app/compare/2.3.2...2.3.3) (2025-09-15)
+
+
+### Bug Fixes
+
+* dataset link by slug should have a fallback to any of the dataset with the slug shared with the workspace (HEXA-1367) ([#1363](https://github.com/BLSQ/openhexa-app/issues/1363)) ([0d455ff](https://github.com/BLSQ/openhexa-app/commit/0d455ff3876cdbbc09827b5ef02b568bad1d1517))
+* url of dataset when searching (PATHWAYS-895) ([#1361](https://github.com/BLSQ/openhexa-app/issues/1361)) ([a6966d6](https://github.com/BLSQ/openhexa-app/commit/a6966d6f0219937c77a972c0ba3dfe79433303c4))
+* Viewing certain succeeded pipeline runs result in 500 errors (HEXA-1368) ([#1365](https://github.com/BLSQ/openhexa-app/issues/1365)) ([f8eb140](https://github.com/BLSQ/openhexa-app/commit/f8eb14078042959ef0bb7519b6a2b7685ffd454c))
+
 ## [2.3.2](https://github.com/BLSQ/openhexa-app/compare/2.3.1...2.3.2) (2025-09-11)
 
 
