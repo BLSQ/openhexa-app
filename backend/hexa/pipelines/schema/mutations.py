@@ -101,15 +101,26 @@ def resolve_update_pipeline(_, info, **kwargs):
         )
 
         if "tags" in input:
-            tag_ids = input["tags"]
-            if tag_ids:
-                existing_tags = Tag.objects.filter(id__in=tag_ids)
-                if existing_tags.count() != len(tag_ids):
-                    return {
-                        "success": False,
-                        "errors": ["INVALID_CONFIG"],
-                    }
-                input["tags"] = existing_tags
+            tag_data = input["tags"]
+            if tag_data:
+                # Handle both tag IDs (existing) and tag names (to be created)
+                tags = []
+                for tag_item in tag_data:
+                    if isinstance(tag_item, str):
+                        # Assume it's a tag name, get or create the tag
+                        tag, created = Tag.objects.get_or_create(name=tag_item)
+                        tags.append(tag)
+                    else:
+                        # Assume it's a tag ID, get existing tag
+                        try:
+                            tag = Tag.objects.get(id=tag_item)
+                            tags.append(tag)
+                        except Tag.DoesNotExist:
+                            return {
+                                "success": False,
+                                "errors": ["INVALID_CONFIG"],
+                            }
+                input["tags"] = tags
             else:
                 input["tags"] = []
 

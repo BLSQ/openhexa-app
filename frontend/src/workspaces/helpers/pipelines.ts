@@ -17,6 +17,7 @@ import {
   UpdateWorkspacePipelineMutation,
   UpdateWorkspacePipelineMutationVariables,
 } from "./pipelines.generated";
+import Tag from "core/features/Tag";
 
 export async function updatePipeline(
   pipelineId: string,
@@ -42,6 +43,9 @@ export async function updatePipeline(
             webhookEnabled
             webhookUrl
             autoUpdateFromTemplate
+            tags {
+              ...Tag_tag
+            }
             recipients {
               user {
                 id
@@ -51,6 +55,7 @@ export async function updatePipeline(
           }
         }
       }
+      ${Tag.fragments.tag}
     `,
     variables: { input: { id: pipelineId, ...values } },
   });

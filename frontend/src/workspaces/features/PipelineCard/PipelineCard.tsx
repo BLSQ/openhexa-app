@@ -7,6 +7,7 @@ import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import { formatPipelineType } from "workspaces/helpers/pipelines";
+import Tag from "core/features/Tag";
 import {
   PipelineCard_PipelineFragment,
   PipelineCard_WorkspaceFragment,
@@ -45,6 +46,13 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
         <div className="line-clamp-3">
           {stripMarkdown(pipeline.description ?? "")}
         </div>
+        {pipeline.tags && pipeline.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {pipeline.tags.map((tag) => (
+              <Tag key={tag.id} tag={tag} className="text-xs" />
+            ))}
+          </div>
+        )}
         {pipeline.currentVersion?.user && (
           <div className="flex justify-end">
             <Tooltip
@@ -73,6 +81,9 @@ PipelineCard.fragments = {
       schedule
       description
       type
+      tags {
+        ...Tag_tag
+      }
       currentVersion {
         user {
           ...User_user
@@ -87,6 +98,7 @@ PipelineCard.fragments = {
       }
     }
     ${PipelineRunStatusBadge.fragments.pipelineRun}
+    ${Tag.fragments.tag}
   `,
   workspace: gql`
     fragment PipelineCard_workspace on Workspace {
