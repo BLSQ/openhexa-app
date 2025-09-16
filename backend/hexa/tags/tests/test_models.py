@@ -64,17 +64,12 @@ class TagModelTest(TestCase):
     def test_unique_constraint(self):
         """Test that duplicate tag names are not allowed."""
         Tag.objects.create(name="unique-tag")
-
-        # Second attempt should raise ValidationError during save
         with self.assertRaises(ValidationError):
             Tag.objects.create(name="unique-tag")
 
     def test_case_sensitivity_in_uniqueness(self):
         """Test that uniqueness is case-sensitive at database level."""
         Tag.objects.create(name="test-tag")
-
-        # This should succeed since validation prevents uppercase
-        # but database allows it (case-sensitive unique constraint)
         tag_upper = Tag(name="TEST-TAG")
         with self.assertRaises(ValidationError):
             tag_upper.full_clean()
@@ -118,14 +113,11 @@ class TagModelTest(TestCase):
 
     def test_database_constraints(self):
         """Test that database constraints are enforced."""
-        # Test empty name constraint - should fail at validation level
         with self.assertRaises(ValidationError):
             Tag.objects.create(name="")
 
-        # Test leading hyphen constraint - should fail at validation level
         with self.assertRaises(ValidationError):
             Tag.objects.create(name="-invalid")
 
-        # Test trailing hyphen constraint - should fail at validation level
         with self.assertRaises(ValidationError):
             Tag.objects.create(name="invalid-")
