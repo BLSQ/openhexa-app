@@ -10,6 +10,8 @@ from hexa.user_management.models import (
 )
 from hexa.workspaces.models import (
     Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
 )
 
 User = get_user_model()
@@ -23,7 +25,8 @@ class PipelineTagMutationTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_ADMIN = User.objects.create_user("admin@openhexa.org", "password")
-        cls.USER_MEMBER = User.objects.create_user("viewer@openhexa.org", "password")
+        cls.USER_MEMBER = User.objects.create_user("member@openhexa.org", "password")
+        cls.USER_VIEWER = User.objects.create_user("viewer@openhexa.org", "password")
 
         cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
@@ -48,6 +51,24 @@ class PipelineTagMutationTest(GraphQLTestCase):
             organization=cls.ORGANIZATION,
             user=cls.USER_MEMBER,
             role=OrganizationMembershipRole.MEMBER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_VIEWER,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
+        WorkspaceMembership.objects.create_if_has_perm(
+            principal=cls.USER_ADMIN,
+            workspace=cls.WORKSPACE,
+            user=cls.USER_MEMBER,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+        WorkspaceMembership.objects.create_if_has_perm(
+            principal=cls.USER_ADMIN,
+            workspace=cls.WORKSPACE,
+            user=cls.USER_VIEWER,
+            role=WorkspaceMembershipRole.VIEWER,
         )
         cls.PIPELINE = Pipeline.objects.create(
             workspace=cls.WORKSPACE,
@@ -109,7 +130,6 @@ class PipelineTagMutationTest(GraphQLTestCase):
             """,
             {"input": {"id": str(self.PIPELINE.id), "tags": ["ml-pipeline"]}},
         )
-        print(r)
         self.assertEqual(r["data"]["updatePipeline"]["success"], True)
         self.assertEqual(r["data"]["updatePipeline"]["errors"], [])
 
@@ -119,7 +139,7 @@ class PipelineTagMutationTest(GraphQLTestCase):
         self.assertIn("ml-pipeline", tag_names)
 
     def test_viewer_cannot_add_tags(self):
-        self.client.force_login(self.USER_MEMBER)
+        self.client.force_login(self.USER_VIEWER)
 
         r = self.run_query(
             """
@@ -155,11 +175,8 @@ class PipelineTagMutationTest(GraphQLTestCase):
                     """,
                     {"input": {"id": str(self.PIPELINE.id), "tags": [invalid_tag]}},
                 )
-                if r is not None and "data" in r:
-                    self.assertEqual(r["data"]["updatePipeline"]["success"], False)
-                    self.assertIn(
-                        "INVALID_TAG_NAME", r["data"]["updatePipeline"]["errors"]
-                    )
+                self.assertEqual(r["data"]["updatePipeline"]["success"], False)
+                self.assertIn("INVALID_CONFIG", r["data"]["updatePipeline"]["errors"])
 
     def test_duplicate_tags_handled_gracefully(self):
         existing_tag = Tag.objects.create(name="existing-tag")
@@ -283,6 +300,5 @@ class PipelineTagMutationTest(GraphQLTestCase):
             """,
             {"input": {"id": str(self.PIPELINE.id), "tags": ["LOWERCASE-TAG"]}},
         )
-
         self.assertEqual(r["data"]["updatePipeline"]["success"], False)
-        self.assertIn("INVALID_TAG_NAME", r["data"]["updatePipeline"]["errors"])
+        self.assertIn("INVALID_CONFIG", r["data"]["updatePipeline"]["errors"])

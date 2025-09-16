@@ -6,7 +6,7 @@ from zipfile import ZipFile
 
 from ariadne import MutationType
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest
 from openhexa.sdk.pipelines.exceptions import PipelineNotFound
@@ -107,12 +107,18 @@ def resolve_update_pipeline(_, info, **kwargs):
                 for tag_item in tag_data:
                     if isinstance(tag_item, str):
                         try:
-                            tag, _ = Tag.objects.get_or_create(name=tag_item)
-                            tags.append(tag)
-                        except Exception:
+                            try:
+                                tag = Tag.objects.get(name=tag_item)
+                                tags.append(tag)
+                            except Tag.DoesNotExist:
+                                tag = Tag(name=tag_item)
+                                tag.full_clean()
+                                tag.save()
+                                tags.append(tag)
+                        except (ValueError, IntegrityError, ValidationError, Exception):
                             return {
                                 "success": False,
-                                "errors": ["INVALID_TAG_NAME"],
+                                "errors": ["INVALID_CONFIG"],
                             }
                     else:
                         try:
