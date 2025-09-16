@@ -5,4 +5,32 @@ from .models import Tag
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ("name",)
+    list_display = ("name", "display_name", "created_at", "updated_at")
+    list_filter = ("created_at", "updated_at")
+    search_fields = ("name",)
+    readonly_fields = ("id", "created_at", "updated_at")
+    ordering = ("name",)
+
+    fieldsets = (
+        (None, {"fields": ("name",)}),
+        (
+            "Display",
+            {
+                "fields": ("display_name",),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Metadata",
+            {
+                "fields": ("id", "created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly = list(self.readonly_fields)
+        if obj:
+            readonly.append("display_name")
+        return readonly

@@ -8,6 +8,34 @@ import { PropertyDefinition } from "./types";
 import Button from "../Button";
 import Field from "../forms/Field";
 
+/**
+ * Normalize tag name according to backend Tag model requirements.
+ * Converts input to lowercase, replaces spaces/underscores with hyphens,
+ * removes invalid characters, and cleans up multiple hyphens.
+ */
+const normalizeTagName = (input: string): string => {
+  if (!input || typeof input !== "string") {
+    return "";
+  }
+
+  let normalized = input.toLowerCase().trim();
+
+  // Replace spaces and underscores with hyphens
+  normalized = normalized.replace(/[\s_]+/g, '-');
+  // Remove any characters that aren't alphanumeric or hyphens
+  normalized = normalized.replace(/[^a-z0-9-]/g, '');
+  // Remove multiple consecutive hyphens
+  normalized = normalized.replace(/-+/g, '-');
+  // Remove leading/trailing hyphens
+  normalized = normalized.replace(/^-|-$/g, '');
+
+  return normalized;
+};
+
+const isValidTagName = (name: string): boolean => {
+  return name.length >= 2 && /^[a-z0-9-]+$/.test(name);
+};
+
 type EditableTagPropertyProps = PropertyDefinition;
 
 const EditableTagProperty = (props: EditableTagPropertyProps) => {
@@ -18,15 +46,19 @@ const EditableTagProperty = (props: EditableTagPropertyProps) => {
   const addTag = () => {
     if (!newTagName.trim()) return;
 
+    const normalizedTagName = normalizeTagName(newTagName);
+
+    if (!isValidTagName(normalizedTagName)) return;
+
     const existingTag = property.formValue?.find(tag =>
-      tag.name.toLowerCase() === newTagName.trim().toLowerCase()
+      tag.name.toLowerCase() === normalizedTagName.toLowerCase()
     );
 
     if (existingTag) return;
 
     const newTag: Tag_TagFragment = {
-      id: newTagName.trim(),
-      name: newTagName.trim(),
+      id: normalizedTagName,
+      name: normalizedTagName,
     };
 
     const currentTags = property.formValue || [];
@@ -44,6 +76,12 @@ const EditableTagProperty = (props: EditableTagPropertyProps) => {
       e.preventDefault();
       addTag();
     }
+  };
+
+  const isAddButtonDisabled = () => {
+    if (!newTagName.trim()) return true;
+    const normalizedTagName = normalizeTagName(newTagName);
+    return !isValidTagName(normalizedTagName);
   };
 
   const displayTags = section.isEdited ? property.formValue : property.displayValue;
@@ -84,9 +122,8 @@ const EditableTagProperty = (props: EditableTagPropertyProps) => {
             <Button
               type="button"
               variant="outlined"
-              size="sm"
               onClick={addTag}
-              disabled={!newTagName.trim()}
+              disabled={isAddButtonDisabled()}
               leadingIcon={<PlusIcon className="h-4 w-4" />}
               className="border border-gray-300 hover:border-gray-400 shrink-0"
             >

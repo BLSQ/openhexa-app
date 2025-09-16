@@ -106,8 +106,14 @@ def resolve_update_pipeline(_, info, **kwargs):
                 tags = []
                 for tag_item in tag_data:
                     if isinstance(tag_item, str):
-                        tag, created = Tag.objects.get_or_create(name=tag_item)
-                        tags.append(tag)
+                        try:
+                            tag, _ = Tag.objects.get_or_create(name=tag_item)
+                            tags.append(tag)
+                        except Exception:
+                            return {
+                                "success": False,
+                                "errors": ["INVALID_TAG_NAME"],
+                            }
                     else:
                         try:
                             tag = Tag.objects.get(id=tag_item)
