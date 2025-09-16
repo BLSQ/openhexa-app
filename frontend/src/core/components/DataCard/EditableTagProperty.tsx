@@ -22,10 +22,10 @@ const EditableTagProperty = (props: EditableTagPropertyProps) => {
       tag.name.toLowerCase() === newTagName.trim().toLowerCase()
     );
 
-    if (existingTag) return; // Don't add duplicate tags
+    if (existingTag) return;
 
     const newTag: Tag_TagFragment = {
-      id: newTagName.trim(), // Use the name as ID temporarily - backend will handle creation
+      id: newTagName.trim(),
       name: newTagName.trim(),
     };
 
@@ -51,7 +51,6 @@ const EditableTagProperty = (props: EditableTagPropertyProps) => {
   return (
     <DataCard.Property property={property}>
       <div className="space-y-3">
-        {/* Display current tags */}
         {displayTags && displayTags.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5">
             {displayTags.map((tag) => (
@@ -72,7 +71,6 @@ const EditableTagProperty = (props: EditableTagPropertyProps) => {
           </div>
         )}
 
-        {/* Add new tag input when editing */}
         {section.isEdited && (
           <div className="flex items-center gap-3 flex-wrap">
             <Field

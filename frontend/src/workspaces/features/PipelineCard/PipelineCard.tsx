@@ -1,6 +1,7 @@
 import { gql } from "@apollo/client";
 import Card from "core/components/Card";
 import Tooltip from "core/components/Tooltip";
+import Badge from "core/components/Badge";
 import { stripMarkdown } from "core/helpers";
 import UserAvatar from "identity/features/UserAvatar";
 import { DateTime } from "luxon";
@@ -26,35 +27,54 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
         pathname: `/workspaces/[workspaceSlug]/pipelines/[pipelineCode]`,
         query: { workspaceSlug: workspace.slug, pipelineCode: pipeline.code },
       }}
-      title={
-        <div className="flex justify-between">
-          <span className="max-w-[80%]">{pipeline.name}</span>
-          <div>
-            {pipeline.lastRuns.items[0] && (
-              <PipelineRunStatusBadge run={pipeline.lastRuns.items[0]} />
-            )}
-          </div>
-        </div>
-      }
+      title={pipeline.name}
       subtitle={
-        <div className="flex justify-between">
-          {formatPipelineType(pipeline.type)}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Badge className="bg-gray-50 ring-gray-500/20">
+              {formatPipelineType(pipeline.type)}
+            </Badge>
+            <span className="text-sm text-gray-500">•</span>
+            <span className="text-sm text-gray-600 font-mono">{pipeline.code}</span>
+          </div>
+          {pipeline.currentVersion?.versionName && (
+            <span className="text-sm text-gray-500">
+              v{pipeline.currentVersion.versionName}
+            </span>
+          )}
         </div>
       }
     >
-      <Card.Content className="space-y-4" title={pipeline.description ?? ""}>
-        <div className="line-clamp-3">
-          {stripMarkdown(pipeline.description ?? "")}
-        </div>
-        {pipeline.tags && pipeline.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {pipeline.tags.map((tag) => (
-              <Tag key={tag.id} tag={tag} className="text-xs" />
-            ))}
+      <Card.Content className="flex flex-col h-full" title={pipeline.description ?? ""}>
+        <div className="space-y-4 flex-1">
+          {pipeline.description && (
+            <div className="line-clamp-3 text-gray-700">
+              {stripMarkdown(pipeline.description)}
+            </div>
+          )}
+
+          <div className="min-h-[24px]">
+            {pipeline.tags && pipeline.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {pipeline.tags.map((tag) => (
+                  <Tag key={tag.id} tag={tag} className="text-xs" />
+                ))}
+              </div>
+            )}
           </div>
-        )}
-        {pipeline.currentVersion?.user && (
-          <div className="flex justify-end">
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">{t("Last run")}:</span>
+            {pipeline.lastRuns.items[0] ? (
+              <PipelineRunStatusBadge run={pipeline.lastRuns.items[0]} />
+            ) : (
+              <span className="text-sm text-gray-400">{t("Not yet run")}</span>
+            )}
+          </div>
+
+          {pipeline.currentVersion?.user && (
             <Tooltip
               label={t("Last version uploaded on {{date}} by {{name}}", {
                 date: DateTime.fromISO(
@@ -63,10 +83,15 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
                 name: pipeline.currentVersion.user.displayName,
               })}
             >
-              <UserAvatar user={pipeline.currentVersion.user} size="sm" />
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">
+                  {DateTime.fromISO(pipeline.currentVersion.createdAt).toRelative()}
+                </span>
+                <UserAvatar user={pipeline.currentVersion.user} size="sm" />
+              </div>
             </Tooltip>
-          </div>
-        )}
+          )}
+        </div>
       </Card.Content>
     </Card>
   );

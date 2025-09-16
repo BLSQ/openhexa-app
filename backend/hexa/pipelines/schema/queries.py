@@ -35,7 +35,6 @@ def resolve_pipelines(_, info, **kwargs):
     else:
         qs = qs.order_by("name", "id")
 
-    # Filter by tags if provided
     tags = kwargs.get("tags", [])
     if tags:
         qs = qs.filter_by_tags(tags)
