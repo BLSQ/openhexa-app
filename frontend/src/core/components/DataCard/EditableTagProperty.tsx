@@ -74,12 +74,12 @@ const EditableTagProperty = (props: EditableTagPropertyProps) => {
         {section.isEdited && (
           <div className="flex items-center gap-3 flex-wrap">
             <Field
+              name="new-tag"
               placeholder="Add a tag..."
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
               onKeyDown={handleKeyDown}
               className="w-48 min-w-0"
-              size="sm"
             />
             <Button
               type="button"

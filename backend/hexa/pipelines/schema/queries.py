@@ -22,7 +22,9 @@ def resolve_pipelines(_, info, **kwargs):
     search = kwargs.get("search", "")
 
     qs = Pipeline.objects.filter_for_user(request.user).filter(
-        Q(name__icontains=search) | Q(description__icontains=search)
+        Q(name__icontains=search)
+        | Q(description__icontains=search)
+        | Q(tags__name__icontains=search)
     )
     if kwargs.get("workspace_slug", None):
         try:
