@@ -20,7 +20,6 @@ import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 import { FileType } from "graphql/types";
 import useNavigationWarning from "core/hooks/useNavigationWarning";
 
-
 const buildTreeFromFlatData = (
   flatNodes: FilesEditor_FileFragment[],
 ): FileNode[] => {
@@ -143,11 +142,14 @@ interface FilesEditorProps {
   name: string;
   files: FilesEditor_FileFragment[];
   isEditable?: boolean;
-  onSave?: (modifiedFiles: Map<string, string>, allFiles: FilesEditor_FileFragment[]) => Promise<SaveResult>;
+  onSave?: (
+    modifiedFiles: Map<string, string>,
+    allFiles: FilesEditor_FileFragment[],
+  ) => Promise<SaveResult>;
 }
-export const FilesEditor = ({ 
-  name, 
-  files: flatFiles, 
+export const FilesEditor = ({
+  name,
+  files: flatFiles,
   isEditable = false,
   onSave,
 }: FilesEditorProps) => {
@@ -163,10 +165,14 @@ export const FilesEditor = ({
     files.filter((file) => file.autoSelect)[0] || null,
   );
 
-  const [isPanelOpen, setIsPanelOpen] = useState(getDefaultFilesEditorPanelOpen());
+  const [isPanelOpen, setIsPanelOpen] = useState(
+    getDefaultFilesEditorPanelOpen(),
+  );
   const [isClient, setIsClient] = useState(false);
-  
-  const [modifiedFiles, setModifiedFiles] = useState<Map<string, string>>(new Map());
+
+  const [modifiedFiles, setModifiedFiles] = useState<Map<string, string>>(
+    new Map(),
+  );
   const [currentFileContent, setCurrentFileContent] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -194,11 +200,11 @@ export const FilesEditor = ({
   const handleContentChange = (content: string) => {
     if (selectedFile && isEditable) {
       setCurrentFileContent(content);
-      
+
       if (content !== (selectedFile.content || "")) {
-        setModifiedFiles(prev => new Map(prev).set(selectedFile.id, content));
+        setModifiedFiles((prev) => new Map(prev).set(selectedFile.id, content));
       } else {
-        setModifiedFiles(prev => {
+        setModifiedFiles((prev) => {
           const newMap = new Map(prev);
           newMap.delete(selectedFile.id);
           return newMap;
@@ -207,16 +213,16 @@ export const FilesEditor = ({
     }
   };
 
-
   const handleSave = async () => {
-    if (!selectedFile || !isEditable || !onSave || modifiedFiles.size === 0) return;
-    
+    if (!selectedFile || !isEditable || !onSave || modifiedFiles.size === 0)
+      return;
+
     setIsSaving(true);
     setSaveError(null);
-    
+
     try {
       const result = await onSave(modifiedFiles, flatFiles);
-      
+
       if (result.success) {
         setModifiedFiles(new Map());
       } else {
@@ -230,7 +236,9 @@ export const FilesEditor = ({
     }
   };
 
-  const currentFileIsModified = selectedFile ? modifiedFiles.has(selectedFile.id) : false;
+  const currentFileIsModified = selectedFile
+    ? modifiedFiles.has(selectedFile.id)
+    : false;
 
   const numberOfFiles = files.filter(
     (file) => file.type === FileType.File,
@@ -292,9 +300,7 @@ export const FilesEditor = ({
         </div>
       )}
 
-      <div 
-        className="flex-1 flex flex-col transition-all duration-300 ease-in-out"
-      >
+      <div className="flex-1 flex flex-col transition-all duration-300 ease-in-out">
         {selectedFile ? (
           <>
             <div className="p-3 border-b border-gray-200 bg-white flex items-center justify-between">
@@ -302,7 +308,10 @@ export const FilesEditor = ({
                 <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
                   {selectedFile.name}
                   {currentFileIsModified && (
-                    <span className="inline-block w-2 h-2 bg-blue-500 rounded-full" title={t("Modified")} />
+                    <span
+                      className="inline-block w-2 h-2 bg-blue-500 rounded-full"
+                      title={t("Modified")}
+                    />
                   )}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
@@ -311,12 +320,15 @@ export const FilesEditor = ({
                   {selectedFile.lineCount}
                   {` ${(selectedFile.lineCount ?? 0) > 1 ? t("lines") : t("line")}`}
                   {currentFileIsModified && ` • ${t("Modified")}`}
+                  {saveError && (
+                    <>
+                      {" • "}
+                      <span className="text-xs text-red-600 mt-1">
+                        {`${t("Save error")}: ${saveError}`}
+                      </span>
+                    </>
+                  )}
                 </div>
-                {saveError && (
-                  <div className="text-xs text-red-600 mt-1">
-                    {t("Save error")}: {saveError}
-                  </div>
-                )}
               </div>
               {isEditable && currentFileIsModified && onSave && (
                 <button
@@ -326,7 +338,7 @@ export const FilesEditor = ({
                     "px-3 py-1 text-xs font-medium rounded-md transition-colors",
                     isSaving
                       ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-blue-600 text-white hover:bg-blue-700",
                   )}
                 >
                   {isSaving ? t("Saving...") : t("Save")}
@@ -390,7 +402,10 @@ FilesEditor.prefetch = async (
   ctx: GetServerSidePropsContext,
   _client: CustomApolloClient,
 ) => {
-  cookieFilesEditorPanelOpenState = (await hasCookie("files-editor-panel-open", ctx))
+  cookieFilesEditorPanelOpenState = (await hasCookie(
+    "files-editor-panel-open",
+    ctx,
+  ))
     ? (await getCookie("files-editor-panel-open", ctx)) === "true"
     : true;
 };
