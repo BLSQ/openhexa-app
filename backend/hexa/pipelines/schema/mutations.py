@@ -7,7 +7,7 @@ from zipfile import ZipFile
 from ariadne import MutationType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 from openhexa.sdk.pipelines.exceptions import PipelineNotFound
 from openhexa.sdk.pipelines.runtime import get_pipeline
@@ -90,6 +90,47 @@ def resolve_create_pipeline(_, info, **kwargs):
     return {"pipeline": pipeline, "success": True, "errors": []}
 
 
+def _validate_and_get_tags(tag_data):
+    tags = []
+
+    if not tag_data:
+        return [], False
+
+    try:
+        with transaction.atomic():
+            for item in tag_data:
+                if isinstance(item, str):
+                    name = item.strip()
+                    if not name:
+                        return [], True
+
+                    try:
+                        tag = Tag.objects.get(name=name)
+                        tags.append(tag)
+                    except Tag.DoesNotExist:
+                        try:
+                            tag = Tag(name=name)
+                            tag.full_clean()
+                            tag.save()
+                            tags.append(tag)
+                        except (ValidationError, IntegrityError):
+                            try:
+                                tag = Tag.objects.get(name=name)
+                                tags.append(tag)
+                            except Tag.DoesNotExist:
+                                return [], True
+                else:
+                    try:
+                        tag = Tag.objects.get(pk=item)
+                        tags.append(tag)
+                    except Tag.DoesNotExist:
+                        return [], True
+
+        return tags, False
+    except Exception:
+        return [], True
+
+
 @pipelines_mutations.field("updatePipeline")
 def resolve_update_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -101,37 +142,13 @@ def resolve_update_pipeline(_, info, **kwargs):
         )
 
         if "tags" in input:
-            tag_data = input["tags"]
-            if tag_data:
-                tags = []
-                for tag_item in tag_data:
-                    if isinstance(tag_item, str):
-                        try:
-                            try:
-                                tag = Tag.objects.get(name=tag_item)
-                                tags.append(tag)
-                            except Tag.DoesNotExist:
-                                tag = Tag(name=tag_item)
-                                tag.full_clean()
-                                tag.save()
-                                tags.append(tag)
-                        except (ValueError, IntegrityError, ValidationError, Exception):
-                            return {
-                                "success": False,
-                                "errors": ["INVALID_CONFIG"],
-                            }
-                    else:
-                        try:
-                            tag = Tag.objects.get(id=tag_item)
-                            tags.append(tag)
-                        except Tag.DoesNotExist:
-                            return {
-                                "success": False,
-                                "errors": ["INVALID_CONFIG"],
-                            }
-                input["tags"] = tags
-            else:
-                input["tags"] = []
+            tags, has_error = _validate_and_get_tags(input["tags"])
+            if has_error:
+                return {
+                    "success": False,
+                    "errors": ["INVALID_CONFIG"],
+                }
+            input["tags"] = tags
 
         pipeline.update_if_has_perm(request.user, **input)
         return {"pipeline": pipeline, "success": True, "errors": []}
