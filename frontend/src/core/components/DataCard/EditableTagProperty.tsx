@@ -51,7 +51,7 @@ const EditableTagProperty = (props: EditableTagPropertyProps) => {
     if (!isValidTagName(normalizedTagName)) return;
 
     const existingTag = property.formValue?.find(tag =>
-      tag.name.toLowerCase() === normalizedTagName.toLowerCase()
+      tag.name.toLowerCase() === normalizedTagName
     );
 
     if (existingTag) return;
