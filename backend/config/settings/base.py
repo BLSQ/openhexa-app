@@ -109,6 +109,10 @@ else:
 if "CORS_ALLOWED_ORIGINS" in os.environ:
     CORS_ALLOWED_ORIGINS += os.environ.get("CORS_ALLOWED_ORIGINS").split(",")
 
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https?://.*\.app\.openhexa\.org$",
+]
+
 CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$"
 CORS_ALLOW_CREDENTIALS = True
 
