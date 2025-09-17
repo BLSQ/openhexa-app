@@ -111,7 +111,7 @@ if "CORS_ALLOWED_ORIGINS" in os.environ:
 
 CORS_ALLOWED_ORIGIN_REGEXES = []
 if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
-    CORS_ALLOWED_ORIGIN_REGEXES = os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES").split(
+    CORS_ALLOWED_ORIGIN_REGEXES += os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES").split(
         ","
     )
 
