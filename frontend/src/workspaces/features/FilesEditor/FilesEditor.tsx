@@ -76,9 +76,12 @@ const FileTreeNode = ({
         <DocumentIcon className="w-4 h-4 mr-2 text-gray-400" />
         <span className="flex items-center gap-2">
           {node.name}
-          {isModified && (
-            <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full" />
-          )}
+          <span
+            className={clsx(
+              "inline-block w-1.5 h-1.5 bg-blue-500 rounded-full",
+              isModified ? "visible" : "invisible",
+            )}
+          />
         </span>
       </div>
     );
