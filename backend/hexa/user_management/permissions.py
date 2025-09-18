@@ -55,9 +55,9 @@ def manage_members(principal: User, organization: Organization):
 
 def create_workspace(principal: User, organization: Organization):
     """Only admin and owner users can create a workspace"""
-    return principal.is_organization_admin_or_owner(
+    return (principal.is_organization_admin_or_owner(
         organization
-    ) and not principal.has_feature_flag("workspaces.prevent_create")
+    ) or principal.has_feature_flag("workspaces.create")) and not principal.has_feature_flag("workspaces.prevent_create")
 
 
 def archive_workspace(principal: User, organization: Organization):
