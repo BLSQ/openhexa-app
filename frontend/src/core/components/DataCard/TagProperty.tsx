@@ -39,8 +39,8 @@ const isValidTagName = (name: string): boolean => {
 type TagPropertyProps = PropertyDefinition;
 
 const TagProperty = (props: TagPropertyProps) => {
-  const { defaultValue } = props;
-  const { property, section } = useDataCardProperty<Tag_TagFragment[]>(props);
+  const { defaultValue, ...delegated } = props;
+  const { property, section } = useDataCardProperty<Tag_TagFragment[]>(delegated);
   const [newTagName, setNewTagName] = useState("");
 
   const addTag = () => {

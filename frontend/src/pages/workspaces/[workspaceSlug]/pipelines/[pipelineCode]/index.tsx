@@ -123,6 +123,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             id="tags"
             accessor="tags"
             label={t("Tags")}
+            defaultValue={t("Not set")}
           />
           {pipeline.type === PipelineType.Notebook && (
             <>
