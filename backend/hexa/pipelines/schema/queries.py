@@ -24,6 +24,10 @@ def resolve_pipelines(_, info, **kwargs):
     qs = Pipeline.objects.filter_for_user(request.user).filter(
         Q(name__icontains=search) | Q(description__icontains=search)
     )
+
+    if kwargs.get("functional_type"):
+        qs = qs.filter(functional_type=kwargs.get("functional_type"))
+
     if kwargs.get("workspace_slug", None):
         try:
             ws = Workspace.objects.filter_for_user(request.user).get(

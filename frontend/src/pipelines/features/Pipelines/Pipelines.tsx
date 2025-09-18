@@ -7,12 +7,14 @@ import CardView from "./CardView";
 import useDebounce from "core/hooks/useDebounce";
 import Spinner from "core/components/Spinner";
 import { useWorkspacePipelinesPageQuery } from "workspaces/graphql/queries.generated";
+import { PipelineFunctionalType } from "graphql/types";
 
 type PipelinesProps = {
   workspace: Pipelines_WorkspaceFragment;
   page: number;
   perPage: number;
   search: string;
+  functionalType?: PipelineFunctionalType | null;
 };
 
 const Pipelines = ({
@@ -20,6 +22,7 @@ const Pipelines = ({
   page: initialPage,
   perPage,
   search: initialSearch,
+  functionalType: initialFunctionalType,
 }: PipelinesProps) => {
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const debouncedSearchQuery = useDebounce(searchQuery, 300, () => {
@@ -27,11 +30,15 @@ const Pipelines = ({
   });
   const [view, setView] = useState<"grid" | "card">("grid");
   const [page, setPage] = useState(initialPage);
+  const [functionalType, setFunctionalType] = useState<PipelineFunctionalType | null>(
+    initialFunctionalType || null
+  );
 
   const { data, loading } = useWorkspacePipelinesPageQuery({
     variables: {
       workspaceSlug: workspace.slug,
       search: debouncedSearchQuery,
+      functionalType,
       page,
       perPage,
     },
@@ -57,6 +64,8 @@ const Pipelines = ({
         view={view}
         setView={setView}
         showCard={true}
+        functionalTypeFilter={functionalType}
+        setFunctionalTypeFilter={setFunctionalType}
       />
       <div className="relative">
         {loading && (

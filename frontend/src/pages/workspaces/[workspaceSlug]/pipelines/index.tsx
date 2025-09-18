@@ -9,6 +9,7 @@ import {
   WorkspacePipelinesPageDocument,
   WorkspacePipelinesPageQuery,
 } from "workspaces/graphql/queries.generated";
+import { PipelineFunctionalType } from "graphql/types";
 import { useRouter } from "next/router";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import React, { useState } from "react";
@@ -23,6 +24,7 @@ type Props = {
   page: number;
   perPage: number;
   search: string;
+  functionalType: PipelineFunctionalType | null;
 };
 
 const WorkspacePipelinesPage: NextPageWithLayout = ({
@@ -30,6 +32,7 @@ const WorkspacePipelinesPage: NextPageWithLayout = ({
   page,
   perPage,
   search,
+  functionalType,
 }: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
@@ -104,6 +107,7 @@ const WorkspacePipelinesPage: NextPageWithLayout = ({
                 page={page}
                 perPage={perPage}
                 search={search}
+                functionalType={functionalType}
               />
             </Tabs.Tab>
             <Tabs.Tab
@@ -135,6 +139,7 @@ export const getServerSideProps = createGetServerSideProps({
       : 1;
     const perPage = 15;
     const search = (ctx.query.search as string) ?? "";
+    const functionalType = (ctx.query.functionalType as PipelineFunctionalType) || null;
 
     await WorkspaceLayout.prefetch(ctx, client);
 
@@ -145,6 +150,7 @@ export const getServerSideProps = createGetServerSideProps({
         page,
         perPage,
         search,
+        functionalType,
       },
     });
 
@@ -159,6 +165,7 @@ export const getServerSideProps = createGetServerSideProps({
         page,
         perPage,
         search,
+        functionalType,
       },
     };
   },

@@ -5,6 +5,7 @@ import Clipboard from "core/components/Clipboard";
 import DataCard from "core/components/DataCard";
 import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 import RenderProperty from "core/components/DataCard/RenderProperty";
+import SelectProperty from "core/components/DataCard/SelectProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
@@ -13,7 +14,7 @@ import Tooltip from "core/components/Tooltip";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useCacheKey from "core/hooks/useCacheKey";
-import { PipelineType } from "graphql/types";
+import { PipelineType, PipelineFunctionalType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import PipelineVersionParametersTable from "pipelines/features/PipelineVersionParametersTable";
 import UpgradePipelineFromTemplateDialog from "pipelines/features/UpgradePipelineFromTemplateDialog";
@@ -28,6 +29,7 @@ import {
 } from "workspaces/graphql/queries.generated";
 import {
   formatPipelineType,
+  formatPipelineFunctionalType,
   updatePipeline,
 } from "workspaces/helpers/pipelines";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
@@ -66,6 +68,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
     await updatePipeline(pipeline.id, {
       name: values.name,
       description: values.description,
+      functionalType: values.functionalType,
     });
   };
 
@@ -117,6 +120,16 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               </Badge>
             )}
           </RenderProperty>
+          <SelectProperty
+            id="functionalType"
+            accessor="functionalType"
+            label={t("Functional Type")}
+            help={t("The functional purpose of this pipeline")}
+            options={Object.values(PipelineFunctionalType)}
+            getOptionLabel={(option) => option ? formatPipelineFunctionalType(option) : t("Not set")}
+            nullable
+            defaultValue={t("Not set")}
+          />
           {pipeline.type === PipelineType.Notebook && (
             <>
               <RenderProperty

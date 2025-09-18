@@ -6,7 +6,7 @@ import UserAvatar from "identity/features/UserAvatar";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
-import { formatPipelineType } from "workspaces/helpers/pipelines";
+import { formatPipelineType, formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 import {
   PipelineCard_PipelineFragment,
   PipelineCard_WorkspaceFragment,
@@ -37,7 +37,14 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
       }
       subtitle={
         <div className="flex justify-between">
-          {formatPipelineType(pipeline.type)}
+          <div className="space-x-2">
+            <span>{formatPipelineType(pipeline.type)}</span>
+            {pipeline.functionalType && (
+              <span className="text-gray-500">
+               {formatPipelineFunctionalType(pipeline.functionalType)}
+              </span>
+            )}
+          </div>
         </div>
       }
     >
@@ -73,6 +80,7 @@ PipelineCard.fragments = {
       schedule
       description
       type
+      functionalType
       currentVersion {
         user {
           ...User_user
