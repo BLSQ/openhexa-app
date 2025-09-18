@@ -62,7 +62,7 @@ const mockFiles: FilesEditor_FileFragment[] = [
   },
 ];
 
-jest.mock('react-i18next', () => ({
+jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (str: string) => str,
     i18n: { changeLanguage: jest.fn() },
@@ -143,7 +143,6 @@ describe("FilesEditor", () => {
     });
   });
 
-
   it("expands directory nodes when clicked", () => {
     render(<FilesEditor name="Test Project" files={mockFiles} />);
 
@@ -193,7 +192,7 @@ describe("FilesEditor", () => {
         files={mockFiles}
         isEditable={true}
         onSave={mockOnSave}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByText("root"));
@@ -205,7 +204,9 @@ describe("FilesEditor", () => {
     expect(codeEditor).toBeInTheDocument();
 
     expect(screen.queryByText("Save")).not.toBeInTheDocument();
-    fireEvent.change(codeEditor, { target: { value: "print('hello world v2')" } });
+    fireEvent.change(codeEditor, {
+      target: { value: "print('hello world v2')" },
+    });
 
     await waitFor(() => {
       expect(screen.getByText(/Modified/i)).toBeInTheDocument();
@@ -231,7 +232,7 @@ describe("FilesEditor", () => {
         files={mockFiles}
         isEditable={true}
         onSave={jest.fn()}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByText("root"));
@@ -240,7 +241,9 @@ describe("FilesEditor", () => {
     const codeEditor = screen.getByTestId("code-editor");
     expect(codeEditor).toBeInTheDocument();
 
-    fireEvent.change(codeEditor, { target: { value: "print('hello world v2')" } });
+    fireEvent.change(codeEditor, {
+      target: { value: "print('hello world v2')" },
+    });
 
     await waitFor(() => {
       expect(screen.getByText(/Modified/i)).toBeInTheDocument();
@@ -253,9 +256,13 @@ describe("FilesEditor", () => {
     const originalConfirm = window.confirm;
     window.confirm = mockConfirm;
 
-    await expect(mockRouter.push('/new-route')).rejects.toBe("Route change aborted");
+    await expect(mockRouter.push("/new-route")).rejects.toBe(
+      "Route change aborted",
+    );
 
-    expect(mockConfirm).toHaveBeenCalledWith("You have unsaved changes. Leave anyway?");
+    expect(mockConfirm).toHaveBeenCalledWith(
+      "You have unsaved changes. Leave anyway?",
+    );
 
     window.confirm = originalConfirm;
   });

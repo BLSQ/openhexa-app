@@ -38,9 +38,9 @@ const WorkspaceConnectionPicker = (props: WorkspaceConnectionPickerProps) => {
     type,
   } = props;
 
-  const { data, loading } = useWorkspaceConnectionPickerQuery(
-    { variables: { slug: workspaceSlug } },
-  );
+  const { data, loading } = useWorkspaceConnectionPickerQuery({
+    variables: { slug: workspaceSlug },
+  });
 
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);

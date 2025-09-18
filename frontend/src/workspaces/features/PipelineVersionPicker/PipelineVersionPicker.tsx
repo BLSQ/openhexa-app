@@ -7,7 +7,7 @@ import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import {
   PipelineVersionPicker_PipelineFragment,
-  PipelineVersionPicker_VersionFragment
+  PipelineVersionPicker_VersionFragment,
 } from "./PipelineVersionPicker.generated";
 import { usePipelineVersionPickerLazyQuery } from "workspaces/graphql/queries.generated";
 
@@ -33,13 +33,17 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
   const [query, setQuery] = useState("");
   const [allVersions, setAllVersions] = useState<Option[]>([]);
   const debouncedQuery = useDebounce(query, 150);
-  const [fetch, { data, loading, refetch }] = usePipelineVersionPickerLazyQuery();
+  const [fetch, { data, loading, refetch }] =
+    usePipelineVersionPickerLazyQuery();
   useEffect(() => {
     if (data?.pipeline?.versions.items) {
       if (data.pipeline.versions.pageNumber === 1) {
         setAllVersions(data.pipeline.versions.items);
       } else {
-        setAllVersions(prev => [...prev, ...data.pipeline?.versions.items || []]);
+        setAllVersions((prev) => [
+          ...prev,
+          ...(data.pipeline?.versions.items || []),
+        ]);
       }
     }
   }, [data]);
@@ -49,7 +53,9 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
     if (data) {
       refetch({ page: 1, perPage: 20 }).then();
     } else {
-      fetch({ variables: { pipelineId: pipeline.id, page: 1, perPage: 20 } }).then();
+      fetch({
+        variables: { pipelineId: pipeline.id, page: 1, perPage: 20 },
+      }).then();
     }
   });
 
@@ -84,7 +90,9 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
 
   const onOpen = useCallback(() => {
     if (allVersions.length === 0) {
-      fetch({ variables: { pipelineId: pipeline.id, page: 1, perPage: 20 } }).then();
+      fetch({
+        variables: { pipelineId: pipeline.id, page: 1, perPage: 20 },
+      }).then();
     }
   }, [fetch, pipeline.id, allVersions.length]);
 
@@ -92,16 +100,17 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
     if (!loading && data?.pipeline?.versions) {
       const nextPage = (data.pipeline.versions.pageNumber || 0) + 1;
       fetch({
-        variables: { 
-          pipelineId: pipeline.id, 
-          page: nextPage, 
-          perPage: 20 
+        variables: {
+          pipelineId: pipeline.id,
+          page: nextPage,
+          perPage: 20,
         },
       }).then();
     }
   }, [loading, data, fetch, pipeline.id]);
 
-  const hasMorePages = data?.pipeline?.versions && 
+  const hasMorePages =
+    data?.pipeline?.versions &&
     data.pipeline.versions.pageNumber < data.pipeline.versions.totalPages;
 
   return (

@@ -34,7 +34,11 @@ import { v4 as uuidv4 } from "uuid";
 
 export async function updateDataset(
   datasetId: string,
-  values: { name?: string; description?: string; sharedWithOrganization?: boolean },
+  values: {
+    name?: string;
+    description?: string;
+    sharedWithOrganization?: boolean;
+  },
 ) {
   const client = getApolloClient();
 

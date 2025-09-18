@@ -19,9 +19,7 @@ import { Trans, useTranslation } from "next-i18next";
 import DeletePipelineVersionTrigger from "workspaces/features/DeletePipelineVersionTrigger";
 import DownloadPipelineVersion from "../DownloadPipelineVersion";
 import PipelineVersionParametersTable from "../PipelineVersionParametersTable";
-import {
-  PipelineVersionCard_VersionFragment,
-} from "./PipelineVersionCard.generated";
+import { PipelineVersionCard_VersionFragment } from "./PipelineVersionCard.generated";
 import { useUpdatePipelineVersionMutation } from "pipelines/graphql/mutations.generated";
 
 type PipelineVersionCardProps = {

@@ -33,12 +33,15 @@ export default function useNavigationWarning({
     [when, message],
   );
 
-  const onNavigation = useCallback((url: string, { shallow }: { shallow: boolean }) => {
-    if (!when || !when()) return;
-    if (window.confirm(message)) return;
-    router.events.emit("routeChangeError", message, url, { shallow });
-    throw "Route change aborted";
-  }, [when, message, router.events]);
+  const onNavigation = useCallback(
+    (url: string, { shallow }: { shallow: boolean }) => {
+      if (!when || !when()) return;
+      if (window.confirm(message)) return;
+      router.events.emit("routeChangeError", message, url, { shallow });
+      throw "Route change aborted";
+    },
+    [when, message, router.events],
+  );
 
   useEffect(() => {
     window.addEventListener("beforeunload", onWindowClose);
