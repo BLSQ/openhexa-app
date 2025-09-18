@@ -276,6 +276,13 @@ class PipelineType(models.TextChoices):
     ZIPFILE = "zipFile", _("ZipFile")
 
 
+class PipelineFunctionalType(models.TextChoices):
+    EXTRACTION = "extraction", _("Extraction")
+    TRANSFORMATION = "transformation", _("Transformation")
+    LOADING = "loading", _("Loading")
+    COMPUTATION = "computation", _("Computation")
+
+
 class PipelineRunLogLevel(models.IntegerChoices):
     DEBUG = 0
     INFO = 1
@@ -355,6 +362,13 @@ class Pipeline(SoftDeletedModel):
         blank=False,
         choices=PipelineType.choices,
         default=PipelineType.ZIPFILE,
+    )
+    functional_type = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        choices=PipelineFunctionalType.choices,
+        help_text="The functional type of the pipeline",
     )
     notebook_path = models.TextField(null=True, blank=True)
     source_template = models.ForeignKey(
@@ -506,7 +520,7 @@ class Pipeline(SoftDeletedModel):
         ):
             raise MissingPipelineConfiguration
 
-        for key in ["name", "description", "schedule", "config"]:
+        for key in ["name", "description", "schedule", "config", "functional_type"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 

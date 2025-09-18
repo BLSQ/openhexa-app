@@ -61,13 +61,21 @@ export type WorkspacePageQuery = { __typename?: 'Query', workspace?: { __typenam
 export type WorkspacePipelinesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
   search?: Types.InputMaybe<Types.Scalars['String']['input']>;
+<<<<<<< HEAD
   tags?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
+=======
+  functionalType?: Types.InputMaybe<Types.PipelineFunctionalType>;
+>>>>>>> dd850cfea (pipeline functional type implementation)
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
 
 
+<<<<<<< HEAD
 export type WorkspacePipelinesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null, pipelines: { __typename?: 'PipelinesPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<{ __typename?: 'Pipeline', id: string, code: string, name?: string | null, schedule?: string | null, description?: string | null, type: Types.PipelineType, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, currentVersion?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } | null, lastRuns: { __typename?: 'PipelineRunPage', items: Array<{ __typename?: 'PipelineRun', id: string, status: Types.PipelineRunStatus }> } }> } };
+=======
+export type WorkspacePipelinesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null, pipelines: { __typename?: 'PipelinesPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<{ __typename?: 'Pipeline', id: string, code: string, name?: string | null, schedule?: string | null, description?: string | null, type: Types.PipelineType, functionalType?: Types.PipelineFunctionalType | null, currentVersion?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } | null, lastRuns: { __typename?: 'PipelineRunPage', items: Array<{ __typename?: 'PipelineRun', id: string, status: Types.PipelineRunStatus }> } }> } };
+>>>>>>> dd850cfea (pipeline functional type implementation)
 
 export type WorkspaceNotebooksPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -82,7 +90,11 @@ export type WorkspacePipelinePageQueryVariables = Types.Exact<{
 }>;
 
 
+<<<<<<< HEAD
 export type WorkspacePipelinePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null, pipeline?: { __typename?: 'Pipeline', webhookUrl?: string | null, webhookEnabled: boolean, id: string, createdAt: any, code: string, name?: string | null, description?: string | null, schedule?: string | null, type: Types.PipelineType, notebookPath?: string | null, autoUpdateFromTemplate: boolean, hasNewTemplateVersions: boolean, permissions: { __typename?: 'PipelinePermissions', run: boolean, update: boolean, schedule: boolean, delete: boolean, createVersion: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, code: string, name: string } | null, newTemplateVersions: Array<{ __typename?: 'PipelineTemplateVersion', id: string, changelog?: string | null, versionNumber: number, createdAt: any }>, currentVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, description?: string | null, config?: any | null, externalLink?: any | null, name?: string | null, isLatestVersion: boolean, createdAt: any, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, multiple: boolean, type: Types.ParameterType, help?: string | null, required: boolean, choices?: Array<any> | null, widget?: Types.ParameterWidget | null, connection?: string | null, default?: any | null }>, pipeline: { __typename?: 'Pipeline', id: string, schedule?: string | null, code: string, workspace: { __typename?: 'Workspace', slug: string } }, user?: { __typename?: 'User', displayName: string } | null } | null, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: string, displayName: string } }>, workspace: { __typename?: 'Workspace', slug: string }, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null } | null };
+=======
+export type WorkspacePipelinePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null } | null } | null, pipeline?: { __typename?: 'Pipeline', webhookUrl?: string | null, webhookEnabled: boolean, id: string, createdAt: any, code: string, name?: string | null, description?: string | null, schedule?: string | null, type: Types.PipelineType, functionalType?: Types.PipelineFunctionalType | null, notebookPath?: string | null, autoUpdateFromTemplate: boolean, hasNewTemplateVersions: boolean, permissions: { __typename?: 'PipelinePermissions', run: boolean, update: boolean, schedule: boolean, delete: boolean, createVersion: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, code: string, name: string } | null, newTemplateVersions: Array<{ __typename?: 'PipelineTemplateVersion', id: string, changelog?: string | null, versionNumber: number, createdAt: any }>, currentVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, description?: string | null, config?: any | null, externalLink?: any | null, name?: string | null, isLatestVersion: boolean, createdAt: any, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, multiple: boolean, type: Types.ParameterType, help?: string | null, required: boolean, choices?: Array<any> | null, widget?: Types.ParameterWidget | null, connection?: string | null, default?: any | null }>, pipeline: { __typename?: 'Pipeline', id: string, schedule?: string | null, code: string, workspace: { __typename?: 'Workspace', slug: string } }, user?: { __typename?: 'User', displayName: string } | null } | null, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: string, displayName: string } }>, workspace: { __typename?: 'Workspace', slug: string }, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null } | null };
+>>>>>>> dd850cfea (pipeline functional type implementation)
 
 export type WorkspacePipelineCodePageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -415,7 +427,11 @@ export type WorkspacePageLazyQueryHookResult = ReturnType<typeof useWorkspacePag
 export type WorkspacePageSuspenseQueryHookResult = ReturnType<typeof useWorkspacePageSuspenseQuery>;
 export type WorkspacePageQueryResult = Apollo.QueryResult<WorkspacePageQuery, WorkspacePageQueryVariables>;
 export const WorkspacePipelinesPageDocument = gql`
+<<<<<<< HEAD
     query WorkspacePipelinesPage($workspaceSlug: String!, $search: String, $tags: [String!], $page: Int, $perPage: Int) {
+=======
+    query WorkspacePipelinesPage($workspaceSlug: String!, $search: String, $functionalType: PipelineFunctionalType, $page: Int, $perPage: Int) {
+>>>>>>> dd850cfea (pipeline functional type implementation)
   workspace(slug: $workspaceSlug) {
     slug
     name
@@ -425,7 +441,11 @@ export const WorkspacePipelinesPageDocument = gql`
   pipelines(
     workspaceSlug: $workspaceSlug
     search: $search
+<<<<<<< HEAD
     tags: $tags
+=======
+    functionalType: $functionalType
+>>>>>>> dd850cfea (pipeline functional type implementation)
     page: $page
     perPage: $perPage
   ) {
@@ -455,7 +475,11 @@ ${PipelineCard_PipelineFragmentDoc}`;
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
  *      search: // value for 'search'
+<<<<<<< HEAD
  *      tags: // value for 'tags'
+=======
+ *      functionalType: // value for 'functionalType'
+>>>>>>> dd850cfea (pipeline functional type implementation)
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *   },
@@ -551,6 +575,7 @@ export const WorkspacePipelinePageDocument = gql`
     description
     schedule
     type
+    functionalType
     notebookPath
     tags {
       ...Tag_tag

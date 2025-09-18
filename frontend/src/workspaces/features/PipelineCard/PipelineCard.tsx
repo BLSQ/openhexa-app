@@ -7,7 +7,7 @@ import UserAvatar from "identity/features/UserAvatar";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
-import { formatPipelineType } from "workspaces/helpers/pipelines";
+import { formatPipelineType, formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 import Tag from "core/features/Tag";
 import {
   PipelineCard_PipelineFragment,
@@ -34,6 +34,11 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
             <Badge className="bg-gray-50 ring-gray-500/20">
               {formatPipelineType(pipeline.type)}
             </Badge>
+            {pipeline.functionalType && (
+              <Badge className="bg-blue-50 ring-blue-500/20">
+                {formatPipelineFunctionalType(pipeline.functionalType)}
+              </Badge>
+            )}
             <span className="text-sm text-gray-500">•</span>
             <span className="text-sm text-gray-600 font-mono">{pipeline.code}</span>
           </div>
@@ -109,6 +114,7 @@ PipelineCard.fragments = {
       tags {
         ...Tag_tag
       }
+      functionalType
       currentVersion {
         user {
           ...User_user

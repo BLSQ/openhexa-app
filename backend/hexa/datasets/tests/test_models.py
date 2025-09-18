@@ -363,11 +363,6 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
     def setUpTestData(cls):
         BaseTestMixin.setUpTestData()
 
-        cls.ORGANIZATION = Organization.objects.create(
-            name="Test Organization",
-            short_name="test-org",
-            organization_type="CORPORATE",
-        )
         cls.ORGANIZATION_2 = Organization.objects.create(
             name="Another Organization",
             short_name="another-org",
