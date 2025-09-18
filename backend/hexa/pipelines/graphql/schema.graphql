@@ -284,6 +284,16 @@ enum PipelineType {
 }
 
 """
+Represents the functional type of a pipeline.
+"""
+enum PipelineFunctionalType {
+  extraction # The pipeline extracts data from sources
+  transformation # The pipeline transforms/processes data
+  loading # The pipeline loads data into destinations
+  computation # The pipeline performs computations/analytics
+}
+
+"""
 Represents a pipeline.
 """
 type Pipeline {
@@ -304,6 +314,7 @@ type Pipeline {
   webhookEnabled: Boolean!  # Indicates if the webhook is enabled for the pipeline.
   webhookUrl: String  # The URL of the webhook for the pipeline.
   type: PipelineType!  # The type of the pipeline.
+  functionalType: PipelineFunctionalType  # The functional type of the pipeline.
   notebookPath: String  # The path to the notebook file for the pipeline (only filled if the pipeline is a notebook).
   template: PipelineTemplate  # The template associated with the pipeline.
   sourceTemplate: PipelineTemplate  # The source template associated with the pipeline.
@@ -348,6 +359,7 @@ input CreatePipelineInput {
   name: String!  # The name of the pipeline.
   workspaceSlug: String!  # The slug of the workspace where the pipeline will be created.
   notebookPath: String  # The path to the notebook file for the pipeline.
+  functionalType: PipelineFunctionalType  # The functional type of the pipeline.
 }
 
 """
@@ -429,6 +441,7 @@ input UpdatePipelineInput {
   webhookEnabled: Boolean  # Indicates if the webhook should be enabled for the pipeline.
   autoUpdateFromTemplate: Boolean  # Automatically update this pipeline when its source template is updated.
   tags: [String!]  # The names of tags to associate with the pipeline.
+  functionalType: PipelineFunctionalType  # The functional type of the pipeline.
 }
 
 """
@@ -678,7 +691,7 @@ extend type Query {
   """
   Retrieves a page of pipelines ordered by relevant name.
   """
-  pipelines(workspaceSlug: String, name: String, search: String, tags: [String!], page: Int, perPage: Int): PipelinesPage! @loginRequired
+  pipelines(workspaceSlug: String, name: String, search: String, tags: [String!], functionalType: PipelineFunctionalType, page: Int, perPage: Int): PipelinesPage! @loginRequired
 
   """
   Retrieves a pipeline by ID.

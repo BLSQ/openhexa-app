@@ -33,6 +33,7 @@ query WorkspacePipelinesPage(
   $workspaceSlug: String!
   $search: String
   $tags: [String!]
+  $functionalType: PipelineFunctionalType
   $page: Int
   $perPage: Int
 ) {
@@ -43,7 +44,7 @@ query WorkspacePipelinesPage(
     ...CreatePipelineDialog_workspace
   }
 
-  pipelines(workspaceSlug: $workspaceSlug, search: $search, tags: $tags, page: $page, perPage: $perPage) {
+  pipelines(workspaceSlug: $workspaceSlug, search: $search, tags: $tags, functionalType: $functionalType, page: $page, perPage: $perPage) {
     items {
       ...PipelineCard_pipeline
     }
@@ -91,6 +92,7 @@ query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
     description
     schedule
     type
+    functionalType
     notebookPath
     tags {
       ...Tag_tag

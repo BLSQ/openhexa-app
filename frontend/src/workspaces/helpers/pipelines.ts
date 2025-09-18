@@ -9,6 +9,7 @@ import {
   PipelineNotificationLevel,
   PipelineParameter,
   PipelineType,
+  PipelineFunctionalType,
   UpdatePipelineError,
 } from "graphql/types";
 import { i18n } from "next-i18next";
@@ -39,6 +40,7 @@ export async function updatePipeline(
             description
             schedule
             config
+            functionalType
             updatedAt
             webhookEnabled
             webhookUrl
@@ -287,6 +289,19 @@ export function formatPipelineType(pipelineType: PipelineType) {
       return i18n!.t("Standard pipeline");
     default:
       return i18n!.t("Pipeline");
+  }
+}
+
+export function formatPipelineFunctionalType(functionalType: PipelineFunctionalType) {
+  switch (functionalType) {
+    case PipelineFunctionalType.Extraction:
+      return i18n!.t("Extraction");
+    case PipelineFunctionalType.Transformation:
+      return i18n!.t("Transformation");
+    case PipelineFunctionalType.Loading:
+      return i18n!.t("Loading");
+    case PipelineFunctionalType.Computation:
+      return i18n!.t("Computation");
   }
 }
 
