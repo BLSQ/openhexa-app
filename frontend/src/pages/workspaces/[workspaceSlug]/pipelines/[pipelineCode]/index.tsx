@@ -6,7 +6,7 @@ import DataCard from "core/components/DataCard";
 import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 import RenderProperty from "core/components/DataCard/RenderProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
-import EditableTagProperty from "core/components/DataCard/EditableTagProperty";
+import TagProperty from "core/components/DataCard/TagProperty";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Switch from "core/components/Switch";
@@ -119,7 +119,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               </Badge>
             )}
           </RenderProperty>
-          <EditableTagProperty
+          <TagProperty
             id="tags"
             accessor="tags"
             label={t("Tags")}
