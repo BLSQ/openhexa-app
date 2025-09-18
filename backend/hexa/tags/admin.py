@@ -14,13 +14,6 @@ class TagAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {"fields": ("name",)}),
         (
-            "Display",
-            {
-                "fields": ("display_name",),
-                "classes": ("collapse",),
-            },
-        ),
-        (
             "Metadata",
             {
                 "fields": ("id", "created_at", "updated_at"),
@@ -30,7 +23,4 @@ class TagAdmin(admin.ModelAdmin):
     )
 
     def get_readonly_fields(self, request, obj=None):
-        readonly = list(self.readonly_fields)
-        if obj:
-            readonly.append("display_name")
-        return readonly
+        return self.readonly_fields
