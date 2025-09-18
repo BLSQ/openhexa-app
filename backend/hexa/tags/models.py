@@ -26,9 +26,6 @@ class Tag(Base):
         ordering = ["name"]
         constraints = [
             models.CheckConstraint(
-                check=~models.Q(name__regex=r"^\s*$"), name="tag_name_not_empty"
-            ),
-            models.CheckConstraint(
                 check=~models.Q(name__startswith="-"), name="tag_name_not_start_hyphen"
             ),
             models.CheckConstraint(

@@ -428,7 +428,7 @@ input UpdatePipelineInput {
   description: String  # The new description of the pipeline.
   webhookEnabled: Boolean  # Indicates if the webhook should be enabled for the pipeline.
   autoUpdateFromTemplate: Boolean  # Automatically update this pipeline when its source template is updated.
-  tags: [String!]  # The IDs of tags to associate with the pipeline.
+  tags: [String!]  # The names of tags to associate with the pipeline.
 }
 
 """

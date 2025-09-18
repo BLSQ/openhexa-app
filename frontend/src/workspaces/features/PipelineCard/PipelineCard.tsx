@@ -66,7 +66,7 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">{t("Last run")}:</span>
+            <span className="text-sm text-gray-500">{t("Last Run")}:</span>
             {pipeline.lastRuns.items[0] ? (
               <PipelineRunStatusBadge run={pipeline.lastRuns.items[0]} />
             ) : (

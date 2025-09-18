@@ -97,15 +97,13 @@ def _validate_and_get_tags(tag_data):
     tags = []
     try:
         for item in tag_data:
-            if isinstance(item, str):
-                name = item.strip()
-                if not name:
-                    return [], True
-                tag, created = Tag.objects.get_or_create(name=name)
-                tags.append(tag)
-            else:
-                tag = Tag.objects.get(pk=item)
-                tags.append(tag)
+            if not isinstance(item, str):
+                return [], True
+            name = item.strip()
+            if not name:
+                return [], True
+            tag, created = Tag.objects.get_or_create(name=name)
+            tags.append(tag)
         return tags, False
     except Exception:
         return [], True
