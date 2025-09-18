@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.5](https://github.com/BLSQ/openhexa-app/compare/2.3.4...2.3.5) (2025-09-18)
+
+
+### Bug Fixes
+
+* UI of the code editor is moving on file modification and error (HEXA-1365) ([#1369](https://github.com/BLSQ/openhexa-app/issues/1369)) ([71184fa](https://github.com/BLSQ/openhexa-app/commit/71184fa56450d6e11b16b7df22f3432cf152f327))
+
 ## [2.3.4](https://github.com/BLSQ/openhexa-app/compare/2.3.3...2.3.4) (2025-09-15)
 
 
