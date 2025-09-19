@@ -12,8 +12,8 @@ describe("useForm", () => {
   afterEach(() => {
     onSubmit.mockClear();
     onValidate.mockClear();
-    FAKE_EVENT.preventDefault.mockClear(),
-      FAKE_EVENT.stopPropagation.mockClear();
+    (FAKE_EVENT.preventDefault.mockClear(),
+      FAKE_EVENT.stopPropagation.mockClear());
   });
 
   it("mounts", async () => {

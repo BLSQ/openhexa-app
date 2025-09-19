@@ -21,7 +21,7 @@ const AddConfigurationDialog = ({
   editingConfig,
 }: AddConfigurationDialogProps) => {
   const { t } = useTranslation();
-  
+
   const getInitialValue = (val: any): string => {
     if (typeof val === "string") {
       return val;
@@ -48,11 +48,11 @@ const AddConfigurationDialog = ({
 
   const parseValue = (inputValue: string): any => {
     const trimmedValue = inputValue.trim();
-    
+
     if (!trimmedValue) {
       return "";
     }
-    
+
     try {
       return JSON.parse(trimmedValue);
     } catch (e) {
@@ -85,11 +85,9 @@ const AddConfigurationDialog = ({
       </Dialog.Title>
       <Dialog.Content className="space-y-4">
         {error && (
-          <ErrorAlert onClose={() => setError(null)}>
-            {error}
-          </ErrorAlert>
+          <ErrorAlert onClose={() => setError(null)}>{error}</ErrorAlert>
         )}
-        
+
         <Field name="name" label={t("Name")} required>
           <Input
             id="name"
@@ -100,10 +98,12 @@ const AddConfigurationDialog = ({
           />
         </Field>
 
-        <Field 
-          name="value" 
-          label={t("Value")} 
-          help={t("Enter a value as plain text or JSON. Examples: \"hello\", 123, true, {\"key\": \"value\"}, [1, 2, 3]")}
+        <Field
+          name="value"
+          label={t("Value")}
+          help={t(
+            'Enter a value as plain text or JSON. Examples: "hello", 123, true, {"key": "value"}, [1, 2, 3]',
+          )}
         >
           <Textarea
             id="value"

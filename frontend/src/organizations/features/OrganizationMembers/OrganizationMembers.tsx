@@ -5,7 +5,11 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import useCacheKey from "core/hooks/useCacheKey";
 import useDebounce from "core/hooks/useDebounce";
 import SearchInput from "core/features/SearchInput";
-import { User as UserType, OrganizationMembership, OrganizationMembershipRole } from "graphql/types";
+import {
+  User as UserType,
+  OrganizationMembership,
+  OrganizationMembershipRole,
+} from "graphql/types";
 import { DateTime } from "luxon";
 import { useState, useEffect } from "react";
 import { useTranslation } from "next-i18next";
@@ -144,10 +148,11 @@ export default function OrganizationMembers({
               const isOwner = member.role === OrganizationMembershipRole.Owner;
               const canManageOwners = organization.permissions.manageOwners;
               const canManageMembers = organization.permissions.manageMembers;
-              
-              const canUpdateMember = canManageMembers && (!isOwner || canManageOwners);
+
+              const canUpdateMember =
+                canManageMembers && (!isOwner || canManageOwners);
               const canDeleteMember = canUpdateMember && !isCurrentUser;
-              
+
               return (
                 <>
                   {canUpdateMember && (

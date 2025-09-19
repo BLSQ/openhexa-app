@@ -3,7 +3,7 @@ repos:
   hooks:
     - id: run-frontend-pre-commit
       name: Run Frontend Pre-Commit
-      entry: ./frontend/script/pre-commit.sh
+      entry: ./frontend/scripts/pre-commit.sh
       language: system
       files: ^frontend/
       types: [javascript, ts]

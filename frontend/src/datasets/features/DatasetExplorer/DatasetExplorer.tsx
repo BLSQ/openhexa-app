@@ -9,9 +9,7 @@ import Title from "core/components/Title";
 import { useTranslation } from "next-i18next";
 import DatasetVersionFileSample from "../DatasetVersionFileSample";
 import DownloadVersionFile from "../DownloadVersionFile";
-import {
-  DatasetExplorer_VersionFragment,
-} from "./DatasetExplorer.generated";
+import { DatasetExplorer_VersionFragment } from "./DatasetExplorer.generated";
 import ErrorBoundary from "core/components/ErrorBoundary";
 import DatasetVersionFileColumns from "../DatasetVersionFileColumns";
 import Pagination from "core/components/Pagination";

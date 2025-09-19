@@ -15,8 +15,8 @@ type TemplatePageProps = {
 export const createTemplatePageServerSideProps = () => ({
   requireAuth: true,
   async getServerSideProps(
-    ctx: GetServerSidePropsContext, 
-    client: CustomApolloClient
+    ctx: GetServerSidePropsContext,
+    client: CustomApolloClient,
   ): Promise<GetServerSidePropsResult<TemplatePageProps>> {
     await TemplateLayout.prefetch(ctx, client);
     const { data } = await client.query<

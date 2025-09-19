@@ -10,9 +10,7 @@ import { ItemProvider } from "core/hooks/useItemContext";
 import { DateTime } from "luxon";
 import { Trans, useTranslation } from "next-i18next";
 import DeleteTemplateVersionTrigger from "workspaces/features/DeleteTemplateVersionTrigger";
-import {
-  TemplateVersionCard_VersionFragment,
-} from "./TemplateVersionCard.generated";
+import { TemplateVersionCard_VersionFragment } from "./TemplateVersionCard.generated";
 import { useUpdateTemplateVersionMutation } from "pipelines/graphql/mutations.generated";
 import { OnSaveFn } from "core/components/DataCard/FormSection";
 import { UpdateTemplateVersionError } from "graphql/types";

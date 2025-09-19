@@ -38,7 +38,10 @@ export const TableRow = (props: HTMLAttributes<HTMLTableRowElement>) => (
   <tr className={props.className ?? TableClasses.tr} {...props} />
 );
 
-export type TableCellProps = (TdHTMLAttributes<HTMLTableCellElement> | ThHTMLAttributes<HTMLTableCellElement>) & {
+export type TableCellProps = (
+  | TdHTMLAttributes<HTMLTableCellElement>
+  | ThHTMLAttributes<HTMLTableCellElement>
+) & {
   width?: string;
   heading?: boolean;
   wrap?: boolean;

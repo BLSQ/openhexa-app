@@ -2,7 +2,11 @@ import { Trans, useTranslation } from "next-i18next";
 import Dialog from "core/components/Dialog";
 import Button from "core/components/Button";
 import { useDeleteOrganizationMemberMutation } from "../OrganizationMembers.generated";
-import { User, OrganizationMembership, DeleteOrganizationMemberError } from "graphql/types";
+import {
+  User,
+  OrganizationMembership,
+  DeleteOrganizationMemberError,
+} from "graphql/types";
 import { useApolloClient } from "@apollo/client";
 import useForm from "core/hooks/useForm";
 
@@ -25,7 +29,7 @@ export default function DeleteOrganizationMemberDialog({
   const client = useApolloClient();
 
   const [deleteOrganizationMember] = useDeleteOrganizationMemberMutation({
-    refetchQueries: ["OrganizationMembers", "Organization"]
+    refetchQueries: ["OrganizationMembers", "Organization"],
   });
 
   const form = useForm({
@@ -47,7 +51,9 @@ export default function DeleteOrganizationMemberDialog({
           throw new Error(t("Organization member not found"));
         }
         if (errors.includes(DeleteOrganizationMemberError.CannotDeleteSelf)) {
-          throw new Error(t("You cannot remove yourself from the organization"));
+          throw new Error(
+            t("You cannot remove yourself from the organization"),
+          );
         }
         throw new Error(t("Failed to remove member"));
       }

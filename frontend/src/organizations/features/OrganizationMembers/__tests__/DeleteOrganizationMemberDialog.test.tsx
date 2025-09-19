@@ -177,38 +177,38 @@ describe("DeleteOrganizationMemberDialog", () => {
   });
 
   it("shows loading state during deletion", async () => {
-          const mockDeleteMutation = jest.fn(() =>
-        Promise.resolve({
-          data: {
-            deleteOrganizationMember: {
-              success: true,
-              errors: [],
-            },
+    const mockDeleteMutation = jest.fn(() =>
+      Promise.resolve({
+        data: {
+          deleteOrganizationMember: {
+            success: true,
+            errors: [],
           },
-        })
-      );
+        },
+      }),
+    );
 
-      useDeleteOrganizationMemberMutationMock.mockReturnValue([
-        mockDeleteMutation,
-        { loading: false },
-      ]);
+    useDeleteOrganizationMemberMutationMock.mockReturnValue([
+      mockDeleteMutation,
+      { loading: false },
+    ]);
 
-      render(
-        <TestApp mocks={[]}>
-          <DeleteOrganizationMemberDialog
-            open={true}
-            onClose={mockOnClose}
-            member={MOCK_MEMBER}
-          />
-        </TestApp>
-      );
+    render(
+      <TestApp mocks={[]}>
+        <DeleteOrganizationMemberDialog
+          open={true}
+          onClose={mockOnClose}
+          member={MOCK_MEMBER}
+        />
+      </TestApp>,
+    );
 
-      const removeButton = screen.getByRole("button", { name: "Remove" });
-      fireEvent.click(removeButton);
+    const removeButton = screen.getByRole("button", { name: "Remove" });
+    fireEvent.click(removeButton);
 
-      expect(
-        await screen.findByRole("button", { name: "Removing..." })
-      ).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Removing..." })).toBeDisabled();
+    expect(
+      await screen.findByRole("button", { name: "Removing..." }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Removing..." })).toBeDisabled();
   });
 });

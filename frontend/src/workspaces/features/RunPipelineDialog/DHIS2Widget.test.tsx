@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TestApp } from "core/helpers/testutils";
 import { DHIS2Widget } from "./DHIS2Widget";
-import {GetConnectionBySlugDhis2Document} from "./DHIS2Widget.generated"
+import { GetConnectionBySlugDhis2Document } from "./DHIS2Widget.generated";
 
 jest.mock("core/hooks/useDebounce", () => ({
   __esModule: true,

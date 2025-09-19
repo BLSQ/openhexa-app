@@ -119,7 +119,12 @@ const UpdateOrganizationMemberDialog = (
   );
 
   return (
-    <Dialog open={open} onClose={onClose} onSubmit={form.handleSubmit} maxWidth="max-w-4xl">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      onSubmit={form.handleSubmit}
+      maxWidth="max-w-4xl"
+    >
       <Dialog.Title>{t("Update Member Permissions")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
         <div>

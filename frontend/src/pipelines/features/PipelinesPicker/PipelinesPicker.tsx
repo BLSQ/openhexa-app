@@ -4,9 +4,7 @@ import { ensureArray } from "core/helpers/array";
 import useDebounce from "core/hooks/useDebounce";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
-import {
-  PipelinesPicker_ValueFragment,
-} from "./PipelinesPicker.generated";
+import { PipelinesPicker_ValueFragment } from "./PipelinesPicker.generated";
 import { usePipelinesPickerQuery } from "pipelines/graphql/queries.generated";
 
 type PipelinesPickerProps = {
@@ -29,9 +27,9 @@ const PipelinesPicker = (props: PipelinesPickerProps) => {
     placeholder = t("Select a pipeline"),
   } = props;
 
-  const { data, loading } = usePipelinesPickerQuery(
-    { fetchPolicy: "cache-first" },
-  );
+  const { data, loading } = usePipelinesPickerQuery({
+    fetchPolicy: "cache-first",
+  });
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);
 

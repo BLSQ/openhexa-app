@@ -1,16 +1,14 @@
 import { gql } from "@apollo/client";
 import { PipelineRunStatus } from "graphql/types";
 import { useEffect } from "react";
-import {
-  UsePipelineRunPoller_RunFragment,
-} from "./usePipelineRunPoller.generated";
+import { UsePipelineRunPoller_RunFragment } from "./usePipelineRunPoller.generated";
 import { usePipelineRunPollerLazyQuery } from "pipelines/graphql/queries.generated";
 
 function usePipelineRunPoller(
   run: UsePipelineRunPoller_RunFragment,
   polling: boolean = true,
 ) {
-  const [fetch] = usePipelineRunPollerLazyQuery()
+  const [fetch] = usePipelineRunPollerLazyQuery();
 
   useEffect(() => {
     if (!polling) {

@@ -3,9 +3,7 @@ import { Combobox, MultiCombobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
-import {
-  CountryPicker_CountryFragment
-} from "./CountryPicker.generated";
+import { CountryPicker_CountryFragment } from "./CountryPicker.generated";
 import Flag from "react-world-flags";
 import { useCountryPickerQuery } from "core/graphql/queries.generated";
 
@@ -33,9 +31,9 @@ function CountryPicker(props: CountryPickerProps) {
     placeholder = t("Select a country"),
   } = props;
 
-  const { data, loading } = useCountryPickerQuery(
-    { fetchPolicy: "cache-first" },
-  );
+  const { data, loading } = useCountryPickerQuery({
+    fetchPolicy: "cache-first",
+  });
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);
 

@@ -20,7 +20,7 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -35,7 +35,7 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -51,17 +51,19 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByPlaceholderText("Configuration name")).toHaveValue("");
-      expect(screen.getByPlaceholderText("Enter value as text or JSON...")).toHaveValue("");
+      expect(
+        screen.getByPlaceholderText("Enter value as text or JSON..."),
+      ).toHaveValue("");
       expect(screen.getByText("Add")).toBeInTheDocument();
     });
 
     it("calls onSave with correct values for string input", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -69,11 +71,13 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       const nameField = screen.getByPlaceholderText("Configuration name");
-      const valueField = screen.getByPlaceholderText("Enter value as text or JSON...");
+      const valueField = screen.getByPlaceholderText(
+        "Enter value as text or JSON...",
+      );
       const saveButton = screen.getByText("Add");
 
       await user.type(nameField, "api_key");
@@ -86,7 +90,7 @@ describe("AddConfigurationDialog", () => {
 
     it("calls onSave with correct values for JSON input", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -94,11 +98,13 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       const nameField = screen.getByPlaceholderText("Configuration name");
-      const valueField = screen.getByPlaceholderText("Enter value as text or JSON...");
+      const valueField = screen.getByPlaceholderText(
+        "Enter value as text or JSON...",
+      );
       const saveButton = screen.getByText("Add");
 
       await user.type(nameField, "timeout");
@@ -112,7 +118,7 @@ describe("AddConfigurationDialog", () => {
   describe("Edit Mode", () => {
     const editingConfig = {
       name: "existing_key",
-      value: "existing_value"
+      value: "existing_value",
     };
 
     it("shows edit title and pre-populated form", () => {
@@ -124,7 +130,7 @@ describe("AddConfigurationDialog", () => {
             onSave={mockOnSave}
             editingConfig={editingConfig}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByText("Edit Configuration")).toBeInTheDocument();
@@ -136,7 +142,7 @@ describe("AddConfigurationDialog", () => {
     it("pre-populates form with JSON object", () => {
       const jsonConfig = {
         name: "config",
-        value: { key: "value", nested: { data: true } }
+        value: { key: "value", nested: { data: true } },
       };
 
       render(
@@ -147,18 +153,20 @@ describe("AddConfigurationDialog", () => {
             onSave={mockOnSave}
             editingConfig={jsonConfig}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByDisplayValue("config")).toBeInTheDocument();
-      const textarea = screen.getByPlaceholderText("Enter value as text or JSON...");
+      const textarea = screen.getByPlaceholderText(
+        "Enter value as text or JSON...",
+      );
       expect(textarea).toHaveValue(JSON.stringify(jsonConfig.value, null, 2));
     });
 
     it("pre-populates form with array", () => {
       const arrayConfig = {
         name: "items",
-        value: [1, 2, 3]
+        value: [1, 2, 3],
       };
 
       render(
@@ -169,17 +177,19 @@ describe("AddConfigurationDialog", () => {
             onSave={mockOnSave}
             editingConfig={arrayConfig}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByDisplayValue("items")).toBeInTheDocument();
-      const textarea = screen.getByPlaceholderText("Enter value as text or JSON...");
+      const textarea = screen.getByPlaceholderText(
+        "Enter value as text or JSON...",
+      );
       expect(textarea).toHaveValue(JSON.stringify(arrayConfig.value, null, 2));
     });
 
     it("updates configuration when saving edited values", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -188,7 +198,7 @@ describe("AddConfigurationDialog", () => {
             onSave={mockOnSave}
             editingConfig={editingConfig}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       const nameField = screen.getByDisplayValue("existing_key");
@@ -208,7 +218,7 @@ describe("AddConfigurationDialog", () => {
   describe("Value Type Auto-Detection", () => {
     it("parses numbers correctly", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -216,11 +226,17 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
-      await user.type(screen.getByPlaceholderText("Configuration name"), "number_val");
-      await user.type(screen.getByPlaceholderText("Enter value as text or JSON..."), "42");
+      await user.type(
+        screen.getByPlaceholderText("Configuration name"),
+        "number_val",
+      );
+      await user.type(
+        screen.getByPlaceholderText("Enter value as text or JSON..."),
+        "42",
+      );
       await user.click(screen.getByText("Add"));
 
       expect(mockOnSave).toHaveBeenCalledWith("number_val", 42);
@@ -228,7 +244,7 @@ describe("AddConfigurationDialog", () => {
 
     it("parses booleans correctly", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -236,11 +252,17 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
-      await user.type(screen.getByPlaceholderText("Configuration name"), "bool_val");
-      await user.type(screen.getByPlaceholderText("Enter value as text or JSON..."), "true");
+      await user.type(
+        screen.getByPlaceholderText("Configuration name"),
+        "bool_val",
+      );
+      await user.type(
+        screen.getByPlaceholderText("Enter value as text or JSON..."),
+        "true",
+      );
       await user.click(screen.getByText("Add"));
 
       expect(mockOnSave).toHaveBeenCalledWith("bool_val", true);
@@ -248,7 +270,7 @@ describe("AddConfigurationDialog", () => {
 
     it("parses objects correctly", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -256,11 +278,16 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
-      await user.type(screen.getByPlaceholderText("Configuration name"), "obj_val");
-      await user.click(screen.getByPlaceholderText("Enter value as text or JSON..."));
+      await user.type(
+        screen.getByPlaceholderText("Configuration name"),
+        "obj_val",
+      );
+      await user.click(
+        screen.getByPlaceholderText("Enter value as text or JSON..."),
+      );
       await user.paste('{"key": "value"}');
       await user.click(screen.getByText("Add"));
 
@@ -269,7 +296,7 @@ describe("AddConfigurationDialog", () => {
 
     it("parses arrays correctly", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -277,11 +304,16 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
-      await user.type(screen.getByPlaceholderText("Configuration name"), "array_val");
-      await user.click(screen.getByPlaceholderText("Enter value as text or JSON..."));
+      await user.type(
+        screen.getByPlaceholderText("Configuration name"),
+        "array_val",
+      );
+      await user.click(
+        screen.getByPlaceholderText("Enter value as text or JSON..."),
+      );
       await user.paste("[1, 2, 3]");
       await user.click(screen.getByText("Add"));
 
@@ -290,7 +322,7 @@ describe("AddConfigurationDialog", () => {
 
     it("treats invalid JSON as string", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -298,11 +330,16 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
-      await user.type(screen.getByPlaceholderText("Configuration name"), "invalid_json");
-      await user.click(screen.getByPlaceholderText("Enter value as text or JSON..."));
+      await user.type(
+        screen.getByPlaceholderText("Configuration name"),
+        "invalid_json",
+      );
+      await user.click(
+        screen.getByPlaceholderText("Enter value as text or JSON..."),
+      );
       await user.paste("{invalid json}");
       await user.click(screen.getByText("Add"));
 
@@ -311,7 +348,7 @@ describe("AddConfigurationDialog", () => {
 
     it("handles empty values", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -319,10 +356,13 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
-      await user.type(screen.getByPlaceholderText("Configuration name"), "empty_val");
+      await user.type(
+        screen.getByPlaceholderText("Configuration name"),
+        "empty_val",
+      );
       await user.click(screen.getByText("Add"));
 
       expect(mockOnSave).toHaveBeenCalledWith("empty_val", "");
@@ -332,7 +372,7 @@ describe("AddConfigurationDialog", () => {
   describe("Form Validation", () => {
     it("shows error when name is empty", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -340,10 +380,13 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
-      await user.type(screen.getByPlaceholderText("Enter value as text or JSON..."), "some_value");
+      await user.type(
+        screen.getByPlaceholderText("Enter value as text or JSON..."),
+        "some_value",
+      );
       await user.click(screen.getByText("Add"));
 
       await waitFor(() => {
@@ -355,7 +398,7 @@ describe("AddConfigurationDialog", () => {
 
     it("trims whitespace from name", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -363,11 +406,17 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
-      await user.type(screen.getByPlaceholderText("Configuration name"), "  spaced_name  ");
-      await user.type(screen.getByPlaceholderText("Enter value as text or JSON..."), "value");
+      await user.type(
+        screen.getByPlaceholderText("Configuration name"),
+        "  spaced_name  ",
+      );
+      await user.type(
+        screen.getByPlaceholderText("Enter value as text or JSON..."),
+        "value",
+      );
       await user.click(screen.getByText("Add"));
 
       expect(mockOnSave).toHaveBeenCalledWith("spaced_name", "value");
@@ -377,7 +426,7 @@ describe("AddConfigurationDialog", () => {
   describe("Error Handling", () => {
     it("can close error alert", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -385,7 +434,7 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       await user.click(screen.getByText("Add"));
@@ -394,9 +443,11 @@ describe("AddConfigurationDialog", () => {
         expect(screen.getByText("Name is required")).toBeInTheDocument();
       });
 
-      const errorAlert = screen.getByText("Name is required").closest('[role="alert"]') || screen.getByText("Name is required").parentElement;
-      const closeButton = errorAlert?.querySelector('button');
-      
+      const errorAlert =
+        screen.getByText("Name is required").closest('[role="alert"]') ||
+        screen.getByText("Name is required").parentElement;
+      const closeButton = errorAlert?.querySelector("button");
+
       if (closeButton) {
         await user.click(closeButton);
         expect(screen.queryByText("Name is required")).not.toBeInTheDocument();
@@ -405,7 +456,7 @@ describe("AddConfigurationDialog", () => {
 
     it("clears error when dialog reopens", async () => {
       const user = userEvent.setup();
-      
+
       const { rerender } = render(
         <TestApp>
           <AddConfigurationDialog
@@ -413,11 +464,11 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       await user.click(screen.getByText("Add"));
-      
+
       await waitFor(() => {
         expect(screen.getByText("Name is required")).toBeInTheDocument();
       });
@@ -429,7 +480,7 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
       rerender(
         <TestApp>
@@ -438,7 +489,7 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.queryByText("Name is required")).not.toBeInTheDocument();
@@ -448,7 +499,7 @@ describe("AddConfigurationDialog", () => {
   describe("Dialog Actions", () => {
     it("calls onClose when cancel button is clicked", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -456,7 +507,7 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       await user.click(screen.getByText("Cancel"));
@@ -465,7 +516,7 @@ describe("AddConfigurationDialog", () => {
 
     it("clears form when dialog closes", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <AddConfigurationDialog
@@ -473,11 +524,17 @@ describe("AddConfigurationDialog", () => {
             onClose={mockOnClose}
             onSave={mockOnSave}
           />
-        </TestApp>
+        </TestApp>,
       );
 
-      await user.type(screen.getByPlaceholderText("Configuration name"), "test_name");
-      await user.type(screen.getByPlaceholderText("Enter value as text or JSON..."), "test_value");
+      await user.type(
+        screen.getByPlaceholderText("Configuration name"),
+        "test_name",
+      );
+      await user.type(
+        screen.getByPlaceholderText("Enter value as text or JSON..."),
+        "test_value",
+      );
 
       await user.click(screen.getByText("Cancel"));
 
@@ -498,7 +555,7 @@ describe("AddConfigurationDialog", () => {
             onSave={mockOnSave}
             editingConfig={initialConfig}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByDisplayValue("initial")).toBeInTheDocument();
@@ -512,7 +569,7 @@ describe("AddConfigurationDialog", () => {
             onSave={mockOnSave}
             editingConfig={updatedConfig}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByDisplayValue("updated")).toBeInTheDocument();
@@ -530,7 +587,7 @@ describe("AddConfigurationDialog", () => {
             onSave={mockOnSave}
             editingConfig={editingConfig}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByDisplayValue("edit_name")).toBeInTheDocument();
@@ -543,11 +600,13 @@ describe("AddConfigurationDialog", () => {
             onSave={mockOnSave}
             editingConfig={null}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByPlaceholderText("Configuration name")).toHaveValue("");
-      expect(screen.getByPlaceholderText("Enter value as text or JSON...")).toHaveValue("");
+      expect(
+        screen.getByPlaceholderText("Enter value as text or JSON..."),
+      ).toHaveValue("");
     });
   });
 });

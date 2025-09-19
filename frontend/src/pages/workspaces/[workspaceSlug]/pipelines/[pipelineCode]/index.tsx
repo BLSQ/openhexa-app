@@ -167,7 +167,11 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
         </DataCard.FormSection>
         <DataCard.FormSection
           title={t("Template Settings")}
-          onSave={pipeline.permissions.update && pipeline.sourceTemplate ? onSaveAutoUpdate : undefined}
+          onSave={
+            pipeline.permissions.update && pipeline.sourceTemplate
+              ? onSaveAutoUpdate
+              : undefined
+          }
           collapsible={false}
         >
           {pipeline?.template && (
@@ -238,7 +242,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                   {section.isEdited && (
                     <span className="text-xs text-gray-500">
                       {t(
-                        "When enabled, this pipeline will be automatically updated when new template versions are released"
+                        "When enabled, this pipeline will be automatically updated when new template versions are released",
                       )}
                     </span>
                   )}

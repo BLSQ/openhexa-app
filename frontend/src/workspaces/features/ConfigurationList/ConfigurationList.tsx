@@ -85,13 +85,20 @@ const ConfigurationList = ({
   const getValueTypeColor = (value: any): string => {
     const type = getValueType(value);
     switch (type) {
-      case "text": return "bg-green-100 text-green-800";
-      case "number": return "bg-blue-100 text-blue-800";
-      case "boolean": return "bg-purple-100 text-purple-800";
-      case "array": return "bg-orange-100 text-orange-800";
-      case "JSON": return "bg-gray-100 text-gray-800";
-      case "null": return "bg-red-100 text-red-800";
-      default: return "bg-blue-100 text-blue-800";
+      case "text":
+        return "bg-green-100 text-green-800";
+      case "number":
+        return "bg-blue-100 text-blue-800";
+      case "boolean":
+        return "bg-purple-100 text-purple-800";
+      case "array":
+        return "bg-orange-100 text-orange-800";
+      case "JSON":
+        return "bg-gray-100 text-gray-800";
+      case "null":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-blue-100 text-blue-800";
     }
   };
 
@@ -115,15 +122,15 @@ const ConfigurationList = ({
           <textarea
             className="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm resize-none bg-gray-50"
             rows={1}
-            placeholder={t("Click 'Add Configuration' to create your first property")}
+            placeholder={t(
+              "Click 'Add Configuration' to create your first property",
+            )}
             value=""
             disabled
           />
         </div>
       ) : configEntries.length === 0 ? (
-        <div className="prose text-sm text-gray-500 italic">
-          Not set
-        </div>
+        <div className="prose text-sm text-gray-500 italic">Not set</div>
       ) : (
         <div className="space-y-2">
           {configEntries.map(([name, value]) => (
@@ -136,7 +143,9 @@ const ConfigurationList = ({
                   <span className="font-medium text-gray-900 text-sm">
                     {name}
                   </span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getValueTypeColor(value)}`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getValueTypeColor(value)}`}
+                  >
                     {getValueType(value)}
                   </span>
                 </div>

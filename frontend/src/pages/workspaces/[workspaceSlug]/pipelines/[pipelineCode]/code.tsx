@@ -57,13 +57,15 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     }
   };
 
-  const handleVersionCreated = (version: PipelineVersionPicker_VersionFragment) => {
-      setSelectedVersion(version);
-      fetchPipelineVersion({
-        variables: {
-          versionId: version.id,
-        },
-      }).then();
+  const handleVersionCreated = (
+    version: PipelineVersionPicker_VersionFragment,
+  ) => {
+    setSelectedVersion(version);
+    fetchPipelineVersion({
+      variables: {
+        versionId: version.id,
+      },
+    }).then();
   };
 
   const versionToShow = versionData?.pipelineVersion ?? pipeline.currentVersion;
