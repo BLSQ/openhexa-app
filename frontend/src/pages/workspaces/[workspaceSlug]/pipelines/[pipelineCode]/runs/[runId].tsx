@@ -23,7 +23,6 @@ import {
   PipelineType,
 } from "graphql/types";
 import isNil from "lodash/isNil";
-import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import RunLogs from "pipelines/features/RunLogs";
@@ -220,36 +219,31 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                     className="truncate text-sm font-medium text-gray-900"
                   />
                   <div className="mt-1.5 text-sm font-normal text-gray-500">
-                    {run.status === PipelineRunStatus.Success &&
-                      t("Succeeded on {{relativeTime}}", {
-                        relativeTime: DateTime.fromISO(
-                          run.executionDate,
-                        ).toLocaleString(DateTime.DATETIME_SHORT),
-                      })}
-                    {run.status === PipelineRunStatus.Failed &&
-                      t("Failed on {{relativeTime}}", {
-                        relativeTime: DateTime.fromISO(
-                          run.executionDate,
-                        ).toLocaleString(DateTime.DATETIME_SHORT),
-                      })}
-                    {run.status === PipelineRunStatus.Queued &&
-                      t("Queued on {{relativeTime}}", {
-                        relativeTime: DateTime.fromISO(
-                          run.executionDate,
-                        ).toLocaleString(DateTime.DATETIME_SHORT),
-                      })}
-                    {run.status === PipelineRunStatus.Running &&
-                      t("Started on {{relativeTime}}", {
-                        relativeTime: DateTime.fromISO(
-                          run.executionDate,
-                        ).toLocaleString(DateTime.DATETIME_SHORT),
-                      })}
-                    {run.status === PipelineRunStatus.Stopped &&
-                      t("Stopped on {{relativeTime}}", {
-                        relativeTime: DateTime.fromISO(
-                          run.executionDate,
-                        ).toLocaleString(DateTime.DATETIME_SHORT),
-                      })}
+                    {run.status === PipelineRunStatus.Success && (
+                      <>
+                        {t("Succeeded on")} <Time datetime={run.executionDate} />
+                      </>
+                    )}
+                    {run.status === PipelineRunStatus.Failed && (
+                      <>
+                        {t("Failed on")} <Time datetime={run.executionDate} />
+                      </>
+                    )}
+                    {run.status === PipelineRunStatus.Queued && (
+                      <>
+                        {t("Queued on")} <Time datetime={run.executionDate} />
+                      </>
+                    )}
+                    {run.status === PipelineRunStatus.Running && (
+                      <>
+                        {t("Started on")} <Time datetime={run.executionDate} />
+                      </>
+                    )}
+                    {run.status === PipelineRunStatus.Stopped && (
+                      <>
+                        {t("Stopped on")} <Time datetime={run.executionDate} />
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
