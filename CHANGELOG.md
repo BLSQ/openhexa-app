@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.4.0](https://github.com/BLSQ/openhexa-app/compare/2.3.5...2.4.0) (2025-09-19)
+
+
+### Features
+
+* feature flag for workspace creation ([#1374](https://github.com/BLSQ/openhexa-app/issues/1374)) ([23a367c](https://github.com/BLSQ/openhexa-app/commit/23a367c7ad43c9f3979c23ae4c3705466edb7284))
+
+
+### Bug Fixes
+
+* Allow workspaces DB host to be overridden ([#1377](https://github.com/BLSQ/openhexa-app/issues/1377)) ([632b961](https://github.com/BLSQ/openhexa-app/commit/632b96180ca3dbd10a4518919872953b38217d29))
+* dataset view is constrained to the workspaces where the org admin is explicitly assigned (PATHWAYS-890) ([#1360](https://github.com/BLSQ/openhexa-app/issues/1360)) ([65f191d](https://github.com/BLSQ/openhexa-app/commit/65f191dac39cf49188aa38adfd080c76bdc5f7d9))
+* hydration error on pipeline run page, time in srr is not equal to time in client (HEXA-1361) ([#1376](https://github.com/BLSQ/openhexa-app/issues/1376)) ([b1ca789](https://github.com/BLSQ/openhexa-app/commit/b1ca789801e9194c74ef804c136aff3aa03cccd5))
+* prettier config and pretty all files in the repo (HEXA-1371) ([#1372](https://github.com/BLSQ/openhexa-app/issues/1372)) ([230af89](https://github.com/BLSQ/openhexa-app/commit/230af892461e163160c1d61380fffb9fbd6bc38f))
+
 ## [2.3.5](https://github.com/BLSQ/openhexa-app/compare/2.3.4...2.3.5) (2025-09-18)
 
 
