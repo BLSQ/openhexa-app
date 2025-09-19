@@ -76,9 +76,12 @@ const FileTreeNode = ({
         <DocumentIcon className="w-4 h-4 mr-2 text-gray-400" />
         <span className="flex items-center gap-2">
           {node.name}
-          {isModified && (
-            <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full" />
-          )}
+          <span
+            className={clsx(
+              "inline-block w-1.5 h-1.5 bg-blue-500 rounded-full",
+              isModified ? "visible" : "invisible",
+            )}
+          />
         </span>
       </div>
     );
@@ -320,12 +323,15 @@ export const FilesEditor = ({
                   {selectedFile.lineCount}
                   {` ${(selectedFile.lineCount ?? 0) > 1 ? t("lines") : t("line")}`}
                   {currentFileIsModified && ` • ${t("Modified")}`}
+                  {saveError && (
+                    <>
+                      {" • "}
+                      <span className="text-xs text-red-600 mt-1">
+                        {`${t("Save error")}: ${saveError}`}
+                      </span>
+                    </>
+                  )}
                 </div>
-                {saveError && (
-                  <div className="text-xs text-red-600 mt-1">
-                    {t("Save error")}: {saveError}
-                  </div>
-                )}
               </div>
               {isEditable && currentFileIsModified && onSave && (
                 <button
