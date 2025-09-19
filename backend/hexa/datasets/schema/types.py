@@ -68,8 +68,8 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
     )
 
     if query is not None:
-        org_shared = org_shared.filter(name__icontains=query)
-        direct_links = direct_links.filter(name__icontains=query)
+        org_shared = org_shared.filter(dataset__name__icontains=query)
+        direct_links = direct_links.filter(dataset__name__icontains=query)
 
     if pinned is not None:
         org_shared = org_shared.filter(is_pinned=pinned)
