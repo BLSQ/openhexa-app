@@ -15,7 +15,6 @@ from hexa.datasets.models import (
     DatasetVersionFile,
 )
 from hexa.files import storage
-from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
@@ -51,9 +50,6 @@ def resolve_dataset_link_permissions_pin(obj: DatasetLink, info, **kwargs):
 
 @workspace_object.field("datasets")
 def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **kwargs):
-    request: HttpRequest = info.context["request"]
-    user = request.user
-
     organization_shared_q = Q()
     if obj.organization:
         organization_shared_q = Q(
@@ -62,41 +58,25 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
             dataset__workspace=F("workspace"),
         )
 
-    org_admin_or_owner_q = Q()
-    if isinstance(user, User) and user.is_organization_admin_or_owner(obj.organization):
-        org_admin_or_owner_q = Q(
-            dataset__workspace__organization=obj.organization,
-            dataset__workspace=F("workspace"),
-        )
-
     org_shared = DatasetLinkQuerySet.optimize_query(
         DatasetLink.objects.filter(organization_shared_q)
     )
     org_shared_ids = org_shared.values("dataset_id")
-    org_admin_or_owner = DatasetLinkQuerySet.optimize_query(
-        DatasetLink.objects.filter(org_admin_or_owner_q).exclude(
-            dataset_id__in=org_shared_ids
-        )
-    )
-    org_admin_or_owner_ids = org_admin_or_owner.values("dataset_id")
-
     direct_links = DatasetLinkQuerySet.optimize_query(
         DatasetLink.objects.filter(workspace=obj).exclude(
-            dataset_id__in=org_shared_ids.union(org_admin_or_owner_ids)
+            dataset_id__in=org_shared_ids.union(org_shared_ids)
         )
     )
 
     if query is not None:
         org_shared = org_shared.filter(dataset__name__icontains=query)
-        org_admin_or_owner = org_admin_or_owner.filter(dataset__name__icontains=query)
         direct_links = direct_links.filter(dataset__name__icontains=query)
 
     if pinned is not None:
         org_shared = org_shared.filter(is_pinned=pinned)
-        org_admin_or_owner = org_admin_or_owner.filter(is_pinned=pinned)
         direct_links = direct_links.filter(is_pinned=pinned)
 
-    qs = org_shared.union(org_admin_or_owner).union(direct_links)
+    qs = org_shared.union(direct_links)
 
     return result_page(
         queryset=qs.order_by("-updated_at"),
