@@ -3,6 +3,7 @@ import uuid
 from unittest.mock import patch
 
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.test import override_settings
 
 from hexa.core.test import TestCase
 from hexa.files import storage
@@ -57,9 +58,11 @@ class WorkspaceTest(TestCase):
             )
 
     def test_create_workspace_no_slug(self):
-        with patch("secrets.token_hex", lambda _: "mock"), patch(
-            "hexa.workspaces.models.create_database"
-        ), patch("hexa.workspaces.models.load_database_sample_data"):
+        with (
+            patch("secrets.token_hex", lambda _: "mock"),
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
                 name="this is a very long workspace name",
@@ -69,9 +72,11 @@ class WorkspaceTest(TestCase):
         self.assertTrue(len(workspace.slug) <= 63)
 
     def test_create_workspace_with_underscore(self):
-        with patch("secrets.token_hex", lambda _: "mock"), patch(
-            "hexa.workspaces.models.create_database"
-        ), patch("hexa.workspaces.models.load_database_sample_data"):
+        with (
+            patch("secrets.token_hex", lambda _: "mock"),
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
                 name="Worksp?ace_wi😱th_und~ersc!/ore",
@@ -82,9 +87,11 @@ class WorkspaceTest(TestCase):
         self.assertTrue(storage.bucket_exists(workspace.bucket_name))
 
     def test_create_workspace_with_random_characters(self):
-        with patch("secrets.token_hex", lambda _: "mock"), patch(
-            "hexa.workspaces.models.create_database"
-        ), patch("hexa.workspaces.models.load_database_sample_data"):
+        with (
+            patch("secrets.token_hex", lambda _: "mock"),
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
                 name="1workspace_with#_random$_char*",
@@ -94,8 +101,9 @@ class WorkspaceTest(TestCase):
         self.assertEqual(16, len(workspace.db_name))
 
     def test_create_workspace_admin_user(self):
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
@@ -105,8 +113,9 @@ class WorkspaceTest(TestCase):
         self.assertEqual(1, Workspace.objects.all().count())
 
     def test_get_workspace_by_id(self):
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
@@ -120,9 +129,11 @@ class WorkspaceTest(TestCase):
             Workspace.objects.get(pk="7bf4c750-f74b-4ed6-b7f7-b23e4cac4e2c")
 
     def test_create_workspaces_same_name(self):
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
-        ), patch("secrets.token_hex", lambda _: "mock"):
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+            patch("secrets.token_hex", lambda _: "mock"),
+        ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
                 name="My workspace",
@@ -139,8 +150,9 @@ class WorkspaceTest(TestCase):
             self.assertEqual(workspace_2.slug, "my-workspace-mock")
 
     def test_add_member(self):
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
@@ -191,8 +203,9 @@ class WorkspaceTest(TestCase):
         self.assertEqual(membership.role, OrganizationMembershipRole.MEMBER)
 
     def test_add_external_user(self):
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
@@ -212,8 +225,9 @@ class WorkspaceTest(TestCase):
 
     def test_workspace_configuration_default(self):
         """Test that workspace configuration field has a default empty dict"""
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
@@ -224,8 +238,9 @@ class WorkspaceTest(TestCase):
 
     def test_workspace_configuration_set_and_update(self):
         """Test that workspace configuration can be set and updated"""
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
@@ -249,8 +264,9 @@ class WorkspaceTest(TestCase):
 
     def test_workspace_configuration_permission_denied(self):
         """Test that non-admin users cannot update configuration"""
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
@@ -271,8 +287,9 @@ class WorkspaceTest(TestCase):
 
     def test_workspace_configuration_editor_can_update(self):
         """Test that editor users can update configuration"""
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
@@ -292,6 +309,33 @@ class WorkspaceTest(TestCase):
         )
         workspace.refresh_from_db()
         self.assertEqual(workspace.configuration, editor_config)
+
+    @override_settings(
+        WORKSPACES_DATABASE_PROXY_HOST="db.proxy", OVERRIDE_WORKSPACES_DATABASE_HOST=""
+    )
+    def test_db_host_default_behavior(self):
+        """Test db_host property returns default proxy host format when override is empty"""
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            workspace = Workspace.objects.create_if_has_perm(self.USER_JULIA, name="WP")
+
+        self.assertEqual(workspace.db_host, f"{workspace.slug}.db.proxy")
+
+    @override_settings(
+        WORKSPACES_DATABASE_PROXY_HOST="db.proxy",
+        OVERRIDE_WORKSPACES_DATABASE_HOST="192.168.1.100",
+    )
+    def test_db_host_override_behavior(self):
+        """Test db_host property returns override host when OVERRIDE_WORKSPACES_DATABASE_HOST is set"""
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            workspace = Workspace.objects.create_if_has_perm(self.USER_JULIA, name="WP")
+
+        self.assertEqual(workspace.db_host, "192.168.1.100")
 
 
 class WorkspaceOrganizationRoleTest(TestCase):
@@ -327,8 +371,9 @@ class WorkspaceOrganizationRoleTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             cls.org_workspace = Workspace.objects.create_if_has_perm(
                 principal=cls.USER_ADMIN,
@@ -412,8 +457,9 @@ class ConnectionTest(TestCase):
         cls.USER_ADMIN = User.objects.create_user(
             "admin@bluesquarehub.com", "admin", is_superuser=True
         )
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             cls.WORKSPACE = Workspace.objects.create_if_has_perm(
                 cls.USER_ADMIN, name="Workspace's title"
