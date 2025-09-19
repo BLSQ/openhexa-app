@@ -61,10 +61,9 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
     org_shared = DatasetLinkQuerySet.optimize_query(
         DatasetLink.objects.filter(organization_shared_q)
     )
-    org_shared_ids = org_shared.values("dataset_id")
     direct_links = DatasetLinkQuerySet.optimize_query(
         DatasetLink.objects.filter(workspace=obj).exclude(
-            dataset_id__in=org_shared_ids.union(org_shared_ids)
+            dataset_id__in=org_shared.values("dataset_id")
         )
     )
 
