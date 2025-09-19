@@ -246,6 +246,9 @@ class Workspace(Base):
 
     @property
     def db_host(self):
+        if settings.OVERRIDE_WORKSPACES_DATABASE_HOST:
+            return settings.OVERRIDE_WORKSPACES_DATABASE_HOST
+
         return f"{self.slug}.{settings.WORKSPACES_DATABASE_PROXY_HOST}"
 
     @property
