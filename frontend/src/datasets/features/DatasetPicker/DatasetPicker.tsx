@@ -32,9 +32,9 @@ const DatasetPicker = (props: DatasetPickerProps) => {
     placeholder = t("Select dataset"),
   } = props;
 
-  const { data, loading } = useDatasetPickerQuery(
-    { variables: { slug: workspaceSlug } },
-  );
+  const { data, loading } = useDatasetPickerQuery({
+    variables: { slug: workspaceSlug },
+  });
 
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);

@@ -2,7 +2,7 @@ import { Description, Field } from "@headlessui/react";
 import { useTranslation } from "next-i18next";
 import { DHIS2Widget, dhis2WidgetToQuery } from "./DHIS2Widget";
 import { IASOWidget, iasoWidgetToQuery } from "./IASOWidget";
-import {gql} from "@apollo/client";
+import { gql } from "@apollo/client";
 
 type GenericConnectionWidgetProps = {
   parameter: any;
@@ -30,8 +30,7 @@ const GenericConnectionWidget = ({
         {...delegated}
       />
     );
-  }
-  else if (parameter.widget in dhis2WidgetToQuery) {
+  } else if (parameter.widget in dhis2WidgetToQuery) {
     return (
       <DHIS2Widget
         parameter={parameter}

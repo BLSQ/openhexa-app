@@ -109,6 +109,12 @@ else:
 if "CORS_ALLOWED_ORIGINS" in os.environ:
     CORS_ALLOWED_ORIGINS += os.environ.get("CORS_ALLOWED_ORIGINS").split(",")
 
+CORS_ALLOWED_ORIGIN_REGEXES = []
+if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
+    CORS_ALLOWED_ORIGIN_REGEXES += os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES").split(
+        ","
+    )
+
 CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$"
 CORS_ALLOW_CREDENTIALS = True
 
@@ -121,6 +127,8 @@ if "CSRF_TRUSTED_ORIGINS" in os.environ:
     CSRF_TRUSTED_ORIGINS += os.environ.get("CSRF_TRUSTED_ORIGINS").split(",")
 
 SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
+SESSION_COOKIE_SAMESITE = os.environ.get("SESSION_COOKIE_SAMESITE", "Lax")
+SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_DOMAIN = os.environ.get("CSRF_COOKIE_DOMAIN", None)
 SECURE_HSTS_SECONDS = os.environ.get(
     "SECURE_HSTS_SECONDS", 60 * 60

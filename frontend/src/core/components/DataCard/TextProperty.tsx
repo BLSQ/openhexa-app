@@ -68,7 +68,13 @@ const TextProperty = (props: TextPropertyProps) => {
         {markdown && property.displayValue ? (
           <MarkdownViewer sm={sm} markdown={property.displayValue} />
         ) : (
-          <div className={clsx("prose text-sm", property.displayValue ? "text-gray-900" : "text-gray-500 italic", className)}>
+          <div
+            className={clsx(
+              "prose text-sm",
+              property.displayValue ? "text-gray-900" : "text-gray-500 italic",
+              className,
+            )}
+          >
             {property.displayValue || defaultValue}
           </div>
         )}

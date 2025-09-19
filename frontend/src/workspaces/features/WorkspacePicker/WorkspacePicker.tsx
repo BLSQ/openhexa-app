@@ -23,7 +23,8 @@ const WorkspacePicker = (props: WorkspacePickerProps) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);
-  const [fetch, { data, previousData, loading }] = useWorkspacePickerLazyQuery();
+  const [fetch, { data, previousData, loading }] =
+    useWorkspacePickerLazyQuery();
 
   const displayValue = (option: Option) => option?.name ?? "";
 

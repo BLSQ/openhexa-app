@@ -4,7 +4,8 @@ import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "organizations/layouts/OrganizationLayout";
 import {
   OrganizationDocument,
-  OrganizationQuery, useOrganizationQuery
+  OrganizationQuery,
+  useOrganizationQuery,
 } from "organizations/graphql/queries.generated";
 import Page from "core/components/Page";
 import Button from "core/components/Button";
@@ -28,7 +29,7 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
 
   const { data: clientOrganization } = useOrganizationQuery({
     variables: { id: SRROrganization?.id },
-    skip: !SRROrganization?.id
+    skip: !SRROrganization?.id,
   });
 
   const organization = clientOrganization?.organization || SRROrganization;

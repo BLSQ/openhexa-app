@@ -36,7 +36,7 @@ const WorkspaceMemberPicker = (props: WorkspaceMemberPickerProps) => {
     placeholder = t("Select member"),
   } = props;
 
-  const [fetch, { data, loading }] = useWorkspaceMemberPickerLazyQuery()
+  const [fetch, { data, loading }] = useWorkspaceMemberPickerLazyQuery();
 
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);

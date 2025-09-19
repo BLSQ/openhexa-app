@@ -4,9 +4,14 @@ import { TestApp } from "core/helpers/testutils";
 import ConfigurationList from "./ConfigurationList";
 
 jest.mock("../AddConfigurationDialog", () => {
-  return function MockAddConfigurationDialog({ open, onSave, editingConfig, onClose }: any) {
+  return function MockAddConfigurationDialog({
+    open,
+    onSave,
+    editingConfig,
+    onClose,
+  }: any) {
     if (!open) return null;
-    
+
     const handleSave = () => {
       if (editingConfig) {
         onSave("edited_key", "edited_value");
@@ -36,28 +41,25 @@ describe("ConfigurationList", () => {
     it("displays empty textarea when no configurations exist", () => {
       render(
         <TestApp>
-          <ConfigurationList
-            configuration={{}}
-            onChange={mockOnChange}
-          />
-        </TestApp>
+          <ConfigurationList configuration={{}} onChange={mockOnChange} />
+        </TestApp>,
       );
 
       const textarea = screen.getByRole("textbox");
       expect(textarea).toBeInTheDocument();
       expect(textarea).toBeDisabled();
       expect(textarea).toHaveValue("");
-      expect(textarea).toHaveAttribute("placeholder", "Click 'Add Configuration' to create your first property");
+      expect(textarea).toHaveAttribute(
+        "placeholder",
+        "Click 'Add Configuration' to create your first property",
+      );
     });
 
     it("shows add button in empty state", () => {
       render(
         <TestApp>
-          <ConfigurationList
-            configuration={{}}
-            onChange={mockOnChange}
-          />
-        </TestApp>
+          <ConfigurationList configuration={{}} onChange={mockOnChange} />
+        </TestApp>,
       );
 
       expect(screen.getByText("Add Configuration")).toBeInTheDocument();
@@ -71,7 +73,7 @@ describe("ConfigurationList", () => {
             onChange={mockOnChange}
             disabled={true}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByText("Not set")).toBeInTheDocument();
@@ -87,7 +89,7 @@ describe("ConfigurationList", () => {
       boolean_key: true,
       array_key: [1, 2, 3],
       object_key: { nested: "value" },
-      null_key: null
+      null_key: null,
     };
 
     it("displays all configuration entries", () => {
@@ -97,7 +99,7 @@ describe("ConfigurationList", () => {
             configuration={sampleConfiguration}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByText("string_key")).toBeInTheDocument();
@@ -115,7 +117,7 @@ describe("ConfigurationList", () => {
             configuration={sampleConfiguration}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByText("hello world")).toBeInTheDocument();
@@ -135,7 +137,7 @@ describe("ConfigurationList", () => {
       boolean_val: false,
       array_val: ["a", "b"],
       object_val: { key: "value" },
-      null_val: null
+      null_val: null,
     };
 
     it("displays correct type badges", () => {
@@ -145,7 +147,7 @@ describe("ConfigurationList", () => {
             configuration={typedConfiguration}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByText("text")).toBeInTheDocument();
@@ -164,7 +166,7 @@ describe("ConfigurationList", () => {
             configuration={typedConfiguration}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       const textBadge = screen.getByText("text");
@@ -173,7 +175,7 @@ describe("ConfigurationList", () => {
       const arrayBadge = screen.getByText("array");
       const objectBadge = screen.getByText("JSON");
       const nullElements = screen.getAllByText("null");
-      const nullBadge = nullElements.find(el => el.tagName === 'SPAN')!;
+      const nullBadge = nullElements.find((el) => el.tagName === "SPAN")!;
 
       expect(textBadge).toHaveClass("bg-green-100", "text-green-800");
       expect(numberBadge).toHaveClass("bg-blue-100", "text-blue-800");
@@ -186,53 +188,57 @@ describe("ConfigurationList", () => {
 
   describe("Add/Edit/Delete Actions", () => {
     const testConfiguration = {
-      existing_key: "existing_value"
+      existing_key: "existing_value",
     };
 
     it("opens add dialog when Add Configuration is clicked", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <ConfigurationList
             configuration={testConfiguration}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       await user.click(screen.getByText("Add Configuration"));
-      expect(screen.getByTestId("add-configuration-dialog")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("add-configuration-dialog"),
+      ).toBeInTheDocument();
     });
 
     it("opens edit dialog with correct data when Edit is clicked", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <ConfigurationList
             configuration={testConfiguration}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       await user.click(screen.getByText("Edit"));
-      
-      expect(screen.getByTestId("add-configuration-dialog")).toBeInTheDocument();
+
+      expect(
+        screen.getByTestId("add-configuration-dialog"),
+      ).toBeInTheDocument();
       expect(screen.getByText("Editing: existing_key")).toBeInTheDocument();
     });
 
     it("calls onChange when adding new configuration", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <ConfigurationList
             configuration={testConfiguration}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       await user.click(screen.getByText("Add Configuration"));
@@ -240,52 +246,51 @@ describe("ConfigurationList", () => {
 
       expect(mockOnChange).toHaveBeenCalledWith({
         existing_key: "existing_value",
-        new_key: "new_value"
+        new_key: "new_value",
       });
     });
 
     it("calls onChange when editing existing configuration", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <ConfigurationList
             configuration={testConfiguration}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       await user.click(screen.getByText("Edit"));
       await user.click(screen.getByText("Save"));
 
       expect(mockOnChange).toHaveBeenCalledWith({
-        edited_key: "edited_value"
+        edited_key: "edited_value",
       });
     });
 
     it("calls onChange when deleting configuration", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <ConfigurationList
             configuration={testConfiguration}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       await user.click(screen.getByText("Delete"));
 
       expect(mockOnChange).toHaveBeenCalledWith({});
     });
-
   });
 
   describe("Disabled State", () => {
     const testConfiguration = {
-      test_key: "test_value"
+      test_key: "test_value",
     };
 
     it("hides action buttons when disabled", () => {
@@ -296,7 +301,7 @@ describe("ConfigurationList", () => {
             onChange={mockOnChange}
             disabled={true}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.queryByText("Add Configuration")).not.toBeInTheDocument();
@@ -312,49 +317,53 @@ describe("ConfigurationList", () => {
             onChange={mockOnChange}
             disabled={true}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByText("test_key")).toBeInTheDocument();
       expect(screen.getByText("test_value")).toBeInTheDocument();
-      expect(screen.getByText("text")).toBeInTheDocument(); 
+      expect(screen.getByText("text")).toBeInTheDocument();
     });
   });
 
   describe("Dialog State Management", () => {
     const testConfiguration = {
-      test_key: "test_value"
+      test_key: "test_value",
     };
 
     it("closes dialog when onClose is called", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <ConfigurationList
             configuration={testConfiguration}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       await user.click(screen.getByText("Add Configuration"));
-      expect(screen.getByTestId("add-configuration-dialog")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("add-configuration-dialog"),
+      ).toBeInTheDocument();
 
       await user.click(screen.getByText("Close"));
-      expect(screen.queryByTestId("add-configuration-dialog")).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("add-configuration-dialog"),
+      ).not.toBeInTheDocument();
     });
 
     it("resets editing state when dialog closes", async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestApp>
           <ConfigurationList
             configuration={testConfiguration}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       await user.click(screen.getByText("Edit"));
@@ -374,7 +383,7 @@ describe("ConfigurationList", () => {
             configuration={undefined as any}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       const textarea = screen.getByRole("textbox");
@@ -382,12 +391,11 @@ describe("ConfigurationList", () => {
       expect(textarea).toBeDisabled();
     });
 
-
     it("handles special characters in keys and values", () => {
       const specialConfig = {
         "key-with-dashes": "value with spaces",
-        "key_with_underscores": "value!@#$%^&*()",
-        "key.with.dots": "value/with/slashes"
+        key_with_underscores: "value!@#$%^&*()",
+        "key.with.dots": "value/with/slashes",
       };
 
       render(
@@ -396,7 +404,7 @@ describe("ConfigurationList", () => {
             configuration={specialConfig}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByText("key-with-dashes")).toBeInTheDocument();
@@ -410,7 +418,7 @@ describe("ConfigurationList", () => {
     it("handles very long values", () => {
       const longValue = "a".repeat(1000);
       const configWithLongValue = {
-        long_key: longValue
+        long_key: longValue,
       };
 
       render(
@@ -419,12 +427,11 @@ describe("ConfigurationList", () => {
             configuration={configWithLongValue}
             onChange={mockOnChange}
           />
-        </TestApp>
+        </TestApp>,
       );
 
       expect(screen.getByText("long_key")).toBeInTheDocument();
       expect(screen.getByText(longValue)).toBeInTheDocument();
     });
-
   });
 });

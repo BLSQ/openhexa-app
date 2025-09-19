@@ -34,7 +34,8 @@ const DeleteDatasetLinkTrigger = (props: DeleteDatasetLinkTriggerProps) => {
     }
     try {
       await deleteDatasetLink(datasetLink.id);
-      if(datasetLink.workspace.slug == router.query.workspaceSlug) { // If we are in the same workspace, redirect to datasets list
+      if (datasetLink.workspace.slug == router.query.workspaceSlug) {
+        // If we are in the same workspace, redirect to datasets list
         await router.push(`/workspaces/${datasetLink.workspace.slug}/datasets`);
       }
     } catch (err: any) {

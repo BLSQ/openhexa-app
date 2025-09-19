@@ -18,9 +18,9 @@ type DatasetVersionPickerProps = {
 const DatasetVersionPicker = (props: DatasetVersionPickerProps) => {
   const { onChange, dataset, version, className } = props;
   const [perPage, setPerPage] = useState(10);
-  const { data, previousData, loading } = useDatasetVersionPickerQuery(
-    { variables: { datasetId: dataset.id, perPage } },
-  );
+  const { data, previousData, loading } = useDatasetVersionPickerQuery({
+    variables: { datasetId: dataset.id, perPage },
+  });
 
   const versions = (data ?? previousData)?.dataset?.versions ?? {
     items: [],

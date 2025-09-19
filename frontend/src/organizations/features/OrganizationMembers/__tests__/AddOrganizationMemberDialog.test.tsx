@@ -58,7 +58,6 @@ jest.mock("../OrganizationMembers.generated", () => ({
   useInviteOrganizationMemberMutation: jest.fn(),
 }));
 
-
 jest.mock("next-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,

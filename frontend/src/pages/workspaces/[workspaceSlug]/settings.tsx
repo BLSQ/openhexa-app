@@ -50,7 +50,12 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
   const [isNewMemberDialogOpen, setIsNewMemberDialogOpen] = useState(false);
   const [isGeneratePwdDialogOpen, setIsGeneratePwdDialogOpen] = useState(false);
 
-  const tab = router.query.tab === "members" ? "members" : router.query.tab === "database" ? "database" : "general";
+  const tab =
+    router.query.tab === "members"
+      ? "members"
+      : router.query.tab === "database"
+        ? "database"
+        : "general";
 
   const onSectionSave: OnSaveFn = async (values) => {
     await mutate({
@@ -133,7 +138,12 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                   pathname: router.pathname,
                   query: {
                     ...router.query,
-                    tab: newIndex === 1 ? "members" : newIndex === 2 ? "database" : "general",
+                    tab:
+                      newIndex === 1
+                        ? "members"
+                        : newIndex === 2
+                          ? "database"
+                          : "general",
                   },
                 },
                 undefined,
@@ -144,9 +154,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           >
             <Tabs.Tab label={t("General")} className={"space-y-6 pt-6"}>
               <DataCard className="w-full" item={workspace}>
-                <DataCard.FormSection
-                  onSave={onSectionSave}
-                >
+                <DataCard.FormSection onSave={onSectionSave}>
                   <TextProperty
                     required
                     id="name"
@@ -181,7 +189,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                 </DataCard.FormSection>
               </DataCard>
             </Tabs.Tab>
-            
+
             <Tabs.Tab label={t("Members")} className={"space-y-6 pt-6"}>
               <div>
                 <div className="mb-4 flex justify-end">
@@ -203,7 +211,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                 </Block>
               </div>
             </Tabs.Tab>
-            
+
             <Tabs.Tab label={t("Database")} className={"space-y-6 pt-6"}>
               <DataCard className="w-full" item={workspace}>
                 <DataCard.Section title={t("Database")}>
@@ -232,7 +240,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
             </Tabs.Tab>
           </Tabs>
         </WorkspaceLayout.PageContent>
-        
+
         <ArchiveWorkspaceDialog
           workspace={workspace}
           open={isArchiveDialogOpen}

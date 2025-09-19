@@ -31,19 +31,17 @@ const ConfigurationProperty = (props: ConfigurationPropertyProps) => {
 
   const currentValue = property.displayValue || defaultValue;
   const hasConfiguration = currentValue && Object.keys(currentValue).length > 0;
-  
+
   return (
     <DataCard.Property property={property}>
       {hasConfiguration ? (
         <ConfigurationList
           configuration={currentValue}
-          onChange={() => {}} 
+          onChange={() => {}}
           disabled={true}
         />
       ) : (
-        <div className="prose text-sm text-gray-500 italic">
-          Not set
-        </div>
+        <div className="prose text-sm text-gray-500 italic">Not set</div>
       )}
     </DataCard.Property>
   );

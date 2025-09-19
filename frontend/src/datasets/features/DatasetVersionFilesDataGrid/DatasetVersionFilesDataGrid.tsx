@@ -77,18 +77,18 @@ const DatasetVersionFilesDataGrid = (
       fetchData={onFetchData}
       fixedLayout={false}
     >
-      <TextColumn 
-        label={t("Filename")} 
+      <TextColumn
+        label={t("Filename")}
         accessor="filename"
         className="min-w-0 flex-1"
       />
-      <DateColumn 
-        label={t("Created at")} 
+      <DateColumn
+        label={t("Created at")}
         accessor="createdAt"
         className="whitespace-nowrap"
       />
-      <TextColumn 
-        label={t("Content type")} 
+      <TextColumn
+        label={t("Content type")}
         accessor="contentType"
         className="whitespace-nowrap"
       />

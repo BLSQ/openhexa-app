@@ -1,7 +1,9 @@
 import { OrganizationMembershipRole } from "graphql/types";
 import { i18n } from "next-i18next";
 
-export function formatOrganizationMembershipRole(role: OrganizationMembershipRole) {
+export function formatOrganizationMembershipRole(
+  role: OrganizationMembershipRole,
+) {
   switch (role) {
     case OrganizationMembershipRole.Owner:
       return i18n!.t("Owner");

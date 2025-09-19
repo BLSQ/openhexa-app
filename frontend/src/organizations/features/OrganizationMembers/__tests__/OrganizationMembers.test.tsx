@@ -144,7 +144,8 @@ describe("OrganizationMembers", () => {
 
     const { container } = render(
       <TestApp>
-      <OrganizationMembers organizationId={ORGANIZATION_ID} /></TestApp>,
+        <OrganizationMembers organizationId={ORGANIZATION_ID} />
+      </TestApp>,
     );
 
     expect(screen.getByText("John Doe")).toBeInTheDocument();
@@ -170,7 +171,11 @@ describe("OrganizationMembers", () => {
       refetch: jest.fn(),
     });
 
-    render( <TestApp><OrganizationMembers organizationId={ORGANIZATION_ID} /></TestApp>);
+    render(
+      <TestApp>
+        <OrganizationMembers organizationId={ORGANIZATION_ID} />
+      </TestApp>,
+    );
 
     expect(screen.getByText("User")).toBeInTheDocument();
     expect(screen.getByText("Organization Role")).toBeInTheDocument();
@@ -191,7 +196,11 @@ describe("OrganizationMembers", () => {
 
     const user = userEvent.setup();
 
-    render( <TestApp><OrganizationMembers organizationId={ORGANIZATION_ID} /></TestApp>);
+    render(
+      <TestApp>
+        <OrganizationMembers organizationId={ORGANIZATION_ID} />
+      </TestApp>,
+    );
 
     const searchInput = screen.getByPlaceholderText("Search members...");
 
@@ -226,7 +235,11 @@ describe("OrganizationMembers", () => {
       refetch: jest.fn(),
     });
 
-    render( <TestApp><OrganizationMembers organizationId={ORGANIZATION_ID} /></TestApp>);
+    render(
+      <TestApp>
+        <OrganizationMembers organizationId={ORGANIZATION_ID} />
+      </TestApp>,
+    );
 
     const editButtons = screen.getAllByLabelText("edit");
     const deleteButtons = screen.getAllByLabelText("delete");
@@ -242,7 +255,11 @@ describe("OrganizationMembers", () => {
       refetch: jest.fn(),
     });
 
-    render( <TestApp><OrganizationMembers organizationId={ORGANIZATION_ID} /></TestApp>);
+    render(
+      <TestApp>
+        <OrganizationMembers organizationId={ORGANIZATION_ID} />
+      </TestApp>,
+    );
 
     const buttons = screen.queryAllByRole("button");
     expect(buttons).toHaveLength(0);

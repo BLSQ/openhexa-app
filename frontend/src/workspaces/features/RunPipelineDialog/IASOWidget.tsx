@@ -1,14 +1,20 @@
-import {ParameterField_ParameterFragment} from "./ParameterField.generated";
-import {FormInstance} from "core/hooks/useForm";
-import {IasoMetadataType} from "graphql/types";
-import {gql} from "@apollo/client";
-import {useGetConnectionBySlugIasoLazyQuery} from "./IASOWidget.generated";
-import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import { ParameterField_ParameterFragment } from "./ParameterField.generated";
+import { FormInstance } from "core/hooks/useForm";
+import { IasoMetadataType } from "graphql/types";
+import { gql } from "@apollo/client";
+import { useGetConnectionBySlugIasoLazyQuery } from "./IASOWidget.generated";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import useIntersectionObserver from "core/hooks/useIntersectionObserver";
-import {Combobox, MultiCombobox} from "core/components/forms/Combobox";
+import { Combobox, MultiCombobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
-import {useTranslation} from "next-i18next";
-import {ensureArray} from "core/helpers/array";
+import { useTranslation } from "next-i18next";
+import { ensureArray } from "core/helpers/array";
 
 type IASOWidgetProps = {
   parameter: ParameterField_ParameterFragment & { connection: string };
@@ -25,24 +31,24 @@ const iasoWidgetToQuery: { [key: string]: IasoMetadataType } = {
 };
 
 const IASOWidget = ({
-                      parameter,
-                      widget,
-                      form,
-                      workspaceSlug,
-                      ...delegated
-                    }: IASOWidgetProps) => {
-
+  parameter,
+  widget,
+  form,
+  workspaceSlug,
+  ...delegated
+}: IASOWidgetProps) => {
   const [query, _setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 250);
   const [isLoading, setIsLoading] = useState(false);
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const [options, setOptions] = useState<any[]>([]);
-  const cachedSelectionsRef = useRef<Map<string, { id: string; label: string }>>(new Map());
-  const [fetchData, {data, error}] = useGetConnectionBySlugIasoLazyQuery();
+  const cachedSelectionsRef = useRef<
+    Map<string, { id: string; label: string }>
+  >(new Map());
+  const [fetchData, { data, error }] = useGetConnectionBySlugIasoLazyQuery();
   const hasConnection = useMemo(() => {
     return form.formData[parameter.connection];
   }, [form.formData[parameter.connection]]);
-
 
   // Memoize the connection to enforce the IASOConnection type
   const iasoConnection = useMemo(
@@ -88,14 +94,13 @@ const IASOWidget = ({
     }
   };
 
-
   const initializeCacheFromForm = () => {
     const ids = ensureArray(form.formData[parameter.code]);
     ids.forEach((id: string) => {
       if (!cachedSelectionsRef.current.has(id)) {
         cachedSelectionsRef.current.set(id, {
           id,
-          label: t("Unknown ID: {{id}}", {id}),
+          label: t("Unknown ID: {{id}}", { id }),
         });
       }
     });
@@ -109,7 +114,6 @@ const IASOWidget = ({
     if (!hasConnection) return;
     fetchMoreOptions(true);
   }, [hasConnection, debouncedQuery]);
-
 
   const errorMessage = useMemo(() => {
     if (error) {
@@ -138,7 +142,7 @@ const IASOWidget = ({
     const getLabel = (item: any) => {
       if (typeof item === "object" && item !== null) return item.label;
       const foundItem = options.find((opt) => opt.id === item);
-      return foundItem?.label ?? t("Unknown ID: {{id}}", {id: item});
+      return foundItem?.label ?? t("Unknown ID: {{id}}", { id: item });
     };
 
     if (Array.isArray(value)) {
@@ -151,13 +155,18 @@ const IASOWidget = ({
   const handleSelectionChange = useCallback(
     (selectedValue: any) => {
       if (parameter.multiple) {
-        const selectedArray = ensureArray<{ id: string; label: string }>(selectedValue);
+        const selectedArray = ensureArray<{ id: string; label: string }>(
+          selectedValue,
+        );
         selectedArray.forEach((item) => {
           if (item?.id) {
             cachedSelectionsRef.current.set(item.id, item);
           }
         });
-        form.setFieldValue(parameter.code, selectedArray.map((item) => item.id));
+        form.setFieldValue(
+          parameter.code,
+          selectedArray.map((item) => item.id),
+        );
       } else {
         if (selectedValue?.id) {
           cachedSelectionsRef.current.set(selectedValue.id, selectedValue);
@@ -168,7 +177,6 @@ const IASOWidget = ({
     [form, parameter.code, parameter.multiple],
   );
 
-
   const selectedObjects = useMemo(() => {
     const ids = ensureArray(form.formData[parameter.code]);
 
@@ -177,7 +185,7 @@ const IASOWidget = ({
         options.find((item) => item.id === id) ||
         cachedSelectionsRef.current.get(id) || {
           id,
-          label: t("Unknown ID: {{id}}", {id}),
+          label: t("Unknown ID: {{id}}", { id }),
         }
       );
     };
@@ -190,7 +198,6 @@ const IASOWidget = ({
     return singleId ? selectObject(singleId) : null;
   }, [form.formData[parameter.code], options]);
 
-
   const onScrollBottom = useCallback(() => {
     if (
       !isLoading &&
@@ -199,7 +206,6 @@ const IASOWidget = ({
       fetchMoreOptions();
     }
   }, [iasoConnection, options, isLoading]);
-
 
   const PickerComponent = parameter.multiple ? MultiCombobox : Combobox;
 
@@ -224,16 +230,15 @@ const IASOWidget = ({
         </Combobox.CheckOption>
       ))}
       {onScrollBottom && (
-        <IntersectionObserverWrapper onScrollBottom={onScrollBottom}/>
+        <IntersectionObserverWrapper onScrollBottom={onScrollBottom} />
       )}
     </PickerComponent>
   );
 };
 
-
 const IntersectionObserverWrapper = ({
-                                       onScrollBottom,
-                                     }: {
+  onScrollBottom,
+}: {
   onScrollBottom: () => void;
 }) => {
   const [lastElement, setLastElement] = useState<Element | null>(null);
@@ -248,4 +253,4 @@ const IntersectionObserverWrapper = ({
   return <div ref={setLastElement}></div>;
 };
 
-export {IASOWidget, iasoWidgetToQuery};
+export { IASOWidget, iasoWidgetToQuery };

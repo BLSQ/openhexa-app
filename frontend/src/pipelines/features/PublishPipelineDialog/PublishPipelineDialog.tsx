@@ -211,7 +211,10 @@ const PublishPipelineDialog = ({
           <Button variant="white" onClick={onClose}>
             {t("Cancel")}
           </Button>
-          <Button disabled={form.isSubmitting || !isEmpty(validationErrors)} type={"submit"}>
+          <Button
+            disabled={form.isSubmitting || !isEmpty(validationErrors)}
+            type={"submit"}
+          >
             {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
             {actionMessage}
           </Button>

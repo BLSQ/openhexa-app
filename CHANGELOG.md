@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.3.5](https://github.com/BLSQ/openhexa-app/compare/2.3.4...2.3.5) (2025-09-18)
+
+
+### Bug Fixes
+
+* UI of the code editor is moving on file modification and error (HEXA-1365) ([#1369](https://github.com/BLSQ/openhexa-app/issues/1369)) ([71184fa](https://github.com/BLSQ/openhexa-app/commit/71184fa56450d6e11b16b7df22f3432cf152f327))
+
+## [2.3.4](https://github.com/BLSQ/openhexa-app/compare/2.3.3...2.3.4) (2025-09-15)
+
+
+### Bug Fixes
+
+* viewing certain succeeded pipeline runs result in 500 errors (HEXA-1368) ([#1366](https://github.com/BLSQ/openhexa-app/issues/1366)) ([ed59dad](https://github.com/BLSQ/openhexa-app/commit/ed59dad40836bd893f52653fec850c88eaa76ae4))
+
+## [2.3.3](https://github.com/BLSQ/openhexa-app/compare/2.3.2...2.3.3) (2025-09-15)
+
+
+### Bug Fixes
+
+* dataset link by slug should have a fallback to any of the dataset with the slug shared with the workspace (HEXA-1367) ([#1363](https://github.com/BLSQ/openhexa-app/issues/1363)) ([0d455ff](https://github.com/BLSQ/openhexa-app/commit/0d455ff3876cdbbc09827b5ef02b568bad1d1517))
+* url of dataset when searching (PATHWAYS-895) ([#1361](https://github.com/BLSQ/openhexa-app/issues/1361)) ([a6966d6](https://github.com/BLSQ/openhexa-app/commit/a6966d6f0219937c77a972c0ba3dfe79433303c4))
+* Viewing certain succeeded pipeline runs result in 500 errors (HEXA-1368) ([#1365](https://github.com/BLSQ/openhexa-app/issues/1365)) ([f8eb140](https://github.com/BLSQ/openhexa-app/commit/f8eb14078042959ef0bb7519b6a2b7685ffd454c))
+
 ## [2.3.2](https://github.com/BLSQ/openhexa-app/compare/2.3.1...2.3.2) (2025-09-11)
 
 
