@@ -7,6 +7,7 @@ import Link from "core/components/Link";
 import { formatPipelineType } from "workspaces/helpers/pipelines";
 import Badge from "core/components/Badge";
 import PipelineRunStatusBadge from "../PipelineRunStatusBadge";
+import Tag from "core/features/Tag";
 
 type GridViewProps = {
   items: any[];
@@ -54,6 +55,19 @@ const GridView = ({
         </BaseColumn>
         <BaseColumn id="type" label={t("Type")}>
           {(pipeline) => <Badge>{formatPipelineType(pipeline.type)}</Badge>}
+        </BaseColumn>
+        <BaseColumn id="tags" label={t("Tags")}>
+          {(pipeline) => (
+            <div className="flex flex-wrap gap-1 max-w-40">
+              {pipeline.tags && pipeline.tags.length > 0 ? (
+                pipeline.tags.map((tag: any) => (
+                  <Tag key={tag.id} tag={tag} className="text-xs" />
+                ))
+              ) : (
+                <span className="text-gray-500 text-sm italic">{t("No tags")}</span>
+              )}
+            </div>
+          )}
         </BaseColumn>
         <BaseColumn label={t("Last Run")} id="lastRunStatus">
           {(pipeline) => {

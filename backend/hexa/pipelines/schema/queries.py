@@ -21,8 +21,14 @@ def resolve_pipelines(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     search = kwargs.get("search", "")
 
-    qs = Pipeline.objects.filter_for_user(request.user).filter(
-        Q(name__icontains=search) | Q(description__icontains=search)
+    qs = (
+        Pipeline.objects.filter_for_user(request.user)
+        .prefetch_related("tags")
+        .filter(
+            Q(name__icontains=search)
+            | Q(description__icontains=search)
+            | Q(tags__name__icontains=search)
+        )
     )
     if kwargs.get("workspace_slug", None):
         try:
@@ -34,6 +40,10 @@ def resolve_pipelines(_, info, **kwargs):
             qs = Pipeline.objects.none()
     else:
         qs = qs.order_by("name", "id")
+
+    tags = kwargs.get("tags", [])
+    if tags:
+        qs = qs.filter_by_tags(tags)
 
     if "name" in kwargs:
         name_to_order_by = kwargs.get("name")

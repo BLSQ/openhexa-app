@@ -255,6 +255,11 @@ def resolve_pipeline_recipients(pipeline: Pipeline, info, **kwargs):
     return pipeline.pipelinerecipient_set.all()
 
 
+@pipeline_object.field("tags")
+def resolve_pipeline_tags(pipeline: Pipeline, info, **kwargs):
+    return pipeline.tags.all()
+
+
 pipeline_run_object = ObjectType("PipelineRun")
 
 

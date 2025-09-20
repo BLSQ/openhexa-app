@@ -2839,6 +2839,7 @@ type Pipeline {
   runs(orderBy: PipelineRunOrderBy, page: Int, perPage: Int): PipelineRunPage!
   schedule: String
   sourceTemplate: PipelineTemplate
+  tags: [Tag!]!
   template: PipelineTemplate
   type: PipelineType!
   updatedAt: DateTime
@@ -3311,7 +3312,7 @@ type Query {
   pipelineVersion(id: UUID!): PipelineVersion
 
   """Retrieves a page of pipelines ordered by relevant name."""
-  pipelines(name: String, page: Int, perPage: Int, search: String, workspaceSlug: String): PipelinesPage!
+  pipelines(name: String, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): FileResultPage!
@@ -4032,6 +4033,7 @@ input UpdatePipelineInput {
   id: UUID!
   name: String
   schedule: String
+  tags: [String!]
   webhookEnabled: Boolean
 }
 

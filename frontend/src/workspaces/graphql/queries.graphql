@@ -32,6 +32,7 @@ query WorkspacePage($slug: String!) {
 query WorkspacePipelinesPage(
   $workspaceSlug: String!
   $search: String
+  $tags: [String!]
   $page: Int
   $perPage: Int
 ) {
@@ -42,7 +43,7 @@ query WorkspacePipelinesPage(
     ...CreatePipelineDialog_workspace
   }
 
-  pipelines(workspaceSlug: $workspaceSlug, search: $search, page: $page, perPage: $perPage) {
+  pipelines(workspaceSlug: $workspaceSlug, search: $search, tags: $tags, page: $page, perPage: $perPage) {
     items {
       ...PipelineCard_pipeline
     }
@@ -91,6 +92,9 @@ query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
     schedule
     type
     notebookPath
+    tags {
+      ...Tag_tag
+    }
     sourceTemplate {
       id
       code

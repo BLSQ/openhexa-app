@@ -90,7 +90,6 @@ class ConnectiontTest(GraphQLTestCase):
                     "type": "IASO_ORG_UNITS",
                 },
             )
-            print(response)
             self.assertEqual(
                 response["data"],
                 {
@@ -294,8 +293,8 @@ class ConnectiontTest(GraphQLTestCase):
             response = self.run_query(
                 """
                 query getConnectionBySlug(
-                    $workspaceSlug: String!, 
-                    $connectionSlug: String!, 
+                    $workspaceSlug: String!,
+                    $connectionSlug: String!,
                     $type: IASOMetadataType!,
                     $filters: [IASOQueryFilterInput!]
                 ) {
