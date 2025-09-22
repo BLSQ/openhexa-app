@@ -41,7 +41,7 @@ class StorageObject:
     key: str
     path: str
     type: str
-    updated: str = None
+    updated_at: str = None
     size: int = 0
     content_type: str = None
 

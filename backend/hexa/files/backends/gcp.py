@@ -37,7 +37,7 @@ def _blob_to_obj(blob: Blob):
         key=blob.name,
         path="/".join([blob.bucket.name, blob.name]),
         content_type=blob.content_type,
-        updated=blob.updated,
+        updated_at=blob.updated,
         size=blob.size,
         type="directory" if _is_dir(blob) else "file",
     )

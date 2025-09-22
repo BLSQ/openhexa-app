@@ -81,7 +81,7 @@ const FileResultTable = ({
         }
       </BaseColumn>
       <DateColumn
-        accessor={"file.updated"}
+        accessor={"file.updatedAt"}
         label={t("Last updated")}
         relative
       />
@@ -97,7 +97,7 @@ FileResultTable.fragments = {
           name
           path
           size
-          updated
+          updatedAt
           type
         }
         score

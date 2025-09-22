@@ -75,9 +75,6 @@ def resolve_bucket_object(workspace, info, key, **kwargs):
         return None
 
 
-bucket_object_object.set_alias("updatedAt", "updated")
-
-
 @bucket_object_object.field("type")
 def resolve_object_type(obj: StorageObject, info):
     return obj.type.upper()

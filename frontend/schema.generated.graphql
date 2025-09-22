@@ -1862,7 +1862,7 @@ type File {
   path: String!
   size: BigInt
   type: FileType!
-  updated: DateTime
+  updatedAt: DateTime
 }
 
 """Represents a file or directory node in a flattened structure."""
