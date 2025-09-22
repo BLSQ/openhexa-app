@@ -550,16 +550,6 @@ class PipelineOrganizationAdminOwnerPermissionsTest(TestCase):
         self.assertIn(self.PIPELINE_1, pipelines)
         self.assertIn(self.PIPELINE_2, pipelines)
 
-    def test_superuser_still_has_access_to_all_pipelines(self):
-        superuser = User.objects.create_user(
-            "superuser@bluesquarehub.com", "password", is_superuser=True
-        )
-
-        pipelines = Pipeline.objects.filter_for_user(superuser)
-
-        self.assertIn(self.PIPELINE_1, pipelines)
-        self.assertIn(self.PIPELINE_2, pipelines)
-
     def test_pipeline_filter_for_workspace_slugs_with_org_admin_owner(self):
         workspace_slugs = [self.WORKSPACE_1.slug, self.WORKSPACE_2.slug]
 

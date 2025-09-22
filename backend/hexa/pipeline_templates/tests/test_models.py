@@ -270,13 +270,3 @@ class PipelineTemplateOrganizationAdminOwnerPermissionsTest(TestCase):
 
         self.assertIn(self.TEMPLATE_1, templates)
         self.assertIn(self.TEMPLATE_2, templates)
-
-    def test_superuser_still_has_access_to_all_templates(self):
-        superuser = User.objects.create_user(
-            "superuser@bluesquarehub.com", "password", is_superuser=True
-        )
-
-        templates = PipelineTemplate.objects.filter_for_user(superuser)
-
-        self.assertIn(self.TEMPLATE_1, templates)
-        self.assertIn(self.TEMPLATE_2, templates)

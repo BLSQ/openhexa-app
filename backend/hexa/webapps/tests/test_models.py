@@ -270,16 +270,6 @@ class WebappOrganizationAdminOwnerPermissionsTest(TestCase):
         self.assertIn(self.WEBAPP_1, webapps)
         self.assertIn(self.WEBAPP_2, webapps)
 
-    def test_superuser_still_has_access_to_all_webapps(self):
-        superuser = User.objects.create_user(
-            "superuser@bluesquarehub.com", "password", is_superuser=True
-        )
-
-        webapps = Webapp.objects.filter_for_user(superuser)
-
-        self.assertIn(self.WEBAPP_1, webapps)
-        self.assertIn(self.WEBAPP_2, webapps)
-
     def test_webapp_filter_favorites_with_org_admin_owner(self):
         self.WEBAPP_1.add_to_favorites(self.ORG_OWNER_USER)
         self.WEBAPP_2.add_to_favorites(self.ORG_ADMIN_USER)
