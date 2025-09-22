@@ -253,6 +253,7 @@ class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             user,
             Q(workspace__members=user),
             return_all_if_superuser=False,
+            return_all_if_organization_admin_or_owner=True,
         )
 
     def filter_for_workspace_slugs(

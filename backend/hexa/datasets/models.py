@@ -15,7 +15,7 @@ from slugify import slugify
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.datasets.api import get_blob
 from hexa.metadata.models import MetadataMixin
-from hexa.user_management.models import OrganizationMembershipRole, User
+from hexa.user_management.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -42,16 +42,6 @@ class DatasetQuerySet(BaseQuerySet):
         )
 
     @staticmethod
-    def _org_admin_or_owner_query(user):
-        return Q(
-            workspace__organization__organizationmembership__user=user,
-            workspace__organization__organizationmembership__role__in=[
-                OrganizationMembershipRole.ADMIN,
-                OrganizationMembershipRole.OWNER,
-            ],
-        )
-
-    @staticmethod
     def optimize_query(qs: models.QuerySet) -> models.QuerySet:
         return qs.select_related(
             "workspace", "workspace__organization", "created_by"
@@ -68,10 +58,9 @@ class DatasetQuerySet(BaseQuerySet):
             return self.optimize_query(
                 self._filter_for_user_and_query_object(
                     user,
-                    self._workspace_query(user)
-                    | self._org_shared_query(user)
-                    | self._org_admin_or_owner_query(user),
+                    self._workspace_query(user) | self._org_shared_query(user),
                     return_all_if_superuser=False,
+                    return_all_if_organization_admin_or_owner=True,
                 )
             )
 
@@ -85,12 +74,9 @@ class DatasetQuerySet(BaseQuerySet):
                 | (
                     self._org_shared_query(user)
                     & Q(links__workspace__slug__in=workspace_slugs)
-                )
-                | (
-                    self._org_admin_or_owner_query(user)
-                    & Q(workspace__slug__in=workspace_slugs)
                 ),
                 return_all_if_superuser=False,
+                return_all_if_organization_admin_or_owner=True,
             )
         )
 
@@ -496,15 +482,9 @@ class DatasetLinkQuerySet(BaseQuerySet):
                     | models.Q(
                         dataset__shared_with_organization=True,
                         workspace__organization__organizationmembership__user=user,
-                    )
-                    | models.Q(
-                        workspace__organization__organizationmembership__user=user,
-                        workspace__organization__organizationmembership__role__in=[
-                            OrganizationMembershipRole.ADMIN,
-                            OrganizationMembershipRole.OWNER,
-                        ],
                     ),
                     return_all_if_superuser=False,
+                    return_all_if_organization_admin_or_owner=True,
                 )
             )
 
