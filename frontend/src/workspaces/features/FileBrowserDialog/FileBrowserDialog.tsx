@@ -158,8 +158,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
         fetchPolicy: "network-only",
       });
     } catch (err) {
-      toast.error(t("An error occurred while creating the folder"));
-      throw err; // Re-throw so the component knows the operation failed
+      toast.error((err as Error).message ?? t("An error occurred while creating the folder."));
     }
   };
 
