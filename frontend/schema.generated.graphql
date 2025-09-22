@@ -4317,6 +4317,7 @@ input UploadPipelineInput {
   name: String
   parameters: [ParameterInput!]
   pipelineCode: String
+  tags: [String!]
   timeout: Int
   workspaceSlug: String!
   zipfile: String!
