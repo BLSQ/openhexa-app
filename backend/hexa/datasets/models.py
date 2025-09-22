@@ -15,7 +15,7 @@ from slugify import slugify
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.datasets.api import get_blob
 from hexa.metadata.models import MetadataMixin
-from hexa.user_management.models import User
+from hexa.user_management.models import OrganizationMembershipRole, User
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,16 @@ class DatasetQuerySet(BaseQuerySet):
         return Q(
             shared_with_organization=True,
             workspace__organization__organizationmembership__user=user,
+        )
+
+    @staticmethod
+    def _org_admin_or_owner_query(user):
+        return Q(
+            workspace__organization__organizationmembership__user=user,
+            workspace__organization__organizationmembership__role__in=[
+                OrganizationMembershipRole.ADMIN,
+                OrganizationMembershipRole.OWNER,
+            ],
         )
 
     @staticmethod
@@ -74,9 +84,12 @@ class DatasetQuerySet(BaseQuerySet):
                 | (
                     self._org_shared_query(user)
                     & Q(links__workspace__slug__in=workspace_slugs)
+                )
+                | (
+                    self._org_admin_or_owner_query(user)
+                    & Q(workspace__slug__in=workspace_slugs)
                 ),
                 return_all_if_superuser=False,
-                return_all_if_organization_admin_or_owner=True,
             )
         )
 
