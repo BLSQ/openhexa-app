@@ -8,8 +8,6 @@ from hexa.user_management.models import (
 )
 from hexa.workspaces.models import (
     Workspace,
-    WorkspaceMembership,
-    WorkspaceMembershipRole,
 )
 
 
@@ -63,11 +61,6 @@ class FilesOrganizationPermissionsTest(TestCase):
 
         cls.USER_WORKSPACE_ADMIN.is_superuser = False
         cls.USER_WORKSPACE_ADMIN.save()
-        WorkspaceMembership.objects.create(
-            workspace=cls.WORKSPACE,
-            user=cls.USER_WORKSPACE_ADMIN,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
 
     def test_organization_owner_can_create_object(self):
         """Organization owners should be able to create files in workspace even without workspace membership"""

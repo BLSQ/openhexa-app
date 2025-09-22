@@ -75,11 +75,6 @@ class PipelineTemplatesOrganizationPermissionsTest(TestCase):
         cls.USER_WORKSPACE_ADMIN.save()
         WorkspaceMembership.objects.create(
             workspace=cls.WORKSPACE,
-            user=cls.USER_WORKSPACE_ADMIN,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
-        WorkspaceMembership.objects.create(
-            workspace=cls.WORKSPACE,
             user=cls.USER_WORKSPACE_EDITOR,
             role=WorkspaceMembershipRole.EDITOR,
         )
