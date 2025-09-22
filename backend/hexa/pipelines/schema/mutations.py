@@ -370,6 +370,17 @@ def resolve_upload_pipeline(_, info, **kwargs):
             timeout=input.get("timeout"),
             config=input.get("config"),
         )
+
+        if "tags" in input:
+            tags, has_error = _validate_and_get_tags(input["tags"])
+            if has_error:
+                return {
+                    "success": False,
+                    "errors": ["INVALID_CONFIG"],
+                }
+            pipeline.tags.set(tags)
+            pipeline.save()
+
         return {
             "success": True,
             "errors": [],

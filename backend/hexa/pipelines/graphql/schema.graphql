@@ -531,6 +531,7 @@ input UploadPipelineInput {
   zipfile: String!  # The path to the ZIP file containing the pipeline.
   config: JSON # The default configuration to set on newly created pipeline runs
   timeout: Int  # The timeout value for the pipeline.
+  tags: [String!]  # The names of tags to associate with the pipeline.
 }
 
 type AddPipelineRecipientResult {
