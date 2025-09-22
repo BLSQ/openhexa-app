@@ -2960,6 +2960,12 @@ def test_pipeline(input_file, threshold, enable_debug):
     def test_upload_pipeline_with_valid_tags(self):
         self.client.force_login(self.USER_ROOT)
 
+        Pipeline.objects.create(
+            code="test-pipeline-tags",
+            workspace=self.WS1,
+            name="Test Pipeline",
+        )
+
         Tag.objects.create(name="existing-tag")
 
         r = self.run_query(
@@ -2980,10 +2986,10 @@ def test_pipeline(input_file, threshold, enable_debug):
             """,
             {
                 "input": {
-                    "workspaceSlug": self.workspace.slug,
-                    "pipelineCode": self.PIPELINE.code,
+                    "workspaceSlug": self.WS1.slug,
+                    "pipelineCode": "test-pipeline-tags",
                     "name": "Test Version",
-                    "zipfile": self._get_base64_zipfile(),
+                    "zipfile": self.zip_pipeline_py,
                     "tags": ["existing-tag", "new-tag"],
                 }
             },
@@ -3001,6 +3007,12 @@ def test_pipeline(input_file, threshold, enable_debug):
     def test_upload_pipeline_with_invalid_tags(self):
         self.client.force_login(self.USER_ROOT)
 
+        Pipeline.objects.create(
+            code="test-pipeline-invalid-tags",
+            workspace=self.WS1,
+            name="Test Pipeline",
+        )
+
         r = self.run_query(
             """
             mutation uploadPipeline($input: UploadPipelineInput!) {
@@ -3012,10 +3024,10 @@ def test_pipeline(input_file, threshold, enable_debug):
             """,
             {
                 "input": {
-                    "workspaceSlug": self.workspace.slug,
-                    "pipelineCode": self.PIPELINE.code,
+                    "workspaceSlug": self.WS1.slug,
+                    "pipelineCode": "test-pipeline-invalid-tags",
                     "name": "Test Version",
-                    "zipfile": self._get_base64_zipfile(),
+                    "zipfile": self.zip_pipeline_py,
                     "tags": ["INVALID-TAG"],
                 }
             },
