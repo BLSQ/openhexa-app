@@ -5,6 +5,12 @@ from django.db import models
 from hexa.core.models import Base
 
 
+class InvalidTag(Exception):
+    """Raised when tag validation fails or tags don't exist."""
+
+    pass
+
+
 class Tag(Base):
     name = models.CharField(
         max_length=50,
@@ -52,3 +58,24 @@ class Tag(Base):
     @property
     def display_name(self):
         return self.name.replace("-", " ").title()
+
+    @classmethod
+    def from_names(cls, tag_names: list[str]):
+        if not tag_names:
+            return cls.objects.none()
+
+        unique_names = [
+            name.strip() for name in set(tag_names) if name and name.strip()
+        ]
+
+        if not unique_names:
+            return cls.objects.none()
+
+        tags = cls.objects.filter(name__in=unique_names)
+        found_names = set(tag.name for tag in tags)
+
+        missing_names = set(unique_names) - found_names
+        if missing_names:
+            raise InvalidTag(f"Tags not found: {', '.join(sorted(missing_names))}")
+
+        return tags

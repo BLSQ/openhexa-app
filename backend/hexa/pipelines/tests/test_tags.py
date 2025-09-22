@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.test import TestCase
 
 from hexa.pipelines.models import Pipeline
-from hexa.tags.models import Tag
+from hexa.tags.models import InvalidTag, Tag
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -51,23 +51,21 @@ class PipelineTagsTest(TestCase):
         self.pipeline.tags.add(tag1, tag2)
         self.pipeline.save()
 
-        pipelines_with_ml = Pipeline.objects.filter_by_tags([str(tag1.id)])
+        pipelines_with_ml = Pipeline.objects.filter_by_tags([tag1.name])
         self.assertIn(self.pipeline, pipelines_with_ml)
         self.assertNotIn(pipeline2, pipelines_with_ml)
 
-        pipelines_with_tags = Pipeline.objects.filter_by_tags(
-            [str(tag1.id), str(tag2.id)]
-        )
+        pipelines_with_tags = Pipeline.objects.filter_by_tags([tag1.name, tag2.name])
         self.assertIn(self.pipeline, pipelines_with_tags)
         self.assertNotIn(pipeline2, pipelines_with_tags)
 
-        pipelines_with_analytics = Pipeline.objects.filter_by_tags([str(tag3.id)])
+        pipelines_with_analytics = Pipeline.objects.filter_by_tags([tag3.name])
         self.assertNotIn(self.pipeline, pipelines_with_analytics)
         self.assertNotIn(pipeline2, pipelines_with_analytics)
 
-        all_pipelines = Pipeline.objects.filter_by_tags([])
-        self.assertIn(self.pipeline, all_pipelines)
-        self.assertIn(pipeline2, all_pipelines)
+        no_pipelines = Pipeline.objects.filter_by_tags([])
+        self.assertNotIn(self.pipeline, no_pipelines)
+        self.assertNotIn(pipeline2, no_pipelines)
 
     def test_update_pipeline_tags(self):
         tag1 = Tag.objects.create(name="ml")
@@ -93,3 +91,21 @@ class PipelineTagsTest(TestCase):
         self.pipeline.update_if_has_perm(self.user, tags=[])
 
         self.assertEqual(self.pipeline.tags.count(), 0)
+
+    def test_tag_from_names_validation(self):
+        tag1 = Tag.objects.create(name="ml")
+        tag2 = Tag.objects.create(name="data-processing")
+
+        tags = Tag.from_names(["ml", "data-processing"])
+        self.assertEqual(tags.count(), 2)
+        self.assertIn(tag1, tags)
+        self.assertIn(tag2, tags)
+
+        with self.assertRaises(InvalidTag):
+            Tag.from_names(["nonexistent"])
+
+        with self.assertRaises(InvalidTag):
+            Tag.from_names(["ml", "nonexistent"])
+
+        empty_tags = Tag.from_names([])
+        self.assertEqual(empty_tags.count(), 0)

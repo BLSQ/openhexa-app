@@ -11,6 +11,7 @@ from hexa.pipelines.models import (
     PipelineRunState,
     PipelineVersion,
 )
+from hexa.tags.models import InvalidTag, Tag
 from hexa.workspaces.models import Workspace
 
 pipelines_query = QueryType()
@@ -43,7 +44,11 @@ def resolve_pipelines(_, info, **kwargs):
 
     tags = kwargs.get("tags", [])
     if tags:
-        qs = qs.filter_by_tags(tags)
+        try:
+            Tag.from_names(tags)
+            qs = qs.filter_by_tags(tags)
+        except InvalidTag:
+            qs = Pipeline.objects.none()
 
     if "name" in kwargs:
         name_to_order_by = kwargs.get("name")

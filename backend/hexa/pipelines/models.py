@@ -264,10 +264,10 @@ class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             .exclude(deleted_at__isnull=False)
         )
 
-    def filter_by_tags(self, tag_ids: list[str]):
-        if not tag_ids:
-            return self
-        return self.filter(tags__id__in=tag_ids).distinct()
+    def filter_by_tags(self, tag_names: list[str]):
+        if not tag_names:
+            return self.none()
+        return self.filter(tags__name__in=tag_names).distinct()
 
 
 class PipelineType(models.TextChoices):
@@ -516,12 +516,8 @@ class Pipeline(SoftDeletedModel):
             self.set_webhook_state(kwargs["webhook_enabled"])
 
         if "tags" in kwargs:
-            self.save()
             self.tags.set(kwargs["tags"])
-        else:
-            self.save()
-
-        return self
+        return self.save()
 
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("pipelines.delete_pipeline", self):
