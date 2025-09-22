@@ -99,15 +99,11 @@ class PipelinesOrganizationPermissionsTest(TestCase):
 
         cls.PIPELINE_VERSION_1 = PipelineVersion.objects.create(
             pipeline=cls.PIPELINE,
-            name="Version 1",
-            zipfile="test-v1.zip",
-            config={"version": "1"},
+            version_number=1,
         )
         cls.PIPELINE_VERSION_2 = PipelineVersion.objects.create(
             pipeline=cls.PIPELINE,
-            name="Version 2",
-            zipfile="test-v2.zip",
-            config={"version": "2"},
+            version_number=2,
         )
 
     def test_organization_owner_can_create_pipeline(self):
@@ -367,13 +363,11 @@ class PipelinesOrganizationPermissionsTest(TestCase):
         single_version_pipeline = Pipeline.objects.create(
             workspace=self.WORKSPACE,
             name="Single Version Pipeline",
+            code="single_version_pipeline",
             description="Pipeline with only one version",
         )
         single_version = PipelineVersion.objects.create(
-            pipeline=single_version_pipeline,
-            name="Only Version",
-            zipfile="only-version.zip",
-            config={"version": "only"},
+            pipeline=single_version_pipeline, version_number=1
         )
 
         # Even organization owners/admins cannot delete the only version
@@ -399,10 +393,7 @@ class PipelinesOrganizationPermissionsTest(TestCase):
         )
 
         version_no_org = PipelineVersion.objects.create(
-            pipeline=pipeline_no_org,
-            name="Version No Org",
-            zipfile="no-org.zip",
-            config={"version": "no-org"},
+            pipeline=pipeline_no_org, version_number=1
         )
 
         # Organization admin/owner should not have permissions for pipelines in workspace without organization

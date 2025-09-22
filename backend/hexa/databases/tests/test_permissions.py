@@ -126,6 +126,11 @@ class DatabasesOrganizationPermissionsTest(TestCase):
             description="Workspace without organization",
             organization=None,
         )
+        WorkspaceMembership.objects.create(
+            workspace=workspace_no_org,
+            user=self.USER_WORKSPACE_EDITOR,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
 
         # Organization admin/owner should not have permissions for workspace without organization
         self.assertFalse(

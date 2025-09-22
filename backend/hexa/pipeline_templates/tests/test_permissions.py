@@ -7,6 +7,7 @@ from hexa.pipeline_templates.permissions import (
     update_pipeline_template,
     update_pipeline_template_version,
 )
+from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.user_management.models import (
     Organization,
     OrganizationMembership,
@@ -79,23 +80,40 @@ class PipelineTemplatesOrganizationPermissionsTest(TestCase):
             role=WorkspaceMembershipRole.EDITOR,
         )
 
+        cls.SOURCE_PIPELINE_1 = Pipeline.objects.create(
+            name="Source Pipeline1",
+            code="source_pipeline1_code",
+            description="A source pipeline for template",
+            workspace=cls.WORKSPACE,
+        )
+        cls.SOURCE_PIPELINE_2 = Pipeline.objects.create(
+            name="Source Pipeline2",
+            code="source_pipeline2_code",
+            description="A source pipeline for template",
+            workspace=cls.WORKSPACE,
+        )
+        cls.SOURCE_PIPELINE_VERSION_1 = PipelineVersion.objects.create(
+            pipeline=cls.SOURCE_PIPELINE_1, version_number=1
+        )
+        cls.SOURCE_PIPELINE_VERSION_2 = PipelineVersion.objects.create(
+            pipeline=cls.SOURCE_PIPELINE_1, version_number=2
+        )
         cls.PIPELINE_TEMPLATE = PipelineTemplate.objects.create(
             workspace=cls.WORKSPACE,
             name="Test Pipeline Template",
             description="Test pipeline template for permission testing",
+            source_pipeline=cls.SOURCE_PIPELINE_1,
         )
 
         cls.TEMPLATE_VERSION_1 = PipelineTemplateVersion.objects.create(
             template=cls.PIPELINE_TEMPLATE,
-            name="Version 1",
-            zipfile="test-v1.zip",
-            config={"version": "1"},
+            version_number=1,
+            source_pipeline_version=cls.SOURCE_PIPELINE_VERSION_1,
         )
         cls.TEMPLATE_VERSION_2 = PipelineTemplateVersion.objects.create(
             template=cls.PIPELINE_TEMPLATE,
-            name="Version 2",
-            zipfile="test-v2.zip",
-            config={"version": "2"},
+            version_number=2,
+            source_pipeline_version=cls.SOURCE_PIPELINE_VERSION_2,
         )
 
     def test_organization_owner_can_create_pipeline_template_version(self):
@@ -307,13 +325,17 @@ class PipelineTemplatesOrganizationPermissionsTest(TestCase):
         single_version_template = PipelineTemplate.objects.create(
             workspace=self.WORKSPACE,
             name="Single Version Template",
+            code="single_version_template_code",
             description="Template with only one version",
+            source_pipeline=self.SOURCE_PIPELINE_2,
+        )
+        unique_pipeline_version = PipelineVersion.objects.create(
+            pipeline=self.SOURCE_PIPELINE_2, version_number=1
         )
         single_version = PipelineTemplateVersion.objects.create(
             template=single_version_template,
-            name="Only Version",
-            zipfile="only-version.zip",
-            config={"version": "only"},
+            version_number=1,
+            source_pipeline_version=unique_pipeline_version,
         )
 
         # Even organization owners/admins cannot delete the only version
@@ -336,18 +358,10 @@ class PipelineTemplatesOrganizationPermissionsTest(TestCase):
             organization=None,
         )
 
-        template_no_org = PipelineTemplate.objects.create(
-            workspace=workspace_no_org,
-            name="Template No Org",
-            description="Template in workspace without organization",
-        )
-
-        version_no_org = PipelineTemplateVersion.objects.create(
-            template=template_no_org,
-            name="Version No Org",
-            zipfile="no-org.zip",
-            config={"version": "no-org"},
-        )
+        self.PIPELINE_TEMPLATE.workspace = workspace_no_org
+        self.PIPELINE_TEMPLATE.save()
+        template_no_org = self.PIPELINE_TEMPLATE
+        version_no_org = self.TEMPLATE_VERSION_1
 
         # Organization admin/owner should not have permissions for templates in workspace without organization
         self.assertFalse(

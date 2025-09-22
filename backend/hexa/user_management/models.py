@@ -115,7 +115,7 @@ class User(AbstractUser, UserInterface):
     def is_organization_member(self, organization: Organization | None):
         """Check if user is a member of the organization (any role)"""
         return (
-            organization
+            organization is not None
             and self.organizationmembership_set.filter(
                 organization=organization
             ).exists()
@@ -124,7 +124,7 @@ class User(AbstractUser, UserInterface):
     def is_organization_admin_or_owner(self, organization: Organization | None):
         """Check if user has admin or owner privileges in the organization"""
         return (
-            organization
+            organization is not None
             and self.organizationmembership_set.filter(
                 organization=organization,
                 role__in=[
@@ -137,7 +137,7 @@ class User(AbstractUser, UserInterface):
     def is_organization_owner(self, organization: Organization | None):
         """Check if user is an owner of the organization"""
         return (
-            organization
+            organization is not None
             and self.organizationmembership_set.filter(
                 organization=organization,
                 role=OrganizationMembershipRole.OWNER,

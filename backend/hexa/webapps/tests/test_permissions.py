@@ -76,9 +76,7 @@ class WebappsOrganizationPermissionsTest(TestCase):
         cls.WEBAPP = Webapp.objects.create(
             workspace=cls.WORKSPACE,
             name="Test Webapp",
-            description="Test webapp for permission testing",
-            slug="test-webapp",
-            config={"image": "test-image"},
+            created_by=cls.USER_WORKSPACE_ADMIN,
         )
 
     def test_organization_owner_can_create_webapp(self):
@@ -165,9 +163,7 @@ class WebappsOrganizationPermissionsTest(TestCase):
         webapp_no_org = Webapp.objects.create(
             workspace=workspace_no_org,
             name="Test Webapp No Org",
-            description="Test webapp in workspace without organization",
-            slug="test-webapp-no-org",
-            config={"image": "test-image"},
+            created_by=self.USER_WORKSPACE_ADMIN,
         )
 
         # Organization admin/owner should not have permissions for webapp in workspace without organization

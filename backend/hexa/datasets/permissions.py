@@ -16,14 +16,10 @@ from hexa.workspaces.models import (
 
 def create_dataset(principal: User, workspace: Workspace):
     """Only workspace admins & editors can create datasets"""
-    return (
-        workspace.workspacemembership_set.filter(
-            user=principal,
-            role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-        ).exists()
-        or principal.is_organization_member(workspace.organization)
-        or principal.is_organization_admin_or_owner(workspace.organization)
-    )
+    return workspace.workspacemembership_set.filter(
+        user=principal,
+        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
 def update_dataset(principal: User, dataset: Dataset):
@@ -55,12 +51,18 @@ def download_dataset_version(principal: User, version: DatasetVersion):
     """Only workspace members can download dataset versions.
     This also includes members of workspaces that have been shared this dataset.
     """
-    return version.dataset.links.filter(
-        workspace__in=principal.workspace_set.all()
-    ).exists() or (
-        version.dataset.shared_with_organization
-        and version.dataset.workspace.organization
-        and principal.is_organization_member(version.dataset.workspace.organization)
+    return (
+        version.dataset.links.filter(
+            workspace__in=principal.workspace_set.all()
+        ).exists()
+        or (
+            version.dataset.shared_with_organization
+            and version.dataset.workspace.organization
+            and principal.is_organization_member(version.dataset.workspace.organization)
+        )
+        or principal.is_organization_admin_or_owner(
+            version.dataset.workspace.organization
+        )
     )
 
 
@@ -96,9 +98,8 @@ def link_dataset(principal: User, dataset_and_workspace):
             user=principal,
             role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
         ).exists()
-        and principal.has_perm("datasets.view_dataset", dataset)
         or principal.is_organization_admin_or_owner(workspace.organization)
-    )
+    ) and principal.has_perm("datasets.view_dataset", dataset)
 
 
 def delete_dataset_link(principal: User, link: DatasetLink):
