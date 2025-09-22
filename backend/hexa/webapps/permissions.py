@@ -7,18 +7,22 @@ def create_webapp(principal: User, workspace: Workspace):
     return workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.EDITOR, WorkspaceMembershipRole.ADMIN],
-    ).exists()
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
 def delete_webapp(principal: User, webapp: Webapp):
     return webapp.workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.ADMIN],
-    ).exists()
+    ).exists() or principal.is_organization_admin_or_owner(
+        webapp.workspace.organization
+    )
 
 
 def update_webapp(principal: User, webapp: Webapp):
     return webapp.workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.EDITOR, WorkspaceMembershipRole.ADMIN],
-    ).exists()
+    ).exists() or principal.is_organization_admin_or_owner(
+        webapp.workspace.organization
+    )
