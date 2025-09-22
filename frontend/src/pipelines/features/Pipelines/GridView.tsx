@@ -4,7 +4,7 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import Block from "core/components/Block";
 import { useTranslation } from "next-i18next";
 import Link from "core/components/Link";
-import { formatPipelineType } from "workspaces/helpers/pipelines";
+import { formatPipelineType, formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 import Badge from "core/components/Badge";
 import PipelineRunStatusBadge from "../PipelineRunStatusBadge";
 import Tag from "core/features/Tag";
@@ -67,6 +67,13 @@ const GridView = ({
                 <span className="text-gray-500 text-sm italic">{t("No tags")}</span>
               )}
             </div>
+          )}
+        </BaseColumn>
+        <BaseColumn id="functionalType" label={t("Functional Type")}>
+          {(pipeline) => (
+            <span className="text-gray-600">
+              {pipeline.functionalType ? formatPipelineFunctionalType(pipeline.functionalType) : t("Not set")}
+            </span>
           )}
         </BaseColumn>
         <BaseColumn label={t("Last Run")} id="lastRunStatus">
