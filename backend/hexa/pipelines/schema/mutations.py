@@ -32,6 +32,7 @@ from hexa.pipelines.models import (
     PipelineType,
     PipelineVersion,
 )
+from hexa.tags.models import Tag
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -89,6 +90,25 @@ def resolve_create_pipeline(_, info, **kwargs):
     return {"pipeline": pipeline, "success": True, "errors": []}
 
 
+def _validate_and_get_tags(tag_data):
+    if not tag_data:
+        return [], False
+
+    tags = []
+    try:
+        for item in tag_data:
+            if not isinstance(item, str):
+                return [], True
+            name = item.strip()
+            if not name:
+                return [], True
+            tag, created = Tag.objects.get_or_create(name=name)
+            tags.append(tag)
+        return tags, False
+    except Exception:
+        return [], True
+
+
 @pipelines_mutations.field("updatePipeline")
 def resolve_update_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -98,6 +118,16 @@ def resolve_update_pipeline(_, info, **kwargs):
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
             id=input.pop("id")
         )
+
+        if "tags" in input:
+            tags, has_error = _validate_and_get_tags(input["tags"])
+            if has_error:
+                return {
+                    "success": False,
+                    "errors": ["INVALID_CONFIG"],
+                }
+            input["tags"] = tags
+
         pipeline.update_if_has_perm(request.user, **input)
         return {"pipeline": pipeline, "success": True, "errors": []}
     except PermissionDenied:
@@ -340,6 +370,17 @@ def resolve_upload_pipeline(_, info, **kwargs):
             timeout=input.get("timeout"),
             config=input.get("config"),
         )
+
+        if "tags" in input:
+            tags, has_error = _validate_and_get_tags(input["tags"])
+            if has_error:
+                return {
+                    "success": False,
+                    "errors": ["INVALID_CONFIG"],
+                }
+            pipeline.tags.set(tags)
+            pipeline.save()
+
         return {
             "success": True,
             "errors": [],

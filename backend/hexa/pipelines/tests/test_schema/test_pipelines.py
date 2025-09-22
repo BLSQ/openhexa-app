@@ -32,6 +32,7 @@ from hexa.pipelines.tests.test_schema.fixtures_for_pipelines import (
     pipelines_parameters_with_scalars,
 )
 from hexa.pipelines.utils import mail_run_recipients
+from hexa.tags.models import Tag
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
@@ -2955,3 +2956,82 @@ def test_pipeline(input_file, threshold, enable_debug):
         self.assertFalse(
             r["data"]["pipeline"]["permissions"]["createTemplateVersion"]["isAllowed"]
         )
+
+    def test_upload_pipeline_with_valid_tags(self):
+        self.client.force_login(self.USER_ROOT)
+
+        Pipeline.objects.create(
+            code="test-pipeline-tags",
+            workspace=self.WS1,
+            name="Test Pipeline",
+        )
+
+        Tag.objects.create(name="existing-tag")
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                    pipelineVersion {
+                        pipeline {
+                            tags {
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                    "pipelineCode": "test-pipeline-tags",
+                    "name": "Test Version",
+                    "zipfile": self.zip_pipeline_py,
+                    "tags": ["existing-tag", "new-tag"],
+                }
+            },
+        )
+
+        self.assertEqual(r["data"]["uploadPipeline"]["success"], True)
+        pipeline_tags = r["data"]["uploadPipeline"]["pipelineVersion"]["pipeline"][
+            "tags"
+        ]
+        tag_names = [tag["name"] for tag in pipeline_tags]
+        self.assertIn("existing-tag", tag_names)
+        self.assertIn("new-tag", tag_names)
+        self.assertTrue(Tag.objects.filter(name="new-tag").exists())
+
+    def test_upload_pipeline_with_invalid_tags(self):
+        self.client.force_login(self.USER_ROOT)
+
+        Pipeline.objects.create(
+            code="test-pipeline-invalid-tags",
+            workspace=self.WS1,
+            name="Test Pipeline",
+        )
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                    "pipelineCode": "test-pipeline-invalid-tags",
+                    "name": "Test Version",
+                    "zipfile": self.zip_pipeline_py,
+                    "tags": ["INVALID-TAG"],
+                }
+            },
+        )
+
+        self.assertEqual(r["data"]["uploadPipeline"]["success"], False)
+        self.assertIn("INVALID_CONFIG", r["data"]["uploadPipeline"]["errors"])

@@ -1,9 +1,10 @@
 import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
+import { Tag_TagFragmentDoc } from '../../../core/features/Tag.generated';
 import { User_UserFragmentDoc } from '../../../core/features/User/User.generated';
 import { PipelineRunStatusBadge_RunFragmentDoc } from '../../../pipelines/features/PipelineRunStatusBadge.generated';
-export type PipelineCard_PipelineFragment = { __typename?: 'Pipeline', id: string, code: string, name?: string | null, schedule?: string | null, description?: string | null, type: Types.PipelineType, currentVersion?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } | null, lastRuns: { __typename?: 'PipelineRunPage', items: Array<{ __typename?: 'PipelineRun', id: string, status: Types.PipelineRunStatus }> } };
+export type PipelineCard_PipelineFragment = { __typename?: 'Pipeline', id: string, code: string, name?: string | null, schedule?: string | null, description?: string | null, type: Types.PipelineType, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, currentVersion?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } | null, lastRuns: { __typename?: 'PipelineRunPage', items: Array<{ __typename?: 'PipelineRun', id: string, status: Types.PipelineRunStatus }> } };
 
 export type PipelineCard_WorkspaceFragment = { __typename?: 'Workspace', slug: string };
 
@@ -15,6 +16,9 @@ export const PipelineCard_PipelineFragmentDoc = gql`
   schedule
   description
   type
+  tags {
+    ...Tag_tag
+  }
   currentVersion {
     user {
       ...User_user
@@ -28,7 +32,8 @@ export const PipelineCard_PipelineFragmentDoc = gql`
     }
   }
 }
-    ${User_UserFragmentDoc}
+    ${Tag_TagFragmentDoc}
+${User_UserFragmentDoc}
 ${PipelineRunStatusBadge_RunFragmentDoc}`;
 export const PipelineCard_WorkspaceFragmentDoc = gql`
     fragment PipelineCard_workspace on Workspace {

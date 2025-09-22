@@ -310,6 +310,7 @@ type Pipeline {
   autoUpdateFromTemplate: Boolean!  # Automatically update this pipeline when its source template is updated.
   hasNewTemplateVersions: Boolean!  # Indicates if there are new template versions available for the pipeline.
   newTemplateVersions: [PipelineTemplateVersion!]!  # The new template versions available for the pipeline.
+  tags: [Tag!]!  # The tags associated with the pipeline.
 }
 
 """
@@ -427,6 +428,7 @@ input UpdatePipelineInput {
   description: String  # The new description of the pipeline.
   webhookEnabled: Boolean  # Indicates if the webhook should be enabled for the pipeline.
   autoUpdateFromTemplate: Boolean  # Automatically update this pipeline when its source template is updated.
+  tags: [String!]  # The names of tags to associate with the pipeline.
 }
 
 """
@@ -529,6 +531,7 @@ input UploadPipelineInput {
   zipfile: String!  # The path to the ZIP file containing the pipeline.
   config: JSON # The default configuration to set on newly created pipeline runs
   timeout: Int  # The timeout value for the pipeline.
+  tags: [String!]  # The names of tags to associate with the pipeline.
 }
 
 type AddPipelineRecipientResult {
@@ -675,7 +678,7 @@ extend type Query {
   """
   Retrieves a page of pipelines ordered by relevant name.
   """
-  pipelines(workspaceSlug: String, name: String, search: String, page: Int, perPage: Int): PipelinesPage! @loginRequired
+  pipelines(workspaceSlug: String, name: String, search: String, tags: [String!], page: Int, perPage: Int): PipelinesPage! @loginRequired
 
   """
   Retrieves a pipeline by ID.
