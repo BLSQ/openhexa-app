@@ -61,7 +61,7 @@ type File {
   name: String!
   path: String!
   size: BigInt
-  updated: DateTime
+  updatedAt: DateTime
   type: FileType!
 }
 

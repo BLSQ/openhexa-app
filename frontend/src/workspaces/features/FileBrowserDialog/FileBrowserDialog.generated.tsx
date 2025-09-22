@@ -14,7 +14,7 @@ export type FileBrowserDialogQueryVariables = Types.Exact<{
 }>;
 
 
-export type FileBrowserDialogQuery = { __typename?: 'Query', searchResults?: { __typename?: 'FileResultPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<{ __typename?: 'FileResult', score: number, file: { __typename?: 'File', name: string, key: string, path: string, type: Types.FileType, updated?: any | null, size?: any | null } }> }, workspace?: { __typename?: 'Workspace', slug: string, bucket: { __typename?: 'Bucket', objects: { __typename?: 'BucketObjectPage', pageNumber: number, hasNextPage: boolean, hasPreviousPage: boolean, items: Array<{ __typename?: 'BucketObject', key: string, name: string, path: string, size?: any | null, updatedAt?: any | null, type: Types.BucketObjectType }> } } } | null };
+export type FileBrowserDialogQuery = { __typename?: 'Query', searchResults?: { __typename?: 'FileResultPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<{ __typename?: 'FileResult', score: number, file: { __typename?: 'File', name: string, key: string, path: string, type: Types.FileType, updatedAt?: any | null, size?: any | null } }> }, workspace?: { __typename?: 'Workspace', slug: string, bucket: { __typename?: 'Bucket', objects: { __typename?: 'BucketObjectPage', pageNumber: number, hasNextPage: boolean, hasPreviousPage: boolean, items: Array<{ __typename?: 'BucketObject', key: string, name: string, path: string, size?: any | null, updatedAt?: any | null, type: Types.BucketObjectType }> } } } | null };
 
 export type FileBrowserDialog_BucketObjectFragment = { __typename?: 'BucketObject', key: string, name: string, path: string, size?: any | null, updatedAt?: any | null, type: Types.BucketObjectType };
 
@@ -45,7 +45,7 @@ export const FileBrowserDialogDocument = gql`
         key
         path
         type
-        updated
+        updatedAt
         size
       }
       score
