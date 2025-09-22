@@ -140,6 +140,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
                     value={form.formData.functionalType}
                     onChange={(value) => form.setFieldValue("functionalType", value)}
                     getOptionLabel={(option) => option ? formatPipelineFunctionalType(option) : t("Not specified")}
+                    displayValue={(option) => option ? formatPipelineFunctionalType(option) : ""}
                     placeholder={t("Select functional type (optional)")}
                   />
                 </Field>

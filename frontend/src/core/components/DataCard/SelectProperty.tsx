@@ -39,6 +39,10 @@ const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
             if (option === null) return defaultValue || "Not set";
             return getOptionLabel(option);
           }}
+          displayValue={(option) => {
+            if (option === null) return "";
+            return getOptionLabel(option);
+          }}
           required={property.required}
           disabled={property.readonly}
           className="w-full"
