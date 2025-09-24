@@ -13,6 +13,7 @@ type PipelinesProps = {
   page: number;
   perPage: number;
   search: string;
+  tags?: string[];
 };
 
 const Pipelines = ({
@@ -20,6 +21,7 @@ const Pipelines = ({
   page: initialPage,
   perPage,
   search: initialSearch,
+  tags,
 }: PipelinesProps) => {
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const debouncedSearchQuery = useDebounce(searchQuery, 300, () => {
@@ -32,6 +34,7 @@ const Pipelines = ({
     variables: {
       workspaceSlug: workspace.slug,
       search: debouncedSearchQuery,
+      tags,
       page,
       perPage,
     },

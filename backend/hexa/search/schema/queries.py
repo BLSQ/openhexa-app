@@ -76,7 +76,7 @@ def resolve_search_pipelines(
         ).workspaces.values_list("slug", flat=True)
     request = info.context["request"]
     qs = Pipeline.objects.filter_for_workspace_slugs(request.user, workspace_slugs)
-    qs = apply_scored_search(qs, ["name", "code", "description"], query)
+    qs = apply_scored_search(qs, ["name", "code", "description", "tags__name"], query)
     return page_result_with_scores(qs, page, per_page, "pipeline")
 
 

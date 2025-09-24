@@ -3413,6 +3413,7 @@ export type Pipeline = {
   runs: PipelineRunPage;
   schedule?: Maybe<Scalars['String']['output']>;
   sourceTemplate?: Maybe<PipelineTemplate>;
+  tags: Array<Tag>;
   template?: Maybe<PipelineTemplate>;
   type: PipelineType;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -4113,6 +4114,7 @@ export type QueryPipelinesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -4859,6 +4861,7 @@ export type UpdatePipelineInput = {
   id: Scalars['UUID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
   schedule?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
   webhookEnabled?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
@@ -5115,6 +5118,7 @@ export type UploadPipelineInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   parameters?: InputMaybe<Array<ParameterInput>>;
   pipelineCode?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
   timeout?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug: Scalars['String']['input'];
   zipfile: Scalars['String']['input'];

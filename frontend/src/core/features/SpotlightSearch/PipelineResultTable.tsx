@@ -8,6 +8,7 @@ import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import WorkspaceDisplay from "./WorkspaceDisplay";
 import Time from "core/components/Time";
 import HighlightedLink from "./HighlightedLink";
+import Tag from "core/features/Tag";
 
 type PipelineResultTableProps = {
   isActive: boolean;
@@ -56,6 +57,19 @@ const PipelineResultTable = ({
         {(item) => <WorkspaceDisplay workspace={item.pipeline.workspace} />}
       </BaseColumn>
       <TextColumn label={t("Description")} accessor="pipeline.description" />
+      <BaseColumn id="tags" label={t("Tags")}>
+        {(item) => (
+          <div className="flex flex-wrap gap-1 max-w-40">
+            {item.pipeline.tags && item.pipeline.tags.length > 0 ? (
+              item.pipeline.tags.map((tag: any) => (
+                <Tag key={tag.id} tag={tag} className="text-xs" />
+              ))
+            ) : (
+              <span className="text-gray-500 text-sm italic">{t("No tags")}</span>
+            )}
+          </div>
+        )}
+      </BaseColumn>
       <BaseColumn id="updatedAt" label={t("Last updated")}>
         {(item) => (
           <Trans>
@@ -90,6 +104,9 @@ PipelineResultTable.fragments = {
           name
           description
           updatedAt
+          tags {
+            ...Tag_tag
+          }
           workspace {
             slug
             ...WorkspaceDisplayFragment
@@ -106,6 +123,7 @@ PipelineResultTable.fragments = {
       pageNumber
       totalPages
     }
+    ${Tag.fragments.tag}
   `,
 };
 export default PipelineResultTable;

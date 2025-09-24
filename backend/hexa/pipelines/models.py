@@ -253,6 +253,7 @@ class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             user,
             Q(workspace__members=user),
             return_all_if_superuser=False,
+            return_all_if_organization_admin_or_owner=True,
         )
 
     def filter_for_workspace_slugs(
@@ -263,6 +264,11 @@ class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             .filter(Q(workspace__slug__in=workspace_slugs))
             .exclude(deleted_at__isnull=False)
         )
+
+    def filter_by_tags(self, tag_names: list[str]):
+        if not tag_names:
+            return self.none()
+        return self.filter(tags__name__in=tag_names).distinct()
 
 
 class PipelineType(models.TextChoices):
@@ -362,6 +368,7 @@ class Pipeline(SoftDeletedModel):
         default=False,
         help_text="Automatically update this pipeline when its source template is updated",
     )
+    tags = models.ManyToManyField("tags.Tag", blank=True, related_name="pipelines")
 
     objects = PipelineManager()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()
@@ -509,6 +516,8 @@ class Pipeline(SoftDeletedModel):
         if "webhook_enabled" in kwargs:
             self.set_webhook_state(kwargs["webhook_enabled"])
 
+        if "tags" in kwargs:
+            self.tags.set(kwargs["tags"])
         return self.save()
 
     def delete_if_has_perm(self, *, principal: User):
