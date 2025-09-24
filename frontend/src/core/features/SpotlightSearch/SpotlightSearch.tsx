@@ -80,7 +80,7 @@ const SpotlightSearch = ({
     () => selectedWorkspaces?.map((workspace) => workspace.slug),
     [selectedWorkspaces],
   );
-  const [functionalTypeFilter, setFunctionalTypeFilter] = useState<string | null>(null);
+  const [functionalTypeFilter, setFunctionalTypeFilter] = useState<PipelineFunctionalType | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {

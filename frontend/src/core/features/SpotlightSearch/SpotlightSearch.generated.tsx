@@ -24,6 +24,7 @@ export type SearchPipelinesQueryVariables = Types.Exact<{
   workspaceSlugs: Array<Types.InputMaybe<Types.Scalars['String']['input']>> | Types.InputMaybe<Types.Scalars['String']['input']>;
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  functionalType?: Types.InputMaybe<Types.PipelineFunctionalType>;
 }>;
 
 
@@ -119,12 +120,13 @@ export type SearchDatasetsLazyQueryHookResult = ReturnType<typeof useSearchDatas
 export type SearchDatasetsSuspenseQueryHookResult = ReturnType<typeof useSearchDatasetsSuspenseQuery>;
 export type SearchDatasetsQueryResult = Apollo.QueryResult<SearchDatasetsQuery, SearchDatasetsQueryVariables>;
 export const SearchPipelinesDocument = gql`
-    query SearchPipelines($query: String!, $workspaceSlugs: [String]!, $page: Int, $perPage: Int) {
+    query SearchPipelines($query: String!, $workspaceSlugs: [String]!, $page: Int, $perPage: Int, $functionalType: PipelineFunctionalType) {
   pipelines: searchPipelines(
     query: $query
     workspaceSlugs: $workspaceSlugs
     page: $page
     perPage: $perPage
+    functionalType: $functionalType
   ) {
     __typename
     ...PipelinesPage
@@ -148,6 +150,7 @@ export const SearchPipelinesDocument = gql`
  *      workspaceSlugs: // value for 'workspaceSlugs'
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
+ *      functionalType: // value for 'functionalType'
  *   },
  * });
  */
