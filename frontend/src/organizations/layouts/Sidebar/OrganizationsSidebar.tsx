@@ -38,15 +38,7 @@ const OrganizationsSidebar = ({
             <BuildingOffice2Icon
               className={clsx(!isSidebarOpen ? "h-7 w-7" : "ml-1 h-5 w-5")}
             />
-            {!isSidebarOpen ? (
-              <div className="absolute inset-y-0 left-full ml-0.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100">
-                <Badge className="bg-gray-800 ring-gray-500/20">
-                  {t("Organizations")}
-                </Badge>
-              </div>
-            ) : (
-              t("Organizations")
-            )}
+            {isSidebarOpen && t("Organizations")}
           </div>
           <div className="mt-5 flex grow flex-col">
             {organizations.map((organization) => (
