@@ -20,7 +20,7 @@ const NavItem = ({ label, href, Icon, compact, className }: NavItemProps) => {
     } else {
       const timer = setTimeout(() => {
         setDelayedLabel(label);
-      }, 200);
+      }, 100);
       return () => clearTimeout(timer);
     }
   }, [compact, label]);
