@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import clsx from "clsx";
 import Link from "core/components/Link";
 import Badge from "core/components/Badge";
@@ -12,6 +12,18 @@ type NavItemProps = {
 };
 
 const NavItem = ({ label, href, Icon, compact, className }: NavItemProps) => {
+  const [delayedLabel, setDelayedLabel] = useState(compact ? "" : label);
+
+  useEffect(() => {
+    if (compact) {
+      setDelayedLabel("");
+    } else {
+      const timer = setTimeout(() => {
+        setDelayedLabel(label);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [compact, label]);
   return (
     <Link
       href={href}
@@ -31,9 +43,7 @@ const NavItem = ({ label, href, Icon, compact, className }: NavItemProps) => {
           <Badge className="bg-gray-800 ring-gray-500/20">{label}</Badge>
         </div>
       ) : (
-        <span className="overflow-hidden transition-opacity duration-200">
-          {label}
-        </span>
+        <span className="">{delayedLabel}</span>
       )}
     </Link>
   );
