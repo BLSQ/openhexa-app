@@ -9,6 +9,7 @@ import {
   PipelineNotificationLevel,
   PipelineParameter,
   PipelineType,
+  PipelineFunctionalType,
   UpdatePipelineError,
 } from "graphql/types";
 import { i18n } from "next-i18next";
@@ -39,6 +40,7 @@ export async function updatePipeline(
             description
             schedule
             config
+            functionalType
             updatedAt
             webhookEnabled
             webhookUrl
@@ -279,14 +281,38 @@ export async function deletePipelineVersion(versionId: string) {
   throw new Error("Failed to delete pipeline version");
 }
 
-export function formatPipelineType(pipelineType: PipelineType) {
+export function formatPipelineSource(pipelineType: PipelineType, hasSourceTemplate?: boolean) {
   switch (pipelineType) {
     case PipelineType.Notebook:
-      return i18n!.t("Jupyter notebook");
+      if (hasSourceTemplate) {
+        return i18n!.t("Template");
+      }
+      return i18n!.t("Notebook");
     case PipelineType.ZipFile:
-      return i18n!.t("Standard pipeline");
+      if (hasSourceTemplate) {
+        return i18n!.t("Template");
+      }
+      return i18n!.t("From CLI");
     default:
       return i18n!.t("Pipeline");
+  }
+}
+
+// Keep the old function for backward compatibility, but mark as deprecated
+export function formatPipelineType(pipelineType: PipelineType, hasSourceTemplate?: boolean) {
+  return formatPipelineSource(pipelineType, hasSourceTemplate);
+}
+
+export function formatPipelineFunctionalType(functionalType: PipelineFunctionalType) {
+  switch (functionalType) {
+    case PipelineFunctionalType.Extraction:
+      return i18n!.t("Extraction");
+    case PipelineFunctionalType.Transformation:
+      return i18n!.t("Transformation");
+    case PipelineFunctionalType.Loading:
+      return i18n!.t("Loading");
+    case PipelineFunctionalType.Computation:
+      return i18n!.t("Computation");
   }
 }
 

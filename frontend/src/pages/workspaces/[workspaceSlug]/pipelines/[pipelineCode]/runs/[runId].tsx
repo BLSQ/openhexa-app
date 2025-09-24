@@ -38,7 +38,7 @@ import {
   WorkspacePipelineRunPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import {
-  formatPipelineType,
+  formatPipelineSource,
   getPipelineRunConfig,
   isConnectionParameter,
 } from "workspaces/helpers/pipelines";
@@ -270,8 +270,8 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                 <DescriptionList.Item label={t("Execution Date")}>
                   <Time datetime={run.executionDate} />
                 </DescriptionList.Item>
-                <DescriptionList.Item label={t("Type")}>
-                  <Badge>{formatPipelineType(run.pipeline.type)}</Badge>
+                <DescriptionList.Item label={t("Source")}>
+                  <Badge>{formatPipelineSource(run.pipeline.type, !!run.pipeline.sourceTemplate)}</Badge>
                 </DescriptionList.Item>
                 {run.pipeline.type === PipelineType.Notebook && (
                   <DescriptionList.Item label={t("Notebook")}>
