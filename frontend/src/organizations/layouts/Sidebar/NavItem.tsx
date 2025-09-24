@@ -24,12 +24,7 @@ const NavItem = ({ label, href, Icon, compact, className }: NavItemProps) => {
       )}
     >
       {Icon && (
-        <Icon
-          className={clsx(
-            compact ? "h-7 w-7" : "ml-1 h-5 w-5",
-            "flex-shrink-0",
-          )}
-        />
+        <Icon className={clsx("h-7 w-7 flex-shrink-0", !compact && "ml-1")} />
       )}
       {compact ? (
         <div className="absolute inset-y-0 left-full ml-2.5 hidden h-full items-center text-xs opacity-0 transition-opacity group-hover:flex group-hover:opacity-100">

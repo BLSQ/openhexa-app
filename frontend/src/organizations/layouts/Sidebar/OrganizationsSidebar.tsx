@@ -36,7 +36,7 @@ const OrganizationsSidebar = ({
             )}
           >
             <BuildingOffice2Icon
-              className={clsx(!isSidebarOpen ? "h-7 w-7" : "ml-1 h-5 w-5")}
+              className={clsx("h-7 w-7", isSidebarOpen && "ml-1")}
             />
             {isSidebarOpen && t("Organizations")}
           </div>
