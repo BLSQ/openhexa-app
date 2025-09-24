@@ -29,6 +29,7 @@ def resolve_pipelines(_, info, **kwargs):
             Q(name__icontains=search)
             | Q(description__icontains=search)
             | Q(tags__name__icontains=search)
+            | Q(functional_type__icontains=search)
         )
     )
 
