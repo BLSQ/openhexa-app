@@ -293,6 +293,10 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: UUID!) {
       name
       type
       notebookPath
+      sourceTemplate {
+        id
+        name
+      }
       permissions {
         stopPipeline
       }

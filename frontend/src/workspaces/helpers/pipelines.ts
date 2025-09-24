@@ -281,15 +281,26 @@ export async function deletePipelineVersion(versionId: string) {
   throw new Error("Failed to delete pipeline version");
 }
 
-export function formatPipelineType(pipelineType: PipelineType) {
+export function formatPipelineSource(pipelineType: PipelineType, hasSourceTemplate?: boolean) {
   switch (pipelineType) {
     case PipelineType.Notebook:
-      return i18n!.t("Jupyter notebook");
+      if (hasSourceTemplate) {
+        return i18n!.t("Template");
+      }
+      return i18n!.t("Notebook");
     case PipelineType.ZipFile:
-      return i18n!.t("Standard pipeline");
+      if (hasSourceTemplate) {
+        return i18n!.t("Template");
+      }
+      return i18n!.t("From CLI");
     default:
       return i18n!.t("Pipeline");
   }
+}
+
+// Keep the old function for backward compatibility, but mark as deprecated
+export function formatPipelineType(pipelineType: PipelineType, hasSourceTemplate?: boolean) {
+  return formatPipelineSource(pipelineType, hasSourceTemplate);
 }
 
 export function formatPipelineFunctionalType(functionalType: PipelineFunctionalType) {
