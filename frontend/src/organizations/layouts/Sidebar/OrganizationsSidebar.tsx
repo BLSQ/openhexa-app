@@ -30,7 +30,7 @@ const OrganizationsSidebar = ({
       <div className="relative z-20 flex h-full flex-col">
         <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
           <NavItem
-            className="h-16"
+            className="h-16  pointer-events-none"
             key="organizations-header"
             href="/organizations/"
             Icon={BuildingOffice2Icon}
