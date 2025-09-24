@@ -605,7 +605,7 @@ class DatasetOrganizationSharingPermissionsTest(BaseTestMixin, TestCase):
         self.assertFalse(
             self.ORG_MEMBER_USER.has_perm("datasets.view_dataset", regular_dataset)
         )
-        self.assertFalse(
+        self.assertTrue(
             self.ORG_ADMIN_USER.has_perm("datasets.view_dataset", regular_dataset)
         )
 
