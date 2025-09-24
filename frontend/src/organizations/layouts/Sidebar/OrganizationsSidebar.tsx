@@ -29,17 +29,14 @@ const OrganizationsSidebar = ({
     >
       <div className="relative z-20 flex h-full flex-col">
         <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
-          <div
-            className={clsx(
-              "h-16 text-gray-300 text-md group relative flex items-center gap-3 px-2 py-2 font-medium",
-              !isSidebarOpen && "justify-center",
-            )}
-          >
-            <BuildingOffice2Icon
-              className={clsx("h-7 w-7", isSidebarOpen && "ml-1")}
-            />
-            {isSidebarOpen && t("Organizations")}
-          </div>
+          <NavItem
+            className="h-16"
+            key="organizations-header"
+            href="/organizations/"
+            Icon={BuildingOffice2Icon}
+            label={t("Organizations")}
+            compact={!isSidebarOpen}
+          />
           <div className="mt-5 flex grow flex-col">
             {organizations.map((organization) => (
               <NavItem
