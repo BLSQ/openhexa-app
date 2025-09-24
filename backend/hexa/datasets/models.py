@@ -68,10 +68,9 @@ class DatasetQuerySet(BaseQuerySet):
             return self.optimize_query(
                 self._filter_for_user_and_query_object(
                     user,
-                    self._workspace_query(user)
-                    | self._org_shared_query(user)
-                    | self._org_admin_or_owner_query(user),
+                    self._workspace_query(user) | self._org_shared_query(user),
                     return_all_if_superuser=False,
+                    return_all_if_organization_admin_or_owner=True,
                 )
             )
 
@@ -496,15 +495,9 @@ class DatasetLinkQuerySet(BaseQuerySet):
                     | models.Q(
                         dataset__shared_with_organization=True,
                         workspace__organization__organizationmembership__user=user,
-                    )
-                    | models.Q(
-                        workspace__organization__organizationmembership__user=user,
-                        workspace__organization__organizationmembership__role__in=[
-                            OrganizationMembershipRole.ADMIN,
-                            OrganizationMembershipRole.OWNER,
-                        ],
                     ),
                     return_all_if_superuser=False,
+                    return_all_if_organization_admin_or_owner=True,
                 )
             )
 

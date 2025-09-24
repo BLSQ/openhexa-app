@@ -307,7 +307,10 @@ class Workspace(Base):
 class WorkspaceMembershipQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
         return self._filter_for_user_and_query_object(
-            user, Q(workspace__members=user), return_all_if_superuser=False
+            user,
+            Q(workspace__members=user),
+            return_all_if_superuser=False,
+            return_all_if_organization_admin_or_owner=True,
         )
 
 
@@ -430,7 +433,10 @@ class WorkspaceInvitationStatus(models.TextChoices):
 class WorkspaceInvitationQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
         return self._filter_for_user_and_query_object(
-            user, Q(workspace__members=user), return_all_if_superuser=False
+            user,
+            Q(workspace__members=user),
+            return_all_if_superuser=False,
+            return_all_if_organization_admin_or_owner=True,
         )
 
 
@@ -502,7 +508,10 @@ class ConnectionQuerySet(BaseQuerySet):
             )
         else:
             return self._filter_for_user_and_query_object(
-                user, Q(workspace__members=user), return_all_if_superuser=False
+                user,
+                Q(workspace__members=user),
+                return_all_if_superuser=False,
+                return_all_if_organization_admin_or_owner=True,
             )
 
 

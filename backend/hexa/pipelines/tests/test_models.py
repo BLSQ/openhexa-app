@@ -13,9 +13,16 @@ from hexa.pipelines.models import (
     PipelineRunTrigger,
 )
 from hexa.pipelines.utils import mail_run_recipients
-from hexa.user_management.models import User
+from hexa.user_management.models import (
+    Organization,
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    User,
+)
 from hexa.workspaces.models import (
     Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
 )
 
 
@@ -430,3 +437,135 @@ class PipelineTest(TestCase):
         self.assertNotEqual(pipeline1.code, pipeline2.code)
         self.assertEqual(pipeline1.code, "test-pipeline")
         self.assertEqual(pipeline2.code, "test-pipeline-abc123")
+
+
+class PipelineOrganizationAdminOwnerPermissionsTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Test Organization",
+            short_name="test-org-pipeline",
+            organization_type="CORPORATE",
+        )
+
+        cls.ORG_OWNER_USER = User.objects.create_user(
+            "owner@bluesquarehub.com", "password"
+        )
+        cls.ORG_ADMIN_USER = User.objects.create_user(
+            "admin@bluesquarehub.com", "password"
+        )
+        cls.ORG_MEMBER_USER = User.objects.create_user(
+            "member@bluesquarehub.com", "password"
+        )
+        cls.NON_ORG_USER = User.objects.create_user(
+            "nonorg@bluesquarehub.com", "password"
+        )
+
+        cls.WORKSPACE_ADMIN = User.objects.create_user(
+            "workspace_admin@bluesquarehub.com", "password", is_superuser=True
+        )
+
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_OWNER_USER,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_ADMIN_USER,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_MEMBER_USER,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
+        cls.WORKSPACE_1 = Workspace.objects.create_if_has_perm(
+            cls.WORKSPACE_ADMIN,
+            name="Workspace 1",
+            description="First workspace in organization",
+            organization=cls.ORGANIZATION,
+        )
+
+        cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+            cls.WORKSPACE_ADMIN,
+            name="Workspace 2",
+            description="Second workspace in organization",
+            organization=cls.ORGANIZATION,
+        )
+
+        cls.WORKSPACE_ADMIN.is_superuser = False
+        cls.WORKSPACE_ADMIN.save()
+
+        cls.PIPELINE_1 = Pipeline.objects.create(
+            workspace=cls.WORKSPACE_1,
+            name="Pipeline in workspace 1",
+            code="pipeline-1",
+            description="Pipeline in workspace where org admin/owner is not a member",
+        )
+
+        cls.PIPELINE_2 = Pipeline.objects.create(
+            workspace=cls.WORKSPACE_2,
+            name="Pipeline in workspace 2",
+            code="pipeline-2",
+            description="Pipeline in another workspace in same org",
+        )
+
+    def test_organization_owner_can_access_all_pipelines_in_organization(self):
+        pipelines = Pipeline.objects.filter_for_user(self.ORG_OWNER_USER)
+
+        self.assertIn(self.PIPELINE_1, pipelines)
+        self.assertIn(self.PIPELINE_2, pipelines)
+
+    def test_organization_admin_can_access_all_pipelines_in_organization(self):
+        pipelines = Pipeline.objects.filter_for_user(self.ORG_ADMIN_USER)
+
+        self.assertIn(self.PIPELINE_1, pipelines)
+        self.assertIn(self.PIPELINE_2, pipelines)
+
+    def test_organization_member_cannot_access_pipelines_from_non_member_workspaces(
+        self,
+    ):
+        pipelines = Pipeline.objects.filter_for_user(self.ORG_MEMBER_USER)
+
+        self.assertNotIn(self.PIPELINE_1, pipelines)
+        self.assertNotIn(self.PIPELINE_2, pipelines)
+
+    def test_non_organization_member_cannot_access_organization_pipelines(self):
+        pipelines = Pipeline.objects.filter_for_user(self.NON_ORG_USER)
+
+        self.assertNotIn(self.PIPELINE_1, pipelines)
+        self.assertNotIn(self.PIPELINE_2, pipelines)
+
+    def test_organization_admin_owner_access_combined_with_workspace_membership(self):
+        WorkspaceMembership.objects.create(
+            workspace=self.WORKSPACE_1,
+            user=self.ORG_ADMIN_USER,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        pipelines = Pipeline.objects.filter_for_user(self.ORG_ADMIN_USER)
+
+        self.assertIn(self.PIPELINE_1, pipelines)
+        self.assertIn(self.PIPELINE_2, pipelines)
+
+    def test_pipeline_filter_for_workspace_slugs_with_org_admin_owner(self):
+        workspace_slugs = [self.WORKSPACE_1.slug, self.WORKSPACE_2.slug]
+
+        owner_pipelines = Pipeline.objects.filter_for_workspace_slugs(
+            self.ORG_OWNER_USER, workspace_slugs
+        )
+        admin_pipelines = Pipeline.objects.filter_for_workspace_slugs(
+            self.ORG_ADMIN_USER, workspace_slugs
+        )
+        member_pipelines = Pipeline.objects.filter_for_workspace_slugs(
+            self.ORG_MEMBER_USER, workspace_slugs
+        )
+
+        self.assertIn(self.PIPELINE_1, owner_pipelines)
+        self.assertIn(self.PIPELINE_2, owner_pipelines)
+        self.assertIn(self.PIPELINE_1, admin_pipelines)
+        self.assertIn(self.PIPELINE_2, admin_pipelines)
+        self.assertNotIn(self.PIPELINE_1, member_pipelines)
+        self.assertNotIn(self.PIPELINE_2, member_pipelines)
