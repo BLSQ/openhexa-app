@@ -31,7 +31,7 @@ const NavItem = ({ label, href, Icon, compact, className }: NavItemProps) => {
           <Badge className="bg-gray-800 ring-gray-500/20">{label}</Badge>
         </div>
       ) : (
-        <span className="whitespace-nowrap overflow-hidden transition-opacity duration-200">
+        <span className="overflow-hidden transition-opacity duration-200">
           {label}
         </span>
       )}
