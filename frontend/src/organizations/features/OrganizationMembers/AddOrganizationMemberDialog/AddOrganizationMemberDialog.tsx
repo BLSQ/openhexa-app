@@ -24,6 +24,7 @@ import Input from "core/components/forms/Input";
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
 import SearchInput from "core/features/SearchInput";
+import { toast } from "react-toastify";
 
 type AddOrganizationMemberDialogProps = {
   onClose(): void;
@@ -105,7 +106,7 @@ const AddOrganizationMemberDialog = (
       if (errors.length > 0) {
         throw new Error("An error occurred while inviting the member.");
       }
-
+      toast.success(t("Invitation sent ! "));
       onClose();
     },
     initialState: {
