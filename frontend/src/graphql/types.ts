@@ -4168,6 +4168,7 @@ export type QuerySearchPipelineTemplatesArgs = {
 
 
 export type QuerySearchPipelinesArgs = {
+  functionalType?: InputMaybe<PipelineFunctionalType>;
   organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
