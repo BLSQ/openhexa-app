@@ -79,7 +79,9 @@ def resolve_search_pipelines(
     qs = Pipeline.objects.filter_for_workspace_slugs(request.user, workspace_slugs)
     if functional_type:
         qs = qs.filter(functional_type=functional_type)
-    qs = apply_scored_search(qs, ["name", "code", "description", "tags__name"], query)
+    qs = apply_scored_search(
+        qs, ["name", "code", "description", "tags__name", "functional_type"], query
+    )
     return page_result_with_scores(qs, page, per_page, "pipeline")
 
 
