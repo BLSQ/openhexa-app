@@ -108,6 +108,7 @@ class SearchResolversTest(GraphQLTestCase):
             code="pipeline-1",
             description="First pipeline",
             workspace=cls.WORKSPACE1,
+            functional_type="computation",
         )
         cls.PIPELINE2 = Pipeline.objects.create(
             name="Pipeline 2",
@@ -229,6 +230,82 @@ class SearchResolversTest(GraphQLTestCase):
         self.assertEqual(
             response["data"]["searchPipelines"]["items"],
             [{"pipeline": {"name": "Pipeline 1", "code": "pipeline-1"}, "score": 1}],
+        )
+
+    def test_search_pipelines_by_functional_type(self):
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            """
+            query searchPipelines($query: String!, $page: Int, $perPage: Int, $workspaceSlugs: [String]!) {
+                searchPipelines(query: $query, page: $page, perPage: $perPage, workspaceSlugs: $workspaceSlugs) {
+                    items {
+                        pipeline {
+                            name
+                            code
+                            functionalType
+                        }
+                        score
+                    }
+                }
+            }
+            """,
+            {
+                "query": "computation",
+                "page": 1,
+                "perPage": 10,
+                "workspaceSlugs": ["workspace1", "workspace2"],
+            },
+        )
+        self.assertEqual(
+            response["data"]["searchPipelines"]["items"],
+            [
+                {
+                    "pipeline": {
+                        "name": "Pipeline 1",
+                        "code": "pipeline-1",
+                        "functionalType": "computation",
+                    },
+                    "score": 1.0,
+                }
+            ],
+        )
+
+    def test_search_pipelines_by_partial_functional_type(self):
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            """
+            query searchPipelines($query: String!, $page: Int, $perPage: Int, $workspaceSlugs: [String]!) {
+                searchPipelines(query: $query, page: $page, perPage: $perPage, workspaceSlugs: $workspaceSlugs) {
+                    items {
+                        pipeline {
+                            name
+                            code
+                            functionalType
+                        }
+                        score
+                    }
+                }
+            }
+            """,
+            {
+                "query": "comp",
+                "page": 1,
+                "perPage": 10,
+                "workspaceSlugs": ["workspace1", "workspace2"],
+            },
+        )
+        self.assertEqual(
+            response["data"]["searchPipelines"]["items"],
+            [
+                {
+                    "pipeline": {
+                        "name": "Pipeline 1",
+                        "code": "pipeline-1",
+                        "functionalType": "computation",
+                    },
+                    "score": 0.5,
+                }
+            ],
         )
 
     def test_search_pipeline_templates(self):
