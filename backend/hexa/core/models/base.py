@@ -70,17 +70,40 @@ class BaseQuerySet(models.QuerySet):
         query_object: models.Q,
         *,
         return_all_if_superuser: bool = True,
+        return_all_if_organization_admin_or_owner: bool = False,
+        organization_path: str = "workspace__organization",
     ) -> models.QuerySet:
         """Helper method useful to keep consistency in access control management within models:
 
         1. Inactive users (including anonymous users) will get an empty queryset
         2. Superusers will get the full, unfiltered queryset (unless return_all_if_superuser is set to False)
-        3. Regular, authenticated users will get the queryset filtered using the query_object argument
+        3. Organization admins/owners will get assets from their organization (if return_all_if_organization_admin_or_owner is True)
+        4. Regular, authenticated users will get the queryset filtered using the query_object argument
+
+        Args:
+            return_all_if_organization_admin_or_owner: If True, organization admins/owners get access to all assets in their organization
+            organization_path: Path to organization field. Defaults to "workspace__organization".
+                             Other examples: "links__workspace__organization"
         """
         if not user.is_authenticated:
             return self.none()
         elif return_all_if_superuser and user.is_superuser:
             return self.all()
+
+        if return_all_if_organization_admin_or_owner and user.is_authenticated:
+            from hexa.user_management.models import OrganizationMembershipRole
+
+            org_admin_query = models.Q(
+                **{
+                    f"{organization_path}__organizationmembership__user": user,
+                    f"{organization_path}__organizationmembership__role__in": [
+                        OrganizationMembershipRole.ADMIN,
+                        OrganizationMembershipRole.OWNER,
+                    ],
+                }
+            )
+
+            query_object = query_object | org_admin_query
 
         return self.filter(query_object).distinct()
 

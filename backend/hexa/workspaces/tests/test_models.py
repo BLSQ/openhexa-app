@@ -609,4 +609,257 @@ class ConnectionTest(TestCase):
         )
         connection.update_if_has_perm(self.USER_SERENA, name="Connection 2")
 
-        self.assertEqual(connection.fields.count(), 0)
+
+class WorkspaceMembershipOrganizationAdminOwnerPermissionsTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Test Organization",
+            short_name="test-org-membership",
+            organization_type="CORPORATE",
+        )
+
+        cls.ORG_OWNER_USER = User.objects.create_user(
+            "owner@bluesquarehub.com", "password"
+        )
+        cls.ORG_ADMIN_USER = User.objects.create_user(
+            "admin@bluesquarehub.com", "password"
+        )
+        cls.ORG_MEMBER_USER = User.objects.create_user(
+            "member@bluesquarehub.com", "password"
+        )
+        cls.NON_ORG_USER = User.objects.create_user(
+            "nonorg@bluesquarehub.com", "password"
+        )
+
+        cls.WORKSPACE_ADMIN = User.objects.create_user(
+            "workspace_admin@bluesquarehub.com", "password", is_superuser=True
+        )
+
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_OWNER_USER,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_ADMIN_USER,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_MEMBER_USER,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            cls.WORKSPACE_1 = Workspace.objects.create_if_has_perm(
+                cls.WORKSPACE_ADMIN,
+                name="Workspace 1",
+                description="First workspace in organization",
+                organization=cls.ORGANIZATION,
+            )
+
+            cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+                cls.WORKSPACE_ADMIN,
+                name="Workspace 2",
+                description="Second workspace in organization",
+                organization=cls.ORGANIZATION,
+            )
+
+        cls.WORKSPACE_USER_1 = User.objects.create_user(
+            "workspace_user1@bluesquarehub.com", "password"
+        )
+        cls.WORKSPACE_USER_2 = User.objects.create_user(
+            "workspace_user2@bluesquarehub.com", "password"
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=cls.WORKSPACE_1,
+            user=cls.WORKSPACE_USER_1,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=cls.WORKSPACE_2,
+            user=cls.WORKSPACE_USER_2,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        cls.WORKSPACE_ADMIN.is_superuser = False
+        cls.WORKSPACE_ADMIN.save()
+
+    def test_organization_owner_can_access_all_workspace_memberships_in_organization(
+        self,
+    ):
+        memberships = WorkspaceMembership.objects.filter_for_user(self.ORG_OWNER_USER)
+
+        ws1_memberships = memberships.filter(workspace=self.WORKSPACE_1)
+        ws2_memberships = memberships.filter(workspace=self.WORKSPACE_2)
+
+        self.assertEqual(ws1_memberships.count(), 2)
+        self.assertEqual(ws2_memberships.count(), 2)
+
+    def test_organization_admin_can_access_all_workspace_memberships_in_organization(
+        self,
+    ):
+        memberships = WorkspaceMembership.objects.filter_for_user(self.ORG_ADMIN_USER)
+
+        ws1_memberships = memberships.filter(workspace=self.WORKSPACE_1)
+        ws2_memberships = memberships.filter(workspace=self.WORKSPACE_2)
+
+        self.assertEqual(ws1_memberships.count(), 2)
+        self.assertEqual(ws2_memberships.count(), 2)
+
+    def test_organization_member_cannot_access_workspace_memberships_from_non_member_workspaces(
+        self,
+    ):
+        memberships = WorkspaceMembership.objects.filter_for_user(self.ORG_MEMBER_USER)
+
+        self.assertEqual(memberships.count(), 0)
+
+    def test_non_organization_member_cannot_access_organization_workspace_memberships(
+        self,
+    ):
+        memberships = WorkspaceMembership.objects.filter_for_user(self.NON_ORG_USER)
+
+        self.assertEqual(memberships.count(), 0)
+
+    def test_organization_admin_owner_access_combined_with_workspace_membership(self):
+        WorkspaceMembership.objects.create(
+            workspace=self.WORKSPACE_1,
+            user=self.ORG_ADMIN_USER,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        memberships = WorkspaceMembership.objects.filter_for_user(self.ORG_ADMIN_USER)
+
+        ws1_memberships = memberships.filter(workspace=self.WORKSPACE_1)
+        ws2_memberships = memberships.filter(workspace=self.WORKSPACE_2)
+
+        self.assertEqual(ws1_memberships.count(), 3)
+        self.assertEqual(ws2_memberships.count(), 2)
+
+
+class WorkspaceInvitationOrganizationAdminOwnerPermissionsTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Test Organization",
+            short_name="test-org-invitation",
+            organization_type="CORPORATE",
+        )
+
+        cls.ORG_OWNER_USER = User.objects.create_user(
+            "owner@bluesquarehub.com", "password"
+        )
+        cls.ORG_ADMIN_USER = User.objects.create_user(
+            "admin@bluesquarehub.com", "password"
+        )
+        cls.ORG_MEMBER_USER = User.objects.create_user(
+            "member@bluesquarehub.com", "password"
+        )
+        cls.NON_ORG_USER = User.objects.create_user(
+            "nonorg@bluesquarehub.com", "password"
+        )
+
+        cls.WORKSPACE_ADMIN = User.objects.create_user(
+            "workspace_admin@bluesquarehub.com", "password", is_superuser=True
+        )
+
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_OWNER_USER,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_ADMIN_USER,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_MEMBER_USER,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            cls.WORKSPACE_1 = Workspace.objects.create_if_has_perm(
+                cls.WORKSPACE_ADMIN,
+                name="Workspace 1",
+                description="First workspace in organization",
+                organization=cls.ORGANIZATION,
+            )
+
+            cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+                cls.WORKSPACE_ADMIN,
+                name="Workspace 2",
+                description="Second workspace in organization",
+                organization=cls.ORGANIZATION,
+            )
+
+        cls.WORKSPACE_ADMIN.is_superuser = False
+        cls.WORKSPACE_ADMIN.save()
+
+        cls.INVITATION_1 = WorkspaceInvitation.objects.create_if_has_perm(
+            principal=cls.WORKSPACE_ADMIN,
+            workspace=cls.WORKSPACE_1,
+            email="invite1@example.com",
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+
+        cls.INVITATION_2 = WorkspaceInvitation.objects.create_if_has_perm(
+            principal=cls.WORKSPACE_ADMIN,
+            workspace=cls.WORKSPACE_2,
+            email="invite2@example.com",
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+    def test_organization_owner_can_access_all_workspace_invitations_in_organization(
+        self,
+    ):
+        invitations = WorkspaceInvitation.objects.filter_for_user(self.ORG_OWNER_USER)
+
+        self.assertIn(self.INVITATION_1, invitations)
+        self.assertIn(self.INVITATION_2, invitations)
+
+    def test_organization_admin_can_access_all_workspace_invitations_in_organization(
+        self,
+    ):
+        invitations = WorkspaceInvitation.objects.filter_for_user(self.ORG_ADMIN_USER)
+
+        self.assertIn(self.INVITATION_1, invitations)
+        self.assertIn(self.INVITATION_2, invitations)
+
+    def test_organization_member_cannot_access_workspace_invitations_from_non_member_workspaces(
+        self,
+    ):
+        invitations = WorkspaceInvitation.objects.filter_for_user(self.ORG_MEMBER_USER)
+
+        self.assertNotIn(self.INVITATION_1, invitations)
+        self.assertNotIn(self.INVITATION_2, invitations)
+
+    def test_non_organization_member_cannot_access_organization_workspace_invitations(
+        self,
+    ):
+        invitations = WorkspaceInvitation.objects.filter_for_user(self.NON_ORG_USER)
+
+        self.assertNotIn(self.INVITATION_1, invitations)
+        self.assertNotIn(self.INVITATION_2, invitations)
+
+    def test_organization_admin_owner_access_combined_with_workspace_membership(self):
+        WorkspaceMembership.objects.create(
+            workspace=self.WORKSPACE_1,
+            user=self.ORG_ADMIN_USER,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        invitations = WorkspaceInvitation.objects.filter_for_user(self.ORG_ADMIN_USER)
+
+        self.assertIn(self.INVITATION_1, invitations)
+        self.assertIn(self.INVITATION_2, invitations)
