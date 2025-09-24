@@ -29,7 +29,7 @@ import {
   WorkspacePipelinePageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import {
-  formatPipelineType,
+  formatPipelineSource,
   formatPipelineFunctionalType,
   updatePipeline,
 } from "workspaces/helpers/pipelines";
@@ -115,10 +115,10 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             )}
             readonly
           />
-          <RenderProperty id="type" label={t("Type")} accessor="type">
+          <RenderProperty id="source" label={t("Source")} accessor="type">
             {(property) => (
               <Badge className="bg-gray-50 ring-gray-500/20">
-                {formatPipelineType(property.displayValue)}
+                {formatPipelineSource(property.displayValue, !!pipeline.sourceTemplate)}
               </Badge>
             )}
           </RenderProperty>
@@ -131,7 +131,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
           <SelectProperty
             id="functionalType"
             accessor="functionalType"
-            label={t("Functional Type")}
+            label={t("Type")}
             help={t("The functional purpose of this pipeline")}
             options={Object.values(PipelineFunctionalType)}
             getOptionLabel={(option) => option ? formatPipelineFunctionalType(option) : t("Not set")}

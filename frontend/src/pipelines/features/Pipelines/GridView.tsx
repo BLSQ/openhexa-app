@@ -4,7 +4,7 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import Block from "core/components/Block";
 import { useTranslation } from "next-i18next";
 import Link from "core/components/Link";
-import { formatPipelineType, formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
+import { formatPipelineSource, formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 import Badge from "core/components/Badge";
 import PipelineRunStatusBadge from "../PipelineRunStatusBadge";
 import Tag from "core/features/Tag";
@@ -53,8 +53,8 @@ const GridView = ({
         <BaseColumn id="version" label={t("Version")}>
           {(pipeline) => <span>{pipeline.currentVersion?.versionName}</span>}
         </BaseColumn>
-        <BaseColumn id="type" label={t("Type")}>
-          {(pipeline) => <Badge>{formatPipelineType(pipeline.type)}</Badge>}
+        <BaseColumn id="source" label={t("Source")}>
+          {(pipeline) => <Badge>{formatPipelineSource(pipeline.type, !!pipeline.sourceTemplate)}</Badge>}
         </BaseColumn>
         <BaseColumn id="tags" label={t("Tags")}>
           {(pipeline) => (
@@ -69,7 +69,7 @@ const GridView = ({
             </div>
           )}
         </BaseColumn>
-        <BaseColumn id="functionalType" label={t("Functional Type")}>
+        <BaseColumn id="functionalType" label={t("Type")}>
           {(pipeline) => (
             <span className="text-gray-600">
               {pipeline.functionalType ? formatPipelineFunctionalType(pipeline.functionalType) : t("Not set")}
