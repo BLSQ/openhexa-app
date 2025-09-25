@@ -92,7 +92,6 @@ const WorkspacesCardView = ({
           </Card>
         ))}
       </div>
-
       <Pagination
         page={page}
         perPage={perPage}
