@@ -5,6 +5,7 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import useCacheKey from "core/hooks/useCacheKey";
 import useDebounce from "core/hooks/useDebounce";
 import SearchInput from "core/features/SearchInput";
+import SimpleSelect from "core/components/forms/SimpleSelect";
 import {
   User as UserType,
   OrganizationMembership,
@@ -23,6 +24,7 @@ import Block from "core/components/Block";
 import User from "core/features/User";
 import OrganizationRoleBadge from "organizations/components/OrganizationRoleBadge";
 import WorkspaceRolesList from "organizations/components/WorkspaceRolesList";
+import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
 import useMe from "identity/hooks/useMe";
 
 const DEFAULT_PAGE_SIZE = 10;
@@ -45,8 +47,9 @@ export default function OrganizationMembers({
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] =
-    useState<OrganizationMembershipRole | null>(null);
+  const [roleFilter, setRoleFilter] = useState<
+    OrganizationMembershipRole | undefined
+  >(undefined);
   const [previousData, setPreviousData] =
     useState<OrganizationMembersQuery | null>(null);
 
@@ -58,6 +61,7 @@ export default function OrganizationMembers({
       page: 1,
       perPage: DEFAULT_PAGE_SIZE,
       term: debouncedSearchTerm,
+      role: roleFilter,
     },
     fetchPolicy: "cache-and-network",
     notifyOnNetworkStatusChange: true,
@@ -76,6 +80,7 @@ export default function OrganizationMembers({
       page,
       id: organizationId,
       term: debouncedSearchTerm || undefined,
+      role: roleFilter,
     }).then();
   };
 
@@ -99,7 +104,7 @@ export default function OrganizationMembers({
 
   return (
     <>
-      <div className="mb-4">
+      <div className="mb-4 flex gap-4">
         <SearchInput
           name="search-members"
           value={searchTerm}
@@ -109,6 +114,26 @@ export default function OrganizationMembers({
           className="max-w-md"
           fitWidth
         />
+        <SimpleSelect
+          value={roleFilter}
+          onChange={(e) =>
+            setRoleFilter(e.target.value as OrganizationMembershipRole)
+          }
+          className="max-w-48"
+        >
+          <option value={undefined}>{t("All roles")}</option>
+          <option value={OrganizationMembershipRole.Owner}>
+            {formatOrganizationMembershipRole(OrganizationMembershipRole.Owner)}
+          </option>
+          <option value={OrganizationMembershipRole.Admin}>
+            {formatOrganizationMembershipRole(OrganizationMembershipRole.Admin)}
+          </option>
+          <option value={OrganizationMembershipRole.Member}>
+            {formatOrganizationMembershipRole(
+              OrganizationMembershipRole.Member,
+            )}
+          </option>
+        </SimpleSelect>
       </div>
       <Block>
         <DataGrid
