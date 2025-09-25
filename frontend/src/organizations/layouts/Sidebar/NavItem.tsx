@@ -43,7 +43,7 @@ const NavItem = ({ label, href, Icon, compact, className }: NavItemProps) => {
           <Badge className="bg-gray-800 ring-gray-500/20">{label}</Badge>
         </div>
       ) : (
-        <span className="">{delayedLabel}</span>
+        <span>{delayedLabel}</span>
       )}
     </Link>
   );
