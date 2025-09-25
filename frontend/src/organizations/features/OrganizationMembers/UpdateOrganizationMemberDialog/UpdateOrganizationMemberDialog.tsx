@@ -175,7 +175,7 @@ const UpdateOrganizationMemberDialog = (
                 <Table className="w-full">
                   <TableHead>
                     <TableRow>
-                      <TableCell heading className=""></TableCell>
+                      <TableCell heading></TableCell>
                       <TableCell heading className="text-center w-24">
                         {t("Admin")}
                       </TableCell>
