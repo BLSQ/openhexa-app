@@ -74,3 +74,25 @@ query OrganizationDatasets($id: UUID!, $page: Int = 1, $perPage: Int = 10, $quer
         }
     }
 }
+
+fragment OrganizationWorkspace_workspace on Workspace {
+    slug
+    name
+    countries {
+        code
+    }
+}
+
+query OrganizationWorkspaces($organizationId: UUID!, $page: Int = 1, $perPage: Int = 10, $query: String) {
+    organization(id: $organizationId) {
+        ...Organization_organization
+    }
+    workspaces(organizationId: $organizationId, page: $page, perPage: $perPage, query: $query) {
+        totalItems
+        pageNumber
+        totalPages
+        items {
+            ...OrganizationWorkspace_workspace
+        }
+    }
+}

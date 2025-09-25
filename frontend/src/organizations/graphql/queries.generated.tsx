@@ -29,6 +29,18 @@ export type OrganizationDatasetsQueryVariables = Types.Exact<{
 
 export type OrganizationDatasetsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, datasets: { __typename?: 'DatasetPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } }> }, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null };
 
+export type OrganizationWorkspace_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> };
+
+export type OrganizationWorkspacesQueryVariables = Types.Exact<{
+  organizationId: Types.Scalars['UUID']['input'];
+  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  query?: Types.InputMaybe<Types.Scalars['String']['input']>;
+}>;
+
+
+export type OrganizationWorkspacesQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> } };
+
 export const Organization_OrganizationFragmentDoc = gql`
     fragment Organization_organization on Organization {
   id
@@ -73,6 +85,15 @@ export const OrganizationDataset_DatasetFragmentDoc = gql`
         name
       }
     }
+  }
+}
+    `;
+export const OrganizationWorkspace_WorkspaceFragmentDoc = gql`
+    fragment OrganizationWorkspace_workspace on Workspace {
+  slug
+  name
+  countries {
+    code
   }
 }
     `;
@@ -214,3 +235,60 @@ export type OrganizationDatasetsQueryHookResult = ReturnType<typeof useOrganizat
 export type OrganizationDatasetsLazyQueryHookResult = ReturnType<typeof useOrganizationDatasetsLazyQuery>;
 export type OrganizationDatasetsSuspenseQueryHookResult = ReturnType<typeof useOrganizationDatasetsSuspenseQuery>;
 export type OrganizationDatasetsQueryResult = Apollo.QueryResult<OrganizationDatasetsQuery, OrganizationDatasetsQueryVariables>;
+export const OrganizationWorkspacesDocument = gql`
+    query OrganizationWorkspaces($organizationId: UUID!, $page: Int = 1, $perPage: Int = 10, $query: String) {
+  organization(id: $organizationId) {
+    ...Organization_organization
+  }
+  workspaces(
+    organizationId: $organizationId
+    page: $page
+    perPage: $perPage
+    query: $query
+  ) {
+    totalItems
+    pageNumber
+    totalPages
+    items {
+      ...OrganizationWorkspace_workspace
+    }
+  }
+}
+    ${Organization_OrganizationFragmentDoc}
+${OrganizationWorkspace_WorkspaceFragmentDoc}`;
+
+/**
+ * __useOrganizationWorkspacesQuery__
+ *
+ * To run a query within a React component, call `useOrganizationWorkspacesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useOrganizationWorkspacesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOrganizationWorkspacesQuery({
+ *   variables: {
+ *      organizationId: // value for 'organizationId'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useOrganizationWorkspacesQuery(baseOptions: Apollo.QueryHookOptions<OrganizationWorkspacesQuery, OrganizationWorkspacesQueryVariables> & ({ variables: OrganizationWorkspacesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<OrganizationWorkspacesQuery, OrganizationWorkspacesQueryVariables>(OrganizationWorkspacesDocument, options);
+      }
+export function useOrganizationWorkspacesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OrganizationWorkspacesQuery, OrganizationWorkspacesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<OrganizationWorkspacesQuery, OrganizationWorkspacesQueryVariables>(OrganizationWorkspacesDocument, options);
+        }
+export function useOrganizationWorkspacesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<OrganizationWorkspacesQuery, OrganizationWorkspacesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<OrganizationWorkspacesQuery, OrganizationWorkspacesQueryVariables>(OrganizationWorkspacesDocument, options);
+        }
+export type OrganizationWorkspacesQueryHookResult = ReturnType<typeof useOrganizationWorkspacesQuery>;
+export type OrganizationWorkspacesLazyQueryHookResult = ReturnType<typeof useOrganizationWorkspacesLazyQuery>;
+export type OrganizationWorkspacesSuspenseQueryHookResult = ReturnType<typeof useOrganizationWorkspacesSuspenseQuery>;
+export type OrganizationWorkspacesQueryResult = Apollo.QueryResult<OrganizationWorkspacesQuery, OrganizationWorkspacesQueryVariables>;
