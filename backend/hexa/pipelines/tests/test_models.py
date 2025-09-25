@@ -6,6 +6,7 @@ from hexa.core.test import TestCase
 from hexa.pipeline_templates.models import PipelineTemplateVersion
 from hexa.pipelines.models import (
     Pipeline,
+    PipelineFunctionalType,
     PipelineNotificationLevel,
     PipelineRecipient,
     PipelineRunLogLevel,
@@ -569,3 +570,86 @@ class PipelineOrganizationAdminOwnerPermissionsTest(TestCase):
         self.assertIn(self.PIPELINE_2, admin_pipelines)
         self.assertNotIn(self.PIPELINE_1, member_pipelines)
         self.assertNotIn(self.PIPELINE_2, member_pipelines)
+
+
+class PipelineFunctionalTypeTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER_ADMIN = User.objects.create_user(
+            "admin@bluesquarehub.com",
+            "admin",
+            is_superuser=True,
+        )
+        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            name="Test Workspace",
+            description="Test workspace for functional type tests",
+        )
+
+    def test_pipeline_functional_type_creation(self):
+        """Test creating pipeline with different functional types"""
+        for functional_type in PipelineFunctionalType.choices:
+            with self.subTest(functional_type=functional_type[0]):
+                pipeline = Pipeline.objects.create_if_has_perm(
+                    principal=self.USER_ADMIN,
+                    workspace=self.WORKSPACE,
+                    name=f"Test Pipeline {functional_type[0]}",
+                    functional_type=functional_type[0],
+                )
+                self.assertEqual(pipeline.functional_type, functional_type[0])
+
+    def test_pipeline_functional_type_optional(self):
+        """Test that functional_type is optional"""
+        pipeline = Pipeline.objects.create_if_has_perm(
+            principal=self.USER_ADMIN,
+            workspace=self.WORKSPACE,
+            name="Test Pipeline No Type",
+        )
+        self.assertIsNone(pipeline.functional_type)
+
+    def test_pipeline_functional_type_update(self):
+        """Test updating pipeline functional type"""
+        pipeline = Pipeline.objects.create_if_has_perm(
+            principal=self.USER_ADMIN,
+            workspace=self.WORKSPACE,
+            name="Test Pipeline Update",
+        )
+
+        self.assertIsNone(pipeline.functional_type)
+
+        pipeline.update_if_has_perm(
+            self.USER_ADMIN, functional_type=PipelineFunctionalType.EXTRACTION
+        )
+        pipeline.refresh_from_db()
+        self.assertEqual(pipeline.functional_type, PipelineFunctionalType.EXTRACTION)
+
+        pipeline.update_if_has_perm(
+            self.USER_ADMIN, functional_type=PipelineFunctionalType.TRANSFORMATION
+        )
+        pipeline.refresh_from_db()
+        self.assertEqual(
+            pipeline.functional_type, PipelineFunctionalType.TRANSFORMATION
+        )
+
+        pipeline.update_if_has_perm(self.USER_ADMIN, functional_type=None)
+        pipeline.refresh_from_db()
+        self.assertIsNone(pipeline.functional_type)
+
+    def test_functional_type_choices_values(self):
+        """Test that functional type choices have expected values"""
+        expected_choices = {
+            PipelineFunctionalType.EXTRACTION: "Extraction",
+            PipelineFunctionalType.TRANSFORMATION: "Transformation",
+            PipelineFunctionalType.LOADING: "Loading",
+            PipelineFunctionalType.COMPUTATION: "Computation",
+        }
+
+        for choice_value, display_name in expected_choices.items():
+            self.assertEqual(choice_value, choice_value)
+            choice_found = any(
+                choice[0] == choice_value for choice in PipelineFunctionalType.choices
+            )
+            self.assertTrue(
+                choice_found,
+                f"Choice {choice_value} not found in PipelineFunctionalType.choices",
+            )
