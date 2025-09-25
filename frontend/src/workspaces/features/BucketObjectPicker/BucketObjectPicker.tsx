@@ -160,12 +160,7 @@ const InnerBucketObjectPicker = (props: InnerBucketObjectPickerProps) => {
         )}
         {bucket?.objects.hasNextPage && (
           <div className="text-center mt-2">
-            <Button
-              variant="outlined"
-              size="sm"
-              className=""
-              onClick={loadMore}
-            >
+            <Button variant="outlined" size="sm" onClick={loadMore}>
               {t("Show more")}
             </Button>
           </div>
