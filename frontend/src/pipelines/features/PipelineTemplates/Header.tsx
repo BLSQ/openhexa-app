@@ -1,7 +1,7 @@
 import React from "react";
 import SearchInput from "core/features/SearchInput";
 import Listbox from "core/components/Listbox";
-import ViewToggleButton from "../../../core/components/ViewToggleButton";
+import ViewToggleButton from "core/components/ViewToggleButton";
 
 type Filter = {
   workspaceFilter: any;
