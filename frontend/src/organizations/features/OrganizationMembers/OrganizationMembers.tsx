@@ -24,11 +24,11 @@ import Block from "core/components/Block";
 import User from "core/features/User";
 import OrganizationRoleBadge from "organizations/components/OrganizationRoleBadge";
 import WorkspaceRolesList from "organizations/components/WorkspaceRolesList";
-import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
 import useMe from "identity/hooks/useMe";
 
 const DEFAULT_PAGE_SIZE = 10;
 
+type RoleFilterOption = OrganizationMembershipRole | "ALL_ROLES";
 type OrganizationMember = Pick<
   OrganizationMembership,
   "id" | "role" | "workspaceMemberships"
@@ -47,9 +47,7 @@ export default function OrganizationMembers({
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<
-    OrganizationMembershipRole | undefined
-  >(undefined);
+  const [roleFilter, setRoleFilter] = useState<RoleFilterOption>("ALL_ROLES");
   const [previousData, setPreviousData] =
     useState<OrganizationMembersQuery | null>(null);
 
@@ -61,7 +59,7 @@ export default function OrganizationMembers({
       page: 1,
       perPage: DEFAULT_PAGE_SIZE,
       term: debouncedSearchTerm,
-      role: roleFilter,
+      role: roleFilter === "ALL_ROLES" ? undefined : roleFilter,
     },
     fetchPolicy: "cache-and-network",
     notifyOnNetworkStatusChange: true,
@@ -80,7 +78,7 @@ export default function OrganizationMembers({
       page,
       id: organizationId,
       term: debouncedSearchTerm || undefined,
-      role: roleFilter,
+      role: roleFilter === "ALL_ROLES" ? undefined : roleFilter,
     }).then();
   };
 
@@ -116,23 +114,16 @@ export default function OrganizationMembers({
         />
         <SimpleSelect
           value={roleFilter}
-          onChange={(e) =>
-            setRoleFilter(e.target.value as OrganizationMembershipRole)
-          }
+          onChange={(e) => setRoleFilter(e.target.value as RoleFilterOption)}
           className="max-w-48"
+          required
         >
-          <option value={undefined}>{t("All roles")}</option>
-          <option value={OrganizationMembershipRole.Owner}>
-            {formatOrganizationMembershipRole(OrganizationMembershipRole.Owner)}
-          </option>
-          <option value={OrganizationMembershipRole.Admin}>
-            {formatOrganizationMembershipRole(OrganizationMembershipRole.Admin)}
-          </option>
-          <option value={OrganizationMembershipRole.Member}>
-            {formatOrganizationMembershipRole(
-              OrganizationMembershipRole.Member,
-            )}
-          </option>
+          <option value="ALL_ROLES">{t("All roles")}</option>
+          {Object.values(OrganizationMembershipRole).map((role) => (
+            <option key={role} value={role}>
+              <OrganizationRoleBadge role={role} size="sm" />
+            </option>
+          ))}
         </SimpleSelect>
       </div>
       <Block>
