@@ -3,21 +3,25 @@ import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "organizations/layouts/OrganizationLayout";
 import { useTranslation } from "next-i18next";
 import Page from "core/components/Page";
-import Flag from "react-world-flags";
-import { GlobeAltIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import {
   OrganizationDocument,
   OrganizationQuery,
-  useOrganizationQuery,
+  useOrganizationWorkspacesQuery,
 } from "organizations/graphql/queries.generated";
 import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
-import { useState } from "react";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
+import { useState, useEffect } from "react";
 import Button from "core/components/Button";
-import { GearIcon } from "@radix-ui/react-icons";
-import Card from "core/components/Card";
-import router from "next/router";
+import useDebounce from "core/hooks/useDebounce";
+import Spinner from "core/components/Spinner";
+import WorkspacesHeader from "organizations/components/WorkspacesHeader";
+import WorkspacesListView from "organizations/components/WorkspacesListView";
+import WorkspacesCardView from "organizations/components/WorkspacesCardView";
+
+// TODO : more data in table view
+// TODO : test pagination
 
 type Props = {
   organization: OrganizationQuery["organization"];
@@ -31,19 +35,36 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] =
     useState<ArchiveWorkspace_WorkspaceFragment | null>(null);
+  const [view, setView] = useState<"grid" | "card">("card");
+  const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const perPage = 10;
 
-  const { data, refetch } = useOrganizationQuery({
-    variables: { id: SRROrganization?.id },
-    fetchPolicy: "network-only",
+  const { data, loading, refetch } = useOrganizationWorkspacesQuery({
+    variables: {
+      organizationId: SRROrganization?.id,
+      page,
+      perPage,
+      query: debouncedSearchQuery,
+    },
+    fetchPolicy: "cache-and-network",
   });
+
+  const [workspaces, setWorkspaces] = useState(data?.workspaces?.items || []);
+
+  useEffect(() => {
+    if (!loading && data?.workspaces?.items) {
+      setWorkspaces(data.workspaces.items);
+    }
+  }, [loading, data]);
 
   const organization = data?.organization || SRROrganization;
 
   if (!organization) {
     return null;
   }
-
-  const totalWorkspaces = organization.workspaces.items.length;
+  const totalWorkspaces = data?.workspaces?.totalItems ?? 0;
 
   const handleArchiveClick = (
     workspace: ArchiveWorkspace_WorkspaceFragment,
@@ -74,62 +95,43 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
               {t("Create Workspace")}
             </Button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 m-8">
-            {organization.workspaces.items.map((ws) => (
-              <Card
-                key={ws.slug}
-                href={{
-                  pathname: `/workspaces/[workspaceSlug]`,
-                  query: { workspaceSlug: ws.slug },
-                }}
-                title={
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-full w-5 items-center">
-                      {ws.countries && ws.countries.length === 1 ? (
-                        <Flag
-                          code={ws.countries[0].code}
-                          className="w-5 shrink rounded-xs"
-                        />
-                      ) : (
-                        <GlobeAltIcon className="w-5 shrink rounded-xs text-gray-400" />
-                      )}
-                    </div>
-                    <span className="font-medium text-gray-800">{ws.name}</span>
-                  </div>
-                }
-              >
-                <Card.Content>
-                  <div className="flex gap-2 justify-end">
-                    <Button
-                      variant="outlined"
-                      className="static"
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        await router.push({
-                          pathname: `/workspaces/[workspaceSlug]/settings`,
-                          query: { workspaceSlug: ws.slug },
-                        });
-                      }}
-                      leadingIcon={<GearIcon className="w-4" />}
-                    >
-                      {t("Settings")}
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      className="static"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleArchiveClick(ws);
-                      }}
-                      leadingIcon={<TrashIcon className="w-4" />}
-                      disabled={!organization.permissions.archiveWorkspace}
-                    >
-                      {t("Archive")}
-                    </Button>
-                  </div>
-                </Card.Content>
-              </Card>
-            ))}
+
+          <div className="m-8">
+            <WorkspacesHeader
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              view={view}
+              setView={setView}
+            />
+
+            <div className="relative">
+              {loading && (
+                <div className="absolute inset-0 flex items-center justify-center backdrop-blur-xs z-10">
+                  <Spinner />
+                </div>
+              )}
+              {view === "card" ? (
+                <WorkspacesCardView
+                  items={workspaces}
+                  page={page}
+                  perPage={perPage}
+                  totalItems={totalWorkspaces}
+                  setPage={setPage}
+                  canArchive={organization.permissions.archiveWorkspace}
+                  onArchiveClick={handleArchiveClick}
+                />
+              ) : (
+                <WorkspacesListView
+                  items={workspaces}
+                  page={page}
+                  perPage={perPage}
+                  totalItems={totalWorkspaces}
+                  setPage={setPage}
+                  canArchive={organization.permissions.archiveWorkspace}
+                  onArchiveClick={handleArchiveClick}
+                />
+              )}
+            </div>
           </div>
         </div>
       </OrganizationLayout>
