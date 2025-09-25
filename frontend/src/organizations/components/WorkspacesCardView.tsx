@@ -91,12 +91,14 @@ const WorkspacesCardView = ({
         ))}
       </div>
 
-      <WorkspacesPagination
-        page={page}
-        totalItems={totalItems}
-        perPage={perPage}
-        onPageChange={setPage}
-      />
+      <div className="mt-6">
+        <WorkspacesPagination
+          page={page}
+          totalItems={totalItems}
+          perPage={perPage}
+          onPageChange={setPage}
+        />
+      </div>
     </div>
   );
 };

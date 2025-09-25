@@ -20,8 +20,6 @@ import WorkspacesHeader from "organizations/components/WorkspacesHeader";
 import WorkspacesListView from "organizations/components/WorkspacesListView";
 import WorkspacesCardView from "organizations/components/WorkspacesCardView";
 
-// TODO : test pagination
-
 type Props = {
   organization: OrganizationQuery["organization"];
 };
@@ -38,7 +36,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const perPage = 10;
+  const perPage = 2;
 
   const { data, loading, refetch } = useOrganizationWorkspacesQuery({
     variables: {
@@ -57,6 +55,10 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
       setWorkspaces(data.workspaces.items);
     }
   }, [loading, data]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchQuery]);
 
   const organization = data?.organization || SRROrganization;
 
