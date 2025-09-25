@@ -106,7 +106,7 @@ const AddOrganizationMemberDialog = (
       if (errors.length > 0) {
         throw new Error("An error occurred while inviting the member.");
       }
-      toast.success(t("Invitation sent ! "));
+      toast.success(t("Invitation sent !"));
       onClose();
     },
     initialState: {
