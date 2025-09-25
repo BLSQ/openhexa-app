@@ -45,6 +45,8 @@ export default function OrganizationMembers({
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] =
+    useState<OrganizationMembershipRole | null>(null);
   const [previousData, setPreviousData] =
     useState<OrganizationMembersQuery | null>(null);
 

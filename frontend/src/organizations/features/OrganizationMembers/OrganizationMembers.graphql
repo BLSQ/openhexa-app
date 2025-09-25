@@ -1,4 +1,4 @@
-query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String) {
+query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String, $role: OrganizationMembershipRole) {
   organization(id: $id) {
     id
       permissions {
@@ -11,7 +11,7 @@ query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String) 
         name
       }
     }
-    members(page: $page, perPage: $perPage, term: $term) {
+    members(page: $page, perPage: $perPage, term: $term, role: $role) {
         totalItems
       items {
         id

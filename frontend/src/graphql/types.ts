@@ -3221,6 +3221,7 @@ export type OrganizationInvitationsArgs = {
 export type OrganizationMembersArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
+  role?: InputMaybe<OrganizationMembershipRole>;
   term?: InputMaybe<Scalars['String']['input']>;
 };
 

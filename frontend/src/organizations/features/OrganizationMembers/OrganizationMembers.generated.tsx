@@ -10,6 +10,7 @@ export type OrganizationMembersQueryVariables = Types.Exact<{
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   term?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  role?: Types.InputMaybe<Types.OrganizationMembershipRole>;
 }>;
 
 
@@ -38,7 +39,7 @@ export type InviteOrganizationMemberMutation = { __typename?: 'Mutation', invite
 
 
 export const OrganizationMembersDocument = gql`
-    query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String) {
+    query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String, $role: OrganizationMembershipRole) {
   organization(id: $id) {
     id
     permissions {
@@ -51,7 +52,7 @@ export const OrganizationMembersDocument = gql`
         name
       }
     }
-    members(page: $page, perPage: $perPage, term: $term) {
+    members(page: $page, perPage: $perPage, term: $term, role: $role) {
       totalItems
       items {
         id
@@ -92,6 +93,7 @@ ${User_UserFragmentDoc}`;
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *      term: // value for 'term'
+ *      role: // value for 'role'
  *   },
  * });
  */
