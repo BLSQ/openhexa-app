@@ -96,7 +96,7 @@ const WorkspacesCardView = ({
         page={page}
         perPage={perPage}
         totalPages={totalPages}
-        countItems={totalItems}
+        countItems={items.length}
         totalItems={totalItems}
         onChange={setPage}
       />
