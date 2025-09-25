@@ -25,7 +25,7 @@ type Props = {
 };
 
 // TODO : total should not change
-// TODO : view pagination
+// TODO : list view pagination
 // TODO : form 2 to 10
 
 const OrganizationPage: NextPageWithLayout<Props> = ({
