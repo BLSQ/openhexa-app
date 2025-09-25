@@ -1,15 +1,21 @@
 import React from "react";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
+import DateColumn from "core/components/DataGrid/DateColumn";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
 import Link from "core/components/Link";
 import { useTranslation } from "next-i18next";
 import { GearIcon } from "@radix-ui/react-icons";
-import { TrashIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
+import {
+  TrashIcon,
+  GlobeAltIcon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
 import Flag from "react-world-flags";
 import { OrganizationWorkspace_WorkspaceFragment } from "organizations/graphql/queries.generated";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
 import router from "next/router";
+import UserAvatar from "../../identity/features/UserAvatar";
 
 type WorkspacesListViewProps = {
   items: OrganizationWorkspace_WorkspaceFragment[];
@@ -65,6 +71,23 @@ const WorkspacesListView = ({
             </div>
           )}
         </BaseColumn>
+        <BaseColumn id="members" label={t("Members")}>
+          {(workspace) => (
+            <div className="flex items-center gap-1 text-sm text-gray-600">
+              <UsersIcon className="h-4 w-4" />
+              <span>{workspace.members?.totalItems || 0}</span>
+            </div>
+          )}
+        </BaseColumn>
+        <BaseColumn id="createdBy" label={t("Created by")}>
+          {(workspace) => (
+            <div className={"flex space-x-1"}>
+              <UserAvatar user={workspace.createdBy} size="xs" />
+              <p>{workspace.createdBy?.displayName}</p>
+            </div>
+          )}
+        </BaseColumn>
+        <DateColumn accessor="createdAt" label={t("Created")} relative />
         <BaseColumn id="actions" className="text-right">
           {(workspace) => (
             <div className="space-x-1">

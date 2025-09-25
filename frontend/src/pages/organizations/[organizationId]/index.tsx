@@ -20,7 +20,6 @@ import WorkspacesHeader from "organizations/components/WorkspacesHeader";
 import WorkspacesListView from "organizations/components/WorkspacesListView";
 import WorkspacesCardView from "organizations/components/WorkspacesCardView";
 
-// TODO : more data in table view
 // TODO : test pagination
 
 type Props = {
