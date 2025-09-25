@@ -3,6 +3,7 @@ fragment Organization_organization on Organization {
         name
         shortName
         workspaces {
+            totalItems
             items {
                 slug
                 name

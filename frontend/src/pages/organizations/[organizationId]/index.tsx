@@ -24,8 +24,6 @@ type Props = {
   organization: OrganizationQuery["organization"];
 };
 
-// TODO : total should not change
-
 const OrganizationPage: NextPageWithLayout<Props> = ({
   organization: SRROrganization,
 }) => {
@@ -67,7 +65,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   if (!organization) {
     return null;
   }
-  const totalWorkspaces = data?.workspaces?.totalItems ?? 0;
+  const totalWorkspaces = organization?.workspaces?.totalItems ?? 0;
 
   const handleArchiveClick = (
     workspace: ArchiveWorkspace_WorkspaceFragment,
@@ -120,7 +118,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
                   setPage={setPage}
                   perPage={perPage}
                   totalPages={data?.workspaces?.totalPages || 0}
-                  totalItems={totalWorkspaces}
+                  totalItems={data?.workspaces?.totalItems || 0}
                   canArchive={organization.permissions.archiveWorkspace}
                   onArchiveClick={handleArchiveClick}
                 />
@@ -131,7 +129,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
                   setPage={setPage}
                   perPage={perPage}
                   totalPages={data?.workspaces?.totalPages || 0}
-                  totalItems={totalWorkspaces}
+                  totalItems={data?.workspaces?.totalItems || 0}
                   canArchive={organization.permissions.archiveWorkspace}
                   onArchiveClick={handleArchiveClick}
                 />
