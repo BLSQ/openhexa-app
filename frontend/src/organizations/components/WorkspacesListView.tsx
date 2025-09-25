@@ -15,23 +15,25 @@ import Flag from "react-world-flags";
 import { OrganizationWorkspace_WorkspaceFragment } from "organizations/graphql/queries.generated";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
 import router from "next/router";
-import UserAvatar from "../../identity/features/UserAvatar";
+import UserAvatar from "identity/features/UserAvatar";
 
 type WorkspacesListViewProps = {
   items: OrganizationWorkspace_WorkspaceFragment[];
   page: number;
-  perPage: number;
-  totalItems: number;
   setPage: (page: number) => void;
+  perPage: number;
+  totalPages: number;
+  totalItems: number;
   canArchive: boolean;
   onArchiveClick: (workspace: ArchiveWorkspace_WorkspaceFragment) => void;
 };
 
 const WorkspacesListView = ({
   items,
+  page,
+  setPage,
   perPage,
   totalItems,
-  setPage,
   canArchive,
   onArchiveClick,
 }: WorkspacesListViewProps) => {
@@ -41,6 +43,7 @@ const WorkspacesListView = ({
     <Block className="divide divide-y divide-gray-100 mt-4">
       <DataGrid
         data={items}
+        defaultPageIndex={page - 1}
         defaultPageSize={perPage}
         totalItems={totalItems}
         fetchData={({ page }) => setPage(page)}

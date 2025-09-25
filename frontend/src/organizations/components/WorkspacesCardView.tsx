@@ -7,15 +7,16 @@ import { TrashIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
 import Flag from "react-world-flags";
 import { OrganizationWorkspace_WorkspaceFragment } from "organizations/graphql/queries.generated";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
-import WorkspacesPagination from "./WorkspacesPagination";
 import router from "next/router";
+import Pagination from "core/components/Pagination";
 
 type WorkspacesCardViewProps = {
   items: OrganizationWorkspace_WorkspaceFragment[];
   page: number;
-  perPage: number;
-  totalItems: number;
   setPage: (page: number) => void;
+  perPage: number;
+  totalPages: number;
+  totalItems: number;
   canArchive: boolean;
   onArchiveClick: (workspace: ArchiveWorkspace_WorkspaceFragment) => void;
 };
@@ -23,9 +24,10 @@ type WorkspacesCardViewProps = {
 const WorkspacesCardView = ({
   items,
   page,
-  perPage,
-  totalItems,
   setPage,
+  perPage,
+  totalPages,
+  totalItems,
   canArchive,
   onArchiveClick,
 }: WorkspacesCardViewProps) => {
@@ -91,14 +93,14 @@ const WorkspacesCardView = ({
         ))}
       </div>
 
-      <div className="mt-6">
-        <WorkspacesPagination
-          page={page}
-          totalItems={totalItems}
-          perPage={perPage}
-          onPageChange={setPage}
-        />
-      </div>
+      <Pagination
+        page={page}
+        perPage={perPage}
+        totalPages={totalPages}
+        countItems={totalItems}
+        totalItems={totalItems}
+        onChange={setPage}
+      />
     </div>
   );
 };

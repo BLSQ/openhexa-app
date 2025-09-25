@@ -24,6 +24,10 @@ type Props = {
   organization: OrganizationQuery["organization"];
 };
 
+// TODO : total should not change
+// TODO : view pagination
+// TODO : form 2 to 10
+
 const OrganizationPage: NextPageWithLayout<Props> = ({
   organization: SRROrganization,
 }) => {
@@ -115,9 +119,10 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
                 <WorkspacesCardView
                   items={workspaces}
                   page={page}
-                  perPage={perPage}
-                  totalItems={totalWorkspaces}
                   setPage={setPage}
+                  perPage={perPage}
+                  totalPages={data?.workspaces?.totalPages || 0}
+                  totalItems={totalWorkspaces}
                   canArchive={organization.permissions.archiveWorkspace}
                   onArchiveClick={handleArchiveClick}
                 />
@@ -125,9 +130,10 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
                 <WorkspacesListView
                   items={workspaces}
                   page={page}
-                  perPage={perPage}
-                  totalItems={totalWorkspaces}
                   setPage={setPage}
+                  perPage={perPage}
+                  totalPages={data?.workspaces?.totalPages || 0}
+                  totalItems={totalWorkspaces}
                   canArchive={organization.permissions.archiveWorkspace}
                   onArchiveClick={handleArchiveClick}
                 />
