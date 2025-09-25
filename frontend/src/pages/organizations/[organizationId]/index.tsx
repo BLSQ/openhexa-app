@@ -25,8 +25,6 @@ type Props = {
 };
 
 // TODO : total should not change
-// TODO : list view pagination
-// TODO : form 2 to 10
 
 const OrganizationPage: NextPageWithLayout<Props> = ({
   organization: SRROrganization,
@@ -40,7 +38,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const perPage = 2;
+  const perPage = 15;
 
   const { data, loading, refetch } = useOrganizationWorkspacesQuery({
     variables: {
