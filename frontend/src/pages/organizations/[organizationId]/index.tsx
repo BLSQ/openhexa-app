@@ -105,9 +105,9 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
               setView={setView}
             />
 
-            <div className="relative">
+            <div className="relative min-h-[200px]">
               {loading && (
-                <div className="absolute inset-0 flex items-center justify-center backdrop-blur-xs z-10">
+                <div className="absolute inset-0 flex items-center justify-center  backdrop-blur-sm z-10 rounded-lg">
                   <Spinner />
                 </div>
               )}
