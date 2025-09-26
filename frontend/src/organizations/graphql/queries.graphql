@@ -3,6 +3,7 @@ fragment Organization_organization on Organization {
         name
         shortName
         workspaces {
+            totalItems
             items {
                 slug
                 name
@@ -71,6 +72,36 @@ query OrganizationDatasets($id: UUID!, $page: Int = 1, $perPage: Int = 10, $quer
             items {
                 ...OrganizationDataset_dataset
             }
+        }
+    }
+}
+
+fragment OrganizationWorkspace_workspace on Workspace {
+    slug
+    name
+    createdAt
+    updatedAt
+    countries {
+        code
+    }
+    createdBy {
+        ...UserAvatar_user
+    }
+    members {
+        totalItems
+    }
+}
+
+query OrganizationWorkspaces($organizationId: UUID!, $page: Int = 1, $perPage: Int = 10, $query: String) {
+    organization(id: $organizationId) {
+        ...Organization_organization
+    }
+    workspaces(organizationId: $organizationId, page: $page, perPage: $perPage, query: $query) {
+        totalItems
+        pageNumber
+        totalPages
+        items {
+            ...OrganizationWorkspace_workspace
         }
     }
 }
