@@ -151,6 +151,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
           open={isArchiveDialogOpen}
           onArchive={() => {
             refetch().then();
+            setSelectedWorkspace(null);
             setIsArchiveDialogOpen(false);
           }}
           onClose={() => setIsArchiveDialogOpen(false)}
