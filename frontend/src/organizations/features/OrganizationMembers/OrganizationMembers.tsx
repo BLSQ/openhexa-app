@@ -25,6 +25,7 @@ import User from "core/features/User";
 import OrganizationRoleBadge from "organizations/components/OrganizationRoleBadge";
 import WorkspaceRolesList from "organizations/components/WorkspaceRolesList";
 import useMe from "identity/hooks/useMe";
+import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -121,7 +122,7 @@ export default function OrganizationMembers({
           <option value="ALL_ROLES">{t("All roles")}</option>
           {Object.values(OrganizationMembershipRole).map((role) => (
             <option key={role} value={role}>
-              <OrganizationRoleBadge role={role} size="sm" />
+              {formatOrganizationMembershipRole(role)}
             </option>
           ))}
         </SimpleSelect>
