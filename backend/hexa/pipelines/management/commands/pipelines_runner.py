@@ -20,6 +20,8 @@ from hexa.pipelines.utils import generate_pipeline_container_name, mail_run_reci
 
 logger = getLogger(__name__)
 
+HEARTBEAT_TIMEOUT = 15 * 60  # 15 minutes
+
 
 class PodTerminationReason(Enum):
     DeadlineExceeded = "DeadlineExceeded"
@@ -381,7 +383,9 @@ class Command(BaseCommand):
             if i > 60:
                 zombie_runs = PipelineRun.objects.filter(
                     state=PipelineRunState.RUNNING,
-                    last_heartbeat__lt=(timezone.now() - timedelta(seconds=2 * 60)),
+                    last_heartbeat__lt=(
+                        timezone.now() - timedelta(seconds=HEARTBEAT_TIMEOUT)
+                    ),
                 )
                 for run in zombie_runs:
                     logger.warning("Timeout kill run %s #%s", run.pipeline.name, run.id)
