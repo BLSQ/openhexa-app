@@ -65,7 +65,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   if (!organization) {
     return null;
   }
-  const totalWorkspaces = organization?.workspaces?.totalItems ?? 0;
+  const totalWorkspaces = SRROrganization?.workspaces?.totalItems ?? 0;
 
   const handleArchiveClick = (
     workspace: ArchiveWorkspace_WorkspaceFragment,
