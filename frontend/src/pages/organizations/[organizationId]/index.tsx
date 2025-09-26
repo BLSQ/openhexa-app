@@ -60,12 +60,12 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
     setPage(1);
   }, [debouncedSearchQuery]);
 
-  const organization = data?.organization || SRROrganization;
+  const organization = (!loading && data?.organization) || SRROrganization;
 
   if (!organization) {
     return null;
   }
-  const totalWorkspaces = SRROrganization?.workspaces?.totalItems ?? 0;
+  const totalWorkspaces = organization.workspaces?.totalItems ?? 0;
 
   const handleArchiveClick = (
     workspace: ArchiveWorkspace_WorkspaceFragment,
