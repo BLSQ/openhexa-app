@@ -2634,7 +2634,7 @@ type Organization {
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): OrganizationInvitationPage!
 
   """The members of the organization."""
-  members(page: Int, perPage: Int, term: String): OrganizationMembershipPage!
+  members(page: Int, perPage: Int, role: OrganizationMembershipRole, term: String): OrganizationMembershipPage!
 
   """The name of the organization."""
   name: String!

@@ -997,7 +997,7 @@ type Organization {
     """
     The members of the organization.
     """
-    members(page: Int, perPage: Int, term: String): OrganizationMembershipPage!
+    members(page: Int, perPage: Int, term: String, role: OrganizationMembershipRole): OrganizationMembershipPage!
 
     """
     The workspaces associated with the organization.
