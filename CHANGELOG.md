@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.4.0](https://github.com/BLSQ/openhexa-app/compare/2.3.5...2.4.0) (2025-09-26)
+
+
+### Features
+
+* enable org admins and owners to do any actions a workspace admin or editor can do (PATHWAYS-891) ([#1378](https://github.com/BLSQ/openhexa-app/issues/1378)) ([39b1260](https://github.com/BLSQ/openhexa-app/commit/39b1260bf25c067469f68db8dc47ae3217591b74))
+* enable org admins and owners to see all assets a workspace admin or editor can do (PATHWAYS-914) ([#1379](https://github.com/BLSQ/openhexa-app/issues/1379)) ([c417a08](https://github.com/BLSQ/openhexa-app/commit/c417a08658c27565f7a56bb09d39a8979f985cc8))
+* feature flag for workspace creation ([#1374](https://github.com/BLSQ/openhexa-app/issues/1374)) ([23a367c](https://github.com/BLSQ/openhexa-app/commit/23a367c7ad43c9f3979c23ae4c3705466edb7284))
+* filter member by role (PATHWAYS-882) ([#1384](https://github.com/BLSQ/openhexa-app/issues/1384)) ([7a0fee1](https://github.com/BLSQ/openhexa-app/commit/7a0fee154fe1cead998fe29c038e04e986ef5dca))
+* **pipelines:** add tags to pipelines (HEXA-1298) ([#1368](https://github.com/BLSQ/openhexa-app/issues/1368)) ([f97a6f9](https://github.com/BLSQ/openhexa-app/commit/f97a6f9d2a0e6a761ad07c03a5fd01720d09912f))
+* searchable workspaces in the org page + list/card view (PATHWAYS-882) ([#1383](https://github.com/BLSQ/openhexa-app/issues/1383)) ([5673861](https://github.com/BLSQ/openhexa-app/commit/56738619dbaec58bf2a1c0c6584e0a0408e243dc))
+
+
+### Bug Fixes
+
+* Allow workspaces DB host to be overridden ([#1377](https://github.com/BLSQ/openhexa-app/issues/1377)) ([632b961](https://github.com/BLSQ/openhexa-app/commit/632b96180ca3dbd10a4518919872953b38217d29))
+* dataset view is constrained to the workspaces where the org admin is explicitly assigned (PATHWAYS-890) ([#1360](https://github.com/BLSQ/openhexa-app/issues/1360)) ([65f191d](https://github.com/BLSQ/openhexa-app/commit/65f191dac39cf49188aa38adfd080c76bdc5f7d9))
+* hydration error on pipeline run page, time in srr is not equal to time in client (HEXA-1361) ([#1376](https://github.com/BLSQ/openhexa-app/issues/1376)) ([b1ca789](https://github.com/BLSQ/openhexa-app/commit/b1ca789801e9194c74ef804c136aff3aa03cccd5))
+* prettier config and pretty all files in the repo (HEXA-1371) ([#1372](https://github.com/BLSQ/openhexa-app/issues/1372)) ([230af89](https://github.com/BLSQ/openhexa-app/commit/230af892461e163160c1d61380fffb9fbd6bc38f))
+* too many workspaces in the invite for admin owners (PATHWAYS-940) ([#1386](https://github.com/BLSQ/openhexa-app/issues/1386)) ([18d5718](https://github.com/BLSQ/openhexa-app/commit/18d5718be98e31e0284eb3a6cc60c4cd35a86594))
+* truncation of organization names and toast on success invitation (PATHWAYS-882) ([#1382](https://github.com/BLSQ/openhexa-app/issues/1382)) ([c725b6c](https://github.com/BLSQ/openhexa-app/commit/c725b6c57bbb9563198efa63c8156f341e2f2e5c))
+
 ## [2.3.5](https://github.com/BLSQ/openhexa-app/compare/2.3.4...2.3.5) (2025-09-18)
 
 
