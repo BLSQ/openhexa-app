@@ -151,9 +151,8 @@ describe("OrganizationMembers", () => {
     expect(screen.getByText("John Doe")).toBeInTheDocument();
     expect(screen.getByText("jane.smith@example.com")).toBeInTheDocument();
     expect(screen.getByText("Jane Smith")).toBeInTheDocument();
-
-    expect(screen.getByText("Admin")).toBeInTheDocument();
-    expect(screen.getByText("Member")).toBeInTheDocument();
+    expect(screen.getByText("Admin", { selector: 'span' })).toBeInTheDocument();
+    expect(screen.getByText("Member", { selector: 'span' })).toBeInTheDocument();
 
     expect(container).toMatchSnapshot();
   });
