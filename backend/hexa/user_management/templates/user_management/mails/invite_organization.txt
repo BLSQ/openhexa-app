@@ -14,7 +14,7 @@
 {% endif %}
 {% if forloop.counter0 == 10 and workspace_invitations|length > 10 %}
 {% blocktranslate with remaining_count=workspace_invitations|length|add:"-10" %}
-And {{ remaining_count }} more...
++ {{ remaining_count }} more workspace{{ remaining_count|pluralize }}
 {% endblocktranslate %}
 {% endif %}
 {% endfor %}

@@ -64,11 +64,17 @@
         </mj-table>
         {% endif %}
         {% if forloop.counter0 == 10 and workspace_invitations|length > 10 %}
-        <mj-text color="#666666" padding-top="10px" font-style="italic">
-          {% blocktranslate with remaining_count=workspace_invitations|length|add:"-10" %}
-          And {{ remaining_count }} more...
-          {% endblocktranslate %}
-        </mj-text>
+        <mj-table padding="10px 0">
+          <tr style="background-color: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">
+            <td style="padding: 15px 20px; text-align: center;">
+              <div style="color: #6c757d; font-size: 14px; font-weight: 600;">
+                {% blocktranslate with remaining_count=workspace_invitations|length|add:"-10" %}
+                + {{ remaining_count }} more workspace{{ remaining_count|pluralize }}
+                {% endblocktranslate %}
+              </div>
+            </td>
+          </tr>
+        </mj-table>
         {% endif %}
         {% endfor %}
         {% endif %}
