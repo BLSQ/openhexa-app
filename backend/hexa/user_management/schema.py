@@ -632,6 +632,8 @@ def resolve_members(organization: Organization, info, **kwargs):
     qs = organization.organizationmembership_set
 
     term = kwargs.get("term")
+    role = kwargs.get("role")
+
     if term:
         # Annotate with collated email field to handle case-insensitive email search
         qs = qs.annotate(case_insensitive_email=Collate("user__email", "und-x-icu"))
@@ -640,6 +642,9 @@ def resolve_members(organization: Organization, info, **kwargs):
             | Q(user__last_name__icontains=term)
             | Q(case_insensitive_email__contains=term)
         )
+
+    if role:
+        qs = qs.filter(role=role.lower())
 
     return result_page(
         queryset=qs.order_by("-updated_at"),

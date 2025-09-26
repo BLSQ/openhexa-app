@@ -3,7 +3,7 @@
 exports[`OrganizationMembers renders organization members list correctly 1`] = `
 <div>
   <div
-    class="mb-4"
+    class="mb-4 flex gap-4"
   >
     <div
       class="group relative w-fit"
@@ -44,6 +44,31 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
         class="absolute inset-y-0 right-0 z-0 inline-flex items-center justify-center pr-2.5 invisible"
       />
     </div>
+    <select
+      class="form-select w-full rounded-md border border-gray-300 shadow-xs focus-within:outline-hidden focus:border-blue-500 focus:ring-blue-500  focus-visible:border-blue-500 disabled:cursor-not-allowed sm:text-sm max-w-48"
+      required=""
+    >
+      <option
+        value="ALL_ROLES"
+      >
+        All roles
+      </option>
+      <option
+        value="ADMIN"
+      >
+        Admin
+      </option>
+      <option
+        value="MEMBER"
+      >
+        Member
+      </option>
+      <option
+        value="OWNER"
+      >
+        Owner
+      </option>
+    </select>
   </div>
   <article
     class="sm:rounded-lg overflow-hidden shadow-xs border-b border-gray-200 bg-white"
