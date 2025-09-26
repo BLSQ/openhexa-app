@@ -29,7 +29,8 @@ import { formatOrganizationMembershipRole } from "organizations/helpers/organiza
 
 const DEFAULT_PAGE_SIZE = 10;
 
-type RoleFilterOption = OrganizationMembershipRole | "ALL_ROLES";
+const ALL_ROLES = "ALL_ROLES";
+type RoleFilterOption = OrganizationMembershipRole | typeof ALL_ROLES;
 type OrganizationMember = Pick<
   OrganizationMembership,
   "id" | "role" | "workspaceMemberships"
@@ -48,7 +49,7 @@ export default function OrganizationMembers({
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<RoleFilterOption>("ALL_ROLES");
+  const [roleFilter, setRoleFilter] = useState<RoleFilterOption>(ALL_ROLES);
   const [previousData, setPreviousData] =
     useState<OrganizationMembersQuery | null>(null);
 
@@ -60,7 +61,7 @@ export default function OrganizationMembers({
       page: 1,
       perPage: DEFAULT_PAGE_SIZE,
       term: debouncedSearchTerm,
-      role: roleFilter === "ALL_ROLES" ? undefined : roleFilter,
+      role: roleFilter === ALL_ROLES ? undefined : roleFilter,
     },
     fetchPolicy: "cache-and-network",
     notifyOnNetworkStatusChange: true,
@@ -79,7 +80,7 @@ export default function OrganizationMembers({
       page,
       id: organizationId,
       term: debouncedSearchTerm || undefined,
-      role: roleFilter === "ALL_ROLES" ? undefined : roleFilter,
+      role: roleFilter === ALL_ROLES ? undefined : roleFilter,
     }).then();
   };
 
@@ -119,7 +120,7 @@ export default function OrganizationMembers({
           className="max-w-48"
           required
         >
-          <option value="ALL_ROLES">{t("All roles")}</option>
+          <option value={ALL_ROLES}>{t("All roles")}</option>
           {Object.values(OrganizationMembershipRole).map((role) => (
             <option key={role} value={role}>
               {formatOrganizationMembershipRole(role)}
