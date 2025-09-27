@@ -17,7 +17,7 @@ import { json } from "@codemirror/lang-json";
 import { r } from "codemirror-lang-r";
 import { gql } from "@apollo/client";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import { FileType } from "graphql/types";
+import { BucketObjectType } from "graphql/types";
 import useNavigationWarning from "core/hooks/useNavigationWarning";
 
 const buildTreeFromFlatData = (
@@ -63,7 +63,7 @@ const FileTreeNode = ({
   const isSelected = selectedFile?.id === node.id;
   const isModified = modifiedFiles.has(node.id);
 
-  if (node.type === "file") {
+  if (node.type === BucketObjectType.File) {
     return (
       <div
         className={clsx(
@@ -244,7 +244,7 @@ export const FilesEditor = ({
     : false;
 
   const numberOfFiles = files.filter(
-    (file) => file.type === FileType.File,
+    (file) => file.type === BucketObjectType.File,
   ).length;
 
   return (

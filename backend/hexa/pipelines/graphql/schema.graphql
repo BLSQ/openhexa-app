@@ -135,7 +135,7 @@ type FileNode {
   id: String!  # Unique identifier for this node (same as path).
   name: String!  # The name of the file or directory.
   path: String!  # The full path of the file or directory.
-  type: FileType!  # The type (file or directory).
+  type: BucketObjectType!  # The type (file or directory).
   content: String  # The decoded content of the file (null for directories).
   parentId: String  # The ID of the parent node (null for root nodes).
   autoSelect: Boolean!  # Whether this file should be auto-selected in the UI.

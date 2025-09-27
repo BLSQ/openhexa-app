@@ -13,7 +13,7 @@ import { PipelinesPageFragment } from "./PipelineResultTable.generated";
 import { PipelineTemplatesPageFragment } from "./PipelineTemplateResultTable.generated";
 import { DatasetsPageFragment } from "./DatasetResultTable.generated";
 import { FilesPageFragment } from "./FileResultTable.generated";
-import { FileType } from "graphql/types";
+import { BucketObjectType } from "graphql/types";
 import { Url } from "next-router-mock";
 
 export type Item =
@@ -30,19 +30,19 @@ const typeIconMap: Record<TypeName, typeof CircleStackIcon> = {
   PipelineResult: BoltIcon,
   PipelineTemplateResult: StarIcon,
   DatasetResult: Square2StackIcon,
-  FileResult: FolderOpenIcon,
+  BucketObjectResult: FolderOpenIcon,
 };
 
 export const getTypeIcon = (
   typeName: TypeName,
-  type?: FileType,
+  type?: BucketObjectType,
   name?: string,
 ): typeof BoltIcon => {
-  if (typeName === "FileResult") {
+  if (typeName === "BucketObjectResult") {
     if (name?.endsWith(".ipynb")) {
       return BookOpenIcon;
     }
-    return type === FileType.Directory ? FolderOpenIcon : DocumentIcon;
+    return type === BucketObjectType.Directory ? FolderOpenIcon : DocumentIcon;
   }
   return typeIconMap[typeName] || QuestionMarkCircleIcon;
 };
@@ -52,17 +52,17 @@ const labelMap = (t: (key: string) => string): Record<TypeName, string> => ({
   PipelineResult: t("Pipeline"),
   PipelineTemplateResult: t("Pipeline Template"),
   DatasetResult: t("Dataset"),
-  FileResult: t("File"),
+  BucketObjectResult: t("File"),
 });
 
 export const getLabel = (
   typeName: TypeName,
   t: (key: string) => string,
-  type?: FileType,
+  type?: BucketObjectType,
   name?: string,
 ): string => {
-  if (typeName === "FileResult") {
-    return type === FileType.Directory
+  if (typeName === "BucketObjectResult") {
+    return type === BucketObjectType.Directory
       ? t("Directory")
       : name?.endsWith(".ipynb")
         ? t("Notebook")
@@ -81,7 +81,7 @@ export const getObject = (item: Item): any => {
       return item.pipelineTemplate;
     case "DatasetResult":
       return item.dataset;
-    case "FileResult":
+    case "BucketObjectResult":
       return item.file;
     default:
       return null;
@@ -91,7 +91,7 @@ export const getObject = (item: Item): any => {
 export const getWorkspace = (item: Item): any => {
   if (
     item.__typename === "DatabaseTableResult" ||
-    item.__typename === "FileResult"
+    item.__typename === "BucketObjectResult"
   ) {
     return item.workspace;
   }
@@ -108,7 +108,7 @@ const getUrlName = (typeName: TypeName): string => {
       return "databases";
     case "PipelineTemplateResult":
       return "templates";
-    case "FileResult":
+    case "BucketObjectResult":
       return "files";
     default:
       return "";
@@ -126,7 +126,7 @@ const getUrlId = (item: Item): string => {
     case "PipelineResult":
     case "PipelineTemplateResult":
       return object.code;
-    case "FileResult":
+    case "BucketObjectResult":
       return object.name;
     default:
       return "";
@@ -139,7 +139,7 @@ export const getUrl = (item: Item, currentWorkspaceSlug?: string): Url => {
       ? currentWorkspaceSlug
       : getWorkspace(item).slug;
   if (!item.__typename) return "";
-  if (item.__typename === "FileResult") {
+  if (item.__typename === "BucketObjectResult") {
     const object = getObject(item);
     let urlName = getUrlName(item.__typename);
     const parentPath = object.path
@@ -165,9 +165,9 @@ export const getUrl = (item: Item, currentWorkspaceSlug?: string): Url => {
         "workspaces",
         encodeURIComponent(workspaceSlug),
         urlName,
-        ...(object.type === FileType.Directory ? objectPath : parentPath),
+        ...(object.type === BucketObjectType.Directory ? objectPath : parentPath),
       ].join("/"),
-      query: object.type === FileType.File ? { q: object.name } : {},
+      query: object.type === BucketObjectType.File ? { q: object.name } : {},
     };
   }
   if (item.__typename === "DatasetResult") {

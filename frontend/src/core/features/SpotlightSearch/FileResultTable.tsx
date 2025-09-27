@@ -4,7 +4,7 @@ import { useTranslation } from "next-i18next";
 import { gql } from "@apollo/client";
 import { DatabaseTablesPageFragment } from "./DatabaseTableResultTable.generated";
 import WorkspaceDisplay from "./WorkspaceDisplay";
-import { FileType } from "graphql/types";
+import { BucketObjectType } from "graphql/types";
 import Filesize from "core/components/Filesize";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import TypeBadge from "./TypeBadge";
@@ -73,7 +73,7 @@ const FileResultTable = ({
       </BaseColumn>
       <BaseColumn id="size" label={t("Size")}>
         {(item) =>
-          item.file.type === FileType.Directory ? (
+          item.file.type === BucketObjectType.Directory ? (
             <span> - </span>
           ) : (
             <Filesize size={item.file.size} />
@@ -91,7 +91,7 @@ const FileResultTable = ({
 
 FileResultTable.fragments = {
   filesPage: gql`
-    fragment FilesPage on FileResultPage {
+    fragment FilesPage on BucketObjectResultPage {
       items {
         file {
           name

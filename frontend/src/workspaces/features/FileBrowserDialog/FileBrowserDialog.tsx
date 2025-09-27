@@ -8,7 +8,7 @@ import {
   HomeIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import { BucketObject, BucketObjectType, FileType } from "graphql/types";
+import { BucketObject, BucketObjectType } from "graphql/types";
 import clsx from "clsx";
 
 import Dialog from "core/components/Dialog";
@@ -177,9 +177,9 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
       return searchResults.items.map((result) => ({
         ...result.file,
         // Map search result fields to bucket object fields
-        updatedAt: result.file.updated,
+        updatedAt: result.file.updatedAt,
         type:
-          result.file.type === FileType.Directory
+          result.file.type === BucketObjectType.Directory
             ? BucketObjectType.Directory
             : BucketObjectType.File,
       }));

@@ -51,31 +51,17 @@ type DatabaseTableResultPage {
   items: [DatabaseTableResult!]!
 }
 
-enum FileType {
-  file
-  directory
-}
-
-type File {
-  key: String!
-  name: String!
-  path: String!
-  size: BigInt
-  updatedAt: DateTime
-  type: FileType!
-}
-
-type FileResult implements SearchResult {
-  file: File!
+type BucketObjectResult implements SearchResult {
+  file: BucketObject!
   workspace: Workspace!
   score: Float!
 }
 
-type FileResultPage {
+type BucketObjectResultPage {
   pageNumber: Int!
   totalPages: Int!
   totalItems: Int!
-  items: [FileResult!]!
+  items: [BucketObjectResult!]!
 }
 
 extend type Query {
@@ -83,5 +69,5 @@ extend type Query {
   searchPipelines(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String], organizationId: UUID): PipelineResultPage! @loginRequired
   searchPipelineTemplates(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String], organizationId: UUID): PipelineTemplateResultPage! @loginRequired
   searchDatabaseTables(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String], organizationId: UUID): DatabaseTableResultPage! @loginRequired
-  searchFiles(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String], organizationId: UUID): FileResultPage! @loginRequired
+  searchFiles(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String], organizationId: UUID): BucketObjectResultPage! @loginRequired
 }
