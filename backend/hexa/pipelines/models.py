@@ -386,8 +386,6 @@ class Pipeline(SoftDeletedModel):
         blank=False,
         choices=PipelineType.choices,
         default=PipelineType.ZIPFILE,
-        help_text="Technical format: 'notebook' for Jupyter notebooks, 'zipFile' for code archives. "
-        "Determines HOW the pipeline is packaged and executed.",
     )
     functional_type = models.CharField(
         max_length=200,
