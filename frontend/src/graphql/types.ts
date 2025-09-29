@@ -3458,7 +3458,17 @@ export enum PipelineError {
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
-/** Represents the functional type of a pipeline. */
+/**
+ * Represents the functional purpose of a pipeline in data workflows.
+ *
+ * Categorizes WHAT a pipeline does in terms of business purpose:
+ * - extraction: Data ingestion from external sources
+ * - transformation: Data processing operations
+ * - loading: Data output to destinations
+ * - computation: Analytics and computational workflows
+ *
+ * Used for pipeline categorization, filtering, and workflow organization.
+ */
 export enum PipelineFunctionalType {
   Computation = 'computation',
   Extraction = 'extraction',
@@ -3690,7 +3700,13 @@ export type PipelineTokenResult = {
   token?: Maybe<Scalars['String']['output']>;
 };
 
-/** Represents the type of a pipeline. */
+/**
+ * Represents the technical implementation format of a pipeline.
+ *
+ * This determines HOW a pipeline is packaged and executed:
+ * - zipFile: Code archive with Python modules (.zip format)
+ * - notebook: Jupyter notebook-based pipeline (.ipynb format)
+ */
 export enum PipelineType {
   Notebook = 'notebook',
   ZipFile = 'zipFile'

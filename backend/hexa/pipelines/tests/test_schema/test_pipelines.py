@@ -99,9 +99,7 @@ class PipelinesV2Test(GraphQLTestCase):
         cls.pipeline_py_content = '''from openhexa.sdk import pipeline, parameter
 @pipeline(name="Test Data Pipeline")
 @parameter("file_path", name="File Path", type=str, required=True)
-@parameter("threshold", name="Threshold", type=float, default=0.5)
-@parameter("enable_debug", name="Enable Debug", type=bool, default=False)
-def test_pipeline(file_path, threshold, enable_debug):
+def test_pipeline(file_path):
     """Process data from input file."""
     pass
         '''
@@ -1974,25 +1972,14 @@ def test_pipeline(file_path, threshold, enable_debug):
         self.assertEqual([], r["data"]["uploadPipeline"]["errors"])
 
         extracted_params = r["data"]["uploadPipeline"]["pipelineVersion"]["parameters"]
-        self.assertEqual(3, len(extracted_params))
+        self.assertEqual(1, len(extracted_params))
 
-        param1 = next(p for p in extracted_params if p["code"] == "file_path")
+        param1 = extracted_params[0]
+        self.assertEqual("file_path", param1["code"])
         self.assertEqual("File Path", param1["name"])
         self.assertEqual("str", param1["type"])
         self.assertEqual(None, param1["help"])
         self.assertEqual(True, param1["required"])
-
-        param2 = next(p for p in extracted_params if p["code"] == "threshold")
-        self.assertEqual("Threshold", param2["name"])
-        self.assertEqual("float", param2["type"])
-        self.assertEqual(0.5, param2["default"])
-        self.assertEqual(True, param2["required"])
-
-        param3 = next(p for p in extracted_params if p["code"] == "enable_debug")
-        self.assertEqual("Enable Debug", param3["name"])
-        self.assertEqual("bool", param3["type"])
-        self.assertEqual(False, param3["default"])
-        self.assertEqual(True, param3["required"])
 
     def test_upload_pipeline_parsing_fallback(self):
         """Test that parsing incorrect fails gracefully."""

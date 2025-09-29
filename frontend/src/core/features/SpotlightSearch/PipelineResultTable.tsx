@@ -9,6 +9,7 @@ import WorkspaceDisplay from "./WorkspaceDisplay";
 import Time from "core/components/Time";
 import HighlightedLink from "./HighlightedLink";
 import Tag from "core/features/Tag";
+import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 
 type PipelineResultTableProps = {
   isActive: boolean;
@@ -70,6 +71,19 @@ const PipelineResultTable = ({
           </div>
         )}
       </BaseColumn>
+      <BaseColumn id="functionalType" label={t("Type")}>
+        {(item) => (
+          <div className="text-sm">
+            {item.pipeline.functionalType ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {formatPipelineFunctionalType(item.pipeline.functionalType)}
+              </span>
+            ) : (
+              <span className="text-gray-500 text-sm italic">{t("No type")}</span>
+            )}
+          </div>
+        )}
+      </BaseColumn>
       <BaseColumn id="updatedAt" label={t("Last updated")}>
         {(item) => (
           <Trans>
@@ -104,6 +118,7 @@ PipelineResultTable.fragments = {
           name
           description
           updatedAt
+          functionalType
           tags {
             ...Tag_tag
           }

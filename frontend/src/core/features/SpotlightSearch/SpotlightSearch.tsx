@@ -391,7 +391,7 @@ const SpotlightSearch = ({
                   <Select
                     options={[null, ...Object.values(PipelineFunctionalType)]}
                     value={functionalTypeFilter}
-                    onChange={(value) => setFunctionalTypeFilter(value)}
+                    onChange={(value) => setFunctionalTypeFilter(value as PipelineFunctionalType | null)}
                     getOptionLabel={(option) => option ? formatPipelineFunctionalType(option) : t("All types")}
                     displayValue={(option) => option ? formatPipelineFunctionalType(option) : t("All types")}
                     className="w-full"

@@ -272,11 +272,35 @@ class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
 
 
 class PipelineType(models.TextChoices):
+    """
+    Defines the technical implementation format of a pipeline.
+
+    This determines HOW a pipeline is packaged and executed:
+    - NOTEBOOK: Jupyter notebook-based pipeline (.ipynb file)
+    - ZIPFILE: Code archive-based pipeline (Python modules in .zip)
+
+    Note: This is distinct from PipelineFunctionalType which describes
+    the business purpose (WHAT the pipeline does).
+    """
+
     NOTEBOOK = "notebook", _("Notebook")
     ZIPFILE = "zipFile", _("ZipFile")
 
 
 class PipelineFunctionalType(models.TextChoices):
+    """
+    Defines the functional purpose/role of a pipeline in data workflows.
+
+    This categorizes WHAT a pipeline does in terms of data processing:
+    - EXTRACTION: Data ingestion from external sources (APIs, databases, files)
+    - TRANSFORMATION: Data processing, cleaning, validation, enrichment
+    - LOADING: Data output to destinations (warehouses, databases, files)
+    - COMPUTATION: Analytics, machine learning, statistical analysis
+
+    These align with ETL (Extract, Transform, Load) patterns plus computational workflows.
+    Used for filtering, categorization, and workflow organization in the UI.
+    """
+
     EXTRACTION = "extraction", _("Extraction")
     TRANSFORMATION = "transformation", _("Transformation")
     LOADING = "loading", _("Loading")
@@ -362,13 +386,17 @@ class Pipeline(SoftDeletedModel):
         blank=False,
         choices=PipelineType.choices,
         default=PipelineType.ZIPFILE,
+        help_text="Technical format: 'notebook' for Jupyter notebooks, 'zipFile' for code archives. "
+        "Determines HOW the pipeline is packaged and executed.",
     )
     functional_type = models.CharField(
         max_length=200,
         blank=True,
         null=True,
         choices=PipelineFunctionalType.choices,
-        help_text="The functional type of the pipeline",
+        help_text="Business purpose: 'extraction' for data ingestion, 'transformation' for processing, "
+        "'loading' for data output, 'computation' for analytics. "
+        "Describes WHAT the pipeline does in data workflows. Optional field used for categorization.",
     )
     notebook_path = models.TextField(null=True, blank=True)
     source_template = models.ForeignKey(

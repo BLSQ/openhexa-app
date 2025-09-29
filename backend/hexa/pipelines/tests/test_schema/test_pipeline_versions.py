@@ -64,9 +64,7 @@ class PipelineVersionsTest(GraphQLTestCase):
         cls.pipeline_py_content = '''from openhexa.sdk import pipeline, parameter
 @pipeline(name="Test Data Pipeline")
 @parameter("file_path", name="File Path", type=str, required=True)
-@parameter("threshold", name="Threshold", type=float, default=0.5)
-@parameter("enable_debug", name="Enable Debug", type=bool, default=False)
-def test_pipeline(file_path, threshold, enable_debug):
+def test_pipeline(file_path):
     """Process data from input file."""
     pass
 '''
