@@ -130,9 +130,12 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
     >
       {({ open }) => (
         <div className="relative" ref={setReferenceElement}>
-          <div
+          <UIComboboxButton
+            ref={btnRef}
+            id={id}
+            data-testid="combobox-button"
             className={clsx(
-              "form-input flex w-full items-center rounded-md border-gray-300 shadow-xs",
+              "form-input flex w-full items-center rounded-md border-gray-300 shadow-xs cursor-pointer",
               "focus-within:outline-hidden focus:ring-transparent focus-visible:border-blue-500 ",
               "sm:text-sm",
               open ? "border-blue-500" : "hover:border-gray-400",
@@ -142,7 +145,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
               className,
             )}
           >
-            <div className="mr-1 flex flex-1 items-center truncate cursor-pointer" onClick={(e) => { e.preventDefault(); btnRef.current?.click(); }}>
+            <div className="mr-1 flex flex-1 items-center truncate">
               <UIComboboxInput
                 as={Fragment}
                 onChange={onInputChange}
@@ -150,7 +153,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
               >
                 <input
                   data-testid="combobox-input"
-                  className="flex-1 placeholder-gray-600/70 outline-hidden cursor-pointer"
+                  className="flex-1 placeholder-gray-600/70 outline-hidden cursor-pointer pointer-events-none"
                   autoComplete="off"
                   placeholder={placeholder}
                   aria-describedby={error ? "combobox-error" : undefined}
@@ -159,30 +162,17 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
               </UIComboboxInput>
             </div>
             {value && renderIcon && renderIcon(value)}
-            <UIComboboxButton
-              ref={btnRef}
-              id={id}
-              data-testid="combobox-button"
-            >
-              <div className="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-hidden">
-                {value && !required && !disabled && (
-                  <XMarkIcon
-                    onClick={() => onChange()}
-                    className="h-4 w-4 cursor-pointer hover:text-gray-500"
-                    aria-hidden="true"
-                  />
-                )}
-                {loading ? (
-                  <Spinner aria-hidden="true" size="sm" />
-                ) : (
-                  <ChevronUpDownIcon
-                    className="h-5 w-5 hover:text-gray-500"
-                    aria-hidden="true"
-                  />
-                )}
-              </div>
-            </UIComboboxButton>
-          </div>
+            <div className="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-hidden">
+              {loading ? (
+                <Spinner aria-hidden="true" size="sm" />
+              ) : (
+                <ChevronUpDownIcon
+                  className="h-5 w-5 hover:text-gray-500"
+                  aria-hidden="true"
+                />
+              )}
+            </div>
+          </UIComboboxButton>
 
           {error && (
             <p

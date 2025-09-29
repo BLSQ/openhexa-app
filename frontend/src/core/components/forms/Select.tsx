@@ -78,21 +78,21 @@ function Select<O>(props: SelectProps<O>) {
   const Picker = multiple ? MultiCombobox : Combobox;
 
   return (
-    <Picker
-      key={__resetKey__}
-      value={value as any}
-      name={name}
-      required={required}
-      placeholder={placeholder}
-      disabled={disabled}
-      onInputChange={onInputChange}
-      className={className}
-      onChange={onChange}
-      displayValue={displayValue as any}
-      by={by as any /* Otherwise typescript is not happy */}
-      loading={loading}
-      withPortal
-    >
+    <div className={className}>
+      <Picker
+        key={__resetKey__}
+        value={value as any}
+        name={name}
+        required={required}
+        placeholder={placeholder}
+        disabled={disabled}
+        onInputChange={onInputChange}
+        onChange={onChange}
+        displayValue={displayValue as any}
+        by={by as any /* Otherwise typescript is not happy */}
+        loading={loading}
+        withPortal={false}
+      >
       {onCreate && query.length > 0 && (
         <div
           className="cursor-pointer p-2 text-gray-900 hover:bg-blue-500 hover:text-white"
@@ -106,7 +106,8 @@ function Select<O>(props: SelectProps<O>) {
           {getOptionLabel(option)}
         </Combobox.CheckOption>
       ))}
-    </Picker>
+      </Picker>
+    </div>
   );
 }
 
