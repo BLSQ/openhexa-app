@@ -3,6 +3,15 @@ import { TestApp } from "core/helpers/testutils";
 import mockRouter from "next-router-mock";
 import DefaultLayout from "../DefaultLayout";
 
+jest.mock("next-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+  i18n: {
+    t: (key: string) => key,
+  },
+}));
+
 describe("DefaultLayout", () => {
   beforeEach(() => {
     mockRouter.setCurrentUrl("/");
