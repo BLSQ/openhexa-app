@@ -137,6 +137,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             getOptionLabel={(option) => option ? formatPipelineFunctionalType(option) : t("Not set")}
             nullable
             defaultValue={t("Not set")}
+            className="max-w-xs"
           />
           {pipeline.type === PipelineType.Notebook && (
             <>

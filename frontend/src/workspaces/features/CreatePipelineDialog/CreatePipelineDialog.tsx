@@ -134,6 +134,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
                   name="functionalType"
                   label={t("Functional Type")}
                   help={t("The functional purpose of this pipeline")}
+                  className="max-w-xs"
                 >
                   <Select
                     options={Object.values(PipelineFunctionalType)}
@@ -142,6 +143,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
                     getOptionLabel={(option) => option ? formatPipelineFunctionalType(option) : t("Not specified")}
                     displayValue={(option) => option ? formatPipelineFunctionalType(option) : ""}
                     placeholder={t("Select functional type (optional)")}
+                    className="max-w-xs"
                   />
                 </Field>
                 <Field

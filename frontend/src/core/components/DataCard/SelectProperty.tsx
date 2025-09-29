@@ -45,7 +45,7 @@ const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
           }}
           required={property.required}
           disabled={property.readonly}
-          className="w-full"
+          className={className || "w-full"}
         />
       </DataCard.Property>
     );

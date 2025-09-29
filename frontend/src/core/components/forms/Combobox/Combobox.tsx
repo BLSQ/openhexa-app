@@ -142,7 +142,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
               className,
             )}
           >
-            <div className="mr-1 flex flex-1 items-center truncate">
+            <div className="mr-1 flex flex-1 items-center truncate cursor-pointer" onClick={(e) => { e.preventDefault(); btnRef.current?.click(); }}>
               <UIComboboxInput
                 as={Fragment}
                 onChange={onInputChange}
@@ -150,10 +150,11 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
               >
                 <input
                   data-testid="combobox-input"
-                  className="flex-1 placeholder-gray-600/70 outline-hidden"
+                  className="flex-1 placeholder-gray-600/70 outline-hidden cursor-pointer"
                   autoComplete="off"
                   placeholder={placeholder}
                   aria-describedby={error ? "combobox-error" : undefined}
+                  readOnly
                 />
               </UIComboboxInput>
             </div>
