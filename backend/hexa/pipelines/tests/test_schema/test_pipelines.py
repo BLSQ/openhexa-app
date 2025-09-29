@@ -97,8 +97,10 @@ class PipelinesV2Test(GraphQLTestCase):
         )
 
         cls.pipeline_py_content = '''from openhexa.sdk import pipeline, parameter
+from openhexa.sdk.files import File
+
 @pipeline(name="Test Data Pipeline")
-@parameter("file_path", name="File Path", type=str, required=True)
+@parameter("file_path", name="File Path", type=File, required=True)
 def test_pipeline(file_path):
     """Process data from input file."""
     pass
@@ -1977,7 +1979,7 @@ def test_pipeline(file_path):
         param1 = extracted_params[0]
         self.assertEqual("file_path", param1["code"])
         self.assertEqual("File Path", param1["name"])
-        self.assertEqual("str", param1["type"])
+        self.assertEqual("file", param1["type"])
         self.assertEqual(None, param1["help"])
         self.assertEqual(True, param1["required"])
 
