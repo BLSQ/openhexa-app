@@ -264,13 +264,16 @@ const AddOrganizationMemberDialog = (
             onChange={form.handleInputChange}
             required
           >
-            {Object.values(OrganizationMembershipRole)
-              .filter((role) => {
-                if (role === OrganizationMembershipRole.Owner) {
-                  return organization?.permissions.manageOwners;
-                }
-                return true;
-              })
+            {[
+              OrganizationMembershipRole.Owner,
+              OrganizationMembershipRole.Admin,
+              OrganizationMembershipRole.Member,
+            ]
+              .filter(
+                (role) =>
+                  role !== OrganizationMembershipRole.Owner ||
+                  organization?.permissions.manageOwners,
+              )
               .map((role) => (
                 <option key={role} value={role}>
                   {formatOrganizationMembershipRole(role)}
