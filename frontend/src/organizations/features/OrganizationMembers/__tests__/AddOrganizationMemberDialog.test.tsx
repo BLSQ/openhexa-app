@@ -368,17 +368,7 @@ describe("AddOrganizationMemberDialog", () => {
     useInviteOrganizationMemberMutationMock.mockReturnValue([jest.fn(), {}]);
     const user = userEvent.setup();
 
-    const { rerender } = render(
-      <TestApp mocks={[]}>
-        <AddOrganizationMemberDialog
-          open={false}
-          onClose={mockOnClose}
-          organization={MOCK_ORGANIZATION}
-        />
-      </TestApp>,
-    );
-
-    rerender(
+    render(
       <TestApp mocks={[]}>
         <AddOrganizationMemberDialog
           open={true}
@@ -395,19 +385,25 @@ describe("AddOrganizationMemberDialog", () => {
       expect(roleSelect).toBeInTheDocument();
     });
 
-    const editorRadios = screen.getAllByRole("radio");
-    expect(editorRadios.length).toBe(8);
-    expect((editorRadios[1] as HTMLInputElement).checked).toBe(true);
-    expect((editorRadios[2] as HTMLInputElement).checked).toBe(false);
-    expect((editorRadios[5] as HTMLInputElement).checked).toBe(true);
-    expect((editorRadios[6] as HTMLInputElement).checked).toBe(false);
+    // Initial state: Member role defaults to None for workspaces
+    // Radio order per workspace: [Admin, Editor, Viewer, None]
+    const radios = screen.getAllByRole("radio");
+    expect(radios.length).toBe(8); // 2 workspaces × 4 roles each
+
+    // Workspace 1: None should be checked (index 3)
+    expect((radios[3] as HTMLInputElement).checked).toBe(true);
+    // Workspace 2: None should be checked (index 7)
+    expect((radios[7] as HTMLInputElement).checked).toBe(true);
+
+    // Change to Admin role - should default to Admin for all workspaces
     await user.selectOptions(roleSelect, OrganizationMembershipRole.Admin);
-    expect((editorRadios[0] as HTMLInputElement).checked).toBe(true);
-    expect((editorRadios[1] as HTMLInputElement).checked).toBe(false);
-    expect((editorRadios[2] as HTMLInputElement).checked).toBe(false);
-    expect((editorRadios[4] as HTMLInputElement).checked).toBe(true);
-    expect((editorRadios[5] as HTMLInputElement).checked).toBe(false);
-    expect((editorRadios[6] as HTMLInputElement).checked).toBe(false);
+
+    // Workspace 1: Admin should now be checked (index 0)
+    expect((radios[0] as HTMLInputElement).checked).toBe(true);
+    expect((radios[3] as HTMLInputElement).checked).toBe(false);
+    // Workspace 2: Admin should now be checked (index 4)
+    expect((radios[4] as HTMLInputElement).checked).toBe(true);
+    expect((radios[7] as HTMLInputElement).checked).toBe(false);
   });
 
   it("handles empty workspace list", async () => {
