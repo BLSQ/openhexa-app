@@ -382,7 +382,11 @@ def resolve_upload_pipeline(_, info, **kwargs):
                     "errors": ["INVALID_CONFIG"],
                 }
             pipeline.tags.set(tags)
-            pipeline.save()
+
+        if "functional_type" in input:
+            pipeline.functional_type = input["functional_type"]
+
+        pipeline.save()
 
         return {
             "success": True,

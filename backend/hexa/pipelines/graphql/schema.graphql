@@ -557,6 +557,7 @@ input UploadPipelineInput {
   config: JSON # The default configuration to set on newly created pipeline runs
   timeout: Int  # The timeout value for the pipeline.
   tags: [String!]  # The names of tags to associate with the pipeline.
+  functionalType: PipelineFunctionalType  # The functional type of the pipeline.
 }
 
 type AddPipelineRecipientResult {
