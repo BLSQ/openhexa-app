@@ -260,12 +260,9 @@ const AddOrganizationMemberDialog = (
           <SimpleSelect
             id="bulkRole"
             value={bulkRoleSelection}
-            onChange={(e) => {
-              const value = e.target.value as WorkspaceRole;
-              if (value) {
-                handleBulkRoleChange(value);
-              }
-            }}
+            onChange={(e) =>
+              handleBulkRoleChange(e.target.value as WorkspaceRole)
+            }
             className="w-full"
             required
           >
