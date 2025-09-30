@@ -28,6 +28,7 @@ const MOCK_ORGANIZATION = {
     items: [],
   },
   workspaces: {
+    totalItems: 2,
     items: [
       {
         slug: "workspace-1",
@@ -414,7 +415,7 @@ describe("AddOrganizationMemberDialog", () => {
 
     const organizationWithNoWorkspaces = {
       ...MOCK_ORGANIZATION,
-      workspaces: { items: [] },
+      workspaces: { totalItems: 0, items: [] },
     };
 
     render(
