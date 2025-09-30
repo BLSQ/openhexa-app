@@ -4341,6 +4341,7 @@ input UploadPipelineInput {
   config: JSON
   description: String
   externalLink: URL
+  functionalType: PipelineFunctionalType
   name: String
   parameters: [ParameterInput!]
   pipelineCode: String

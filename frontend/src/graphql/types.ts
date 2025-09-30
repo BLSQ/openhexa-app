@@ -5145,6 +5145,7 @@ export type UploadPipelineInput = {
   config?: InputMaybe<Scalars['JSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   externalLink?: InputMaybe<Scalars['URL']['input']>;
+  functionalType?: InputMaybe<PipelineFunctionalType>;
   name?: InputMaybe<Scalars['String']['input']>;
   parameters?: InputMaybe<Array<ParameterInput>>;
   pipelineCode?: InputMaybe<Scalars['String']['input']>;
