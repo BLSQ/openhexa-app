@@ -23,6 +23,7 @@ import { useInviteOrganizationMemberMutation } from "organizations/features/Orga
 import Input from "core/components/forms/Input";
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
+import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
 import SearchInput from "core/features/SearchInput";
 import { toast } from "react-toastify";
 
@@ -40,7 +41,7 @@ type Form = {
 
 const getDefaultWorkspaceRole = (
   orgRole: OrganizationMembershipRole,
-): WorkspaceMembershipRole => {
+): WorkspaceRole => {
   switch (orgRole) {
     case OrganizationMembershipRole.Admin:
       return WorkspaceMembershipRole.Admin;
@@ -48,12 +49,13 @@ const getDefaultWorkspaceRole = (
       return WorkspaceMembershipRole.Admin;
     case OrganizationMembershipRole.Member:
     default:
-      return WorkspaceMembershipRole.Editor;
+      return WORKSPACE_ROLE_NONE;
   }
 };
 
 const WORKSPACE_ROLE_NONE = "NONE" as const;
 type WORKSPACE_ROLE_NONE = typeof WORKSPACE_ROLE_NONE;
+type WorkspaceRole = WorkspaceMembershipRole | WORKSPACE_ROLE_NONE;
 
 const AddOrganizationMemberDialog = (
   props: AddOrganizationMemberDialogProps,
@@ -73,6 +75,8 @@ const AddOrganizationMemberDialog = (
   const [manuallyEditedWorkspaces, setManuallyEditedWorkspaces] = useState<
     Set<string>
   >(new Set());
+  const [bulkRoleSelection, setBulkRoleSelection] =
+    useState<WorkspaceRole>(WORKSPACE_ROLE_NONE);
 
   const form = useForm<Form>({
     onSubmit: async (values) => {
@@ -135,12 +139,10 @@ const AddOrganizationMemberDialog = (
       const orgRole =
         form.formData.organizationRole || OrganizationMembershipRole.Member;
       const defaultRole = getDefaultWorkspaceRole(orgRole);
-      const initialWorkspaceInvitations = organization.workspaces.items.map(
-        (workspace) => ({
-          workspaceSlug: workspace.slug,
-          workspaceName: workspace.name,
-          role: defaultRole,
-        }),
+      setBulkRoleSelection(defaultRole);
+      const initialWorkspaceInvitations = createWorkspaceInvitations(
+        organization.workspaces.items,
+        defaultRole,
       );
       form.setFieldValue("workspaceInvitations", initialWorkspaceInvitations);
     }
@@ -151,34 +153,70 @@ const AddOrganizationMemberDialog = (
       return;
 
     const defaultRole = getDefaultWorkspaceRole(form.formData.organizationRole);
-
-    const updatedInvitations = (form.formData.workspaceInvitations || []).map(
-      (invitation) => {
-        if (manuallyEditedWorkspaces.has(invitation.workspaceSlug)) {
-          return invitation;
-        }
-        return { ...invitation, role: defaultRole };
-      },
+    setManuallyEditedWorkspaces(new Set());
+    setBulkRoleSelection(defaultRole);
+    const updatedInvitations = createWorkspaceInvitations(
+      organization.workspaces.items,
+      defaultRole,
     );
     form.setFieldValue("workspaceInvitations", updatedInvitations);
   }, [form.formData.organizationRole, organization?.workspaces?.items]);
 
+  const createWorkspaceInvitations = (
+    workspaces: { slug: string; name: string }[] | undefined,
+    role: WorkspaceRole,
+  ) => {
+    if (!workspaces || role === WORKSPACE_ROLE_NONE) return [];
+
+    return workspaces.map((workspace) => ({
+      workspaceSlug: workspace.slug,
+      workspaceName: workspace.name,
+      role: role as WorkspaceMembershipRole,
+    }));
+  };
+
+  const updateWorkspaceRole = (
+    currentInvitations: WorkspaceInvitationInput[],
+    workspaceSlug: string,
+    workspaceName: string,
+    role: WorkspaceRole,
+  ) => {
+    const filtered = currentInvitations.filter(
+      (inv) => inv.workspaceSlug !== workspaceSlug,
+    );
+    return role === WORKSPACE_ROLE_NONE
+      ? filtered
+      : [...filtered, { workspaceSlug, workspaceName, role }];
+  };
+
   const handleRoleChange = (
     workspaceSlug: string,
     workspaceName: string,
-    role: WorkspaceMembershipRole | WORKSPACE_ROLE_NONE,
+    role: WorkspaceRole,
   ) => {
     setManuallyEditedWorkspaces((prev) => new Set(prev).add(workspaceSlug));
 
     const currentInvitations = form.formData.workspaceInvitations || [];
-    const filtered = currentInvitations.filter(
-      (inv) => inv.workspaceSlug !== workspaceSlug,
+    const updatedInvitations = updateWorkspaceRole(
+      currentInvitations,
+      workspaceSlug,
+      workspaceName,
+      role,
     );
-    const updatedInvitations =
-      role === WORKSPACE_ROLE_NONE
-        ? filtered
-        : [...filtered, { workspaceSlug, workspaceName, role }];
 
+    form.setFieldValue("workspaceInvitations", updatedInvitations);
+  };
+
+  const handleBulkRoleChange = (role: WorkspaceRole) => {
+    if (!organization?.workspaces?.items) return;
+
+    setBulkRoleSelection(role);
+    setManuallyEditedWorkspaces(new Set());
+
+    const updatedInvitations = createWorkspaceInvitations(
+      organization.workspaces.items,
+      role,
+    );
     form.setFieldValue("workspaceInvitations", updatedInvitations);
   };
 
@@ -235,6 +273,27 @@ const AddOrganizationMemberDialog = (
           </SimpleSelect>
         </Field>
 
+        <Field name="bulkRole" label={t("Role for all workspaces")} required>
+          <SimpleSelect
+            id="bulkRole"
+            value={bulkRoleSelection}
+            onChange={(e) => {
+              const value = e.target.value as WorkspaceRole;
+              if (value) {
+                handleBulkRoleChange(value);
+              }
+            }}
+            className="w-full"
+            required
+          >
+            {Object.values(WorkspaceMembershipRole).map((role) => (
+              <option key={role} value={role}>
+                {formatWorkspaceMembershipRole(role)}
+              </option>
+            ))}
+            <option value={WORKSPACE_ROLE_NONE}>{t("None")}</option>
+          </SimpleSelect>
+        </Field>
         <Field name="workspaces" label={t("Workspaces")} required>
           <div className="space-y-3">
             <SearchInput
