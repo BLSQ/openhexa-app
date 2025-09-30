@@ -1197,10 +1197,22 @@ export type DatabaseTable = {
   count?: Maybe<Scalars['Int']['output']>;
   /** The name of the table. */
   name: Scalars['String']['output'];
+  /** Retrieves a paginated and filtered list of rows from the table. */
+  query: TableRowsPage;
   /** Retrieves a paginated list of rows from the table. */
   rows: TableRowsPage;
   /** A sample row from the table. */
   sample: Scalars['JSON']['output'];
+};
+
+
+/** Represents a database table. */
+export type DatabaseTableQueryArgs = {
+  direction?: InputMaybe<OrderByDirection>;
+  filters?: InputMaybe<Array<TableFilter>>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1989,6 +2001,22 @@ export enum FileSampleStatus {
 export enum FileType {
   Directory = 'directory',
   File = 'file'
+}
+
+/** Filter operators for table queries. */
+export enum FilterOperator {
+  Eq = 'EQ',
+  Ge = 'GE',
+  Gt = 'GT',
+  Ilike = 'ILIKE',
+  In = 'IN',
+  IsNotNull = 'IS_NOT_NULL',
+  IsNull = 'IS_NULL',
+  Le = 'LE',
+  Like = 'LIKE',
+  Lt = 'LT',
+  Ne = 'NE',
+  NotIn = 'NOT_IN'
 }
 
 /** GCS connection object */
@@ -4512,6 +4540,16 @@ export type TableColumn = {
   __typename?: 'TableColumn';
   name: Scalars['String']['output'];
   type: Scalars['String']['output'];
+};
+
+/** Input type for filtering table rows. */
+export type TableFilter = {
+  /** The name of the column to filter on. */
+  column: Scalars['String']['input'];
+  /** The operator to use for comparison. */
+  operator: FilterOperator;
+  /** The value to compare against. Can be a single value or array for IN/NOT_IN operators. */
+  value?: InputMaybe<Scalars['JSON']['input']>;
 };
 
 /** Represents a paginated list of rows from a database table. */

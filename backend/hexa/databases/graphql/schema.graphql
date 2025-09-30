@@ -50,6 +50,44 @@ enum OrderByDirection {
 }
 
 """
+Filter operators for table queries.
+"""
+enum FilterOperator {
+  EQ      # equals
+  NE      # not equals
+  LT      # less than
+  LE      # less than or equal
+  GT      # greater than
+  GE      # greater than or equal
+  LIKE    # SQL LIKE pattern matching
+  ILIKE   # case-insensitive LIKE
+  IN      # value is in a list
+  NOT_IN  # value is not in a list
+  IS_NULL # value is null
+  IS_NOT_NULL # value is not null
+}
+
+"""
+Input type for filtering table rows.
+"""
+input TableFilter {
+  """
+  The name of the column to filter on.
+  """
+  column: String!
+
+  """
+  The operator to use for comparison.
+  """
+  operator: FilterOperator!
+
+  """
+  The value to compare against. Can be a single value or array for IN/NOT_IN operators.
+  """
+  value: JSON
+}
+
+"""
 Represents a database table.
 """
 type DatabaseTable {
@@ -91,6 +129,36 @@ type DatabaseTable {
     The page number to retrieve.
     """
     page: Int!,
+
+    """
+    The number of rows per page.
+    """
+    perPage: Int = 15
+  ): TableRowsPage!
+
+  """
+  Retrieves a paginated and filtered list of rows from the table.
+  """
+  query(
+    """
+    Filters to apply to the query.
+    """
+    filters: [TableFilter!],
+
+    """
+    The column to order the rows by.
+    """
+    orderBy: String,
+
+    """
+    The direction to order the rows in.
+    """
+    direction: OrderByDirection = ASC,
+
+    """
+    The page number to retrieve.
+    """
+    page: Int = 1,
 
     """
     The number of rows per page.

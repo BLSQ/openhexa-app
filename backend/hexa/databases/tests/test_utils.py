@@ -5,12 +5,15 @@ from psycopg2.extras import DictRow
 
 from hexa.core.test import TestCase
 from hexa.databases.utils import (
+    FilterOperatorEnum,
     OrderByDirectionEnum,
     TableNotFound,
     TableRowsPage,
+    _build_filter_condition,
     delete_table,
     get_database_definition,
     get_table_definition,
+    get_table_query_results,
     get_table_rows,
 )
 from hexa.plugins.connector_postgresql.models import Database
@@ -198,3 +201,160 @@ class DatabaseUtilsTest(TestCase):
         cursor.execute.return_value = "DROP TABLE"
 
         delete_table(self.WORKSPACE, table_name)
+
+
+class FilterConditionTest(TestCase):
+    """Test the _build_filter_condition utility function."""
+
+    def test_build_filter_condition_equals(self):
+        condition, params = _build_filter_condition("name", FilterOperatorEnum.EQ.value, "test")
+        self.assertEqual(len(params), 1)
+        self.assertEqual(params[0], "test")
+
+    def test_build_filter_condition_not_equals(self):
+        condition, params = _build_filter_condition("age", FilterOperatorEnum.NE.value, 25)
+        self.assertEqual(len(params), 1)
+        self.assertEqual(params[0], 25)
+
+    def test_build_filter_condition_greater_than(self):
+        condition, params = _build_filter_condition("score", FilterOperatorEnum.GT.value, 100)
+        self.assertEqual(len(params), 1)
+        self.assertEqual(params[0], 100)
+
+    def test_build_filter_condition_like(self):
+        condition, params = _build_filter_condition("description", FilterOperatorEnum.LIKE.value, "%test%")
+        self.assertEqual(len(params), 1)
+        self.assertEqual(params[0], "%test%")
+
+    def test_build_filter_condition_in(self):
+        condition, params = _build_filter_condition("status", FilterOperatorEnum.IN.value, ["active", "pending"])
+        self.assertEqual(len(params), 2)
+        self.assertEqual(params, ["active", "pending"])
+
+    def test_build_filter_condition_in_empty_list(self):
+        condition, params = _build_filter_condition("status", FilterOperatorEnum.IN.value, [])
+        self.assertIsNone(condition)
+        self.assertEqual(params, [])
+
+    def test_build_filter_condition_is_null(self):
+        condition, params = _build_filter_condition("deleted_at", FilterOperatorEnum.IS_NULL.value, None)
+        self.assertEqual(len(params), 0)
+
+    def test_build_filter_condition_is_not_null(self):
+        condition, params = _build_filter_condition("created_at", FilterOperatorEnum.IS_NOT_NULL.value, None)
+        self.assertEqual(len(params), 0)
+
+    def test_build_filter_condition_invalid_operator(self):
+        condition, params = _build_filter_condition("name", "INVALID_OP", "test")
+        self.assertIsNone(condition)
+        self.assertEqual(params, [])
+
+
+class TableQueryTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER_JULIA = User.objects.create_user(
+            "julia@bluesquarehub.com", "juliaspassword"
+        )
+        cls.DB1 = Database.objects.create(
+            hostname="host",
+            username="user",
+            password="pwd",
+            database="hexa-explore-demo",
+        )
+        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.USER_JULIA,
+            name="Test Workspace",
+            description="Test workspace",
+            countries=[],
+        )
+        setattr(cls.WORKSPACE, "database", cls.DB1)
+
+    @mock.patch("psycopg2.connect")
+    def test_get_table_query_results_with_filters(self, mock_connect):
+        """Test querying table with filters."""
+        table_name = "test_table"
+        filters = [
+            {"column": "active", "operator": "EQ", "value": True},
+            {"column": "age", "operator": "GE", "value": 18},
+        ]
+
+        # Mock database response
+        mock_context_object = mock_connect.return_value
+        cursor = mock_context_object.cursor.return_value.__enter__.return_value
+        cursor.fetchall.return_value = [
+            dictrow_from_dict({"id": 1, "name": "Alice", "active": True, "age": 25}),
+            dictrow_from_dict({"id": 2, "name": "Bob", "active": True, "age": 30}),
+        ]
+
+        result = get_table_query_results(
+            workspace=self.WORKSPACE,
+            table_name=table_name,
+            filters=filters,
+            order_by="id",
+            direction=OrderByDirectionEnum.ASC,
+            page=1,
+            per_page=10,
+        )
+
+        self.assertIsInstance(result, TableRowsPage)
+        self.assertEqual(result.page, 1)
+        self.assertEqual(len(result.items), 2)
+        
+        # Verify database query was executed
+        cursor.execute.assert_called_once()
+
+    @mock.patch("psycopg2.connect")
+    def test_get_table_query_results_no_filters(self, mock_connect):
+        """Test querying table without filters."""
+        table_name = "test_table"
+
+        # Mock database response
+        mock_context_object = mock_connect.return_value
+        cursor = mock_context_object.cursor.return_value.__enter__.return_value
+        cursor.fetchall.return_value = [
+            dictrow_from_dict({"id": 1, "name": "Alice"}),
+        ]
+
+        result = get_table_query_results(
+            workspace=self.WORKSPACE,
+            table_name=table_name,
+            filters=None,
+            order_by=None,
+            direction=OrderByDirectionEnum.ASC,
+            page=1,
+            per_page=10,
+        )
+
+        self.assertIsInstance(result, TableRowsPage)
+        self.assertEqual(result.page, 1)
+        self.assertEqual(len(result.items), 1)
+
+    @mock.patch("psycopg2.connect")
+    def test_get_table_query_results_pagination(self, mock_connect):
+        """Test pagination in table queries."""
+        table_name = "test_table"
+
+        # Mock database response with extra item to test has_next
+        mock_context_object = mock_connect.return_value
+        cursor = mock_context_object.cursor.return_value.__enter__.return_value
+        cursor.fetchall.return_value = [
+            dictrow_from_dict({"id": 1, "name": "Alice"}),
+            dictrow_from_dict({"id": 2, "name": "Bob"}),
+            dictrow_from_dict({"id": 3, "name": "Charlie"}),  # Extra item for has_next
+        ]
+
+        result = get_table_query_results(
+            workspace=self.WORKSPACE,
+            table_name=table_name,
+            filters=None,
+            order_by="id",
+            direction=OrderByDirectionEnum.ASC,
+            page=1,
+            per_page=2,
+        )
+
+        self.assertEqual(result.page, 1)
+        self.assertEqual(len(result.items), 2)  # Should be limited to per_page
+        self.assertFalse(result.has_previous)
+        self.assertTrue(result.has_next)  # Should have next page

@@ -1124,6 +1124,24 @@ type DatabaseTable {
   """The name of the table."""
   name: String!
 
+  """Retrieves a paginated and filtered list of rows from the table."""
+  query(
+    """The direction to order the rows in."""
+    direction: OrderByDirection = ASC
+
+    """Filters to apply to the query."""
+    filters: [TableFilter!]
+
+    """The column to order the rows by."""
+    orderBy: String
+
+    """The page number to retrieve."""
+    page: Int = 1
+
+    """The number of rows per page."""
+    perPage: Int = 15
+  ): TableRowsPage!
+
   """Retrieves a paginated list of rows from the table."""
   rows(
     """The direction to order the rows in."""
@@ -1901,6 +1919,22 @@ enum FileSampleStatus {
 enum FileType {
   directory
   file
+}
+
+"""Filter operators for table queries."""
+enum FilterOperator {
+  EQ
+  GE
+  GT
+  ILIKE
+  IN
+  IS_NOT_NULL
+  IS_NULL
+  LE
+  LIKE
+  LT
+  NE
+  NOT_IN
 }
 
 """GCS connection object"""
@@ -3653,6 +3687,20 @@ type StopPipelineResult {
 type TableColumn {
   name: String!
   type: String!
+}
+
+"""Input type for filtering table rows."""
+input TableFilter {
+  """The name of the column to filter on."""
+  column: String!
+
+  """The operator to use for comparison."""
+  operator: FilterOperator!
+
+  """
+  The value to compare against. Can be a single value or array for IN/NOT_IN operators.
+  """
+  value: JSON
 }
 
 """Represents a paginated list of rows from a database table."""

@@ -13,9 +13,11 @@ from hexa.core.graphql import result_page
 from hexa.workspaces.models import Workspace
 
 from .utils import (
+    FilterOperatorEnum,
     OrderByDirectionEnum,
     get_database_definition,
     get_table_definition,
+    get_table_query_results,
     get_table_rows,
     get_table_sample_data,
 )
@@ -30,6 +32,7 @@ workspace_object = ObjectType("Workspace")
 workspace_mutations = MutationType()
 
 order_by_direction_enum = EnumType("OrderByDirection", OrderByDirectionEnum)
+filter_operator_enum = EnumType("FilterOperator", FilterOperatorEnum)
 
 
 @database_object.field("tables")
@@ -96,6 +99,88 @@ def resolve_workspace_table_rows(
     }
 
 
+@database_table_object.field("query")
+def resolve_workspace_table_query(
+    table,
+    info,
+    filters=None,
+    order_by=None,
+    direction=OrderByDirectionEnum.ASC,
+    page=1,
+    per_page=15,
+):
+    request: HttpRequest = info.context["request"]
+    workspace = table["workspace"]
+
+    # Check permissions - users should have database view access to the workspace
+    if not request.user.has_perm("databases.view_database", workspace):
+        raise PermissionDenied("You don't have permission to query this database")
+
+    # Input validation
+    if page < 1:
+        page = 1
+    if per_page < 1:
+        per_page = 1
+    if per_page > 100:  # Reasonable limit to prevent performance issues
+        per_page = 100
+
+    # Validate filters
+    validated_filters = []
+    if filters:
+        for filter_item in filters:
+            if not isinstance(filter_item, dict):
+                continue
+
+            column = filter_item.get("column")
+            operator = filter_item.get("operator")
+            value = filter_item.get("value")
+
+            # Basic validation
+            if not column or not operator:
+                continue
+
+            # Validate operator is supported
+            try:
+                FilterOperatorEnum(operator)
+            except ValueError:
+                continue
+
+            # For operators that require values, ensure value is provided
+            if operator not in [
+                FilterOperatorEnum.IS_NULL.value,
+                FilterOperatorEnum.IS_NOT_NULL.value,
+            ]:
+                if value is None:
+                    continue
+
+            # For IN/NOT_IN operators, ensure value is a list
+            if operator in [
+                FilterOperatorEnum.IN.value,
+                FilterOperatorEnum.NOT_IN.value,
+            ]:
+                if not isinstance(value, list) or not value:
+                    continue
+
+            validated_filters.append(filter_item)
+
+    results = get_table_query_results(
+        workspace=workspace,
+        table_name=table["name"],
+        filters=validated_filters,
+        order_by=order_by,
+        direction=direction,
+        page=page,
+        per_page=per_page,
+    )
+
+    return {
+        "page_number": results.page,
+        "items": results.items,
+        "has_next_page": results.has_next,
+        "has_previous_page": results.has_previous,
+    }
+
+
 @workspace_object.field("database")
 def resolve_workspace_database(workspace: Workspace, info, **kwargs):
     return workspace
@@ -125,4 +210,5 @@ databases_bindables = [
     workspace_object,
     workspace_mutations,
     order_by_direction_enum,
+    filter_operator_enum,
 ]

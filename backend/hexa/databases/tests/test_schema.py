@@ -380,3 +380,171 @@ class DatabaseTest(GraphQLTestCase):
             },
             r["data"]["generateNewDatabasePassword"],
         )
+
+    def test_get_database_table_query_with_filters(self):
+        self.client.force_login(self.USER_SABRINA)
+        table_name = "test_table"
+        count = 2
+        schema = {"name": "id", "type": "int"}
+        table = {
+            "workspace": self.WORKSPACE,
+            "name": table_name,
+            "count": count,
+            "columns": [schema],
+        }
+        with mock.patch(
+            "hexa.databases.schema.get_table_definition"
+        ) as mocked_get_table_definition:
+            mocked_get_table_definition.return_value = table
+
+            with mock.patch(
+                "hexa.databases.schema.get_table_query_results"
+            ) as mocked_get_table_query_results:
+                mocked_get_table_query_results.return_value = TableRowsPage(
+                    page=1,
+                    has_previous=False,
+                    has_next=False,
+                    items=[{"id": 1, "active": True}, {"id": 2, "active": False}],
+                )
+
+                r = self.run_query(
+                    """
+                    query workspaceById($slug:String!, $tableName:String!) {
+                        workspace(slug: $slug) {
+                            database {
+                                table(name: $tableName) {
+                                    name
+                                    query(
+                                        filters: [{column: "active", operator: EQ, value: true}],
+                                        orderBy: "id",
+                                        direction: ASC,
+                                        page: 1,
+                                        perPage: 2
+                                    ) {
+                                         hasNextPage
+                                         hasPreviousPage
+                                         pageNumber
+                                         items
+                                    }
+                                }
+                            }
+                        }
+                    }
+                   """,
+                    {"slug": str(self.WORKSPACE.slug), "tableName": table_name},
+                )
+                self.assertEqual(
+                    {
+                        "name": table_name,
+                        "query": {
+                            "hasNextPage": False,
+                            "hasPreviousPage": False,
+                            "pageNumber": 1,
+                            "items": [{"id": 1, "active": True}, {"id": 2, "active": False}],
+                        },
+                    },
+                    r["data"]["workspace"]["database"]["table"],
+                )
+
+                # Verify the function was called with correct parameters
+                mocked_get_table_query_results.assert_called_once()
+                call_args = mocked_get_table_query_results.call_args
+                self.assertEqual(call_args[1]["workspace"], self.WORKSPACE)
+                self.assertEqual(call_args[1]["table_name"], table_name)
+                self.assertEqual(len(call_args[1]["filters"]), 1)
+                self.assertEqual(call_args[1]["filters"][0]["column"], "active")
+                self.assertEqual(call_args[1]["filters"][0]["operator"], "EQ")
+                self.assertEqual(call_args[1]["filters"][0]["value"], True)
+
+    def test_get_database_table_query_permission_denied(self):
+        """Test that users without database view permission cannot query tables."""
+        # Create a user without any workspace permissions
+        user_no_permissions = User.objects.create_user(
+            "noperm@bluesquarehub.com", "password"
+        )
+        self.client.force_login(user_no_permissions)
+        
+        table_name = "test_table"
+        with mock.patch(
+            "hexa.databases.schema.get_table_definition"
+        ) as mocked_get_table_definition:
+            mocked_get_table_definition.return_value = {
+                "workspace": self.WORKSPACE,
+                "name": table_name,
+                "count": 0,
+                "columns": [],
+            }
+
+            r = self.run_query(
+                """
+                query workspaceById($slug:String!, $tableName:String!) {
+                    workspace(slug: $slug) {
+                        database {
+                            table(name: $tableName) {
+                                query(page: 1, perPage: 10) {
+                                    pageNumber
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+                {"slug": str(self.WORKSPACE.slug), "tableName": table_name},
+            )
+            
+            # Should get a permission denied error
+            self.assertIn("errors", r)
+            self.assertTrue(any("permission" in str(error).lower() for error in r["errors"]))
+
+    def test_get_database_table_query_input_validation(self):
+        """Test input validation for the query endpoint."""
+        self.client.force_login(self.USER_SABRINA)
+        table_name = "test_table"
+        table = {
+            "workspace": self.WORKSPACE,
+            "name": table_name,
+            "count": 0,
+            "columns": [],
+        }
+        
+        with mock.patch(
+            "hexa.databases.schema.get_table_definition"
+        ) as mocked_get_table_definition:
+            mocked_get_table_definition.return_value = table
+
+            with mock.patch(
+                "hexa.databases.schema.get_table_query_results"
+            ) as mocked_get_table_query_results:
+                mocked_get_table_query_results.return_value = TableRowsPage(
+                    page=1,
+                    has_previous=False,
+                    has_next=False,
+                    items=[],
+                )
+
+                # Test with invalid page numbers and per_page values
+                r = self.run_query(
+                    """
+                    query workspaceById($slug:String!, $tableName:String!) {
+                        workspace(slug: $slug) {
+                            database {
+                                table(name: $tableName) {
+                                    query(page: -1, perPage: 200) {
+                                        pageNumber
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    """,
+                    {"slug": str(self.WORKSPACE.slug), "tableName": table_name},
+                )
+                
+                # Should succeed with corrected values
+                self.assertIsNone(r.get("errors"))
+                
+                # Verify the function was called with corrected parameters
+                mocked_get_table_query_results.assert_called_once()
+                call_args = mocked_get_table_query_results.call_args
+                self.assertEqual(call_args[1]["page"], 1)  # Should be corrected from -1
+                self.assertEqual(call_args[1]["per_page"], 100)  # Should be capped at 100

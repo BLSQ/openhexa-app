@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 import psycopg2
+import psycopg2.extras
 from psycopg2 import sql
 from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -21,6 +22,21 @@ class TableNotFound(Exception):
 class OrderByDirectionEnum(enum.Enum):
     ASC = "ASC"
     DESC = "DESC"
+
+
+class FilterOperatorEnum(enum.Enum):
+    EQ = "EQ"
+    NE = "NE"
+    LT = "LT"
+    LE = "LE"
+    GT = "GT"
+    GE = "GE"
+    LIKE = "LIKE"
+    ILIKE = "ILIKE"
+    IN = "IN"
+    NOT_IN = "NOT_IN"
+    IS_NULL = "IS_NULL"
+    IS_NOT_NULL = "IS_NOT_NULL"
 
 
 def get_workspace_database_connection(workspace: Workspace):
@@ -201,3 +217,138 @@ def get_table_rows(
     finally:
         if conn:
             conn.close()
+
+
+def get_table_query_results(
+    workspace: Workspace,
+    table_name: str,
+    filters: List[Dict] = None,
+    order_by: str = None,
+    direction: OrderByDirectionEnum = OrderByDirectionEnum.ASC,
+    page: int = 1,
+    per_page: int = 15,
+):
+    """
+    Query table rows with filtering and pagination support.
+
+    Args:
+        workspace: The workspace containing the database
+        table_name: Name of the table to query
+        filters: List of filter dictionaries with 'column', 'operator', and 'value' keys
+        order_by: Column name to order by (optional)
+        direction: Sort direction (ASC or DESC)
+        page: Page number (1-based)
+        per_page: Number of rows per page
+
+    Returns:
+        TableRowsPage with filtered and paginated results
+    """
+    conn = None
+    try:
+        conn = get_workspace_database_connection(workspace)
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            # Build the base query
+            query_parts = [
+                sql.SQL("SELECT * FROM {}").format(sql.Identifier(table_name))
+            ]
+            query_params = []
+
+            # Add WHERE clause if filters are provided
+            if filters:
+                where_conditions = []
+                for filter_item in filters:
+                    column = filter_item.get("column")
+                    operator = filter_item.get("operator")
+                    value = filter_item.get("value")
+
+                    if not column or not operator:
+                        continue
+
+                    condition, params = _build_filter_condition(column, operator, value)
+                    if condition:
+                        where_conditions.append(condition)
+                        query_params.extend(params)
+
+                if where_conditions:
+                    where_clause = sql.SQL(" WHERE ") + sql.SQL(" AND ").join(
+                        where_conditions
+                    )
+                    query_parts.append(where_clause)
+
+            # Add ORDER BY clause if specified
+            if order_by:
+                direction_str = (
+                    "ASC" if direction == OrderByDirectionEnum.ASC else "DESC"
+                )
+                order_clause = sql.SQL(" ORDER BY {} {}").format(
+                    sql.Identifier(order_by), sql.SQL(direction_str)
+                )
+                query_parts.append(order_clause)
+
+            # Add pagination
+            limit_clause = sql.SQL(" LIMIT %s OFFSET %s")
+            query_parts.append(limit_clause)
+            query_params.extend([per_page + 1, (page - 1) * per_page])
+
+            # Build and execute the final query
+            final_query = sql.SQL("").join(query_parts)
+            cursor.execute(final_query, query_params)
+
+            data = cursor.fetchall()
+
+        return TableRowsPage(
+            page=page,
+            has_previous=page > 1,
+            has_next=len(data) > per_page,
+            items=data[:per_page],
+        )
+    finally:
+        if conn:
+            conn.close()
+
+
+def _build_filter_condition(
+    column: str, operator: str, value
+) -> Tuple[sql.Composable, List]:
+    """
+    Build a SQL WHERE condition based on the filter parameters.
+
+    Returns:
+        Tuple of (condition_sql_composable, parameters_list)
+    """
+    column_identifier = sql.Identifier(column)
+
+    if operator == FilterOperatorEnum.EQ.value:
+        return sql.SQL("{} = %s").format(column_identifier), [value]
+    elif operator == FilterOperatorEnum.NE.value:
+        return sql.SQL("{} != %s").format(column_identifier), [value]
+    elif operator == FilterOperatorEnum.LT.value:
+        return sql.SQL("{} < %s").format(column_identifier), [value]
+    elif operator == FilterOperatorEnum.LE.value:
+        return sql.SQL("{} <= %s").format(column_identifier), [value]
+    elif operator == FilterOperatorEnum.GT.value:
+        return sql.SQL("{} > %s").format(column_identifier), [value]
+    elif operator == FilterOperatorEnum.GE.value:
+        return sql.SQL("{} >= %s").format(column_identifier), [value]
+    elif operator == FilterOperatorEnum.LIKE.value:
+        return sql.SQL("{} LIKE %s").format(column_identifier), [value]
+    elif operator == FilterOperatorEnum.ILIKE.value:
+        return sql.SQL("{} ILIKE %s").format(column_identifier), [value]
+    elif operator == FilterOperatorEnum.IN.value:
+        if isinstance(value, list) and value:
+            placeholders = sql.SQL(", ").join([sql.Placeholder()] * len(value))
+            return sql.SQL("{} IN ({})").format(column_identifier, placeholders), value
+        return None, []
+    elif operator == FilterOperatorEnum.NOT_IN.value:
+        if isinstance(value, list) and value:
+            placeholders = sql.SQL(", ").join([sql.Placeholder()] * len(value))
+            return sql.SQL("{} NOT IN ({})").format(
+                column_identifier, placeholders
+            ), value
+        return None, []
+    elif operator == FilterOperatorEnum.IS_NULL.value:
+        return sql.SQL("{} IS NULL").format(column_identifier), []
+    elif operator == FilterOperatorEnum.IS_NOT_NULL.value:
+        return sql.SQL("{} IS NOT NULL").format(column_identifier), []
+
+    return None, []
