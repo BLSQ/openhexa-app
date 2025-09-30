@@ -56,6 +56,31 @@ const getDefaultWorkspaceRole = (
 const WORKSPACE_ROLE_NONE = "NONE" as const;
 type WORKSPACE_ROLE_NONE = typeof WORKSPACE_ROLE_NONE;
 type WorkspaceRole = WorkspaceMembershipRole | WORKSPACE_ROLE_NONE;
+const buildInvitations = (
+  workspaces: { slug: string; name: string }[],
+  role: WorkspaceRole,
+  currentInvitations: WorkspaceInvitationInput[],
+  editedWorkspaces: Set<string>,
+): WorkspaceInvitationInput[] => {
+  return workspaces
+    .map((workspace) => {
+      if (editedWorkspaces.has(workspace.slug)) {
+        const existing = currentInvitations.find(
+          (inv) => inv.workspaceSlug === workspace.slug,
+        );
+        return existing || null;
+      }
+
+      if (role === WORKSPACE_ROLE_NONE) return null;
+
+      return {
+        workspaceSlug: workspace.slug,
+        workspaceName: workspace.name,
+        role: role as WorkspaceMembershipRole,
+      };
+    })
+    .filter((inv): inv is WorkspaceInvitationInput => inv !== null);
+};
 
 const AddOrganizationMemberDialog = (
   props: AddOrganizationMemberDialogProps,
@@ -140,9 +165,11 @@ const AddOrganizationMemberDialog = (
         form.formData.organizationRole || OrganizationMembershipRole.Member;
       const defaultRole = getDefaultWorkspaceRole(orgRole);
       setBulkRoleSelection(defaultRole);
-      const initialWorkspaceInvitations = createWorkspaceInvitations(
+      const initialWorkspaceInvitations = buildInvitations(
         organization.workspaces.items,
         defaultRole,
+        [],
+        new Set(),
       );
       form.setFieldValue("workspaceInvitations", initialWorkspaceInvitations);
     }
@@ -153,70 +180,49 @@ const AddOrganizationMemberDialog = (
       return;
 
     const defaultRole = getDefaultWorkspaceRole(form.formData.organizationRole);
-    setManuallyEditedWorkspaces(new Set());
     setBulkRoleSelection(defaultRole);
-    const updatedInvitations = createWorkspaceInvitations(
+
+    const currentInvitations = form.formData.workspaceInvitations || [];
+    const updatedInvitations = buildInvitations(
       organization.workspaces.items,
       defaultRole,
+      currentInvitations,
+      manuallyEditedWorkspaces,
     );
     form.setFieldValue("workspaceInvitations", updatedInvitations);
   }, [form.formData.organizationRole, organization?.workspaces?.items]);
-
-  const createWorkspaceInvitations = (
-    workspaces: { slug: string; name: string }[] | undefined,
-    role: WorkspaceRole,
-  ) => {
-    if (!workspaces || role === WORKSPACE_ROLE_NONE) return [];
-
-    return workspaces.map((workspace) => ({
-      workspaceSlug: workspace.slug,
-      workspaceName: workspace.name,
-      role: role as WorkspaceMembershipRole,
-    }));
-  };
-
-  const updateWorkspaceRole = (
-    currentInvitations: WorkspaceInvitationInput[],
-    workspaceSlug: string,
-    workspaceName: string,
-    role: WorkspaceRole,
-  ) => {
-    const filtered = currentInvitations.filter(
-      (inv) => inv.workspaceSlug !== workspaceSlug,
-    );
-    return role === WORKSPACE_ROLE_NONE
-      ? filtered
-      : [...filtered, { workspaceSlug, workspaceName, role }];
-  };
 
   const handleRoleChange = (
     workspaceSlug: string,
     workspaceName: string,
     role: WorkspaceRole,
   ) => {
-    setManuallyEditedWorkspaces((prev) => new Set(prev).add(workspaceSlug));
-
     const currentInvitations = form.formData.workspaceInvitations || [];
-    const updatedInvitations = updateWorkspaceRole(
-      currentInvitations,
-      workspaceSlug,
-      workspaceName,
-      role,
+    const filtered = currentInvitations.filter(
+      (inv) => inv.workspaceSlug !== workspaceSlug,
     );
+    const updatedInvitations =
+      role === WORKSPACE_ROLE_NONE
+        ? filtered
+        : [...filtered, { workspaceSlug, workspaceName, role }];
 
     form.setFieldValue("workspaceInvitations", updatedInvitations);
+    setManuallyEditedWorkspaces((prev) => new Set(prev).add(workspaceSlug));
   };
 
   const handleBulkRoleChange = (role: WorkspaceRole) => {
     if (!organization?.workspaces?.items) return;
 
     setBulkRoleSelection(role);
-    setManuallyEditedWorkspaces(new Set());
 
-    const updatedInvitations = createWorkspaceInvitations(
+    const currentInvitations = form.formData.workspaceInvitations || [];
+    const updatedInvitations = buildInvitations(
       organization.workspaces.items,
       role,
+      currentInvitations,
+      manuallyEditedWorkspaces,
     );
+
     form.setFieldValue("workspaceInvitations", updatedInvitations);
   };
 
