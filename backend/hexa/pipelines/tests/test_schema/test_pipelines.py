@@ -3039,6 +3039,52 @@ def test_pipeline(input_file, threshold, enable_debug):
         self.assertEqual(r["data"]["uploadPipeline"]["success"], False)
         self.assertIn("INVALID_CONFIG", r["data"]["uploadPipeline"]["errors"])
 
+    def test_upload_pipeline_with_functional_type(self):
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.create(
+            code="test-pipeline-functional-type",
+            workspace=self.WS1,
+            name="Test Pipeline",
+        )
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                    pipelineVersion {
+                        pipeline {
+                            functionalType
+                        }
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                    "pipelineCode": "test-pipeline-functional-type",
+                    "name": "Test Version",
+                    "zipfile": self.zip_pipeline_py,
+                    "functionalType": "extraction",
+                    "parameters": [],
+                }
+            },
+        )
+
+        self.assertEqual(r["data"]["uploadPipeline"]["success"], True)
+        self.assertEqual(
+            r["data"]["uploadPipeline"]["pipelineVersion"]["pipeline"][
+                "functionalType"
+            ],
+            "extraction",
+        )
+
+        pipeline.refresh_from_db()
+        self.assertEqual(pipeline.functional_type, "extraction")
+
     def test_create_pipeline_with_functional_type(self):
         """Test creating pipeline with functional type via GraphQL"""
         self.client.force_login(self.USER_ROOT)
