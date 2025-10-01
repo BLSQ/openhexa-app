@@ -20,9 +20,10 @@ class Migration(migrations.Migration):
                     ("loading", "Loading"),
                     ("computation", "Computation"),
                 ],
-                help_text="Business purpose: 'extraction' for data ingestion, 'transformation' for processing, 'loading' for data output, 'computation' for analytics. Describes WHAT the pipeline does in data workflows. Optional field used for categorization.",
+                help_text="Describes WHAT the pipeline does in data workflows. Optional field used for categorization.",
                 max_length=200,
                 null=True,
+                db_index=True,
             ),
         ),
     ]
