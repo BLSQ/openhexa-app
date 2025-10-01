@@ -302,16 +302,14 @@ export async function deletePipelineVersion(versionId: string) {
  * @returns User-friendly display name for the pipeline's technical format
  */
 export function formatPipelineSource(pipelineType: PipelineType, hasSourceTemplate?: boolean): string {
+  if (hasSourceTemplate){
+    return i18n!.t("Template");
+  }
+
   switch (pipelineType) {
     case PipelineType.Notebook:
-      if (hasSourceTemplate) {
-        return i18n!.t("Template");
-      }
       return i18n!.t("Notebook");
     case PipelineType.ZipFile:
-      if (hasSourceTemplate) {
-        return i18n!.t("Template");
-      }
       return i18n!.t("From CLI");
     default:
       return i18n!.t("Pipeline");
@@ -358,10 +356,6 @@ export function getFunctionalTypeDescription(functionalType: PipelineFunctionalT
     case PipelineFunctionalType.Computation:
       return i18n!.t("Performs analytics, machine learning, or statistical analysis");
   }
-}
-
-export function getAllFunctionalTypes(): PipelineFunctionalType[] {
-  return Object.values(PipelineFunctionalType);
 }
 
 export async function createPipelineRecipient(
