@@ -158,7 +158,10 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
         fetchPolicy: "network-only",
       });
     } catch (err) {
-      toast.error((err as Error).message ?? t("An error occurred while creating the folder."));
+      toast.error(
+        (err as Error).message ??
+          t("An error occurred while creating the folder."),
+      );
     }
   };
 
@@ -170,24 +173,15 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   const bucket =
     data?.workspace?.bucket ?? previousData?.workspace?.bucket ?? null;
 
-  // Normalize and combine data from both sources
-  const normalizedItems = useMemo(() => {
+  const displayedBucketObjects = useMemo(() => {
     if (isSearchMode && searchResults) {
-      // Convert search results to bucket object format
-      return searchResults.items.map((result) => ({
-        ...result.file,
-        // Map search result fields to bucket object fields
-        updatedAt: result.file.updatedAt,
-        type:
-          result.file.type === BucketObjectType.Directory
-            ? BucketObjectType.Directory
-            : BucketObjectType.File,
-      }));
+      return searchResults.items.map((result) => result.file);
     } else if (bucket?.objects.items) {
       return bucket.objects.items;
+    } else {
+      return [];
     }
-    return [];
-  }, [isSearchMode, searchResults, bucket?.objects.items, searchQuery]);
+  }, [isSearchMode, searchResults, bucket?.objects.items]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="max-w-5xl">
@@ -282,7 +276,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
             </div>
           ) : (
             <FileSystemDataGrid
-              data={normalizedItems as BucketObject[]}
+              data={displayedBucketObjects as BucketObject[]}
               perPage={PAGE_SIZE}
               showPageSizeSelect={false}
               loading={isSearching || loading}
