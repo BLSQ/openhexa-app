@@ -68,6 +68,7 @@ def resolve_search_pipelines(
     per_page=15,
     workspace_slugs=None,
     organization_id=None,
+    functional_type=None,
 ):
     workspace_slugs = workspace_slugs or []
     if organization_id:
@@ -76,7 +77,11 @@ def resolve_search_pipelines(
         ).workspaces.values_list("slug", flat=True)
     request = info.context["request"]
     qs = Pipeline.objects.filter_for_workspace_slugs(request.user, workspace_slugs)
-    qs = apply_scored_search(qs, ["name", "code", "description", "tags__name"], query)
+    if functional_type:
+        qs = qs.filter(functional_type=functional_type)
+    qs = apply_scored_search(
+        qs, ["name", "code", "description", "tags__name", "functional_type"], query
+    )
     return page_result_with_scores(qs, page, per_page, "pipeline")
 
 

@@ -10,6 +10,15 @@ jest.mock("@apollo/client", () => ({
   gql: jest.fn(() => "GQL"),
 }));
 
+jest.mock("next-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+  i18n: {
+    t: (key: string) => key,
+  },
+}));
+
 const useQueryMock = useQuery as jest.Mock;
 const useMutationMock = useMutation as jest.Mock;
 useMutationMock.mockReturnValue([jest.fn(), { loading: false }]);

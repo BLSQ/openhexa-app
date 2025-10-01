@@ -2,6 +2,9 @@ import React from "react";
 import SearchInput from "core/features/SearchInput";
 import Listbox from "core/components/Listbox";
 import ViewToggleButton from "core/components/ViewToggleButton";
+import { PipelineFunctionalType } from "graphql/types";
+import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
+import { useTranslation } from "next-i18next";
 
 type Filter = {
   workspaceFilter: any;
@@ -16,6 +19,8 @@ type HeaderProps = {
   view: "grid" | "card";
   setView: (view: "grid" | "card") => void;
   showCard?: boolean;
+  functionalTypeFilter?: PipelineFunctionalType | null;
+  setFunctionalTypeFilter?: (filter: PipelineFunctionalType | null) => void;
 };
 
 const Header = ({
@@ -25,7 +30,19 @@ const Header = ({
   view,
   setView,
   showCard,
+  functionalTypeFilter,
+  setFunctionalTypeFilter,
 }: HeaderProps) => {
+  const { t } = useTranslation();
+
+  const functionalTypeOptions = [
+    { value: null, label: t("All types") },
+    ...Object.values(PipelineFunctionalType).map(type => ({
+      value: type,
+      label: formatPipelineFunctionalType(type)
+    }))
+  ];
+
   return (
     <div className={"my-5 flex justify-between"}>
       <SearchInput
@@ -36,6 +53,16 @@ const Header = ({
       />
 
       <div className={"flex gap-5"}>
+        {setFunctionalTypeFilter && (
+          <Listbox
+            value={functionalTypeOptions.find(opt => opt.value === functionalTypeFilter)}
+            onChange={(option) => setFunctionalTypeFilter(option?.value || null)}
+            options={functionalTypeOptions}
+            by="value"
+            getOptionLabel={(option) => option.label}
+            className={"min-w-48"}
+          />
+        )}
         {filter && (
           <Listbox
             value={filter.workspaceFilter}

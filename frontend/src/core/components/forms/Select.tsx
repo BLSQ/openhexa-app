@@ -86,12 +86,12 @@ function Select<O>(props: SelectProps<O>) {
       placeholder={placeholder}
       disabled={disabled}
       onInputChange={onInputChange}
-      className={className}
       onChange={onChange}
       displayValue={displayValue as any}
       by={by as any /* Otherwise typescript is not happy */}
       loading={loading}
-      withPortal
+      withPortal={false}
+      className={className}
     >
       {onCreate && query.length > 0 && (
         <div

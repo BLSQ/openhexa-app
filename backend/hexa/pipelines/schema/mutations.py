@@ -68,6 +68,9 @@ def resolve_create_pipeline(_, info, **kwargs):
         else:
             data["type"] = PipelineType.ZIPFILE
 
+        if input.get("functional_type"):
+            data["functional_type"] = input["functional_type"]
+
         pipeline = Pipeline.objects.create_if_has_perm(
             principal=request.user, workspace=workspace, name=input["name"], **data
         )
@@ -379,7 +382,11 @@ def resolve_upload_pipeline(_, info, **kwargs):
                     "errors": ["INVALID_CONFIG"],
                 }
             pipeline.tags.set(tags)
-            pipeline.save()
+
+        if "functional_type" in input:
+            pipeline.functional_type = input["functional_type"]
+
+        pipeline.save()
 
         return {
             "success": True,

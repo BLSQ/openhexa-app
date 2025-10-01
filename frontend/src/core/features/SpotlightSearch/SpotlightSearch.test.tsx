@@ -5,6 +5,15 @@ import { MemoryRouterProvider } from "next-router-mock/MemoryRouterProvider";
 import mockRouter from "next-router-mock";
 import { TestApp } from "core/helpers/testutils";
 
+jest.mock("next-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+  i18n: {
+    t: (key: string) => key,
+  },
+}));
+
 describe("SpotlightSearch", () => {
   beforeEach(() => {
     jest.clearAllMocks();

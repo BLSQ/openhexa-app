@@ -4,13 +4,15 @@ import Dialog from "core/components/Dialog";
 import Link from "core/components/Link";
 import Tabs from "core/components/Tabs";
 import Field from "core/components/forms/Field/Field";
+import Select from "core/components/forms/Select";
 import Textarea from "core/components/forms/Textarea/Textarea";
 import useForm from "core/hooks/useForm";
-import { BucketObjectType } from "graphql/types";
+import { BucketObjectType, PipelineFunctionalType } from "graphql/types";
 import { Trans, useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useCreatePipelineMutation } from "workspaces/graphql/mutations.generated";
+import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 import BucketObjectPicker from "../BucketObjectPicker";
 import {
   CreatePipelineDialog_WorkspaceFragment,
@@ -33,7 +35,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
 
   const [mutate] = useCreatePipelineMutation();
 
-  const form = useForm<{ notebookObject: any; name: string }>({
+  const form = useForm<{ notebookObject: any; name: string; functionalType: PipelineFunctionalType | null }>({
     onSubmit: async (values) => {
       const { notebookObject } = values;
 
@@ -43,6 +45,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
             name: values.name,
             notebookPath: notebookObject.key,
             workspaceSlug: workspace.slug,
+            functionalType: values.functionalType,
           },
         },
       });
@@ -127,6 +130,22 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
                   value={form.formData.name}
                   onChange={form.handleInputChange}
                 />
+                <Field
+                  name="functionalType"
+                  label={t("Functional Type")}
+                  help={t("The functional purpose of this pipeline")}
+                  className="max-w-xs"
+                >
+                  <Select
+                    options={Object.values(PipelineFunctionalType)}
+                    value={form.formData.functionalType}
+                    onChange={(value) => form.setFieldValue("functionalType", value)}
+                    getOptionLabel={(option) => option ? formatPipelineFunctionalType(option) : t("Not specified")}
+                    displayValue={(option) => option ? formatPipelineFunctionalType(option) : ""}
+                    placeholder={t("Select functional type (optional)")}
+                    className="max-w-xs"
+                  />
+                </Field>
                 <Field
                   name={"notebookObject"}
                   label={t("Notebook")}

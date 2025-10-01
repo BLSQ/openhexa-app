@@ -7,8 +7,18 @@ exports[`DatasetPicker display all dataset 1`] = `
     data-headlessui-state="open"
     data-open=""
   >
-    <div
-      class="form-input flex w-full items-center rounded-md border-gray-300 shadow-xs focus-within:outline-hidden focus:ring-transparent focus-visible:border-blue-500  sm:text-sm border-blue-500"
+    <button
+      aria-controls="headlessui-combobox-options-d88d149f-80c3-4c6d-9b82-01013b801f93"
+      aria-expanded="true"
+      aria-haspopup="listbox"
+      class="form-input flex w-full items-center rounded-md border-gray-300 shadow-xs cursor-pointer focus-within:outline-hidden focus:ring-transparent focus-visible:border-blue-500  sm:text-sm border-blue-500"
+      data-active=""
+      data-headlessui-state="open active"
+      data-open=""
+      data-testid="combobox-button"
+      id="headlessui-combobox-button-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
+      tabindex="-1"
+      type="button"
     >
       <div
         class="mr-1 flex flex-1 items-center truncate"
@@ -19,58 +29,47 @@ exports[`DatasetPicker display all dataset 1`] = `
           aria-controls="headlessui-combobox-options-d88d149f-80c3-4c6d-9b82-01013b801f93"
           aria-expanded="true"
           autocomplete="off"
-          class="flex-1 placeholder-gray-600/70 outline-hidden"
+          class="flex-1 placeholder-gray-600/70 outline-hidden cursor-pointer pointer-events-none"
           data-focus=""
           data-headlessui-state="open focus"
           data-open=""
           data-testid="combobox-input"
-          id="headlessui-combobox-input-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
+          id="headlessui-combobox-input-963e9095-8e5e-490e-8bf2-2eb1cceb1000"
           placeholder="Select dataset"
+          readonly=""
           role="combobox"
           type="text"
         />
       </div>
-      <button
-        aria-controls="headlessui-combobox-options-d88d149f-80c3-4c6d-9b82-01013b801f93"
-        aria-expanded="true"
-        aria-haspopup="listbox"
-        data-active=""
-        data-headlessui-state="open active"
-        data-open=""
-        data-testid="combobox-button"
-        id="headlessui-combobox-button-963e9095-8e5e-490e-8bf2-2eb1cceb1000"
-        tabindex="-1"
-        type="button"
+      <div
+        aria-hidden="true"
+        class="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-hidden"
       >
-        <div
-          class="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-hidden"
+        <svg
+          class="animate-spin h-5 w-5"
+          data-testid="spinner"
+          fill="none"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            class="animate-spin h-5 w-5"
-            data-testid="spinner"
-            fill="none"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            />
-            <path
-              class="opacity-75"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              fill="currentColor"
-            />
-          </svg>
-        </div>
-      </button>
-    </div>
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          />
+          <path
+            class="opacity-75"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            fill="currentColor"
+          />
+        </svg>
+      </div>
+    </button>
     <div
-      aria-labelledby="headlessui-combobox-button-963e9095-8e5e-490e-8bf2-2eb1cceb1000"
+      aria-labelledby="headlessui-combobox-button-b608a8f9-e22c-462e-95cb-e9c54e6fa91f"
       class="max-h-60 z-10 w-full rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-hidden sm:text-sm flex flex-col"
       data-headlessui-state="open"
       data-open=""

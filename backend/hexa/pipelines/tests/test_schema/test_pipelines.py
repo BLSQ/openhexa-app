@@ -97,8 +97,9 @@ class PipelinesV2Test(GraphQLTestCase):
         )
 
         cls.pipeline_py_content = '''from openhexa.sdk import pipeline, parameter
+
 @pipeline(name="Test Data Pipeline")
-@parameter("file_path", name="File Path", type=File, required=True)
+@parameter("file_path", name="File Path", type=str, required=True)
 def test_pipeline(input_file, threshold, enable_debug):
     """Process data from input file."""
     pass
@@ -1974,9 +1975,10 @@ def test_pipeline(input_file, threshold, enable_debug):
         extracted_params = r["data"]["uploadPipeline"]["pipelineVersion"]["parameters"]
         self.assertEqual(1, len(extracted_params))
 
-        param1 = next(p for p in extracted_params if p["code"] == "file_path")
+        param1 = extracted_params[0]
+        self.assertEqual("file_path", param1["code"])
         self.assertEqual("File Path", param1["name"])
-        self.assertEqual("file", param1["type"])
+        self.assertEqual("str", param1["type"])
         self.assertEqual(None, param1["help"])
         self.assertEqual(True, param1["required"])
 
@@ -3035,3 +3037,202 @@ def test_pipeline(input_file, threshold, enable_debug):
 
         self.assertEqual(r["data"]["uploadPipeline"]["success"], False)
         self.assertIn("INVALID_CONFIG", r["data"]["uploadPipeline"]["errors"])
+
+    def test_upload_pipeline_with_functional_type(self):
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.create(
+            code="test-pipeline-functional-type",
+            workspace=self.WS1,
+            name="Test Pipeline",
+        )
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                    pipelineVersion {
+                        pipeline {
+                            functionalType
+                        }
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                    "pipelineCode": "test-pipeline-functional-type",
+                    "name": "Test Version",
+                    "zipfile": self.zip_pipeline_py,
+                    "functionalType": "extraction",
+                    "parameters": [],
+                }
+            },
+        )
+
+        self.assertEqual(r["data"]["uploadPipeline"]["success"], True)
+        self.assertEqual(
+            r["data"]["uploadPipeline"]["pipelineVersion"]["pipeline"][
+                "functionalType"
+            ],
+            "extraction",
+        )
+
+        pipeline.refresh_from_db()
+        self.assertEqual(pipeline.functional_type, "extraction")
+
+    def test_create_pipeline_with_functional_type(self):
+        """Test creating pipeline with functional type via GraphQL"""
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            mutation createPipeline($input: CreatePipelineInput!) {
+                createPipeline(input: $input) {
+                    success
+                    errors
+                    pipeline {
+                        id
+                        name
+                        functionalType
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                    "name": "Test Pipeline with Functional Type",
+                    "functionalType": "extraction",
+                }
+            },
+        )
+
+        self.assertEqual(r["data"]["createPipeline"]["success"], True)
+        self.assertEqual(r["data"]["createPipeline"]["errors"], [])
+        self.assertEqual(
+            r["data"]["createPipeline"]["pipeline"]["functionalType"], "extraction"
+        )
+
+    def test_create_pipeline_without_functional_type(self):
+        """Test creating pipeline without functional type via GraphQL"""
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            mutation createPipeline($input: CreatePipelineInput!) {
+                createPipeline(input: $input) {
+                    success
+                    errors
+                    pipeline {
+                        id
+                        name
+                        functionalType
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                    "name": "Test Pipeline without Functional Type",
+                }
+            },
+        )
+
+        self.assertEqual(r["data"]["createPipeline"]["success"], True)
+        self.assertEqual(r["data"]["createPipeline"]["errors"], [])
+        self.assertIsNone(r["data"]["createPipeline"]["pipeline"]["functionalType"])
+
+    def test_update_pipeline_functional_type(self):
+        """Test updating pipeline functional type via GraphQL"""
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
+
+        r = self.run_query(
+            """
+            mutation updatePipeline($input: UpdatePipelineInput!) {
+                updatePipeline(input: $input) {
+                    success
+                    errors
+                    pipeline {
+                        id
+                        functionalType
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(pipeline.id),
+                    "functionalType": "transformation",
+                }
+            },
+        )
+
+        self.assertEqual(r["data"]["updatePipeline"]["success"], True)
+        self.assertEqual(r["data"]["updatePipeline"]["errors"], [])
+        self.assertEqual(
+            r["data"]["updatePipeline"]["pipeline"]["functionalType"], "transformation"
+        )
+
+        pipeline.refresh_from_db()
+        self.assertEqual(pipeline.functional_type, "transformation")
+
+    def test_functional_type_in_pipeline_queries(self):
+        """Test that functional_type is returned in pipeline queries"""
+        pipeline = Pipeline.objects.create_if_has_perm(
+            principal=self.USER_ROOT,
+            workspace=self.WS1,
+            name="Test Pipeline Query",
+            functional_type="loading",
+        )
+
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            query pipelineByCode($code: String!, $workspaceSlug: String!) {
+                pipelineByCode(code: $code, workspaceSlug: $workspaceSlug) {
+                    id
+                    name
+                    functionalType
+                }
+            }
+            """,
+            {
+                "code": pipeline.code,
+                "workspaceSlug": self.WS1.slug,
+            },
+        )
+
+        self.assertEqual(r["data"]["pipelineByCode"]["functionalType"], "loading")
+
+        r = self.run_query(
+            """
+            query pipelines($workspaceSlug: String!) {
+                pipelines(workspaceSlug: $workspaceSlug) {
+                    items {
+                        id
+                        name
+                        functionalType
+                    }
+                }
+            }
+            """,
+            {
+                "workspaceSlug": self.WS1.slug,
+            },
+        )
+
+        pipeline_data = next(
+            (p for p in r["data"]["pipelines"]["items"] if p["id"] == str(pipeline.id)),
+            None,
+        )
+        self.assertIsNotNone(pipeline_data)
+        self.assertEqual(pipeline_data["functionalType"], "loading")

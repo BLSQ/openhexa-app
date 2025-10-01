@@ -9,6 +9,7 @@ import {
   PipelineNotificationLevel,
   PipelineParameter,
   PipelineType,
+  PipelineFunctionalType,
   UpdatePipelineError,
 } from "graphql/types";
 import { i18n } from "next-i18next";
@@ -18,6 +19,11 @@ import {
   UpdateWorkspacePipelineMutationVariables,
 } from "./pipelines.generated";
 import Tag from "core/features/Tag";
+
+export type PipelineWithTypes = {
+  type: PipelineType;
+  functionalType?: PipelineFunctionalType | null;
+};
 
 export async function updatePipeline(
   pipelineId: string,
@@ -39,6 +45,7 @@ export async function updatePipeline(
             description
             schedule
             config
+            functionalType
             updatedAt
             webhookEnabled
             webhookUrl
@@ -279,14 +286,67 @@ export async function deletePipelineVersion(versionId: string) {
   throw new Error("Failed to delete pipeline version");
 }
 
-export function formatPipelineType(pipelineType: PipelineType) {
+/**
+ * Formats the technical source/format of a pipeline for display.
+ *
+ * @param pipelineType - The technical format (notebook/zipFile)
+ * @param hasSourceTemplate - Whether the pipeline was created from a template
+ * @returns User-friendly display name for the pipeline's technical format
+ */
+export function formatPipelineSource(pipelineType: PipelineType, hasSourceTemplate?: boolean): string {
+  if (hasSourceTemplate){
+    return i18n!.t("Template");
+  }
+
   switch (pipelineType) {
     case PipelineType.Notebook:
-      return i18n!.t("Jupyter notebook");
+      return i18n!.t("Notebook");
     case PipelineType.ZipFile:
-      return i18n!.t("Standard pipeline");
+      return i18n!.t("From CLI");
     default:
       return i18n!.t("Pipeline");
+  }
+}
+
+/**
+ * Formats the functional type of a pipeline for display.
+ *
+ * @param functionalType - The functional purpose of the pipeline
+ * @returns User-friendly display name for the pipeline's functional purpose
+ *
+ * @example
+ * formatPipelineFunctionalType(PipelineFunctionalType.Extraction) // "Extraction"
+ * formatPipelineFunctionalType(PipelineFunctionalType.Transformation) // "Transformation"
+ */
+export function formatPipelineFunctionalType(functionalType: PipelineFunctionalType): string {
+  switch (functionalType) {
+    case PipelineFunctionalType.Extraction:
+      return i18n!.t("Extraction");
+    case PipelineFunctionalType.Transformation:
+      return i18n!.t("Transformation");
+    case PipelineFunctionalType.Loading:
+      return i18n!.t("Loading");
+    case PipelineFunctionalType.Computation:
+      return i18n!.t("Computation");
+  }
+}
+
+/**
+ * Gets a descriptive explanation of what a functional type typically does.
+ *
+ * @param functionalType - The functional type to describe
+ * @returns Detailed description of the functional type's purpose
+ */
+export function getFunctionalTypeDescription(functionalType: PipelineFunctionalType): string {
+  switch (functionalType) {
+    case PipelineFunctionalType.Extraction:
+      return i18n!.t("Ingests data from external sources like APIs, databases, or files");
+    case PipelineFunctionalType.Transformation:
+      return i18n!.t("Processes, cleans, validates, or enriches data");
+    case PipelineFunctionalType.Loading:
+      return i18n!.t("Outputs data to warehouses, databases, or files");
+    case PipelineFunctionalType.Computation:
+      return i18n!.t("Performs analytics, machine learning, or statistical analysis");
   }
 }
 

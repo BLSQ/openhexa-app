@@ -24,10 +24,11 @@ export type SearchPipelinesQueryVariables = Types.Exact<{
   workspaceSlugs: Array<Types.InputMaybe<Types.Scalars['String']['input']>> | Types.InputMaybe<Types.Scalars['String']['input']>;
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  functionalType?: Types.InputMaybe<Types.PipelineFunctionalType>;
 }>;
 
 
-export type SearchPipelinesQuery = { __typename?: 'Query', pipelines: { __typename: 'PipelineResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'PipelineResult', score: number, pipeline: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, description?: string | null, updatedAt?: any | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, workspace: { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }, lastRuns: { __typename?: 'PipelineRunPage', items: Array<{ __typename?: 'PipelineRun', id: string, status: Types.PipelineRunStatus }> } } }> } };
+export type SearchPipelinesQuery = { __typename?: 'Query', pipelines: { __typename: 'PipelineResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'PipelineResult', score: number, pipeline: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, description?: string | null, updatedAt?: any | null, functionalType?: Types.PipelineFunctionalType | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, workspace: { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }, lastRuns: { __typename?: 'PipelineRunPage', items: Array<{ __typename?: 'PipelineRun', id: string, status: Types.PipelineRunStatus }> } } }> } };
 
 export type SearchPipelineTemplatesQueryVariables = Types.Exact<{
   query: Types.Scalars['String']['input'];
@@ -119,12 +120,13 @@ export type SearchDatasetsLazyQueryHookResult = ReturnType<typeof useSearchDatas
 export type SearchDatasetsSuspenseQueryHookResult = ReturnType<typeof useSearchDatasetsSuspenseQuery>;
 export type SearchDatasetsQueryResult = Apollo.QueryResult<SearchDatasetsQuery, SearchDatasetsQueryVariables>;
 export const SearchPipelinesDocument = gql`
-    query SearchPipelines($query: String!, $workspaceSlugs: [String]!, $page: Int, $perPage: Int) {
+    query SearchPipelines($query: String!, $workspaceSlugs: [String]!, $page: Int, $perPage: Int, $functionalType: PipelineFunctionalType) {
   pipelines: searchPipelines(
     query: $query
     workspaceSlugs: $workspaceSlugs
     page: $page
     perPage: $perPage
+    functionalType: $functionalType
   ) {
     __typename
     ...PipelinesPage
@@ -148,6 +150,7 @@ export const SearchPipelinesDocument = gql`
  *      workspaceSlugs: // value for 'workspaceSlugs'
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
+ *      functionalType: // value for 'functionalType'
  *   },
  * });
  */
