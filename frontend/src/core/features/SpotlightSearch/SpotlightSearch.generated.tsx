@@ -57,7 +57,7 @@ export type SearchFilesQueryVariables = Types.Exact<{
 }>;
 
 
-export type SearchFilesQuery = { __typename?: 'Query', files: { __typename: 'FileResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'FileResult', score: number, file: { __typename?: 'File', name: string, path: string, size?: any | null, updatedAt?: any | null, type: Types.FileType }, workspace: { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> } }> } };
+export type SearchFilesQuery = { __typename?: 'Query', files: { __typename: 'BucketObjectResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'BucketObjectResult', score: number, file: { __typename?: 'BucketObject', name: string, path: string, size?: any | null, updatedAt?: any | null, type: Types.BucketObjectType }, workspace: { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> } }> } };
 
 export type GetWorkspacesQueryVariables = Types.Exact<{
   organizationId?: Types.InputMaybe<Types.Scalars['UUID']['input']>;

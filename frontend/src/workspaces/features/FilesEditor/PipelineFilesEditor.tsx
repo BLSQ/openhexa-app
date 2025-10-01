@@ -3,7 +3,7 @@ import { useUploadPipelineMutation } from "workspaces/graphql/mutations.generate
 import JSZip from "jszip";
 import { FilesEditor, SaveResult } from "./FilesEditor";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import { FileType, PipelineError } from "graphql/types";
+import { BucketObjectType, PipelineError } from "graphql/types";
 import { PipelineVersionPicker_VersionFragment } from "../PipelineVersionPicker/PipelineVersionPicker.generated";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "react-i18next";
@@ -42,7 +42,7 @@ export const PipelineFilesEditor = ({
     const zip = new JSZip();
 
     files.forEach((file) => {
-      if (file.type === FileType.File) {
+      if (file.type === BucketObjectType.File) {
         const content = modifications.get(file.id) || file.content || "";
         zip.file(file.path, content);
       }

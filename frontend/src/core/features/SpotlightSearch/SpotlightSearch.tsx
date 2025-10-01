@@ -225,7 +225,7 @@ const SpotlightSearch = ({
       setPage: setDatabaseTablePage,
     },
     {
-      typeName: "FileResult",
+      typeName: "BucketObjectResult",
       loading: filesLoading,
       data: filesData?.files,
       label: t("Files"),

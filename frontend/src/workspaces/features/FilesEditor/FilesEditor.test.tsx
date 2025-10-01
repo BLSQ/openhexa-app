@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { FilesEditor } from "./FilesEditor";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import { FileType } from "graphql/types";
+import { BucketObjectType } from "graphql/types";
 import * as cookiesNext from "cookies-next";
 import mockRouter from "next-router-mock";
 
@@ -20,7 +20,7 @@ const mockFiles: FilesEditor_FileFragment[] = [
     id: "1",
     name: "root",
     path: "/root",
-    type: FileType.Directory,
+    type: BucketObjectType.Directory,
     content: null,
     parentId: null,
     autoSelect: false,
@@ -31,7 +31,7 @@ const mockFiles: FilesEditor_FileFragment[] = [
     id: "2",
     name: "file1.py",
     path: "/root/file1.py",
-    type: FileType.File,
+    type: BucketObjectType.File,
     content: "print('hello world')",
     parentId: "1",
     autoSelect: false,
@@ -42,7 +42,7 @@ const mockFiles: FilesEditor_FileFragment[] = [
     id: "3",
     name: "subdirectory",
     path: "/root/subdirectory",
-    type: FileType.Directory,
+    type: BucketObjectType.Directory,
     content: null,
     parentId: "1",
     autoSelect: false,
@@ -53,7 +53,7 @@ const mockFiles: FilesEditor_FileFragment[] = [
     id: "4",
     name: "file2.json",
     path: "/root/subdirectory/file2.json",
-    type: FileType.File,
+    type: BucketObjectType.File,
     content: '{"key": "value"}',
     parentId: "3",
     autoSelect: false,

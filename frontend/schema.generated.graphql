@@ -428,6 +428,19 @@ type BucketObjectPage {
   pageNumber: Int!
 }
 
+type BucketObjectResult implements SearchResult {
+  file: BucketObject!
+  score: Float!
+  workspace: Workspace!
+}
+
+type BucketObjectResultPage {
+  items: [BucketObjectResult!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
 """The type of an object in a workspace's bucket."""
 enum BucketObjectType {
   DIRECTORY
@@ -1856,15 +1869,6 @@ type FeatureFlag {
   config: JSON! @deprecated(reason: "This field is deprecated and will be removed in the next version. In the meantime it always returns an empty object.")
 }
 
-type File {
-  key: String!
-  name: String!
-  path: String!
-  size: BigInt
-  type: FileType!
-  updatedAt: DateTime
-}
-
 """Represents a file or directory node in a flattened structure."""
 type FileNode {
   autoSelect: Boolean!
@@ -1875,20 +1879,7 @@ type FileNode {
   name: String!
   parentId: String
   path: String!
-  type: FileType!
-}
-
-type FileResult implements SearchResult {
-  file: File!
-  score: Float!
-  workspace: Workspace!
-}
-
-type FileResultPage {
-  items: [FileResult!]!
-  pageNumber: Int!
-  totalItems: Int!
-  totalPages: Int!
+  type: BucketObjectType!
 }
 
 """Statuses that can occur when generating file sample"""
@@ -1896,11 +1887,6 @@ enum FileSampleStatus {
   FAILED
   FINISHED
   PROCESSING
-}
-
-enum FileType {
-  directory
-  file
 }
 
 """GCS connection object"""
@@ -3315,7 +3301,7 @@ type Query {
   pipelines(name: String, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
-  searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): FileResultPage!
+  searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): BucketObjectResultPage!
   searchPipelineTemplates(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): PipelineTemplateResultPage!
   searchPipelines(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): PipelineResultPage!
   team(id: UUID!): Team

@@ -475,6 +475,21 @@ export type BucketObjectPage = {
   pageNumber: Scalars['Int']['output'];
 };
 
+export type BucketObjectResult = SearchResult & {
+  __typename?: 'BucketObjectResult';
+  file: BucketObject;
+  score: Scalars['Float']['output'];
+  workspace: Workspace;
+};
+
+export type BucketObjectResultPage = {
+  __typename?: 'BucketObjectResultPage';
+  items: Array<BucketObjectResult>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
 /** The type of an object in a workspace's bucket. */
 export enum BucketObjectType {
   Directory = 'DIRECTORY',
@@ -1940,16 +1955,6 @@ export type FeatureFlag = {
   config: Scalars['JSON']['output'];
 };
 
-export type File = {
-  __typename?: 'File';
-  key: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  path: Scalars['String']['output'];
-  size?: Maybe<Scalars['BigInt']['output']>;
-  type: FileType;
-  updatedAt?: Maybe<Scalars['DateTime']['output']>;
-};
-
 /** Represents a file or directory node in a flattened structure. */
 export type FileNode = {
   __typename?: 'FileNode';
@@ -1961,22 +1966,7 @@ export type FileNode = {
   name: Scalars['String']['output'];
   parentId?: Maybe<Scalars['String']['output']>;
   path: Scalars['String']['output'];
-  type: FileType;
-};
-
-export type FileResult = SearchResult & {
-  __typename?: 'FileResult';
-  file: File;
-  score: Scalars['Float']['output'];
-  workspace: Workspace;
-};
-
-export type FileResultPage = {
-  __typename?: 'FileResultPage';
-  items: Array<FileResult>;
-  pageNumber: Scalars['Int']['output'];
-  totalItems: Scalars['Int']['output'];
-  totalPages: Scalars['Int']['output'];
+  type: BucketObjectType;
 };
 
 /** Statuses that can occur when generating file sample */
@@ -1984,11 +1974,6 @@ export enum FileSampleStatus {
   Failed = 'FAILED',
   Finished = 'FINISHED',
   Processing = 'PROCESSING'
-}
-
-export enum FileType {
-  Directory = 'directory',
-  File = 'file'
 }
 
 /** GCS connection object */
@@ -3913,7 +3898,7 @@ export type Query = {
   pipelines: PipelinesPage;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
-  searchFiles: FileResultPage;
+  searchFiles: BucketObjectResultPage;
   searchPipelineTemplates: PipelineTemplateResultPage;
   searchPipelines: PipelineResultPage;
   team?: Maybe<Team>;
