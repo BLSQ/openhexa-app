@@ -23,6 +23,7 @@ import { useInviteOrganizationMemberMutation } from "organizations/features/Orga
 import Input from "core/components/forms/Input";
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
+import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
 import SearchInput from "core/features/SearchInput";
 import { toast } from "react-toastify";
 
@@ -40,7 +41,7 @@ type Form = {
 
 const getDefaultWorkspaceRole = (
   orgRole: OrganizationMembershipRole,
-): WorkspaceMembershipRole => {
+): WorkspaceRole => {
   switch (orgRole) {
     case OrganizationMembershipRole.Admin:
       return WorkspaceMembershipRole.Admin;
@@ -48,12 +49,25 @@ const getDefaultWorkspaceRole = (
       return WorkspaceMembershipRole.Admin;
     case OrganizationMembershipRole.Member:
     default:
-      return WorkspaceMembershipRole.Editor;
+      return WORKSPACE_ROLE_NONE;
   }
 };
 
 const WORKSPACE_ROLE_NONE = "NONE" as const;
 type WORKSPACE_ROLE_NONE = typeof WORKSPACE_ROLE_NONE;
+type WorkspaceRole = WorkspaceMembershipRole | WORKSPACE_ROLE_NONE;
+const buildInvitations = (
+  workspaces: { slug: string; name: string }[],
+  role: WorkspaceRole,
+): WorkspaceInvitationInput[] => {
+  if (role === WORKSPACE_ROLE_NONE) return [];
+
+  return workspaces.map((workspace) => ({
+    workspaceSlug: workspace.slug,
+    workspaceName: workspace.name,
+    role: role as WorkspaceMembershipRole,
+  }));
+};
 
 const AddOrganizationMemberDialog = (
   props: AddOrganizationMemberDialogProps,
@@ -70,9 +84,8 @@ const AddOrganizationMemberDialog = (
   });
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [manuallyEditedWorkspaces, setManuallyEditedWorkspaces] = useState<
-    Set<string>
-  >(new Set());
+  const [bulkRoleSelection, setBulkRoleSelection] =
+    useState<WorkspaceRole>(WORKSPACE_ROLE_NONE);
 
   const form = useForm<Form>({
     onSubmit: async (values) => {
@@ -130,17 +143,14 @@ const AddOrganizationMemberDialog = (
     if (open && organization?.workspaces?.items) {
       form.resetForm();
       setSearchTerm("");
-      setManuallyEditedWorkspaces(new Set());
 
       const orgRole =
         form.formData.organizationRole || OrganizationMembershipRole.Member;
       const defaultRole = getDefaultWorkspaceRole(orgRole);
-      const initialWorkspaceInvitations = organization.workspaces.items.map(
-        (workspace) => ({
-          workspaceSlug: workspace.slug,
-          workspaceName: workspace.name,
-          role: defaultRole,
-        }),
+      setBulkRoleSelection(defaultRole);
+      const initialWorkspaceInvitations = buildInvitations(
+        organization.workspaces.items,
+        defaultRole,
       );
       form.setFieldValue("workspaceInvitations", initialWorkspaceInvitations);
     }
@@ -151,14 +161,11 @@ const AddOrganizationMemberDialog = (
       return;
 
     const defaultRole = getDefaultWorkspaceRole(form.formData.organizationRole);
+    setBulkRoleSelection(defaultRole);
 
-    const updatedInvitations = (form.formData.workspaceInvitations || []).map(
-      (invitation) => {
-        if (manuallyEditedWorkspaces.has(invitation.workspaceSlug)) {
-          return invitation;
-        }
-        return { ...invitation, role: defaultRole };
-      },
+    const updatedInvitations = buildInvitations(
+      organization.workspaces.items,
+      defaultRole,
     );
     form.setFieldValue("workspaceInvitations", updatedInvitations);
   }, [form.formData.organizationRole, organization?.workspaces?.items]);
@@ -166,10 +173,8 @@ const AddOrganizationMemberDialog = (
   const handleRoleChange = (
     workspaceSlug: string,
     workspaceName: string,
-    role: WorkspaceMembershipRole | WORKSPACE_ROLE_NONE,
+    role: WorkspaceRole,
   ) => {
-    setManuallyEditedWorkspaces((prev) => new Set(prev).add(workspaceSlug));
-
     const currentInvitations = form.formData.workspaceInvitations || [];
     const filtered = currentInvitations.filter(
       (inv) => inv.workspaceSlug !== workspaceSlug,
@@ -178,6 +183,19 @@ const AddOrganizationMemberDialog = (
       role === WORKSPACE_ROLE_NONE
         ? filtered
         : [...filtered, { workspaceSlug, workspaceName, role }];
+
+    form.setFieldValue("workspaceInvitations", updatedInvitations);
+  };
+
+  const handleBulkRoleChange = (role: WorkspaceRole) => {
+    if (!organization?.workspaces?.items) return;
+
+    setBulkRoleSelection(role);
+
+    const updatedInvitations = buildInvitations(
+      organization.workspaces.items,
+      role,
+    );
 
     form.setFieldValue("workspaceInvitations", updatedInvitations);
   };
@@ -220,13 +238,16 @@ const AddOrganizationMemberDialog = (
             onChange={form.handleInputChange}
             required
           >
-            {Object.values(OrganizationMembershipRole)
-              .filter((role) => {
-                if (role === OrganizationMembershipRole.Owner) {
-                  return organization?.permissions.manageOwners;
-                }
-                return true;
-              })
+            {[
+              OrganizationMembershipRole.Owner,
+              OrganizationMembershipRole.Admin,
+              OrganizationMembershipRole.Member,
+            ]
+              .filter(
+                (role) =>
+                  role !== OrganizationMembershipRole.Owner ||
+                  organization?.permissions.manageOwners,
+              )
               .map((role) => (
                 <option key={role} value={role}>
                   {formatOrganizationMembershipRole(role)}
@@ -235,6 +256,24 @@ const AddOrganizationMemberDialog = (
           </SimpleSelect>
         </Field>
 
+        <Field name="bulkRole" label={t("Role for all workspaces")} required>
+          <SimpleSelect
+            id="bulkRole"
+            value={bulkRoleSelection}
+            onChange={(e) =>
+              handleBulkRoleChange(e.target.value as WorkspaceRole)
+            }
+            className="w-full"
+            required
+          >
+            {Object.values(WorkspaceMembershipRole).map((role) => (
+              <option key={role} value={role}>
+                {formatWorkspaceMembershipRole(role)}
+              </option>
+            ))}
+            <option value={WORKSPACE_ROLE_NONE}>{t("None")}</option>
+          </SimpleSelect>
+        </Field>
         <Field name="workspaces" label={t("Workspaces")} required>
           <div className="space-y-3">
             <SearchInput

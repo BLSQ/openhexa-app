@@ -1,6 +1,7 @@
 import React from "react";
 import SearchInput from "core/features/SearchInput";
 import ViewToggleButton from "core/components/ViewToggleButton";
+import { useTranslation } from "react-i18next";
 
 type WorkspacesHeaderProps = {
   searchQuery: string;
@@ -15,6 +16,7 @@ const WorkspacesHeader = ({
   view,
   setView,
 }: WorkspacesHeaderProps) => {
+  const { t } = useTranslation();
   return (
     <div className="my-5 flex justify-between">
       <SearchInput
@@ -22,6 +24,7 @@ const WorkspacesHeader = ({
         value={searchQuery}
         onChange={(event) => setSearchQuery(event.target.value ?? "")}
         className="shadow-xs border-gray-50 w-96"
+        placeholder={t("Search workspaces...")}
       />
 
       <div className="flex gap-5">
