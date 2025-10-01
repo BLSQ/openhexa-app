@@ -25,14 +25,6 @@ export type PipelineWithTypes = {
   functionalType?: PipelineFunctionalType | null;
 };
 
-
-export function hasFunctionalType(
-  pipeline: PipelineWithTypes
-): pipeline is PipelineWithTypes & { functionalType: PipelineFunctionalType } {
-  return !!pipeline.functionalType;
-}
-
-
 export async function updatePipeline(
   pipelineId: string,
   values: Omit<UpdateWorkspacePipelineMutationVariables["input"], "id">,
