@@ -12,6 +12,7 @@ import { ItemProvider } from "core/hooks/useItemContext";
 import { updateDataset, updateDatasetVersion } from "datasets/helpers/dataset";
 import DatasetLayout from "datasets/layouts/DatasetLayout";
 import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router";
 import {
   useWorkspaceDatasetIndexPageQuery,
   WorkspaceDatasetIndexPageDocument,
@@ -32,10 +33,19 @@ const WorkspaceDatasetPage: NextPageWithLayout = (
   props: WorkspaceDatasetPageProps,
 ) => {
   const { t } = useTranslation();
+  const router = useRouter();
+  const versionId = (router.query.version as string) || props.versionId || "";
+  const isSpecificVersion = Boolean(versionId);
   const { data } = useWorkspaceDatasetIndexPageQuery({
-    variables: props,
+    variables: {
+      workspaceSlug: props.workspaceSlug,
+      sourceWorkspaceSlug: props.sourceWorkspaceSlug,
+      datasetSlug: props.datasetSlug,
+      versionId,
+      isSpecificVersion,
+    },
+    fetchPolicy: "cache-and-network",
   });
-  const { isSpecificVersion } = props;
   if (!data || !data.datasetLink || !data.workspace) {
     return null;
   }
@@ -144,7 +154,7 @@ const WorkspaceDatasetPage: NextPageWithLayout = (
           </FormSection>
         </ItemProvider>
         {version && (
-          <ItemProvider item={version}>
+          <ItemProvider key={version.id} item={version}>
             <FormSection
               title={
                 <div className="w-full">
