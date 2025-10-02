@@ -27,6 +27,38 @@ class PodTerminationReason(Enum):
     DeadlineExceeded = "DeadlineExceeded"
 
 
+def load_local_dev_kubernetes_config():
+    """Load Kubernetes config for local dev (Docker Desktop for Mac/Windows)."""
+    import tempfile
+
+    import yaml
+    from kubernetes import config
+
+    kubeconfig_path = os.path.expanduser("~/.kube/config")
+    with open(kubeconfig_path) as file:
+        kubeconfig = yaml.safe_load(file)
+
+    # Replace 127.0.0.1 with host.docker.internal for Docker containers
+    for cluster in kubeconfig.get("clusters", []):
+        server = cluster.get("cluster", {}).get("server", "")
+        if "127.0.0.1" in server or "localhost" in server:
+            cluster["cluster"]["server"] = server.replace(
+                "127.0.0.1", "host.docker.internal"
+            ).replace("localhost", "host.docker.internal")
+            cluster["cluster"]["insecure-skip-tls-verify"] = True
+            cluster["cluster"].pop("certificate-authority-data", None)
+
+    # Write patched config to temp file and load it
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".yaml", delete=False
+    ) as temp_file:
+        yaml.dump(kubeconfig, temp_file)
+        temp_config = temp_file.name
+
+    config.load_kube_config(config_file=temp_config)
+    os.unlink(temp_config)
+
+
 def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
     from kubernetes import config
     from kubernetes.client import CoreV1Api
@@ -37,7 +69,9 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
     logger.debug("K8S RUN %s: %s for %s", os.getpid(), run.pipeline.name, exec_time_str)
     container_name = generate_pipeline_container_name(run)
 
-    config.load_incluster_config()
+    is_local_dev = os.environ.get("IS_LOCAL_DEV", False)
+    config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
+
     v1 = CoreV1Api()
     pod = k8s.V1Pod(
         api_version="v1",
@@ -61,36 +95,44 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
         spec=k8s.V1PodSpec(
             restart_policy="Never",
             active_deadline_seconds=run.timeout,
-            tolerations=[
-                k8s.V1Toleration(
-                    key="hub.jupyter.org_dedicated",
-                    operator="Equal",
-                    value="user",
-                    effect="NoSchedule",
-                ),
-            ],
-            affinity=k8s.V1Affinity(
-                node_affinity=k8s.V1NodeAffinity(
-                    required_during_scheduling_ignored_during_execution=k8s.V1NodeSelector(
-                        node_selector_terms=[
-                            k8s.V1NodeSelectorTerm(
-                                match_expressions=[
-                                    k8s.V1NodeSelectorRequirement(
-                                        key="hub.jupyter.org/node-purpose",
-                                        operator="In",
-                                        values=["user"],
-                                    )
-                                ],
-                            ),
-                        ],
+            tolerations=(
+                [
+                    k8s.V1Toleration(
+                        key="hub.jupyter.org_dedicated",
+                        operator="Equal",
+                        value="user",
+                        effect="NoSchedule",
                     ),
-                ),
+                ]
+                if not is_local_dev
+                else []
+            ),
+            affinity=(
+                k8s.V1Affinity(
+                    node_affinity=k8s.V1NodeAffinity(
+                        required_during_scheduling_ignored_during_execution=k8s.V1NodeSelector(
+                            node_selector_terms=[
+                                k8s.V1NodeSelectorTerm(
+                                    match_expressions=[
+                                        k8s.V1NodeSelectorRequirement(
+                                            key="hub.jupyter.org/node-purpose",
+                                            operator="In",
+                                            values=["user"],
+                                        )
+                                    ],
+                                ),
+                            ],
+                        ),
+                    ),
+                )
+                if not is_local_dev
+                else None
             ),
             containers=[
                 k8s.V1Container(
                     image=image,
                     name=container_name,
-                    image_pull_policy="Always",
+                    image_pull_policy="IfNotPresent" if is_local_dev else "Always",
                     args=[
                         "pipeline",
                         "cloudrun",
@@ -116,7 +158,11 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
                     # - Inspiration for the yaml: https://github.com/samos123/gke-gcs-fuse-unprivileged
                     resources={
                         "limits": {
-                            "smarter-devices/fuse": "1",
+                            **(
+                                {"smarter-devices/fuse": "1"}
+                                if not is_local_dev
+                                else {}
+                            ),
                             "cpu": (
                                 run.pipeline.cpu_limit
                                 if run.pipeline.cpu_limit != ""
@@ -129,7 +175,11 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
                             ),
                         },
                         "requests": {
-                            "smarter-devices/fuse": "1",
+                            **(
+                                {"smarter-devices/fuse": "1"}
+                                if not is_local_dev
+                                else {}
+                            ),
                             "cpu": (
                                 run.pipeline.cpu_request
                                 if run.pipeline.cpu_request != ""
@@ -158,12 +208,17 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
     v1.create_namespaced_pod(namespace=pod.metadata.namespace, body=pod)
 
     # monitor the pod
+    pod_read_durations = []
     while True:
+        start_time = timezone.now()
         run.refresh_from_db()
-        run.last_heartbeat = timezone.now()
+        run.last_heartbeat = start_time
         run.save()
 
         remote_pod = v1.read_namespaced_pod(pod.metadata.name, pod.metadata.namespace)
+        duration = (timezone.now() - start_time).total_seconds()
+        pod_read_durations.append(duration)
+
         # if the run is flagged as TERMINATING stop the loop
         if run.state == PipelineRunState.TERMINATING:
             break
@@ -217,6 +272,20 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
         remote_pod.status.phase == "Succeeded"
         and run.state != PipelineRunState.TERMINATING
     )
+
+    if pod_read_durations:
+        avg_duration = sum(pod_read_durations) / len(pod_read_durations)
+        min_duration = min(pod_read_durations)
+        max_duration = max(pod_read_durations)
+        logger.info(
+            "Pod read_namespaced_pod stats for pipeline: %s, run id : %s: calls=%d, avg=%.2fs, min=%.2fs, max=%.2fs",
+            run.pipeline.name,
+            run.id,
+            len(pod_read_durations),
+            avg_duration,
+            min_duration,
+            max_duration,
+        )
 
     return success, stdout
 
@@ -340,7 +409,9 @@ def run_pipeline(run: PipelineRun):
         elif spawner == "kubernetes":
             success, container_logs = run_pipeline_kube(run, image, env_vars)
         else:
-            logger.error("Scheduler spawner %s not found", settings.SCHEDULER_SPAWNER)
+            logger.error(
+                "Scheduler spawner %s not found", settings.PIPELINE_SCHEDULER_SPAWNER
+            )
             success, container_logs = False, ""
     except Exception as e:
         run.state = PipelineRunState.FAILED
@@ -390,7 +461,11 @@ class Command(BaseCommand):
                 for run in zombie_runs:
                     logger.warning("Timeout kill run %s #%s", run.pipeline.name, run.id)
                     run.state = PipelineRunState.FAILED
-                    run.run_logs = "Killed by timeout"
+                    run.run_logs = (
+                        "\n".join([run.run_logs, "Killed by timeout"])
+                        if run.run_logs
+                        else "Killed by timeout"
+                    )
                     run.save()
                 i = 0
             else:

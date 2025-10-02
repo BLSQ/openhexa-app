@@ -2,7 +2,8 @@ import logging
 
 from ariadne import EnumType, InterfaceType, ObjectType
 from django.http import HttpRequest
-from openhexa.toolbox.dhis2.api import DHIS2ToolboxError
+
+# from openhexa.toolbox.dhis2.api import DHIS2ToolboxError
 from openhexa.toolbox.iaso.api_client import IASOError
 
 from hexa.core.graphql import result_page
@@ -220,9 +221,7 @@ def resolve_query(connection, info, page=1, per_page=10, filters=None, **kwargs)
             "total_pages": 0,
             "page_number": page,
             "success": False,
-            "error": "REQUEST_ERROR"
-            if isinstance(e, DHIS2ToolboxError)
-            else "UNKNOWN_ERROR",
+            "error": "REQUEST_ERROR",
         }
 
 
@@ -289,9 +288,6 @@ def resolve_dhis2_connection_status(connection, info, **kwargs):
     try:
         toolbox_client_from_connection(connection)
         return "UP"
-    except DHIS2ToolboxError as e:
-        logging.error(f"DHIS2 error: {e}")
-        return "DOWN"
     except Exception as e:
         logging.error(f"Unknown error: {e}")
         return "UNKNOWN"
