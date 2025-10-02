@@ -144,7 +144,7 @@ const WorkspaceDatasetPage: NextPageWithLayout = (
           </FormSection>
         </ItemProvider>
         {version && (
-          <ItemProvider item={version}>
+          <ItemProvider key={version.id} item={version}>
             <FormSection
               title={
                 <div className="w-full">
