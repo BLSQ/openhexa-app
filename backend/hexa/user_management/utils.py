@@ -58,7 +58,7 @@ def send_organization_invite(invitation):
             event="emails.organization_invite_sent",
             properties={
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "organization": invitation.organization.id,
+                "organization": invitation.organization.name,
                 "invitee_email": invitation.email,
                 "invitee_role": invitation.role,
                 "status": invitation.status,
@@ -96,7 +96,7 @@ def send_organization_add_user_email(
             event="emails.organization_add_user_sent",
             properties={
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "organization": organization.id,
+                "organization": organization.name,
                 "invitee_email": invitee.email,
                 "invitee_role": role,
             },
