@@ -27,27 +27,17 @@ def test_logger(request: HttpRequest) -> HttpResponse:
     Generate a log to test logging setup.
 
     Use a GET parameter to specify level, default to INFO if absent. Value can be INFO, WARNING, ERROR,
-    EXCEPTION, UNCATCHED_EXCEPTION, ZERO_DIVISION, VALUE_ERROR.
+    EXCEPTION, UNCATCHED_EXCEPTION.
     Use a GET parameter to specify message, default to "Test logger"
 
     Example: test_logger?level=INFO&message=Test1
-    Example: test_logger?level=UNCATCHED_EXCEPTION&message=Test500Error
-    Example: test_logger?level=ZERO_DIVISION (simulates real 500 error)
 
     :param request: HttpRequest request
     :return: HttpResponse web response
     """
     message = request.GET.get("message", "Test logger")
     level = request.GET.get("level", "INFO")
-    if level not in (
-        "INFO",
-        "WARNING",
-        "ERROR",
-        "EXCEPTION",
-        "UNCATCHED_EXCEPTION",
-        "ZERO_DIVISION",
-        "VALUE_ERROR",
-    ):
+    if level not in ("INFO", "WARNING", "ERROR", "EXCEPTION", "UNCATCHED_EXCEPTION"):
         level = "INFO"
 
     if level == "INFO":
@@ -61,12 +51,6 @@ def test_logger(request: HttpRequest) -> HttpResponse:
             raise Exception(message)
         except Exception:
             logger.exception("test_logger")
-    elif level == "ZERO_DIVISION":
-        # Simulate a real programming error that would cause 500
-        x = 1 / 0  # noqa: F841
-    elif level == "VALUE_ERROR":
-        # Simulate another common error type
-        int("not_a_number")
     else:
         assert level == "UNCATCHED_EXCEPTION", "should never happen"
         raise Exception(message)

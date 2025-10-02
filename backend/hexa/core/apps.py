@@ -8,6 +8,5 @@ class CoreConfig(CoreAppConfig):
     ANONYMOUS_URLS = [
         "core:login",
         "core:ready",
-        "core:test_logger",
         "graphql",
     ]
