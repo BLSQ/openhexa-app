@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.1](https://github.com/BLSQ/openhexa-app/compare/2.5.0...2.5.1) (2025-10-02)
+
+
+### Reverts
+
+* changes in logging ([d805529](https://github.com/BLSQ/openhexa-app/commit/d80552991ee78ab2f707017f52a972dda6105fae))
+
 ## [2.5.0](https://github.com/BLSQ/openhexa-app/compare/2.4.0...2.5.0) (2025-10-02)
 
 
