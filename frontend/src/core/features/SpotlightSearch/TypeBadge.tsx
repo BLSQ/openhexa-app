@@ -1,11 +1,11 @@
 import React from "react";
 import { getLabel, getTypeIcon, TypeName } from "./mapper";
 import { useTranslation } from "next-i18next";
-import { FileType } from "graphql/types";
+import { BucketObjectType } from "graphql/types";
 
 type TypeBadgeProps = {
   typeName: TypeName;
-  type?: FileType;
+  type?: BucketObjectType;
   name?: string;
 };
 

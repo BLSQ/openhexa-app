@@ -34,7 +34,7 @@ const CreateBucketFolderDialog = (props: CreateBucketFolderDialogProps) => {
       await router.push(`/workspaces/${workspace.slug}/files/${folder.key}`);
       onClose();
     } catch (err) {
-      toast.error(t("An error occurred while creating the folder"));
+      toast.error((err as Error).message ?? t("An error occurred while creating the folder."));
     }
   };
 

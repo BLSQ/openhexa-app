@@ -23,7 +23,7 @@ query FileBrowserDialog(
         key
         path
         type
-        updated
+        updatedAt
         size
       }
       score

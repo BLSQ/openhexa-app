@@ -35,9 +35,9 @@
       "GenericOutput"
     ],
     "SearchResult": [
+      "BucketObjectResult",
       "DatabaseTableResult",
       "DatasetResult",
-      "FileResult",
       "PipelineResult",
       "PipelineTemplateResult"
     ]
