@@ -188,25 +188,17 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
       <Dialog.Title onClose={onClose}>{t("Select file")}</Dialog.Title>
       <Dialog.Content className="flex flex-col space-y-4 h-full">
         {/* Breadcrumb Navigation */}
-        <div
-          className={clsx(
-            "flex items-center gap-1 text-sm min-h-[2rem]",
-            isSearchMode ? "text-gray-400" : "text-gray-500",
-          )}
-        >
-          <button
-            className={clsx(
-              "flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded p-1",
-              isSearchMode ? "cursor-not-allowed" : "hover:text-gray-700",
-            )}
-            onClick={() => !isSearchMode && setCurrentFolder(null)}
-            disabled={isSearchMode}
-            aria-label={t("Go to root directory")}
-          >
-            <HomeIcon className="h-4 w-4" />
-          </button>
+        <div className="flex items-center gap-1 text-sm min-h-[2rem] text-gray-500">
           {prefixes.length > 0 && (
             <>
+              <button
+                className="p-1 hover:text-gray-700 cursor-pointer"
+                onClick={() => setCurrentFolder(null)}
+                disabled={isSearchMode}
+                aria-label={t("Go to root directory")}
+              >
+                <HomeIcon className="h-4 w-4" />
+              </button>
               {prefixes.length > 6 && (
                 <>
                   <ChevronRightIcon className="h-3 w-3" />
@@ -217,15 +209,8 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
                 <div key={index} className="flex items-center">
                   <ChevronRightIcon className="h-3 w-3" />
                   <button
-                    className={clsx(
-                      "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1 py-0.5 truncate",
-                      isSearchMode
-                        ? "cursor-not-allowed"
-                        : "hover:text-gray-700",
-                    )}
-                    onClick={() =>
-                      !isSearchMode && setCurrentFolder(part.value)
-                    }
+                    className="px-1 py-0.5 truncate hover:text-gray-700 cursor-pointer"
+                    onClick={() => setCurrentFolder(part.value)}
                     disabled={isSearchMode}
                     title={part.label}
                   >
