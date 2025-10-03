@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.5.1](https://github.com/BLSQ/openhexa-app/compare/2.5.0...2.5.1) (2025-10-02)
+
+
+### Reverts
+
+* changes in logging ([d805529](https://github.com/BLSQ/openhexa-app/commit/d80552991ee78ab2f707017f52a972dda6105fae))
+
+## [2.5.0](https://github.com/BLSQ/openhexa-app/compare/2.4.0...2.5.0) (2025-10-02)
+
+
+### Features
+
+* extend sentry logging ([64f984c](https://github.com/BLSQ/openhexa-app/commit/64f984cbb3c6e79552304b4b987807e757a5f74d))
+* **pipelines:** add functional type to pipelines  ([#1380](https://github.com/BLSQ/openhexa-app/issues/1380)) ([9f339c1](https://github.com/BLSQ/openhexa-app/commit/9f339c11b3f507e54ca747f3ad334e205a7f3f03))
+
+
+### Bug Fixes
+
+* inviting workspace should default to none access level (PATHWAYS-941) ([#1387](https://github.com/BLSQ/openhexa-app/issues/1387)) ([5fb23c7](https://github.com/BLSQ/openhexa-app/commit/5fb23c7c715fcbb20968734fddd0cfc24b689f26))
+* Object of type UUID is not JSON serializable for mixpanel events on organization emails ([#1393](https://github.com/BLSQ/openhexa-app/issues/1393)) ([30c3369](https://github.com/BLSQ/openhexa-app/commit/30c3369e015899cdbd090c838067e4ec257a0698))
+* update dataset version changelog when switching versions ([#1389](https://github.com/BLSQ/openhexa-app/issues/1389)) ([906e4b8](https://github.com/BLSQ/openhexa-app/commit/906e4b82b5d46d74a47efe843dbdbafc279e674b))
+
 ## [2.4.0](https://github.com/BLSQ/openhexa-app/compare/2.3.5...2.4.0) (2025-09-26)
 
 

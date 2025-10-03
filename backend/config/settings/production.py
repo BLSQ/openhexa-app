@@ -73,10 +73,8 @@ if SENTRY_DSN:
         # Default sample rate for everything else
         return traces_sample_rate
 
-    # inject sentry into logging config. set level to WARNING for log/WARNING for event
-    sentry_logging = LoggingIntegration(
-        level=logging.WARNING, event_level=logging.WARNING
-    )
+    # inject sentry into logging config. set level to ERROR, we don't really want the rest?
+    sentry_logging = LoggingIntegration(level=logging.ERROR, event_level=logging.ERROR)
 
     sentry_sdk.init(
         dsn=SENTRY_DSN,
