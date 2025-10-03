@@ -159,16 +159,7 @@ PipelineVersionPicker.fragments = {
       createdAt
       config
       parameters {
-        code
-        name
-        help
-        type
-        widget
-        connection
-        default
-        required
-        choices
-        multiple
+        ...ParameterField_parameter
       }
       user {
         displayName
