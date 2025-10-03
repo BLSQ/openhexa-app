@@ -70,9 +70,12 @@ services:
       - "pipelines"
     depends_on:
       - db
+    environment:
+      - IS_LOCAL_DEV=true
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-./backend}:/code"
       - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOME}/.kube:/root/.kube:ro
 
   pipelines_scheduler:
     <<: *common
