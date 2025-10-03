@@ -102,6 +102,7 @@ type PipelineParameter {
   widget: ParameterWidget  # The widget to use for the parameter.
   connection: String  # The connection associated with the parameter.
   choices: [Generic!]  # The list of choices for the parameter.
+  directory: String  # The name of the directory restriction (for file browser).
 }
 
 """
@@ -118,6 +119,7 @@ input ParameterInput {
   connection: String # The connection associated with the parameter.
   help: String  # The help text for the parameter.
   choices: [Generic!]  # The list of choices for the parameter.
+  directory: String  # The name of the directory restriction (for file browser).
 }
 
 """

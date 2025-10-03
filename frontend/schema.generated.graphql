@@ -2750,6 +2750,7 @@ input ParameterInput {
   code: String!
   connection: String
   default: Generic
+  directory: String
   help: String
   multiple: Boolean
   name: String
@@ -2899,6 +2900,7 @@ type PipelineParameter {
   code: String!
   connection: String
   default: Generic
+  directory: String
   help: String
   multiple: Boolean!
   name: String!

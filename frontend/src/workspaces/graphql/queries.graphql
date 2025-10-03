@@ -272,14 +272,7 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: UUID!) {
     version {
       versionName
       parameters {
-        code
-        name
-        help
-        type
-        default
-        required
-        choices
-        multiple
+        ...ParameterField_parameter
       }
     }
     timeout

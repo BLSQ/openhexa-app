@@ -14,6 +14,7 @@ type FileParameterFieldProps = {
   parameter: {
     code: string;
     required?: boolean;
+    directory?: string;
   };
 };
 
@@ -82,6 +83,7 @@ const FileParameterField = (props: FileParameterFieldProps) => {
         onClose={() => setModalOpen(false)}
         workspaceSlug={workspaceSlug}
         onSelectFile={handleSelectFile}
+        directory={parameter.directory}
       />
     </div>
   );
