@@ -1,13 +1,16 @@
 import base64
+import io
+import tempfile
+from pathlib import Path
+from zipfile import ZipFile
 
 from ariadne import MutationType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
-
-# from openhexa.sdk.pipelines.exceptions import PipelineNotFound
-# from openhexa.sdk.pipelines.runtime import get_pipeline
+from openhexa.sdk.pipelines.exceptions import PipelineNotFound
+from openhexa.sdk.pipelines.runtime import get_pipeline
 from psycopg2.errors import UniqueViolation
 
 from hexa.analytics.api import track
@@ -346,20 +349,20 @@ def resolve_upload_pipeline(_, info, **kwargs):
             )
 
         zipfile_data = base64.b64decode(input.get("zipfile").encode("ascii"))
-        parameters = input.get("parameters") or []
-        #
-        # if not parameters:
-        #     try:
-        #         with tempfile.TemporaryDirectory() as temp_dir:
-        #             with ZipFile(io.BytesIO(zipfile_data), "r") as zip_file:
-        #                 zip_file.extractall(temp_dir)
-        #
-        #             sdk_pipeline = get_pipeline(Path(temp_dir))
-        #             parameters = [p.to_dict() for p in sdk_pipeline.parameters]
-        #     except PipelineNotFound:  # Support empty zip files
-        #         parameters = []
-        #     except Exception as e:
-        #         raise PipelineCodeParsingError(str(e))
+        parameters = input.get("parameters")
+
+        if not parameters:
+            try:
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    with ZipFile(io.BytesIO(zipfile_data), "r") as zip_file:
+                        zip_file.extractall(temp_dir)
+
+                    sdk_pipeline = get_pipeline(Path(temp_dir))
+                    parameters = [p.to_dict() for p in sdk_pipeline.parameters]
+            except PipelineNotFound:  # Support empty zip files
+                parameters = []
+            except Exception as e:
+                raise PipelineCodeParsingError(str(e))
         version = pipeline.upload_new_version(
             user=request.user,
             name=input.get("name"),
