@@ -8,7 +8,7 @@ import {
   HomeIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import { BucketObject, BucketObjectType, FileType } from "graphql/types";
+import { BucketObject, BucketObjectType } from "graphql/types";
 import clsx from "clsx";
 
 import Dialog from "core/components/Dialog";
@@ -170,24 +170,14 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   const bucket =
     data?.workspace?.bucket ?? previousData?.workspace?.bucket ?? null;
 
-  // Normalize and combine data from both sources
-  const normalizedItems = useMemo(() => {
+  const displayedBucketObjects = useMemo(() => {
     if (isSearchMode && searchResults) {
-      // Convert search results to bucket object format
-      return searchResults.items.map((result) => ({
-        ...result.file,
-        // Map search result fields to bucket object fields
-        updatedAt: result.file.updated,
-        type:
-          result.file.type === FileType.Directory
-            ? BucketObjectType.Directory
-            : BucketObjectType.File,
-      }));
+      return searchResults.items.map((result) => result.file);
     } else if (bucket?.objects.items) {
       return bucket.objects.items;
     }
     return [];
-  }, [isSearchMode, searchResults, bucket?.objects.items, searchQuery]);
+  }, [isSearchMode, searchResults, bucket?.objects.items]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="max-w-5xl">
@@ -267,7 +257,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
             </div>
           ) : (
             <FileSystemDataGrid
-              data={normalizedItems as BucketObject[]}
+              data={displayedBucketObjects as BucketObject[]}
               perPage={PAGE_SIZE}
               showPageSizeSelect={false}
               loading={isSearching || loading}
