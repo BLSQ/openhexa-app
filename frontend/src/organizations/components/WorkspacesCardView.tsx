@@ -17,7 +17,6 @@ type WorkspacesCardViewProps = {
   perPage: number;
   totalPages: number;
   totalItems: number;
-  canArchive: boolean;
   onArchiveClick: (workspace: ArchiveWorkspace_WorkspaceFragment) => void;
 };
 
@@ -28,7 +27,6 @@ const WorkspacesCardView = ({
   perPage,
   totalPages,
   totalItems,
-  canArchive,
   onArchiveClick,
 }: WorkspacesCardViewProps) => {
   const { t } = useTranslation();
@@ -72,6 +70,7 @@ const WorkspacesCardView = ({
                     });
                   }}
                   leadingIcon={<GearIcon className="w-4" />}
+                  disabled={!ws.permissions.update}
                 >
                   {t("Settings")}
                 </Button>
@@ -83,7 +82,7 @@ const WorkspacesCardView = ({
                     onArchiveClick(ws);
                   }}
                   leadingIcon={<TrashIcon className="w-4" />}
-                  disabled={!canArchive}
+                  disabled={!ws.permissions.delete}
                 >
                   {t("Archive")}
                 </Button>
