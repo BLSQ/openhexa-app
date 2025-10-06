@@ -71,10 +71,10 @@ case "$command" in
 "fixtures")
   wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
   export DJANGO_SUPERUSER_USERNAME=root@openhexa.org
-  export DJANGO_SUPERUSER_PASSWORD=root
   export DJANGO_SUPERUSER_EMAIL=root@openhexa.org
   python manage.py migrate
-  python manage.py createsuperuser --no-input || true
+  echo "Creating initial superuser root@openhexa.org. Please choose a password."
+  python manage.py createsuperuser --email ${DJANGO_SUPERUSER_EMAIL}
   python manage.py loaddata base.json
   python manage.py loaddata demo.json
   python manage.py loaddata live.json
