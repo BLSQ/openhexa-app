@@ -178,7 +178,6 @@ class WorkspaceQuerySet(BaseQuerySet):
                 user,
                 organization_access | workspace_access,
                 return_all_if_superuser=True,
-                organization_path="organization",
             ).filter(archived=False)
 
     def filter_for_workspace_slugs(
