@@ -107,7 +107,7 @@ class FilesTest(GraphQLTestCase):
             name="file.txt",
             path=file_path,
             size=1024,
-            updated=None,
+            updated_at=None,
             type="file",
         )
         mock_storage.get_bucket_object.return_value = mock_file

@@ -1948,7 +1948,9 @@ export type File = {
   path: Scalars['String']['output'];
   size?: Maybe<Scalars['BigInt']['output']>;
   type: FileType;
+  /** @deprecated Use updatedAt instead */
   updated?: Maybe<Scalars['DateTime']['output']>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };
 
 /** Represents a file or directory node in a flattened structure. */

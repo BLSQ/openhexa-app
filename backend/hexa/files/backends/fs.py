@@ -103,7 +103,7 @@ class FileSystemStorage(Storage):
             return StorageObject(
                 name=object_key.name,
                 key=object_key,
-                updated=datetime.fromtimestamp(
+                updated_at=datetime.fromtimestamp(
                     os.path.getmtime(str(full_path))
                 ).isoformat(),
                 size=self.size(full_path),
@@ -115,7 +115,7 @@ class FileSystemStorage(Storage):
             return StorageObject(
                 name=object_key.name,
                 key=object_key,
-                updated=datetime.fromtimestamp(os.path.getmtime(str(full_path))),
+                updated_at=datetime.fromtimestamp(os.path.getmtime(str(full_path))),
                 path=Path(bucket_name) / object_key,
                 type="directory",
             )

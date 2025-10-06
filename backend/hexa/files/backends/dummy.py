@@ -93,7 +93,7 @@ class DummyStorageClient(Storage):
                 name=object_key.split("/")[-1],
                 key=object_key,
                 path=f"{bucket_name}/{object_key}",
-                updated="",
+                updated_at="",
                 type="directory",
             )
         else:
@@ -101,7 +101,7 @@ class DummyStorageClient(Storage):
                 name=object_key.split("/")[-1],
                 key=object_key,
                 path=f"{bucket_name}/{object_key}",
-                updated="",
+                updated_at="",
                 type="file",
                 size=len(obj),
             )
