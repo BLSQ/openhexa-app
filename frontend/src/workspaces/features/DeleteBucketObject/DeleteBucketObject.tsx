@@ -28,9 +28,9 @@ const DeleteBucketObject = (props: DeleteBucketObjectProps) => {
     const deleteMessage =
       object.type === BucketObjectType.Directory
         ? t(
-            "Are you sure to delete this directory ? It will delete all its content.",
+            "Are you sure you want to delete this directory? It will delete all its content.",
           )
-        : t("Are you sure to delete this file ?");
+        : t("Are you sure you want to delete this file?");
     if (window.confirm(deleteMessage))
       try {
         await deleteBucketObject(workspace.slug, object.key);
