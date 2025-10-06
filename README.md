@@ -154,7 +154,7 @@ If you need the pipelines or want to work on them, there are 2 optional services
 docker compose --profile pipelines up
 ```
 
-The [Writing OpenHEXA pipelines](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines) section of the wiki 
+The [Writing OpenHEXA pipelines](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines) section of the wiki
 contains the instructions needed to build and deploy a data pipeline on OpenHEXA.
 
 To deploy and run data pipelines locally, you will need to:
@@ -170,6 +170,35 @@ You can now deploy your pipelines to your local OpenHEXA instance.
 
 Please refer to the [SDK documentation](https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#using-a-local-installation-of-openhexa-to-run-pipelines)
 for more information.
+
+### Testing with Docker Desktop Kubernetes
+
+By default, pipelines run using Docker spawner. If you want to test the Kubernetes spawner locally using Docker Desktop's built-in Kubernetes cluster:
+
+1. **Enable Kubernetes in Docker Desktop**:
+   - Open Docker Desktop settings
+   - Go to "Kubernetes" section
+   - Check "Enable Kubernetes"
+   - Click "Apply & Restart"
+
+2. **Update your `.env` file**:
+   ```bash
+   PIPELINE_SCHEDULER_SPAWNER=kubernetes
+   INTERNAL_BASE_URL=http://host.docker.internal:8000
+   ```
+
+3. **Restart the pipelines services**:
+   ```bash
+   docker compose --profile pipelines down
+   docker compose --profile pipelines up
+   ```
+
+The `pipelines_runner` service is already configured to work with Docker Desktop Kubernetes. It will:
+- Automatically detect local development mode via `IS_LOCAL_DEV=true`
+- Mount your `~/.kube` config for cluster access
+- Patch the kubeconfig to use `host.docker.internal` for communication between pods and services
+- Skip production-specific requirements (node affinity, tolerations, FUSE devices)
+- Use `IfNotPresent` image pull policy to leverage local images
 
 ## Dataset worker
 Generation of file samples and metadata calculation are done in separate worker, in order to run it locally you 
