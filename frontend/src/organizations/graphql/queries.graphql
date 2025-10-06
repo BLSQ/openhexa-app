@@ -91,7 +91,7 @@ fragment OrganizationWorkspace_workspace on Workspace {
         totalItems
     }
     permissions {
-        update
+        manageMembers
         delete
     }
 }

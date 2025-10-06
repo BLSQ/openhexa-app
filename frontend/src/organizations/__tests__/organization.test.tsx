@@ -111,7 +111,7 @@ const mocks = [
               },
               permissions: {
                 __typename: "WorkspacePermissions",
-                update: true,
+                manageMembers: true,
                 delete: true,
               },
             },
@@ -133,7 +133,7 @@ const mocks = [
               },
               permissions: {
                 __typename: "WorkspacePermissions",
-                update: true,
+                manageMembers: true,
                 delete: true,
               },
             },

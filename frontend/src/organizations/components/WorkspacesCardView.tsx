@@ -70,7 +70,7 @@ const WorkspacesCardView = ({
                     });
                   }}
                   leadingIcon={<GearIcon className="w-4" />}
-                  disabled={!ws.permissions.update}
+                  disabled={!ws.permissions.manageMembers}
                 >
                   {t("Settings")}
                 </Button>

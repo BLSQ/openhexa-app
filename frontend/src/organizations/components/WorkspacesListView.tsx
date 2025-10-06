@@ -103,7 +103,7 @@ const WorkspacesListView = ({
                   });
                 }}
                 leadingIcon={<GearIcon className="w-4 h-4" />}
-                disabled={!workspace.permissions.update}
+                disabled={!workspace.permissions.manageMembers}
               >
                 {t("Settings")}
               </Button>
