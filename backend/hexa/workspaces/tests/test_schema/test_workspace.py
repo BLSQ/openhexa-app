@@ -34,6 +34,7 @@ class WorkspaceTest(GraphQLTestCase):
     USER_WORKSPACE_ADMIN = None
     USER_EXTERNAL = None
     USER_WORKSPACE_ADMIN_ONLY = None
+    USER_WORKSPACE_EDITOR_ONLY = None
     WORKSPACE = None
 
     @classmethod
@@ -57,6 +58,9 @@ class WorkspaceTest(GraphQLTestCase):
         cls.USER_JOE = User.objects.create_user("joe@bluesquarehub.com", "joepassword")
         cls.USER_WORKSPACE_ADMIN_ONLY = User.objects.create_user(
             "workspaceadminonly@bluesquarehub.com", "password"
+        )
+        cls.USER_WORKSPACE_EDITOR_ONLY = User.objects.create_user(
+            "workspaceeditoronly@bluesquarehub.com", "password"
         )
 
         FeatureFlag.objects.create(
@@ -107,6 +111,11 @@ class WorkspaceTest(GraphQLTestCase):
             user=cls.USER_WORKSPACE_ADMIN_ONLY,
             role=OrganizationMembershipRole.MEMBER,
         )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_WORKSPACE_EDITOR_ONLY,
+            role=OrganizationMembershipRole.MEMBER,
+        )
 
         with (
             patch("hexa.workspaces.models.create_database"),
@@ -144,6 +153,12 @@ class WorkspaceTest(GraphQLTestCase):
             user=cls.USER_WORKSPACE_ADMIN_ONLY,
             workspace=cls.WORKSPACE,
             role=WorkspaceMembershipRole.ADMIN,
+        )
+
+        cls.WORKSPACE_MEMBERSHIP_EDITOR_ONLY = WorkspaceMembership.objects.create(
+            user=cls.USER_WORKSPACE_EDITOR_ONLY,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.EDITOR,
         )
 
         cls.INVITATION_FOO = WorkspaceInvitation.objects.create(
@@ -317,6 +332,35 @@ class WorkspaceTest(GraphQLTestCase):
                 },
                 r["data"]["createWorkspace"],
             )
+
+    def test_create_workspace_as_workspace_editor_denied(self):
+        """Test that a workspace editor (not admin) cannot create workspaces"""
+        self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
+        r = self.run_query(
+            """
+            mutation createWorkspace($input:CreateWorkspaceInput!) {
+                createWorkspace(input: $input) {
+                    success
+                    workspace {
+                        name
+                        description
+                    }
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "name": "New Workspace by WS Editor",
+                    "description": "Attempt by workspace editor",
+                    "organizationId": str(self.ORGANIZATION.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
+            r["data"]["createWorkspace"],
+        )
 
     def test_create_workspace_prevent_create(self):
         FeatureFlag.objects.create(
