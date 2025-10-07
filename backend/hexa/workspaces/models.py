@@ -172,14 +172,13 @@ class WorkspaceQuerySet(BaseQuerySet):
                     OrganizationMembershipRole.OWNER,
                     OrganizationMembershipRole.ADMIN,
                 ],
-                archived=False,
             )
-            workspace_access = Q(workspacemembership__user=user, archived=False)
+            workspace_access = Q(workspacemembership__user=user)
             return self._filter_for_user_and_query_object(
                 user,
                 organization_access | workspace_access,
-                return_all_if_superuser=False,
-            )
+                return_all_if_superuser=True,
+            ).filter(archived=False)
 
     def filter_for_workspace_slugs(
         self,
