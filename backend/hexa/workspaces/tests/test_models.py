@@ -183,18 +183,12 @@ class WorkspaceTest(TestCase):
             )
 
     def test_organization_membership_created(self):
-        from unittest.mock import patch
-
         organization = Organization.objects.create(name="Test Organization")
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            workspace = Workspace.objects.create_if_has_perm(
-                self.USER_SUPERUSER,
-                name="Test Workspace",
-                organization=organization,
-            )
+        workspace = Workspace.objects.create(
+            name="Test Workspace",
+            slug="test-workspace",
+            organization=organization,
+        )
 
         self.assertFalse(
             OrganizationMembership.objects.filter(
