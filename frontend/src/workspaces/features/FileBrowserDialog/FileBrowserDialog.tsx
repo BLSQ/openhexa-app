@@ -8,7 +8,7 @@ import {
   HomeIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import { BucketObject, BucketObjectType } from "graphql/types";
+import { BucketObject, BucketObjectType, FileType } from "graphql/types";
 import clsx from "clsx";
 
 import Dialog from "core/components/Dialog";
@@ -158,7 +158,10 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
         fetchPolicy: "network-only",
       });
     } catch (err) {
-      toast.error((err as Error).message ?? t("An error occurred while creating the folder."));
+      toast.error(
+        (err as Error).message ??
+          t("An error occurred while creating the folder."),
+      );
     }
   };
 
@@ -172,7 +175,13 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
 
   const displayedBucketObjects = useMemo(() => {
     if (isSearchMode && searchResults) {
-      return searchResults.items.map((result) => result.file);
+      return searchResults.items.map((result) => ({
+        ...result.file,
+        type:
+          result.file.type === FileType.Directory
+            ? BucketObjectType.Directory
+            : BucketObjectType.File,
+      }));
     } else if (bucket?.objects.items) {
       return bucket.objects.items;
     }
