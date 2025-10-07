@@ -109,6 +109,11 @@ const mocks = [
                 __typename: "WorkspaceMembershipPage",
                 totalItems: 0,
               },
+              permissions: {
+                __typename: "WorkspacePermissions",
+                manageMembers: true,
+                delete: true,
+              },
             },
             {
               __typename: "Workspace",
@@ -125,6 +130,11 @@ const mocks = [
               members: {
                 __typename: "WorkspaceMembershipPage",
                 totalItems: 0,
+              },
+              permissions: {
+                __typename: "WorkspacePermissions",
+                manageMembers: true,
+                delete: true,
               },
             },
           ],

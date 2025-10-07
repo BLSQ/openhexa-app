@@ -119,7 +119,6 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
                   perPage={perPage}
                   totalPages={data?.workspaces?.totalPages || 0}
                   totalItems={data?.workspaces?.totalItems || 0}
-                  canArchive={organization.permissions.archiveWorkspace}
                   onArchiveClick={handleArchiveClick}
                 />
               ) : (
@@ -130,7 +129,6 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
                   perPage={perPage}
                   totalPages={data?.workspaces?.totalPages || 0}
                   totalItems={data?.workspaces?.totalItems || 0}
-                  canArchive={organization.permissions.archiveWorkspace}
                   onArchiveClick={handleArchiveClick}
                 />
               )}

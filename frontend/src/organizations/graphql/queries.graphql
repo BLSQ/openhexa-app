@@ -90,6 +90,10 @@ fragment OrganizationWorkspace_workspace on Workspace {
     members {
         totalItems
     }
+    permissions {
+        manageMembers
+        delete
+    }
 }
 
 query OrganizationWorkspaces($organizationId: UUID!, $page: Int = 1, $perPage: Int = 10, $query: String) {

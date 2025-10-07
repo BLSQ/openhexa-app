@@ -24,7 +24,6 @@ type WorkspacesListViewProps = {
   perPage: number;
   totalPages: number;
   totalItems: number;
-  canArchive: boolean;
   onArchiveClick: (workspace: ArchiveWorkspace_WorkspaceFragment) => void;
 };
 
@@ -34,7 +33,6 @@ const WorkspacesListView = ({
   setPage,
   perPage,
   totalItems,
-  canArchive,
   onArchiveClick,
 }: WorkspacesListViewProps) => {
   const { t } = useTranslation();
@@ -105,22 +103,22 @@ const WorkspacesListView = ({
                   });
                 }}
                 leadingIcon={<GearIcon className="w-4 h-4" />}
+                disabled={!workspace.permissions.manageMembers}
               >
                 {t("Settings")}
               </Button>
-              {canArchive && (
-                <Button
-                  variant="outlined"
-                  size="sm"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onArchiveClick(workspace);
-                  }}
-                  leadingIcon={<TrashIcon className="h-4 w-4" />}
-                >
-                  {t("Archive")}
-                </Button>
-              )}
+              <Button
+                variant="outlined"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onArchiveClick(workspace);
+                }}
+                leadingIcon={<TrashIcon className="h-4 w-4" />}
+                disabled={!workspace.permissions.delete}
+              >
+                {t("Archive")}
+              </Button>
             </div>
           )}
         </BaseColumn>
