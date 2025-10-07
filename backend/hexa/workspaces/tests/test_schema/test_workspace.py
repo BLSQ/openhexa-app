@@ -33,6 +33,7 @@ class WorkspaceTest(GraphQLTestCase):
     USER_JULIA = None
     USER_WORKSPACE_ADMIN = None
     USER_EXTERNAL = None
+    USER_WORKSPACE_ADMIN_ONLY = None
     WORKSPACE = None
 
     @classmethod
@@ -54,6 +55,9 @@ class WorkspaceTest(GraphQLTestCase):
             "julia@bluesquarehub.com", "juliaspassword"
         )
         cls.USER_JOE = User.objects.create_user("joe@bluesquarehub.com", "joepassword")
+        cls.USER_WORKSPACE_ADMIN_ONLY = User.objects.create_user(
+            "workspaceadminonly@bluesquarehub.com", "password"
+        )
 
         FeatureFlag.objects.create(
             feature=Feature.objects.create(code="workspaces.prevent_create"),
@@ -68,6 +72,10 @@ class WorkspaceTest(GraphQLTestCase):
 
         cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
+        )
+        cls.ORGANIZATION_2 = Organization.objects.create(
+            name="Second Organization",
+            short_name="org2",
         )
         OrganizationMembership.objects.create(
             organization=cls.ORGANIZATION,
@@ -88,6 +96,16 @@ class WorkspaceTest(GraphQLTestCase):
             organization=cls.ORGANIZATION,
             user=cls.USER_JOE,
             role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_WORKSPACE_ADMIN_ONLY,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION_2,
+            user=cls.USER_WORKSPACE_ADMIN_ONLY,
+            role=OrganizationMembershipRole.MEMBER,
         )
 
         with (
@@ -118,6 +136,12 @@ class WorkspaceTest(GraphQLTestCase):
 
         cls.WORKSPACE_MEMBERSHIP_2 = WorkspaceMembership.objects.create(
             user=cls.USER_WORKSPACE_ADMIN,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
+        cls.WORKSPACE_MEMBERSHIP_ADMIN_ONLY = WorkspaceMembership.objects.create(
+            user=cls.USER_WORKSPACE_ADMIN_ONLY,
             workspace=cls.WORKSPACE,
             role=WorkspaceMembershipRole.ADMIN,
         )
@@ -213,6 +237,86 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["createWorkspace"],
         )
+
+    def test_create_workspace_as_workspace_admin(self):
+        """Test that a workspace admin (not org admin) can create workspaces"""
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+            r = self.run_query(
+                """
+                mutation createWorkspace($input:CreateWorkspaceInput!) {
+                    createWorkspace(input: $input) {
+                        success
+                        workspace {
+                            name
+                            description
+                        }
+                        errors
+                    }
+                }
+                """,
+                {
+                    "input": {
+                        "name": "New Workspace by WS Admin",
+                        "description": "Created by workspace admin",
+                        "organizationId": str(self.ORGANIZATION.id),
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": True,
+                    "workspace": {
+                        "name": "New Workspace by WS Admin",
+                        "description": "Created by workspace admin",
+                    },
+                    "errors": [],
+                },
+                r["data"]["createWorkspace"],
+            )
+
+    def test_create_workspace_as_workspace_admin_in_different_org(self):
+        """Test that a workspace admin can create workspaces in a different organization where they're only a member"""
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+            r = self.run_query(
+                """
+                mutation createWorkspace($input:CreateWorkspaceInput!) {
+                    createWorkspace(input: $input) {
+                        success
+                        workspace {
+                            name
+                            description
+                        }
+                        errors
+                    }
+                }
+                """,
+                {
+                    "input": {
+                        "name": "New Workspace in Org 2",
+                        "description": "Created by workspace admin in a different org",
+                        "organizationId": str(self.ORGANIZATION_2.id),
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": True,
+                    "workspace": {
+                        "name": "New Workspace in Org 2",
+                        "description": "Created by workspace admin in a different org",
+                    },
+                    "errors": [],
+                },
+                r["data"]["createWorkspace"],
+            )
 
     def test_create_workspace_prevent_create(self):
         FeatureFlag.objects.create(
