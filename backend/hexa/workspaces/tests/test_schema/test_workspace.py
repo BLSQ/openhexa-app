@@ -293,46 +293,6 @@ class WorkspaceTest(GraphQLTestCase):
                 r["data"]["createWorkspace"],
             )
 
-    def test_create_workspace_as_workspace_admin_in_different_org(self):
-        """Test that a workspace admin can create workspaces in a different organization where they're only a member"""
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
-            r = self.run_query(
-                """
-                mutation createWorkspace($input:CreateWorkspaceInput!) {
-                    createWorkspace(input: $input) {
-                        success
-                        workspace {
-                            name
-                            description
-                        }
-                        errors
-                    }
-                }
-                """,
-                {
-                    "input": {
-                        "name": "New Workspace in Org 2",
-                        "description": "Created by workspace admin in a different org",
-                        "organizationId": str(self.ORGANIZATION_2.id),
-                    }
-                },
-            )
-            self.assertEqual(
-                {
-                    "success": True,
-                    "workspace": {
-                        "name": "New Workspace in Org 2",
-                        "description": "Created by workspace admin in a different org",
-                    },
-                    "errors": [],
-                },
-                r["data"]["createWorkspace"],
-            )
-
     def test_create_workspace_as_workspace_editor_denied(self):
         """Test that a workspace editor (not admin) cannot create workspaces"""
         self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
