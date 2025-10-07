@@ -884,6 +884,8 @@ class WorkspaceTest(GraphQLTestCase):
         self.assertEqual(
             {
                 "items": [
+                    {"user": {"id": str(self.USER_WORKSPACE_EDITOR_ONLY.id)}},
+                    {"user": {"id": str(self.USER_WORKSPACE_ADMIN_ONLY.id)}},
                     {"user": {"id": str(self.USER_WORKSPACE_ADMIN.id)}},
                     {"user": {"id": str(self.USER_REBECCA.id)}},
                     {"user": {"id": str(self.USER_JULIA.id)}},

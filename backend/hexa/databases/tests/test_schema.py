@@ -48,6 +48,11 @@ class DatabaseTest(GraphQLTestCase):
             workspace=cls.WORKSPACE,
             role=WorkspaceMembershipRole.VIEWER,
         )
+        WorkspaceMembership.objects.create(
+            user=cls.USER_JULIA,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
 
     def test_get_database_credentials_empty(self):
         self.client.force_login(self.USER_SABRINA)
