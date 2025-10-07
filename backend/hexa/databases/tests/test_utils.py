@@ -15,7 +15,11 @@ from hexa.databases.utils import (
 )
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 
 class DictRowMock:
@@ -50,6 +54,16 @@ class DatabaseUtilsTest(TestCase):
         )
         cls.USER_SABRINA = User.objects.create_user(
             "sabrina@bluesquarehub.com", "standardpassword"
+        )
+
+        initial_workspace = Workspace.objects.create(
+            name="Initial Workspace",
+            description="Initial workspace for testing",
+        )
+        WorkspaceMembership.objects.create(
+            user=cls.USER_SABRINA,
+            workspace=initial_workspace,
+            role=WorkspaceMembershipRole.ADMIN,
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(

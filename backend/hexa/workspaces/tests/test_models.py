@@ -40,6 +40,17 @@ class WorkspaceTest(TestCase):
         cls.USER_JULIA = User.objects.create_user(
             "julia@bluesquarehub.com", "juliaspassword"
         )
+
+        cls.INITIAL_WORKSPACE = Workspace.objects.create(
+            name="Initial Workspace",
+            description="Initial workspace for testing",
+        )
+        WorkspaceMembership.objects.create(
+            user=cls.USER_JULIA,
+            workspace=cls.INITIAL_WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
         FeatureFlag.objects.create(
             feature=Feature.objects.create(code="workspaces.prevent_create"),
             user=cls.USER_SERENA,

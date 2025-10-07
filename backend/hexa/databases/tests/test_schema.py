@@ -32,6 +32,16 @@ class DatabaseTest(GraphQLTestCase):
             database="hexa-explore-demo",
         )
 
+        initial_workspace = Workspace.objects.create(
+            name="Initial Workspace",
+            description="Initial workspace for testing",
+        )
+        WorkspaceMembership.objects.create(
+            user=cls.USER_JULIA,
+            workspace=initial_workspace,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
             cls.USER_JULIA,
             name="Test Workspace",

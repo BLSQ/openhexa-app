@@ -34,6 +34,16 @@ class PipelineTagMutationTest(GraphQLTestCase):
             organization_type="CORPORATE",
         )
 
+        initial_workspace = Workspace.objects.create(
+            name="Initial Workspace",
+            description="Initial workspace for testing",
+        )
+        WorkspaceMembership.objects.create(
+            user=cls.USER_ADMIN,
+            workspace=initial_workspace,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
             cls.USER_ADMIN,
             name="Test workspace",
