@@ -19,6 +19,10 @@ class DatabaseTest(GraphQLTestCase):
 
     @classmethod
     def setUpTestData(cls):
+        cls.USER_SUPERUSER = User.objects.create_user(
+            "superuser@bluesquarehub.com", "superuserpassword", is_superuser=True
+        )
+
         cls.USER_SABRINA = User.objects.create_user(
             "sabrina@bluesquarehub.com", "standardpassword"
         )
@@ -32,18 +36,8 @@ class DatabaseTest(GraphQLTestCase):
             database="hexa-explore-demo",
         )
 
-        initial_workspace = Workspace.objects.create(
-            name="Initial Workspace",
-            description="Initial workspace for testing",
-        )
-        WorkspaceMembership.objects.create(
-            user=cls.USER_JULIA,
-            workspace=initial_workspace,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
-
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_JULIA,
+            cls.USER_SUPERUSER,
             name="Test Workspace",
             description="Test workspace",
             countries=[],

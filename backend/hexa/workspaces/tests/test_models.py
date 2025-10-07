@@ -29,6 +29,7 @@ from hexa.workspaces.models import (
 class WorkspaceTest(TestCase):
     USER_SERENA = None
     USER_JULIA = None
+    USER_SUPERUSER = None
 
     @classmethod
     def setUpTestData(cls):
@@ -41,14 +42,8 @@ class WorkspaceTest(TestCase):
             "julia@bluesquarehub.com", "juliaspassword"
         )
 
-        cls.INITIAL_WORKSPACE = Workspace.objects.create(
-            name="Initial Workspace",
-            description="Initial workspace for testing",
-        )
-        WorkspaceMembership.objects.create(
-            user=cls.USER_JULIA,
-            workspace=cls.INITIAL_WORKSPACE,
-            role=WorkspaceMembershipRole.ADMIN,
+        cls.USER_SUPERUSER = User.objects.create_user(
+            "superuser@bluesquarehub.com", "superuserpassword", is_superuser=True
         )
 
         FeatureFlag.objects.create(
@@ -75,7 +70,7 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
-                self.USER_JULIA,
+                self.USER_SUPERUSER,
                 name="this is a very long workspace name",
                 description="Description",
             )
@@ -89,7 +84,7 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
-                self.USER_JULIA,
+                self.USER_SUPERUSER,
                 name="Worksp?ace_wi😱th_und~ersc!/ore",
                 description="Description",
             )
@@ -104,7 +99,7 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
-                self.USER_JULIA,
+                self.USER_SUPERUSER,
                 name="1workspace_with#_random$_char*",
                 description="Description",
             )
@@ -117,7 +112,7 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             Workspace.objects.create_if_has_perm(
-                self.USER_JULIA,
+                self.USER_SUPERUSER,
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
             )
@@ -129,7 +124,7 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
-                self.USER_JULIA,
+                self.USER_SUPERUSER,
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
             )
@@ -146,14 +141,14 @@ class WorkspaceTest(TestCase):
             patch("secrets.token_hex", lambda _: "mock"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
-                self.USER_JULIA,
+                self.USER_SUPERUSER,
                 name="My workspace",
                 description="This is my workspace",
             )
             self.assertEqual(workspace.slug, "my-workspace")
 
             workspace_2 = Workspace.objects.create_if_has_perm(
-                self.USER_JULIA,
+                self.USER_SUPERUSER,
                 name="My workspace",
                 description="This is my workspace",
             )
@@ -166,34 +161,40 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
-                self.USER_JULIA,
+                self.USER_SUPERUSER,
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
             )
             self.assertTrue(
                 WorkspaceMembership.objects.filter(
-                    user=self.USER_JULIA,
+                    user=self.USER_SUPERUSER,
                     workspace=workspace,
                     role=WorkspaceMembershipRole.ADMIN,
                 ).exists()
             )
             self.assertEqual(
                 hashlib.blake2s(
-                    f"{workspace.id}_{self.USER_JULIA.id}".encode(),
+                    f"{workspace.id}_{self.USER_SUPERUSER.id}".encode(),
                     digest_size=16,
                 ).hexdigest(),
                 WorkspaceMembership.objects.get(
-                    user=self.USER_JULIA, workspace=workspace
+                    user=self.USER_SUPERUSER, workspace=workspace
                 ).notebooks_server_hash,
             )
 
     def test_organization_membership_created(self):
+        from unittest.mock import patch
+
         organization = Organization.objects.create(name="Test Organization")
-        workspace = Workspace.objects.create(
-            name="Test Workspace",
-            slug="test-workspace",
-            organization=organization,
-        )
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_SUPERUSER,
+                name="Test Workspace",
+                organization=organization,
+            )
 
         self.assertFalse(
             OrganizationMembership.objects.filter(
@@ -219,20 +220,20 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
-                self.USER_JULIA,
+                self.USER_SUPERUSER,
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
             )
 
             invitation = WorkspaceInvitation.objects.create_if_has_perm(
-                principal=self.USER_JULIA,
+                principal=self.USER_SUPERUSER,
                 workspace=workspace,
                 email="john@doe.com",
                 role=WorkspaceMembershipRole.VIEWER,
             )
             self.assertIsInstance(invitation, WorkspaceInvitation)
             self.assertEqual(invitation.status, WorkspaceInvitationStatus.PENDING)
-            self.assertEqual(invitation.invited_by, self.USER_JULIA)
+            self.assertEqual(invitation.invited_by, self.USER_SUPERUSER)
 
     def test_workspace_configuration_default(self):
         """Test that workspace configuration field has a default empty dict"""
@@ -241,7 +242,7 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
-                self.USER_JULIA,
+                self.USER_SUPERUSER,
                 name="Test Workspace",
                 description="Test workspace for configuration",
             )
@@ -254,21 +255,21 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
-                self.USER_JULIA,
+                self.USER_SUPERUSER,
                 name="Test Workspace",
                 description="Test workspace for configuration",
             )
 
         initial_config = {"api_key": "test123", "timeout": 30}
         workspace.update_if_has_perm(
-            principal=self.USER_JULIA, configuration=initial_config
+            principal=self.USER_SUPERUSER, configuration=initial_config
         )
         workspace.refresh_from_db()
         self.assertEqual(workspace.configuration, initial_config)
 
         updated_config = {"api_key": "updated456", "timeout": 60, "new_setting": True}
         workspace.update_if_has_perm(
-            principal=self.USER_JULIA, configuration=updated_config
+            principal=self.USER_SUPERUSER, configuration=updated_config
         )
         workspace.refresh_from_db()
         self.assertEqual(workspace.configuration, updated_config)
@@ -280,7 +281,7 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
-                self.USER_JULIA,
+                self.USER_SUPERUSER,
                 name="Test Workspace",
                 description="Test workspace for configuration",
             )
@@ -303,7 +304,7 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
-                self.USER_JULIA,
+                self.USER_SUPERUSER,
                 name="Test Workspace",
                 description="Test workspace for configuration",
             )
@@ -330,7 +331,9 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.create_database"),
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            workspace = Workspace.objects.create_if_has_perm(self.USER_JULIA, name="WP")
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_SUPERUSER, name="WP"
+            )
 
         self.assertEqual(workspace.db_host, f"{workspace.slug}.db.proxy")
 
@@ -344,7 +347,9 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.create_database"),
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            workspace = Workspace.objects.create_if_has_perm(self.USER_JULIA, name="WP")
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_SUPERUSER, name="WP"
+            )
 
         self.assertEqual(workspace.db_host, "192.168.1.100")
 

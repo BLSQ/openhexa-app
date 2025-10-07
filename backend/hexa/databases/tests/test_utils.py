@@ -17,8 +17,6 @@ from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
-    WorkspaceMembership,
-    WorkspaceMembershipRole,
 )
 
 
@@ -49,6 +47,10 @@ class DatabaseUtilsTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        cls.USER_SUPERUSER = User.objects.create_user(
+            "superuser@bluesquarehub.com", "superuserpassword", is_superuser=True
+        )
+
         cls.DB1 = Database.objects.create(
             hostname="host", username="user", password="pwd", database="db1"
         )
@@ -56,18 +58,8 @@ class DatabaseUtilsTest(TestCase):
             "sabrina@bluesquarehub.com", "standardpassword"
         )
 
-        initial_workspace = Workspace.objects.create(
-            name="Initial Workspace",
-            description="Initial workspace for testing",
-        )
-        WorkspaceMembership.objects.create(
-            user=cls.USER_SABRINA,
-            workspace=initial_workspace,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
-
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_SABRINA,
+            cls.USER_SUPERUSER,
             name="Test Workspace",
             description="Test workspace",
             countries=[],
