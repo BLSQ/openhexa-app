@@ -10,11 +10,11 @@ Hi {{invitee}},
 
 {% if workspace_invitations %}
 {% trans "You have also been added to the following workspaces:" %}
-{% for workspace_invitation in workspace_invitations %}
+{% for workspace_invitation in workspace_invitations %}{% if forloop.counter0 < 5 %}
 • {{ workspace_invitation.workspace_name }}{% if workspace_invitation.role == "ADMIN" %} {% trans "as Admin" %}{% elif workspace_invitation.role == "EDITOR" %} {% trans "as Editor" %}{% elif workspace_invitation.role == "VIEWER" %} {% trans "as Viewer" %}{% endif %}
-{% endfor %}
+{% endif %}{% if forloop.counter0 == 5 and workspace_invitations|length > 5 %}{% blocktranslate count remaining_count=workspace_invitations|length|add:"-5" %}+ {{ remaining_count }} more workspace{% plural %}+ {{ remaining_count }} more workspaces{% endblocktranslate %}
+{% endif %}{% endfor %}
 {% endif %}
-
 {% blocktranslate %}
 Start collaborating here: {{ url }}
 {% endblocktranslate %}
