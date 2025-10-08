@@ -36,6 +36,7 @@
           {% trans "You have also been added to the following workspaces:" %}
         </mj-text>
         {% for workspace_invitation in workspace_invitations %}
+        {% if forloop.counter0 < 5 %}
         <mj-table padding="10px 0">
           <tr style="background-color: #f8f9fa; border-radius: 8px;">
             <td style="padding: 15px 20px; border-radius: 8px;">
@@ -60,6 +61,22 @@
             </td>
           </tr>
         </mj-table>
+        {% endif %}
+        {% if forloop.counter0 == 5 and workspace_invitations|length > 5 %}
+        <mj-table padding="10px 0">
+          <tr style="background-color: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">
+            <td style="padding: 15px 20px; text-align: center;">
+              <div style="color: #6c757d; font-size: 14px; font-weight: 600;">
+                {% blocktranslate count remaining_count=workspace_invitations|length|add:"-5" %}
+                + {{ remaining_count }} more workspace
+                {% plural %}
+                + {{ remaining_count }} more workspaces
+                {% endblocktranslate %}
+              </div>
+            </td>
+          </tr>
+        </mj-table>
+        {% endif %}
         {% endfor %}
         {% endif %}
         <mj-button href="{{url}}" background-color="#FF499C" color="#ffffff" padding="30px 0 10px 0">
