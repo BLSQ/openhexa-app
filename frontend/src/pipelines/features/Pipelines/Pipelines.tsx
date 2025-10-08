@@ -48,6 +48,14 @@ const Pipelines = ({
     },
   });
 
+  const { data: allPipelinesData } = useWorkspacePipelinesPageQuery({
+    variables: {
+      workspaceSlug: workspace.slug,
+      page: 1,
+      perPage: 1000,
+    },
+  });
+
   const [items, setItems] = useState(data?.pipelines?.items || []);
 
   useEffect(() => {
@@ -60,17 +68,17 @@ const Pipelines = ({
 
   const totalItems = data?.pipelines?.totalItems ?? 0;
 
-  // Collect all unique tags from pipelines
   const availableTags = React.useMemo(() => {
-    if (!items) return [];
+    const allItems = allPipelinesData?.pipelines?.items || [];
+    if (!allItems.length) return [];
     const tagSet = new Set<string>();
-    items.forEach((pipeline: any) => {
+    allItems.forEach((pipeline: any) => {
       pipeline.tags?.forEach((tag: any) => {
         tagSet.add(tag.name);
       });
     });
     return Array.from(tagSet).sort();
-  }, [items]);
+  }, [allPipelinesData]);
 
   return (
     <div>
