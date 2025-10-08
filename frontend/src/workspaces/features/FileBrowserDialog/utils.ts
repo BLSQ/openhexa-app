@@ -105,14 +105,20 @@ const FILE_TYPES = {
   },
 };
 
+// flat extension lookup map for O(1) access
+const EXTENSION_LOOKUP_MAP = Object.values(FILE_TYPES).reduce((acc, fileType) => {
+  fileType.extensions.forEach(extension => {
+    acc[extension] = { icon: fileType.icon, color: fileType.color };
+  });
+  return acc;
+}, {} as Record<string, { icon: any; color: string }>);
+
 // Get file icon and color based on file extension
 export const getFileIconAndColor = (fileName: string) => {
   const extension = fileName.toLowerCase().split(".").pop();
 
-  for (const fileType of Object.values(FILE_TYPES)) {
-    if (extension && fileType.extensions.includes(extension)) {
-      return { icon: fileType.icon, color: fileType.color };
-    }
+  if (extension && EXTENSION_LOOKUP_MAP[extension]) {
+    return EXTENSION_LOOKUP_MAP[extension];
   }
 
   return { icon: DocumentIcon, color: "text-gray-400" };

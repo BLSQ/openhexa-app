@@ -158,8 +158,10 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
         fetchPolicy: "network-only",
       });
     } catch (err) {
-      toast.error(t("An error occurred while creating the folder"));
-      throw err; // Re-throw so the component knows the operation failed
+      toast.error(
+        (err as Error).message ??
+          t("An error occurred while creating the folder."),
+      );
     }
   };
 
@@ -171,14 +173,10 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   const bucket =
     data?.workspace?.bucket ?? previousData?.workspace?.bucket ?? null;
 
-  // Normalize and combine data from both sources
-  const normalizedItems = useMemo(() => {
+  const displayedBucketObjects = useMemo(() => {
     if (isSearchMode && searchResults) {
-      // Convert search results to bucket object format
       return searchResults.items.map((result) => ({
         ...result.file,
-        // Map search result fields to bucket object fields
-        updatedAt: result.file.updated,
         type:
           result.file.type === FileType.Directory
             ? BucketObjectType.Directory
@@ -188,32 +186,24 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
       return bucket.objects.items;
     }
     return [];
-  }, [isSearchMode, searchResults, bucket?.objects.items, searchQuery]);
+  }, [isSearchMode, searchResults, bucket?.objects.items]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="max-w-5xl">
       <Dialog.Title onClose={onClose}>{t("Select file")}</Dialog.Title>
       <Dialog.Content className="flex flex-col space-y-4 h-full">
         {/* Breadcrumb Navigation */}
-        <div
-          className={clsx(
-            "flex items-center gap-1 text-sm min-h-[2rem]",
-            isSearchMode ? "text-gray-400" : "text-gray-500",
-          )}
-        >
-          <button
-            className={clsx(
-              "flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded p-1",
-              isSearchMode ? "cursor-not-allowed" : "hover:text-gray-700",
-            )}
-            onClick={() => !isSearchMode && setCurrentFolder(null)}
-            disabled={isSearchMode}
-            aria-label={t("Go to root directory")}
-          >
-            <HomeIcon className="h-4 w-4" />
-          </button>
+        <div className="flex items-center gap-1 text-sm min-h-[2rem] text-gray-500">
           {prefixes.length > 0 && (
             <>
+              <button
+                className="p-1 hover:text-gray-700 cursor-pointer"
+                onClick={() => setCurrentFolder(null)}
+                disabled={isSearchMode}
+                aria-label={t("Go to root directory")}
+              >
+                <HomeIcon className="h-4 w-4" />
+              </button>
               {prefixes.length > 6 && (
                 <>
                   <ChevronRightIcon className="h-3 w-3" />
@@ -224,15 +214,8 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
                 <div key={index} className="flex items-center">
                   <ChevronRightIcon className="h-3 w-3" />
                   <button
-                    className={clsx(
-                      "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1 py-0.5 truncate",
-                      isSearchMode
-                        ? "cursor-not-allowed"
-                        : "hover:text-gray-700",
-                    )}
-                    onClick={() =>
-                      !isSearchMode && setCurrentFolder(part.value)
-                    }
+                    className="px-1 py-0.5 truncate hover:text-gray-700 cursor-pointer"
+                    onClick={() => setCurrentFolder(part.value)}
                     disabled={isSearchMode}
                     title={part.label}
                   >
@@ -283,7 +266,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
             </div>
           ) : (
             <FileSystemDataGrid
-              data={normalizedItems as BucketObject[]}
+              data={displayedBucketObjects as BucketObject[]}
               perPage={PAGE_SIZE}
               showPageSizeSelect={false}
               loading={isSearching || loading}

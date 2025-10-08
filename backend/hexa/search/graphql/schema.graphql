@@ -61,7 +61,8 @@ type File {
   name: String!
   path: String!
   size: BigInt
-  updated: DateTime
+  updated: DateTime @deprecated(reason: "Use updatedAt instead")
+  updatedAt: DateTime
   type: FileType!
 }
 

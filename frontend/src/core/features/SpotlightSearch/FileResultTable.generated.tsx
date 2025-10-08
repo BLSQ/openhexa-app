@@ -2,7 +2,7 @@ import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
 import { WorkspaceDisplayFragmentFragmentDoc } from './WorkspaceDisplay.generated';
-export type FilesPageFragment = { __typename?: 'FileResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'FileResult', score: number, file: { __typename?: 'File', name: string, path: string, size?: any | null, updated?: any | null, type: Types.FileType }, workspace: { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> } }> };
+export type FilesPageFragment = { __typename?: 'FileResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'FileResult', score: number, file: { __typename?: 'File', name: string, path: string, size?: any | null, updatedAt?: any | null, type: Types.FileType }, workspace: { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> } }> };
 
 export const FilesPageFragmentDoc = gql`
     fragment FilesPage on FileResultPage {
@@ -11,7 +11,7 @@ export const FilesPageFragmentDoc = gql`
       name
       path
       size
-      updated
+      updatedAt
       type
     }
     score
