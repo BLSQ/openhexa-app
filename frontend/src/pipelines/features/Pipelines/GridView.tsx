@@ -8,6 +8,7 @@ import { formatPipelineSource, formatPipelineFunctionalType } from "workspaces/h
 import Badge from "core/components/Badge";
 import PipelineRunStatusBadge from "../PipelineRunStatusBadge";
 import Tag from "core/features/Tag";
+import User from "core/features/User";
 
 type GridViewProps = {
   items: any[];
@@ -87,6 +88,18 @@ const GridView = ({
               );
             }
             return <p>{t("Not yet run")}</p>;
+          }}
+        </BaseColumn>
+        <DateColumn
+          accessor="lastRuns.items.0.executionDate"
+          label={t("Last Run Date")}
+        />
+        <BaseColumn label={t("Created By")} id="createdBy">
+          {(pipeline) => {
+            if (pipeline.currentVersion?.user) {
+              return <User user={pipeline.currentVersion.user} />;
+            }
+            return <span className="text-gray-500 italic">{t("Unknown")}</span>;
           }}
         </BaseColumn>
         <BaseColumn id="description" label={t("Description")}>
