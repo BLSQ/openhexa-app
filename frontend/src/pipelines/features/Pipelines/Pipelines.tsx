@@ -72,8 +72,8 @@ const Pipelines = ({
     const allItems = allPipelinesData?.pipelines?.items || [];
     if (!allItems.length) return [];
     const tagSet = new Set<string>();
-    allItems.forEach((pipeline: any) => {
-      pipeline.tags?.forEach((tag: any) => {
+    allItems.forEach((pipeline) => {
+      pipeline.tags?.forEach((tag) => {
         tagSet.add(tag.name);
       });
     });

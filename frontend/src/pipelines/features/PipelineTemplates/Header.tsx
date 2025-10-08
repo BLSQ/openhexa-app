@@ -91,27 +91,30 @@ const Header = ({
                 )}
               </div>
               <div className="space-y-2">
-                {availableTags.map((tag) => (
-                  <div
-                    key={tag}
-                    className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
-                    onClick={() => {
-                      const isSelected = tagsFilter?.includes(tag) || false;
-                      if (isSelected) {
-                        setTagsFilter((tagsFilter || []).filter((t) => t !== tag));
-                      } else {
-                        setTagsFilter([...(tagsFilter || []), tag]);
-                      }
-                    }}
-                  >
-                    <Checkbox
-                      checked={tagsFilter?.includes(tag) || false}
-                      onChange={() => {}}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <span className="text-sm text-gray-700">{tag}</span>
-                  </div>
-                ))}
+                {availableTags.map((tag) => {
+                  const handleToggle = () => {
+                    const isSelected = tagsFilter?.includes(tag) || false;
+                    if (isSelected) {
+                      setTagsFilter((tagsFilter || []).filter((t) => t !== tag));
+                    } else {
+                      setTagsFilter([...(tagsFilter || []), tag]);
+                    }
+                  };
+
+                  return (
+                    <div
+                      key={tag}
+                      className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
+                      onClick={handleToggle}
+                    >
+                      <Checkbox
+                        checked={tagsFilter?.includes(tag) || false}
+                        onChange={handleToggle}
+                      />
+                      <span className="text-sm text-gray-700">{tag}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </Popover>
