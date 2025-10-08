@@ -630,14 +630,18 @@ class Pipeline(SoftDeletedModel):
                 description=description,
                 workspace=self.workspace,
                 source_pipeline=self,
+                functional_type=self.functional_type,
             )
+            self.template.tags.set(self.tags.all())
             return self.template, True
         if self.template.is_deleted:
             self.template.restore()
             self.template.name = name
             self.template.code = code
             self.template.description = description
+            self.template.functional_type = self.functional_type
             self.template.save()
+            self.template.tags.set(self.tags.all())
         return self.template, False
 
     def __str__(self):
