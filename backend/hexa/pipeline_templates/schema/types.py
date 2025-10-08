@@ -66,6 +66,11 @@ def resolve_pipeline_permissions(pipeline_template: PipelineTemplate, info, **kw
     return pipeline_template
 
 
+@pipeline_template_object.field("tags")
+def resolve_pipeline_template_tags(pipeline_template: PipelineTemplate, info, **kwargs):
+    return pipeline_template.tags.all()
+
+
 @pipeline_template_permissions.field("delete")
 def resolve_pipeline_template_permissions_delete(
     pipeline_template: PipelineTemplate, info, **kwargs

@@ -161,6 +161,11 @@ const GET_PIPELINE_TEMPLATES = gql`
         description
         code
         name
+        functionalType
+        tags {
+          id
+          name
+        }
         permissions {
           delete
         }

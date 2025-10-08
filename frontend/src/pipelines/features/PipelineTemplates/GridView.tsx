@@ -8,6 +8,8 @@ import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "core/components/Link";
 import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
+import Tag from "core/features/Tag";
+import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 
 type GridViewProps = {
   items: any[];
@@ -60,6 +62,26 @@ const GridView = ({
           label={t("Source workspace")}
           accessor="workspace.name"
         />
+        <BaseColumn id="tags" label={t("Tags")}>
+          {(template) => (
+            <div className="flex flex-wrap gap-1 max-w-40">
+              {template.tags && template.tags.length > 0 ? (
+                template.tags.map((tag: any) => (
+                  <Tag key={tag.id} tag={tag} className="text-xs" />
+                ))
+              ) : (
+                <span className="text-gray-500 text-sm italic">{t("No tags")}</span>
+              )}
+            </div>
+          )}
+        </BaseColumn>
+        <BaseColumn id="functionalType" label={t("Type")}>
+          {(template) => (
+            <span className="text-gray-600">
+              {template.functionalType ? formatPipelineFunctionalType(template.functionalType) : t("Not set")}
+            </span>
+          )}
+        </BaseColumn>
         <DateColumn
           accessor={"currentVersion.createdAt"}
           label={t("Created At")}

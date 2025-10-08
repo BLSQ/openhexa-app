@@ -2,7 +2,8 @@ from django.db.utils import IntegrityError
 
 from hexa.core.test import TestCase
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
-from hexa.pipelines.models import Pipeline, PipelineVersion
+from hexa.pipelines.models import Pipeline, PipelineFunctionalType, PipelineVersion
+from hexa.tags.models import Tag
 from hexa.user_management.models import (
     Organization,
     OrganizationMembership,
@@ -270,3 +271,133 @@ class PipelineTemplateOrganizationAdminOwnerPermissionsTest(TestCase):
 
         self.assertIn(self.TEMPLATE_1, templates)
         self.assertIn(self.TEMPLATE_2, templates)
+
+
+class PipelineTemplateFunctionalTypeAndTagsTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            "user_template@bluesquarehub.com", "password", is_superuser=True
+        )
+        cls.workspace = Workspace.objects.create_if_has_perm(
+            cls.user,
+            name="Test Template Workspace",
+        )
+        cls.user.is_superuser = False
+        cls.user.save()
+
+        cls.pipeline = Pipeline.objects.create(
+            name="Test Pipeline",
+            workspace=cls.workspace,
+            functional_type=PipelineFunctionalType.EXTRACTION,
+        )
+        cls.tag1 = Tag.objects.create(name="template-tag1")
+        cls.tag2 = Tag.objects.create(name="template-tag2")
+        cls.pipeline.tags.set([cls.tag1, cls.tag2])
+
+    def test_template_functional_type_creation(self):
+        template = PipelineTemplate.objects.create(
+            name="Test Template",
+            code="test_code",
+            workspace=self.workspace,
+            source_pipeline=self.pipeline,
+            functional_type=PipelineFunctionalType.TRANSFORMATION,
+        )
+        self.assertEqual(
+            template.functional_type, PipelineFunctionalType.TRANSFORMATION
+        )
+
+    def test_template_functional_type_optional(self):
+        template = PipelineTemplate.objects.create(
+            name="Test Template",
+            code="test_code",
+            workspace=self.workspace,
+            source_pipeline=self.pipeline,
+        )
+        self.assertIsNone(template.functional_type)
+
+    def test_template_tags_creation(self):
+        template = PipelineTemplate.objects.create(
+            name="Test Template",
+            code="test_code",
+            workspace=self.workspace,
+            source_pipeline=self.pipeline,
+        )
+        template.tags.set([self.tag1, self.tag2])
+        self.assertEqual(template.tags.count(), 2)
+        self.assertIn(self.tag1, template.tags.all())
+        self.assertIn(self.tag2, template.tags.all())
+
+    def test_template_update_functional_type(self):
+        template = PipelineTemplate.objects.create(
+            name="Test Template",
+            code="test_code",
+            workspace=self.workspace,
+            source_pipeline=self.pipeline,
+        )
+        template.update_if_has_perm(
+            self.user, functional_type=PipelineFunctionalType.LOADING
+        )
+        template.refresh_from_db()
+        self.assertEqual(template.functional_type, PipelineFunctionalType.LOADING)
+
+    def test_template_update_tags(self):
+        template = PipelineTemplate.objects.create(
+            name="Test Template",
+            code="test_code",
+            workspace=self.workspace,
+            source_pipeline=self.pipeline,
+        )
+        template.update_if_has_perm(self.user, tags=[self.tag1, self.tag2])
+        template.refresh_from_db()
+        self.assertEqual(template.tags.count(), 2)
+        self.assertIn(self.tag1, template.tags.all())
+        self.assertIn(self.tag2, template.tags.all())
+
+    def test_pipeline_created_from_template_inherits_functional_type_and_tags(self):
+        template = PipelineTemplate.objects.create(
+            name="Test Template",
+            code="test_code",
+            workspace=self.workspace,
+            source_pipeline=self.pipeline,
+            functional_type=PipelineFunctionalType.COMPUTATION,
+        )
+        template.tags.set([self.tag1, self.tag2])
+
+        pipeline_version = PipelineVersion.objects.create(
+            pipeline=self.pipeline, version_number=1
+        )
+        template_version = template.create_version(pipeline_version, user=self.user)
+
+        new_pipeline_version = template_version.create_pipeline_version(
+            workspace=self.workspace, principal=self.user
+        )
+        new_pipeline = new_pipeline_version.pipeline
+
+        self.assertEqual(
+            new_pipeline.functional_type, PipelineFunctionalType.COMPUTATION
+        )
+        self.assertEqual(new_pipeline.tags.count(), 2)
+        self.assertIn(self.tag1, new_pipeline.tags.all())
+        self.assertIn(self.tag2, new_pipeline.tags.all())
+
+    def test_template_created_from_pipeline_inherits_functional_type_and_tags(self):
+        pipeline_with_metadata = Pipeline.objects.create(
+            name="Pipeline with metadata",
+            code="pipeline-with-metadata",
+            workspace=self.workspace,
+            functional_type=PipelineFunctionalType.LOADING,
+        )
+        pipeline_with_metadata.tags.set([self.tag1, self.tag2])
+
+        template, created = pipeline_with_metadata.get_or_create_template(
+            name="Template from pipeline",
+            code="template-from-pipeline",
+            description="Test template",
+        )
+
+        self.assertTrue(created)
+        self.assertEqual(template.functional_type, PipelineFunctionalType.LOADING)
+        self.assertEqual(template.tags.count(), 2)
+        self.assertIn(self.tag1, template.tags.all())
+        self.assertIn(self.tag2, template.tags.all())

@@ -3640,10 +3640,12 @@ export type PipelineTemplate = {
   config?: Maybe<Scalars['String']['output']>;
   currentVersion?: Maybe<PipelineTemplateVersion>;
   description?: Maybe<Scalars['String']['output']>;
+  functionalType?: Maybe<PipelineFunctionalType>;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   permissions: PipelineTemplatePermissions;
   sourcePipeline?: Maybe<Pipeline>;
+  tags: Array<Tag>;
   updatedAt: Scalars['DateTime']['output'];
   versions: TemplateVersionPage;
   workspace?: Maybe<Workspace>;
@@ -5017,8 +5019,10 @@ export enum UpdateTemplateError {
 export type UpdateTemplateInput = {
   config?: InputMaybe<Scalars['JSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  functionalType?: InputMaybe<PipelineFunctionalType>;
   id: Scalars['UUID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 /** Represents the result of updating a template. */

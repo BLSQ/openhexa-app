@@ -14,6 +14,9 @@ import Button from "core/components/Button";
 import router from "next/router";
 import User from "core/features/User";
 import { stripMarkdown } from "core/helpers";
+import Tag from "core/features/Tag";
+import Badge from "core/components/Badge";
+import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 
 interface TemplateCardProps {
   workspace: TemplateCard_WorkspaceFragment;
@@ -41,6 +44,26 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
       >
         <div className={clsx("line-clamp-3")}>
           {stripMarkdown(template.description ?? "")}
+        </div>
+        <div className="space-y-2">
+          {template.functionalType && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">{t("Type")}:</span>
+              <Badge className="text-xs">
+                {formatPipelineFunctionalType(template.functionalType)}
+              </Badge>
+            </div>
+          )}
+          {template.tags && template.tags.length > 0 && (
+            <div className="flex items-start gap-2">
+              <span className="text-xs text-gray-500 mt-0.5">{t("Tags")}:</span>
+              <div className="flex flex-wrap gap-1">
+                {template.tags.map((tag) => (
+                  <Tag key={tag.id} tag={tag} className="text-xs" />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         {template.currentVersion?.user && (
           <div className="flex justify-end">
@@ -92,6 +115,11 @@ TemplateCard.fragments = {
       code
       name
       description
+      functionalType
+      tags {
+        id
+        name
+      }
       currentVersion {
         id
         createdAt

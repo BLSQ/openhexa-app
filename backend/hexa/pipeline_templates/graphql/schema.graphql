@@ -142,6 +142,8 @@ input UpdateTemplateInput {
   name: String
   config: JSON
   description: String
+  functionalType: PipelineFunctionalType
+  tags: [String!]
 }
 
 """Represents the result of updating a template."""
@@ -166,6 +168,8 @@ type PipelineTemplate {
   permissions: PipelineTemplatePermissions!  # The permissions for the pipeline template.
   workspace: Workspace  # The workspace associated with the pipeline template.
   updatedAt: DateTime!  # The last updated date of the pipeline template.
+  functionalType: PipelineFunctionalType  # Business purpose: what the template does (extraction/transformation/loading/computation)
+  tags: [Tag!]!  # The tags associated with the pipeline template.
 }
 
 """

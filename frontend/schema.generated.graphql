@@ -3032,10 +3032,12 @@ type PipelineTemplate {
   config: String
   currentVersion: PipelineTemplateVersion
   description: String
+  functionalType: PipelineFunctionalType
   id: UUID!
   name: String!
   permissions: PipelineTemplatePermissions!
   sourcePipeline: Pipeline
+  tags: [Tag!]!
   updatedAt: DateTime!
   versions(page: Int, perPage: Int): TemplateVersionPage!
   workspace: Workspace
@@ -4184,8 +4186,10 @@ enum UpdateTemplateError {
 input UpdateTemplateInput {
   config: JSON
   description: String
+  functionalType: PipelineFunctionalType
   id: UUID!
   name: String
+  tags: [String!]
 }
 
 """Represents the result of updating a template."""
