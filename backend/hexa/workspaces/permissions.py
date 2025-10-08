@@ -1,21 +1,6 @@
 from hexa.user_management.models import User
 
-from .models import Connection, Workspace, WorkspaceMembership, WorkspaceMembershipRole
-
-
-def is_workspace_admin(principal: User) -> bool:
-    """Check if user is admin of any workspace"""
-    return WorkspaceMembership.objects.filter(
-        user=principal,
-        role=WorkspaceMembershipRole.ADMIN,
-    ).exists()
-
-
-def create_workspace(principal: User):
-    """Can create a workspace - either workspace admin or user with create feature flag"""
-    return not principal.has_feature_flag("workspaces.prevent_create") and (
-        is_workspace_admin(principal) or principal.has_feature_flag("workspaces.create")
-    )
+from .models import Connection, Workspace, WorkspaceMembershipRole
 
 
 def update_workspace(principal: User, workspace: Workspace):

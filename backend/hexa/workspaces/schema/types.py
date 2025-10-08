@@ -71,7 +71,7 @@ def resolve_workspace_permissions_delete_table(obj: Workspace, info, **kwargs):
 def resolve_me_permissions_create_workspace(me, info):
     request: HttpRequest = info.context["request"]
     return (
-        request.user.has_perm("workspaces.create_workspace")
+        request.user.has_perm("user_management.create_workspace")
         if request.user.is_authenticated
         else False
     )
