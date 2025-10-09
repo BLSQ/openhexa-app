@@ -15,13 +15,16 @@ import DatasetWorkspacesList from "./DatasetWorkspacesList";
 
 const DEFAULT_PAGE_SIZE = 10;
 
-// TODO : url of workspace
 // TODO : is the linked dataset showing ?
 // TODO : why datasets from other orgs ?
+
+// TODO : url of workspace
+// TODO : url path
+
 // TODO : avoid the double query
+
 // TODO : index on updatedAt
 // TODO : High query count
-// TODO : url path
 
 export default function OrganizationDatasets({
   organization,
