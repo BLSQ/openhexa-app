@@ -15,7 +15,6 @@ import DatasetWorkspacesList from "./DatasetWorkspacesList";
 
 const DEFAULT_PAGE_SIZE = 10;
 
-// TODO : index on updatedAt
 // TODO : High query count
 
 export default function OrganizationDatasets({
