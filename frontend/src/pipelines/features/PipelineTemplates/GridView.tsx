@@ -50,50 +50,55 @@ const GridView = ({
             </Link>
           )}
         </BaseColumn>
-        <BaseColumn id="version" label={t("Version")}>
+        <BaseColumn id="version" label={t("Version")} className="w-20">
           {({ currentVersion }) => (
-            <span>
-              {currentVersion ? `v${currentVersion.versionNumber}` : ""}
+            <span className="text-sm">
+              {currentVersion ? `v${currentVersion.versionNumber}` : "-"}
             </span>
           )}
         </BaseColumn>
         <TextColumn
           id="worksapce"
-          label={t("Source workspace")}
+          label={t("Workspace")}
           accessor="workspace.name"
+          className="w-36"
         />
-        <BaseColumn id="tags" label={t("Tags")}>
+        <BaseColumn id="tags" label={t("Tags")} className="w-32">
           {(template) => (
-            <div className="flex flex-wrap gap-1 max-w-40">
+            <div className="flex flex-wrap gap-1">
               {template.tags && template.tags.length > 0 ? (
-                template.tags.map((tag: any) => (
+                template.tags.slice(0, 2).map((tag: any) => (
                   <Tag key={tag.id} tag={tag} className="text-xs" />
                 ))
               ) : (
-                <span className="text-gray-500 text-sm italic">{t("No tags")}</span>
+                <span className="text-gray-400 text-xs">-</span>
+              )}
+              {template.tags && template.tags.length > 2 && (
+                <span className="text-xs text-gray-500">+{template.tags.length - 2}</span>
               )}
             </div>
           )}
         </BaseColumn>
-        <BaseColumn id="functionalType" label={t("Type")}>
+        <BaseColumn id="functionalType" label={t("Type")} className="w-28">
           {(template) => (
-            <span className="text-gray-600">
-              {template.functionalType ? formatPipelineFunctionalType(template.functionalType) : t("Not set")}
+            <span className="text-gray-600 text-sm">
+              {template.functionalType ? formatPipelineFunctionalType(template.functionalType) : <span className="text-gray-400">-</span>}
             </span>
           )}
         </BaseColumn>
         <DateColumn
           accessor={"currentVersion.createdAt"}
-          label={t("Created At")}
+          label={t("Updated")}
+          className="w-32"
         />
-        <BaseColumn id="actions" className={"text-right"}>
+        <BaseColumn id="actions" className="text-right w-52">
           {(template) => {
             const {
               permissions: { delete: canDelete },
               currentVersion,
             } = template;
             return (
-              <div className={"space-x-1"}>
+              <div className="flex justify-end gap-1">
                 {currentVersion && (
                   <Button
                     variant="primary"
@@ -101,20 +106,18 @@ const GridView = ({
                     onClick={createPipeline(currentVersion.id)}
                     leadingIcon={<PlusIcon className="h-4 w-4" />}
                   >
-                    {t("Create pipeline")}
+                    {t("Create")}
                   </Button>
                 )}
                 {canDelete && (
-                  <>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => setTemplateToDelete(template)}
-                      leadingIcon={<TrashIcon className="h-4 w-4" />}
-                    >
-                      {t("Delete")}
-                    </Button>
-                  </>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => setTemplateToDelete(template)}
+                    leadingIcon={<TrashIcon className="h-4 w-4" />}
+                  >
+                    {t("Delete")}
+                  </Button>
                 )}
               </div>
             );

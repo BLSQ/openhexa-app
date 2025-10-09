@@ -298,3 +298,49 @@ class PipelineTemplatesTest(GraphQLTestCase):
         self.assertFalse(
             PipelineTemplate.objects.filter(id=pipeline_template.id).exists()
         )
+
+    def test_update_pipeline_template_with_tags(self):
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline_template = PipelineTemplate.objects.create(
+            name="Template with Tags",
+            code="template_with_tags",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+
+        response = self.run_query(
+            """
+            mutation updatePipelineTemplate($input: UpdateTemplateInput!) {
+                updatePipelineTemplate(input: $input) {
+                    success
+                    errors
+                    template {
+                        id
+                        name
+                        tags {
+                            id
+                            name
+                        }
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(pipeline_template.id),
+                    "tags": ["new-tag", "another-tag"],
+                }
+            },
+        )
+
+        self.assertEqual(response["data"]["updatePipelineTemplate"]["success"], True)
+        self.assertEqual(response["data"]["updatePipelineTemplate"]["errors"], [])
+
+        template_data = response["data"]["updatePipelineTemplate"]["template"]
+        self.assertEqual(len(template_data["tags"]), 2)
+        tag_names = {tag["name"] for tag in template_data["tags"]}
+        self.assertEqual(tag_names, {"new-tag", "another-tag"})
+
+        pipeline_template.refresh_from_db()
+        self.assertEqual(pipeline_template.tags.count(), 2)
