@@ -71,6 +71,15 @@ def resolve_create_pipeline(_, info, **kwargs):
         if input.get("functional_type"):
             data["functional_type"] = input["functional_type"]
 
+        if "tags" in input:
+            tags, has_error = _validate_and_get_tags(input["tags"])
+            if has_error:
+                return {
+                    "success": False,
+                    "errors": ["INVALID_CONFIG"],
+                }
+            data["tags"] = tags
+
         pipeline = Pipeline.objects.create_if_has_perm(
             principal=request.user, workspace=workspace, name=input["name"], **data
         )

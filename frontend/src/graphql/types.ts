@@ -841,6 +841,7 @@ export type CreatePipelineInput = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
   name: Scalars['String']['input'];
   notebookPath?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug: Scalars['String']['input'];
 };
 
