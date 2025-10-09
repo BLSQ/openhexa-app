@@ -7,7 +7,7 @@ import { useTranslation } from "next-i18next";
 import {
   useOrganizationDatasetsQuery,
   OrganizationDatasetsQuery,
-  OrganizationDataset_DatasetFragment,
+  OrganizationDataset_LinkFragment,
 } from "organizations/graphql/queries.generated";
 import Block from "core/components/Block";
 import Link from "core/components/Link";
@@ -15,13 +15,18 @@ import DatasetWorkspacesList from "./DatasetWorkspacesList";
 
 const DEFAULT_PAGE_SIZE = 10;
 
+// TODO : avoid the double query
+// TODO : index on updatedAt
+// TODO : High query count
+// TODO : url path
+
 export default function OrganizationDatasets({
   organization,
 }: {
   organization: OrganizationDatasetsQuery["organization"];
 }) {
   const { t } = useTranslation();
-  const { id: organizationId, datasets: SRRDatasets } = organization || {};
+  const { id: organizationId, datasetLinks: SRRDatasets } = organization || {};
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [previousData, setPreviousData] =
@@ -45,7 +50,7 @@ export default function OrganizationDatasets({
   }, [data, loading]);
 
   const displayData = data || previousData;
-  const datasets = displayData?.organization?.datasets ||
+  const datasets = displayData?.organization?.datasetLinks ||
     SRRDatasets || {
       items: [],
       totalItems: 0,
@@ -79,12 +84,15 @@ export default function OrganizationDatasets({
           className="min-h-30"
         >
           <BaseColumn label={t("Dataset")} id="dataset" minWidth={250}>
-            {(dataset: OrganizationDataset_DatasetFragment) => (
+            {(link: OrganizationDataset_LinkFragment) => (
               <Link
-                href={`/workspaces/${dataset.workspace?.slug}/datasets/${dataset.slug}/from/${dataset.workspace?.slug}`}
+                href={`/workspaces/${link.dataset.workspace?.slug}/datasets/${link.dataset.slug}/from/${link.dataset.workspace?.slug}`}
                 className="font-medium text-blue-600 hover:text-blue-800"
               >
-                {dataset.name}
+                {link.dataset.name}{" "}
+                <span className="text-xs text-gray-500 font-normal">
+                  ({link.dataset.slug})
+                </span>
               </Link>
             )}
           </BaseColumn>
@@ -93,12 +101,12 @@ export default function OrganizationDatasets({
             id="source_workspace"
             minWidth={150}
           >
-            {(dataset: OrganizationDataset_DatasetFragment) => (
+            {(link: OrganizationDataset_LinkFragment) => (
               <Link
-                href={`/workspaces/${dataset.workspace?.slug}`}
+                href={`/workspaces/${link.dataset.workspace?.slug}`}
                 className="text-blue-600 hover:text-blue-800"
               >
-                {dataset.workspace?.name}
+                {link.dataset.workspace?.name}
               </Link>
             )}
           </BaseColumn>
@@ -107,9 +115,9 @@ export default function OrganizationDatasets({
             id="shared_workspaces"
             minWidth={300}
           >
-            {(dataset: OrganizationDataset_DatasetFragment) => (
+            {(link: OrganizationDataset_LinkFragment) => (
               <DatasetWorkspacesList
-                dataset={dataset}
+                dataset={link.dataset}
                 size="sm"
                 maxVisible={2}
               />
@@ -117,7 +125,7 @@ export default function OrganizationDatasets({
           </BaseColumn>
           <DateColumn
             className="py-4"
-            accessor="updatedAt"
+            accessor="dataset.updatedAt"
             id="updatedAt"
             label={t("Last updated")}
             relative
