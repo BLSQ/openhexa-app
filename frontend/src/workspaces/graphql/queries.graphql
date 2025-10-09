@@ -706,6 +706,10 @@ query WorkspaceTemplatePage($workspaceSlug: String!, $templateCode: String!) {
     code
     name
     description
+    functionalType
+    tags {
+      ...Tag_tag
+    }
     currentVersion {
       id
       versionNumber

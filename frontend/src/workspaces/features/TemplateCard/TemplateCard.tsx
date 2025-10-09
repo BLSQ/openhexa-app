@@ -14,6 +14,7 @@ import Button from "core/components/Button";
 import router from "next/router";
 import User from "core/features/User";
 import { stripMarkdown } from "core/helpers";
+import PipelineMetadataDisplay from "pipelines/features/PipelineMetadataDisplay";
 
 interface TemplateCardProps {
   workspace: TemplateCard_WorkspaceFragment;
@@ -42,6 +43,7 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
         <div className={clsx("line-clamp-3")}>
           {stripMarkdown(template.description ?? "")}
         </div>
+        <PipelineMetadataDisplay metadata={template} size="sm" />
         {template.currentVersion?.user && (
           <div className="flex justify-end">
             <Tooltip
@@ -92,6 +94,7 @@ TemplateCard.fragments = {
       code
       name
       description
+      ...PipelineMetadataDisplay_template
       currentVersion {
         id
         createdAt
@@ -101,6 +104,7 @@ TemplateCard.fragments = {
       }
     }
     ${User.fragments.user}
+    ${PipelineMetadataDisplay.fragments.template}
   `,
   workspace: gql`
     fragment TemplateCard_workspace on Workspace {

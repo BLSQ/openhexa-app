@@ -1,6 +1,7 @@
 import * as Types from '../../graphql/types';
 
 import { gql } from '@apollo/client';
+import { Tag_TagFragmentDoc } from '../../core/features/Tag.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type UpdateWorkspaceTemplateMutationVariables = Types.Exact<{
@@ -8,7 +9,7 @@ export type UpdateWorkspaceTemplateMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateWorkspaceTemplateMutation = { __typename?: 'Mutation', updatePipelineTemplate: { __typename?: 'UpdateTemplateResult', success: boolean, errors: Array<Types.UpdateTemplateError>, template?: { __typename?: 'PipelineTemplate', id: string, name: string, description?: string | null, config?: string | null } | null } };
+export type UpdateWorkspaceTemplateMutation = { __typename?: 'Mutation', updatePipelineTemplate: { __typename?: 'UpdateTemplateResult', success: boolean, errors: Array<Types.UpdateTemplateError>, template?: { __typename?: 'PipelineTemplate', id: string, name: string, description?: string | null, config?: string | null, functionalType?: Types.PipelineFunctionalType | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }> } | null } };
 
 export type DeleteTemplateVersionMutationVariables = Types.Exact<{
   input: Types.DeleteTemplateVersionInput;
@@ -28,10 +29,14 @@ export const UpdateWorkspaceTemplateDocument = gql`
       name
       description
       config
+      functionalType
+      tags {
+        ...Tag_tag
+      }
     }
   }
 }
-    `;
+    ${Tag_TagFragmentDoc}`;
 export type UpdateWorkspaceTemplateMutationFn = Apollo.MutationFunction<UpdateWorkspaceTemplateMutation, UpdateWorkspaceTemplateMutationVariables>;
 
 /**
