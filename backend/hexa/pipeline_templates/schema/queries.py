@@ -14,8 +14,16 @@ def resolve_pipeline_templates(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     search = kwargs.get("search", "")
 
-    pipeline_templates = PipelineTemplate.objects.filter(
-        Q(name__icontains=search) | Q(description__icontains=search)
+    pipeline_templates = (
+        PipelineTemplate.objects.filter_for_user(request.user)
+        .prefetch_related("tags")
+        .filter(
+            Q(name__icontains=search)
+            | Q(description__icontains=search)
+            | Q(tags__name__icontains=search)
+            | Q(functional_type__icontains=search)
+        )
+        .distinct()
     )
 
     workspace_slug = kwargs.get("workspace_slug")
