@@ -15,7 +15,6 @@ import DatasetWorkspacesList from "./DatasetWorkspacesList";
 
 const DEFAULT_PAGE_SIZE = 10;
 
-// TODO : is the linked dataset showing ?
 // TODO : why datasets from other orgs ?
 
 // TODO : url of workspace
