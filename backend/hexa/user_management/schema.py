@@ -32,7 +32,7 @@ from hexa.analytics.api import track
 from hexa.core.graphql import result_page
 from hexa.core.string import remove_whitespace
 from hexa.core.templatetags.colors import hash_color
-from hexa.datasets.models import Dataset
+from hexa.datasets.models import Dataset, DatasetLink
 from hexa.user_management.models import (
     AlreadyExists,
     CannotDelete,
@@ -711,6 +711,25 @@ def resolve_organization_datasets(
 
     return result_page(
         queryset=qs.order_by("-updated_at"),
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", 15),
+    )
+
+
+@organization_object.field("datasetLinks")
+def resolve_organization_dataset_links(
+    organization: Organization, info, query=None, **kwargs
+):
+    request: HttpRequest = info.context["request"]
+
+    accessible_workspaces = organization.filter_workspaces_for_user(request.user)
+
+    qs = DatasetLink.objects.for_workspaces(
+        user=request.user, workspaces=accessible_workspaces, query=query
+    )
+
+    return result_page(
+        queryset=qs.order_by("dataset_id", "-dataset__updated_at"),
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", 15),
     )

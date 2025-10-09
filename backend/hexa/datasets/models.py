@@ -478,6 +478,43 @@ class DatasetLinkQuerySet(BaseQuerySet):
             "workspace",
         ).prefetch_related("dataset__versions", "dataset__links")
 
+    def for_workspaces(self, workspaces, pinned=None, query=None):
+        """
+        Get dataset links for given workspaces.
+        Returns one link per dataset.
+
+        Args:
+            workspaces: QuerySet or list of Workspace objects
+            pinned: Optional boolean to filter by pinned status
+            query: Optional search query for dataset name/description/slug
+
+        Returns
+        -------
+            QuerySet of DatasetLink objects
+        """
+        workspace_ids = [w.id for w in workspaces]
+
+        if not workspace_ids:
+            return DatasetLink.objects.none()
+
+        permission_query = Q(workspace__id__in=workspace_ids) | Q(
+            dataset__shared_with_organization=True
+        )
+
+        qs = self.optimize_query(self.filter(permission_query)).distinct("dataset_id")
+
+        if query is not None:
+            qs = qs.filter(
+                Q(dataset__name__icontains=query)
+                | Q(dataset__description__icontains=query)
+                | Q(dataset__slug__icontains=query)
+            )
+
+        if pinned is not None:
+            qs = qs.filter(is_pinned=pinned)
+
+        return qs
+
     def filter_for_user(self, user: AnonymousUser | User):
         # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
         from hexa.pipelines.authentication import PipelineRunUser
