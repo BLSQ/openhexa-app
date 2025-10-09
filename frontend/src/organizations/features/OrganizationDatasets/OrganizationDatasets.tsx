@@ -15,8 +15,6 @@ import DatasetWorkspacesList from "./DatasetWorkspacesList";
 
 const DEFAULT_PAGE_SIZE = 10;
 
-// TODO : url of workspace
-
 // TODO : avoid the double query
 
 // TODO : index on updatedAt
