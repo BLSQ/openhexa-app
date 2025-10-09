@@ -15,8 +15,6 @@ import DatasetWorkspacesList from "./DatasetWorkspacesList";
 
 const DEFAULT_PAGE_SIZE = 10;
 
-// TODO : avoid the double query
-
 // TODO : index on updatedAt
 // TODO : High query count
 
@@ -41,6 +39,7 @@ export default function OrganizationDatasets({
       perPage: DEFAULT_PAGE_SIZE,
       query: debouncedSearchTerm,
     },
+    skip: !debouncedSearchTerm,
   });
 
   useEffect(() => {
@@ -50,7 +49,8 @@ export default function OrganizationDatasets({
   }, [data, loading]);
 
   const displayData = data || previousData;
-  const datasets = displayData?.organization?.datasetLinks ||
+  const datasets = (debouncedSearchTerm &&
+    displayData?.organization?.datasetLinks) ||
     SRRDatasets || {
       items: [],
       totalItems: 0,
