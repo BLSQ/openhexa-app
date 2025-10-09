@@ -15,8 +15,9 @@ import DatasetWorkspacesList from "./DatasetWorkspacesList";
 
 const DEFAULT_PAGE_SIZE = 10;
 
+// TODO : url of workspace
 // TODO : is the linked dataset showing ?
-// TODO : why datasets from opther orgs ?
+// TODO : why datasets from other orgs ?
 // TODO : avoid the double query
 // TODO : index on updatedAt
 // TODO : High query count
