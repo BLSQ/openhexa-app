@@ -43,6 +43,10 @@ query Organizations {
 
 fragment OrganizationDataset_link on DatasetLink {
     id
+    workspace {
+        slug
+        name
+    }
     dataset {
         id
         slug

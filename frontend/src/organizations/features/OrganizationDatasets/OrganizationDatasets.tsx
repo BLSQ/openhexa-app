@@ -16,7 +16,6 @@ import DatasetWorkspacesList from "./DatasetWorkspacesList";
 const DEFAULT_PAGE_SIZE = 10;
 
 // TODO : url of workspace
-// TODO : url path
 
 // TODO : avoid the double query
 
@@ -89,7 +88,7 @@ export default function OrganizationDatasets({
           <BaseColumn label={t("Dataset")} id="dataset" minWidth={250}>
             {(link: OrganizationDataset_LinkFragment) => (
               <Link
-                href={`/workspaces/${link.dataset.workspace?.slug}/datasets/${link.dataset.slug}/from/${link.dataset.workspace?.slug}`}
+                href={`/workspaces/${link.workspace.slug}/datasets/${link.dataset.slug}/from/${link.workspace.slug}`}
                 className="font-medium text-blue-600 hover:text-blue-800"
               >
                 {link.dataset.name}{" "}
