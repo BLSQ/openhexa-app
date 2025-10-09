@@ -49,7 +49,7 @@ def resolve_dataset_link_permissions_pin(obj: DatasetLink, info, **kwargs):
 
 @workspace_object.field("datasets")
 def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **kwargs):
-    qs = DatasetLink.objects.for_workspaces(
+    qs = DatasetLink.objects.filter_for_workspaces(
         workspaces=[obj], pinned=pinned, query=query
     )
 

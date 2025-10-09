@@ -724,7 +724,7 @@ def resolve_organization_dataset_links(
 
     accessible_workspaces = organization.filter_workspaces_for_user(request.user)
 
-    qs = DatasetLink.objects.for_workspaces(
+    qs = DatasetLink.objects.filter_for_workspaces(
         workspaces=accessible_workspaces, query=query
     )
 

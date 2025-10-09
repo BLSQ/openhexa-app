@@ -478,7 +478,7 @@ class DatasetLinkQuerySet(BaseQuerySet):
             "workspace",
         ).prefetch_related("dataset__versions", "dataset__links")
 
-    def for_workspaces(self, workspaces, pinned=None, query=None):
+    def filter_for_workspaces(self, workspaces, pinned=None, query=None):
         """
         Get dataset links for given workspaces.
         Returns one link per dataset.
