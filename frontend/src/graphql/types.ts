@@ -841,6 +841,7 @@ export type CreatePipelineInput = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
   name: Scalars['String']['input'];
   notebookPath?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug: Scalars['String']['input'];
 };
 
@@ -5263,6 +5264,7 @@ export type WebappsPage = {
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type Workspace = {
   __typename?: 'Workspace';
+  availablePipelineTags: Array<Scalars['String']['output']>;
   /** File storage of the workspace represented as a bucket */
   bucket: Bucket;
   configuration: Scalars['JSON']['output'];

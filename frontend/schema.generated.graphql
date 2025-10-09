@@ -797,6 +797,7 @@ input CreatePipelineInput {
   functionalType: PipelineFunctionalType
   name: String!
   notebookPath: String
+  tags: [String!]
   workspaceSlug: String!
 }
 
@@ -4464,6 +4465,8 @@ type WebappsPage {
 Represents a workspace. A workspace is a shared environment where users can collaborate on data projects.
 """
 type Workspace {
+  availablePipelineTags: [String!]!
+
   """File storage of the workspace represented as a bucket"""
   bucket: Bucket!
   configuration: JSON!
