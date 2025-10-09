@@ -1,5 +1,7 @@
 import DataCard from "core/components/DataCard";
 import TextProperty from "core/components/DataCard/TextProperty";
+import TagProperty from "core/components/DataCard/TagProperty";
+import SelectProperty from "core/components/DataCard/SelectProperty";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
@@ -11,6 +13,8 @@ import Link from "core/components/Link";
 import RenderProperty from "core/components/DataCard/RenderProperty";
 import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 import { createTemplatePageServerSideProps } from "workspaces/helpers/templatePages";
+import { PipelineFunctionalType } from "graphql/types";
+import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 
 type Props = {
   templateCode: string;
@@ -38,6 +42,8 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
     await updateTemplate(template.id, {
       name: values.name,
       description: values.description,
+      tags: values.tags?.map((tag: any) => tag.name) || [],
+      functionalType: values.functionalType,
     });
   };
 
@@ -59,6 +65,23 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
             id="description"
             label="Description"
             accessor={"description"}
+          />
+          <TagProperty
+            id="tags"
+            accessor="tags"
+            label={t("Tags")}
+            defaultValue={t("Not set")}
+          />
+          <SelectProperty
+            id="functionalType"
+            accessor="functionalType"
+            label={t("Type")}
+            help={t("The functional purpose of this template")}
+            options={Object.values(PipelineFunctionalType)}
+            getOptionLabel={(option) => option ? formatPipelineFunctionalType(option) : t("Not set")}
+            nullable
+            defaultValue={t("Not set")}
+            className="max-w-xs"
           />
           <RenderProperty
             id="version_name"

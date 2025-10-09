@@ -7,6 +7,7 @@ import {
   UpdateWorkspaceTemplateMutationVariables,
 } from "./templates.generated";
 import { UpdateTemplateError } from "graphql/types";
+import Tag from "core/features/Tag";
 
 export async function updateTemplate(
   templateId: string,
@@ -27,9 +28,14 @@ export async function updateTemplate(
             name
             description
             config
+            functionalType
+            tags {
+              ...Tag_tag
+            }
           }
         }
       }
+      ${Tag.fragments.tag}
     `,
     variables: { input: { id: templateId, ...values } },
   });

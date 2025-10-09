@@ -231,7 +231,10 @@ def resolve_update_template(_, info, **kwargs):
 
         if "tags" in input:
             tag_names = input.pop("tags")
-            tags = Tag.objects.filter(name__in=tag_names)
+            tags = []
+            for tag_name in tag_names:
+                tag, created = Tag.objects.get_or_create(name=tag_name.strip())
+                tags.append(tag)
             input["tags"] = tags
 
         template.update_if_has_perm(request.user, **input)
