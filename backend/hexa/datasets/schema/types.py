@@ -49,10 +49,8 @@ def resolve_dataset_link_permissions_pin(obj: DatasetLink, info, **kwargs):
 
 @workspace_object.field("datasets")
 def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **kwargs):
-    request: HttpRequest = info.context["request"]
-
     qs = DatasetLink.objects.for_workspaces(
-        user=request.user, workspaces=[obj], pinned=pinned, query=query
+        workspaces=[obj], pinned=pinned, query=query
     )
 
     return result_page(
