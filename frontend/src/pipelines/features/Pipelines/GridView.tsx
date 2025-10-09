@@ -4,10 +4,10 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import Block from "core/components/Block";
 import { useTranslation } from "next-i18next";
 import Link from "core/components/Link";
-import { formatPipelineSource, formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
+import { formatPipelineSource } from "workspaces/helpers/pipelines";
 import Badge from "core/components/Badge";
 import PipelineRunStatusBadge from "../PipelineRunStatusBadge";
-import Tag from "core/features/Tag";
+import { TagsCell, FunctionalTypeCell } from "../PipelineMetadataGrid";
 import User from "core/features/User";
 
 type GridViewProps = {
@@ -59,22 +59,19 @@ const GridView = ({
         </BaseColumn>
         <BaseColumn id="tags" label={t("Tags")}>
           {(pipeline) => (
-            <div className="flex flex-wrap gap-1 max-w-40">
-              {pipeline.tags && pipeline.tags.length > 0 ? (
-                pipeline.tags.map((tag: any) => (
-                  <Tag key={tag.id} tag={tag} className="text-xs" />
-                ))
-              ) : (
-                <span className="text-gray-500 text-sm italic">{t("No tags")}</span>
-              )}
-            </div>
+            <TagsCell
+              tags={pipeline.tags}
+              emptyText={t("No tags")}
+              className="max-w-40"
+            />
           )}
         </BaseColumn>
         <BaseColumn id="functionalType" label={t("Type")}>
           {(pipeline) => (
-            <span className="text-gray-600">
-              {pipeline.functionalType ? formatPipelineFunctionalType(pipeline.functionalType) : t("Not set")}
-            </span>
+            <FunctionalTypeCell
+              functionalType={pipeline.functionalType}
+              emptyText={t("Not set")}
+            />
           )}
         </BaseColumn>
         <BaseColumn label={t("Last Run")} id="lastRunStatus">

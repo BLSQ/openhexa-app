@@ -230,11 +230,12 @@ def resolve_update_template(_, info, **kwargs):
         )
 
         if "tags" in input:
-            tag_names = input.pop("tags")
-            tags = []
-            for tag_name in tag_names:
-                tag, created = Tag.objects.get_or_create(name=tag_name.strip())
-                tags.append(tag)
+            tags, has_error = Tag.validate_and_get_or_create(input.pop("tags"))
+            if has_error:
+                return {
+                    "success": False,
+                    "errors": ["INVALID_CONFIG"],
+                }
             input["tags"] = tags
 
         template.update_if_has_perm(request.user, **input)

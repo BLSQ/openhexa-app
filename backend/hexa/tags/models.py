@@ -79,3 +79,35 @@ class Tag(Base):
             raise InvalidTag(f"Tags not found: {', '.join(sorted(missing_names))}")
 
         return tags
+
+    @classmethod
+    def validate_and_get_or_create(
+        cls, tag_names: list[str]
+    ) -> tuple[list["Tag"], bool]:
+        """
+        Validate tag names and get or create Tag instances.
+
+        Args:
+            tag_names: List of tag name strings
+
+        Returns
+        -------
+            tuple: (list of Tag instances, has_error boolean)
+                   has_error is True if validation failed
+        """
+        if not tag_names:
+            return [], False
+
+        tags = []
+        try:
+            for name in tag_names:
+                if not isinstance(name, str):
+                    return [], True
+                name = name.strip()
+                if not name:
+                    return [], True
+                tag, created = cls.objects.get_or_create(name=name)
+                tags.append(tag)
+            return tags, False
+        except Exception:
+            return [], True

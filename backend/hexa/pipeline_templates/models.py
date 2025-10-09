@@ -48,6 +48,10 @@ class PipelineTemplate(SoftDeletedModel):
                 condition=Q(deleted_at__isnull=True),
             ),
         ]
+        indexes = [
+            models.Index(fields=["name"], name="idx_template_name"),
+            models.Index(fields=["functional_type"], name="idx_template_func_type"),
+        ]
         ordering = ["name"]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
