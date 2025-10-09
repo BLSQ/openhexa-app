@@ -166,10 +166,16 @@ class PipelineTemplatesTest(GraphQLTestCase):
     def test_get_pipeline_templates(self):
         self.client.force_login(self.USER_ROOT)
         PipelineTemplate.objects.create(
-            name="Template 1", code="Code 1", source_pipeline=self.PIPELINE1
+            name="Template 1",
+            code="Code 1",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
         )
         PipelineTemplate.objects.create(
-            name="Template 2", code="Code 2", source_pipeline=self.PIPELINE2
+            name="Template 2",
+            code="Code 2",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
         )
         r = self.run_query(
             """
@@ -199,13 +205,22 @@ class PipelineTemplatesTest(GraphQLTestCase):
     def test_searching_pipeline_templates(self):
         self.client.force_login(self.USER_ROOT)
         PipelineTemplate.objects.create(
-            name="Template 1", code="Code 1", source_pipeline=self.PIPELINE1
+            name="Template 1",
+            code="Code 1",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
         )
         PipelineTemplate.objects.create(
-            name="Template 2", code="Code 2", source_pipeline=self.PIPELINE2
+            name="Template 2",
+            code="Code 2",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
         )
         PipelineTemplate.objects.create(
-            name="Template 22", code="Code 22", source_pipeline=self.PIPELINE3
+            name="Template 22",
+            code="Code 22",
+            source_pipeline=self.PIPELINE3,
+            workspace=self.WS1,
         )
         r = self.run_query(
             """
@@ -344,3 +359,114 @@ class PipelineTemplatesTest(GraphQLTestCase):
 
         pipeline_template.refresh_from_db()
         self.assertEqual(pipeline_template.tags.count(), 2)
+
+    def test_search_pipeline_templates_by_tags_and_functional_type(self):
+        from hexa.pipelines.models import PipelineFunctionalType
+        from hexa.tags.models import Tag
+
+        self.client.force_login(self.USER_ROOT)
+
+        tag1 = Tag.objects.create(name="data-ingestion")
+        tag2 = Tag.objects.create(name="analytics")
+        tag3 = Tag.objects.create(name="reporting")
+
+        template1 = PipelineTemplate.objects.create(
+            name="ETL Template",
+            code="etl-template",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+            functional_type=PipelineFunctionalType.EXTRACTION,
+        )
+        template1.tags.add(tag1)
+
+        template2 = PipelineTemplate.objects.create(
+            name="Analytics Template",
+            code="analytics-template",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
+            functional_type=PipelineFunctionalType.COMPUTATION,
+        )
+        template2.tags.add(tag2)
+
+        template3 = PipelineTemplate.objects.create(
+            name="Report Generator",
+            code="report-generator",
+            source_pipeline=self.PIPELINE3,
+            workspace=self.WS1,
+            functional_type=PipelineFunctionalType.TRANSFORMATION,
+        )
+        template3.tags.add(tag3)
+
+        response = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, search: "ingestion") {
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """
+        )
+        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 1)
+        self.assertEqual(
+            response["data"]["pipelineTemplates"]["items"][0]["code"], "etl-template"
+        )
+
+        response = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, search: "EXTRACTION") {
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """
+        )
+        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 1)
+        self.assertEqual(
+            response["data"]["pipelineTemplates"]["items"][0]["code"], "etl-template"
+        )
+
+        response = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, search: "analytics") {
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """
+        )
+        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 1)
+        self.assertEqual(
+            response["data"]["pipelineTemplates"]["items"][0]["code"],
+            "analytics-template",
+        )
+
+        response = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, search: "transformation") {
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """
+        )
+        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 1)
+        self.assertEqual(
+            response["data"]["pipelineTemplates"]["items"][0]["code"],
+            "report-generator",
+        )
