@@ -498,7 +498,8 @@ class DatasetLinkQuerySet(BaseQuerySet):
             return DatasetLink.objects.none()
 
         permission_query = Q(workspace__id__in=workspace_ids) | Q(
-            dataset__shared_with_organization=True
+            dataset__shared_with_organization=True,
+            workspace__organization__workspaces__id__in=workspace_ids,
         )
 
         qs = self.optimize_query(self.filter(permission_query)).distinct("dataset_id")
