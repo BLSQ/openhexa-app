@@ -8,8 +8,7 @@ import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "core/components/Link";
 import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
-import Tag from "core/features/Tag";
-import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
+import { TagsCell, FunctionalTypeCell } from "pipelines/features/PipelineMetadataGrid";
 
 type GridViewProps = {
   items: any[];
@@ -65,25 +64,12 @@ const GridView = ({
         />
         <BaseColumn id="tags" label={t("Tags")} className="w-32">
           {(template) => (
-            <div className="flex flex-wrap gap-1">
-              {template.tags && template.tags.length > 0 ? (
-                template.tags.slice(0, 2).map((tag: any) => (
-                  <Tag key={tag.id} tag={tag} className="text-xs" />
-                ))
-              ) : (
-                <span className="text-gray-400 text-xs">-</span>
-              )}
-              {template.tags && template.tags.length > 2 && (
-                <span className="text-xs text-gray-500">+{template.tags.length - 2}</span>
-              )}
-            </div>
+            <TagsCell tags={template.tags} maxTags={2} />
           )}
         </BaseColumn>
         <BaseColumn id="functionalType" label={t("Type")} className="w-28">
           {(template) => (
-            <span className="text-gray-600 text-sm">
-              {template.functionalType ? formatPipelineFunctionalType(template.functionalType) : <span className="text-gray-400">-</span>}
-            </span>
+            <FunctionalTypeCell functionalType={template.functionalType} />
           )}
         </BaseColumn>
         <DateColumn

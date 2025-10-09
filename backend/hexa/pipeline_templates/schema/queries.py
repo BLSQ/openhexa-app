@@ -16,6 +16,7 @@ def resolve_pipeline_templates(_, info, **kwargs):
 
     pipeline_templates = (
         PipelineTemplate.objects.filter_for_user(request.user)
+        .select_related("workspace", "source_pipeline")
         .prefetch_related("tags")
         .filter(
             Q(name__icontains=search)
