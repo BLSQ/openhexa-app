@@ -6,7 +6,7 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 SECURE_SSL_REDIRECT = False
 
-ENABLE_SQL_LOGGING = os.environ.get("IS_LOCAL_DEV", "0") == "1"
+ENABLE_SQL_LOGGING = os.environ.get("IS_LOCAL_DEV", False)
 
 LOGGING = {
     "version": 1,
