@@ -85,7 +85,7 @@ export default function OrganizationDatasets({
           <BaseColumn label={t("Dataset")} id="dataset" minWidth={250}>
             {(link: OrganizationDataset_LinkFragment) => (
               <Link
-                href={`/workspaces/${link.workspace.slug}/datasets/${link.dataset.slug}/from/${link.workspace.slug}`}
+                href={`/workspaces/${link.workspace.slug}/datasets/${link.dataset.slug}/from/${link.dataset.workspace?.slug ?? link.workspace.slug}`}
                 className="font-medium text-blue-600 hover:text-blue-800"
               >
                 {link.dataset.name}{" "}
