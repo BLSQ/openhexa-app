@@ -7,7 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.db.models import JSONField, Q
+from django.db.models import JSONField, Prefetch, Q
 from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
 from slugify import slugify
@@ -153,6 +153,9 @@ class Dataset(MetadataMixin, Base):
 
     @property
     def latest_version(self):
+        versions = self.get_prefetched("versions")
+        if versions is not None:
+            return versions[0] if versions else None
         return self.versions.order_by("-created_at").first()
 
     def update_if_has_perm(self, *, principal: User, **kwargs):
@@ -470,13 +473,20 @@ class DatasetFileSample(Base):
 class DatasetLinkQuerySet(BaseQuerySet):
     @staticmethod
     def optimize_query(qs: models.QuerySet) -> models.QuerySet:
+        links_prefetch = Prefetch(
+            "dataset__links",
+            queryset=DatasetLink.objects.select_related(
+                "workspace", "workspace__organization"
+            ),
+        )
+
         return qs.select_related(
             "dataset",
             "dataset__workspace",
             "dataset__workspace__organization",
             "dataset__created_by",
             "workspace",
-        ).prefetch_related("dataset__versions", "dataset__links")
+        ).prefetch_related("dataset__versions", links_prefetch)
 
     def filter_for_workspaces(self, workspaces, pinned=None, query=None):
         """
