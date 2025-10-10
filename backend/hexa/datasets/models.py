@@ -526,8 +526,8 @@ class DatasetLinkQuerySet(BaseQuerySet):
 
         qs = (
             self.optimize_query(qs)
-            .order_by("dataset_id", "-dataset__updated_at")
-            .distinct("dataset_id")
+            .order_by("-dataset__updated_at", "dataset_id")
+            .distinct("dataset__updated_at", "dataset_id")
         )
         return qs
 
