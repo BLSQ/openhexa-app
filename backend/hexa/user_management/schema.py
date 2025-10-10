@@ -728,8 +728,20 @@ def resolve_organization_dataset_links(
         workspaces=accessible_workspaces, query=query
     )
 
+    if accessible_workspaces:
+        first_workspace = accessible_workspaces.first()
+        original_iter = qs.__iter__
+
+        def ensure_workspace_access_iter():
+            for obj in original_iter():
+                if obj.dataset.shared_with_organization:
+                    obj.workspace = first_workspace
+                yield obj
+
+        qs.__iter__ = ensure_workspace_access_iter
+
     return result_page(
-        queryset=qs.order_by("dataset_id", "-dataset__updated_at"),
+        queryset=qs,
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", 15),
     )

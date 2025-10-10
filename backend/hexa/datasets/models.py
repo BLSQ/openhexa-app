@@ -7,7 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.db.models import Case, IntegerField, JSONField, Prefetch, Q, Value, When
+from django.db.models import JSONField, Prefetch, Q
 from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
 from slugify import slugify
@@ -501,7 +501,6 @@ class DatasetLinkQuerySet(BaseQuerySet):
         Returns
         -------
             QuerySet of DatasetLink objects
-            Annotated with 'accessible_workspace_id' if the dataset is shared with the organization to ensure access
         """
         workspace_ids = [w.id for w in workspaces]
 
@@ -513,7 +512,7 @@ class DatasetLinkQuerySet(BaseQuerySet):
             workspace__organization__workspaces__id__in=workspace_ids,
         )
 
-        qs = self.optimize_query(self.filter(permission_query)).distinct("dataset_id")
+        qs = self.filter(permission_query)
 
         if query is not None:
             qs = qs.filter(
@@ -525,14 +524,10 @@ class DatasetLinkQuerySet(BaseQuerySet):
         if pinned is not None:
             qs = qs.filter(is_pinned=pinned)
 
-        qs = qs.annotate(
-            accessible_workspace_id=Case(
-                When(
-                    dataset__shared_with_organization=True, then=Value(workspace_ids[0])
-                ),
-                default=None,
-                output_field=IntegerField(),
-            )
+        qs = (
+            self.optimize_query(qs)
+            .order_by("dataset_id", "-dataset__updated_at")
+            .distinct("dataset_id")
         )
         return qs
 
