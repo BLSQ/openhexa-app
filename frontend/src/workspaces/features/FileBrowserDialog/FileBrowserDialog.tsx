@@ -133,14 +133,21 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     [restrictedDirectory],
   );
 
+  // Check if we can navigate to a given prefix (respecting directory restriction)
+  const canNavigateTo = useCallback(
+    (targetPrefix: string | null) => {
+      if (!restrictedDirectory) return true;
+
+      return targetPrefix && targetPrefix.startsWith(restrictedDirectory);
+    },
+    [restrictedDirectory],
+  );
+
   const setCurrentFolder = (prefix: string | null) => {
     setSearchQuery("");
     setCurrentPage(1);
     // If directory is restricted, don't allow navigation above it
-    if (
-      restrictedDirectory &&
-      (prefix === null || !prefix.startsWith(restrictedDirectory))
-    ) {
+    if (!canNavigateTo(prefix)) {
       setPrefix(restrictedDirectory);
     } else {
       setPrefix(prefix);
@@ -202,16 +209,6 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
   };
 
   const prefixes = useMemo(() => generateBreadcrumbs(prefix), [prefix]);
-
-  // Check if we can navigate to a given prefix (respecting directory restriction)
-  const canNavigateTo = useCallback(
-    (targetPrefix: string | null) => {
-      if (!restrictedDirectory) return true;
-      if (targetPrefix === null) return false;
-      return targetPrefix.startsWith(restrictedDirectory);
-    },
-    [restrictedDirectory],
-  );
 
   // Get data from combined query
   const searchResults =
