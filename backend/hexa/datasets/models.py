@@ -501,6 +501,7 @@ class DatasetLinkQuerySet(BaseQuerySet):
         Returns
         -------
             QuerySet of DatasetLink objects
+            Annotated with 'accessible_workspace_id' if the dataset is shared with the organization to ensure access
         """
         workspace_ids = [w.id for w in workspaces]
 
