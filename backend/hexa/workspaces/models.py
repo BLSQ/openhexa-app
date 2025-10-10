@@ -107,12 +107,8 @@ class WorkspaceManager(models.Manager):
         organization: Organization | None = None,
         configuration: dict | None = None,
     ):
-        if organization:
-            if not principal.has_perm("user_management.create_workspace", organization):
-                raise PermissionDenied
-        else:
-            if not principal.has_perm("workspaces.create_workspace"):
-                raise PermissionDenied
+        if not principal.has_perm("user_management.create_workspace", organization):
+            raise PermissionDenied
 
         slug = create_workspace_slug(name)
         create_kwargs = {

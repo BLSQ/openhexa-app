@@ -31,6 +31,9 @@ const mockWorkspace = {
     id: "org1",
     name: "Test Organization",
     shortName: "Test Organization",
+    permissions: {
+      createWorkspace: true,
+    },
   },
   permissions: {
     launchNotebookServer: false,

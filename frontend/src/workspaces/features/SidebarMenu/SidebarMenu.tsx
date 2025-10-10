@@ -53,7 +53,6 @@ const SidebarMenu = (props: SidebarMenuProps) => {
     if (isOpen) {
       setFalse();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.asPath]);
 
   const [isOpen, { toggle, setFalse }] = useToggle();
@@ -176,7 +175,8 @@ const SidebarMenu = (props: SidebarMenuProps) => {
             <div className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium tracking-wide text-gray-500 opacity-90">
               {t("Your workspaces")}
 
-              {me.permissions.createWorkspace && (
+              {(me.permissions.createWorkspace ||
+                workspace.organization?.permissions.createWorkspace) && (
                 <>
                   <button
                     type="button"
@@ -189,6 +189,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                   <CreateWorkspaceDialog
                     open={isDialogOpen}
                     onClose={() => setDialogOpen(false)}
+                    organizationId={workspace.organization?.id}
                   />
                 </>
               )}
@@ -345,6 +346,9 @@ SidebarMenu.fragments = {
         id
         name
         shortName
+        permissions {
+          createWorkspace
+        }
       }
     }
   `,
