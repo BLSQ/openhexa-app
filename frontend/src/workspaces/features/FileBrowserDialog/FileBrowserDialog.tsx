@@ -121,14 +121,12 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
 
   const updateSearchQuery = useCallback(
     (searchValue: string) => {
-      // Don't allow search when directory is restricted
-      if (restrictedDirectory) {
-        return;
-      }
       setIsSearching(true);
       setCurrentPage(1);
       setSearchQuery(searchValue);
-      setPrefix(null); // Search is across the entire bucket
+      // If directory is restricted, allow only search on this directory.
+      // Otherwise, search across entire bucket.
+      setPrefix(restrictedDirectory);
     },
     [restrictedDirectory],
   );
@@ -295,8 +293,7 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
               <code className="bg-blue-50 px-1 py-0.5 rounded">
                 {restrictedDirectory}
               </code>
-              .{" "}
-              {t("Searching or navigating outside of this folder is disabled.")}
+              . {t("Navigating outside of this folder is disabled.")}
             </span>
           </div>
         )}
@@ -308,7 +305,6 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
               value={searchQuery}
               onChange={(e) => updateSearchQuery(e.target.value)}
               leading={<MagnifyingGlassIcon className="h-4 w-4" />}
-              disabled={Boolean(restrictedDirectory)}
             />
           </div>
 
