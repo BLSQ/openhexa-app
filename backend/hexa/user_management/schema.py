@@ -722,7 +722,7 @@ def resolve_organization_dataset_links(
 ):
     request: HttpRequest = info.context["request"]
 
-    accessible_workspaces = list(organization.filter_workspaces_for_user(request.user))
+    accessible_workspaces = set(organization.filter_workspaces_for_user(request.user))
 
     qs = DatasetLink.objects.filter_for_workspaces(
         workspaces=accessible_workspaces, query=query
@@ -735,7 +735,7 @@ def resolve_organization_dataset_links(
     )
 
     if accessible_workspaces:
-        first_workspace = accessible_workspaces[0]
+        first_workspace = next(iter(accessible_workspaces))
         for obj in page_result["items"]:
             # If the dataset link is shared with the organization but the user has no access to the workspace, set it to the first accessible workspace
             if (
