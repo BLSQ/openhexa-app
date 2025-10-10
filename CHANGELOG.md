@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.5.2](https://github.com/BLSQ/openhexa-app/compare/2.5.1...2.5.2) (2025-10-10)
+
+
+### Bug Fixes
+
+* buttons for archive and workspace settings should be disabled if no permissions (PATHWAYS-949) ([#1400](https://github.com/BLSQ/openhexa-app/issues/1400)) ([d6993e9](https://github.com/BLSQ/openhexa-app/commit/d6993e94f8472513bbdd9fd90fb7731d90394d31))
+* improve logging for the pipeline heartbeat mechanism + share config to run pipelines on kubernetes locally (HEXA-1386) ([#1395](https://github.com/BLSQ/openhexa-app/issues/1395)) ([f9fcdc2](https://github.com/BLSQ/openhexa-app/commit/f9fcdc2c64201896495f9df451966036f51bdaae))
+* invite gmail clips the resources section for some reason (PATHWAYS-942) ([#1403](https://github.com/BLSQ/openhexa-app/issues/1403)) ([e9417c8](https://github.com/BLSQ/openhexa-app/commit/e9417c84541d7c7b3166eb0c15091867827a029e))
+* superuser permission when not org admin/owner (HEXA-1383) ([#1397](https://github.com/BLSQ/openhexa-app/issues/1397)) ([99962b7](https://github.com/BLSQ/openhexa-app/commit/99962b7d51bec3c71481ef21104815d60521d5c6))
+* workspace admins should be able to create workspaces (HEXA-1387) ([#1402](https://github.com/BLSQ/openhexa-app/issues/1402)) ([91c06f5](https://github.com/BLSQ/openhexa-app/commit/91c06f5953ed9abdda8ee38f6da797e4825574ee))
+
 ## [2.5.1](https://github.com/BLSQ/openhexa-app/compare/2.5.0...2.5.1) (2025-10-02)
 
 
