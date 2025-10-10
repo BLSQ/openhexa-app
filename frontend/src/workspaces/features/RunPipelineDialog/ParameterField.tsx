@@ -187,6 +187,7 @@ ParameterField.fragments = {
       connection
       widget
       multiple
+      directory
     }
   `,
 };
