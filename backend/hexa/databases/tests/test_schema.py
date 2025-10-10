@@ -19,6 +19,10 @@ class DatabaseTest(GraphQLTestCase):
 
     @classmethod
     def setUpTestData(cls):
+        cls.USER_SUPERUSER = User.objects.create_user(
+            "superuser@bluesquarehub.com", "superuserpassword", is_superuser=True
+        )
+
         cls.USER_SABRINA = User.objects.create_user(
             "sabrina@bluesquarehub.com", "standardpassword"
         )
@@ -33,7 +37,7 @@ class DatabaseTest(GraphQLTestCase):
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_JULIA,
+            cls.USER_SUPERUSER,
             name="Test Workspace",
             description="Test workspace",
             countries=[],
@@ -43,6 +47,11 @@ class DatabaseTest(GraphQLTestCase):
             user=cls.USER_SABRINA,
             workspace=cls.WORKSPACE,
             role=WorkspaceMembershipRole.VIEWER,
+        )
+        WorkspaceMembership.objects.create(
+            user=cls.USER_JULIA,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
         )
 
     def test_get_database_credentials_empty(self):

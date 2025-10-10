@@ -3,11 +3,6 @@ from hexa.user_management.models import User
 from .models import Connection, Workspace, WorkspaceMembershipRole
 
 
-def create_workspace(principal: User):
-    """Can create a workspace"""
-    return not principal.has_feature_flag("workspaces.prevent_create")
-
-
 def update_workspace(principal: User, workspace: Workspace):
     """Only workspace admin can update a workspace"""
     return workspace.workspacemembership_set.filter(

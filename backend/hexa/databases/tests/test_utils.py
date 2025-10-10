@@ -15,7 +15,9 @@ from hexa.databases.utils import (
 )
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.models import (
+    Workspace,
+)
 
 
 class DictRowMock:
@@ -45,6 +47,10 @@ class DatabaseUtilsTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        cls.USER_SUPERUSER = User.objects.create_user(
+            "superuser@bluesquarehub.com", "superuserpassword", is_superuser=True
+        )
+
         cls.DB1 = Database.objects.create(
             hostname="host", username="user", password="pwd", database="db1"
         )
@@ -53,7 +59,7 @@ class DatabaseUtilsTest(TestCase):
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_SABRINA,
+            cls.USER_SUPERUSER,
             name="Test Workspace",
             description="Test workspace",
             countries=[],

@@ -24,6 +24,9 @@ class PipelineTagMutationTest(GraphQLTestCase):
 
     @classmethod
     def setUpTestData(cls):
+        cls.USER_SUPERUSER = User.objects.create_user(
+            "superuser@bluesquarehub.com", "superuserpassword", is_superuser=True
+        )
         cls.USER_ADMIN = User.objects.create_user("admin@openhexa.org", "password")
         cls.USER_MEMBER = User.objects.create_user("member@openhexa.org", "password")
         cls.USER_VIEWER = User.objects.create_user("viewer@openhexa.org", "password")
@@ -35,7 +38,7 @@ class PipelineTagMutationTest(GraphQLTestCase):
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_ADMIN,
+            cls.USER_SUPERUSER,
             name="Test workspace",
             description="Test workspace",
         )
