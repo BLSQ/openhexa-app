@@ -40,8 +40,6 @@ services:
     image: blsq/openhexa-app
     ports:
       - "8000:8000"
-    environment:
-      - IS_LOCAL_DEV=true
     depends_on:
       - db
 
