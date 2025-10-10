@@ -17,9 +17,13 @@ def result_page(queryset, page, per_page=None):
 
     paginator = Paginator(queryset, per_page)
 
+    # Access count once (it is cached) to avoid duplicate COUNT queries
+    total_items = paginator.count
+    total_pages = paginator.num_pages
+
     return {
         "page_number": page,
-        "total_pages": paginator.num_pages,
-        "total_items": paginator.count,
+        "total_pages": total_pages,
+        "total_items": total_items,
         "items": paginator.page(page),
     }
