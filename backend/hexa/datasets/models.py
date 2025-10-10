@@ -7,7 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.db.models import JSONField, Q
+from django.db.models import JSONField, Prefetch, Q
 from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
 from slugify import slugify
@@ -153,6 +153,9 @@ class Dataset(MetadataMixin, Base):
 
     @property
     def latest_version(self):
+        versions = self.get_prefetched("versions")
+        if versions is not None:
+            return versions[0] if versions else None
         return self.versions.order_by("-created_at").first()
 
     def update_if_has_perm(self, *, principal: User, **kwargs):
@@ -470,13 +473,63 @@ class DatasetFileSample(Base):
 class DatasetLinkQuerySet(BaseQuerySet):
     @staticmethod
     def optimize_query(qs: models.QuerySet) -> models.QuerySet:
+        links_prefetch = Prefetch(
+            "dataset__links",
+            queryset=DatasetLink.objects.select_related(
+                "workspace", "workspace__organization"
+            ),
+        )
+
         return qs.select_related(
             "dataset",
             "dataset__workspace",
             "dataset__workspace__organization",
             "dataset__created_by",
             "workspace",
-        ).prefetch_related("dataset__versions", "dataset__links")
+        ).prefetch_related("dataset__versions", links_prefetch)
+
+    def filter_for_workspaces(self, workspaces, pinned=None, query=None):
+        """
+        Get dataset links for given workspaces.
+        Returns one link per dataset.
+
+        Args:
+            workspaces: QuerySet or list of Workspace objects
+            pinned: Optional boolean to filter by pinned status
+            query: Optional search query for dataset name/description/slug
+
+        Returns
+        -------
+            QuerySet of DatasetLink objects
+        """
+        workspace_ids = [w.id for w in workspaces]
+
+        if not workspace_ids:
+            return DatasetLink.objects.none()
+
+        permission_query = Q(workspace__id__in=workspace_ids) | Q(
+            dataset__shared_with_organization=True,
+            workspace__organization__workspaces__id__in=workspace_ids,
+        )
+
+        qs = self.filter(permission_query)
+
+        if query is not None:
+            qs = qs.filter(
+                Q(dataset__name__icontains=query)
+                | Q(dataset__description__icontains=query)
+                | Q(dataset__slug__icontains=query)
+            )
+
+        if pinned is not None:
+            qs = qs.filter(is_pinned=pinned)
+
+        qs = (
+            self.optimize_query(qs)
+            .order_by("-dataset__updated_at", "dataset_id")
+            .distinct("dataset__updated_at", "dataset_id")
+        )
+        return qs
 
     def filter_for_user(self, user: AnonymousUser | User):
         # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser

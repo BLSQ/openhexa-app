@@ -124,6 +124,23 @@ class Base(models.Model):
 
     objects = BaseQuerySet.as_manager()
 
+    def get_prefetched(self, relation_name):
+        """
+        Get prefetched data as a list, or None if not prefetched.
+
+        Prevents N+1 queries by checking Django's prefetch cache first.
+
+        Example:
+            versions = self.get_prefetched("versions")
+            if versions is not None:
+                return versions[0] if versions else None
+            return self.versions.order_by("-created_at").first()
+        """
+        cache = getattr(self, "_prefetched_objects_cache", {})
+        if relation_name in cache:
+            return list(cache[relation_name])
+        return None
+
     @property
     def display_name(self):
         if hasattr(self, "short_name") and getattr(self, "short_name") != "":

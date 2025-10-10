@@ -18,7 +18,7 @@ export type OrganizationsQueryVariables = Types.Exact<{ [key: string]: never; }>
 
 export type OrganizationsQuery = { __typename?: 'Query', organizations: Array<{ __typename?: 'Organization', id: string, name: string, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> } }> };
 
-export type OrganizationDataset_DatasetFragment = { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
+export type OrganizationDataset_LinkFragment = { __typename?: 'DatasetLink', id: string, workspace: { __typename?: 'Workspace', slug: string, name: string }, dataset: { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } } };
 
 export type OrganizationDatasetsQueryVariables = Types.Exact<{
   id: Types.Scalars['UUID']['input'];
@@ -28,7 +28,7 @@ export type OrganizationDatasetsQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationDatasetsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, datasets: { __typename?: 'DatasetPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } }> }, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null };
+export type OrganizationDatasetsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, datasetLinks: { __typename?: 'DatasetLinkPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'DatasetLink', id: string, workspace: { __typename?: 'Workspace', slug: string, name: string }, dataset: { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } } }> }, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null };
 
 export type OrganizationWorkspace_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, createdAt: any, updatedAt?: any | null, countries: Array<{ __typename?: 'Country', code: string }>, createdBy: { __typename?: 'User', displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, delete: boolean } };
 
@@ -68,23 +68,30 @@ export const Organization_OrganizationFragmentDoc = gql`
   }
 }
     `;
-export const OrganizationDataset_DatasetFragmentDoc = gql`
-    fragment OrganizationDataset_dataset on Dataset {
+export const OrganizationDataset_LinkFragmentDoc = gql`
+    fragment OrganizationDataset_link on DatasetLink {
   id
-  slug
-  name
-  description
-  updatedAt
-  sharedWithOrganization
   workspace {
     slug
     name
   }
-  links(page: 1, perPage: 50) {
-    items {
-      workspace {
-        slug
-        name
+  dataset {
+    id
+    slug
+    name
+    description
+    updatedAt
+    sharedWithOrganization
+    workspace {
+      slug
+      name
+    }
+    links(page: 1, perPage: 50) {
+      items {
+        workspace {
+          slug
+          name
+        }
       }
     }
   }
@@ -201,18 +208,18 @@ export const OrganizationDatasetsDocument = gql`
     query OrganizationDatasets($id: UUID!, $page: Int = 1, $perPage: Int = 10, $query: String) {
   organization(id: $id) {
     ...Organization_organization
-    datasets(page: $page, perPage: $perPage, query: $query) {
+    datasetLinks(page: $page, perPage: $perPage, query: $query) {
       totalItems
       pageNumber
       totalPages
       items {
-        ...OrganizationDataset_dataset
+        ...OrganizationDataset_link
       }
     }
   }
 }
     ${Organization_OrganizationFragmentDoc}
-${OrganizationDataset_DatasetFragmentDoc}`;
+${OrganizationDataset_LinkFragmentDoc}`;
 
 /**
  * __useOrganizationDatasetsQuery__

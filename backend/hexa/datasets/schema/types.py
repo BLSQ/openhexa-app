@@ -1,7 +1,7 @@
 import logging
 
 from ariadne import ObjectType
-from django.db.models import F, Q
+from django.db.models import Q
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
@@ -10,7 +10,6 @@ from hexa.datasets.models import (
     Dataset,
     DatasetFileSample,
     DatasetLink,
-    DatasetLinkQuerySet,
     DatasetVersion,
     DatasetVersionFile,
 )
@@ -50,35 +49,12 @@ def resolve_dataset_link_permissions_pin(obj: DatasetLink, info, **kwargs):
 
 @workspace_object.field("datasets")
 def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **kwargs):
-    organization_shared_q = Q()
-    if obj.organization:
-        organization_shared_q = Q(
-            dataset__shared_with_organization=True,
-            dataset__workspace__organization=obj.organization,
-            dataset__workspace=F("workspace"),
-        )
-
-    org_shared = DatasetLinkQuerySet.optimize_query(
-        DatasetLink.objects.filter(organization_shared_q)
+    qs = DatasetLink.objects.filter_for_workspaces(
+        workspaces=[obj], pinned=pinned, query=query
     )
-    direct_links = DatasetLinkQuerySet.optimize_query(
-        DatasetLink.objects.filter(workspace=obj).exclude(
-            dataset_id__in=org_shared.values("dataset_id")
-        )
-    )
-
-    if query is not None:
-        org_shared = org_shared.filter(dataset__name__icontains=query)
-        direct_links = direct_links.filter(dataset__name__icontains=query)
-
-    if pinned is not None:
-        org_shared = org_shared.filter(is_pinned=pinned)
-        direct_links = direct_links.filter(is_pinned=pinned)
-
-    qs = org_shared.union(direct_links)
 
     return result_page(
-        queryset=qs.order_by("-updated_at"),
+        queryset=qs,
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", 15),
     )
@@ -119,10 +95,23 @@ def resolve_latest_version(obj: Dataset, info, **kwargs):
 
 @dataset_object.field("links")
 def resolve_dataset_links(obj: Dataset, info, **kwargs):
+    prefetched_links = obj.get_prefetched("links")
+
+    if prefetched_links is not None:
+        links = sorted(
+            (
+                link
+                for link in prefetched_links
+                if link.workspace_id != obj.workspace_id
+            ),
+            key=lambda x: x.updated_at,
+            reverse=True,
+        )
+    else:
+        links = obj.links.filter(~Q(workspace=obj.workspace)).order_by("-updated_at")
+
     return result_page(
-        obj.links.filter(~Q(workspace=obj.workspace)).order_by("-updated_at"),
-        page=kwargs.get("page", 1),
-        per_page=kwargs.get("per_page", 15),
+        links, page=kwargs.get("page", 1), per_page=kwargs.get("per_page", 15)
     )
 
 

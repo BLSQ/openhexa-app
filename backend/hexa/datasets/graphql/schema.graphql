@@ -499,6 +499,8 @@ extend type Query {
 extend type Organization {
   "Datasets available in the organization"
   datasets(page: Int = 1, perPage: Int = 15, query: String): DatasetPage!
+  "Dataset links available in the organization"
+  datasetLinks(page: Int = 1, perPage: Int = 15, query: String): DatasetLinkPage!
 }
 
 extend type Mutation {
