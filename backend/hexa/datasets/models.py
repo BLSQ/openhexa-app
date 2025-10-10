@@ -7,7 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.db.models import JSONField, Prefetch, Q
+from django.db.models import Case, IntegerField, JSONField, Prefetch, Q, Value, When
 from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
 from slugify import slugify
@@ -524,6 +524,15 @@ class DatasetLinkQuerySet(BaseQuerySet):
         if pinned is not None:
             qs = qs.filter(is_pinned=pinned)
 
+        qs = qs.annotate(
+            accessible_workspace_id=Case(
+                When(
+                    dataset__shared_with_organization=True, then=Value(workspace_ids[0])
+                ),
+                default=None,
+                output_field=IntegerField(),
+            )
+        )
         return qs
 
     def filter_for_user(self, user: AnonymousUser | User):

@@ -53,8 +53,9 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
         workspaces=[obj], pinned=pinned, query=query
     )
 
+    # For single workspace, order by most recent dataset
     return result_page(
-        queryset=qs.order_by("dataset_id", "-updated_at"),
+        queryset=qs.order_by("-dataset__updated_at"),
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", 15),
     )
@@ -127,6 +128,13 @@ def resolve_dataset_updated_at(obj: Dataset, info, **kwargs):
         if obj.latest_version
         else obj.updated_at
     )
+
+
+@dataset_link_object.field("workspace")
+def resolve_dataset_link_workspace(obj: DatasetLink, info, **kwargs):
+    if hasattr(obj, "accessible_workspace_id") and obj.accessible_workspace_id:
+        return Workspace.objects.get(id=obj.accessible_workspace_id)
+    return obj.workspace
 
 
 @dataset_link_object.field("permissions")
