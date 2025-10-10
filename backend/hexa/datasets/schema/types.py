@@ -95,10 +95,23 @@ def resolve_latest_version(obj: Dataset, info, **kwargs):
 
 @dataset_object.field("links")
 def resolve_dataset_links(obj: Dataset, info, **kwargs):
+    prefetched_links = obj.get_prefetched("links")
+
+    if prefetched_links is not None:
+        links = sorted(
+            (
+                link
+                for link in prefetched_links
+                if link.workspace_id != obj.workspace_id
+            ),
+            key=lambda x: x.updated_at,
+            reverse=True,
+        )
+    else:
+        links = obj.links.filter(~Q(workspace=obj.workspace)).order_by("-updated_at")
+
     return result_page(
-        obj.links.filter(~Q(workspace=obj.workspace)).order_by("-updated_at"),
-        page=kwargs.get("page", 1),
-        per_page=kwargs.get("per_page", 15),
+        links, page=kwargs.get("page", 1), per_page=kwargs.get("per_page", 15)
     )
 
 
