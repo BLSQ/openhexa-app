@@ -5,10 +5,10 @@ import Clipboard from "core/components/Clipboard";
 import DataCard from "core/components/DataCard";
 import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 import RenderProperty from "core/components/DataCard/RenderProperty";
-import SelectProperty from "core/components/DataCard/SelectProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
 import TagProperty from "core/components/DataCard/TagProperty";
 import Link from "core/components/Link";
+import Listbox from "core/components/Listbox";
 import Page from "core/components/Page";
 import Switch from "core/components/Switch";
 import Tooltip from "core/components/Tooltip";
@@ -87,6 +87,14 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
     clearCache();
   };
 
+  const pipelineFunctionalTypeOptions = [
+    { value: null, label: t("Not set") },
+    ...Object.values(PipelineFunctionalType).map((type) => ({
+      value: type,
+      label: formatPipelineFunctionalType(type),
+    })),
+  ];
+
   return (
     <Page title={pipeline.name ?? t("Pipeline")}>
       <PipelineLayout workspace={workspace} pipeline={pipeline}>
@@ -118,7 +126,10 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
           <RenderProperty id="source" label={t("Source")} accessor="type">
             {(property) => (
               <Badge className="bg-gray-50 ring-gray-500/20">
-                {formatPipelineSource(property.displayValue, !!pipeline.sourceTemplate)}
+                {formatPipelineSource(
+                  property.displayValue,
+                  !!pipeline.sourceTemplate,
+                )}
               </Badge>
             )}
           </RenderProperty>
@@ -128,17 +139,36 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             label={t("Tags")}
             defaultValue={t("Not set")}
           />
-          <SelectProperty
+          <RenderProperty
             id="functionalType"
             accessor="functionalType"
             label={t("Type")}
             help={t("The functional purpose of this pipeline")}
-            options={Object.values(PipelineFunctionalType)}
-            getOptionLabel={(option) => option ? formatPipelineFunctionalType(option) : t("Not set")}
-            nullable
-            defaultValue={t("Not set")}
-            className="max-w-xs"
-          />
+          >
+            {(property, section) =>
+              section.isEdited ? (
+                <div className="w-50">
+                  <Listbox
+                    value={
+                      pipelineFunctionalTypeOptions.find(
+                        (opt) => opt.value === property.formValue,
+                      ) || pipelineFunctionalTypeOptions[0]
+                    }
+                    options={pipelineFunctionalTypeOptions}
+                    onChange={(option) => property.setValue(option.value)}
+                    getOptionLabel={(opt) => opt.label}
+                    by="value"
+                  />
+                </div>
+              ) : (
+                <span>
+                  {property.displayValue
+                    ? formatPipelineFunctionalType(property.displayValue)
+                    : t("Not set")}
+                </span>
+              )
+            }
+          </RenderProperty>
           {pipeline.type === PipelineType.Notebook && (
             <>
               <RenderProperty
@@ -356,7 +386,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             )}
           </RenderProperty>
           <RenderProperty
-            visible={(_, isEdited) => Boolean(pipeline.webhookUrl)}
+            visible={() => Boolean(pipeline.webhookUrl)}
             readonly
             id="webhookUrl"
             label={t("URL")}
