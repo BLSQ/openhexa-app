@@ -841,6 +841,7 @@ export type CreatePipelineInput = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
   name: Scalars['String']['input'];
   notebookPath?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug: Scalars['String']['input'];
 };
 
@@ -3193,6 +3194,8 @@ export type Organization = {
   name: Scalars['String']['output'];
   /** The permissions the current user has in the organization. */
   permissions: OrganizationPermissions;
+  /** Pipeline tags used within this organization. */
+  pipelineTags: Array<Scalars['String']['output']>;
   /** The short name of the organization. */
   shortName?: Maybe<Scalars['String']['output']>;
   /** The type of the organization. */
@@ -5283,6 +5286,7 @@ export type Workspace = {
   name: Scalars['String']['output'];
   organization?: Maybe<Organization>;
   permissions: WorkspacePermissions;
+  pipelineTags: Array<Scalars['String']['output']>;
   slug: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };

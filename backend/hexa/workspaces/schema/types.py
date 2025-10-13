@@ -7,6 +7,7 @@ from openhexa.toolbox.iaso.api_client import IASOError
 
 from hexa.core.graphql import result_page
 from hexa.pipelines.authentication import PipelineRunUser
+from hexa.tags.models import Tag
 from hexa.user_management.schema import me_permissions_object
 
 from ..models import (
@@ -155,6 +156,25 @@ def resolve_workspace_invitations(workspace: Workspace, info, **kwargs):
 @workspace_object.field("connections")
 def resolve_workspace_connections(workspace: Workspace, info, **kwargs):
     return workspace.connections.all()
+
+
+@workspace_object.field("pipelineTags")
+def resolve_workspace_pipeline_tags(workspace: Workspace, info, **kwargs):
+    if workspace.organization:
+        return list(
+            Tag.objects.filter(
+                pipelines__workspace__organization=workspace.organization
+            )
+            .distinct()
+            .values_list("name", flat=True)
+            .order_by("name")
+        )
+    return list(
+        Tag.objects.filter(pipelines__workspace=workspace)
+        .distinct()
+        .values_list("name", flat=True)
+        .order_by("name")
+    )
 
 
 @connection_interface.field("fields")

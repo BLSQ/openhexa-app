@@ -42,6 +42,9 @@ type Workspace {
   # The connections associated with the workspace.
   connections: [Connection!]!
 
+  # Pipeline tags used within this workspace's organization.
+  pipelineTags: [String!]!
+
   # The invitations sent to join the workspace.
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
 }

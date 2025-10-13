@@ -374,6 +374,7 @@ input CreatePipelineInput {
   workspaceSlug: String!  # The slug of the workspace where the pipeline will be created.
   notebookPath: String  # The path to the notebook file for the pipeline.
   functionalType: PipelineFunctionalType  # The functional type of the pipeline.
+  tags: [String!]  # The names of tags to associate with the pipeline.
 }
 
 """

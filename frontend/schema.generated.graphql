@@ -797,6 +797,7 @@ input CreatePipelineInput {
   functionalType: PipelineFunctionalType
   name: String!
   notebookPath: String
+  tags: [String!]
   workspaceSlug: String!
 }
 
@@ -2644,6 +2645,9 @@ type Organization {
   """The permissions the current user has in the organization."""
   permissions: OrganizationPermissions!
 
+  """Pipeline tags used within this organization."""
+  pipelineTags: [String!]!
+
   """The short name of the organization."""
   shortName: String
 
@@ -4484,6 +4488,7 @@ type Workspace {
   name: String!
   organization: Organization
   permissions: WorkspacePermissions!
+  pipelineTags: [String!]!
   slug: String!
   updatedAt: DateTime
 }

@@ -4,6 +4,7 @@ import Tooltip from "core/components/Tooltip";
 import Badge from "core/components/Badge";
 import { stripMarkdown } from "core/helpers";
 import UserAvatar from "identity/features/UserAvatar";
+import User from "core/features/User";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
@@ -69,33 +70,40 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">{t("Last Run")}:</span>
-            {pipeline.lastRuns.items[0] ? (
-              <PipelineRunStatusBadge run={pipeline.lastRuns.items[0]} />
-            ) : (
-              <span className="text-sm text-gray-400">{t("Not yet run")}</span>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">{t("Last Run")}:</span>
+              {pipeline.lastRuns.items[0] ? (
+                <PipelineRunStatusBadge run={pipeline.lastRuns.items[0]} />
+              ) : (
+                <span className="text-sm text-gray-400">{t("Not yet run")}</span>
+              )}
+            </div>
+            {pipeline.lastRuns.items[0]?.executionDate && (
+              <span className="text-xs text-gray-500">
+                {DateTime.fromISO(pipeline.lastRuns.items[0].executionDate).toRelative()}
+              </span>
             )}
           </div>
 
-          {pipeline.currentVersion?.user && (
-            <Tooltip
-              label={t("Last version uploaded on {{date}} by {{name}}", {
-                date: DateTime.fromISO(
-                  pipeline.currentVersion.createdAt,
-                ).toLocaleString(DateTime.DATE_FULL),
-                name: pipeline.currentVersion.user.displayName,
-              })}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">
-                  {DateTime.fromISO(pipeline.currentVersion.createdAt).toRelative()}
-                </span>
-                <UserAvatar user={pipeline.currentVersion.user} size="sm" />
-              </div>
-            </Tooltip>
-          )}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-500">{t("Created By")}:</span>
+            {pipeline.currentVersion?.user && (
+              <Tooltip
+                label={t("Last version uploaded on {{date}} by {{name}}", {
+                  date: DateTime.fromISO(
+                    pipeline.currentVersion.createdAt,
+                  ).toLocaleString(DateTime.DATE_FULL),
+                  name: pipeline.currentVersion.user.displayName,
+                })}
+              >
+                <div className="flex items-center gap-2">
+                  <UserAvatar user={pipeline.currentVersion.user} size="sm" />
+                </div>
+              </Tooltip>
+            )}
+          </div>
         </div>
       </Card.Content>
     </Card>
@@ -129,10 +137,15 @@ PipelineCard.fragments = {
       lastRuns: runs(orderBy: EXECUTION_DATE_DESC, page: 1, perPage: 1) {
         items {
           ...PipelineRunStatusBadge_run
+          executionDate
+          user {
+            ...User_user
+          }
         }
       }
     }
     ${PipelineRunStatusBadge.fragments.pipelineRun}
+    ${User.fragments.user}
     ${Tag.fragments.tag}
   `,
   workspace: gql`
