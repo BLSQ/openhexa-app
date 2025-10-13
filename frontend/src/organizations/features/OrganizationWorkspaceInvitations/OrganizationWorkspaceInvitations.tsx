@@ -77,12 +77,10 @@ export default function OrganizationWorkspaceInvitations({
         emptyLabel={t("No workspace invitations")}
         className="min-h-30"
       >
-        <BaseColumn label={t("Email")} id="email" minWidth={200}>
+        <BaseColumn label={t("Email")} id="email" minWidth={350}>
           {(invitation) => (
-            <div className="truncate">
-              <div className="font-medium" title={invitation.email}>
-                {invitation.email}
-              </div>
+            <div>
+              <div className="font-medium">{invitation.email}</div>
               <div className="text-xs text-gray-400">
                 {invitation.invitedBy?.displayName
                   ? t("Invited by {{name}}", {
