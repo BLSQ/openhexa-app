@@ -14,6 +14,7 @@ import OrganizationMembers from "organizations/features/OrganizationMembers";
 import AddOrganizationMemberDialog from "organizations/features/OrganizationMembers/AddOrganizationMemberDialog";
 import { useState } from "react";
 import OrganizationInvitations from "organizations/features/OrganizationInvitations";
+import OrganizationWorkspaceInvitations from "organizations/features/OrganizationWorkspaceInvitations";
 import Title from "core/components/Title";
 
 type Props = {
@@ -66,8 +67,14 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
             <OrganizationMembers organizationId={organization.id} />
           </div>
           <div className="m-8">
-            <Title level={2}>{t("Pending invitations")}</Title>
+            <Title level={2}>{t("Pending Organization invitations")}</Title>
             <OrganizationInvitations organizationId={organization.id} />
+          </div>
+          <div className="m-8">
+            <Title level={2}>{t("Pending Workspace Invitations")}</Title>
+            <OrganizationWorkspaceInvitations
+              organizationId={organization.id}
+            />
           </div>
         </div>
         <AddOrganizationMemberDialog
