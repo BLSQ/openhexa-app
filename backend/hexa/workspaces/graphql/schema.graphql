@@ -45,6 +45,9 @@ type Workspace {
   # Pipeline tags used within this workspace's organization.
   pipelineTags: [String!]!
 
+  # Pipeline template tags used within this workspace's organization.
+  pipelineTemplateTags: [String!]!
+
   # The invitations sent to join the workspace.
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
 }

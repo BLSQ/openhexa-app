@@ -177,6 +177,25 @@ def resolve_workspace_pipeline_tags(workspace: Workspace, info, **kwargs):
     )
 
 
+@workspace_object.field("pipelineTemplateTags")
+def resolve_workspace_pipeline_template_tags(workspace: Workspace, info, **kwargs):
+    if workspace.organization:
+        return list(
+            Tag.objects.filter(
+                pipeline_templates__workspace__organization=workspace.organization
+            )
+            .distinct()
+            .values_list("name", flat=True)
+            .order_by("name")
+        )
+    return list(
+        Tag.objects.filter(pipeline_templates__workspace=workspace)
+        .distinct()
+        .values_list("name", flat=True)
+        .order_by("name")
+    )
+
+
 @connection_interface.field("fields")
 def resolve_workspace_connection_fields(obj, info, **kwargs):
     return obj.fields.all()

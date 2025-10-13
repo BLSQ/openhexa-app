@@ -3200,6 +3200,8 @@ export type Organization = {
   permissions: OrganizationPermissions;
   /** Pipeline tags used within this organization. */
   pipelineTags: Array<Scalars['String']['output']>;
+  /** Pipeline template tags used within this organization. */
+  pipelineTemplateTags: Array<Scalars['String']['output']>;
   /** The short name of the organization. */
   shortName?: Maybe<Scalars['String']['output']>;
   /** The type of the organization. */
@@ -5310,6 +5312,7 @@ export type Workspace = {
   organization?: Maybe<Organization>;
   permissions: WorkspacePermissions;
   pipelineTags: Array<Scalars['String']['output']>;
+  pipelineTemplateTags: Array<Scalars['String']['output']>;
   slug: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };

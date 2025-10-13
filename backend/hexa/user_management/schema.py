@@ -724,6 +724,18 @@ def resolve_pending_workspace_invitations(organization: Organization, info, **kw
     )
 
 
+@organization_object.field("pipelineTemplateTags")
+def resolve_organization_pipeline_template_tags(
+    organization: Organization, info, **kwargs
+):
+    return list(
+        Tag.objects.filter(pipeline_templates__workspace__organization=organization)
+        .distinct()
+        .values_list("name", flat=True)
+        .order_by("name")
+    )
+
+
 @organization_object.field("datasets")
 def resolve_organization_datasets(
     organization: Organization, info, query=None, **kwargs

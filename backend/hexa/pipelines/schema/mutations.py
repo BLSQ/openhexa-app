@@ -73,7 +73,7 @@ def resolve_create_pipeline(_, info, **kwargs):
 
         tags = None
         if "tags" in input:
-            tags, has_error = _validate_and_get_tags(input["tags"])
+            tags, has_error = Tag.validate_and_get_or_create(input["tags"])
             if has_error:
                 return {
                     "success": False,
