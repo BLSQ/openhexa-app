@@ -5264,7 +5264,6 @@ export type WebappsPage = {
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type Workspace = {
   __typename?: 'Workspace';
-  availablePipelineTags: Array<Scalars['String']['output']>;
   /** File storage of the workspace represented as a bucket */
   bucket: Bucket;
   configuration: Scalars['JSON']['output'];
@@ -5282,6 +5281,7 @@ export type Workspace = {
   name: Scalars['String']['output'];
   organization?: Maybe<Organization>;
   permissions: WorkspacePermissions;
+  pipelineTags: Array<Scalars['String']['output']>;
   slug: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };

@@ -40,7 +40,7 @@ query WorkspacePipelinesPage(
   workspace(slug: $workspaceSlug) {
     slug
     name
-    availablePipelineTags
+    pipelineTags
     ...WorkspaceLayout_workspace
     ...CreatePipelineDialog_workspace
   }

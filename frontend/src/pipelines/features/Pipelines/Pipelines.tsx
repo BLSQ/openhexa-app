@@ -60,7 +60,7 @@ const Pipelines = ({
 
   const totalItems = data?.pipelines?.totalItems ?? 0;
 
-  const availableTags = data?.workspace?.availablePipelineTags || [];
+  const availableTags = data?.workspace?.pipelineTags || [];
 
   return (
     <div>

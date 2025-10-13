@@ -158,8 +158,8 @@ def resolve_workspace_connections(workspace: Workspace, info, **kwargs):
     return workspace.connections.all()
 
 
-@workspace_object.field("availablePipelineTags")
-def resolve_workspace_available_pipeline_tags(workspace: Workspace, info, **kwargs):
+@workspace_object.field("pipelineTags")
+def resolve_workspace_pipeline_tags(workspace: Workspace, info, **kwargs):
     return list(Tag.objects.values_list("name", flat=True).order_by("name"))
 
 

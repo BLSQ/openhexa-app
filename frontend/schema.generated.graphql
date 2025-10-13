@@ -4465,8 +4465,6 @@ type WebappsPage {
 Represents a workspace. A workspace is a shared environment where users can collaborate on data projects.
 """
 type Workspace {
-  availablePipelineTags: [String!]!
-
   """File storage of the workspace represented as a bucket"""
   bucket: Bucket!
   configuration: JSON!
@@ -4485,6 +4483,7 @@ type Workspace {
   name: String!
   organization: Organization
   permissions: WorkspacePermissions!
+  pipelineTags: [String!]!
   slug: String!
   updatedAt: DateTime
 }
