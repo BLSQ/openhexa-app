@@ -71,7 +71,7 @@ export default function OrganizationWorkspaceInvitations({
       <DataGrid
         defaultPageSize={DEFAULT_PAGE_SIZE}
         totalItems={pendingWorkspaceInvitations.totalItems}
-        fixedLayout={false}
+        fixedLayout={true}
         data={pendingWorkspaceInvitations.items}
         fetchData={onChangePage}
         emptyLabel={t("No workspace invitations")}

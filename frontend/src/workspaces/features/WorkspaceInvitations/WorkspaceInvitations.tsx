@@ -110,7 +110,7 @@ export default function WorkspaceInvitations({
         className="bg-white shadow-md"
         defaultPageSize={DEFAULT_PAGE_SIZE}
         totalItems={invitations.totalItems}
-        fixedLayout={false}
+        fixedLayout={true}
         data={invitations.items}
         fetchData={onChangePage}
       >
