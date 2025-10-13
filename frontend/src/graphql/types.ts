@@ -4154,9 +4154,11 @@ export type QueryPipelineRunArgs = {
 
 
 export type QueryPipelineTemplatesArgs = {
+  functionalType?: InputMaybe<PipelineFunctionalType>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };
 

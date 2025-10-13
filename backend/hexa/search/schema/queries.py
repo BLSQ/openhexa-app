@@ -95,7 +95,19 @@ def resolve_search_pipeline_templates(
     workspace_slugs=None,
     organization_id=None,
 ):
-    qs = PipelineTemplate.objects.all()
+    request = info.context["request"]
+    workspace_slugs = workspace_slugs or []
+
+    if organization_id:
+        workspace_slugs = Organization.objects.get(
+            id=organization_id
+        ).workspaces.values_list("slug", flat=True)
+
+    qs = PipelineTemplate.objects.filter_for_user(request.user)
+
+    if workspace_slugs:
+        qs = qs.filter(workspace__slug__in=workspace_slugs)
+
     qs = apply_scored_search(qs, ["name", "code", "description"], query)
     return page_result_with_scores(qs, page, per_page, "pipeline_template")
 

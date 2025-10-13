@@ -4,6 +4,7 @@ from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
 from hexa.pipeline_templates.models import PipelineTemplate
+from hexa.tags.models import InvalidTag, Tag
 from hexa.workspaces.models import Workspace
 
 pipeline_template_query = QueryType()
@@ -27,12 +28,25 @@ def resolve_pipeline_templates(_, info, **kwargs):
         .distinct()
     )
 
+    if kwargs.get("functional_type"):
+        pipeline_templates = pipeline_templates.filter(
+            functional_type=kwargs.get("functional_type")
+        )
+
     workspace_slug = kwargs.get("workspace_slug")
     if workspace_slug:
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=workspace_slug
         )
         pipeline_templates = pipeline_templates.filter(workspace=workspace)
+
+    tags = kwargs.get("tags", [])
+    if tags:
+        try:
+            Tag.from_names(tags)
+            pipeline_templates = pipeline_templates.filter_by_tags(tags)
+        except InvalidTag:
+            pipeline_templates = PipelineTemplate.objects.none()
 
     return result_page(
         pipeline_templates,

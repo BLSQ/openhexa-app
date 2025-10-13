@@ -1,7 +1,6 @@
 import DataCard from "core/components/DataCard";
 import TextProperty from "core/components/DataCard/TextProperty";
 import TagProperty from "core/components/DataCard/TagProperty";
-import SelectProperty from "core/components/DataCard/SelectProperty";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
@@ -15,6 +14,7 @@ import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 import { createTemplatePageServerSideProps } from "workspaces/helpers/templatePages";
 import { PipelineFunctionalType } from "graphql/types";
 import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
+import Listbox from "core/components/Listbox";
 
 type Props = {
   templateCode: string;
@@ -47,6 +47,14 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
     });
   };
 
+  const pipelineFunctionalTypeOptions = [
+    { value: null, label: t("Not set") },
+    ...Object.values(PipelineFunctionalType).map((type) => ({
+      value: type,
+      label: formatPipelineFunctionalType(type),
+    })),
+  ];
+
   return (
     <Page title={template.name}>
       <TemplateLayout workspace={workspace} template={template}>
@@ -72,17 +80,36 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
             label={t("Tags")}
             defaultValue={t("Not set")}
           />
-          <SelectProperty
+          <RenderProperty
             id="functionalType"
             accessor="functionalType"
             label={t("Type")}
             help={t("The functional purpose of this template")}
-            options={Object.values(PipelineFunctionalType)}
-            getOptionLabel={(option) => option ? formatPipelineFunctionalType(option) : t("Not set")}
-            nullable
-            defaultValue={t("Not set")}
-            className="max-w-xs"
-          />
+          >
+            {(property, section) =>
+              section.isEdited ? (
+                <div className="w-50">
+                  <Listbox
+                    value={
+                      pipelineFunctionalTypeOptions.find(
+                        (opt) => opt.value === property.formValue,
+                      ) || pipelineFunctionalTypeOptions[0]
+                    }
+                    options={pipelineFunctionalTypeOptions}
+                    onChange={(option) => property.setValue(option.value)}
+                    getOptionLabel={(opt) => opt.label}
+                    by="value"
+                  />
+                </div>
+              ) : (
+                <span>
+                  {property.displayValue
+                    ? formatPipelineFunctionalType(property.displayValue)
+                    : t("Not set")}
+                </span>
+              )
+            }
+          </RenderProperty>
           <RenderProperty
             id="version_name"
             accessor={"currentVersion"}

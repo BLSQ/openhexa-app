@@ -32,6 +32,11 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             return_all_if_organization_admin_or_owner=True,
         )
 
+    def filter_by_tags(self, tag_names: list[str]):
+        if not tag_names:
+            return self.none()
+        return self.filter(tags__name__in=tag_names).distinct()
+
 
 class PipelineTemplate(SoftDeletedModel):
     class Meta:

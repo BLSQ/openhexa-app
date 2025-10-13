@@ -8,11 +8,13 @@ export type GetPipelineTemplatesQueryVariables = Types.Exact<{
   page: Types.Scalars['Int']['input'];
   perPage: Types.Scalars['Int']['input'];
   search?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  workspaceSlug?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  workspaceSlug: Types.Scalars['String']['input'];
+  tags?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
+  functionalType?: Types.InputMaybe<Types.PipelineFunctionalType>;
 }>;
 
 
-export type GetPipelineTemplatesQuery = { __typename?: 'Query', pipelineTemplates: { __typename?: 'PipelineTemplatePage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'PipelineTemplate', id: string, description?: string | null, code: string, name: string, functionalType?: Types.PipelineFunctionalType | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, permissions: { __typename?: 'PipelineTemplatePermissions', delete: boolean }, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, template: { __typename?: 'PipelineTemplate', sourcePipeline?: { __typename?: 'Pipeline', name?: string | null } | null } } | null }> } };
+export type GetPipelineTemplatesQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', pipelineTemplateTags: Array<string> } | null, pipelineTemplates: { __typename?: 'PipelineTemplatePage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'PipelineTemplate', id: string, description?: string | null, code: string, name: string, functionalType?: Types.PipelineFunctionalType | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, permissions: { __typename?: 'PipelineTemplatePermissions', delete: boolean }, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, template: { __typename?: 'PipelineTemplate', sourcePipeline?: { __typename?: 'Pipeline', name?: string | null } | null } } | null }> } };
 
 export type PipelineTemplates_WorkspaceFragment = { __typename?: 'Workspace', slug: string };
 
@@ -22,12 +24,17 @@ export const PipelineTemplates_WorkspaceFragmentDoc = gql`
 }
     `;
 export const GetPipelineTemplatesDocument = gql`
-    query GetPipelineTemplates($page: Int!, $perPage: Int!, $search: String, $workspaceSlug: String) {
+    query GetPipelineTemplates($page: Int!, $perPage: Int!, $search: String, $workspaceSlug: String!, $tags: [String!], $functionalType: PipelineFunctionalType) {
+  workspace(slug: $workspaceSlug) {
+    pipelineTemplateTags
+  }
   pipelineTemplates(
     page: $page
     perPage: $perPage
     search: $search
     workspaceSlug: $workspaceSlug
+    tags: $tags
+    functionalType: $functionalType
   ) {
     pageNumber
     totalPages
@@ -83,6 +90,8 @@ export const GetPipelineTemplatesDocument = gql`
  *      perPage: // value for 'perPage'
  *      search: // value for 'search'
  *      workspaceSlug: // value for 'workspaceSlug'
+ *      tags: // value for 'tags'
+ *      functionalType: // value for 'functionalType'
  *   },
  * });
  */

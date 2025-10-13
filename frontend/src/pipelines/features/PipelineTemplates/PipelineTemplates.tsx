@@ -35,6 +35,8 @@ const PipelineTemplates = ({
     useCreatePipelineFromTemplateVersionMutation();
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const [tagsFilter, setTagsFilter] = useState<string[]>([]);
+  const [functionalTypeFilter, setFunctionalTypeFilter] = useState<any>(null);
   const workspaceFilterOptions = [
     { id: 1, label: "All templates", workspaceSlug: "" },
     { id: 2, label: "From this workspace", workspaceSlug: workspace.slug },
@@ -48,7 +50,9 @@ const PipelineTemplates = ({
       page,
       perPage,
       search: debouncedSearchQuery,
-      workspaceSlug: workspaceFilter.workspaceSlug,
+      workspaceSlug: workspaceFilter.workspaceSlug || workspace.slug,
+      tags: tagsFilter.length > 0 ? tagsFilter : undefined,
+      functionalType: functionalTypeFilter,
     },
     fetchPolicy: "cache-and-network", // The template list is a global list across the instance, so we want to check the network for updates and show the cached data in the meantime
   });
@@ -63,6 +67,7 @@ const PipelineTemplates = ({
   useCacheKey("templates", () => refetch());
 
   const totalItems = data?.pipelineTemplates?.totalItems ?? 0;
+  const availableTags = data?.workspace?.pipelineTemplateTags || [];
 
   if (error) return <p>{t("Error loading templates")}</p>;
 
@@ -119,6 +124,11 @@ const PipelineTemplates = ({
         view={view}
         setView={setView}
         showCard={showCard}
+        tagsFilter={tagsFilter}
+        setTagsFilter={setTagsFilter}
+        availableTags={availableTags}
+        functionalTypeFilter={functionalTypeFilter}
+        setFunctionalTypeFilter={setFunctionalTypeFilter}
       />
       <div className="relative">
         {loading && (
@@ -145,13 +155,20 @@ const GET_PIPELINE_TEMPLATES = gql`
     $page: Int!
     $perPage: Int!
     $search: String
-    $workspaceSlug: String
+    $workspaceSlug: String!
+    $tags: [String!]
+    $functionalType: PipelineFunctionalType
   ) {
+    workspace(slug: $workspaceSlug) {
+      pipelineTemplateTags
+    }
     pipelineTemplates(
       page: $page
       perPage: $perPage
       search: $search
       workspaceSlug: $workspaceSlug
+      tags: $tags
+      functionalType: $functionalType
     ) {
       pageNumber
       totalPages
