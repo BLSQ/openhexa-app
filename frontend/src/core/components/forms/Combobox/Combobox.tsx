@@ -153,11 +153,10 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
               >
                 <input
                   data-testid="combobox-input"
-                  className="flex-1 placeholder-gray-600/70 outline-hidden cursor-pointer pointer-events-none"
+                  className="flex-1 placeholder-gray-600/70 outline-hidden"
                   autoComplete="off"
                   placeholder={placeholder}
                   aria-describedby={error ? "combobox-error" : undefined}
-                  readOnly
                 />
               </UIComboboxInput>
             </div>
