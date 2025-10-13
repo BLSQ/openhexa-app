@@ -876,8 +876,7 @@ extend type MePermissions {
 }
 
 extend type Organization {
-  # Standalone workspace invitations across all workspaces in the organization.
-  # Only visible to organization admins and owners.
+  """The direct invitations sent to join a specific workspace in the organization."""
   pendingWorkspaceInvitations(page: Int, perPage: Int): WorkspaceInvitationPage!
 }
 

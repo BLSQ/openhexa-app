@@ -3192,6 +3192,8 @@ export type Organization = {
   members: OrganizationMembershipPage;
   /** The name of the organization. */
   name: Scalars['String']['output'];
+  /** The direct invitations sent to join a specific workspace in the organization. */
+  pendingWorkspaceInvitations: WorkspaceInvitationPage;
   /** The permissions the current user has in the organization. */
   permissions: OrganizationPermissions;
   /** Pipeline tags used within this organization. */
@@ -3229,6 +3231,13 @@ export type OrganizationMembersArgs = {
   perPage?: InputMaybe<Scalars['Int']['input']>;
   role?: InputMaybe<OrganizationMembershipRole>;
   term?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** The Organization type represents an organization in the system. */
+export type OrganizationPendingWorkspaceInvitationsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
