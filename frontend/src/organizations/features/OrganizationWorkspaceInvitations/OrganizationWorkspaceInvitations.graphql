@@ -1,0 +1,39 @@
+query OrganizationWorkspaceInvitations($id: UUID!, $page: Int, $perPage: Int) {
+  organization(id: $id) {
+    id
+    permissions {
+      manageMembers
+    }
+    pendingWorkspaceInvitations(page: $page, perPage: $perPage) {
+      totalItems
+      items {
+        id
+        email
+        role
+        status
+        workspace {
+          name
+          slug
+        }
+        invitedBy {
+          displayName
+        }
+        createdAt
+      }
+    }
+  }
+}
+
+mutation DeleteWorkspaceInvitation($input: DeleteWorkspaceInvitationInput!) {
+  deleteWorkspaceInvitation(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation ResendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
+  resendWorkspaceInvitation(input: $input) {
+    success
+    errors
+  }
+}
