@@ -1,95 +1,57 @@
-import { gql, useQuery } from "@apollo/client";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import useCacheKey from "core/hooks/useCacheKey";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
-import { WorskspaceInvitationsQuery } from "./WorkspaceInvitations.generated";
-import { WorkspaceInvitation, WorkspaceInvitationStatus } from "graphql/types";
+import { useOrganizationWorkspaceInvitationsQuery } from "./OrganizationWorkspaceInvitations.generated";
+import { WorkspaceInvitation } from "graphql/types";
 import Button from "core/components/Button/Button";
 import { ArrowPathIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { useCallback, useState } from "react";
-import DeleteWorkspaceInvitationDialog from "./DeleteWorkspaceInvitationDialog";
-import ResendWorkspaceInvitationDialog from "./ResendWorkspaceInvitationDialog";
+import { useState } from "react";
+import DeleteWorkspaceInvitationDialog from "workspaces/features/WorkspaceInvitations/DeleteWorkspaceInvitationDialog";
+import ResendWorkspaceInvitationDialog from "workspaces/features/WorkspaceInvitations/ResendWorkspaceInvitationDialog";
 import WorkspaceRoleBadge from "workspaces/components/WorkspaceRoleBadge";
+import Block from "core/components/Block";
 
 const DEFAULT_PAGE_SIZE = 5;
 
 type Invitation = Pick<WorkspaceInvitation, "id" | "email">;
 
-export default function WorkspaceInvitations({
-  workspaceSlug,
+export default function OrganizationWorkspaceInvitations({
+  organizationId,
 }: {
-  workspaceSlug: string;
+  organizationId: string;
 }) {
   const { t } = useTranslation();
   const [selectedInvitation, setSelectedInvitation] = useState<Invitation>();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openResendDialog, setOpenResendDialog] = useState(false);
 
-  const { data, refetch } = useQuery<WorskspaceInvitationsQuery>(
-    gql`
-      query WorskspaceInvitations($slug: String!, $page: Int, $perPage: Int) {
-        workspace(slug: $slug) {
-          slug
-          permissions {
-            manageMembers
-          }
-          invitations(page: $page, perPage: $perPage) {
-            totalItems
-            items {
-              id
-              role
-              email
-              status
-              invitedBy {
-                displayName
-              }
-              createdAt
-            }
-          }
-        }
-      }
-    `,
-    {
-      variables: {
-        slug: workspaceSlug,
-        page: 1,
-        perPage: DEFAULT_PAGE_SIZE,
-      },
+  const { data, refetch } = useOrganizationWorkspaceInvitationsQuery({
+    variables: {
+      id: organizationId,
+      page: 1,
+      perPage: DEFAULT_PAGE_SIZE,
     },
-  );
+  });
 
-  useCacheKey("workspace", () => refetch());
+  useCacheKey("organization", () => refetch());
 
   const onChangePage = ({ page }: { page: number }) => {
     refetch({
       page,
-      slug: workspaceSlug,
-    });
+      id: organizationId,
+    }).then();
   };
 
-  const formatInvitationStatus = useCallback(
-    (status: WorkspaceInvitationStatus) => {
-      switch (status) {
-        case WorkspaceInvitationStatus.Pending:
-          return t("Pending");
-        case WorkspaceInvitationStatus.Accepted:
-          return t("Accepted");
-        case WorkspaceInvitationStatus.Declined:
-          return t("Declined");
-      }
-    },
-    [t],
-  );
-
-  if (!data?.workspace) {
+  if (!data?.organization) {
     return null;
   }
-  const { invitations, permissions } = data.workspace;
+
+  const { pendingWorkspaceInvitations, permissions } = data.organization;
 
   const handleDeleteClicked = (invitationId: string) => {
-    const invitation = invitations.items.filter(
+    const invitation = pendingWorkspaceInvitations.items.filter(
       (x) => x.id === invitationId,
     )[0];
     setSelectedInvitation(invitation);
@@ -97,7 +59,7 @@ export default function WorkspaceInvitations({
   };
 
   const handleResendClicked = (invitationId: string) => {
-    const invitation = invitations.items.filter(
+    const invitation = pendingWorkspaceInvitations.items.filter(
       (x) => x.id === invitationId,
     )[0];
     setSelectedInvitation(invitation);
@@ -105,14 +67,15 @@ export default function WorkspaceInvitations({
   };
 
   return (
-    <>
+    <Block>
       <DataGrid
-        className="bg-white shadow-md"
         defaultPageSize={DEFAULT_PAGE_SIZE}
-        totalItems={invitations.totalItems}
+        totalItems={pendingWorkspaceInvitations.totalItems}
         fixedLayout={false}
-        data={invitations.items}
+        data={pendingWorkspaceInvitations.items}
         fetchData={onChangePage}
+        emptyLabel={t("No workspace invitations")}
+        className="min-h-30"
       >
         <BaseColumn label={t("Email")} id="email" minWidth={200}>
           {(invitation) => (
@@ -130,9 +93,13 @@ export default function WorkspaceInvitations({
             </div>
           )}
         </BaseColumn>
-        <BaseColumn label={t("Role")} id="role">
+        <BaseColumn label={t("Workspace Role")} id="role">
           {(invitation) => (
-            <WorkspaceRoleBadge role={invitation.role} size="sm" />
+            <WorkspaceRoleBadge
+              workspaceName={invitation.workspace.name}
+              role={invitation.role}
+              size="sm"
+            />
           )}
         </BaseColumn>
         <DateColumn
@@ -142,13 +109,6 @@ export default function WorkspaceInvitations({
           label={t("Date sent")}
           format={DateTime.DATE_FULL}
         />
-        <BaseColumn<WorkspaceInvitationStatus>
-          id="status"
-          accessor="status"
-          label={t("Status")}
-        >
-          {(value) => <span>{formatInvitationStatus(value)}</span>}
-        </BaseColumn>
         {permissions.manageMembers && (
           <BaseColumn className="flex justify-end gap-x-2">
             {(invitation) => (
@@ -192,6 +152,6 @@ export default function WorkspaceInvitations({
           }}
         />
       )}
-    </>
+    </Block>
   );
 }
