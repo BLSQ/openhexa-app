@@ -108,20 +108,20 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
             <table
               class="w-full divide-y divide-gray-200  table-fixed"
               role="table"
-              style="min-width: 590px;"
+              style="min-width: 740px;"
             >
               <thead>
                 <tr
                   class=""
                   role="row"
-                  style="display: flex; flex: 1 0 auto; min-width: 590px;"
+                  style="display: flex; flex: 1 0 auto; min-width: 740px;"
                 >
                   <th
                     class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-5 first:pl-6 last:pr-6 whitespace-nowrap"
                     colspan="1"
                     role="columnheader"
                     scope="col"
-                    style="box-sizing: border-box; flex: 200 0 auto; min-width: 200px; width: 200px;"
+                    style="box-sizing: border-box; flex: 350 0 auto; min-width: 350px; width: 350px;"
                   >
                     User
                   </th>
@@ -167,12 +167,12 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
               >
                 <tr
                   role="row"
-                  style="display: flex; flex: 1 0 auto; min-width: 590px;"
+                  style="display: flex; flex: 1 0 auto; min-width: 740px;"
                 >
                   <td
                     class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
                     role="cell"
-                    style="box-sizing: border-box; flex: 200 0 auto; min-width: 200px; width: 200px;"
+                    style="box-sizing: border-box; flex: 350 0 auto; min-width: 350px; width: 350px;"
                   >
                     <div
                       class="flex items-center gap-2"
@@ -304,12 +304,12 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
                 </tr>
                 <tr
                   role="row"
-                  style="display: flex; flex: 1 0 auto; min-width: 590px;"
+                  style="display: flex; flex: 1 0 auto; min-width: 740px;"
                 >
                   <td
                     class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
                     role="cell"
-                    style="box-sizing: border-box; flex: 200 0 auto; min-width: 200px; width: 200px;"
+                    style="box-sizing: border-box; flex: 350 0 auto; min-width: 350px; width: 350px;"
                   >
                     <div
                       class="flex items-center gap-2"
