@@ -4,7 +4,7 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import useCacheKey from "core/hooks/useCacheKey";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
-import { WorskspaceInvitationsQuery } from "./WorkspaceInvitations.generated";
+import { WorkspaceInvitationsQuery } from "./WorkspaceInvitations.generated";
 import { WorkspaceInvitation, WorkspaceInvitationStatus } from "graphql/types";
 import Button from "core/components/Button/Button";
 import { ArrowPathIcon, TrashIcon } from "@heroicons/react/24/outline";
@@ -27,9 +27,9 @@ export default function WorkspaceInvitations({
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openResendDialog, setOpenResendDialog] = useState(false);
 
-  const { data, refetch } = useQuery<WorskspaceInvitationsQuery>(
+  const { data, refetch } = useQuery<WorkspaceInvitationsQuery>(
     gql`
-      query WorskspaceInvitations($slug: String!, $page: Int, $perPage: Int) {
+      query WorkspaceInvitations($slug: String!, $page: Int, $perPage: Int) {
         workspace(slug: $slug) {
           slug
           permissions {
@@ -66,7 +66,7 @@ export default function WorkspaceInvitations({
     refetch({
       page,
       slug: workspaceSlug,
-    });
+    }).then();
   };
 
   const formatInvitationStatus = useCallback(
