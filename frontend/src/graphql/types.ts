@@ -3328,6 +3328,7 @@ export type ParameterInput = {
   code: Scalars['String']['input'];
   connection?: InputMaybe<Scalars['String']['input']>;
   default?: InputMaybe<Scalars['Generic']['input']>;
+  directory?: InputMaybe<Scalars['String']['input']>;
   help?: InputMaybe<Scalars['String']['input']>;
   multiple?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -3491,6 +3492,7 @@ export type PipelineParameter = {
   code: Scalars['String']['output'];
   connection?: Maybe<Scalars['String']['output']>;
   default?: Maybe<Scalars['Generic']['output']>;
+  directory?: Maybe<Scalars['String']['output']>;
   help?: Maybe<Scalars['String']['output']>;
   multiple: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
@@ -4171,6 +4173,7 @@ export type QuerySearchFilesArgs = {
   organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
+  prefix?: InputMaybe<Scalars['String']['input']>;
   query: Scalars['String']['input'];
   workspaceSlugs?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };

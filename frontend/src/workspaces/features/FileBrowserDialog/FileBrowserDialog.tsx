@@ -6,6 +6,7 @@ import {
   ArrowUpTrayIcon,
   ChevronRightIcon,
   HomeIcon,
+  InformationCircleIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { BucketObject, BucketObjectType, FileType } from "graphql/types";
@@ -39,13 +40,23 @@ type FileBrowserDialogProps = {
   onClose: () => void;
   workspaceSlug: string;
   onSelectFile: (file: FileBrowserDialog_BucketObjectFragment) => void;
+  directory?: string;
 };
 
 const FileBrowserDialog = (props: FileBrowserDialogProps) => {
-  const { open, onClose, workspaceSlug, onSelectFile } = props;
+  const {
+    open,
+    onClose,
+    workspaceSlug,
+    onSelectFile,
+    directory = null,
+  } = props;
   const { t } = useTranslation();
 
-  const [prefix, setPrefix] = useState<string | null>(null);
+  const [restrictedDirectory, setRestrictedDirectory] = useState<string | null>(
+    directory,
+  );
+  const [prefix, setPrefix] = useState<string | null>(directory);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,22 +68,17 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Reset dialog when it closes
+  // Reset dialog when it closes or opens
   useEffect(() => {
     if (!open) {
-      setPrefix(null);
+      setRestrictedDirectory(directory);
+      setPrefix(directory);
       setIsSearching(false);
       setSearchQuery("");
       setCurrentPage(1);
       setCurrentSelectedFile(null);
     }
-  }, [open]);
-
-  // Browsing or searching
-  const [searchOrBrowseBucket, { data, previousData, loading }] = useLazyQuery<
-    FileBrowserDialogQuery,
-    FileBrowserDialogQueryVariables
-  >(FileBrowserDialogDocument);
+  }, [open, directory]);
 
   const getQueryVariables = useCallback(
     (): FileBrowserDialogQueryVariables => ({
@@ -87,6 +93,24 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
     [workspaceSlug, currentPage, isSearchMode, debouncedSearchQuery, prefix],
   );
 
+  // Browsing or searching
+  const [searchOrBrowseBucket, { data, previousData, loading }] = useLazyQuery<
+    FileBrowserDialogQuery,
+    FileBrowserDialogQueryVariables
+  >(FileBrowserDialogDocument, {
+    onError: (_error) => {
+      // If we get an error with a restricted directory, it means the directory is invalid
+      // To not block the user, we ignore the directory restriction
+      if (restrictedDirectory) {
+        setRestrictedDirectory(null);
+        setPrefix(null);
+        searchOrBrowseBucket({
+          variables: { ...getQueryVariables(), prefix: null },
+        });
+      }
+    },
+  });
+
   useEffect(() => {
     if (open) {
       searchOrBrowseBucket({ variables: getQueryVariables() });
@@ -100,15 +124,32 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
       setIsSearching(true);
       setCurrentPage(1);
       setSearchQuery(searchValue);
-      setPrefix(null); // Search is across the entire bucket
+      // If directory is restricted, allow only search on this directory.
+      // Otherwise, search across entire bucket.
+      setPrefix(restrictedDirectory);
     },
-    [setIsSearching, setSearchQuery],
+    [restrictedDirectory],
+  );
+
+  // Check if we can navigate to a given prefix (respecting directory restriction)
+  const canNavigateTo = useCallback(
+    (targetPrefix: string | null) => {
+      if (!restrictedDirectory) return true;
+
+      return targetPrefix && targetPrefix.startsWith(restrictedDirectory);
+    },
+    [restrictedDirectory],
   );
 
   const setCurrentFolder = (prefix: string | null) => {
     setSearchQuery("");
     setCurrentPage(1);
-    setPrefix(prefix);
+    // If directory is restricted, don't allow navigation above it
+    if (!canNavigateTo(prefix)) {
+      setPrefix(restrictedDirectory);
+    } else {
+      setPrefix(prefix);
+    }
   };
 
   // File or folder selection
@@ -197,7 +238,12 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
           {prefixes.length > 0 && (
             <>
               <button
-                className="p-1 hover:text-gray-700 cursor-pointer"
+                className={clsx(
+                  "p-1",
+                  isSearchMode || !canNavigateTo(null)
+                    ? "cursor-not-allowed"
+                    : "hover:text-gray-700 cursor-pointer",
+                )}
                 onClick={() => setCurrentFolder(null)}
                 disabled={isSearchMode}
                 aria-label={t("Go to root directory")}
@@ -210,30 +256,57 @@ const FileBrowserDialog = (props: FileBrowserDialogProps) => {
                   <span>...</span>
                 </>
               )}
-              {prefixes.slice(-6).map((part, index) => (
-                <div key={index} className="flex items-center">
-                  <ChevronRightIcon className="h-3 w-3" />
-                  <button
-                    className="px-1 py-0.5 truncate hover:text-gray-700 cursor-pointer"
-                    onClick={() => setCurrentFolder(part.value)}
-                    disabled={isSearchMode}
-                    title={part.label}
-                  >
-                    {part.label}
-                  </button>
-                </div>
-              ))}
+              {prefixes.slice(-6).map((part, index) => {
+                const isNavigable = canNavigateTo(part.value);
+                return (
+                  <div key={index} className="flex items-center">
+                    <ChevronRightIcon className="h-3 w-3" />
+                    <button
+                      className={clsx(
+                        "px-1 py-0.5 truncate",
+                        isSearchMode || !isNavigable
+                          ? "cursor-not-allowed"
+                          : "hover:text-gray-700 cursor-pointer",
+                      )}
+                      onClick={() =>
+                        !isSearchMode &&
+                        isNavigable &&
+                        setCurrentFolder(part.value)
+                      }
+                      disabled={isSearchMode || !isNavigable}
+                      title={part.label}
+                    >
+                      {part.label}
+                    </button>
+                  </div>
+                );
+              })}
             </>
           )}
         </div>
 
+        {restrictedDirectory && (
+          <div className="flex items-center gap-2 text-xs text-blue-600">
+            <InformationCircleIcon className="h-6 w-6 p-1" />
+            <span>
+              {t("File selection is restricted to the folder")}{" "}
+              <code className="bg-blue-50 px-1 py-0.5 rounded">
+                {restrictedDirectory}
+              </code>
+              . {t("Navigating outside of this folder is disabled.")}
+            </span>
+          </div>
+        )}
+
         <div className="flex items-center justify-between gap-2">
-          <Input
-            placeholder={t("Search files...")}
-            value={searchQuery}
-            onChange={(e) => updateSearchQuery(e.target.value)}
-            leading={<MagnifyingGlassIcon className="h-4 w-4" />}
-          />
+          <div className="flex-1">
+            <Input
+              placeholder={t("Search files...")}
+              value={searchQuery}
+              onChange={(e) => updateSearchQuery(e.target.value)}
+              leading={<MagnifyingGlassIcon className="h-4 w-4" />}
+            />
+          </div>
 
           <div className="flex items-center justify-end gap-2">
             <CreateFolderButton

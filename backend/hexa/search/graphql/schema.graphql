@@ -84,5 +84,5 @@ extend type Query {
   searchPipelines(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String], organizationId: UUID, functionalType: PipelineFunctionalType): PipelineResultPage! @loginRequired
   searchPipelineTemplates(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String], organizationId: UUID): PipelineTemplateResultPage! @loginRequired
   searchDatabaseTables(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String], organizationId: UUID): DatabaseTableResultPage! @loginRequired
-  searchFiles(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String], organizationId: UUID): FileResultPage! @loginRequired
+  searchFiles(query: String!, page: Int = 1, perPage: Int = 15, workspaceSlugs: [String], organizationId: UUID, prefix: String): FileResultPage! @loginRequired
 }
