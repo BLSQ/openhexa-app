@@ -5,7 +5,7 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import useCacheKey from "core/hooks/useCacheKey";
 import useDebounce from "core/hooks/useDebounce";
 import SearchInput from "core/features/SearchInput";
-import SimpleSelect from "core/components/forms/SimpleSelect";
+import Listbox from "core/components/Listbox";
 import {
   User as UserType,
   OrganizationMembership,
@@ -102,6 +102,14 @@ export default function OrganizationMembers({
     setOpenEditDialog(true);
   };
 
+  const roleOptions = [
+    { value: ALL_ROLES, label: t("All roles") },
+    ...Object.values(OrganizationMembershipRole).map((role) => ({
+      value: role,
+      label: formatOrganizationMembershipRole(role),
+    })),
+  ];
+
   return (
     <>
       <div className="mb-4 flex gap-4">
@@ -114,19 +122,18 @@ export default function OrganizationMembers({
           className="max-w-md"
           fitWidth
         />
-        <SimpleSelect
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value as RoleFilterOption)}
-          className="max-w-48"
-          required
-        >
-          <option value={ALL_ROLES}>{t("All roles")}</option>
-          {Object.values(OrganizationMembershipRole).map((role) => (
-            <option key={role} value={role}>
-              {formatOrganizationMembershipRole(role)}
-            </option>
-          ))}
-        </SimpleSelect>
+        <div className="w-30">
+          <Listbox
+            value={
+              roleOptions.find((opt) => opt.value === roleFilter) ||
+              roleOptions[0]
+            }
+            options={roleOptions}
+            onChange={(option) => setRoleFilter(option.value)}
+            getOptionLabel={(opt) => opt.label}
+            by="value"
+          />
+        </div>
       </div>
       <Block>
         <DataGrid

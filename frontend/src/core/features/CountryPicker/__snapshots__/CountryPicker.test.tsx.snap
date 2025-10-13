@@ -23,12 +23,11 @@ exports[`CountryPicker renders 1`] = `
           aria-autocomplete="list"
           aria-expanded="false"
           autocomplete="off"
-          class="flex-1 placeholder-gray-600/70 outline-hidden cursor-pointer pointer-events-none"
+          class="flex-1 placeholder-gray-600/70 outline-hidden"
           data-headlessui-state=""
           data-testid="combobox-input"
           id="headlessui-combobox-input-963e9095-8e5e-490e-8bf2-2eb1cceb1000"
           placeholder="Select a country"
-          readonly=""
           role="combobox"
           type="text"
         />
