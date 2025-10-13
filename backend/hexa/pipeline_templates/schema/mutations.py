@@ -230,7 +230,7 @@ def resolve_update_template(_, info, **kwargs):
         )
 
         if "tags" in input:
-            tags, has_error = Tag.validate_and_get_or_create(input.pop("tags"))
+            tags, has_error = Tag.validate_and_get_or_create(input["tags"])
             if has_error:
                 return {
                     "success": False,

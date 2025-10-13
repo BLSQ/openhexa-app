@@ -128,18 +128,21 @@ class SearchResolversTest(GraphQLTestCase):
             code="template",
             description="First template",
             source_pipeline=cls.PIPELINE1,
+            workspace=cls.WORKSPACE1,
         )
         cls.TEMPLATE2 = PipelineTemplate.objects.create(
             name="Template 2",
             code="template-2",
             description="Second template",
             source_pipeline=cls.PIPELINE2,
+            workspace=cls.WORKSPACE2,
         )
         cls.TEMPLATE3 = PipelineTemplate.objects.create(
             name="Template 3",
             code="template-3",
             description="Third template",
             source_pipeline=cls.PIPELINE3,
+            workspace=cls.WORKSPACE3,
         )
 
     def test_search_datasets(self):
@@ -346,8 +349,8 @@ class SearchResolversTest(GraphQLTestCase):
                 },
             ],
         )
-        self.assertEqual(response["data"]["searchPipelineTemplates"]["totalPages"], 2)
-        self.assertEqual(response["data"]["searchPipelineTemplates"]["totalItems"], 3)
+        self.assertEqual(response["data"]["searchPipelineTemplates"]["totalPages"], 1)
+        self.assertEqual(response["data"]["searchPipelineTemplates"]["totalItems"], 2)
 
     @patch("hexa.files.storage.list_bucket_objects")
     def test_search_files(self, mock_list_bucket_objects):
