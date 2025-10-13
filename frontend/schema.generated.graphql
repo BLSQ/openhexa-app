@@ -2645,6 +2645,9 @@ type Organization {
   """The permissions the current user has in the organization."""
   permissions: OrganizationPermissions!
 
+  """Pipeline tags used within this organization."""
+  pipelineTags: [String!]!
+
   """The short name of the organization."""
   shortName: String
 

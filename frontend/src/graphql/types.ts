@@ -3194,6 +3194,8 @@ export type Organization = {
   name: Scalars['String']['output'];
   /** The permissions the current user has in the organization. */
   permissions: OrganizationPermissions;
+  /** Pipeline tags used within this organization. */
+  pipelineTags: Array<Scalars['String']['output']>;
   /** The short name of the organization. */
   shortName?: Maybe<Scalars['String']['output']>;
   /** The type of the organization. */

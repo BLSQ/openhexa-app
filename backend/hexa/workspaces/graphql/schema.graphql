@@ -42,7 +42,7 @@ type Workspace {
   # The connections associated with the workspace.
   connections: [Connection!]!
 
-  # Pipeline tags used in the system.
+  # Pipeline tags used within this workspace's organization.
   pipelineTags: [String!]!
 
   # The invitations sent to join the workspace.
