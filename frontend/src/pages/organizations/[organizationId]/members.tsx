@@ -71,7 +71,7 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
             <OrganizationInvitations organizationId={organization.id} />
           </div>
           <div className="m-8">
-            <Title level={2}>{t("Pending Workspace Invitations")}</Title>
+            <Title level={2}>{t("Pending Direct Workspace Invitations")}</Title>
             <OrganizationWorkspaceInvitations
               organizationId={organization.id}
             />
