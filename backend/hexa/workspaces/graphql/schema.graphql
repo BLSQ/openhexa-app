@@ -875,6 +875,12 @@ extend type MePermissions {
   createWorkspace: Boolean!
 }
 
+extend type Organization {
+  # Standalone workspace invitations across all workspaces in the organization.
+  # Only visible to organization admins and owners.
+  pendingWorkspaceInvitations(page: Int, perPage: Int): WorkspaceInvitationPage!
+}
+
 """
 DHIS2 metadata item
 """

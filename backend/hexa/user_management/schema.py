@@ -701,6 +701,29 @@ def resolve_organization_pipeline_tags(organization: Organization, info, **kwarg
     )
 
 
+@organization_object.field("pendingWorkspaceInvitations")
+def resolve_pending_workspace_invitations(organization: Organization, info, **kwargs):
+    """Resolve standalone workspace invitations across all workspaces in the organization.
+    Only visible to organization admins and owners due to filter_for_user permissions.
+    """
+    request: HttpRequest = info.context["request"]
+
+    qs = (
+        WorkspaceInvitation.objects.filter_for_user(request.user)
+        .filter(
+            workspace__organization=organization,
+            status=WorkspaceInvitationStatus.PENDING,
+        )
+        .order_by("-updated_at")
+    )
+
+    return result_page(
+        queryset=qs,
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", 5),
+    )
+
+
 @organization_object.field("datasets")
 def resolve_organization_datasets(
     organization: Organization, info, query=None, **kwargs
