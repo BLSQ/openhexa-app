@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 from io import BytesIO
 
 from django.conf import settings
@@ -339,6 +340,36 @@ class DatasetTest(GraphQLTestCase, DatasetTestMixin):
             },
             r["data"],
         )
+
+    def test_latest_version_with_prefetch(self):
+        """
+        Test that latest_version property returns the most recent version
+        """
+        superuser = self.create_user("superuser@blsq.com", is_superuser=True)
+        workspace = self.create_workspace(superuser, "My Workspace", "Test workspace")
+        dataset = self.create_dataset(
+            superuser, workspace, "My dataset", "Description of dataset"
+        )
+
+        self.create_dataset_version(superuser, dataset=dataset, name="Version 1")
+        version_2 = self.create_dataset_version(
+            superuser, dataset=dataset, name="Version 2"
+        )
+        version_3 = self.create_dataset_version(
+            superuser, dataset=dataset, name="Version 3"
+        )
+        version_2.created_at = version_3.created_at + timedelta(minutes=1)
+        version_2.save()
+
+        dataset_prefetched = (
+            Dataset.objects.filter(id=dataset.id).prefetch_related("versions").first()
+        )
+
+        self.assertEqual(dataset_prefetched.latest_version.id, version_2.id)
+        self.assertEqual(dataset_prefetched.latest_version.name, "Version 2")
+
+        dataset_no_prefetch = Dataset.objects.get(id=dataset.id)
+        self.assertEqual(dataset_no_prefetch.latest_version.id, version_2.id)
 
 
 class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
