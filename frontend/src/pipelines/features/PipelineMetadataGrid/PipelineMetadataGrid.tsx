@@ -7,14 +7,6 @@ type TagType = {
   name: string;
 };
 
-type PipelineMetadataGridProps = {
-  functionalType?: PipelineFunctionalType | null;
-  tags?: TagType[];
-  maxTags?: number;
-  emptyText?: string;
-  className?: string;
-};
-
 export const FunctionalTypeCell = ({
   functionalType,
   emptyText = "-",
@@ -60,23 +52,3 @@ export const TagsCell = ({
     </div>
   );
 };
-
-const PipelineMetadataGrid = ({
-  functionalType,
-  tags,
-  maxTags,
-  emptyText = "-",
-  className = "",
-}: PipelineMetadataGridProps) => {
-  if (functionalType !== undefined) {
-    return <FunctionalTypeCell functionalType={functionalType} emptyText={emptyText} className={className} />;
-  }
-
-  if (tags !== undefined) {
-    return <TagsCell tags={tags} maxTags={maxTags} emptyText={emptyText} className={className} />;
-  }
-
-  return null;
-};
-
-export default PipelineMetadataGrid;
