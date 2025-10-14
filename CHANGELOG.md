@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.6.0](https://github.com/BLSQ/openhexa-app/compare/2.5.1...2.6.0) (2025-10-14)
+
+
+### Features
+
+* enhance pipelines page with new columns and filtering options ([#1404](https://github.com/BLSQ/openhexa-app/issues/1404)) ([4c50ede](https://github.com/BLSQ/openhexa-app/commit/4c50ede20c718029f15dfc3efa4fa613ed0d8113))
+
+
+### Bug Fixes
+
+* buttons for archive and workspace settings should be disabled if no permissions (PATHWAYS-949) ([#1400](https://github.com/BLSQ/openhexa-app/issues/1400)) ([d6993e9](https://github.com/BLSQ/openhexa-app/commit/d6993e94f8472513bbdd9fd90fb7731d90394d31))
+* combobox wrongly set to readonly ([#1407](https://github.com/BLSQ/openhexa-app/issues/1407)) ([842b4c5](https://github.com/BLSQ/openhexa-app/commit/842b4c55a284286fdcdac075fc4e45d3bf597d9c))
+* dataset page of organization is slow to load (PATHWAYS-945) ([#1406](https://github.com/BLSQ/openhexa-app/issues/1406)) ([2dfa385](https://github.com/BLSQ/openhexa-app/commit/2dfa3851cbf1d689b936df0b78121b9a3e101a63))
+* improve logging for the pipeline heartbeat mechanism + share config to run pipelines on kubernetes locally (HEXA-1386) ([#1395](https://github.com/BLSQ/openhexa-app/issues/1395)) ([f9fcdc2](https://github.com/BLSQ/openhexa-app/commit/f9fcdc2c64201896495f9df451966036f51bdaae))
+* inconsistent pending invitations information (HEXA-1390) ([#1408](https://github.com/BLSQ/openhexa-app/issues/1408)) ([5aea352](https://github.com/BLSQ/openhexa-app/commit/5aea352c8fdd238279b350ce83737f5052fde434))
+* invite gmail clips the resources section for some reason (PATHWAYS-942) ([#1403](https://github.com/BLSQ/openhexa-app/issues/1403)) ([e9417c8](https://github.com/BLSQ/openhexa-app/commit/e9417c84541d7c7b3166eb0c15091867827a029e))
+* superuser permission when not org admin/owner (HEXA-1383) ([#1397](https://github.com/BLSQ/openhexa-app/issues/1397)) ([99962b7](https://github.com/BLSQ/openhexa-app/commit/99962b7d51bec3c71481ef21104815d60521d5c6))
+* workspace admins should be able to create workspaces (HEXA-1387) ([#1402](https://github.com/BLSQ/openhexa-app/issues/1402)) ([91c06f5](https://github.com/BLSQ/openhexa-app/commit/91c06f5953ed9abdda8ee38f6da797e4825574ee))
+
 ## [2.5.1](https://github.com/BLSQ/openhexa-app/compare/2.5.0...2.5.1) (2025-10-02)
 
 
