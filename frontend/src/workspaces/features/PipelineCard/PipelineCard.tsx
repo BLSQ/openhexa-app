@@ -8,8 +8,8 @@ import User from "core/features/User";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
-import { formatPipelineSource, formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
-import { TagsCell } from "pipelines/features/PipelineMetadataGrid";
+import { formatPipelineSource } from "workspaces/helpers/pipelines";
+import PipelineMetadataDisplay from "pipelines/features/PipelineMetadataDisplay";
 import {
   PipelineCard_PipelineFragment,
   PipelineCard_WorkspaceFragment,
@@ -35,11 +35,6 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
             <Badge className="bg-gray-50 ring-gray-500/20">
               {formatPipelineSource(pipeline.type, !!pipeline.sourceTemplate)}
             </Badge>
-            {pipeline.functionalType && (
-              <Badge className="bg-blue-50 ring-blue-500/20">
-                {formatPipelineFunctionalType(pipeline.functionalType)}
-              </Badge>
-            )}
             <span className="text-sm text-gray-500">•</span>
             <span className="text-sm text-gray-600 font-mono">{pipeline.code}</span>
           </div>
@@ -59,9 +54,7 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
             </div>
           )}
 
-          <div className="min-h-[24px]">
-            <TagsCell tags={pipeline.tags} emptyText="" />
-          </div>
+          <PipelineMetadataDisplay metadata={pipeline} size="sm" showLabels={false} />
         </div>
 
         <div className="space-y-2">
@@ -117,11 +110,7 @@ PipelineCard.fragments = {
         id
         name
       }
-      tags {
-        id
-        name
-      }
-      functionalType
+      ...PipelineMetadataDisplay_pipeline
       currentVersion {
         user {
           ...User_user
@@ -139,6 +128,7 @@ PipelineCard.fragments = {
         }
       }
     }
+    ${PipelineMetadataDisplay.fragments.pipeline}
     ${PipelineRunStatusBadge.fragments.pipelineRun}
     ${User.fragments.user}
   `,
