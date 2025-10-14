@@ -1275,20 +1275,20 @@ class DatasetLinkBySlugTest(GraphQLTestCase, DatasetTestMixin):
             """,
             {
                 "datasetSlug": self.dataset.slug,
-                "workspaceSlug": self.source_workspace.slug,
+                "workspaceSlug": self.target_workspace.slug,
             },
         )
 
-        source_link = DatasetLink.objects.get(
-            dataset=self.dataset, workspace=self.source_workspace
+        target_link = DatasetLink.objects.get(
+            dataset=self.dataset, workspace=self.target_workspace
         )
 
         self.assertEqual(
             {
                 "datasetLinkBySlug": {
-                    "id": str(source_link.id),
+                    "id": str(target_link.id),
                     "workspace": {
-                        "slug": self.source_workspace.slug,
+                        "slug": self.target_workspace.slug,
                     },
                 }
             },
