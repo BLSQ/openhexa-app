@@ -32,7 +32,7 @@ from hexa.analytics.api import track
 from hexa.core.graphql import result_page
 from hexa.core.string import remove_whitespace
 from hexa.core.templatetags.colors import hash_color
-from hexa.datasets.models import Dataset
+from hexa.datasets.models import Dataset, DatasetLink
 from hexa.tags.models import Tag
 from hexa.user_management.models import (
     AlreadyExists,
@@ -748,6 +748,37 @@ def resolve_organization_datasets(
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", 15),
     )
+
+
+@organization_object.field("datasetLinks")
+def resolve_organization_dataset_links(
+    organization: Organization, info, query=None, **kwargs
+):
+    request: HttpRequest = info.context["request"]
+
+    accessible_workspaces = set(organization.filter_workspaces_for_user(request.user))
+
+    qs = DatasetLink.objects.filter_for_workspaces(
+        workspaces=accessible_workspaces, query=query
+    )
+
+    page_result = result_page(
+        queryset=qs,
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", 15),
+    )
+
+    if accessible_workspaces:
+        first_workspace = next(iter(accessible_workspaces))
+        for obj in page_result["items"]:
+            # If the dataset link is shared with the organization but the user has no access to the workspace, set it to the first accessible workspace
+            if (
+                obj.dataset.shared_with_organization
+                and obj.workspace not in accessible_workspaces
+            ):
+                obj.workspace = first_workspace
+
+    return page_result
 
 
 @organization_queries.field("organization")

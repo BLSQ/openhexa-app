@@ -2627,6 +2627,9 @@ type Organization {
   """The contact information of the organization."""
   contactInfo: String!
 
+  """Dataset links available in the organization"""
+  datasetLinks(page: Int = 1, perPage: Int = 15, query: String): DatasetLinkPage!
+
   """Datasets available in the organization"""
   datasets(page: Int = 1, perPage: Int = 15, query: String): DatasetPage!
 

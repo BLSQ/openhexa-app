@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 from io import BytesIO
 
 from django.conf import settings
@@ -339,6 +340,36 @@ class DatasetTest(GraphQLTestCase, DatasetTestMixin):
             },
             r["data"],
         )
+
+    def test_latest_version_with_prefetch(self):
+        """
+        Test that latest_version property returns the most recent version
+        """
+        superuser = self.create_user("superuser@blsq.com", is_superuser=True)
+        workspace = self.create_workspace(superuser, "My Workspace", "Test workspace")
+        dataset = self.create_dataset(
+            superuser, workspace, "My dataset", "Description of dataset"
+        )
+
+        self.create_dataset_version(superuser, dataset=dataset, name="Version 1")
+        version_2 = self.create_dataset_version(
+            superuser, dataset=dataset, name="Version 2"
+        )
+        version_3 = self.create_dataset_version(
+            superuser, dataset=dataset, name="Version 3"
+        )
+        version_2.created_at = version_3.created_at + timedelta(minutes=1)
+        version_2.save()
+
+        dataset_prefetched = (
+            Dataset.objects.filter(id=dataset.id).prefetch_related("versions").first()
+        )
+
+        self.assertEqual(dataset_prefetched.latest_version.id, version_2.id)
+        self.assertEqual(dataset_prefetched.latest_version.name, "Version 2")
+
+        dataset_no_prefetch = Dataset.objects.get(id=dataset.id)
+        self.assertEqual(dataset_no_prefetch.latest_version.id, version_2.id)
 
 
 class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
@@ -1244,20 +1275,98 @@ class DatasetLinkBySlugTest(GraphQLTestCase, DatasetTestMixin):
             """,
             {
                 "datasetSlug": self.dataset.slug,
-                "workspaceSlug": self.source_workspace.slug,
+                "workspaceSlug": self.target_workspace.slug,
             },
         )
 
-        source_link = DatasetLink.objects.get(
-            dataset=self.dataset, workspace=self.source_workspace
+        target_link = DatasetLink.objects.get(
+            dataset=self.dataset, workspace=self.target_workspace
         )
 
         self.assertEqual(
             {
                 "datasetLinkBySlug": {
-                    "id": str(source_link.id),
+                    "id": str(target_link.id),
                     "workspace": {
-                        "slug": self.source_workspace.slug,
+                        "slug": self.target_workspace.slug,
+                    },
+                }
+            },
+            r["data"],
+        )
+
+    def test_dataset_link_by_slug_shared_workspace_without_source_access(self):
+        """
+        Test that a user in workspace test2 can access a dataset created in workspace test
+        that was shared with test2, even though the user has no access to workspace test.
+        """
+        user_test = User.objects.create_user("test@test.org", "password")
+        WorkspaceMembership.objects.create(
+            workspace=self.source_workspace,
+            user=user_test,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
+        dataset = Dataset.objects.create_if_has_perm(
+            user_test,
+            self.source_workspace,
+            name="Shared Dataset",
+            description="Dataset shared from test to test2",
+        )
+
+        dataset.link(principal=user_test, workspace=self.target_workspace)
+
+        # Create admin_test2 who has access ONLY to target_workspace (test2)
+        # and NOT to source_workspace (test)
+        admin_test2 = User.objects.create_user("admin_test2@test.org", "password")
+        WorkspaceMembership.objects.create(
+            workspace=self.target_workspace,
+            user=admin_test2,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                workspace=self.source_workspace, user=admin_test2
+            ).exists()
+        )
+
+        self.client.force_login(admin_test2)
+        r = self.run_query(
+            """
+            query DatasetLinkBySlug($datasetSlug: String!, $workspaceSlug: String!) {
+                datasetLinkBySlug(datasetSlug: $datasetSlug, workspaceSlug: $workspaceSlug) {
+                    id
+                    dataset {
+                        name
+                        slug
+                    }
+                    workspace {
+                        slug
+                    }
+                }
+            }
+            """,
+            {
+                "datasetSlug": dataset.slug,
+                "workspaceSlug": self.source_workspace.slug,
+            },
+        )
+
+        dataset_link = DatasetLink.objects.get(
+            dataset=dataset, workspace=self.target_workspace
+        )
+
+        self.assertEqual(
+            {
+                "datasetLinkBySlug": {
+                    "id": str(dataset_link.id),
+                    "dataset": {
+                        "name": "Shared Dataset",
+                        "slug": dataset.slug,
+                    },
+                    "workspace": {
+                        "slug": self.target_workspace.slug,
                     },
                 }
             },

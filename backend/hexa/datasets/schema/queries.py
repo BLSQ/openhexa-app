@@ -69,16 +69,15 @@ def resolve_dataset_link_by_slug(_, info, **kwargs):
     dataset_slug = kwargs["dataset_slug"]
     workspace_slug = kwargs["workspace_slug"]
 
-    # First: dataset link in the specific workspace
+    # First: dataset shared from the specified workspace
     result = user_links.filter(
         dataset__slug=dataset_slug,
         dataset__workspace__slug=workspace_slug,
-        workspace__slug=workspace_slug,
     ).first()
     if result:
         return result
 
-    # Second: dataset shared to the specified workspace
+    # Second: dataset link in the specific workspace
     result = user_links.filter(
         dataset__slug=dataset_slug,
         workspace__slug=workspace_slug,
@@ -87,11 +86,7 @@ def resolve_dataset_link_by_slug(_, info, **kwargs):
         return result
 
     # Third: organization shared datasets - ensure workspace is in same org as dataset
-    workspace = (
-        Workspace.objects.filter_for_user(request.user)
-        .filter(slug=workspace_slug)
-        .first()
-    )
+    workspace = Workspace.objects.filter(slug=workspace_slug).first()
     if not workspace or not workspace.organization:
         return None
     result = user_links.filter(

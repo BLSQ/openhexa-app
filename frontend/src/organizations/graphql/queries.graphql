@@ -41,18 +41,24 @@ query Organizations {
     }
 }
 
-fragment OrganizationDataset_dataset on Dataset {
+fragment OrganizationDataset_link on DatasetLink {
     id
-    slug
-    name
-    description
-    updatedAt
-    sharedWithOrganization
     workspace {
         slug
         name
     }
-    links(page: 1, perPage: 50) {
+    dataset {
+        id
+        slug
+        name
+        description
+        updatedAt
+        sharedWithOrganization
+        workspace {
+            slug
+            name
+        }
+        links(page: 1, perPage: 50) {
         items {
             workspace {
                 slug
@@ -60,17 +66,18 @@ fragment OrganizationDataset_dataset on Dataset {
             }
         }
     }
+    }
 }
 
 query OrganizationDatasets($id: UUID!, $page: Int = 1, $perPage: Int = 10, $query: String) {
     organization(id: $id) {
         ...Organization_organization
-        datasets(page: $page, perPage: $perPage, query: $query) {
+        datasetLinks(page: $page, perPage: $perPage, query: $query) {
             totalItems
             pageNumber
             totalPages
             items {
-                ...OrganizationDataset_dataset
+                ...OrganizationDataset_link
             }
         }
     }
