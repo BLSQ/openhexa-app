@@ -64,13 +64,7 @@ PipelineVersionParametersTable.fragments = {
     fragment PipelineVersionParametersTable_version on PipelineVersion {
       id
       parameters {
-        code
-        name
-        multiple
-        type
-        help
-        required
-        choices
+        ...ParameterField_parameter
       }
       config
     }

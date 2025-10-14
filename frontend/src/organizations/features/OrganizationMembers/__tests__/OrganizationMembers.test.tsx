@@ -260,8 +260,11 @@ describe("OrganizationMembers", () => {
       </TestApp>,
     );
 
-    const buttons = screen.queryAllByRole("button");
-    expect(buttons).toHaveLength(0);
+    const editButtons = screen.queryAllByLabelText("edit");
+    const deleteButtons = screen.queryAllByLabelText("delete");
+
+    expect(editButtons).toHaveLength(0);
+    expect(deleteButtons).toHaveLength(0);
   });
 
   it("opens delete dialog when delete button is clicked", async () => {

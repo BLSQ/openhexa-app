@@ -797,6 +797,7 @@ input CreatePipelineInput {
   functionalType: PipelineFunctionalType
   name: String!
   notebookPath: String
+  tags: [String!]
   workspaceSlug: String!
 }
 
@@ -2647,6 +2648,9 @@ type Organization {
   """The permissions the current user has in the organization."""
   permissions: OrganizationPermissions!
 
+  """Pipeline tags used within this organization."""
+  pipelineTags: [String!]!
+
   """The short name of the organization."""
   shortName: String
 
@@ -2753,6 +2757,7 @@ input ParameterInput {
   code: String!
   connection: String
   default: Generic
+  directory: String
   help: String
   multiple: Boolean
   name: String
@@ -2902,6 +2907,7 @@ type PipelineParameter {
   code: String!
   connection: String
   default: Generic
+  directory: String
   help: String
   multiple: Boolean!
   name: String!
@@ -3345,7 +3351,7 @@ type Query {
   pipelines(functionalType: PipelineFunctionalType, name: String, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
-  searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): FileResultPage!
+  searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
   searchPipelineTemplates(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): PipelineTemplateResultPage!
   searchPipelines(functionalType: PipelineFunctionalType, organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): PipelineResultPage!
   team(id: UUID!): Team
@@ -4485,6 +4491,7 @@ type Workspace {
   name: String!
   organization: Organization
   permissions: WorkspacePermissions!
+  pipelineTags: [String!]!
   slug: String!
   updatedAt: DateTime
 }

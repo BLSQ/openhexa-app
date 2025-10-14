@@ -35,12 +35,13 @@ const Pipelines = ({
   const [functionalType, setFunctionalType] = useState<PipelineFunctionalType | null>(
     initialFunctionalType || null
   );
+  const [selectedTags, setSelectedTags] = useState<string[]>(tags || []);
 
   const { data, loading } = useWorkspacePipelinesPageQuery({
     variables: {
       workspaceSlug: workspace.slug,
       search: debouncedSearchQuery,
-      tags,
+      tags: selectedTags.length > 0 ? selectedTags : undefined,
       functionalType,
       page,
       perPage,
@@ -59,6 +60,8 @@ const Pipelines = ({
 
   const totalItems = data?.pipelines?.totalItems ?? 0;
 
+  const availableTags = data?.workspace?.pipelineTags || [];
+
   return (
     <div>
       <Header
@@ -69,6 +72,9 @@ const Pipelines = ({
         showCard={true}
         functionalTypeFilter={functionalType}
         setFunctionalTypeFilter={setFunctionalType}
+        tagsFilter={selectedTags}
+        setTagsFilter={setSelectedTags}
+        availableTags={availableTags}
       />
       <div className="relative">
         {loading && (

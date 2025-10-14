@@ -141,6 +141,7 @@ def resolve_search_files(
     per_page=15,
     workspace_slugs=None,
     organization_id=None,
+    prefix=None,
 ):
     workspace_slugs = workspace_slugs or []
     if organization_id:
@@ -162,6 +163,7 @@ def resolve_search_files(
         for file in storage.list_bucket_objects(
             bucket_name=workspace.bucket_name,
             match_glob=f"*{query}*",
+            prefix=prefix,
         ).items
     ]
     return result_page(files, page=page, per_page=per_page)

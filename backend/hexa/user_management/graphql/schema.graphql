@@ -1013,6 +1013,11 @@ type Organization {
     The invitations sent to join the organization.
     """
     invitations(includeAccepted: Boolean, page: Int, perPage: Int): OrganizationInvitationPage!
+
+    """
+    Pipeline tags used within this organization.
+    """
+    pipelineTags: [String!]!
 }
 
 type OrganizationPermissions {

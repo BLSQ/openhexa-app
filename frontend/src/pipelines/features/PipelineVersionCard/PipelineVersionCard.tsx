@@ -190,12 +190,7 @@ PipelineVersionCard.fragments = {
         update
       }
       parameters {
-        code
-        name
-        type
-        multiple
-        required
-        help
+        ...ParameterField_parameter
       }
       pipeline {
         id

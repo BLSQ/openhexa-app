@@ -35,6 +35,7 @@ export const FileBrowserDialogDocument = gql`
     workspaceSlugs: $workspaceSlugs
     page: $page
     perPage: $perPage
+    prefix: $prefix
   ) @include(if: $useSearch) {
     totalItems
     totalPages

@@ -33,6 +33,7 @@ from hexa.core.graphql import result_page
 from hexa.core.string import remove_whitespace
 from hexa.core.templatetags.colors import hash_color
 from hexa.datasets.models import Dataset, DatasetLink
+from hexa.tags.models import Tag
 from hexa.user_management.models import (
     AlreadyExists,
     CannotDelete,
@@ -687,6 +688,16 @@ def resolve_organization_invitations(organization: Organization, info, **kwargs)
         queryset=qs,
         page=kwargs.get("page", 1),
         per_page=kwargs.get("per_page", 5),
+    )
+
+
+@organization_object.field("pipelineTags")
+def resolve_organization_pipeline_tags(organization: Organization, info, **kwargs):
+    return list(
+        Tag.objects.filter(pipelines__workspace__organization=organization)
+        .distinct()
+        .values_list("name", flat=True)
+        .order_by("name")
     )
 
 

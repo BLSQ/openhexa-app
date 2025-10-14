@@ -40,6 +40,7 @@ query WorkspacePipelinesPage(
   workspace(slug: $workspaceSlug) {
     slug
     name
+    pipelineTags
     ...WorkspaceLayout_workspace
     ...CreatePipelineDialog_workspace
   }
@@ -272,14 +273,7 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: UUID!) {
     version {
       versionName
       parameters {
-        code
-        name
-        help
-        type
-        default
-        required
-        choices
-        multiple
+        ...ParameterField_parameter
       }
     }
     timeout
