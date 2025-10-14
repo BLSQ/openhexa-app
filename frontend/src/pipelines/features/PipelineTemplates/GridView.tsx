@@ -57,7 +57,7 @@ const GridView = ({
           )}
         </BaseColumn>
         <TextColumn
-          id="worksapce"
+          id="workspace"
           label={t("Workspace")}
           accessor="workspace.name"
           className="w-36"

@@ -1,1 +1,1 @@
-export { default, FunctionalTypeCell, TagsCell } from "./PipelineMetadataGrid";
+export { FunctionalTypeCell, TagsCell } from "./PipelineMetadataGrid";

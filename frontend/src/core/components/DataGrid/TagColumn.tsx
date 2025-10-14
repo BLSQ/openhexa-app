@@ -12,25 +12,25 @@ type TagColumnProps = {
 const TagColumn = (props: TagColumnProps) => {
   const { max, defaultValue } = props;
   const cell = useCellContext();
-  const allTags = useMemo(() => {
+  const tags = useMemo(() => {
     if (!cell.value) return [];
 
     return Array.isArray(cell.value) ? cell.value : [cell.value];
   }, [cell.value]);
 
-  const tags = useMemo(
-    () => (max ? allTags.slice(0, max) : allTags),
-    [max, allTags],
+  const displayedTags = useMemo(
+    () => (max ? tags.slice(0, max) : tags),
+    [max, tags],
   );
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {!allTags?.length && defaultValue}
-      {tags.map((tag) => (
+      {!tags?.length && defaultValue}
+      {displayedTags.map((tag) => (
         <Tag key={tag.id} tag={tag} />
       ))}
-      {allTags.length !== tags.length && (
-        <span>(+ {allTags.length - tags.length})</span>
+      {tags.length !== displayedTags.length && (
+        <span>(+ {tags.length - displayedTags.length})</span>
       )}
     </div>
   );

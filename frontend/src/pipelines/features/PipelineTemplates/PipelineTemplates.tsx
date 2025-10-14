@@ -68,7 +68,7 @@ const PipelineTemplates = ({
   useCacheKey("templates", () => refetch());
 
   const totalItems = data?.pipelineTemplates?.totalItems ?? 0;
-  const availableTags = data?.workspace?.pipelineTemplateTags || [];
+  const templateTags = data?.workspace?.pipelineTemplateTags || [];
 
   if (error) return <p>{t("Error loading templates")}</p>;
 
@@ -127,7 +127,7 @@ const PipelineTemplates = ({
         showCard={showCard}
         tagsFilter={tagsFilter}
         setTagsFilter={setTagsFilter}
-        availableTags={availableTags}
+        templateTags={templateTags}
         functionalTypeFilter={functionalTypeFilter}
         setFunctionalTypeFilter={setFunctionalTypeFilter}
       />
