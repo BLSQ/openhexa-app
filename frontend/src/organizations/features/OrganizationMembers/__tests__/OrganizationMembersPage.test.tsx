@@ -26,11 +26,13 @@ const MOCK_ORGANIZATION = {
     items: [],
   },
   permissions: {
+    manageOwners: true,
     manageMembers: true,
     createWorkspace: true,
     archiveWorkspace: true,
   },
   workspaces: {
+    totalItems: 1,
     items: [
       {
         slug: "workspace-1",
@@ -44,6 +46,7 @@ const MOCK_ORGANIZATION = {
 const MOCK_ORGANIZATION_NO_PERMISSIONS = {
   ...MOCK_ORGANIZATION,
   permissions: {
+    manageOwners: false,
     manageMembers: false,
     createWorkspace: false,
     archiveWorkspace: false,
@@ -153,7 +156,9 @@ describe("OrganizationMembersPage", () => {
       </TestApp>,
     );
 
-    expect(screen.getByText("Pending invitations")).toBeInTheDocument();
+    expect(
+      screen.getByText("Pending Organization invitations"),
+    ).toBeInTheDocument();
   });
 
   it("handles organization without members data gracefully", async () => {
@@ -162,11 +167,13 @@ describe("OrganizationMembersPage", () => {
       name: "Test Organization",
       shortName: "test-org",
       permissions: {
+        manageOwners: true,
         manageMembers: true,
         createWorkspace: true,
         archiveWorkspace: true,
       },
       workspaces: {
+        totalItems: 0,
         items: [],
       },
       members: {

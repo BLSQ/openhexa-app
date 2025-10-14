@@ -143,7 +143,7 @@ export default function OrganizationMembers({
           fetchData={onChangePage}
           className="min-h-30"
         >
-          <BaseColumn label={t("User")} id="user" minWidth={200}>
+          <BaseColumn label={t("User")} id="user" minWidth={350}>
             {(membership) => <User user={membership.user} subtext />}
           </BaseColumn>
           <BaseColumn label={t("Organization Role")} id="org_role">

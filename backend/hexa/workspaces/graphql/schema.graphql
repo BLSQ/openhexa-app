@@ -875,6 +875,11 @@ extend type MePermissions {
   createWorkspace: Boolean!
 }
 
+extend type Organization {
+  """The direct invitations sent to join a specific workspace in the organization."""
+  pendingWorkspaceInvitations(page: Int, perPage: Int): WorkspaceInvitationPage!
+}
+
 """
 DHIS2 metadata item
 """
