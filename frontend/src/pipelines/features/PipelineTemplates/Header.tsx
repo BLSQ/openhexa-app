@@ -28,6 +28,7 @@ type HeaderProps = {
   tagsFilter?: string[];
   setTagsFilter?: (tags: string[]) => void;
   templateTags?: string[];
+  pipelineTags?: string[];
 };
 
 const Header = ({
@@ -42,8 +43,11 @@ const Header = ({
   tagsFilter,
   setTagsFilter,
   templateTags,
+  pipelineTags,
 }: HeaderProps) => {
   const { t } = useTranslation();
+
+  const tags = templateTags || pipelineTags || [];
 
   const functionalTypeOptions = [
     { value: null, label: t("All types") },
@@ -62,7 +66,7 @@ const Header = ({
           onChange={(event) => setSearchQuery(event.target.value ?? "")}
           className="shadow-xs border-gray-50 w-96"
         />
-        {setTagsFilter && templateTags && templateTags.length > 0 && (
+        {setTagsFilter && tags && tags.length > 0 && (
           <Popover
             trigger={
               <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer">
@@ -91,7 +95,7 @@ const Header = ({
                 )}
               </div>
               <div className="space-y-2">
-                {templateTags.map((tag) => {
+                {tags.map((tag) => {
                   const handleToggle = () => {
                     const isSelected = tagsFilter?.includes(tag) || false;
                     if (isSelected) {
