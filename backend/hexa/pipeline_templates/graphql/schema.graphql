@@ -134,6 +134,7 @@ Enum representing the possible errors that can occur when updating a template.
 enum UpdateTemplateError {
   NOT_FOUND
   PERMISSION_DENIED
+  INVALID_CONFIG
 }
 
 """Represents the input for updating a template."""

@@ -38,7 +38,7 @@ const PipelineTemplates = ({
   const [tagsFilter, setTagsFilter] = useState<string[]>([]);
   const [functionalTypeFilter, setFunctionalTypeFilter] = useState<any>(null);
   const workspaceFilterOptions = [
-    { id: 1, label: "All templates", workspaceSlug: "" },
+    { id: 1, label: "All templates", workspaceSlug: null },
     { id: 2, label: "From this workspace", workspaceSlug: workspace.slug },
   ];
   const [workspaceFilter, setWorkspaceFilter] = useState(
@@ -50,7 +50,8 @@ const PipelineTemplates = ({
       page,
       perPage,
       search: debouncedSearchQuery,
-      workspaceSlug: workspaceFilter.workspaceSlug || workspace.slug,
+      currentWorkspaceSlug: workspace.slug,
+      workspaceSlug: workspaceFilter.workspaceSlug ?? undefined,
       tags: tagsFilter.length > 0 ? tagsFilter : undefined,
       functionalType: functionalTypeFilter,
     },
@@ -155,11 +156,12 @@ const GET_PIPELINE_TEMPLATES = gql`
     $page: Int!
     $perPage: Int!
     $search: String
-    $workspaceSlug: String!
+    $currentWorkspaceSlug: String!
+    $workspaceSlug: String
     $tags: [String!]
     $functionalType: PipelineFunctionalType
   ) {
-    workspace(slug: $workspaceSlug) {
+    workspace(slug: $currentWorkspaceSlug) {
       pipelineTemplateTags
     }
     pipelineTemplates(

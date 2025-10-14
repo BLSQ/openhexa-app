@@ -360,6 +360,38 @@ class PipelineTemplatesTest(GraphQLTestCase):
         pipeline_template.refresh_from_db()
         self.assertEqual(pipeline_template.tags.count(), 2)
 
+    def test_update_pipeline_template_with_invalid_tags(self):
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline_template = PipelineTemplate.objects.create(
+            name="Template for Invalid Tags Test",
+            code="template_invalid_tags",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+
+        response = self.run_query(
+            """
+            mutation updatePipelineTemplate($input: UpdateTemplateInput!) {
+                updatePipelineTemplate(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(pipeline_template.id),
+                    "tags": ["valid-tag", ""],
+                }
+            },
+        )
+
+        self.assertEqual(response["data"]["updatePipelineTemplate"]["success"], False)
+        self.assertEqual(
+            response["data"]["updatePipelineTemplate"]["errors"], ["INVALID_CONFIG"]
+        )
+
     def test_search_pipeline_templates_by_tags_and_functional_type(self):
         from hexa.pipelines.models import PipelineFunctionalType
         from hexa.tags.models import Tag

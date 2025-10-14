@@ -5,6 +5,7 @@ from hexa.datasets.models import Dataset
 from hexa.files.backends.base import StorageObject
 from hexa.pipeline_templates.models import PipelineTemplate
 from hexa.pipelines.models import Pipeline
+from hexa.tags.models import Tag
 from hexa.user_management.models import (
     Organization,
     OrganizationMembership,
@@ -351,6 +352,43 @@ class SearchResolversTest(GraphQLTestCase):
         )
         self.assertEqual(response["data"]["searchPipelineTemplates"]["totalPages"], 1)
         self.assertEqual(response["data"]["searchPipelineTemplates"]["totalItems"], 2)
+
+    def test_search_pipeline_templates_by_tag(self):
+        self.client.force_login(self.USER)
+
+        tag = Tag.objects.create(name="data-analysis")
+        self.TEMPLATE1.tags.add(tag)
+
+        response = self.run_query(
+            """
+            query searchPipelineTemplates($query: String!, $page: Int, $perPage: Int, $workspaceSlugs: [String]!) {
+                searchPipelineTemplates(query: $query, page: $page, perPage: $perPage, workspaceSlugs: $workspaceSlugs) {
+                    items {
+                        pipelineTemplate {
+                            name
+                            code
+                        }
+                        score
+                    }
+                }
+            }
+            """,
+            {
+                "query": "data-analysis",
+                "page": 1,
+                "perPage": 10,
+                "workspaceSlugs": ["workspace1", "workspace2"],
+            },
+        )
+        self.assertEqual(
+            response["data"]["searchPipelineTemplates"]["items"],
+            [
+                {
+                    "pipelineTemplate": {"name": "Template", "code": "template"},
+                    "score": 1,
+                },
+            ],
+        )
 
     @patch("hexa.files.storage.list_bucket_objects")
     def test_search_files(self, mock_list_bucket_objects):

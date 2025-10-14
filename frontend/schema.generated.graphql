@@ -4181,6 +4181,7 @@ type UpdateTeamResult {
 Enum representing the possible errors that can occur when updating a template.
 """
 enum UpdateTemplateError {
+  INVALID_CONFIG
   NOT_FOUND
   PERMISSION_DENIED
 }

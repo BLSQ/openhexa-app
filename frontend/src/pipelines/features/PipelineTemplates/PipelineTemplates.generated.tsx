@@ -8,7 +8,8 @@ export type GetPipelineTemplatesQueryVariables = Types.Exact<{
   page: Types.Scalars['Int']['input'];
   perPage: Types.Scalars['Int']['input'];
   search?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  workspaceSlug: Types.Scalars['String']['input'];
+  currentWorkspaceSlug: Types.Scalars['String']['input'];
+  workspaceSlug?: Types.InputMaybe<Types.Scalars['String']['input']>;
   tags?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
   functionalType?: Types.InputMaybe<Types.PipelineFunctionalType>;
 }>;
@@ -24,8 +25,8 @@ export const PipelineTemplates_WorkspaceFragmentDoc = gql`
 }
     `;
 export const GetPipelineTemplatesDocument = gql`
-    query GetPipelineTemplates($page: Int!, $perPage: Int!, $search: String, $workspaceSlug: String!, $tags: [String!], $functionalType: PipelineFunctionalType) {
-  workspace(slug: $workspaceSlug) {
+    query GetPipelineTemplates($page: Int!, $perPage: Int!, $search: String, $currentWorkspaceSlug: String!, $workspaceSlug: String, $tags: [String!], $functionalType: PipelineFunctionalType) {
+  workspace(slug: $currentWorkspaceSlug) {
     pipelineTemplateTags
   }
   pipelineTemplates(
@@ -89,6 +90,7 @@ export const GetPipelineTemplatesDocument = gql`
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *      search: // value for 'search'
+ *      currentWorkspaceSlug: // value for 'currentWorkspaceSlug'
  *      workspaceSlug: // value for 'workspaceSlug'
  *      tags: // value for 'tags'
  *      functionalType: // value for 'functionalType'

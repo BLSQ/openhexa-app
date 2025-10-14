@@ -56,6 +56,10 @@ class PipelineTemplate(SoftDeletedModel):
         indexes = [
             models.Index(fields=["name"], name="idx_template_name"),
             models.Index(fields=["functional_type"], name="idx_template_func_type"),
+            models.Index(
+                fields=["workspace", "functional_type"],
+                name="idx_template_ws_func_type",
+            ),
         ]
         ordering = ["name"]
 

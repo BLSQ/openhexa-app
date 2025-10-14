@@ -108,7 +108,7 @@ def resolve_search_pipeline_templates(
     if workspace_slugs:
         qs = qs.filter(workspace__slug__in=workspace_slugs)
 
-    qs = apply_scored_search(qs, ["name", "code", "description"], query)
+    qs = apply_scored_search(qs, ["name", "code", "description", "tags__name"], query)
     return page_result_with_scores(qs, page, per_page, "pipeline_template")
 
 

@@ -5015,6 +5015,7 @@ export type UpdateTeamResult = {
 
 /** Enum representing the possible errors that can occur when updating a template. */
 export enum UpdateTemplateError {
+  InvalidConfig = 'INVALID_CONFIG',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
