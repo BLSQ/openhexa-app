@@ -38,7 +38,7 @@ const PipelineTemplates = ({
   const [tagsFilter, setTagsFilter] = useState<string[]>([]);
   const [functionalTypeFilter, setFunctionalTypeFilter] = useState<any>(null);
   const workspaceFilterOptions = [
-    { id: 1, label: "All templates", workspaceSlug: null },
+    { id: 1, label: "All templates", workspaceSlug: "" },
     { id: 2, label: "From this workspace", workspaceSlug: workspace.slug },
   ];
   const [workspaceFilter, setWorkspaceFilter] = useState(

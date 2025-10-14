@@ -92,7 +92,7 @@ const GridView = ({
                     onClick={createPipeline(currentVersion.id)}
                     leadingIcon={<PlusIcon className="h-4 w-4" />}
                   >
-                    {t("Create")}
+                    {t("Create pipeline")}
                   </Button>
                 )}
                 {canDelete && (
