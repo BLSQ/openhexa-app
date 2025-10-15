@@ -602,6 +602,7 @@
   "This pipeline has no parameters.": "Ce pipeline n'a pas de paramètres.",
   "This pipeline has not been uploaded yet": "Ce pipeline n'a pas encore été téléchargé",
   "This table has no columns": "Ce tableau n'a pas de colonnes",
+  "This user is an organization {{role}} and will still be able to access this workspace even after being removed from the workspace members list.": "Cet utilisateur est un {{role}} de l'organisation et pourra toujours accéder à ce workspace même après avoir été supprimé de la liste des membres du workspace.",
   "This version does not exist": "Cette version n'existe pas",
   "This will enable the two-factor authentication using your email address. A one-time code will be sent to you every time you try to log in.": "Cela permettra d'activer l'authentification à deux facteurs à l'aide de votre adresse électronique. Un code à usage unique vous sera envoyé chaque fois que vous tenterez de vous connecter.",
   "This will show files and directories starting with a \".\" (dot)": "Ceci affichera les fichiers et les répertoires commençant par un \".\" (point)",
