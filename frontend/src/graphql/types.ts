@@ -2593,6 +2593,7 @@ export type Mutation = {
   updateDatasetVersion: UpdateDatasetVersionResult;
   updateMembership: UpdateMembershipResult;
   updateOrganizationMember: UpdateOrganizationMemberResult;
+  updateOrganizationSettings: UpdateOrganizationSettingsResult;
   /** Updates an existing pipeline. */
   updatePipeline: UpdatePipelineResult;
   /** Updates the progress of a pipeline. */
@@ -3095,6 +3096,11 @@ export type MutationUpdateOrganizationMemberArgs = {
 };
 
 
+export type MutationUpdateOrganizationSettingsArgs = {
+  input: UpdateOrganizationSettingsInput;
+};
+
+
 export type MutationUpdatePipelineArgs = {
   input: UpdatePipelineInput;
 };
@@ -3186,10 +3192,14 @@ export type Organization = {
   datasetLinks: DatasetLinkPage;
   /** Datasets available in the organization */
   datasets: DatasetPage;
+  /** The icon SVG content of the organization. */
+  icon?: Maybe<Scalars['String']['output']>;
   /** The unique identifier of the organization. */
   id: Scalars['UUID']['output'];
   /** The invitations sent to join the organization. */
   invitations: OrganizationInvitationPage;
+  /** The logo SVG content of the organization. */
+  logo?: Maybe<Scalars['String']['output']>;
   /** The members of the organization. */
   members: OrganizationMembershipPage;
   /** The name of the organization. */
@@ -3337,6 +3347,7 @@ export type OrganizationPermissions = {
   createWorkspace: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   manageOwners: Scalars['Boolean']['output'];
+  updateSettings: Scalars['Boolean']['output'];
 };
 
 /** Represents a workspace invitation within an organization invitation. */
@@ -3643,9 +3654,7 @@ export type PipelineTemplate = {
   currentVersion?: Maybe<PipelineTemplateVersion>;
   description?: Maybe<Scalars['String']['output']>;
   functionalType?: Maybe<PipelineFunctionalType>;
-  iconUrl?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
-  isOfficial: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   permissions: PipelineTemplatePermissions;
   sourcePipeline?: Maybe<Pipeline>;
@@ -4157,7 +4166,7 @@ export type QueryPipelineRunArgs = {
 
 export type QueryPipelineTemplatesArgs = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
-  isOfficial?: InputMaybe<Scalars['Boolean']['input']>;
+  organizationName?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
@@ -4910,6 +4919,35 @@ export type UpdateOrganizationMemberResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** The UpdateOrganizationSettingsError enum represents the possible errors for the updateOrganizationSettings mutation. */
+export enum UpdateOrganizationSettingsError {
+  /** Indicates that the organization was not found. */
+  NotFound = 'NOT_FOUND',
+  /** Indicates that the user does not have permission to update organization settings. */
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** The UpdateOrganizationSettingsInput type represents the input for the updateOrganizationSettings mutation. */
+export type UpdateOrganizationSettingsInput = {
+  /** The icon SVG content of the organization. */
+  icon?: InputMaybe<Scalars['String']['input']>;
+  /** The logo SVG content of the organization. */
+  logo?: InputMaybe<Scalars['String']['input']>;
+  /** The unique identifier of the organization to update. */
+  organizationId: Scalars['UUID']['input'];
+};
+
+/** The UpdateOrganizationSettingsResult type represents the result of the updateOrganizationSettings mutation. */
+export type UpdateOrganizationSettingsResult = {
+  __typename?: 'UpdateOrganizationSettingsResult';
+  /** The list of errors that occurred during the mutation. */
+  errors?: Maybe<Array<UpdateOrganizationSettingsError>>;
+  /** The updated organization. */
+  organization?: Maybe<Organization>;
+  /** Indicates whether the mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
 /** Enum representing the possible errors that can occur when updating a pipeline. */
 export enum UpdatePipelineError {
   InvalidConfig = 'INVALID_CONFIG',
@@ -5028,9 +5066,7 @@ export type UpdateTemplateInput = {
   config?: InputMaybe<Scalars['JSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   functionalType?: InputMaybe<PipelineFunctionalType>;
-  iconUrl?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
-  isOfficial?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };

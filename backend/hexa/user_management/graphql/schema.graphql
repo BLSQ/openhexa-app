@@ -985,6 +985,16 @@ type Organization {
     type: String!
 
     """
+    The logo SVG content of the organization.
+    """
+    logo: String
+
+    """
+    The icon SVG content of the organization.
+    """
+    icon: String
+
+    """
     The URL of the organization.
     """
     url: String!
@@ -1030,6 +1040,7 @@ type OrganizationPermissions {
     archiveWorkspace: Boolean!
     manageMembers: Boolean!
     manageOwners: Boolean!
+    updateSettings: Boolean!
 }
 
 """
@@ -1593,10 +1604,66 @@ enum InviteOrganizationMemberError {
     ALREADY_MEMBER
 }
 
+"""
+The UpdateOrganizationSettingsInput type represents the input for the updateOrganizationSettings mutation.
+"""
+input UpdateOrganizationSettingsInput {
+    """
+    The unique identifier of the organization to update.
+    """
+    organizationId: UUID!
+
+    """
+    The logo SVG content of the organization.
+    """
+    logo: String
+
+    """
+    The icon SVG content of the organization.
+    """
+    icon: String
+}
+
+"""
+The UpdateOrganizationSettingsResult type represents the result of the updateOrganizationSettings mutation.
+"""
+type UpdateOrganizationSettingsResult {
+    """
+    Indicates whether the mutation was successful.
+    """
+    success: Boolean!
+
+    """
+    The updated organization.
+    """
+    organization: Organization
+
+    """
+    The list of errors that occurred during the mutation.
+    """
+    errors: [UpdateOrganizationSettingsError!]
+}
+
+"""
+The UpdateOrganizationSettingsError enum represents the possible errors for the updateOrganizationSettings mutation.
+"""
+enum UpdateOrganizationSettingsError {
+    """
+    Indicates that the user does not have permission to update organization settings.
+    """
+    PERMISSION_DENIED
+
+    """
+    Indicates that the organization was not found.
+    """
+    NOT_FOUND
+}
+
 extend type Mutation {
     inviteOrganizationMember(input: InviteOrganizationMemberInput!): InviteOrganizationMemberResult! @loginRequired
     updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult! @loginRequired
     deleteOrganizationMember(input: DeleteOrganizationMemberInput!): DeleteOrganizationMemberResult! @loginRequired
     deleteOrganizationInvitation(input: DeleteOrganizationInvitationInput!): DeleteOrganizationInvitationResult! @loginRequired
     resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult! @loginRequired
+    updateOrganizationSettings(input: UpdateOrganizationSettingsInput!): UpdateOrganizationSettingsResult! @loginRequired
 }

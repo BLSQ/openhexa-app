@@ -15,7 +15,7 @@ import router from "next/router";
 import User from "core/features/User";
 import { stripMarkdown } from "core/helpers";
 import PipelineMetadataDisplay from "pipelines/features/PipelineMetadataDisplay";
-import TemplateBadge from "pipelines/features/TemplateBadge";
+import TemplatePublisherBadge from "pipelines/features/TemplatePublisherBadge";
 
 interface TemplateCardProps {
   workspace: TemplateCard_WorkspaceFragment;
@@ -34,7 +34,11 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
       title={
         <div className="flex justify-between items-start">
           <span className="max-w-[80%]">{template.name}</span>
-          <TemplateBadge isOfficial={template.isOfficial} iconUrl={template.iconUrl} size="sm" showIcon={false} />
+          <TemplatePublisherBadge
+            organizationName={template.workspace?.organization?.name}
+            organizationLogoUrl={template.workspace?.organization?.logo}
+            size="sm"
+          />
         </div>
       }
     >
@@ -45,16 +49,7 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
         <div className={clsx("line-clamp-3")}>
           {stripMarkdown(template.description ?? "")}
         </div>
-        <div className="flex items-center gap-2">
-          {template.isOfficial && template.iconUrl && (
-            <img
-              src={template.iconUrl}
-              alt="Official template"
-              className="h-5 w-5 object-contain"
-            />
-          )}
-          <PipelineMetadataDisplay metadata={template} size="sm" />
-        </div>
+        <PipelineMetadataDisplay metadata={template} size="sm" />
         {template.currentVersion?.user && (
           <div className="flex justify-end">
             <Tooltip
@@ -105,8 +100,15 @@ TemplateCard.fragments = {
       code
       name
       description
-      isOfficial
-      iconUrl
+      workspace {
+        slug
+        name
+        organization {
+          id
+          name
+          logo
+        }
+      }
       ...PipelineMetadataDisplay_template
       currentVersion {
         id

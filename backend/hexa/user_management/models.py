@@ -192,6 +192,8 @@ class Organization(Base):
     countries = CountryField(multiple=True, blank=True)
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)
+    logo = models.TextField(blank=True)
+    icon = models.TextField(blank=True)
     members = models.ManyToManyField(User, through="OrganizationMembership")
 
     objects = OrganizationManager.from_queryset(OrganizationQuerySet)()

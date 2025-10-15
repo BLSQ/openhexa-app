@@ -851,6 +851,17 @@ def resolve_organization_permissions_manage_owners(organization: Organization, i
     )
 
 
+@organization_permissions_object.field("updateSettings")
+def resolve_organization_permissions_update_settings(organization: Organization, info):
+    request: HttpRequest = info.context["request"]
+    user = request.user
+    return (
+        user.has_perm("user_management.has_admin_privileges", organization)
+        if user.is_authenticated
+        else False
+    )
+
+
 @identity_mutations.field("createMembership")
 @transaction.atomic
 def resolve_create_membership(_, info, **kwargs):
@@ -1265,6 +1276,47 @@ def resolve_resend_organization_invitation(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["INVITATION_NOT_FOUND"],
+        }
+
+
+@identity_mutations.field("updateOrganizationSettings")
+def resolve_update_organization_settings(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        organization = Organization.objects.filter_for_user(request.user).get(
+            id=input["organization_id"]
+        )
+
+        if not request.user.has_perm(
+            "user_management.has_admin_privileges", organization
+        ):
+            raise PermissionDenied
+
+        if "logo" in input:
+            organization.logo = input.get("logo") or ""
+        if "icon" in input:
+            organization.icon = input.get("icon") or ""
+
+        organization.save()
+
+        return {
+            "success": True,
+            "organization": organization,
+            "errors": [],
+        }
+    except Organization.DoesNotExist:
+        return {
+            "success": False,
+            "organization": None,
+            "errors": ["NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "organization": None,
+            "errors": ["PERMISSION_DENIED"],
         }
 
 

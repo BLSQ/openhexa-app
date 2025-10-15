@@ -238,11 +238,6 @@ def resolve_update_template(_, info, **kwargs):
                 }
             input["tags"] = tags
 
-        if "isOfficial" in input:
-            input["is_official"] = input.pop("isOfficial")
-        if "iconUrl" in input:
-            input["icon_url"] = input.pop("iconUrl")
-
         template.update_if_has_perm(request.user, **input)
         return {"template": template, "success": True, "errors": []}
     except PermissionDenied:

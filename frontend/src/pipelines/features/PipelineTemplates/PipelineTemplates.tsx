@@ -45,12 +45,12 @@ const PipelineTemplates = ({
     workspaceFilterOptions[0],
   );
 
-  const sourceFilterOptions = [
-    { id: "all", label: "All sources", value: undefined },
-    { id: "official", label: "Official", value: true },
-    { id: "community", label: "Community", value: false },
+  const publisherFilterOptions = [
+    { id: "all", label: "All publishers", value: undefined },
+    { id: "bluesquare", label: "Bluesquare", value: "Bluesquare" },
+    { id: "community", label: "Community", value: "" },
   ];
-  const [sourceFilter, setSourceFilter] = useState(sourceFilterOptions[0]);
+  const [publisherFilter, setPublisherFilter] = useState(publisherFilterOptions[0]);
 
   const { data, loading, error, refetch } = useGetPipelineTemplatesQuery({
     variables: {
@@ -61,7 +61,7 @@ const PipelineTemplates = ({
       workspaceSlug: workspaceFilter.workspaceSlug ?? undefined,
       tags: tagsFilter.length > 0 ? tagsFilter : undefined,
       functionalType: functionalTypeFilter,
-      isOfficial: sourceFilter.value,
+      organizationName: publisherFilter.value,
     },
     fetchPolicy: "cache-and-network", // The template list is a global list across the instance, so we want to check the network for updates and show the cached data in the meantime
   });
@@ -138,9 +138,9 @@ const PipelineTemplates = ({
         templateTags={templateTags}
         functionalTypeFilter={functionalTypeFilter}
         setFunctionalTypeFilter={setFunctionalTypeFilter}
-        sourceFilter={sourceFilter}
-        setSourceFilter={setSourceFilter}
-        sourceFilterOptions={sourceFilterOptions}
+        publisherFilter={publisherFilter}
+        setPublisherFilter={setPublisherFilter}
+        publisherFilterOptions={publisherFilterOptions}
       />
       <div className="relative">
         {loading && (
@@ -171,9 +171,10 @@ const GET_PIPELINE_TEMPLATES = gql`
     $workspaceSlug: String
     $tags: [String!]
     $functionalType: PipelineFunctionalType
-    $isOfficial: Boolean
+    $organizationName: String
   ) {
     workspace(slug: $currentWorkspaceSlug) {
+      slug
       pipelineTemplateTags
     }
     pipelineTemplates(
@@ -183,7 +184,7 @@ const GET_PIPELINE_TEMPLATES = gql`
       workspaceSlug: $workspaceSlug
       tags: $tags
       functionalType: $functionalType
-      isOfficial: $isOfficial
+      organizationName: $organizationName
     ) {
       pageNumber
       totalPages
@@ -194,8 +195,6 @@ const GET_PIPELINE_TEMPLATES = gql`
         code
         name
         functionalType
-        isOfficial
-        iconUrl
         tags {
           id
           name
@@ -206,6 +205,11 @@ const GET_PIPELINE_TEMPLATES = gql`
         workspace {
           slug
           name
+          organization {
+            id
+            name
+            logo
+          }
         }
         currentVersion {
           id

@@ -2572,6 +2572,7 @@ type Mutation {
   updateDatasetVersion(input: UpdateDatasetVersionInput!): UpdateDatasetVersionResult!
   updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
   updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult!
+  updateOrganizationSettings(input: UpdateOrganizationSettingsInput!): UpdateOrganizationSettingsResult!
 
   """Updates an existing pipeline."""
   updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult!
@@ -2633,11 +2634,17 @@ type Organization {
   """Datasets available in the organization"""
   datasets(page: Int = 1, perPage: Int = 15, query: String): DatasetPage!
 
+  """The icon SVG content of the organization."""
+  icon: String
+
   """The unique identifier of the organization."""
   id: UUID!
 
   """The invitations sent to join the organization."""
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): OrganizationInvitationPage!
+
+  """The logo SVG content of the organization."""
+  logo: String
 
   """The members of the organization."""
   members(page: Int, perPage: Int, role: OrganizationMembershipRole, term: String): OrganizationMembershipPage!
@@ -2751,6 +2758,7 @@ type OrganizationPermissions {
   createWorkspace: Boolean!
   manageMembers: Boolean!
   manageOwners: Boolean!
+  updateSettings: Boolean!
 }
 
 """Represents a workspace invitation within an organization invitation."""
@@ -3036,9 +3044,7 @@ type PipelineTemplate {
   currentVersion: PipelineTemplateVersion
   description: String
   functionalType: PipelineFunctionalType
-  iconUrl: String
   id: UUID!
-  isOfficial: Boolean!
   name: String!
   permissions: PipelineTemplatePermissions!
   sourcePipeline: Pipeline
@@ -3354,7 +3360,7 @@ type Query {
   pipelineRun(id: UUID!): PipelineRun
 
   """Retrieves a page of pipeline templates."""
-  pipelineTemplates(functionalType: PipelineFunctionalType, isOfficial: Boolean, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
+  pipelineTemplates(functionalType: PipelineFunctionalType, organizationName: String, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
 
   """Retrieves a pipeline version by ID."""
   pipelineVersion(id: UUID!): PipelineVersion
@@ -4064,6 +4070,47 @@ type UpdateOrganizationMemberResult {
 }
 
 """
+The UpdateOrganizationSettingsError enum represents the possible errors for the updateOrganizationSettings mutation.
+"""
+enum UpdateOrganizationSettingsError {
+  """Indicates that the organization was not found."""
+  NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to update organization settings.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The UpdateOrganizationSettingsInput type represents the input for the updateOrganizationSettings mutation.
+"""
+input UpdateOrganizationSettingsInput {
+  """The icon SVG content of the organization."""
+  icon: String
+
+  """The logo SVG content of the organization."""
+  logo: String
+
+  """The unique identifier of the organization to update."""
+  organizationId: UUID!
+}
+
+"""
+The UpdateOrganizationSettingsResult type represents the result of the updateOrganizationSettings mutation.
+"""
+type UpdateOrganizationSettingsResult {
+  """The list of errors that occurred during the mutation."""
+  errors: [UpdateOrganizationSettingsError!]
+
+  """The updated organization."""
+  organization: Organization
+
+  """Indicates whether the mutation was successful."""
+  success: Boolean!
+}
+
+"""
 Enum representing the possible errors that can occur when updating a pipeline.
 """
 enum UpdatePipelineError {
@@ -4193,9 +4240,7 @@ input UpdateTemplateInput {
   config: JSON
   description: String
   functionalType: PipelineFunctionalType
-  iconUrl: String
   id: UUID!
-  isOfficial: Boolean
   name: String
   tags: [String!]
 }

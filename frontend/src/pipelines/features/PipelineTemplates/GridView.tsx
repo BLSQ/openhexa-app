@@ -9,7 +9,7 @@ import Link from "core/components/Link";
 import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { TagsCell, FunctionalTypeCell } from "pipelines/features/PipelineMetadataGrid";
-import TemplateBadge from "pipelines/features/TemplateBadge";
+import TemplatePublisherBadge from "pipelines/features/TemplatePublisherBadge";
 
 type GridViewProps = {
   items: any[];
@@ -50,13 +50,12 @@ const GridView = ({
             </Link>
           )}
         </BaseColumn>
-        <BaseColumn id="source" label={t("Source")} className="w-32">
+        <BaseColumn id="publisher" label={t("Publisher")} className="w-32">
           {(template) => (
-            <TemplateBadge
-              isOfficial={template.isOfficial}
-              iconUrl={template.iconUrl}
+            <TemplatePublisherBadge
+              organizationName={template.workspace?.organization?.name}
+              organizationLogoUrl={template.workspace?.organization?.logo}
               size="sm"
-              showIcon={false}
             />
           )}
         </BaseColumn>

@@ -4,6 +4,7 @@ import {
   ChevronLeftIcon,
   UsersIcon,
   Square2StackIcon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { GetServerSidePropsContext } from "next";
@@ -71,6 +72,14 @@ const OrganizationSidebar = ({
               label={t("Datasets")}
               compact={!isSidebarOpen}
             />
+            {organization.permissions.updateSettings && (
+              <NavItem
+                href={`/organizations/${organization.id}/settings`}
+                Icon={Cog6ToothIcon}
+                label={t("Settings")}
+                compact={!isSidebarOpen}
+              />
+            )}
           </div>
           <Logo isSidebarOpen={isSidebarOpen} />
         </div>
