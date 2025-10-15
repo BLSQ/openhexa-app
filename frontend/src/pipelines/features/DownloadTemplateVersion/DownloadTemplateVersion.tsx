@@ -19,9 +19,10 @@ const DownloadTemplateVersion = (props: DownloadTemplateVersionProps) => {
   const onClick = () => {
     setDownloading(true);
     downloadTemplateVersion(
+      version.id,
       version.template.code,
       version.versionNumber,
-      version.sourcePipelineVersion.zipfile,
+      version.sourcePipelineVersion.id,
     );
     setDownloading(false);
   };
@@ -38,7 +39,7 @@ DownloadTemplateVersion.fragments = {
         code
       }
       sourcePipelineVersion {
-        zipfile
+        id
       }
     }
   `,

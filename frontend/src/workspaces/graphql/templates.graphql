@@ -1,0 +1,6 @@
+query GetPipelineVersionForTemplate($versionId: UUID!) {
+  pipelineVersion(id: $versionId) {
+    id
+    zipfile
+  }
+}
