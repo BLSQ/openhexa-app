@@ -6,7 +6,10 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useDeleteWorkspaceMemberMutation } from "workspaces/graphql/mutations.generated";
 import useCacheKey from "core/hooks/useCacheKey";
-import { DeleteWorkspaceMemberError, OrganizationMembershipRole } from "graphql/types";
+import {
+  DeleteWorkspaceMemberError,
+  OrganizationMembershipRole,
+} from "graphql/types";
 import useMe from "identity/hooks/useMe";
 import { gql } from "@apollo/client";
 import { DeleteWorkspaceMember_WorkspaceMemberFragment } from "./DeleteWorkspaceMemberDialog.generated";
@@ -61,10 +64,12 @@ const DeleteWorkspaceMemberDialog = (props: DeleteWorkspaceMemberProps) => {
     }
   };
 
-  // Check if the user is an organization admin or owner
-  const isOrgAdminOrOwner =
-    member.organizationMembership?.role === OrganizationMembershipRole.Admin ||
-    member.organizationMembership?.role === OrganizationMembershipRole.Owner;
+  const orgRoleLabel =
+    member.organizationMembership?.role === OrganizationMembershipRole.Owner
+      ? t("Owner")
+      : member.organizationMembership?.role === OrganizationMembershipRole.Admin
+        ? t("Admin")
+        : "";
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -79,12 +84,13 @@ const DeleteWorkspaceMemberDialog = (props: DeleteWorkspaceMemberProps) => {
             name: member.user.displayName,
           })}
         </p>
-        {isOrgAdminOrOwner && (
+        {orgRoleLabel && (
           <div className="flex gap-2 rounded-md bg-yellow-50 p-3 border border-yellow-200">
             <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-yellow-800">
               {t(
-                "This user is an organization admin or owner and will still be able to access this workspace even after being removed from the workspace members list.",
+                "This user is an organization {{role}} and will still be able to access this workspace even after being removed from the workspace members list.",
+                { role: orgRoleLabel },
               )}
             </p>
           </div>
