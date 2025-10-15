@@ -6,10 +6,11 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useDeleteWorkspaceMemberMutation } from "workspaces/graphql/mutations.generated";
 import useCacheKey from "core/hooks/useCacheKey";
-import { DeleteWorkspaceMemberError } from "graphql/types";
+import { DeleteWorkspaceMemberError, OrganizationMembershipRole } from "graphql/types";
 import useMe from "identity/hooks/useMe";
 import { gql } from "@apollo/client";
 import { DeleteWorkspaceMember_WorkspaceMemberFragment } from "./DeleteWorkspaceMemberDialog.generated";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 type DeleteWorkspaceMemberProps = {
   onClose(): void;
@@ -60,6 +61,11 @@ const DeleteWorkspaceMemberDialog = (props: DeleteWorkspaceMemberProps) => {
     }
   };
 
+  // Check if the user is an organization admin or owner
+  const isOrgAdminOrOwner =
+    member.organizationMembership?.role === OrganizationMembershipRole.Admin ||
+    member.organizationMembership?.role === OrganizationMembershipRole.Owner;
+
   return (
     <Dialog open={open} onClose={onClose}>
       <Dialog.Title>
@@ -73,6 +79,16 @@ const DeleteWorkspaceMemberDialog = (props: DeleteWorkspaceMemberProps) => {
             name: member.user.displayName,
           })}
         </p>
+        {isOrgAdminOrOwner && (
+          <div className="flex gap-2 rounded-md bg-yellow-50 p-3 border border-yellow-200">
+            <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-yellow-800">
+              {t(
+                "This user is an organization admin or owner and will still be able to access this workspace even after being removed from the workspace members list.",
+              )}
+            </p>
+          </div>
+        )}
       </Dialog.Content>
       <Dialog.Actions>
         <Button variant="white" onClick={onClose}>
@@ -94,6 +110,9 @@ DeleteWorkspaceMemberDialog.fragments = {
       user {
         id
         displayName
+      }
+      organizationMembership {
+        role
       }
     }
   `,
