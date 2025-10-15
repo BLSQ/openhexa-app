@@ -175,6 +175,9 @@ type WorkspaceMembership {
 
   # The date and time when the membership was last updated.
   updatedAt: DateTime
+
+  # The organization membership of the user, if the workspace belongs to an organization and the user is a member of that organization.
+  organizationMembership: OrganizationMembership
 }
 
 """

@@ -8,6 +8,7 @@ from openhexa.toolbox.iaso.api_client import IASOError
 from hexa.core.graphql import result_page
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.tags.models import Tag
+from hexa.user_management.models import OrganizationMembership
 from hexa.user_management.schema import me_permissions_object
 
 from ..models import (
@@ -16,6 +17,7 @@ from ..models import (
     Workspace,
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
+    WorkspaceMembership,
 )
 from ..utils import (
     DHIS2MetadataQueryType,
@@ -27,6 +29,7 @@ from ..utils import (
 
 workspace_object = ObjectType("Workspace")
 workspace_permissions = ObjectType("WorkspacePermissions")
+workspace_membership_object = ObjectType("WorkspaceMembership")
 connection_interface = InterfaceType("Connection")
 connection_field_object = ObjectType("ConnectionField")
 connection_permissions_object = ObjectType("ConnectionPermissions")
@@ -175,6 +178,18 @@ def resolve_workspace_pipeline_tags(workspace: Workspace, info, **kwargs):
         .values_list("name", flat=True)
         .order_by("name")
     )
+
+
+@workspace_membership_object.field("organizationMembership")
+def resolve_workspace_membership_organization_membership(
+    membership: WorkspaceMembership, info, **kwargs
+):
+    """Return the user's organization membership if the workspace belongs to an organization."""
+    if membership.workspace.organization:
+        return OrganizationMembership.objects.filter(
+            user=membership.user, organization=membership.workspace.organization
+        ).first()
+    return None
 
 
 @connection_interface.field("fields")
@@ -338,6 +353,7 @@ def resolve_connection_type(obj, *_):
 bindables = [
     workspace_object,
     workspace_permissions,
+    workspace_membership_object,
     connection_field_object,
     connection_interface,
     dhis2_connection,

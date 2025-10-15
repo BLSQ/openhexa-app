@@ -5378,6 +5378,7 @@ export type WorkspaceMembership = {
   __typename?: 'WorkspaceMembership';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
+  organizationMembership?: Maybe<OrganizationMembership>;
   role: WorkspaceMembershipRole;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   user: User;
