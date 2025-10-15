@@ -15,6 +15,7 @@ import router from "next/router";
 import User from "core/features/User";
 import { stripMarkdown } from "core/helpers";
 import PipelineMetadataDisplay from "pipelines/features/PipelineMetadataDisplay";
+import TemplateBadge from "pipelines/features/TemplateBadge";
 
 interface TemplateCardProps {
   workspace: TemplateCard_WorkspaceFragment;
@@ -31,8 +32,9 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
         query: { workspaceSlug: workspace.slug, templateCode: template.code },
       }}
       title={
-        <div className="flex justify-between">
+        <div className="flex justify-between items-start">
           <span className="max-w-[80%]">{template.name}</span>
+          <TemplateBadge isOfficial={template.isOfficial} iconUrl={template.iconUrl} size="sm" showIcon={false} />
         </div>
       }
     >
@@ -43,7 +45,16 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
         <div className={clsx("line-clamp-3")}>
           {stripMarkdown(template.description ?? "")}
         </div>
-        <PipelineMetadataDisplay metadata={template} size="sm" />
+        <div className="flex items-center gap-2">
+          {template.isOfficial && template.iconUrl && (
+            <img
+              src={template.iconUrl}
+              alt="Official template"
+              className="h-5 w-5 object-contain"
+            />
+          )}
+          <PipelineMetadataDisplay metadata={template} size="sm" />
+        </div>
         {template.currentVersion?.user && (
           <div className="flex justify-end">
             <Tooltip
@@ -94,6 +105,8 @@ TemplateCard.fragments = {
       code
       name
       description
+      isOfficial
+      iconUrl
       ...PipelineMetadataDisplay_template
       currentVersion {
         id

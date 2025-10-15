@@ -30,7 +30,7 @@ extend type Query {
   """
   Retrieves a page of pipeline templates.
   """
-  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String, tags: [String!], functionalType: PipelineFunctionalType): PipelineTemplatePage!  @loginRequired
+  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String, tags: [String!], functionalType: PipelineFunctionalType, isOfficial: Boolean): PipelineTemplatePage!  @loginRequired
 
   """
   Retrieves a template by workspace slug and code.
@@ -145,6 +145,8 @@ input UpdateTemplateInput {
   description: String
   functionalType: PipelineFunctionalType
   tags: [String!]
+  isOfficial: Boolean
+  iconUrl: String
 }
 
 """Represents the result of updating a template."""
@@ -171,6 +173,8 @@ type PipelineTemplate {
   updatedAt: DateTime!  # The last updated date of the pipeline template.
   functionalType: PipelineFunctionalType  # Business purpose: what the template does (extraction/transformation/loading/computation)
   tags: [Tag!]!  # The tags associated with the pipeline template.
+  isOfficial: Boolean!  # Indicates if this template is officially vetted (Bluesquare or organization)
+  iconUrl: String  # URL to the icon/logo image for this template (for official templates)
 }
 
 """

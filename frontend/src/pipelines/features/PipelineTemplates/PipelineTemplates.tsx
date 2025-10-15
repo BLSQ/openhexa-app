@@ -45,6 +45,13 @@ const PipelineTemplates = ({
     workspaceFilterOptions[0],
   );
 
+  const sourceFilterOptions = [
+    { id: "all", label: "All sources", value: undefined },
+    { id: "official", label: "Official", value: true },
+    { id: "community", label: "Community", value: false },
+  ];
+  const [sourceFilter, setSourceFilter] = useState(sourceFilterOptions[0]);
+
   const { data, loading, error, refetch } = useGetPipelineTemplatesQuery({
     variables: {
       page,
@@ -54,6 +61,7 @@ const PipelineTemplates = ({
       workspaceSlug: workspaceFilter.workspaceSlug ?? undefined,
       tags: tagsFilter.length > 0 ? tagsFilter : undefined,
       functionalType: functionalTypeFilter,
+      isOfficial: sourceFilter.value,
     },
     fetchPolicy: "cache-and-network", // The template list is a global list across the instance, so we want to check the network for updates and show the cached data in the meantime
   });
@@ -130,6 +138,9 @@ const PipelineTemplates = ({
         templateTags={templateTags}
         functionalTypeFilter={functionalTypeFilter}
         setFunctionalTypeFilter={setFunctionalTypeFilter}
+        sourceFilter={sourceFilter}
+        setSourceFilter={setSourceFilter}
+        sourceFilterOptions={sourceFilterOptions}
       />
       <div className="relative">
         {loading && (
@@ -160,6 +171,7 @@ const GET_PIPELINE_TEMPLATES = gql`
     $workspaceSlug: String
     $tags: [String!]
     $functionalType: PipelineFunctionalType
+    $isOfficial: Boolean
   ) {
     workspace(slug: $currentWorkspaceSlug) {
       pipelineTemplateTags
@@ -171,6 +183,7 @@ const GET_PIPELINE_TEMPLATES = gql`
       workspaceSlug: $workspaceSlug
       tags: $tags
       functionalType: $functionalType
+      isOfficial: $isOfficial
     ) {
       pageNumber
       totalPages
@@ -181,6 +194,8 @@ const GET_PIPELINE_TEMPLATES = gql`
         code
         name
         functionalType
+        isOfficial
+        iconUrl
         tags {
           id
           name

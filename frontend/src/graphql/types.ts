@@ -3643,7 +3643,9 @@ export type PipelineTemplate = {
   currentVersion?: Maybe<PipelineTemplateVersion>;
   description?: Maybe<Scalars['String']['output']>;
   functionalType?: Maybe<PipelineFunctionalType>;
+  iconUrl?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
+  isOfficial: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   permissions: PipelineTemplatePermissions;
   sourcePipeline?: Maybe<Pipeline>;
@@ -4155,6 +4157,7 @@ export type QueryPipelineRunArgs = {
 
 export type QueryPipelineTemplatesArgs = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
+  isOfficial?: InputMaybe<Scalars['Boolean']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
@@ -5025,7 +5028,9 @@ export type UpdateTemplateInput = {
   config?: InputMaybe<Scalars['JSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   functionalType?: InputMaybe<PipelineFunctionalType>;
+  iconUrl?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
+  isOfficial?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };

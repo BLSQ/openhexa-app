@@ -48,6 +48,10 @@ def resolve_pipeline_templates(_, info, **kwargs):
         except InvalidTag:
             pipeline_templates = PipelineTemplate.objects.none()
 
+    is_official = kwargs.get("is_official")
+    if is_official is not None:
+        pipeline_templates = pipeline_templates.filter_by_official_status(is_official)
+
     return result_page(
         pipeline_templates,
         page=kwargs.get("page", 1),

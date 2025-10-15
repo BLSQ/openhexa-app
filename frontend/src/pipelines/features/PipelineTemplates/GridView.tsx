@@ -9,6 +9,7 @@ import Link from "core/components/Link";
 import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { TagsCell, FunctionalTypeCell } from "pipelines/features/PipelineMetadataGrid";
+import TemplateBadge from "pipelines/features/TemplateBadge";
 
 type GridViewProps = {
   items: any[];
@@ -47,6 +48,16 @@ const GridView = ({
             >
               {template.name}
             </Link>
+          )}
+        </BaseColumn>
+        <BaseColumn id="source" label={t("Source")} className="w-32">
+          {(template) => (
+            <TemplateBadge
+              isOfficial={template.isOfficial}
+              iconUrl={template.iconUrl}
+              size="sm"
+              showIcon={false}
+            />
           )}
         </BaseColumn>
         <BaseColumn id="version" label={t("Version")} className="w-20">

@@ -37,6 +37,9 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             return self.none()
         return self.filter(tags__name__in=tag_names).distinct()
 
+    def filter_by_official_status(self, is_official: bool):
+        return self.filter(is_official=is_official)
+
 
 class PipelineTemplate(SoftDeletedModel):
     class Meta:
@@ -84,6 +87,16 @@ class PipelineTemplate(SoftDeletedModel):
     )
     tags = models.ManyToManyField(
         "tags.Tag", blank=True, related_name="pipeline_templates"
+    )
+    is_official = models.BooleanField(
+        default=False,
+        help_text="Indicates if this template is officially vetted by Bluesquare or the organization.",
+    )
+    icon_url = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="URL to the icon/logo image for this template (for official templates).",
     )
 
     objects = DefaultSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
@@ -141,7 +154,13 @@ class PipelineTemplate(SoftDeletedModel):
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("pipeline_templates.update_pipeline_template", self):
             raise PermissionDenied
-        for key in ["name", "description", "functional_type"]:
+        for key in [
+            "name",
+            "description",
+            "functional_type",
+            "is_official",
+            "icon_url",
+        ]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
         if "tags" in kwargs:

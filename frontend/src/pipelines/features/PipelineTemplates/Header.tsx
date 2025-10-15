@@ -29,6 +29,9 @@ type HeaderProps = {
   setTagsFilter?: (tags: string[]) => void;
   templateTags?: string[];
   pipelineTags?: string[];
+  sourceFilter?: any;
+  setSourceFilter?: (filter: any) => void;
+  sourceFilterOptions?: any[];
 };
 
 const Header = ({
@@ -44,6 +47,9 @@ const Header = ({
   setTagsFilter,
   templateTags,
   pipelineTags,
+  sourceFilter,
+  setSourceFilter,
+  sourceFilterOptions,
 }: HeaderProps) => {
   const { t } = useTranslation();
 
@@ -131,6 +137,16 @@ const Header = ({
             by="value"
             getOptionLabel={(option) => option.label}
             className={"min-w-48"}
+          />
+        )}
+        {setSourceFilter && sourceFilterOptions && (
+          <Listbox
+            value={sourceFilter}
+            onChange={setSourceFilter}
+            options={sourceFilterOptions}
+            by="id"
+            getOptionLabel={(option) => option.label}
+            className={"min-w-40"}
           />
         )}
       </div>
