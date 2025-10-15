@@ -50,6 +50,9 @@ export default function WorkspaceMembers({
                 displayName
                 email
               }
+              organizationMembership {
+                role
+              }
               createdAt
             }
           }

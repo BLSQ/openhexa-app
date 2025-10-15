@@ -4555,6 +4555,7 @@ enum WorkspaceInvitationStatus {
 type WorkspaceMembership {
   createdAt: DateTime!
   id: UUID!
+  organizationMembership: OrganizationMembership
   role: WorkspaceMembershipRole!
   updatedAt: DateTime
   user: User!
