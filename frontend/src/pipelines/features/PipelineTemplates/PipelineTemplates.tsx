@@ -162,6 +162,7 @@ const GET_PIPELINE_TEMPLATES = gql`
     $functionalType: PipelineFunctionalType
   ) {
     workspace(slug: $currentWorkspaceSlug) {
+      slug
       pipelineTemplateTags
     }
     pipelineTemplates(
