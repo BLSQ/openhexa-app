@@ -86,7 +86,8 @@ export default function OrganizationDatasets({
             {(link: OrganizationDataset_LinkFragment) => (
               <Link
                 href={`/workspaces/${link.workspace.slug}/datasets/${link.dataset.slug}/from/${link.dataset.workspace?.slug ?? link.workspace.slug}`}
-                className="font-medium text-blue-600 hover:text-blue-800"
+                className="font-medium text-blue-600 hover:text-blue-800 truncate block"
+                title={link.dataset.name}
               >
                 {link.dataset.name}{" "}
                 <span className="text-xs text-gray-500 font-normal">
