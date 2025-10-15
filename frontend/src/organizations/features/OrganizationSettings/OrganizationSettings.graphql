@@ -1,0 +1,11 @@
+mutation UpdateOrganizationSettings($input: UpdateOrganizationSettingsInput!) {
+  updateOrganizationSettings(input: $input) {
+    success
+    errors
+    organization {
+      id
+      logo
+      icon
+    }
+  }
+}
