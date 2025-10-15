@@ -18,12 +18,7 @@ const DownloadTemplateVersion = (props: DownloadTemplateVersionProps) => {
   const [isDownloading, setDownloading] = useState(false);
   const onClick = () => {
     setDownloading(true);
-    downloadTemplateVersion(
-      version.id,
-      version.template.code,
-      version.versionNumber,
-      version.sourcePipelineVersion.id,
-    );
+    downloadTemplateVersion(version.id);
     setDownloading(false);
   };
 
@@ -34,13 +29,6 @@ DownloadTemplateVersion.fragments = {
   version: gql`
     fragment DownloadTemplateVersion_version on PipelineTemplateVersion {
       id
-      versionNumber
-      template {
-        code
-      }
-      sourcePipelineVersion {
-        id
-      }
     }
   `,
 };

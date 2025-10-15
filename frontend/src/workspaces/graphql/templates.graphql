@@ -1,6 +1,12 @@
-query GetPipelineVersionForTemplate($versionId: UUID!) {
-  pipelineVersion(id: $versionId) {
+query GetTemplateVersionForDownload($versionId: UUID!) {
+  pipelineTemplateVersion(id: $versionId) {
     id
-    zipfile
+    versionNumber
+    template {
+      code
+    }
+    sourcePipelineVersion {
+      zipfile
+    }
   }
 }

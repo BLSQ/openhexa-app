@@ -18,12 +18,12 @@ export type DeleteTemplateVersionMutationVariables = Types.Exact<{
 
 export type DeleteTemplateVersionMutation = { __typename?: 'Mutation', deleteTemplateVersion: { __typename?: 'DeleteTemplateVersionResult', success: boolean, errors: Array<Types.DeleteTemplateVersionError> } };
 
-export type GetPipelineVersionForTemplateQueryVariables = Types.Exact<{
+export type GetTemplateVersionForDownloadQueryVariables = Types.Exact<{
   versionId: Types.Scalars['UUID']['input'];
 }>;
 
 
-export type GetPipelineVersionForTemplateQuery = { __typename?: 'Query', pipelineVersion?: { __typename?: 'PipelineVersion', id: string, zipfile: string } | null };
+export type GetTemplateVersionForDownloadQuery = { __typename?: 'Query', pipelineTemplateVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, template: { __typename?: 'PipelineTemplate', code: string }, sourcePipelineVersion: { __typename?: 'PipelineVersion', zipfile: string } } | null };
 
 
 export const UpdateWorkspaceTemplateDocument = gql`
@@ -104,44 +104,50 @@ export function useDeleteTemplateVersionMutation(baseOptions?: Apollo.MutationHo
 export type DeleteTemplateVersionMutationHookResult = ReturnType<typeof useDeleteTemplateVersionMutation>;
 export type DeleteTemplateVersionMutationResult = Apollo.MutationResult<DeleteTemplateVersionMutation>;
 export type DeleteTemplateVersionMutationOptions = Apollo.BaseMutationOptions<DeleteTemplateVersionMutation, DeleteTemplateVersionMutationVariables>;
-export const GetPipelineVersionForTemplateDocument = gql`
-    query GetPipelineVersionForTemplate($versionId: UUID!) {
-  pipelineVersion(id: $versionId) {
+export const GetTemplateVersionForDownloadDocument = gql`
+    query GetTemplateVersionForDownload($versionId: UUID!) {
+  pipelineTemplateVersion(id: $versionId) {
     id
-    zipfile
+    versionNumber
+    template {
+      code
+    }
+    sourcePipelineVersion {
+      zipfile
+    }
   }
 }
     `;
 
 /**
- * __useGetPipelineVersionForTemplateQuery__
+ * __useGetTemplateVersionForDownloadQuery__
  *
- * To run a query within a React component, call `useGetPipelineVersionForTemplateQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetPipelineVersionForTemplateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetTemplateVersionForDownloadQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTemplateVersionForDownloadQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetPipelineVersionForTemplateQuery({
+ * const { data, loading, error } = useGetTemplateVersionForDownloadQuery({
  *   variables: {
  *      versionId: // value for 'versionId'
  *   },
  * });
  */
-export function useGetPipelineVersionForTemplateQuery(baseOptions: Apollo.QueryHookOptions<GetPipelineVersionForTemplateQuery, GetPipelineVersionForTemplateQueryVariables> & ({ variables: GetPipelineVersionForTemplateQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useGetTemplateVersionForDownloadQuery(baseOptions: Apollo.QueryHookOptions<GetTemplateVersionForDownloadQuery, GetTemplateVersionForDownloadQueryVariables> & ({ variables: GetTemplateVersionForDownloadQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetPipelineVersionForTemplateQuery, GetPipelineVersionForTemplateQueryVariables>(GetPipelineVersionForTemplateDocument, options);
+        return Apollo.useQuery<GetTemplateVersionForDownloadQuery, GetTemplateVersionForDownloadQueryVariables>(GetTemplateVersionForDownloadDocument, options);
       }
-export function useGetPipelineVersionForTemplateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPipelineVersionForTemplateQuery, GetPipelineVersionForTemplateQueryVariables>) {
+export function useGetTemplateVersionForDownloadLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTemplateVersionForDownloadQuery, GetTemplateVersionForDownloadQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetPipelineVersionForTemplateQuery, GetPipelineVersionForTemplateQueryVariables>(GetPipelineVersionForTemplateDocument, options);
+          return Apollo.useLazyQuery<GetTemplateVersionForDownloadQuery, GetTemplateVersionForDownloadQueryVariables>(GetTemplateVersionForDownloadDocument, options);
         }
-export function useGetPipelineVersionForTemplateSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPipelineVersionForTemplateQuery, GetPipelineVersionForTemplateQueryVariables>) {
+export function useGetTemplateVersionForDownloadSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTemplateVersionForDownloadQuery, GetTemplateVersionForDownloadQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<GetPipelineVersionForTemplateQuery, GetPipelineVersionForTemplateQueryVariables>(GetPipelineVersionForTemplateDocument, options);
+          return Apollo.useSuspenseQuery<GetTemplateVersionForDownloadQuery, GetTemplateVersionForDownloadQueryVariables>(GetTemplateVersionForDownloadDocument, options);
         }
-export type GetPipelineVersionForTemplateQueryHookResult = ReturnType<typeof useGetPipelineVersionForTemplateQuery>;
-export type GetPipelineVersionForTemplateLazyQueryHookResult = ReturnType<typeof useGetPipelineVersionForTemplateLazyQuery>;
-export type GetPipelineVersionForTemplateSuspenseQueryHookResult = ReturnType<typeof useGetPipelineVersionForTemplateSuspenseQuery>;
-export type GetPipelineVersionForTemplateQueryResult = Apollo.QueryResult<GetPipelineVersionForTemplateQuery, GetPipelineVersionForTemplateQueryVariables>;
+export type GetTemplateVersionForDownloadQueryHookResult = ReturnType<typeof useGetTemplateVersionForDownloadQuery>;
+export type GetTemplateVersionForDownloadLazyQueryHookResult = ReturnType<typeof useGetTemplateVersionForDownloadLazyQuery>;
+export type GetTemplateVersionForDownloadSuspenseQueryHookResult = ReturnType<typeof useGetTemplateVersionForDownloadSuspenseQuery>;
+export type GetTemplateVersionForDownloadQueryResult = Apollo.QueryResult<GetTemplateVersionForDownloadQuery, GetTemplateVersionForDownloadQueryVariables>;

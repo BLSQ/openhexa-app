@@ -5,7 +5,7 @@ import { TabLayout_WorkspaceFragmentDoc } from '../TabLayout/TabLayout.generated
 import { DownloadTemplateVersion_VersionFragmentDoc } from '../../../pipelines/features/DownloadTemplateVersion/DownloadTemplateVersion.generated';
 export type TemplateLayout_WorkspaceFragment = { __typename?: 'Workspace', name: string, slug: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean } } | null };
 
-export type TemplateLayout_TemplateFragment = { __typename?: 'PipelineTemplate', id: string, code: string, name: string, permissions: { __typename?: 'PipelineTemplatePermissions', delete: boolean, update: boolean }, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, template: { __typename?: 'PipelineTemplate', code: string }, sourcePipelineVersion: { __typename?: 'PipelineVersion', id: string } } | null };
+export type TemplateLayout_TemplateFragment = { __typename?: 'PipelineTemplate', id: string, code: string, name: string, permissions: { __typename?: 'PipelineTemplatePermissions', delete: boolean, update: boolean }, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null };
 
 export const TemplateLayout_WorkspaceFragmentDoc = gql`
     fragment TemplateLayout_workspace on Workspace {
