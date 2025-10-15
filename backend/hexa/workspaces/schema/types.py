@@ -185,11 +185,15 @@ def resolve_workspace_membership_organization_membership(
     membership: WorkspaceMembership, info, **kwargs
 ):
     """Return the user's organization membership if the workspace belongs to an organization."""
-    if membership.workspace.organization:
-        return OrganizationMembership.objects.filter(
+    if not membership.workspace.organization:
+        return None
+
+    try:
+        return OrganizationMembership.objects.get(
             user=membership.user, organization=membership.workspace.organization
-        ).first()
-    return None
+        )
+    except OrganizationMembership.DoesNotExist:
+        return None
 
 
 @connection_interface.field("fields")
