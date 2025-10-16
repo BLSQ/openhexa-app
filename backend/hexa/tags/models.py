@@ -60,37 +60,13 @@ class Tag(Base):
         return self.name.replace("-", " ").title()
 
     @classmethod
-    def _normalize_names(cls, tag_names: list[str]) -> list[str]:
-        """Extract unique, cleaned tag names from input list.
-
-        Args:
-            tag_names: List of tag name strings (may contain duplicates/whitespace)
-
-        Returns
-        -------
-            List of unique, stripped, non-empty tag names
-        """
-        return [name.strip() for name in set(tag_names) if name and name.strip()]
-
-    @classmethod
     def from_names(cls, tag_names: list[str]):
-        """Lookup existing tags by name. Raises InvalidTag if any missing.
-
-        Args:
-            tag_names: List of tag name strings
-
-        Returns
-        -------
-            QuerySet of Tag instances
-
-        Raises
-        ------
-            InvalidTag: If any tag names are not found in the database
-        """
         if not tag_names:
             return cls.objects.none()
 
-        unique_names = cls._normalize_names(tag_names)
+        unique_names = [
+            name.strip() for name in set(tag_names) if name and name.strip()
+        ]
 
         if not unique_names:
             return cls.objects.none()
@@ -108,7 +84,8 @@ class Tag(Base):
     def validate_and_get_or_create(
         cls, tag_names: list[str]
     ) -> tuple[list["Tag"], bool]:
-        """Validate tag names and get or create Tag instances.
+        """
+        Validate tag names and get or create Tag instances.
 
         Args:
             tag_names: List of tag name strings
@@ -121,14 +98,15 @@ class Tag(Base):
         if not tag_names:
             return [], False
 
-        unique_names = cls._normalize_names(tag_names)
-        if not unique_names:
-            return [], True
-
         tags = []
         try:
-            for name in unique_names:
-                tag, _ = cls.objects.get_or_create(name=name)
+            for name in tag_names:
+                if not isinstance(name, str):
+                    return [], True
+                name = name.strip()
+                if not name:
+                    return [], True
+                tag, created = cls.objects.get_or_create(name=name)
                 tags.append(tag)
             return tags, False
         except Exception:
