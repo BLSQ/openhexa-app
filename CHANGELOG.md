@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.6.1](https://github.com/BLSQ/openhexa-app/compare/2.6.0...2.6.1) (2025-10-15)
+
+
+### Bug Fixes
+
+* add a warning message when deleting access to org admins/owners (HEXA-1384) ([#1418](https://github.com/BLSQ/openhexa-app/issues/1418)) ([3d815cb](https://github.com/BLSQ/openhexa-app/commit/3d815cbbba07434d4d05f0d510a955c10cb27251))
+* truncate dataset name in the org page ([#1423](https://github.com/BLSQ/openhexa-app/issues/1423))(PATHWAYS-982) ([40f0397](https://github.com/BLSQ/openhexa-app/commit/40f0397d4828976fcec38144442fce51937108b6))
+
 ## [2.6.0](https://github.com/BLSQ/openhexa-app/compare/2.5.1...2.6.0) (2025-10-14)
 
 
