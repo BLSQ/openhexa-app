@@ -728,7 +728,7 @@ def resolve_pending_workspace_invitations(organization: Organization, info, **kw
 def resolve_organization_pipeline_template_tags(
     organization: Organization, info, **kwargs
 ):
-    return list(
+    return (
         Tag.objects.filter(pipeline_templates__workspace__organization=organization)
         .distinct()
         .values_list("name", flat=True)
