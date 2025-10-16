@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.2](https://github.com/BLSQ/openhexa-app/compare/2.6.1...2.6.2) (2025-10-16)
+
+
+### Bug Fixes
+
+* Update openhexa sdk + toolbox dependencies ([#1424](https://github.com/BLSQ/openhexa-app/issues/1424)) ([39fa255](https://github.com/BLSQ/openhexa-app/commit/39fa255d769a28e359c52a6aaeba0efbe571678a))
+
 ## [2.6.1](https://github.com/BLSQ/openhexa-app/compare/2.6.0...2.6.1) (2025-10-15)
 
 
