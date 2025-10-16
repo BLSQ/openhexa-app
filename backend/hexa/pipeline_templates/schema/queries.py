@@ -43,8 +43,8 @@ def resolve_pipeline_templates(_, info, **kwargs):
     tags = kwargs.get("tags", [])
     if tags:
         try:
-            Tag.from_names(tags)
-            pipeline_templates = pipeline_templates.filter_by_tags(tags)
+            tag_objects = Tag.from_names(tags)
+            pipeline_templates = pipeline_templates.filter_by_tags(tag_objects)
         except InvalidTag:
             pipeline_templates = PipelineTemplate.objects.none()
 

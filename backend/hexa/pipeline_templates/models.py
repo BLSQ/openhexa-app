@@ -32,10 +32,20 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             return_all_if_organization_admin_or_owner=True,
         )
 
-    def filter_by_tags(self, tag_names: list[str]):
-        if not tag_names:
+    def filter_by_tags(self, tags):
+        """
+        Filter pipeline templates by Tag objects.
+
+        Args:
+            tags: QuerySet or list of Tag instances
+
+        Returns
+        -------
+            Filtered queryset of templates with any of the given tags
+        """
+        if not tags:
             return self.none()
-        return self.filter(tags__name__in=tag_names).distinct()
+        return self.filter(tags__in=tags).distinct()
 
 
 class PipelineTemplate(SoftDeletedModel):

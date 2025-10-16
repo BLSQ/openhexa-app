@@ -51,15 +51,15 @@ class PipelineTagsTest(TestCase):
         self.pipeline.tags.add(tag1, tag2)
         self.pipeline.save()
 
-        pipelines_with_ml = Pipeline.objects.filter_by_tags([tag1.name])
+        pipelines_with_ml = Pipeline.objects.filter_by_tags([tag1])
         self.assertIn(self.pipeline, pipelines_with_ml)
         self.assertNotIn(pipeline2, pipelines_with_ml)
 
-        pipelines_with_tags = Pipeline.objects.filter_by_tags([tag1.name, tag2.name])
+        pipelines_with_tags = Pipeline.objects.filter_by_tags([tag1, tag2])
         self.assertIn(self.pipeline, pipelines_with_tags)
         self.assertNotIn(pipeline2, pipelines_with_tags)
 
-        pipelines_with_analytics = Pipeline.objects.filter_by_tags([tag3.name])
+        pipelines_with_analytics = Pipeline.objects.filter_by_tags([tag3])
         self.assertNotIn(self.pipeline, pipelines_with_analytics)
         self.assertNotIn(pipeline2, pipelines_with_analytics)
 
