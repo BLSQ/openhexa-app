@@ -97,7 +97,9 @@ export async function downloadTemplateVersion(versionId: string) {
   }
   const { zipfile } = data.pipelineTemplateVersion.sourcePipelineVersion;
   const { template, versionNumber } = data.pipelineTemplateVersion;
-  const blob = new Blob([Buffer.from(zipfile, "base64")], {
+  const binaryString = atob(zipfile);
+  const bytes = Uint8Array.from(binaryString, (c) => c.charCodeAt(0));
+  const blob = new Blob([bytes], {
     type: "application/zip",
   });
   const url = window.URL.createObjectURL(blob);
