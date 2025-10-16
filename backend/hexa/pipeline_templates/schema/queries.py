@@ -38,7 +38,9 @@ def resolve_pipeline_templates(_, info, **kwargs):
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=workspace_slug
         )
-        pipeline_templates = pipeline_templates.filter(workspace=workspace)
+        pipeline_templates = pipeline_templates.filter(
+            workspace__organization=workspace.organization
+        )
 
     tags = kwargs.get("tags", [])
     if tags:

@@ -6,7 +6,7 @@ from hexa.pipelines.models import (
     Pipeline,
     PipelineVersion,
 )
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import (
     Workspace,
 )
@@ -502,3 +502,87 @@ class PipelineTemplatesTest(GraphQLTestCase):
             response["data"]["pipelineTemplates"]["items"][0]["code"],
             "report-generator",
         )
+
+    def test_templates_are_organization_wide_not_workspace_specific(self):
+        """Test that pipeline templates are visible across all workspaces in an organization."""
+        self.client.force_login(self.USER_ROOT)
+
+        org = Organization.objects.create(name="Test Org")
+
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
+            ws_org_1 = Workspace.objects.create_if_has_perm(
+                self.USER_ROOT,
+                name="Org WS 1",
+                description="First workspace in org",
+                organization=org,
+            )
+            ws_org_2 = Workspace.objects.create_if_has_perm(
+                self.USER_ROOT,
+                name="Org WS 2",
+                description="Second workspace in org",
+                organization=org,
+            )
+
+        pipeline_in_ws1 = Pipeline.objects.create(
+            name="Pipeline in WS1", code="pipeline-ws1", workspace=ws_org_1
+        )
+        pipeline_in_ws2 = Pipeline.objects.create(
+            name="Pipeline in WS2", code="pipeline-ws2", workspace=ws_org_2
+        )
+
+        PipelineTemplate.objects.create(
+            name="Template from WS1",
+            code="template-ws1",
+            source_pipeline=pipeline_in_ws1,
+            workspace=ws_org_1,
+        )
+        PipelineTemplate.objects.create(
+            name="Template from WS2",
+            code="template-ws2",
+            source_pipeline=pipeline_in_ws2,
+            workspace=ws_org_2,
+        )
+
+        response = self.run_query(
+            """
+            query pipelineTemplates($workspaceSlug: String) {
+                pipelineTemplates(page: 1, perPage: 10, workspaceSlug: $workspaceSlug) {
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """,
+            {"workspaceSlug": ws_org_1.slug},
+        )
+
+        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 2)
+        template_codes = {
+            item["code"] for item in response["data"]["pipelineTemplates"]["items"]
+        }
+        self.assertEqual(template_codes, {"template-ws1", "template-ws2"})
+
+        response = self.run_query(
+            """
+            query pipelineTemplates($workspaceSlug: String) {
+                pipelineTemplates(page: 1, perPage: 10, workspaceSlug: $workspaceSlug) {
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """,
+            {"workspaceSlug": ws_org_2.slug},
+        )
+
+        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 2)
+        template_codes = {
+            item["code"] for item in response["data"]["pipelineTemplates"]["items"]
+        }
+        self.assertEqual(template_codes, {"template-ws1", "template-ws2"})

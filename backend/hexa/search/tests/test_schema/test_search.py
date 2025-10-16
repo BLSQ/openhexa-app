@@ -390,6 +390,88 @@ class SearchResolversTest(GraphQLTestCase):
             ],
         )
 
+    def test_search_pipeline_templates_organization_wide(self):
+        """Test that searchPipelineTemplates returns templates from entire organization, not just specific workspaces."""
+        self.client.force_login(self.USER)
+
+        ws_org_a = Workspace.objects.create(
+            name="Org Workspace A",
+            slug="org-workspace-a",
+            description="First workspace in test org",
+            db_name="db_org_workspace_a",
+            bucket_name="bucket_org_workspace_a",
+            organization=self.ORGANIZATION,
+        )
+        ws_org_b = Workspace.objects.create(
+            name="Org Workspace B",
+            slug="org-workspace-b",
+            description="Second workspace in test org",
+            db_name="db_org_workspace_b",
+            bucket_name="bucket_org_workspace_b",
+            organization=self.ORGANIZATION,
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=ws_org_a,
+            user=self.USER,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=ws_org_b,
+            user=self.USER,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+
+        pipeline_a = Pipeline.objects.create(
+            name="Pipeline A", code="pipeline-a", workspace=ws_org_a
+        )
+        pipeline_b = Pipeline.objects.create(
+            name="Pipeline B", code="pipeline-b", workspace=ws_org_b
+        )
+
+        PipelineTemplate.objects.create(
+            name="Org Template A",
+            code="org-template-a",
+            source_pipeline=pipeline_a,
+            workspace=ws_org_a,
+        )
+        PipelineTemplate.objects.create(
+            name="Org Template B",
+            code="org-template-b",
+            source_pipeline=pipeline_b,
+            workspace=ws_org_b,
+        )
+
+        response = self.run_query(
+            """
+            query searchPipelineTemplates($query: String!, $page: Int, $perPage: Int, $organizationId: UUID!) {
+                searchPipelineTemplates(query: $query, page: $page, perPage: $perPage, organizationId: $organizationId) {
+                    items {
+                        pipelineTemplate {
+                            name
+                            code
+                        }
+                        score
+                    }
+                    totalItems
+                }
+            }
+            """,
+            {
+                "query": "Org Template",
+                "page": 1,
+                "perPage": 10,
+                "organizationId": str(self.ORGANIZATION.id),
+            },
+        )
+
+        self.assertEqual(response["data"]["searchPipelineTemplates"]["totalItems"], 2)
+        template_codes = {
+            item["pipelineTemplate"]["code"]
+            for item in response["data"]["searchPipelineTemplates"]["items"]
+        }
+        self.assertEqual(template_codes, {"org-template-a", "org-template-b"})
+
     @patch("hexa.files.storage.list_bucket_objects")
     def test_search_files(self, mock_list_bucket_objects):
         self.client.force_login(self.USER)
