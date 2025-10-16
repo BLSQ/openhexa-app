@@ -12,7 +12,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
-from hexa.pipelines.models import Pipeline, PipelineVersion
+from hexa.pipelines.models import Pipeline, PipelineFunctionalType, PipelineVersion
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -32,6 +32,21 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             return_all_if_organization_admin_or_owner=True,
         )
 
+    def filter_by_tags(self, tags):
+        """
+        Filter pipeline templates by Tag objects.
+
+        Args:
+            tags: QuerySet or list of Tag instances
+
+        Returns
+        -------
+            Filtered queryset of templates with any of the given tags
+        """
+        if not tags:
+            return self.none()
+        return self.filter(tags__in=tags).distinct()
+
 
 class PipelineTemplate(SoftDeletedModel):
     class Meta:
@@ -48,6 +63,14 @@ class PipelineTemplate(SoftDeletedModel):
                 condition=Q(deleted_at__isnull=True),
             ),
         ]
+        indexes = [
+            models.Index(fields=["name"], name="idx_template_name"),
+            models.Index(fields=["functional_type"], name="idx_template_func_type"),
+            models.Index(
+                fields=["workspace", "functional_type"],
+                name="idx_template_ws_func_type",
+            ),
+        ]
         ordering = ["name"]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -61,6 +84,16 @@ class PipelineTemplate(SoftDeletedModel):
 
     source_pipeline = models.OneToOneField(
         Pipeline, on_delete=models.PROTECT, related_name="template"
+    )
+    functional_type = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        choices=PipelineFunctionalType.choices,
+        help_text="Describes WHAT the template does in data workflows. Optional field used for categorization.",
+    )
+    tags = models.ManyToManyField(
+        "tags.Tag", blank=True, related_name="pipeline_templates"
     )
 
     objects = DefaultSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
@@ -118,9 +151,11 @@ class PipelineTemplate(SoftDeletedModel):
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("pipeline_templates.update_pipeline_template", self):
             raise PermissionDenied
-        for key in ["name", "description"]:
+        for key in ["name", "description", "functional_type"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
+        if "tags" in kwargs:
+            self.tags.set(kwargs["tags"])
         return self.save()
 
     @property
@@ -191,13 +226,16 @@ class PipelineTemplateVersion(models.Model):
             "source_template": self.template,
             "description": self.template.description,
             "config": source_pipeline.config,
+            "functional_type": self.template.functional_type,
         }
-        return Pipeline.objects.create_if_has_perm(
+        pipeline = Pipeline.objects.create_if_has_perm(
             principal=principal,
             workspace=workspace,
             name=source_pipeline.name or source_pipeline.code,
             **data,
         )
+        pipeline.tags.set(self.template.tags.all())
+        return pipeline
 
     def _extract_config(self, pipeline: Pipeline) -> dict:
         """Extract the config from the source pipeline version based on the pipeline config and filter out the parameters with complex types"""

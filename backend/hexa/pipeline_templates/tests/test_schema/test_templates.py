@@ -6,7 +6,7 @@ from hexa.pipelines.models import (
     Pipeline,
     PipelineVersion,
 )
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import (
     Workspace,
 )
@@ -166,10 +166,16 @@ class PipelineTemplatesTest(GraphQLTestCase):
     def test_get_pipeline_templates(self):
         self.client.force_login(self.USER_ROOT)
         PipelineTemplate.objects.create(
-            name="Template 1", code="Code 1", source_pipeline=self.PIPELINE1
+            name="Template 1",
+            code="Code 1",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
         )
         PipelineTemplate.objects.create(
-            name="Template 2", code="Code 2", source_pipeline=self.PIPELINE2
+            name="Template 2",
+            code="Code 2",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
         )
         r = self.run_query(
             """
@@ -199,13 +205,22 @@ class PipelineTemplatesTest(GraphQLTestCase):
     def test_searching_pipeline_templates(self):
         self.client.force_login(self.USER_ROOT)
         PipelineTemplate.objects.create(
-            name="Template 1", code="Code 1", source_pipeline=self.PIPELINE1
+            name="Template 1",
+            code="Code 1",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
         )
         PipelineTemplate.objects.create(
-            name="Template 2", code="Code 2", source_pipeline=self.PIPELINE2
+            name="Template 2",
+            code="Code 2",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
         )
         PipelineTemplate.objects.create(
-            name="Template 22", code="Code 22", source_pipeline=self.PIPELINE3
+            name="Template 22",
+            code="Code 22",
+            source_pipeline=self.PIPELINE3,
+            workspace=self.WS1,
         )
         r = self.run_query(
             """
@@ -298,3 +313,276 @@ class PipelineTemplatesTest(GraphQLTestCase):
         self.assertFalse(
             PipelineTemplate.objects.filter(id=pipeline_template.id).exists()
         )
+
+    def test_update_pipeline_template_with_tags(self):
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline_template = PipelineTemplate.objects.create(
+            name="Template with Tags",
+            code="template_with_tags",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+
+        response = self.run_query(
+            """
+            mutation updatePipelineTemplate($input: UpdateTemplateInput!) {
+                updatePipelineTemplate(input: $input) {
+                    success
+                    errors
+                    template {
+                        id
+                        name
+                        tags {
+                            id
+                            name
+                        }
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(pipeline_template.id),
+                    "tags": ["new-tag", "another-tag"],
+                }
+            },
+        )
+
+        self.assertEqual(response["data"]["updatePipelineTemplate"]["success"], True)
+        self.assertEqual(response["data"]["updatePipelineTemplate"]["errors"], [])
+
+        template_data = response["data"]["updatePipelineTemplate"]["template"]
+        self.assertEqual(len(template_data["tags"]), 2)
+        tag_names = {tag["name"] for tag in template_data["tags"]}
+        self.assertEqual(tag_names, {"new-tag", "another-tag"})
+
+        pipeline_template.refresh_from_db()
+        self.assertEqual(pipeline_template.tags.count(), 2)
+
+    def test_update_pipeline_template_with_invalid_tags(self):
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline_template = PipelineTemplate.objects.create(
+            name="Template for Invalid Tags Test",
+            code="template_invalid_tags",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+
+        response = self.run_query(
+            """
+            mutation updatePipelineTemplate($input: UpdateTemplateInput!) {
+                updatePipelineTemplate(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(pipeline_template.id),
+                    "tags": ["valid-tag", ""],
+                }
+            },
+        )
+
+        self.assertEqual(response["data"]["updatePipelineTemplate"]["success"], False)
+        self.assertEqual(
+            response["data"]["updatePipelineTemplate"]["errors"], ["INVALID_CONFIG"]
+        )
+
+    def test_search_pipeline_templates_by_tags_and_functional_type(self):
+        from hexa.pipelines.models import PipelineFunctionalType
+        from hexa.tags.models import Tag
+
+        self.client.force_login(self.USER_ROOT)
+
+        tag1 = Tag.objects.create(name="data-ingestion")
+        tag2 = Tag.objects.create(name="analytics")
+        tag3 = Tag.objects.create(name="reporting")
+
+        template1 = PipelineTemplate.objects.create(
+            name="ETL Template",
+            code="etl-template",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+            functional_type=PipelineFunctionalType.EXTRACTION,
+        )
+        template1.tags.add(tag1)
+
+        template2 = PipelineTemplate.objects.create(
+            name="Analytics Template",
+            code="analytics-template",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
+            functional_type=PipelineFunctionalType.COMPUTATION,
+        )
+        template2.tags.add(tag2)
+
+        template3 = PipelineTemplate.objects.create(
+            name="Report Generator",
+            code="report-generator",
+            source_pipeline=self.PIPELINE3,
+            workspace=self.WS1,
+            functional_type=PipelineFunctionalType.TRANSFORMATION,
+        )
+        template3.tags.add(tag3)
+
+        response = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, search: "ingestion") {
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """
+        )
+        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 1)
+        self.assertEqual(
+            response["data"]["pipelineTemplates"]["items"][0]["code"], "etl-template"
+        )
+
+        response = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, search: "EXTRACTION") {
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """
+        )
+        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 1)
+        self.assertEqual(
+            response["data"]["pipelineTemplates"]["items"][0]["code"], "etl-template"
+        )
+
+        response = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, search: "analytics") {
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """
+        )
+        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 1)
+        self.assertEqual(
+            response["data"]["pipelineTemplates"]["items"][0]["code"],
+            "analytics-template",
+        )
+
+        response = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, search: "transformation") {
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """
+        )
+        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 1)
+        self.assertEqual(
+            response["data"]["pipelineTemplates"]["items"][0]["code"],
+            "report-generator",
+        )
+
+    def test_templates_are_organization_wide_not_workspace_specific(self):
+        """Test that pipeline templates are visible across all workspaces in an organization."""
+        self.client.force_login(self.USER_ROOT)
+
+        org = Organization.objects.create(name="Test Org")
+
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
+            ws_org_1 = Workspace.objects.create_if_has_perm(
+                self.USER_ROOT,
+                name="Org WS 1",
+                description="First workspace in org",
+                organization=org,
+            )
+            ws_org_2 = Workspace.objects.create_if_has_perm(
+                self.USER_ROOT,
+                name="Org WS 2",
+                description="Second workspace in org",
+                organization=org,
+            )
+
+        pipeline_in_ws1 = Pipeline.objects.create(
+            name="Pipeline in WS1", code="pipeline-ws1", workspace=ws_org_1
+        )
+        pipeline_in_ws2 = Pipeline.objects.create(
+            name="Pipeline in WS2", code="pipeline-ws2", workspace=ws_org_2
+        )
+
+        PipelineTemplate.objects.create(
+            name="Template from WS1",
+            code="template-ws1",
+            source_pipeline=pipeline_in_ws1,
+            workspace=ws_org_1,
+        )
+        PipelineTemplate.objects.create(
+            name="Template from WS2",
+            code="template-ws2",
+            source_pipeline=pipeline_in_ws2,
+            workspace=ws_org_2,
+        )
+
+        response = self.run_query(
+            """
+            query pipelineTemplates($workspaceSlug: String) {
+                pipelineTemplates(page: 1, perPage: 10, workspaceSlug: $workspaceSlug) {
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """,
+            {"workspaceSlug": ws_org_1.slug},
+        )
+
+        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 2)
+        template_codes = {
+            item["code"] for item in response["data"]["pipelineTemplates"]["items"]
+        }
+        self.assertEqual(template_codes, {"template-ws1", "template-ws2"})
+
+        response = self.run_query(
+            """
+            query pipelineTemplates($workspaceSlug: String) {
+                pipelineTemplates(page: 1, perPage: 10, workspaceSlug: $workspaceSlug) {
+                    totalItems
+                    items {
+                        name
+                        code
+                    }
+                }
+            }
+            """,
+            {"workspaceSlug": ws_org_2.slug},
+        )
+
+        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 2)
+        template_codes = {
+            item["code"] for item in response["data"]["pipelineTemplates"]["items"]
+        }
+        self.assertEqual(template_codes, {"template-ws1", "template-ws2"})

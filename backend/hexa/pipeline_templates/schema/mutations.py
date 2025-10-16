@@ -8,6 +8,7 @@ from django.http import HttpRequest
 from hexa.analytics.api import track
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import Pipeline, PipelineVersion
+from hexa.tags.models import Tag
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -227,6 +228,16 @@ def resolve_update_template(_, info, **kwargs):
         template = PipelineTemplate.objects.filter_for_user(request.user).get(
             id=input.pop("id")
         )
+
+        if "tags" in input:
+            tags, has_error = Tag.validate_and_get_or_create(input["tags"])
+            if has_error:
+                return {
+                    "success": False,
+                    "errors": ["INVALID_CONFIG"],
+                }
+            input["tags"] = tags
+
         template.update_if_has_perm(request.user, **input)
         return {"template": template, "success": True, "errors": []}
     except PermissionDenied:

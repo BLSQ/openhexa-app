@@ -103,7 +103,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   }, [open]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="max-w-4xl">
+    <Dialog open={open} onClose={onClose} maxWidth="max-w-6xl">
       <Dialog.Title>{t("How to create a pipeline")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
         <Tabs onChange={(index) => setTabIndex(index)} defaultIndex={tabIndex}>

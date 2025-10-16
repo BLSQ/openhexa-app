@@ -30,7 +30,7 @@ extend type Query {
   """
   Retrieves a page of pipeline templates.
   """
-  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String): PipelineTemplatePage!  @loginRequired
+  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String, tags: [String!], functionalType: PipelineFunctionalType): PipelineTemplatePage!  @loginRequired
 
   """
   Retrieves a template by workspace slug and code.
@@ -134,6 +134,7 @@ Enum representing the possible errors that can occur when updating a template.
 enum UpdateTemplateError {
   NOT_FOUND
   PERMISSION_DENIED
+  INVALID_CONFIG
 }
 
 """Represents the input for updating a template."""
@@ -142,6 +143,8 @@ input UpdateTemplateInput {
   name: String
   config: JSON
   description: String
+  functionalType: PipelineFunctionalType
+  tags: [String!]
 }
 
 """Represents the result of updating a template."""
@@ -166,6 +169,8 @@ type PipelineTemplate {
   permissions: PipelineTemplatePermissions!  # The permissions for the pipeline template.
   workspace: Workspace  # The workspace associated with the pipeline template.
   updatedAt: DateTime!  # The last updated date of the pipeline template.
+  functionalType: PipelineFunctionalType  # Business purpose: what the template does (extraction/transformation/loading/computation)
+  tags: [Tag!]!  # The tags associated with the pipeline template.
 }
 
 """

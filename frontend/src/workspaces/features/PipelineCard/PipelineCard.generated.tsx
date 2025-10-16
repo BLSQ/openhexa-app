@@ -1,10 +1,10 @@
 import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
-import { Tag_TagFragmentDoc } from '../../../core/features/Tag.generated';
+import { PipelineMetadataDisplay_PipelineFragmentDoc } from '../../../pipelines/features/PipelineMetadataDisplay/PipelineMetadataDisplay.generated';
 import { User_UserFragmentDoc } from '../../../core/features/User/User.generated';
 import { PipelineRunStatusBadge_RunFragmentDoc } from '../../../pipelines/features/PipelineRunStatusBadge.generated';
-export type PipelineCard_PipelineFragment = { __typename?: 'Pipeline', id: string, code: string, name?: string | null, schedule?: string | null, description?: string | null, type: Types.PipelineType, functionalType?: Types.PipelineFunctionalType | null, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, name: string } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, currentVersion?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } | null, lastRuns: { __typename?: 'PipelineRunPage', items: Array<{ __typename?: 'PipelineRun', executionDate?: any | null, id: string, status: Types.PipelineRunStatus, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }> } };
+export type PipelineCard_PipelineFragment = { __typename?: 'Pipeline', id: string, code: string, name?: string | null, schedule?: string | null, description?: string | null, type: Types.PipelineType, functionalType?: Types.PipelineFunctionalType | null, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, name: string } | null, currentVersion?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } | null, lastRuns: { __typename?: 'PipelineRunPage', items: Array<{ __typename?: 'PipelineRun', executionDate?: any | null, id: string, status: Types.PipelineRunStatus, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }> }, tags: Array<{ __typename?: 'Tag', id: string, name: string }> };
 
 export type PipelineCard_WorkspaceFragment = { __typename?: 'Workspace', slug: string };
 
@@ -20,10 +20,7 @@ export const PipelineCard_PipelineFragmentDoc = gql`
     id
     name
   }
-  tags {
-    ...Tag_tag
-  }
-  functionalType
+  ...PipelineMetadataDisplay_pipeline
   currentVersion {
     user {
       ...User_user
@@ -41,7 +38,7 @@ export const PipelineCard_PipelineFragmentDoc = gql`
     }
   }
 }
-    ${Tag_TagFragmentDoc}
+    ${PipelineMetadataDisplay_PipelineFragmentDoc}
 ${User_UserFragmentDoc}
 ${PipelineRunStatusBadge_RunFragmentDoc}`;
 export const PipelineCard_WorkspaceFragmentDoc = gql`

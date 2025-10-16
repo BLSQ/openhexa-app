@@ -60,7 +60,7 @@ const Pipelines = ({
 
   const totalItems = data?.pipelines?.totalItems ?? 0;
 
-  const availableTags = data?.workspace?.pipelineTags || [];
+  const pipelineTags = data?.workspace?.pipelineTags || [];
 
   return (
     <div>
@@ -74,7 +74,7 @@ const Pipelines = ({
         setFunctionalTypeFilter={setFunctionalType}
         tagsFilter={selectedTags}
         setTagsFilter={setSelectedTags}
-        availableTags={availableTags}
+        pipelineTags={pipelineTags}
       />
       <div className="relative">
         {loading && (

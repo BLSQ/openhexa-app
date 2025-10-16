@@ -50,8 +50,8 @@ def resolve_pipelines(_, info, **kwargs):
     tags = kwargs.get("tags", [])
     if tags:
         try:
-            Tag.from_names(tags)
-            qs = qs.filter_by_tags(tags)
+            tag_objects = Tag.from_names(tags)
+            qs = qs.filter_by_tags(tag_objects)
         except InvalidTag:
             qs = Pipeline.objects.none()
 

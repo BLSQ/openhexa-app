@@ -2656,6 +2656,9 @@ type Organization {
   """Pipeline tags used within this organization."""
   pipelineTags: [String!]!
 
+  """Pipeline template tags used within this organization."""
+  pipelineTemplateTags: [String!]!
+
   """The short name of the organization."""
   shortName: String
 
@@ -3032,10 +3035,12 @@ type PipelineTemplate {
   config: String
   currentVersion: PipelineTemplateVersion
   description: String
+  functionalType: PipelineFunctionalType
   id: UUID!
   name: String!
   permissions: PipelineTemplatePermissions!
   sourcePipeline: Pipeline
+  tags: [Tag!]!
   updatedAt: DateTime!
   versions(page: Int, perPage: Int): TemplateVersionPage!
   workspace: Workspace
@@ -3347,7 +3352,7 @@ type Query {
   pipelineRun(id: UUID!): PipelineRun
 
   """Retrieves a page of pipeline templates."""
-  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String): PipelineTemplatePage!
+  pipelineTemplates(functionalType: PipelineFunctionalType, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
 
   """Retrieves a pipeline version by ID."""
   pipelineVersion(id: UUID!): PipelineVersion
@@ -4176,6 +4181,7 @@ type UpdateTeamResult {
 Enum representing the possible errors that can occur when updating a template.
 """
 enum UpdateTemplateError {
+  INVALID_CONFIG
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -4184,8 +4190,10 @@ enum UpdateTemplateError {
 input UpdateTemplateInput {
   config: JSON
   description: String
+  functionalType: PipelineFunctionalType
   id: UUID!
   name: String
+  tags: [String!]
 }
 
 """Represents the result of updating a template."""
@@ -4497,6 +4505,7 @@ type Workspace {
   organization: Organization
   permissions: WorkspacePermissions!
   pipelineTags: [String!]!
+  pipelineTemplateTags: [String!]!
   slug: String!
   updatedAt: DateTime
 }

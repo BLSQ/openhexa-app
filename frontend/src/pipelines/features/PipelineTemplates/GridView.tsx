@@ -8,6 +8,7 @@ import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "core/components/Link";
 import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
+import { TagsCell, FunctionalTypeCell } from "pipelines/features/PipelineMetadataGrid";
 
 type GridViewProps = {
   items: any[];
@@ -48,30 +49,42 @@ const GridView = ({
             </Link>
           )}
         </BaseColumn>
-        <BaseColumn id="version" label={t("Version")}>
+        <BaseColumn id="version" label={t("Version")} className="w-20">
           {({ currentVersion }) => (
-            <span>
-              {currentVersion ? `v${currentVersion.versionNumber}` : ""}
+            <span className="text-sm">
+              {currentVersion ? `v${currentVersion.versionNumber}` : "-"}
             </span>
           )}
         </BaseColumn>
         <TextColumn
-          id="worksapce"
-          label={t("Source workspace")}
+          id="workspace"
+          label={t("Workspace")}
           accessor="workspace.name"
+          className="w-36"
         />
+        <BaseColumn id="tags" label={t("Tags")} className="w-32">
+          {(template) => (
+            <TagsCell tags={template.tags} maxTags={2} />
+          )}
+        </BaseColumn>
+        <BaseColumn id="functionalType" label={t("Type")} className="w-28">
+          {(template) => (
+            <FunctionalTypeCell functionalType={template.functionalType} />
+          )}
+        </BaseColumn>
         <DateColumn
           accessor={"currentVersion.createdAt"}
-          label={t("Created At")}
+          label={t("Updated")}
+          className="w-32"
         />
-        <BaseColumn id="actions" className={"text-right"}>
+        <BaseColumn id="actions" className="text-right w-52">
           {(template) => {
             const {
               permissions: { delete: canDelete },
               currentVersion,
             } = template;
             return (
-              <div className={"space-x-1"}>
+              <div className="flex justify-end gap-1">
                 {currentVersion && (
                   <Button
                     variant="primary"
@@ -83,16 +96,14 @@ const GridView = ({
                   </Button>
                 )}
                 {canDelete && (
-                  <>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => setTemplateToDelete(template)}
-                      leadingIcon={<TrashIcon className="h-4 w-4" />}
-                    >
-                      {t("Delete")}
-                    </Button>
-                  </>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => setTemplateToDelete(template)}
+                    leadingIcon={<TrashIcon className="h-4 w-4" />}
+                  >
+                    {t("Delete")}
+                  </Button>
                 )}
               </div>
             );

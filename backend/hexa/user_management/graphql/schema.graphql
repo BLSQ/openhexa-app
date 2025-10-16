@@ -1018,6 +1018,11 @@ type Organization {
     Pipeline tags used within this organization.
     """
     pipelineTags: [String!]!
+
+    """
+    Pipeline template tags used within this organization.
+    """
+    pipelineTemplateTags: [String!]!
 }
 
 type OrganizationPermissions {

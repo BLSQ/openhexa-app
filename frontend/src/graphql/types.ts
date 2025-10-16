@@ -3200,6 +3200,8 @@ export type Organization = {
   permissions: OrganizationPermissions;
   /** Pipeline tags used within this organization. */
   pipelineTags: Array<Scalars['String']['output']>;
+  /** Pipeline template tags used within this organization. */
+  pipelineTemplateTags: Array<Scalars['String']['output']>;
   /** The short name of the organization. */
   shortName?: Maybe<Scalars['String']['output']>;
   /** The type of the organization. */
@@ -3640,10 +3642,12 @@ export type PipelineTemplate = {
   config?: Maybe<Scalars['String']['output']>;
   currentVersion?: Maybe<PipelineTemplateVersion>;
   description?: Maybe<Scalars['String']['output']>;
+  functionalType?: Maybe<PipelineFunctionalType>;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   permissions: PipelineTemplatePermissions;
   sourcePipeline?: Maybe<Pipeline>;
+  tags: Array<Tag>;
   updatedAt: Scalars['DateTime']['output'];
   versions: TemplateVersionPage;
   workspace?: Maybe<Workspace>;
@@ -4150,9 +4154,11 @@ export type QueryPipelineRunArgs = {
 
 
 export type QueryPipelineTemplatesArgs = {
+  functionalType?: InputMaybe<PipelineFunctionalType>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -5009,6 +5015,7 @@ export type UpdateTeamResult = {
 
 /** Enum representing the possible errors that can occur when updating a template. */
 export enum UpdateTemplateError {
+  InvalidConfig = 'INVALID_CONFIG',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
@@ -5017,8 +5024,10 @@ export enum UpdateTemplateError {
 export type UpdateTemplateInput = {
   config?: InputMaybe<Scalars['JSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  functionalType?: InputMaybe<PipelineFunctionalType>;
   id: Scalars['UUID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 /** Represents the result of updating a template. */
@@ -5306,6 +5315,7 @@ export type Workspace = {
   organization?: Maybe<Organization>;
   permissions: WorkspacePermissions;
   pipelineTags: Array<Scalars['String']['output']>;
+  pipelineTemplateTags: Array<Scalars['String']['output']>;
   slug: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };

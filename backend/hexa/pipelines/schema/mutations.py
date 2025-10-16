@@ -73,7 +73,7 @@ def resolve_create_pipeline(_, info, **kwargs):
 
         tags = None
         if "tags" in input:
-            tags, has_error = _validate_and_get_tags(input["tags"])
+            tags, has_error = Tag.validate_and_get_or_create(input["tags"])
             if has_error:
                 return {
                     "success": False,
@@ -106,25 +106,6 @@ def resolve_create_pipeline(_, info, **kwargs):
     return {"pipeline": pipeline, "success": True, "errors": []}
 
 
-def _validate_and_get_tags(tag_data):
-    if not tag_data:
-        return [], False
-
-    tags = []
-    try:
-        for item in tag_data:
-            if not isinstance(item, str):
-                return [], True
-            name = item.strip()
-            if not name:
-                return [], True
-            tag, created = Tag.objects.get_or_create(name=name)
-            tags.append(tag)
-        return tags, False
-    except Exception:
-        return [], True
-
-
 @pipelines_mutations.field("updatePipeline")
 def resolve_update_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -136,7 +117,7 @@ def resolve_update_pipeline(_, info, **kwargs):
         )
 
         if "tags" in input:
-            tags, has_error = _validate_and_get_tags(input["tags"])
+            tags, has_error = Tag.validate_and_get_or_create(input["tags"])
             if has_error:
                 return {
                     "success": False,
@@ -388,7 +369,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
         )
 
         if "tags" in input:
-            tags, has_error = _validate_and_get_tags(input["tags"])
+            tags, has_error = Tag.validate_and_get_or_create(input["tags"])
             if has_error:
                 return {
                     "success": False,
