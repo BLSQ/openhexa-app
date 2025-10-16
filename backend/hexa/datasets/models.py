@@ -549,7 +549,7 @@ class DatasetLinkQuerySet(BaseQuerySet):
                         dataset__shared_with_organization=True,
                         workspace__organization__organizationmembership__user=user,
                     ),
-                    return_all_if_superuser=False,
+                    return_all_if_superuser=True,
                     return_all_if_organization_admin_or_owner=True,
                 )
             )
