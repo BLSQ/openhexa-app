@@ -16,10 +16,15 @@ type DownloadTemplateVersionProps = {
 const DownloadTemplateVersion = (props: DownloadTemplateVersionProps) => {
   const { version, children } = props;
   const [isDownloading, setDownloading] = useState(false);
-  const onClick = () => {
+  const onClick = async () => {
     setDownloading(true);
-    downloadTemplateVersion(version.id);
-    setDownloading(false);
+    try {
+      await downloadTemplateVersion(version.id);
+    } catch (error) {
+      console.error("Failed to download template:", error);
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return children({ onClick, isDownloading });
