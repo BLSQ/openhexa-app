@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.7.0](https://github.com/BLSQ/openhexa-app/compare/2.6.2...2.7.0) (2025-10-17)
+
+
+### Features
+
+* extend tags and functional types to template pipelines ([#1405](https://github.com/BLSQ/openhexa-app/issues/1405)) ([150cf64](https://github.com/BLSQ/openhexa-app/commit/150cf641bce01aa1d772f4fdbcb87a76dcf78d35))
+
+
+### Bug Fixes
+
+* superusers should be able to access all datasets (HEXA-1396) ([#1427](https://github.com/BLSQ/openhexa-app/issues/1427)) ([5d288f2](https://github.com/BLSQ/openhexa-app/commit/5d288f21725095079f4bb7ac7d60558f11dc3490))
+
 ## [2.6.2](https://github.com/BLSQ/openhexa-app/compare/2.6.1...2.6.2) (2025-10-16)
 
 
