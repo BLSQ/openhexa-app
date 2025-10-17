@@ -3961,6 +3961,8 @@ export type Query = {
   pipelineByCode?: Maybe<Pipeline>;
   /** Retrieves a pipeline run by ID. */
   pipelineRun?: Maybe<PipelineRun>;
+  /** Retrieves a pipeline template version by ID. */
+  pipelineTemplateVersion?: Maybe<PipelineTemplateVersion>;
   /** Retrieves a page of pipeline templates. */
   pipelineTemplates: PipelineTemplatePage;
   /** Retrieves a pipeline version by ID. */
@@ -4149,6 +4151,11 @@ export type QueryPipelineByCodeArgs = {
 
 
 export type QueryPipelineRunArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryPipelineTemplateVersionArgs = {
   id: Scalars['UUID']['input'];
 };
 

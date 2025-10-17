@@ -3351,6 +3351,9 @@ type Query {
   """Retrieves a pipeline run by ID."""
   pipelineRun(id: UUID!): PipelineRun
 
+  """Retrieves a pipeline template version by ID."""
+  pipelineTemplateVersion(id: UUID!): PipelineTemplateVersion
+
   """Retrieves a page of pipeline templates."""
   pipelineTemplates(functionalType: PipelineFunctionalType, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
 

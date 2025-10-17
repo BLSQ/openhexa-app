@@ -6,6 +6,11 @@ import {
   UpdateWorkspaceTemplateMutation,
   UpdateWorkspaceTemplateMutationVariables,
 } from "./templates.generated";
+import {
+  GetTemplateVersionForDownloadQuery,
+  GetTemplateVersionForDownloadQueryVariables,
+  GetTemplateVersionForDownloadDocument,
+} from "../graphql/templates.generated";
 import { UpdateTemplateError } from "graphql/types";
 import Tag from "core/features/Tag";
 
@@ -76,4 +81,33 @@ export async function deleteTemplateVersion(versionId: string) {
   }
 
   throw new Error("Failed to delete template version");
+}
+
+export async function downloadTemplateVersion(versionId: string) {
+  const client = getApolloClient();
+  const { data } = await client.query<
+    GetTemplateVersionForDownloadQuery,
+    GetTemplateVersionForDownloadQueryVariables
+  >({
+    query: GetTemplateVersionForDownloadDocument,
+    variables: { versionId },
+  });
+  if (!data.pipelineTemplateVersion) {
+    throw new Error(`No template version found for ${versionId}`);
+  }
+  const { zipfile } = data.pipelineTemplateVersion.sourcePipelineVersion;
+  const { template, versionNumber } = data.pipelineTemplateVersion;
+  const binaryString = atob(zipfile);
+  const bytes = Uint8Array.from(binaryString, (c) => c.charCodeAt(0));
+  const blob = new Blob([bytes], {
+    type: "application/zip",
+  });
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${template.code}-v${versionNumber}.zip`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  window.URL.revokeObjectURL(url);
 }

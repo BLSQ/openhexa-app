@@ -13,6 +13,8 @@ import {
 } from "./TemplateLayout.generated";
 import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import router from "next/router";
+import DownloadTemplateVersion from "pipelines/features/DownloadTemplateVersion";
+import Spinner from "core/components/Spinner";
 
 type TemplateLayoutProps = {
   template: TemplateLayout_TemplateFragment;
@@ -96,15 +98,27 @@ const TemplateLayout = (props: TemplateLayoutProps) => {
               </Breadcrumbs.Part>
             ))}
           </Breadcrumbs>
-          {template.permissions.delete && (
-            <Button
-              onClick={() => setDeleteTemplateDialogOpen(true)}
-              className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
-              leadingIcon={<TrashIcon className="w-4" />}
-            >
-              {t("Delete")}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {template.currentVersion && (
+              <DownloadTemplateVersion version={template.currentVersion}>
+                {({ onClick, isDownloading }) => (
+                  <Button onClick={onClick} variant="secondary">
+                    {isDownloading && <Spinner size="sm" />}
+                    {t("Download code")}
+                  </Button>
+                )}
+              </DownloadTemplateVersion>
+            )}
+            {template.permissions.delete && (
+              <Button
+                onClick={() => setDeleteTemplateDialogOpen(true)}
+                className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
+                leadingIcon={<TrashIcon className="w-4" />}
+              >
+                {t("Delete")}
+              </Button>
+            )}
+          </div>
         </>
       }
     >
@@ -150,8 +164,10 @@ TemplateLayout.fragments = {
       }
       currentVersion {
         id
+        ...DownloadTemplateVersion_version
       }
     }
+    ${DownloadTemplateVersion.fragments.version}
   `,
 };
 

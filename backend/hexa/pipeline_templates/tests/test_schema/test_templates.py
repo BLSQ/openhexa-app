@@ -586,3 +586,86 @@ class PipelineTemplatesTest(GraphQLTestCase):
             item["code"] for item in response["data"]["pipelineTemplates"]["items"]
         }
         self.assertEqual(template_codes, {"template-ws1", "template-ws2"})
+
+    def test_get_pipeline_template_version(self):
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline_template = PipelineTemplate.objects.create(
+            name="Template 1",
+            code="template-1",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+        version = PipelineTemplateVersion.objects.create(
+            template=pipeline_template,
+            version_number=1,
+            source_pipeline_version=self.PIPELINE_VERSION1,
+        )
+
+        r = self.run_query(
+            """
+            query getPipelineTemplateVersion($id: UUID!) {
+                pipelineTemplateVersion(id: $id) {
+                    id
+                    versionNumber
+                    template {
+                        code
+                    }
+                }
+            }
+            """,
+            {"id": str(version.id)},
+        )
+
+        self.assertEqual(r["data"]["pipelineTemplateVersion"]["id"], str(version.id))
+        self.assertEqual(r["data"]["pipelineTemplateVersion"]["versionNumber"], 1)
+        self.assertEqual(
+            r["data"]["pipelineTemplateVersion"]["template"]["code"], "template-1"
+        )
+
+    def test_get_pipeline_template_version_not_found(self):
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            query getPipelineTemplateVersion($id: UUID!) {
+                pipelineTemplateVersion(id: $id) {
+                    id
+                }
+            }
+            """,
+            {"id": "00000000-0000-0000-0000-000000000000"},
+        )
+
+        self.assertIsNone(r["data"]["pipelineTemplateVersion"])
+
+    def test_get_pipeline_template_version_permission_denied(self):
+        user_no_access = User.objects.create_user(
+            "noaccess@bluesquarehub.com", "standardpassword"
+        )
+        self.client.force_login(user_no_access)
+
+        pipeline_template = PipelineTemplate.objects.create(
+            name="Template 1",
+            code="template-1",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+        version = PipelineTemplateVersion.objects.create(
+            template=pipeline_template,
+            version_number=1,
+            source_pipeline_version=self.PIPELINE_VERSION1,
+        )
+
+        r = self.run_query(
+            """
+            query getPipelineTemplateVersion($id: UUID!) {
+                pipelineTemplateVersion(id: $id) {
+                    id
+                }
+            }
+            """,
+            {"id": str(version.id)},
+        )
+
+        self.assertIsNone(r["data"]["pipelineTemplateVersion"])
