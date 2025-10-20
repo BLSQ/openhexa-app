@@ -3080,8 +3080,13 @@ type PipelineTemplateResultPage {
 
 """Sortable fields for pipeline templates."""
 enum PipelineTemplateSortField {
+  """Sort by creation date"""
   CREATED_AT
+
+  """Sort by template name"""
   NAME
+
+  """Sort by number of pipelines created from this template"""
   PIPELINES_COUNT
 }
 

@@ -3698,8 +3698,11 @@ export type PipelineTemplateResultPage = {
 
 /** Sortable fields for pipeline templates. */
 export enum PipelineTemplateSortField {
+  /** Sort by creation date */
   CreatedAt = 'CREATED_AT',
+  /** Sort by template name */
   Name = 'NAME',
+  /** Sort by number of pipelines created from this template */
   PipelinesCount = 'PIPELINES_COUNT'
 }
 
