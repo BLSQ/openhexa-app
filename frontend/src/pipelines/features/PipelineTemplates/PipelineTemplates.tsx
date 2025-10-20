@@ -7,7 +7,7 @@ import useDebounce from "core/hooks/useDebounce";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useSorting } from "core/hooks/useSorting";
 import {
-  TEMPLATE_SORT_OPTIONS,
+  getTemplateSortOptions,
   convertDataGridSortToGraphQL,
   COLUMN_TO_FIELD_MAP
 } from "pipelines/config/sorting";
@@ -38,9 +38,10 @@ const PipelineTemplates = ({
   const perPage = 10;
   const clearCache = useCacheKey(["pipelines"]);
 
+  const sortOptions = getTemplateSortOptions(t);
   const sorting = useSorting({
-    defaultSort: TEMPLATE_SORT_OPTIONS[0],
-    options: TEMPLATE_SORT_OPTIONS,
+    defaultSort: sortOptions[0],
+    options: sortOptions,
   });
 
   const [createPipelineFromTemplateVersion] =
@@ -136,8 +137,7 @@ const PipelineTemplates = ({
   }) => {
     const graphqlSort = convertDataGridSortToGraphQL(params.sortBy);
     if (graphqlSort) {
-      // Find the corresponding sort option from dropdown
-      const matchingOption = TEMPLATE_SORT_OPTIONS.find(
+      const matchingOption = sortOptions.find(
         opt => opt.field === graphqlSort.field && opt.direction === graphqlSort.direction
       );
       if (matchingOption) {
@@ -166,8 +166,8 @@ const PipelineTemplates = ({
       />
       <div className="relative">
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center backdrop-blur-xs z-10">
-            <Spinner />
+          <div className="absolute top-2 right-2 z-10">
+            <Spinner size="sm" />
           </div>
         )}
         <ViewTemplates

@@ -18,17 +18,6 @@ export interface UseSortingReturn<TField = string> {
   setSortOrder: (option: SortOption<TField>) => void;
   sortOptions: SortOption<TField>[];
   getSortInput: () => { field: TField; direction: SortDirection };
-  /**
-   * Set sort from DataGrid column sorting
-   * @param columnId - The column ID from DataGrid
-   * @param descending - Whether the sort is descending
-   * @param columnToFieldMap - Mapping from column IDs to field enums
-   */
-  setSortFromColumn: (
-    columnId: string,
-    descending: boolean,
-    columnToFieldMap: Record<string, TField>
-  ) => void;
 }
 
 /**

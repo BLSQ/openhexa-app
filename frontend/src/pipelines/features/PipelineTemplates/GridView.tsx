@@ -68,6 +68,7 @@ const GridView = ({
   return (
     <Block className="divide divide-y divide-gray-100 mt-4">
       <DataGrid
+        key={currentSort ? `${currentSort.field}-${currentSort.direction}` : 'default'}
         data={items}
         defaultPageSize={perPage}
         totalItems={totalItems}

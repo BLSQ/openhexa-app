@@ -52,13 +52,10 @@ class SortConfig:
 
     def _get_secondary_sorts(self, primary_field: str) -> List[str]:
         """Add secondary sorting fields for tie-breaking."""
-        # For name sorting, just add id
         if "name" in primary_field:
             return ["id"]
-        # For date sorting, add name then id
         elif "created_at" in primary_field or "updated_at" in primary_field:
             return ["name", "id"]
-        # For computed fields (like counts), add name then id
         else:
             return ["name", "id"]
 

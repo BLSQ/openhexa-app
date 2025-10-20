@@ -1,6 +1,7 @@
 import { SortOption } from "core/hooks/useSorting";
 import { SortDirection, PipelineTemplateSortField } from "graphql/types";
 import { SortingRule } from "react-table";
+import { TFunction } from "next-i18next";
 
 /**
  * Mapping from DataGrid column IDs to GraphQL sort fields
@@ -34,41 +35,48 @@ export function convertDataGridSortToGraphQL(
   };
 }
 
-export const TEMPLATE_SORT_OPTIONS: SortOption<PipelineTemplateSortField>[] = [
-  {
-    value: "popularity-desc",
-    field: PipelineTemplateSortField.PipelinesCount,
-    direction: SortDirection.Desc,
-    label: "Popularity (Most used)",
-  },
-  {
-    value: "created-desc",
-    field: PipelineTemplateSortField.CreatedAt,
-    direction: SortDirection.Desc,
-    label: "Date Created (Newest)",
-  },
-  {
-    value: "created-asc",
-    field: PipelineTemplateSortField.CreatedAt,
-    direction: SortDirection.Asc,
-    label: "Date Created (Oldest)",
-  },
-  {
-    value: "popularity-asc",
-    field: PipelineTemplateSortField.PipelinesCount,
-    direction: SortDirection.Asc,
-    label: "Popularity (Least used)",
-  },
-  {
-    value: "name-asc",
-    field: PipelineTemplateSortField.Name,
-    direction: SortDirection.Asc,
-    label: "Name (A–Z)",
-  },
-  {
-    value: "name-desc",
-    field: PipelineTemplateSortField.Name,
-    direction: SortDirection.Desc,
-    label: "Name (Z–A)",
-  },
-];
+/**
+ * Get localized sort options for pipeline templates
+ */
+export function getTemplateSortOptions(
+  t: TFunction
+): SortOption<PipelineTemplateSortField>[] {
+  return [
+    {
+      value: "popularity-desc",
+      field: PipelineTemplateSortField.PipelinesCount,
+      direction: SortDirection.Desc,
+      label: t("Popularity (Most used)"),
+    },
+    {
+      value: "created-desc",
+      field: PipelineTemplateSortField.CreatedAt,
+      direction: SortDirection.Desc,
+      label: t("Date Created (Newest)"),
+    },
+    {
+      value: "created-asc",
+      field: PipelineTemplateSortField.CreatedAt,
+      direction: SortDirection.Asc,
+      label: t("Date Created (Oldest)"),
+    },
+    {
+      value: "popularity-asc",
+      field: PipelineTemplateSortField.PipelinesCount,
+      direction: SortDirection.Asc,
+      label: t("Popularity (Least used)"),
+    },
+    {
+      value: "name-asc",
+      field: PipelineTemplateSortField.Name,
+      direction: SortDirection.Asc,
+      label: t("Name (A–Z)"),
+    },
+    {
+      value: "name-desc",
+      field: PipelineTemplateSortField.Name,
+      direction: SortDirection.Desc,
+      label: t("Name (Z–A)"),
+    },
+  ];
+}
