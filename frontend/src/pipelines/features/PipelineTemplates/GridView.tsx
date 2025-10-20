@@ -126,7 +126,7 @@ const GridView = ({
           label={t("Updated")}
           className="w-32"
         />
-        <BaseColumn id="actions" className="text-right w-52">
+        <BaseColumn id="actions" className="text-right w-52" disableSortBy={true}>
           {(template) => {
             const {
               permissions: { delete: canDelete },

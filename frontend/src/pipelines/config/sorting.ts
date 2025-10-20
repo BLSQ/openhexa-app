@@ -1,0 +1,74 @@
+import { SortOption } from "core/hooks/useSorting";
+import { SortDirection, PipelineTemplateSortField } from "graphql/types";
+import { SortingRule } from "react-table";
+
+/**
+ * Mapping from DataGrid column IDs to GraphQL sort fields
+ */
+export const COLUMN_TO_FIELD_MAP: Record<string, PipelineTemplateSortField> = {
+  name: PipelineTemplateSortField.Name,
+  createdAt: PipelineTemplateSortField.CreatedAt,
+  popularity: PipelineTemplateSortField.PipelinesCount,
+};
+
+/**
+ * Convert DataGrid sortBy to GraphQL sort input
+ */
+export function convertDataGridSortToGraphQL(
+  sortBy: SortingRule<object>[]
+): { field: PipelineTemplateSortField; direction: SortDirection } | null {
+  if (!sortBy || sortBy.length === 0) {
+    return null;
+  }
+
+  const columnId = sortBy[0].id;
+  const field = COLUMN_TO_FIELD_MAP[columnId];
+
+  if (!field) {
+    return null;
+  }
+
+  return {
+    field,
+    direction: sortBy[0].desc ? SortDirection.Desc : SortDirection.Asc,
+  };
+}
+
+export const TEMPLATE_SORT_OPTIONS: SortOption<PipelineTemplateSortField>[] = [
+  {
+    value: "popularity-desc",
+    field: PipelineTemplateSortField.PipelinesCount,
+    direction: SortDirection.Desc,
+    label: "Popularity (Most used)",
+  },
+  {
+    value: "created-desc",
+    field: PipelineTemplateSortField.CreatedAt,
+    direction: SortDirection.Desc,
+    label: "Date Created (Newest)",
+  },
+  {
+    value: "created-asc",
+    field: PipelineTemplateSortField.CreatedAt,
+    direction: SortDirection.Asc,
+    label: "Date Created (Oldest)",
+  },
+  {
+    value: "popularity-asc",
+    field: PipelineTemplateSortField.PipelinesCount,
+    direction: SortDirection.Asc,
+    label: "Popularity (Least used)",
+  },
+  {
+    value: "name-asc",
+    field: PipelineTemplateSortField.Name,
+    direction: SortDirection.Asc,
+    label: "Name (A–Z)",
+  },
+  {
+    value: "name-desc",
+    field: PipelineTemplateSortField.Name,
+    direction: SortDirection.Desc,
+    label: "Name (Z–A)",
+  },
+];
