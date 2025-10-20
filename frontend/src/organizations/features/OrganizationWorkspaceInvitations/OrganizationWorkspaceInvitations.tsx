@@ -26,6 +26,7 @@ export default function OrganizationWorkspaceInvitations({
   const [selectedInvitation, setSelectedInvitation] = useState<Invitation>();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openResendDialog, setOpenResendDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { data, refetch } = useOrganizationWorkspaceInvitationsQuery({
     variables: {
@@ -38,10 +39,13 @@ export default function OrganizationWorkspaceInvitations({
   useCacheKey("organization", () => refetch());
 
   const onChangePage = ({ page }: { page: number }) => {
+    setIsLoading(true);
     refetch({
       page,
       id: organizationId,
-    }).then();
+    }).finally(() => {
+      setIsLoading(false);
+    });
   };
 
   if (!data?.organization) {
@@ -76,6 +80,7 @@ export default function OrganizationWorkspaceInvitations({
         fetchData={onChangePage}
         emptyLabel={t("No workspace invitations")}
         className="min-h-30"
+        loading={isLoading}
       >
         <BaseColumn label={t("Email")} id="email" minWidth={350}>
           {(invitation) => (
