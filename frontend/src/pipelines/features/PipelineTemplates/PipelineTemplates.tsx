@@ -5,6 +5,8 @@ import { toast } from "react-toastify";
 import router from "next/router";
 import useDebounce from "core/hooks/useDebounce";
 import useCacheKey from "core/hooks/useCacheKey";
+import { useSorting } from "core/hooks/useSorting";
+import { TEMPLATE_SORT_OPTIONS } from "pipelines/config/sorting";
 import {
   PipelineTemplates_WorkspaceFragment,
   useGetPipelineTemplatesQuery,
@@ -31,6 +33,11 @@ const PipelineTemplates = ({
   const perPage = 10;
   const clearCache = useCacheKey(["pipelines"]);
 
+  const sorting = useSorting({
+    defaultSort: TEMPLATE_SORT_OPTIONS[0],
+    options: TEMPLATE_SORT_OPTIONS,
+  });
+
   const [createPipelineFromTemplateVersion] =
     useCreatePipelineFromTemplateVersionMutation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,8 +61,9 @@ const PipelineTemplates = ({
       workspaceSlug: workspaceFilter.workspaceSlug ?? undefined,
       tags: tagsFilter.length > 0 ? tagsFilter : undefined,
       functionalType: functionalTypeFilter,
+      sort: sorting.getSortInput(),
     },
-    fetchPolicy: "cache-and-network", // The template list is a global list across the instance, so we want to check the network for updates and show the cached data in the meantime
+    fetchPolicy: "cache-and-network",
   });
   const [items, setItems] = useState(data?.pipelineTemplates?.items || []);
 
@@ -130,6 +138,7 @@ const PipelineTemplates = ({
         templateTags={templateTags}
         functionalTypeFilter={functionalTypeFilter}
         setFunctionalTypeFilter={setFunctionalTypeFilter}
+        sorting={sorting}
       />
       <div className="relative">
         {loading && (
@@ -160,6 +169,7 @@ const GET_PIPELINE_TEMPLATES = gql`
     $workspaceSlug: String
     $tags: [String!]
     $functionalType: PipelineFunctionalType
+    $sort: PipelineTemplateSortInput
   ) {
     workspace(slug: $currentWorkspaceSlug) {
       slug
@@ -172,6 +182,7 @@ const GET_PIPELINE_TEMPLATES = gql`
       workspaceSlug: $workspaceSlug
       tags: $tags
       functionalType: $functionalType
+      sort: $sort
     ) {
       pageNumber
       totalPages
@@ -182,6 +193,7 @@ const GET_PIPELINE_TEMPLATES = gql`
         code
         name
         functionalType
+        pipelinesCount
         tags {
           id
           name

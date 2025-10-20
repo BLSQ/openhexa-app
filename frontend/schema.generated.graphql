@@ -3039,6 +3039,7 @@ type PipelineTemplate {
   id: UUID!
   name: String!
   permissions: PipelineTemplatePermissions!
+  pipelinesCount: Int!
   sourcePipeline: Pipeline
   tags: [Tag!]!
   updatedAt: DateTime!
@@ -3075,6 +3076,19 @@ type PipelineTemplateResultPage {
   pageNumber: Int!
   totalItems: Int!
   totalPages: Int!
+}
+
+"""Sortable fields for pipeline templates."""
+enum PipelineTemplateSortField {
+  CREATED_AT
+  NAME
+  PIPELINES_COUNT
+}
+
+"""Sort specification for pipeline templates."""
+input PipelineTemplateSortInput {
+  direction: SortDirection!
+  field: PipelineTemplateSortField!
 }
 
 """Represents a version of a pipeline template."""
@@ -3355,7 +3369,7 @@ type Query {
   pipelineTemplateVersion(id: UUID!): PipelineTemplateVersion
 
   """Retrieves a page of pipeline templates."""
-  pipelineTemplates(functionalType: PipelineFunctionalType, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
+  pipelineTemplates(functionalType: PipelineFunctionalType, page: Int = 1, perPage: Int = 15, search: String, sort: PipelineTemplateSortInput, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
 
   """Retrieves a pipeline version by ID."""
   pipelineVersion(id: UUID!): PipelineVersion
@@ -3685,6 +3699,12 @@ type SetPasswordResult {
 }
 
 scalar SimplifiedExtentType
+
+"""Generic sort direction for ordering queries."""
+enum SortDirection {
+  ASC
+  DESC
+}
 
 scalar StackPriorities
 

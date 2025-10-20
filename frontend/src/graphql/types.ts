@@ -3646,6 +3646,7 @@ export type PipelineTemplate = {
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   permissions: PipelineTemplatePermissions;
+  pipelinesCount: Scalars['Int']['output'];
   sourcePipeline?: Maybe<Pipeline>;
   tags: Array<Tag>;
   updatedAt: Scalars['DateTime']['output'];
@@ -3693,6 +3694,19 @@ export type PipelineTemplateResultPage = {
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
+};
+
+/** Sortable fields for pipeline templates. */
+export enum PipelineTemplateSortField {
+  CreatedAt = 'CREATED_AT',
+  Name = 'NAME',
+  PipelinesCount = 'PIPELINES_COUNT'
+}
+
+/** Sort specification for pipeline templates. */
+export type PipelineTemplateSortInput = {
+  direction: SortDirection;
+  field: PipelineTemplateSortField;
 };
 
 /** Represents a version of a pipeline template. */
@@ -4165,6 +4179,7 @@ export type QueryPipelineTemplatesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<PipelineTemplateSortInput>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };
@@ -4563,6 +4578,12 @@ export type SetPasswordResult = {
   /** Indicates whether the password was set successfully. */
   success: Scalars['Boolean']['output'];
 };
+
+/** Generic sort direction for ordering queries. */
+export enum SortDirection {
+  Asc = 'ASC',
+  Desc = 'DESC'
+}
 
 /** Represents the input for stopping a pipeline. */
 export type StopPipelineInput = {

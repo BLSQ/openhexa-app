@@ -72,6 +72,17 @@ const GridView = ({
             <FunctionalTypeCell functionalType={template.functionalType} />
           )}
         </BaseColumn>
+        <BaseColumn id="popularity" label={t("Popularity")} className="w-24">
+          {(template) => (
+            <span className="text-sm text-gray-600">
+              {template.pipelinesCount > 0 ? (
+                template.pipelinesCount
+              ) : (
+                <span className="text-gray-500 italic">{t("Not used")}</span>
+              )}
+            </span>
+          )}
+        </BaseColumn>
         <DateColumn
           accessor={"currentVersion.createdAt"}
           label={t("Updated")}

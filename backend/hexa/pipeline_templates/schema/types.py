@@ -71,6 +71,16 @@ def resolve_pipeline_template_tags(pipeline_template: PipelineTemplate, info, **
     return pipeline_template.tags.all()
 
 
+@pipeline_template_object.field("pipelinesCount")
+def resolve_pipeline_template_pipelines_count(
+    pipeline_template: PipelineTemplate, info, **kwargs
+):
+    if hasattr(pipeline_template, "pipelines_count"):
+        return pipeline_template.pipelines_count
+
+    return pipeline_template.pipeline_set.filter(deleted_at__isnull=True).count()
+
+
 @pipeline_template_permissions.field("delete")
 def resolve_pipeline_template_permissions_delete(
     pipeline_template: PipelineTemplate, info, **kwargs
