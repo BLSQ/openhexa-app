@@ -54,8 +54,6 @@ class SortConfig:
         """Add secondary sorting fields for tie-breaking."""
         if "name" in primary_field:
             return ["id"]
-        elif "created_at" in primary_field or "updated_at" in primary_field:
-            return ["name", "id"]
         else:
             return ["name", "id"]
 

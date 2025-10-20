@@ -669,3 +669,49 @@ class PipelineTemplatesTest(GraphQLTestCase):
         )
 
         self.assertIsNone(r["data"]["pipelineTemplateVersion"])
+
+    def test_pipelines_count_field_with_fallback(self):
+        self.client.force_login(self.USER_ROOT)
+
+        template = PipelineTemplate.objects.create(
+            name="Template for Count Test",
+            code="template-count-test",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+
+        Pipeline.objects.create(
+            name="Pipeline 1 from Template",
+            code="pipeline-1-from-template",
+            workspace=self.WS1,
+            source_template=template,
+        )
+        Pipeline.objects.create(
+            name="Pipeline 2 from Template",
+            code="pipeline-2-from-template",
+            workspace=self.WS1,
+            source_template=template,
+        )
+        pipeline3 = Pipeline.objects.create(
+            name="Pipeline 3 from Template (Deleted)",
+            code="pipeline-3-from-template",
+            workspace=self.WS1,
+            source_template=template,
+        )
+        pipeline3.delete()
+
+        r = self.run_query(
+            """
+            query getTemplateByCode($code: String!) {
+                templateByCode(code: $code) {
+                    code
+                    name
+                    pipelinesCount
+                }
+            }
+            """,
+            {"code": "template-count-test"},
+        )
+
+        self.assertEqual(r["data"]["templateByCode"]["code"], "template-count-test")
+        self.assertEqual(r["data"]["templateByCode"]["pipelinesCount"], 2)

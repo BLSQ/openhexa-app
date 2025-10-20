@@ -42,7 +42,7 @@ class SortingTestCase(TestCase):
     def test_sort_config_secondary_sorts_for_created_at(self):
         config = SortConfig(
             field_mapping={"CREATED_AT": "created_at"},
-            default_sort=["created_at", "id"],
+            default_sort=["-created_at", "name", "id"],
         )
         order_by_fields = config.get_order_by_fields(
             {"field": "CREATED_AT", "direction": "DESC"}

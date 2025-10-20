@@ -16,7 +16,7 @@ TEMPLATE_SORT_CONFIG = SortConfig(
         "CREATED_AT": "created_at",
         "PIPELINES_COUNT": "pipelines_count",
     },
-    default_sort=["name", "id"],
+    default_sort=["-pipelines_count", "name", "id"],
 )
 
 
