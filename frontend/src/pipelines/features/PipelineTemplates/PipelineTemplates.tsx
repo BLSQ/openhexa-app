@@ -6,7 +6,12 @@ import router from "next/router";
 import useDebounce from "core/hooks/useDebounce";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useSorting } from "core/hooks/useSorting";
-import { TEMPLATE_SORT_OPTIONS } from "pipelines/config/sorting";
+import {
+  TEMPLATE_SORT_OPTIONS,
+  convertDataGridSortToGraphQL,
+  COLUMN_TO_FIELD_MAP
+} from "pipelines/config/sorting";
+import { SortingRule } from "react-table";
 import {
   PipelineTemplates_WorkspaceFragment,
   useGetPipelineTemplatesQuery,
@@ -123,6 +128,25 @@ const PipelineTemplates = ({
       });
   };
 
+  const handleDataGridSort = (params: {
+    page: number;
+    pageSize: number;
+    pageIndex: number;
+    sortBy: SortingRule<object>[];
+  }) => {
+    const graphqlSort = convertDataGridSortToGraphQL(params.sortBy);
+    if (graphqlSort) {
+      // Find the corresponding sort option from dropdown
+      const matchingOption = TEMPLATE_SORT_OPTIONS.find(
+        opt => opt.field === graphqlSort.field && opt.direction === graphqlSort.direction
+      );
+      if (matchingOption) {
+        sorting.setSortOrder(matchingOption);
+      }
+    }
+    setPage(params.page);
+  };
+
   const ViewTemplates = view === "card" ? CardView : GridView;
   return (
     <div>
@@ -154,6 +178,8 @@ const PipelineTemplates = ({
           totalItems={totalItems}
           createPipeline={createPipeline}
           setPage={setPage}
+          onSort={view === "grid" ? handleDataGridSort : undefined}
+          currentSort={view === "grid" ? sorting.getSortInput() : undefined}
         />
       </div>
     </div>

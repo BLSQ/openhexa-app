@@ -32,7 +32,7 @@ def resolve_pipeline_templates(_, info, **kwargs):
         .prefetch_related("tags")
         .annotate(
             pipelines_count=Count(
-                "pipeline", filter=Q(pipeline__deleted_at__isnull=True)
+                "pipelines", filter=Q(pipelines__deleted_at__isnull=True)
             )
         )
         .filter(

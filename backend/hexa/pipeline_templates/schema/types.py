@@ -78,7 +78,7 @@ def resolve_pipeline_template_pipelines_count(
     if hasattr(pipeline_template, "pipelines_count"):
         return pipeline_template.pipelines_count
 
-    return pipeline_template.pipeline_set.filter(deleted_at__isnull=True).count()
+    return pipeline_template.pipelines.filter(deleted_at__isnull=True).count()
 
 
 @pipeline_template_permissions.field("delete")

@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
+import { SortingRule } from "react-table";
+import { SortDirection, PipelineTemplateSortField } from "graphql/types";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
@@ -18,6 +20,16 @@ type GridViewProps = {
   totalItems: number;
   createPipeline: (pipelineTemplateVersionId: string) => () => void;
   setPage: (page: number) => void;
+  onSort?: (params: {
+    page: number;
+    pageSize: number;
+    pageIndex: number;
+    sortBy: SortingRule<object>[];
+  }) => void;
+  currentSort?: {
+    field: PipelineTemplateSortField;
+    direction: SortDirection;
+  };
 };
 
 const GridView = ({
@@ -27,9 +39,31 @@ const GridView = ({
   totalItems,
   createPipeline,
   setPage,
+  onSort,
+  currentSort,
 }: GridViewProps) => {
   const { t } = useTranslation();
   const [templateToDelete, setTemplateToDelete] = useState<any | null>(null);
+
+  // Convert GraphQL sort to DataGrid defaultSortBy format
+  const defaultSortBy = useMemo(() => {
+    if (!currentSort) return [];
+
+    // Map GraphQL field to column ID
+    const fieldToColumnMap: Record<PipelineTemplateSortField, string> = {
+      [PipelineTemplateSortField.Name]: "name",
+      [PipelineTemplateSortField.CreatedAt]: "createdAt",
+      [PipelineTemplateSortField.PipelinesCount]: "popularity",
+    };
+
+    const columnId = fieldToColumnMap[currentSort.field];
+    if (!columnId) return [];
+
+    return [{
+      id: columnId,
+      desc: currentSort.direction === SortDirection.Desc,
+    }];
+  }, [currentSort]);
 
   return (
     <Block className="divide divide-y divide-gray-100 mt-4">
@@ -37,7 +71,9 @@ const GridView = ({
         data={items}
         defaultPageSize={perPage}
         totalItems={totalItems}
-        fetchData={({ page }) => setPage(page)}
+        fetchData={onSort || (({ page }) => setPage(page))}
+        sortable={Boolean(onSort)}
+        defaultSortBy={defaultSortBy}
         fixedLayout={false}
       >
         <BaseColumn id="name" label={t("Name")}>
@@ -49,7 +85,7 @@ const GridView = ({
             </Link>
           )}
         </BaseColumn>
-        <BaseColumn id="version" label={t("Version")} className="w-20">
+        <BaseColumn id="version" label={t("Version")} className="w-20" disableSortBy={true}>
           {({ currentVersion }) => (
             <span className="text-sm">
               {currentVersion ? `v${currentVersion.versionNumber}` : "-"}
@@ -61,13 +97,14 @@ const GridView = ({
           label={t("Workspace")}
           accessor="workspace.name"
           className="w-36"
+          disableSortBy={true}
         />
-        <BaseColumn id="tags" label={t("Tags")} className="w-32">
+        <BaseColumn id="tags" label={t("Tags")} className="w-32" disableSortBy={true}>
           {(template) => (
             <TagsCell tags={template.tags} maxTags={2} />
           )}
         </BaseColumn>
-        <BaseColumn id="functionalType" label={t("Type")} className="w-28">
+        <BaseColumn id="functionalType" label={t("Type")} className="w-28" disableSortBy={true}>
           {(template) => (
             <FunctionalTypeCell functionalType={template.functionalType} />
           )}
@@ -84,6 +121,7 @@ const GridView = ({
           )}
         </BaseColumn>
         <DateColumn
+          id="createdAt"
           accessor={"currentVersion.createdAt"}
           label={t("Updated")}
           className="w-32"
