@@ -256,7 +256,7 @@ class DatasetVersionTest(BaseTestMixin, TestCase):
         )
 
 
-@override_settings(WORKSPACE_DATASETS_BUCKET="hexa-datasets")
+@override_settings(WORKSPACE_DATASETS_BUCKET="hexa-datasets-bucket")
 class DatasetLinkTest(BaseTestMixin, TestCase):
     @classmethod
     def setUpTestData(cls):
