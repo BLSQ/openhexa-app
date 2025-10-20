@@ -714,6 +714,7 @@ def resolve_pending_workspace_invitations(organization: Organization, info, **kw
             workspace__organization=organization,
             status=WorkspaceInvitationStatus.PENDING,
         )
+        .select_related("workspace", "invited_by")
         .order_by("-updated_at")
     )
 
