@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -13,6 +13,8 @@ from hexa.datasets.models import (
     DatasetVersionFile,
 )
 from hexa.files import storage
+from hexa.pipelines.authentication import PipelineRunUser
+from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.user_management.models import (
     Organization,
     OrganizationMembership,
@@ -34,7 +36,7 @@ class BaseTestMixin:
 
     @classmethod
     def setUpTestData(cls):
-        storage.reset()
+        # storage.reset()
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com",
             "serena's password",
@@ -783,3 +785,116 @@ class DatasetOrganizationAdminOwnerPermissionsTest(BaseTestMixin, TestCase):
         self.assertIn(self.DATASET_WORKSPACE, datasets_owner)
         self.assertIn(self.DATASET_WORKSPACE, datasets_admin)
         self.assertIn(self.DATASET_WORKSPACE, datasets_member)
+
+
+class DatasetLinkPipelineRunUserTest(BaseTestMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        BaseTestMixin.setUpTestData()
+
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Test Organization",
+            short_name="test-org-pipeline",
+            organization_type="CORPORATE",
+        )
+
+        cls.ORGANIZATION_2 = Organization.objects.create(
+            name="Another Organization",
+            short_name="another-org-pipeline",
+            organization_type="ACADEMIC",
+        )
+
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_ADMIN,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+
+        cls.WORKSPACE.organization = cls.ORGANIZATION
+        cls.WORKSPACE.save()
+        cls.WORKSPACE_2.organization = cls.ORGANIZATION_2
+        cls.WORKSPACE_2.save()
+
+        cls.WORKSPACE_3 = Workspace.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            name="Workspace 3",
+            description="Another workspace in same org",
+            organization=cls.ORGANIZATION,
+        )
+
+        cls.PIPELINE = Pipeline.objects.create(
+            name="Test Pipeline",
+            code="test_pipeline",
+            description="A test pipeline",
+            workspace=cls.WORKSPACE,
+        )
+
+        cls.pipeline_run = MagicMock(PipelineRun)
+        cls.pipeline_run.pipeline = cls.PIPELINE
+        cls.pipeline_user = PipelineRunUser(cls.pipeline_run)
+
+        cls.DATASET_IN_PIPELINE_WORKSPACE = Dataset.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            cls.WORKSPACE,
+            name="Dataset in Pipeline Workspace",
+            description="Dataset in same workspace as pipeline",
+        )
+
+        cls.DATASET_IN_OTHER_WORKSPACE_SAME_ORG = Dataset.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            cls.WORKSPACE_3,
+            name="Dataset in Other Workspace Same Org",
+            description="Dataset in another workspace in same org",
+        )
+
+        cls.DATASET_IN_DIFFERENT_ORG = Dataset.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            cls.WORKSPACE_2,
+            name="Dataset in Different Org",
+            description="Dataset in different organization",
+        )
+
+        cls.DATASET_IN_WORKSPACE_3 = Dataset.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            cls.WORKSPACE_3,
+            name="Dataset in Workspace 3",
+            description="Dataset in workspace 3 (not shared)",
+        )
+
+    def test_pipeline_user_can_access_dataset_links_in_same_workspace(self):
+        """PipelineRunUser should access dataset links in the pipeline's workspace."""
+        links = DatasetLink.objects.filter_for_user(self.pipeline_user)
+        link_datasets = [link.dataset for link in links]
+
+        self.assertIn(self.DATASET_IN_PIPELINE_WORKSPACE, link_datasets)
+        self.assertNotIn(self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG, link_datasets)
+
+    def test_pipeline_user_can_access_organization_shared_dataset_links(self):
+        """PipelineRunUser should access dataset links that are shared with the organization."""
+        self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG.shared_with_organization = True
+        self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG.save()
+
+        links = DatasetLink.objects.filter_for_user(self.pipeline_user)
+        link_datasets = [link.dataset for link in links]
+
+        self.assertIn(self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG, link_datasets)
+
+    def test_pipeline_user_cannot_access_dataset_links_from_different_organization(
+        self,
+    ):
+        """PipelineRunUser should NOT access dataset links from different organizations."""
+        self.DATASET_IN_DIFFERENT_ORG.shared_with_organization = True
+        self.DATASET_IN_DIFFERENT_ORG.save()
+
+        links = DatasetLink.objects.filter_for_user(self.pipeline_user)
+        link_datasets = [link.dataset for link in links]
+
+        self.assertNotIn(self.DATASET_IN_DIFFERENT_ORG, link_datasets)
+
+    def test_pipeline_user_cannot_access_non_shared_dataset_links_from_same_organization(
+        self,
+    ):
+        """PipelineRunUser should NOT access non-shared dataset links even in same organization."""
+        links = DatasetLink.objects.filter_for_user(self.pipeline_user)
+        link_datasets = [link.dataset for link in links]
+        self.assertNotIn(self.DATASET_IN_WORKSPACE_3, link_datasets)
