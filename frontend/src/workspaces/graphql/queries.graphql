@@ -711,6 +711,7 @@ query WorkspaceTemplatePage($workspaceSlug: String!, $templateCode: String!) {
         files {
             ...FilesEditor_file
         }
+        zipfile
       }
     }
   }

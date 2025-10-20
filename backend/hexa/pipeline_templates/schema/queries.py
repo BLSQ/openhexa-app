@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.pipeline_templates.models import PipelineTemplate
+from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.tags.models import InvalidTag, Tag
 from hexa.workspaces.models import Workspace
 
@@ -64,6 +64,18 @@ def resolve_template_by_code(_, info, **kwargs):
     except PipelineTemplate.DoesNotExist:
         template = None
     return template
+
+
+@pipeline_template_query.field("pipelineTemplateVersion")
+def resolve_pipeline_template_version(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    try:
+        version = PipelineTemplateVersion.objects.filter_for_user(request.user).get(
+            id=kwargs["id"]
+        )
+        return version
+    except PipelineTemplateVersion.DoesNotExist:
+        return None
 
 
 bindables = [

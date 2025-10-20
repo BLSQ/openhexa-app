@@ -16,10 +16,15 @@ type DownloadPipelineVersionProps = {
 const DownloadPipelineVersion = (props: DownloadPipelineVersionProps) => {
   const { version, children } = props;
   const [isDownloading, setDownloading] = useState(false);
-  const onClick = () => {
+  const onClick = async () => {
     setDownloading(true);
-    downloadPipelineVersion(version.id);
-    setDownloading(false);
+    try {
+      await downloadPipelineVersion(version.id);
+    } catch (error) {
+      console.error("Failed to download pipeline:", error);
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return children({ onClick, isDownloading });
