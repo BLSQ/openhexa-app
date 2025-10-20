@@ -36,7 +36,7 @@ class BaseTestMixin:
 
     @classmethod
     def setUpTestData(cls):
-        # storage.reset()
+        storage.reset()
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com",
             "serena's password",
