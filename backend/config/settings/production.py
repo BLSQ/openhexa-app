@@ -18,7 +18,7 @@ if SENTRY_DSN:
     # inject sentry into logger config afterward.
     LOGGING = {
         "version": 1,
-        "disable_existing_loggers": True,
+        "disable_existing_loggers": False,
         "formatters": {},
         "handlers": {
             "fluentd": {"level": "INFO", "class": "config.logging.GCPHandler"},
@@ -26,6 +26,10 @@ if SENTRY_DSN:
         "loggers": {
             "django.security.DisallowedHost": {
                 "level": "CRITICAL",
+                "propagate": True,
+            },
+            "django.request": {
+                "level": "ERROR",
                 "propagate": True,
             },
             "django": {
