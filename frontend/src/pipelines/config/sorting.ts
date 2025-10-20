@@ -3,18 +3,12 @@ import { SortDirection, PipelineTemplateSortField } from "graphql/types";
 import { SortingRule } from "react-table";
 import { TFunction } from "next-i18next";
 
-/**
- * Mapping from DataGrid column IDs to GraphQL sort fields
- */
 export const COLUMN_TO_FIELD_MAP: Record<string, PipelineTemplateSortField> = {
   name: PipelineTemplateSortField.Name,
   createdAt: PipelineTemplateSortField.CreatedAt,
   popularity: PipelineTemplateSortField.PipelinesCount,
 };
 
-/**
- * Convert DataGrid sortBy to GraphQL sort input
- */
 export function convertDataGridSortToGraphQL(
   sortBy: SortingRule<object>[]
 ): { field: PipelineTemplateSortField; direction: SortDirection } | null {
@@ -35,9 +29,6 @@ export function convertDataGridSortToGraphQL(
   };
 }
 
-/**
- * Get localized sort options for pipeline templates
- */
 export function getTemplateSortOptions(
   t: TFunction
 ): SortOption<PipelineTemplateSortField>[] {

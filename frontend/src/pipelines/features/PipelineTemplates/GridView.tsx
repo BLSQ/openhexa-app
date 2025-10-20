@@ -45,11 +45,9 @@ const GridView = ({
   const { t } = useTranslation();
   const [templateToDelete, setTemplateToDelete] = useState<any | null>(null);
 
-  // Convert GraphQL sort to DataGrid defaultSortBy format
   const defaultSortBy = useMemo(() => {
     if (!currentSort) return [];
 
-    // Map GraphQL field to column ID
     const fieldToColumnMap: Record<PipelineTemplateSortField, string> = {
       [PipelineTemplateSortField.Name]: "name",
       [PipelineTemplateSortField.CreatedAt]: "createdAt",
