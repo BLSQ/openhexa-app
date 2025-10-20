@@ -45,13 +45,12 @@ class SortConfig:
         django_field = self.field_mapping[field]
         prefix = "-" if direction == "DESC" else ""
 
-        # Add secondary sorting for stability
         secondary_sorts = self._get_secondary_sorts(django_field)
 
         return [f"{prefix}{django_field}"] + secondary_sorts
 
     def _get_secondary_sorts(self, primary_field: str) -> List[str]:
-        """Add secondary sorting fields for tie-breaking."""
+        """Add secondary sorting field."""
         if "name" in primary_field:
             return ["id"]
         else:
