@@ -15,6 +15,7 @@ import { createTemplatePageServerSideProps } from "workspaces/helpers/templatePa
 import { PipelineFunctionalType } from "graphql/types";
 import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 import Listbox from "core/components/Listbox";
+import TemplateBadge from "pipelines/features/TemplateBadge";
 
 type Props = {
   templateCode: string;
@@ -74,6 +75,14 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
             label="Description"
             accessor={"description"}
           />
+          <RenderProperty
+            id="publisher"
+            accessor="publisher"
+            label={t("Publisher")}
+            readonly
+          >
+            {(property) => <TemplateBadge publisher={property.displayValue} />}
+          </RenderProperty>
           <TagProperty
             id="tags"
             accessor="tags"

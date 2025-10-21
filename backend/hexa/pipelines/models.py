@@ -1,4 +1,5 @@
 import base64
+import logging
 import secrets
 import time
 import typing
@@ -37,6 +38,8 @@ from hexa.core.models.soft_delete import (
 from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
+
+logger = logging.getLogger(__name__)
 
 
 class PipelineCodeParsingError(Exception):
@@ -634,6 +637,24 @@ class Pipeline(SoftDeletedModel):
     def get_or_create_template(self, name: str, code: str, description: str):
         if not hasattr(self, "template"):
             PipelineTemplate = apps.get_model("pipeline_templates", "PipelineTemplate")
+
+            # Set publisher based on organization - we start with only Bluesquare as officially published templates
+            publisher = "Community"
+            if self.workspace and self.workspace.organization:
+                org_name = self.workspace.organization.name
+                if org_name == "Bluesquare":
+                    publisher = "Bluesquare"
+                logger.info(
+                    f"Creating template '{name}' for workspace '{self.workspace.name}' "
+                    f"with organization '{org_name}' - Publisher set to: {publisher}"
+                )
+            else:
+                workspace_name = self.workspace.name if self.workspace else "None"
+                logger.info(
+                    f"Creating template '{name}' for workspace '{workspace_name}' "
+                    f"with no organization - Publisher set to: {publisher}"
+                )
+
             self.template = PipelineTemplate.objects.create(
                 name=name,
                 code=code,
@@ -641,6 +662,7 @@ class Pipeline(SoftDeletedModel):
                 workspace=self.workspace,
                 source_pipeline=self,
                 functional_type=self.functional_type,
+                publisher=publisher,
             )
             self.template.tags.set(self.tags.all())
             return self.template, True
