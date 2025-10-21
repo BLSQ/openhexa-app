@@ -1,6 +1,7 @@
 from django.db.utils import IntegrityError
 
 from hexa.core.test import TestCase
+from hexa.pipeline_templates.constants import PUBLISHER_BLUESQUARE, PUBLISHER_COMMUNITY
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import Pipeline, PipelineFunctionalType, PipelineVersion
 from hexa.tags.models import Tag
@@ -411,7 +412,7 @@ class PipelineTemplatePublisherTest(TestCase):
         )
 
         cls.BLUESQUARE_ORG = Organization.objects.create(
-            name="Bluesquare",
+            name=PUBLISHER_BLUESQUARE,
             short_name="bluesquare",
             organization_type="CORPORATE",
         )
@@ -455,7 +456,7 @@ class PipelineTemplatePublisherTest(TestCase):
         )
 
         self.assertTrue(created)
-        self.assertEqual(template.publisher, "Community")
+        self.assertEqual(template.publisher, PUBLISHER_COMMUNITY)
 
     def test_publisher_is_bluesquare_when_organization_is_bluesquare(self):
         pipeline = Pipeline.objects.create(
@@ -470,7 +471,7 @@ class PipelineTemplatePublisherTest(TestCase):
         )
 
         self.assertTrue(created)
-        self.assertEqual(template.publisher, "Bluesquare")
+        self.assertEqual(template.publisher, PUBLISHER_BLUESQUARE)
 
     def test_publisher_defaults_to_community_when_other_organization(self):
         pipeline = Pipeline.objects.create(
@@ -485,4 +486,4 @@ class PipelineTemplatePublisherTest(TestCase):
         )
 
         self.assertTrue(created)
-        self.assertEqual(template.publisher, "Community")
+        self.assertEqual(template.publisher, PUBLISHER_COMMUNITY)

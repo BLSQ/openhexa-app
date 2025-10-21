@@ -1,7 +1,9 @@
 import { useTranslation } from "next-i18next";
 import Badge from "core/components/Badge";
-import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
+
+const PUBLISHER_BLUESQUARE = "Bluesquare";
+const PUBLISHER_COMMUNITY = "Community";
 
 interface TemplateBadgeProps {
   publisher?: string | null;
@@ -16,28 +18,23 @@ const TemplateBadge = ({
 }: TemplateBadgeProps) => {
   const { t } = useTranslation();
 
-  if (publisher === "Bluesquare") {
+  if (publisher === PUBLISHER_BLUESQUARE) {
     return (
-      <div className="flex items-center gap-1.5">
+      <Badge className="bg-blue-50 text-blue-700 ring-blue-600/20 flex items-center gap-1.5">
         {showIcon && (
           <img
             src="/images/bluesquare-icon.svg"
-            alt="Bluesquare logo"
+            alt="Bluesquare"
             className={clsx(
               "object-contain",
-              size === "sm" ? "h-4 w-4" : "h-5 w-5",
+              size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4",
             )}
           />
         )}
-        <Badge className="bg-blue-50 text-blue-700 ring-blue-600/20 flex items-center gap-1">
-          <CheckBadgeIcon
-            className={clsx(size === "sm" ? "h-3 w-3" : "h-4 w-4")}
-          />
-          <span className={clsx(size === "sm" ? "text-xs" : "text-sm")}>
-            {t("Bluesquare")}
-          </span>
-        </Badge>
-      </div>
+        <span className={clsx(size === "sm" ? "text-xs" : "text-sm")}>
+          Bluesquare
+        </span>
+      </Badge>
     );
   }
 

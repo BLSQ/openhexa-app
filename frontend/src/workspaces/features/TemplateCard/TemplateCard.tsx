@@ -34,11 +34,7 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
       title={
         <div className="flex justify-between items-start">
           <span className="max-w-[80%]">{template.name}</span>
-          <TemplateBadge
-            publisher={template.publisher}
-            size="sm"
-            showIcon={false}
-          />
+          <TemplateBadge publisher={template.publisher} size="sm" />
         </div>
       }
     >

@@ -1,0 +1,2 @@
+PUBLISHER_BLUESQUARE = "Bluesquare"
+PUBLISHER_COMMUNITY = "Community"

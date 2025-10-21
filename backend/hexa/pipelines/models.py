@@ -637,22 +637,29 @@ class Pipeline(SoftDeletedModel):
     def get_or_create_template(self, name: str, code: str, description: str):
         if not hasattr(self, "template"):
             PipelineTemplate = apps.get_model("pipeline_templates", "PipelineTemplate")
+            from hexa.pipeline_templates.constants import (
+                PUBLISHER_BLUESQUARE,
+                PUBLISHER_COMMUNITY,
+            )
 
             # Set publisher based on organization - we start with only Bluesquare as officially published templates
-            publisher = "Community"
+            publisher = PUBLISHER_COMMUNITY
             if self.workspace and self.workspace.organization:
                 org_name = self.workspace.organization.name
-                if org_name == "Bluesquare":
-                    publisher = "Bluesquare"
-                logger.info(
-                    f"Creating template '{name}' for workspace '{self.workspace.name}' "
-                    f"with organization '{org_name}' - Publisher set to: {publisher}"
+                if org_name == PUBLISHER_BLUESQUARE:
+                    publisher = PUBLISHER_BLUESQUARE
+                logger.debug(
+                    "Creating template with publisher '%s' for workspace '%s' (organization: '%s')",
+                    publisher,
+                    self.workspace.name,
+                    org_name,
                 )
             else:
                 workspace_name = self.workspace.name if self.workspace else "None"
-                logger.info(
-                    f"Creating template '{name}' for workspace '{workspace_name}' "
-                    f"with no organization - Publisher set to: {publisher}"
+                logger.debug(
+                    "Creating template with publisher '%s' for workspace '%s' (no organization)",
+                    publisher,
+                    workspace_name,
                 )
 
             self.template = PipelineTemplate.objects.create(

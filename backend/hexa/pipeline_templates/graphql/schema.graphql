@@ -30,7 +30,7 @@ extend type Query {
   """
   Retrieves a page of pipeline templates.
   """
-  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String, tags: [String!], functionalType: PipelineFunctionalType, publisher: String): PipelineTemplatePage!  @loginRequired
+  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String, tags: [String!], functionalType: PipelineFunctionalType, publisher: String): PipelineTemplatePage!  @loginRequired  # publisher filter: 'Bluesquare' or 'Community'
 
   """
   Retrieves a template by workspace slug and code.
@@ -150,7 +150,7 @@ input UpdateTemplateInput {
   description: String
   functionalType: PipelineFunctionalType
   tags: [String!]
-  publisher: String
+  publisher: String  # Allowed values: 'Bluesquare', 'Community'
 }
 
 """Represents the result of updating a template."""
@@ -177,7 +177,7 @@ type PipelineTemplate {
   updatedAt: DateTime!  # The last updated date of the pipeline template.
   functionalType: PipelineFunctionalType  # Business purpose: what the template does (extraction/transformation/loading/computation)
   tags: [Tag!]!  # The tags associated with the pipeline template.
-  publisher: String  # Publisher of the template (e.g., 'Bluesquare', 'Community')
+  publisher: String  # Publisher of the template. Allowed values: 'Bluesquare' (official templates), 'Community' (community-contributed templates)
 }
 
 """

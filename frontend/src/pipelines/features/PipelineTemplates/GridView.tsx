@@ -10,10 +10,16 @@ import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { TagsCell, FunctionalTypeCell } from "pipelines/features/PipelineMetadataGrid";
 import TemplateBadge from "pipelines/features/TemplateBadge";
+import {
+  GetPipelineTemplatesQuery,
+  PipelineTemplates_WorkspaceFragment,
+} from "./PipelineTemplates.generated";
+
+type PipelineTemplateItem = GetPipelineTemplatesQuery['pipelineTemplates']['items'][number];
 
 type GridViewProps = {
-  items: any[];
-  workspace: any;
+  items: PipelineTemplateItem[];
+  workspace: PipelineTemplates_WorkspaceFragment;
   page: number;
   perPage: number;
   totalItems: number;
@@ -30,7 +36,7 @@ const GridView = ({
   setPage,
 }: GridViewProps) => {
   const { t } = useTranslation();
-  const [templateToDelete, setTemplateToDelete] = useState<any | null>(null);
+  const [templateToDelete, setTemplateToDelete] = useState<PipelineTemplateItem | null>(null);
 
   return (
     <Block className="divide divide-y divide-gray-100 mt-4">
@@ -52,11 +58,7 @@ const GridView = ({
         </BaseColumn>
         <BaseColumn id="source" label={t("Source")} className="w-32">
           {(template) => (
-            <TemplateBadge
-              publisher={template.publisher}
-              size="sm"
-              showIcon={false}
-            />
+            <TemplateBadge publisher={template.publisher} size="sm" />
           )}
         </BaseColumn>
         <BaseColumn id="version" label={t("Version")} className="w-20">
