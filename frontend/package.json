@@ -31,8 +31,7 @@
     "schema": "../backend/**/schema.graphql"
   },
   "dependencies": {
-    "@apollo/client": "^4.0.0",
-    "@apollo/link-error": "^2.0.0-beta.3",
+    "@apollo/client": "^4.0.7",
     "@codemirror/lang-json": "^6.0.1",
     "@codemirror/lang-python": "^6.1.6",
     "@headlessui/react": "^2.2.0",
@@ -64,7 +63,7 @@
     "express": "^5.0.0",
     "express-http-proxy": "^2.1.1",
     "filesize": "^10.1.6",
-    "graphql": "^16.9.0",
+    "graphql": "^16.11.0",
     "i18next": "^25.0.0",
     "isomorphic-unfetch": "^4.0.2",
     "jszip": "^3.10.1",
@@ -88,6 +87,7 @@
     "react-world-flags": "^1.6.0",
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.0",
+    "rxjs": "^7.8.2",
     "strip-markdown": "^6.0.0",
     "typescript": "^5.6.2",
     "use-onclickoutside": "^0.4.1",
