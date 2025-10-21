@@ -1,7 +1,7 @@
 from django.db import migrations
 
 
-def set_publisher_for_existing_templates(apps, schema_editor):
+def set_publisher_for_existing_templates(apps, _schema_editor):
     PipelineTemplate = apps.get_model("pipeline_templates", "PipelineTemplate")
 
     for template in PipelineTemplate.objects.all():
