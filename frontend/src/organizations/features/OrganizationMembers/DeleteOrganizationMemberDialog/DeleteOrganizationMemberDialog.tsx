@@ -7,7 +7,7 @@ import {
   OrganizationMembership,
   DeleteOrganizationMemberError,
 } from "graphql/types";
-import { useApolloClient } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import useForm from "core/hooks/useForm";
 
 type OrganizationMember = Pick<OrganizationMembership, "id" | "role"> & {

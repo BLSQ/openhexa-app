@@ -1,6 +1,7 @@
 import { StarIcon as OutlineStarIcon } from "@heroicons/react/24/outline";
 import { StarIcon as SolidStarIcon } from "@heroicons/react/24/solid";
-import { gql, useMutation } from "@apollo/client";
+import { gql } from "@apollo/client";
+import { useMutation } from "@apollo/client/react";
 import useCacheKey from "core/hooks/useCacheKey";
 import { PinDatasetButton_LinkFragment } from "datasets/features/PinDatasetButton/PinDatasetButton.generated";
 

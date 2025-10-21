@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 import { TestApp } from "core/helpers/testutils";
 import { SidebarMenuDocument } from "workspaces/features/SidebarMenu/SidebarMenu.generated";
 import { CreateWebappDocument } from "webapps/graphql/mutations.generated";
-import { MockedResponse } from "@apollo/client/testing";
+import { MockLink } from "@apollo/client/testing";
 
 jest.mock("react-toastify", () => ({
   toast: {
@@ -33,7 +33,7 @@ const mockWorkspace = {
   },
 };
 
-const graphqlMocks: MockedResponse[] = [
+const graphqlMocks: MockLink.MockedResponse[] = [
   {
     request: {
       query: SidebarMenuDocument,

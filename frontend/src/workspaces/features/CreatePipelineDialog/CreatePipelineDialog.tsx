@@ -1,4 +1,5 @@
-import { gql, useMutation } from "@apollo/client";
+import { gql } from "@apollo/client";
+import { useMutation } from "@apollo/client/react";
 import Button from "core/components/Button/Button";
 import Dialog from "core/components/Dialog";
 import Link from "core/components/Link";

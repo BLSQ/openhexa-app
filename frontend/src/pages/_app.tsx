@@ -1,4 +1,4 @@
-import { ApolloProvider } from "@apollo/client";
+import { ApolloProvider } from "@apollo/client/react";
 import { setUser } from "@sentry/nextjs";
 import ErrorBoundary from "core/components/ErrorBoundary/ErrorBoundary";
 import { useApollo } from "core/helpers/apollo";

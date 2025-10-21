@@ -1,4 +1,5 @@
-import { gql, useMutation } from "@apollo/client";
+import { gql } from "@apollo/client";
+import { useMutation } from "@apollo/client/react";
 import { Trans, useTranslation } from "next-i18next";
 import { useEffect } from "react";
 import { convertParametersToPipelineInput } from "workspaces/helpers/pipelines";

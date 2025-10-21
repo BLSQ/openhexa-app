@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
 import { faker } from "@faker-js/faker";
 import "@testing-library/jest-dom";
 import { render, screen, waitFor } from "@testing-library/react";

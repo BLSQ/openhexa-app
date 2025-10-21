@@ -14,7 +14,7 @@ import {
   WorkspaceWebappPageDocument,
 } from "workspaces/graphql/queries.generated";
 import { SidebarMenuDocument } from "workspaces/features/SidebarMenu/SidebarMenu.generated";
-import { MockedResponse } from "@apollo/client/testing";
+import { MockLink } from "@apollo/client/testing";
 import { DeleteWebappDocument } from "workspaces/graphql/mutations.generated";
 import { UpdateWebappDocument } from "webapps/graphql/mutations.generated";
 
@@ -29,7 +29,7 @@ jest.mock("next-i18next", () => ({
   useTranslation: jest.fn().mockReturnValue({ t: (key: string) => key }),
 }));
 
-const graphqlMocks: MockedResponse[] = [
+const graphqlMocks: MockLink.MockedResponse[] = [
   {
     request: {
       query: SidebarMenuDocument,

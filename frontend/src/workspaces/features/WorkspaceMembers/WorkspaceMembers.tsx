@@ -1,4 +1,5 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
