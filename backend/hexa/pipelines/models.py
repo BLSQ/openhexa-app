@@ -35,6 +35,10 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.pipeline_templates.constants import (
+    PUBLISHER_BLUESQUARE,
+    PUBLISHER_COMMUNITY,
+)
 from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
@@ -637,30 +641,14 @@ class Pipeline(SoftDeletedModel):
     def get_or_create_template(self, name: str, code: str, description: str):
         if not hasattr(self, "template"):
             PipelineTemplate = apps.get_model("pipeline_templates", "PipelineTemplate")
-            from hexa.pipeline_templates.constants import (
-                PUBLISHER_BLUESQUARE,
-                PUBLISHER_COMMUNITY,
-            )
 
             # Set publisher based on organization - we start with only Bluesquare as officially published templates
-            publisher = PUBLISHER_COMMUNITY
-            if self.workspace and self.workspace.organization:
-                org_name = self.workspace.organization.name
-                if org_name == PUBLISHER_BLUESQUARE:
-                    publisher = PUBLISHER_BLUESQUARE
-                logger.debug(
-                    "Creating template with publisher '%s' for workspace '%s' (organization: '%s')",
-                    publisher,
-                    self.workspace.name,
-                    org_name,
-                )
-            else:
-                workspace_name = self.workspace.name if self.workspace else "None"
-                logger.debug(
-                    "Creating template with publisher '%s' for workspace '%s' (no organization)",
-                    publisher,
-                    workspace_name,
-                )
+            publisher = (
+                PUBLISHER_BLUESQUARE
+                if getattr(self.workspace.organization, "name", None)
+                == PUBLISHER_BLUESQUARE
+                else PUBLISHER_COMMUNITY
+            )
 
             self.template = PipelineTemplate.objects.create(
                 name=name,

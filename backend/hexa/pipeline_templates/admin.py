@@ -9,15 +9,6 @@ class PipelineTemplateAdmin(GlobalObjectsModelAdmin):
     list_display = ("name", "code", "workspace", "publisher", "is_deleted")
     list_filter = ("workspace", "publisher")
     search_fields = ("id", "code", "name")
-    fields = (
-        "name",
-        "code",
-        "description",
-        "workspace",
-        "source_pipeline",
-        "functional_type",
-        "publisher",
-    )
 
 
 @admin.register(PipelineTemplateVersion)
