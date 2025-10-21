@@ -536,9 +536,16 @@ class DatasetLinkQuerySet(BaseQuerySet):
         from hexa.pipelines.authentication import PipelineRunUser
 
         if isinstance(user, PipelineRunUser):
-            return self._filter_for_user_and_query_object(
-                user,
-                models.Q(workspace=user.pipeline_run.pipeline.workspace),
+            workspace = user.pipeline_run.pipeline.workspace
+            return self.optimize_query(
+                self._filter_for_user_and_query_object(
+                    user,
+                    models.Q(workspace=workspace)
+                    | models.Q(
+                        dataset__shared_with_organization=True,
+                        workspace__organization=workspace.organization,
+                    ),
+                )
             )
         else:
             return self.optimize_query(
