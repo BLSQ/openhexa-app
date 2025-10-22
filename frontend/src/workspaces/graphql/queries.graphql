@@ -700,6 +700,7 @@ query WorkspaceTemplatePage($workspaceSlug: String!, $templateCode: String!) {
     code
     name
     description
+    publisher
     functionalType
     tags {
       ...Tag_tag

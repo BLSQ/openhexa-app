@@ -15,6 +15,7 @@ import CardView from "./CardView";
 import GridView from "./GridView";
 import Header from "./Header";
 import Spinner from "core/components/Spinner";
+import User from "core/features/User";
 
 type PipelineTemplatesProps = {
   workspace: PipelineTemplates_WorkspaceFragment;
@@ -45,6 +46,15 @@ const PipelineTemplates = ({
     workspaceFilterOptions[0],
   );
 
+  const publisherFilterOptions = [
+    { id: "all", label: "All sources", value: undefined },
+    { id: "bluesquare", label: "Bluesquare", value: "Bluesquare" },
+    { id: "community", label: "Community", value: "Community" },
+  ];
+  const [publisherFilter, setPublisherFilter] = useState(
+    publisherFilterOptions[0],
+  );
+
   const { data, loading, error, refetch } = useGetPipelineTemplatesQuery({
     variables: {
       page,
@@ -54,6 +64,7 @@ const PipelineTemplates = ({
       workspaceSlug: workspaceFilter.workspaceSlug ?? undefined,
       tags: tagsFilter.length > 0 ? tagsFilter : undefined,
       functionalType: functionalTypeFilter,
+      publisher: publisherFilter.value,
     },
     fetchPolicy: "cache-and-network", // The template list is a global list across the instance, so we want to check the network for updates and show the cached data in the meantime
   });
@@ -130,6 +141,9 @@ const PipelineTemplates = ({
         templateTags={templateTags}
         functionalTypeFilter={functionalTypeFilter}
         setFunctionalTypeFilter={setFunctionalTypeFilter}
+        publisherFilter={publisherFilter}
+        setPublisherFilter={setPublisherFilter}
+        publisherFilterOptions={publisherFilterOptions}
       />
       <div className="relative">
         {loading && (
@@ -160,6 +174,7 @@ const GET_PIPELINE_TEMPLATES = gql`
     $workspaceSlug: String
     $tags: [String!]
     $functionalType: PipelineFunctionalType
+    $publisher: String
   ) {
     workspace(slug: $currentWorkspaceSlug) {
       slug
@@ -172,6 +187,7 @@ const GET_PIPELINE_TEMPLATES = gql`
       workspaceSlug: $workspaceSlug
       tags: $tags
       functionalType: $functionalType
+      publisher: $publisher
     ) {
       pageNumber
       totalPages
@@ -182,6 +198,7 @@ const GET_PIPELINE_TEMPLATES = gql`
         code
         name
         functionalType
+        publisher
         tags {
           id
           name
@@ -209,6 +226,7 @@ const GET_PIPELINE_TEMPLATES = gql`
       }
     }
   }
+  ${User.fragments.user}
 `;
 
 PipelineTemplates.fragments = {

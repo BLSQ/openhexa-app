@@ -3039,6 +3039,7 @@ type PipelineTemplate {
   id: UUID!
   name: String!
   permissions: PipelineTemplatePermissions!
+  publisher: String
   sourcePipeline: Pipeline
   tags: [Tag!]!
   updatedAt: DateTime!
@@ -3355,7 +3356,7 @@ type Query {
   pipelineTemplateVersion(id: UUID!): PipelineTemplateVersion
 
   """Retrieves a page of pipeline templates."""
-  pipelineTemplates(functionalType: PipelineFunctionalType, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
+  pipelineTemplates(functionalType: PipelineFunctionalType, page: Int = 1, perPage: Int = 15, publisher: String, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
 
   """Retrieves a pipeline version by ID."""
   pipelineVersion(id: UUID!): PipelineVersion
@@ -4196,6 +4197,7 @@ input UpdateTemplateInput {
   functionalType: PipelineFunctionalType
   id: UUID!
   name: String
+  publisher: String
   tags: [String!]
 }
 

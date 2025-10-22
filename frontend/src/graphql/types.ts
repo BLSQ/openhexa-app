@@ -3646,6 +3646,7 @@ export type PipelineTemplate = {
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   permissions: PipelineTemplatePermissions;
+  publisher?: Maybe<Scalars['String']['output']>;
   sourcePipeline?: Maybe<Pipeline>;
   tags: Array<Tag>;
   updatedAt: Scalars['DateTime']['output'];
@@ -4164,6 +4165,7 @@ export type QueryPipelineTemplatesArgs = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
+  publisher?: InputMaybe<Scalars['String']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
@@ -5034,6 +5036,7 @@ export type UpdateTemplateInput = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
   id: Scalars['UUID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
+  publisher?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
