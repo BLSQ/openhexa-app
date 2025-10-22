@@ -1,10 +1,6 @@
 import { TFunction } from "next-i18next";
 import { PipelineTemplateOrderBy } from "graphql/types";
-import {
-  SortOption,
-  createSortingUtils,
-  createSortOptions,
-} from "core/helpers/sorting";
+import { SortOption, createSortingUtils } from "core/helpers/sorting";
 
 export type TemplateSortOption = SortOption<PipelineTemplateOrderBy>;
 

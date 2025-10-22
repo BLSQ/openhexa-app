@@ -1,11 +1,3 @@
-"""
-Generic sort direction for ordering queries.
-"""
-enum SortDirection {
-  ASC
-  DESC
-}
-
 type Config {
     """
     List of requirements for the password.

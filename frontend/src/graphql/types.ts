@@ -4576,12 +4576,6 @@ export type SetPasswordResult = {
   success: Scalars['Boolean']['output'];
 };
 
-/** Generic sort direction for ordering queries. */
-export enum SortDirection {
-  Asc = 'ASC',
-  Desc = 'DESC'
-}
-
 /** Represents the input for stopping a pipeline. */
 export type StopPipelineInput = {
   runId: Scalars['UUID']['input'];

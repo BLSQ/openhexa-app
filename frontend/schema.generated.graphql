@@ -3697,12 +3697,6 @@ type SetPasswordResult {
 
 scalar SimplifiedExtentType
 
-"""Generic sort direction for ordering queries."""
-enum SortDirection {
-  ASC
-  DESC
-}
-
 scalar StackPriorities
 
 """Represents the input for stopping a pipeline."""
