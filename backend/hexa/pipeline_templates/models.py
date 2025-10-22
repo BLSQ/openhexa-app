@@ -60,8 +60,8 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
 
 
 class PipelineTemplate(SoftDeletedModel):
-    @property
-    def default_order_by(self):
+    @classmethod
+    def default_order_by(cls):
         return ["-pipelines_count", "name", "id"]
 
     class Meta:

@@ -56,7 +56,7 @@ def resolve_pipeline_templates(_, info, **kwargs):
         pipeline_templates = pipeline_templates.order_by(order_by, "name", "id")
     else:
         pipeline_templates = pipeline_templates.order_by(
-            *PipelineTemplate().default_order_by
+            *PipelineTemplate.default_order_by()
         )
 
     return result_page(

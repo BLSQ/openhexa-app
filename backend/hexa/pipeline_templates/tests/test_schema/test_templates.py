@@ -715,3 +715,254 @@ class PipelineTemplatesTest(GraphQLTestCase):
 
         self.assertEqual(r["data"]["templateByCode"]["code"], "template-count-test")
         self.assertEqual(r["data"]["templateByCode"]["pipelinesCount"], 2)
+
+    def test_pipeline_templates_default_sorting_by_popularity(self):
+        self.client.force_login(self.USER_ROOT)
+
+        PipelineTemplate.objects.create(
+            name="Alpha Template",
+            code="alpha-template",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+        template_beta = PipelineTemplate.objects.create(
+            name="Beta Template",
+            code="beta-template",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
+        )
+        template_gamma = PipelineTemplate.objects.create(
+            name="Gamma Template",
+            code="gamma-template",
+            source_pipeline=self.PIPELINE3,
+            workspace=self.WS1,
+        )
+
+        Pipeline.objects.create(
+            name="Pipeline from Beta 1",
+            code="pipeline-beta-1",
+            workspace=self.WS1,
+            source_template=template_beta,
+        )
+        Pipeline.objects.create(
+            name="Pipeline from Beta 2",
+            code="pipeline-beta-2",
+            workspace=self.WS1,
+            source_template=template_beta,
+        )
+        Pipeline.objects.create(
+            name="Pipeline from Beta 3",
+            code="pipeline-beta-3",
+            workspace=self.WS1,
+            source_template=template_beta,
+        )
+
+        Pipeline.objects.create(
+            name="Pipeline from Gamma 1",
+            code="pipeline-gamma-1",
+            workspace=self.WS1,
+            source_template=template_gamma,
+        )
+
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10) {
+                    totalItems
+                    items {
+                        code
+                        pipelinesCount
+                    }
+                }
+            }
+            """
+        )
+
+        self.assertEqual(r["data"]["pipelineTemplates"]["totalItems"], 3)
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "beta-template")
+        self.assertEqual(items[0]["pipelinesCount"], 3)
+        self.assertEqual(items[1]["code"], "gamma-template")
+        self.assertEqual(items[1]["pipelinesCount"], 1)
+        self.assertEqual(items[2]["code"], "alpha-template")
+        self.assertEqual(items[2]["pipelinesCount"], 0)
+
+    def test_pipeline_templates_sorting_by_name(self):
+        self.client.force_login(self.USER_ROOT)
+
+        PipelineTemplate.objects.create(
+            name="Zebra Template",
+            code="zebra-template",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+        PipelineTemplate.objects.create(
+            name="Alpha Template",
+            code="alpha-template",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
+        )
+        PipelineTemplate.objects.create(
+            name="Beta Template",
+            code="beta-template",
+            source_pipeline=self.PIPELINE3,
+            workspace=self.WS1,
+        )
+
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, orderBy: NAME_ASC) {
+                    items {
+                        code
+                        name
+                    }
+                }
+            }
+            """
+        )
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "alpha-template")
+        self.assertEqual(items[1]["code"], "beta-template")
+        self.assertEqual(items[2]["code"], "zebra-template")
+
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, orderBy: NAME_DESC) {
+                    items {
+                        code
+                        name
+                    }
+                }
+            }
+            """
+        )
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "zebra-template")
+        self.assertEqual(items[1]["code"], "beta-template")
+        self.assertEqual(items[2]["code"], "alpha-template")
+
+    def test_pipeline_templates_sorting_by_created_at(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        self.client.force_login(self.USER_ROOT)
+
+        now = timezone.now()
+
+        template_old = PipelineTemplate.objects.create(
+            name="Old Template",
+            code="old-template",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+        template_old.created_at = now - timedelta(days=10)
+        template_old.save()
+
+        template_new = PipelineTemplate.objects.create(
+            name="New Template",
+            code="new-template",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
+        )
+        template_new.created_at = now - timedelta(days=1)
+        template_new.save()
+
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, orderBy: CREATED_AT_ASC) {
+                    items {
+                        code
+                    }
+                }
+            }
+            """
+        )
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "old-template")
+        self.assertEqual(items[1]["code"], "new-template")
+
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, orderBy: CREATED_AT_DESC) {
+                    items {
+                        code
+                    }
+                }
+            }
+            """
+        )
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "new-template")
+        self.assertEqual(items[1]["code"], "old-template")
+
+    def test_pipeline_templates_sorting_by_pipelines_count(self):
+        self.client.force_login(self.USER_ROOT)
+
+        template_many = PipelineTemplate.objects.create(
+            name="Popular Template",
+            code="popular-template",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+        template_few = PipelineTemplate.objects.create(
+            name="Less Popular Template",
+            code="less-popular-template",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
+        )
+
+        for i in range(5):
+            Pipeline.objects.create(
+                name=f"Pipeline from Popular {i}",
+                code=f"pipeline-popular-{i}",
+                workspace=self.WS1,
+                source_template=template_many,
+            )
+
+        Pipeline.objects.create(
+            name="Pipeline from Less Popular",
+            code="pipeline-less-popular",
+            workspace=self.WS1,
+            source_template=template_few,
+        )
+
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, orderBy: PIPELINES_COUNT_ASC) {
+                    items {
+                        code
+                        pipelinesCount
+                    }
+                }
+            }
+            """
+        )
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "less-popular-template")
+        self.assertEqual(items[0]["pipelinesCount"], 1)
+        self.assertEqual(items[1]["code"], "popular-template")
+        self.assertEqual(items[1]["pipelinesCount"], 5)
+
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, orderBy: PIPELINES_COUNT_DESC) {
+                    items {
+                        code
+                        pipelinesCount
+                    }
+                }
+            }
+            """
+        )
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "popular-template")
+        self.assertEqual(items[0]["pipelinesCount"], 5)
+        self.assertEqual(items[1]["code"], "less-popular-template")
+        self.assertEqual(items[1]["pipelinesCount"], 1)
