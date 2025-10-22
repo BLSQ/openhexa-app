@@ -1,39 +1,21 @@
 import { SortingRule } from "react-table";
 import { TFunction } from "next-i18next";
 
-/**
- * Generic sort option for any enum-based sorting
- */
 export interface SortOption<TOrderBy> {
   value: string;
   label: string;
   orderBy: TOrderBy;
 }
 
-/**
- * Mapping from DataGrid column ID to enum values (asc/desc)
- */
 export type ColumnToOrderByMap<TOrderBy> = Record<
   string,
   { asc: TOrderBy; desc: TOrderBy }
 >;
 
-/**
- * Reverse mapping from OrderBy enum to DataGrid column config
- */
 export type OrderByToColumnMap = Record<string, { id: string; desc: boolean }>;
 
 /**
- * Generates reverse mapping from column-to-orderBy mapping
- *
- * @example
- * const reverseMap = generateReverseMapping({
- *   name: { asc: OrderBy.NameAsc, desc: OrderBy.NameDesc }
- * });
- * // Returns: {
- * //   [OrderBy.NameAsc]: { id: "name", desc: false },
- * //   [OrderBy.NameDesc]: { id: "name", desc: true }
- * // }
+ * Generates reverse mapping (OrderBy enum → column config) from column mapping.
  */
 export function generateReverseMapping<TOrderBy>(
   mapping: ColumnToOrderByMap<TOrderBy>
@@ -49,18 +31,14 @@ export function generateReverseMapping<TOrderBy>(
 }
 
 /**
- * Creates all sorting utilities for a given OrderBy enum
- *
- * @param columnMapping - Column ID to OrderBy enum mapping
- * @returns Object with all sorting utilities
+ * Creates bidirectional sorting utilities from a single column mapping.
+ * Returns functions to convert between DataGrid sorting and GraphQL OrderBy enum.
  *
  * @example
  * const sorting = createSortingUtils({
- *   name: { asc: OrderBy.NameAsc, desc: OrderBy.NameDesc },
- *   createdAt: { asc: OrderBy.CreatedAtAsc, desc: OrderBy.CreatedAtDesc }
+ *   name: { asc: OrderBy.NameAsc, desc: OrderBy.NameDesc }
  * });
  *
- * // Use in component:
  * const orderBy = sorting.convertDataGridSort(sortBy);
  * const defaultSort = sorting.convertToDataGridSort(orderBy);
  */
@@ -100,20 +78,8 @@ export function createSortingUtils<TOrderBy>(
 }
 
 /**
- * Converts react-table DataGrid sort to GraphQL OrderBy enum
- *
- * @param sortBy - The sorting rules from DataGrid
- * @param mapping - Column ID to OrderBy enum mapping
- * @returns The OrderBy enum value or null
- *
- * @example
- * const orderBy = convertDataGridSortToGraphQL(
- *   sortBy,
- *   {
- *     name: { asc: PipelineTemplateOrderBy.NameAsc, desc: PipelineTemplateOrderBy.NameDesc },
- *     createdAt: { asc: PipelineTemplateOrderBy.CreatedAtAsc, desc: PipelineTemplateOrderBy.CreatedAtDesc }
- *   }
- * );
+ * Standalone converter: DataGrid sort → GraphQL OrderBy enum.
+ * Prefer createSortingUtils() for bidirectional conversion.
  */
 export function convertDataGridSortToGraphQL<TOrderBy>(
   sortBy: SortingRule<object>[],
@@ -134,16 +100,7 @@ export function convertDataGridSortToGraphQL<TOrderBy>(
 }
 
 /**
- * Creates a list of sort options for a dropdown/listbox
- *
- * @param options - Array of option configurations
- * @returns Array of sort options
- *
- * @example
- * const options = createSortOptions([
- *   { value: "name-asc", orderBy: OrderBy.NameAsc, labelKey: "Name (A–Z)" },
- *   { value: "name-desc", orderBy: OrderBy.NameDesc, labelKey: "Name (Z–A)" }
- * ], t);
+ * Creates localized sort options for dropdown/listbox from config.
  */
 export function createSortOptions<TOrderBy>(
   options: Array<{
@@ -161,21 +118,8 @@ export function createSortOptions<TOrderBy>(
 }
 
 /**
- * Converts OrderBy enum back to DataGrid sorting format
- * Used for setting defaultSortBy in DataGrid
- *
- * @param orderBy - The OrderBy enum value
- * @param reverseMapping - OrderBy enum to column ID and direction mapping
- * @returns DataGrid sorting rule or empty array
- *
- * @example
- * const defaultSortBy = convertOrderByToDataGridSort(
- *   PipelineTemplateOrderBy.NameDesc,
- *   {
- *     [PipelineTemplateOrderBy.NameAsc]: { id: "name", desc: false },
- *     [PipelineTemplateOrderBy.NameDesc]: { id: "name", desc: true }
- *   }
- * );
+ * Standalone converter: GraphQL OrderBy enum → DataGrid sort.
+ * Prefer createSortingUtils() for bidirectional conversion.
  */
 export function convertOrderByToDataGridSort<TOrderBy>(
   orderBy: TOrderBy | null | undefined,
