@@ -1,5 +1,4 @@
 import { SortingRule } from "react-table";
-import { TFunction } from "next-i18next";
 
 export interface SortOption<TOrderBy> {
   value: string;
@@ -108,12 +107,11 @@ export function createSortOptions<TOrderBy>(
     orderBy: TOrderBy;
     labelKey: string;
   }>,
-  t: TFunction<"common">
 ): SortOption<TOrderBy>[] {
   return options.map(({ value, orderBy, labelKey }) => ({
     value,
     orderBy,
-    label: t(labelKey),
+    label: labelKey,
   }));
 }
 

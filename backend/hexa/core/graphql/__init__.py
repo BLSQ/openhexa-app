@@ -1,6 +1,3 @@
-"""
-GraphQL utilities for OpenHEXA core.
-"""
 import pathlib
 
 from ariadne import load_schema_from_path
@@ -26,9 +23,3 @@ def result_page(queryset, page, per_page=None):
         "total_items": paginator.count,
         "items": paginator.page(page),
     }
-
-
-__all__ = [
-    "load_type_defs_from_file",
-    "result_page",
-]

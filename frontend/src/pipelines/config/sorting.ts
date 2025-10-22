@@ -25,16 +25,37 @@ export const templateSorting = createSortingUtils({
 
 export function getTemplateSortOptions(
   t: TFunction
-): TemplateSortOption[] {
-  return createSortOptions(
-    [
-      { value: "popularity-desc", orderBy: PipelineTemplateOrderBy.PipelinesCountDesc, labelKey: "Popularity (Most used)" },
-      { value: "created-desc", orderBy: PipelineTemplateOrderBy.CreatedAtDesc, labelKey: "Date Created (Newest)" },
-      { value: "created-asc", orderBy: PipelineTemplateOrderBy.CreatedAtAsc, labelKey: "Date Created (Oldest)" },
-      { value: "popularity-asc", orderBy: PipelineTemplateOrderBy.PipelinesCountAsc, labelKey: "Popularity (Least used)" },
-      { value: "name-asc", orderBy: PipelineTemplateOrderBy.NameAsc, labelKey: "Name (A–Z)" },
-      { value: "name-desc", orderBy: PipelineTemplateOrderBy.NameDesc, labelKey: "Name (Z–A)" },
-    ],
-    t
-  );
+): SortOption<PipelineTemplateOrderBy>[] {
+  return [
+    {
+      value: "popularity-desc",
+      orderBy: PipelineTemplateOrderBy.PipelinesCountDesc,
+      label: t("Popularity (Most used)"),
+    },
+    {
+      value: "created-desc",
+      orderBy: PipelineTemplateOrderBy.CreatedAtDesc,
+      label: t("Date Created (Newest)"),
+    },
+    {
+      value: "created-asc",
+      orderBy: PipelineTemplateOrderBy.CreatedAtAsc,
+      label: t("Date Created (Oldest)"),
+    },
+    {
+      value: "popularity-asc",
+      orderBy: PipelineTemplateOrderBy.PipelinesCountAsc,
+      label: t("Popularity (Least used)"),
+    },
+    {
+      value: "name-asc",
+      orderBy: PipelineTemplateOrderBy.NameAsc,
+      label: t("Name (A–Z)"),
+    },
+    {
+      value: "name-desc",
+      orderBy: PipelineTemplateOrderBy.NameDesc,
+      label: t("Name (Z–A)"),
+    },
+  ];
 }
