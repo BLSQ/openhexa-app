@@ -3,7 +3,7 @@ import uuid
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.db import models
-from django.db.models import Q
+from django.db.models import Count, Q
 
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.soft_delete import (
@@ -47,9 +47,22 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             return self.none()
         return self.filter(tags__in=tags).distinct()
 
+    def with_pipelines_count(self):
+        """
+        Annotates queryset with the count of active pipelines created from each template.
+        Useful for sorting and displaying in GraphQL responses.
+        """
+        return self.annotate(
+            pipelines_count=Count(
+                "pipelines", filter=Q(pipelines__deleted_at__isnull=True)
+            )
+        )
+
 
 class PipelineTemplate(SoftDeletedModel):
-    DEFAULT_ORDER_BY = ["-pipelines_count", "name", "id"]
+    @property
+    def default_order_by(self):
+        return ["-pipelines_count", "name", "id"]
 
     class Meta:
         constraints = [

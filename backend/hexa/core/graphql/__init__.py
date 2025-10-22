@@ -7,8 +7,6 @@ from ariadne import load_schema_from_path
 from django.conf import settings
 from django.core.paginator import Paginator
 
-from .sorting import SortConfig, apply_sorting
-
 
 def load_type_defs_from_file(path: str):
     return load_schema_from_path(f"{pathlib.Path.cwd()}/hexa/{path}")
@@ -31,8 +29,6 @@ def result_page(queryset, page, per_page=None):
 
 
 __all__ = [
-    "SortConfig",
-    "apply_sorting",
     "load_type_defs_from_file",
     "result_page",
 ]

@@ -1,5 +1,5 @@
 from ariadne import QueryType
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
@@ -19,11 +19,7 @@ def resolve_pipeline_templates(_, info, **kwargs):
         PipelineTemplate.objects.filter_for_user(request.user)
         .select_related("workspace", "source_pipeline")
         .prefetch_related("tags")
-        .annotate(
-            pipelines_count=Count(
-                "pipelines", filter=Q(pipelines__deleted_at__isnull=True)
-            )
-        )
+        .with_pipelines_count()
         .filter(
             Q(name__icontains=search)
             | Q(description__icontains=search)
@@ -55,13 +51,13 @@ def resolve_pipeline_templates(_, info, **kwargs):
         except InvalidTag:
             pipeline_templates = PipelineTemplate.objects.none()
 
-    pipeline_templates = pipeline_templates.order_by(
-        *(
-            [kwargs["order_by"], "name", "id"]
-            if kwargs.get("order_by")
-            else PipelineTemplate.DEFAULT_ORDER_BY
+    order_by = kwargs.get("order_by")
+    if order_by:
+        pipeline_templates = pipeline_templates.order_by(order_by, "name", "id")
+    else:
+        pipeline_templates = pipeline_templates.order_by(
+            *PipelineTemplate().default_order_by
         )
-    )
 
     return result_page(
         pipeline_templates,
