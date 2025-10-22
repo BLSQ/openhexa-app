@@ -26,7 +26,7 @@ export type Scalars = {
   StackPriorities: { input: any; output: any; }
   TimeThresholds: { input: any; output: any; }
   URL: { input: any; output: any; }
-  UUID: { input: any; output: any; }
+  UUID: { input: string; output: string; }
 };
 
 export type AccessmodAccessRequest = {
@@ -5489,7 +5489,7 @@ export type DatasetsPageFragment = { __typename?: 'DatasetResultPage', totalItem
         { __typename?: 'Workspace', slug: string }
         & { ' $fragmentRefs'?: { 'WorkspaceDisplayFragmentFragment': WorkspaceDisplayFragmentFragment } }
       ) | null, createdBy?: (
-        { __typename?: 'User', id: any, displayName: string }
+        { __typename?: 'User', id: string, displayName: string }
         & { ' $fragmentRefs'?: { 'UserAvatar_UserFragment': UserAvatar_UserFragment } }
       ) | null } }> } & { ' $fragmentName'?: 'DatasetsPageFragment' };
 
@@ -5498,7 +5498,7 @@ export type FilesPageFragment = { __typename?: 'FileResultPage', totalItems: num
       & { ' $fragmentRefs'?: { 'WorkspaceDisplayFragmentFragment': WorkspaceDisplayFragmentFragment } }
     ) }> } & { ' $fragmentName'?: 'FilesPageFragment' };
 
-export type PipelinesPageFragment = { __typename?: 'PipelineResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'PipelineResult', score: number, pipeline: { __typename?: 'Pipeline', id: any, code: string, name?: string | null, description?: string | null, updatedAt?: any | null, functionalType?: PipelineFunctionalType | null, tags: Array<(
+export type PipelinesPageFragment = { __typename?: 'PipelineResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'PipelineResult', score: number, pipeline: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, description?: string | null, updatedAt?: any | null, functionalType?: PipelineFunctionalType | null, tags: Array<(
         { __typename?: 'Tag' }
         & { ' $fragmentRefs'?: { 'Tag_TagFragment': Tag_TagFragment } }
       )>, workspace: (
@@ -5509,10 +5509,10 @@ export type PipelinesPageFragment = { __typename?: 'PipelineResultPage', totalIt
           & { ' $fragmentRefs'?: { 'PipelineRunStatusBadge_RunFragment': PipelineRunStatusBadge_RunFragment } }
         )> } } }> } & { ' $fragmentName'?: 'PipelinesPageFragment' };
 
-export type PipelineTemplatesPageFragment = { __typename?: 'PipelineTemplateResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'PipelineTemplateResult', score: number, pipelineTemplate: { __typename?: 'PipelineTemplate', id: any, code: string, name: string, description?: string | null, updatedAt: any, workspace?: (
+export type PipelineTemplatesPageFragment = { __typename?: 'PipelineTemplateResultPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'PipelineTemplateResult', score: number, pipelineTemplate: { __typename?: 'PipelineTemplate', id: string, code: string, name: string, description?: string | null, updatedAt: any, workspace?: (
         { __typename?: 'Workspace', slug: string }
         & { ' $fragmentRefs'?: { 'WorkspaceDisplayFragmentFragment': WorkspaceDisplayFragmentFragment } }
-      ) | null, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: any, versionNumber: number } | null } }> } & { ' $fragmentName'?: 'PipelineTemplatesPageFragment' };
+      ) | null, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number } | null } }> } & { ' $fragmentName'?: 'PipelineTemplatesPageFragment' };
 
 export type GetWorkspacesQueryVariables = Exact<{
   organizationId?: InputMaybe<Scalars['UUID']['input']>;
@@ -5597,11 +5597,11 @@ export type WorkspaceDisplayFragmentFragment = { __typename?: 'Workspace', name:
 export type Tag_TagFragment = { __typename?: 'Tag', id: string, name: string } & { ' $fragmentName'?: 'Tag_TagFragment' };
 
 export type User_UserFragment = (
-  { __typename?: 'User', id: any, email: string, displayName: string }
+  { __typename?: 'User', id: string, email: string, displayName: string }
   & { ' $fragmentRefs'?: { 'UserAvatar_UserFragment': UserAvatar_UserFragment } }
 ) & { ' $fragmentName'?: 'User_UserFragment' };
 
-export type ColumnMetadataDrawer_FileFragment = { __typename?: 'DatasetVersionFile', id: string, targetId: any, properties?: any | null, attributes: Array<{ __typename: 'MetadataAttribute', id: any, key: string, value?: any | null, label?: string | null, system: boolean }> } & { ' $fragmentName'?: 'ColumnMetadataDrawer_FileFragment' };
+export type ColumnMetadataDrawer_FileFragment = { __typename?: 'DatasetVersionFile', id: string, targetId: any, properties?: any | null, attributes: Array<{ __typename: 'MetadataAttribute', id: string, key: string, value?: any | null, label?: string | null, system: boolean }> } & { ' $fragmentName'?: 'ColumnMetadataDrawer_FileFragment' };
 
 export type CreateDatasetDialogMutationVariables = Exact<{
   input: CreateDatasetInput;
@@ -5786,7 +5786,7 @@ export type SetMetadataAttributeMutationVariables = Exact<{
 }>;
 
 
-export type SetMetadataAttributeMutation = { __typename?: 'Mutation', setMetadataAttribute: { __typename?: 'SetMetadataAttributeResult', success: boolean, errors: Array<SetMetadataAttributeError>, attribute?: { __typename?: 'MetadataAttribute', id: any, key: string, label?: string | null, value?: any | null, system: boolean } | null } };
+export type SetMetadataAttributeMutation = { __typename?: 'Mutation', setMetadataAttribute: { __typename?: 'SetMetadataAttributeResult', success: boolean, errors: Array<SetMetadataAttributeError>, attribute?: { __typename?: 'MetadataAttribute', id: string, key: string, label?: string | null, value?: any | null, system: boolean } | null } };
 
 export type DeleteMetadataAttributeMutationVariables = Exact<{
   input: DeleteMetadataAttributeInput;
@@ -5800,7 +5800,7 @@ export type TabularFileMetadataQueryVariables = Exact<{
 }>;
 
 
-export type TabularFileMetadataQuery = { __typename?: 'Query', datasetVersionFile?: { __typename?: 'DatasetVersionFile', properties?: any | null, id: string, targetId: any, attributes: Array<{ __typename?: 'MetadataAttribute', id: any, key: string, value?: any | null, label?: string | null, system: boolean, createdAt: any, updatedAt: any, createdBy?: { __typename?: 'User', displayName: string } | null, updatedBy?: { __typename?: 'User', displayName: string } | null }> } | null };
+export type TabularFileMetadataQuery = { __typename?: 'Query', datasetVersionFile?: { __typename?: 'DatasetVersionFile', properties?: any | null, id: string, targetId: any, attributes: Array<{ __typename?: 'MetadataAttribute', id: string, key: string, value?: any | null, label?: string | null, system: boolean, createdAt: any, updatedAt: any, createdBy?: { __typename?: 'User', displayName: string } | null, updatedBy?: { __typename?: 'User', displayName: string } | null }> } | null };
 
 export type DatasetLayout_WorkspaceFragment = (
   { __typename?: 'Workspace', name: string, slug: string }
@@ -5822,7 +5822,7 @@ export type UpdateUserMutationVariables = Exact<{
 }>;
 
 
-export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'UpdateUserResult', success: boolean, errors: Array<UpdateUserError>, user?: { __typename?: 'User', id: any, language: string, firstName?: string | null, lastName?: string | null } | null } };
+export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'UpdateUserResult', success: boolean, errors: Array<UpdateUserError>, user?: { __typename?: 'User', id: string, language: string, firstName?: string | null, lastName?: string | null } | null } };
 
 export type UserAvatar_UserFragment = { __typename?: 'User', displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } & { ' $fragmentName'?: 'UserAvatar_UserFragment' };
 
@@ -5887,7 +5887,7 @@ export type GetUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetUserQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, permissions: { __typename?: 'MePermissions', adminPanel: boolean, superUser: boolean, createWorkspace: boolean }, features: Array<{ __typename?: 'FeatureFlag', code: string }>, user?: (
-      { __typename?: 'User', email: string, id: any, firstName?: string | null, lastName?: string | null, displayName: string, language: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }
+      { __typename?: 'User', email: string, id: string, firstName?: string | null, lastName?: string | null, displayName: string, language: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }
       & { ' $fragmentRefs'?: { 'UserAvatar_UserFragment': UserAvatar_UserFragment } }
     ) | null } };
 
@@ -5895,9 +5895,9 @@ export type AccountPageQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, user?: (
-      { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, displayName: string, id: any, email: string, language: string }
+      { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, displayName: string, id: string, email: string, language: string }
       & { ' $fragmentRefs'?: { 'User_UserFragment': User_UserFragment } }
-    ) | null }, pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: any, status: WorkspaceInvitationStatus, role: WorkspaceMembershipRole, createdAt: any, invitedBy?: (
+    ) | null }, pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, status: WorkspaceInvitationStatus, role: WorkspaceMembershipRole, createdAt: any, invitedBy?: (
         { __typename?: 'User' }
         & { ' $fragmentRefs'?: { 'User_UserFragment': User_UserFragment } }
       ) | null, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
@@ -5944,7 +5944,7 @@ export type OrganizationInvitationsQueryVariables = Exact<{
 }>;
 
 
-export type OrganizationInvitationsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: any, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean }, invitations: { __typename?: 'OrganizationInvitationPage', totalItems: number, items: Array<{ __typename?: 'OrganizationInvitation', id: any, role: OrganizationMembershipRole, email: string, status: OrganizationInvitationStatus, createdAt: any, invitedBy?: { __typename?: 'User', displayName: string } | null, workspaceInvitations: Array<{ __typename?: 'OrganizationWorkspaceInvitation', role: WorkspaceMembershipRole, workspace: { __typename?: 'Workspace', name: string, slug: string } }> }> } } | null };
+export type OrganizationInvitationsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean }, invitations: { __typename?: 'OrganizationInvitationPage', totalItems: number, items: Array<{ __typename?: 'OrganizationInvitation', id: string, role: OrganizationMembershipRole, email: string, status: OrganizationInvitationStatus, createdAt: any, invitedBy?: { __typename?: 'User', displayName: string } | null, workspaceInvitations: Array<{ __typename?: 'OrganizationWorkspaceInvitation', role: WorkspaceMembershipRole, workspace: { __typename?: 'Workspace', name: string, slug: string } }> }> } } | null };
 
 export type ResendOrganizationInvitationMutationVariables = Exact<{
   input: ResendOrganizationInvitationInput;
@@ -5976,8 +5976,8 @@ export type OrganizationMembersQueryVariables = Exact<{
 }>;
 
 
-export type OrganizationMembersQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: any, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean, manageOwners: boolean }, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number, items: Array<{ __typename?: 'OrganizationMembership', id: any, role: OrganizationMembershipRole, createdAt: any, workspaceMemberships: Array<(
-          { __typename?: 'WorkspaceMembership', id: any, role: WorkspaceMembershipRole, workspace: { __typename?: 'Workspace', slug: string, name: string } }
+export type OrganizationMembersQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean, manageOwners: boolean }, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number, items: Array<{ __typename?: 'OrganizationMembership', id: string, role: OrganizationMembershipRole, createdAt: any, workspaceMemberships: Array<(
+          { __typename?: 'WorkspaceMembership', id: string, role: WorkspaceMembershipRole, workspace: { __typename?: 'Workspace', slug: string, name: string } }
           & { ' $fragmentRefs'?: { 'WorkspaceRoleFragment': WorkspaceRoleFragment } }
         )>, user: (
           { __typename?: 'User' }
@@ -5989,9 +5989,9 @@ export type UpdateOrganizationMemberMutationVariables = Exact<{
 }>;
 
 
-export type UpdateOrganizationMemberMutation = { __typename?: 'Mutation', updateOrganizationMember: { __typename?: 'UpdateOrganizationMemberResult', success: boolean, errors: Array<UpdateOrganizationMemberError>, membership?: { __typename?: 'OrganizationMembership', id: any, role: OrganizationMembershipRole } | null } };
+export type UpdateOrganizationMemberMutation = { __typename?: 'Mutation', updateOrganizationMember: { __typename?: 'UpdateOrganizationMemberResult', success: boolean, errors: Array<UpdateOrganizationMemberError>, membership?: { __typename?: 'OrganizationMembership', id: string, role: OrganizationMembershipRole } | null } };
 
-export type UpdateOrganizationMemberDialog_OrganizationMemberFragment = { __typename?: 'OrganizationMembership', id: any, role: OrganizationMembershipRole, workspaceMemberships: Array<{ __typename?: 'WorkspaceMembership', id: any, role: WorkspaceMembershipRole, workspace: { __typename?: 'Workspace', slug: string, name: string } }>, user: { __typename?: 'User', id: any, displayName: string, email: string } } & { ' $fragmentName'?: 'UpdateOrganizationMemberDialog_OrganizationMemberFragment' };
+export type UpdateOrganizationMemberDialog_OrganizationMemberFragment = { __typename?: 'OrganizationMembership', id: string, role: OrganizationMembershipRole, workspaceMemberships: Array<{ __typename?: 'WorkspaceMembership', id: string, role: WorkspaceMembershipRole, workspace: { __typename?: 'Workspace', slug: string, name: string } }>, user: { __typename?: 'User', id: string, displayName: string, email: string } } & { ' $fragmentName'?: 'UpdateOrganizationMemberDialog_OrganizationMemberFragment' };
 
 export type UpdateOrganizationMemberDialog_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string } & { ' $fragmentName'?: 'UpdateOrganizationMemberDialog_WorkspaceFragment' };
 
@@ -6002,7 +6002,7 @@ export type OrganizationWorkspaceInvitationsQueryVariables = Exact<{
 }>;
 
 
-export type OrganizationWorkspaceInvitationsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: any, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean }, pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: any, email: string, role: WorkspaceMembershipRole, status: WorkspaceInvitationStatus, createdAt: any, workspace: { __typename?: 'Workspace', name: string, slug: string }, invitedBy?: { __typename?: 'User', displayName: string } | null }> } } | null };
+export type OrganizationWorkspaceInvitationsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean }, pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, email: string, role: WorkspaceMembershipRole, status: WorkspaceInvitationStatus, createdAt: any, workspace: { __typename?: 'Workspace', name: string, slug: string }, invitedBy?: { __typename?: 'User', displayName: string } | null }> } } | null };
 
 export type DeleteWorkspaceInvitationMutationVariables = Exact<{
   input: DeleteWorkspaceInvitationInput;
@@ -6018,7 +6018,7 @@ export type ResendWorkspaceInvitationMutationVariables = Exact<{
 
 export type ResendWorkspaceInvitationMutation = { __typename?: 'Mutation', resendWorkspaceInvitation: { __typename?: 'ResendWorkspaceInvitationResult', success: boolean, errors: Array<ResendWorkspaceInvitationError> } };
 
-export type Organization_OrganizationFragment = { __typename?: 'Organization', id: any, name: string, shortName?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } & { ' $fragmentName'?: 'Organization_OrganizationFragment' };
+export type Organization_OrganizationFragment = { __typename?: 'Organization', id: string, name: string, shortName?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } & { ' $fragmentName'?: 'Organization_OrganizationFragment' };
 
 export type OrganizationQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -6033,7 +6033,7 @@ export type OrganizationQuery = { __typename?: 'Query', organization?: (
 export type OrganizationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OrganizationsQuery = { __typename?: 'Query', organizations: Array<{ __typename?: 'Organization', id: any, name: string, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> } }> };
+export type OrganizationsQuery = { __typename?: 'Query', organizations: Array<{ __typename?: 'Organization', id: string, name: string, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> } }> };
 
 export type OrganizationDataset_LinkFragment = { __typename?: 'DatasetLink', id: string, workspace: { __typename?: 'Workspace', slug: string, name: string }, dataset: { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } } } & { ' $fragmentName'?: 'OrganizationDataset_LinkFragment' };
 
@@ -6065,7 +6065,7 @@ export type PipelinePageQueryVariables = Exact<{
 }>;
 
 
-export type PipelinePageQuery = { __typename?: 'Query', dag?: { __typename?: 'DAG', id: any, label: string, externalId: string, schedule?: string | null, externalUrl?: any | null, description?: string | null, countries: Array<(
+export type PipelinePageQuery = { __typename?: 'Query', dag?: { __typename?: 'DAG', id: string, label: string, externalId: string, schedule?: string | null, externalUrl?: any | null, description?: string | null, countries: Array<(
       { __typename?: 'Country' }
       & { ' $fragmentRefs'?: { 'CountryBadge_CountryFragment': CountryBadge_CountryFragment } }
     )>, tags: Array<(
@@ -6075,7 +6075,7 @@ export type PipelinePageQuery = { __typename?: 'Query', dag?: { __typename?: 'DA
       { __typename?: 'User' }
       & { ' $fragmentRefs'?: { 'UserProperty_UserFragment': UserProperty_UserFragment } }
     ) | null, runs: { __typename?: 'DAGRunPage', totalItems: number, totalPages: number, items: Array<(
-        { __typename?: 'DAGRun', id: any, label?: string | null, triggerMode?: DagRunTrigger | null, externalId?: string | null, externalUrl?: any | null, status: DagRunStatus, executionDate?: any | null, lastRefreshedAt?: any | null, duration?: number | null, user?: (
+        { __typename?: 'DAGRun', id: string, label?: string | null, triggerMode?: DagRunTrigger | null, externalId?: string | null, externalUrl?: any | null, status: DagRunStatus, executionDate?: any | null, lastRefreshedAt?: any | null, duration?: number | null, user?: (
           { __typename?: 'User' }
           & { ' $fragmentRefs'?: { 'UserColumn_UserFragment': UserColumn_UserFragment } }
         ) | null }
@@ -6087,7 +6087,7 @@ export type UpdatePipelineMutationVariables = Exact<{
 }>;
 
 
-export type UpdatePipelineMutation = { __typename?: 'Mutation', updatePipeline: { __typename?: 'UpdatePipelineResult', success: boolean, errors: Array<UpdatePipelineError>, pipeline?: { __typename?: 'Pipeline', id: any, code: string, name?: string | null, description?: string | null, schedule?: string | null, webhookEnabled: boolean, autoUpdateFromTemplate: boolean } | null } };
+export type UpdatePipelineMutation = { __typename?: 'Mutation', updatePipeline: { __typename?: 'UpdatePipelineResult', success: boolean, errors: Array<UpdatePipelineError>, pipeline?: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, description?: string | null, schedule?: string | null, webhookEnabled: boolean, autoUpdateFromTemplate: boolean } | null } };
 
 export type PipelineConfigureRunPageQueryVariables = Exact<{
   pipelineId: Scalars['UUID']['input'];
@@ -6095,7 +6095,7 @@ export type PipelineConfigureRunPageQueryVariables = Exact<{
 
 
 export type PipelineConfigureRunPageQuery = { __typename?: 'Query', dag?: (
-    { __typename?: 'DAG', id: any, label: string, externalId: string, description?: string | null, template: { __typename?: 'DAGTemplate', sampleConfig?: any | null, description?: string | null } }
+    { __typename?: 'DAG', id: string, label: string, externalId: string, description?: string | null, template: { __typename?: 'DAGTemplate', sampleConfig?: any | null, description?: string | null } }
     & { ' $fragmentRefs'?: { 'PipelineRunForm_DagFragment': PipelineRunForm_DagFragment } }
   ) | null };
 
@@ -6106,10 +6106,10 @@ export type PipelineRunPageQueryVariables = Exact<{
 
 
 export type PipelineRunPageQuery = { __typename?: 'Query', dagRun?: (
-    { __typename?: 'DAGRun', id: any, label?: string | null, triggerMode?: DagRunTrigger | null, user?: { __typename?: 'User', displayName: string } | null }
+    { __typename?: 'DAGRun', id: string, label?: string | null, triggerMode?: DagRunTrigger | null, user?: { __typename?: 'User', displayName: string } | null }
     & { ' $fragmentRefs'?: { 'PipelineRunDataCard_DagRunFragment': PipelineRunDataCard_DagRunFragment } }
   ) | null, dag?: (
-    { __typename?: 'DAG', id: any, externalId: string, label: string }
+    { __typename?: 'DAG', id: string, externalId: string, label: string }
     & { ' $fragmentRefs'?: { 'PipelineRunDataCard_DagFragment': PipelineRunDataCard_DagFragment } }
   ) | null };
 
@@ -6119,20 +6119,20 @@ export type PipelinesPageQueryVariables = Exact<{
 }>;
 
 
-export type PipelinesPageQuery = { __typename?: 'Query', dags: { __typename?: 'DAGPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'DAG', label: string, id: any, externalId: string, countries: Array<(
+export type PipelinesPageQuery = { __typename?: 'Query', dags: { __typename?: 'DAGPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'DAG', label: string, id: string, externalId: string, countries: Array<(
         { __typename?: 'Country' }
         & { ' $fragmentRefs'?: { 'CountryBadge_CountryFragment': CountryBadge_CountryFragment } }
       )>, tags: Array<(
         { __typename?: 'Tag' }
         & { ' $fragmentRefs'?: { 'Tag_TagFragment': Tag_TagFragment } }
-      )>, runs: { __typename?: 'DAGRunPage', items: Array<{ __typename?: 'DAGRun', id: any, status: DagRunStatus, executionDate?: any | null }> } }> } };
+      )>, runs: { __typename?: 'DAGRunPage', items: Array<{ __typename?: 'DAGRun', id: string, status: DagRunStatus, executionDate?: any | null }> } }> } };
 
 export type JoinWorkspaceMutationVariables = Exact<{
   input: JoinWorkspaceInput;
 }>;
 
 
-export type JoinWorkspaceMutation = { __typename?: 'Mutation', joinWorkspace: { __typename?: 'JoinWorkspaceResult', success: boolean, errors: Array<JoinWorkspaceError>, invitation?: { __typename?: 'WorkspaceInvitation', id: any, status: WorkspaceInvitationStatus, role: WorkspaceMembershipRole, createdAt: any, invitedBy?: (
+export type JoinWorkspaceMutation = { __typename?: 'Mutation', joinWorkspace: { __typename?: 'JoinWorkspaceResult', success: boolean, errors: Array<JoinWorkspaceError>, invitation?: { __typename?: 'WorkspaceInvitation', id: string, status: WorkspaceInvitationStatus, role: WorkspaceMembershipRole, createdAt: any, invitedBy?: (
         { __typename?: 'User' }
         & { ' $fragmentRefs'?: { 'User_UserFragment': User_UserFragment } }
       ) | null, workspace: { __typename?: 'Workspace', slug: string, name: string } } | null, workspace?: { __typename?: 'Workspace', slug: string } | null } };
@@ -6142,7 +6142,7 @@ export type DeclineWorkspaceInvitationMutationVariables = Exact<{
 }>;
 
 
-export type DeclineWorkspaceInvitationMutation = { __typename?: 'Mutation', declineWorkspaceInvitation: { __typename?: 'DeclineWorkspaceInvitationResult', success: boolean, errors: Array<DeclineWorkspaceInvitationError>, invitation?: { __typename?: 'WorkspaceInvitation', id: any, status: WorkspaceInvitationStatus } | null } };
+export type DeclineWorkspaceInvitationMutation = { __typename?: 'Mutation', declineWorkspaceInvitation: { __typename?: 'DeclineWorkspaceInvitationResult', success: boolean, errors: Array<DeclineWorkspaceInvitationError>, invitation?: { __typename?: 'WorkspaceInvitation', id: string, status: WorkspaceInvitationStatus } | null } };
 
 export type ConnectionPageQueryVariables = Exact<{
   workspaceSlug: Scalars['String']['input'];
@@ -6226,11 +6226,11 @@ export type WorkspaceDatasetAccessPageQueryVariables = Exact<{
 
 
 export type WorkspaceDatasetAccessPageQuery = { __typename?: 'Query', workspace?: (
-    { __typename?: 'Workspace', slug: string, organization?: { __typename?: 'Organization', id: any, name: string } | null }
+    { __typename?: 'Workspace', slug: string, organization?: { __typename?: 'Organization', id: string, name: string } | null }
     & { ' $fragmentRefs'?: { 'DatasetLayout_WorkspaceFragment': DatasetLayout_WorkspaceFragment } }
   ) | null, datasetLink?: (
     { __typename?: 'DatasetLink', id: string, dataset: (
-      { __typename?: 'Dataset', name: string, sharedWithOrganization: boolean, permissions: { __typename?: 'DatasetPermissions', update: boolean }, workspace?: { __typename?: 'Workspace', organization?: { __typename?: 'Organization', id: any, name: string } | null } | null, version?: (
+      { __typename?: 'Dataset', name: string, sharedWithOrganization: boolean, permissions: { __typename?: 'DatasetPermissions', update: boolean }, workspace?: { __typename?: 'Workspace', organization?: { __typename?: 'Organization', id: string, name: string } | null } | null, version?: (
         { __typename?: 'DatasetVersion' }
         & { ' $fragmentRefs'?: { 'DatasetLayout_VersionFragment': DatasetLayout_VersionFragment } }
       ) | null, latestVersion?: (
@@ -6385,7 +6385,7 @@ export type WorkspacePipelineCodePageQuery = { __typename?: 'Query', workspace?:
     { __typename?: 'Workspace', slug: string, name: string }
     & { ' $fragmentRefs'?: { 'PipelineLayout_WorkspaceFragment': PipelineLayout_WorkspaceFragment } }
   ) | null, pipeline?: (
-    { __typename?: 'Pipeline', id: any, code: string, name?: string | null, type: PipelineType, currentVersion?: { __typename?: 'PipelineVersion', id: any, versionName: string, files: Array<(
+    { __typename?: 'Pipeline', id: string, code: string, name?: string | null, type: PipelineType, currentVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, files: Array<(
         { __typename?: 'FileNode' }
         & { ' $fragmentRefs'?: { 'FilesEditor_FileFragment': FilesEditor_FileFragment } }
       )> } | null }
@@ -6397,7 +6397,7 @@ export type GetPipelineVersionFilesQueryVariables = Exact<{
 }>;
 
 
-export type GetPipelineVersionFilesQuery = { __typename?: 'Query', pipelineVersion?: { __typename?: 'PipelineVersion', id: any, versionName: string, files: Array<(
+export type GetPipelineVersionFilesQuery = { __typename?: 'Query', pipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, files: Array<(
       { __typename?: 'FileNode' }
       & { ' $fragmentRefs'?: { 'FilesEditor_FileFragment': FilesEditor_FileFragment } }
     )> } | null };
@@ -6412,13 +6412,13 @@ export type WorkspacePipelinePageQuery = { __typename?: 'Query', workspace?: (
     { __typename?: 'Workspace', slug: string, name: string }
     & { ' $fragmentRefs'?: { 'PipelineLayout_WorkspaceFragment': PipelineLayout_WorkspaceFragment } }
   ) | null, pipeline?: (
-    { __typename?: 'Pipeline', webhookUrl?: string | null, webhookEnabled: boolean, id: any, createdAt: any, code: string, name?: string | null, description?: string | null, schedule?: string | null, type: PipelineType, functionalType?: PipelineFunctionalType | null, notebookPath?: string | null, autoUpdateFromTemplate: boolean, hasNewTemplateVersions: boolean, permissions: { __typename?: 'PipelinePermissions', run: boolean, update: boolean, schedule: boolean, delete: boolean, createVersion: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean } }, tags: Array<(
+    { __typename?: 'Pipeline', webhookUrl?: string | null, webhookEnabled: boolean, id: string, createdAt: any, code: string, name?: string | null, description?: string | null, schedule?: string | null, type: PipelineType, functionalType?: PipelineFunctionalType | null, notebookPath?: string | null, autoUpdateFromTemplate: boolean, hasNewTemplateVersions: boolean, permissions: { __typename?: 'PipelinePermissions', run: boolean, update: boolean, schedule: boolean, delete: boolean, createVersion: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean } }, tags: Array<(
       { __typename?: 'Tag' }
       & { ' $fragmentRefs'?: { 'Tag_TagFragment': Tag_TagFragment } }
-    )>, sourceTemplate?: { __typename?: 'PipelineTemplate', id: any, code: string, name: string } | null, newTemplateVersions: Array<{ __typename?: 'PipelineTemplateVersion', id: any, changelog?: string | null, versionNumber: number, createdAt: any }>, currentVersion?: (
-      { __typename?: 'PipelineVersion', id: any, versionName: string, description?: string | null, config?: any | null, externalLink?: any | null }
+    )>, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, code: string, name: string } | null, newTemplateVersions: Array<{ __typename?: 'PipelineTemplateVersion', id: string, changelog?: string | null, versionNumber: number, createdAt: any }>, currentVersion?: (
+      { __typename?: 'PipelineVersion', id: string, versionName: string, description?: string | null, config?: any | null, externalLink?: any | null }
       & { ' $fragmentRefs'?: { 'PipelineVersionParametersTable_VersionFragment': PipelineVersionParametersTable_VersionFragment;'PipelineVersionConfigDialog_VersionFragment': PipelineVersionConfigDialog_VersionFragment } }
-    ) | null, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: any, displayName: string } }> }
+    ) | null, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: string, displayName: string } }> }
     & { ' $fragmentRefs'?: { 'RunPipelineDialog_PipelineFragment': RunPipelineDialog_PipelineFragment;'PipelineLayout_PipelineFragment': PipelineLayout_PipelineFragment } }
   ) | null };
 
@@ -6432,7 +6432,7 @@ export type WorkspacePipelineNotificationsPageQuery = { __typename?: 'Query', wo
     { __typename?: 'Workspace' }
     & { ' $fragmentRefs'?: { 'PipelineLayout_WorkspaceFragment': PipelineLayout_WorkspaceFragment } }
   ) | null, pipeline?: (
-    { __typename?: 'Pipeline', id: any, code: string, type: PipelineType, schedule?: string | null, permissions: { __typename?: 'PipelinePermissions', schedule: boolean, update: boolean } }
+    { __typename?: 'Pipeline', id: string, code: string, type: PipelineType, schedule?: string | null, permissions: { __typename?: 'PipelinePermissions', schedule: boolean, update: boolean } }
     & { ' $fragmentRefs'?: { 'PipelineLayout_PipelineFragment': PipelineLayout_PipelineFragment;'PipelineRecipients_PipelineFragment': PipelineRecipients_PipelineFragment } }
   ) | null };
 
@@ -6446,11 +6446,11 @@ export type WorkspacePipelineRunPageQuery = { __typename?: 'Query', workspace?: 
     { __typename?: 'Workspace', slug: string, name: string }
     & { ' $fragmentRefs'?: { 'WorkspaceLayout_WorkspaceFragment': WorkspaceLayout_WorkspaceFragment;'RunOutputsTable_WorkspaceFragment': RunOutputsTable_WorkspaceFragment } }
   ) | null, pipelineRun?: (
-    { __typename?: 'PipelineRun', id: any, timeout?: number | null, config: any, executionDate?: any | null, duration?: number | null, triggerMode?: PipelineRunTrigger | null, version?: { __typename?: 'PipelineVersion', versionName: string, parameters: Array<(
+    { __typename?: 'PipelineRun', id: string, timeout?: number | null, config: any, executionDate?: any | null, duration?: number | null, triggerMode?: PipelineRunTrigger | null, version?: { __typename?: 'PipelineVersion', versionName: string, parameters: Array<(
         { __typename?: 'PipelineParameter' }
         & { ' $fragmentRefs'?: { 'ParameterField_ParameterFragment': ParameterField_ParameterFragment } }
       )> } | null, pipeline: (
-      { __typename?: 'Pipeline', id: any, code: string, name?: string | null, type: PipelineType, notebookPath?: string | null, sourceTemplate?: { __typename?: 'PipelineTemplate', id: any, name: string } | null, permissions: { __typename?: 'PipelinePermissions', stopPipeline: boolean } }
+      { __typename?: 'Pipeline', id: string, code: string, name?: string | null, type: PipelineType, notebookPath?: string | null, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, name: string } | null, permissions: { __typename?: 'PipelinePermissions', stopPipeline: boolean } }
       & { ' $fragmentRefs'?: { 'RunPipelineDialog_PipelineFragment': RunPipelineDialog_PipelineFragment } }
     ), user?: (
       { __typename?: 'User' }
@@ -6474,8 +6474,8 @@ export type WorkspacePipelineRunsPageQuery = { __typename?: 'Query', workspace?:
     { __typename?: 'Workspace', slug: string, name: string }
     & { ' $fragmentRefs'?: { 'PipelineLayout_WorkspaceFragment': PipelineLayout_WorkspaceFragment } }
   ) | null, pipeline?: (
-    { __typename?: 'Pipeline', id: any, type: PipelineType, runs: { __typename?: 'PipelineRunPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<(
-        { __typename?: 'PipelineRun', id: any, executionDate?: any | null, duration?: number | null, triggerMode?: PipelineRunTrigger | null, version?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: (
+    { __typename?: 'Pipeline', id: string, type: PipelineType, runs: { __typename?: 'PipelineRunPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<(
+        { __typename?: 'PipelineRun', id: string, executionDate?: any | null, duration?: number | null, triggerMode?: PipelineRunTrigger | null, version?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: (
             { __typename?: 'User' }
             & { ' $fragmentRefs'?: { 'User_UserFragment': User_UserFragment } }
           ) | null } | null, user?: (
@@ -6498,8 +6498,8 @@ export type WorkspacePipelineVersionsPageQueryVariables = Exact<{
 export type WorkspacePipelineVersionsPageQuery = { __typename?: 'Query', workspace?: (
     { __typename?: 'Workspace', slug: string, name: string }
     & { ' $fragmentRefs'?: { 'WorkspaceLayout_WorkspaceFragment': WorkspaceLayout_WorkspaceFragment } }
-  ) | null, pipeline?: { __typename?: 'Pipeline', id: any, code: string, name?: string | null, currentVersion?: { __typename?: 'PipelineVersion', id: any } | null, versions: { __typename?: 'PipelineVersionPage', totalItems: number, totalPages: number, items: Array<(
-        { __typename?: 'PipelineVersion', id: any }
+  ) | null, pipeline?: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, currentVersion?: { __typename?: 'PipelineVersion', id: string } | null, versions: { __typename?: 'PipelineVersionPage', totalItems: number, totalPages: number, items: Array<(
+        { __typename?: 'PipelineVersion', id: string }
         & { ' $fragmentRefs'?: { 'PipelineVersionCard_VersionFragment': PipelineVersionCard_VersionFragment } }
       )> } } | null };
 
@@ -6513,10 +6513,10 @@ export type WorkspaceTemplatePageQuery = { __typename?: 'Query', workspace?: (
     { __typename?: 'Workspace', slug: string, name: string }
     & { ' $fragmentRefs'?: { 'PipelineLayout_WorkspaceFragment': PipelineLayout_WorkspaceFragment } }
   ) | null, template?: (
-    { __typename?: 'PipelineTemplate', id: any, code: string, name: string, description?: string | null, functionalType?: PipelineFunctionalType | null, permissions: { __typename?: 'PipelineTemplatePermissions', update: boolean, delete: boolean }, tags: Array<(
+    { __typename?: 'PipelineTemplate', id: string, code: string, name: string, description?: string | null, functionalType?: PipelineFunctionalType | null, permissions: { __typename?: 'PipelineTemplatePermissions', update: boolean, delete: boolean }, tags: Array<(
       { __typename?: 'Tag' }
       & { ' $fragmentRefs'?: { 'Tag_TagFragment': Tag_TagFragment } }
-    )>, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: any, versionNumber: number, sourcePipelineVersion: { __typename?: 'PipelineVersion', zipfile: string, files: Array<(
+    )>, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, sourcePipelineVersion: { __typename?: 'PipelineVersion', zipfile: string, files: Array<(
           { __typename?: 'FileNode' }
           & { ' $fragmentRefs'?: { 'FilesEditor_FileFragment': FilesEditor_FileFragment } }
         )> } } | null }
@@ -6534,8 +6534,8 @@ export type WorkspaceTemplateVersionsPageQueryVariables = Exact<{
 export type WorkspaceTemplateVersionsPageQuery = { __typename?: 'Query', workspace?: (
     { __typename?: 'Workspace', slug: string, name: string }
     & { ' $fragmentRefs'?: { 'WorkspaceLayout_WorkspaceFragment': WorkspaceLayout_WorkspaceFragment } }
-  ) | null, template?: { __typename?: 'PipelineTemplate', id: any, code: string, name: string, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: any } | null, versions: { __typename?: 'TemplateVersionPage', totalItems: number, totalPages: number, items: Array<(
-        { __typename?: 'PipelineTemplateVersion', id: any }
+  ) | null, template?: { __typename?: 'PipelineTemplate', id: string, code: string, name: string, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, versions: { __typename?: 'TemplateVersionPage', totalItems: number, totalPages: number, items: Array<(
+        { __typename?: 'PipelineTemplateVersion', id: string }
         & { ' $fragmentRefs'?: { 'TemplateVersionCard_VersionFragment': TemplateVersionCard_VersionFragment } }
       )> } } | null };
 
@@ -6563,7 +6563,7 @@ export type WorkspaceWebappsPageQueryVariables = Exact<{
 export type WorkspaceWebappsPageQuery = { __typename?: 'Query', workspace?: (
     { __typename?: 'Workspace', slug: string, name: string }
     & { ' $fragmentRefs'?: { 'WorkspaceLayout_WorkspaceFragment': WorkspaceLayout_WorkspaceFragment } }
-  ) | null, webapps: { __typename?: 'WebappsPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'Webapp', id: any, name: string, icon?: string | null, description?: string | null, url: string, isFavorite: boolean, createdBy: (
+  ) | null, webapps: { __typename?: 'WebappsPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'Webapp', id: string, name: string, icon?: string | null, description?: string | null, url: string, isFavorite: boolean, createdBy: (
         { __typename?: 'User', firstName?: string | null, lastName?: string | null }
         & { ' $fragmentRefs'?: { 'User_UserFragment': User_UserFragment } }
       ), workspace: { __typename?: 'Workspace', slug: string, name: string }, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } }> }, favoriteWebapps: { __typename?: 'WebappsPage', items: Array<(
@@ -6585,11 +6585,11 @@ export type DeletePipelineTemplateMutationVariables = Exact<{
 
 export type DeletePipelineTemplateMutation = { __typename?: 'Mutation', deletePipelineTemplate: { __typename?: 'DeletePipelineTemplateResult', success: boolean, errors: Array<PipelineTemplateError> } };
 
-export type PipelineTemplateDialog_PipelineTemplateFragment = { __typename?: 'PipelineTemplate', id: any, name: string } & { ' $fragmentName'?: 'PipelineTemplateDialog_PipelineTemplateFragment' };
+export type PipelineTemplateDialog_PipelineTemplateFragment = { __typename?: 'PipelineTemplate', id: string, name: string } & { ' $fragmentName'?: 'PipelineTemplateDialog_PipelineTemplateFragment' };
 
-export type DownloadPipelineVersion_VersionFragment = { __typename?: 'PipelineVersion', id: any, name?: string | null, pipeline: { __typename?: 'Pipeline', id: any, code: string } } & { ' $fragmentName'?: 'DownloadPipelineVersion_VersionFragment' };
+export type DownloadPipelineVersion_VersionFragment = { __typename?: 'PipelineVersion', id: string, name?: string | null, pipeline: { __typename?: 'Pipeline', id: string, code: string } } & { ' $fragmentName'?: 'DownloadPipelineVersion_VersionFragment' };
 
-export type DownloadTemplateVersion_VersionFragment = { __typename?: 'PipelineTemplateVersion', id: any } & { ' $fragmentName'?: 'DownloadTemplateVersion_VersionFragment' };
+export type DownloadTemplateVersion_VersionFragment = { __typename?: 'PipelineTemplateVersion', id: string } & { ' $fragmentName'?: 'DownloadTemplateVersion_VersionFragment' };
 
 export type PipelineMetadataDisplay_PipelineFragment = { __typename?: 'Pipeline', functionalType?: PipelineFunctionalType | null, tags: Array<(
     { __typename?: 'Tag' }
@@ -6602,12 +6602,12 @@ export type PipelineMetadataDisplay_TemplateFragment = { __typename?: 'PipelineT
   )> } & { ' $fragmentName'?: 'PipelineMetadataDisplay_TemplateFragment' };
 
 export type PipelineRunDataCard_DagFragment = (
-  { __typename?: 'DAG', id: any, externalId: string, label: string }
+  { __typename?: 'DAG', id: string, externalId: string, label: string }
   & { ' $fragmentRefs'?: { 'PipelineRunReadonlyForm_DagFragment': PipelineRunReadonlyForm_DagFragment } }
 ) & { ' $fragmentName'?: 'PipelineRunDataCard_DagFragment' };
 
 export type PipelineRunDataCard_DagRunFragment = (
-  { __typename?: 'DAGRun', id: any, label?: string | null, externalId?: string | null, externalUrl?: any | null, executionDate?: any | null, triggerMode?: DagRunTrigger | null, status: DagRunStatus, config?: any | null, duration?: number | null, progress: number, outputs: Array<(
+  { __typename?: 'DAGRun', id: string, label?: string | null, externalId?: string | null, externalUrl?: any | null, executionDate?: any | null, triggerMode?: DagRunTrigger | null, status: DagRunStatus, config?: any | null, duration?: number | null, progress: number, outputs: Array<(
     { __typename?: 'DAGRunOutput' }
     & { ' $fragmentRefs'?: { 'PipelineRunOutputEntry_OutputFragment': PipelineRunOutputEntry_OutputFragment } }
   )>, user?: (
@@ -6624,23 +6624,23 @@ export type SetFavoriteRunMutationVariables = Exact<{
 }>;
 
 
-export type SetFavoriteRunMutation = { __typename?: 'Mutation', setDAGRunFavorite?: { __typename?: 'SetDAGRunFavoriteResult', success: boolean, errors: Array<SetDagRunFavoriteError>, dagRun?: { __typename?: 'DAGRun', id: any, label?: string | null, isFavorite: boolean } | null } | null };
+export type SetFavoriteRunMutation = { __typename?: 'Mutation', setDAGRunFavorite?: { __typename?: 'SetDAGRunFavoriteResult', success: boolean, errors: Array<SetDagRunFavoriteError>, dagRun?: { __typename?: 'DAGRun', id: string, label?: string | null, isFavorite: boolean } | null } | null };
 
 export type PipelineRunFavoriteTrigger_RunFragment = (
-  { __typename?: 'DAGRun', id: any, label?: string | null, isFavorite: boolean }
+  { __typename?: 'DAGRun', id: string, label?: string | null, isFavorite: boolean }
   & { ' $fragmentRefs'?: { 'PipelineRunFavoriteIcon_RunFragment': PipelineRunFavoriteIcon_RunFragment } }
 ) & { ' $fragmentName'?: 'PipelineRunFavoriteTrigger_RunFragment' };
 
-export type PipelineRunForm_DagFragment = { __typename?: 'DAG', formCode?: string | null, id: any, template: { __typename?: 'DAGTemplate', sampleConfig?: any | null } } & { ' $fragmentName'?: 'PipelineRunForm_DagFragment' };
+export type PipelineRunForm_DagFragment = { __typename?: 'DAG', formCode?: string | null, id: string, template: { __typename?: 'DAGTemplate', sampleConfig?: any | null } } & { ' $fragmentName'?: 'PipelineRunForm_DagFragment' };
 
-export type PipelineRunReadonlyForm_DagFragment = { __typename?: 'DAG', formCode?: string | null, id: any } & { ' $fragmentName'?: 'PipelineRunReadonlyForm_DagFragment' };
+export type PipelineRunReadonlyForm_DagFragment = { __typename?: 'DAG', formCode?: string | null, id: string } & { ' $fragmentName'?: 'PipelineRunReadonlyForm_DagFragment' };
 
 export type PipelineRunReadonlyForm_DagRunFragment = { __typename?: 'DAGRun', config?: any | null } & { ' $fragmentName'?: 'PipelineRunReadonlyForm_DagRunFragment' };
 
 export type PipelineRunOutputEntry_OutputFragment = { __typename?: 'DAGRunOutput', title: string, uri: string } & { ' $fragmentName'?: 'PipelineRunOutputEntry_OutputFragment' };
 
 export type PipelineRunStatusBadge_RunFragment = (
-  { __typename?: 'PipelineRun', id: any, status: PipelineRunStatus }
+  { __typename?: 'PipelineRun', id: string, status: PipelineRunStatus }
   & { ' $fragmentRefs'?: { 'UsePipelineRunPoller_RunFragment': UsePipelineRunPoller_RunFragment } }
 ) & { ' $fragmentName'?: 'PipelineRunStatusBadge_RunFragment' };
 
@@ -6649,7 +6649,7 @@ export type CreatePipelineFromTemplateVersionMutationVariables = Exact<{
 }>;
 
 
-export type CreatePipelineFromTemplateVersionMutation = { __typename?: 'Mutation', createPipelineFromTemplateVersion: { __typename?: 'CreatePipelineFromTemplateVersionResult', success: boolean, errors?: Array<CreatePipelineFromTemplateVersionError> | null, pipeline?: { __typename?: 'Pipeline', id: any, name?: string | null, code: string } | null } };
+export type CreatePipelineFromTemplateVersionMutation = { __typename?: 'Mutation', createPipelineFromTemplateVersion: { __typename?: 'CreatePipelineFromTemplateVersionResult', success: boolean, errors?: Array<CreatePipelineFromTemplateVersionError> | null, pipeline?: { __typename?: 'Pipeline', id: string, name?: string | null, code: string } | null } };
 
 export type GetPipelineTemplatesQueryVariables = Exact<{
   page: Scalars['Int']['input'];
@@ -6662,7 +6662,7 @@ export type GetPipelineTemplatesQueryVariables = Exact<{
 }>;
 
 
-export type GetPipelineTemplatesQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, pipelineTemplateTags: Array<string> } | null, pipelineTemplates: { __typename?: 'PipelineTemplatePage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'PipelineTemplate', id: any, description?: string | null, code: string, name: string, functionalType?: PipelineFunctionalType | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, permissions: { __typename?: 'PipelineTemplatePermissions', delete: boolean }, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: any, versionNumber: number, createdAt: any, user?: (
+export type GetPipelineTemplatesQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, pipelineTemplateTags: Array<string> } | null, pipelineTemplates: { __typename?: 'PipelineTemplatePage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'PipelineTemplate', id: string, description?: string | null, code: string, name: string, functionalType?: PipelineFunctionalType | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, permissions: { __typename?: 'PipelineTemplatePermissions', delete: boolean }, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, createdAt: any, user?: (
           { __typename?: 'User' }
           & { ' $fragmentRefs'?: { 'User_UserFragment': User_UserFragment } }
         ) | null, template: { __typename?: 'PipelineTemplate', sourcePipeline?: { __typename?: 'Pipeline', name?: string | null } | null } } | null }> } };
@@ -6680,14 +6680,14 @@ export type UpdatePipelineVersionMutation = { __typename?: 'Mutation', updatePip
     ) | null } };
 
 export type PipelineVersionCard_VersionFragment = (
-  { __typename?: 'PipelineVersion', id: any, versionName: string, name?: string | null, description?: string | null, externalLink?: any | null, isLatestVersion: boolean, createdAt: any, user?: { __typename?: 'User', displayName: string } | null, permissions: { __typename?: 'PipelineVersionPermissions', update: boolean }, parameters: Array<(
+  { __typename?: 'PipelineVersion', id: string, versionName: string, name?: string | null, description?: string | null, externalLink?: any | null, isLatestVersion: boolean, createdAt: any, user?: { __typename?: 'User', displayName: string } | null, permissions: { __typename?: 'PipelineVersionPermissions', update: boolean }, parameters: Array<(
     { __typename?: 'PipelineParameter' }
     & { ' $fragmentRefs'?: { 'ParameterField_ParameterFragment': ParameterField_ParameterFragment } }
-  )>, pipeline: { __typename?: 'Pipeline', id: any, code: string }, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: any, versionNumber: number, template: { __typename?: 'PipelineTemplate', id: any, name: string } } | null }
+  )>, pipeline: { __typename?: 'Pipeline', id: string, code: string }, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, template: { __typename?: 'PipelineTemplate', id: string, name: string } } | null }
   & { ' $fragmentRefs'?: { 'DownloadPipelineVersion_VersionFragment': DownloadPipelineVersion_VersionFragment;'DeletePipelineVersionTrigger_VersionFragment': DeletePipelineVersionTrigger_VersionFragment } }
 ) & { ' $fragmentName'?: 'PipelineVersionCard_VersionFragment' };
 
-export type PipelineVersionParametersTable_VersionFragment = { __typename?: 'PipelineVersion', id: any, config?: any | null, parameters: Array<(
+export type PipelineVersionParametersTable_VersionFragment = { __typename?: 'PipelineVersion', id: string, config?: any | null, parameters: Array<(
     { __typename?: 'PipelineParameter' }
     & { ' $fragmentRefs'?: { 'ParameterField_ParameterFragment': ParameterField_ParameterFragment } }
   )> } & { ' $fragmentName'?: 'PipelineVersionParametersTable_VersionFragment' };
@@ -6720,7 +6720,7 @@ export type PipelinesPickerQuery = { __typename?: 'Query', dags: { __typename?: 
       & { ' $fragmentRefs'?: { 'PipelinesPicker_ValueFragment': PipelinesPicker_ValueFragment } }
     )> } };
 
-export type PipelinesPicker_ValueFragment = { __typename?: 'DAG', id: any, externalId: string } & { ' $fragmentName'?: 'PipelinesPicker_ValueFragment' };
+export type PipelinesPicker_ValueFragment = { __typename?: 'DAG', id: string, externalId: string } & { ' $fragmentName'?: 'PipelinesPicker_ValueFragment' };
 
 export type CreatePipelineTemplateVersionMutationVariables = Exact<{
   input: CreatePipelineTemplateVersionInput;
@@ -6729,17 +6729,17 @@ export type CreatePipelineTemplateVersionMutationVariables = Exact<{
 
 export type CreatePipelineTemplateVersionMutation = { __typename?: 'Mutation', createPipelineTemplateVersion: { __typename?: 'CreatePipelineTemplateVersionResult', success: boolean, errors?: Array<CreatePipelineTemplateVersionError> | null, pipelineTemplate?: { __typename?: 'PipelineTemplate', name: string, code: string } | null } };
 
-export type PipelinePublish_PipelineFragment = { __typename?: 'Pipeline', id: any, name?: string | null, description?: string | null, currentVersion?: { __typename?: 'PipelineVersion', id: any, versionName: string } | null, template?: { __typename?: 'PipelineTemplate', id: any, name: string } | null } & { ' $fragmentName'?: 'PipelinePublish_PipelineFragment' };
+export type PipelinePublish_PipelineFragment = { __typename?: 'Pipeline', id: string, name?: string | null, description?: string | null, currentVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string } | null, template?: { __typename?: 'PipelineTemplate', id: string, name: string } | null } & { ' $fragmentName'?: 'PipelinePublish_PipelineFragment' };
 
 export type PipelinePublish_WorkspaceFragment = { __typename?: 'Workspace', slug: string } & { ' $fragmentName'?: 'PipelinePublish_WorkspaceFragment' };
 
-export type RunLogs_DagRunFragment = { __typename?: 'DAGRun', id: any, logs?: string | null, status: DagRunStatus } & { ' $fragmentName'?: 'RunLogs_DagRunFragment' };
+export type RunLogs_DagRunFragment = { __typename?: 'DAGRun', id: string, logs?: string | null, status: DagRunStatus } & { ' $fragmentName'?: 'RunLogs_DagRunFragment' };
 
-export type RunLogs_RunFragment = { __typename?: 'PipelineRun', id: any, logs?: string | null, status: PipelineRunStatus } & { ' $fragmentName'?: 'RunLogs_RunFragment' };
+export type RunLogs_RunFragment = { __typename?: 'PipelineRun', id: string, logs?: string | null, status: PipelineRunStatus } & { ' $fragmentName'?: 'RunLogs_RunFragment' };
 
-export type RunMessages_DagRunFragment = { __typename?: 'DAGRun', id: any, status: DagRunStatus, messages: Array<{ __typename?: 'DAGRunMessage', message: string, timestamp?: any | null, priority: string }> } & { ' $fragmentName'?: 'RunMessages_DagRunFragment' };
+export type RunMessages_DagRunFragment = { __typename?: 'DAGRun', id: string, status: DagRunStatus, messages: Array<{ __typename?: 'DAGRunMessage', message: string, timestamp?: any | null, priority: string }> } & { ' $fragmentName'?: 'RunMessages_DagRunFragment' };
 
-export type RunMessages_RunFragment = { __typename?: 'PipelineRun', id: any, status: PipelineRunStatus, messages: Array<{ __typename?: 'PipelineRunMessage', message: string, timestamp?: any | null, priority: MessagePriority }> } & { ' $fragmentName'?: 'RunMessages_RunFragment' };
+export type RunMessages_RunFragment = { __typename?: 'PipelineRun', id: string, status: PipelineRunStatus, messages: Array<{ __typename?: 'PipelineRunMessage', message: string, timestamp?: any | null, priority: MessagePriority }> } & { ' $fragmentName'?: 'RunMessages_RunFragment' };
 
 export type UpdateTemplateVersionMutationVariables = Exact<{
   input: UpdateTemplateVersionInput;
@@ -6752,7 +6752,7 @@ export type UpdateTemplateVersionMutation = { __typename?: 'Mutation', updateTem
     ) | null } };
 
 export type TemplateVersionCard_VersionFragment = (
-  { __typename?: 'PipelineTemplateVersion', id: any, versionNumber: number, changelog?: string | null, createdAt: any, isLatestVersion: boolean, user?: { __typename?: 'User', displayName: string } | null, permissions: { __typename?: 'PipelineTemplateVersionPermissions', update: boolean }, template: { __typename?: 'PipelineTemplate', id: any, code: string } }
+  { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, changelog?: string | null, createdAt: any, isLatestVersion: boolean, user?: { __typename?: 'User', displayName: string } | null, permissions: { __typename?: 'PipelineTemplateVersionPermissions', update: boolean }, template: { __typename?: 'PipelineTemplate', id: string, code: string } }
   & { ' $fragmentRefs'?: { 'DeleteTemplateVersionTrigger_VersionFragment': DeleteTemplateVersionTrigger_VersionFragment } }
 ) & { ' $fragmentName'?: 'TemplateVersionCard_VersionFragment' };
 
@@ -6763,7 +6763,7 @@ export type UpgradePipelineVersionFromTemplateMutationVariables = Exact<{
 
 export type UpgradePipelineVersionFromTemplateMutation = { __typename?: 'Mutation', upgradePipelineVersionFromTemplate: { __typename?: 'UpgradePipelineVersionFromTemplateResult', success: boolean, errors: Array<UpgradePipelineVersionFromTemplateError> } };
 
-export type UpgradePipelineFromTemplateDialog_PipelineFragment = { __typename?: 'Pipeline', id: any, code: string, newTemplateVersions: Array<{ __typename?: 'PipelineTemplateVersion', id: any, versionNumber: number, changelog?: string | null, createdAt: any }> } & { ' $fragmentName'?: 'UpgradePipelineFromTemplateDialog_PipelineFragment' };
+export type UpgradePipelineFromTemplateDialog_PipelineFragment = { __typename?: 'Pipeline', id: string, code: string, newTemplateVersions: Array<{ __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, changelog?: string | null, createdAt: any }> } & { ' $fragmentName'?: 'UpgradePipelineFromTemplateDialog_PipelineFragment' };
 
 export type PipelineRunPollerQueryVariables = Exact<{
   runId: Scalars['UUID']['input'];
@@ -6780,14 +6780,14 @@ export type RunPipelineMutationVariables = Exact<{
 }>;
 
 
-export type RunPipelineMutation = { __typename?: 'Mutation', runDAG: { __typename?: 'RunDAGResult', success: boolean, errors: Array<RunDagError>, dag?: { __typename?: 'DAG', id: any } | null, dagRun?: { __typename?: 'DAGRun', id: any, externalUrl?: any | null, externalId?: string | null } | null } };
+export type RunPipelineMutation = { __typename?: 'Mutation', runDAG: { __typename?: 'RunDAGResult', success: boolean, errors: Array<RunDagError>, dag?: { __typename?: 'DAG', id: string } | null, dagRun?: { __typename?: 'DAGRun', id: string, externalUrl?: any | null, externalId?: string | null } | null } };
 
 export type GetPipelineVersionQueryVariables = Exact<{
   versionId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetPipelineVersionQuery = { __typename?: 'Query', pipelineVersion?: { __typename?: 'PipelineVersion', id: any, versionName: string, zipfile: string, pipeline: { __typename?: 'Pipeline', code: string } } | null };
+export type GetPipelineVersionQuery = { __typename?: 'Query', pipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, zipfile: string, pipeline: { __typename?: 'Pipeline', code: string } } | null };
 
 export type GetPipelineRunQueryVariables = Exact<{
   runId: Scalars['UUID']['input'];
@@ -6803,7 +6803,7 @@ export type GetRunOutputDownloadUrlMutationVariables = Exact<{
 
 export type GetRunOutputDownloadUrlMutation = { __typename?: 'Mutation', prepareDownloadURL?: { __typename?: 'PrepareDownloadURLResult', success: boolean, url?: any | null } | null };
 
-export type UsePipelineRunPoller_RunFragment = { __typename?: 'PipelineRun', id: any, status: PipelineRunStatus } & { ' $fragmentName'?: 'UsePipelineRunPoller_RunFragment' };
+export type UsePipelineRunPoller_RunFragment = { __typename?: 'PipelineRun', id: string, status: PipelineRunStatus } & { ' $fragmentName'?: 'UsePipelineRunPoller_RunFragment' };
 
 export type RemoveFromFavoritesMutationVariables = Exact<{
   input: RemoveFromFavoritesInput;
@@ -6819,9 +6819,9 @@ export type AddToFavoritesMutationVariables = Exact<{
 
 export type AddToFavoritesMutation = { __typename?: 'Mutation', addToFavorites: { __typename?: 'AddToFavoritesResult', success: boolean, errors: Array<AddToFavoritesError> } };
 
-export type FavoriteWebappButton_WebappFragment = { __typename?: 'Webapp', id: any, isFavorite: boolean } & { ' $fragmentName'?: 'FavoriteWebappButton_WebappFragment' };
+export type FavoriteWebappButton_WebappFragment = { __typename?: 'Webapp', id: string, isFavorite: boolean } & { ' $fragmentName'?: 'FavoriteWebappButton_WebappFragment' };
 
-export type WebappCard_WebappFragment = { __typename?: 'Webapp', id: any, icon?: string | null, name: string, workspace: { __typename?: 'Workspace', slug: string, name: string } } & { ' $fragmentName'?: 'WebappCard_WebappFragment' };
+export type WebappCard_WebappFragment = { __typename?: 'Webapp', id: string, icon?: string | null, name: string, workspace: { __typename?: 'Workspace', slug: string, name: string } } & { ' $fragmentName'?: 'WebappCard_WebappFragment' };
 
 export type UpdateWebappMutationVariables = Exact<{
   input: UpdateWebappInput;
@@ -6835,9 +6835,9 @@ export type CreateWebappMutationVariables = Exact<{
 }>;
 
 
-export type CreateWebappMutation = { __typename?: 'Mutation', createWebapp: { __typename?: 'CreateWebappResult', success: boolean, errors: Array<CreateWebappError>, webapp?: { __typename?: 'Webapp', id: any } | null } };
+export type CreateWebappMutation = { __typename?: 'Mutation', createWebapp: { __typename?: 'CreateWebappResult', success: boolean, errors: Array<CreateWebappError>, webapp?: { __typename?: 'Webapp', id: string } | null } };
 
-export type WebappForm_WebappFragment = { __typename?: 'Webapp', id: any, name: string, description?: string | null, url: string, icon?: string | null, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } } & { ' $fragmentName'?: 'WebappForm_WebappFragment' };
+export type WebappForm_WebappFragment = { __typename?: 'Webapp', id: string, name: string, description?: string | null, url: string, icon?: string | null, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } } & { ' $fragmentName'?: 'WebappForm_WebappFragment' };
 
 export type WebappForm_WorkspaceFragment = (
   { __typename?: 'Workspace' }
@@ -6992,13 +6992,13 @@ export type DeletePipelineMutationVariables = Exact<{
 
 export type DeletePipelineMutation = { __typename?: 'Mutation', deletePipeline: { __typename?: 'DeletePipelineResult', success: boolean, errors: Array<PipelineError> } };
 
-export type PipelineDelete_PipelineFragment = { __typename?: 'Pipeline', id: any, name?: string | null, code: string } & { ' $fragmentName'?: 'PipelineDelete_PipelineFragment' };
+export type PipelineDelete_PipelineFragment = { __typename?: 'Pipeline', id: string, name?: string | null, code: string } & { ' $fragmentName'?: 'PipelineDelete_PipelineFragment' };
 
 export type PipelineDelete_WorkspaceFragment = { __typename?: 'Workspace', slug: string } & { ' $fragmentName'?: 'PipelineDelete_WorkspaceFragment' };
 
-export type DeletePipelineVersionTrigger_VersionFragment = { __typename?: 'PipelineVersion', id: any, name?: string | null, pipeline: { __typename?: 'Pipeline', id: any }, permissions: { __typename?: 'PipelineVersionPermissions', delete: boolean } } & { ' $fragmentName'?: 'DeletePipelineVersionTrigger_VersionFragment' };
+export type DeletePipelineVersionTrigger_VersionFragment = { __typename?: 'PipelineVersion', id: string, name?: string | null, pipeline: { __typename?: 'Pipeline', id: string }, permissions: { __typename?: 'PipelineVersionPermissions', delete: boolean } } & { ' $fragmentName'?: 'DeletePipelineVersionTrigger_VersionFragment' };
 
-export type DeleteTemplateVersionTrigger_VersionFragment = { __typename?: 'PipelineTemplateVersion', id: any, versionNumber: number, template: { __typename?: 'PipelineTemplate', id: any }, permissions: { __typename?: 'PipelineTemplateVersionPermissions', delete: boolean } } & { ' $fragmentName'?: 'DeleteTemplateVersionTrigger_VersionFragment' };
+export type DeleteTemplateVersionTrigger_VersionFragment = { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, template: { __typename?: 'PipelineTemplate', id: string }, permissions: { __typename?: 'PipelineTemplateVersionPermissions', delete: boolean } } & { ' $fragmentName'?: 'DeleteTemplateVersionTrigger_VersionFragment' };
 
 export type DeleteWebappMutationVariables = Exact<{
   input: DeleteWebappInput;
@@ -7007,7 +7007,7 @@ export type DeleteWebappMutationVariables = Exact<{
 
 export type DeleteWebappMutation = { __typename?: 'Mutation', deleteWebapp: { __typename?: 'DeleteWebappResult', success: boolean, errors: Array<DeleteWebappError> } };
 
-export type WebappDelete_WebappFragment = { __typename?: 'Webapp', id: any, name: string } & { ' $fragmentName'?: 'WebappDelete_WebappFragment' };
+export type WebappDelete_WebappFragment = { __typename?: 'Webapp', id: string, name: string } & { ' $fragmentName'?: 'WebappDelete_WebappFragment' };
 
 export type WebappDelete_WorkspaceFragment = { __typename?: 'Workspace', slug: string } & { ' $fragmentName'?: 'WebappDelete_WorkspaceFragment' };
 
@@ -7041,7 +7041,7 @@ export type UploadPipelineMutationVariables = Exact<{
 
 
 export type UploadPipelineMutation = { __typename?: 'Mutation', uploadPipeline: { __typename?: 'UploadPipelineResult', success: boolean, errors: Array<PipelineError>, details?: string | null, pipelineVersion?: (
-      { __typename?: 'PipelineVersion', id: any, versionNumber: number, versionName: string, isLatestVersion: boolean }
+      { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, isLatestVersion: boolean }
       & { ' $fragmentRefs'?: { 'PipelineVersionPicker_VersionFragment': PipelineVersionPicker_VersionFragment } }
     ) | null } };
 
@@ -7059,21 +7059,21 @@ export type GenerateWebhookPipelineWebhookUrlMutationVariables = Exact<{
 }>;
 
 
-export type GenerateWebhookPipelineWebhookUrlMutation = { __typename?: 'Mutation', generatePipelineWebhookUrl: { __typename?: 'GeneratePipelineWebhookUrlResult', success: boolean, errors: Array<GeneratePipelineWebhookUrlError>, pipeline?: { __typename?: 'Pipeline', id: any, code: string, webhookUrl?: string | null } | null } };
+export type GenerateWebhookPipelineWebhookUrlMutation = { __typename?: 'Mutation', generatePipelineWebhookUrl: { __typename?: 'GeneratePipelineWebhookUrlResult', success: boolean, errors: Array<GeneratePipelineWebhookUrlError>, pipeline?: { __typename?: 'Pipeline', id: string, code: string, webhookUrl?: string | null } | null } };
 
-export type GeneratePipelineWebhookUrlDialog_PipelineFragment = { __typename?: 'Pipeline', id: any, code: string } & { ' $fragmentName'?: 'GeneratePipelineWebhookUrlDialog_PipelineFragment' };
+export type GeneratePipelineWebhookUrlDialog_PipelineFragment = { __typename?: 'Pipeline', id: string, code: string } & { ' $fragmentName'?: 'GeneratePipelineWebhookUrlDialog_PipelineFragment' };
 
 export type InviteWorkspaceMemberMutationVariables = Exact<{
   input: InviteWorkspaceMemberInput;
 }>;
 
 
-export type InviteWorkspaceMemberMutation = { __typename?: 'Mutation', inviteWorkspaceMember: { __typename?: 'InviteWorkspaceMemberResult', success: boolean, errors: Array<InviteWorkspaceMembershipError>, workspaceMembership?: { __typename?: 'WorkspaceMembership', id: any } | null } };
+export type InviteWorkspaceMemberMutation = { __typename?: 'Mutation', inviteWorkspaceMember: { __typename?: 'InviteWorkspaceMemberResult', success: boolean, errors: Array<InviteWorkspaceMembershipError>, workspaceMembership?: { __typename?: 'WorkspaceMembership', id: string } | null } };
 
 export type InviteMemberWorkspace_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string } & { ' $fragmentName'?: 'InviteMemberWorkspace_WorkspaceFragment' };
 
 export type PipelineCard_PipelineFragment = (
-  { __typename?: 'Pipeline', id: any, code: string, name?: string | null, schedule?: string | null, description?: string | null, type: PipelineType, sourceTemplate?: { __typename?: 'PipelineTemplate', id: any, name: string } | null, currentVersion?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: (
+  { __typename?: 'Pipeline', id: string, code: string, name?: string | null, schedule?: string | null, description?: string | null, type: PipelineType, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, name: string } | null, currentVersion?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: (
       { __typename?: 'User' }
       & { ' $fragmentRefs'?: { 'User_UserFragment': User_UserFragment } }
     ) | null } | null, lastRuns: { __typename?: 'PipelineRunPage', items: Array<(
@@ -7088,7 +7088,7 @@ export type PipelineCard_PipelineFragment = (
 
 export type PipelineCard_WorkspaceFragment = { __typename?: 'Workspace', slug: string } & { ' $fragmentName'?: 'PipelineCard_WorkspaceFragment' };
 
-export type DeletePipelineRecipientTrigger_RecipientFragment = { __typename?: 'PipelineRecipient', id: any, user: { __typename?: 'User', displayName: string } } & { ' $fragmentName'?: 'DeletePipelineRecipientTrigger_RecipientFragment' };
+export type DeletePipelineRecipientTrigger_RecipientFragment = { __typename?: 'PipelineRecipient', id: string, user: { __typename?: 'User', displayName: string } } & { ' $fragmentName'?: 'DeletePipelineRecipientTrigger_RecipientFragment' };
 
 export type DeletePipelineRecipientTrigger_PipelineFragment = { __typename?: 'Pipeline', permissions: { __typename?: 'PipelinePermissions', update: boolean } } & { ' $fragmentName'?: 'DeletePipelineRecipientTrigger_PipelineFragment' };
 
@@ -7099,22 +7099,22 @@ export type PipelineRecipientsQueryVariables = Exact<{
 
 export type PipelineRecipientsQuery = { __typename?: 'Query', pipeline?: (
     { __typename?: 'Pipeline', recipients: Array<(
-      { __typename?: 'PipelineRecipient', id: any, notificationLevel: PipelineNotificationLevel, user: { __typename?: 'User', id: any, displayName: string } }
+      { __typename?: 'PipelineRecipient', id: string, notificationLevel: PipelineNotificationLevel, user: { __typename?: 'User', id: string, displayName: string } }
       & { ' $fragmentRefs'?: { 'DeletePipelineRecipientTrigger_RecipientFragment': DeletePipelineRecipientTrigger_RecipientFragment } }
     )>, workspace: { __typename?: 'Workspace', slug: string, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number } } }
     & { ' $fragmentRefs'?: { 'DeletePipelineRecipientTrigger_PipelineFragment': DeletePipelineRecipientTrigger_PipelineFragment } }
   ) | null };
 
-export type PipelineRecipients_PipelineFragment = { __typename?: 'Pipeline', id: any, code: string, permissions: { __typename?: 'PipelinePermissions', update: boolean } } & { ' $fragmentName'?: 'PipelineRecipients_PipelineFragment' };
+export type PipelineRecipients_PipelineFragment = { __typename?: 'Pipeline', id: string, code: string, permissions: { __typename?: 'PipelinePermissions', update: boolean } } & { ' $fragmentName'?: 'PipelineRecipients_PipelineFragment' };
 
 export type UpdatePipelineVersionConfigMutationVariables = Exact<{
   input: UpdatePipelineVersionInput;
 }>;
 
 
-export type UpdatePipelineVersionConfigMutation = { __typename?: 'Mutation', updatePipelineVersion: { __typename?: 'UpdatePipelineVersionResult', success: boolean, errors: Array<UpdatePipelineVersionError>, pipelineVersion?: { __typename?: 'PipelineVersion', id: any, config?: any | null } | null } };
+export type UpdatePipelineVersionConfigMutation = { __typename?: 'Mutation', updatePipelineVersion: { __typename?: 'UpdatePipelineVersionResult', success: boolean, errors: Array<UpdatePipelineVersionError>, pipelineVersion?: { __typename?: 'PipelineVersion', id: string, config?: any | null } | null } };
 
-export type PipelineVersionConfigDialog_VersionFragment = { __typename?: 'PipelineVersion', id: any, name?: string | null, description?: string | null, externalLink?: any | null, isLatestVersion: boolean, createdAt: any, config?: any | null, pipeline: { __typename?: 'Pipeline', id: any, schedule?: string | null, workspace: { __typename?: 'Workspace', slug: string } }, parameters: Array<(
+export type PipelineVersionConfigDialog_VersionFragment = { __typename?: 'PipelineVersion', id: string, name?: string | null, description?: string | null, externalLink?: any | null, isLatestVersion: boolean, createdAt: any, config?: any | null, pipeline: { __typename?: 'Pipeline', id: string, schedule?: string | null, workspace: { __typename?: 'Workspace', slug: string } }, parameters: Array<(
     { __typename?: 'PipelineParameter' }
     & { ' $fragmentRefs'?: { 'ParameterField_ParameterFragment': ParameterField_ParameterFragment } }
   )> } & { ' $fragmentName'?: 'PipelineVersionConfigDialog_VersionFragment' };
@@ -7131,9 +7131,9 @@ export type PipelineVersionPickerQuery = { __typename?: 'Query', pipeline?: { __
         & { ' $fragmentRefs'?: { 'PipelineVersionPicker_VersionFragment': PipelineVersionPicker_VersionFragment } }
       )> } } | null };
 
-export type PipelineVersionPicker_PipelineFragment = { __typename?: 'Pipeline', id: any } & { ' $fragmentName'?: 'PipelineVersionPicker_PipelineFragment' };
+export type PipelineVersionPicker_PipelineFragment = { __typename?: 'Pipeline', id: string } & { ' $fragmentName'?: 'PipelineVersionPicker_PipelineFragment' };
 
-export type PipelineVersionPicker_VersionFragment = { __typename?: 'PipelineVersion', id: any, versionName: string, createdAt: any, config?: any | null, parameters: Array<(
+export type PipelineVersionPicker_VersionFragment = { __typename?: 'PipelineVersion', id: string, versionName: string, createdAt: any, config?: any | null, parameters: Array<(
     { __typename?: 'PipelineParameter' }
     & { ' $fragmentRefs'?: { 'ParameterField_ParameterFragment': ParameterField_ParameterFragment } }
   )>, user?: { __typename?: 'User', displayName: string } | null } & { ' $fragmentName'?: 'PipelineVersionPicker_VersionFragment' };
@@ -7143,7 +7143,7 @@ export type RunOutputsTable_WorkspaceFragment = (
   & { ' $fragmentRefs'?: { 'DownloadBucketObject_WorkspaceFragment': DownloadBucketObject_WorkspaceFragment } }
 ) & { ' $fragmentName'?: 'RunOutputsTable_WorkspaceFragment' };
 
-export type RunOutputsTable_RunFragment = { __typename?: 'PipelineRun', id: any, outputs: Array<{ __typename: 'BucketObject', name: string, key: string, path: string, type: BucketObjectType } | { __typename: 'DatabaseTable', tableName: string } | { __typename: 'GenericOutput', genericName?: string | null, genericType: string, genericUri: string }>, datasetVersions: Array<{ __typename?: 'DatasetVersion', name: string, dataset: { __typename?: 'Dataset', slug: string, name: string, workspace?: { __typename?: 'Workspace', slug: string } | null } }> } & { ' $fragmentName'?: 'RunOutputsTable_RunFragment' };
+export type RunOutputsTable_RunFragment = { __typename?: 'PipelineRun', id: string, outputs: Array<{ __typename: 'BucketObject', name: string, key: string, path: string, type: BucketObjectType } | { __typename: 'DatabaseTable', tableName: string } | { __typename: 'GenericOutput', genericName?: string | null, genericType: string, genericUri: string }>, datasetVersions: Array<{ __typename?: 'DatasetVersion', name: string, dataset: { __typename?: 'Dataset', slug: string, name: string, workspace?: { __typename?: 'Workspace', slug: string } | null } }> } & { ' $fragmentName'?: 'RunOutputsTable_RunFragment' };
 
 export type GetConnectionBySlugDhis2QueryVariables = Exact<{
   workspaceSlug: Scalars['String']['input'];
@@ -7172,7 +7172,7 @@ export type GetConnectionBySlugIasoQuery = { __typename?: 'Query', connectionByS
 
 export type ParameterField_ParameterFragment = { __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: ParameterWidget | null, multiple: boolean, directory?: string | null } & { ' $fragmentName'?: 'ParameterField_ParameterFragment' };
 
-export type RunPipelineDialog_VersionFragment = { __typename?: 'PipelineVersion', id: any, versionName: string, createdAt: any, config?: any | null, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<(
+export type RunPipelineDialog_VersionFragment = { __typename?: 'PipelineVersion', id: string, versionName: string, createdAt: any, config?: any | null, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<(
     { __typename?: 'PipelineParameter' }
     & { ' $fragmentRefs'?: { 'ParameterField_ParameterFragment': ParameterField_ParameterFragment } }
   )> } & { ' $fragmentName'?: 'RunPipelineDialog_VersionFragment' };
@@ -7183,17 +7183,17 @@ export type PipelineCurrentVersionQueryVariables = Exact<{
 }>;
 
 
-export type PipelineCurrentVersionQuery = { __typename?: 'Query', pipelineByCode?: { __typename?: 'Pipeline', currentVersion?: { __typename?: 'PipelineVersion', id: any, versionName: string, createdAt: any, config?: any | null, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<(
+export type PipelineCurrentVersionQuery = { __typename?: 'Query', pipelineByCode?: { __typename?: 'Pipeline', currentVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, createdAt: any, config?: any | null, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<(
         { __typename?: 'PipelineParameter' }
         & { ' $fragmentRefs'?: { 'ParameterField_ParameterFragment': ParameterField_ParameterFragment } }
       )> } | null } | null };
 
 export type RunPipelineDialog_PipelineFragment = (
-  { __typename?: 'Pipeline', id: any, code: string, type: PipelineType, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'PipelinePermissions', run: boolean }, currentVersion?: { __typename?: 'PipelineVersion', id: any } | null }
+  { __typename?: 'Pipeline', id: string, code: string, type: PipelineType, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'PipelinePermissions', run: boolean }, currentVersion?: { __typename?: 'PipelineVersion', id: string } | null }
   & { ' $fragmentRefs'?: { 'PipelineVersionPicker_PipelineFragment': PipelineVersionPicker_PipelineFragment } }
 ) & { ' $fragmentName'?: 'RunPipelineDialog_PipelineFragment' };
 
-export type RunPipelineDialog_RunFragment = { __typename?: 'PipelineRun', id: any, config: any, version?: { __typename?: 'PipelineVersion', id: any, versionName: string, createdAt: any, parameters: Array<(
+export type RunPipelineDialog_RunFragment = { __typename?: 'PipelineRun', id: string, config: any, version?: { __typename?: 'PipelineVersion', id: string, versionName: string, createdAt: any, parameters: Array<(
       { __typename?: 'PipelineParameter' }
       & { ' $fragmentRefs'?: { 'ParameterField_ParameterFragment': ParameterField_ParameterFragment } }
     )>, user?: { __typename?: 'User', displayName: string } | null } | null } & { ' $fragmentName'?: 'RunPipelineDialog_RunFragment' };
@@ -7206,7 +7206,7 @@ export type SidebarMenuQueryVariables = Exact<{
 
 export type SidebarMenuQuery = { __typename?: 'Query', pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number }, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string, flag: string }> }> } };
 
-export type SidebarMenu_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: any, name: string, shortName?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean } } | null } & { ' $fragmentName'?: 'SidebarMenu_WorkspaceFragment' };
+export type SidebarMenu_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean } } | null } & { ' $fragmentName'?: 'SidebarMenu_WorkspaceFragment' };
 
 export type StopPipelineMutationVariables = Exact<{
   input: StopPipelineInput;
@@ -7215,12 +7215,12 @@ export type StopPipelineMutationVariables = Exact<{
 
 export type StopPipelineMutation = { __typename?: 'Mutation', stopPipeline: { __typename?: 'StopPipelineResult', success: boolean, errors: Array<PipelineError> } };
 
-export type StopPipelineDialog_RunFragment = { __typename?: 'PipelineRun', id: any } & { ' $fragmentName'?: 'StopPipelineDialog_RunFragment' };
+export type StopPipelineDialog_RunFragment = { __typename?: 'PipelineRun', id: string } & { ' $fragmentName'?: 'StopPipelineDialog_RunFragment' };
 
 export type StopPipelineDialog_PipelineFragment = { __typename?: 'Pipeline', code: string } & { ' $fragmentName'?: 'StopPipelineDialog_PipelineFragment' };
 
 export type TemplateCard_TemplateFragment = (
-  { __typename?: 'PipelineTemplate', id: any, code: string, name: string, description?: string | null, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: any, createdAt: any, user?: (
+  { __typename?: 'PipelineTemplate', id: string, code: string, name: string, description?: string | null, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string, createdAt: any, user?: (
       { __typename?: 'User' }
       & { ' $fragmentRefs'?: { 'User_UserFragment': User_UserFragment } }
     ) | null } | null }
@@ -7281,7 +7281,7 @@ export type DeleteWorkspaceInvitationMutationVariables = Exact<{
 
 export type DeleteWorkspaceInvitationMutation = { __typename?: 'Mutation', deleteWorkspaceInvitation: { __typename?: 'DeleteWorkspaceInvitationResult', success: boolean, errors: Array<DeleteWorkspaceInvitationError> } };
 
-export type DeleteWorkspaceInvitation_WorkspaceInvitationFragment = { __typename?: 'WorkspaceInvitation', id: any, email: string } & { ' $fragmentName'?: 'DeleteWorkspaceInvitation_WorkspaceInvitationFragment' };
+export type DeleteWorkspaceInvitation_WorkspaceInvitationFragment = { __typename?: 'WorkspaceInvitation', id: string, email: string } & { ' $fragmentName'?: 'DeleteWorkspaceInvitation_WorkspaceInvitationFragment' };
 
 export type ResendWorkspaceInvitationMutationVariables = Exact<{
   input: ResendWorkspaceInvitationInput;
@@ -7290,7 +7290,7 @@ export type ResendWorkspaceInvitationMutationVariables = Exact<{
 
 export type ResendWorkspaceInvitationMutation = { __typename?: 'Mutation', resendWorkspaceInvitation: { __typename?: 'ResendWorkspaceInvitationResult', success: boolean, errors: Array<ResendWorkspaceInvitationError> } };
 
-export type ResendWorkspaceInvitation_WorkspaceInvitationFragment = { __typename?: 'WorkspaceInvitation', id: any, email: string } & { ' $fragmentName'?: 'ResendWorkspaceInvitation_WorkspaceInvitationFragment' };
+export type ResendWorkspaceInvitation_WorkspaceInvitationFragment = { __typename?: 'WorkspaceInvitation', id: string, email: string } & { ' $fragmentName'?: 'ResendWorkspaceInvitation_WorkspaceInvitationFragment' };
 
 export type WorkspaceInvitationsQueryVariables = Exact<{
   slug: Scalars['String']['input'];
@@ -7299,7 +7299,7 @@ export type WorkspaceInvitationsQueryVariables = Exact<{
 }>;
 
 
-export type WorkspaceInvitationsQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, invitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: any, role: WorkspaceMembershipRole, email: string, status: WorkspaceInvitationStatus, createdAt: any, invitedBy?: { __typename?: 'User', displayName: string } | null }> } } | null };
+export type WorkspaceInvitationsQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, invitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, role: WorkspaceMembershipRole, email: string, status: WorkspaceInvitationStatus, createdAt: any, invitedBy?: { __typename?: 'User', displayName: string } | null }> } } | null };
 
 export type WorkspaceMemberPickerQueryVariables = Exact<{
   slug: Scalars['String']['input'];
@@ -7311,7 +7311,7 @@ export type WorkspaceMemberPickerQuery = { __typename?: 'Query', workspace?: (
     & { ' $fragmentRefs'?: { 'WorkspaceMemberPicker_WorkspaceFragment': WorkspaceMemberPicker_WorkspaceFragment } }
   ) | null };
 
-export type WorkspaceMemberPicker_WorkspaceFragment = { __typename?: 'Workspace', slug: string, members: { __typename?: 'WorkspaceMembershipPage', items: Array<{ __typename?: 'WorkspaceMembership', id: any, user: { __typename?: 'User', id: any, displayName: string } }> } } & { ' $fragmentName'?: 'WorkspaceMemberPicker_WorkspaceFragment' };
+export type WorkspaceMemberPicker_WorkspaceFragment = { __typename?: 'Workspace', slug: string, members: { __typename?: 'WorkspaceMembershipPage', items: Array<{ __typename?: 'WorkspaceMembership', id: string, user: { __typename?: 'User', id: string, displayName: string } }> } } & { ' $fragmentName'?: 'WorkspaceMemberPicker_WorkspaceFragment' };
 
 export type DeleteWorkspaceMemberMutationVariables = Exact<{
   input: DeleteWorkspaceMemberInput;
@@ -7320,16 +7320,16 @@ export type DeleteWorkspaceMemberMutationVariables = Exact<{
 
 export type DeleteWorkspaceMemberMutation = { __typename?: 'Mutation', deleteWorkspaceMember: { __typename?: 'DeleteWorkspaceMemberResult', success: boolean, errors: Array<DeleteWorkspaceMemberError> } };
 
-export type DeleteWorkspaceMember_WorkspaceMemberFragment = { __typename?: 'WorkspaceMembership', id: any, user: { __typename?: 'User', id: any, displayName: string }, organizationMembership?: { __typename?: 'OrganizationMembership', role: OrganizationMembershipRole } | null } & { ' $fragmentName'?: 'DeleteWorkspaceMember_WorkspaceMemberFragment' };
+export type DeleteWorkspaceMember_WorkspaceMemberFragment = { __typename?: 'WorkspaceMembership', id: string, user: { __typename?: 'User', id: string, displayName: string }, organizationMembership?: { __typename?: 'OrganizationMembership', role: OrganizationMembershipRole } | null } & { ' $fragmentName'?: 'DeleteWorkspaceMember_WorkspaceMemberFragment' };
 
 export type UpdateWorkspaceMemberMutationVariables = Exact<{
   input: UpdateWorkspaceMemberInput;
 }>;
 
 
-export type UpdateWorkspaceMemberMutation = { __typename?: 'Mutation', updateWorkspaceMember: { __typename?: 'UpdateWorkspaceMemberResult', success: boolean, errors: Array<UpdateWorkspaceMemberError>, workspaceMembership?: { __typename?: 'WorkspaceMembership', id: any, role: WorkspaceMembershipRole } | null } };
+export type UpdateWorkspaceMemberMutation = { __typename?: 'Mutation', updateWorkspaceMember: { __typename?: 'UpdateWorkspaceMemberResult', success: boolean, errors: Array<UpdateWorkspaceMemberError>, workspaceMembership?: { __typename?: 'WorkspaceMembership', id: string, role: WorkspaceMembershipRole } | null } };
 
-export type UpdateWorkspaceMember_WorkspaceMemberFragment = { __typename?: 'WorkspaceMembership', id: any, role: WorkspaceMembershipRole } & { ' $fragmentName'?: 'UpdateWorkspaceMember_WorkspaceMemberFragment' };
+export type UpdateWorkspaceMember_WorkspaceMemberFragment = { __typename?: 'WorkspaceMembership', id: string, role: WorkspaceMembershipRole } & { ' $fragmentName'?: 'UpdateWorkspaceMember_WorkspaceMemberFragment' };
 
 export type WorskspaceMembersQueryVariables = Exact<{
   slug: Scalars['String']['input'];
@@ -7338,7 +7338,7 @@ export type WorskspaceMembersQueryVariables = Exact<{
 }>;
 
 
-export type WorskspaceMembersQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceMembership', id: any, role: WorkspaceMembershipRole, createdAt: any, user: { __typename?: 'User', id: any, displayName: string, email: string }, organizationMembership?: { __typename?: 'OrganizationMembership', role: OrganizationMembershipRole } | null }> } } | null };
+export type WorskspaceMembersQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceMembership', id: string, role: WorkspaceMembershipRole, createdAt: any, user: { __typename?: 'User', id: string, displayName: string, email: string }, organizationMembership?: { __typename?: 'OrganizationMembership', role: OrganizationMembershipRole } | null }> } } | null };
 
 export type WorkspacePickerQueryVariables = Exact<{
   query?: InputMaybe<Scalars['String']['input']>;
@@ -7416,7 +7416,7 @@ export type GetTemplateVersionForDownloadQueryVariables = Exact<{
 }>;
 
 
-export type GetTemplateVersionForDownloadQuery = { __typename?: 'Query', pipelineTemplateVersion?: { __typename?: 'PipelineTemplateVersion', id: any, versionNumber: number, template: { __typename?: 'PipelineTemplate', code: string }, sourcePipelineVersion: { __typename?: 'PipelineVersion', zipfile: string } } | null };
+export type GetTemplateVersionForDownloadQuery = { __typename?: 'Query', pipelineTemplateVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, template: { __typename?: 'PipelineTemplate', code: string }, sourcePipelineVersion: { __typename?: 'PipelineVersion', zipfile: string } } | null };
 
 export type GetFileDownloadUrlMutationVariables = Exact<{
   input: PrepareObjectDownloadInput;
@@ -7472,19 +7472,19 @@ export type UpdateWorkspacePipelineMutationVariables = Exact<{
 }>;
 
 
-export type UpdateWorkspacePipelineMutation = { __typename?: 'Mutation', updatePipeline: { __typename?: 'UpdatePipelineResult', success: boolean, errors: Array<UpdatePipelineError>, pipeline?: { __typename?: 'Pipeline', id: any, name?: string | null, description?: string | null, schedule?: string | null, config: any, functionalType?: PipelineFunctionalType | null, updatedAt?: any | null, webhookEnabled: boolean, webhookUrl?: string | null, autoUpdateFromTemplate: boolean, tags: Array<(
+export type UpdateWorkspacePipelineMutation = { __typename?: 'Mutation', updatePipeline: { __typename?: 'UpdatePipelineResult', success: boolean, errors: Array<UpdatePipelineError>, pipeline?: { __typename?: 'Pipeline', id: string, name?: string | null, description?: string | null, schedule?: string | null, config: any, functionalType?: PipelineFunctionalType | null, updatedAt?: any | null, webhookEnabled: boolean, webhookUrl?: string | null, autoUpdateFromTemplate: boolean, tags: Array<(
         { __typename?: 'Tag' }
         & { ' $fragmentRefs'?: { 'Tag_TagFragment': Tag_TagFragment } }
-      )>, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: any, displayName: string } }> } | null } };
+      )>, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: string, displayName: string } }> } | null } };
 
 export type RunWorkspacePipelineMutationVariables = Exact<{
   input: RunPipelineInput;
 }>;
 
 
-export type RunWorkspacePipelineMutation = { __typename?: 'Mutation', runPipeline: { __typename?: 'RunPipelineResult', success: boolean, errors: Array<PipelineError>, run?: { __typename?: 'PipelineRun', id: any, pipeline: { __typename: 'Pipeline', id: any } } | null } };
+export type RunWorkspacePipelineMutation = { __typename?: 'Mutation', runPipeline: { __typename?: 'RunPipelineResult', success: boolean, errors: Array<PipelineError>, run?: { __typename?: 'PipelineRun', id: string, pipeline: { __typename: 'Pipeline', id: string } } | null } };
 
-export type NewRunFragment = { __typename?: 'PipelineRun', id: any } & { ' $fragmentName'?: 'NewRunFragment' };
+export type NewRunFragment = { __typename?: 'PipelineRun', id: string } & { ' $fragmentName'?: 'NewRunFragment' };
 
 export type DeletePipelineVersionMutationVariables = Exact<{
   input: DeletePipelineVersionInput;
@@ -7498,7 +7498,7 @@ export type UpdatePipelineRecipientMutationVariables = Exact<{
 }>;
 
 
-export type UpdatePipelineRecipientMutation = { __typename?: 'Mutation', updatePipelineRecipient: { __typename?: 'UpdatePipelineRecipientResult', success: boolean, errors: Array<PipelineRecipientError>, recipient?: { __typename?: 'PipelineRecipient', id: any, notificationLevel: PipelineNotificationLevel } | null } };
+export type UpdatePipelineRecipientMutation = { __typename?: 'Mutation', updatePipelineRecipient: { __typename?: 'UpdatePipelineRecipientResult', success: boolean, errors: Array<PipelineRecipientError>, recipient?: { __typename?: 'PipelineRecipient', id: string, notificationLevel: PipelineNotificationLevel } | null } };
 
 export type DeletePipelineRecipientMutationVariables = Exact<{
   input: DeletePipelineRecipientInput;
@@ -7512,7 +7512,7 @@ export type UpdateWorkspaceTemplateMutationVariables = Exact<{
 }>;
 
 
-export type UpdateWorkspaceTemplateMutation = { __typename?: 'Mutation', updatePipelineTemplate: { __typename?: 'UpdateTemplateResult', success: boolean, errors: Array<UpdateTemplateError>, template?: { __typename?: 'PipelineTemplate', id: any, name: string, description?: string | null, config?: string | null, functionalType?: PipelineFunctionalType | null, tags: Array<(
+export type UpdateWorkspaceTemplateMutation = { __typename?: 'Mutation', updatePipelineTemplate: { __typename?: 'UpdateTemplateResult', success: boolean, errors: Array<UpdateTemplateError>, template?: { __typename?: 'PipelineTemplate', id: string, name: string, description?: string | null, config?: string | null, functionalType?: PipelineFunctionalType | null, tags: Array<(
         { __typename?: 'Tag' }
         & { ' $fragmentRefs'?: { 'Tag_TagFragment': Tag_TagFragment } }
       )> } | null } };
@@ -7530,8 +7530,8 @@ export type PipelineLayout_WorkspaceFragment = (
 ) & { ' $fragmentName'?: 'PipelineLayout_WorkspaceFragment' };
 
 export type PipelineLayout_PipelineFragment = (
-  { __typename?: 'Pipeline', id: any, code: string, name?: string | null, permissions: { __typename?: 'PipelinePermissions', run: boolean, delete: boolean, update: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<CreateTemplateVersionPermissionReason> } }, template?: { __typename?: 'PipelineTemplate', id: any, name: string, code: string } | null, currentVersion?: (
-    { __typename?: 'PipelineVersion', id: any, name?: string | null, description?: string | null, config?: any | null, externalLink?: any | null, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: any } | null }
+  { __typename?: 'Pipeline', id: string, code: string, name?: string | null, permissions: { __typename?: 'PipelinePermissions', run: boolean, delete: boolean, update: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<CreateTemplateVersionPermissionReason> } }, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null, currentVersion?: (
+    { __typename?: 'PipelineVersion', id: string, name?: string | null, description?: string | null, config?: any | null, externalLink?: any | null, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null }
     & { ' $fragmentRefs'?: { 'PipelineVersionPicker_VersionFragment': PipelineVersionPicker_VersionFragment;'DownloadPipelineVersion_VersionFragment': DownloadPipelineVersion_VersionFragment } }
   ) | null }
   & { ' $fragmentRefs'?: { 'RunPipelineDialog_PipelineFragment': RunPipelineDialog_PipelineFragment } }
@@ -7547,8 +7547,8 @@ export type TemplateLayout_WorkspaceFragment = (
   & { ' $fragmentRefs'?: { 'TabLayout_WorkspaceFragment': TabLayout_WorkspaceFragment } }
 ) & { ' $fragmentName'?: 'TemplateLayout_WorkspaceFragment' };
 
-export type TemplateLayout_TemplateFragment = { __typename?: 'PipelineTemplate', id: any, code: string, name: string, permissions: { __typename?: 'PipelineTemplatePermissions', delete: boolean, update: boolean }, currentVersion?: (
-    { __typename?: 'PipelineTemplateVersion', id: any }
+export type TemplateLayout_TemplateFragment = { __typename?: 'PipelineTemplate', id: string, code: string, name: string, permissions: { __typename?: 'PipelineTemplatePermissions', delete: boolean, update: boolean }, currentVersion?: (
+    { __typename?: 'PipelineTemplateVersion', id: string }
     & { ' $fragmentRefs'?: { 'DownloadTemplateVersion_VersionFragment': DownloadTemplateVersion_VersionFragment } }
   ) | null } & { ' $fragmentName'?: 'TemplateLayout_TemplateFragment' };
 

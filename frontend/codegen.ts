@@ -10,12 +10,14 @@ const config: CodegenConfig = {
     },
     "src/graphql/": {
       preset: "client",
-    },
-    "src/graphql/possibleTypes.json": {
-      plugins: ["fragment-matcher"],
+      presetConfig: {
+        baseTypesPath: "graphql/types.ts",
+      },
       config: {
-        module: "es2015",
-        useExplicitTyping: true,
+        withHooks: true,
+        scalars: {
+          UUID: "string",
+        },
       },
     },
     "./schema.generated.graphql": {
