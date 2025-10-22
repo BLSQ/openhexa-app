@@ -108,7 +108,7 @@ export function createSortOptions<TOrderBy>(
     orderBy: TOrderBy;
     labelKey: string;
   }>,
-  t: TFunction
+  t: TFunction<"common">
 ): SortOption<TOrderBy>[] {
   return options.map(({ value, orderBy, labelKey }) => ({
     value,
