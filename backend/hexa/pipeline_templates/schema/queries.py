@@ -53,7 +53,10 @@ def resolve_pipeline_templates(_, info, **kwargs):
 
     order_by = kwargs.get("order_by")
     if order_by:
-        pipeline_templates = pipeline_templates.order_by(order_by, "name", "id")
+        if order_by in ["name", "-name"]:
+            pipeline_templates = pipeline_templates.order_by(order_by, "id")
+        else:
+            pipeline_templates = pipeline_templates.order_by(order_by, "name", "id")
     else:
         pipeline_templates = pipeline_templates.order_by(
             *PipelineTemplate.default_order_by()
