@@ -60,7 +60,7 @@ const TemplateBadge = ({
         />
       )}
       <span className={clsx(size === "sm" ? "text-xs" : "text-sm")}>
-        {t(style.label)}
+        {style.label === "Bluesquare" ? "Bluesquare" : t("Community")}
       </span>
     </Badge>
   );
