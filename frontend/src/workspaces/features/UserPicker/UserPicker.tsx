@@ -8,10 +8,23 @@ import { Combobox } from "core/components/forms/Combobox";
 import User from "core/features/User";
 
 import {
-  useGetUsersQuery,
   UserPicker_UserFragment,
   GetUsersQuery,
 } from "./UserPicker.generated";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const GetUsersDoc = graphql(`
+query GetUsers($query: String!, $workspaceSlug: String, $organizationId: UUID) {
+  users(
+    query: $query
+    workspaceSlug: $workspaceSlug
+    organizationId: $organizationId
+  ) {
+    ...User_user
+  }
+}
+`);
 
 type UserPickerProps = {
   id?: string;
@@ -33,7 +46,7 @@ export const UserPicker = (props: UserPickerProps) => {
   const [displayData, setDisplayData] = useState<GetUsersQuery | null>(null);
 
   const debouncedQuery = useDebounce(query, 250);
-  const { data, loading } = useGetUsersQuery({
+  const { data, loading } = useQuery(GetUsersDoc, {
     variables: {
       query: debouncedQuery,
       workspaceSlug: workspaceSlug,

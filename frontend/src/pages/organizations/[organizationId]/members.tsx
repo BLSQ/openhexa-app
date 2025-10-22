@@ -4,8 +4,7 @@ import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "organizations/layouts/OrganizationLayout";
 import {
   OrganizationDocument,
-  OrganizationQuery,
-  useOrganizationQuery,
+  OrganizationQuery
 } from "organizations/graphql/queries.generated";
 import Page from "core/components/Page";
 import Button from "core/components/Button";
@@ -16,6 +15,16 @@ import { useState } from "react";
 import OrganizationInvitations from "organizations/features/OrganizationInvitations";
 import OrganizationWorkspaceInvitations from "organizations/features/OrganizationWorkspaceInvitations";
 import Title from "core/components/Title";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const OrganizationDoc = graphql(`
+query Organization($id: UUID!) {
+  organization(id: $id) {
+    ...Organization_organization
+  }
+}
+`);
 
 type Props = {
   organization: OrganizationQuery["organization"];
@@ -28,7 +37,7 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
 
   const { t } = useTranslation();
 
-  const { data: clientOrganization } = useOrganizationQuery({
+  const { data: clientOrganization } = useQuery(OrganizationDoc, {
     variables: { id: SRROrganization?.id },
     skip: !SRROrganization?.id,
   });

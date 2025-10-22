@@ -2,11 +2,47 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { FilesEditor } from "workspaces/features/FilesEditor";
-import { useWorkspaceTemplatePageQuery } from "workspaces/graphql/queries.generated";
 import TemplateLayout from "workspaces/layouts/TemplateLayout";
 import DataCard from "core/components/DataCard";
 import Spinner from "core/components/Spinner";
 import { createTemplatePageServerSideProps } from "workspaces/helpers/templatePages";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceTemplatePageDoc = graphql(`
+query WorkspaceTemplatePage($workspaceSlug: String!, $templateCode: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...PipelineLayout_workspace
+  }
+  template: templateByCode(code: $templateCode) {
+    ...TemplateLayout_template
+    permissions {
+      update
+      delete
+    }
+    id
+    code
+    name
+    description
+    functionalType
+    tags {
+      ...Tag_tag
+    }
+    currentVersion {
+      id
+      versionNumber
+      sourcePipelineVersion {
+        files {
+          ...FilesEditor_file
+        }
+        zipfile
+      }
+    }
+  }
+}
+`);
 
 type WorkspaceTemplateCodePageProps = {
   templateCode: string;
@@ -18,7 +54,7 @@ const WorkspaceTemplateCodePage: NextPageWithLayout = (
 ) => {
   const { templateCode, workspaceSlug } = props;
 
-  const { data, loading } = useWorkspaceTemplatePageQuery({
+  const { data, loading } = useQuery(WorkspaceTemplatePageDoc, {
     variables: {
       workspaceSlug,
       templateCode,

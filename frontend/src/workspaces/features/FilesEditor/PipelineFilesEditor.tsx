@@ -1,5 +1,4 @@
 import React, { useCallback } from "react";
-import { useUploadPipelineMutation } from "workspaces/graphql/mutations.generated";
 import JSZip from "jszip";
 import { FilesEditor, SaveResult } from "./FilesEditor";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
@@ -7,6 +6,25 @@ import { FileType, PipelineError } from "graphql/types";
 import { PipelineVersionPicker_VersionFragment } from "../PipelineVersionPicker/PipelineVersionPicker.generated";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "react-i18next";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const UploadPipelineDoc = graphql(`
+mutation uploadPipeline($input: UploadPipelineInput!) {
+  uploadPipeline(input: $input) {
+    success
+    errors
+    details
+    pipelineVersion {
+      id
+      versionNumber
+      versionName
+      isLatestVersion
+      ...PipelineVersionPicker_version
+    }
+  }
+}
+`);
 
 interface PipelineFilesEditorProps {
   name: string;
@@ -27,7 +45,7 @@ export const PipelineFilesEditor = ({
   pipelineId,
   onVersionCreated,
 }: PipelineFilesEditorProps) => {
-  const [uploadPipeline] = useUploadPipelineMutation({
+  const [uploadPipeline] = useMutation(UploadPipelineDoc, {
     refetchQueries: ["WorkspacePipelineCodePage"],
     awaitRefetchQueries: true,
   });

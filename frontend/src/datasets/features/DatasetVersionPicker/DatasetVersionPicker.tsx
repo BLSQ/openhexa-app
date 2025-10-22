@@ -6,7 +6,21 @@ import {
 } from "./DatasetVersionPicker.generated";
 import { DateTime } from "luxon";
 import { useState } from "react";
-import { useDatasetVersionPickerQuery } from "datasets/graphql/queries.generated";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const DatasetVersionPickerDoc = graphql(`
+query DatasetVersionPicker($datasetId: ID!, $perPage: Int!) {
+  dataset(id: $datasetId) {
+    versions(perPage: $perPage) {
+      totalItems
+      items {
+        ...DatasetVersionPicker_version
+      }
+    }
+  }
+}
+`);
 
 type DatasetVersionPickerProps = {
   onChange(version: any | null): void;
@@ -18,7 +32,7 @@ type DatasetVersionPickerProps = {
 const DatasetVersionPicker = (props: DatasetVersionPickerProps) => {
   const { onChange, dataset, version, className } = props;
   const [perPage, setPerPage] = useState(10);
-  const { data, previousData, loading } = useDatasetVersionPickerQuery({
+  const { data, previousData, loading } = useQuery(DatasetVersionPickerDoc, {
     variables: { datasetId: dataset.id, perPage },
   });
 

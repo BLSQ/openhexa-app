@@ -8,7 +8,17 @@ import MarkdownViewer from "core/components/MarkdownViewer";
 import Time from "core/components/Time";
 import { toast } from "react-toastify";
 import { UpgradePipelineFromTemplateDialog_PipelineFragment } from "./UpgradePipelineFromTemplateDialog.generated";
-import { useUpgradePipelineVersionFromTemplateMutation } from "../../graphql/mutations.generated";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const UpgradePipelineVersionFromTemplateDoc = graphql(`
+mutation upgradePipelineVersionFromTemplate($input: UpgradePipelineVersionFromTemplateInput!) {
+  upgradePipelineVersionFromTemplate(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type UpgradePipelineFromTemplateDialogProps = {
   pipeline: UpgradePipelineFromTemplateDialog_PipelineFragment;
@@ -26,7 +36,7 @@ const UpgradePipelineFromTemplateDialog = ({
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [upgradePipeline] = useUpgradePipelineVersionFromTemplateMutation();
+  const [upgradePipeline] = useMutation(UpgradePipelineVersionFromTemplateDoc);
 
   if (!open) return null;
 

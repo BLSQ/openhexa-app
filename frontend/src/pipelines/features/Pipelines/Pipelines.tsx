@@ -6,8 +6,36 @@ import GridView from "./GridView";
 import CardView from "./CardView";
 import useDebounce from "core/hooks/useDebounce";
 import Spinner from "core/components/Spinner";
-import { useWorkspacePipelinesPageQuery } from "workspaces/graphql/queries.generated";
 import { PipelineFunctionalType } from "graphql/types";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspacePipelinesPageDoc = graphql(`
+query WorkspacePipelinesPage($workspaceSlug: String!, $search: String, $tags: [String!], $functionalType: PipelineFunctionalType, $page: Int, $perPage: Int) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    pipelineTags
+    ...WorkspaceLayout_workspace
+    ...CreatePipelineDialog_workspace
+  }
+  pipelines(
+    workspaceSlug: $workspaceSlug
+    search: $search
+    tags: $tags
+    functionalType: $functionalType
+    page: $page
+    perPage: $perPage
+  ) {
+    items {
+      ...PipelineCard_pipeline
+    }
+    totalItems
+    totalPages
+    pageNumber
+  }
+}
+`);
 
 type PipelinesProps = {
   workspace: Pipelines_WorkspaceFragment;
@@ -37,7 +65,7 @@ const Pipelines = ({
   );
   const [selectedTags, setSelectedTags] = useState<string[]>(tags || []);
 
-  const { data, loading } = useWorkspacePipelinesPageQuery({
+  const { data, loading } = useQuery(WorkspacePipelinesPageDoc, {
     variables: {
       workspaceSlug: workspace.slug,
       search: debouncedSearchQuery,

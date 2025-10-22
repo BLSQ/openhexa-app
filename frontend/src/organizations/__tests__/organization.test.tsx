@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MockedProvider } from "@apollo/client/testing";
+import { MockedProvider } from "@apollo/client/testing/react";
 import OrganizationPage from "pages/organizations/[organizationId]";
 import { OrganizationWorkspacesDocument } from "organizations/graphql/queries.generated";
 import mockRouter from "next-router-mock";

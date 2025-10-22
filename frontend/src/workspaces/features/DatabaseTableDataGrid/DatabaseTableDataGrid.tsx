@@ -6,9 +6,28 @@ import { CustomApolloClient } from "core/helpers/apollo";
 import { OrderByDirection } from "graphql/types";
 import {
   DatabaseTableDataGrid_TableFragment,
-  DatabaseTableDataGrid_WorkspaceFragment,
-  useDatabaseTableDataGridQuery,
+  DatabaseTableDataGrid_WorkspaceFragment
 } from "./DatabaseTableDataGrid.generated";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const DatabaseTableDataGridDoc = graphql(`
+query DatabaseTableDataGrid($workspaceSlug: String!, $tableName: String!, $orderBy: String!, $direction: OrderByDirection!, $page: Int!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    database {
+      table(name: $tableName) {
+        rows(orderBy: $orderBy, direction: $direction, page: $page, perPage: 10) {
+          pageNumber
+          hasNextPage
+          hasPreviousPage
+          items
+        }
+      }
+    }
+  }
+}
+`);
 
 type DatabaseTableDataGridProps = {
   table: DatabaseTableDataGrid_TableFragment;
@@ -37,7 +56,7 @@ const DatabaseTableDataGrid = (props: DatabaseTableDataGridProps) => {
     onChange,
   } = props;
 
-  const { data } = useDatabaseTableDataGridQuery({
+  const { data } = useQuery(DatabaseTableDataGridDoc, {
     variables: {
       workspaceSlug: workspace.slug,
       orderBy,

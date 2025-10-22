@@ -1,4 +1,4 @@
-import { MockedResponse } from "@apollo/client/testing";
+import { MockLink } from "@apollo/client/testing";
 import { render, screen } from "@testing-library/react";
 import { TestApp } from "core/helpers/testutils";
 import { AccountPageDocument } from "identity/graphql/queries.generated";
@@ -16,7 +16,7 @@ describe("AccountPage", () => {
   });
 
   it("renders without two-factor enabled", async () => {
-    const graphqlMocks: MockedResponse[] = [
+    const graphqlMocks: MockLink.MockedResponse[] = [
       {
         request: {
           query: AccountPageDocument,
@@ -60,7 +60,7 @@ describe("AccountPage", () => {
   });
 
   it("renders with two-factor enabled and not active for the user", async () => {
-    const graphqlMocks: MockedResponse[] = [
+    const graphqlMocks: MockLink.MockedResponse[] = [
       {
         request: {
           query: AccountPageDocument,

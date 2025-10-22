@@ -12,15 +12,62 @@ import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "next-i18next";
 import ConnectionFieldsSection from "workspaces/features/ConnectionFieldsSection";
 import DeleteConnectionTrigger from "workspaces/features/DeleteConnectionTrigger";
-import { useUpdateConnectionMutation } from "workspaces/graphql/mutations.generated";
 import {
   ConnectionPageDocument,
   ConnectionPageQuery,
-  ConnectionPageQueryVariables,
-  useConnectionPageQuery,
+  ConnectionPageQueryVariables
 } from "workspaces/graphql/queries.generated";
 import Connections from "workspaces/helpers/connections";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import { useQuery, useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const ConnectionPageDoc = graphql(`
+query ConnectionPage($workspaceSlug: String!, $connectionId: UUID!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    permissions {
+      update
+    }
+    ...WorkspaceLayout_workspace
+  }
+  connection(id: $connectionId) {
+    id
+    name
+    slug
+    description
+    type
+    createdAt
+    permissions {
+      update
+      delete
+    }
+    ...ConnectionUsageSnippets_connection
+    ...ConnectionFieldsSection_connection
+  }
+}
+`);
+
+const UpdateConnectionDoc = graphql(`
+mutation updateConnection($input: UpdateConnectionInput!) {
+  updateConnection(input: $input) {
+    success
+    errors
+    connection {
+      id
+      name
+      slug
+      description
+      fields {
+        code
+        value
+        secret
+      }
+    }
+  }
+}
+`);
 
 type Props = {
   workspaceSlug: string;
@@ -33,13 +80,13 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
 }: Props) => {
   const { t } = useTranslation();
 
-  const { data, refetch } = useConnectionPageQuery({
+  const { data, refetch } = useQuery(ConnectionPageDoc, {
     variables: { workspaceSlug, connectionId },
   });
 
   useCacheKey(["connections", data?.connection?.id], () => refetch());
 
-  const [updateConnection] = useUpdateConnectionMutation();
+  const [updateConnection] = useMutation(UpdateConnectionDoc);
 
   const onSave: OnSaveFn = async (values, item) => {
     await updateConnection({

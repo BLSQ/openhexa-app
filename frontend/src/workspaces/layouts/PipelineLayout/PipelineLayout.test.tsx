@@ -1,7 +1,7 @@
 import React from "react";
 import { render } from "@testing-library/react";
 import { PipelineType } from "graphql/types";
-import { MockedProvider } from "@apollo/client/testing";
+import { MockedProvider } from "@apollo/client/testing/react";
 import useFeature from "identity/hooks/useFeature";
 import PipelineLayout from "./index";
 import useMe from "identity/hooks/useMe";

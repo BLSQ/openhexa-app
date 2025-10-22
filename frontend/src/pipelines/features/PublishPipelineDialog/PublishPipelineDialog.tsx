@@ -10,7 +10,6 @@ import useForm from "core/hooks/useForm";
 import { CreatePipelineTemplateVersionError } from "graphql/types";
 import { isEmpty } from "lodash";
 import { useRouter } from "next/router";
-import { useCreatePipelineTemplateVersionMutation } from "pipelines/graphql/mutations.generated";
 import { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -18,6 +17,21 @@ import {
   PipelinePublish_PipelineFragment,
   PipelinePublish_WorkspaceFragment,
 } from "./PublishPipelineDialog.generated";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const CreatePipelineTemplateVersionDoc = graphql(`
+mutation CreatePipelineTemplateVersion($input: CreatePipelineTemplateVersionInput!) {
+  createPipelineTemplateVersion(input: $input) {
+    success
+    errors
+    pipelineTemplate {
+      name
+      code
+    }
+  }
+}
+`);
 
 type PublishPipelineDialogProps = {
   open: boolean;
@@ -36,7 +50,7 @@ const PublishPipelineDialog = ({
   const templateAlreadyExists = !!pipeline.template;
   const router = useRouter();
   const [createPipelineTemplateVersion] =
-    useCreatePipelineTemplateVersionMutation();
+    useMutation(CreatePipelineTemplateVersionDoc);
 
   const [validationErrors, setValidationErrors] = useState<any>({});
 

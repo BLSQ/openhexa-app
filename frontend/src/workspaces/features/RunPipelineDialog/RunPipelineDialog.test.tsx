@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 
 import { v4 } from "uuid";
 
-import { useLazyQuery } from "@apollo/client";
+import { useLazyQuery } from "@apollo/client/react";
 import { UserEvent } from "@testing-library/user-event/dist/types/setup/setup";
 import { runPipeline } from "workspaces/helpers/pipelines";
 import RunPipelineDialog from "../RunPipelineDialog";

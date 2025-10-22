@@ -5,7 +5,18 @@ import useDebounce from "core/hooks/useDebounce";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
 import { PipelinesPicker_ValueFragment } from "./PipelinesPicker.generated";
-import { usePipelinesPickerQuery } from "pipelines/graphql/queries.generated";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const PipelinesPickerDoc = graphql(`
+query PipelinesPicker {
+  dags {
+    items {
+      ...PipelinesPicker_value
+    }
+  }
+}
+`);
 
 type PipelinesPickerProps = {
   disabled?: boolean;
@@ -27,7 +38,7 @@ const PipelinesPicker = (props: PipelinesPickerProps) => {
     placeholder = t("Select a pipeline"),
   } = props;
 
-  const { data, loading } = usePipelinesPickerQuery({
+  const { data, loading } = useQuery(PipelinesPickerDoc, {
     fetchPolicy: "cache-first",
   });
   const [query, setQuery] = useState("");

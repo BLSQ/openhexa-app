@@ -1,4 +1,5 @@
-import { MockedProvider, MockedResponse } from "@apollo/client/testing";
+import { MockLink } from "@apollo/client/testing";
+import { MockedProvider } from "@apollo/client/testing/react";
 import { faker } from "@faker-js/faker";
 import { ByRoleOptions, screen } from "@testing-library/react";
 import { MeProvider } from "identity/hooks/useMe";
@@ -6,7 +7,7 @@ import { ReactNode } from "react";
 
 type TestAppProps = {
   children: ReactNode;
-  mocks?: MockedResponse[];
+  mocks?: MockLink.MockedResponse[];
   me?: any;
 };
 

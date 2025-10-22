@@ -3,7 +3,6 @@ import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import {
-  useWorkspaceWebappPageQuery,
   WorkspaceWebappPageDocument,
   WorkspaceWebappPageQuery,
   WorkspaceWebappPageQueryVariables,
@@ -16,6 +15,19 @@ import Button from "core/components/Button";
 import { useState } from "react";
 import DeleteWebappDialog from "workspaces/features/DeleteWebappDialog/DeleteWebappDialog";
 import useCacheKey from "core/hooks/useCacheKey";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceWebappPageDoc = graphql(`
+query WorkspaceWebappPage($workspaceSlug: String!, $webappId: UUID!) {
+  workspace(slug: $workspaceSlug) {
+    ...WebappForm_workspace
+  }
+  webapp: webapp(id: $webappId) {
+    ...WebappForm_webapp
+  }
+}
+`);
 
 type Props = {
   webappId: string;
@@ -27,7 +39,7 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const { data, refetch } = useWorkspaceWebappPageQuery({
+  const { data, refetch } = useQuery(WorkspaceWebappPageDoc, {
     variables: {
       workspaceSlug,
       webappId,

@@ -4,11 +4,21 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import useForm from "core/hooks/useForm";
 import { SetPasswordError } from "graphql/types";
-import { useSetPasswordMutation } from "identity/graphql/mutations.generated";
 import Link from "core/components/Link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const SetPasswordDoc = graphql(`
+mutation SetPassword($input: SetPasswordInput!) {
+  setPassword(input: $input) {
+    success
+    error
+  }
+}
+`);
 
 type Form = {
   password1: string;
@@ -30,7 +40,7 @@ function getErrorMessage(error: SetPasswordError) {
 
 const SetPasswordPage = () => {
   const router = useRouter();
-  const [setPassword] = useSetPasswordMutation();
+  const [setPassword] = useMutation(SetPasswordDoc);
   const [isDone, setDone] = useState(false);
   const { t } = useTranslation();
   const form = useForm<Form>({

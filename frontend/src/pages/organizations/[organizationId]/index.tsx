@@ -6,8 +6,7 @@ import Page from "core/components/Page";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import {
   OrganizationDocument,
-  OrganizationQuery,
-  useOrganizationWorkspacesQuery,
+  OrganizationQuery
 } from "organizations/graphql/queries.generated";
 import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
@@ -19,6 +18,29 @@ import Spinner from "core/components/Spinner";
 import WorkspacesHeader from "organizations/components/WorkspacesHeader";
 import WorkspacesListView from "organizations/components/WorkspacesListView";
 import WorkspacesCardView from "organizations/components/WorkspacesCardView";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const OrganizationWorkspacesDoc = graphql(`
+query OrganizationWorkspaces($organizationId: UUID!, $page: Int = 1, $perPage: Int = 10, $query: String) {
+  organization(id: $organizationId) {
+    ...Organization_organization
+  }
+  workspaces(
+    organizationId: $organizationId
+    page: $page
+    perPage: $perPage
+    query: $query
+  ) {
+    totalItems
+    pageNumber
+    totalPages
+    items {
+      ...OrganizationWorkspace_workspace
+    }
+  }
+}
+`);
 
 type Props = {
   organization: OrganizationQuery["organization"];
@@ -38,7 +60,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const perPage = 15;
 
-  const { data, loading, refetch } = useOrganizationWorkspacesQuery({
+  const { data, loading, refetch } = useQuery(OrganizationWorkspacesDoc, {
     variables: {
       organizationId: SRROrganization?.id,
       page,

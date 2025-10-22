@@ -1,14 +1,24 @@
 import { Trans, useTranslation } from "next-i18next";
 import Dialog from "core/components/Dialog";
 import Button from "core/components/Button";
-import { useDeleteOrganizationMemberMutation } from "../OrganizationMembers.generated";
 import {
   User,
   OrganizationMembership,
   DeleteOrganizationMemberError,
 } from "graphql/types";
-import { useApolloClient } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import useForm from "core/hooks/useForm";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const DeleteOrganizationMemberDoc = graphql(`
+mutation DeleteOrganizationMember($input: DeleteOrganizationMemberInput!) {
+  deleteOrganizationMember(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type OrganizationMember = Pick<OrganizationMembership, "id" | "role"> & {
   user: Pick<User, "id" | "displayName">;
@@ -28,7 +38,7 @@ export default function DeleteOrganizationMemberDialog({
   const { t } = useTranslation();
   const client = useApolloClient();
 
-  const [deleteOrganizationMember] = useDeleteOrganizationMemberMutation({
+  const [deleteOrganizationMember] = useMutation(DeleteOrganizationMemberDoc, {
     refetchQueries: ["OrganizationMembers", "Organization"],
   });
 

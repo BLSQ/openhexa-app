@@ -3,12 +3,22 @@ import Dialog from "core/components/Dialog";
 import Spinner from "core/components/Spinner";
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
-import { useGenerateNewDatabasePasswordMutation } from "workspaces/graphql/mutations.generated";
 import { gql } from "@apollo/client";
 import { GenerateWorkspaceDatabasePasswordDialog_WorkspaceFragment } from "./GenerateDatabasePasswordDialog.generated";
 import { GenerateNewDatabasePasswordError } from "graphql/types";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-toastify";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const GenerateNewDatabasePasswordDoc = graphql(`
+mutation generateNewDatabasePassword($input: GenerateNewDatabasePasswordInput!) {
+  generateNewDatabasePassword(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type GenerateDatabasePasswordDialogProps = {
   onClose(): void;
@@ -22,7 +32,7 @@ const GenerateWorkspaceDatabasePasswordDialog = (
   const { open, onClose, workspace } = props;
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [generateNewPassword] = useGenerateNewDatabasePasswordMutation();
+  const [generateNewPassword] = useMutation(GenerateNewDatabasePasswordDoc);
   const onSubmit = async () => {
     setIsSubmitting(true);
     const { data } = await generateNewPassword({

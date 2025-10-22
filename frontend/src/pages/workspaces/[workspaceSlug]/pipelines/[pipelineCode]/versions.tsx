@@ -8,12 +8,39 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import PipelineVersionCard from "pipelines/features/PipelineVersionCard";
 import {
-  useWorkspacePipelineVersionsPageQuery,
   WorkspacePipelineVersionsPageDocument,
   WorkspacePipelineVersionsPageQuery,
   WorkspacePipelineVersionsPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspacePipelineVersionsPageDoc = graphql(`
+query WorkspacePipelineVersionsPage($workspaceSlug: String!, $pipelineCode: String!, $page: Int!, $perPage: Int!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...WorkspaceLayout_workspace
+  }
+  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+    id
+    code
+    name
+    currentVersion {
+      id
+    }
+    versions(page: $page, perPage: $perPage) {
+      items {
+        ...PipelineVersionCard_version
+        id
+      }
+      totalItems
+      totalPages
+    }
+  }
+}
+`);
 
 type Props = {
   workspaceSlug: string;
@@ -29,7 +56,7 @@ const PipelineVersionsPage: NextPageWithLayout<Props> = ({
 }) => {
   const { t } = useTranslation();
 
-  const { data, refetch } = useWorkspacePipelineVersionsPageQuery({
+  const { data, refetch } = useQuery(WorkspacePipelineVersionsPageDoc, {
     variables: {
       workspaceSlug,
       pipelineCode,

@@ -4,7 +4,6 @@ import Spinner from "core/components/Spinner";
 import useForm from "core/hooks/useForm";
 import { useEffect } from "react";
 import { useTranslation } from "next-i18next";
-import { useUpdateWorkspaceMemberMutation } from "workspaces/graphql/mutations.generated";
 import { gql } from "@apollo/client";
 import {
   UpdateWorkspaceMemberError,
@@ -13,6 +12,21 @@ import {
 import { UpdateWorkspaceMember_WorkspaceMemberFragment } from "./UpdateWorkspaceMemberDialog.generated";
 import Field from "core/components/forms/Field";
 import SimpleSelect from "core/components/forms/SimpleSelect";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const UpdateWorkspaceMemberDoc = graphql(`
+mutation updateWorkspaceMember($input: UpdateWorkspaceMemberInput!) {
+  updateWorkspaceMember(input: $input) {
+    success
+    errors
+    workspaceMembership {
+      id
+      role
+    }
+  }
+}
+`);
 
 type UpdateWorkspaceMemberDialogProps = {
   onClose(): void;
@@ -29,7 +43,7 @@ const UpdateWorkspaceMemberDialog = (
 ) => {
   const { t } = useTranslation();
   const { open, onClose, member } = props;
-  const [mutate] = useUpdateWorkspaceMemberMutation();
+  const [mutate] = useMutation(UpdateWorkspaceMemberDoc);
 
   const form = useForm<Form>({
     onSubmit: async (values) => {

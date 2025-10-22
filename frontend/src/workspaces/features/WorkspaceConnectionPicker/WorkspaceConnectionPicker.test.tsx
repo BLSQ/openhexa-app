@@ -2,7 +2,7 @@ import WorkspaceConnectionPicker from "./WorkspaceConnectionPicker";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { faker } from "@faker-js/faker";
-import { useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
 import { ConnectionType } from "graphql/types";
 
 jest.mock("@apollo/client", () => ({

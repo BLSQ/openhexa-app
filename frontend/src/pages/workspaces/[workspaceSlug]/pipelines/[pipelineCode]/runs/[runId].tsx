@@ -32,7 +32,6 @@ import RunOutputsTable from "workspaces/features/RunOutputsTable";
 import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import StopPipelineDialog from "workspaces/features/StopPipelineDialog";
 import {
-  useWorkspacePipelineRunPageQuery,
   WorkspacePipelineRunPageDocument,
   WorkspacePipelineRunPageQuery,
   WorkspacePipelineRunPageQueryVariables,
@@ -43,6 +42,59 @@ import {
   isConnectionParameter,
 } from "workspaces/helpers/pipelines";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspacePipelineRunPageDoc = graphql(`
+query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: UUID!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...WorkspaceLayout_workspace
+    ...RunOutputsTable_workspace
+  }
+  pipelineRun(id: $runId) {
+    id
+    version {
+      versionName
+      parameters {
+        ...ParameterField_parameter
+      }
+    }
+    timeout
+    config
+    executionDate
+    duration
+    triggerMode
+    pipeline {
+      id
+      code
+      name
+      type
+      notebookPath
+      sourceTemplate {
+        id
+        name
+      }
+      permissions {
+        stopPipeline
+      }
+      ...RunPipelineDialog_pipeline
+    }
+    user {
+      ...User_user
+    }
+    stoppedBy {
+      ...User_user
+    }
+    ...RunOutputsTable_run
+    ...RunPipelineDialog_run
+    ...RunMessages_run
+    ...RunLogs_run
+    ...PipelineRunStatusBadge_run
+  }
+}
+`);
 
 type Props = {
   workspaceSlug: string;
@@ -52,7 +104,7 @@ type Props = {
 const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
   const { workspaceSlug, runId } = props;
   const { t } = useTranslation();
-  const { data, refetch } = useWorkspacePipelineRunPageQuery({
+  const { data, refetch } = useQuery(WorkspacePipelineRunPageDoc, {
     variables: { workspaceSlug, runId },
   });
 

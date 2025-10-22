@@ -2,7 +2,6 @@ import { ParameterField_ParameterFragment } from "./ParameterField.generated";
 import { FormInstance } from "core/hooks/useForm";
 import { IasoMetadataType } from "graphql/types";
 import { gql } from "@apollo/client";
-import { useGetConnectionBySlugIasoLazyQuery } from "./IASOWidget.generated";
 import React, {
   useCallback,
   useEffect,
@@ -15,6 +14,32 @@ import { Combobox, MultiCombobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
 import { useTranslation } from "next-i18next";
 import { ensureArray } from "core/helpers/array";
+import { useLazyQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const GetConnectionBySlugIasoDoc = graphql(`
+query getConnectionBySlugIaso($workspaceSlug: String!, $connectionSlug: String!, $type: IASOMetadataType!, $search: String, $filters: [IASOQueryFilterInput!], $perPage: Int, $page: Int) {
+  connectionBySlug(workspaceSlug: $workspaceSlug, connectionSlug: $connectionSlug) {
+    ... on IASOConnection {
+      queryMetadata(
+        type: $type
+        search: $search
+        filters: $filters
+        perPage: $perPage
+        page: $page
+      ) {
+        items {
+          id
+          label
+        }
+        pageNumber
+        totalItems
+        error
+      }
+    }
+  }
+}
+`);
 
 type IASOWidgetProps = {
   parameter: ParameterField_ParameterFragment & { connection: string };
@@ -45,7 +70,7 @@ const IASOWidget = ({
   const cachedSelectionsRef = useRef<
     Map<string, { id: string; label: string }>
   >(new Map());
-  const [fetchData, { data, error }] = useGetConnectionBySlugIasoLazyQuery();
+  const [fetchData, { data, error }] = useLazyQuery(GetConnectionBySlugIasoDoc);
   const hasConnection = useMemo(() => {
     return form.formData[parameter.connection];
   }, [form.formData[parameter.connection]]);

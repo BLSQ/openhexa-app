@@ -5,7 +5,16 @@ import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
 import { CountryPicker_CountryFragment } from "./CountryPicker.generated";
 import Flag from "react-world-flags";
-import { useCountryPickerQuery } from "core/graphql/queries.generated";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const CountryPickerDoc = graphql(`
+query CountryPicker {
+  countries {
+    ...CountryPicker_country
+  }
+}
+`);
 
 type CountryPickerProps = {
   disabled?: boolean;
@@ -31,7 +40,7 @@ function CountryPicker(props: CountryPickerProps) {
     placeholder = t("Select a country"),
   } = props;
 
-  const { data, loading } = useCountryPickerQuery({
+  const { data, loading } = useQuery(CountryPickerDoc, {
     fetchPolicy: "cache-first",
   });
   const [query, setQuery] = useState("");

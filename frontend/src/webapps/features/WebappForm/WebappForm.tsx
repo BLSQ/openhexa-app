@@ -2,10 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
-import {
-  useCreateWebappMutation,
-  useUpdateWebappMutation,
-} from "webapps/graphql/mutations.generated";
 import { gql } from "@apollo/client";
 import {
   WebappForm_WebappFragment,
@@ -18,6 +14,29 @@ import useCacheKey from "core/hooks/useCacheKey";
 import ImageProperty from "core/components/DataCard/ImageProperty";
 import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const UpdateWebappDoc = graphql(`
+mutation UpdateWebapp($input: UpdateWebappInput!) {
+  updateWebapp(input: $input) {
+    success
+    errors
+  }
+}
+`);
+
+const CreateWebappDoc = graphql(`
+mutation CreateWebapp($input: CreateWebappInput!) {
+  createWebapp(input: $input) {
+    success
+    errors
+    webapp {
+      id
+    }
+  }
+}
+`);
 
 type WebappFormProps = {
   webapp?: WebappForm_WebappFragment;
@@ -27,8 +46,8 @@ type WebappFormProps = {
 const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const [createWebapp] = useCreateWebappMutation();
-  const [updateWebapp] = useUpdateWebappMutation();
+  const [createWebapp] = useMutation(CreateWebappDoc);
+  const [updateWebapp] = useMutation(UpdateWebappDoc);
   const [loading, setLoading] = useState(false);
   const [url, setUrl] = useState(webapp?.url || "");
   const debouncedUrl = useDebounce(url, 500);

@@ -10,13 +10,58 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "next-i18next";
 import { useEffect, useState } from "react";
-import { useUpdateWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import {
-  useWorkspacePageQuery,
   WorkspacePageDocument,
   WorkspacePageQuery,
 } from "workspaces/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import { useMutation, useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspacePageDoc = graphql(`
+query WorkspacePage($slug: String!) {
+  workspace(slug: $slug) {
+    slug
+    name
+    description
+    dockerImage
+    configuration
+    countries {
+      code
+      flag
+      name
+    }
+    permissions {
+      delete
+      update
+      manageMembers
+    }
+    ...ArchiveWorkspace_workspace
+    ...InviteMemberWorkspace_workspace
+    ...WorkspaceLayout_workspace
+  }
+}
+`);
+
+const UpdateWorkspaceDoc = graphql(`
+mutation updateWorkspace($input: UpdateWorkspaceInput!) {
+  updateWorkspace(input: $input) {
+    success
+    workspace {
+      slug
+      name
+      description
+      configuration
+      countries {
+        code
+        alpha3
+        name
+      }
+    }
+    errors
+  }
+}
+`);
 
 type Props = {
   workspaceSlug: string;
@@ -30,8 +75,8 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
   useCacheKey("workspace", () => refetch());
 
   const [isEditing, setIsEditing] = useState(false);
-  const [mutate, { loading }] = useUpdateWorkspaceMutation();
-  const { data, refetch } = useWorkspacePageQuery({
+  const [mutate, { loading }] = useMutation(UpdateWorkspaceDoc);
+  const { data, refetch } = useQuery(WorkspacePageDoc, {
     variables: { slug: props.workspaceSlug },
   });
   const [description, setDescription] = useState(

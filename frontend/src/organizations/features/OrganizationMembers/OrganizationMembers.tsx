@@ -17,7 +17,6 @@ import { useTranslation } from "next-i18next";
 import DeleteOrganizationMemberDialog from "./DeleteOrganizationMemberDialog";
 import UpdateOrganizationMemberDialog from "./UpdateOrganizationMemberDialog";
 import {
-  useOrganizationMembersQuery,
   OrganizationMembersQuery,
 } from "./OrganizationMembers.generated";
 import Block from "core/components/Block";
@@ -26,6 +25,46 @@ import OrganizationRoleBadge from "organizations/components/OrganizationRoleBadg
 import WorkspaceRolesList from "organizations/components/WorkspaceRolesList";
 import useMe from "identity/hooks/useMe";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const OrganizationMembersDoc = graphql(`
+query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String, $role: OrganizationMembershipRole) {
+  organization(id: $id) {
+    id
+    permissions {
+      manageMembers
+      manageOwners
+    }
+    workspaces(perPage: 1000, page: 1) {
+      items {
+        slug
+        name
+      }
+    }
+    members(page: $page, perPage: $perPage, term: $term, role: $role) {
+      totalItems
+      items {
+        id
+        role
+        workspaceMemberships {
+          ...WorkspaceRole
+          id
+          role
+          workspace {
+            slug
+            name
+          }
+        }
+        user {
+          ...User_user
+        }
+        createdAt
+      }
+    }
+  }
+}
+`);
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -55,7 +94,7 @@ export default function OrganizationMembers({
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  const { data, refetch, loading } = useOrganizationMembersQuery({
+  const { data, refetch, loading } = useQuery(OrganizationMembersDoc, {
     variables: {
       id: organizationId,
       page: 1,

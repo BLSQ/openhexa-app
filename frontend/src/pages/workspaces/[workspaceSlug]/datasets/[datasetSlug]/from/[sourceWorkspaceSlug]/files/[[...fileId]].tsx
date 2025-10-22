@@ -8,12 +8,51 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import {
-  useWorkspaceDatasetFilesPageQuery,
   WorkspaceDatasetFilesPageDocument,
   WorkspaceDatasetFilesPageQuery,
   WorkspaceDatasetFilesPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import { DatasetExplorer_FileFragment } from "datasets/features/DatasetExplorer/fragments.generated";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceDatasetFilesPageDoc = graphql(`
+query WorkspaceDatasetFilesPage($workspaceSlug: String!, $sourceWorkspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!, $page: Int = 1, $perPage: Int = 20) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    ...DatasetLayout_workspace
+  }
+  datasetLink: datasetLinkBySlug(
+    workspaceSlug: $sourceWorkspaceSlug
+    datasetSlug: $datasetSlug
+  ) {
+    ...DatasetLayout_datasetLink
+    id
+    dataset {
+      name
+      ...DatasetLinksDataGrid_dataset
+      version(id: $versionId) @include(if: $isSpecificVersion) {
+        ...DatasetLayout_version
+        ...DatasetExplorer_version
+        files(page: $page, perPage: $perPage) {
+          items {
+            ...DatasetExplorer_file
+          }
+        }
+      }
+      latestVersion @skip(if: $isSpecificVersion) {
+        ...DatasetLayout_version
+        ...DatasetExplorer_version
+        files(page: $page, perPage: $perPage) {
+          items {
+            ...DatasetExplorer_file
+          }
+        }
+      }
+    }
+  }
+}
+`);
 
 export type WorkspaceDatasetFilesPageProps = {
   isSpecificVersion: boolean;
@@ -43,7 +82,7 @@ const WorkspaceDatasetFilesPage: NextPageWithLayout = (
     versionId,
   } = props;
 
-  const { data } = useWorkspaceDatasetFilesPageQuery({
+  const { data } = useQuery(WorkspaceDatasetFilesPageDoc, {
     variables: {
       isSpecificVersion,
       workspaceSlug,

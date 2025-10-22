@@ -1,4 +1,5 @@
-import { gql, useLazyQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
+import { useLazyQuery } from "@apollo/client/react";
 import { ChevronDownIcon, PlayIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Button from "core/components/Button";

@@ -3,7 +3,6 @@ import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import {
-  useWorkspaceWebappPageQuery,
   WorkspaceWebappPageDocument,
   WorkspaceWebappPageQuery,
   WorkspaceWebappPageQueryVariables,
@@ -11,6 +10,19 @@ import {
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import WebappIframe from "webapps/features/WebappIframe";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceWebappPageDoc = graphql(`
+query WorkspaceWebappPage($workspaceSlug: String!, $webappId: UUID!) {
+  workspace(slug: $workspaceSlug) {
+    ...WebappForm_workspace
+  }
+  webapp: webapp(id: $webappId) {
+    ...WebappForm_webapp
+  }
+}
+`);
 
 type Props = {
   webappId: string;
@@ -21,7 +33,7 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
   const { webappId, workspaceSlug } = props;
   const { t } = useTranslation();
 
-  const { data } = useWorkspaceWebappPageQuery({
+  const { data } = useQuery(WorkspaceWebappPageDoc, {
     variables: {
       workspaceSlug,
       webappId,

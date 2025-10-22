@@ -3,7 +3,17 @@ import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "next-i18next";
 import useDebounce from "core/hooks/useDebounce";
 import { Combobox, MultiCombobox } from "core/components/forms/Combobox";
-import { useWorkspaceMemberPickerLazyQuery } from "workspaces/graphql/queries.generated";
+import { useLazyQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceMemberPickerDoc = graphql(`
+query WorkspaceMemberPicker($slug: String!) {
+  workspace(slug: $slug) {
+    slug
+    ...WorkspaceMemberPicker_workspace
+  }
+}
+`);
 
 export type WorkspaceMemberOption = {
   id: string;
@@ -36,7 +46,7 @@ const WorkspaceMemberPicker = (props: WorkspaceMemberPickerProps) => {
     placeholder = t("Select member"),
   } = props;
 
-  const [fetch, { data, loading }] = useWorkspaceMemberPickerLazyQuery();
+  const [fetch, { data, loading }] = useLazyQuery(WorkspaceMemberPickerDoc);
 
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);

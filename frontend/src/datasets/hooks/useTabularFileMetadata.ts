@@ -1,5 +1,5 @@
-import { gql, useQuery } from "@apollo/client";
-import { MetadataAttribute } from "graphql/types";
+import { gql } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 import {
   TabularFileMetadataQuery,

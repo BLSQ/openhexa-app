@@ -11,8 +11,29 @@ import Connections, {
 } from "workspaces/helpers/connections";
 import { UpdateConnectionFieldsDialog_ConnectionFragment } from "./UpdateConnectionFieldsDialog.generated";
 import { ConnectionType } from "graphql/types";
-import { useUpdateConnectionMutation } from "workspaces/graphql/mutations.generated";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const UpdateConnectionDoc = graphql(`
+mutation updateConnection($input: UpdateConnectionInput!) {
+  updateConnection(input: $input) {
+    success
+    errors
+    connection {
+      id
+      name
+      slug
+      description
+      fields {
+        code
+        value
+        secret
+      }
+    }
+  }
+}
+`);
 
 type UpdateConnectionFieldsDialogProps = {
   open: boolean;
@@ -26,7 +47,7 @@ const UpdateConnectionFieldsDialog = (
   const { open, connection, onClose } = props;
   const { t } = useTranslation();
   const definition = useMemo(() => Connections[connection.type], [connection]);
-  const [updateConnection] = useUpdateConnectionMutation();
+  const [updateConnection] = useMutation(UpdateConnectionDoc);
   const form = useForm<ConnectionForm>({
     getInitialState() {
       if (connection.type === ConnectionType.Custom) {

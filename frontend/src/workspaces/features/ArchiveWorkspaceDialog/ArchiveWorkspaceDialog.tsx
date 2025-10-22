@@ -4,11 +4,21 @@ import Spinner from "core/components/Spinner";
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { useArchiveWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import useCacheKey from "core/hooks/useCacheKey";
 import { gql } from "@apollo/client";
 import { ArchiveWorkspaceError } from "graphql/types";
 import { ArchiveWorkspace_WorkspaceFragment } from "./ArchiveWorkspaceDialog.generated";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const ArchiveWorkspaceDoc = graphql(`
+mutation archiveWorkspace($input: ArchiveWorkspaceInput!) {
+  archiveWorkspace(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type ArchiveWorkspaceDialogProps = {
   onClose(): void;
@@ -23,7 +33,7 @@ const ArchiveWorkspaceDialog = (props: ArchiveWorkspaceDialogProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inputName, setInputName] = useState("");
 
-  const [archiveWorkspace] = useArchiveWorkspaceMutation();
+  const [archiveWorkspace] = useMutation(ArchiveWorkspaceDoc);
   const clearCache = useCacheKey(["workspaces", workspace.slug]);
 
   const onSubmit = async () => {

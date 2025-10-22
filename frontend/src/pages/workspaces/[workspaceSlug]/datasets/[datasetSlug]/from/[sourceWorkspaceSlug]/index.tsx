@@ -13,12 +13,77 @@ import { updateDataset, updateDatasetVersion } from "datasets/helpers/dataset";
 import DatasetLayout from "datasets/layouts/DatasetLayout";
 import { useTranslation } from "next-i18next";
 import {
-  useWorkspaceDatasetIndexPageQuery,
   WorkspaceDatasetIndexPageDocument,
   WorkspaceDatasetIndexPageQuery,
   WorkspaceDatasetIndexPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceDatasetIndexPageDoc = graphql(`
+query WorkspaceDatasetIndexPage($workspaceSlug: String!, $sourceWorkspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    ...DatasetLayout_workspace
+  }
+  datasetLink: datasetLinkBySlug(
+    workspaceSlug: $sourceWorkspaceSlug
+    datasetSlug: $datasetSlug
+  ) {
+    ...DatasetLayout_datasetLink
+    id
+    dataset {
+      id
+      name
+      slug
+      permissions {
+        update
+      }
+      description
+      sharedWithOrganization
+      updatedAt
+      createdAt
+      workspace {
+        name
+        slug
+        organization {
+          name
+        }
+      }
+      createdBy {
+        ...User_user
+      }
+      version(id: $versionId) @include(if: $isSpecificVersion) {
+        id
+        createdAt
+        changelog
+        createdBy {
+          ...User_user
+        }
+        permissions {
+          update
+        }
+        name
+        ...DatasetLayout_version
+      }
+      latestVersion @skip(if: $isSpecificVersion) {
+        id
+        changelog
+        createdAt
+        createdBy {
+          ...User_user
+        }
+        permissions {
+          update
+        }
+        name
+        ...DatasetLayout_version
+      }
+    }
+  }
+}
+`);
 
 export type WorkspaceDatasetPageProps = {
   isSpecificVersion: boolean;
@@ -32,7 +97,7 @@ const WorkspaceDatasetPage: NextPageWithLayout = (
   props: WorkspaceDatasetPageProps,
 ) => {
   const { t } = useTranslation();
-  const { data } = useWorkspaceDatasetIndexPageQuery({
+  const { data } = useQuery(WorkspaceDatasetIndexPageDoc, {
     variables: props,
   });
   const { isSpecificVersion } = props;

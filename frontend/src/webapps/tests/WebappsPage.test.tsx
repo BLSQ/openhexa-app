@@ -4,7 +4,7 @@ import WebappsPage from "pages/workspaces/[workspaceSlug]/webapps";
 import { toast } from "react-toastify";
 import { TestApp } from "core/helpers/testutils";
 import { SidebarMenuDocument } from "workspaces/features/SidebarMenu/SidebarMenu.generated";
-import { MockedResponse } from "@apollo/client/testing";
+import { MockLink } from "@apollo/client/testing";
 import { WorkspaceWebappsPageDocument } from "workspaces/graphql/queries.generated";
 import {
   AddToFavoritesDocument,
@@ -69,7 +69,7 @@ const webapp = (id: string) => ({
   workspace: mockWorkspace,
 });
 
-const graphqlMocks: MockedResponse[] = [
+const graphqlMocks: MockLink.MockedResponse[] = [
   {
     request: {
       query: SidebarMenuDocument,

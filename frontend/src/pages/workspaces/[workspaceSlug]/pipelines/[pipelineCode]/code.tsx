@@ -5,8 +5,6 @@ import { useTranslation } from "next-i18next";
 import { PipelineFilesEditor } from "workspaces/features/FilesEditor/PipelineFilesEditor";
 import { FilesEditor } from "workspaces/features/FilesEditor";
 import {
-  useGetPipelineVersionFilesLazyQuery,
-  useWorkspacePipelineCodePageQuery,
   WorkspacePipelineCodePageDocument,
   WorkspacePipelineCodePageQuery,
   WorkspacePipelineCodePageQueryVariables,
@@ -17,6 +15,44 @@ import PipelineVersionPicker from "workspaces/features/PipelineVersionPicker";
 import { useState } from "react";
 import { PipelineVersionPicker_VersionFragment } from "workspaces/features/PipelineVersionPicker/PipelineVersionPicker.generated";
 import Spinner from "core/components/Spinner";
+import { useQuery, useLazyQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspacePipelineCodePageDoc = graphql(`
+query WorkspacePipelineCodePage($workspaceSlug: String!, $pipelineCode: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...PipelineLayout_workspace
+  }
+  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+    ...PipelineLayout_pipeline
+    id
+    code
+    name
+    type
+    currentVersion {
+      id
+      versionName
+      files {
+        ...FilesEditor_file
+      }
+    }
+  }
+}
+`);
+
+const GetPipelineVersionFilesDoc = graphql(`
+query GetPipelineVersionFiles($versionId: UUID!) {
+  pipelineVersion(id: $versionId) {
+    id
+    versionName
+    files {
+      ...FilesEditor_file
+    }
+  }
+}
+`);
 
 type Props = {
   pipelineCode: string;
@@ -29,14 +65,14 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const [selectedVersion, setSelectedVersion] =
     useState<PipelineVersionPicker_VersionFragment | null>(null);
 
-  const { data, loading } = useWorkspacePipelineCodePageQuery({
+  const { data, loading } = useQuery(WorkspacePipelineCodePageDoc, {
     variables: {
       workspaceSlug,
       pipelineCode,
     },
   });
   const [fetchPipelineVersion, { data: versionData, loading: versionLoading }] =
-    useGetPipelineVersionFilesLazyQuery();
+    useLazyQuery(GetPipelineVersionFilesDoc);
 
   if (!data?.workspace || !data?.pipeline) {
     return null;

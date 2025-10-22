@@ -3,7 +3,6 @@ import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
 import Spinner from "core/components/Spinner";
 import { useTranslation } from "next-i18next";
-import { useInviteWorkspaceMemberMutation } from "workspaces/graphql/mutations.generated";
 import useForm from "core/hooks/useForm";
 import {
   InviteWorkspaceMembershipError,
@@ -15,6 +14,20 @@ import { InviteMemberWorkspace_WorkspaceFragment } from "./InviteMemberDialog.ge
 import useCacheKey from "core/hooks/useCacheKey";
 import { useEffect } from "react";
 import { UserPicker } from "../UserPicker/UserPicker";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const InviteWorkspaceMemberDoc = graphql(`
+mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+  inviteWorkspaceMember(input: $input) {
+    success
+    errors
+    workspaceMembership {
+      id
+    }
+  }
+}
+`);
 
 type InviteMemberDialogProps = {
   onClose(): void;
@@ -31,7 +44,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
   const { t } = useTranslation();
   const { open, onClose, workspace } = props;
 
-  const [createWorkspaceMember] = useInviteWorkspaceMemberMutation();
+  const [createWorkspaceMember] = useMutation(InviteWorkspaceMemberDoc);
   const clearCache = useCacheKey(["workspaces", workspace.slug]);
 
   const form = useForm<Form>({

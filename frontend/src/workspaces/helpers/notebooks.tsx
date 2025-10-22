@@ -5,7 +5,7 @@ import {
 } from "./notebooks.generated";
 
 export async function launchNotebookServer(
-  client: ApolloClient<unknown>,
+  client: ApolloClient,
   workspaceSlug: string,
 ) {
   const { data } = await client.mutate<

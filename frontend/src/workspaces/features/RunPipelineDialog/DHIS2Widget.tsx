@@ -14,7 +14,26 @@ import { FormInstance } from "core/hooks/useForm";
 import { Dhis2MetadataType } from "graphql/types";
 import { ensureArray } from "core/helpers/array";
 import { ParameterField_ParameterFragment } from "./ParameterField.generated";
-import { useGetConnectionBySlugDhis2LazyQuery } from "./DHIS2Widget.generated";
+import { useLazyQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const GetConnectionBySlugDhis2Doc = graphql(`
+query getConnectionBySlugDhis2($workspaceSlug: String!, $connectionSlug: String!, $type: DHIS2MetadataType!, $filters: [String!], $perPage: Int, $page: Int) {
+  connectionBySlug(workspaceSlug: $workspaceSlug, connectionSlug: $connectionSlug) {
+    ... on DHIS2Connection {
+      queryMetadata(type: $type, filters: $filters, perPage: $perPage, page: $page) {
+        items {
+          id
+          label
+        }
+        pageNumber
+        totalItems
+        error
+      }
+    }
+  }
+}
+`);
 
 type DHIS2WidgetProps = {
   parameter: ParameterField_ParameterFragment & { connection: string };
@@ -49,7 +68,7 @@ const DHIS2Widget = ({
   const cachedSelectionsRef = useRef<
     Map<string, { id: string; label: string }>
   >(new Map());
-  const [fetchData, { data, error }] = useGetConnectionBySlugDhis2LazyQuery();
+  const [fetchData, { data, error }] = useLazyQuery(GetConnectionBySlugDhis2Doc);
   const hasConnection = useMemo(() => {
     return form.formData[parameter.connection];
   }, [form.formData[parameter.connection]]);

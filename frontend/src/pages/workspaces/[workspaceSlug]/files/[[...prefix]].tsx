@@ -23,10 +23,39 @@ import UploadObjectDialog from "workspaces/features/UploadObjectDialog";
 import {
   WorkspaceFilesPageDocument,
   WorkspaceFilesPageQuery,
-  WorkspaceFilesPageQueryVariables,
-  useWorkspaceFilesPageQuery,
+  WorkspaceFilesPageQueryVariables
 } from "workspaces/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceFilesPageDoc = graphql(`
+query WorkspaceFilesPage($workspaceSlug: String!, $page: Int!, $perPage: Int!, $prefix: String!, $query: String, $ignoreHiddenFiles: Boolean) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...BucketExplorer_workspace
+    ...WorkspaceLayout_workspace
+    ...UploadObjectDialog_workspace
+    ...CreateBucketFolderDialog_workspace
+    ...BucketExplorer_workspace
+    bucket {
+      objects(
+        page: $page
+        prefix: $prefix
+        perPage: $perPage
+        query: $query
+        ignoreHiddenFiles: $ignoreHiddenFiles
+      ) {
+        ...BucketExplorer_objects
+      }
+    }
+    permissions {
+      createObject
+    }
+  }
+}
+`);
 
 type Props = {
   page: number;
@@ -48,7 +77,7 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
   const router = useRouter();
   const [searchQueryState, setSearchQueryState] = useState(searchQuery);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const { data, refetch } = useWorkspaceFilesPageQuery({
+  const { data, refetch } = useQuery(WorkspaceFilesPageDoc, {
     variables: {
       workspaceSlug,
       page,

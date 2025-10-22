@@ -3,7 +3,6 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import useCacheKey from "core/hooks/useCacheKey";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
-import { useOrganizationWorkspaceInvitationsQuery } from "./OrganizationWorkspaceInvitations.generated";
 import { WorkspaceInvitation } from "graphql/types";
 import Button from "core/components/Button/Button";
 import { ArrowPathIcon, TrashIcon } from "@heroicons/react/24/outline";
@@ -12,6 +11,36 @@ import DeleteWorkspaceInvitationDialog from "workspaces/features/WorkspaceInvita
 import ResendWorkspaceInvitationDialog from "workspaces/features/WorkspaceInvitations/ResendWorkspaceInvitationDialog";
 import WorkspaceRoleBadge from "workspaces/components/WorkspaceRoleBadge";
 import Block from "core/components/Block";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const OrganizationWorkspaceInvitationsDoc = graphql(`
+query OrganizationWorkspaceInvitations($id: UUID!, $page: Int, $perPage: Int) {
+  organization(id: $id) {
+    id
+    permissions {
+      manageMembers
+    }
+    pendingWorkspaceInvitations(page: $page, perPage: $perPage) {
+      totalItems
+      items {
+        id
+        email
+        role
+        status
+        workspace {
+          name
+          slug
+        }
+        invitedBy {
+          displayName
+        }
+        createdAt
+      }
+    }
+  }
+}
+`);
 
 const DEFAULT_PAGE_SIZE = 5;
 
@@ -28,7 +57,7 @@ export default function OrganizationWorkspaceInvitations({
   const [openResendDialog, setOpenResendDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { data, refetch } = useOrganizationWorkspaceInvitationsQuery({
+  const { data, refetch } = useQuery(OrganizationWorkspaceInvitationsDoc, {
     variables: {
       id: organizationId,
       page: 1,

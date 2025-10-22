@@ -19,29 +19,112 @@ import BackLayout from "core/layouts/back";
 import { WorkspaceInvitation, WorkspaceInvitationStatus } from "graphql/types";
 import DisableTwoFactorDialog from "identity/features/DisableTwoFactorDialog";
 import EnableTwoFactorDialog from "identity/features/EnableTwoFactorDialog";
-import { useUpdateUserMutation } from "identity/graphql/mutations.generated";
 import {
   AccountPageDocument,
-  AccountPageQuery,
-  useAccountPageQuery,
+  AccountPageQuery
 } from "identity/graphql/queries.generated";
 import { logout } from "identity/helpers/auth";
 import { useTranslation } from "next-i18next";
-import {
-  useDeclineWorkspaceInvitationMutation,
-  useJoinWorkspaceMutation,
-} from "workspaces/graphql/mutations.generated";
 import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
 import { toast } from "react-toastify";
+import { useQuery, useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const JoinWorkspaceDoc = graphql(`
+mutation joinWorkspace($input: JoinWorkspaceInput!) {
+  joinWorkspace(input: $input) {
+    success
+    errors
+    invitation {
+      id
+      status
+      invitedBy {
+        ...User_user
+      }
+      role
+      workspace {
+        slug
+        name
+      }
+      createdAt
+    }
+    workspace {
+      slug
+    }
+  }
+}
+`);
+
+const DeclineWorkspaceInvitationDoc = graphql(`
+mutation declineWorkspaceInvitation($input: DeclineWorkspaceInvitationInput!) {
+  declineWorkspaceInvitation(input: $input) {
+    success
+    invitation {
+      id
+      status
+    }
+    errors
+  }
+}
+`);
+
+const AccountPageDoc = graphql(`
+query AccountPage {
+  me {
+    hasTwoFactorEnabled
+    user {
+      firstName
+      lastName
+      dateJoined
+      displayName
+      id
+      email
+      language
+      ...User_user
+    }
+  }
+  pendingWorkspaceInvitations {
+    totalItems
+    items {
+      id
+      status
+      invitedBy {
+        ...User_user
+      }
+      role
+      workspace {
+        slug
+        name
+      }
+      createdAt
+    }
+  }
+}
+`);
+
+const UpdateUserDoc = graphql(`
+mutation UpdateUser($input: UpdateUserInput!) {
+  updateUser(input: $input) {
+    success
+    errors
+    user {
+      id
+      language
+      firstName
+      lastName
+    }
+  }
+}
+`);
 
 function AccountPage() {
   const { t } = useTranslation();
-  const { data } = useAccountPageQuery();
+  const { data } = useQuery(AccountPageDoc);
   const [showTwoFactorDialog, { toggle: toggleTwoFactorDialog }] = useToggle();
-  const [updateUser] = useUpdateUserMutation();
+  const [updateUser] = useMutation(UpdateUserDoc);
 
-  const [joinWorkspace] = useJoinWorkspaceMutation();
-  const [declineWorkspaceInvitation] = useDeclineWorkspaceInvitationMutation();
+  const [joinWorkspace] = useMutation(JoinWorkspaceDoc);
+  const [declineWorkspaceInvitation] = useMutation(DeclineWorkspaceInvitationDoc);
 
   async function doJoinWorkspace(invitation: WorkspaceInvitation) {
     const { data } = await joinWorkspace({

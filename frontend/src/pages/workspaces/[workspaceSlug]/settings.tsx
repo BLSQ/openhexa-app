@@ -9,14 +9,12 @@ import Button from "core/components/Button";
 import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import {
-  useWorkspacePageQuery,
   WorkspacePageDocument,
   WorkspacePageQuery,
 } from "workspaces/graphql/queries.generated";
 import DataCard from "core/components/DataCard";
 import TextProperty from "core/components/DataCard/TextProperty";
 import { OnSaveFn } from "core/components/DataCard/FormSection";
-import { useUpdateWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import { useState } from "react";
 import InviteMemberDialog from "workspaces/features/InviteMemberDialog";
 import WorkspaceMembers from "workspaces/features/WorkspaceMembers";
@@ -31,6 +29,53 @@ import Tooltip from "core/components/Tooltip";
 import { useRouter } from "next/router";
 import Tabs from "core/components/Tabs";
 import ConfigurationProperty from "workspaces/features/ConfigurationProperty";
+import { useQuery, useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const UpdateWorkspaceDoc = graphql(`
+mutation updateWorkspace($input: UpdateWorkspaceInput!) {
+  updateWorkspace(input: $input) {
+    success
+    workspace {
+      slug
+      name
+      description
+      configuration
+      countries {
+        code
+        alpha3
+        name
+      }
+    }
+    errors
+  }
+}
+`);
+
+const WorkspacePageDoc = graphql(`
+query WorkspacePage($slug: String!) {
+  workspace(slug: $slug) {
+    slug
+    name
+    description
+    dockerImage
+    configuration
+    countries {
+      code
+      flag
+      name
+    }
+    permissions {
+      delete
+      update
+      manageMembers
+    }
+    ...ArchiveWorkspace_workspace
+    ...InviteMemberWorkspace_workspace
+    ...WorkspaceLayout_workspace
+  }
+}
+`);
 
 type Props = {
   page: number;
@@ -40,12 +85,12 @@ type Props = {
 
 const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
-  const { data, refetch } = useWorkspacePageQuery({
+  const { data, refetch } = useQuery(WorkspacePageDoc, {
     variables: { slug: props.workspaceSlug },
   });
 
   const router = useRouter();
-  const [mutate] = useUpdateWorkspaceMutation();
+  const [mutate] = useMutation(UpdateWorkspaceDoc);
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
   const [isNewMemberDialogOpen, setIsNewMemberDialogOpen] = useState(false);
   const [isGeneratePwdDialogOpen, setIsGeneratePwdDialogOpen] = useState(false);

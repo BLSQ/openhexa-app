@@ -1,12 +1,14 @@
 import {
   ApolloClient,
   ApolloLink,
-  createHttpLink,
   InMemoryCache,
   InMemoryCacheConfig,
   NormalizedCacheObject,
+  HttpLink,
+  CombinedGraphQLErrors,
+  ServerError,
 } from "@apollo/client";
-import { onError } from "@apollo/link-error";
+import { ErrorLink } from "@apollo/client/link/error";
 import merge from "deepmerge";
 import { IncomingHttpHeaders } from "http";
 import fetch from "isomorphic-unfetch";
@@ -17,7 +19,7 @@ import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
 const APOLLO_STATE_PROP_NAME = "__APOLLO_STATE__";
 
-export type CustomApolloClient = ApolloClient<NormalizedCacheObject>;
+export type CustomApolloClient = ApolloClient;
 
 let apolloClient: CustomApolloClient | undefined;
 
@@ -116,23 +118,24 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
 
   const ssrMode = typeof window === "undefined";
   const link = ApolloLink.from([
-    onError(({ graphQLErrors, networkError }) => {
-      if (graphQLErrors) {
-        graphQLErrors.forEach(({ message, locations, path, extensions }) => {
+    new ErrorLink(({ error }) => {
+      if (CombinedGraphQLErrors.is(error)) {
+        error.errors.forEach(({ message, locations, path, extensions }) => {
           console.error(
             `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(
               locations,
             )}, Path: ${path}, Extension Code: ${extensions?.code}`,
           );
         });
-      }
-      if (networkError) {
+      } else if (ServerError.is(error)) {
         console.error(
-          `[Network error]: ${networkError}. Backend is unreachable. Is it running?`,
+          `[Network error]: ${error.message}. Backend is unreachable. Is it running?`,
         );
+      } else if (error) {
+        console.error(`[Error]: ${error.message}`);
       }
     }),
-    createHttpLink({
+    new HttpLink({
       uri: (operation) => {
         let apiUrl =
           typeof window === "undefined"
@@ -217,7 +220,7 @@ export const getApolloClient = (
   // get hydrated here
   if (initialState) {
     // Get existing cache, loaded during client side data fetching
-    const existingCache = client.extract();
+    const existingCache = client.extract() as NormalizedCacheObject;
 
     // We have an existing cache when we navigate between pages in the frontend.
     // We merge the existing cache with the new data passed from getStaticProps/getServerSideProps (that is more likely to be fresh)
@@ -246,7 +249,7 @@ export const getApolloClient = (
   return client;
 };
 
-export const addApolloState = (client: ApolloClient<NormalizedCacheObject>) => {
+export const addApolloState = (client: ApolloClient) => {
   return { props: { [APOLLO_STATE_PROP_NAME]: client.cache.extract() } };
 };
 
@@ -254,9 +257,5 @@ export function useApollo(
   pageProps: AppProps<{ [key: string]: any }>["pageProps"],
 ) {
   const state = pageProps[APOLLO_STATE_PROP_NAME];
-  const client = useMemo(
-    () => getApolloClient({ initialState: state }),
-    [state],
-  );
-  return client;
+  return useMemo(() => getApolloClient({ initialState: state }), [state]);
 }

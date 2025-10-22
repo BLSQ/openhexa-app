@@ -1,7 +1,7 @@
 import PipelineRunFavoriteTrigger from "./PipelineRunFavoriteTrigger";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MockedProvider } from "@apollo/client/testing";
+import { MockedProvider } from "@apollo/client/testing/react";
 import { waitForDialog } from "core/helpers/testutils";
 
 const mutationMock = jest.fn();

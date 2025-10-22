@@ -3,7 +3,19 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { Combobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
-import { useWorkspacePickerLazyQuery } from "workspaces/graphql/queries.generated";
+import { useLazyQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspacePickerDoc = graphql(`
+query WorkspacePicker($query: String, $perPage: Int = 10) {
+  workspaces(query: $query, page: 1, perPage: $perPage) {
+    totalItems
+    items {
+      ...WorkspacePicker_value
+    }
+  }
+}
+`);
 
 type Option = {
   slug: string;
@@ -24,7 +36,7 @@ const WorkspacePicker = (props: WorkspacePickerProps) => {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);
   const [fetch, { data, previousData, loading }] =
-    useWorkspacePickerLazyQuery();
+    useLazyQuery(WorkspacePickerDoc);
 
   const displayValue = (option: Option) => option?.name ?? "";
 

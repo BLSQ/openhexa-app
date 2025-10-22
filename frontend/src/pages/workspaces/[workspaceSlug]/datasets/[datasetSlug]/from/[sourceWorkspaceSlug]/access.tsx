@@ -13,11 +13,52 @@ import { useTranslation } from "next-i18next";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import {
-  useWorkspaceDatasetAccessPageQuery,
   WorkspaceDatasetAccessPageDocument,
   WorkspaceDatasetAccessPageQuery,
   WorkspaceDatasetAccessPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceDatasetAccessPageDoc = graphql(`
+query WorkspaceDatasetAccessPage($workspaceSlug: String!, $sourceWorkspaceSlug: String!, $datasetSlug: String!, $versionId: ID!, $isSpecificVersion: Boolean!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    organization {
+      id
+      name
+    }
+    ...DatasetLayout_workspace
+  }
+  datasetLink: datasetLinkBySlug(
+    workspaceSlug: $sourceWorkspaceSlug
+    datasetSlug: $datasetSlug
+  ) {
+    ...DatasetLayout_datasetLink
+    id
+    dataset {
+      name
+      permissions {
+        update
+      }
+      sharedWithOrganization
+      workspace {
+        organization {
+          id
+          name
+        }
+      }
+      ...DatasetLinksDataGrid_dataset
+      version(id: $versionId) @include(if: $isSpecificVersion) {
+        ...DatasetLayout_version
+      }
+      latestVersion @skip(if: $isSpecificVersion) {
+        ...DatasetLayout_version
+      }
+    }
+  }
+}
+`);
 
 export type WorkspaceDatasetAccessPageProps = {
   isSpecificVersion: boolean;
@@ -31,7 +72,7 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
   props: WorkspaceDatasetAccessPageProps,
 ) => {
   const { t } = useTranslation();
-  const { data } = useWorkspaceDatasetAccessPageQuery({
+  const { data } = useQuery(WorkspaceDatasetAccessPageDoc, {
     variables: props,
   });
   const [isLinkDialogOpen, setLinkDialogOpen] = useState(false);

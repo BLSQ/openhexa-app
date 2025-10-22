@@ -1,4 +1,5 @@
-import { gql, useMutation } from "@apollo/client";
+import { gql } from "@apollo/client";
+import { useMutation } from "@apollo/client/react";
 import { useTranslation } from "next-i18next";
 import Dialog from "core/components/Dialog";
 import Button from "core/components/Button";

@@ -1,7 +1,7 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import PublishPipelineDialog from "./PublishPipelineDialog";
-import { MockedProvider } from "@apollo/client/testing";
+import { MockedProvider } from "@apollo/client/testing/react";
 import { toast } from "react-toastify";
 import i18n from "i18next";
 import { I18nextProvider, initReactI18next } from "react-i18next";

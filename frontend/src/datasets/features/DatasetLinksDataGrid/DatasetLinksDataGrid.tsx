@@ -1,4 +1,5 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";

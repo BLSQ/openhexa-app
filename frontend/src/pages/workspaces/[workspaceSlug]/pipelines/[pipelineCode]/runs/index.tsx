@@ -13,12 +13,50 @@ import { useTranslation } from "next-i18next";
 import router from "next/router";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import {
-  useWorkspacePipelineRunsPageQuery,
   WorkspacePipelineRunsPageDocument,
   WorkspacePipelineRunsPageQuery,
   WorkspacePipelineRunsPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspacePipelineRunsPageDoc = graphql(`
+query WorkspacePipelineRunsPage($workspaceSlug: String!, $pipelineCode: String!, $page: Int = 1, $perPage: Int = 10) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...PipelineLayout_workspace
+  }
+  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+    ...PipelineLayout_pipeline
+    id
+    type
+    runs(page: $page, perPage: $perPage) {
+      items {
+        id
+        version {
+          versionName
+          createdAt
+          user {
+            ...User_user
+          }
+        }
+        executionDate
+        duration
+        triggerMode
+        user {
+          ...UserColumn_user
+        }
+        ...PipelineRunStatusBadge_run
+      }
+      totalItems
+      totalPages
+      pageNumber
+    }
+  }
+}
+`);
 
 type Props = {
   page: number;
@@ -30,7 +68,7 @@ type Props = {
 const WorkspacePipelineRunsPage: NextPageWithLayout = (props: Props) => {
   const { pipelineCode, workspaceSlug, page, perPage } = props;
   const { t } = useTranslation();
-  const { data } = useWorkspacePipelineRunsPageQuery({
+  const { data } = useQuery(WorkspacePipelineRunsPageDoc, {
     variables: {
       workspaceSlug,
       pipelineCode,

@@ -9,7 +9,6 @@ import { ConnectionType, CreateConnectionError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
-import { useCreateConnectionMutation } from "workspaces/graphql/mutations.generated";
 import Connections, {
   ConnectionForm,
   convertFieldsToInput,
@@ -18,6 +17,21 @@ import { FieldForm } from "workspaces/helpers/connections/utils";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
 import { CreateConnectionDialog_WorkspaceFragment } from "./CreateConnectionDialog.generated";
 import { gql } from "@apollo/client";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const CreateConnectionDoc = graphql(`
+mutation createConnection($input: CreateConnectionInput!) {
+  createConnection(input: $input) {
+    success
+    connection {
+      id
+      name
+    }
+    errors
+  }
+}
+`);
 
 interface CreateConnectionDialogProps {
   open: boolean;
@@ -70,7 +84,7 @@ export default function CreateConnectionDialog({
   workspace,
 }: CreateConnectionDialogProps) {
   const { t } = useTranslation();
-  const [createConnection] = useCreateConnectionMutation();
+  const [createConnection] = useMutation(CreateConnectionDoc);
   const [connectionType, setConnectionType] = useState<ConnectionType | null>(
     null,
   );

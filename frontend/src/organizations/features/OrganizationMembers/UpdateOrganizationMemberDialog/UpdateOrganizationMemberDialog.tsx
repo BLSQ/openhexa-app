@@ -20,12 +20,26 @@ import {
 import SimpleSelect from "core/components/forms/SimpleSelect";
 import useCacheKey from "core/hooks/useCacheKey";
 import React, { useEffect, useState } from "react";
-import { useUpdateOrganizationMemberMutation } from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
 import SearchInput from "core/features/SearchInput";
 import { gql } from "@apollo/client";
 import { OrganizationMembersQuery } from "../OrganizationMembers.generated";
 import { UpdateOrganizationMemberDialog_OrganizationMemberFragment } from "./UpdateOrganizationMemberDialog.generated";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const UpdateOrganizationMemberDoc = graphql(`
+mutation UpdateOrganizationMember($input: UpdateOrganizationMemberInput!) {
+  updateOrganizationMember(input: $input) {
+    success
+    errors
+    membership {
+      id
+      role
+    }
+  }
+}
+`);
 
 type UpdateOrganizationMemberDialogProps = {
   onClose(): void;
@@ -45,7 +59,7 @@ const UpdateOrganizationMemberDialog = (
   const { t } = useTranslation();
   const { open, onClose, member, organization } = props;
 
-  const [updateOrganizationMember] = useUpdateOrganizationMemberMutation({
+  const [updateOrganizationMember] = useMutation(UpdateOrganizationMemberDoc, {
     refetchQueries: ["OrganizationMembers"],
   });
 
