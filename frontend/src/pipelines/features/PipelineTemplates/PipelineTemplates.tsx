@@ -158,7 +158,9 @@ const PipelineTemplates = ({
         templateTags={templateTags}
         functionalTypeFilter={functionalTypeFilter}
         setFunctionalTypeFilter={setFunctionalTypeFilter}
-        sorting={{ sortOrder, setSortOrder, sortOptions }}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+        sortOptions={sortOptions}
       />
       <div className="relative">
         {loading && (
