@@ -5,7 +5,17 @@ import useDebounce from "core/hooks/useDebounce";
 import { Combobox } from "core/components/forms/Combobox";
 import { ConnectionType } from "graphql/types";
 import Connections from "workspaces/helpers/connections";
-import { useWorkspaceConnectionPickerQuery } from "workspaces/graphql/queries.generated";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceConnectionPickerDoc = graphql(`
+query WorkspaceConnectionPicker($slug: String!) {
+  workspace(slug: $slug) {
+    slug
+    ...WorkspaceConnectionPicker_workspace
+  }
+}
+`);
 
 type Option = {
   id: string;
@@ -38,7 +48,7 @@ const WorkspaceConnectionPicker = (props: WorkspaceConnectionPickerProps) => {
     type,
   } = props;
 
-  const { data, loading } = useWorkspaceConnectionPickerQuery({
+  const { data, loading } = useQuery(WorkspaceConnectionPickerDoc, {
     variables: { slug: workspaceSlug },
   });
 

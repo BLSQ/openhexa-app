@@ -11,7 +11,6 @@ import { useTranslation } from "next-i18next";
 import CronProperty from "workspaces/features/CronProperty";
 import PipelineRecipients from "workspaces/features/PipelineRecipients";
 import {
-  useWorkspacePipelineNotificationsPageQuery,
   WorkspacePipelineNotificationsPageDocument,
   WorkspacePipelineNotificationsPageQuery,
   WorkspacePipelineNotificationsPageQueryVariables,
@@ -19,6 +18,28 @@ import {
 import { updatePipeline } from "workspaces/helpers/pipelines";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
 import Title from "core/components/Title";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspacePipelineNotificationsPageDoc = graphql(`
+query WorkspacePipelineNotificationsPage($workspaceSlug: String!, $pipelineCode: String!) {
+  workspace(slug: $workspaceSlug) {
+    ...PipelineLayout_workspace
+  }
+  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+    ...PipelineLayout_pipeline
+    ...PipelineRecipients_pipeline
+    id
+    code
+    type
+    schedule
+    permissions {
+      schedule
+      update
+    }
+  }
+}
+`);
 
 type Props = {
   pipelineCode: string;
@@ -30,7 +51,7 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
 ) => {
   const { pipelineCode, workspaceSlug } = props;
   const { t } = useTranslation();
-  const { data } = useWorkspacePipelineNotificationsPageQuery({
+  const { data } = useQuery(WorkspacePipelineNotificationsPageDoc, {
     variables: {
       workspaceSlug,
       pipelineCode,

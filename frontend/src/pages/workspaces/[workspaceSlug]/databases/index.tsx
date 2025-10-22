@@ -11,10 +11,35 @@ import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import DatabaseVariablesSection from "workspaces/features/DatabaseVariablesSection";
 import {
-  useWorkspaceDatabasesPageQuery,
   WorkspaceDatabasesPageDocument,
 } from "workspaces/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceDatabasesPageDoc = graphql(`
+query WorkspaceDatabasesPage($workspaceSlug: String!, $page: Int, $perPage: Int) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    permissions {
+      update
+    }
+    database {
+      tables(page: $page, perPage: $perPage) {
+        totalPages
+        totalItems
+        items {
+          name
+          count
+        }
+      }
+    }
+    ...DatabaseVariablesSection_workspace
+    ...WorkspaceLayout_workspace
+  }
+}
+`);
 
 type Props = {
   workspaceSlug: string;
@@ -23,7 +48,7 @@ type Props = {
 
 const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
-  const { data, refetch } = useWorkspaceDatabasesPageQuery({
+  const { data, refetch } = useQuery(WorkspaceDatabasesPageDoc, {
     variables: { workspaceSlug: props.workspaceSlug, page: props.page },
   });
 

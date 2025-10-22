@@ -12,7 +12,6 @@ import { BucketObjectType, PipelineFunctionalType } from "graphql/types";
 import { Trans, useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { useCreatePipelineMutation } from "workspaces/graphql/mutations.generated";
 import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 import BucketObjectPicker from "../BucketObjectPicker";
 import {
@@ -20,6 +19,20 @@ import {
   GenerateWorkspaceTokenMutation,
 } from "./CreatePipelineDialog.generated";
 import PipelineTemplates from "pipelines/features/PipelineTemplates/PipelineTemplates";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const CreatePipelineDoc = graphql(`
+mutation createPipeline($input: CreatePipelineInput!) {
+  createPipeline(input: $input) {
+    success
+    errors
+    pipeline {
+      code
+    }
+  }
+}
+`);
 
 type CreatePipelineDialogProps = {
   open: boolean;
@@ -34,7 +47,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   const tabs = ["templates", "notebooks", "cli"];
   const [tabIndex, setTabIndex] = useState<number>(0);
 
-  const [mutate] = useCreatePipelineMutation();
+  const [mutate] = useMutation(CreatePipelineDoc);
 
   const form = useForm<{ notebookObject: any; name: string; functionalType: PipelineFunctionalType | null }>({
     onSubmit: async (values) => {

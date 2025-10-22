@@ -9,7 +9,23 @@ import {
   PipelineVersionPicker_PipelineFragment,
   PipelineVersionPicker_VersionFragment,
 } from "./PipelineVersionPicker.generated";
-import { usePipelineVersionPickerLazyQuery } from "workspaces/graphql/queries.generated";
+import { useLazyQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const PipelineVersionPickerDoc = graphql(`
+query PipelineVersionPicker($pipelineId: UUID!, $page: Int, $perPage: Int) {
+  pipeline(id: $pipelineId) {
+    versions(page: $page, perPage: $perPage) {
+      pageNumber
+      totalPages
+      totalItems
+      items {
+        ...PipelineVersionPicker_version
+      }
+    }
+  }
+}
+`);
 
 type Option = {
   id: string;
@@ -34,7 +50,7 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
   const [allVersions, setAllVersions] = useState<Option[]>([]);
   const debouncedQuery = useDebounce(query, 150);
   const [fetch, { data, loading, refetch }] =
-    usePipelineVersionPickerLazyQuery();
+    useLazyQuery(PipelineVersionPickerDoc);
   useEffect(() => {
     if (data?.pipeline?.versions.items) {
       if (data.pipeline.versions.pageNumber === 1) {

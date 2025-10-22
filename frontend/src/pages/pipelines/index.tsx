@@ -13,12 +13,40 @@ import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import {
   PipelinesPageDocument,
   PipelinesPageQuery,
-  PipelinesPageQueryVariables,
-  usePipelinesPageQuery,
+  PipelinesPageQueryVariables
 } from "pipelines/graphql/queries.generated";
 import { useMemo } from "react";
 import BackLayout from "core/layouts/back/BackLayout";
 import Button from "core/components/Button";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const PipelinesPageDoc = graphql(`
+query PipelinesPage($page: Int, $perPage: Int = 15) {
+  dags(page: $page, perPage: $perPage) {
+    totalPages
+    totalItems
+    items {
+      label
+      countries {
+        ...CountryBadge_country
+      }
+      tags {
+        ...Tag_tag
+      }
+      id
+      externalId
+      runs(orderBy: EXECUTION_DATE_DESC, perPage: 1) {
+        items {
+          id
+          status
+          executionDate
+        }
+      }
+    }
+  }
+}
+`);
 
 type Props = {
   page: number;
@@ -29,7 +57,7 @@ const PipelinesPage = (props: Props) => {
   const { t } = useTranslation();
 
   const router = useRouter();
-  const { data } = usePipelinesPageQuery({
+  const { data } = useQuery(PipelinesPageDoc, {
     variables: {
       page: props.page,
       perPage: props.perPage,

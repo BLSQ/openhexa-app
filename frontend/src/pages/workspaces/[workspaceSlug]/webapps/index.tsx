@@ -13,7 +13,6 @@ import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import { PlayIcon, PlusIcon } from "@heroicons/react/24/outline";
 import {
-  useWorkspaceWebappsPageQuery,
   WorkspaceWebappsPageDocument,
   WorkspaceWebappsPageQuery,
   WorkspaceWebappsPageQueryVariables,
@@ -25,6 +24,53 @@ import FavoriteWebappButton from "webapps/features/FavoriteWebappButton";
 import LinkColumn from "core/components/DataGrid/LinkColumn";
 import clsx from "clsx";
 import WebappCard from "webapps/features/WebappCard";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceWebappsPageDoc = graphql(`
+query WorkspaceWebappsPage($workspaceSlug: String!, $page: Int, $perPage: Int = 15) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...WorkspaceLayout_workspace
+  }
+  webapps(workspaceSlug: $workspaceSlug, page: $page, perPage: $perPage) {
+    totalPages
+    totalItems
+    items {
+      id
+      name
+      icon
+      description
+      url
+      isFavorite
+      createdBy {
+        firstName
+        lastName
+        ...User_user
+      }
+      workspace {
+        slug
+        name
+      }
+      permissions {
+        update
+        delete
+      }
+    }
+  }
+  favoriteWebapps: webapps(
+    workspaceSlug: $workspaceSlug
+    favorite: true
+    page: 1
+    perPage: 6
+  ) {
+    items {
+      ...WebappCard_webapp
+    }
+  }
+}
+`);
 
 type Props = {
   page: number;
@@ -38,7 +84,7 @@ const WebappsPage = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const { data, refetch } = useWorkspaceWebappsPageQuery({
+  const { data, refetch } = useQuery(WorkspaceWebappsPageDoc, {
     variables: { workspaceSlug, page, perPage },
   });
   useCacheKey("webapps", refetch);

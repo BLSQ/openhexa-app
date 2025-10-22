@@ -9,11 +9,39 @@ import { useTranslation } from "next-i18next";
 import { useState } from "react";
 import CreateConnectionDialog from "workspaces/features/CreateConnectionDialog";
 import {
-  ConnectionsPageDocument,
-  useConnectionsPageQuery,
+  ConnectionsPageDocument
 } from "workspaces/graphql/queries.generated";
 import Connections from "workspaces/helpers/connections";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const ConnectionsPageDoc = graphql(`
+query ConnectionsPage($workspaceSlug: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    permissions {
+      update
+      createConnection
+    }
+    ...CreateConnectionDialog_workspace
+    connections {
+      id
+      description
+      name
+      type
+      slug
+      updatedAt
+      permissions {
+        update
+        delete
+      }
+    }
+    ...WorkspaceLayout_workspace
+  }
+}
+`);
 
 type Props = {
   workspaceSlug: string;
@@ -22,7 +50,7 @@ type Props = {
 const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const [openModal, setOpenModal] = useState(false);
-  const { data } = useConnectionsPageQuery({
+  const { data } = useQuery(ConnectionsPageDoc, {
     variables: { workspaceSlug: props.workspaceSlug },
   });
 

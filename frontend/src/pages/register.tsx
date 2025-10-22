@@ -9,12 +9,29 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
 import CenteredLayout from "core/layouts/centered";
 import { RegisterError } from "graphql/types";
-import { useRegisterMutation } from "identity/graphql/mutations.generated";
-import { useRegisterPageQuery } from "identity/graphql/queries.generated";
 import { useTranslation } from "next-i18next";
 import Image from "next/legacy/image";
 import { useRouter } from "next/router";
 import { ReactElement } from "react";
+import { useMutation, useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const RegisterPageDoc = graphql(`
+query RegisterPage {
+  config {
+    passwordRequirements
+  }
+}
+`);
+
+const RegisterDoc = graphql(`
+mutation Register($input: RegisterInput!) {
+  register(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 interface RegisterForm {
   firstName: string;
@@ -29,10 +46,10 @@ const RegisterPage: NextPageWithLayout = (props: {
 }) => {
   const { email, token } = props;
   const router = useRouter();
-  const [register] = useRegisterMutation();
+  const [register] = useMutation(RegisterDoc);
   const { t } = useTranslation();
 
-  const { data } = useRegisterPageQuery();
+  const { data } = useQuery(RegisterPageDoc);
 
   const form = useForm<RegisterForm>({
     onSubmit: async (values) => {

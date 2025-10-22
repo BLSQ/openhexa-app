@@ -5,7 +5,6 @@ import Button from "core/components/Button";
 import Spinner from "core/components/Spinner";
 import { DeleteWebappError } from "graphql/types";
 import { useState } from "react";
-import { useDeleteWebappMutation } from "workspaces/graphql/mutations.generated";
 import Dialog from "core/components/Dialog";
 import {
   WebappDelete_WebappFragment,
@@ -13,6 +12,17 @@ import {
 } from "./DeleteWebappDialog.generated";
 import useCacheKey from "core/hooks/useCacheKey";
 import { toast } from "react-toastify";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const DeleteWebappDoc = graphql(`
+mutation deleteWebapp($input: DeleteWebappInput!) {
+  deleteWebapp(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type DeleteWebappDialogProps = {
   open: boolean;
@@ -28,7 +38,7 @@ const DeleteWebappDialog = (props: DeleteWebappDialogProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const clearCache = useCacheKey("webapps");
 
-  const [deleteWebapp] = useDeleteWebappMutation();
+  const [deleteWebapp] = useMutation(DeleteWebappDoc);
 
   const onSubmit = async () => {
     setIsSubmitting(true);

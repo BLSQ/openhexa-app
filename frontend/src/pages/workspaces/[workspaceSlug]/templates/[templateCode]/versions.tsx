@@ -7,13 +7,40 @@ import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import {
-  useWorkspaceTemplateVersionsPageQuery,
   WorkspaceTemplateVersionsPageDocument,
   WorkspaceTemplateVersionsPageQuery,
   WorkspaceTemplateVersionsPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import TemplateVersionCard from "pipelines/features/TemplateVersionCard";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceTemplateVersionsPageDoc = graphql(`
+query WorkspaceTemplateVersionsPage($workspaceSlug: String!, $templateCode: String!, $page: Int!, $perPage: Int!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...WorkspaceLayout_workspace
+  }
+  template: templateByCode(code: $templateCode) {
+    id
+    code
+    name
+    currentVersion {
+      id
+    }
+    versions(page: $page, perPage: $perPage) {
+      items {
+        ...TemplateVersionCard_version
+        id
+      }
+      totalItems
+      totalPages
+    }
+  }
+}
+`);
 
 type Props = {
   workspaceSlug: string;
@@ -29,7 +56,7 @@ const TemplateVersionsPage: NextPageWithLayout<Props> = ({
 }) => {
   const { t } = useTranslation();
 
-  const { data, refetch } = useWorkspaceTemplateVersionsPageQuery({
+  const { data, refetch } = useQuery(WorkspaceTemplateVersionsPageDoc, {
     variables: {
       workspaceSlug,
       templateCode,

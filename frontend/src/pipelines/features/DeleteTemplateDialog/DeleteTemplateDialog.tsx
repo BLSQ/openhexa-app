@@ -3,11 +3,21 @@ import Button from "core/components/Button";
 import { PipelineTemplateError } from "graphql/types";
 import Dialog from "core/components/Dialog";
 import { toast } from "react-toastify";
-import { useDeletePipelineTemplateMutation } from "workspaces/graphql/mutations.generated";
 import useCacheKey from "core/hooks/useCacheKey";
 import { gql } from "@apollo/client";
 import { PipelineTemplateDialog_PipelineTemplateFragment } from "./DeleteTemplateDialog.generated";
 import { useState } from "react";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const DeletePipelineTemplateDoc = graphql(`
+mutation deletePipelineTemplate($input: DeletePipelineTemplateInput!) {
+  deletePipelineTemplate(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type DeleteTemplateDialogProps = {
   open: boolean;
@@ -29,7 +39,7 @@ const DeleteTemplateDialog = (props: DeleteTemplateDialogProps) => {
 
   const clearTemplateCache = useCacheKey(["templates"]);
 
-  const [deletePipelineTemplate] = useDeletePipelineTemplateMutation();
+  const [deletePipelineTemplate] = useMutation(DeletePipelineTemplateDoc);
 
   const deleteTemplate = async () => {
     const { data } = await deletePipelineTemplate({

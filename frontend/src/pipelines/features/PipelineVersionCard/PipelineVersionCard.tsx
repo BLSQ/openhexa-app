@@ -20,7 +20,20 @@ import DeletePipelineVersionTrigger from "workspaces/features/DeletePipelineVers
 import DownloadPipelineVersion from "../DownloadPipelineVersion";
 import PipelineVersionParametersTable from "../PipelineVersionParametersTable";
 import { PipelineVersionCard_VersionFragment } from "./PipelineVersionCard.generated";
-import { useUpdatePipelineVersionMutation } from "pipelines/graphql/mutations.generated";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const UpdatePipelineVersionDoc = graphql(`
+mutation UpdatePipelineVersion($input: UpdatePipelineVersionInput!) {
+  updatePipelineVersion(input: $input) {
+    success
+    errors
+    pipelineVersion {
+      ...PipelineVersionCard_version
+    }
+  }
+}
+`);
 
 type PipelineVersionCardProps = {
   version: PipelineVersionCard_VersionFragment;
@@ -30,7 +43,7 @@ type PipelineVersionCardProps = {
 const PipelineVersionCard = (props: PipelineVersionCardProps) => {
   const { t } = useTranslation();
   const { version } = props;
-  const [updateVersion] = useUpdatePipelineVersionMutation();
+  const [updateVersion] = useMutation(UpdatePipelineVersionDoc);
 
   const onSave: OnSaveFn = async (values) => {
     const { data } = await updateVersion({

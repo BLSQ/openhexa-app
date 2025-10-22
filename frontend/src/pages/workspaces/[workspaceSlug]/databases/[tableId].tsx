@@ -16,10 +16,36 @@ import DatabaseTableDataGrid from "workspaces/features/DatabaseTableDataGrid/Dat
 import DeleteDatabaseTableTrigger from "workspaces/features/DeleteDatabaseTableTrigger";
 import {
   WorkspaceDatabaseTablePageDocument,
-  WorkspaceDatabaseTablePageQuery,
-  useWorkspaceDatabaseTablePageQuery,
+  WorkspaceDatabaseTablePageQuery
 } from "workspaces/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceDatabaseTablePageDoc = graphql(`
+query WorkspaceDatabaseTablePage($workspaceSlug: String!, $tableName: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    permissions {
+      deleteDatabaseTable
+    }
+    database {
+      table(name: $tableName) {
+        name
+        count
+        columns {
+          name
+          type
+        }
+        ...DatabaseTableDataGrid_table
+      }
+    }
+    ...DatabaseTableDataGrid_workspace
+    ...WorkspaceLayout_workspace
+  }
+}
+`);
 
 type Props = {
   page: number;
@@ -34,7 +60,7 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = ({
 }: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const { data } = useWorkspaceDatabaseTablePageQuery({
+  const { data } = useQuery(WorkspaceDatabaseTablePageDoc, {
     variables: {
       workspaceSlug: router.query.workspaceSlug as string,
       tableName: router.query.tableId as string,

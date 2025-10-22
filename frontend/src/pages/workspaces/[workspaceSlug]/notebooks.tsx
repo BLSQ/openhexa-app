@@ -9,13 +9,27 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import {
-  useWorkspaceNotebooksPageQuery,
   WorkspaceNotebooksPageDocument,
   WorkspaceNotebooksPageQuery,
 } from "workspaces/graphql/queries.generated";
 import { launchNotebookServer } from "workspaces/helpers/notebooks";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import { ErrorAlert } from "core/components/Alert";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceNotebooksPageDoc = graphql(`
+query WorkspaceNotebooksPage($workspaceSlug: String!) {
+  notebooksUrl
+  workspace(slug: $workspaceSlug) {
+    slug
+    permissions {
+      launchNotebookServer
+    }
+    ...WorkspaceLayout_workspace
+  }
+}
+`);
 
 type Props = {
   server: NotebookServer;
@@ -28,7 +42,7 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
   const client = useApolloClient();
   const [server, setServer] = useState(props.server);
   const workspaceSlug = router.query.workspaceSlug as string;
-  const { data } = useWorkspaceNotebooksPageQuery({
+  const { data } = useQuery(WorkspaceNotebooksPageDoc, {
     variables: { workspaceSlug },
   });
 

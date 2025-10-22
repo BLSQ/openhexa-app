@@ -7,13 +7,7 @@ import { useTranslation } from "next-i18next";
 import { gql } from "@apollo/client";
 import useDebounce from "core/hooks/useDebounce";
 import {
-  useSearchDatabaseTablesLazyQuery,
-  useSearchDatasetsLazyQuery,
-  useSearchPipelinesLazyQuery,
-  useSearchPipelineTemplatesLazyQuery,
-  GetWorkspacesQuery,
-  useSearchFilesLazyQuery,
-  useGetWorkspacesLazyQuery,
+  GetWorkspacesQuery
 } from "./SpotlightSearch.generated";
 import DatasetResultTable from "./DatasetResultTable";
 import PipelineResultTable from "./PipelineResultTable";
@@ -42,6 +36,91 @@ import { GetServerSidePropsContext } from "next";
 import { PipelineFunctionalType } from "graphql/types";
 import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 import Select from "core/components/forms/Select";
+import { useLazyQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const GetWorkspacesDoc = graphql(`
+query GetWorkspaces($organizationId: UUID, $page: Int, $perPage: Int) {
+  workspaces(organizationId: $organizationId, page: $page, perPage: $perPage) {
+    totalItems
+    items {
+      slug
+      ...WorkspaceDisplayFragment
+    }
+  }
+}
+`);
+
+const SearchFilesDoc = graphql(`
+query SearchFiles($query: String!, $workspaceSlugs: [String]!, $page: Int, $perPage: Int) {
+  files: searchFiles(
+    query: $query
+    workspaceSlugs: $workspaceSlugs
+    page: $page
+    perPage: $perPage
+  ) {
+    __typename
+    ...FilesPage
+  }
+}
+`);
+
+const SearchPipelineTemplatesDoc = graphql(`
+query SearchPipelineTemplates($query: String!, $workspaceSlugs: [String]!, $page: Int, $perPage: Int) {
+  pipelineTemplates: searchPipelineTemplates(
+    query: $query
+    workspaceSlugs: $workspaceSlugs
+    page: $page
+    perPage: $perPage
+  ) {
+    __typename
+    ...PipelineTemplatesPage
+  }
+}
+`);
+
+const SearchPipelinesDoc = graphql(`
+query SearchPipelines($query: String!, $workspaceSlugs: [String]!, $page: Int, $perPage: Int, $functionalType: PipelineFunctionalType) {
+  pipelines: searchPipelines(
+    query: $query
+    workspaceSlugs: $workspaceSlugs
+    page: $page
+    perPage: $perPage
+    functionalType: $functionalType
+  ) {
+    __typename
+    ...PipelinesPage
+  }
+}
+`);
+
+const SearchDatasetsDoc = graphql(`
+query SearchDatasets($query: String!, $workspaceSlugs: [String]!, $page: Int, $perPage: Int) {
+  datasets: searchDatasets(
+    query: $query
+    workspaceSlugs: $workspaceSlugs
+    page: $page
+    perPage: $perPage
+  ) {
+    __typename
+    ...DatasetsPage
+  }
+}
+`);
+
+const SearchDatabaseTablesDoc = graphql(`
+query SearchDatabaseTables($query: String!, $workspaceSlugs: [String]!, $page: Int, $perPage: Int) {
+  databaseTables: searchDatabaseTables(
+    query: $query
+    workspaceSlugs: $workspaceSlugs
+    page: $page
+    perPage: $perPage
+  ) {
+    __typename
+    ...DatabaseTablesPage
+  }
+}
+`);
 
 type Workspace = GetWorkspacesQuery["workspaces"]["items"][0];
 
@@ -92,7 +171,7 @@ const SpotlightSearch = ({
   }, [isOpen]);
 
   const [searchWorkspaces, { data: workspacesData }] =
-    useGetWorkspacesLazyQuery();
+    useLazyQuery(GetWorkspacesDoc);
 
   useEffect(() => {
     if (isOpen) {
@@ -120,19 +199,19 @@ const SpotlightSearch = ({
   const [pipelineTemplatePage, setPipelineTemplatePage] = useState(1);
 
   const [searchDatasets, { data: datasetsData, loading: datasetsLoading }] =
-    useSearchDatasetsLazyQuery();
+    useLazyQuery(SearchDatasetsDoc);
   const [searchPipelines, { data: pipelinesData, loading: pipelinesLoading }] =
-    useSearchPipelinesLazyQuery();
+    useLazyQuery(SearchPipelinesDoc);
   const [
     searchPipelineTemplates,
     { data: pipelineTemplatesData, loading: pipelineTemplatesLoading },
-  ] = useSearchPipelineTemplatesLazyQuery();
+  ] = useLazyQuery(SearchPipelineTemplatesDoc);
   const [
     searchDatabaseTables,
     { data: databaseTablesData, loading: databaseTablesLoading },
-  ] = useSearchDatabaseTablesLazyQuery();
+  ] = useLazyQuery(SearchDatabaseTablesDoc);
   const [searchFiles, { data: filesData, loading: filesLoading }] =
-    useSearchFilesLazyQuery();
+    useLazyQuery(SearchFilesDoc);
 
   useEffect(() => {
     if (isOpen && query) {

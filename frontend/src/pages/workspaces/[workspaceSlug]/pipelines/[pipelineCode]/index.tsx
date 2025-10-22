@@ -23,7 +23,6 @@ import { useState } from "react";
 import GeneratePipelineWebhookUrlDialog from "workspaces/features/GeneratePipelineWebhookUrlDialog";
 import PipelineVersionConfigDialog from "workspaces/features/PipelineVersionConfigDialog";
 import {
-  useWorkspacePipelinePageQuery,
   WorkspacePipelinePageDocument,
   WorkspacePipelinePageQuery,
   WorkspacePipelinePageQueryVariables,
@@ -34,6 +33,74 @@ import {
   updatePipeline,
 } from "workspaces/helpers/pipelines";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspacePipelinePageDoc = graphql(`
+query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...PipelineLayout_workspace
+  }
+  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+    ...RunPipelineDialog_pipeline
+    ...PipelineLayout_pipeline
+    permissions {
+      run
+      update
+      schedule
+      delete
+      createVersion
+      createTemplateVersion {
+        isAllowed
+      }
+    }
+    webhookUrl
+    webhookEnabled
+    id
+    createdAt
+    code
+    name
+    description
+    schedule
+    type
+    functionalType
+    notebookPath
+    tags {
+      ...Tag_tag
+    }
+    sourceTemplate {
+      id
+      code
+      name
+    }
+    autoUpdateFromTemplate
+    hasNewTemplateVersions
+    newTemplateVersions {
+      id
+      changelog
+      versionNumber
+      createdAt
+    }
+    currentVersion {
+      id
+      versionName
+      description
+      config
+      externalLink
+      ...PipelineVersionParametersTable_version
+      ...PipelineVersionConfigDialog_version
+    }
+    recipients {
+      user {
+        id
+        displayName
+      }
+    }
+  }
+}
+`);
 
 type Props = {
   pipelineCode: string;
@@ -51,7 +118,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const [isUpgradeFromTemplateDialogOpen, setUpgradeFromTemplateDialogOpen] =
     useState(false);
 
-  const { data, refetch } = useWorkspacePipelinePageQuery({
+  const { data, refetch } = useQuery(WorkspacePipelinePageDoc, {
     variables: {
       workspaceSlug,
       pipelineCode,

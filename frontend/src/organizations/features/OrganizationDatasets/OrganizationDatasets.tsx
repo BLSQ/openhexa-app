@@ -5,13 +5,30 @@ import SearchInput from "core/features/SearchInput";
 import { useState, useEffect } from "react";
 import { useTranslation } from "next-i18next";
 import {
-  useOrganizationDatasetsQuery,
   OrganizationDatasetsQuery,
   OrganizationDataset_LinkFragment,
 } from "organizations/graphql/queries.generated";
 import Block from "core/components/Block";
 import Link from "core/components/Link";
 import DatasetWorkspacesList from "./DatasetWorkspacesList";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const OrganizationDatasetsDoc = graphql(`
+query OrganizationDatasets($id: UUID!, $page: Int = 1, $perPage: Int = 10, $query: String) {
+  organization(id: $id) {
+    ...Organization_organization
+    datasetLinks(page: $page, perPage: $perPage, query: $query) {
+      totalItems
+      pageNumber
+      totalPages
+      items {
+        ...OrganizationDataset_link
+      }
+    }
+  }
+}
+`);
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -31,7 +48,7 @@ export default function OrganizationDatasets({
 
   const shouldUseSSRData = page === 1 && !debouncedSearchTerm;
 
-  const { data, loading } = useOrganizationDatasetsQuery({
+  const { data, loading } = useQuery(OrganizationDatasetsDoc, {
     variables: {
       id: organizationId,
       page: page,

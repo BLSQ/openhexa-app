@@ -10,8 +10,18 @@ import Spinner from "core/components/Spinner";
 import useCacheKey from "core/hooks/useCacheKey";
 import { PipelineError } from "graphql/types";
 import { useState } from "react";
-import { useDeletePipelineMutation } from "workspaces/graphql/mutations.generated";
 import Dialog from "core/components/Dialog";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const DeletePipelineDoc = graphql(`
+mutation deletePipeline($input: DeletePipelineInput!) {
+  deletePipeline(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type DeletePipelineDialogProps = {
   open: boolean;
@@ -27,7 +37,7 @@ const DeletePipelineDialog = (props: DeletePipelineDialogProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const clearCache = useCacheKey(["pipelines", pipeline.code]);
 
-  const [deletePipeline] = useDeletePipelineMutation();
+  const [deletePipeline] = useMutation(DeletePipelineDoc);
 
   const onSubmit = async () => {
     setIsSubmitting(true);

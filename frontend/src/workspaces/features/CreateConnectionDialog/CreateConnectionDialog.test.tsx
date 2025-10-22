@@ -1,8 +1,22 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TestApp } from "core/helpers/testutils";
-import { useCreateConnectionMutation } from "workspaces/graphql/mutations.generated";
 import CreateConnectionDialog from "./CreateConnectionDialog";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const CreateConnectionDoc = graphql(`
+mutation createConnection($input: CreateConnectionInput!) {
+  createConnection(input: $input) {
+    success
+    connection {
+      id
+      name
+    }
+    errors
+  }
+}
+`);
 
 jest.mock("workspaces/graphql/mutations.generated", () => ({
   __esModule: true,
@@ -33,7 +47,7 @@ describe("CreateConnectionDialog", () => {
 
   it("creates a custom connection", async () => {
     const createConnectionMock = jest.fn();
-    (useCreateConnectionMutation as jest.Mock).mockReturnValue([
+    (useMutation as jest.Mock).mockReturnValue(CreateConnectionDoc, [
       createConnectionMock,
     ]);
     const user = userEvent.setup();

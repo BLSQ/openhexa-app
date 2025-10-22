@@ -7,10 +7,31 @@ import { useRouter } from "next/router";
 import PipelineRunDataCard from "pipelines/features/PipelineRunDataCard";
 import {
   PipelineRunPageDocument,
-  PipelineRunPageQuery,
-  usePipelineRunPageQuery,
+  PipelineRunPageQuery
 } from "pipelines/graphql/queries.generated";
 import { getPipelineRunLabel } from "pipelines/helpers/runs";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const PipelineRunPageDoc = graphql(`
+query PipelineRunPage($pipelineId: UUID!, $runId: UUID!) {
+  dagRun(id: $runId) {
+    id
+    label
+    triggerMode
+    user {
+      displayName
+    }
+    ...PipelineRunDataCard_dagRun
+  }
+  dag(id: $pipelineId) {
+    id
+    externalId
+    label
+    ...PipelineRunDataCard_dag
+  }
+}
+`);
 
 type Props = {
   page: number;
@@ -21,7 +42,7 @@ const PipelineRunPage = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const { data, refetch } = usePipelineRunPageQuery({
+  const { data, refetch } = useQuery(PipelineRunPageDoc, {
     variables: {
       pipelineId: router.query.pipelineId as string,
       runId: router.query.runId as string,

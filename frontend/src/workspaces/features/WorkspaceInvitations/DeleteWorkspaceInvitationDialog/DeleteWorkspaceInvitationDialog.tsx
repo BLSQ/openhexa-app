@@ -2,12 +2,22 @@ import { gql } from "@apollo/client";
 import Dialog from "core/components/Dialog";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useState } from "react";
-import { useDeleteWorkspaceInvitationMutation } from "workspaces/graphql/mutations.generated";
 import { DeleteWorkspaceInvitation_WorkspaceInvitationFragment } from "./DeleteWorkspaceInvitationDialog.generated";
 import { DeleteWorkspaceInvitationError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const DeleteWorkspaceInvitationDoc = graphql(`
+mutation deleteWorkspaceInvitation($input: DeleteWorkspaceInvitationInput!) {
+  deleteWorkspaceInvitation(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type DeleteWorkspaceInvitationProps = {
   onClose(): void;
@@ -21,7 +31,7 @@ const DeleteWorkspaceInvitationDialog = (
   const { onClose, open, invitation } = props;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useTranslation();
-  const [deleteWorkspaceInvitation] = useDeleteWorkspaceInvitationMutation();
+  const [deleteWorkspaceInvitation] = useMutation(DeleteWorkspaceInvitationDoc);
   const clearCache = useCacheKey("workspace");
 
   const onSubmit = async () => {

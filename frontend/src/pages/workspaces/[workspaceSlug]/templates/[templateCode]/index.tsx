@@ -5,7 +5,6 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
-import { useWorkspaceTemplatePageQuery } from "workspaces/graphql/queries.generated";
 import TemplateLayout from "workspaces/layouts/TemplateLayout";
 import { updateTemplate } from "workspaces/helpers/templates";
 import Link from "core/components/Link";
@@ -15,6 +14,43 @@ import { createTemplatePageServerSideProps } from "workspaces/helpers/templatePa
 import { PipelineFunctionalType } from "graphql/types";
 import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 import Listbox from "core/components/Listbox";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceTemplatePageDoc = graphql(`
+query WorkspaceTemplatePage($workspaceSlug: String!, $templateCode: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...PipelineLayout_workspace
+  }
+  template: templateByCode(code: $templateCode) {
+    ...TemplateLayout_template
+    permissions {
+      update
+      delete
+    }
+    id
+    code
+    name
+    description
+    functionalType
+    tags {
+      ...Tag_tag
+    }
+    currentVersion {
+      id
+      versionNumber
+      sourcePipelineVersion {
+        files {
+          ...FilesEditor_file
+        }
+        zipfile
+      }
+    }
+  }
+}
+`);
 
 type Props = {
   templateCode: string;
@@ -25,7 +61,7 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
   const { templateCode, workspaceSlug } = props;
   const { t } = useTranslation();
 
-  const { data } = useWorkspaceTemplatePageQuery({
+  const { data } = useQuery(WorkspaceTemplatePageDoc, {
     variables: {
       workspaceSlug,
       templateCode,

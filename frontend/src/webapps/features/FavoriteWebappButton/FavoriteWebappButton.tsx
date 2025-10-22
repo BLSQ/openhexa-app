@@ -3,12 +3,28 @@ import { StarIcon as SolidStarIcon } from "@heroicons/react/24/solid";
 import { gql } from "@apollo/client";
 import useCacheKey from "core/hooks/useCacheKey";
 import { toast } from "react-toastify";
-import {
-  useAddToFavoritesMutation,
-  useRemoveFromFavoritesMutation,
-} from "webapps/graphql/mutations.generated";
 import { useTranslation } from "next-i18next";
 import { FavoriteWebappButton_WebappFragment } from "./FavoriteWebappButton.generated";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const RemoveFromFavoritesDoc = graphql(`
+mutation RemoveFromFavorites($input: RemoveFromFavoritesInput!) {
+  removeFromFavorites(input: $input) {
+    success
+    errors
+  }
+}
+`);
+
+const AddToFavoritesDoc = graphql(`
+mutation AddToFavorites($input: AddToFavoritesInput!) {
+  addToFavorites(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type FavoriteWebappButtonProps = {
   webapp: FavoriteWebappButton_WebappFragment;
@@ -18,8 +34,8 @@ const FavoriteWebappButton = ({
   webapp: { id: webappId, isFavorite },
 }: FavoriteWebappButtonProps) => {
   const { t } = useTranslation();
-  const [addToFavorites] = useAddToFavoritesMutation();
-  const [removeFromFavorites] = useRemoveFromFavoritesMutation();
+  const [addToFavorites] = useMutation(AddToFavoritesDoc);
+  const [removeFromFavorites] = useMutation(RemoveFromFavoritesDoc);
 
   const clearCache = useCacheKey(["webapps"]);
 

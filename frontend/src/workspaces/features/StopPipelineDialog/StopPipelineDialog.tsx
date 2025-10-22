@@ -7,12 +7,22 @@ import { PipelineError } from "graphql/types";
 import { useState } from "react";
 
 import Dialog from "core/components/Dialog";
-import { useStopPipelineMutation } from "workspaces/graphql/mutations.generated";
 import { gql } from "@apollo/client";
 import {
   StopPipelineDialog_PipelineFragment,
   StopPipelineDialog_RunFragment,
 } from "./StopPipelineDialog.generated";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const StopPipelineDoc = graphql(`
+mutation stopPipeline($input: StopPipelineInput!) {
+  stopPipeline(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type StopPipelineDialogProps = {
   open: boolean;
@@ -29,7 +39,7 @@ const StopPipelineDialog = (props: StopPipelineDialogProps) => {
 
   const clearCache = useCacheKey(["pipelines", pipeline.code]);
 
-  const [stopPipeline] = useStopPipelineMutation();
+  const [stopPipeline] = useMutation(StopPipelineDoc);
 
   const onSubmit = async () => {
     setIsSubmitting(true);

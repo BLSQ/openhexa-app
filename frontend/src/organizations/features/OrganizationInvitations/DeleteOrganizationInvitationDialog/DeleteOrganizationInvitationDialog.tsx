@@ -1,11 +1,21 @@
 import Dialog from "core/components/Dialog";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useState } from "react";
-import { useDeleteOrganizationInvitationMutation } from "../OrganizationInvitations.generated";
 import { DeleteOrganizationInvitationError } from "graphql/types";
 import { Trans, useTranslation } from "next-i18next";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const DeleteOrganizationInvitationDoc = graphql(`
+mutation DeleteOrganizationInvitation($input: DeleteOrganizationInvitationInput!) {
+  deleteOrganizationInvitation(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type DeleteOrganizationInvitationProps = {
   onClose(): void;
@@ -23,7 +33,7 @@ const DeleteOrganizationInvitationDialog = (
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useTranslation();
   const [deleteOrganizationInvitation] =
-    useDeleteOrganizationInvitationMutation();
+    useMutation(DeleteOrganizationInvitationDoc);
   const clearCache = useCacheKey("organization");
 
   const onSubmit = async () => {

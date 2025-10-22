@@ -15,7 +15,6 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import {
-  useWorkspaceDatasetsPageQuery,
   WorkspaceDatasetsPageDocument,
   WorkspaceDatasetsPageQuery,
   WorkspaceDatasetsPageQueryVariables,
@@ -28,6 +27,54 @@ import PinDatasetButton from "datasets/features/PinDatasetButton";
 import useCacheKey from "core/hooks/useCacheKey";
 import clsx from "clsx";
 import Link from "core/components/Link";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const WorkspaceDatasetsPageDoc = graphql(`
+query WorkspaceDatasetsPage($workspaceSlug: String!, $page: Int, $perPage: Int, $query: String) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...WorkspaceLayout_workspace
+    ...CreateDatasetDialog_workspace
+    permissions {
+      createDataset
+    }
+    pinnedDatasets: datasets(pinned: true, page: 1, perPage: 6) {
+      items {
+        ...DatasetCard_link
+      }
+    }
+    datasets(query: $query, page: $page, perPage: $perPage) {
+      items {
+        ...PinDatasetButton_link
+        id
+        dataset {
+          id
+          name
+          slug
+          description
+          updatedAt
+          workspace {
+            slug
+            name
+          }
+          permissions {
+            update
+            delete
+          }
+          createdBy {
+            ...User_user
+          }
+        }
+      }
+      totalItems
+      totalPages
+      pageNumber
+    }
+  }
+}
+`);
 
 type Props = {
   page: number;
@@ -41,7 +88,7 @@ const WorkspaceDatasetsPage: NextPageWithLayout = (props: Props) => {
   const { page, perPage, workspaceSlug, query } = props;
   const [isDialogOpen, setDialogOpen] = useState(false);
   const router = useRouter();
-  const { data, refetch } = useWorkspaceDatasetsPageQuery({
+  const { data, refetch } = useQuery(WorkspaceDatasetsPageDoc, {
     variables: {
       workspaceSlug,
       page,

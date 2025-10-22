@@ -1,11 +1,21 @@
 import Dialog from "core/components/Dialog";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useState } from "react";
-import { useResendOrganizationInvitationMutation } from "../OrganizationInvitations.generated";
 import { ResendOrganizationInvitationError } from "graphql/types";
 import { Trans, useTranslation } from "next-i18next";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const ResendOrganizationInvitationDoc = graphql(`
+mutation ResendOrganizationInvitation($input: ResendOrganizationInvitationInput!) {
+  resendOrganizationInvitation(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type ResendOrganizationInvitationProps = {
   onClose(): void;
@@ -23,7 +33,7 @@ const ResendOrganizationInvitationDialog = (
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useTranslation();
   const [resendOrganizationInvitation] =
-    useResendOrganizationInvitationMutation();
+    useMutation(ResendOrganizationInvitationDoc);
   const clearCache = useCacheKey("organization");
 
   const onSubmit = async () => {

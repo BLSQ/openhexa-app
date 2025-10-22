@@ -1,13 +1,29 @@
 import SimpleSelect from "core/components/forms/SimpleSelect";
 import { LANGUAGES } from "core/helpers/i18n";
-import { useUpdateUserMutation } from "identity/graphql/mutations.generated";
 import useMe from "identity/hooks/useMe";
 import { useRouter } from "next/router";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const UpdateUserDoc = graphql(`
+mutation UpdateUser($input: UpdateUserInput!) {
+  updateUser(input: $input) {
+    success
+    errors
+    user {
+      id
+      language
+      firstName
+      lastName
+    }
+  }
+}
+`);
 
 const UILanguagePicker = ({ className }: { className?: string }) => {
   const me = useMe();
   const router = useRouter();
-  const [updateUser] = useUpdateUserMutation();
+  const [updateUser] = useMutation(UpdateUserDoc);
   if (!me?.user?.language) {
     return null;
   }

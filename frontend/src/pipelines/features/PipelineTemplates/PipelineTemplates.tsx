@@ -6,15 +6,81 @@ import router from "next/router";
 import useDebounce from "core/hooks/useDebounce";
 import useCacheKey from "core/hooks/useCacheKey";
 import {
-  PipelineTemplates_WorkspaceFragment,
-  useGetPipelineTemplatesQuery,
+  PipelineTemplates_WorkspaceFragment
 } from "./PipelineTemplates.generated";
-import { useCreatePipelineFromTemplateVersionMutation } from "pipelines/graphql/mutations.generated";
 import { CreatePipelineFromTemplateVersionError } from "graphql/types";
 import CardView from "./CardView";
 import GridView from "./GridView";
 import Header from "./Header";
 import Spinner from "core/components/Spinner";
+import { useMutation, useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const CreatePipelineFromTemplateVersionDoc = graphql(`
+mutation CreatePipelineFromTemplateVersion($input: CreatePipelineFromTemplateVersionInput!) {
+  createPipelineFromTemplateVersion(input: $input) {
+    success
+    errors
+    pipeline {
+      id
+      name
+      code
+    }
+  }
+}
+`);
+
+const GetPipelineTemplatesDoc = graphql(`
+query GetPipelineTemplates($page: Int!, $perPage: Int!, $search: String, $currentWorkspaceSlug: String!, $workspaceSlug: String, $tags: [String!], $functionalType: PipelineFunctionalType) {
+  workspace(slug: $currentWorkspaceSlug) {
+    slug
+    pipelineTemplateTags
+  }
+  pipelineTemplates(
+    page: $page
+    perPage: $perPage
+    search: $search
+    workspaceSlug: $workspaceSlug
+    tags: $tags
+    functionalType: $functionalType
+  ) {
+    pageNumber
+    totalPages
+    totalItems
+    items {
+      id
+      description
+      code
+      name
+      functionalType
+      tags {
+        id
+        name
+      }
+      permissions {
+        delete
+      }
+      workspace {
+        slug
+        name
+      }
+      currentVersion {
+        id
+        versionNumber
+        createdAt
+        user {
+          ...User_user
+        }
+        template {
+          sourcePipeline {
+            name
+          }
+        }
+      }
+    }
+  }
+}
+`);
 
 type PipelineTemplatesProps = {
   workspace: PipelineTemplates_WorkspaceFragment;
@@ -32,7 +98,7 @@ const PipelineTemplates = ({
   const clearCache = useCacheKey(["pipelines"]);
 
   const [createPipelineFromTemplateVersion] =
-    useCreatePipelineFromTemplateVersionMutation();
+    useMutation(CreatePipelineFromTemplateVersionDoc);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [tagsFilter, setTagsFilter] = useState<string[]>([]);
@@ -45,7 +111,7 @@ const PipelineTemplates = ({
     workspaceFilterOptions[0],
   );
 
-  const { data, loading, error, refetch } = useGetPipelineTemplatesQuery({
+  const { data, loading, error, refetch } = useQuery(GetPipelineTemplatesDoc, {
     variables: {
       page,
       perPage,

@@ -5,12 +5,19 @@ import BackLayoutHeader from "core/layouts/back/BackLayoutHeader";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import {
-  NotebooksPageDocument,
-  useNotebooksPageQuery,
+  NotebooksPageDocument
 } from "notebooks/graphql/queries.generated";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const NotebooksPageDoc = graphql(`
+query notebooksPage {
+  notebooksUrl
+}
+`);
 
 const NotebooksPage = () => {
-  const { data } = useNotebooksPageQuery();
+  const { data } = useQuery(NotebooksPageDoc);
   const { t } = useTranslation();
   const router = useRouter();
   if (!data) {

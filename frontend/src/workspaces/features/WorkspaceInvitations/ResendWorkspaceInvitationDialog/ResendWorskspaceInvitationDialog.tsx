@@ -2,13 +2,22 @@ import { gql } from "@apollo/client";
 import Dialog from "core/components/Dialog";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useState } from "react";
-import { useResendWorkspaceInvitationMutation } from "workspaces/graphql/mutations.generated";
-
 import { ResendWorkspaceInvitationError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
 import { ResendWorkspaceInvitation_WorkspaceInvitationFragment } from "./ResendWorskspaceInvitationDialog.generated";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const ResendWorkspaceInvitationDoc = graphql(`
+mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
+  resendWorkspaceInvitation(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type ResendWorkspaceInvitationProps = {
   onClose(): void;
@@ -22,7 +31,7 @@ const ResendWorkspaceInvitationDialog = (
   const { onClose, open, invitation } = props;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useTranslation();
-  const [resendWorkspaceInvitation] = useResendWorkspaceInvitationMutation();
+  const [resendWorkspaceInvitation] = useMutation(ResendWorkspaceInvitationDoc);
   const clearCache = useCacheKey("workspace");
 
   const onSubmit = async () => {

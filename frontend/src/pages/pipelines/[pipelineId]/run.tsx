@@ -6,8 +6,7 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import PipelineRunForm from "pipelines/features/PipelineRunForm/PipelineRunForm";
 import {
-  PipelineConfigureRunPageDocument,
-  usePipelineConfigureRunPageQuery,
+  PipelineConfigureRunPageDocument
 } from "pipelines/graphql/queries.generated";
 import { runPipeline } from "pipelines/helpers/pipeline";
 import { getPipelineRun } from "pipelines/helpers/runs";
@@ -15,6 +14,24 @@ import { useMemo } from "react";
 import BackLayout from "core/layouts/back/BackLayout";
 import { toast } from "react-toastify";
 import MarkdownViewer from "core/components/MarkdownViewer";
+import { useQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const PipelineConfigureRunPageDoc = graphql(`
+query PipelineConfigureRunPage($pipelineId: UUID!) {
+  dag(id: $pipelineId) {
+    id
+    label
+    externalId
+    template {
+      sampleConfig
+      description
+    }
+    description
+    ...PipelineRunForm_dag
+  }
+}
+`);
 
 type Props = {
   run: Awaited<ReturnType<typeof getPipelineRun>>;
@@ -25,7 +42,7 @@ const PipelineConfigureRunPage = (props: Props) => {
   const { pipelineId, run } = props;
   const { t } = useTranslation();
   const router = useRouter();
-  const { data } = usePipelineConfigureRunPageQuery({
+  const { data } = useQuery(PipelineConfigureRunPageDoc, {
     variables: { pipelineId },
   });
 

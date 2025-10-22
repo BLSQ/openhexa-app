@@ -10,10 +10,19 @@ import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import {
   WorkspacesPageDocument,
   WorkspacesPageQuery,
-  WorkspacesPageQueryVariables,
-  useCheckWorkspaceAvailabilityLazyQuery,
+  WorkspacesPageQueryVariables
 } from "workspaces/graphql/queries.generated";
 import { WarningAlert } from "core/components/Alert";
+import { useLazyQuery } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const CheckWorkspaceAvailabilityDoc = graphql(`
+query CheckWorkspaceAvailability($slug: String!) {
+  workspace(slug: $slug) {
+    slug
+  }
+}
+`);
 
 type WorkspacesHomeProps = {
   workspaceSlug: string | null;
@@ -23,7 +32,7 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
   const { t } = useTranslation();
   const me = useMe();
   const router = useRouter();
-  const [check] = useCheckWorkspaceAvailabilityLazyQuery();
+  const [check] = useLazyQuery(CheckWorkspaceAvailabilityDoc);
 
   const [lastWorkspace, setLastWorkspace] = useLocalStorage(
     "last-visited-workspace",

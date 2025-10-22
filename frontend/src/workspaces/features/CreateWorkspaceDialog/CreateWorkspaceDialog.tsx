@@ -7,11 +7,31 @@ import { CountryPicker_CountryFragment } from "core/features/CountryPicker/Count
 import useForm from "core/hooks/useForm";
 import { useEffect } from "react";
 import { useTranslation } from "next-i18next";
-import { useCreateWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import { useRouter } from "next/router";
 import { CreateWorkspaceError } from "graphql/types";
 import Checkbox from "core/components/forms/Checkbox/Checkbox";
 import useCacheKey from "core/hooks/useCacheKey";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const CreateWorkspaceDoc = graphql(`
+mutation createWorkspace($input: CreateWorkspaceInput!) {
+  createWorkspace(input: $input) {
+    success
+    workspace {
+      slug
+      name
+      description
+      countries {
+        code
+        alpha3
+        name
+      }
+    }
+    errors
+  }
+}
+`);
 
 type CreateWorkspaceDialogProps = {
   organizationId?: string;
@@ -28,7 +48,7 @@ type Form = {
 
 const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
   const router = useRouter();
-  const [mutate] = useCreateWorkspaceMutation();
+  const [mutate] = useMutation(CreateWorkspaceDoc);
   const clearCache = useCacheKey(["workspaces"]);
 
   const { t } = useTranslation();

@@ -4,7 +4,6 @@ import Spinner from "core/components/Spinner";
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { useDeleteWorkspaceMemberMutation } from "workspaces/graphql/mutations.generated";
 import useCacheKey from "core/hooks/useCacheKey";
 import {
   DeleteWorkspaceMemberError,
@@ -14,6 +13,17 @@ import useMe from "identity/hooks/useMe";
 import { gql } from "@apollo/client";
 import { DeleteWorkspaceMember_WorkspaceMemberFragment } from "./DeleteWorkspaceMemberDialog.generated";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const DeleteWorkspaceMemberDoc = graphql(`
+mutation deleteWorkspaceMember($input: DeleteWorkspaceMemberInput!) {
+  deleteWorkspaceMember(input: $input) {
+    success
+    errors
+  }
+}
+`);
 
 type DeleteWorkspaceMemberProps = {
   onClose(): void;
@@ -29,7 +39,7 @@ const DeleteWorkspaceMemberDialog = (props: DeleteWorkspaceMemberProps) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [deleteWorkspaceMember] = useDeleteWorkspaceMemberMutation();
+  const [deleteWorkspaceMember] = useMutation(DeleteWorkspaceMemberDoc);
   const clearCache = useCacheKey("workspace");
 
   const onSubmit = async () => {

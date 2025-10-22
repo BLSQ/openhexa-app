@@ -26,13 +26,78 @@ import { useTranslation } from "next-i18next";
 import PipelineRunFavoriteTrigger from "pipelines/features/PipelineRunFavoriteTrigger";
 import { PipelineRunFavoriteTrigger_RunFragment } from "pipelines/features/PipelineRunFavoriteTrigger/PipelineRunFavoriteTrigger.generated";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
-import { useUpdatePipelineMutation } from "pipelines/graphql/mutations.generated";
 import {
   PipelinePageDocument,
-  PipelinePageQuery,
-  usePipelinePageQuery,
+  PipelinePageQuery
 } from "pipelines/graphql/queries.generated";
 import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
+import { useQuery, useMutation } from "@apollo/client/react";
+import { graphql } from "graphql/gql";
+
+const PipelinePageDoc = graphql(`
+query PipelinePage($id: UUID!, $page: Int, $perPage: Int) {
+  dag(id: $id) {
+    id
+    label
+    countries {
+      ...CountryBadge_country
+    }
+    tags {
+      ...Tag_tag
+    }
+    externalId
+    schedule
+    externalUrl
+    template {
+      code
+      description
+      sampleConfig
+    }
+    description
+    schedule
+    user {
+      ...UserProperty_user
+    }
+    runs(page: $page, perPage: $perPage) {
+      totalItems
+      totalPages
+      items {
+        id
+        label
+        triggerMode
+        externalId
+        externalUrl
+        user {
+          ...UserColumn_user
+        }
+        status
+        executionDate
+        lastRefreshedAt
+        duration
+        ...PipelineRunFavoriteTrigger_run
+      }
+    }
+  }
+}
+`);
+
+const UpdatePipelineDoc = graphql(`
+mutation UpdatePipeline($input: UpdatePipelineInput!) {
+  updatePipeline(input: $input) {
+    success
+    errors
+    pipeline {
+      id
+      code
+      name
+      description
+      schedule
+      webhookEnabled
+      autoUpdateFromTemplate
+    }
+  }
+}
+`);
 
 type Props = {
   page: number;
@@ -44,11 +109,11 @@ const PipelinePage = (props: Props) => {
   const { t } = useTranslation();
   const me = useMe();
 
-  const { data, refetch } = usePipelinePageQuery({
+  const { data, refetch } = useQuery(PipelinePageDoc, {
     variables: { id: props.pipelineId },
   });
 
-  const [updatePipeline] = useUpdatePipelineMutation();
+  const [updatePipeline] = useMutation(UpdatePipelineDoc);
 
   const onChangePage = ({ page }: { page: number }) => {
     refetch({
