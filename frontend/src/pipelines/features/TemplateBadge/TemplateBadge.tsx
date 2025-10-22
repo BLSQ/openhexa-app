@@ -24,12 +24,6 @@ const PUBLISHER_STYLES: Record<string, PublisherStyle> = {
     textClass: "text-gray-600",
     ringClass: "ring-gray-500/20",
   },
-  Partner: {
-    label: "Partner",
-    colorClass: "bg-green-50",
-    textClass: "text-green-700",
-    ringClass: "ring-green-600/20",
-  },
 };
 
 interface TemplateBadgeProps {
@@ -44,7 +38,7 @@ const TemplateBadge = ({
   showIcon = true,
 }: TemplateBadgeProps) => {
   const { t } = useTranslation();
-  const style = PUBLISHER_STYLES[publisher] || PUBLISHER_STYLES.Community;
+  const style = PUBLISHER_STYLES[publisher ?? "Community"] || PUBLISHER_STYLES.Community;
 
   return (
     <Badge
