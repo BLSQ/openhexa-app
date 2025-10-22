@@ -7,7 +7,7 @@ import useDebounce from "core/hooks/useDebounce";
 import useCacheKey from "core/hooks/useCacheKey";
 import {
   getTemplateSortOptions,
-  convertDataGridSortToGraphQL,
+  templateSorting,
   TemplateSortOption,
 } from "pipelines/config/sorting";
 import { SortingRule } from "react-table";
@@ -131,7 +131,7 @@ const PipelineTemplates = ({
     pageIndex: number;
     sortBy: SortingRule<object>[];
   }) => {
-    const orderBy = convertDataGridSortToGraphQL(params.sortBy);
+    const orderBy = templateSorting.convertDataGridSort(params.sortBy);
     if (orderBy) {
       const matchingOption = sortOptions.find(
         opt => opt.orderBy === orderBy

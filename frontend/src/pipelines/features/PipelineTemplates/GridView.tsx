@@ -11,6 +11,7 @@ import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { TagsCell, FunctionalTypeCell } from "pipelines/features/PipelineMetadataGrid";
 import { PipelineTemplateOrderBy } from "graphql/types";
+import { templateSorting } from "pipelines/config/sorting";
 
 type GridViewProps = {
   items: any[];
@@ -42,23 +43,10 @@ const GridView = ({
   const { t } = useTranslation();
   const [templateToDelete, setTemplateToDelete] = useState<any | null>(null);
 
-  const defaultSortBy = useMemo(() => {
-    if (!currentSort) return [];
-
-    const orderByToColumnMap: Record<PipelineTemplateOrderBy, { id: string; desc: boolean }> = {
-      [PipelineTemplateOrderBy.NameAsc]: { id: "name", desc: false },
-      [PipelineTemplateOrderBy.NameDesc]: { id: "name", desc: true },
-      [PipelineTemplateOrderBy.CreatedAtAsc]: { id: "createdAt", desc: false },
-      [PipelineTemplateOrderBy.CreatedAtDesc]: { id: "createdAt", desc: true },
-      [PipelineTemplateOrderBy.PipelinesCountAsc]: { id: "popularity", desc: false },
-      [PipelineTemplateOrderBy.PipelinesCountDesc]: { id: "popularity", desc: true },
-    };
-
-    const sortConfig = orderByToColumnMap[currentSort];
-    if (!sortConfig) return [];
-
-    return [sortConfig];
-  }, [currentSort]);
+  const defaultSortBy = useMemo(
+    () => templateSorting.convertToDataGridSort(currentSort),
+    [currentSort]
+  );
 
   return (
     <Block className="divide divide-y divide-gray-100 mt-4">
