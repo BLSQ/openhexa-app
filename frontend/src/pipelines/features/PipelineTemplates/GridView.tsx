@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from "react";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import { SortingRule } from "react-table";
-import { SortDirection, PipelineTemplateSortField } from "graphql/types";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
@@ -11,6 +10,7 @@ import Link from "core/components/Link";
 import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { TagsCell, FunctionalTypeCell } from "pipelines/features/PipelineMetadataGrid";
+import { PipelineTemplateOrderBy } from "graphql/types";
 
 type GridViewProps = {
   items: any[];
@@ -26,10 +26,7 @@ type GridViewProps = {
     pageIndex: number;
     sortBy: SortingRule<object>[];
   }) => void;
-  currentSort?: {
-    field: PipelineTemplateSortField;
-    direction: SortDirection;
-  };
+  currentSort?: PipelineTemplateOrderBy;
 };
 
 const GridView = ({
@@ -48,25 +45,25 @@ const GridView = ({
   const defaultSortBy = useMemo(() => {
     if (!currentSort) return [];
 
-    const fieldToColumnMap: Record<PipelineTemplateSortField, string> = {
-      [PipelineTemplateSortField.Name]: "name",
-      [PipelineTemplateSortField.CreatedAt]: "createdAt",
-      [PipelineTemplateSortField.PipelinesCount]: "popularity",
+    const orderByToColumnMap: Record<PipelineTemplateOrderBy, { id: string; desc: boolean }> = {
+      [PipelineTemplateOrderBy.NameAsc]: { id: "name", desc: false },
+      [PipelineTemplateOrderBy.NameDesc]: { id: "name", desc: true },
+      [PipelineTemplateOrderBy.CreatedAtAsc]: { id: "createdAt", desc: false },
+      [PipelineTemplateOrderBy.CreatedAtDesc]: { id: "createdAt", desc: true },
+      [PipelineTemplateOrderBy.PipelinesCountAsc]: { id: "popularity", desc: false },
+      [PipelineTemplateOrderBy.PipelinesCountDesc]: { id: "popularity", desc: true },
     };
 
-    const columnId = fieldToColumnMap[currentSort.field];
-    if (!columnId) return [];
+    const sortConfig = orderByToColumnMap[currentSort];
+    if (!sortConfig) return [];
 
-    return [{
-      id: columnId,
-      desc: currentSort.direction === SortDirection.Desc,
-    }];
+    return [sortConfig];
   }, [currentSort]);
 
   return (
     <Block className="divide divide-y divide-gray-100 mt-4">
       <DataGrid
-        key={currentSort ? `${currentSort.field}-${currentSort.direction}` : 'default'}
+        key={currentSort ?? 'default'}
         data={items}
         defaultPageSize={perPage}
         totalItems={totalItems}

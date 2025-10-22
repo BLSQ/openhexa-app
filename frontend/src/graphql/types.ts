@@ -3666,6 +3666,16 @@ export enum PipelineTemplateError {
   PipelineTemplateNotFound = 'PIPELINE_TEMPLATE_NOT_FOUND'
 }
 
+/** Enum representing the possible orderings for pipeline templates. */
+export enum PipelineTemplateOrderBy {
+  CreatedAtAsc = 'CREATED_AT_ASC',
+  CreatedAtDesc = 'CREATED_AT_DESC',
+  NameAsc = 'NAME_ASC',
+  NameDesc = 'NAME_DESC',
+  PipelinesCountAsc = 'PIPELINES_COUNT_ASC',
+  PipelinesCountDesc = 'PIPELINES_COUNT_DESC'
+}
+
 /** Represents paged result of fetching pipeline templates. */
 export type PipelineTemplatePage = {
   __typename?: 'PipelineTemplatePage';
@@ -3694,22 +3704,6 @@ export type PipelineTemplateResultPage = {
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
-};
-
-/** Sortable fields for pipeline templates. */
-export enum PipelineTemplateSortField {
-  /** Sort by creation date */
-  CreatedAt = 'CREATED_AT',
-  /** Sort by template name */
-  Name = 'NAME',
-  /** Sort by number of pipelines created from this template */
-  PipelinesCount = 'PIPELINES_COUNT'
-}
-
-/** Sort specification for pipeline templates. */
-export type PipelineTemplateSortInput = {
-  direction: SortDirection;
-  field: PipelineTemplateSortField;
 };
 
 /** Represents a version of a pipeline template. */
@@ -4179,10 +4173,10 @@ export type QueryPipelineTemplateVersionArgs = {
 
 export type QueryPipelineTemplatesArgs = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
+  orderBy?: InputMaybe<PipelineTemplateOrderBy>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
-  sort?: InputMaybe<PipelineTemplateSortInput>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };

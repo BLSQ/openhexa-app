@@ -5,11 +5,10 @@ import { toast } from "react-toastify";
 import router from "next/router";
 import useDebounce from "core/hooks/useDebounce";
 import useCacheKey from "core/hooks/useCacheKey";
-import { useSorting } from "core/hooks/useSorting";
 import {
   getTemplateSortOptions,
   convertDataGridSortToGraphQL,
-  COLUMN_TO_FIELD_MAP
+  TemplateSortOption,
 } from "pipelines/config/sorting";
 import { SortingRule } from "react-table";
 import {
@@ -39,10 +38,7 @@ const PipelineTemplates = ({
   const clearCache = useCacheKey(["pipelines"]);
 
   const sortOptions = getTemplateSortOptions(t);
-  const sorting = useSorting({
-    defaultSort: sortOptions[0],
-    options: sortOptions,
-  });
+  const [sortOrder, setSortOrder] = useState<TemplateSortOption>(sortOptions[0]);
 
   const [createPipelineFromTemplateVersion] =
     useCreatePipelineFromTemplateVersionMutation();
@@ -67,7 +63,7 @@ const PipelineTemplates = ({
       workspaceSlug: workspaceFilter.workspaceSlug ?? undefined,
       tags: tagsFilter.length > 0 ? tagsFilter : undefined,
       functionalType: functionalTypeFilter,
-      sort: sorting.getSortInput(),
+      orderBy: sortOrder.orderBy,
     },
     fetchPolicy: "cache-and-network",
   });
@@ -135,13 +131,13 @@ const PipelineTemplates = ({
     pageIndex: number;
     sortBy: SortingRule<object>[];
   }) => {
-    const graphqlSort = convertDataGridSortToGraphQL(params.sortBy);
-    if (graphqlSort) {
+    const orderBy = convertDataGridSortToGraphQL(params.sortBy);
+    if (orderBy) {
       const matchingOption = sortOptions.find(
-        opt => opt.field === graphqlSort.field && opt.direction === graphqlSort.direction
+        opt => opt.orderBy === orderBy
       );
       if (matchingOption) {
-        sorting.setSortOrder(matchingOption);
+        setSortOrder(matchingOption);
       }
     }
     setPage(params.page);
@@ -162,7 +158,7 @@ const PipelineTemplates = ({
         templateTags={templateTags}
         functionalTypeFilter={functionalTypeFilter}
         setFunctionalTypeFilter={setFunctionalTypeFilter}
-        sorting={sorting}
+        sorting={{ sortOrder, setSortOrder, sortOptions }}
       />
       <div className="relative">
         {loading && (
@@ -179,7 +175,7 @@ const PipelineTemplates = ({
           createPipeline={createPipeline}
           setPage={setPage}
           onSort={view === "grid" ? handleDataGridSort : undefined}
-          currentSort={view === "grid" ? sorting.getSortInput() : undefined}
+          currentSort={view === "grid" ? sortOrder.orderBy : undefined}
         />
       </div>
     </div>
@@ -195,7 +191,7 @@ const GET_PIPELINE_TEMPLATES = gql`
     $workspaceSlug: String
     $tags: [String!]
     $functionalType: PipelineFunctionalType
-    $sort: PipelineTemplateSortInput
+    $orderBy: PipelineTemplateOrderBy
   ) {
     workspace(slug: $currentWorkspaceSlug) {
       slug
@@ -208,7 +204,7 @@ const GET_PIPELINE_TEMPLATES = gql`
       workspaceSlug: $workspaceSlug
       tags: $tags
       functionalType: $functionalType
-      sort: $sort
+      orderBy: $orderBy
     ) {
       pageNumber
       totalPages

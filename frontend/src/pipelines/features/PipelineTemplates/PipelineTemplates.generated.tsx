@@ -12,7 +12,7 @@ export type GetPipelineTemplatesQueryVariables = Types.Exact<{
   workspaceSlug?: Types.InputMaybe<Types.Scalars['String']['input']>;
   tags?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
   functionalType?: Types.InputMaybe<Types.PipelineFunctionalType>;
-  sort?: Types.InputMaybe<Types.PipelineTemplateSortInput>;
+  orderBy?: Types.InputMaybe<Types.PipelineTemplateOrderBy>;
 }>;
 
 
@@ -26,7 +26,7 @@ export const PipelineTemplates_WorkspaceFragmentDoc = gql`
 }
     `;
 export const GetPipelineTemplatesDocument = gql`
-    query GetPipelineTemplates($page: Int!, $perPage: Int!, $search: String, $currentWorkspaceSlug: String!, $workspaceSlug: String, $tags: [String!], $functionalType: PipelineFunctionalType, $sort: PipelineTemplateSortInput) {
+    query GetPipelineTemplates($page: Int!, $perPage: Int!, $search: String, $currentWorkspaceSlug: String!, $workspaceSlug: String, $tags: [String!], $functionalType: PipelineFunctionalType, $orderBy: PipelineTemplateOrderBy) {
   workspace(slug: $currentWorkspaceSlug) {
     slug
     pipelineTemplateTags
@@ -38,7 +38,7 @@ export const GetPipelineTemplatesDocument = gql`
     workspaceSlug: $workspaceSlug
     tags: $tags
     functionalType: $functionalType
-    sort: $sort
+    orderBy: $orderBy
   ) {
     pageNumber
     totalPages
@@ -98,7 +98,7 @@ export const GetPipelineTemplatesDocument = gql`
  *      workspaceSlug: // value for 'workspaceSlug'
  *      tags: // value for 'tags'
  *      functionalType: // value for 'functionalType'
- *      sort: // value for 'sort'
+ *      orderBy: // value for 'orderBy'
  *   },
  * });
  */

@@ -1,4 +1,4 @@
-from ariadne import ObjectType
+from ariadne import EnumType, ObjectType
 
 from hexa.core.graphql import result_page
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
@@ -10,6 +10,18 @@ pipeline_template_version_permissions = ObjectType("PipelineTemplateVersionPermi
 
 pipeline_template_object = ObjectType("PipelineTemplate")
 pipeline_template_version_object = ObjectType("PipelineTemplateVersion")
+
+pipeline_template_order_by_enum = EnumType(
+    "PipelineTemplateOrderBy",
+    {
+        "PIPELINES_COUNT_DESC": "-pipelines_count",
+        "PIPELINES_COUNT_ASC": "pipelines_count",
+        "NAME_DESC": "-name",
+        "NAME_ASC": "name",
+        "CREATED_AT_DESC": "-created_at",
+        "CREATED_AT_ASC": "created_at",
+    },
+)
 
 
 @workspace_permissions.field("createPipelineTemplateVersion")
@@ -142,4 +154,5 @@ bindables = [
     pipeline_template_version_object,
     pipeline_template_permissions,
     pipeline_template_version_permissions,
+    pipeline_template_order_by_enum,
 ]

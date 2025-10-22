@@ -3052,6 +3052,16 @@ enum PipelineTemplateError {
   PIPELINE_TEMPLATE_NOT_FOUND
 }
 
+"""Enum representing the possible orderings for pipeline templates."""
+enum PipelineTemplateOrderBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  NAME_ASC
+  NAME_DESC
+  PIPELINES_COUNT_ASC
+  PIPELINES_COUNT_DESC
+}
+
 """Represents paged result of fetching pipeline templates."""
 type PipelineTemplatePage {
   items: [PipelineTemplate!]!
@@ -3076,24 +3086,6 @@ type PipelineTemplateResultPage {
   pageNumber: Int!
   totalItems: Int!
   totalPages: Int!
-}
-
-"""Sortable fields for pipeline templates."""
-enum PipelineTemplateSortField {
-  """Sort by creation date"""
-  CREATED_AT
-
-  """Sort by template name"""
-  NAME
-
-  """Sort by number of pipelines created from this template"""
-  PIPELINES_COUNT
-}
-
-"""Sort specification for pipeline templates."""
-input PipelineTemplateSortInput {
-  direction: SortDirection!
-  field: PipelineTemplateSortField!
 }
 
 """Represents a version of a pipeline template."""
@@ -3374,7 +3366,7 @@ type Query {
   pipelineTemplateVersion(id: UUID!): PipelineTemplateVersion
 
   """Retrieves a page of pipeline templates."""
-  pipelineTemplates(functionalType: PipelineFunctionalType, page: Int = 1, perPage: Int = 15, search: String, sort: PipelineTemplateSortInput, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
+  pipelineTemplates(functionalType: PipelineFunctionalType, orderBy: PipelineTemplateOrderBy, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
 
   """Retrieves a pipeline version by ID."""
   pipelineVersion(id: UUID!): PipelineVersion

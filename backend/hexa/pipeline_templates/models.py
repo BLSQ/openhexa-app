@@ -49,6 +49,8 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
 
 
 class PipelineTemplate(SoftDeletedModel):
+    DEFAULT_ORDER_BY = ["-pipelines_count", "name", "id"]
+
     class Meta:
         constraints = [
             models.UniqueConstraint(

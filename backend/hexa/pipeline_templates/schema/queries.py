@@ -3,28 +3,17 @@ from django.db.models import Count, Q
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.core.graphql.sorting import SortConfig, apply_sorting
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.tags.models import InvalidTag, Tag
 from hexa.workspaces.models import Workspace
 
 pipeline_template_query = QueryType()
 
-TEMPLATE_SORT_CONFIG = SortConfig(
-    field_mapping={
-        "NAME": "name",
-        "CREATED_AT": "created_at",
-        "PIPELINES_COUNT": "pipelines_count",
-    },
-    default_sort=["-pipelines_count", "name", "id"],
-)
-
 
 @pipeline_template_query.field("pipelineTemplates")
 def resolve_pipeline_templates(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     search = kwargs.get("search", "")
-    sort_input = kwargs.get("sort")
 
     pipeline_templates = (
         PipelineTemplate.objects.filter_for_user(request.user)
@@ -66,8 +55,12 @@ def resolve_pipeline_templates(_, info, **kwargs):
         except InvalidTag:
             pipeline_templates = PipelineTemplate.objects.none()
 
-    pipeline_templates = apply_sorting(
-        pipeline_templates, TEMPLATE_SORT_CONFIG, sort_input
+    pipeline_templates = pipeline_templates.order_by(
+        *(
+            [kwargs["order_by"], "name", "id"]
+            if kwargs.get("order_by")
+            else PipelineTemplate.DEFAULT_ORDER_BY
+        )
     )
 
     return result_page(

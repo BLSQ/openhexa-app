@@ -27,30 +27,22 @@ extend type Mutation {
 }
 
 """
-Sortable fields for pipeline templates.
+Enum representing the possible orderings for pipeline templates.
 """
-enum PipelineTemplateSortField {
-  """Sort by template name"""
-  NAME
-  """Sort by creation date"""
-  CREATED_AT
-  """Sort by number of pipelines created from this template"""
-  PIPELINES_COUNT
-}
-
-"""
-Sort specification for pipeline templates.
-"""
-input PipelineTemplateSortInput {
-  field: PipelineTemplateSortField!
-  direction: SortDirection!
+enum PipelineTemplateOrderBy {
+  PIPELINES_COUNT_DESC
+  PIPELINES_COUNT_ASC
+  NAME_DESC
+  NAME_ASC
+  CREATED_AT_DESC
+  CREATED_AT_ASC
 }
 
 extend type Query {
   """
   Retrieves a page of pipeline templates.
   """
-  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String, tags: [String!], functionalType: PipelineFunctionalType, sort: PipelineTemplateSortInput): PipelineTemplatePage!  @loginRequired
+  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String, tags: [String!], functionalType: PipelineFunctionalType, orderBy: PipelineTemplateOrderBy): PipelineTemplatePage!  @loginRequired
 
   """
   Retrieves a template by workspace slug and code.
