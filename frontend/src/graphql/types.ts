@@ -2595,6 +2595,11 @@ export type Mutation = {
   updateOrganizationMember: UpdateOrganizationMemberResult;
   /** Updates an existing pipeline. */
   updatePipeline: UpdatePipelineResult;
+  /**
+   * Updates the heartbeat timestamp for the current pipeline run.
+   * Must be called by an authenticated pipeline run.
+   */
+  updatePipelineHeartbeat: UpdatePipelineHeartbeatResult;
   /** Updates the progress of a pipeline. */
   updatePipelineProgress: UpdatePipelineProgressResult;
   /** Updates a pipeline recipient. */
@@ -4921,6 +4926,13 @@ export enum UpdatePipelineError {
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
+
+/** Represents the result of updating a pipeline heartbeat. */
+export type UpdatePipelineHeartbeatResult = {
+  __typename?: 'UpdatePipelineHeartbeatResult';
+  errors: Array<PipelineError>;
+  success: Scalars['Boolean']['output'];
+};
 
 /** Represents the input for updating a pipeline. */
 export type UpdatePipelineInput = {
