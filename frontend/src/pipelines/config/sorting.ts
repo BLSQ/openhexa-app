@@ -29,6 +29,11 @@ export function getTemplateSortOptions(
       label: t("Popularity (Most used)"),
     },
     {
+      value: "popularity-asc",
+      orderBy: PipelineTemplateOrderBy.PipelinesCountAsc,
+      label: t("Popularity (Least used)"),
+    },
+    {
       value: "created-desc",
       orderBy: PipelineTemplateOrderBy.CreatedAtDesc,
       label: t("Date Created (Newest)"),
@@ -37,11 +42,6 @@ export function getTemplateSortOptions(
       value: "created-asc",
       orderBy: PipelineTemplateOrderBy.CreatedAtAsc,
       label: t("Date Created (Oldest)"),
-    },
-    {
-      value: "popularity-asc",
-      orderBy: PipelineTemplateOrderBy.PipelinesCountAsc,
-      label: t("Popularity (Least used)"),
     },
     {
       value: "name-asc",
