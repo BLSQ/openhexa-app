@@ -164,8 +164,8 @@ const PipelineTemplates = ({
       />
       <div className="relative">
         {loading && (
-          <div className="absolute top-2 right-2 z-10">
-            <Spinner size="sm" />
+         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white bg-opacity-60">
+            <Spinner size="md" />
           </div>
         )}
         <ViewTemplates

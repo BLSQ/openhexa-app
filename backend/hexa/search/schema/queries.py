@@ -108,8 +108,8 @@ def resolve_search_pipeline_templates(
     if organization_id:
         qs = qs.filter(workspace__organization_id=organization_id)
 
-    qs = apply_scored_search(qs, ["name", "code", "description", "tags__name"], query)
     qs = qs.order_by(*PipelineTemplate.default_order_by())
+    qs = apply_scored_search(qs, ["name", "code", "description", "tags__name"], query)
     return page_result_with_scores(qs, page, per_page, "pipeline_template")
 
 
