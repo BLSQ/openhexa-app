@@ -13,6 +13,7 @@ export type BaseColumnProps = { [key: string]: any } & {
   minWidth?: number;
   width?: number;
   maxWidth?: number;
+  disableSortBy?: boolean;
 };
 
 type ColumnProps<V = any> = BaseColumnProps & {

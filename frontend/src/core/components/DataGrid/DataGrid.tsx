@@ -143,6 +143,7 @@ function DataGrid(props: DataGridProps) {
         accessor: column.props.accessor ?? ((v: any) => v),
         className: column.props.className,
         hideLabel: column.props.hideLabel,
+        disableSortBy: column.props.disableSortBy,
         Cell: () => React.cloneElement(column),
       };
       ["minWidth", "width", "maxWidth"].forEach((field) => {
@@ -197,6 +198,7 @@ function DataGrid(props: DataGridProps) {
       disableSortBy: !sortable,
       manualSortBy: Boolean(fetchData),
       disableMultiSort: true,
+      disableSortRemove: true,
 
       // Pagination
       manualPagination: Boolean(fetchData),

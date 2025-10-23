@@ -9,6 +9,7 @@ import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 import { useTranslation } from "next-i18next";
 import { TagIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
+import { TemplateSortOption } from "pipelines/config/sorting";
 
 type Filter = {
   workspaceFilter: any;
@@ -29,6 +30,9 @@ type HeaderProps = {
   setTagsFilter?: (tags: string[]) => void;
   templateTags?: string[];
   pipelineTags?: string[];
+  sortOrder?: TemplateSortOption;
+  setSortOrder?: (option: TemplateSortOption) => void;
+  sortOptions?: TemplateSortOption[];
 };
 
 const Header = ({
@@ -44,6 +48,9 @@ const Header = ({
   setTagsFilter,
   templateTags,
   pipelineTags,
+  sortOrder,
+  setSortOrder,
+  sortOptions,
 }: HeaderProps) => {
   const { t } = useTranslation();
 
@@ -131,6 +138,16 @@ const Header = ({
             by="value"
             getOptionLabel={(option) => option.label}
             className={"min-w-48"}
+          />
+        )}
+        {sortOrder && setSortOrder && sortOptions && (
+          <Listbox
+            value={sortOrder}
+            onChange={setSortOrder}
+            options={sortOptions}
+            by="value"
+            getOptionLabel={(option) => option.label}
+            className={"min-w-56"}
           />
         )}
       </div>
