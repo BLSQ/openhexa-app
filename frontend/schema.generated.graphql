@@ -2576,6 +2576,12 @@ type Mutation {
   """Updates an existing pipeline."""
   updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult!
 
+  """
+  Updates the heartbeat timestamp for the current pipeline run.
+  Must be called by an authenticated pipeline run.
+  """
+  updatePipelineHeartbeat: UpdatePipelineHeartbeatResult!
+
   """Updates the progress of a pipeline."""
   updatePipelineProgress(input: UpdatePipelineProgressInput!): UpdatePipelineProgressResult!
 
@@ -4072,6 +4078,12 @@ enum UpdatePipelineError {
   MISSING_VERSION_CONFIG
   NOT_FOUND
   PERMISSION_DENIED
+}
+
+"""Represents the result of updating a pipeline heartbeat."""
+type UpdatePipelineHeartbeatResult {
+  errors: [PipelineError!]!
+  success: Boolean!
 }
 
 """Represents the input for updating a pipeline."""

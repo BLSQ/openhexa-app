@@ -9,6 +9,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
+from django.utils import timezone
 from openhexa.sdk.pipelines.exceptions import PipelineNotFound
 from openhexa.sdk.pipelines.runtime import get_pipeline
 from psycopg2.errors import UniqueViolation
@@ -648,6 +649,40 @@ def resolve_add_pipeline_output(_, info, **kwargs):
         return {"success": False, "errors": ["TABLE_NOT_FOUND"]}
 
     pipeline_run.add_output(input["uri"], input.get("type"), input.get("name"))
+
+    return {"success": True, "errors": []}
+
+
+@pipelines_mutations.field("updatePipelineHeartbeat")
+def resolve_update_pipeline_heartbeat(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    if not request.user.is_authenticated or not isinstance(
+        request.user, PipelineRunUser
+    ):
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+
+    try:
+        pipeline_run = PipelineRun.objects.get(pk=request.user.pipeline_run.id)
+    except PipelineRun.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+
+    if pipeline_run.state in [
+        PipelineRunState.SUCCESS,
+        PipelineRunState.FAILED,
+        PipelineRunState.STOPPED,
+    ]:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_ALREADY_COMPLETED"],
+        }
+    pipeline_run.last_heartbeat = timezone.now()
+    pipeline_run.save(update_fields=["last_heartbeat"])
 
     return {"success": True, "errors": []}
 

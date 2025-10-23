@@ -639,6 +639,14 @@ type AddPipelineOutputResult {
 }
 
 """
+Represents the result of updating a pipeline heartbeat.
+"""
+type UpdatePipelineHeartbeatResult {
+  success: Boolean!  # Indicates if the pipeline heartbeat was updated successfully.
+  errors: [PipelineError!]!  # The list of errors that occurred during the update of the pipeline heartbeat.
+}
+
+"""
 Represents the input for deleting a pipeline version.
 """
 input DeletePipelineVersionInput {
@@ -785,6 +793,12 @@ extend type Mutation {
   Adds an output to a pipeline.
   """
   addPipelineOutput(input: AddPipelineOutputInput!): AddPipelineOutputResult!
+
+  """
+  Updates the heartbeat timestamp for the current pipeline run.
+  Must be called by an authenticated pipeline run.
+  """
+  updatePipelineHeartbeat: UpdatePipelineHeartbeatResult!
 
   """
   Deletes a pipeline version.
