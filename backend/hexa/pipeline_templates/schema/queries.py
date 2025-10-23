@@ -53,7 +53,9 @@ def resolve_pipeline_templates(_, info, **kwargs):
 
     order_by = kwargs.get("order_by")
     if order_by:
-        if order_by in ["name", "-name"]:
+        base_field = order_by.lstrip("-")
+
+        if base_field in PipelineTemplate.UNIQUE_SORT_FIELDS:
             pipeline_templates = pipeline_templates.order_by(order_by, "id")
         else:
             pipeline_templates = pipeline_templates.order_by(order_by, "name", "id")
