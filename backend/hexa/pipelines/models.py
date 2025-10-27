@@ -1,5 +1,4 @@
 import base64
-import logging
 import secrets
 import time
 import typing
@@ -38,8 +37,6 @@ from hexa.core.models.soft_delete import (
 from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
-
-logger = logging.getLogger(__name__)
 
 
 class PipelineCodeParsingError(Exception):
@@ -637,7 +634,6 @@ class Pipeline(SoftDeletedModel):
     def get_or_create_template(self, name: str, code: str, description: str):
         if not hasattr(self, "template"):
             PipelineTemplate = apps.get_model("pipeline_templates", "PipelineTemplate")
-
             self.template = PipelineTemplate.objects.create(
                 name=name,
                 code=code,
