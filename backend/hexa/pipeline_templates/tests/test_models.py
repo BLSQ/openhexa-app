@@ -1,7 +1,6 @@
 from django.db.utils import IntegrityError
 
 from hexa.core.test import TestCase
-from hexa.pipeline_templates.constants import PUBLISHER_BLUESQUARE, PUBLISHER_COMMUNITY
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import Pipeline, PipelineFunctionalType, PipelineVersion
 from hexa.tags.models import Tag
@@ -402,88 +401,3 @@ class PipelineTemplateFunctionalTypeAndTagsTest(TestCase):
         self.assertEqual(template.tags.count(), 2)
         self.assertIn(self.tag1, template.tags.all())
         self.assertIn(self.tag2, template.tags.all())
-
-
-class PipelineTemplatePublisherTest(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.USER_ADMIN = User.objects.create_user(
-            "user_template@bluesquarehub.com", "password", is_superuser=True
-        )
-
-        cls.BLUESQUARE_ORG = Organization.objects.create(
-            name=PUBLISHER_BLUESQUARE,
-            short_name="bluesquare",
-            organization_type="CORPORATE",
-        )
-
-        cls.OTHER_ORG = Organization.objects.create(
-            name="Other Organization",
-            short_name="other-org",
-            organization_type="CORPORATE",
-        )
-
-        cls.WORKSPACE_NO_ORG = Workspace.objects.create_if_has_perm(
-            cls.USER_ADMIN,
-            name="Workspace without org",
-            description="Test workspace without organization",
-        )
-
-        cls.WORKSPACE_BLUESQUARE = Workspace.objects.create_if_has_perm(
-            cls.USER_ADMIN,
-            name="Workspace with Bluesquare org",
-            description="Test workspace with Bluesquare organization",
-            organization=cls.BLUESQUARE_ORG,
-        )
-
-        cls.WORKSPACE_OTHER_ORG = Workspace.objects.create_if_has_perm(
-            cls.USER_ADMIN,
-            name="Workspace with other org",
-            description="Test workspace with other organization",
-            organization=cls.OTHER_ORG,
-        )
-
-    def test_publisher_defaults_to_community_when_no_organization(self):
-        pipeline = Pipeline.objects.create(
-            name="Test Pipeline",
-            code="test-pipeline-no-org",
-            workspace=self.WORKSPACE_NO_ORG,
-        )
-        template, created = pipeline.get_or_create_template(
-            name="Test Template",
-            code="test-template-no-org",
-            description="Test template without organization",
-        )
-
-        self.assertTrue(created)
-        self.assertEqual(template.publisher, PUBLISHER_COMMUNITY)
-
-    def test_publisher_is_bluesquare_when_organization_is_bluesquare(self):
-        pipeline = Pipeline.objects.create(
-            name="Test Pipeline Bluesquare",
-            code="test-pipeline-bluesquare",
-            workspace=self.WORKSPACE_BLUESQUARE,
-        )
-        template, created = pipeline.get_or_create_template(
-            name="Test Template Bluesquare",
-            code="test-template-bluesquare",
-            description="Test template with Bluesquare organization",
-        )
-
-        self.assertTrue(created)
-        self.assertEqual(template.publisher, PUBLISHER_BLUESQUARE)
-
-    def test_publisher_defaults_to_community_when_other_organization(self):
-        pipeline = Pipeline.objects.create(
-            name="Test Pipeline Other Org",
-            code="test-pipeline-other-org",
-            workspace=self.WORKSPACE_OTHER_ORG,
-        )
-        template, created = pipeline.get_or_create_template(
-            name="Test Template Other Org",
-            code="test-template-other-org",
-            description="Test template with other organization",
-        )
-
-        self.assertTrue(created)
-        self.assertEqual(template.publisher, PUBLISHER_COMMUNITY)

@@ -176,7 +176,7 @@ type PipelineTemplate {
   updatedAt: DateTime!  # The last updated date of the pipeline template.
   functionalType: PipelineFunctionalType  # Business purpose: what the template does (extraction/transformation/loading/computation)
   tags: [Tag!]!  # The tags associated with the pipeline template.
-  publisher: String  # Publisher of the template. Allowed values: 'Bluesquare' (official templates), 'Community' (community-contributed templates)
+  publisher: String  # Publisher of the template.
 }
 
 """
