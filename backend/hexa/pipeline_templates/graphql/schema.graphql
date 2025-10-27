@@ -150,7 +150,6 @@ input UpdateTemplateInput {
   description: String
   functionalType: PipelineFunctionalType
   tags: [String!]
-  publisher: String  # Allowed values: 'Bluesquare', 'Community'
 }
 
 """Represents the result of updating a template."""

@@ -209,6 +209,9 @@ const GET_PIPELINE_TEMPLATES = gql`
         workspace {
           slug
           name
+          organization {
+            name
+          }
         }
         currentVersion {
           id

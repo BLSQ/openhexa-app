@@ -49,9 +49,17 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
 
     def filter_by_publisher(self, publisher: str):
         """
-        Filter pipeline templates by publisher.
+        Filter pipeline templates by publisher based on organization name.
+        Publisher is computed dynamically from workspace.organization.name.
         """
-        return self.filter(publisher=publisher)
+        if publisher == "Bluesquare":
+            return self.filter(workspace__organization__name="Bluesquare")
+        elif publisher == "Community":
+            return self.filter(workspace__organization__isnull=False).exclude(
+                workspace__organization__name="Bluesquare"
+            )
+        else:
+            return self.none()
 
 
 class PipelineTemplate(SoftDeletedModel):
@@ -100,12 +108,6 @@ class PipelineTemplate(SoftDeletedModel):
     )
     tags = models.ManyToManyField(
         "tags.Tag", blank=True, related_name="pipeline_templates"
-    )
-    publisher = models.CharField(
-        max_length=200,
-        blank=True,
-        null=True,
-        help_text="Publisher of the template (e.g., 'Bluesquare', 'Community').",
     )
 
     objects = DefaultSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
@@ -163,7 +165,7 @@ class PipelineTemplate(SoftDeletedModel):
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("pipeline_templates.update_pipeline_template", self):
             raise PermissionDenied
-        for key in ["name", "description", "functional_type", "publisher"]:
+        for key in ["name", "description", "functional_type"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
         if "tags" in kwargs:

@@ -4197,7 +4197,6 @@ input UpdateTemplateInput {
   functionalType: PipelineFunctionalType
   id: UUID!
   name: String
-  publisher: String
   tags: [String!]
 }
 

@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import { Tag_TagFragmentDoc } from '../../../core/features/Tag.generated';
 export type PipelineMetadataDisplay_PipelineFragment = { __typename?: 'Pipeline', functionalType?: Types.PipelineFunctionalType | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }> };
 
-export type PipelineMetadataDisplay_TemplateFragment = { __typename?: 'PipelineTemplate', functionalType?: Types.PipelineFunctionalType | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }> };
+export type PipelineMetadataDisplay_TemplateFragment = { __typename?: 'PipelineTemplate', functionalType?: Types.PipelineFunctionalType | null, publisher?: string | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }> };
 
 export const PipelineMetadataDisplay_PipelineFragmentDoc = gql`
     fragment PipelineMetadataDisplay_pipeline on Pipeline {
@@ -17,6 +17,7 @@ export const PipelineMetadataDisplay_PipelineFragmentDoc = gql`
 export const PipelineMetadataDisplay_TemplateFragmentDoc = gql`
     fragment PipelineMetadataDisplay_template on PipelineTemplate {
   functionalType
+  publisher
   tags {
     ...Tag_tag
   }

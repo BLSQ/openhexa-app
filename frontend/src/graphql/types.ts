@@ -5036,7 +5036,6 @@ export type UpdateTemplateInput = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
   id: Scalars['UUID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
-  publisher?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
