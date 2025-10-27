@@ -664,13 +664,7 @@ def resolve_update_pipeline_heartbeat(_, info, **kwargs):
             "errors": ["PIPELINE_NOT_FOUND"],
         }
 
-    try:
-        pipeline_run = PipelineRun.objects.get(pk=request.user.pipeline_run.id)
-    except PipelineRun.DoesNotExist:
-        return {
-            "success": False,
-            "errors": ["PIPELINE_NOT_FOUND"],
-        }
+    pipeline_run = PipelineRun.objects.get(pk=request.user.pipeline_run.id)
 
     if pipeline_run.state in [
         PipelineRunState.SUCCESS,
