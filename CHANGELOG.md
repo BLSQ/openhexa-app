@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.7.0](https://github.com/BLSQ/openhexa-app/compare/2.6.2...2.7.0) (2025-10-27)
+
+
+### Features
+
+* add download code to templates ([#1412](https://github.com/BLSQ/openhexa-app/issues/1412)) ([115a07e](https://github.com/BLSQ/openhexa-app/commit/115a07e98c9811aadd27c74e5c8c61fd76f218f7))
+* extend tags and functional types to template pipelines ([#1405](https://github.com/BLSQ/openhexa-app/issues/1405)) ([150cf64](https://github.com/BLSQ/openhexa-app/commit/150cf641bce01aa1d772f4fdbcb87a76dcf78d35))
+* remove feature flag of Organization ([#1429](https://github.com/BLSQ/openhexa-app/issues/1429)) ([021f4bb](https://github.com/BLSQ/openhexa-app/commit/021f4bbf3a5c0ee7e19ac9d44a157c6e15aebdcb))
+
+
+### Bug Fixes
+
+* add a loader to direct workspace invitation query + optimize a little bit the query ([#1431](https://github.com/BLSQ/openhexa-app/issues/1431)) ([b61e8b0](https://github.com/BLSQ/openhexa-app/commit/b61e8b085fd960d076379551295d1375af9ea70a))
+* apollo version (HEXA-1370)([#1440](https://github.com/BLSQ/openhexa-app/issues/1440)) ([8fe7b37](https://github.com/BLSQ/openhexa-app/commit/8fe7b37d5ab31c931440363c9843cf89a3369270))
+* pipeline heartbeat resolver (HEXA-1406) ([#1441](https://github.com/BLSQ/openhexa-app/issues/1441)) ([fba6aef](https://github.com/BLSQ/openhexa-app/commit/fba6aef9d7000cc706d35c28877e2a0e1f688627))
+* pipelines should have access to organization shared dataset (PATHWAYS-869) ([#1435](https://github.com/BLSQ/openhexa-app/issues/1435)) ([8950017](https://github.com/BLSQ/openhexa-app/commit/8950017d273074b0d5278a060fa1aae2ff036ed1))
+* Renovate pip-compile dependency detection ([#1428](https://github.com/BLSQ/openhexa-app/issues/1428)) ([8d0d1e6](https://github.com/BLSQ/openhexa-app/commit/8d0d1e6235902c67900d124d6ac250ec25d0bf02))
+* superusers should be able to access all datasets (HEXA-1396) ([#1427](https://github.com/BLSQ/openhexa-app/issues/1427)) ([5d288f2](https://github.com/BLSQ/openhexa-app/commit/5d288f21725095079f4bb7ac7d60558f11dc3490))
+
 ## [2.6.2](https://github.com/BLSQ/openhexa-app/compare/2.6.1...2.6.2) (2025-10-16)
 
 
