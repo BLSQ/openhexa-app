@@ -47,9 +47,9 @@ const PipelineTemplates = ({
   );
 
   const publisherFilterOptions = [
-    { id: "all", label: "All sources", value: undefined },
-    { id: "bluesquare", label: "Bluesquare", value: "Bluesquare" },
-    { id: "community", label: "Community", value: "Community" },
+    { id: "all", label: t("All publishers"), value: undefined },
+    { id: "bluesquare", label: t("Bluesquare"), value: "Bluesquare" },
+    { id: "community", label: t("Community"), value: "Community" },
   ];
   const [publisherFilter, setPublisherFilter] = useState(
     publisherFilterOptions[0],
