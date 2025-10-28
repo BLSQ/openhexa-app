@@ -25,9 +25,20 @@ const PipelineMetadataDisplay = ({
 }: PipelineMetadataDisplayProps) => {
   const { t } = useTranslation();
   const textSize = size === "sm" ? "text-xs" : "text-sm";
+  const publisher = (metadata as any).publisher;
 
   return (
     <div className={`space-y-2 ${className}`}>
+      {publisher && (
+        <div className="flex items-center gap-2">
+          {showLabels && (
+            <span className={`${textSize} text-gray-500`}>
+              {t("Publisher")}:
+            </span>
+          )}
+          <Badge className={textSize}>{publisher}</Badge>
+        </div>
+      )}
       {metadata.functionalType && (
         <div className="flex items-center gap-2">
           {showLabels && (
@@ -69,6 +80,7 @@ PipelineMetadataDisplay.fragments = {
   template: gql`
     fragment PipelineMetadataDisplay_template on PipelineTemplate {
       functionalType
+      publisher
       tags {
         ...Tag_tag
       }

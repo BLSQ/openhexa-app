@@ -47,6 +47,20 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             return self.none()
         return self.filter(tags__in=tags).distinct()
 
+    def filter_by_publisher(self, publisher: str):
+        """
+        Filter pipeline templates by publisher based on organization name.
+        Publisher is computed dynamically from workspace.organization.name.
+        """
+        if publisher == "Bluesquare":
+            return self.filter(workspace__organization__name="Bluesquare")
+        elif publisher == "Community":
+            return self.filter(workspace__organization__isnull=False).exclude(
+                workspace__organization__name="Bluesquare"
+            )
+        else:
+            return self.none()
+
 
 class PipelineTemplate(SoftDeletedModel):
     class Meta:
