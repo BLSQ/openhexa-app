@@ -530,6 +530,8 @@ class Command(BaseCommand):
         logger.info("start pipeline runner")
         sleep(10)
 
+        # TODO : re-attach orphaned RUNNING runs ?
+
         i = 0
         sleeptime = 5
         while True:
