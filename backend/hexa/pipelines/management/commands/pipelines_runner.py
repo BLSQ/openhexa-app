@@ -465,66 +465,66 @@ def _process_zombie_runs():
             )
             run.save()
 
-        from kubernetes import config
-        from kubernetes.client import CoreV1Api
+    from kubernetes import config
+    from kubernetes.client import CoreV1Api
 
-        is_local_dev = os.environ.get("IS_LOCAL_DEV", False)
-        config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
-        v1 = CoreV1Api()
-        namespace = os.environ.get("PIPELINE_NAMESPACE", "default")
+    is_local_dev = os.environ.get("IS_LOCAL_DEV", False)
+    config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
+    v1 = CoreV1Api()
+    namespace = os.environ.get("PIPELINE_NAMESPACE", "default")
 
-        for run in zombie_runs:
-            try:
-                pod_list = v1.list_namespaced_pod(
-                    namespace=namespace, label_selector=f"hexa-run-id={run.id}"
-                )
-                pod = pod_list.items[0] if pod_list.items else None
-            except Exception as e:
-                logger.exception("Could not get pod for run %s: %s", run.id, e)
-                pod = None
-
-            if pod:
-                phase = pod.status.phase
-                container_name = (
-                    pod.spec.containers[0].name
-                    if pod.spec.containers
-                    else pod.metadata.name
-                )
-                logger.warning(
-                    "Zombie pod for run %s #%s is still in phase %s",
-                    run.pipeline.name,
-                    run.id,
-                    phase,
-                )
-
-                try:
-                    logs = v1.read_namespaced_pod_log(
-                        name=pod.metadata.name,
-                        namespace=namespace,
-                        container=container_name,
-                    )
-                except Exception as e:
-                    logger.exception("Could not get logs (%s)", e)
-                    logs = ""
-
-                run.run_logs = logs or run.run_logs
-                if phase in {"Succeeded", "Failed"}:
-                    run.state = (
-                        PipelineRunState.SUCCESS
-                        if phase == "Succeeded"
-                        else PipelineRunState.FAILED
-                    )
-                    run.save()
-                    continue
-
-            logger.warning("Timeout kill run %s #%s", run.pipeline.name, run.id)
-            run.state = PipelineRunState.FAILED
-            run.run_logs = (
-                "\n".join([run.run_logs, KILLED_BY_TIMEOUT_MESSAGE])
-                if run.run_logs
-                else KILLED_BY_TIMEOUT_MESSAGE
+    for run in zombie_runs:
+        try:
+            pod_list = v1.list_namespaced_pod(
+                namespace=namespace, label_selector=f"hexa-run-id={run.id}"
             )
-            run.save()
+            pod = pod_list.items[0] if pod_list.items else None
+        except Exception as e:
+            logger.exception("Could not get pod for run %s: %s", run.id, e)
+            pod = None
+
+        if pod:
+            phase = pod.status.phase
+            container_name = (
+                pod.spec.containers[0].name
+                if pod.spec.containers
+                else pod.metadata.name
+            )
+            logger.warning(
+                "Zombie pod for run %s #%s is still in phase %s",
+                run.pipeline.name,
+                run.id,
+                phase,
+            )
+
+            try:
+                logs = v1.read_namespaced_pod_log(
+                    name=pod.metadata.name,
+                    namespace=namespace,
+                    container=container_name,
+                )
+            except Exception as e:
+                logger.exception("Could not get logs (%s)", e)
+                logs = ""
+
+            run.run_logs = logs or run.run_logs
+            if phase in {"Succeeded", "Failed"}:
+                run.state = (
+                    PipelineRunState.SUCCESS
+                    if phase == "Succeeded"
+                    else PipelineRunState.FAILED
+                )
+                run.save()
+                continue
+
+        logger.warning("Timeout kill run %s #%s", run.pipeline.name, run.id)
+        run.state = PipelineRunState.FAILED
+        run.run_logs = (
+            "\n".join([run.run_logs, KILLED_BY_TIMEOUT_MESSAGE])
+            if run.run_logs
+            else KILLED_BY_TIMEOUT_MESSAGE
+        )
+        run.save()
 
 
 class Command(BaseCommand):
