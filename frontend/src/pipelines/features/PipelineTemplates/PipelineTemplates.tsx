@@ -37,7 +37,7 @@ const PipelineTemplates = ({
   const perPage = 10;
   const clearCache = useCacheKey(["pipelines"]);
 
-  const sortOptions = getTemplateSortOptions(t);
+  const sortOptions = getTemplateSortOptions();
   const [sortOrder, setSortOrder] = useState<TemplateSortOption>(sortOptions[0]);
 
   const [createPipelineFromTemplateVersion] =
@@ -65,7 +65,7 @@ const PipelineTemplates = ({
       functionalType: functionalTypeFilter,
       orderBy: sortOrder.orderBy,
     },
-    fetchPolicy: "cache-and-network",
+    fetchPolicy: "cache-and-network", // The template list is a global list across the instance, so we want to check the network for updates and show the cached data in the meantime
   });
   const [items, setItems] = useState(data?.pipelineTemplates?.items || []);
 

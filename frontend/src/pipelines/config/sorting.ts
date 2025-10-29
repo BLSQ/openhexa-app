@@ -1,4 +1,4 @@
-import { TFunction } from "next-i18next";
+import { i18n } from "next-i18next";
 import { PipelineTemplateOrderBy } from "graphql/types";
 import { SortOption, createSortingUtils } from "core/helpers/sorting";
 
@@ -19,39 +19,37 @@ export const templateSorting = createSortingUtils({
   },
 });
 
-export function getTemplateSortOptions(
-  t: TFunction
-): SortOption<PipelineTemplateOrderBy>[] {
+export function getTemplateSortOptions(): SortOption<PipelineTemplateOrderBy>[] {
   return [
     {
       value: "popularity-desc",
       orderBy: PipelineTemplateOrderBy.PipelinesCountDesc,
-      label: t("Popularity (Most used)"),
+      label: i18n!.t("Popularity (Most used)"),
     },
     {
       value: "popularity-asc",
       orderBy: PipelineTemplateOrderBy.PipelinesCountAsc,
-      label: t("Popularity (Least used)"),
+      label: i18n!.t("Popularity (Least used)"),
     },
     {
       value: "created-desc",
       orderBy: PipelineTemplateOrderBy.CreatedAtDesc,
-      label: t("Date Created (Newest)"),
+      label: i18n!.t("Date Created (Newest)"),
     },
     {
       value: "created-asc",
       orderBy: PipelineTemplateOrderBy.CreatedAtAsc,
-      label: t("Date Created (Oldest)"),
+      label: i18n!.t("Date Created (Oldest)"),
     },
     {
       value: "name-asc",
       orderBy: PipelineTemplateOrderBy.NameAsc,
-      label: t("Name (A–Z)"),
+      label: i18n!.t("Name (A–Z)"),
     },
     {
       value: "name-desc",
       orderBy: PipelineTemplateOrderBy.NameDesc,
-      label: t("Name (Z–A)"),
+      label: i18n!.t("Name (Z–A)"),
     },
   ];
 }
