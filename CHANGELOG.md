@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.1](https://github.com/BLSQ/openhexa-app/compare/2.7.0...2.7.1) (2025-10-28)
+
+
+### Bug Fixes
+
+* allow superusers to see pipelines in a workspace they are not member of (HEXA-1407) ([#1442](https://github.com/BLSQ/openhexa-app/issues/1442)) ([9432e0c](https://github.com/BLSQ/openhexa-app/commit/9432e0c44aeca8d2868d64102353ea2258b7e94b))
+
 ## [2.7.0](https://github.com/BLSQ/openhexa-app/compare/2.6.2...2.7.0) (2025-10-27)
 
 
