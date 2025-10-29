@@ -3045,6 +3045,7 @@ type PipelineTemplate {
   id: UUID!
   name: String!
   permissions: PipelineTemplatePermissions!
+  pipelinesCount: Int!
   sourcePipeline: Pipeline
   tags: [Tag!]!
   updatedAt: DateTime!
@@ -3055,6 +3056,16 @@ type PipelineTemplate {
 enum PipelineTemplateError {
   PERMISSION_DENIED
   PIPELINE_TEMPLATE_NOT_FOUND
+}
+
+"""Enum representing the possible orderings for pipeline templates."""
+enum PipelineTemplateOrderBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  NAME_ASC
+  NAME_DESC
+  PIPELINES_COUNT_ASC
+  PIPELINES_COUNT_DESC
 }
 
 """Represents paged result of fetching pipeline templates."""
@@ -3361,7 +3372,7 @@ type Query {
   pipelineTemplateVersion(id: UUID!): PipelineTemplateVersion
 
   """Retrieves a page of pipeline templates."""
-  pipelineTemplates(functionalType: PipelineFunctionalType, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
+  pipelineTemplates(functionalType: PipelineFunctionalType, orderBy: PipelineTemplateOrderBy, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
 
   """Retrieves a pipeline version by ID."""
   pipelineVersion(id: UUID!): PipelineVersion

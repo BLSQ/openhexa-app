@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
+import { SortingRule } from "react-table";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
@@ -9,6 +10,8 @@ import Link from "core/components/Link";
 import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { TagsCell, FunctionalTypeCell } from "pipelines/features/PipelineMetadataGrid";
+import { PipelineTemplateOrderBy } from "graphql/types";
+import { templateSorting } from "pipelines/config/sorting";
 
 type GridViewProps = {
   items: any[];
@@ -18,6 +21,13 @@ type GridViewProps = {
   totalItems: number;
   createPipeline: (pipelineTemplateVersionId: string) => () => void;
   setPage: (page: number) => void;
+  onSort?: (params: {
+    page: number;
+    pageSize: number;
+    pageIndex: number;
+    sortBy: SortingRule<object>[];
+  }) => void;
+  currentSort?: PipelineTemplateOrderBy;
 };
 
 const GridView = ({
@@ -27,17 +37,27 @@ const GridView = ({
   totalItems,
   createPipeline,
   setPage,
+  onSort,
+  currentSort,
 }: GridViewProps) => {
   const { t } = useTranslation();
   const [templateToDelete, setTemplateToDelete] = useState<any | null>(null);
 
+  const defaultSortBy = useMemo(
+    () => templateSorting.convertToDataGridSort(currentSort),
+    [currentSort]
+  );
+
   return (
     <Block className="divide divide-y divide-gray-100 mt-4">
       <DataGrid
+        key={currentSort}
         data={items}
         defaultPageSize={perPage}
         totalItems={totalItems}
-        fetchData={({ page }) => setPage(page)}
+        fetchData={onSort || (({ page }) => setPage(page))}
+        sortable={Boolean(onSort)}
+        defaultSortBy={defaultSortBy}
         fixedLayout={false}
       >
         <BaseColumn id="name" label={t("Name")}>
@@ -49,7 +69,7 @@ const GridView = ({
             </Link>
           )}
         </BaseColumn>
-        <BaseColumn id="version" label={t("Version")} className="w-20">
+        <BaseColumn id="version" label={t("Version")} className="w-20" disableSortBy={true}>
           {({ currentVersion }) => (
             <span className="text-sm">
               {currentVersion ? `v${currentVersion.versionNumber}` : "-"}
@@ -61,23 +81,36 @@ const GridView = ({
           label={t("Workspace")}
           accessor="workspace.name"
           className="w-36"
+          disableSortBy={true}
         />
-        <BaseColumn id="tags" label={t("Tags")} className="w-32">
+        <BaseColumn id="tags" label={t("Tags")} className="w-32" disableSortBy={true}>
           {(template) => (
             <TagsCell tags={template.tags} maxTags={2} />
           )}
         </BaseColumn>
-        <BaseColumn id="functionalType" label={t("Type")} className="w-28">
+        <BaseColumn id="functionalType" label={t("Type")} className="w-28" disableSortBy={true}>
           {(template) => (
             <FunctionalTypeCell functionalType={template.functionalType} />
           )}
         </BaseColumn>
+        <BaseColumn id="popularity" label={t("Popularity")} className="w-24">
+          {(template) => (
+            <span className="text-sm text-gray-600">
+              {template.pipelinesCount > 0 ? (
+                template.pipelinesCount
+              ) : (
+                <span className="text-gray-500 italic">{t("Not used")}</span>
+              )}
+            </span>
+          )}
+        </BaseColumn>
         <DateColumn
+          id="createdAt"
           accessor={"currentVersion.createdAt"}
           label={t("Updated")}
           className="w-32"
         />
-        <BaseColumn id="actions" className="text-right w-52">
+        <BaseColumn id="actions" className="text-right w-52" disableSortBy={true}>
           {(template) => {
             const {
               permissions: { delete: canDelete },

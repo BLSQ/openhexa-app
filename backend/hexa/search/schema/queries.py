@@ -103,11 +103,12 @@ def resolve_search_pipeline_templates(
             id=organization_id
         ).workspaces.values_list("slug", flat=True)
 
-    qs = PipelineTemplate.objects.filter_for_user(request.user)
+    qs = PipelineTemplate.objects.filter_for_user(request.user).with_pipelines_count()
 
     if organization_id:
         qs = qs.filter(workspace__organization_id=organization_id)
 
+    qs = qs.order_by(*PipelineTemplate.default_order_by())
     qs = apply_scored_search(qs, ["name", "code", "description", "tags__name"], query)
     return page_result_with_scores(qs, page, per_page, "pipeline_template")
 

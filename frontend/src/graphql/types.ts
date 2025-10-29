@@ -3651,6 +3651,7 @@ export type PipelineTemplate = {
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   permissions: PipelineTemplatePermissions;
+  pipelinesCount: Scalars['Int']['output'];
   sourcePipeline?: Maybe<Pipeline>;
   tags: Array<Tag>;
   updatedAt: Scalars['DateTime']['output'];
@@ -3668,6 +3669,16 @@ export type PipelineTemplateVersionsArgs = {
 export enum PipelineTemplateError {
   PermissionDenied = 'PERMISSION_DENIED',
   PipelineTemplateNotFound = 'PIPELINE_TEMPLATE_NOT_FOUND'
+}
+
+/** Enum representing the possible orderings for pipeline templates. */
+export enum PipelineTemplateOrderBy {
+  CreatedAtAsc = 'CREATED_AT_ASC',
+  CreatedAtDesc = 'CREATED_AT_DESC',
+  NameAsc = 'NAME_ASC',
+  NameDesc = 'NAME_DESC',
+  PipelinesCountAsc = 'PIPELINES_COUNT_ASC',
+  PipelinesCountDesc = 'PIPELINES_COUNT_DESC'
 }
 
 /** Represents paged result of fetching pipeline templates. */
@@ -4167,6 +4178,7 @@ export type QueryPipelineTemplateVersionArgs = {
 
 export type QueryPipelineTemplatesArgs = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
+  orderBy?: InputMaybe<PipelineTemplateOrderBy>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
