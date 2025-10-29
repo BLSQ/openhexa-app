@@ -495,22 +495,12 @@ def _process_zombie_runs():
                 logger.exception("Could not get logs (%s)", e)
                 logs = ""
 
+            run.run_logs = logs or run.run_logs
             if phase in {"Succeeded", "Failed"}:
                 run.state = (
                     PipelineRunState.SUCCESS
                     if phase == "Succeeded"
                     else PipelineRunState.FAILED
-                )
-                run.run_logs = logs or run.run_logs
-                run.save()
-                continue
-            else:
-                run.state = PipelineRunState.FAILED
-                run.run_logs = logs or run.run_logs
-                run.run_logs = (
-                    "\n".join([run.run_logs, KILLED_BY_TIMEOUT_MESSAGE])
-                    if run.run_logs
-                    else KILLED_BY_TIMEOUT_MESSAGE
                 )
                 run.save()
                 continue
