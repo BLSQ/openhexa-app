@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.8.0](https://github.com/BLSQ/openhexa-app/compare/2.7.1...2.8.0) (2025-10-29)
+
+
+### Features
+
+* add issueWorkspaceToken endpoint to generate a JWT token ([#1446](https://github.com/BLSQ/openhexa-app/issues/1446)) ([41c5292](https://github.com/BLSQ/openhexa-app/commit/41c5292d145a721ec96979af114c3a2ed3446a20))
+* enable pipeline template sorting with a generic approach ([#1433](https://github.com/BLSQ/openhexa-app/issues/1433)) ([6e7862f](https://github.com/BLSQ/openhexa-app/commit/6e7862f8f91fc70e208088cd91f5b41ef094ac52))
+
+
+### Bug Fixes
+
+* pipeline runner zombie reaper should kill runners with meaningful message and status (HEXA-1413) ([#1445](https://github.com/BLSQ/openhexa-app/issues/1445)) ([e908ff5](https://github.com/BLSQ/openhexa-app/commit/e908ff50093f55f1143f2141ab4f14a48ae9dc6e))
+
 ## [2.7.1](https://github.com/BLSQ/openhexa-app/compare/2.7.0...2.7.1) (2025-10-28)
 
 
