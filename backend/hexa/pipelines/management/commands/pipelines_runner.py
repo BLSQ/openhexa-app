@@ -453,7 +453,18 @@ def _process_zombie_runs():
     if not zombie_runs.exists():
         return
 
-    if settings.PIPELINE_SCHEDULER_SPAWNER == "kubernetes":
+    if settings.PIPELINE_SCHEDULER_SPAWNER != "kubernetes":
+        # For non-Kubernetes spawners, mark all zombie runs as failed
+        for run in zombie_runs:
+            logger.warning("Timeout kill run %s #%s", run.pipeline.name, run.id)
+            run.state = PipelineRunState.FAILED
+            run.run_logs = (
+                "\n".join([run.run_logs, KILLED_BY_TIMEOUT_MESSAGE])
+                if run.run_logs
+                else KILLED_BY_TIMEOUT_MESSAGE
+            )
+            run.save()
+
         from kubernetes import config
         from kubernetes.client import CoreV1Api
 
@@ -506,17 +517,6 @@ def _process_zombie_runs():
                     run.save()
                     continue
 
-            logger.warning("Timeout kill run %s #%s", run.pipeline.name, run.id)
-            run.state = PipelineRunState.FAILED
-            run.run_logs = (
-                "\n".join([run.run_logs, KILLED_BY_TIMEOUT_MESSAGE])
-                if run.run_logs
-                else KILLED_BY_TIMEOUT_MESSAGE
-            )
-            run.save()
-    else:
-        # For non-Kubernetes spawners, mark all zombie runs as failed
-        for run in zombie_runs:
             logger.warning("Timeout kill run %s #%s", run.pipeline.name, run.id)
             run.state = PipelineRunState.FAILED
             run.run_logs = (
