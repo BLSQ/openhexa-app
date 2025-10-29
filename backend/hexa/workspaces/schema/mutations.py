@@ -10,6 +10,11 @@ from hexa.countries.models import Country
 from hexa.databases.utils import TableNotFound, delete_table
 from hexa.user_management.models import Organization, User
 
+from ..jwt_utils import (
+    JWTConfigurationError,
+    JWTGenerationError,
+    generate_workspace_jwt,
+)
 from ..models import (
     AlreadyExists,
     Connection,
@@ -495,4 +500,92 @@ def resolve_delete_workspace_database_table(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["WORKSPACE_NOT_FOUND"],
+        }
+
+
+@workspace_mutations.field("issueWorkspaceToken")
+def resolve_issue_workspace_token(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    if not request.user or not request.user.is_authenticated:
+        return {
+            "success": False,
+            "errors": ["AUTH_UNAUTHENTICATED"],
+        }
+
+    workspace_id = mutation_input.get("workspace_id")
+    workspace_slug = mutation_input.get("workspace_slug")
+
+    if (workspace_id and workspace_slug) or (not workspace_id and not workspace_slug):
+        return {
+            "success": False,
+            "errors": ["INPUT_INVALID"],
+        }
+
+    try:
+        if workspace_id:
+            membership = WorkspaceMembership.objects.get(
+                workspace__id=workspace_id, user=request.user
+            )
+        else:
+            membership = WorkspaceMembership.objects.get(
+                workspace__slug=workspace_slug, user=request.user
+            )
+    except WorkspaceMembership.DoesNotExist:
+        try:
+            if workspace_id:
+                Workspace.objects.get(id=workspace_id)
+            else:
+                Workspace.objects.get(slug=workspace_slug)
+            return {
+                "success": False,
+                "errors": ["MEMBERSHIP_REQUIRED"],
+            }
+        except Workspace.DoesNotExist:
+            return {
+                "success": False,
+                "errors": ["WORKSPACE_NOT_FOUND"],
+            }
+
+    if not membership.role:
+        return {
+            "success": False,
+            "errors": ["ROLE_UNRESOLVED"],
+        }
+
+    try:
+        jwt_data = generate_workspace_jwt(
+            user_id=str(request.user.id),
+            user_email=request.user.email,
+            workspace_id=str(membership.workspace.id),
+            workspace_slug=membership.workspace.slug,
+            role=membership.role,
+        )
+
+        return {
+            "success": True,
+            "token": jwt_data["token"],
+            "expires_at": jwt_data["expires_at"],
+            "workspace": {
+                "id": str(membership.workspace.id),
+                "slug": membership.workspace.slug,
+            },
+            "role": membership.role,
+            "errors": [],
+        }
+    except JWTConfigurationError:
+        return {
+            "success": False,
+            "errors": ["CONFIG_MISSING_PRIVATE_KEY"],
+        }
+    except JWTGenerationError as e:
+        if "clock" in str(e).lower():
+            return {
+                "success": False,
+                "errors": ["CLOCK_ERROR"],
+            }
+        return {
+            "success": False,
+            "errors": ["CONFIG_MISSING_PRIVATE_KEY"],
         }
