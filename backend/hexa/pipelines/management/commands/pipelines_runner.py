@@ -464,14 +464,22 @@ def _process_zombie_runs():
                 else KILLED_BY_TIMEOUT_MESSAGE
             )
             run.save()
+        return
 
     from kubernetes import config
     from kubernetes.client import CoreV1Api
 
     is_local_dev = os.environ.get("IS_LOCAL_DEV", False)
-    config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
-    v1 = CoreV1Api()
     namespace = os.environ.get("PIPELINE_NAMESPACE", "default")
+    try:
+        config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
+    except Exception as e:
+        logger.exception(
+            "Could not load Kubernetes config for zombie run killing : %s", e
+        )
+        return
+
+    v1 = CoreV1Api()
 
     for run in zombie_runs:
         try:
