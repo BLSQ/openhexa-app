@@ -81,6 +81,7 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
             name=container_name,
             labels={
                 "hexa-workspace": env_vars["HEXA_WORKSPACE"],
+                "hexa-run-id": str(run.id),
             },
             annotations={
                 # Unfortunately, it also seems that GKE (at least) uses app armor to restrict
@@ -439,10 +440,107 @@ def run_pipeline(run: PipelineRun):
     sys.exit()
 
 
+KILLED_BY_TIMEOUT_MESSAGE = "Killed due to heartbeat timeout"
+
+
+def _process_zombie_runs():
+    """Check for zombie runs and update their status based on actual pod state."""
+    zombie_runs = PipelineRun.objects.filter(
+        state=PipelineRunState.RUNNING,
+        last_heartbeat__lt=(timezone.now() - timedelta(seconds=HEARTBEAT_TIMEOUT)),
+    )
+
+    if not zombie_runs.exists():
+        return
+
+    if settings.PIPELINE_SCHEDULER_SPAWNER != "kubernetes":
+        # For non-Kubernetes spawners, mark all zombie runs as failed
+        for run in zombie_runs:
+            logger.warning("Timeout kill run %s #%s", run.pipeline.name, run.id)
+            run.state = PipelineRunState.FAILED
+            run.run_logs = (
+                "\n".join([run.run_logs, KILLED_BY_TIMEOUT_MESSAGE])
+                if run.run_logs
+                else KILLED_BY_TIMEOUT_MESSAGE
+            )
+            run.save()
+        return
+
+    from kubernetes import config
+    from kubernetes.client import CoreV1Api
+
+    is_local_dev = os.environ.get("IS_LOCAL_DEV", False)
+    namespace = os.environ.get("PIPELINE_NAMESPACE", "default")
+    try:
+        config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
+    except Exception as e:
+        logger.exception(
+            "Could not load Kubernetes config for zombie run killing : %s", e
+        )
+        return
+
+    v1 = CoreV1Api()
+
+    for run in zombie_runs:
+        try:
+            pod_list = v1.list_namespaced_pod(
+                namespace=namespace, label_selector=f"hexa-run-id={run.id}"
+            )
+            pod = pod_list.items[0] if pod_list.items else None
+        except Exception as e:
+            logger.exception("Could not get pod for run %s: %s", run.id, e)
+            pod = None
+
+        if pod:
+            phase = pod.status.phase
+            container_name = (
+                pod.spec.containers[0].name
+                if pod.spec.containers
+                else pod.metadata.name
+            )
+            logger.warning(
+                "Zombie pod for run %s #%s is still in phase %s",
+                run.pipeline.name,
+                run.id,
+                phase,
+            )
+
+            try:
+                logs = v1.read_namespaced_pod_log(
+                    name=pod.metadata.name,
+                    namespace=namespace,
+                    container=container_name,
+                )
+            except Exception as e:
+                logger.exception("Could not get logs (%s)", e)
+                logs = ""
+
+            run.run_logs = logs or run.run_logs
+            if phase in {"Succeeded", "Failed"}:
+                run.state = (
+                    PipelineRunState.SUCCESS
+                    if phase == "Succeeded"
+                    else PipelineRunState.FAILED
+                )
+                run.save()
+                continue
+
+        logger.warning("Timeout kill run %s #%s", run.pipeline.name, run.id)
+        run.state = PipelineRunState.FAILED
+        run.run_logs = (
+            "\n".join([run.run_logs, KILLED_BY_TIMEOUT_MESSAGE])
+            if run.run_logs
+            else KILLED_BY_TIMEOUT_MESSAGE
+        )
+        run.save()
+
+
 class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info("start pipeline runner")
         sleep(10)
+
+        # TODO : re-attach orphaned RUNNING runs ?
 
         i = 0
         sleeptime = 5
@@ -452,21 +550,7 @@ class Command(BaseCommand):
 
             # timeout-manager/zombie-reaper
             if i > 60:
-                zombie_runs = PipelineRun.objects.filter(
-                    state=PipelineRunState.RUNNING,
-                    last_heartbeat__lt=(
-                        timezone.now() - timedelta(seconds=HEARTBEAT_TIMEOUT)
-                    ),
-                )
-                for run in zombie_runs:
-                    logger.warning("Timeout kill run %s #%s", run.pipeline.name, run.id)
-                    run.state = PipelineRunState.FAILED
-                    run.run_logs = (
-                        "\n".join([run.run_logs, "Killed by timeout"])
-                        if run.run_logs
-                        else "Killed by timeout"
-                    )
-                    run.save()
+                _process_zombie_runs()
                 i = 0
             else:
                 i += sleeptime
