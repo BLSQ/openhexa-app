@@ -2225,6 +2225,34 @@ export enum InviteWorkspaceMembershipError {
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
+/** Represents the error types for issuing a workspace token. */
+export enum IssueWorkspaceTokenError {
+  AuthUnauthenticated = 'AUTH_UNAUTHENTICATED',
+  ClockError = 'CLOCK_ERROR',
+  ConfigMissingPrivateKey = 'CONFIG_MISSING_PRIVATE_KEY',
+  InputInvalid = 'INPUT_INVALID',
+  MembershipRequired = 'MEMBERSHIP_REQUIRED',
+  RoleUnresolved = 'ROLE_UNRESOLVED',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+/** Represents the input for issuing a workspace JWT token. */
+export type IssueWorkspaceTokenInput = {
+  workspaceId?: InputMaybe<Scalars['UUID']['input']>;
+  workspaceSlug?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Represents the result of issuing a workspace JWT token. */
+export type IssueWorkspaceTokenPayload = {
+  __typename?: 'IssueWorkspaceTokenPayload';
+  errors: Array<IssueWorkspaceTokenError>;
+  expiresAt?: Maybe<Scalars['DateTime']['output']>;
+  role?: Maybe<WorkspaceMembershipRole>;
+  success: Scalars['Boolean']['output'];
+  token?: Maybe<Scalars['String']['output']>;
+  workspace?: Maybe<WorkspaceRef>;
+};
+
 /** Represents the error types for joining a workspace. */
 export enum JoinWorkspaceError {
   AlreadyAccepted = 'ALREADY_ACCEPTED',
@@ -2537,6 +2565,7 @@ export type Mutation = {
   generateWorkspaceToken: GenerateWorkspaceTokenResult;
   inviteOrganizationMember: InviteOrganizationMemberResult;
   inviteWorkspaceMember: InviteWorkspaceMemberResult;
+  issueWorkspaceToken: IssueWorkspaceTokenPayload;
   joinWorkspace: JoinWorkspaceResult;
   launchAccessmodAnalysis: LaunchAccessmodAnalysisResult;
   launchNotebookServer: LaunchNotebookServerResult;
@@ -2907,6 +2936,11 @@ export type MutationInviteOrganizationMemberArgs = {
 
 export type MutationInviteWorkspaceMemberArgs = {
   input: InviteWorkspaceMemberInput;
+};
+
+
+export type MutationIssueWorkspaceTokenArgs = {
+  input: IssueWorkspaceTokenInput;
 };
 
 
@@ -5478,4 +5512,11 @@ export type WorkspacePermissions = {
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
+};
+
+/** Represents a minimal workspace reference in the token payload. */
+export type WorkspaceRef = {
+  __typename?: 'WorkspaceRef';
+  id: Scalars['UUID']['output'];
+  slug: Scalars['String']['output'];
 };
