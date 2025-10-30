@@ -13,12 +13,6 @@ shortcut_query = QueryType()
 def resolve_shortcuts(_, info, **kwargs):
     """
     Resolve shortcuts query - returns all shortcuts for a user in a workspace.
-
-    This resolver:
-    1. Gets the workspace by slug
-    2. Filters shortcuts for the current user and workspace
-    3. Iterates through shortcuts and builds ShortcutItem objects
-    4. Currently supports only Webapp type, but designed to be extensible
     """
     request: HttpRequest = info.context["request"]
     workspace_slug = kwargs.get("workspace_slug")
@@ -39,26 +33,26 @@ def resolve_shortcuts(_, info, **kwargs):
 
     shortcut_items = []
 
-    # Get content type for Webapp
     webapp_content_type = ContentType.objects.get_for_model(Webapp)
 
     for shortcut in shortcuts:
-        # Currently only support webapps, but this is extensible
         if shortcut.content_type == webapp_content_type:
             try:
                 webapp = Webapp.objects.get(pk=shortcut.object_id)
+                from hexa.utils.base64_image_encode_decode import encode_base64_image
+
+                icon = encode_base64_image(bytes(webapp.icon)) if webapp.icon else None
                 shortcut_items.append(
                     {
                         "id": str(webapp.id),
                         "name": webapp.name,
                         "url": f"/workspaces/{workspace.slug}/webapps/{webapp.id}",
-                        "icon": None,  # TODO: Add icon support
+                        "icon": icon,
                         "type": "webapp",
                         "order": shortcut.order,
                     }
                 )
             except Webapp.DoesNotExist:
-                # Skip shortcuts pointing to deleted objects
                 continue
 
     return shortcut_items

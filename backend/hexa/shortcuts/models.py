@@ -10,7 +10,6 @@ from hexa.workspaces.models import Workspace
 
 class ShortcutQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User):
-        """Filter shortcuts for a specific user"""
         return self._filter_for_user_and_query_object(
             user,
             models.Q(user=user),
@@ -18,11 +17,9 @@ class ShortcutQuerySet(BaseQuerySet):
         )
 
     def filter_for_workspace(self, workspace: Workspace):
-        """Filter shortcuts for a specific workspace"""
         return self.filter(workspace=workspace)
 
     def filter_by_content_type(self, model_class):
-        """Filter shortcuts by content type (e.g., Webapp, Pipeline)"""
         content_type = ContentType.objects.get_for_model(model_class)
         return self.filter(content_type=content_type)
 
@@ -32,18 +29,7 @@ class ShortcutManager(BaseManager.from_queryset(ShortcutQuerySet)):
 
 
 class Shortcut(Base):
-    """
-    Generic shortcut model that can reference any content type.
-
-    This model uses Django's ContentType framework to create shortcuts
-    to any model in the system (webapps, pipelines, datasets, etc.).
-
-    Shortcuts are:
-    - User-specific: Each user has their own shortcuts
-    - Workspace-scoped: Shortcuts are created within a workspace context
-    - Ordered: Users can customize the order of their shortcuts
-    - Extensible: Can be applied to any model without schema changes
-    """
+    """User-specific, workspace-scoped shortcuts using ContentType framework."""
 
     class Meta:
         verbose_name = "Shortcut"
