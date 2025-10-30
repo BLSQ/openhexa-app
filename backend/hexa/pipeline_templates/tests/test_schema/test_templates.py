@@ -556,8 +556,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
                     }
                 }
             }
-            """,
-            {"workspaceSlug": ws_org_1.slug},
+            """
         )
 
         self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 2)
@@ -577,8 +576,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
                     }
                 }
             }
-            """,
-            {"workspaceSlug": ws_org_2.slug},
+            """
         )
 
         self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 2)
