@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.1](https://github.com/BLSQ/openhexa-app/compare/2.9.0...2.9.1) (2025-10-30)
+
+
+### Bug Fixes
+
+* templates should be taken globally ([#1454](https://github.com/BLSQ/openhexa-app/issues/1454)) ([743985b](https://github.com/BLSQ/openhexa-app/commit/743985ba709e3c0b335dbf65032465a1a50b86c5))
+
 ## [2.9.0](https://github.com/BLSQ/openhexa-app/compare/2.8.0...2.9.0) (2025-10-30)
 
 
