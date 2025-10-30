@@ -16,8 +16,7 @@ def resolve_pipeline_templates(_, info, **kwargs):
     search = kwargs.get("search", "")
 
     pipeline_templates = (
-        PipelineTemplate.objects.filter_for_user(request.user)
-        .select_related("workspace", "source_pipeline")
+        PipelineTemplate.objects.select_related("workspace", "source_pipeline")
         .prefetch_related("tags")
         .with_pipelines_count()
         .filter(
@@ -40,9 +39,7 @@ def resolve_pipeline_templates(_, info, **kwargs):
         workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=workspace_slug
         )
-        pipeline_templates = pipeline_templates.filter(
-            workspace__organization=workspace.organization
-        )
+        pipeline_templates = pipeline_templates.filter(workspace=workspace)
 
     tags = kwargs.get("tags", [])
     if tags:
