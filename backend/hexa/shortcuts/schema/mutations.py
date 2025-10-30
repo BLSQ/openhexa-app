@@ -10,11 +10,6 @@ shortcut_mutations = MutationType()
 def resolve_add_to_shortcuts(_, info, **kwargs):
     """
     Add a webapp to user's shortcuts.
-
-    This mutation:
-    1. Validates the webapp exists
-    2. Checks user has access to the webapp
-    3. Calls the add_to_shortcuts method on the webapp
     """
     request: HttpRequest = info.context["request"]
     input_data = kwargs["input"]
@@ -35,11 +30,6 @@ def resolve_add_to_shortcuts(_, info, **kwargs):
 def resolve_remove_from_shortcuts(_, info, **kwargs):
     """
     Remove a webapp from user's shortcuts.
-
-    This mutation:
-    1. Validates the webapp exists
-    2. Checks user has access to the webapp
-    3. Calls the remove_from_shortcuts method on the webapp
     """
     request: HttpRequest = info.context["request"]
     input_data = kwargs["input"]
