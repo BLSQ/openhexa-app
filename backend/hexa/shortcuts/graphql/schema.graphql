@@ -1,0 +1,66 @@
+"""
+Represents a shortcut item in the sidebar.
+"""
+type ShortcutItem {
+  id: UUID!
+  name: String!
+  url: String!
+  icon: String
+  type: String!
+  order: Int!
+}
+
+"""
+Represents the input for adding an item to shortcuts.
+"""
+input AddToShortcutsInput {
+  webappId: UUID!
+}
+
+"""
+Represents the result of adding an item to shortcuts.
+"""
+type AddToShortcutsResult {
+  success: Boolean!
+  errors: [AddToShortcutsError!]!
+}
+
+"""
+Represents the error message for adding to shortcuts.
+"""
+enum AddToShortcutsError {
+  ITEM_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""
+Represents the input for removing an item from shortcuts.
+"""
+input RemoveFromShortcutsInput {
+  webappId: UUID!
+}
+
+"""
+Represents the result of removing an item from shortcuts.
+"""
+type RemoveFromShortcutsResult {
+  success: Boolean!
+  errors: [RemoveFromShortcutsError!]!
+}
+
+"""
+Represents the error message for removing from shortcuts.
+"""
+enum RemoveFromShortcutsError {
+  ITEM_NOT_FOUND
+  SHORTCUT_NOT_FOUND
+}
+
+extend type Query {
+  shortcuts(workspaceSlug: String!): [ShortcutItem!]! @loginRequired
+}
+
+extend type Mutation {
+  addToShortcuts(input: AddToShortcutsInput!): AddToShortcutsResult! @loginRequired
+  removeFromShortcuts(input: RemoveFromShortcutsInput!): RemoveFromShortcutsResult! @loginRequired
+}
