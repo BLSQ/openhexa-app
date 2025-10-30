@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.9.0](https://github.com/BLSQ/openhexa-app/compare/2.8.0...2.9.0) (2025-10-30)
+
+
+### Features
+
+* add workspace scoping for pipeline tag search similar as in pipeline tempaltes ([#1451](https://github.com/BLSQ/openhexa-app/issues/1451)) ([db6a1fa](https://github.com/BLSQ/openhexa-app/commit/db6a1fae1cadc6a2f2be0116dc5c9f65aa893272))
+
+
+### Bug Fixes
+
+* add distinct to fix tags join ([#1448](https://github.com/BLSQ/openhexa-app/issues/1448)) ([1556684](https://github.com/BLSQ/openhexa-app/commit/1556684e8f2025c18d837d35f073fd2fb2ae19a2))
+* redirects from organization pages after removing the feature flag  ([#1450](https://github.com/BLSQ/openhexa-app/issues/1450)) ([8e78ebc](https://github.com/BLSQ/openhexa-app/commit/8e78ebc5cad448d07cb955f706cff635ab857970))
+
 ## [2.8.0](https://github.com/BLSQ/openhexa-app/compare/2.7.1...2.8.0) (2025-10-29)
 
 
