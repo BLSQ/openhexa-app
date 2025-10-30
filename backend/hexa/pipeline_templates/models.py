@@ -54,7 +54,9 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
         """
         return self.annotate(
             pipelines_count=Count(
-                "pipelines", filter=Q(pipelines__deleted_at__isnull=True)
+                "pipelines",
+                filter=Q(pipelines__deleted_at__isnull=True),
+                distinct=True,
             )
         )
 
