@@ -1,4 +1,5 @@
 from ariadne import MutationType
+from django.db import IntegrityError
 from django.http import HttpRequest
 
 from hexa.webapps.models import Webapp
@@ -22,6 +23,8 @@ def resolve_add_to_shortcuts(_, info, **kwargs):
         return {"success": True, "errors": []}
     except Webapp.DoesNotExist:
         return {"success": False, "errors": ["ITEM_NOT_FOUND"]}
+    except IntegrityError:
+        return {"success": True, "errors": []}
     except Exception:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
@@ -43,7 +46,7 @@ def resolve_remove_from_shortcuts(_, info, **kwargs):
     except Webapp.DoesNotExist:
         return {"success": False, "errors": ["ITEM_NOT_FOUND"]}
     except Exception:
-        return {"success": False, "errors": ["SHORTCUT_NOT_FOUND"]}
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
 bindables = [shortcut_mutations]
