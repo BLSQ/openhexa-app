@@ -35,8 +35,9 @@ def resolve_pipeline_templates(_, info, **kwargs):
         )
 
     workspace_slug = kwargs.get("workspace_slug")
+    workspace = None
     if workspace_slug:
-        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
+        workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=workspace_slug
         )
         pipeline_templates = pipeline_templates.filter(
@@ -47,6 +48,10 @@ def resolve_pipeline_templates(_, info, **kwargs):
     if tags:
         try:
             tag_objects = Tag.from_names(tags)
+            if workspace:
+                tag_objects = tag_objects.filter(
+                    pipeline_templates__workspace__organization=workspace.organization
+                ).distinct()
             pipeline_templates = pipeline_templates.filter_by_tags(tag_objects)
         except InvalidTag:
             pipeline_templates = PipelineTemplate.objects.none()
