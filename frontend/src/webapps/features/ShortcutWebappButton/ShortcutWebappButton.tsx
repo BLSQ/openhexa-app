@@ -23,13 +23,22 @@ const ShortcutWebappButton = ({
 
   const clearCache = useCacheKey(["webapps", "shortcuts"]);
 
-  const handleShortcutClick = async () => {
+  const handleShortcutClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     try {
       if (isShortcut) {
-        await removeFromShortcuts({ variables: { input: { webappId } } });
+        await removeFromShortcuts({
+          variables: { input: { webappId } },
+          refetchQueries: ["WorkspaceWebappsPage", "Shortcuts"],
+        });
         toast.success(t("Removed from shortcuts"));
       } else {
-        await addToShortcuts({ variables: { input: { webappId } } });
+        await addToShortcuts({
+          variables: { input: { webappId } },
+          refetchQueries: ["WorkspaceWebappsPage", "Shortcuts"],
+        });
         toast.success(t("Added to shortcuts"));
       }
       clearCache();

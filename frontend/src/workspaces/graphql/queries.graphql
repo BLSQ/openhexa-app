@@ -767,6 +767,7 @@ query WorkspaceWebappsPage(
       description
       url
       isFavorite
+      isShortcut
       createdBy {
         firstName
         lastName
