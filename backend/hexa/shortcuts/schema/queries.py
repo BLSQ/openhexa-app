@@ -32,15 +32,20 @@ def resolve_shortcuts(_, info, **kwargs):
     )
 
     shortcut_items = []
-
     webapp_content_type = ContentType.objects.get_for_model(Webapp)
+
+    webapp_ids = [
+        s.object_id for s in shortcuts if s.content_type == webapp_content_type
+    ]
+
+    webapps = {str(w.id): w for w in Webapp.objects.filter(id__in=webapp_ids)}
+
+    from hexa.utils.base64_image_encode_decode import encode_base64_image
 
     for shortcut in shortcuts:
         if shortcut.content_type == webapp_content_type:
-            try:
-                webapp = Webapp.objects.get(pk=shortcut.object_id)
-                from hexa.utils.base64_image_encode_decode import encode_base64_image
-
+            webapp = webapps.get(str(shortcut.object_id))
+            if webapp:
                 icon = encode_base64_image(bytes(webapp.icon)) if webapp.icon else None
                 shortcut_items.append(
                     {
@@ -52,8 +57,6 @@ def resolve_shortcuts(_, info, **kwargs):
                         "order": shortcut.order,
                     }
                 )
-            except Webapp.DoesNotExist:
-                continue
 
     return shortcut_items
 
