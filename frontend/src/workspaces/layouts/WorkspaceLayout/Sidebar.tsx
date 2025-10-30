@@ -189,42 +189,6 @@ const Sidebar = (props: SidebarProps) => {
         <SpotlightSearch isSidebarOpen={isSidebarOpen} />
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
-        {shortcuts.length > 0 && (
-          <div className="mt-3 border-t border-gray-700 pt-3">
-            <button
-              onClick={() => setShortcutsExpanded(!isShortcutsExpanded)}
-              className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white rounded-md"
-            >
-              <div className="flex items-center gap-2">
-                <BookmarkIcon className="h-4 w-4" />
-                {isSidebarOpen && <span>{t("Shortcuts")}</span>}
-              </div>
-              {isSidebarOpen &&
-                (isShortcutsExpanded ? (
-                  <ChevronUpIcon className="h-4 w-4" />
-                ) : (
-                  <ChevronDownIcon className="h-4 w-4" />
-                ))}
-            </button>
-
-            {isShortcutsExpanded && (
-              <div className="space-y-1 mt-1">
-                {shortcuts.map((shortcut) => (
-                  <NavItem
-                    key={shortcut.id}
-                    href={shortcut.url}
-                    Icon={GlobeAltIcon}
-                    label={shortcut.name}
-                    isCurrent={router.asPath === shortcut.url}
-                    compact={!isSidebarOpen}
-                    className="pl-6"
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
         <div className="mt-5 flex grow flex-col">
           <nav className="flex-1 space-y-1 px-0 pb-4">
             {[homeLink].concat(links).map(({ href, Icon, label }) => (
@@ -237,6 +201,42 @@ const Sidebar = (props: SidebarProps) => {
                 compact={!isSidebarOpen}
               />
             ))}
+
+            {shortcuts.length > 0 && (
+              <div className="mt-3 border-t border-gray-700 pt-3">
+                <button
+                  onClick={() => setShortcutsExpanded(!isShortcutsExpanded)}
+                  className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white rounded-md"
+                >
+                  <div className="flex items-center gap-2">
+                    <BookmarkIcon className="h-4 w-4" />
+                    {isSidebarOpen && <span>{t("Shortcuts")}</span>}
+                  </div>
+                  {isSidebarOpen &&
+                    (isShortcutsExpanded ? (
+                      <ChevronUpIcon className="h-4 w-4" />
+                    ) : (
+                      <ChevronDownIcon className="h-4 w-4" />
+                    ))}
+                </button>
+
+                {isShortcutsExpanded && (
+                  <div className="space-y-1 mt-1">
+                    {shortcuts.map((shortcut) => (
+                      <NavItem
+                        key={shortcut.id}
+                        href={shortcut.url}
+                        Icon={GlobeAltIcon}
+                        label={shortcut.name}
+                        isCurrent={router.asPath === shortcut.url}
+                        compact={!isSidebarOpen}
+                        className="pl-6"
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </nav>
         </div>
 
