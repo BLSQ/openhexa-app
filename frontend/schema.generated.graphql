@@ -358,6 +358,23 @@ type AddToFavoritesResult {
   success: Boolean!
 }
 
+"""Represents the error message for adding to shortcuts."""
+enum AddToShortcutsError {
+  ITEM_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""Represents the input for adding an item to shortcuts."""
+input AddToShortcutsInput {
+  webappId: UUID!
+}
+
+"""Represents the result of adding an item to shortcuts."""
+type AddToShortcutsResult {
+  errors: [AddToShortcutsError!]!
+  success: Boolean!
+}
+
 enum ApproveAccessmodAccessRequestError {
   INVALID
 }
@@ -2423,6 +2440,7 @@ type Mutation {
   """Adds a recipient to a pipeline."""
   addPipelineRecipient(input: CreatePipelineRecipientInput!): AddPipelineRecipientResult!
   addToFavorites(input: AddToFavoritesInput!): AddToFavoritesResult!
+  addToShortcuts(input: AddToShortcutsInput!): AddToShortcutsResult!
   approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
   archiveWorkspace(input: ArchiveWorkspaceInput!): ArchiveWorkspaceResult!
   createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult!
@@ -2565,6 +2583,7 @@ type Mutation {
   """Registers a new user."""
   register(input: RegisterInput!): RegisterResult!
   removeFromFavorites(input: RemoveFromFavoritesInput!): RemoveFromFavoritesResult!
+  removeFromShortcuts(input: RemoveFromShortcutsInput!): RemoveFromShortcutsResult!
   requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
   resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult!
   resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult!
@@ -3412,6 +3431,7 @@ type Query {
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
   searchPipelineTemplates(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): PipelineTemplateResultPage!
   searchPipelines(functionalType: PipelineFunctionalType, organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): PipelineResultPage!
+  shortcuts(workspaceSlug: String!): [ShortcutItem!]!
   team(id: UUID!): Team
   teams(page: Int, perPage: Int, term: String): TeamPage!
 
@@ -3488,6 +3508,23 @@ input RemoveFromFavoritesInput {
 """Represents the result of removing a web app from favorites."""
 type RemoveFromFavoritesResult {
   errors: [RemoveFromFavoritesError!]!
+  success: Boolean!
+}
+
+"""Represents the error message for removing from shortcuts."""
+enum RemoveFromShortcutsError {
+  ITEM_NOT_FOUND
+  SHORTCUT_NOT_FOUND
+}
+
+"""Represents the input for removing an item from shortcuts."""
+input RemoveFromShortcutsInput {
+  webappId: UUID!
+}
+
+"""Represents the result of removing an item from shortcuts."""
+type RemoveFromShortcutsResult {
+  errors: [RemoveFromShortcutsError!]!
   success: Boolean!
 }
 
@@ -3727,6 +3764,16 @@ type SetPasswordResult {
 
   """Indicates whether the password was set successfully."""
   success: Boolean!
+}
+
+"""Represents a shortcut item in the sidebar."""
+type ShortcutItem {
+  icon: String
+  id: UUID!
+  name: String!
+  order: Int!
+  type: String!
+  url: String!
 }
 
 scalar SimplifiedExtentType
@@ -4516,6 +4563,7 @@ type Webapp {
   icon: String
   id: UUID!
   isFavorite: Boolean!
+  isShortcut: Boolean!
   name: String!
   permissions: WebappPermissions!
   url: String!

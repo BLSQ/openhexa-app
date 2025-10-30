@@ -315,6 +315,13 @@ export type WorkspaceConnectionPickerQueryVariables = Types.Exact<{
 
 export type WorkspaceConnectionPickerQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, connections: Array<{ __typename?: 'CustomConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'DHIS2Connection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'GCSConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'IASOConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'PostgreSQLConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'S3Connection', id: string, name: string, slug: string, type: Types.ConnectionType }> } | null };
 
+export type ShortcutsQueryVariables = Types.Exact<{
+  workspaceSlug: Types.Scalars['String']['input'];
+}>;
+
+
+export type ShortcutsQuery = { __typename?: 'Query', shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, icon?: string | null, type: string, order: number }> };
+
 
 export const WorkspacesPageDocument = gql`
     query WorkspacesPage {
@@ -2247,3 +2254,48 @@ export type WorkspaceConnectionPickerQueryHookResult = ReturnType<typeof useWork
 export type WorkspaceConnectionPickerLazyQueryHookResult = ReturnType<typeof useWorkspaceConnectionPickerLazyQuery>;
 export type WorkspaceConnectionPickerSuspenseQueryHookResult = ReturnType<typeof useWorkspaceConnectionPickerSuspenseQuery>;
 export type WorkspaceConnectionPickerQueryResult = Apollo.QueryResult<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>;
+export const ShortcutsDocument = gql`
+    query Shortcuts($workspaceSlug: String!) {
+  shortcuts(workspaceSlug: $workspaceSlug) {
+    id
+    name
+    url
+    icon
+    type
+    order
+  }
+}
+    `;
+
+/**
+ * __useShortcutsQuery__
+ *
+ * To run a query within a React component, call `useShortcutsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShortcutsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShortcutsQuery({
+ *   variables: {
+ *      workspaceSlug: // value for 'workspaceSlug'
+ *   },
+ * });
+ */
+export function useShortcutsQuery(baseOptions: Apollo.QueryHookOptions<ShortcutsQuery, ShortcutsQueryVariables> & ({ variables: ShortcutsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShortcutsQuery, ShortcutsQueryVariables>(ShortcutsDocument, options);
+      }
+export function useShortcutsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShortcutsQuery, ShortcutsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShortcutsQuery, ShortcutsQueryVariables>(ShortcutsDocument, options);
+        }
+export function useShortcutsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShortcutsQuery, ShortcutsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShortcutsQuery, ShortcutsQueryVariables>(ShortcutsDocument, options);
+        }
+export type ShortcutsQueryHookResult = ReturnType<typeof useShortcutsQuery>;
+export type ShortcutsLazyQueryHookResult = ReturnType<typeof useShortcutsLazyQuery>;
+export type ShortcutsSuspenseQueryHookResult = ReturnType<typeof useShortcutsSuspenseQuery>;
+export type ShortcutsQueryResult = Apollo.QueryResult<ShortcutsQuery, ShortcutsQueryVariables>;

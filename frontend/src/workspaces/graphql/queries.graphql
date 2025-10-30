@@ -838,3 +838,14 @@ query WorkspaceConnectionPicker($slug: String!) {
           ...WorkspaceConnectionPicker_workspace
         }
 }
+
+query Shortcuts($workspaceSlug: String!) {
+  shortcuts(workspaceSlug: $workspaceSlug) {
+    id
+    name
+    url
+    icon
+    type
+    order
+  }
+}

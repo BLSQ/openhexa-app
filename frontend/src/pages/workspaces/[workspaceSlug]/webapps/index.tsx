@@ -22,6 +22,7 @@ import useCacheKey from "core/hooks/useCacheKey";
 import Title from "core/components/Title";
 import UserAvatar from "identity/features/UserAvatar";
 import FavoriteWebappButton from "webapps/features/FavoriteWebappButton";
+import ShortcutWebappButton from "webapps/features/ShortcutWebappButton";
 import LinkColumn from "core/components/DataGrid/LinkColumn";
 import clsx from "clsx";
 import WebappCard from "webapps/features/WebappCard";
@@ -119,6 +120,7 @@ const WebappsPage = (props: Props) => {
                 {(item) => (
                   <div className="flex items-center space-x-1">
                     <FavoriteWebappButton webapp={item} />
+                    <ShortcutWebappButton webapp={item} />
                     <img
                       src={item.icon}
                       className={clsx(
