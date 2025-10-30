@@ -36,10 +36,12 @@ def resolve_pipelines(_, info, **kwargs):
     if kwargs.get("functional_type"):
         qs = qs.filter(functional_type=kwargs.get("functional_type"))
 
-    if kwargs.get("workspace_slug", None):
+    workspace_slug = kwargs.get("workspace_slug", None)
+    ws = None
+    if workspace_slug:
         try:
             ws = Workspace.objects.filter_for_user(request.user).get(
-                slug=kwargs.get("workspace_slug")
+                slug=workspace_slug
             )
             qs = qs.filter(workspace=ws).order_by("name", "id")
         except Workspace.DoesNotExist:
@@ -51,6 +53,8 @@ def resolve_pipelines(_, info, **kwargs):
     if tags:
         try:
             tag_objects = Tag.from_names(tags)
+            if ws:
+                tag_objects = tag_objects.filter(pipelines__workspace=ws).distinct()
             qs = qs.filter_by_tags(tag_objects)
         except InvalidTag:
             qs = Pipeline.objects.none()

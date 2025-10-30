@@ -163,15 +163,6 @@ def resolve_workspace_connections(workspace: Workspace, info, **kwargs):
 
 @workspace_object.field("pipelineTags")
 def resolve_workspace_pipeline_tags(workspace: Workspace, info, **kwargs):
-    if workspace.organization:
-        return list(
-            Tag.objects.filter(
-                pipelines__workspace__organization=workspace.organization
-            )
-            .distinct()
-            .values_list("name", flat=True)
-            .order_by("name")
-        )
     return list(
         Tag.objects.filter(pipelines__workspace=workspace)
         .distinct()
