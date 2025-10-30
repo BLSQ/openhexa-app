@@ -26,3 +26,17 @@ mutation RemoveFromFavorites($input: RemoveFromFavoritesInput!) {
     errors
   }
 }
+
+mutation AddToShortcuts($input: AddToShortcutsInput!) {
+  addToShortcuts(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation RemoveFromShortcuts($input: RemoveFromShortcutsInput!) {
+  removeFromShortcuts(input: $input) {
+    success
+    errors
+  }
+}

@@ -13,6 +13,12 @@ def resolve_is_favorite(webapp: Webapp, info, **kwargs):
     return webapp.is_favorite(request.user)
 
 
+@webapp_object.field("isShortcut")
+def resolve_is_shortcut(webapp: Webapp, info, **kwargs):
+    request = info.context["request"]
+    return webapp.is_shortcut(request.user)
+
+
 @webapp_object.field("createdBy")
 def resolve_created_by(webapp: Webapp, info, **kwargs):
     return webapp.created_by

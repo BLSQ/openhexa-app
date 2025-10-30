@@ -274,7 +274,7 @@ export type WorkspaceWebappsPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceWebappsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean } } | null } | null, webapps: { __typename?: 'WebappsPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'Webapp', id: string, name: string, icon?: string | null, description?: string | null, url: string, isFavorite: boolean, createdBy: { __typename?: 'User', firstName?: string | null, lastName?: string | null, id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, workspace: { __typename?: 'Workspace', slug: string, name: string }, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } }> }, favoriteWebapps: { __typename?: 'WebappsPage', items: Array<{ __typename?: 'Webapp', id: string, icon?: string | null, name: string, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
+export type WorkspaceWebappsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean } } | null } | null, webapps: { __typename?: 'WebappsPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'Webapp', id: string, name: string, icon?: string | null, description?: string | null, url: string, isFavorite: boolean, isShortcut: boolean, createdBy: { __typename?: 'User', firstName?: string | null, lastName?: string | null, id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, workspace: { __typename?: 'Workspace', slug: string, name: string }, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } }> }, favoriteWebapps: { __typename?: 'WebappsPage', items: Array<{ __typename?: 'Webapp', id: string, icon?: string | null, name: string, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
 
 export type WorkspaceWebappPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -314,6 +314,13 @@ export type WorkspaceConnectionPickerQueryVariables = Types.Exact<{
 
 
 export type WorkspaceConnectionPickerQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, connections: Array<{ __typename?: 'CustomConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'DHIS2Connection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'GCSConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'IASOConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'PostgreSQLConnection', id: string, name: string, slug: string, type: Types.ConnectionType } | { __typename?: 'S3Connection', id: string, name: string, slug: string, type: Types.ConnectionType }> } | null };
+
+export type ShortcutsQueryVariables = Types.Exact<{
+  workspaceSlug: Types.Scalars['String']['input'];
+}>;
+
+
+export type ShortcutsQuery = { __typename?: 'Query', shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, icon?: string | null, type: string, order: number }> };
 
 
 export const WorkspacesPageDocument = gql`
@@ -1963,6 +1970,7 @@ export const WorkspaceWebappsPageDocument = gql`
       description
       url
       isFavorite
+      isShortcut
       createdBy {
         firstName
         lastName
@@ -2247,3 +2255,48 @@ export type WorkspaceConnectionPickerQueryHookResult = ReturnType<typeof useWork
 export type WorkspaceConnectionPickerLazyQueryHookResult = ReturnType<typeof useWorkspaceConnectionPickerLazyQuery>;
 export type WorkspaceConnectionPickerSuspenseQueryHookResult = ReturnType<typeof useWorkspaceConnectionPickerSuspenseQuery>;
 export type WorkspaceConnectionPickerQueryResult = Apollo.QueryResult<WorkspaceConnectionPickerQuery, WorkspaceConnectionPickerQueryVariables>;
+export const ShortcutsDocument = gql`
+    query Shortcuts($workspaceSlug: String!) {
+  shortcuts(workspaceSlug: $workspaceSlug) {
+    id
+    name
+    url
+    icon
+    type
+    order
+  }
+}
+    `;
+
+/**
+ * __useShortcutsQuery__
+ *
+ * To run a query within a React component, call `useShortcutsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShortcutsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShortcutsQuery({
+ *   variables: {
+ *      workspaceSlug: // value for 'workspaceSlug'
+ *   },
+ * });
+ */
+export function useShortcutsQuery(baseOptions: Apollo.QueryHookOptions<ShortcutsQuery, ShortcutsQueryVariables> & ({ variables: ShortcutsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShortcutsQuery, ShortcutsQueryVariables>(ShortcutsDocument, options);
+      }
+export function useShortcutsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShortcutsQuery, ShortcutsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShortcutsQuery, ShortcutsQueryVariables>(ShortcutsDocument, options);
+        }
+export function useShortcutsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShortcutsQuery, ShortcutsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShortcutsQuery, ShortcutsQueryVariables>(ShortcutsDocument, options);
+        }
+export type ShortcutsQueryHookResult = ReturnType<typeof useShortcutsQuery>;
+export type ShortcutsLazyQueryHookResult = ReturnType<typeof useShortcutsLazyQuery>;
+export type ShortcutsSuspenseQueryHookResult = ReturnType<typeof useShortcutsSuspenseQuery>;
+export type ShortcutsQueryResult = Apollo.QueryResult<ShortcutsQuery, ShortcutsQueryVariables>;

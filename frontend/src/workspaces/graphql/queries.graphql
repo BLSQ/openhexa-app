@@ -767,6 +767,7 @@ query WorkspaceWebappsPage(
       description
       url
       isFavorite
+      isShortcut
       createdBy {
         firstName
         lastName
@@ -837,4 +838,15 @@ query WorkspaceConnectionPicker($slug: String!) {
           slug
           ...WorkspaceConnectionPicker_workspace
         }
+}
+
+query Shortcuts($workspaceSlug: String!) {
+  shortcuts(workspaceSlug: $workspaceSlug) {
+    id
+    name
+    url
+    icon
+    type
+    order
+  }
 }

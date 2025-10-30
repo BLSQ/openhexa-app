@@ -390,6 +390,24 @@ export type AddToFavoritesResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Represents the error message for adding to shortcuts. */
+export enum AddToShortcutsError {
+  ItemNotFound = 'ITEM_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** Represents the input for adding an item to shortcuts. */
+export type AddToShortcutsInput = {
+  webappId: Scalars['UUID']['input'];
+};
+
+/** Represents the result of adding an item to shortcuts. */
+export type AddToShortcutsResult = {
+  __typename?: 'AddToShortcutsResult';
+  errors: Array<AddToShortcutsError>;
+  success: Scalars['Boolean']['output'];
+};
+
 export enum ApproveAccessmodAccessRequestError {
   Invalid = 'INVALID'
 }
@@ -2488,6 +2506,7 @@ export type Mutation = {
   /** Adds a recipient to a pipeline. */
   addPipelineRecipient: AddPipelineRecipientResult;
   addToFavorites: AddToFavoritesResult;
+  addToShortcuts: AddToShortcutsResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
   archiveWorkspace: ArchiveWorkspaceResult;
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
@@ -2594,6 +2613,7 @@ export type Mutation = {
   /** Registers a new user. */
   register: RegisterResult;
   removeFromFavorites: RemoveFromFavoritesResult;
+  removeFromShortcuts: RemoveFromShortcutsResult;
   requestAccessmodAccess: RequestAccessmodAccessInputResult;
   resendOrganizationInvitation: ResendOrganizationInvitationResult;
   resendWorkspaceInvitation: ResendWorkspaceInvitationResult;
@@ -2666,6 +2686,11 @@ export type MutationAddPipelineRecipientArgs = {
 
 export type MutationAddToFavoritesArgs = {
   input: AddToFavoritesInput;
+};
+
+
+export type MutationAddToShortcutsArgs = {
+  input: AddToShortcutsInput;
 };
 
 
@@ -3026,6 +3051,11 @@ export type MutationRegisterArgs = {
 
 export type MutationRemoveFromFavoritesArgs = {
   input: RemoveFromFavoritesInput;
+};
+
+
+export type MutationRemoveFromShortcutsArgs = {
+  input: RemoveFromShortcutsInput;
 };
 
 
@@ -4024,6 +4054,7 @@ export type Query = {
   searchFiles: FileResultPage;
   searchPipelineTemplates: PipelineTemplateResultPage;
   searchPipelines: PipelineResultPage;
+  shortcuts: Array<ShortcutItem>;
   team?: Maybe<Team>;
   teams: TeamPage;
   /** Retrieves a template by workspace slug and code. */
@@ -4284,6 +4315,11 @@ export type QuerySearchPipelinesArgs = {
 };
 
 
+export type QueryShortcutsArgs = {
+  workspaceSlug: Scalars['String']['input'];
+};
+
+
 export type QueryTeamArgs = {
   id: Scalars['UUID']['input'];
 };
@@ -4384,6 +4420,24 @@ export type RemoveFromFavoritesInput = {
 export type RemoveFromFavoritesResult = {
   __typename?: 'RemoveFromFavoritesResult';
   errors: Array<RemoveFromFavoritesError>;
+  success: Scalars['Boolean']['output'];
+};
+
+/** Represents the error message for removing from shortcuts. */
+export enum RemoveFromShortcutsError {
+  ItemNotFound = 'ITEM_NOT_FOUND',
+  ShortcutNotFound = 'SHORTCUT_NOT_FOUND'
+}
+
+/** Represents the input for removing an item from shortcuts. */
+export type RemoveFromShortcutsInput = {
+  webappId: Scalars['UUID']['input'];
+};
+
+/** Represents the result of removing an item from shortcuts. */
+export type RemoveFromShortcutsResult = {
+  __typename?: 'RemoveFromShortcutsResult';
+  errors: Array<RemoveFromShortcutsError>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -4613,6 +4667,17 @@ export type SetPasswordResult = {
   error?: Maybe<SetPasswordError>;
   /** Indicates whether the password was set successfully. */
   success: Scalars['Boolean']['output'];
+};
+
+/** Represents a shortcut item in the sidebar. */
+export type ShortcutItem = {
+  __typename?: 'ShortcutItem';
+  icon?: Maybe<Scalars['String']['output']>;
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+  order: Scalars['Int']['output'];
+  type: Scalars['String']['output'];
+  url: Scalars['String']['output'];
 };
 
 /** Represents the input for stopping a pipeline. */
@@ -5337,6 +5402,7 @@ export type Webapp = {
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   isFavorite: Scalars['Boolean']['output'];
+  isShortcut: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   permissions: WebappPermissions;
   url: Scalars['String']['output'];
