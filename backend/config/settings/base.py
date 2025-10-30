@@ -182,6 +182,7 @@ INSTALLED_APPS = [
     "hexa.datasets",
     "hexa.superset",
     "hexa.webapps",
+    "hexa.shortcuts",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
