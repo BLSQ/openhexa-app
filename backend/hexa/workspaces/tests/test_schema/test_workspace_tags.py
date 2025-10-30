@@ -379,16 +379,13 @@ class WorkspaceTagsTest(GraphQLTestCase):
         )
 
         templates = r["data"]["pipelineTemplates"]["items"]
-        self.assertEqual(len(templates), 2)
-        template_names = [t["name"] for t in templates]
-        self.assertIn("Template in WS1", template_names)
-        self.assertIn("Template in WS2", template_names)
-        self.assertNotIn("Template in Org 2", template_names)
-
-        for template in templates:
-            self.assertEqual(
-                template["workspace"]["organization"]["name"], "Organization 1"
-            )
+        self.assertEqual(len(templates), 1)
+        template = templates[0]
+        self.assertEqual(template["name"], "Template in WS1")
+        self.assertEqual(template["workspace"]["slug"], self.WS1_ORG1.slug)
+        self.assertEqual(
+            template["workspace"]["organization"]["name"], "Organization 1"
+        )
 
     def test_workspace_pipeline_template_tags_without_organization(self):
         """Verify pipelineTemplateTags is workspace-scoped when workspace has no organization"""
