@@ -2178,6 +2178,33 @@ enum InviteWorkspaceMembershipError {
   WORKSPACE_NOT_FOUND
 }
 
+"""Represents the error types for issuing a workspace token."""
+enum IssueWorkspaceTokenError {
+  AUTH_UNAUTHENTICATED
+  CLOCK_ERROR
+  CONFIG_MISSING_PRIVATE_KEY
+  INPUT_INVALID
+  MEMBERSHIP_REQUIRED
+  ROLE_UNRESOLVED
+  WORKSPACE_NOT_FOUND
+}
+
+"""Represents the input for issuing a workspace JWT token."""
+input IssueWorkspaceTokenInput {
+  workspaceId: UUID
+  workspaceSlug: String
+}
+
+"""Represents the result of issuing a workspace JWT token."""
+type IssueWorkspaceTokenPayload {
+  errors: [IssueWorkspaceTokenError!]!
+  expiresAt: DateTime
+  role: WorkspaceMembershipRole
+  success: Boolean!
+  token: String
+  workspace: WorkspaceRef
+}
+
 scalar JSON
 
 """Represents the error types for joining a workspace."""
@@ -2534,6 +2561,7 @@ type Mutation {
   generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult!
   inviteOrganizationMember(input: InviteOrganizationMemberInput!): InviteOrganizationMemberResult!
   inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult!
+  issueWorkspaceToken(input: IssueWorkspaceTokenInput!): IssueWorkspaceTokenPayload!
   joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult!
   launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult!
   launchNotebookServer(input: LaunchNotebookServerInput!): LaunchNotebookServerResult!
@@ -3086,6 +3114,7 @@ type PipelineTemplate {
   id: UUID!
   name: String!
   permissions: PipelineTemplatePermissions!
+  pipelinesCount: Int!
   sourcePipeline: Pipeline
   tags: [Tag!]!
   updatedAt: DateTime!
@@ -3096,6 +3125,16 @@ type PipelineTemplate {
 enum PipelineTemplateError {
   PERMISSION_DENIED
   PIPELINE_TEMPLATE_NOT_FOUND
+}
+
+"""Enum representing the possible orderings for pipeline templates."""
+enum PipelineTemplateOrderBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  NAME_ASC
+  NAME_DESC
+  PIPELINES_COUNT_ASC
+  PIPELINES_COUNT_DESC
 }
 
 """Represents paged result of fetching pipeline templates."""
@@ -3402,7 +3441,7 @@ type Query {
   pipelineTemplateVersion(id: UUID!): PipelineTemplateVersion
 
   """Retrieves a page of pipeline templates."""
-  pipelineTemplates(functionalType: PipelineFunctionalType, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
+  pipelineTemplates(functionalType: PipelineFunctionalType, orderBy: PipelineTemplateOrderBy, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
 
   """Retrieves a pipeline version by ID."""
   pipelineVersion(id: UUID!): PipelineVersion
@@ -4738,4 +4777,10 @@ type WorkspacePermissions {
   launchNotebookServer: Boolean!
   manageMembers: Boolean!
   update: Boolean!
+}
+
+"""Represents a minimal workspace reference in the token payload."""
+type WorkspaceRef {
+  id: UUID!
+  slug: String!
 }

@@ -6,6 +6,12 @@ import router from "next/router";
 import useDebounce from "core/hooks/useDebounce";
 import useCacheKey from "core/hooks/useCacheKey";
 import {
+  getTemplateSortOptions,
+  templateSorting,
+  TemplateSortOption,
+} from "pipelines/config/sorting";
+import { SortingRule } from "react-table";
+import {
   PipelineTemplates_WorkspaceFragment,
   useGetPipelineTemplatesQuery,
 } from "./PipelineTemplates.generated";
@@ -31,6 +37,9 @@ const PipelineTemplates = ({
   const perPage = 10;
   const clearCache = useCacheKey(["pipelines"]);
 
+  const sortOptions = getTemplateSortOptions();
+  const [sortOrder, setSortOrder] = useState<TemplateSortOption>(sortOptions[0]);
+
   const [createPipelineFromTemplateVersion] =
     useCreatePipelineFromTemplateVersionMutation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,6 +63,7 @@ const PipelineTemplates = ({
       workspaceSlug: workspaceFilter.workspaceSlug ?? undefined,
       tags: tagsFilter.length > 0 ? tagsFilter : undefined,
       functionalType: functionalTypeFilter,
+      orderBy: sortOrder.orderBy,
     },
     fetchPolicy: "cache-and-network", // The template list is a global list across the instance, so we want to check the network for updates and show the cached data in the meantime
   });
@@ -115,6 +125,24 @@ const PipelineTemplates = ({
       });
   };
 
+  const handleDataGridSort = (params: {
+    page: number;
+    pageSize: number;
+    pageIndex: number;
+    sortBy: SortingRule<object>[];
+  }) => {
+    const orderBy = templateSorting.convertDataGridSort(params.sortBy);
+    if (orderBy) {
+      const matchingOption = sortOptions.find(
+        opt => opt.orderBy === orderBy
+      );
+      if (matchingOption) {
+        setSortOrder(matchingOption);
+      }
+    }
+    setPage(params.page);
+  };
+
   const ViewTemplates = view === "card" ? CardView : GridView;
   return (
     <div>
@@ -130,11 +158,14 @@ const PipelineTemplates = ({
         templateTags={templateTags}
         functionalTypeFilter={functionalTypeFilter}
         setFunctionalTypeFilter={setFunctionalTypeFilter}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+        sortOptions={sortOptions}
       />
       <div className="relative">
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center backdrop-blur-xs z-10">
-            <Spinner />
+         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white bg-opacity-60">
+            <Spinner size="md" />
           </div>
         )}
         <ViewTemplates
@@ -145,6 +176,8 @@ const PipelineTemplates = ({
           totalItems={totalItems}
           createPipeline={createPipeline}
           setPage={setPage}
+          onSort={view === "grid" ? handleDataGridSort : undefined}
+          currentSort={view === "grid" ? sortOrder.orderBy : undefined}
         />
       </div>
     </div>
@@ -160,6 +193,7 @@ const GET_PIPELINE_TEMPLATES = gql`
     $workspaceSlug: String
     $tags: [String!]
     $functionalType: PipelineFunctionalType
+    $orderBy: PipelineTemplateOrderBy
   ) {
     workspace(slug: $currentWorkspaceSlug) {
       slug
@@ -172,6 +206,7 @@ const GET_PIPELINE_TEMPLATES = gql`
       workspaceSlug: $workspaceSlug
       tags: $tags
       functionalType: $functionalType
+      orderBy: $orderBy
     ) {
       pageNumber
       totalPages
@@ -182,6 +217,7 @@ const GET_PIPELINE_TEMPLATES = gql`
         code
         name
         functionalType
+        pipelinesCount
         tags {
           id
           name

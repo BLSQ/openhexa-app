@@ -30,6 +30,13 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: keep the encryption key used in production secret!
 ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
 
+# JWT Workspace Token Settings
+OPENHEXA_JWT_PRIVATE_KEY = os.environ.get("OPENHEXA_JWT_PRIVATE_KEY")
+OPENHEXA_JWT_KID = os.environ.get("OPENHEXA_JWT_KID")
+OPENHEXA_JWT_ISSUER = os.environ.get("OPENHEXA_JWT_ISSUER", "https://app.openhexa.org")
+OPENHEXA_JWT_AUDIENCE = os.environ.get("OPENHEXA_JWT_AUDIENCE", "openhexa-clients")
+OPENHEXA_JWT_TTL = int(os.environ.get("OPENHEXA_JWT_TTL", "3600"))
+
 # X Frame Options
 # Allow OpenHEXA to embed itself, typical use is a Superset dashboards in a Web App
 X_FRAME_OPTIONS = "SAMEORIGIN"

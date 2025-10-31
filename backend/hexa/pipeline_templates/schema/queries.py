@@ -16,9 +16,9 @@ def resolve_pipeline_templates(_, info, **kwargs):
     search = kwargs.get("search", "")
 
     pipeline_templates = (
-        PipelineTemplate.objects.filter_for_user(request.user)
-        .select_related("workspace", "source_pipeline")
+        PipelineTemplate.objects.select_related("workspace", "source_pipeline")
         .prefetch_related("tags")
+        .with_pipelines_count()
         .filter(
             Q(name__icontains=search)
             | Q(description__icontains=search)
@@ -34,21 +34,37 @@ def resolve_pipeline_templates(_, info, **kwargs):
         )
 
     workspace_slug = kwargs.get("workspace_slug")
+    workspace = None
     if workspace_slug:
-        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
+        workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=workspace_slug
         )
-        pipeline_templates = pipeline_templates.filter(
-            workspace__organization=workspace.organization
-        )
+        pipeline_templates = pipeline_templates.filter(workspace=workspace)
 
     tags = kwargs.get("tags", [])
     if tags:
         try:
             tag_objects = Tag.from_names(tags)
+            if workspace:
+                tag_objects = tag_objects.filter(
+                    pipeline_templates__workspace__organization=workspace.organization
+                ).distinct()
             pipeline_templates = pipeline_templates.filter_by_tags(tag_objects)
         except InvalidTag:
             pipeline_templates = PipelineTemplate.objects.none()
+
+    order_by = kwargs.get("order_by")
+    if order_by:
+        base_field = order_by.lstrip("-")
+
+        if base_field in PipelineTemplate.UNIQUE_SORT_FIELDS:
+            pipeline_templates = pipeline_templates.order_by(order_by, "id")
+        else:
+            pipeline_templates = pipeline_templates.order_by(order_by, "name", "id")
+    else:
+        pipeline_templates = pipeline_templates.order_by(
+            *PipelineTemplate.default_order_by()
+        )
 
     return result_page(
         pipeline_templates,
