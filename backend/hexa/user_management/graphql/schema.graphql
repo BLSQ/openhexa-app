@@ -1658,6 +1658,11 @@ enum UpdateOrganizationError {
     Indicates that an organization with the same name already exists.
     """
     NAME_DUPLICATE
+
+    """
+    Indicates that the provided logo is in an invalid format.
+    """
+    INVALID_LOGO
 }
 
 """

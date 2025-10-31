@@ -4929,6 +4929,8 @@ export type UpdateMembershipResult = {
 
 /** The UpdateOrganizationError enum represents the possible errors that can occur during the updateOrganization mutation. */
 export enum UpdateOrganizationError {
+  /** Indicates that the provided logo is in an invalid format. */
+  InvalidLogo = 'INVALID_LOGO',
   /** Indicates that an organization with the same name already exists. */
   NameDuplicate = 'NAME_DUPLICATE',
   /** Indicates that the organization was not found. */

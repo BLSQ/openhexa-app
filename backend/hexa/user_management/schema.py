@@ -1336,7 +1336,11 @@ def resolve_update_organization(_, info, **kwargs):
                     logo_bytes = decode_base64_image(update_input["logo"])
                     organization.logo = logo_bytes
                 except Exception:
-                    pass
+                    return {
+                        "success": False,
+                        "organization": None,
+                        "errors": ["INVALID_LOGO"],
+                    }
             else:
                 # Empty string means remove logo
                 organization.logo = None
