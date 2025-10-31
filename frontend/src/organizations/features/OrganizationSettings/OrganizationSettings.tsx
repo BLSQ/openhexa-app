@@ -232,9 +232,10 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
               </dd>
             </div>
 
-            {organization.permissions.delete && (
-              <DeleteOrganizationDialog organization={organization} />
-            )}
+            {organization.permissions.delete &&
+              organization.shortName !== "BLSQ" && (
+                <DeleteOrganizationDialog organization={organization} />
+              )}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
