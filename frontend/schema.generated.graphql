@@ -1542,6 +1542,27 @@ type DeleteMetadataAttributeResult {
 }
 
 """
+The DeleteOrganizationError enum represents the possible errors that can occur during the deleteOrganization mutation.
+"""
+enum DeleteOrganizationError {
+  """Indicates that the organization was not found."""
+  NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to delete the organization.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The DeleteOrganizationInput type represents the input for the deleteOrganization mutation.
+"""
+input DeleteOrganizationInput {
+  """The unique identifier of the organization."""
+  id: UUID!
+}
+
+"""
 The DeleteOrganizationInvitationError enum represents the possible errors that can occur during the deleteOrganizationInvitation mutation.
 """
 enum DeleteOrganizationInvitationError {
@@ -1601,6 +1622,19 @@ type DeleteOrganizationMemberResult {
   """
   Indicates whether the deleteOrganizationMember mutation was successful.
   """
+  success: Boolean!
+}
+
+"""
+The DeleteOrganizationResult type represents the result of the deleteOrganization mutation.
+"""
+type DeleteOrganizationResult {
+  """
+  The list of errors that occurred during the deleteOrganization mutation.
+  """
+  errors: [DeleteOrganizationError!]!
+
+  """Indicates whether the deleteOrganization mutation was successful."""
   success: Boolean!
 }
 
@@ -2477,6 +2511,7 @@ type Mutation {
 
   """Delete an metadata attribute from an object instance"""
   deleteMetadataAttribute(input: DeleteMetadataAttributeInput!): DeleteMetadataAttributeResult!
+  deleteOrganization(input: DeleteOrganizationInput!): DeleteOrganizationResult!
   deleteOrganizationInvitation(input: DeleteOrganizationInvitationInput!): DeleteOrganizationInvitationResult!
   deleteOrganizationMember(input: DeleteOrganizationMemberInput!): DeleteOrganizationMemberResult!
 
@@ -2599,6 +2634,7 @@ type Mutation {
   """Update a dataset version."""
   updateDatasetVersion(input: UpdateDatasetVersionInput!): UpdateDatasetVersionResult!
   updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
+  updateOrganization(input: UpdateOrganizationInput!): UpdateOrganizationResult!
   updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult!
 
   """Updates an existing pipeline."""
@@ -2672,6 +2708,9 @@ type Organization {
 
   """The invitations sent to join the organization."""
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): OrganizationInvitationPage!
+
+  """The logo of the organization (base64 encoded)."""
+  logo: String
 
   """The members of the organization."""
   members(page: Int, perPage: Int, role: OrganizationMembershipRole, term: String): OrganizationMembershipPage!
@@ -2783,8 +2822,10 @@ enum OrganizationMembershipRole {
 type OrganizationPermissions {
   archiveWorkspace: Boolean!
   createWorkspace: Boolean!
+  delete: Boolean!
   manageMembers: Boolean!
   manageOwners: Boolean!
+  update: Boolean!
 }
 
 """Represents a workspace invitation within an organization invitation."""
@@ -4062,6 +4103,52 @@ type UpdateMembershipResult {
 }
 
 """
+The UpdateOrganizationError enum represents the possible errors that can occur during the updateOrganization mutation.
+"""
+enum UpdateOrganizationError {
+  """Indicates that the provided logo is in an invalid format."""
+  INVALID_LOGO
+
+  """
+  Indicates that the provided short name is invalid (must be max 5 uppercase letters).
+  """
+  INVALID_SHORT_NAME
+
+  """Indicates that an organization with the same name already exists."""
+  NAME_DUPLICATE
+
+  """Indicates that the organization was not found."""
+  NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to update the organization.
+  """
+  PERMISSION_DENIED
+
+  """
+  Indicates that an organization with the same short name already exists.
+  """
+  SHORT_NAME_DUPLICATE
+}
+
+"""
+The UpdateOrganizationInput type represents the input for the updateOrganization mutation.
+"""
+input UpdateOrganizationInput {
+  """The unique identifier of the organization."""
+  id: UUID!
+
+  """The updated logo of the organization (base64 encoded)."""
+  logo: String
+
+  """The updated name of the organization."""
+  name: String
+
+  """The updated short name of the organization."""
+  shortName: String
+}
+
+"""
 The UpdateOrganizationMemberError enum represents the possible errors that can occur during the updateOrganizationMember mutation.
 """
 enum UpdateOrganizationMemberError {
@@ -4106,6 +4193,22 @@ type UpdateOrganizationMemberResult {
   """
   Indicates whether the updateOrganizationMember mutation was successful.
   """
+  success: Boolean!
+}
+
+"""
+The UpdateOrganizationResult type represents the result of the updateOrganization mutation.
+"""
+type UpdateOrganizationResult {
+  """
+  The list of errors that occurred during the updateOrganization mutation.
+  """
+  errors: [UpdateOrganizationError!]!
+
+  """The updated organization object."""
+  organization: Organization
+
+  """Indicates whether the updateOrganization mutation was successful."""
   success: Boolean!
 }
 

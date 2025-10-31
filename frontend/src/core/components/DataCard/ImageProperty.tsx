@@ -3,6 +3,7 @@ import DataCard from "./DataCard";
 import { useDataCardProperty } from "./context";
 import { PropertyDefinition } from "./types";
 import { useTranslation } from "next-i18next";
+import { resizeImage } from "core/helpers/image";
 
 type ImagePropertyProps = PropertyDefinition & {
   className?: string;
@@ -26,45 +27,11 @@ const ImageProperty = (props: ImagePropertyProps) => {
     return null;
   }
 
-  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        // Create an image element to check dimensions
-        const img = new Image();
-        img.onload = () => {
-          const maxWidth = 64;
-          const maxHeight = 64;
-
-          let width = img.width;
-          let height = img.height;
-          const canvas = document.createElement("canvas");
-
-          // Calculate new dimensions if image is too large
-          if (width > maxWidth || height > maxHeight) {
-            const ratio = Math.min(maxWidth / width, maxHeight / height);
-            width = width * ratio;
-            height = height * ratio;
-
-            canvas.width = width;
-            canvas.height = height;
-          } else {
-            canvas.width = img.width;
-            canvas.height = img.height;
-          }
-
-          // Draw and resize image on canvas
-          const ctx = canvas.getContext("2d");
-          ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-          // Get resized image as a png encoded in base64
-          const resizedImage = canvas.toDataURL("image/png", 0.7);
-          property.setValue(resizedImage);
-        };
-        img.src = reader.result as string;
-      };
-      reader.readAsDataURL(file);
+      const resizedImage = await resizeImage(file, 64, 64);
+      property.setValue(resizedImage);
     }
   };
 

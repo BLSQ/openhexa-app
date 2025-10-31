@@ -2,6 +2,7 @@ fragment Organization_organization on Organization {
     id
         name
         shortName
+        logo
         workspaces {
             totalItems
             items {
@@ -17,6 +18,8 @@ fragment Organization_organization on Organization {
             archiveWorkspace
             manageMembers
             manageOwners
+            update
+            delete
         }
         members {
             totalItems

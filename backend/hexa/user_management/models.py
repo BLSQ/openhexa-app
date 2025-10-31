@@ -15,6 +15,7 @@ from django_countries.fields import CountryField
 
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
+from hexa.core.models.soft_delete import SoftDeletedModel
 
 
 class UserManager(BaseUserManager):
@@ -171,15 +172,15 @@ class OrganizationQuerySet(BaseQuerySet):
             return self._filter_for_user_and_query_object(
                 user,
                 models.Q(workspaces=user.pipeline_run.pipeline.workspace),
-            )
+            ).filter(deleted_at__isnull=True)
         return self._filter_for_user_and_query_object(
             user,
             Q(organizationmembership__user=user),
             return_all_if_superuser=True,
-        )
+        ).filter(deleted_at__isnull=True)
 
 
-class Organization(Base):
+class Organization(Base, SoftDeletedModel):
     class Meta:
         db_table = "identity_organization"
 
@@ -192,9 +193,19 @@ class Organization(Base):
     countries = CountryField(multiple=True, blank=True)
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)
+    logo = models.BinaryField(blank=True, null=True)
     members = models.ManyToManyField(User, through="OrganizationMembership")
 
     objects = OrganizationManager.from_queryset(OrganizationQuerySet)()
+
+    def delete(self):
+        """
+        Soft delete the organization and archive all related workspaces.
+        """
+        # Archive all workspaces belonging to this organization
+        self.workspaces.update(archived=True)
+        # Perform soft delete
+        super().delete()
 
     def filter_workspaces_for_user(self, user):
         workspaces = self.workspaces.exclude(archived=True)

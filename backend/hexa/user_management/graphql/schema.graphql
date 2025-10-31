@@ -995,6 +995,11 @@ type Organization {
     contactInfo: String!
 
     """
+    The logo of the organization (base64 encoded).
+    """
+    logo: String
+
+    """
     The members of the organization.
     """
     members(page: Int, perPage: Int, term: String, role: OrganizationMembershipRole): OrganizationMembershipPage!
@@ -1030,6 +1035,8 @@ type OrganizationPermissions {
     archiveWorkspace: Boolean!
     manageMembers: Boolean!
     manageOwners: Boolean!
+    update: Boolean!
+    delete: Boolean!
 }
 
 """
@@ -1593,10 +1600,132 @@ enum InviteOrganizationMemberError {
     ALREADY_MEMBER
 }
 
+"""
+The UpdateOrganizationInput type represents the input for the updateOrganization mutation.
+"""
+input UpdateOrganizationInput {
+    """
+    The unique identifier of the organization.
+    """
+    id: UUID!
+
+    """
+    The updated name of the organization.
+    """
+    name: String
+
+    """
+    The updated short name of the organization.
+    """
+    shortName: String
+
+    """
+    The updated logo of the organization (base64 encoded).
+    """
+    logo: String
+}
+
+"""
+The UpdateOrganizationResult type represents the result of the updateOrganization mutation.
+"""
+type UpdateOrganizationResult {
+    """
+    Indicates whether the updateOrganization mutation was successful.
+    """
+    success: Boolean!
+
+    """
+    The updated organization object.
+    """
+    organization: Organization
+
+    """
+    The list of errors that occurred during the updateOrganization mutation.
+    """
+    errors: [UpdateOrganizationError!]!
+}
+
+"""
+The UpdateOrganizationError enum represents the possible errors that can occur during the updateOrganization mutation.
+"""
+enum UpdateOrganizationError {
+    """
+    Indicates that the organization was not found.
+    """
+    NOT_FOUND
+
+    """
+    Indicates that the user does not have permission to update the organization.
+    """
+    PERMISSION_DENIED
+
+    """
+    Indicates that an organization with the same name already exists.
+    """
+    NAME_DUPLICATE
+
+    """
+    Indicates that the provided logo is in an invalid format.
+    """
+    INVALID_LOGO
+
+    """
+    Indicates that the provided short name is invalid (must be max 5 uppercase letters).
+    """
+    INVALID_SHORT_NAME
+
+    """
+    Indicates that an organization with the same short name already exists.
+    """
+    SHORT_NAME_DUPLICATE
+}
+
+"""
+The DeleteOrganizationInput type represents the input for the deleteOrganization mutation.
+"""
+input DeleteOrganizationInput {
+    """
+    The unique identifier of the organization.
+    """
+    id: UUID!
+}
+
+"""
+The DeleteOrganizationResult type represents the result of the deleteOrganization mutation.
+"""
+type DeleteOrganizationResult {
+    """
+    Indicates whether the deleteOrganization mutation was successful.
+    """
+    success: Boolean!
+
+    """
+    The list of errors that occurred during the deleteOrganization mutation.
+    """
+    errors: [DeleteOrganizationError!]!
+}
+
+"""
+The DeleteOrganizationError enum represents the possible errors that can occur during the deleteOrganization mutation.
+"""
+enum DeleteOrganizationError {
+    """
+    Indicates that the organization was not found.
+    """
+    NOT_FOUND
+
+    """
+    Indicates that the user does not have permission to delete the organization.
+    """
+    PERMISSION_DENIED
+}
+
 extend type Mutation {
     inviteOrganizationMember(input: InviteOrganizationMemberInput!): InviteOrganizationMemberResult! @loginRequired
     updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult! @loginRequired
     deleteOrganizationMember(input: DeleteOrganizationMemberInput!): DeleteOrganizationMemberResult! @loginRequired
     deleteOrganizationInvitation(input: DeleteOrganizationInvitationInput!): DeleteOrganizationInvitationResult! @loginRequired
     resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult! @loginRequired
+    updateOrganization(input: UpdateOrganizationInput!): UpdateOrganizationResult! @loginRequired
+    deleteOrganization(input: DeleteOrganizationInput!): DeleteOrganizationResult! @loginRequired
 }
