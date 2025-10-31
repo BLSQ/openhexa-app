@@ -21,10 +21,6 @@ type OrganizationSidebarProps = {
   setSidebarOpen: (newValue: boolean) => void;
 };
 
-// TODO : improve UI
-// TODO : unittest BE
-// TODO : unit test FE
-
 const OrganizationSidebar = ({
   organization,
   isSidebarOpen,
