@@ -4931,6 +4931,8 @@ export type UpdateMembershipResult = {
 export enum UpdateOrganizationError {
   /** Indicates that the provided logo is in an invalid format. */
   InvalidLogo = 'INVALID_LOGO',
+  /** Indicates that the provided short name is invalid (must be max 5 uppercase letters). */
+  InvalidShortName = 'INVALID_SHORT_NAME',
   /** Indicates that an organization with the same name already exists. */
   NameDuplicate = 'NAME_DUPLICATE',
   /** Indicates that the organization was not found. */
@@ -4947,6 +4949,8 @@ export type UpdateOrganizationInput = {
   logo?: InputMaybe<Scalars['String']['input']>;
   /** The updated name of the organization. */
   name?: InputMaybe<Scalars['String']['input']>;
+  /** The updated short name of the organization. */
+  shortName?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** The UpdateOrganizationMemberError enum represents the possible errors that can occur during the updateOrganizationMember mutation. */

@@ -1615,6 +1615,11 @@ input UpdateOrganizationInput {
     name: String
 
     """
+    The updated short name of the organization.
+    """
+    shortName: String
+
+    """
     The updated logo of the organization (base64 encoded).
     """
     logo: String
@@ -1663,6 +1668,11 @@ enum UpdateOrganizationError {
     Indicates that the provided logo is in an invalid format.
     """
     INVALID_LOGO
+
+    """
+    Indicates that the provided short name is invalid (must be max 5 uppercase letters).
+    """
+    INVALID_SHORT_NAME
 }
 
 """

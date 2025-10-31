@@ -4070,6 +4070,11 @@ enum UpdateOrganizationError {
   """Indicates that the provided logo is in an invalid format."""
   INVALID_LOGO
 
+  """
+  Indicates that the provided short name is invalid (must be max 5 uppercase letters).
+  """
+  INVALID_SHORT_NAME
+
   """Indicates that an organization with the same name already exists."""
   NAME_DUPLICATE
 
@@ -4094,6 +4099,9 @@ input UpdateOrganizationInput {
 
   """The updated name of the organization."""
   name: String
+
+  """The updated short name of the organization."""
+  shortName: String
 }
 
 """
