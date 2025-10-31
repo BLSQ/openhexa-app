@@ -92,3 +92,8 @@ def has_admin_privileges(principal: User, organization: Organization):
 def manage_owners(principal: User, organization: Organization):
     """Only owner users can manage owner roles"""
     return principal.is_organization_owner(organization)
+
+
+def delete_organization(principal: User, organization: Organization):
+    """Only organization owners can delete an organization (superusers are handled by ModelBackend)"""
+    return principal.is_organization_owner(organization)

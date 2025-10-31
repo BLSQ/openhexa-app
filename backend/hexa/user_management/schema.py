@@ -877,7 +877,11 @@ def resolve_organization_permissions_update(organization: Organization, info):
 def resolve_organization_permissions_delete(organization: Organization, info):
     request: HttpRequest = info.context["request"]
     user = request.user
-    return user.is_organization_owner(organization) if user.is_authenticated else False
+    return (
+        user.has_perm("user_management.delete_organization", organization)
+        if user.is_authenticated
+        else False
+    )
 
 
 @identity_mutations.field("createMembership")
@@ -1309,14 +1313,11 @@ def resolve_update_organization(_, info, **kwargs):
             id=update_input["id"]
         )
 
-        # Check permission
         if not principal.has_perm("user_management.has_admin_privileges", organization):
             raise PermissionDenied
 
-        # Update name if provided
         if "name" in update_input and update_input["name"]:
             new_name = update_input["name"].strip()
-            # Check for duplicate name
             if (
                 Organization.objects.exclude(id=organization.id)
                 .filter(name=new_name)
@@ -1329,15 +1330,12 @@ def resolve_update_organization(_, info, **kwargs):
                 }
             organization.name = new_name
 
-        # Update logo if provided
         if "logo" in update_input:
             if update_input["logo"]:
-                # Convert base64 to binary using the helper function
                 try:
                     logo_bytes = decode_base64_image(update_input["logo"])
                     organization.logo = logo_bytes
                 except Exception:
-                    # Invalid base64, skip update
                     pass
             else:
                 # Empty string means remove logo
@@ -1368,8 +1366,7 @@ def resolve_delete_organization(_, info, **kwargs):
             id=delete_input["id"]
         )
 
-        # Check permission - only owners can delete
-        if not principal.is_organization_owner(organization):
+        if not principal.has_perm("user_management.delete_organization", organization):
             raise PermissionDenied
 
         # Perform soft delete (which will also archive all workspaces)
