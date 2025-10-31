@@ -9,6 +9,8 @@ import Spinner from "core/components/Spinner";
 import { UpdateOrganizationError } from "graphql/types";
 import { PencilIcon } from "@heroicons/react/24/outline";
 import DeleteOrganizationDialog from "./DeleteOrganizationDialog";
+import { toast } from "react-toastify";
+import { resizeImage } from "core/helpers/image";
 
 type OrganizationSettingsProps = {
   organization: Organization_OrganizationFragment;
@@ -30,38 +32,12 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
 
   const [updateOrganization] = useUpdateOrganizationMutation();
 
-  const handleLogoChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const img = new Image();
-        img.onload = () => {
-          const maxWidth = 200;
-          const maxHeight = 200;
-          const canvas = document.createElement("canvas");
-
-          let width = img.width;
-          let height = img.height;
-          if (width > maxWidth || height > maxHeight) {
-            const ratio = Math.min(maxWidth / width, maxHeight / height);
-            width = width * ratio;
-            height = height * ratio;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-
-          const ctx = canvas.getContext("2d");
-          ctx?.drawImage(img, 0, 0, width, height);
-
-          const resizedDataUrl = canvas.toDataURL("image/png", 0.7);
-          setLogoDataUrl(resizedDataUrl);
-          setLogoChanged(true);
-        };
-        img.src = reader.result as string;
-      };
-      reader.readAsDataURL(file);
+      const resizedDataUrl = await resizeImage(file, 200, 200);
+      setLogoDataUrl(resizedDataUrl);
+      setLogoChanged(true);
     }
   };
 
@@ -134,6 +110,7 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
       });
 
       if (result?.updateOrganization.success) {
+        toast.success(t("Organization updated successfully"));
         setIsEditing(false);
         setLogoChanged(false);
       } else {
@@ -258,7 +235,7 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
               label={t("Short Name")}
               name="shortName"
               error={shortNameError}
-              help={t("Maximum 5 uppercase letters (e.g., WHO, UNICEF)")}
+              help={t("Maximum 5 uppercase letters (e.g., WHO, BLSQ)")}
               required
             >
               <Input
