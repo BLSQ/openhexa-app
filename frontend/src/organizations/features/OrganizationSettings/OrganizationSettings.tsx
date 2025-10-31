@@ -87,23 +87,13 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
     }
 
     try {
-      let logoBase64: string | null = null;
-
-      if (logoChanged) {
-        if (logoDataUrl) {
-          logoBase64 = logoDataUrl.split(",")[1];
-        } else {
-          logoBase64 = "";
-        }
-      }
-
       const { data: result } = await updateOrganization({
         variables: {
           input: {
             id: organization.id,
             name: name.trim(),
             ...(shortName.trim() && { shortName: shortName.trim() }),
-            ...(logoChanged && { logo: logoBase64 }),
+            ...(logoChanged && { logo: logoDataUrl || "" }),
           },
         },
         refetchQueries: ["Organization"],
