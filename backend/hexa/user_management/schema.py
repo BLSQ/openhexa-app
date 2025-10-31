@@ -1330,6 +1330,33 @@ def resolve_update_organization(_, info, **kwargs):
                 }
             organization.name = new_name
 
+        if "short_name" in update_input:
+            short_name_input = update_input["short_name"]
+            if short_name_input:
+                short_name = short_name_input.strip()
+                if (
+                    not short_name
+                    or not short_name.isupper()
+                    or not short_name.isalpha()
+                    or len(short_name) > 5
+                ):
+                    return {
+                        "success": False,
+                        "organization": None,
+                        "errors": ["INVALID_SHORT_NAME"],
+                    }
+                if (
+                    Organization.objects.exclude(id=organization.id)
+                    .filter(short_name=short_name)
+                    .exists()
+                ):
+                    return {
+                        "success": False,
+                        "organization": None,
+                        "errors": ["SHORT_NAME_DUPLICATE"],
+                    }
+                organization.short_name = short_name
+
         if "logo" in update_input:
             if update_input["logo"]:
                 try:

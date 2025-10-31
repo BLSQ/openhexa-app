@@ -4938,7 +4938,9 @@ export enum UpdateOrganizationError {
   /** Indicates that the organization was not found. */
   NotFound = 'NOT_FOUND',
   /** Indicates that the user does not have permission to update the organization. */
-  PermissionDenied = 'PERMISSION_DENIED'
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** Indicates that an organization with the same short name already exists. */
+  ShortNameDuplicate = 'SHORT_NAME_DUPLICATE'
 }
 
 /** The UpdateOrganizationInput type represents the input for the updateOrganization mutation. */
