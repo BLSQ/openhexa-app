@@ -185,7 +185,7 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
                 {organization.logo ? (
                   <img
                     src={organization.logo}
-                    alt={t("Organization logo")}
+                    alt={t("Organization Logo")}
                     className="h-24 w-24 object-contain rounded border border-gray-200"
                   />
                 ) : (
@@ -243,7 +243,7 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
                   <div className="relative inline-block">
                     <img
                       src={logoDataUrl}
-                      alt={t("Organization logo")}
+                      alt={t("Organization Logo")}
                       className="h-32 w-32 object-contain rounded border border-gray-300"
                     />
                     <button
