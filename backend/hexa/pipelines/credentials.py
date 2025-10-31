@@ -9,8 +9,10 @@ from hexa.pipelines import models
 class PipelinesCredentials(HexaCredentials):
     """This class acts as a container for credentials to be provided to the pipelines component."""
 
-    def __init__(self, pipeline: models.Pipeline):
+    def __init__(self, pipeline: models.Pipeline, run_id: str = None, pipeline_name: str = None):
         self.pipeline: models.Pipeline = pipeline
+        self.run_id: str = run_id  # Optional run ID for application_name
+        self.pipeline_name: str = pipeline_name  # Optional pipeline name for application_name
         self.env: dict[str, str] = {}
         self.files: dict[str, bytes] = {}
 

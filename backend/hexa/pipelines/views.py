@@ -80,7 +80,12 @@ def credentials(request: HttpRequest) -> HttpResponse:
     model = apps.get_model(data["app_label"], data["model"])
     pipeline = get_object_or_404(model, pk=data["id"])
 
-    pipeline_credentials = PipelinesCredentials(pipeline)
+    # Extract optional run information for application_name tracking
+    # These can be passed as query parameters or in request body
+    run_id = request.GET.get("run_id") or request.POST.get("run_id")
+    pipeline_name = request.GET.get("pipeline_name") or request.POST.get("pipeline_name")
+
+    pipeline_credentials = PipelinesCredentials(pipeline, run_id=run_id, pipeline_name=pipeline_name)
 
     for app_config in get_hexa_app_configs(connector_only=True):
         credentials_functions = app_config.get_pipelines_credentials()
