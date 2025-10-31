@@ -4,6 +4,7 @@ import {
   ChevronLeftIcon,
   UsersIcon,
   Square2StackIcon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { GetServerSidePropsContext } from "next";
@@ -19,6 +20,10 @@ type OrganizationSidebarProps = {
   isSidebarOpen: boolean;
   setSidebarOpen: (newValue: boolean) => void;
 };
+
+// TODO : improve UI
+// TODO : unittest BE
+// TODO : unit test FE
 
 const OrganizationSidebar = ({
   organization,
@@ -71,6 +76,14 @@ const OrganizationSidebar = ({
               label={t("Datasets")}
               compact={!isSidebarOpen}
             />
+            {organization.permissions.update && (
+              <NavItem
+                href={`/organizations/${organization.id}/settings`}
+                Icon={Cog6ToothIcon}
+                label={t("Settings")}
+                compact={!isSidebarOpen}
+              />
+            )}
           </div>
           <Logo isSidebarOpen={isSidebarOpen} />
         </div>
