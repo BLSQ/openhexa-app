@@ -22,7 +22,7 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
   const [name, setName] = useState(organization.name);
   const [shortName, setShortName] = useState(organization.shortName || "");
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(
-    organization.logo ? `data:image/png;base64,${organization.logo}` : null,
+    organization.logo || null,
   );
   const [logoChanged, setLogoChanged] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,9 +50,7 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
     setIsEditing(false);
     setName(organization.name);
     setShortName(organization.shortName || "");
-    setLogoDataUrl(
-      organization.logo ? `data:image/png;base64,${organization.logo}` : null,
-    );
+    setLogoDataUrl(organization.logo || null);
     setLogoChanged(false);
     setError("");
     setNameError("");
@@ -103,6 +101,7 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
         toast.success(t("Organization updated successfully"));
         setIsEditing(false);
         setLogoChanged(false);
+        setLogoDataUrl(result.updateOrganization.organization?.logo || null);
       } else {
         const errors = result?.updateOrganization.errors ?? [];
         if (errors.includes(UpdateOrganizationError.NameDuplicate)) {
@@ -185,7 +184,7 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
               <dd>
                 {organization.logo ? (
                   <img
-                    src={`data:image/png;base64,${organization.logo}`}
+                    src={organization.logo}
                     alt={t("Organization logo")}
                     className="h-24 w-24 object-contain rounded border border-gray-200"
                   />
