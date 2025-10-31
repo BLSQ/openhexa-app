@@ -171,16 +171,13 @@ class OrganizationQuerySet(BaseQuerySet):
         if isinstance(user, PipelineRunUser):
             return self._filter_for_user_and_query_object(
                 user,
-                models.Q(
-                    workspaces=user.pipeline_run.pipeline.workspace,
-                    deleted_at__isnull=True,
-                ),
-            )
+                models.Q(workspaces=user.pipeline_run.pipeline.workspace),
+            ).filter(deleted_at__isnull=True)
         return self._filter_for_user_and_query_object(
             user,
-            Q(organizationmembership__user=user, deleted_at__isnull=True),
+            Q(organizationmembership__user=user),
             return_all_if_superuser=True,
-        )
+        ).filter(deleted_at__isnull=True)
 
 
 class Organization(Base, SoftDeletedModel):
