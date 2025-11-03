@@ -7,7 +7,11 @@ from django.views.decorators.http import require_POST
 from hexa.databases.api import get_db_server_credentials
 from hexa.files import storage
 from hexa.pipelines.models import PipelineRun
-from hexa.workspaces.models import Workspace, WorkspaceMembership
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 # ease patching
 
@@ -57,22 +61,44 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
                 status=404,
             )
     elif request.user.is_authenticated:
+        if not request.user.has_perm("workspaces.launch_notebooks", workspace):
+            return JsonResponse(
+                {"error": "User does not have permission to launch notebooks"},
+                status=401,
+            )
+
         try:
             membership = WorkspaceMembership.objects.get(
                 workspace=workspace, user=request.user
             )
-            server_hash = membership.notebooks_server_hash
-            sdk_auth_token = membership.access_token
-            if not request.user.has_perm("workspaces.launch_notebooks", workspace):
+        except WorkspaceMembership.DoesNotExist:
+            if request.user.is_superuser or request.user.is_organization_admin_or_owner(
+                workspace.organization
+            ):
+                # Auto-create membership on the fly for admins/owners/superusers
+                try:
+                    membership = WorkspaceMembership.objects.create(
+                        workspace=workspace,
+                        user=request.user,
+                        role=WorkspaceMembershipRole.ADMIN,
+                    )
+                except Exception as e:
+                    return JsonResponse(
+                        {
+                            "error": f"Failed to create required workspace membership to workspace {workspace.slug}: {str(e)}"
+                        },
+                        status=500,
+                    )
+            else:
                 return JsonResponse(
-                    {},
-                    status=401,
+                    {
+                        "error": f"User has permission but hasn't the required workspace membership to {workspace.slug}"
+                    },
+                    status=500,
                 )
-        except (Workspace.DoesNotExist, WorkspaceMembership.DoesNotExist):
-            return JsonResponse(
-                {},
-                status=404,
-            )
+
+        server_hash = membership.notebooks_server_hash
+        sdk_auth_token = membership.access_token
     else:
         return JsonResponse(
             {},
