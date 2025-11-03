@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import uuid
+from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.contrib.auth.models import UserManager as BaseUserManager
@@ -10,6 +11,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import TimestampSigner
 from django.db import models
 from django.db.models import EmailField, Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
@@ -208,10 +210,22 @@ class Organization(Base, SoftDeletedModel):
         """
         Soft delete the organization and archive all related workspaces.
         """
-        # Archive all workspaces belonging to this organization
-        self.workspaces.update(archived=True)
-        # Perform soft delete
         super().delete()
+        self.workspaces.filter(archived=False).update(
+            archived=True, archived_at=timezone.now()
+        )
+
+    def restore(self):
+        """
+        Restore the organization and unarchive workspaces that were archived
+        at the same time as the organization deletion.
+        """
+        if self.deleted_at:
+            time_threshold = self.deleted_at - timedelta(seconds=2)
+            self.workspaces.filter(
+                archived=True, archived_at__gte=time_threshold
+            ).update(archived=False, archived_at=None)
+        super().restore()
 
     def filter_workspaces_for_user(self, user):
         workspaces = self.workspaces.exclude(archived=True)

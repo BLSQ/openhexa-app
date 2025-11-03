@@ -14,6 +14,7 @@ from django.core.validators import RegexValidator, validate_slug
 from django.db import models
 from django.db.models import EmailField, Q
 from django.forms import ValidationError
+from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.regex_helper import _lazy_re_compile
 from django.utils.translation import gettext_lazy as _
@@ -221,6 +222,7 @@ class Workspace(Base):
         null=True,
     )
     archived = models.BooleanField(default=False)
+    archived_at = models.DateTimeField(null=True, blank=True)
     docker_image = models.TextField(blank=True, default="")
     datasets = models.ManyToManyField(
         Dataset, through="datasets.DatasetLink", related_name="+"
@@ -286,6 +288,7 @@ class Workspace(Base):
         elif not principal.has_perm("workspaces.archive_workspace", self):
             raise PermissionDenied
         self.archived = True
+        self.archived_at = timezone.now()
         self.save()
 
     def generate_new_database_password(self, *, principal: User):

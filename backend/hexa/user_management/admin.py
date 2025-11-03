@@ -179,6 +179,12 @@ class OrganizationMembershipInline(admin.TabularInline):
     extra = 0
 
 
+@admin.action(description="Restore selected organizations")
+def restore_organizations(_modeladmin, _request, queryset):
+    for obj in queryset:
+        obj.restore()
+
+
 @admin.register(Organization)
 class OrganizationAdmin(GlobalObjectsModelAdmin):
     list_display = (
@@ -195,6 +201,7 @@ class OrganizationAdmin(GlobalObjectsModelAdmin):
     readonly_fields = ("created_at", "updated_at")
     ordering = ("-created_at",)
     inlines = [OrganizationMembershipInline]
+    actions = [restore_organizations]
 
     def is_deleted(self, obj):
         return obj.deleted_at is not None
