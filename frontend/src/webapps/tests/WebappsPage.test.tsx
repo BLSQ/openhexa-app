@@ -5,7 +5,10 @@ import { toast } from "react-toastify";
 import { TestApp } from "core/helpers/testutils";
 import { SidebarMenuDocument } from "workspaces/features/SidebarMenu/SidebarMenu.generated";
 import { MockedResponse } from "@apollo/client/testing";
-import { WorkspaceWebappsPageDocument } from "workspaces/graphql/queries.generated";
+import {
+  WorkspaceWebappsPageDocument,
+  ShortcutsDocument,
+} from "workspaces/graphql/queries.generated";
 import {
   AddToFavoritesDocument,
   RemoveFromFavoritesDocument,
@@ -47,6 +50,7 @@ const webapp = (id: string) => ({
   id: id,
   name: `Webapp ${id}`,
   isFavorite: id === "2",
+  isShortcut: false,
   description: "Webapp description",
   url: `https://example${id}.com`,
   icon: "",
@@ -124,6 +128,19 @@ const graphqlMocks: MockedResponse[] = [
           totalPages: 0,
           totalItems: 0,
         },
+      },
+    },
+  },
+  {
+    request: {
+      query: ShortcutsDocument,
+      variables: {
+        workspaceSlug: "test-workspace",
+      },
+    },
+    result: {
+      data: {
+        shortcuts: [],
       },
     },
   },
@@ -226,6 +243,11 @@ describe("WebappsPage", () => {
                 totalPages: 2,
                 totalItems: 16,
                 items: [webapp("16")],
+              },
+              favoriteWebapps: {
+                items: [],
+                totalPages: 0,
+                totalItems: 0,
               },
             },
           },

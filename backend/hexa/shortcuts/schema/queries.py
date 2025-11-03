@@ -28,7 +28,7 @@ def resolve_shortcuts(_, info, **kwargs):
         Shortcut.objects.filter_for_user(request.user)
         .filter(workspace=workspace)
         .select_related("content_type")
-        .order_by("order", "-created_at")
+        .order_by("order", "created_at")
     )
 
     shortcut_items = []
