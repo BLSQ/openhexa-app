@@ -192,27 +192,33 @@ class OrganizationAdmin(GlobalObjectsModelAdmin):
         "short_name",
         "organization_type",
         "workspace_count",
-        "is_deleted",
+        "is_active",
         "created_at",
         "updated_at",
         country_list,
     )
     search_fields = ("name", "short_name")
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = ("created_at", "updated_at", "deleted_at")
     ordering = ("-created_at",)
     inlines = [OrganizationMembershipInline]
     actions = [restore_organizations]
 
-    def is_deleted(self, obj):
-        return obj.deleted_at is not None
+    def is_active(self, obj):
+        return obj.deleted_at is None
 
-    is_deleted.boolean = True
-    is_deleted.short_description = "Deleted"
+    is_active.boolean = True
+    is_active.short_description = "Active"
 
     def workspace_count(self, obj):
-        return obj.workspaces.count()
+        return obj.workspaces.filter(archived=False).count()
 
-    workspace_count.short_description = "Number of Workspaces"
+    workspace_count.short_description = "Number of Active Workspaces"
+
+    def response_change(self, request, obj):
+        if "_restore" in request.POST:
+            obj.restore()
+            self.message_user(request, f"Organization '{obj.name}' has been restored.")
+        return super().response_change(request, obj)
 
 
 @admin.register(Team)
