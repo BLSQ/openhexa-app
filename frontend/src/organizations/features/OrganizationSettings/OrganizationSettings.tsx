@@ -225,7 +225,7 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
               name="shortName"
               error={shortNameError}
               help={t("Maximum 5 uppercase letters (e.g., WHO, BLSQ)")}
-              required
+              showOptional={false}
             >
               <Input
                 type="text"
@@ -237,7 +237,11 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
               />
             </Field>
 
-            <Field label={t("Organization Logo")} name="logo" required>
+            <Field
+              label={t("Organization Logo")}
+              name="logo"
+              showOptional={false}
+            >
               <div className="space-y-4">
                 {logoDataUrl && (
                   <div className="relative inline-block">
