@@ -4465,7 +4465,7 @@ export type RemoveFromFavoritesResult = {
 /** Represents the error message for removing from shortcuts. */
 export enum RemoveFromShortcutsError {
   ItemNotFound = 'ITEM_NOT_FOUND',
-  ShortcutNotFound = 'SHORTCUT_NOT_FOUND'
+  PermissionDenied = 'PERMISSION_DENIED'
 }
 
 /** Represents the input for removing an item from shortcuts. */

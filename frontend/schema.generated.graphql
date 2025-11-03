@@ -3555,7 +3555,7 @@ type RemoveFromFavoritesResult {
 """Represents the error message for removing from shortcuts."""
 enum RemoveFromShortcutsError {
   ITEM_NOT_FOUND
-  SHORTCUT_NOT_FOUND
+  PERMISSION_DENIED
 }
 
 """Represents the input for removing an item from shortcuts."""
