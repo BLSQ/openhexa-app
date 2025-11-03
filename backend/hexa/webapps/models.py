@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
+from django.utils.functional import cached_property
 
 from hexa.core.models.base import Base, BaseManager, BaseQuerySet
 from hexa.core.models.soft_delete import (
@@ -83,40 +85,36 @@ class Webapp(Base, SoftDeletedModel):
         self.favorites.remove(user)
         self.save()
 
+    @cached_property
+    def _shortcut_content_type(self):
+        """Cache the ContentType for this model to avoid repeated lookups"""
+        return ContentType.objects.get_for_model(self.__class__)
+
     def is_shortcut(self, user: User):
         """Check if this webapp is a shortcut for the user"""
-        from django.contrib.contenttypes.models import ContentType
-
         from hexa.shortcuts.models import Shortcut
 
-        content_type = ContentType.objects.get_for_model(self.__class__)
         return Shortcut.objects.filter(
-            user=user, content_type=content_type, object_id=self.id
+            user=user, content_type=self._shortcut_content_type, object_id=self.id
         ).exists()
 
     def add_to_shortcuts(self, user: User):
         """Add this webapp to user's shortcuts"""
-        from django.contrib.contenttypes.models import ContentType
-
         from hexa.shortcuts.models import Shortcut
 
-        content_type = ContentType.objects.get_for_model(self.__class__)
         Shortcut.objects.get_or_create(
             user=user,
-            content_type=content_type,
+            content_type=self._shortcut_content_type,
             object_id=self.id,
             defaults={"workspace": self.workspace},
         )
 
     def remove_from_shortcuts(self, user: User):
         """Remove this webapp from user's shortcuts"""
-        from django.contrib.contenttypes.models import ContentType
-
         from hexa.shortcuts.models import Shortcut
 
-        content_type = ContentType.objects.get_for_model(self.__class__)
         Shortcut.objects.filter(
-            user=user, content_type=content_type, object_id=self.id
+            user=user, content_type=self._shortcut_content_type, object_id=self.id
         ).delete()
 
     def __str__(self):

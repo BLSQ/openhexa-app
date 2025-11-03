@@ -19,7 +19,7 @@ class ShortcutQuerySet(BaseQuerySet):
     def filter_for_workspace(self, workspace: Workspace):
         return self.filter(workspace=workspace)
 
-    def filter_by_content_type(self, model_class):
+    def filter_by_content_type(self, model_class: type):
         content_type = ContentType.objects.get_for_model(model_class)
         return self.filter(content_type=content_type)
 

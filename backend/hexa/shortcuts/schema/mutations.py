@@ -1,8 +1,12 @@
+import logging
+
 from ariadne import MutationType
 from django.db import IntegrityError
 from django.http import HttpRequest
 
 from hexa.webapps.models import Webapp
+
+logger = logging.getLogger(__name__)
 
 shortcut_mutations = MutationType()
 
@@ -25,7 +29,8 @@ def resolve_add_to_shortcuts(_, info, **kwargs):
         return {"success": False, "errors": ["ITEM_NOT_FOUND"]}
     except IntegrityError:
         return {"success": True, "errors": []}
-    except Exception:
+    except Exception as e:
+        logger.exception(f"Unexpected error adding to shortcuts: {e}")
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
@@ -45,7 +50,8 @@ def resolve_remove_from_shortcuts(_, info, **kwargs):
         return {"success": True, "errors": []}
     except Webapp.DoesNotExist:
         return {"success": False, "errors": ["ITEM_NOT_FOUND"]}
-    except Exception:
+    except Exception as e:
+        logger.exception(f"Unexpected error removing from shortcuts: {e}")
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 

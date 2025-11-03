@@ -53,7 +53,7 @@ Represents the error message for removing from shortcuts.
 """
 enum RemoveFromShortcutsError {
   ITEM_NOT_FOUND
-  SHORTCUT_NOT_FOUND
+  PERMISSION_DENIED
 }
 
 extend type Query {
