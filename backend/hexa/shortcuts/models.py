@@ -47,12 +47,10 @@ class Shortcut(Base):
         Workspace, on_delete=models.CASCADE, related_name="shortcuts"
     )
 
-    # Generic foreign key to allow shortcuts for any model
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
     content_object = GenericForeignKey("content_type", "object_id")
 
-    # Optional custom ordering (lower numbers appear first)
     order = models.IntegerField(default=0)
 
     objects = ShortcutManager()
