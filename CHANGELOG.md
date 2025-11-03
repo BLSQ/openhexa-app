@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.0](https://github.com/BLSQ/openhexa-app/compare/2.9.1...2.10.0) (2025-11-03)
+
+
+### Features
+
+* as an organization owner or admin i want to manage the organization settings (PATHWAYS-967) ([#1456](https://github.com/BLSQ/openhexa-app/issues/1456)) ([28be58a](https://github.com/BLSQ/openhexa-app/commit/28be58a7c519b7bef4bcc41a7b1e85ffb5aac491))
+
 ## [2.9.1](https://github.com/BLSQ/openhexa-app/compare/2.9.0...2.9.1) (2025-10-30)
 
 
