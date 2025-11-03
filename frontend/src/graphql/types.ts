@@ -1651,6 +1651,20 @@ export type DeleteMetadataAttributeResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** The DeleteOrganizationError enum represents the possible errors that can occur during the deleteOrganization mutation. */
+export enum DeleteOrganizationError {
+  /** Indicates that the organization was not found. */
+  NotFound = 'NOT_FOUND',
+  /** Indicates that the user does not have permission to delete the organization. */
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** The DeleteOrganizationInput type represents the input for the deleteOrganization mutation. */
+export type DeleteOrganizationInput = {
+  /** The unique identifier of the organization. */
+  id: Scalars['UUID']['input'];
+};
+
 /** The DeleteOrganizationInvitationError enum represents the possible errors that can occur during the deleteOrganizationInvitation mutation. */
 export enum DeleteOrganizationInvitationError {
   InvitationNotFound = 'INVITATION_NOT_FOUND',
@@ -1692,6 +1706,15 @@ export type DeleteOrganizationMemberResult = {
   /** The list of errors that occurred during the deleteOrganizationMember mutation. */
   errors: Array<DeleteOrganizationMemberError>;
   /** Indicates whether the deleteOrganizationMember mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
+/** The DeleteOrganizationResult type represents the result of the deleteOrganization mutation. */
+export type DeleteOrganizationResult = {
+  __typename?: 'DeleteOrganizationResult';
+  /** The list of errors that occurred during the deleteOrganization mutation. */
+  errors: Array<DeleteOrganizationError>;
+  /** Indicates whether the deleteOrganization mutation was successful. */
   success: Scalars['Boolean']['output'];
 };
 
@@ -2531,6 +2554,7 @@ export type Mutation = {
   deleteMembership: DeleteMembershipResult;
   /** Delete an metadata attribute from an object instance */
   deleteMetadataAttribute: DeleteMetadataAttributeResult;
+  deleteOrganization: DeleteOrganizationResult;
   deleteOrganizationInvitation: DeleteOrganizationInvitationResult;
   deleteOrganizationMember: DeleteOrganizationMemberResult;
   /** Deletes a pipeline. */
@@ -2621,6 +2645,7 @@ export type Mutation = {
   /** Update a dataset version. */
   updateDatasetVersion: UpdateDatasetVersionResult;
   updateMembership: UpdateMembershipResult;
+  updateOrganization: UpdateOrganizationResult;
   updateOrganizationMember: UpdateOrganizationMemberResult;
   /** Updates an existing pipeline. */
   updatePipeline: UpdatePipelineResult;
@@ -2826,6 +2851,11 @@ export type MutationDeleteMembershipArgs = {
 
 export type MutationDeleteMetadataAttributeArgs = {
   input: DeleteMetadataAttributeInput;
+};
+
+
+export type MutationDeleteOrganizationArgs = {
+  input: DeleteOrganizationInput;
 };
 
 
@@ -3129,6 +3159,11 @@ export type MutationUpdateMembershipArgs = {
 };
 
 
+export type MutationUpdateOrganizationArgs = {
+  input: UpdateOrganizationInput;
+};
+
+
 export type MutationUpdateOrganizationMemberArgs = {
   input: UpdateOrganizationMemberInput;
 };
@@ -3229,6 +3264,8 @@ export type Organization = {
   id: Scalars['UUID']['output'];
   /** The invitations sent to join the organization. */
   invitations: OrganizationInvitationPage;
+  /** The logo of the organization (base64 encoded). */
+  logo?: Maybe<Scalars['String']['output']>;
   /** The members of the organization. */
   members: OrganizationMembershipPage;
   /** The name of the organization. */
@@ -3374,8 +3411,10 @@ export type OrganizationPermissions = {
   __typename?: 'OrganizationPermissions';
   archiveWorkspace: Scalars['Boolean']['output'];
   createWorkspace: Scalars['Boolean']['output'];
+  delete: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   manageOwners: Scalars['Boolean']['output'];
+  update: Scalars['Boolean']['output'];
 };
 
 /** Represents a workspace invitation within an organization invitation. */
@@ -4934,6 +4973,34 @@ export type UpdateMembershipResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** The UpdateOrganizationError enum represents the possible errors that can occur during the updateOrganization mutation. */
+export enum UpdateOrganizationError {
+  /** Indicates that the provided logo is in an invalid format. */
+  InvalidLogo = 'INVALID_LOGO',
+  /** Indicates that the provided short name is invalid (must be max 5 uppercase letters). */
+  InvalidShortName = 'INVALID_SHORT_NAME',
+  /** Indicates that an organization with the same name already exists. */
+  NameDuplicate = 'NAME_DUPLICATE',
+  /** Indicates that the organization was not found. */
+  NotFound = 'NOT_FOUND',
+  /** Indicates that the user does not have permission to update the organization. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** Indicates that an organization with the same short name already exists. */
+  ShortNameDuplicate = 'SHORT_NAME_DUPLICATE'
+}
+
+/** The UpdateOrganizationInput type represents the input for the updateOrganization mutation. */
+export type UpdateOrganizationInput = {
+  /** The unique identifier of the organization. */
+  id: Scalars['UUID']['input'];
+  /** The updated logo of the organization (base64 encoded). */
+  logo?: InputMaybe<Scalars['String']['input']>;
+  /** The updated name of the organization. */
+  name?: InputMaybe<Scalars['String']['input']>;
+  /** The updated short name of the organization. */
+  shortName?: InputMaybe<Scalars['String']['input']>;
+};
+
 /** The UpdateOrganizationMemberError enum represents the possible errors that can occur during the updateOrganizationMember mutation. */
 export enum UpdateOrganizationMemberError {
   /** Indicates that the provided role is invalid. */
@@ -4962,6 +5029,17 @@ export type UpdateOrganizationMemberResult = {
   /** The updated organization membership object. */
   membership?: Maybe<OrganizationMembership>;
   /** Indicates whether the updateOrganizationMember mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
+/** The UpdateOrganizationResult type represents the result of the updateOrganization mutation. */
+export type UpdateOrganizationResult = {
+  __typename?: 'UpdateOrganizationResult';
+  /** The list of errors that occurred during the updateOrganization mutation. */
+  errors: Array<UpdateOrganizationError>;
+  /** The updated organization object. */
+  organization?: Maybe<Organization>;
+  /** Indicates whether the updateOrganization mutation was successful. */
   success: Scalars['Boolean']['output'];
 };
 

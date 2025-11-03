@@ -47,6 +47,10 @@ from hexa.user_management.models import (
     Team,
     User,
 )
+from hexa.utils.base64_image_encode_decode import (
+    decode_base64_image,
+    encode_base64_image,
+)
 from hexa.workspaces.models import (
     AlreadyExists as WorkspaceAlreadyExists,
 )
@@ -628,6 +632,12 @@ def resolve_type(obj: Organization, *_):
     return obj.get_organization_type_display()
 
 
+@organization_object.field("logo")
+def resolve_logo(obj: Organization, *_):
+    """Convert binary logo to base64 for GraphQL"""
+    return encode_base64_image(bytes(obj.logo)) if obj.logo else None
+
+
 @organization_object.field("members")
 def resolve_members(organization: Organization, info, **kwargs):
     qs = organization.organizationmembership_set
@@ -847,6 +857,28 @@ def resolve_organization_permissions_manage_owners(organization: Organization, i
     user = request.user
     return (
         user.has_perm("user_management.manage_owners", organization)
+        if user.is_authenticated
+        else False
+    )
+
+
+@organization_permissions_object.field("update")
+def resolve_organization_permissions_update(organization: Organization, info):
+    request: HttpRequest = info.context["request"]
+    user = request.user
+    return (
+        user.has_perm("user_management.has_admin_privileges", organization)
+        if user.is_authenticated
+        else False
+    )
+
+
+@organization_permissions_object.field("delete")
+def resolve_organization_permissions_delete(organization: Organization, info):
+    request: HttpRequest = info.context["request"]
+    user = request.user
+    return (
+        user.has_perm("user_management.delete_organization", organization)
         if user.is_authenticated
         else False
     )
@@ -1267,6 +1299,116 @@ def resolve_resend_organization_invitation(_, info, **kwargs):
             "success": False,
             "errors": ["INVITATION_NOT_FOUND"],
         }
+
+
+@identity_mutations.field("updateOrganization")
+@transaction.atomic
+def resolve_update_organization(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    update_input = kwargs["input"]
+
+    try:
+        organization = Organization.objects.filter_for_user(principal).get(
+            id=update_input["id"]
+        )
+
+        if not principal.has_perm("user_management.has_admin_privileges", organization):
+            raise PermissionDenied
+
+        if "name" in update_input and update_input["name"]:
+            new_name = update_input["name"].strip()
+            if (
+                Organization.objects.exclude(id=organization.id)
+                .filter(name=new_name)
+                .exists()
+            ):
+                return {
+                    "success": False,
+                    "organization": None,
+                    "errors": ["NAME_DUPLICATE"],
+                }
+            organization.name = new_name
+
+        if "short_name" in update_input:
+            short_name_input = update_input["short_name"]
+            short_name = short_name_input.strip()
+            if short_name:
+                if (
+                    not short_name
+                    or not short_name.isupper()
+                    or not short_name.isalpha()
+                    or len(short_name) > 5
+                ):
+                    return {
+                        "success": False,
+                        "organization": None,
+                        "errors": ["INVALID_SHORT_NAME"],
+                    }
+                if (
+                    Organization.objects.exclude(id=organization.id)
+                    .filter(short_name=short_name)
+                    .exists()
+                ):
+                    return {
+                        "success": False,
+                        "organization": None,
+                        "errors": ["SHORT_NAME_DUPLICATE"],
+                    }
+                organization.short_name = short_name
+
+        if "logo" in update_input:
+            if update_input["logo"]:
+                try:
+                    logo_bytes = decode_base64_image(update_input["logo"])
+                    organization.logo = logo_bytes
+                except Exception:
+                    return {
+                        "success": False,
+                        "organization": None,
+                        "errors": ["INVALID_LOGO"],
+                    }
+            else:
+                # Empty string means remove logo
+                organization.logo = None
+
+        organization.save()
+        return {"success": True, "organization": organization, "errors": []}
+
+    except Organization.DoesNotExist:
+        return {"success": False, "organization": None, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {
+            "success": False,
+            "organization": None,
+            "errors": ["PERMISSION_DENIED"],
+        }
+
+
+@identity_mutations.field("deleteOrganization")
+@transaction.atomic
+def resolve_delete_organization(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    delete_input = kwargs["input"]
+
+    try:
+        organization = Organization.objects.filter_for_user(principal).get(
+            id=delete_input["id"]
+        )
+
+        if not principal.has_perm("user_management.delete_organization", organization):
+            raise PermissionDenied
+
+        # Perform soft delete (which will also archive all workspaces)
+        organization.delete()
+
+        return {"success": True, "errors": []}
+
+    except Organization.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
 organization_membership_object = ObjectType("OrganizationMembership")

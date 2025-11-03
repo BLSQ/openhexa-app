@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.db.models.functions import Collate
 from django.utils.crypto import get_random_string
 
-from hexa.core.admin import country_list
+from hexa.core.admin import GlobalObjectsModelAdmin, country_list
 
 from .models import (
     Feature,
@@ -179,26 +179,46 @@ class OrganizationMembershipInline(admin.TabularInline):
     extra = 0
 
 
+@admin.action(description="Restore selected organizations")
+def restore_organizations(_modeladmin, _request, queryset):
+    for obj in queryset:
+        obj.restore()
+
+
 @admin.register(Organization)
-class OrganizationAdmin(admin.ModelAdmin):
+class OrganizationAdmin(GlobalObjectsModelAdmin):
     list_display = (
         "name",
         "short_name",
         "organization_type",
         "workspace_count",
+        "is_active",
         "created_at",
         "updated_at",
         country_list,
     )
     search_fields = ("name", "short_name")
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = ("created_at", "updated_at", "deleted_at")
     ordering = ("-created_at",)
     inlines = [OrganizationMembershipInline]
+    actions = [restore_organizations]
+
+    def is_active(self, obj):
+        return obj.deleted_at is None
+
+    is_active.boolean = True
+    is_active.short_description = "Active"
 
     def workspace_count(self, obj):
-        return obj.workspaces.count()
+        return obj.workspaces.filter(archived=False).count()
 
-    workspace_count.short_description = "Number of Workspaces"
+    workspace_count.short_description = "Number of Active Workspaces"
+
+    def response_change(self, request, obj):
+        if "_restore" in request.POST:
+            obj.restore()
+            self.message_user(request, f"Organization '{obj.name}' has been restored.")
+        return super().response_change(request, obj)
 
 
 @admin.register(Team)
