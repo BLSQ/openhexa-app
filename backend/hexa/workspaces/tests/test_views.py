@@ -193,14 +193,11 @@ class ViewsTest(TestCase):
             role=OrganizationMembershipRole.ADMIN,
         )
 
-        workspace = Workspace.objects.create(
+        workspace = Workspace.objects.create_if_has_perm(
+            self.USER_JULIA,
             name="Test Workspace",
-            slug="test-workspace",
-            db_name="test_db",
-            db_password="test_pass",
-            bucket_name="test-bucket",
+            description="Test workspace for org admin",
             organization=org,
-            created_by=self.USER_JULIA,
         )
 
         self.assertFalse(
