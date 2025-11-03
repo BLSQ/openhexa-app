@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.db.models.functions import Collate
 from django.utils.crypto import get_random_string
 
-from hexa.core.admin import country_list
+from hexa.core.admin import GlobalObjectsModelAdmin, country_list
 
 from .models import (
     Feature,
@@ -180,12 +180,13 @@ class OrganizationMembershipInline(admin.TabularInline):
 
 
 @admin.register(Organization)
-class OrganizationAdmin(admin.ModelAdmin):
+class OrganizationAdmin(GlobalObjectsModelAdmin):
     list_display = (
         "name",
         "short_name",
         "organization_type",
         "workspace_count",
+        "is_deleted",
         "created_at",
         "updated_at",
         country_list,
@@ -194,6 +195,12 @@ class OrganizationAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
     ordering = ("-created_at",)
     inlines = [OrganizationMembershipInline]
+
+    def is_deleted(self, obj):
+        return obj.deleted_at is not None
+
+    is_deleted.boolean = True
+    is_deleted.short_description = "Deleted"
 
     def workspace_count(self, obj):
         return obj.workspaces.count()
