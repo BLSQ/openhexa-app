@@ -95,5 +95,5 @@ def manage_owners(principal: User, organization: Organization):
 
 
 def delete_organization(principal: User, organization: Organization):
-    """Only organization owners can delete an organization (superusers are handled by ModelBackend)"""
+    """Only organization owners can delete an organization"""
     return principal.is_organization_owner(organization)
