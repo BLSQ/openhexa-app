@@ -34,7 +34,7 @@ export const resizeImage = (
         ctx?.drawImage(img, 0, 0, width, height);
 
         // Get resized image as a png encoded in base64
-        const resizedImage = canvas.toDataURL("image/png", 0.7);
+        const resizedImage = canvas.toDataURL("image/png");
         resolve(resizedImage);
       };
       img.src = reader.result as string;
