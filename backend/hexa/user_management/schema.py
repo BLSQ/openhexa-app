@@ -1332,8 +1332,7 @@ def resolve_update_organization(_, info, **kwargs):
 
         if "short_name" in update_input:
             short_name_input = update_input["short_name"]
-            if short_name_input:
-                short_name = short_name_input.strip()
+            if short_name_input and short_name_input.strip():
                 if (
                     not short_name
                     or not short_name.isupper()
