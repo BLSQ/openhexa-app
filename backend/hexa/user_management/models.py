@@ -15,7 +15,12 @@ from django_countries.fields import CountryField
 
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
-from hexa.core.models.soft_delete import SoftDeletedModel, SoftDeleteQuerySet
+from hexa.core.models.soft_delete import (
+    DefaultSoftDeletedManager,
+    IncludeSoftDeletedManager,
+    SoftDeletedModel,
+    SoftDeleteQuerySet,
+)
 
 
 class UserManager(BaseUserManager):
@@ -196,7 +201,8 @@ class Organization(Base, SoftDeletedModel):
     logo = models.BinaryField(blank=True, null=True)
     members = models.ManyToManyField(User, through="OrganizationMembership")
 
-    objects = OrganizationManager.from_queryset(OrganizationQuerySet)()
+    objects = DefaultSoftDeletedManager.from_queryset(OrganizationQuerySet)()
+    all_objects = IncludeSoftDeletedManager.from_queryset(OrganizationQuerySet)()
 
     def delete(self):
         """
