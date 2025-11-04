@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 from django.core.signing import Signer
 from django.urls import reverse
 
@@ -164,6 +166,13 @@ class ViewsTest(TestCase):
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
         self.maxDiff = None
+
+        # Expected URL should include application_name with pipeline name and run ID
+        expected_db_url = (
+            f"{self.WORKSPACE.db_url}"
+            f"?application_name={quote(f'{self.PIPELINE.name} (run {run.id})')}"
+        )
+
         self.assertEqual(
             response_data["env"],
             {
@@ -173,7 +182,7 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_PORT": db_credentials["port"],
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
-                "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
+                "WORKSPACE_DATABASE_URL": expected_db_url,
                 "WORKSPACE_STORAGE_ENGINE": "dummy",
                 "HEXA_TOKEN": token,
             },
