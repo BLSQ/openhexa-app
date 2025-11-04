@@ -49,9 +49,9 @@ def get_env(
         if len(pgpass_lines) > 0:
             files["~/.pgpass"] = "\n".join(pgpass_lines).encode()
         else:
-            files["~/.pgpass"] = (
-                b"# This file is empty on purpose as you don't have access to a postgresql database"
-            )
+            files[
+                "~/.pgpass"
+            ] = b"# This file is empty on purpose as you don't have access to a postgresql database"
 
     return env, files
 
