@@ -72,31 +72,16 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
                 workspace=workspace, user=request.user
             )
         except WorkspaceMembership.DoesNotExist:
-            if request.user.is_superuser or request.user.is_organization_admin_or_owner(
-                workspace.organization
-            ):
-                # Auto-create membership on the fly for admins/owners/superusers
-                try:
-                    membership = WorkspaceMembership.objects.create(
-                        workspace=workspace,
-                        user=request.user,
-                        role=WorkspaceMembershipRole.ADMIN,
-                    )
-                except Exception as e:
-                    return JsonResponse(
-                        {
-                            "error": f"Failed to create required workspace membership to workspace {workspace.slug}: {str(e)}"
-                        },
-                        status=500,
-                    )
-            else:
-                return JsonResponse(
-                    {
-                        "error": f"User has permission but hasn't the required workspace membership to {workspace.slug}"
-                    },
-                    status=500,
-                )
-
+            assert (
+                request.user.is_superuser
+                or request.user.is_organization_admin_or_owner(workspace.organization)
+            )
+            # Auto-create membership on the fly for admins/owners/superusers
+            membership = WorkspaceMembership.objects.create(
+                workspace=workspace,
+                user=request.user,
+                role=WorkspaceMembershipRole.ADMIN,
+            )
         server_hash = membership.notebooks_server_hash
         sdk_auth_token = membership.access_token
     else:
