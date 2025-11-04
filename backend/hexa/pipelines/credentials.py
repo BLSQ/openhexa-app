@@ -7,10 +7,18 @@ from hexa.pipelines import models
 
 
 class PipelinesCredentials(HexaCredentials):
-    """This class acts as a container for credentials to be provided to the pipelines component."""
+    """
+    This class acts as a container for credentials to be provided to the pipelines component.
+    Optional run_id and pipeline name to add application_name to the connection
+    string for debugging purposes.
+    """
 
-    def __init__(self, pipeline: models.Pipeline):
+    def __init__(
+        self, pipeline: models.Pipeline, run_id: str = None, pipeline_name: str = None
+    ):
         self.pipeline: models.Pipeline = pipeline
+        self.run_id: str = run_id
+        self.pipeline_name: str = pipeline_name
         self.env: dict[str, str] = {}
         self.files: dict[str, bytes] = {}
 

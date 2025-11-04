@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 from django.conf import settings
 from django.core.signing import BadSignature, Signer
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -39,6 +41,8 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
     except Workspace.DoesNotExist:
         return JsonResponse({}, status=404)
 
+    pipeline_run = None  # Track if we're in a pipeline run
+
     if request.headers.get("Authorization"):
         auth_type, token = request.headers.get("Authorization", " ").split(" ")
         if auth_type.lower() != "bearer":
@@ -51,6 +55,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
             run = PipelineRun.objects.get(
                 pipeline__workspace=workspace, access_token=access_token
             )
+            pipeline_run = run  # Store for later use
             sdk_auth_token = access_token
             server_hash = str(run.id)
         except BadSignature:
@@ -97,6 +102,14 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
 
     # Database credentials
     db_credentials = get_db_server_credentials()
+
+    # Build database URL with application_name for pipeline runs
+    db_url = workspace.db_url
+    if pipeline_run:
+        # Add application_name parameter for better connection tracking
+        application_name = f"{pipeline_run.pipeline.name} (run {pipeline_run.id})"
+        db_url = f"{db_url}?application_name={quote(application_name)}"
+
     env.update(
         {
             "WORKSPACE_DATABASE_DB_NAME": workspace.db_name,
@@ -104,7 +117,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
             "WORKSPACE_DATABASE_PORT": db_credentials["port"],
             "WORKSPACE_DATABASE_USERNAME": workspace.db_name,
             "WORKSPACE_DATABASE_PASSWORD": workspace.db_password,
-            "WORKSPACE_DATABASE_URL": workspace.db_url,
+            "WORKSPACE_DATABASE_URL": db_url,
         }
     )
 
