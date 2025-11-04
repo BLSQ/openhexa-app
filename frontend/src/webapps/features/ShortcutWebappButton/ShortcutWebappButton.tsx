@@ -58,7 +58,7 @@ const ShortcutWebappButton = ({
   return (
     <button
       className={
-        "cursor-pointer w-8 h-8 group/shortcut hover:p-1 transition-all flex items-center justify-center rounded-full"
+        "cursor-pointer w-8 h-8 group/shortcut hover:scale-110 transition-all flex items-center justify-center rounded-full"
       }
       onClick={handleShortcutClick}
       data-testid={`shortcut-button-${webappId}`}
