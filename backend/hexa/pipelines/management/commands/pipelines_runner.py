@@ -27,6 +27,12 @@ class PodTerminationReason(Enum):
     DeadlineExceeded = "DeadlineExceeded"
 
 
+# TODO : only for kubernetes spawner
+# TODO : separate monitor and run functions
+# TODO : unit test
+# TODO : e2e test
+
+
 def load_local_dev_kubernetes_config():
     """Load Kubernetes config for local dev (Docker Desktop for Mac/Windows)."""
     import tempfile
@@ -59,154 +65,176 @@ def load_local_dev_kubernetes_config():
     os.unlink(temp_config)
 
 
-def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
+def monitor_pipeline_kube(
+    run: PipelineRun, image: str, env_vars: dict, create_pod: bool = True
+):
     from kubernetes import config
     from kubernetes.client import CoreV1Api
     from kubernetes.client import models as k8s
     from kubernetes.client.rest import ApiException
 
     exec_time_str = timezone.now().replace(tzinfo=None, microsecond=0).isoformat()
-    logger.debug("K8S RUN %s: %s for %s", os.getpid(), run.pipeline.name, exec_time_str)
-    container_name = generate_pipeline_container_name(run)
+    action = "Creating new pod" if create_pod else "Re-attaching to existing pod"
+    logger.debug(
+        "K8S RUN %s: %s - %s for %s",
+        os.getpid(),
+        action,
+        run.pipeline.name,
+        exec_time_str,
+    )
 
     is_local_dev = os.environ.get("IS_LOCAL_DEV", False)
     config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
 
     v1 = CoreV1Api()
-    pod = k8s.V1Pod(
-        api_version="v1",
-        kind="Pod",
-        metadata=k8s.V1ObjectMeta(
-            namespace=os.environ.get("PIPELINE_NAMESPACE", "default"),
-            name=container_name,
-            labels={
-                "hexa-workspace": env_vars["HEXA_WORKSPACE"],
-                "hexa-run-id": str(run.id),
-            },
-            annotations={
-                # Unfortunately, it also seems that GKE (at least) uses app armor to restrict
-                # the syscalls a container is allowed to execute, so we need to ask to run
-                # in "unconfined" mode. Beware, you might think you are already in
-                # "unconfined" mode by default. You are not. If you get a "fuse: mount
-                # failed: Permission denied" error, you did something wrong over here.
-                "container.apparmor.security.beta.kubernetes.io/"
-                + container_name: "unconfined",
-            },
-        ),
-        spec=k8s.V1PodSpec(
-            restart_policy="Never",
-            active_deadline_seconds=run.timeout,
-            tolerations=(
-                [
-                    k8s.V1Toleration(
-                        key="hub.jupyter.org_dedicated",
-                        operator="Equal",
-                        value="user",
-                        effect="NoSchedule",
-                    ),
-                ]
-                if not is_local_dev
-                else []
+    namespace = os.environ.get("PIPELINE_NAMESPACE", "default")
+    container_name = generate_pipeline_container_name(run)
+
+    if create_pod:
+        logger.info("Creating new pod %s for run %s", container_name, run.id)
+        pod = k8s.V1Pod(
+            api_version="v1",
+            kind="Pod",
+            metadata=k8s.V1ObjectMeta(
+                namespace=namespace,
+                name=container_name,
+                labels={
+                    "hexa-workspace": env_vars["HEXA_WORKSPACE"],
+                    "hexa-run-id": str(run.id),
+                },
+                annotations={
+                    # Unfortunately, it also seems that GKE (at least) uses app armor to restrict
+                    # the syscalls a container is allowed to execute, so we need to ask to run
+                    # in "unconfined" mode. Beware, you might think you are already in
+                    # "unconfined" mode by default. You are not. If you get a "fuse: mount
+                    # failed: Permission denied" error, you did something wrong over here.
+                    "container.apparmor.security.beta.kubernetes.io/"
+                    + container_name: "unconfined",
+                },
             ),
-            affinity=(
-                k8s.V1Affinity(
-                    node_affinity=k8s.V1NodeAffinity(
-                        required_during_scheduling_ignored_during_execution=k8s.V1NodeSelector(
-                            node_selector_terms=[
-                                k8s.V1NodeSelectorTerm(
-                                    match_expressions=[
-                                        k8s.V1NodeSelectorRequirement(
-                                            key="hub.jupyter.org/node-purpose",
-                                            operator="In",
-                                            values=["user"],
-                                        )
-                                    ],
-                                ),
-                            ],
+            spec=k8s.V1PodSpec(
+                restart_policy="Never",
+                active_deadline_seconds=run.timeout,
+                tolerations=(
+                    [
+                        k8s.V1Toleration(
+                            key="hub.jupyter.org_dedicated",
+                            operator="Equal",
+                            value="user",
+                            effect="NoSchedule",
                         ),
-                    ),
-                )
-                if not is_local_dev
-                else None
-            ),
-            containers=[
-                k8s.V1Container(
-                    image=image,
-                    name=container_name,
-                    image_pull_policy="IfNotPresent" if is_local_dev else "Always",
-                    args=[
-                        "pipeline",
-                        "cloudrun",
-                        "--config",
-                        f"{base64.b64encode(json.dumps(run.config).encode('utf-8')).decode('utf-8')}",
-                    ],
-                    env=[
-                        k8s.V1EnvVar(name="HEXA_ENVIRONMENT", value="CLOUD_PIPELINE"),
-                        *[
-                            k8s.V1EnvVar(
-                                name=key,
-                                value=value,
-                            )
-                            for key, value in env_vars.items()
+                    ]
+                    if not is_local_dev
+                    else []
+                ),
+                affinity=(
+                    k8s.V1Affinity(
+                        node_affinity=k8s.V1NodeAffinity(
+                            required_during_scheduling_ignored_during_execution=k8s.V1NodeSelector(
+                                node_selector_terms=[
+                                    k8s.V1NodeSelectorTerm(
+                                        match_expressions=[
+                                            k8s.V1NodeSelectorRequirement(
+                                                key="hub.jupyter.org/node-purpose",
+                                                operator="In",
+                                                values=["user"],
+                                            )
+                                        ],
+                                    ),
+                                ],
+                            ),
+                        ),
+                    )
+                    if not is_local_dev
+                    else None
+                ),
+                containers=[
+                    k8s.V1Container(
+                        image=image,
+                        name=container_name,
+                        image_pull_policy="IfNotPresent" if is_local_dev else "Always",
+                        args=[
+                            "pipeline",
+                            "cloudrun",
+                            "--config",
+                            f"{base64.b64encode(json.dumps(run.config).encode('utf-8')).decode('utf-8')}",
                         ],
-                    ],
-                    # We need to have /dev/fuse mounted inside the container
-                    # This is done by requesting a resource: smarter-devices/fuse
-                    # This resource, is provided by the smarter-device-manager DaemonSet.
-                    # In our case, this DaemonSet is described in devops/config/smarter-device-manager.yaml.
-                    # Useful links:
-                    # - Source of the pod: https://gitlab.com/arm-research/smarter/smarter-device-manager
-                    # - Inspiration for the yaml: https://github.com/samos123/gke-gcs-fuse-unprivileged
-                    resources={
-                        "limits": {
-                            **(
-                                {"smarter-devices/fuse": "1"}
-                                if not is_local_dev
-                                else {}
+                        env=[
+                            k8s.V1EnvVar(
+                                name="HEXA_ENVIRONMENT", value="CLOUD_PIPELINE"
                             ),
-                            "cpu": (
-                                run.pipeline.cpu_limit
-                                if run.pipeline.cpu_limit != ""
-                                else settings.PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT
-                            ),
-                            "memory": (
-                                run.pipeline.memory_limit
-                                if run.pipeline.memory_limit != ""
-                                else settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_LIMIT
-                            ),
+                            *[
+                                k8s.V1EnvVar(
+                                    name=key,
+                                    value=value,
+                                )
+                                for key, value in env_vars.items()
+                            ],
+                        ],
+                        # We need to have /dev/fuse mounted inside the container
+                        # This is done by requesting a resource: smarter-devices/fuse
+                        # This resource, is provided by the smarter-device-manager DaemonSet.
+                        # In our case, this DaemonSet is described in devops/config/smarter-device-manager.yaml.
+                        # Useful links:
+                        # - Source of the pod: https://gitlab.com/arm-research/smarter/smarter-device-manager
+                        # - Inspiration for the yaml: https://github.com/samos123/gke-gcs-fuse-unprivileged
+                        resources={
+                            "limits": {
+                                **(
+                                    {"smarter-devices/fuse": "1"}
+                                    if not is_local_dev
+                                    else {}
+                                ),
+                                "cpu": (
+                                    run.pipeline.cpu_limit
+                                    if run.pipeline.cpu_limit != ""
+                                    else settings.PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT
+                                ),
+                                "memory": (
+                                    run.pipeline.memory_limit
+                                    if run.pipeline.memory_limit != ""
+                                    else settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_LIMIT
+                                ),
+                            },
+                            "requests": {
+                                **(
+                                    {"smarter-devices/fuse": "1"}
+                                    if not is_local_dev
+                                    else {}
+                                ),
+                                "cpu": (
+                                    run.pipeline.cpu_request
+                                    if run.pipeline.cpu_request != ""
+                                    else settings.PIPELINE_DEFAULT_CONTAINER_CPU_REQUEST
+                                ),
+                                "memory": (
+                                    run.pipeline.memory_request
+                                    if run.pipeline.memory_request != ""
+                                    else settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_REQUEST
+                                ),
+                            },
                         },
-                        "requests": {
-                            **(
-                                {"smarter-devices/fuse": "1"}
-                                if not is_local_dev
-                                else {}
-                            ),
-                            "cpu": (
-                                run.pipeline.cpu_request
-                                if run.pipeline.cpu_request != ""
-                                else settings.PIPELINE_DEFAULT_CONTAINER_CPU_REQUEST
-                            ),
-                            "memory": (
-                                run.pipeline.memory_request
-                                if run.pipeline.memory_request != ""
-                                else settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_REQUEST
-                            ),
+                        # Having /dev/fuse is not enough. We also need to be able to execute the mount()
+                        # syscall from inside the container. Requiring CAP_SYS_ADMIN seems enough and
+                        # we DON'T need to be privileged.
+                        security_context={
+                            "privileged": False,
+                            "capabilities": {
+                                "add": ["SYS_ADMIN"],
+                            },
                         },
-                    },
-                    # Having /dev/fuse is not enough. We also need to be able to execute the mount()
-                    # syscall from inside the container. Requiring CAP_SYS_ADMIN seems enough and
-                    # we DON'T need to be privileged.
-                    security_context={
-                        "privileged": False,
-                        "capabilities": {
-                            "add": ["SYS_ADMIN"],
-                        },
-                    },
-                )
-            ],
-        ),
-    )
-    v1.create_namespaced_pod(namespace=pod.metadata.namespace, body=pod)
+                    )
+                ],
+            ),
+        )
+        v1.create_namespaced_pod(namespace=namespace, body=pod)
+    else:
+        logger.info(
+            "Re-attaching to existing pod %s for run %s",
+            container_name,
+            run.id,
+        )
+        pod = v1.read_namespaced_pod(container_name, namespace)
 
     # monitor the pod
     pod_read_durations = []
@@ -369,8 +397,9 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
             return False, str(e)
 
 
-def run_pipeline(run: PipelineRun):
-    logger.info("Run pipeline: %s", run)
+def run_pipeline(run: PipelineRun, create_container: bool = True):
+    action = "Run pipeline" if create_container else "Re-attaching to orphaned run"
+    logger.info("%s: %s", action, run)
 
     if os.fork() != 0:
         # parent or error -> return
@@ -408,7 +437,9 @@ def run_pipeline(run: PipelineRun):
         if spawner == "docker":
             success, container_logs = run_pipeline_docker(run, image, env_vars)
         elif spawner == "kubernetes":
-            success, container_logs = run_pipeline_kube(run, image, env_vars)
+            success, container_logs = monitor_pipeline_kube(
+                run, image, env_vars, create_container
+            )
         else:
             logger.error(
                 "Scheduler spawner %s not found", settings.PIPELINE_SCHEDULER_SPAWNER
@@ -419,7 +450,9 @@ def run_pipeline(run: PipelineRun):
         run.duration = timezone.now() - time_start
         run.run_logs = "\n".join([base_logs, str(e)])
         run.save()
-        logger.info("Failure of run: %s", run)
+        logger.exception("Failure of run: %s", run)
+        if run.send_mail_notifications:
+            mail_run_recipients(run)
         sys.exit(1)
 
     run.refresh_from_db()
@@ -540,7 +573,11 @@ class Command(BaseCommand):
         logger.info("start pipeline runner")
         sleep(10)
 
-        # TODO : re-attach orphaned RUNNING runs ?
+        for run in PipelineRun.objects.filter(state=PipelineRunState.RUNNING):
+            logger.info(
+                "Re-attaching to orphaned run %s #%s", run.pipeline.name, run.id
+            )
+            run_pipeline(run, create_container=False)
 
         i = 0
         sleeptime = 5
