@@ -11,49 +11,47 @@ type ShortcutItem {
 }
 
 """
-Represents the input for adding an item to shortcuts.
+Represents the input for adding a webapp to shortcuts.
 """
-input AddToShortcutsInput {
+input AddWebappToShortcutsInput {
   webappId: UUID!
 }
 
 """
-Represents the result of adding an item to shortcuts.
+Represents the result of adding a webapp to shortcuts.
 """
-type AddToShortcutsResult {
+type AddWebappToShortcutsResult {
   success: Boolean!
-  errors: [AddToShortcutsError!]!
+  errors: [AddWebappToShortcutsError!]!
 }
 
 """
-Represents the error message for adding to shortcuts.
+Represents the error message for adding a webapp to shortcuts.
 """
-enum AddToShortcutsError {
+enum AddWebappToShortcutsError {
   ITEM_NOT_FOUND
-  PERMISSION_DENIED
 }
 
 """
-Represents the input for removing an item from shortcuts.
+Represents the input for removing a webapp from shortcuts.
 """
-input RemoveFromShortcutsInput {
+input RemoveWebappFromShortcutsInput {
   webappId: UUID!
 }
 
 """
-Represents the result of removing an item from shortcuts.
+Represents the result of removing a webapp from shortcuts.
 """
-type RemoveFromShortcutsResult {
+type RemoveWebappFromShortcutsResult {
   success: Boolean!
-  errors: [RemoveFromShortcutsError!]!
+  errors: [RemoveWebappFromShortcutsError!]!
 }
 
 """
-Represents the error message for removing from shortcuts.
+Represents the error message for removing a webapp from shortcuts.
 """
-enum RemoveFromShortcutsError {
+enum RemoveWebappFromShortcutsError {
   ITEM_NOT_FOUND
-  PERMISSION_DENIED
 }
 
 extend type Query {
@@ -61,6 +59,6 @@ extend type Query {
 }
 
 extend type Mutation {
-  addToShortcuts(input: AddToShortcutsInput!): AddToShortcutsResult! @loginRequired
-  removeFromShortcuts(input: RemoveFromShortcutsInput!): RemoveFromShortcutsResult! @loginRequired
+  addWebappToShortcuts(input: AddWebappToShortcutsInput!): AddWebappToShortcutsResult! @loginRequired
+  removeWebappFromShortcuts(input: RemoveWebappFromShortcutsInput!): RemoveWebappFromShortcutsResult! @loginRequired
 }

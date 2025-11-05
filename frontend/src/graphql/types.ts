@@ -390,21 +390,20 @@ export type AddToFavoritesResult = {
   success: Scalars['Boolean']['output'];
 };
 
-/** Represents the error message for adding to shortcuts. */
-export enum AddToShortcutsError {
-  ItemNotFound = 'ITEM_NOT_FOUND',
-  PermissionDenied = 'PERMISSION_DENIED'
+/** Represents the error message for adding a webapp to shortcuts. */
+export enum AddWebappToShortcutsError {
+  ItemNotFound = 'ITEM_NOT_FOUND'
 }
 
-/** Represents the input for adding an item to shortcuts. */
-export type AddToShortcutsInput = {
+/** Represents the input for adding a webapp to shortcuts. */
+export type AddWebappToShortcutsInput = {
   webappId: Scalars['UUID']['input'];
 };
 
-/** Represents the result of adding an item to shortcuts. */
-export type AddToShortcutsResult = {
-  __typename?: 'AddToShortcutsResult';
-  errors: Array<AddToShortcutsError>;
+/** Represents the result of adding a webapp to shortcuts. */
+export type AddWebappToShortcutsResult = {
+  __typename?: 'AddWebappToShortcutsResult';
+  errors: Array<AddWebappToShortcutsError>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -2529,7 +2528,7 @@ export type Mutation = {
   /** Adds a recipient to a pipeline. */
   addPipelineRecipient: AddPipelineRecipientResult;
   addToFavorites: AddToFavoritesResult;
-  addToShortcuts: AddToShortcutsResult;
+  addWebappToShortcuts: AddWebappToShortcutsResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
   archiveWorkspace: ArchiveWorkspaceResult;
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
@@ -2637,7 +2636,7 @@ export type Mutation = {
   /** Registers a new user. */
   register: RegisterResult;
   removeFromFavorites: RemoveFromFavoritesResult;
-  removeFromShortcuts: RemoveFromShortcutsResult;
+  removeWebappFromShortcuts: RemoveWebappFromShortcutsResult;
   requestAccessmodAccess: RequestAccessmodAccessInputResult;
   resendOrganizationInvitation: ResendOrganizationInvitationResult;
   resendWorkspaceInvitation: ResendWorkspaceInvitationResult;
@@ -2714,8 +2713,8 @@ export type MutationAddToFavoritesArgs = {
 };
 
 
-export type MutationAddToShortcutsArgs = {
-  input: AddToShortcutsInput;
+export type MutationAddWebappToShortcutsArgs = {
+  input: AddWebappToShortcutsInput;
 };
 
 
@@ -3084,8 +3083,8 @@ export type MutationRemoveFromFavoritesArgs = {
 };
 
 
-export type MutationRemoveFromShortcutsArgs = {
-  input: RemoveFromShortcutsInput;
+export type MutationRemoveWebappFromShortcutsArgs = {
+  input: RemoveWebappFromShortcutsInput;
 };
 
 
@@ -4462,21 +4461,20 @@ export type RemoveFromFavoritesResult = {
   success: Scalars['Boolean']['output'];
 };
 
-/** Represents the error message for removing from shortcuts. */
-export enum RemoveFromShortcutsError {
-  ItemNotFound = 'ITEM_NOT_FOUND',
-  PermissionDenied = 'PERMISSION_DENIED'
+/** Represents the error message for removing a webapp from shortcuts. */
+export enum RemoveWebappFromShortcutsError {
+  ItemNotFound = 'ITEM_NOT_FOUND'
 }
 
-/** Represents the input for removing an item from shortcuts. */
-export type RemoveFromShortcutsInput = {
+/** Represents the input for removing a webapp from shortcuts. */
+export type RemoveWebappFromShortcutsInput = {
   webappId: Scalars['UUID']['input'];
 };
 
-/** Represents the result of removing an item from shortcuts. */
-export type RemoveFromShortcutsResult = {
-  __typename?: 'RemoveFromShortcutsResult';
-  errors: Array<RemoveFromShortcutsError>;
+/** Represents the result of removing a webapp from shortcuts. */
+export type RemoveWebappFromShortcutsResult = {
+  __typename?: 'RemoveWebappFromShortcutsResult';
+  errors: Array<RemoveWebappFromShortcutsError>;
   success: Scalars['Boolean']['output'];
 };
 

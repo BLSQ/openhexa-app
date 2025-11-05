@@ -1,5 +1,4 @@
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
 
@@ -10,7 +9,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
-from hexa.shortcuts.models import Shortcut
+from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -48,7 +47,7 @@ class AllWebappManager(
     pass
 
 
-class Webapp(Base, SoftDeletedModel):
+class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     class Meta:
         verbose_name = "Webapp"
         constraints = [
@@ -85,29 +84,19 @@ class Webapp(Base, SoftDeletedModel):
         self.favorites.remove(user)
         self.save()
 
-    def is_shortcut(self, user: User):
-        """Check if this webapp is a shortcut for the user"""
-        content_type = ContentType.objects.get_for_model(self.__class__)
-        return Shortcut.objects.filter(
-            user=user, content_type=content_type, object_id=self.id
-        ).exists()
+    def to_shortcut_item(self, shortcut):
+        """Convert this webapp to a shortcut item dict for GraphQL"""
+        from hexa.utils.base64_image_encode_decode import encode_base64_image
 
-    def add_to_shortcuts(self, user: User):
-        """Add this webapp to user's shortcuts"""
-        content_type = ContentType.objects.get_for_model(self.__class__)
-        Shortcut.objects.get_or_create(
-            user=user,
-            content_type=content_type,
-            object_id=self.id,
-            defaults={"workspace": self.workspace},
-        )
-
-    def remove_from_shortcuts(self, user: User):
-        """Remove this webapp from user's shortcuts"""
-        content_type = ContentType.objects.get_for_model(self.__class__)
-        Shortcut.objects.filter(
-            user=user, content_type=content_type, object_id=self.id
-        ).delete()
+        icon = encode_base64_image(bytes(self.icon)) if self.icon else None
+        return {
+            "id": str(self.id),
+            "name": self.name,
+            "url": f"/workspaces/{self.workspace.slug}/webapps/{self.id}",
+            "icon": icon,
+            "type": "webapp",
+            "order": shortcut.order,
+        }
 
     def __str__(self):
         return self.name

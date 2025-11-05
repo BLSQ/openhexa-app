@@ -358,20 +358,19 @@ type AddToFavoritesResult {
   success: Boolean!
 }
 
-"""Represents the error message for adding to shortcuts."""
-enum AddToShortcutsError {
+"""Represents the error message for adding a webapp to shortcuts."""
+enum AddWebappToShortcutsError {
   ITEM_NOT_FOUND
-  PERMISSION_DENIED
 }
 
-"""Represents the input for adding an item to shortcuts."""
-input AddToShortcutsInput {
+"""Represents the input for adding a webapp to shortcuts."""
+input AddWebappToShortcutsInput {
   webappId: UUID!
 }
 
-"""Represents the result of adding an item to shortcuts."""
-type AddToShortcutsResult {
-  errors: [AddToShortcutsError!]!
+"""Represents the result of adding a webapp to shortcuts."""
+type AddWebappToShortcutsResult {
+  errors: [AddWebappToShortcutsError!]!
   success: Boolean!
 }
 
@@ -2474,7 +2473,7 @@ type Mutation {
   """Adds a recipient to a pipeline."""
   addPipelineRecipient(input: CreatePipelineRecipientInput!): AddPipelineRecipientResult!
   addToFavorites(input: AddToFavoritesInput!): AddToFavoritesResult!
-  addToShortcuts(input: AddToShortcutsInput!): AddToShortcutsResult!
+  addWebappToShortcuts(input: AddWebappToShortcutsInput!): AddWebappToShortcutsResult!
   approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
   archiveWorkspace(input: ArchiveWorkspaceInput!): ArchiveWorkspaceResult!
   createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult!
@@ -2618,7 +2617,7 @@ type Mutation {
   """Registers a new user."""
   register(input: RegisterInput!): RegisterResult!
   removeFromFavorites(input: RemoveFromFavoritesInput!): RemoveFromFavoritesResult!
-  removeFromShortcuts(input: RemoveFromShortcutsInput!): RemoveFromShortcutsResult!
+  removeWebappFromShortcuts(input: RemoveWebappFromShortcutsInput!): RemoveWebappFromShortcutsResult!
   requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
   resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult!
   resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult!
@@ -3552,20 +3551,19 @@ type RemoveFromFavoritesResult {
   success: Boolean!
 }
 
-"""Represents the error message for removing from shortcuts."""
-enum RemoveFromShortcutsError {
+"""Represents the error message for removing a webapp from shortcuts."""
+enum RemoveWebappFromShortcutsError {
   ITEM_NOT_FOUND
-  PERMISSION_DENIED
 }
 
-"""Represents the input for removing an item from shortcuts."""
-input RemoveFromShortcutsInput {
+"""Represents the input for removing a webapp from shortcuts."""
+input RemoveWebappFromShortcutsInput {
   webappId: UUID!
 }
 
-"""Represents the result of removing an item from shortcuts."""
-type RemoveFromShortcutsResult {
-  errors: [RemoveFromShortcutsError!]!
+"""Represents the result of removing a webapp from shortcuts."""
+type RemoveWebappFromShortcutsResult {
+  errors: [RemoveWebappFromShortcutsError!]!
   success: Boolean!
 }
 

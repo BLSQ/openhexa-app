@@ -23,6 +23,14 @@ class ShortcutQuerySet(BaseQuerySet):
         content_type = ContentType.objects.get_for_model(model_class)
         return self.filter(content_type=content_type)
 
+    def filter_by_content_types(self, *model_classes: type):
+        """Filter shortcuts by multiple content types."""
+        content_types = [
+            ContentType.objects.get_for_model(model_class)
+            for model_class in model_classes
+        ]
+        return self.filter(content_type__in=content_types)
+
 
 class ShortcutManager(BaseManager.from_queryset(ShortcutQuerySet)):
     pass

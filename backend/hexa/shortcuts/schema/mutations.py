@@ -1,18 +1,14 @@
-import logging
-
 from ariadne import MutationType
 from django.db import IntegrityError
 from django.http import HttpRequest
 
 from hexa.webapps.models import Webapp
 
-logger = logging.getLogger(__name__)
-
 shortcut_mutations = MutationType()
 
 
-@shortcut_mutations.field("addToShortcuts")
-def resolve_add_to_shortcuts(_, info, **kwargs):
+@shortcut_mutations.field("addWebappToShortcuts")
+def resolve_add_webapp_to_shortcuts(_, info, **kwargs):
     """
     Add a webapp to user's shortcuts.
     """
@@ -23,19 +19,18 @@ def resolve_add_to_shortcuts(_, info, **kwargs):
         webapp = Webapp.objects.filter_for_user(request.user).get(
             pk=input_data["webapp_id"]
         )
-        webapp.add_to_shortcuts(request.user)
-        return {"success": True, "errors": []}
     except Webapp.DoesNotExist:
         return {"success": False, "errors": ["ITEM_NOT_FOUND"]}
+
+    try:
+        webapp.add_to_shortcuts(request.user)
+        return {"success": True, "errors": []}
     except IntegrityError:
         return {"success": True, "errors": []}
-    except Exception as e:
-        logger.exception(f"Unexpected error adding to shortcuts: {e}")
-        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
-@shortcut_mutations.field("removeFromShortcuts")
-def resolve_remove_from_shortcuts(_, info, **kwargs):
+@shortcut_mutations.field("removeWebappFromShortcuts")
+def resolve_remove_webapp_from_shortcuts(_, info, **kwargs):
     """
     Remove a webapp from user's shortcuts.
     """
@@ -46,13 +41,11 @@ def resolve_remove_from_shortcuts(_, info, **kwargs):
         webapp = Webapp.objects.filter_for_user(request.user).get(
             pk=input_data["webapp_id"]
         )
-        webapp.remove_from_shortcuts(request.user)
-        return {"success": True, "errors": []}
     except Webapp.DoesNotExist:
         return {"success": False, "errors": ["ITEM_NOT_FOUND"]}
-    except Exception as e:
-        logger.exception(f"Unexpected error removing from shortcuts: {e}")
-        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+    webapp.remove_from_shortcuts(request.user)
+    return {"success": True, "errors": []}
 
 
 bindables = [shortcut_mutations]

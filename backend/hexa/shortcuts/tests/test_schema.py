@@ -114,8 +114,8 @@ class ShortcutsSchemaTest(GraphQLTestCase):
         self.client.force_login(self.USER_ROOT)
         response = self.run_query(
             """
-            mutation addToShortcuts($input: AddToShortcutsInput!) {
-                addToShortcuts(input: $input) {
+            mutation addWebappToShortcuts($input: AddWebappToShortcutsInput!) {
+                addWebappToShortcuts(input: $input) {
                     success
                     errors
                 }
@@ -124,16 +124,16 @@ class ShortcutsSchemaTest(GraphQLTestCase):
             {"input": {"webappId": str(self.WEBAPP1.id)}},
         )
 
-        self.assertTrue(response["data"]["addToShortcuts"]["success"])
-        self.assertEqual([], response["data"]["addToShortcuts"]["errors"])
+        self.assertTrue(response["data"]["addWebappToShortcuts"]["success"])
+        self.assertEqual([], response["data"]["addWebappToShortcuts"]["errors"])
         self.assertTrue(self.WEBAPP1.is_shortcut(self.USER_ROOT))
 
     def test_add_to_shortcuts_mutation_webapp_not_found(self):
         self.client.force_login(self.USER_ROOT)
         response = self.run_query(
             """
-            mutation addToShortcuts($input: AddToShortcutsInput!) {
-                addToShortcuts(input: $input) {
+            mutation addWebappToShortcuts($input: AddWebappToShortcutsInput!) {
+                addWebappToShortcuts(input: $input) {
                     success
                     errors
                 }
@@ -142,8 +142,10 @@ class ShortcutsSchemaTest(GraphQLTestCase):
             {"input": {"webappId": "00000000-0000-0000-0000-000000000000"}},
         )
 
-        self.assertFalse(response["data"]["addToShortcuts"]["success"])
-        self.assertIn("ITEM_NOT_FOUND", response["data"]["addToShortcuts"]["errors"])
+        self.assertFalse(response["data"]["addWebappToShortcuts"]["success"])
+        self.assertIn(
+            "ITEM_NOT_FOUND", response["data"]["addWebappToShortcuts"]["errors"]
+        )
 
     def test_remove_from_shortcuts_mutation(self):
         self.WEBAPP1.add_to_shortcuts(self.USER_ROOT)
@@ -152,8 +154,8 @@ class ShortcutsSchemaTest(GraphQLTestCase):
         self.client.force_login(self.USER_ROOT)
         response = self.run_query(
             """
-            mutation removeFromShortcuts($input: RemoveFromShortcutsInput!) {
-                removeFromShortcuts(input: $input) {
+            mutation removeWebappFromShortcuts($input: RemoveWebappFromShortcutsInput!) {
+                removeWebappFromShortcuts(input: $input) {
                     success
                     errors
                 }
@@ -162,8 +164,8 @@ class ShortcutsSchemaTest(GraphQLTestCase):
             {"input": {"webappId": str(self.WEBAPP1.id)}},
         )
 
-        self.assertTrue(response["data"]["removeFromShortcuts"]["success"])
-        self.assertEqual([], response["data"]["removeFromShortcuts"]["errors"])
+        self.assertTrue(response["data"]["removeWebappFromShortcuts"]["success"])
+        self.assertEqual([], response["data"]["removeWebappFromShortcuts"]["errors"])
         self.assertFalse(self.WEBAPP1.is_shortcut(self.USER_ROOT))
 
     def test_webapp_is_shortcut_field(self):

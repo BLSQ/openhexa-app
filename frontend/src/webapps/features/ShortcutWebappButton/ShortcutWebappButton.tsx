@@ -4,8 +4,8 @@ import { gql } from "@apollo/client";
 import useCacheKey from "core/hooks/useCacheKey";
 import { toast } from "react-toastify";
 import {
-  useAddToShortcutsMutation,
-  useRemoveFromShortcutsMutation,
+  useAddWebappToShortcutsMutation,
+  useRemoveWebappFromShortcutsMutation,
 } from "webapps/graphql/mutations.generated";
 import { useTranslation } from "next-i18next";
 import { ShortcutWebappButton_WebappFragment } from "./ShortcutWebappButton.generated";
@@ -18,8 +18,8 @@ const ShortcutWebappButton = ({
   webapp: { id: webappId, isShortcut },
 }: ShortcutWebappButtonProps) => {
   const { t } = useTranslation();
-  const [addToShortcuts] = useAddToShortcutsMutation();
-  const [removeFromShortcuts] = useRemoveFromShortcutsMutation();
+  const [addToShortcuts] = useAddWebappToShortcutsMutation();
+  const [removeFromShortcuts] = useRemoveWebappFromShortcutsMutation();
 
   const clearCache = useCacheKey(["webapps", "shortcuts"]);
 
