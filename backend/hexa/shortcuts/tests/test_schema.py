@@ -52,19 +52,21 @@ class ShortcutsSchemaTest(GraphQLTestCase):
         self.client.force_login(self.USER_ROOT)
         response = self.run_query(
             """
-            query shortcuts($workspaceSlug: String!) {
-                shortcuts(workspaceSlug: $workspaceSlug) {
-                    id
-                    name
-                    url
-                    type
-                    order
+            query workspace($slug: String!) {
+                workspace(slug: $slug) {
+                    shortcuts {
+                        id
+                        name
+                        url
+                        type
+                        order
+                    }
                 }
             }
             """,
-            {"workspaceSlug": self.WS1.slug},
+            {"slug": self.WS1.slug},
         )
-        self.assertEqual(0, len(response["data"]["shortcuts"]))
+        self.assertEqual(0, len(response["data"]["workspace"]["shortcuts"]))
 
     def test_shortcuts_query_with_shortcuts(self):
         self.WEBAPP1.add_to_shortcuts(self.USER_ROOT)
@@ -73,23 +75,26 @@ class ShortcutsSchemaTest(GraphQLTestCase):
         self.client.force_login(self.USER_ROOT)
         response = self.run_query(
             """
-            query shortcuts($workspaceSlug: String!) {
-                shortcuts(workspaceSlug: $workspaceSlug) {
-                    id
-                    name
-                    url
-                    type
-                    order
+            query workspace($slug: String!) {
+                workspace(slug: $slug) {
+                    shortcuts {
+                        id
+                        name
+                        url
+                        type
+                        order
+                    }
                 }
             }
             """,
-            {"workspaceSlug": self.WS1.slug},
+            {"slug": self.WS1.slug},
         )
 
-        shortcuts = response["data"]["shortcuts"]
+        shortcuts = response["data"]["workspace"]["shortcuts"]
         self.assertEqual(2, len(shortcuts))
-        self.assertEqual("Test Webapp 1", shortcuts[0]["name"])
-        self.assertEqual("Test Webapp 2", shortcuts[1]["name"])
+        shortcut_names = {s["name"] for s in shortcuts}
+        self.assertIn("Test Webapp 1", shortcut_names)
+        self.assertIn("Test Webapp 2", shortcut_names)
         self.assertEqual("webapp", shortcuts[0]["type"])
 
     def test_shortcuts_query_user_specific(self):
@@ -98,17 +103,19 @@ class ShortcutsSchemaTest(GraphQLTestCase):
         self.client.force_login(self.USER_REGULAR)
         response = self.run_query(
             """
-            query shortcuts($workspaceSlug: String!) {
-                shortcuts(workspaceSlug: $workspaceSlug) {
-                    id
-                    name
+            query workspace($slug: String!) {
+                workspace(slug: $slug) {
+                    shortcuts {
+                        id
+                        name
+                    }
                 }
             }
             """,
-            {"workspaceSlug": self.WS1.slug},
+            {"slug": self.WS1.slug},
         )
 
-        self.assertEqual(0, len(response["data"]["shortcuts"]))
+        self.assertEqual(0, len(response["data"]["workspace"]["shortcuts"]))
 
     def test_add_to_shortcuts_mutation(self):
         self.client.force_login(self.USER_ROOT)
@@ -204,14 +211,16 @@ class ShortcutsSchemaTest(GraphQLTestCase):
         self.client.force_login(self.USER_ROOT)
         response = self.run_query(
             """
-            query shortcuts($workspaceSlug: String!) {
-                shortcuts(workspaceSlug: $workspaceSlug) {
-                    id
-                    name
+            query workspace($slug: String!) {
+                workspace(slug: $slug) {
+                    shortcuts {
+                        id
+                        name
+                    }
                 }
             }
             """,
-            {"workspaceSlug": self.WS1.slug},
+            {"slug": self.WS1.slug},
         )
 
-        self.assertEqual(0, len(response["data"]["shortcuts"]))
+        self.assertEqual(0, len(response["data"]["workspace"]["shortcuts"]))

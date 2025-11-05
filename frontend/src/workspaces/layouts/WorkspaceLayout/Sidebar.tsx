@@ -27,7 +27,6 @@ import { LayoutContext } from "./WorkspaceLayout";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
-import { useShortcutsQuery } from "workspaces/graphql/queries.generated";
 
 type SidebarProps = {
   workspace: Sidebar_WorkspaceFragment;
@@ -85,14 +84,7 @@ const Sidebar = (props: SidebarProps) => {
 
   const router = useRouter();
 
-  const { slug } = workspace;
-
-  const { data: shortcutsData } = useShortcutsQuery({
-    variables: { workspaceSlug: slug },
-    skip: !isSidebarOpen,
-  });
-
-  const shortcuts = shortcutsData?.shortcuts ?? [];
+  const { slug, shortcuts } = workspace;
 
   const homeLink = {
     href: `/workspaces/${encodeURIComponent(slug)}`,
@@ -283,6 +275,14 @@ Sidebar.fragments = {
         manageMembers
         update
         launchNotebookServer
+      }
+      shortcuts {
+        id
+        name
+        url
+        icon
+        type
+        order
       }
     }
     ${SidebarMenu.fragments.workspace}

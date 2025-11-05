@@ -156,6 +156,45 @@ def resolve_workspace_invitations(workspace: Workspace, info, **kwargs):
     )
 
 
+@workspace_object.field("shortcuts")
+def resolve_workspace_shortcuts(workspace: Workspace, info, **kwargs):
+    from django.contrib.contenttypes.models import ContentType
+
+    from hexa.shortcuts.models import Shortcut
+    from hexa.webapps.models import Webapp
+
+    request: HttpRequest = info.context["request"]
+
+    shortcuts = (
+        Shortcut.objects.filter_for_user(request.user)
+        .filter(workspace=workspace)
+        .filter_by_content_types(Webapp)
+        .select_related("content_type")
+        .order_by("order", "created_at")
+    )
+
+    if not shortcuts.exists():
+        return []
+
+    webapp_content_type = ContentType.objects.get_for_model(Webapp)
+    webapp_ids = [
+        s.object_id for s in shortcuts if s.content_type == webapp_content_type
+    ]
+
+    shortcut_items = []
+
+    if webapp_ids:
+        webapps = {str(w.id): w for w in Webapp.objects.filter(id__in=webapp_ids)}
+
+        for shortcut in shortcuts:
+            if shortcut.content_type == webapp_content_type:
+                webapp = webapps.get(str(shortcut.object_id))
+                if webapp:
+                    shortcut_items.append(webapp.to_shortcut_item(shortcut))
+
+    return shortcut_items
+
+
 @workspace_object.field("connections")
 def resolve_workspace_connections(workspace: Workspace, info, **kwargs):
     return workspace.connections.all()

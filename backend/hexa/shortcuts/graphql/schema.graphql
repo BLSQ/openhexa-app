@@ -54,10 +54,6 @@ enum RemoveWebappFromShortcutsError {
   ITEM_NOT_FOUND
 }
 
-extend type Query {
-  shortcuts(workspaceSlug: String!): [ShortcutItem!]! @loginRequired
-}
-
 extend type Mutation {
   addWebappToShortcuts(input: AddWebappToShortcutsInput!): AddWebappToShortcutsResult! @loginRequired
   removeWebappFromShortcuts(input: RemoveWebappFromShortcutsInput!): RemoveWebappFromShortcutsResult! @loginRequired

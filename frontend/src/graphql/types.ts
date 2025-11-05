@@ -4092,7 +4092,6 @@ export type Query = {
   searchFiles: FileResultPage;
   searchPipelineTemplates: PipelineTemplateResultPage;
   searchPipelines: PipelineResultPage;
-  shortcuts: Array<ShortcutItem>;
   team?: Maybe<Team>;
   teams: TeamPage;
   /** Retrieves a template by workspace slug and code. */
@@ -4350,11 +4349,6 @@ export type QuerySearchPipelinesArgs = {
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
   workspaceSlugs?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
-};
-
-
-export type QueryShortcutsArgs = {
-  workspaceSlug: Scalars['String']['input'];
 };
 
 
@@ -5523,6 +5517,7 @@ export type Workspace = {
   permissions: WorkspacePermissions;
   pipelineTags: Array<Scalars['String']['output']>;
   pipelineTemplateTags: Array<Scalars['String']['output']>;
+  shortcuts: Array<ShortcutItem>;
   slug: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };
