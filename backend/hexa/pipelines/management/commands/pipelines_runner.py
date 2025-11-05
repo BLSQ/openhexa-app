@@ -27,7 +27,6 @@ class PodTerminationReason(Enum):
     DeadlineExceeded = "DeadlineExceeded"
 
 
-# TODO : only for kubernetes spawner
 # TODO : separate monitor and run functions
 # TODO : unit test
 # TODO : e2e test
