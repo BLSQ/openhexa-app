@@ -1542,6 +1542,27 @@ type DeleteMetadataAttributeResult {
 }
 
 """
+The DeleteOrganizationError enum represents the possible errors that can occur during the deleteOrganization mutation.
+"""
+enum DeleteOrganizationError {
+  """Indicates that the organization was not found."""
+  NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to delete the organization.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The DeleteOrganizationInput type represents the input for the deleteOrganization mutation.
+"""
+input DeleteOrganizationInput {
+  """The unique identifier of the organization."""
+  id: UUID!
+}
+
+"""
 The DeleteOrganizationInvitationError enum represents the possible errors that can occur during the deleteOrganizationInvitation mutation.
 """
 enum DeleteOrganizationInvitationError {
@@ -1601,6 +1622,19 @@ type DeleteOrganizationMemberResult {
   """
   Indicates whether the deleteOrganizationMember mutation was successful.
   """
+  success: Boolean!
+}
+
+"""
+The DeleteOrganizationResult type represents the result of the deleteOrganization mutation.
+"""
+type DeleteOrganizationResult {
+  """
+  The list of errors that occurred during the deleteOrganization mutation.
+  """
+  errors: [DeleteOrganizationError!]!
+
+  """Indicates whether the deleteOrganization mutation was successful."""
   success: Boolean!
 }
 
@@ -2144,6 +2178,33 @@ enum InviteWorkspaceMembershipError {
   WORKSPACE_NOT_FOUND
 }
 
+"""Represents the error types for issuing a workspace token."""
+enum IssueWorkspaceTokenError {
+  AUTH_UNAUTHENTICATED
+  CLOCK_ERROR
+  CONFIG_MISSING_PRIVATE_KEY
+  INPUT_INVALID
+  MEMBERSHIP_REQUIRED
+  ROLE_UNRESOLVED
+  WORKSPACE_NOT_FOUND
+}
+
+"""Represents the input for issuing a workspace JWT token."""
+input IssueWorkspaceTokenInput {
+  workspaceId: UUID
+  workspaceSlug: String
+}
+
+"""Represents the result of issuing a workspace JWT token."""
+type IssueWorkspaceTokenPayload {
+  errors: [IssueWorkspaceTokenError!]!
+  expiresAt: DateTime
+  role: WorkspaceMembershipRole
+  success: Boolean!
+  token: String
+  workspace: WorkspaceRef
+}
+
 scalar JSON
 
 """Represents the error types for joining a workspace."""
@@ -2450,6 +2511,7 @@ type Mutation {
 
   """Delete an metadata attribute from an object instance"""
   deleteMetadataAttribute(input: DeleteMetadataAttributeInput!): DeleteMetadataAttributeResult!
+  deleteOrganization(input: DeleteOrganizationInput!): DeleteOrganizationResult!
   deleteOrganizationInvitation(input: DeleteOrganizationInvitationInput!): DeleteOrganizationInvitationResult!
   deleteOrganizationMember(input: DeleteOrganizationMemberInput!): DeleteOrganizationMemberResult!
 
@@ -2499,6 +2561,7 @@ type Mutation {
   generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult!
   inviteOrganizationMember(input: InviteOrganizationMemberInput!): InviteOrganizationMemberResult!
   inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult!
+  issueWorkspaceToken(input: IssueWorkspaceTokenInput!): IssueWorkspaceTokenPayload!
   joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult!
   launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult!
   launchNotebookServer(input: LaunchNotebookServerInput!): LaunchNotebookServerResult!
@@ -2571,10 +2634,17 @@ type Mutation {
   """Update a dataset version."""
   updateDatasetVersion(input: UpdateDatasetVersionInput!): UpdateDatasetVersionResult!
   updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
+  updateOrganization(input: UpdateOrganizationInput!): UpdateOrganizationResult!
   updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult!
 
   """Updates an existing pipeline."""
   updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult!
+
+  """
+  Updates the heartbeat timestamp for the current pipeline run.
+  Must be called by an authenticated pipeline run.
+  """
+  updatePipelineHeartbeat: UpdatePipelineHeartbeatResult!
 
   """Updates the progress of a pipeline."""
   updatePipelineProgress(input: UpdatePipelineProgressInput!): UpdatePipelineProgressResult!
@@ -2638,6 +2708,9 @@ type Organization {
 
   """The invitations sent to join the organization."""
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): OrganizationInvitationPage!
+
+  """The logo of the organization (base64 encoded)."""
+  logo: String
 
   """The members of the organization."""
   members(page: Int, perPage: Int, role: OrganizationMembershipRole, term: String): OrganizationMembershipPage!
@@ -2749,8 +2822,10 @@ enum OrganizationMembershipRole {
 type OrganizationPermissions {
   archiveWorkspace: Boolean!
   createWorkspace: Boolean!
+  delete: Boolean!
   manageMembers: Boolean!
   manageOwners: Boolean!
+  update: Boolean!
 }
 
 """Represents a workspace invitation within an organization invitation."""
@@ -3039,7 +3114,7 @@ type PipelineTemplate {
   id: UUID!
   name: String!
   permissions: PipelineTemplatePermissions!
-  publisher: String
+  pipelinesCount: Int!
   sourcePipeline: Pipeline
   tags: [Tag!]!
   updatedAt: DateTime!
@@ -3050,6 +3125,16 @@ type PipelineTemplate {
 enum PipelineTemplateError {
   PERMISSION_DENIED
   PIPELINE_TEMPLATE_NOT_FOUND
+}
+
+"""Enum representing the possible orderings for pipeline templates."""
+enum PipelineTemplateOrderBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  NAME_ASC
+  NAME_DESC
+  PIPELINES_COUNT_ASC
+  PIPELINES_COUNT_DESC
 }
 
 """Represents paged result of fetching pipeline templates."""
@@ -3356,7 +3441,7 @@ type Query {
   pipelineTemplateVersion(id: UUID!): PipelineTemplateVersion
 
   """Retrieves a page of pipeline templates."""
-  pipelineTemplates(functionalType: PipelineFunctionalType, page: Int = 1, perPage: Int = 15, publisher: String, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
+  pipelineTemplates(functionalType: PipelineFunctionalType, orderBy: PipelineTemplateOrderBy, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
 
   """Retrieves a pipeline version by ID."""
   pipelineVersion(id: UUID!): PipelineVersion
@@ -4018,6 +4103,52 @@ type UpdateMembershipResult {
 }
 
 """
+The UpdateOrganizationError enum represents the possible errors that can occur during the updateOrganization mutation.
+"""
+enum UpdateOrganizationError {
+  """Indicates that the provided logo is in an invalid format."""
+  INVALID_LOGO
+
+  """
+  Indicates that the provided short name is invalid (must be max 5 uppercase letters).
+  """
+  INVALID_SHORT_NAME
+
+  """Indicates that an organization with the same name already exists."""
+  NAME_DUPLICATE
+
+  """Indicates that the organization was not found."""
+  NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to update the organization.
+  """
+  PERMISSION_DENIED
+
+  """
+  Indicates that an organization with the same short name already exists.
+  """
+  SHORT_NAME_DUPLICATE
+}
+
+"""
+The UpdateOrganizationInput type represents the input for the updateOrganization mutation.
+"""
+input UpdateOrganizationInput {
+  """The unique identifier of the organization."""
+  id: UUID!
+
+  """The updated logo of the organization (base64 encoded)."""
+  logo: String
+
+  """The updated name of the organization."""
+  name: String
+
+  """The updated short name of the organization."""
+  shortName: String
+}
+
+"""
 The UpdateOrganizationMemberError enum represents the possible errors that can occur during the updateOrganizationMember mutation.
 """
 enum UpdateOrganizationMemberError {
@@ -4066,6 +4197,22 @@ type UpdateOrganizationMemberResult {
 }
 
 """
+The UpdateOrganizationResult type represents the result of the updateOrganization mutation.
+"""
+type UpdateOrganizationResult {
+  """
+  The list of errors that occurred during the updateOrganization mutation.
+  """
+  errors: [UpdateOrganizationError!]!
+
+  """The updated organization object."""
+  organization: Organization
+
+  """Indicates whether the updateOrganization mutation was successful."""
+  success: Boolean!
+}
+
+"""
 Enum representing the possible errors that can occur when updating a pipeline.
 """
 enum UpdatePipelineError {
@@ -4073,6 +4220,12 @@ enum UpdatePipelineError {
   MISSING_VERSION_CONFIG
   NOT_FOUND
   PERMISSION_DENIED
+}
+
+"""Represents the result of updating a pipeline heartbeat."""
+type UpdatePipelineHeartbeatResult {
+  errors: [PipelineError!]!
+  success: Boolean!
 }
 
 """Represents the input for updating a pipeline."""
@@ -4624,4 +4777,10 @@ type WorkspacePermissions {
   launchNotebookServer: Boolean!
   manageMembers: Boolean!
   update: Boolean!
+}
+
+"""Represents a minimal workspace reference in the token payload."""
+type WorkspaceRef {
+  id: UUID!
+  slug: String!
 }

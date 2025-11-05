@@ -18,7 +18,6 @@ import {
   WorkspaceDatasetAccessPageQuery,
   WorkspaceDatasetAccessPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
-import useFeature from "identity/hooks/useFeature";
 
 export type WorkspaceDatasetAccessPageProps = {
   isSpecificVersion: boolean;
@@ -36,7 +35,6 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
     variables: props,
   });
   const [isLinkDialogOpen, setLinkDialogOpen] = useState(false);
-  const [organizationFeatureIsEnabled] = useFeature("organization");
   if (!data || !data.datasetLink || !data.workspace) {
     return null;
   }
@@ -77,7 +75,7 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
         ]}
         tab="access"
       >
-        {organizationFeatureIsEnabled && dataset.workspace?.organization && (
+        {dataset.workspace?.organization && (
           <div>
             <div className="px-4 py-5 sm:p-6">
               {isWorkspaceSource && (
@@ -129,9 +127,7 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
             </div>
           </div>
         )}
-        {(!organizationFeatureIsEnabled ||
-          !dataset.sharedWithOrganization ||
-          !dataset.workspace?.organization) && (
+        {(!dataset.sharedWithOrganization || !dataset.workspace?.organization) && (
           <>
             <DatasetLinksDataGrid dataset={datasetLink.dataset} />
             <Block.Content className="flex justify-end">

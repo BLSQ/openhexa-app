@@ -1,3 +1,4 @@
+import base64
 from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
@@ -591,3 +592,555 @@ class OrganizationInvitationTest(GraphQLTestCase, OrganizationTestMixin):
         }
         expected_emails = {"invitee1@blsq.org", "invitee2@blsq.org"}
         self.assertEqual(invitation_emails, expected_emails)
+
+
+def _create_test_image():
+    """Create a minimal valid PNG image as a data URL."""
+    png_bytes = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+    )
+    return f"data:image/png;base64,{base64.b64encode(png_bytes).decode()}"
+
+
+class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
+    def setUp(self):
+        super().setUp()
+        self.owner = self.create_user("owner@blsq.org")
+        self.admin = self.create_user("admin@blsq.org")
+        self.member = self.create_user("member@blsq.org")
+        self.non_member = self.create_user("non_member@blsq.org")
+
+        self.organization = self.create_organization(
+            self.owner, "Test Organization", "Description", short_name="TEST"
+        )
+        self.join_organization(
+            self.admin, self.organization, OrganizationMembershipRole.ADMIN
+        )
+        self.join_organization(
+            self.member, self.organization, OrganizationMembershipRole.MEMBER
+        )
+
+        self.valid_logo = _create_test_image()
+
+    def test_update_organization_name_success(self):
+        """Test successful organization name update by owner."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+                updateOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                        name
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.organization.id),
+                    "name": "Updated Organization Name",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "organization": {
+                    "id": str(self.organization.id),
+                    "name": "Updated Organization Name",
+                },
+            },
+            r["data"]["updateOrganization"],
+        )
+
+        self.organization.refresh_from_db()
+        self.assertEqual(self.organization.name, "Updated Organization Name")
+
+    def test_update_organization_short_name_success(self):
+        """Test successful organization short name update."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+                updateOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                        shortName
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.organization.id),
+                    "shortName": "WHO",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "organization": {
+                    "id": str(self.organization.id),
+                    "shortName": "WHO",
+                },
+            },
+            r["data"]["updateOrganization"],
+        )
+
+        self.organization.refresh_from_db()
+        self.assertEqual(self.organization.short_name, "WHO")
+
+    def test_update_organization_logo_success(self):
+        """Test successful organization logo update."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+                updateOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                        logo
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.organization.id),
+                    "logo": self.valid_logo,
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["updateOrganization"]["success"])
+        self.assertEqual(r["data"]["updateOrganization"]["errors"], [])
+        self.assertIsNotNone(r["data"]["updateOrganization"]["organization"]["logo"])
+        self.assertTrue(
+            r["data"]["updateOrganization"]["organization"]["logo"].startswith(
+                "data:image"
+            )
+        )
+
+        self.organization.refresh_from_db()
+        self.assertIsNotNone(self.organization.logo)
+
+    def test_update_organization_remove_logo(self):
+        """Test removing organization logo by sending empty string."""
+        self.organization.logo = base64.b64decode(self.valid_logo.split(",")[1])
+        self.organization.save()
+
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+                updateOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                        logo
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.organization.id),
+                    "logo": "",
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["updateOrganization"]["success"])
+        self.assertEqual(r["data"]["updateOrganization"]["errors"], [])
+        self.assertIsNone(r["data"]["updateOrganization"]["organization"]["logo"])
+
+        self.organization.refresh_from_db()
+        self.assertFalse(self.organization.logo)
+
+    def test_update_organization_invalid_logo(self):
+        """Test organization update with invalid logo format."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+                updateOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.organization.id),
+                    "logo": "not-a-valid-image-data-url",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["INVALID_LOGO"],
+                "organization": None,
+            },
+            r["data"]["updateOrganization"],
+        )
+
+    def test_update_organization_name_duplicate(self):
+        """Test organization update with duplicate name."""
+        other_org = self.create_organization(
+            self.owner, "Other Organization", "Other Description", short_name="OTHR"
+        )
+
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+                updateOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.organization.id),
+                    "name": other_org.name,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["NAME_DUPLICATE"],
+                "organization": None,
+            },
+            r["data"]["updateOrganization"],
+        )
+
+    def test_update_organization_short_name_duplicate(self):
+        """Test organization update with duplicate short name."""
+        other_org = self.create_organization(
+            self.owner, "Other Organization", "Other Description", short_name="WHO"
+        )
+
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+                updateOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.organization.id),
+                    "shortName": other_org.short_name,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["SHORT_NAME_DUPLICATE"],
+                "organization": None,
+            },
+            r["data"]["updateOrganization"],
+        )
+
+    def test_update_organization_invalid_short_name_too_long(self):
+        """Test organization update with short name that's too long."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+                updateOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.organization.id),
+                    "shortName": "TOOLONG",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["INVALID_SHORT_NAME"],
+                "organization": None,
+            },
+            r["data"]["updateOrganization"],
+        )
+
+    def test_update_organization_invalid_short_name_lowercase(self):
+        """Test organization update with lowercase short name."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+                updateOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.organization.id),
+                    "shortName": "who",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["INVALID_SHORT_NAME"],
+                "organization": None,
+            },
+            r["data"]["updateOrganization"],
+        )
+
+    def test_update_organization_by_admin_success(self):
+        """Test that admin can also update organization."""
+        self.client.force_login(self.admin)
+        r = self.run_query(
+            """
+            mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+                updateOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                        name
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.organization.id),
+                    "name": "Updated by Admin",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "organization": {
+                    "id": str(self.organization.id),
+                    "name": "Updated by Admin",
+                },
+            },
+            r["data"]["updateOrganization"],
+        )
+
+    def test_update_organization_permission_denied_member(self):
+        """Test that regular member cannot update organization."""
+        self.client.force_login(self.member)
+        r = self.run_query(
+            """
+            mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+                updateOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.organization.id),
+                    "name": "Unauthorized Update",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+                "organization": None,
+            },
+            r["data"]["updateOrganization"],
+        )
+
+    def test_update_organization_permission_denied_non_member(self):
+        """Test that non-member cannot update organization"""
+        self.client.force_login(self.non_member)
+        r = self.run_query(
+            """
+            mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+                updateOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.organization.id),
+                    "name": "Unauthorized Update",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["NOT_FOUND"],
+                "organization": None,
+            },
+            r["data"]["updateOrganization"],
+        )
+
+    def test_delete_organization_success(self):
+        """Test successful organization deletion by owner (soft delete)."""
+        org_to_delete = self.create_organization(
+            self.owner, "Organization to Delete", "Description", short_name="DEL1"
+        )
+
+        workspace1 = self.create_workspace(
+            self.owner, org_to_delete, "Workspace 1", "Description 1"
+        )
+        workspace2 = self.create_workspace(
+            self.owner, org_to_delete, "Workspace 2", "Description 2"
+        )
+
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation DeleteOrganization($input: DeleteOrganizationInput!) {
+                deleteOrganization(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(org_to_delete.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["deleteOrganization"],
+        )
+
+        # Soft delete - organization still exists but is marked as deleted
+        org_to_delete.refresh_from_db()
+        self.assertIsNotNone(org_to_delete.deleted_at)
+
+        workspace1.refresh_from_db()
+        workspace2.refresh_from_db()
+        self.assertTrue(workspace1.archived)
+        self.assertTrue(workspace2.archived)
+
+    def test_delete_organization_permission_denied_member(self):
+        """Test that regular member cannot delete organization."""
+        org_to_delete = self.create_organization(
+            self.owner, "Organization to Delete 2", "Description", short_name="DEL2"
+        )
+        self.join_organization(
+            self.member, org_to_delete, OrganizationMembershipRole.MEMBER
+        )
+
+        self.client.force_login(self.member)
+        r = self.run_query(
+            """
+            mutation DeleteOrganization($input: DeleteOrganizationInput!) {
+                deleteOrganization(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(org_to_delete.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["deleteOrganization"],
+        )
+
+        self.assertTrue(Organization.objects.filter(id=org_to_delete.id).exists())
+
+    def test_delete_organization_permission_denied_non_member(self):
+        """Test that non-member cannot delete organization"""
+        org_to_delete = self.create_organization(
+            self.owner, "Organization to Delete 3", "Description", short_name="DEL3"
+        )
+
+        self.client.force_login(self.non_member)
+        r = self.run_query(
+            """
+            mutation DeleteOrganization($input: DeleteOrganizationInput!) {
+                deleteOrganization(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(org_to_delete.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["NOT_FOUND"]},
+            r["data"]["deleteOrganization"],
+        )
+
+        self.assertTrue(Organization.objects.filter(id=org_to_delete.id).exists())

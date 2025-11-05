@@ -177,16 +177,12 @@ describe("DeleteOrganizationMemberDialog", () => {
   });
 
   it("shows loading state during deletion", async () => {
-    const mockDeleteMutation = jest.fn(() =>
-      Promise.resolve({
-        data: {
-          deleteOrganizationMember: {
-            success: true,
-            errors: [],
-          },
-        },
-      }),
-    );
+    let resolveMutation: (value: any) => void;
+    const mutationPromise = new Promise((resolve) => {
+      resolveMutation = resolve;
+    });
+
+    const mockDeleteMutation = jest.fn(() => mutationPromise);
 
     useDeleteOrganizationMemberMutationMock.mockReturnValue([
       mockDeleteMutation,
@@ -210,5 +206,14 @@ describe("DeleteOrganizationMemberDialog", () => {
       await screen.findByRole("button", { name: "Removing..." }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Removing..." })).toBeDisabled();
+
+    resolveMutation!({
+      data: {
+        deleteOrganizationMember: {
+          success: true,
+          errors: [],
+        },
+      },
+    });
   });
 });

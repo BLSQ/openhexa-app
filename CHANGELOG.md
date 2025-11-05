@@ -1,5 +1,71 @@
 # Changelog
 
+## [2.10.0](https://github.com/BLSQ/openhexa-app/compare/2.9.1...2.10.0) (2025-11-03)
+
+
+### Features
+
+* as an organization owner or admin i want to manage the organization settings (PATHWAYS-967) ([#1456](https://github.com/BLSQ/openhexa-app/issues/1456)) ([28be58a](https://github.com/BLSQ/openhexa-app/commit/28be58a7c519b7bef4bcc41a7b1e85ffb5aac491))
+
+## [2.9.1](https://github.com/BLSQ/openhexa-app/compare/2.9.0...2.9.1) (2025-10-30)
+
+
+### Bug Fixes
+
+* templates should be taken globally ([#1454](https://github.com/BLSQ/openhexa-app/issues/1454)) ([743985b](https://github.com/BLSQ/openhexa-app/commit/743985ba709e3c0b335dbf65032465a1a50b86c5))
+
+## [2.9.0](https://github.com/BLSQ/openhexa-app/compare/2.8.0...2.9.0) (2025-10-30)
+
+
+### Features
+
+* add workspace scoping for pipeline tag search similar as in pipeline tempaltes ([#1451](https://github.com/BLSQ/openhexa-app/issues/1451)) ([db6a1fa](https://github.com/BLSQ/openhexa-app/commit/db6a1fae1cadc6a2f2be0116dc5c9f65aa893272))
+
+
+### Bug Fixes
+
+* add distinct to fix tags join ([#1448](https://github.com/BLSQ/openhexa-app/issues/1448)) ([1556684](https://github.com/BLSQ/openhexa-app/commit/1556684e8f2025c18d837d35f073fd2fb2ae19a2))
+* redirects from organization pages after removing the feature flag  ([#1450](https://github.com/BLSQ/openhexa-app/issues/1450)) ([8e78ebc](https://github.com/BLSQ/openhexa-app/commit/8e78ebc5cad448d07cb955f706cff635ab857970))
+
+## [2.8.0](https://github.com/BLSQ/openhexa-app/compare/2.7.1...2.8.0) (2025-10-29)
+
+
+### Features
+
+* add issueWorkspaceToken endpoint to generate a JWT token ([#1446](https://github.com/BLSQ/openhexa-app/issues/1446)) ([41c5292](https://github.com/BLSQ/openhexa-app/commit/41c5292d145a721ec96979af114c3a2ed3446a20))
+* enable pipeline template sorting with a generic approach ([#1433](https://github.com/BLSQ/openhexa-app/issues/1433)) ([6e7862f](https://github.com/BLSQ/openhexa-app/commit/6e7862f8f91fc70e208088cd91f5b41ef094ac52))
+
+
+### Bug Fixes
+
+* pipeline runner zombie reaper should kill runners with meaningful message and status (HEXA-1413) ([#1445](https://github.com/BLSQ/openhexa-app/issues/1445)) ([e908ff5](https://github.com/BLSQ/openhexa-app/commit/e908ff50093f55f1143f2141ab4f14a48ae9dc6e))
+
+## [2.7.1](https://github.com/BLSQ/openhexa-app/compare/2.7.0...2.7.1) (2025-10-28)
+
+
+### Bug Fixes
+
+* allow superusers to see pipelines in a workspace they are not member of (HEXA-1407) ([#1442](https://github.com/BLSQ/openhexa-app/issues/1442)) ([9432e0c](https://github.com/BLSQ/openhexa-app/commit/9432e0c44aeca8d2868d64102353ea2258b7e94b))
+
+## [2.7.0](https://github.com/BLSQ/openhexa-app/compare/2.6.2...2.7.0) (2025-10-27)
+
+
+### Features
+
+* add download code to templates ([#1412](https://github.com/BLSQ/openhexa-app/issues/1412)) ([115a07e](https://github.com/BLSQ/openhexa-app/commit/115a07e98c9811aadd27c74e5c8c61fd76f218f7))
+* extend tags and functional types to template pipelines ([#1405](https://github.com/BLSQ/openhexa-app/issues/1405)) ([150cf64](https://github.com/BLSQ/openhexa-app/commit/150cf641bce01aa1d772f4fdbcb87a76dcf78d35))
+* remove feature flag of Organization ([#1429](https://github.com/BLSQ/openhexa-app/issues/1429)) ([021f4bb](https://github.com/BLSQ/openhexa-app/commit/021f4bbf3a5c0ee7e19ac9d44a157c6e15aebdcb))
+
+
+### Bug Fixes
+
+* add a loader to direct workspace invitation query + optimize a little bit the query ([#1431](https://github.com/BLSQ/openhexa-app/issues/1431)) ([b61e8b0](https://github.com/BLSQ/openhexa-app/commit/b61e8b085fd960d076379551295d1375af9ea70a))
+* apollo version (HEXA-1370)([#1440](https://github.com/BLSQ/openhexa-app/issues/1440)) ([8fe7b37](https://github.com/BLSQ/openhexa-app/commit/8fe7b37d5ab31c931440363c9843cf89a3369270))
+* pipeline heartbeat resolver (HEXA-1406) ([#1441](https://github.com/BLSQ/openhexa-app/issues/1441)) ([fba6aef](https://github.com/BLSQ/openhexa-app/commit/fba6aef9d7000cc706d35c28877e2a0e1f688627))
+* pipelines should have access to organization shared dataset (PATHWAYS-869) ([#1435](https://github.com/BLSQ/openhexa-app/issues/1435)) ([8950017](https://github.com/BLSQ/openhexa-app/commit/8950017d273074b0d5278a060fa1aae2ff036ed1))
+* Renovate pip-compile dependency detection ([#1428](https://github.com/BLSQ/openhexa-app/issues/1428)) ([8d0d1e6](https://github.com/BLSQ/openhexa-app/commit/8d0d1e6235902c67900d124d6ac250ec25d0bf02))
+* superusers should be able to access all datasets (HEXA-1396) ([#1427](https://github.com/BLSQ/openhexa-app/issues/1427)) ([5d288f2](https://github.com/BLSQ/openhexa-app/commit/5d288f21725095079f4bb7ac7d60558f11dc3490))
+
 ## [2.6.2](https://github.com/BLSQ/openhexa-app/compare/2.6.1...2.6.2) (2025-10-16)
 
 

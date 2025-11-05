@@ -103,6 +103,21 @@ container.
    docker compose up
    ```
 
+### Python requirements
+
+Python requirements are handled with [pip-tools](https://github.com/jazzband/pip-tools), you will need to install it.
+
+We use `pip-tools` since it allows us to lock down the versions of all of the packages that our Python code depends on in the `requirements.txt` file. We want this file to include versions for not just the direct dependencies, but also versions for all of the transitive dependencies as well, that is, the versions of modules that our directly dependent modules themselves depend on.
+
+For this reason, **instead of updating `requirements.txt` directly, we update `requirements.in`**.
+Then you run in the root directory:
+
+```sh
+pip-compile --no-emit-index-url requirements.in
+```
+
+You can then rebuild the Docker image.
+
 ## Frontend
 
 1. Prepare the `.env` :
@@ -134,9 +149,6 @@ Anything else will be redirected to the frontend served at `http://localhost:300
 
 You can then log in with the following credentials: `root@openhexa.org`/`root`
 
-Python requirements are handled with [pip-tools](https://github.com/jazzband/pip-tools), you will need to install it.
-When you want to add a requirement, simply update `requirements.in` and run `pip-compile` in the root directory. You
-can then rebuild the Docker image.
 
 ## Backend & Frontend 
 

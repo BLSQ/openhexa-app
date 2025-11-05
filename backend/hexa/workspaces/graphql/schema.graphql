@@ -631,6 +631,64 @@ enum DeclineWorkspaceInvitationError {
   PERMISSION_DENIED
 }
 
+"""
+Represents the input for issuing a workspace JWT token.
+"""
+input IssueWorkspaceTokenInput {
+  # The ID of the workspace (provide exactly one of workspaceId or workspaceSlug).
+  workspaceId: UUID
+
+  # The slug of the workspace (provide exactly one of workspaceId or workspaceSlug).
+  workspaceSlug: String
+}
+
+"""
+Represents a minimal workspace reference in the token payload.
+"""
+type WorkspaceRef {
+  # The unique identifier for the workspace.
+  id: UUID!
+
+  # The slug of the workspace.
+  slug: String!
+}
+
+"""
+Represents the result of issuing a workspace JWT token.
+"""
+type IssueWorkspaceTokenPayload {
+  # Indicates whether the token issuance was successful.
+  success: Boolean!
+
+  # The generated JWT token.
+  token: String
+
+  # The expiration timestamp of the token.
+  expiresAt: DateTime
+
+  # The workspace reference.
+  workspace: WorkspaceRef
+
+  # The user's role in the workspace.
+  role: WorkspaceMembershipRole
+
+  # The errors that occurred during token issuance.
+  errors: [IssueWorkspaceTokenError!]!
+}
+
+"""
+Represents the error types for issuing a workspace token.
+"""
+enum IssueWorkspaceTokenError {
+  AUTH_UNAUTHENTICATED
+  INPUT_INVALID
+  WORKSPACE_NOT_FOUND
+  MEMBERSHIP_REQUIRED
+  CONFIG_MISSING_PRIVATE_KEY
+  ROLE_UNRESOLVED
+  CLOCK_ERROR
+}
+
 
 extend type Mutation {
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult! @loginRequired
@@ -646,6 +704,7 @@ extend type Mutation {
   resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult! @loginRequired
   deleteWorkspaceInvitation(input: DeleteWorkspaceInvitationInput!): DeleteWorkspaceInvitationResult! @loginRequired
   deleteWorkspaceDatabaseTable(input: DeleteWorkspaceDatabaseTableInput!): DeleteWorkspaceDatabaseTableResult @loginRequired
+  issueWorkspaceToken(input: IssueWorkspaceTokenInput!): IssueWorkspaceTokenPayload! @loginRequired
 }
 
 

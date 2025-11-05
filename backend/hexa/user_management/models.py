@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import uuid
+from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.contrib.auth.models import UserManager as BaseUserManager
@@ -10,11 +11,18 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import TimestampSigner
 from django.db import models
 from django.db.models import EmailField, Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
+from hexa.core.models.soft_delete import (
+    DefaultSoftDeletedManager,
+    IncludeSoftDeletedManager,
+    SoftDeletedModel,
+    SoftDeleteQuerySet,
+)
 
 
 class UserManager(BaseUserManager):
@@ -162,7 +170,7 @@ class OrganizationManager(models.Manager):
     pass
 
 
-class OrganizationQuerySet(BaseQuerySet):
+class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
         # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
         from hexa.pipelines.authentication import PipelineRunUser
@@ -179,7 +187,7 @@ class OrganizationQuerySet(BaseQuerySet):
         )
 
 
-class Organization(Base):
+class Organization(Base, SoftDeletedModel):
     class Meta:
         db_table = "identity_organization"
 
@@ -192,9 +200,32 @@ class Organization(Base):
     countries = CountryField(multiple=True, blank=True)
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)
+    logo = models.BinaryField(blank=True, null=True)
     members = models.ManyToManyField(User, through="OrganizationMembership")
 
-    objects = OrganizationManager.from_queryset(OrganizationQuerySet)()
+    objects = DefaultSoftDeletedManager.from_queryset(OrganizationQuerySet)()
+    all_objects = IncludeSoftDeletedManager.from_queryset(OrganizationQuerySet)()
+
+    def delete(self):
+        """
+        Soft delete the organization and archive all related workspaces.
+        """
+        super().delete()
+        self.workspaces.filter(archived=False).update(
+            archived=True, archived_at=timezone.now()
+        )
+
+    def restore(self):
+        """
+        Restore the organization and unarchive workspaces that were archived
+        at the same time as the organization deletion.
+        """
+        if self.deleted_at:
+            time_threshold = self.deleted_at - timedelta(seconds=2)
+            self.workspaces.filter(
+                archived=True, archived_at__gte=time_threshold
+            ).update(archived=False, archived_at=None)
+        super().restore()
 
     def filter_workspaces_for_user(self, user):
         workspaces = self.workspaces.exclude(archived=True)

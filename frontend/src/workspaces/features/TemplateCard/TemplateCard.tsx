@@ -45,7 +45,15 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
         <div className={clsx("line-clamp-3")}>
           {stripMarkdown(template.description ?? "")}
         </div>
-        <PipelineMetadataDisplay metadata={template} size="sm" />
+        <div className="flex items-center justify-between">
+          <PipelineMetadataDisplay metadata={template} size="sm" />
+          {template.pipelinesCount !== undefined && (
+            <div className="text-xs text-gray-500 flex items-center gap-1">
+              <span className="font-medium">{template.pipelinesCount}</span>
+              <span>{template.pipelinesCount === 1 ? t("pipeline") : t("pipelines")}</span>
+            </div>
+          )}
+        </div>
         {template.currentVersion?.user && (
           <div className="flex justify-end">
             <Tooltip
@@ -97,6 +105,7 @@ TemplateCard.fragments = {
       name
       description
       publisher
+      pipelinesCount
       ...PipelineMetadataDisplay_template
       currentVersion {
         id

@@ -26,11 +26,23 @@ extend type Mutation {
   updateTemplateVersion(input: UpdateTemplateVersionInput!): UpdateTemplateVersionResult! @loginRequired
 }
 
+"""
+Enum representing the possible orderings for pipeline templates.
+"""
+enum PipelineTemplateOrderBy {
+  PIPELINES_COUNT_DESC
+  PIPELINES_COUNT_ASC
+  NAME_DESC
+  NAME_ASC
+  CREATED_AT_DESC
+  CREATED_AT_ASC
+}
+
 extend type Query {
   """
   Retrieves a page of pipeline templates.
   """
-  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String, tags: [String!], functionalType: PipelineFunctionalType, publisher: String): PipelineTemplatePage!  @loginRequired
+  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String, tags: [String!], functionalType: PipelineFunctionalType, publisher: String, orderBy: PipelineTemplateOrderBy): PipelineTemplatePage!  @loginRequired
 
   """
   Retrieves a template by workspace slug and code.
@@ -176,7 +188,8 @@ type PipelineTemplate {
   updatedAt: DateTime!  # The last updated date of the pipeline template.
   functionalType: PipelineFunctionalType  # Business purpose: what the template does (extraction/transformation/loading/computation)
   tags: [Tag!]!  # The tags associated with the pipeline template.
-  publisher: String  # Publisher of the template.
+  publisher: String  # Publisher of the template (organization name).
+  pipelinesCount: Int!  # Number of pipelines created from this template.
 }
 
 """

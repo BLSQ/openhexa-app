@@ -1,4 +1,4 @@
-from ariadne import ObjectType
+from ariadne import EnumType, ObjectType
 
 from hexa.core.graphql import result_page
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
@@ -10,6 +10,18 @@ pipeline_template_version_permissions = ObjectType("PipelineTemplateVersionPermi
 
 pipeline_template_object = ObjectType("PipelineTemplate")
 pipeline_template_version_object = ObjectType("PipelineTemplateVersion")
+
+pipeline_template_order_by_enum = EnumType(
+    "PipelineTemplateOrderBy",
+    {
+        "PIPELINES_COUNT_DESC": "-pipelines_count",
+        "PIPELINES_COUNT_ASC": "pipelines_count",
+        "NAME_DESC": "-name",
+        "NAME_ASC": "name",
+        "CREATED_AT_DESC": "-created_at",
+        "CREATED_AT_ASC": "created_at",
+    },
+)
 
 
 @workspace_permissions.field("createPipelineTemplateVersion")
@@ -77,11 +89,17 @@ def resolve_pipeline_template_publisher(
 ):
     if not pipeline_template.workspace or not pipeline_template.workspace.organization:
         return None
+    return pipeline_template.workspace.organization.name
 
-    org_name = pipeline_template.workspace.organization.name
-    if org_name == "Bluesquare":
-        return "Bluesquare"
-    return "Community"
+
+@pipeline_template_object.field("pipelinesCount")
+def resolve_pipeline_template_pipelines_count(
+    pipeline_template: PipelineTemplate, info, **kwargs
+):
+    if hasattr(pipeline_template, "pipelines_count"):
+        return pipeline_template.pipelines_count
+
+    return pipeline_template.pipelines.filter(deleted_at__isnull=True).count()
 
 
 @pipeline_template_permissions.field("delete")
@@ -145,4 +163,5 @@ bindables = [
     pipeline_template_version_object,
     pipeline_template_permissions,
     pipeline_template_version_permissions,
+    pipeline_template_order_by_enum,
 ]

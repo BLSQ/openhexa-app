@@ -9,6 +9,7 @@ import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
 import { useTranslation } from "next-i18next";
 import { TagIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
+import { TemplateSortOption } from "pipelines/config/sorting";
 
 type Filter = {
   workspaceFilter: any;
@@ -29,9 +30,9 @@ type HeaderProps = {
   setTagsFilter?: (tags: string[]) => void;
   templateTags?: string[];
   pipelineTags?: string[];
-  publisherFilter?: any;
-  setPublisherFilter?: (filter: any) => void;
-  publisherFilterOptions?: any[];
+  sortOrder?: TemplateSortOption;
+  setSortOrder?: (option: TemplateSortOption) => void;
+  sortOptions?: TemplateSortOption[];
 };
 
 const Header = ({
@@ -47,9 +48,9 @@ const Header = ({
   setTagsFilter,
   templateTags,
   pipelineTags,
-  publisherFilter,
-  setPublisherFilter,
-  publisherFilterOptions,
+  sortOrder,
+  setSortOrder,
+  sortOptions,
 }: HeaderProps) => {
   const { t } = useTranslation();
 
@@ -139,14 +140,14 @@ const Header = ({
             className={"min-w-48"}
           />
         )}
-        {setPublisherFilter && publisherFilterOptions && (
+        {sortOrder && setSortOrder && sortOptions && (
           <Listbox
-            value={publisherFilter}
-            onChange={setPublisherFilter}
-            options={publisherFilterOptions}
-            by="id"
+            value={sortOrder}
+            onChange={setSortOrder}
+            options={sortOptions}
+            by="value"
             getOptionLabel={(option) => option.label}
-            className={"min-w-40"}
+            className={"min-w-56"}
           />
         )}
       </div>

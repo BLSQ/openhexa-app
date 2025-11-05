@@ -24,7 +24,6 @@ import { LayoutContext } from "./WorkspaceLayout";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
-import useFeature from "identity/hooks/useFeature";
 
 type SidebarProps = {
   workspace: Sidebar_WorkspaceFragment;
@@ -78,8 +77,6 @@ const Sidebar = (props: SidebarProps) => {
   const { workspace, className } = props;
   const { t } = useTranslation();
   const { isSidebarOpen, setSidebarOpen } = useContext(LayoutContext);
-
-  const [organizationFeatureIsEnabled] = useFeature("organization");
 
   const router = useRouter();
 
@@ -164,7 +161,7 @@ const Sidebar = (props: SidebarProps) => {
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
-        {organizationFeatureIsEnabled && workspace.organization && (
+        {workspace.organization && (
           <NavItem
             className="h-16"
             key="organization"

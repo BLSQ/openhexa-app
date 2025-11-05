@@ -556,8 +556,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
                     }
                 }
             }
-            """,
-            {"workspaceSlug": ws_org_1.slug},
+            """
         )
 
         self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 2)
@@ -577,8 +576,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
                     }
                 }
             }
-            """,
-            {"workspaceSlug": ws_org_2.slug},
+            """
         )
 
         self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 2)
@@ -670,364 +668,299 @@ class PipelineTemplatesTest(GraphQLTestCase):
 
         self.assertIsNone(r["data"]["pipelineTemplateVersion"])
 
-    def test_template_publisher_field_with_bluesquare_org(self):
+    def test_pipelines_count_field_with_fallback(self):
         self.client.force_login(self.USER_ROOT)
 
-        bluesquare_org = Organization.objects.create(
-            name="Bluesquare",
-            short_name="BLSQ",
-            organization_type="CORPORATE",
-        )
-
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
-        ):
-            ws_bluesquare = Workspace.objects.create_if_has_perm(
-                self.USER_ROOT,
-                name="Bluesquare Workspace",
-                description="Workspace under Bluesquare org",
-                organization=bluesquare_org,
-            )
-
-        pipeline_bluesquare = Pipeline.objects.create(
-            name="Bluesquare Pipeline",
-            code="bluesquare-pipeline",
-            workspace=ws_bluesquare,
-        )
-
-        template_bluesquare = PipelineTemplate.objects.create(
-            name="Bluesquare Template",
-            code="bluesquare-template",
-            source_pipeline=pipeline_bluesquare,
-            workspace=ws_bluesquare,
-        )
-
-        response = self.run_query(
-            """
-            query {
-                pipelineTemplates(page: 1, perPage: 10) {
-                    items {
-                        id
-                        name
-                        publisher
-                    }
-                }
-            }
-            """
-        )
-
-        template_data = next(
-            item
-            for item in response["data"]["pipelineTemplates"]["items"]
-            if item["id"] == str(template_bluesquare.id)
-        )
-        self.assertEqual(template_data["publisher"], "Bluesquare")
-
-    def test_template_publisher_field_with_other_org(self):
-        self.client.force_login(self.USER_ROOT)
-
-        other_org = Organization.objects.create(
-            name="Other Organization",
-            short_name="OTHER",
-            organization_type="CORPORATE",
-        )
-
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
-        ):
-            ws_other = Workspace.objects.create_if_has_perm(
-                self.USER_ROOT,
-                name="Other Workspace",
-                description="Workspace under other org",
-                organization=other_org,
-            )
-
-        pipeline_other = Pipeline.objects.create(
-            name="Other Pipeline", code="other-pipeline", workspace=ws_other
-        )
-
-        template_other = PipelineTemplate.objects.create(
-            name="Other Template",
-            code="other-template",
-            source_pipeline=pipeline_other,
-            workspace=ws_other,
-        )
-
-        response = self.run_query(
-            """
-            query {
-                pipelineTemplates(page: 1, perPage: 10) {
-                    items {
-                        id
-                        name
-                        publisher
-                    }
-                }
-            }
-            """
-        )
-
-        template_data = next(
-            item
-            for item in response["data"]["pipelineTemplates"]["items"]
-            if item["id"] == str(template_other.id)
-        )
-        self.assertEqual(template_data["publisher"], "Community")
-
-    def test_template_publisher_field_without_organization(self):
-        self.client.force_login(self.USER_ROOT)
-
-        template_no_org = PipelineTemplate.objects.create(
-            name="Template No Org",
-            code="template-no-org",
+        template = PipelineTemplate.objects.create(
+            name="Template for Count Test",
+            code="template-count-test",
             source_pipeline=self.PIPELINE1,
             workspace=self.WS1,
         )
 
-        response = self.run_query(
+        Pipeline.objects.create(
+            name="Pipeline 1 from Template",
+            code="pipeline-1-from-template",
+            workspace=self.WS1,
+            source_template=template,
+        )
+        Pipeline.objects.create(
+            name="Pipeline 2 from Template",
+            code="pipeline-2-from-template",
+            workspace=self.WS1,
+            source_template=template,
+        )
+        pipeline3 = Pipeline.objects.create(
+            name="Pipeline 3 from Template (Deleted)",
+            code="pipeline-3-from-template",
+            workspace=self.WS1,
+            source_template=template,
+        )
+        pipeline3.delete()
+
+        r = self.run_query(
             """
-            query {
-                pipelineTemplates(page: 1, perPage: 10) {
-                    items {
-                        id
-                        name
-                        publisher
-                    }
+            query getTemplateByCode($code: String!) {
+                templateByCode(code: $code) {
+                    code
+                    name
+                    pipelinesCount
                 }
             }
-            """
+            """,
+            {"code": "template-count-test"},
         )
 
-        template_data = next(
-            item
-            for item in response["data"]["pipelineTemplates"]["items"]
-            if item["id"] == str(template_no_org.id)
-        )
-        self.assertIsNone(template_data["publisher"])
+        self.assertEqual(r["data"]["templateByCode"]["code"], "template-count-test")
+        self.assertEqual(r["data"]["templateByCode"]["pipelinesCount"], 2)
 
-    def test_filter_templates_by_bluesquare_publisher(self):
+    def test_pipeline_templates_default_sorting_by_popularity(self):
         self.client.force_login(self.USER_ROOT)
 
-        bluesquare_org = Organization.objects.create(
-            name="Bluesquare",
-            short_name="BLSQ",
-            organization_type="CORPORATE",
-        )
-        other_org = Organization.objects.create(
-            name="Other Organization",
-            short_name="OTHER",
-            organization_type="CORPORATE",
-        )
-
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
-        ):
-            ws_bluesquare = Workspace.objects.create_if_has_perm(
-                self.USER_ROOT,
-                name="Bluesquare Workspace",
-                description="Workspace under Bluesquare org",
-                organization=bluesquare_org,
-            )
-            ws_other = Workspace.objects.create_if_has_perm(
-                self.USER_ROOT,
-                name="Other Workspace",
-                description="Workspace under other org",
-                organization=other_org,
-            )
-
-        pipeline_bluesquare = Pipeline.objects.create(
-            name="Bluesquare Pipeline",
-            code="bluesquare-pipeline",
-            workspace=ws_bluesquare,
-        )
-        pipeline_other = Pipeline.objects.create(
-            name="Other Pipeline", code="other-pipeline", workspace=ws_other
-        )
-
         PipelineTemplate.objects.create(
-            name="Bluesquare Template",
-            code="bluesquare-template",
-            source_pipeline=pipeline_bluesquare,
-            workspace=ws_bluesquare,
+            name="Alpha Template",
+            code="alpha-template",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
         )
-        PipelineTemplate.objects.create(
-            name="Other Template",
-            code="other-template",
-            source_pipeline=pipeline_other,
-            workspace=ws_other,
+        template_beta = PipelineTemplate.objects.create(
+            name="Beta Template",
+            code="beta-template",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
         )
-
-        response = self.run_query(
-            """
-            query {
-                pipelineTemplates(page: 1, perPage: 10, publisher: "Bluesquare") {
-                    totalItems
-                    items {
-                        name
-                        code
-                        publisher
-                    }
-                }
-            }
-            """
+        template_gamma = PipelineTemplate.objects.create(
+            name="Gamma Template",
+            code="gamma-template",
+            source_pipeline=self.PIPELINE3,
+            workspace=self.WS1,
         )
 
-        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 1)
-        self.assertEqual(
-            response["data"]["pipelineTemplates"]["items"][0]["code"],
-            "bluesquare-template",
+        Pipeline.objects.create(
+            name="Pipeline from Beta 1",
+            code="pipeline-beta-1",
+            workspace=self.WS1,
+            source_template=template_beta,
         )
-        self.assertEqual(
-            response["data"]["pipelineTemplates"]["items"][0]["publisher"],
-            "Bluesquare",
+        Pipeline.objects.create(
+            name="Pipeline from Beta 2",
+            code="pipeline-beta-2",
+            workspace=self.WS1,
+            source_template=template_beta,
         )
-
-    def test_filter_templates_by_community_publisher(self):
-        self.client.force_login(self.USER_ROOT)
-
-        bluesquare_org = Organization.objects.create(
-            name="Bluesquare",
-            short_name="BLSQ",
-            organization_type="CORPORATE",
-        )
-        other_org = Organization.objects.create(
-            name="Other Organization",
-            short_name="OTHER",
-            organization_type="CORPORATE",
+        Pipeline.objects.create(
+            name="Pipeline from Beta 3",
+            code="pipeline-beta-3",
+            workspace=self.WS1,
+            source_template=template_beta,
         )
 
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
-        ):
-            ws_bluesquare = Workspace.objects.create_if_has_perm(
-                self.USER_ROOT,
-                name="Bluesquare Workspace",
-                description="Workspace under Bluesquare org",
-                organization=bluesquare_org,
-            )
-            ws_other = Workspace.objects.create_if_has_perm(
-                self.USER_ROOT,
-                name="Other Workspace",
-                description="Workspace under other org",
-                organization=other_org,
-            )
-
-        pipeline_bluesquare = Pipeline.objects.create(
-            name="Bluesquare Pipeline",
-            code="bluesquare-pipeline",
-            workspace=ws_bluesquare,
-        )
-        pipeline_other = Pipeline.objects.create(
-            name="Other Pipeline", code="other-pipeline", workspace=ws_other
+        Pipeline.objects.create(
+            name="Pipeline from Gamma 1",
+            code="pipeline-gamma-1",
+            workspace=self.WS1,
+            source_template=template_gamma,
         )
 
-        PipelineTemplate.objects.create(
-            name="Bluesquare Template",
-            code="bluesquare-template",
-            source_pipeline=pipeline_bluesquare,
-            workspace=ws_bluesquare,
-        )
-        PipelineTemplate.objects.create(
-            name="Other Template",
-            code="other-template",
-            source_pipeline=pipeline_other,
-            workspace=ws_other,
-        )
-
-        response = self.run_query(
-            """
-            query {
-                pipelineTemplates(page: 1, perPage: 10, publisher: "Community") {
-                    totalItems
-                    items {
-                        name
-                        code
-                        publisher
-                    }
-                }
-            }
-            """
-        )
-
-        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 1)
-        self.assertEqual(
-            response["data"]["pipelineTemplates"]["items"][0]["code"],
-            "other-template",
-        )
-        self.assertEqual(
-            response["data"]["pipelineTemplates"]["items"][0]["publisher"],
-            "Community",
-        )
-
-    def test_filter_templates_without_publisher_returns_all(self):
-        self.client.force_login(self.USER_ROOT)
-
-        bluesquare_org = Organization.objects.create(
-            name="Bluesquare",
-            short_name="BLSQ",
-            organization_type="CORPORATE",
-        )
-        other_org = Organization.objects.create(
-            name="Other Organization",
-            short_name="OTHER",
-            organization_type="CORPORATE",
-        )
-
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
-        ):
-            ws_bluesquare = Workspace.objects.create_if_has_perm(
-                self.USER_ROOT,
-                name="Bluesquare Workspace",
-                description="Workspace under Bluesquare org",
-                organization=bluesquare_org,
-            )
-            ws_other = Workspace.objects.create_if_has_perm(
-                self.USER_ROOT,
-                name="Other Workspace",
-                description="Workspace under other org",
-                organization=other_org,
-            )
-
-        pipeline_bluesquare = Pipeline.objects.create(
-            name="Bluesquare Pipeline",
-            code="bluesquare-pipeline",
-            workspace=ws_bluesquare,
-        )
-        pipeline_other = Pipeline.objects.create(
-            name="Other Pipeline", code="other-pipeline", workspace=ws_other
-        )
-
-        PipelineTemplate.objects.create(
-            name="Bluesquare Template",
-            code="bluesquare-template",
-            source_pipeline=pipeline_bluesquare,
-            workspace=ws_bluesquare,
-        )
-        PipelineTemplate.objects.create(
-            name="Other Template",
-            code="other-template",
-            source_pipeline=pipeline_other,
-            workspace=ws_other,
-        )
-
-        response = self.run_query(
+        r = self.run_query(
             """
             query {
                 pipelineTemplates(page: 1, perPage: 10) {
                     totalItems
                     items {
-                        name
                         code
-                        publisher
+                        pipelinesCount
                     }
                 }
             }
             """
         )
 
-        self.assertEqual(response["data"]["pipelineTemplates"]["totalItems"], 2)
-        template_codes = {
-            item["code"] for item in response["data"]["pipelineTemplates"]["items"]
-        }
-        self.assertEqual(template_codes, {"bluesquare-template", "other-template"})
+        self.assertEqual(r["data"]["pipelineTemplates"]["totalItems"], 3)
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "beta-template")
+        self.assertEqual(items[0]["pipelinesCount"], 3)
+        self.assertEqual(items[1]["code"], "gamma-template")
+        self.assertEqual(items[1]["pipelinesCount"], 1)
+        self.assertEqual(items[2]["code"], "alpha-template")
+        self.assertEqual(items[2]["pipelinesCount"], 0)
+
+    def test_pipeline_templates_sorting_by_name(self):
+        self.client.force_login(self.USER_ROOT)
+
+        PipelineTemplate.objects.create(
+            name="Zebra Template",
+            code="zebra-template",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+        PipelineTemplate.objects.create(
+            name="Alpha Template",
+            code="alpha-template",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
+        )
+        PipelineTemplate.objects.create(
+            name="Beta Template",
+            code="beta-template",
+            source_pipeline=self.PIPELINE3,
+            workspace=self.WS1,
+        )
+
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, orderBy: NAME_ASC) {
+                    items {
+                        code
+                        name
+                    }
+                }
+            }
+            """
+        )
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "alpha-template")
+        self.assertEqual(items[1]["code"], "beta-template")
+        self.assertEqual(items[2]["code"], "zebra-template")
+
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, orderBy: NAME_DESC) {
+                    items {
+                        code
+                        name
+                    }
+                }
+            }
+            """
+        )
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "zebra-template")
+        self.assertEqual(items[1]["code"], "beta-template")
+        self.assertEqual(items[2]["code"], "alpha-template")
+
+    def test_pipeline_templates_sorting_by_created_at(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        self.client.force_login(self.USER_ROOT)
+
+        now = timezone.now()
+
+        template_old = PipelineTemplate.objects.create(
+            name="Old Template",
+            code="old-template",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+        template_old.created_at = now - timedelta(days=10)
+        template_old.save()
+
+        template_new = PipelineTemplate.objects.create(
+            name="New Template",
+            code="new-template",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
+        )
+        template_new.created_at = now - timedelta(days=1)
+        template_new.save()
+
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, orderBy: CREATED_AT_ASC) {
+                    items {
+                        code
+                    }
+                }
+            }
+            """
+        )
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "old-template")
+        self.assertEqual(items[1]["code"], "new-template")
+
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, orderBy: CREATED_AT_DESC) {
+                    items {
+                        code
+                    }
+                }
+            }
+            """
+        )
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "new-template")
+        self.assertEqual(items[1]["code"], "old-template")
+
+    def test_pipeline_templates_sorting_by_pipelines_count(self):
+        self.client.force_login(self.USER_ROOT)
+
+        template_many = PipelineTemplate.objects.create(
+            name="Popular Template",
+            code="popular-template",
+            source_pipeline=self.PIPELINE1,
+            workspace=self.WS1,
+        )
+        template_few = PipelineTemplate.objects.create(
+            name="Less Popular Template",
+            code="less-popular-template",
+            source_pipeline=self.PIPELINE2,
+            workspace=self.WS1,
+        )
+
+        for i in range(5):
+            Pipeline.objects.create(
+                name=f"Pipeline from Popular {i}",
+                code=f"pipeline-popular-{i}",
+                workspace=self.WS1,
+                source_template=template_many,
+            )
+
+        Pipeline.objects.create(
+            name="Pipeline from Less Popular",
+            code="pipeline-less-popular",
+            workspace=self.WS1,
+            source_template=template_few,
+        )
+
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, orderBy: PIPELINES_COUNT_ASC) {
+                    items {
+                        code
+                        pipelinesCount
+                    }
+                }
+            }
+            """
+        )
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "less-popular-template")
+        self.assertEqual(items[0]["pipelinesCount"], 1)
+        self.assertEqual(items[1]["code"], "popular-template")
+        self.assertEqual(items[1]["pipelinesCount"], 5)
+
+        r = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10, orderBy: PIPELINES_COUNT_DESC) {
+                    items {
+                        code
+                        pipelinesCount
+                    }
+                }
+            }
+            """
+        )
+        items = r["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(items[0]["code"], "popular-template")
+        self.assertEqual(items[0]["pipelinesCount"], 5)
+        self.assertEqual(items[1]["code"], "less-popular-template")
+        self.assertEqual(items[1]["pipelinesCount"], 1)

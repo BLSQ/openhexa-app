@@ -1651,6 +1651,20 @@ export type DeleteMetadataAttributeResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** The DeleteOrganizationError enum represents the possible errors that can occur during the deleteOrganization mutation. */
+export enum DeleteOrganizationError {
+  /** Indicates that the organization was not found. */
+  NotFound = 'NOT_FOUND',
+  /** Indicates that the user does not have permission to delete the organization. */
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** The DeleteOrganizationInput type represents the input for the deleteOrganization mutation. */
+export type DeleteOrganizationInput = {
+  /** The unique identifier of the organization. */
+  id: Scalars['UUID']['input'];
+};
+
 /** The DeleteOrganizationInvitationError enum represents the possible errors that can occur during the deleteOrganizationInvitation mutation. */
 export enum DeleteOrganizationInvitationError {
   InvitationNotFound = 'INVITATION_NOT_FOUND',
@@ -1692,6 +1706,15 @@ export type DeleteOrganizationMemberResult = {
   /** The list of errors that occurred during the deleteOrganizationMember mutation. */
   errors: Array<DeleteOrganizationMemberError>;
   /** Indicates whether the deleteOrganizationMember mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
+/** The DeleteOrganizationResult type represents the result of the deleteOrganization mutation. */
+export type DeleteOrganizationResult = {
+  __typename?: 'DeleteOrganizationResult';
+  /** The list of errors that occurred during the deleteOrganization mutation. */
+  errors: Array<DeleteOrganizationError>;
+  /** Indicates whether the deleteOrganization mutation was successful. */
   success: Scalars['Boolean']['output'];
 };
 
@@ -2225,6 +2248,34 @@ export enum InviteWorkspaceMembershipError {
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
+/** Represents the error types for issuing a workspace token. */
+export enum IssueWorkspaceTokenError {
+  AuthUnauthenticated = 'AUTH_UNAUTHENTICATED',
+  ClockError = 'CLOCK_ERROR',
+  ConfigMissingPrivateKey = 'CONFIG_MISSING_PRIVATE_KEY',
+  InputInvalid = 'INPUT_INVALID',
+  MembershipRequired = 'MEMBERSHIP_REQUIRED',
+  RoleUnresolved = 'ROLE_UNRESOLVED',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+/** Represents the input for issuing a workspace JWT token. */
+export type IssueWorkspaceTokenInput = {
+  workspaceId?: InputMaybe<Scalars['UUID']['input']>;
+  workspaceSlug?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Represents the result of issuing a workspace JWT token. */
+export type IssueWorkspaceTokenPayload = {
+  __typename?: 'IssueWorkspaceTokenPayload';
+  errors: Array<IssueWorkspaceTokenError>;
+  expiresAt?: Maybe<Scalars['DateTime']['output']>;
+  role?: Maybe<WorkspaceMembershipRole>;
+  success: Scalars['Boolean']['output'];
+  token?: Maybe<Scalars['String']['output']>;
+  workspace?: Maybe<WorkspaceRef>;
+};
+
 /** Represents the error types for joining a workspace. */
 export enum JoinWorkspaceError {
   AlreadyAccepted = 'ALREADY_ACCEPTED',
@@ -2503,6 +2554,7 @@ export type Mutation = {
   deleteMembership: DeleteMembershipResult;
   /** Delete an metadata attribute from an object instance */
   deleteMetadataAttribute: DeleteMetadataAttributeResult;
+  deleteOrganization: DeleteOrganizationResult;
   deleteOrganizationInvitation: DeleteOrganizationInvitationResult;
   deleteOrganizationMember: DeleteOrganizationMemberResult;
   /** Deletes a pipeline. */
@@ -2537,6 +2589,7 @@ export type Mutation = {
   generateWorkspaceToken: GenerateWorkspaceTokenResult;
   inviteOrganizationMember: InviteOrganizationMemberResult;
   inviteWorkspaceMember: InviteWorkspaceMemberResult;
+  issueWorkspaceToken: IssueWorkspaceTokenPayload;
   joinWorkspace: JoinWorkspaceResult;
   launchAccessmodAnalysis: LaunchAccessmodAnalysisResult;
   launchNotebookServer: LaunchNotebookServerResult;
@@ -2592,9 +2645,15 @@ export type Mutation = {
   /** Update a dataset version. */
   updateDatasetVersion: UpdateDatasetVersionResult;
   updateMembership: UpdateMembershipResult;
+  updateOrganization: UpdateOrganizationResult;
   updateOrganizationMember: UpdateOrganizationMemberResult;
   /** Updates an existing pipeline. */
   updatePipeline: UpdatePipelineResult;
+  /**
+   * Updates the heartbeat timestamp for the current pipeline run.
+   * Must be called by an authenticated pipeline run.
+   */
+  updatePipelineHeartbeat: UpdatePipelineHeartbeatResult;
   /** Updates the progress of a pipeline. */
   updatePipelineProgress: UpdatePipelineProgressResult;
   /** Updates a pipeline recipient. */
@@ -2795,6 +2854,11 @@ export type MutationDeleteMetadataAttributeArgs = {
 };
 
 
+export type MutationDeleteOrganizationArgs = {
+  input: DeleteOrganizationInput;
+};
+
+
 export type MutationDeleteOrganizationInvitationArgs = {
   input: DeleteOrganizationInvitationInput;
 };
@@ -2902,6 +2966,11 @@ export type MutationInviteOrganizationMemberArgs = {
 
 export type MutationInviteWorkspaceMemberArgs = {
   input: InviteWorkspaceMemberInput;
+};
+
+
+export type MutationIssueWorkspaceTokenArgs = {
+  input: IssueWorkspaceTokenInput;
 };
 
 
@@ -3090,6 +3159,11 @@ export type MutationUpdateMembershipArgs = {
 };
 
 
+export type MutationUpdateOrganizationArgs = {
+  input: UpdateOrganizationInput;
+};
+
+
 export type MutationUpdateOrganizationMemberArgs = {
   input: UpdateOrganizationMemberInput;
 };
@@ -3190,6 +3264,8 @@ export type Organization = {
   id: Scalars['UUID']['output'];
   /** The invitations sent to join the organization. */
   invitations: OrganizationInvitationPage;
+  /** The logo of the organization (base64 encoded). */
+  logo?: Maybe<Scalars['String']['output']>;
   /** The members of the organization. */
   members: OrganizationMembershipPage;
   /** The name of the organization. */
@@ -3335,8 +3411,10 @@ export type OrganizationPermissions = {
   __typename?: 'OrganizationPermissions';
   archiveWorkspace: Scalars['Boolean']['output'];
   createWorkspace: Scalars['Boolean']['output'];
+  delete: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   manageOwners: Scalars['Boolean']['output'];
+  update: Scalars['Boolean']['output'];
 };
 
 /** Represents a workspace invitation within an organization invitation. */
@@ -3646,7 +3724,7 @@ export type PipelineTemplate = {
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   permissions: PipelineTemplatePermissions;
-  publisher?: Maybe<Scalars['String']['output']>;
+  pipelinesCount: Scalars['Int']['output'];
   sourcePipeline?: Maybe<Pipeline>;
   tags: Array<Tag>;
   updatedAt: Scalars['DateTime']['output'];
@@ -3664,6 +3742,16 @@ export type PipelineTemplateVersionsArgs = {
 export enum PipelineTemplateError {
   PermissionDenied = 'PERMISSION_DENIED',
   PipelineTemplateNotFound = 'PIPELINE_TEMPLATE_NOT_FOUND'
+}
+
+/** Enum representing the possible orderings for pipeline templates. */
+export enum PipelineTemplateOrderBy {
+  CreatedAtAsc = 'CREATED_AT_ASC',
+  CreatedAtDesc = 'CREATED_AT_DESC',
+  NameAsc = 'NAME_ASC',
+  NameDesc = 'NAME_DESC',
+  PipelinesCountAsc = 'PIPELINES_COUNT_ASC',
+  PipelinesCountDesc = 'PIPELINES_COUNT_DESC'
 }
 
 /** Represents paged result of fetching pipeline templates. */
@@ -4163,9 +4251,9 @@ export type QueryPipelineTemplateVersionArgs = {
 
 export type QueryPipelineTemplatesArgs = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
+  orderBy?: InputMaybe<PipelineTemplateOrderBy>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
-  publisher?: InputMaybe<Scalars['String']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
@@ -4885,6 +4973,34 @@ export type UpdateMembershipResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** The UpdateOrganizationError enum represents the possible errors that can occur during the updateOrganization mutation. */
+export enum UpdateOrganizationError {
+  /** Indicates that the provided logo is in an invalid format. */
+  InvalidLogo = 'INVALID_LOGO',
+  /** Indicates that the provided short name is invalid (must be max 5 uppercase letters). */
+  InvalidShortName = 'INVALID_SHORT_NAME',
+  /** Indicates that an organization with the same name already exists. */
+  NameDuplicate = 'NAME_DUPLICATE',
+  /** Indicates that the organization was not found. */
+  NotFound = 'NOT_FOUND',
+  /** Indicates that the user does not have permission to update the organization. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** Indicates that an organization with the same short name already exists. */
+  ShortNameDuplicate = 'SHORT_NAME_DUPLICATE'
+}
+
+/** The UpdateOrganizationInput type represents the input for the updateOrganization mutation. */
+export type UpdateOrganizationInput = {
+  /** The unique identifier of the organization. */
+  id: Scalars['UUID']['input'];
+  /** The updated logo of the organization (base64 encoded). */
+  logo?: InputMaybe<Scalars['String']['input']>;
+  /** The updated name of the organization. */
+  name?: InputMaybe<Scalars['String']['input']>;
+  /** The updated short name of the organization. */
+  shortName?: InputMaybe<Scalars['String']['input']>;
+};
+
 /** The UpdateOrganizationMemberError enum represents the possible errors that can occur during the updateOrganizationMember mutation. */
 export enum UpdateOrganizationMemberError {
   /** Indicates that the provided role is invalid. */
@@ -4916,6 +5032,17 @@ export type UpdateOrganizationMemberResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** The UpdateOrganizationResult type represents the result of the updateOrganization mutation. */
+export type UpdateOrganizationResult = {
+  __typename?: 'UpdateOrganizationResult';
+  /** The list of errors that occurred during the updateOrganization mutation. */
+  errors: Array<UpdateOrganizationError>;
+  /** The updated organization object. */
+  organization?: Maybe<Organization>;
+  /** Indicates whether the updateOrganization mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
 /** Enum representing the possible errors that can occur when updating a pipeline. */
 export enum UpdatePipelineError {
   InvalidConfig = 'INVALID_CONFIG',
@@ -4923,6 +5050,13 @@ export enum UpdatePipelineError {
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
+
+/** Represents the result of updating a pipeline heartbeat. */
+export type UpdatePipelineHeartbeatResult = {
+  __typename?: 'UpdatePipelineHeartbeatResult';
+  errors: Array<PipelineError>;
+  success: Scalars['Boolean']['output'];
+};
 
 /** Represents the input for updating a pipeline. */
 export type UpdatePipelineInput = {
@@ -5456,4 +5590,11 @@ export type WorkspacePermissions = {
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
+};
+
+/** Represents a minimal workspace reference in the token payload. */
+export type WorkspaceRef = {
+  __typename?: 'WorkspaceRef';
+  id: Scalars['UUID']['output'];
+  slug: Scalars['String']['output'];
 };
