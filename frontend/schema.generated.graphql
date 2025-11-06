@@ -360,6 +360,7 @@ type AddToFavoritesResult {
 
 """Represents the error message for adding a webapp to shortcuts."""
 enum AddWebappToShortcutsError {
+  ITEM_ALREADY_EXISTS
   ITEM_NOT_FOUND
 }
 

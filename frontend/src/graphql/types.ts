@@ -392,6 +392,7 @@ export type AddToFavoritesResult = {
 
 /** Represents the error message for adding a webapp to shortcuts. */
 export enum AddWebappToShortcutsError {
+  ItemAlreadyExists = 'ITEM_ALREADY_EXISTS',
   ItemNotFound = 'ITEM_NOT_FOUND'
 }
 

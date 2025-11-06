@@ -30,6 +30,7 @@ Represents the error message for adding a webapp to shortcuts.
 """
 enum AddWebappToShortcutsError {
   ITEM_NOT_FOUND
+  ITEM_ALREADY_EXISTS
 }
 
 """
