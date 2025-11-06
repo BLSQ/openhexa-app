@@ -77,7 +77,6 @@ def create_pod_kube(run: PipelineRun, image: str, env_vars: dict):
     config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
 
     v1 = CoreV1Api()
-    namespace = os.environ.get("PIPELINE_NAMESPACE", "default")
     container_name = generate_pipeline_container_name(run)
 
     logger.info("Creating new pod %s for run %s", container_name, run.id)
@@ -85,7 +84,7 @@ def create_pod_kube(run: PipelineRun, image: str, env_vars: dict):
         api_version="v1",
         kind="Pod",
         metadata=k8s.V1ObjectMeta(
-            namespace=namespace,
+            namespace=os.environ.get("PIPELINE_NAMESPACE", "default"),
             name=container_name,
             labels={
                 "hexa-workspace": env_vars["HEXA_WORKSPACE"],
@@ -214,7 +213,7 @@ def create_pod_kube(run: PipelineRun, image: str, env_vars: dict):
             ],
         ),
     )
-    v1.create_namespaced_pod(namespace=namespace, body=pod)
+    v1.create_namespaced_pod(namespace=pod.metadata.namespace, body=pod)
     return pod
 
 
