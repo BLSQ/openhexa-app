@@ -1,7 +1,7 @@
 from logging import getLogger
 
 from django.db import connection
-from django.http import HttpRequest, HttpResponse, HttpResponseServerError
+from django.http import HttpRequest, HttpResponse, HttpResponseServerError, JsonResponse
 
 logger = getLogger(__name__)
 
@@ -56,3 +56,27 @@ def test_logger(request: HttpRequest) -> HttpResponse:
         raise Exception(message)
 
     return HttpResponse("ok")
+
+
+def jwks(request: HttpRequest) -> JsonResponse:
+    """
+    Serve the JSON Web Key Set (JWKS) containing public keys for JWT verification.
+
+    Returns the public key information from the configured RSA private key in JWKS format.
+    This endpoint is used by external services to verify JWT tokens issued by OpenHEXA.
+
+    If no private key is configured, returns an empty key set.
+
+    :param request: HttpRequest
+    :return: JsonResponse with JWKS data
+    """
+    from hexa.workspaces.jwt_utils import JWTConfigurationError, get_jwks
+
+    try:
+        jwks_data = get_jwks()
+        if jwks_data is None:
+            return JsonResponse({"keys": []})
+        return JsonResponse(jwks_data)
+    except JWTConfigurationError as e:
+        logger.error(f"JWKS configuration error: {e}")
+        return JsonResponse({"keys": []}, status=500)

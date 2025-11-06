@@ -1,3 +1,4 @@
+import base64
 import logging
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -136,3 +137,53 @@ def generate_workspace_jwt(
     except Exception as e:
         logger.error(f"Failed to generate JWT: {e}")
         raise JWTGenerationError(f"Token generation failed: {e}")
+
+
+def get_jwks() -> Optional[dict]:
+    """
+    Generate a JWKS (JSON Web Key Set) from the configured private key.
+
+    Returns
+    -------
+        A dictionary containing the JWKS with public key information,
+        or None if no private key is configured.
+
+    Raises
+    ------
+        JWTConfigurationError: If the key is malformed or cannot be processed.
+    """
+    private_key = load_private_key()
+
+    if private_key is None:
+        return None
+
+    try:
+        public_key = private_key.public_key()
+
+        public_numbers = public_key.public_numbers()
+
+        def int_to_base64url(num: int) -> str:
+            num_bytes = num.to_bytes((num.bit_length() + 7) // 8, byteorder="big")
+            return base64.urlsafe_b64encode(num_bytes).rstrip(b"=").decode("ascii")
+
+        n_b64 = int_to_base64url(public_numbers.n)
+        e_b64 = int_to_base64url(public_numbers.e)
+
+        kid = getattr(settings, "OPENHEXA_JWT_KID", None)
+
+        jwk = {
+            "kty": "RSA",
+            "use": "sig",
+            "alg": "RS256",
+            "n": n_b64,
+            "e": e_b64,
+        }
+
+        if kid:
+            jwk["kid"] = kid
+
+        return {"keys": [jwk]}
+
+    except Exception as e:
+        logger.error(f"Failed to generate JWKS: {e}")
+        raise JWTConfigurationError(f"JWKS generation failed: {e}")
