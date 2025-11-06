@@ -14,6 +14,7 @@ const mockWorkspace: Sidebar_WorkspaceFragment = {
     { __typename: "Country", flag: "🇺🇸", code: "US" },
     { __typename: "Country", flag: "🇨🇦", code: "CA" },
   ],
+  shortcuts: [],
   permissions: {
     manageMembers: true,
     update: true,

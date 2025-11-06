@@ -5,10 +5,7 @@ import { toast } from "react-toastify";
 import { TestApp } from "core/helpers/testutils";
 import { SidebarMenuDocument } from "workspaces/features/SidebarMenu/SidebarMenu.generated";
 import { MockedResponse } from "@apollo/client/testing";
-import {
-  WorkspaceWebappsPageDocument,
-  ShortcutsDocument,
-} from "workspaces/graphql/queries.generated";
+import { WorkspaceWebappsPageDocument } from "workspaces/graphql/queries.generated";
 import {
   AddToFavoritesDocument,
   RemoveFromFavoritesDocument,
@@ -30,6 +27,7 @@ const mockWorkspace = {
   slug: "test-workspace",
   name: "Test Workspace",
   countries: [],
+  shortcuts: [],
   organization: {
     id: "org1",
     name: "Test Organization",
@@ -128,19 +126,6 @@ const graphqlMocks: MockedResponse[] = [
           totalPages: 0,
           totalItems: 0,
         },
-      },
-    },
-  },
-  {
-    request: {
-      query: ShortcutsDocument,
-      variables: {
-        workspaceSlug: "test-workspace",
-      },
-    },
-    result: {
-      data: {
-        shortcuts: [],
       },
     },
   },
