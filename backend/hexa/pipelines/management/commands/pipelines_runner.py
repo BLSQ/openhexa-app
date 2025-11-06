@@ -73,7 +73,7 @@ def create_pod_kube(run: PipelineRun, image: str, env_vars: dict):
         exec_time_str,
     )
 
-    is_local_dev = os.environ.get("IS_LOCAL_DEV", False)
+    is_local_dev = os.environ.get("IS_LOCAL_DEV", "false").lower() == "true"
     config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
 
     v1 = CoreV1Api()
@@ -231,7 +231,7 @@ def attach_to_pod_kube(run: PipelineRun):
         exec_time_str,
     )
 
-    is_local_dev = os.environ.get("IS_LOCAL_DEV", False)
+    is_local_dev = os.environ.get("IS_LOCAL_DEV", "false").lower() == "true"
     config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
 
     v1 = CoreV1Api()
