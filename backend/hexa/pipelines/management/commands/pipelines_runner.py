@@ -498,7 +498,7 @@ def run_pipeline(run: PipelineRun, create_container: bool = True):
 KILLED_BY_TIMEOUT_MESSAGE = "Killed due to heartbeat timeout"
 
 
-def _process_zombie_runs():
+def process_zombie_runs():
     """Check for zombie runs and update their status based on actual pod state."""
     zombie_runs = PipelineRun.objects.filter(
         state=PipelineRunState.RUNNING,
@@ -609,7 +609,7 @@ class Command(BaseCommand):
 
             # timeout-manager/zombie-reaper
             if i > 60:
-                _process_zombie_runs()
+                process_zombie_runs()
                 i = 0
             else:
                 i += sleeptime
