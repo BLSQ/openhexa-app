@@ -24,17 +24,24 @@ class ShortcutableMixin:
             user=user, content_type=content_type, object_id=self.id
         ).exists()
 
-    def add_to_shortcuts(self, user: User) -> None:
-        """Add this item to user's shortcuts."""
+    def add_to_shortcuts(self, user: User) -> bool:
+        """
+        Add this item to user's shortcuts.
+
+        Returns
+        -------
+            True if the shortcut was created, False if it already existed.
+        """
         from hexa.shortcuts.models import Shortcut
 
         content_type = ContentType.objects.get_for_model(self.__class__)
-        Shortcut.objects.get_or_create(
+        _, created = Shortcut.objects.get_or_create(
             user=user,
             content_type=content_type,
             object_id=self.id,
             defaults={"workspace": self.workspace},
         )
+        return created
 
     def remove_from_shortcuts(self, user: User) -> None:
         """Remove this item from user's shortcuts."""

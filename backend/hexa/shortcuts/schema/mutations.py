@@ -1,5 +1,4 @@
 from ariadne import MutationType
-from django.db import IntegrityError
 from django.http import HttpRequest
 
 from hexa.webapps.models import Webapp
@@ -22,11 +21,11 @@ def resolve_add_webapp_to_shortcuts(_, info, **kwargs):
     except Webapp.DoesNotExist:
         return {"success": False, "errors": ["ITEM_NOT_FOUND"]}
 
-    try:
-        webapp.add_to_shortcuts(request.user)
+    created = webapp.add_to_shortcuts(request.user)
+    if created:
         return {"success": True, "errors": []}
-    except IntegrityError:
-        return {"success": True, "errors": []}
+    else:
+        return {"success": False, "errors": ["ITEM_ALREADY_EXISTS"]}
 
 
 @shortcut_mutations.field("removeWebappFromShortcuts")
