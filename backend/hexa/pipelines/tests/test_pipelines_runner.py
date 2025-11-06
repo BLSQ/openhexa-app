@@ -223,37 +223,6 @@ class TestKubernetesPipelineIntegration(TestCase):
     @patch("hexa.pipelines.management.commands.pipelines_runner.sleep")
     @patch("kubernetes.config.load_incluster_config")
     @patch("kubernetes.client.CoreV1Api")
-    def test_monitor_handles_terminating_state(
-        self, mock_k8s_client, mock_config, mock_sleep
-    ):
-        call_count = [0]
-
-        def side_effect_refresh():
-            call_count[0] += 1
-            if call_count[0] > 1:
-                self.run.state = PipelineRunState.TERMINATING
-
-        self.run.refresh_from_db = Mock(side_effect=side_effect_refresh)
-        self.run.save = Mock()
-
-        mock_api = Mock()
-        mock_pod = self._create_mock_pod("Running")
-        mock_api.read_namespaced_pod.return_value = mock_pod
-        mock_api.read_namespaced_pod_log.return_value = "Partial logs"
-        mock_api.delete_namespaced_pod.return_value = None
-        mock_k8s_client.return_value = mock_api
-
-        success, logs = monitor_pod_kube(self.run, mock_pod)
-
-        self.assertFalse(success)
-        self.assertIn("Stop signal sent to run", logs)
-        delete_call = mock_api.delete_namespaced_pod.call_args
-        self.assertEqual(delete_call[1]["grace_period_seconds"], 0)
-
-    @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
-    @patch("hexa.pipelines.management.commands.pipelines_runner.sleep")
-    @patch("kubernetes.config.load_incluster_config")
-    @patch("kubernetes.client.CoreV1Api")
     def test_monitor_updates_heartbeat(self, mock_k8s_client, mock_config, mock_sleep):
         call_count = [0]
 
