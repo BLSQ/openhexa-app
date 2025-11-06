@@ -7,7 +7,11 @@ from django.views.decorators.http import require_POST
 from hexa.databases.api import get_db_server_credentials
 from hexa.files import storage
 from hexa.pipelines.models import PipelineRun
-from hexa.workspaces.models import Workspace, WorkspaceMembership
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 # ease patching
 
@@ -57,22 +61,29 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
                 status=404,
             )
     elif request.user.is_authenticated:
+        if not request.user.has_perm("workspaces.launch_notebooks", workspace):
+            return JsonResponse(
+                {"error": "User does not have permission to launch notebooks"},
+                status=401,
+            )
+
         try:
             membership = WorkspaceMembership.objects.get(
                 workspace=workspace, user=request.user
             )
-            server_hash = membership.notebooks_server_hash
-            sdk_auth_token = membership.access_token
-            if not request.user.has_perm("workspaces.launch_notebooks", workspace):
-                return JsonResponse(
-                    {},
-                    status=401,
-                )
-        except (Workspace.DoesNotExist, WorkspaceMembership.DoesNotExist):
-            return JsonResponse(
-                {},
-                status=404,
+        except WorkspaceMembership.DoesNotExist:
+            assert (
+                request.user.is_superuser
+                or request.user.is_organization_admin_or_owner(workspace.organization)
             )
+            # Auto-create membership on the fly for admins/owners/superusers
+            membership = WorkspaceMembership.objects.create(
+                workspace=workspace,
+                user=request.user,
+                role=WorkspaceMembershipRole.ADMIN,
+            )
+        server_hash = membership.notebooks_server_hash
+        sdk_auth_token = membership.access_token
     else:
         return JsonResponse(
             {},

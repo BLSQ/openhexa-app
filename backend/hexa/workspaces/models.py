@@ -386,7 +386,7 @@ class WorkspaceMembership(models.Model):
             ).hexdigest()
 
         if self.access_token == "":
-            self.access_token = uuid.uuid4()
+            self.access_token = str(uuid.uuid4())
 
         if (
             self.workspace.organization
