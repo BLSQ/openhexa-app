@@ -31,13 +31,13 @@ const ShortcutWebappButton = ({
       if (isShortcut) {
         await removeFromShortcuts({
           variables: { input: { webappId } },
-          refetchQueries: ["WorkspaceWebappsPage", "Shortcuts"],
+          refetchQueries: ["WorkspaceWebappsPage"],
         });
         toast.success(t("Removed from shortcuts"));
       } else {
         await addToShortcuts({
           variables: { input: { webappId } },
-          refetchQueries: ["WorkspaceWebappsPage", "Shortcuts"],
+          refetchQueries: ["WorkspaceWebappsPage"],
         });
         toast.success(t("Added to shortcuts"));
       }
