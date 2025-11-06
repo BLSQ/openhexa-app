@@ -10,6 +10,9 @@ from hexa.workspaces.models import Workspace
 
 class ShortcutQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User):
+        # Shortcuts are personal/user-specific by design. Unlike other resources
+        # where superusers have broad access, shortcuts should always be filtered
+        # to the requesting user only (even for superusers).
         return self._filter_for_user_and_query_object(
             user,
             models.Q(user=user),
