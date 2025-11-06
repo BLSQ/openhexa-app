@@ -182,7 +182,7 @@ const Sidebar = (props: SidebarProps) => {
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
         <div className="mt-5 flex grow flex-col">
-          <nav className="flex-1 space-y-1 px-0 pb-4">
+          <nav className="flex-1 space-y-1 px-0 pb-4 overflow-y-auto">
             {[homeLink].concat(links).map(({ href, Icon, label }) => (
               <NavItem
                 key={href}
@@ -213,7 +213,7 @@ const Sidebar = (props: SidebarProps) => {
                 </button>
 
                 {isShortcutsExpanded && (
-                  <div className="space-y-1 mt-1">
+                  <div className="space-y-1 mt-1 max-h-64 overflow-y-auto">
                     {shortcuts.map((shortcut) => (
                       <NavItem
                         key={shortcut.id}

@@ -92,7 +92,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         return {
             "id": str(self.id),
             "name": self.name,
-            "url": f"/workspaces/{self.workspace.slug}/webapps/{self.id}",
+            "url": f"/workspaces/{self.workspace.slug}/webapps/{self.id}/play",
             "icon": icon,
             "type": "webapp",
             "order": shortcut.order,

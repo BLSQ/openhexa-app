@@ -81,7 +81,7 @@ exports[`Workspaces renders the workspace page 1`] = `
           class="mt-5 flex grow flex-col"
         >
           <nav
-            class="flex-1 space-y-1 px-0 pb-4"
+            class="flex-1 space-y-1 px-0 pb-4 overflow-y-auto"
           >
             <a
               class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -515,7 +515,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
           class="mt-5 flex grow flex-col"
         >
           <nav
-            class="flex-1 space-y-1 px-0 pb-4"
+            class="flex-1 space-y-1 px-0 pb-4 overflow-y-auto"
           >
             <a
               class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
