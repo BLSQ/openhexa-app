@@ -1954,3 +1954,396 @@ class WorkspaceTest(GraphQLTestCase):
             {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
             r["data"]["updateWorkspace"],
         )
+
+    # Tests for Organization Role in Workspace Invitations (HEXA-1421)
+
+    def test_invite_workspace_member_with_organization_role_as_org_admin(self):
+        """Test that org admin can invite user with organization role"""
+        user_email = "newuser@test.com"
+        self.client.force_login(self.USER_JULIA)  # Org admin
+
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": user_email,
+                    "role": WorkspaceMembershipRole.VIEWER,
+                    "organizationRole": OrganizationMembershipRole.MEMBER,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["inviteWorkspaceMember"],
+        )
+
+        # Verify invitation was created with organization role
+        invitation = WorkspaceInvitation.objects.get(
+            workspace=self.WORKSPACE, email=user_email
+        )
+        self.assertEqual(
+            invitation.organization_role, OrganizationMembershipRole.MEMBER
+        )
+
+    def test_invite_workspace_member_with_organization_role_admin(self):
+        """Test that org admin can assign ADMIN organization role"""
+        user_email = "adminuser@test.com"
+        self.client.force_login(self.USER_JULIA)  # Org admin
+
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": user_email,
+                    "role": WorkspaceMembershipRole.EDITOR,
+                    "organizationRole": OrganizationMembershipRole.ADMIN,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["inviteWorkspaceMember"],
+        )
+
+        invitation = WorkspaceInvitation.objects.get(
+            workspace=self.WORKSPACE, email=user_email
+        )
+        self.assertEqual(invitation.organization_role, OrganizationMembershipRole.ADMIN)
+
+    def test_invite_workspace_member_without_organization_role(self):
+        """Test that invitation without organization role works (external invitee)"""
+        user_email = "external@test.com"
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": user_email,
+                    "role": WorkspaceMembershipRole.VIEWER,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["inviteWorkspaceMember"],
+        )
+
+        invitation = WorkspaceInvitation.objects.get(
+            workspace=self.WORKSPACE, email=user_email
+        )
+        self.assertIsNone(invitation.organization_role)
+
+    def test_invite_workspace_member_org_role_without_org_permission(self):
+        """Test that workspace admin without org permission cannot assign org role"""
+        # Create a workspace admin who is NOT an org member
+        non_org_admin = User.objects.create_user(
+            "noorgadmin@test.com",
+            "password",
+        )
+        WorkspaceMembership.objects.create(
+            user=non_org_admin,
+            workspace=self.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
+        user_email = "newuser2@test.com"
+        self.client.force_login(non_org_admin)
+
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": user_email,
+                    "role": WorkspaceMembershipRole.VIEWER,
+                    "organizationRole": OrganizationMembershipRole.MEMBER,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["inviteWorkspaceMember"],
+        )
+
+    def test_invite_workspace_member_org_role_higher_than_own(self):
+        """Test that org member cannot assign role higher than their own"""
+        user_email = "higherrole@test.com"
+        # USER_REBECCA is an org MEMBER, trying to assign ADMIN
+        self.client.force_login(self.USER_REBECCA)
+
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": user_email,
+                    "role": WorkspaceMembershipRole.VIEWER,
+                    "organizationRole": OrganizationMembershipRole.ADMIN,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["inviteWorkspaceMember"],
+        )
+
+    def test_invite_existing_user_with_org_role_creates_org_membership(self):
+        """Test that inviting existing user with org role creates organization membership"""
+        # Create a user who is NOT in the organization
+        existing_user = User.objects.create_user(
+            "existinguser@test.com",
+            "password",
+        )
+
+        self.client.force_login(self.USER_JULIA)  # Org admin
+
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": existing_user.email,
+                    "role": WorkspaceMembershipRole.EDITOR,
+                    "organizationRole": OrganizationMembershipRole.MEMBER,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["inviteWorkspaceMember"],
+        )
+
+        # Verify workspace membership was created
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(
+                user=existing_user, workspace=self.WORKSPACE
+            ).exists()
+        )
+
+        # Verify organization membership was created
+        org_membership = OrganizationMembership.objects.get(
+            user=existing_user, organization=self.ORGANIZATION
+        )
+        self.assertEqual(org_membership.role, OrganizationMembershipRole.MEMBER)
+
+    def test_invite_existing_org_member_does_not_duplicate(self):
+        """Test that inviting existing org member doesn't create duplicate org membership"""
+        # USER_REBECCA is already an org MEMBER
+        self.client.force_login(self.USER_JULIA)  # Org admin
+
+        # Create new workspace where Rebecca is not a member
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            new_workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="New Test Workspace",
+                description="Test workspace",
+                organization=self.ORGANIZATION,
+            )
+
+        initial_membership_count = OrganizationMembership.objects.filter(
+            user=self.USER_REBECCA, organization=self.ORGANIZATION
+        ).count()
+
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": new_workspace.slug,
+                    "userEmail": self.USER_REBECCA.email,
+                    "role": WorkspaceMembershipRole.EDITOR,
+                    "organizationRole": OrganizationMembershipRole.ADMIN,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["inviteWorkspaceMember"],
+        )
+
+        # Verify no duplicate org membership was created
+        final_membership_count = OrganizationMembership.objects.filter(
+            user=self.USER_REBECCA, organization=self.ORGANIZATION
+        ).count()
+        self.assertEqual(initial_membership_count, final_membership_count)
+
+    def test_join_workspace_creates_org_membership_from_invitation(self):
+        """Test that joining workspace with org role creates organization membership"""
+        # Create user and invitation with org role
+        new_user = User.objects.create_user(
+            "joininguser@test.com",
+            "password",
+        )
+
+        invitation = WorkspaceInvitation.objects.create(
+            email=new_user.email,
+            workspace=self.WORKSPACE,
+            role=WorkspaceMembershipRole.VIEWER,
+            organization_role=OrganizationMembershipRole.MEMBER,
+            invited_by=self.USER_JULIA,
+        )
+
+        self.client.force_login(new_user)
+
+        r = self.run_query(
+            """
+            mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                joinWorkspace(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(invitation.id)}},
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["joinWorkspace"],
+        )
+
+        # Verify workspace membership was created
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(
+                user=new_user, workspace=self.WORKSPACE
+            ).exists()
+        )
+
+        # Verify organization membership was created with correct role
+        org_membership = OrganizationMembership.objects.get(
+            user=new_user, organization=self.ORGANIZATION
+        )
+        self.assertEqual(org_membership.role, OrganizationMembershipRole.MEMBER)
+
+    def test_join_workspace_without_org_role_no_org_membership(self):
+        """Test that joining workspace without org role doesn't create org membership"""
+        # Create user and invitation WITHOUT org role
+        new_user = User.objects.create_user(
+            "externaljoining@test.com",
+            "password",
+        )
+
+        invitation = WorkspaceInvitation.objects.create(
+            email=new_user.email,
+            workspace=self.WORKSPACE,
+            role=WorkspaceMembershipRole.VIEWER,
+            organization_role=None,  # No org role
+            invited_by=self.USER_JULIA,
+        )
+
+        self.client.force_login(new_user)
+
+        r = self.run_query(
+            """
+            mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                joinWorkspace(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(invitation.id)}},
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["joinWorkspace"],
+        )
+
+        # Verify workspace membership was created
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(
+                user=new_user, workspace=self.WORKSPACE
+            ).exists()
+        )
+
+        # Verify NO organization membership was created
+        self.assertFalse(
+            OrganizationMembership.objects.filter(
+                user=new_user, organization=self.ORGANIZATION
+            ).exists()
+        )
+
+    def test_workspace_membership_save_no_auto_add_to_org(self):
+        """Test that WorkspaceMembership.save() no longer auto-adds to organization"""
+        # Create user who is NOT in the organization
+        new_user = User.objects.create_user(
+            "noautoadduser@test.com",
+            "password",
+        )
+
+        # Directly create workspace membership (bypassing invitation flow)
+        WorkspaceMembership.objects.create(
+            user=new_user,
+            workspace=self.WORKSPACE,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        # Verify NO organization membership was auto-created
+        self.assertFalse(
+            OrganizationMembership.objects.filter(
+                user=new_user, organization=self.ORGANIZATION
+            ).exists()
+        )

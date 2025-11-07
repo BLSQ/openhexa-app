@@ -2018,6 +2018,24 @@ export type EnableTwoFactorResult = {
   verified?: Maybe<Scalars['Boolean']['output']>;
 };
 
+/** Represents an external collaborator who has workspace access but no organization membership. */
+export type ExternalCollaborator = {
+  __typename?: 'ExternalCollaborator';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['UUID']['output'];
+  user: User;
+  workspaceMemberships: Array<WorkspaceMembership>;
+};
+
+/** Represents a page of external collaborators. */
+export type ExternalCollaboratorPage = {
+  __typename?: 'ExternalCollaboratorPage';
+  items: Array<ExternalCollaborator>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
 /** The FeatureFlag type represents a feature flag in the system. */
 export type FeatureFlag = {
   __typename?: 'FeatureFlag';
@@ -2275,8 +2293,6 @@ export enum InviteOrganizationMemberError {
 export type InviteOrganizationMemberInput = {
   /** The unique identifier of the organization. */
   organizationId: Scalars['UUID']['input'];
-  /** The role of the user in the organization. */
-  organizationRole: OrganizationMembershipRole;
   /** The email address of the user to invite to the organization. */
   userEmail: Scalars['String']['input'];
   /** The list of workspaces to invite the user to. */
@@ -3358,6 +3374,8 @@ export type Organization = {
   datasetLinks: DatasetLinkPage;
   /** Datasets available in the organization */
   datasets: DatasetPage;
+  /** External collaborators who have workspace access but no organization membership. */
+  externalCollaborators: ExternalCollaboratorPage;
   /** The unique identifier of the organization. */
   id: Scalars['UUID']['output'];
   /** The invitations sent to join the organization. */
@@ -3404,6 +3422,14 @@ export type OrganizationDatasetsArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** The Organization type represents an organization in the system. */
+export type OrganizationExternalCollaboratorsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  term?: InputMaybe<Scalars['String']['input']>;
 };
 
 

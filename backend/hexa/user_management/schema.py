@@ -667,6 +667,45 @@ def resolve_members(organization: Organization, info, **kwargs):
     )
 
 
+@organization_object.field("externalCollaborators")
+def resolve_external_collaborators(organization: Organization, info, **kwargs):
+    org_member_user_ids = organization.organizationmembership_set.values_list(
+        "user_id", flat=True
+    )
+
+    qs = WorkspaceMembership.objects.filter(
+        workspace__organization=organization,
+        workspace__archived=False,
+    ).exclude(user_id__in=org_member_user_ids)
+
+    # Annotate with collated email field to handle case-insensitive email search
+    # as well as ordering
+    qs = qs.annotate(
+        case_insensitive_email=Collate("user__email", "und-x-icu")
+    ).order_by("case_insensitive_email")
+
+    term = kwargs.get("term")
+    if term:
+        qs = qs.filter(
+            Q(user__first_name__icontains=term)
+            | Q(user__last_name__icontains=term)
+            | Q(case_insensitive_email__contains=term)
+        )
+
+    page_result = result_page(
+        queryset=qs.values("user_id", "created_at"),
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", qs.count() or 10),
+    )
+
+    # Add organization reference to each paginated item for user in workspace_membership
+    # resolver
+    for item in page_result["items"]:
+        item["organization"] = organization
+
+    return page_result
+
+
 @organization_object.field("workspaces")
 def resolve_workspaces(organization: Organization, info, **kwargs):
     request = info.context["request"]
@@ -1616,6 +1655,30 @@ def resolve_organization_membership_workspace_memberships(
     ).select_related("workspace")
 
 
+external_collaborator_object = ObjectType("ExternalCollaborator")
+
+
+@external_collaborator_object.field("id")
+def resolve_external_collaborator_id(collaborator, info, **kwargs):
+    """Return user ID as the external collaborator ID"""
+    return collaborator["user_id"]
+
+
+@external_collaborator_object.field("user")
+def resolve_external_collaborator_user(collaborator, info, **kwargs):
+    return User.objects.get(id=collaborator["user_id"])
+
+
+@external_collaborator_object.field("workspaceMemberships")
+def resolve_external_collaborator_workspace_memberships(collaborator, info, **kwargs):
+    """Return workspace memberships for this user within the organization"""
+    return WorkspaceMembership.objects.filter(
+        user_id=collaborator["user_id"],
+        workspace__organization=collaborator["organization"],
+        workspace__archived=False,
+    ).select_related("workspace")
+
+
 organization_invitation_object = ObjectType("OrganizationInvitation")
 
 
@@ -1648,6 +1711,7 @@ identity_bindables = [
     organization_queries,
     organization_permissions_object,
     organization_membership_object,
+    external_collaborator_object,
     organization_invitation_object,
     subscription_object,
     identity_mutations,

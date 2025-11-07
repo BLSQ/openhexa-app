@@ -160,6 +160,7 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                     user=user,
                     role=input["role"],
                 )
+
                 send_workspace_add_user_email(
                     invited_by=request.user,
                     workspace=workspace,
@@ -212,14 +213,30 @@ def resolve_join_workspace(_, info, **kwargs):
                 f"Already got a membership for {request.user} and workspace {invitation.workspace.name}"
             )
 
-        # We create the membership
-        WorkspaceMembership.objects.create(
-            workspace=invitation.workspace,
-            user=request.user,
-            role=invitation.role,
-        )
-        invitation.status = WorkspaceInvitationStatus.ACCEPTED
-        invitation.save()
+        with transaction.atomic():
+            # Create workspace membership
+            WorkspaceMembership.objects.create(
+                workspace=invitation.workspace,
+                user=request.user,
+                role=invitation.role,
+            )
+
+            # Create organization membership if specified in invitation
+            if invitation.organization_role and invitation.workspace.organization:
+                from hexa.user_management.models import OrganizationMembership
+
+                # Only create if user is not already an organization member
+                if not OrganizationMembership.objects.filter(
+                    organization=invitation.workspace.organization, user=request.user
+                ).exists():
+                    OrganizationMembership.objects.create(
+                        organization=invitation.workspace.organization,
+                        user=request.user,
+                        role=invitation.organization_role,
+                    )
+
+            invitation.status = WorkspaceInvitationStatus.ACCEPTED
+            invitation.save()
 
         return {
             "success": True,

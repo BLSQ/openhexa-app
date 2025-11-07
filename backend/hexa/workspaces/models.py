@@ -418,17 +418,10 @@ class WorkspaceMembership(models.Model):
         if self.access_token == "":
             self.access_token = str(uuid.uuid4())
 
-        if (
-            self.workspace.organization
-            and not OrganizationMembership.objects.filter(
-                organization=self.workspace.organization, user=self.user
-            ).exists()
-        ):
-            OrganizationMembership.objects.create(
-                organization=self.workspace.organization,
-                user=self.user,
-                role=OrganizationMembershipRole.MEMBER,
-            )
+        # TODO : clean backend and tests
+        # TODO : update frontend to show an optional org role to chose from (the list should be dynamic based on the current user roles)
+        # TODO : prevent non org members to access org pages
+        # TODO : only org member can create workspaces
 
         super().save(*args, **kwargs)
 
@@ -481,7 +474,10 @@ class WorkspaceInvitationManager(models.Manager):
             raise PermissionDenied
 
         return self.create(
-            email=email, workspace=workspace, role=role, invited_by=principal
+            email=email,
+            workspace=workspace,
+            role=role,
+            invited_by=principal,
         )
 
     def get_by_token(self, token: string):

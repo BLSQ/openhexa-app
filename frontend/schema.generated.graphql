@@ -1967,6 +1967,24 @@ type EnableTwoFactorResult {
   verified: Boolean
 }
 
+"""
+Represents an external collaborator who has workspace access but no organization membership.
+"""
+type ExternalCollaborator {
+  createdAt: DateTime!
+  id: UUID!
+  user: User!
+  workspaceMemberships: [WorkspaceMembership!]!
+}
+
+"""Represents a page of external collaborators."""
+type ExternalCollaboratorPage {
+  items: [ExternalCollaborator!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
 """The FeatureFlag type represents a feature flag in the system."""
 type FeatureFlag {
   """The code of the feature flag."""
@@ -2217,9 +2235,6 @@ The InviteOrganizationMemberInput type represents the input for the inviteOrgani
 input InviteOrganizationMemberInput {
   """The unique identifier of the organization."""
   organizationId: UUID!
-
-  """The role of the user in the organization."""
-  organizationRole: OrganizationMembershipRole!
 
   """The email address of the user to invite to the organization."""
   userEmail: String!
@@ -2798,6 +2813,11 @@ type Organization {
 
   """Datasets available in the organization"""
   datasets(page: Int = 1, perPage: Int = 15, query: String): DatasetPage!
+
+  """
+  External collaborators who have workspace access but no organization membership.
+  """
+  externalCollaborators(page: Int, perPage: Int, term: String): ExternalCollaboratorPage!
 
   """The unique identifier of the organization."""
   id: UUID!
