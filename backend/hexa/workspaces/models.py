@@ -388,17 +388,10 @@ class WorkspaceMembership(models.Model):
         if self.access_token == "":
             self.access_token = str(uuid.uuid4())
 
-        if (
-            self.workspace.organization
-            and not OrganizationMembership.objects.filter(
-                organization=self.workspace.organization, user=self.user
-            ).exists()
-        ):
-            OrganizationMembership.objects.create(
-                organization=self.workspace.organization,
-                user=self.user,
-                role=OrganizationMembershipRole.MEMBER,
-            )
+        # TODO : clean backend and tests
+        # TODO : update frontend to show an optional org role to chose from (the list should be dynamic based on the current user roles)
+        # TODO : prevent non org members to access org pages
+        # TODO : only org member can create workspaces
 
         super().save(*args, **kwargs)
 
@@ -446,12 +439,49 @@ class WorkspaceInvitationManager(models.Manager):
         workspace: Workspace,
         email: string,
         role: WorkspaceMembershipRole,
+        organization_role: OrganizationMembershipRole | None = None,
     ):
         if not principal.has_perm("workspaces.manage_members", workspace):
             raise PermissionDenied
 
+        if organization_role and workspace.organization:
+            if not principal.has_perm(
+                "user_management.manage_members", workspace.organization
+            ):
+                raise PermissionDenied(
+                    "Cannot assign organization role without organization permissions"
+                )
+
+            principal_org_membership = OrganizationMembership.objects.filter(
+                organization=workspace.organization, user=principal
+            ).first()
+
+            if principal_org_membership:
+                role_hierarchy = {
+                    OrganizationMembershipRole.OWNER: 3,
+                    OrganizationMembershipRole.ADMIN: 2,
+                    OrganizationMembershipRole.MEMBER: 1,
+                }
+                principal_level = role_hierarchy.get(principal_org_membership.role, 0)
+                requested_level = role_hierarchy.get(organization_role, 0)
+
+                if requested_level > principal_level:
+                    raise PermissionDenied(
+                        f"Cannot assign role higher than your own ({principal_org_membership.role})"
+                    )
+
+                if organization_role == OrganizationMembershipRole.OWNER:
+                    if not principal.has_perm(
+                        "user_management.manage_owners", workspace.organization
+                    ):
+                        raise PermissionDenied("Cannot assign OWNER role")
+
         return self.create(
-            email=email, workspace=workspace, role=role, invited_by=principal
+            email=email,
+            workspace=workspace,
+            role=role,
+            invited_by=principal,
+            organization_role=organization_role,
         )
 
     def get_by_token(self, token: string):
@@ -478,6 +508,13 @@ class WorkspaceInvitation(Base):
         max_length=50,
         choices=WorkspaceInvitationStatus.choices,
         default=WorkspaceInvitationStatus.PENDING,
+    )
+    organization_role = models.CharField(
+        max_length=50,
+        choices=OrganizationMembershipRole.choices,
+        null=True,
+        blank=True,
+        help_text="Optional organization role to assign when user accepts invitation",
     )
 
     objects = WorkspaceInvitationManager.from_queryset(WorkspaceInvitationQuerySet)()
