@@ -105,21 +105,3 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
             },
             credentials.env,
         )
-
-    def test_application_name_with_run_id(self):
-        """Test that application_name is added to DB URL when run_id and pipeline_name are provided."""
-        DAGAuthorizedDatasource.objects.create(
-            dag=self.PIPELINE, datasource=self.DATABASE
-        )
-
-        credentials = PipelinesCredentials(
-            self.PIPELINE, run_id="12345", pipeline_name="Test Pipeline"
-        )
-        pipelines_credentials(credentials)
-
-        # Verify that the URL includes the application_name parameter
-        expected_url = (
-            "postgresql://user1:pass1@localhost:5432/db1"
-            "?application_name=Test%20Pipeline%20%28run%2012345%29"
-        )
-        self.assertEqual(expected_url, credentials.env["POSTGRESQL_DB1_URL"])

@@ -1,5 +1,4 @@
 from typing import Dict, List, Optional, Tuple
-from urllib.parse import quote
 
 from django.contrib.contenttypes.models import ContentType
 
@@ -10,8 +9,6 @@ from hexa.plugins.connector_postgresql.models import Database
 
 def get_env(
     databases: List[Tuple[Database, Optional[str]]],
-    run_id: Optional[str] = None,
-    pipeline_name: Optional[str] = None,
 ) -> Tuple[Dict[str, str], Dict[str, bytes]]:
     env, files = {}, {}
 
@@ -23,17 +20,12 @@ def get_env(
                 label = database.unique_name
             label = label.replace("-", "_").upper()
 
-            db_url = database.url
-            if run_id and pipeline_name:
-                application_name = f"{pipeline_name} (run {run_id})"
-                db_url = f"{db_url}?application_name={quote(application_name)}"
-
             env[f"POSTGRESQL_{label}_HOSTNAME"] = database.hostname
             env[f"POSTGRESQL_{label}_USERNAME"] = database.username
             env[f"POSTGRESQL_{label}_PASSWORD"] = database.password
             env[f"POSTGRESQL_{label}_DATABASE"] = database.database
             env[f"POSTGRESQL_{label}_PORT"] = str(database.port)
-            env[f"POSTGRESQL_{label}_URL"] = db_url
+            env[f"POSTGRESQL_{label}_URL"] = database.url
 
             pgpass_lines.append(
                 f"{database.hostname}:5432:db_name:{database.username}:{database.password}"
@@ -85,10 +77,7 @@ def pipelines_credentials(credentials: PipelinesCredentials):
         )
         databases = [(x, None) for x in authorized_datasource]
 
-    # Pass run information for application_name tracking
-    env, files = get_env(
-        databases, run_id=credentials.run_id, pipeline_name=credentials.pipeline_name
-    )
+    env, files = get_env(databases)
 
     credentials.env.update(env)
     credentials.files.update(files)
