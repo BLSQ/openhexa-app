@@ -85,7 +85,7 @@ class ViewsTest(TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
-    def test_workspace_credentials_401(self):
+    def test_workspace_credentials_for_notebooks_401(self):
         self.client.force_login(self.USER_REBECCA)
         response = self.client.post(
             reverse(
@@ -95,7 +95,7 @@ class ViewsTest(TestCase):
         )
         self.assertEqual(response.status_code, 401)
 
-    def test_workspace_credentials_200(self):
+    def test_workspace_for_notebooks_credentials_200(self):
         self.client.force_login(self.USER_JULIA)
         response = self.client.post(
             reverse("workspaces:credentials"),
@@ -109,6 +109,13 @@ class ViewsTest(TestCase):
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
         self.maxDiff = None
+
+        # Expected URL should include application_name with user + workspace
+        expected_db_url = (
+            f"{self.WORKSPACE.db_url}"
+            f"?application_name={quote(f'notebook /user/{self.USER_JULIA.email}/{self.WORKSPACE.slug}')}"
+        )
+
         self.assertEqual(
             response_data["env"],
             {
@@ -118,7 +125,7 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_PORT": db_credentials["port"],
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
-                "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
+                "WORKSPACE_DATABASE_URL": expected_db_url,
                 "WORKSPACE_STORAGE_ENGINE": "dummy",
                 "HEXA_TOKEN": Signer().sign_object(
                     self.WORKSPACE_MEMBERSHIP_JULIA.access_token
