@@ -595,9 +595,6 @@ class Command(BaseCommand):
         sleep(10)
 
         for run in PipelineRun.objects.filter(state=PipelineRunState.RUNNING):
-            logger.info(
-                "Re-attaching to orphaned run %s #%s", run.pipeline.name, run.id
-            )
             run_pipeline(run, create_container=False)
 
         i = 0
