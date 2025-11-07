@@ -94,6 +94,9 @@ type WorkspaceInvitation {
   # The user who sent the invitation.
   invitedBy: User
 
+  # Optional organization role to assign when user accepts invitation.
+  organizationRole: OrganizationMembershipRole
+
   # The date and time when the invitation was created.
   createdAt: DateTime!
 
@@ -427,6 +430,9 @@ input InviteWorkspaceMemberInput {
 
   # The role of the user in the workspace.
   role: WorkspaceMembershipRole!
+
+  # Optional organization role to assign to the user. Only applicable if workspace belongs to an organization.
+  organizationRole: OrganizationMembershipRole
 }
 
 """
