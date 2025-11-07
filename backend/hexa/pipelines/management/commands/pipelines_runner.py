@@ -255,7 +255,6 @@ def monitor_pod_kube(run: PipelineRun, pod):
     container_name = generate_pipeline_container_name(run)
 
     # monitor the pod
-    pod_read_durations = []
     while True:
         start_time = timezone.now()
         run.refresh_from_db()
@@ -263,8 +262,6 @@ def monitor_pod_kube(run: PipelineRun, pod):
         run.save()
 
         remote_pod = v1.read_namespaced_pod(pod.metadata.name, pod.metadata.namespace)
-        duration = (timezone.now() - start_time).total_seconds()
-        pod_read_durations.append(duration)
 
         # if the run is flagged as TERMINATING stop the loop
         if run.state == PipelineRunState.TERMINATING:
@@ -319,20 +316,6 @@ def monitor_pod_kube(run: PipelineRun, pod):
         remote_pod.status.phase == "Succeeded"
         and run.state != PipelineRunState.TERMINATING
     )
-
-    if pod_read_durations:
-        avg_duration = sum(pod_read_durations) / len(pod_read_durations)
-        min_duration = min(pod_read_durations)
-        max_duration = max(pod_read_durations)
-        logger.info(
-            "Pod read_namespaced_pod stats for pipeline: %s, run id : %s: calls=%d, avg=%.2fs, min=%.2fs, max=%.2fs",
-            run.pipeline.name,
-            run.id,
-            len(pod_read_durations),
-            avg_duration,
-            min_duration,
-            max_duration,
-        )
 
     return success, stdout
 
