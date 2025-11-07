@@ -142,6 +142,7 @@ def resolve_invite_workspace_member(_, info, **kwargs):
             slug=input["workspace_slug"]
         )
         user = User.objects.filter(email=input["user_email"]).first()
+        organization_role = input.get("organization_role")
 
         if user:
             is_workspace_member = WorkspaceMembership.objects.filter(
@@ -157,6 +158,20 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                     user=user,
                     role=input["role"],
                 )
+
+                if organization_role and workspace.organization:
+                    from hexa.user_management.models import OrganizationMembership
+
+                    if not OrganizationMembership.objects.filter(
+                        organization=workspace.organization, user=user
+                    ).exists():
+                        OrganizationMembership.create_if_has_perm(
+                            principal=request.user,
+                            organization=workspace.organization,
+                            user=user,
+                            role=organization_role,
+                        )
+
                 send_workspace_add_user_email(
                     invited_by=request.user,
                     workspace=workspace,
@@ -178,6 +193,7 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                     workspace=workspace,
                     email=input["user_email"],
                     role=input["role"],
+                    organization_role=organization_role,
                 )
                 send_workspace_invite_new_user_email(invitation)
 
@@ -209,14 +225,30 @@ def resolve_join_workspace(_, info, **kwargs):
                 f"Already got a membership for {request.user} and workspace {invitation.workspace.name}"
             )
 
-        # We create the membership
-        WorkspaceMembership.objects.create(
-            workspace=invitation.workspace,
-            user=request.user,
-            role=invitation.role,
-        )
-        invitation.status = WorkspaceInvitationStatus.ACCEPTED
-        invitation.save()
+        with transaction.atomic():
+            # Create workspace membership
+            WorkspaceMembership.objects.create(
+                workspace=invitation.workspace,
+                user=request.user,
+                role=invitation.role,
+            )
+
+            # Create organization membership if specified in invitation
+            if invitation.organization_role and invitation.workspace.organization:
+                from hexa.user_management.models import OrganizationMembership
+
+                # Only create if user is not already an organization member
+                if not OrganizationMembership.objects.filter(
+                    organization=invitation.workspace.organization, user=request.user
+                ).exists():
+                    OrganizationMembership.objects.create(
+                        organization=invitation.workspace.organization,
+                        user=request.user,
+                        role=invitation.organization_role,
+                    )
+
+            invitation.status = WorkspaceInvitationStatus.ACCEPTED
+            invitation.save()
 
         return {
             "success": True,
