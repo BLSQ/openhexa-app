@@ -190,6 +190,8 @@ type PipelineTemplate {
   tags: [Tag!]!  # The tags associated with the pipeline template.
   publisher: String  # Publisher of the template (organization name).
   pipelinesCount: Int!  # Number of pipelines created from this template.
+  validatedAt: DateTime  # Timestamp when the template was validated as official.
+  organization: Organization  # The organization that published the template (from workspace).
 }
 
 """
