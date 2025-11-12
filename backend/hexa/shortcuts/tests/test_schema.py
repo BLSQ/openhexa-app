@@ -58,7 +58,6 @@ class ShortcutsSchemaTest(GraphQLTestCase):
                         id
                         name
                         url
-                        type
                         order
                     }
                 }
@@ -81,7 +80,6 @@ class ShortcutsSchemaTest(GraphQLTestCase):
                         id
                         name
                         url
-                        type
                         order
                     }
                 }
@@ -95,7 +93,6 @@ class ShortcutsSchemaTest(GraphQLTestCase):
         shortcut_names = {s["name"] for s in shortcuts}
         self.assertIn("Test Webapp 1", shortcut_names)
         self.assertIn("Test Webapp 2", shortcut_names)
-        self.assertEqual("webapp", shortcuts[0]["type"])
 
     def test_shortcuts_query_user_specific(self):
         self.WEBAPP1.add_to_shortcuts(self.USER_ROOT)

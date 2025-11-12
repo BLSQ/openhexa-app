@@ -71,3 +71,33 @@ class Shortcut(Base):
 
     def __repr__(self):
         return f"<Shortcut: user={self.user.email} content={self.content_object} workspace={self.workspace.slug}>"
+
+    def to_shortcut_item(self):
+        """
+        Convert this shortcut to a shortcut item dict for GraphQL.
+        Returns None if the content object doesn't exist or doesn't implement to_shortcut_item.
+        """
+        content_object = self.content_object
+        if content_object is None:
+            return None
+
+        # Skip soft-deleted objects
+        if (
+            hasattr(content_object, "deleted_at")
+            and content_object.deleted_at is not None
+        ):
+            return None
+
+        if not hasattr(content_object, "to_shortcut_item"):
+            return None
+
+        item_data = content_object.to_shortcut_item()
+        if item_data is None:
+            return None
+
+        return {
+            "id": str(content_object.id),
+            "name": item_data.get("label", ""),
+            "url": item_data.get("url", ""),
+            "order": self.order,
+        }

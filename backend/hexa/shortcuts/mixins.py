@@ -53,10 +53,15 @@ class ShortcutableMixin:
         ).delete()
 
     @abstractmethod
-    def to_shortcut_item(self, shortcut):
+    def to_shortcut_item(self):
         """
         Convert this item to a shortcut item dict for GraphQL.
-        Must be implemented by subclasses.
+
+        Must be implemented by subclasses and return a dict with:
+        - label: str - The display name of the item
+        - url: str - The URL to navigate to when clicked
+
+        The Shortcut model will combine this with its own id and order fields.
         """
         raise NotImplementedError(
             f"{self.__class__.__name__} must implement to_shortcut_item()"

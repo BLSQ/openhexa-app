@@ -280,8 +280,6 @@ Sidebar.fragments = {
         id
         name
         url
-        icon
-        type
         order
       }
     }

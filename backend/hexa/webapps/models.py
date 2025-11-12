@@ -84,18 +84,11 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         self.favorites.remove(user)
         self.save()
 
-    def to_shortcut_item(self, shortcut):
+    def to_shortcut_item(self):
         """Convert this webapp to a shortcut item dict for GraphQL"""
-        from hexa.utils.base64_image_encode_decode import encode_base64_image
-
-        icon = encode_base64_image(bytes(self.icon)) if self.icon else None
         return {
-            "id": str(self.id),
-            "name": self.name,
+            "label": self.name,
             "url": f"/workspaces/{self.workspace.slug}/webapps/{self.id}/play",
-            "icon": icon,
-            "type": "webapp",
-            "order": shortcut.order,
         }
 
     def __str__(self):

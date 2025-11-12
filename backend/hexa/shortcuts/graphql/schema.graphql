@@ -5,8 +5,6 @@ type ShortcutItem {
   id: UUID!
   name: String!
   url: String!
-  icon: String
-  type: String!
   order: Int!
 }
 

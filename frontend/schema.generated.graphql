@@ -3807,11 +3807,9 @@ type SetPasswordResult {
 
 """Represents a shortcut item in the sidebar."""
 type ShortcutItem {
-  icon: String
   id: UUID!
   name: String!
   order: Int!
-  type: String!
   url: String!
 }
 

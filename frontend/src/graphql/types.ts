@@ -4704,11 +4704,9 @@ export type SetPasswordResult = {
 /** Represents a shortcut item in the sidebar. */
 export type ShortcutItem = {
   __typename?: 'ShortcutItem';
-  icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   order: Scalars['Int']['output'];
-  type: Scalars['String']['output'];
   url: Scalars['String']['output'];
 };
 
