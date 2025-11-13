@@ -2,10 +2,7 @@ import datetime
 import os
 
 from django.conf import settings
-from django.utils import timezone
-from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy, override
-from slugify import slugify
 
 from hexa.core.utils import send_mail
 
@@ -60,6 +57,28 @@ def mail_run_recipients(run: PipelineRun):
 
 
 def generate_pipeline_container_name(run: PipelineRun) -> str:
-    exec_time_str = timezone.now().replace(tzinfo=None, microsecond=0).isoformat()
-    suffix = f"-{exec_time_str}-{get_random_string(8)}"
-    return slugify(f"pipeline-{run.pipeline.code}"[: 63 - len(suffix)] + suffix)
+    """
+    Generate a deterministic Kubernetes-compliant pod name for a pipeline run.
+
+    The name includes workspace, pipeline code, and run ID for readability while
+    being deterministic (same run = same name) to allow re-attachment after restarts.
+
+    Format: pipeline-{workspace}-{pipeline-code}-{run-id}
+    Kubernetes DNS requirements: lowercase alphanumeric + hyphens, max 63 chars
+
+    Args:
+        run: The PipelineRun instance
+
+    Returns
+    -------
+        A deterministic, Kubernetes-compliant pod name
+    """
+    run_id = str(run.id)
+    max_prefix_length = 63 - 9 - len(run_id) - 2  # "pipeline-", UUID, 2 hyphens
+    workspace_max = max_prefix_length // 2
+    pipeline_max = max_prefix_length - workspace_max
+
+    truncated_workspace_slug = run.pipeline.workspace.slug[:workspace_max]
+    truncated_pipeline_slug = run.pipeline.code[:pipeline_max]
+
+    return f"pipeline-{truncated_workspace_slug}-{truncated_pipeline_slug}-{run_id}"
