@@ -19,6 +19,7 @@ describe("WorkspaceLayout", () => {
     workspaces: {
       totalCount: 0,
     },
+    shortcuts: [],
     permissions: {
       manageMembers: true,
       launchNotebookServer: true,

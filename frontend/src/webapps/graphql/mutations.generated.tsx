@@ -31,6 +31,20 @@ export type RemoveFromFavoritesMutationVariables = Types.Exact<{
 
 export type RemoveFromFavoritesMutation = { __typename?: 'Mutation', removeFromFavorites: { __typename?: 'RemoveFromFavoritesResult', success: boolean, errors: Array<Types.RemoveFromFavoritesError> } };
 
+export type AddWebappToShortcutsMutationVariables = Types.Exact<{
+  input: Types.AddWebappToShortcutsInput;
+}>;
+
+
+export type AddWebappToShortcutsMutation = { __typename?: 'Mutation', addWebappToShortcuts: { __typename?: 'AddWebappToShortcutsResult', success: boolean, errors: Array<Types.AddWebappToShortcutsError> } };
+
+export type RemoveWebappFromShortcutsMutationVariables = Types.Exact<{
+  input: Types.RemoveWebappFromShortcutsInput;
+}>;
+
+
+export type RemoveWebappFromShortcutsMutation = { __typename?: 'Mutation', removeWebappFromShortcuts: { __typename?: 'RemoveWebappFromShortcutsResult', success: boolean, errors: Array<Types.RemoveWebappFromShortcutsError> } };
+
 
 export const UpdateWebappDocument = gql`
     mutation UpdateWebapp($input: UpdateWebappInput!) {
@@ -171,3 +185,71 @@ export function useRemoveFromFavoritesMutation(baseOptions?: Apollo.MutationHook
 export type RemoveFromFavoritesMutationHookResult = ReturnType<typeof useRemoveFromFavoritesMutation>;
 export type RemoveFromFavoritesMutationResult = Apollo.MutationResult<RemoveFromFavoritesMutation>;
 export type RemoveFromFavoritesMutationOptions = Apollo.BaseMutationOptions<RemoveFromFavoritesMutation, RemoveFromFavoritesMutationVariables>;
+export const AddWebappToShortcutsDocument = gql`
+    mutation AddWebappToShortcuts($input: AddWebappToShortcutsInput!) {
+  addWebappToShortcuts(input: $input) {
+    success
+    errors
+  }
+}
+    `;
+export type AddWebappToShortcutsMutationFn = Apollo.MutationFunction<AddWebappToShortcutsMutation, AddWebappToShortcutsMutationVariables>;
+
+/**
+ * __useAddWebappToShortcutsMutation__
+ *
+ * To run a mutation, you first call `useAddWebappToShortcutsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddWebappToShortcutsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addWebappToShortcutsMutation, { data, loading, error }] = useAddWebappToShortcutsMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useAddWebappToShortcutsMutation(baseOptions?: Apollo.MutationHookOptions<AddWebappToShortcutsMutation, AddWebappToShortcutsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddWebappToShortcutsMutation, AddWebappToShortcutsMutationVariables>(AddWebappToShortcutsDocument, options);
+      }
+export type AddWebappToShortcutsMutationHookResult = ReturnType<typeof useAddWebappToShortcutsMutation>;
+export type AddWebappToShortcutsMutationResult = Apollo.MutationResult<AddWebappToShortcutsMutation>;
+export type AddWebappToShortcutsMutationOptions = Apollo.BaseMutationOptions<AddWebappToShortcutsMutation, AddWebappToShortcutsMutationVariables>;
+export const RemoveWebappFromShortcutsDocument = gql`
+    mutation RemoveWebappFromShortcuts($input: RemoveWebappFromShortcutsInput!) {
+  removeWebappFromShortcuts(input: $input) {
+    success
+    errors
+  }
+}
+    `;
+export type RemoveWebappFromShortcutsMutationFn = Apollo.MutationFunction<RemoveWebappFromShortcutsMutation, RemoveWebappFromShortcutsMutationVariables>;
+
+/**
+ * __useRemoveWebappFromShortcutsMutation__
+ *
+ * To run a mutation, you first call `useRemoveWebappFromShortcutsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveWebappFromShortcutsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeWebappFromShortcutsMutation, { data, loading, error }] = useRemoveWebappFromShortcutsMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRemoveWebappFromShortcutsMutation(baseOptions?: Apollo.MutationHookOptions<RemoveWebappFromShortcutsMutation, RemoveWebappFromShortcutsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveWebappFromShortcutsMutation, RemoveWebappFromShortcutsMutationVariables>(RemoveWebappFromShortcutsDocument, options);
+      }
+export type RemoveWebappFromShortcutsMutationHookResult = ReturnType<typeof useRemoveWebappFromShortcutsMutation>;
+export type RemoveWebappFromShortcutsMutationResult = Apollo.MutationResult<RemoveWebappFromShortcutsMutation>;
+export type RemoveWebappFromShortcutsMutationOptions = Apollo.BaseMutationOptions<RemoveWebappFromShortcutsMutation, RemoveWebappFromShortcutsMutationVariables>;

@@ -26,3 +26,17 @@ mutation RemoveFromFavorites($input: RemoveFromFavoritesInput!) {
     errors
   }
 }
+
+mutation AddWebappToShortcuts($input: AddWebappToShortcutsInput!) {
+  addWebappToShortcuts(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation RemoveWebappFromShortcuts($input: RemoveWebappFromShortcutsInput!) {
+  removeWebappFromShortcuts(input: $input) {
+    success
+    errors
+  }
+}

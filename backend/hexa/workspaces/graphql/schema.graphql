@@ -50,6 +50,9 @@ type Workspace {
 
   # The invitations sent to join the workspace.
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
+
+  # The shortcuts for the current user in this workspace.
+  shortcuts: [ShortcutItem!]!
 }
 
 """

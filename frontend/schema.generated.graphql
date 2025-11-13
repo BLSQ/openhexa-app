@@ -358,6 +358,23 @@ type AddToFavoritesResult {
   success: Boolean!
 }
 
+"""Represents the error message for adding a webapp to shortcuts."""
+enum AddWebappToShortcutsError {
+  ITEM_ALREADY_EXISTS
+  ITEM_NOT_FOUND
+}
+
+"""Represents the input for adding a webapp to shortcuts."""
+input AddWebappToShortcutsInput {
+  webappId: UUID!
+}
+
+"""Represents the result of adding a webapp to shortcuts."""
+type AddWebappToShortcutsResult {
+  errors: [AddWebappToShortcutsError!]!
+  success: Boolean!
+}
+
 enum ApproveAccessmodAccessRequestError {
   INVALID
 }
@@ -2457,6 +2474,7 @@ type Mutation {
   """Adds a recipient to a pipeline."""
   addPipelineRecipient(input: CreatePipelineRecipientInput!): AddPipelineRecipientResult!
   addToFavorites(input: AddToFavoritesInput!): AddToFavoritesResult!
+  addWebappToShortcuts(input: AddWebappToShortcutsInput!): AddWebappToShortcutsResult!
   approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
   archiveWorkspace(input: ArchiveWorkspaceInput!): ArchiveWorkspaceResult!
   createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult!
@@ -2600,6 +2618,7 @@ type Mutation {
   """Registers a new user."""
   register(input: RegisterInput!): RegisterResult!
   removeFromFavorites(input: RemoveFromFavoritesInput!): RemoveFromFavoritesResult!
+  removeWebappFromShortcuts(input: RemoveWebappFromShortcutsInput!): RemoveWebappFromShortcutsResult!
   requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
   resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult!
   resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult!
@@ -3532,6 +3551,22 @@ type RemoveFromFavoritesResult {
   success: Boolean!
 }
 
+"""Represents the error message for removing a webapp from shortcuts."""
+enum RemoveWebappFromShortcutsError {
+  ITEM_NOT_FOUND
+}
+
+"""Represents the input for removing a webapp from shortcuts."""
+input RemoveWebappFromShortcutsInput {
+  webappId: UUID!
+}
+
+"""Represents the result of removing a webapp from shortcuts."""
+type RemoveWebappFromShortcutsResult {
+  errors: [RemoveWebappFromShortcutsError!]!
+  success: Boolean!
+}
+
 enum RequestAccessmodAccessError {
   ALREADY_EXISTS
   INVALID
@@ -3768,6 +3803,14 @@ type SetPasswordResult {
 
   """Indicates whether the password was set successfully."""
   success: Boolean!
+}
+
+"""Represents a shortcut item in the sidebar."""
+type ShortcutItem {
+  id: UUID!
+  name: String!
+  order: Int!
+  url: String!
 }
 
 scalar SimplifiedExtentType
@@ -4619,6 +4662,7 @@ type Webapp {
   icon: String
   id: UUID!
   isFavorite: Boolean!
+  isShortcut: Boolean!
   name: String!
   permissions: WebappPermissions!
   url: String!
@@ -4663,6 +4707,7 @@ type Workspace {
   permissions: WorkspacePermissions!
   pipelineTags: [String!]!
   pipelineTemplateTags: [String!]!
+  shortcuts: [ShortcutItem!]!
   slug: String!
   updatedAt: DateTime
 }

@@ -767,6 +767,7 @@ query WorkspaceWebappsPage(
       description
       url
       isFavorite
+      isShortcut
       createdBy {
         firstName
         lastName
@@ -838,3 +839,4 @@ query WorkspaceConnectionPicker($slug: String!) {
           ...WorkspaceConnectionPicker_workspace
         }
 }
+

@@ -9,6 +9,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -46,7 +47,7 @@ class AllWebappManager(
     pass
 
 
-class Webapp(Base, SoftDeletedModel):
+class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     class Meta:
         verbose_name = "Webapp"
         constraints = [
@@ -82,6 +83,13 @@ class Webapp(Base, SoftDeletedModel):
     def remove_from_favorites(self, user: User):
         self.favorites.remove(user)
         self.save()
+
+    def to_shortcut_item(self):
+        """Convert this webapp to a shortcut item dict for GraphQL"""
+        return {
+            "label": self.name,
+            "url": f"/workspaces/{self.workspace.slug}/webapps/{self.id}/play",
+        }
 
     def __str__(self):
         return self.name

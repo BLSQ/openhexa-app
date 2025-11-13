@@ -29,6 +29,10 @@ from hexa.plugins.connector_accessmod.schema import (
 from hexa.plugins.connector_airflow.schema import dags_bindables, dags_type_defs
 from hexa.plugins.connector_s3.schema import s3_bindables, s3_type_defs
 from hexa.search.schema import search_bindables, search_type_defs
+from hexa.shortcuts.schema import (
+    shortcuts_bindables,
+    shortcuts_type_defs,
+)
 from hexa.tags.schema import tags_bindables, tags_type_defs
 from hexa.user_management.schema import (
     identity_bindables,
@@ -93,6 +97,7 @@ schema = make_executable_schema(
         pipelines_type_defs,
         pipeline_templates_type_defs,
         webapps_type_defs,
+        shortcuts_type_defs,
         search_type_defs,
         workspaces_type_def,
         metadata_type_def,
@@ -107,6 +112,7 @@ schema = make_executable_schema(
         *pipelines_bindables,
         *pipeline_templates_bindables,
         *webapps_bindables,
+        *shortcuts_bindables,
         *search_bindables,
         *identity_bindables,
         *tags_bindables,

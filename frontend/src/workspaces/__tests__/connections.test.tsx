@@ -29,6 +29,7 @@ describe("Connections", () => {
     name: faker.company.name(),
     description: faker.company.catchPhrase(),
     countries: [],
+    shortcuts: [],
     permissions: {
       update: true,
       delete: true,
