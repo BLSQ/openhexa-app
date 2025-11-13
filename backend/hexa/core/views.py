@@ -79,4 +79,4 @@ def jwks(request: HttpRequest) -> JsonResponse:
         return JsonResponse(jwks_data)
     except JWTConfigurationError as e:
         logger.error(f"JWKS configuration error: {e}")
-        return JsonResponse({"keys": []}, status=500)
+        return JsonResponse({"keys": []}, status=200)
