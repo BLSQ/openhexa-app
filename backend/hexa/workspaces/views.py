@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 from django.conf import settings
 from django.core.signing import BadSignature, Signer
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -39,6 +41,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
     except Workspace.DoesNotExist:
         return JsonResponse({}, status=404)
 
+    # In a pipeline
     if request.headers.get("Authorization"):
         auth_type, token = request.headers.get("Authorization", " ").split(" ")
         if auth_type.lower() != "bearer":
@@ -48,11 +51,12 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
         try:
             access_token = Signer().unsign_object(token)
             # Validate that the token is valid and matches a run of the given workspace
-            run = PipelineRun.objects.get(
+            pipeline_run = PipelineRun.objects.get(
                 pipeline__workspace=workspace, access_token=access_token
             )
             sdk_auth_token = access_token
-            server_hash = str(run.id)
+            server_hash = str(pipeline_run.id)
+            pg_application_name = f"{workspace.slug} - {pipeline_run.pipeline.name} (run {pipeline_run.id})"
         except BadSignature:
             return JsonResponse({"error": "Token signature is invalid"}, status=401)
         except PipelineRun.DoesNotExist:
@@ -60,7 +64,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
                 {},
                 status=404,
             )
-    elif request.user.is_authenticated:
+    elif request.user.is_authenticated:  # In a notebook user session
         if not request.user.has_perm("workspaces.launch_notebooks", workspace):
             return JsonResponse(
                 {"error": "User does not have permission to launch notebooks"},
@@ -84,6 +88,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
             )
         server_hash = membership.notebooks_server_hash
         sdk_auth_token = membership.access_token
+        pg_application_name = f"notebook /user/{request.user.email}/{workspace_slug}"
     else:
         return JsonResponse(
             {},
@@ -97,6 +102,13 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
 
     # Database credentials
     db_credentials = get_db_server_credentials()
+
+    # Add application_name to Postgres connection URL for better connection tracking
+    separator = "&" if "?" in workspace.db_url else "?"
+    db_url = (
+        f"{workspace.db_url}{separator}application_name={quote(pg_application_name)}"
+    )
+
     env.update(
         {
             "WORKSPACE_DATABASE_DB_NAME": workspace.db_name,
@@ -104,7 +116,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
             "WORKSPACE_DATABASE_PORT": db_credentials["port"],
             "WORKSPACE_DATABASE_USERNAME": workspace.db_name,
             "WORKSPACE_DATABASE_PASSWORD": workspace.db_password,
-            "WORKSPACE_DATABASE_URL": workspace.db_url,
+            "WORKSPACE_DATABASE_URL": db_url,
         }
     )
 
