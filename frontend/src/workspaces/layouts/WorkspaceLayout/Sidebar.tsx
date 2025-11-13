@@ -213,7 +213,7 @@ const Sidebar = (props: SidebarProps) => {
                 </button>
 
                 {isShortcutsExpanded && (
-                  <div className="space-y-1 mt-1 max-h-64 overflow-y-auto">
+                  <div className="space-y-1 mt-1 max-h-64 overflow-y-auto scrollbar-visible">
                     {shortcuts.map((shortcut) => (
                       <NavItem
                         key={shortcut.id}
