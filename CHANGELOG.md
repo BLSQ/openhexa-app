@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.11.0](https://github.com/BLSQ/openhexa-app/compare/2.10.0...2.11.0) (2025-11-13)
+
+
+### Features
+
+* Add application_name parameter to Postgres connections from Pipelines (HEXA-1419) ([#1460](https://github.com/BLSQ/openhexa-app/issues/1460)) ([d91b83b](https://github.com/BLSQ/openhexa-app/commit/d91b83b5c34390141fae976b9cf95e60643b97df))
+
+
+### Bug Fixes
+
+* jupyter lab pod not starting due to lack of workspace membership (HEXA-1392) ([#1458](https://github.com/BLSQ/openhexa-app/issues/1458)) ([2c5867a](https://github.com/BLSQ/openhexa-app/commit/2c5867a06a07efb91813f1e2c94a977b5a651548))
+
 ## [2.10.0](https://github.com/BLSQ/openhexa-app/compare/2.9.1...2.10.0) (2025-11-03)
 
 
