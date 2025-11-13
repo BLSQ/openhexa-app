@@ -6,9 +6,23 @@ from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVer
 
 @admin.register(PipelineTemplate)
 class PipelineTemplateAdmin(GlobalObjectsModelAdmin):
-    list_display = ("name", "code", "workspace", "is_deleted")
-    list_filter = ("workspace",)
+    list_display = ("name", "code", "workspace", "validated_at", "is_deleted")
+    list_filter = ("workspace", "validated_at")
     search_fields = ("id", "code", "name")
+    fields = (
+        "name",
+        "code",
+        "description",
+        "workspace",
+        "source_pipeline",
+        "functional_type",
+        "tags",
+        "validated_at",
+        "created_at",
+        "updated_at",
+        "deleted_at",
+    )
+    readonly_fields = ("created_at", "updated_at")
 
 
 @admin.register(PipelineTemplateVersion)

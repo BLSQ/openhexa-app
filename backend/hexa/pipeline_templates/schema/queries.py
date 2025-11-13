@@ -53,6 +53,10 @@ def resolve_pipeline_templates(_, info, **kwargs):
         except InvalidTag:
             pipeline_templates = PipelineTemplate.objects.none()
 
+    publisher = kwargs.get("publisher")
+    if publisher:
+        pipeline_templates = pipeline_templates.filter_by_publisher(publisher)
+
     order_by = kwargs.get("order_by")
     if order_by:
         base_field = order_by.lstrip("-")

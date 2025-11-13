@@ -47,6 +47,15 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             return self.none()
         return self.filter(tags__in=tags).distinct()
 
+    def filter_by_publisher(self, publisher: str):
+        """
+        Filter pipeline templates by publisher based on organization name.
+        Publisher is the organization name from workspace.organization.name.
+        """
+        if not publisher:
+            return self.none()
+        return self.filter(workspace__organization__name=publisher)
+
     def with_pipelines_count(self):
         """
         Annotates queryset with the count of active pipelines created from each template.
@@ -95,6 +104,11 @@ class PipelineTemplate(SoftDeletedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    validated_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Timestamp when the template was validated as official. If set, shows organization name/logo; if null, shows 'Community'.",
+    )
 
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=200, default="")

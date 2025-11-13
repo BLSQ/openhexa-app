@@ -10,12 +10,18 @@ import Link from "core/components/Link";
 import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { TagsCell, FunctionalTypeCell } from "pipelines/features/PipelineMetadataGrid";
+import {
+  GetPipelineTemplatesQuery,
+  PipelineTemplates_WorkspaceFragment,
+} from "./PipelineTemplates.generated";
 import { PipelineTemplateOrderBy } from "graphql/types";
 import { templateSorting } from "pipelines/config/sorting";
 
+type PipelineTemplateItem = GetPipelineTemplatesQuery['pipelineTemplates']['items'][number];
+
 type GridViewProps = {
-  items: any[];
-  workspace: any;
+  items: PipelineTemplateItem[];
+  workspace: PipelineTemplates_WorkspaceFragment;
   page: number;
   perPage: number;
   totalItems: number;
@@ -41,7 +47,7 @@ const GridView = ({
   currentSort,
 }: GridViewProps) => {
   const { t } = useTranslation();
-  const [templateToDelete, setTemplateToDelete] = useState<any | null>(null);
+  const [templateToDelete, setTemplateToDelete] = useState<PipelineTemplateItem | null>(null);
 
   const defaultSortBy = useMemo(
     () => templateSorting.convertToDataGridSort(currentSort),
@@ -69,6 +75,13 @@ const GridView = ({
             </Link>
           )}
         </BaseColumn>
+        <TextColumn
+          id="publisher"
+          label={t("Publisher")}
+          className="w-40"
+          accessor={(template) => template.publisher || "-"}
+          disableSortBy={true}
+        />
         <BaseColumn id="version" label={t("Version")} className="w-20" disableSortBy={true}>
           {({ currentVersion }) => (
             <span className="text-sm">

@@ -21,6 +21,7 @@ import CardView from "./CardView";
 import GridView from "./GridView";
 import Header from "./Header";
 import Spinner from "core/components/Spinner";
+import User from "core/features/User";
 
 type PipelineTemplatesProps = {
   workspace: PipelineTemplates_WorkspaceFragment;
@@ -217,6 +218,7 @@ const GET_PIPELINE_TEMPLATES = gql`
         code
         name
         functionalType
+        publisher
         pipelinesCount
         tags {
           id
@@ -228,6 +230,9 @@ const GET_PIPELINE_TEMPLATES = gql`
         workspace {
           slug
           name
+          organization {
+            name
+          }
         }
         currentVersion {
           id
@@ -245,6 +250,7 @@ const GET_PIPELINE_TEMPLATES = gql`
       }
     }
   }
+  ${User.fragments.user}
 `;
 
 PipelineTemplates.fragments = {
