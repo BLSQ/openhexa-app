@@ -177,7 +177,7 @@ class ViewsTest(TestCase):
         # Expected URL should include application_name with pipeline name and run ID
         expected_db_url = (
             f"{self.WORKSPACE.db_url}"
-            f"?application_name={quote(f'{self.PIPELINE.name} (run {run.id})')}"
+            f"?application_name={quote(f'{self.WORKSPACE.slug} - {self.PIPELINE.name} (run {run.id})')}"
         )
 
         self.assertEqual(

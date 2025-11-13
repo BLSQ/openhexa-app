@@ -56,9 +56,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
             )
             sdk_auth_token = access_token
             server_hash = str(pipeline_run.id)
-            pg_application_name = (
-                f"{pipeline_run.pipeline.name} (run {pipeline_run.id})"
-            )
+            pg_application_name = f"{workspace.slug} - {pipeline_run.pipeline.name} (run {pipeline_run.id})"
         except BadSignature:
             return JsonResponse({"error": "Token signature is invalid"}, status=401)
         except PipelineRun.DoesNotExist:
