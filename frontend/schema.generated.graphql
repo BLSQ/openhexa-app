@@ -3113,12 +3113,14 @@ type PipelineTemplate {
   functionalType: PipelineFunctionalType
   id: UUID!
   name: String!
+  organization: Organization
   permissions: PipelineTemplatePermissions!
   pipelinesCount: Int!
   publisher: String
   sourcePipeline: Pipeline
   tags: [Tag!]!
   updatedAt: DateTime!
+  validatedAt: DateTime
   versions(page: Int, perPage: Int): TemplateVersionPage!
   workspace: Workspace
 }

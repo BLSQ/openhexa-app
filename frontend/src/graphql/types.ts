@@ -3723,12 +3723,14 @@ export type PipelineTemplate = {
   functionalType?: Maybe<PipelineFunctionalType>;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
+  organization?: Maybe<Organization>;
   permissions: PipelineTemplatePermissions;
   pipelinesCount: Scalars['Int']['output'];
   publisher?: Maybe<Scalars['String']['output']>;
   sourcePipeline?: Maybe<Pipeline>;
   tags: Array<Tag>;
   updatedAt: Scalars['DateTime']['output'];
+  validatedAt?: Maybe<Scalars['DateTime']['output']>;
   versions: TemplateVersionPage;
   workspace?: Maybe<Workspace>;
 };
