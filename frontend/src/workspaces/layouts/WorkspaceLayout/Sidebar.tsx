@@ -181,8 +181,8 @@ const Sidebar = (props: SidebarProps) => {
         <SpotlightSearch isSidebarOpen={isSidebarOpen} />
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
-        <div className="mt-5 flex grow flex-col">
-          <nav className="flex-1 space-y-1 px-0 pb-4 overflow-y-auto">
+        <div className="mt-5 flex grow flex-col overflow-y-auto scrollbar-visible">
+          <nav className="flex-1 space-y-1 px-0 pb-4">
             {[homeLink].concat(links).map(({ href, Icon, label }) => (
               <NavItem
                 key={href}
@@ -213,7 +213,7 @@ const Sidebar = (props: SidebarProps) => {
                 </button>
 
                 {isShortcutsExpanded && (
-                  <div className="space-y-1 mt-1 max-h-64 overflow-y-auto scrollbar-visible">
+                  <div className="space-y-1 mt-1">
                     {shortcuts.map((shortcut) => (
                       <NavItem
                         key={shortcut.id}
