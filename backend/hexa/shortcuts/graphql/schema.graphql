@@ -1,0 +1,59 @@
+"""
+Represents a shortcut item in the sidebar.
+"""
+type ShortcutItem {
+  id: UUID!
+  name: String!
+  url: String!
+  order: Int!
+}
+
+"""
+Represents the input for adding a webapp to shortcuts.
+"""
+input AddWebappToShortcutsInput {
+  webappId: UUID!
+}
+
+"""
+Represents the result of adding a webapp to shortcuts.
+"""
+type AddWebappToShortcutsResult {
+  success: Boolean!
+  errors: [AddWebappToShortcutsError!]!
+}
+
+"""
+Represents the error message for adding a webapp to shortcuts.
+"""
+enum AddWebappToShortcutsError {
+  ITEM_NOT_FOUND
+  ITEM_ALREADY_EXISTS
+}
+
+"""
+Represents the input for removing a webapp from shortcuts.
+"""
+input RemoveWebappFromShortcutsInput {
+  webappId: UUID!
+}
+
+"""
+Represents the result of removing a webapp from shortcuts.
+"""
+type RemoveWebappFromShortcutsResult {
+  success: Boolean!
+  errors: [RemoveWebappFromShortcutsError!]!
+}
+
+"""
+Represents the error message for removing a webapp from shortcuts.
+"""
+enum RemoveWebappFromShortcutsError {
+  ITEM_NOT_FOUND
+}
+
+extend type Mutation {
+  addWebappToShortcuts(input: AddWebappToShortcutsInput!): AddWebappToShortcutsResult! @loginRequired
+  removeWebappFromShortcuts(input: RemoveWebappFromShortcutsInput!): RemoveWebappFromShortcutsResult! @loginRequired
+}

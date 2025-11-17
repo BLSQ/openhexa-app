@@ -43,6 +43,7 @@ describe("Workspaces", () => {
               name: "Rwanda Workspace",
               description: "This is a description",
               countries: [],
+              shortcuts: [],
               permissions: {
                 update: false,
                 delete: false,
@@ -160,6 +161,7 @@ describe("Workspaces", () => {
                 manageMembers: false,
               },
               countries: [],
+              shortcuts: [],
               members: {
                 totalItems: 0,
                 items: [],
@@ -223,6 +225,7 @@ describe("Workspaces", () => {
                 manageMembers: false,
               },
               countries: [],
+              shortcuts: [],
               members: {
                 totalItems: 0,
                 items: [],

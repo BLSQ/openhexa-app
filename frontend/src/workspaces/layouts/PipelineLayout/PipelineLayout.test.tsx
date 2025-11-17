@@ -59,6 +59,7 @@ describe("PipelineLayout", () => {
   const workspace = {
     slug: "test",
     name: "Test",
+    shortcuts: [],
     permissions: {
       manageMembers: true,
       update: true,

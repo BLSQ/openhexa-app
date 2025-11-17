@@ -27,6 +27,7 @@ jest.mock("next-i18next", () => ({
 const mockWorkspace = {
   slug: "test-workspace",
   countries: [],
+  shortcuts: [],
   permissions: {
     launchNotebookServer: false,
     manageMembers: false,

@@ -156,6 +156,23 @@ def resolve_workspace_invitations(workspace: Workspace, info, **kwargs):
     )
 
 
+@workspace_object.field("shortcuts")
+def resolve_workspace_shortcuts(workspace: Workspace, info, **kwargs):
+    from hexa.shortcuts.models import Shortcut
+
+    request: HttpRequest = info.context["request"]
+    shortcuts = (
+        Shortcut.objects.filter_for_user(request.user)
+        .filter(workspace=workspace)
+        .order_by("order", "created_at")
+    )
+    return [
+        item
+        for shortcut in shortcuts
+        if (item := shortcut.to_shortcut_item()) is not None
+    ]
+
+
 @workspace_object.field("connections")
 def resolve_workspace_connections(workspace: Workspace, info, **kwargs):
     return workspace.connections.all()

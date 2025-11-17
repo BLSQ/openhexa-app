@@ -390,6 +390,24 @@ export type AddToFavoritesResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Represents the error message for adding a webapp to shortcuts. */
+export enum AddWebappToShortcutsError {
+  ItemAlreadyExists = 'ITEM_ALREADY_EXISTS',
+  ItemNotFound = 'ITEM_NOT_FOUND'
+}
+
+/** Represents the input for adding a webapp to shortcuts. */
+export type AddWebappToShortcutsInput = {
+  webappId: Scalars['UUID']['input'];
+};
+
+/** Represents the result of adding a webapp to shortcuts. */
+export type AddWebappToShortcutsResult = {
+  __typename?: 'AddWebappToShortcutsResult';
+  errors: Array<AddWebappToShortcutsError>;
+  success: Scalars['Boolean']['output'];
+};
+
 export enum ApproveAccessmodAccessRequestError {
   Invalid = 'INVALID'
 }
@@ -2511,6 +2529,7 @@ export type Mutation = {
   /** Adds a recipient to a pipeline. */
   addPipelineRecipient: AddPipelineRecipientResult;
   addToFavorites: AddToFavoritesResult;
+  addWebappToShortcuts: AddWebappToShortcutsResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
   archiveWorkspace: ArchiveWorkspaceResult;
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
@@ -2618,6 +2637,7 @@ export type Mutation = {
   /** Registers a new user. */
   register: RegisterResult;
   removeFromFavorites: RemoveFromFavoritesResult;
+  removeWebappFromShortcuts: RemoveWebappFromShortcutsResult;
   requestAccessmodAccess: RequestAccessmodAccessInputResult;
   resendOrganizationInvitation: ResendOrganizationInvitationResult;
   resendWorkspaceInvitation: ResendWorkspaceInvitationResult;
@@ -2691,6 +2711,11 @@ export type MutationAddPipelineRecipientArgs = {
 
 export type MutationAddToFavoritesArgs = {
   input: AddToFavoritesInput;
+};
+
+
+export type MutationAddWebappToShortcutsArgs = {
+  input: AddWebappToShortcutsInput;
 };
 
 
@@ -3056,6 +3081,11 @@ export type MutationRegisterArgs = {
 
 export type MutationRemoveFromFavoritesArgs = {
   input: RemoveFromFavoritesInput;
+};
+
+
+export type MutationRemoveWebappFromShortcutsArgs = {
+  input: RemoveWebappFromShortcutsInput;
 };
 
 
@@ -4426,6 +4456,23 @@ export type RemoveFromFavoritesResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Represents the error message for removing a webapp from shortcuts. */
+export enum RemoveWebappFromShortcutsError {
+  ItemNotFound = 'ITEM_NOT_FOUND'
+}
+
+/** Represents the input for removing a webapp from shortcuts. */
+export type RemoveWebappFromShortcutsInput = {
+  webappId: Scalars['UUID']['input'];
+};
+
+/** Represents the result of removing a webapp from shortcuts. */
+export type RemoveWebappFromShortcutsResult = {
+  __typename?: 'RemoveWebappFromShortcutsResult';
+  errors: Array<RemoveWebappFromShortcutsError>;
+  success: Scalars['Boolean']['output'];
+};
+
 export enum RequestAccessmodAccessError {
   AlreadyExists = 'ALREADY_EXISTS',
   Invalid = 'INVALID',
@@ -4652,6 +4699,15 @@ export type SetPasswordResult = {
   error?: Maybe<SetPasswordError>;
   /** Indicates whether the password was set successfully. */
   success: Scalars['Boolean']['output'];
+};
+
+/** Represents a shortcut item in the sidebar. */
+export type ShortcutItem = {
+  __typename?: 'ShortcutItem';
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+  order: Scalars['Int']['output'];
+  url: Scalars['String']['output'];
 };
 
 /** Represents the input for stopping a pipeline. */
@@ -5415,6 +5471,7 @@ export type Webapp = {
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   isFavorite: Scalars['Boolean']['output'];
+  isShortcut: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   permissions: WebappPermissions;
   url: Scalars['String']['output'];
@@ -5459,6 +5516,7 @@ export type Workspace = {
   permissions: WorkspacePermissions;
   pipelineTags: Array<Scalars['String']['output']>;
   pipelineTemplateTags: Array<Scalars['String']['output']>;
+  shortcuts: Array<ShortcutItem>;
   slug: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };

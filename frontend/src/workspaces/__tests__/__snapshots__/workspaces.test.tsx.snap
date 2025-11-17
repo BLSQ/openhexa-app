@@ -78,7 +78,7 @@ exports[`Workspaces renders the workspace page 1`] = `
           </button>
         </div>
         <div
-          class="mt-5 flex grow flex-col"
+          class="mt-5 flex grow flex-col overflow-y-auto scrollbar-visible"
         >
           <nav
             class="flex-1 space-y-1 px-0 pb-4"
@@ -512,7 +512,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
           </button>
         </div>
         <div
-          class="mt-5 flex grow flex-col"
+          class="mt-5 flex grow flex-col overflow-y-auto scrollbar-visible"
         >
           <nav
             class="flex-1 space-y-1 px-0 pb-4"
