@@ -47,6 +47,7 @@ const PipelineTemplates = ({
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [tagsFilter, setTagsFilter] = useState<string[]>([]);
   const [functionalTypeFilter, setFunctionalTypeFilter] = useState<any>(null);
+  const [publisherFilter, setPublisherFilter] = useState<string | null>(null);
   const workspaceFilterOptions = [
     { id: 1, label: "All templates", workspaceSlug: "" },
     { id: 2, label: "From this workspace", workspaceSlug: workspace.slug },
@@ -64,6 +65,7 @@ const PipelineTemplates = ({
       workspaceSlug: workspaceFilter.workspaceSlug ?? undefined,
       tags: tagsFilter.length > 0 ? tagsFilter : undefined,
       functionalType: functionalTypeFilter,
+      publisher: publisherFilter ?? undefined,
       orderBy: sortOrder.orderBy,
     },
     fetchPolicy: "cache-and-network", // The template list is a global list across the instance, so we want to check the network for updates and show the cached data in the meantime
@@ -80,6 +82,15 @@ const PipelineTemplates = ({
 
   const totalItems = data?.pipelineTemplates?.totalItems ?? 0;
   const templateTags = data?.workspace?.pipelineTemplateTags || [];
+
+  // Extract unique publishers from all loaded templates
+  const availablePublishers: string[] = React.useMemo(() => {
+    if (!data?.pipelineTemplates?.items) return [];
+    const publishers = data.pipelineTemplates.items
+      .map((item: any) => item.publisher)
+      .filter((publisher: any): publisher is string => !!publisher);
+    return Array.from(new Set(publishers)).sort();
+  }, [data?.pipelineTemplates?.items]);
 
   if (error) return <p>{t("Error loading templates")}</p>;
 
@@ -159,6 +170,9 @@ const PipelineTemplates = ({
         templateTags={templateTags}
         functionalTypeFilter={functionalTypeFilter}
         setFunctionalTypeFilter={setFunctionalTypeFilter}
+        publisherFilter={publisherFilter}
+        setPublisherFilter={setPublisherFilter}
+        availablePublishers={availablePublishers}
         sortOrder={sortOrder}
         setSortOrder={setSortOrder}
         sortOptions={sortOptions}
@@ -194,6 +208,7 @@ const GET_PIPELINE_TEMPLATES = gql`
     $workspaceSlug: String
     $tags: [String!]
     $functionalType: PipelineFunctionalType
+    $publisher: String
     $orderBy: PipelineTemplateOrderBy
   ) {
     workspace(slug: $currentWorkspaceSlug) {
@@ -207,6 +222,7 @@ const GET_PIPELINE_TEMPLATES = gql`
       workspaceSlug: $workspaceSlug
       tags: $tags
       functionalType: $functionalType
+      publisher: $publisher
       orderBy: $orderBy
     ) {
       pageNumber
@@ -230,9 +246,10 @@ const GET_PIPELINE_TEMPLATES = gql`
         workspace {
           slug
           name
-          organization {
-            name
-          }
+        }
+        organization {
+          name
+          logo
         }
         currentVersion {
           id

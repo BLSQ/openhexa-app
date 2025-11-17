@@ -26,6 +26,9 @@ type HeaderProps = {
   showCard?: boolean;
   functionalTypeFilter?: PipelineFunctionalType | null;
   setFunctionalTypeFilter?: (filter: PipelineFunctionalType | null) => void;
+  publisherFilter?: string | null;
+  setPublisherFilter?: (filter: string | null) => void;
+  availablePublishers?: string[];
   tagsFilter?: string[];
   setTagsFilter?: (tags: string[]) => void;
   templateTags?: string[];
@@ -44,6 +47,9 @@ const Header = ({
   showCard,
   functionalTypeFilter,
   setFunctionalTypeFilter,
+  publisherFilter,
+  setPublisherFilter,
+  availablePublishers,
   tagsFilter,
   setTagsFilter,
   templateTags,
@@ -61,6 +67,14 @@ const Header = ({
     ...Object.values(PipelineFunctionalType).map(type => ({
       value: type,
       label: formatPipelineFunctionalType(type)
+    }))
+  ];
+
+  const publisherOptions = [
+    { value: null, label: t("All publishers") },
+    ...(availablePublishers || []).map(publisher => ({
+      value: publisher,
+      label: publisher
     }))
   ];
 
@@ -135,6 +149,16 @@ const Header = ({
             value={functionalTypeOptions.find(opt => opt.value === functionalTypeFilter)}
             onChange={(option) => setFunctionalTypeFilter(option?.value || null)}
             options={functionalTypeOptions}
+            by="value"
+            getOptionLabel={(option) => option.label}
+            className={"min-w-48"}
+          />
+        )}
+        {setPublisherFilter && availablePublishers && availablePublishers.length > 0 && (
+          <Listbox
+            value={publisherOptions.find(opt => opt.value === publisherFilter)}
+            onChange={(option) => setPublisherFilter(option?.value || null)}
+            options={publisherOptions}
             by="value"
             getOptionLabel={(option) => option.label}
             className={"min-w-48"}

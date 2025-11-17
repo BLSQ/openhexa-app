@@ -16,6 +16,7 @@ import {
 } from "./PipelineTemplates.generated";
 import { PipelineTemplateOrderBy } from "graphql/types";
 import { templateSorting } from "pipelines/config/sorting";
+import TemplateBadge from "pipelines/features/TemplateBadge";
 
 type PipelineTemplateItem = GetPipelineTemplatesQuery['pipelineTemplates']['items'][number];
 
@@ -75,13 +76,15 @@ const GridView = ({
             </Link>
           )}
         </BaseColumn>
-        <TextColumn
-          id="publisher"
-          label={t("Publisher")}
-          className="w-40"
-          accessor={(template) => template.publisher || "-"}
-          disableSortBy={true}
-        />
+        <BaseColumn id="publisher" label={t("Publisher")} className="w-40" disableSortBy={true}>
+          {(template) => (
+            <TemplateBadge
+              publisher={template.publisher}
+              organization={template.organization}
+              size="sm"
+            />
+          )}
+        </BaseColumn>
         <BaseColumn id="version" label={t("Version")} className="w-20" disableSortBy={true}>
           {({ currentVersion }) => (
             <span className="text-sm">
