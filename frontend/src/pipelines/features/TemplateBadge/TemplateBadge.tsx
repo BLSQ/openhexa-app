@@ -30,14 +30,12 @@ const ORGANIZATION_STYLE: PublisherStyle = {
 };
 
 interface TemplateBadgeProps {
-  publisher?: string | null;
   organization?: Organization | null;
   size?: "sm" | "md";
   showIcon?: boolean;
 }
 
 const TemplateBadge = ({
-  publisher = "Community",
   organization,
   size = "md",
   showIcon = true,

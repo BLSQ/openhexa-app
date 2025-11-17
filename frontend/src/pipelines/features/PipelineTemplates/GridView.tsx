@@ -78,11 +78,7 @@ const GridView = ({
         </BaseColumn>
         <BaseColumn id="publisher" label={t("Publisher")} className="w-40" disableSortBy={true}>
           {(template) => (
-            <TemplateBadge
-              publisher={template.publisher}
-              organization={template.organization}
-              size="sm"
-            />
+            <TemplateBadge organization={template.organization} size="sm" />
           )}
         </BaseColumn>
         <BaseColumn id="version" label={t("Version")} className="w-20" disableSortBy={true}>
