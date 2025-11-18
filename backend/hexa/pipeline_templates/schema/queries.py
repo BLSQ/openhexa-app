@@ -56,10 +56,8 @@ def resolve_pipeline_templates(_, info, **kwargs):
     is_validated = kwargs.get("is_validated")
     if is_validated is not None:
         if is_validated:
-            # Show only validated templates (validatedAt is not null)
             pipeline_templates = pipeline_templates.filter(validated_at__isnull=False)
         else:
-            # Show only unvalidated/community templates (validatedAt is null)
             pipeline_templates = pipeline_templates.filter(validated_at__isnull=True)
 
     order_by = kwargs.get("order_by")
