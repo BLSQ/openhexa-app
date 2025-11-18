@@ -26,9 +26,8 @@ type HeaderProps = {
   showCard?: boolean;
   functionalTypeFilter?: PipelineFunctionalType | null;
   setFunctionalTypeFilter?: (filter: PipelineFunctionalType | null) => void;
-  publisherFilter?: string | null;
-  setPublisherFilter?: (filter: string | null) => void;
-  availablePublishers?: string[];
+  validationFilter?: boolean | null;
+  setValidationFilter?: (filter: boolean | null) => void;
   tagsFilter?: string[];
   setTagsFilter?: (tags: string[]) => void;
   templateTags?: string[];
@@ -47,9 +46,8 @@ const Header = ({
   showCard,
   functionalTypeFilter,
   setFunctionalTypeFilter,
-  publisherFilter,
-  setPublisherFilter,
-  availablePublishers,
+  validationFilter,
+  setValidationFilter,
   tagsFilter,
   setTagsFilter,
   templateTags,
@@ -70,12 +68,10 @@ const Header = ({
     }))
   ];
 
-  const publisherOptions = [
-    { value: null, label: t("All publishers") },
-    ...(availablePublishers || []).map(publisher => ({
-      value: publisher,
-      label: publisher
-    }))
+  const validationOptions = [
+    { value: null, label: t("All templates") },
+    { value: true, label: t("Validated") },
+    { value: false, label: t("Community") },
   ];
 
   return (
@@ -154,11 +150,11 @@ const Header = ({
             className={"min-w-48"}
           />
         )}
-        {setPublisherFilter && availablePublishers && availablePublishers.length > 0 && (
+        {setValidationFilter && (
           <Listbox
-            value={publisherOptions.find(opt => opt.value === publisherFilter)}
-            onChange={(option) => setPublisherFilter(option?.value || null)}
-            options={publisherOptions}
+            value={validationOptions.find(opt => opt.value === validationFilter)}
+            onChange={(option) => setValidationFilter(option?.value ?? null)}
+            options={validationOptions}
             by="value"
             getOptionLabel={(option) => option.label}
             className={"min-w-48"}

@@ -108,7 +108,6 @@ TemplateCard.fragments = {
       code
       name
       description
-      publisher
       validatedAt
       pipelinesCount
       organization {

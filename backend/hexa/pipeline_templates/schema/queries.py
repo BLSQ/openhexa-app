@@ -57,6 +57,15 @@ def resolve_pipeline_templates(_, info, **kwargs):
     if publisher:
         pipeline_templates = pipeline_templates.filter_by_publisher(publisher)
 
+    only_validated = kwargs.get("only_validated")
+    if only_validated is not None:
+        if only_validated:
+            # Show only validated templates (validatedAt is not null)
+            pipeline_templates = pipeline_templates.filter(validated_at__isnull=False)
+        else:
+            # Show only unvalidated/community templates (validatedAt is null)
+            pipeline_templates = pipeline_templates.filter(validated_at__isnull=True)
+
     order_by = kwargs.get("order_by")
     if order_by:
         base_field = order_by.lstrip("-")

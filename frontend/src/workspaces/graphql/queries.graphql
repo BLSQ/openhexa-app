@@ -700,7 +700,6 @@ query WorkspaceTemplatePage($workspaceSlug: String!, $templateCode: String!) {
     code
     name
     description
-    publisher
     validatedAt
     organization {
       name

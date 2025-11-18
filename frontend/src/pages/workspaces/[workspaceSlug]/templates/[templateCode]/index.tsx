@@ -76,8 +76,8 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
             accessor={"description"}
           />
           <RenderProperty
-            id="publisher"
-            accessor="publisher"
+            id="organization"
+            accessor="organization.name"
             label={t("Publisher")}
             readonly
           >
