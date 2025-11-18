@@ -1,0 +1,251 @@
+site_name: OpenHEXA Documentation
+site_description: 'OpenHEXA - Open-source data integration platform for public health projects'
+site_url: https://openhexa.wiki
+
+# Repository
+repo_name: BLSQ/openhexa
+repo_url: https://github.com/BLSQ/openhexa
+edit_uri: wiki
+
+# Configuration
+theme:
+  name: material
+  custom_dir: overrides
+  
+  # Static files
+  static_templates:
+    - 404.html
+    
+  # Don't include MkDocs' JavaScript
+  include_search_page: false
+  search_index_only: true
+  
+  # Default values, taken from mkdocs_theme.yml
+  language: en
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.code.select
+    - content.tabs.link
+    - content.tooltips
+    - header.autohide
+    - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.prune
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    - toc.integrate
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  font:
+    text: Inter
+    code: JetBrains Mono
+  favicon: assets/images/favicon.svg
+  logo: assets/images/favicon.svg
+
+# Customization
+extra_css:
+  - assets/stylesheets/extra.css
+
+# Plugins
+plugins:
+  - search:
+      separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - i18n:
+      docs_structure: folder
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: fr
+          name: Français
+          build: true
+          nav_translations:
+            User Manual: Manuel d'utilisation
+            Account: Compte
+            Navigation: Navigation
+            Workspaces: Espaces de travail
+            Files: Fichiers
+            Datasets: Jeux de données
+            Database: Base de données
+            Connections: Connexions
+            Pipelines: Pipelines
+            Notebooks: Notebooks
+            Administration: Administration
+            Admin Guide: Guide d'administration
+        - locale: es
+          name: Español
+          build: true
+          nav_translations:
+            User Manual: Manual de usuario
+            Account: Cuenta
+            Navigation: Navegación
+            Workspaces: Espacios de trabajo
+            Files: Archivos
+            Datasets: Conjuntos de datos
+            Database: Base de datos
+            Connections: Conexiones
+            Pipelines: Pipelines
+            Notebooks: Notebooks
+            Administration: Administración
+            Admin Guide: Guía de administración
+        - locale: pt
+          name: Português
+          build: true
+          nav_translations:
+            User Manual: Manual do usuário
+            Account: Conta
+            Navigation: Navegação
+            Workspaces: Espaços de trabalho
+            Files: Arquivos
+            Datasets: Conjuntos de dados
+            Database: Banco de dados
+            Connections: Conexões
+            Pipelines: Pipelines
+            Notebooks: Notebooks
+            Administration: Administração
+            Admin Guide: Guia de administração
+  - awesome-pages
+  - glightbox
+  - mermaid2:
+      arguments:
+        theme: base
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+      enable_git_follow: false
+  - redirects:
+      redirect_maps:
+        'Home.md': 'index.md'
+
+# Additional configuration
+extra:
+  status:
+    new: Recently added
+    deprecated: Deprecated
+  analytics:
+    provider: google
+    property: !ENV GOOGLE_ANALYTICS_KEY
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/BLSQ/openhexa
+      name: OpenHEXA on GitHub
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/openhexa/
+      name: OpenHEXA on PyPI
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/bluesquarehub
+      name: Bluesquare on Twitter
+  alternate:
+    - name: English
+      link: /
+      lang: en
+    - name: Français
+      link: /fr/
+      lang: fr
+    - name: Español
+      link: /es/
+      lang: es
+    - name: Português
+      link: /pt/
+      lang: pt
+
+# Extensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+      user: BLSQ
+      repo: openhexa
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Page tree
+nav:
+  - User Manual:
+    - Account: en/account.md
+    - Navigation: en/navigation.md
+    - Workspaces: en/workspaces.md
+    - Files: en/files.md
+    - Datasets: en/datasets.md
+    - Database: en/database.md
+    - Connections: en/connections.md
+    - Pipelines: en/pipelines.md
+    - Notebooks: en/notebooks.md
+  - Administration:
+    - Admin Guide: en/admin.md

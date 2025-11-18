@@ -67,3 +67,6 @@ frontend/*.tsbuildinfo
 # AI Coworkers
 /.claude/settings.local.json
 .docker/config.json
+
+# MkDocs
+site/
