@@ -12,7 +12,7 @@ export type GetPipelineTemplatesQueryVariables = Types.Exact<{
   workspaceSlug?: Types.InputMaybe<Types.Scalars['String']['input']>;
   tags?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
   functionalType?: Types.InputMaybe<Types.PipelineFunctionalType>;
-  onlyValidated?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
+  isValidated?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
   orderBy?: Types.InputMaybe<Types.PipelineTemplateOrderBy>;
 }>;
 
@@ -27,7 +27,7 @@ export const PipelineTemplates_WorkspaceFragmentDoc = gql`
 }
     `;
 export const GetPipelineTemplatesDocument = gql`
-    query GetPipelineTemplates($page: Int!, $perPage: Int!, $search: String, $currentWorkspaceSlug: String!, $workspaceSlug: String, $tags: [String!], $functionalType: PipelineFunctionalType, $onlyValidated: Boolean, $orderBy: PipelineTemplateOrderBy) {
+    query GetPipelineTemplates($page: Int!, $perPage: Int!, $search: String, $currentWorkspaceSlug: String!, $workspaceSlug: String, $tags: [String!], $functionalType: PipelineFunctionalType, $isValidated: Boolean, $orderBy: PipelineTemplateOrderBy) {
   workspace(slug: $currentWorkspaceSlug) {
     slug
     pipelineTemplateTags
@@ -39,7 +39,7 @@ export const GetPipelineTemplatesDocument = gql`
     workspaceSlug: $workspaceSlug
     tags: $tags
     functionalType: $functionalType
-    onlyValidated: $onlyValidated
+    isValidated: $isValidated
     orderBy: $orderBy
   ) {
     pageNumber
@@ -105,7 +105,7 @@ export const GetPipelineTemplatesDocument = gql`
  *      workspaceSlug: // value for 'workspaceSlug'
  *      tags: // value for 'tags'
  *      functionalType: // value for 'functionalType'
- *      onlyValidated: // value for 'onlyValidated'
+ *      isValidated: // value for 'isValidated'
  *      orderBy: // value for 'orderBy'
  *   },
  * });

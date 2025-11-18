@@ -1015,8 +1015,8 @@ class PipelineTemplatesTest(GraphQLTestCase):
         # Test filtering for validated templates only
         response = self.run_query(
             """
-            query($onlyValidated: Boolean) {
-                pipelineTemplates(page: 1, perPage: 10, onlyValidated: $onlyValidated) {
+            query($isValidated: Boolean) {
+                pipelineTemplates(page: 1, perPage: 10, isValidated: $isValidated) {
                     items {
                         id
                         name
@@ -1025,7 +1025,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 }
             }
             """,
-            {"onlyValidated": True},
+            {"isValidated": True},
         )
 
         items = response["data"]["pipelineTemplates"]["items"]
@@ -1037,8 +1037,8 @@ class PipelineTemplatesTest(GraphQLTestCase):
         # Test filtering for community templates only
         response = self.run_query(
             """
-            query($onlyValidated: Boolean) {
-                pipelineTemplates(page: 1, perPage: 10, onlyValidated: $onlyValidated) {
+            query($isValidated: Boolean) {
+                pipelineTemplates(page: 1, perPage: 10, isValidated: $isValidated) {
                     items {
                         id
                         name
@@ -1047,7 +1047,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 }
             }
             """,
-            {"onlyValidated": False},
+            {"isValidated": False},
         )
 
         items = response["data"]["pipelineTemplates"]["items"]

@@ -65,7 +65,7 @@ const PipelineTemplates = ({
       workspaceSlug: workspaceFilter.workspaceSlug ?? undefined,
       tags: tagsFilter.length > 0 ? tagsFilter : undefined,
       functionalType: functionalTypeFilter,
-      onlyValidated: validationFilter,
+      isValidated: validationFilter,
       orderBy: sortOrder.orderBy,
     },
     fetchPolicy: "cache-and-network", // The template list is a global list across the instance, so we want to check the network for updates and show the cached data in the meantime
@@ -198,7 +198,7 @@ const GET_PIPELINE_TEMPLATES = gql`
     $workspaceSlug: String
     $tags: [String!]
     $functionalType: PipelineFunctionalType
-    $onlyValidated: Boolean
+    $isValidated: Boolean
     $orderBy: PipelineTemplateOrderBy
   ) {
     workspace(slug: $currentWorkspaceSlug) {
@@ -212,7 +212,7 @@ const GET_PIPELINE_TEMPLATES = gql`
       workspaceSlug: $workspaceSlug
       tags: $tags
       functionalType: $functionalType
-      onlyValidated: $onlyValidated
+      isValidated: $isValidated
       orderBy: $orderBy
     ) {
       pageNumber

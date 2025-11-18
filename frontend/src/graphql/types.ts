@@ -4253,7 +4253,7 @@ export type QueryPipelineTemplateVersionArgs = {
 
 export type QueryPipelineTemplatesArgs = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
-  onlyValidated?: InputMaybe<Scalars['Boolean']['input']>;
+  isValidated?: InputMaybe<Scalars['Boolean']['input']>;
   orderBy?: InputMaybe<PipelineTemplateOrderBy>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;

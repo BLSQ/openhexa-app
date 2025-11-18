@@ -42,7 +42,7 @@ extend type Query {
   """
   Retrieves a page of pipeline templates.
   """
-  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String, tags: [String!], functionalType: PipelineFunctionalType, onlyValidated: Boolean, orderBy: PipelineTemplateOrderBy): PipelineTemplatePage!  @loginRequired
+  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String, tags: [String!], functionalType: PipelineFunctionalType, isValidated: Boolean, orderBy: PipelineTemplateOrderBy): PipelineTemplatePage!  @loginRequired
 
   """
   Retrieves a template by workspace slug and code.
