@@ -33,7 +33,7 @@ gunicorn
 dhis2.py
 
 # connector_s3
-boto3==1.40.55
+boto3==1.40.75
 moto[s3]
 
 # connector_airflow
