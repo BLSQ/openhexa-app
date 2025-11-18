@@ -83,15 +83,6 @@ def resolve_pipeline_template_tags(pipeline_template: PipelineTemplate, info, **
     return pipeline_template.tags.all()
 
 
-@pipeline_template_object.field("publisher")
-def resolve_pipeline_template_publisher(
-    pipeline_template: PipelineTemplate, info, **kwargs
-):
-    if not pipeline_template.workspace or not pipeline_template.workspace.organization:
-        return None
-    return pipeline_template.workspace.organization.name
-
-
 @pipeline_template_object.field("validatedAt")
 def resolve_pipeline_template_validated_at(
     pipeline_template: PipelineTemplate, info, **kwargs

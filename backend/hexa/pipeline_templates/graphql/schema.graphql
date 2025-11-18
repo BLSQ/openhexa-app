@@ -42,7 +42,7 @@ extend type Query {
   """
   Retrieves a page of pipeline templates.
   """
-  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String, tags: [String!], functionalType: PipelineFunctionalType, publisher: String, onlyValidated: Boolean, orderBy: PipelineTemplateOrderBy): PipelineTemplatePage!  @loginRequired
+  pipelineTemplates(page: Int = 1, perPage: Int = 15, search: String, workspaceSlug: String, tags: [String!], functionalType: PipelineFunctionalType, onlyValidated: Boolean, orderBy: PipelineTemplateOrderBy): PipelineTemplatePage!  @loginRequired
 
   """
   Retrieves a template by workspace slug and code.
@@ -188,7 +188,6 @@ type PipelineTemplate {
   updatedAt: DateTime!  # The last updated date of the pipeline template.
   functionalType: PipelineFunctionalType  # Business purpose: what the template does (extraction/transformation/loading/computation)
   tags: [Tag!]!  # The tags associated with the pipeline template.
-  publisher: String  # Publisher of the template (organization name).
   pipelinesCount: Int!  # Number of pipelines created from this template.
   validatedAt: DateTime  # Timestamp when the template was validated as official.
   organization: Organization  # The organization that published the template (from workspace).

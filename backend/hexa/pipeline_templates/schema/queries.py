@@ -53,10 +53,6 @@ def resolve_pipeline_templates(_, info, **kwargs):
         except InvalidTag:
             pipeline_templates = PipelineTemplate.objects.none()
 
-    publisher = kwargs.get("publisher")
-    if publisher:
-        pipeline_templates = pipeline_templates.filter_by_publisher(publisher)
-
     only_validated = kwargs.get("only_validated")
     if only_validated is not None:
         if only_validated:
