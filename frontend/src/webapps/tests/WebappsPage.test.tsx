@@ -27,6 +27,7 @@ const mockWorkspace = {
   slug: "test-workspace",
   name: "Test Workspace",
   countries: [],
+  shortcuts: [],
   organization: {
     id: "org1",
     name: "Test Organization",
@@ -47,6 +48,7 @@ const webapp = (id: string) => ({
   id: id,
   name: `Webapp ${id}`,
   isFavorite: id === "2",
+  isShortcut: false,
   description: "Webapp description",
   url: `https://example${id}.com`,
   icon: "",
@@ -226,6 +228,11 @@ describe("WebappsPage", () => {
                 totalPages: 2,
                 totalItems: 16,
                 items: [webapp("16")],
+              },
+              favoriteWebapps: {
+                items: [],
+                totalPages: 0,
+                totalItems: 0,
               },
             },
           },

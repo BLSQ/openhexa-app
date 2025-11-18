@@ -10,6 +10,7 @@ type Webapp {
   workspace: Workspace!
   createdBy: User!
   isFavorite: Boolean!
+  isShortcut: Boolean!
   permissions: WebappPermissions!
 }
 """

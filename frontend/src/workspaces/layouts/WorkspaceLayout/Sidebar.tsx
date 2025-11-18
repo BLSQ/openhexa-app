@@ -1,9 +1,12 @@
 import { gql } from "@apollo/client";
 import {
   BoltIcon,
+  BookmarkIcon,
   BookOpenIcon,
+  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronUpIcon,
   CircleStackIcon,
   Cog6ToothIcon,
   FolderOpenIcon,
@@ -17,7 +20,7 @@ import Badge from "core/components/Badge";
 import Link from "core/components/Link";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { useTranslation } from "next-i18next";
-import React, { useContext, useMemo } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import SidebarMenu from "workspaces/features/SidebarMenu";
 import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
 import { LayoutContext } from "./WorkspaceLayout";
@@ -77,10 +80,11 @@ const Sidebar = (props: SidebarProps) => {
   const { workspace, className } = props;
   const { t } = useTranslation();
   const { isSidebarOpen, setSidebarOpen } = useContext(LayoutContext);
+  const [isShortcutsExpanded, setShortcutsExpanded] = useState(true);
 
   const router = useRouter();
 
-  const { slug } = workspace;
+  const { slug, shortcuts } = workspace;
 
   const homeLink = {
     href: `/workspaces/${encodeURIComponent(slug)}`,
@@ -177,7 +181,7 @@ const Sidebar = (props: SidebarProps) => {
         <SpotlightSearch isSidebarOpen={isSidebarOpen} />
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
-        <div className="mt-5 flex grow flex-col">
+        <div className="mt-5 flex grow flex-col overflow-y-auto scrollbar-visible">
           <nav className="flex-1 space-y-1 px-0 pb-4">
             {[homeLink].concat(links).map(({ href, Icon, label }) => (
               <NavItem
@@ -189,6 +193,42 @@ const Sidebar = (props: SidebarProps) => {
                 compact={!isSidebarOpen}
               />
             ))}
+
+            {shortcuts.length > 0 && (
+              <div className="mt-3 border-t border-gray-700 pt-3">
+                <button
+                  onClick={() => setShortcutsExpanded(!isShortcutsExpanded)}
+                  className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white rounded-md"
+                >
+                  <div className="flex items-center gap-2">
+                    <BookmarkIcon className="h-4 w-4" />
+                    {isSidebarOpen && <span>{t("Shortcuts")}</span>}
+                  </div>
+                  {isSidebarOpen &&
+                    (isShortcutsExpanded ? (
+                      <ChevronUpIcon className="h-4 w-4" />
+                    ) : (
+                      <ChevronDownIcon className="h-4 w-4" />
+                    ))}
+                </button>
+
+                {isShortcutsExpanded && (
+                  <div className="space-y-1 mt-1">
+                    {shortcuts.map((shortcut) => (
+                      <NavItem
+                        key={shortcut.id}
+                        href={shortcut.url}
+                        Icon={GlobeAltIcon}
+                        label={shortcut.name}
+                        isCurrent={router.asPath === shortcut.url}
+                        compact={!isSidebarOpen}
+                        className="pl-6"
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </nav>
         </div>
 
@@ -235,6 +275,12 @@ Sidebar.fragments = {
         manageMembers
         update
         launchNotebookServer
+      }
+      shortcuts {
+        id
+        name
+        url
+        order
       }
     }
     ${SidebarMenu.fragments.workspace}

@@ -94,6 +94,7 @@ const graphqlMocks: MockedResponse[] = [
           slug: "test-workspace",
           name: "Test Workspace",
           countries: [],
+          shortcuts: [],
           permissions: {
             launchNotebookServer: false,
             manageMembers: false,
@@ -116,6 +117,7 @@ const graphqlMocks: MockedResponse[] = [
           slug: "test-workspace",
           name: "Test Workspace",
           countries: [],
+          shortcuts: [],
           permissions: {
             launchNotebookServer: false,
             manageMembers: false,
