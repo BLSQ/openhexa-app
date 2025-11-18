@@ -1097,3 +1097,115 @@ class PipelineTemplatesTest(GraphQLTestCase):
 
         self.assertGreaterEqual(len(alpha_items), 1)
         self.assertEqual(len(beta_items), 0)
+
+    def test_template_filter_by_validation_status(self):
+        self.client.force_login(self.USER_ROOT)
+
+        org = Organization.objects.create(
+            name="Test Organization",
+            short_name="TEST",
+            organization_type="CORPORATE",
+        )
+
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
+            ws = Workspace.objects.create_if_has_perm(
+                self.USER_ROOT,
+                name="Test Workspace",
+                description="Test workspace",
+                organization=org,
+            )
+
+        pipeline1 = Pipeline.objects.create(
+            name="Validated Pipeline",
+            code="validated-pipeline",
+            workspace=ws,
+        )
+        pipeline2 = Pipeline.objects.create(
+            name="Community Pipeline",
+            code="community-pipeline",
+            workspace=ws,
+        )
+
+        from django.utils import timezone
+
+        validated_template = PipelineTemplate.objects.create(
+            name="Validated Template",
+            code="validated-template",
+            source_pipeline=pipeline1,
+            workspace=ws,
+            validated_at=timezone.now(),
+        )
+        community_template = PipelineTemplate.objects.create(
+            name="Community Template",
+            code="community-template",
+            source_pipeline=pipeline2,
+            workspace=ws,
+            validated_at=None,
+        )
+
+        # Test filtering for validated templates only
+        response = self.run_query(
+            """
+            query($onlyValidated: Boolean) {
+                pipelineTemplates(page: 1, perPage: 10, onlyValidated: $onlyValidated) {
+                    items {
+                        id
+                        name
+                        validatedAt
+                    }
+                }
+            }
+            """,
+            {"onlyValidated": True},
+        )
+
+        items = response["data"]["pipelineTemplates"]["items"]
+        item_ids = [item["id"] for item in items]
+
+        self.assertIn(str(validated_template.id), item_ids)
+        self.assertNotIn(str(community_template.id), item_ids)
+
+        # Test filtering for community templates only
+        response = self.run_query(
+            """
+            query($onlyValidated: Boolean) {
+                pipelineTemplates(page: 1, perPage: 10, onlyValidated: $onlyValidated) {
+                    items {
+                        id
+                        name
+                        validatedAt
+                    }
+                }
+            }
+            """,
+            {"onlyValidated": False},
+        )
+
+        items = response["data"]["pipelineTemplates"]["items"]
+        item_ids = [item["id"] for item in items]
+
+        self.assertNotIn(str(validated_template.id), item_ids)
+        self.assertIn(str(community_template.id), item_ids)
+
+        # Test showing all templates (no filter)
+        response = self.run_query(
+            """
+            query {
+                pipelineTemplates(page: 1, perPage: 10) {
+                    items {
+                        id
+                        name
+                        validatedAt
+                    }
+                }
+            }
+            """
+        )
+
+        items = response["data"]["pipelineTemplates"]["items"]
+        item_ids = [item["id"] for item in items]
+
+        self.assertIn(str(validated_template.id), item_ids)
+        self.assertIn(str(community_template.id), item_ids)
