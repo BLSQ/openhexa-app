@@ -153,7 +153,7 @@ const Header = ({
         {setValidationFilter && (
           <Listbox
             value={validationOptions.find(opt => opt.value === validationFilter)}
-            onChange={(option) => setValidationFilter(option?.value ?? null)}
+            onChange={(option) => setValidationFilter(option ? option.value : null)}
             options={validationOptions}
             by="value"
             getOptionLabel={(option) => option.label}
