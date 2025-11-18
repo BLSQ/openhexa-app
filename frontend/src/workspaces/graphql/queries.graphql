@@ -701,6 +701,7 @@ query WorkspaceTemplatePage($workspaceSlug: String!, $templateCode: String!) {
     name
     description
     publisher
+    validatedAt
     organization {
       name
       logo

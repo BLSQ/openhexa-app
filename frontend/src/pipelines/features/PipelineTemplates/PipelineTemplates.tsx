@@ -235,6 +235,7 @@ const GET_PIPELINE_TEMPLATES = gql`
         name
         functionalType
         publisher
+        validatedAt
         pipelinesCount
         tags {
           id

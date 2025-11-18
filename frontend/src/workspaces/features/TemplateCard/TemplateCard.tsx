@@ -34,7 +34,11 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
       title={
         <div className="flex justify-between items-start">
           <span className="max-w-[80%]">{template.name}</span>
-          <TemplateBadge organization={template.organization} size="sm" />
+          <TemplateBadge
+            organization={template.organization}
+            validatedAt={template.validatedAt}
+            size="sm"
+          />
         </div>
       }
     >
@@ -105,6 +109,7 @@ TemplateCard.fragments = {
       name
       description
       publisher
+      validatedAt
       pipelinesCount
       organization {
         name

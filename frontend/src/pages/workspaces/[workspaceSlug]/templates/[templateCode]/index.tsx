@@ -81,7 +81,12 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
             label={t("Publisher")}
             readonly
           >
-            {() => <TemplateBadge organization={template.organization} />}
+            {() => (
+              <TemplateBadge
+                organization={template.organization}
+                validatedAt={template.validatedAt}
+              />
+            )}
           </RenderProperty>
           <TagProperty
             id="tags"

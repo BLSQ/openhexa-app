@@ -23,7 +23,7 @@ const COMMUNITY_STYLE: PublisherStyle = {
 };
 
 const ORGANIZATION_STYLE: PublisherStyle = {
-  label: "", // Will be set from organization name
+  label: "",
   colorClass: "bg-blue-50",
   textClass: "text-blue-700",
   ringClass: "ring-blue-600/20",
@@ -31,19 +31,21 @@ const ORGANIZATION_STYLE: PublisherStyle = {
 
 interface TemplateBadgeProps {
   organization?: Organization | null;
+  validatedAt?: string | null;
   size?: "sm" | "md";
   showIcon?: boolean;
 }
 
 const TemplateBadge = ({
   organization,
+  validatedAt,
   size = "md",
   showIcon = true,
 }: TemplateBadgeProps) => {
   const { t } = useTranslation();
 
-  // If organization is provided, use it; otherwise fall back to Community
-  const style = organization
+  const isValidated = validatedAt !== null && validatedAt !== undefined;
+  const style = isValidated && organization
     ? { ...ORGANIZATION_STYLE, label: organization.name, icon: organization.logo || undefined }
     : COMMUNITY_STYLE;
 
@@ -67,7 +69,7 @@ const TemplateBadge = ({
         />
       )}
       <span className={clsx(size === "sm" ? "text-xs" : "text-sm")}>
-        {organization ? organization.name : t("Community")}
+        {isValidated && organization ? organization.name : t("Community")}
       </span>
     </Badge>
   );

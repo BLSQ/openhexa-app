@@ -6,13 +6,18 @@ jest.mock("next-i18next", () => ({
 }));
 
 describe("TemplateBadge", () => {
-  it("renders organization badge with logo when organization is provided", () => {
+  it("renders organization badge with logo when organization is provided and template is validated", () => {
     const organization = {
       name: "Test Organization",
       logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+PC9zdmc+",
     };
 
-    render(<TemplateBadge organization={organization} />);
+    render(
+      <TemplateBadge
+        organization={organization}
+        validatedAt="2024-01-01T00:00:00Z"
+      />
+    );
 
     expect(screen.getByText("Test Organization")).toBeInTheDocument();
     const image = screen.getByAltText("Test Organization");
@@ -20,26 +25,43 @@ describe("TemplateBadge", () => {
     expect(image).toHaveAttribute("src", organization.logo);
   });
 
-  it("renders organization badge without logo when logo is null", () => {
+  it("renders organization badge without logo when logo is null but template is validated", () => {
     const organization = {
       name: "Test Organization",
       logo: null,
     };
 
-    render(<TemplateBadge organization={organization} />);
+    render(
+      <TemplateBadge
+        organization={organization}
+        validatedAt="2024-01-01T00:00:00Z"
+      />
+    );
 
     expect(screen.getByText("Test Organization")).toBeInTheDocument();
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 
+  it("renders Community badge when validatedAt is null even if organization is provided", () => {
+    const organization = {
+      name: "Test Organization",
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+PC9zdmc+",
+    };
+
+    render(<TemplateBadge organization={organization} validatedAt={null} />);
+
+    expect(screen.getByText("Community")).toBeInTheDocument();
+    expect(screen.queryByAltText("Test Organization")).not.toBeInTheDocument();
+  });
+
   it("renders Community badge when organization is null", () => {
-    render(<TemplateBadge organization={null} />);
+    render(<TemplateBadge organization={null} validatedAt={null} />);
 
     expect(screen.getByText("Community")).toBeInTheDocument();
   });
 
   it("renders Community badge when organization is undefined", () => {
-    render(<TemplateBadge organization={undefined} />);
+    render(<TemplateBadge organization={undefined} validatedAt={null} />);
 
     expect(screen.getByText("Community")).toBeInTheDocument();
   });
@@ -50,7 +72,13 @@ describe("TemplateBadge", () => {
       logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+PC9zdmc+",
     };
 
-    render(<TemplateBadge organization={organization} size="sm" />);
+    render(
+      <TemplateBadge
+        organization={organization}
+        validatedAt="2024-01-01T00:00:00Z"
+        size="sm"
+      />
+    );
 
     const image = screen.getByAltText("Test Organization");
     expect(image).toHaveClass("h-3.5", "w-3.5");
@@ -65,7 +93,12 @@ describe("TemplateBadge", () => {
       logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+PC9zdmc+",
     };
 
-    render(<TemplateBadge organization={organization} />);
+    render(
+      <TemplateBadge
+        organization={organization}
+        validatedAt="2024-01-01T00:00:00Z"
+      />
+    );
 
     const image = screen.getByAltText("Test Organization");
     expect(image).toHaveClass("h-4", "w-4");
@@ -80,7 +113,13 @@ describe("TemplateBadge", () => {
       logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+PC9zdmc+",
     };
 
-    render(<TemplateBadge organization={organization} showIcon={false} />);
+    render(
+      <TemplateBadge
+        organization={organization}
+        validatedAt="2024-01-01T00:00:00Z"
+        showIcon={false}
+      />
+    );
 
     expect(screen.getByText("Test Organization")).toBeInTheDocument();
     expect(screen.queryByAltText("Test Organization")).not.toBeInTheDocument();
