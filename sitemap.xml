@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://docs.openhexa.com/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/account/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/account/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/account/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/account/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/account/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/admin/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/admin/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/admin/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/admin/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/admin/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/connections/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/connections/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/connections/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/connections/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/connections/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/database/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/database/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/database/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/database/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/database/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/datasets/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/datasets/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/datasets/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/datasets/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/datasets/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/files/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/files/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/files/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/files/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/files/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/navigation/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/navigation/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/navigation/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/navigation/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/navigation/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/notebooks/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/notebooks/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/notebooks/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/notebooks/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/notebooks/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/pipelines/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/pipelines/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/pipelines/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/pipelines/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/pipelines/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/workspaces/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/workspaces/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/workspaces/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/workspaces/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/workspaces/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/fr/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/fr/account/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/account/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/account/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/account/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/account/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/fr/admin/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/admin/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/admin/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/admin/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/admin/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/fr/connections/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/connections/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/connections/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/connections/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/connections/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/fr/database/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/database/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/database/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/database/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/database/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/fr/datasets/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/datasets/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/datasets/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/datasets/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/datasets/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/fr/files/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/files/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/files/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/files/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/files/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/fr/navigation/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/navigation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/navigation/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/navigation/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/navigation/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/fr/notebooks/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/notebooks/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/notebooks/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/notebooks/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/notebooks/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/fr/pipelines/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/pipelines/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/pipelines/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/pipelines/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/pipelines/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/fr/workspaces/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/workspaces/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/workspaces/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/workspaces/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/workspaces/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/es/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/es/account/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/account/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/account/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/account/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/account/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/es/admin/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/admin/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/admin/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/admin/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/admin/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/es/connections/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/connections/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/connections/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/connections/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/connections/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/es/database/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/database/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/database/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/database/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/database/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/es/datasets/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/datasets/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/datasets/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/datasets/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/datasets/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/es/files/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/files/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/files/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/files/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/files/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/es/navigation/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/navigation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/navigation/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/navigation/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/navigation/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/es/notebooks/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/notebooks/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/notebooks/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/notebooks/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/notebooks/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/es/pipelines/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/pipelines/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/pipelines/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/pipelines/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/pipelines/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/es/workspaces/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/workspaces/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/workspaces/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/workspaces/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/workspaces/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/pt/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/pt/account/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/account/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/account/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/account/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/account/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/pt/admin/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/admin/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/admin/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/admin/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/admin/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/pt/connections/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/connections/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/connections/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/connections/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/connections/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/pt/database/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/database/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/database/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/database/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/database/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/pt/datasets/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/datasets/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/datasets/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/datasets/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/datasets/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/pt/files/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/files/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/files/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/files/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/files/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/pt/navigation/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/navigation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/navigation/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/navigation/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/navigation/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/pt/notebooks/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/notebooks/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/notebooks/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/notebooks/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/notebooks/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/pt/pipelines/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/pipelines/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/pipelines/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/pipelines/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/pipelines/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/pt/workspaces/</loc>
+        <lastmod>2025-11-19</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://docs.openhexa.com/pt/workspaces/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/workspaces/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://docs.openhexa.com/es/workspaces/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/workspaces/"/>
+    </url>
+</urlset>
