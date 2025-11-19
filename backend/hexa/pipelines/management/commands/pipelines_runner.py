@@ -59,20 +59,27 @@ def load_local_dev_kubernetes_config():
     os.unlink(temp_config)
 
 
-def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
+def create_pod_kube(run: PipelineRun, image: str, env_vars: dict):
+    """Create a new Kubernetes pod for the pipeline run."""
     from kubernetes import config
     from kubernetes.client import CoreV1Api
     from kubernetes.client import models as k8s
-    from kubernetes.client.rest import ApiException
 
     exec_time_str = timezone.now().replace(tzinfo=None, microsecond=0).isoformat()
-    logger.debug("K8S RUN %s: %s for %s", os.getpid(), run.pipeline.name, exec_time_str)
-    container_name = generate_pipeline_container_name(run)
+    logger.debug(
+        "K8S RUN %s: Creating new pod - %s for %s",
+        os.getpid(),
+        run.pipeline.name,
+        exec_time_str,
+    )
 
-    is_local_dev = os.environ.get("IS_LOCAL_DEV", False)
+    is_local_dev = os.environ.get("IS_LOCAL_DEV", "false").lower() == "true"
     config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
 
     v1 = CoreV1Api()
+    container_name = generate_pipeline_container_name(run)
+
+    logger.info("Creating new pod %s for run %s", container_name, run.id)
     pod = k8s.V1Pod(
         api_version="v1",
         kind="Pod",
@@ -207,9 +214,47 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
         ),
     )
     v1.create_namespaced_pod(namespace=pod.metadata.namespace, body=pod)
+    return pod
+
+
+def attach_to_pod_kube(run: PipelineRun):
+    """Attach to an existing Kubernetes pod for the pipeline run."""
+    from kubernetes import config
+    from kubernetes.client import CoreV1Api
+
+    exec_time_str = timezone.now().replace(tzinfo=None, microsecond=0).isoformat()
+    logger.debug(
+        "K8S RUN %s: Re-attaching to existing pod - %s for %s",
+        os.getpid(),
+        run.pipeline.name,
+        exec_time_str,
+    )
+
+    is_local_dev = os.environ.get("IS_LOCAL_DEV", "false").lower() == "true"
+    config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
+
+    v1 = CoreV1Api()
+    namespace = os.environ.get("PIPELINE_NAMESPACE", "default")
+    container_name = generate_pipeline_container_name(run)
+
+    logger.info(
+        "Re-attaching to existing pod %s for run %s",
+        container_name,
+        run.id,
+    )
+    return v1.read_namespaced_pod(container_name, namespace)
+
+
+def monitor_pod_kube(run: PipelineRun, pod):
+    """Monitor a Kubernetes pod until completion and return success status and logs."""
+    from kubernetes.client import CoreV1Api
+    from kubernetes.client import models as k8s
+    from kubernetes.client.rest import ApiException
+
+    v1 = CoreV1Api()
+    container_name = generate_pipeline_container_name(run)
 
     # monitor the pod
-    pod_read_durations = []
     while True:
         start_time = timezone.now()
         run.refresh_from_db()
@@ -217,8 +262,6 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
         run.save()
 
         remote_pod = v1.read_namespaced_pod(pod.metadata.name, pod.metadata.namespace)
-        duration = (timezone.now() - start_time).total_seconds()
-        pod_read_durations.append(duration)
 
         # if the run is flagged as TERMINATING stop the loop
         if run.state == PipelineRunState.TERMINATING:
@@ -273,20 +316,6 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
         remote_pod.status.phase == "Succeeded"
         and run.state != PipelineRunState.TERMINATING
     )
-
-    if pod_read_durations:
-        avg_duration = sum(pod_read_durations) / len(pod_read_durations)
-        min_duration = min(pod_read_durations)
-        max_duration = max(pod_read_durations)
-        logger.info(
-            "Pod read_namespaced_pod stats for pipeline: %s, run id : %s: calls=%d, avg=%.2fs, min=%.2fs, max=%.2fs",
-            run.pipeline.name,
-            run.id,
-            len(pod_read_durations),
-            avg_duration,
-            min_duration,
-            max_duration,
-        )
 
     return success, stdout
 
@@ -369,8 +398,9 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
             return False, str(e)
 
 
-def run_pipeline(run: PipelineRun):
-    logger.info("Run pipeline: %s", run)
+def run_pipeline(run: PipelineRun, create_container: bool = True):
+    action = "Run pipeline" if create_container else "Re-attaching to orphaned run"
+    logger.info("%s: %s", action, run)
 
     if os.fork() != 0:
         # parent or error -> return
@@ -408,7 +438,12 @@ def run_pipeline(run: PipelineRun):
         if spawner == "docker":
             success, container_logs = run_pipeline_docker(run, image, env_vars)
         elif spawner == "kubernetes":
-            success, container_logs = run_pipeline_kube(run, image, env_vars)
+            pod = (
+                create_pod_kube(run, image, env_vars)
+                if create_container
+                else attach_to_pod_kube(run)
+            )
+            success, container_logs = monitor_pod_kube(run, pod)
         else:
             logger.error(
                 "Scheduler spawner %s not found", settings.PIPELINE_SCHEDULER_SPAWNER
@@ -419,7 +454,9 @@ def run_pipeline(run: PipelineRun):
         run.duration = timezone.now() - time_start
         run.run_logs = "\n".join([base_logs, str(e)])
         run.save()
-        logger.info("Failure of run: %s", run)
+        logger.exception("Failure of run: %s", run)
+        if run.send_mail_notifications:
+            mail_run_recipients(run)
         sys.exit(1)
 
     run.refresh_from_db()
@@ -443,7 +480,7 @@ def run_pipeline(run: PipelineRun):
 KILLED_BY_TIMEOUT_MESSAGE = "Killed due to heartbeat timeout"
 
 
-def _process_zombie_runs():
+def process_zombie_runs():
     """Check for zombie runs and update their status based on actual pod state."""
     zombie_runs = PipelineRun.objects.filter(
         state=PipelineRunState.RUNNING,
@@ -469,7 +506,7 @@ def _process_zombie_runs():
     from kubernetes import config
     from kubernetes.client import CoreV1Api
 
-    is_local_dev = os.environ.get("IS_LOCAL_DEV", False)
+    is_local_dev = os.environ.get("IS_LOCAL_DEV", "false").lower() == "true"
     namespace = os.environ.get("PIPELINE_NAMESPACE", "default")
     try:
         config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
@@ -540,7 +577,8 @@ class Command(BaseCommand):
         logger.info("start pipeline runner")
         sleep(10)
 
-        # TODO : re-attach orphaned RUNNING runs ?
+        for run in PipelineRun.objects.filter(state=PipelineRunState.RUNNING):
+            run_pipeline(run, create_container=False)
 
         i = 0
         sleeptime = 5
@@ -550,7 +588,7 @@ class Command(BaseCommand):
 
             # timeout-manager/zombie-reaper
             if i > 60:
-                _process_zombie_runs()
+                process_zombie_runs()
                 i = 0
             else:
                 i += sleeptime
