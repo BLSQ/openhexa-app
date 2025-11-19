@@ -26,6 +26,8 @@ type HeaderProps = {
   showCard?: boolean;
   functionalTypeFilter?: PipelineFunctionalType | null;
   setFunctionalTypeFilter?: (filter: PipelineFunctionalType | null) => void;
+  validationFilter?: boolean | null;
+  setValidationFilter?: (filter: boolean | null) => void;
   tagsFilter?: string[];
   setTagsFilter?: (tags: string[]) => void;
   templateTags?: string[];
@@ -44,6 +46,8 @@ const Header = ({
   showCard,
   functionalTypeFilter,
   setFunctionalTypeFilter,
+  validationFilter,
+  setValidationFilter,
   tagsFilter,
   setTagsFilter,
   templateTags,
@@ -62,6 +66,12 @@ const Header = ({
       value: type,
       label: formatPipelineFunctionalType(type)
     }))
+  ];
+
+  const validationOptions = [
+    { value: null, label: t("All templates") },
+    { value: true, label: t("Validated") },
+    { value: false, label: t("Community") },
   ];
 
   return (
@@ -135,6 +145,16 @@ const Header = ({
             value={functionalTypeOptions.find(opt => opt.value === functionalTypeFilter)}
             onChange={(option) => setFunctionalTypeFilter(option?.value || null)}
             options={functionalTypeOptions}
+            by="value"
+            getOptionLabel={(option) => option.label}
+            className={"min-w-48"}
+          />
+        )}
+        {setValidationFilter && (
+          <Listbox
+            value={validationOptions.find(opt => opt.value === validationFilter)}
+            onChange={(option) => setValidationFilter(option ? option.value : null)}
+            options={validationOptions}
             by="value"
             getOptionLabel={(option) => option.label}
             className={"min-w-48"}

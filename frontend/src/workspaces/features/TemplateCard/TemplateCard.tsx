@@ -15,6 +15,7 @@ import router from "next/router";
 import User from "core/features/User";
 import { stripMarkdown } from "core/helpers";
 import PipelineMetadataDisplay from "pipelines/features/PipelineMetadataDisplay";
+import TemplateBadge from "pipelines/features/TemplateBadge";
 
 interface TemplateCardProps {
   workspace: TemplateCard_WorkspaceFragment;
@@ -31,8 +32,13 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
         query: { workspaceSlug: workspace.slug, templateCode: template.code },
       }}
       title={
-        <div className="flex justify-between">
+        <div className="flex justify-between items-start">
           <span className="max-w-[80%]">{template.name}</span>
+          <TemplateBadge
+            organization={template.organization}
+            validatedAt={template.validatedAt}
+            size="sm"
+          />
         </div>
       }
     >
@@ -102,7 +108,12 @@ TemplateCard.fragments = {
       code
       name
       description
+      validatedAt
       pipelinesCount
+      organization {
+        name
+        logo
+      }
       ...PipelineMetadataDisplay_template
       currentVersion {
         id

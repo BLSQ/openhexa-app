@@ -12,11 +12,12 @@ export type GetPipelineTemplatesQueryVariables = Types.Exact<{
   workspaceSlug?: Types.InputMaybe<Types.Scalars['String']['input']>;
   tags?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
   functionalType?: Types.InputMaybe<Types.PipelineFunctionalType>;
+  isValidated?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
   orderBy?: Types.InputMaybe<Types.PipelineTemplateOrderBy>;
 }>;
 
 
-export type GetPipelineTemplatesQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, pipelineTemplateTags: Array<string> } | null, pipelineTemplates: { __typename?: 'PipelineTemplatePage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'PipelineTemplate', id: string, description?: string | null, code: string, name: string, functionalType?: Types.PipelineFunctionalType | null, pipelinesCount: number, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, permissions: { __typename?: 'PipelineTemplatePermissions', delete: boolean }, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, template: { __typename?: 'PipelineTemplate', sourcePipeline?: { __typename?: 'Pipeline', name?: string | null } | null } } | null }> } };
+export type GetPipelineTemplatesQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, pipelineTemplateTags: Array<string> } | null, pipelineTemplates: { __typename?: 'PipelineTemplatePage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'PipelineTemplate', id: string, description?: string | null, code: string, name: string, functionalType?: Types.PipelineFunctionalType | null, validatedAt?: any | null, pipelinesCount: number, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, permissions: { __typename?: 'PipelineTemplatePermissions', delete: boolean }, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, organization?: { __typename?: 'Organization', name: string, logo?: string | null } | null, currentVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, template: { __typename?: 'PipelineTemplate', sourcePipeline?: { __typename?: 'Pipeline', name?: string | null } | null } } | null }> } };
 
 export type PipelineTemplates_WorkspaceFragment = { __typename?: 'Workspace', slug: string };
 
@@ -26,7 +27,7 @@ export const PipelineTemplates_WorkspaceFragmentDoc = gql`
 }
     `;
 export const GetPipelineTemplatesDocument = gql`
-    query GetPipelineTemplates($page: Int!, $perPage: Int!, $search: String, $currentWorkspaceSlug: String!, $workspaceSlug: String, $tags: [String!], $functionalType: PipelineFunctionalType, $orderBy: PipelineTemplateOrderBy) {
+    query GetPipelineTemplates($page: Int!, $perPage: Int!, $search: String, $currentWorkspaceSlug: String!, $workspaceSlug: String, $tags: [String!], $functionalType: PipelineFunctionalType, $isValidated: Boolean, $orderBy: PipelineTemplateOrderBy) {
   workspace(slug: $currentWorkspaceSlug) {
     slug
     pipelineTemplateTags
@@ -38,6 +39,7 @@ export const GetPipelineTemplatesDocument = gql`
     workspaceSlug: $workspaceSlug
     tags: $tags
     functionalType: $functionalType
+    isValidated: $isValidated
     orderBy: $orderBy
   ) {
     pageNumber
@@ -49,6 +51,7 @@ export const GetPipelineTemplatesDocument = gql`
       code
       name
       functionalType
+      validatedAt
       pipelinesCount
       tags {
         id
@@ -60,6 +63,10 @@ export const GetPipelineTemplatesDocument = gql`
       workspace {
         slug
         name
+      }
+      organization {
+        name
+        logo
       }
       currentVersion {
         id
@@ -98,6 +105,7 @@ export const GetPipelineTemplatesDocument = gql`
  *      workspaceSlug: // value for 'workspaceSlug'
  *      tags: // value for 'tags'
  *      functionalType: // value for 'functionalType'
+ *      isValidated: // value for 'isValidated'
  *      orderBy: // value for 'orderBy'
  *   },
  * });

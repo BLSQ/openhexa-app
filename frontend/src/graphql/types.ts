@@ -3753,11 +3753,13 @@ export type PipelineTemplate = {
   functionalType?: Maybe<PipelineFunctionalType>;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
+  organization?: Maybe<Organization>;
   permissions: PipelineTemplatePermissions;
   pipelinesCount: Scalars['Int']['output'];
   sourcePipeline?: Maybe<Pipeline>;
   tags: Array<Tag>;
   updatedAt: Scalars['DateTime']['output'];
+  validatedAt?: Maybe<Scalars['DateTime']['output']>;
   versions: TemplateVersionPage;
   workspace?: Maybe<Workspace>;
 };
@@ -4281,6 +4283,7 @@ export type QueryPipelineTemplateVersionArgs = {
 
 export type QueryPipelineTemplatesArgs = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
+  isValidated?: InputMaybe<Scalars['Boolean']['input']>;
   orderBy?: InputMaybe<PipelineTemplateOrderBy>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;

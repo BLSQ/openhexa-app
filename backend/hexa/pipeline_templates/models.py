@@ -95,6 +95,11 @@ class PipelineTemplate(SoftDeletedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    validated_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Timestamp when the template was validated as official. If set, shows organization name/logo; if null, shows 'Community'.",
+    )
 
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=200, default="")

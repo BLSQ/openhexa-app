@@ -3132,11 +3132,13 @@ type PipelineTemplate {
   functionalType: PipelineFunctionalType
   id: UUID!
   name: String!
+  organization: Organization
   permissions: PipelineTemplatePermissions!
   pipelinesCount: Int!
   sourcePipeline: Pipeline
   tags: [Tag!]!
   updatedAt: DateTime!
+  validatedAt: DateTime
   versions(page: Int, perPage: Int): TemplateVersionPage!
   workspace: Workspace
 }
@@ -3460,7 +3462,7 @@ type Query {
   pipelineTemplateVersion(id: UUID!): PipelineTemplateVersion
 
   """Retrieves a page of pipeline templates."""
-  pipelineTemplates(functionalType: PipelineFunctionalType, orderBy: PipelineTemplateOrderBy, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
+  pipelineTemplates(functionalType: PipelineFunctionalType, isValidated: Boolean, orderBy: PipelineTemplateOrderBy, page: Int = 1, perPage: Int = 15, search: String, tags: [String!], workspaceSlug: String): PipelineTemplatePage!
 
   """Retrieves a pipeline version by ID."""
   pipelineVersion(id: UUID!): PipelineVersion

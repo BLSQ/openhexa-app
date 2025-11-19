@@ -10,12 +10,19 @@ import Link from "core/components/Link";
 import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { TagsCell, FunctionalTypeCell } from "pipelines/features/PipelineMetadataGrid";
+import {
+  GetPipelineTemplatesQuery,
+  PipelineTemplates_WorkspaceFragment,
+} from "./PipelineTemplates.generated";
 import { PipelineTemplateOrderBy } from "graphql/types";
 import { templateSorting } from "pipelines/config/sorting";
+import TemplateBadge from "pipelines/features/TemplateBadge";
+
+type PipelineTemplateItem = GetPipelineTemplatesQuery['pipelineTemplates']['items'][number];
 
 type GridViewProps = {
-  items: any[];
-  workspace: any;
+  items: PipelineTemplateItem[];
+  workspace: PipelineTemplates_WorkspaceFragment;
   page: number;
   perPage: number;
   totalItems: number;
@@ -41,7 +48,7 @@ const GridView = ({
   currentSort,
 }: GridViewProps) => {
   const { t } = useTranslation();
-  const [templateToDelete, setTemplateToDelete] = useState<any | null>(null);
+  const [templateToDelete, setTemplateToDelete] = useState<PipelineTemplateItem | null>(null);
 
   const defaultSortBy = useMemo(
     () => templateSorting.convertToDataGridSort(currentSort),
@@ -67,6 +74,15 @@ const GridView = ({
             >
               {template.name}
             </Link>
+          )}
+        </BaseColumn>
+        <BaseColumn id="publisher" label={t("Publisher")} className="w-40" disableSortBy={true}>
+          {(template) => (
+            <TemplateBadge
+              organization={template.organization}
+              validatedAt={template.validatedAt}
+              size="sm"
+            />
           )}
         </BaseColumn>
         <BaseColumn id="version" label={t("Version")} className="w-20" disableSortBy={true}>

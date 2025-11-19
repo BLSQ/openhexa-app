@@ -21,6 +21,7 @@ import CardView from "./CardView";
 import GridView from "./GridView";
 import Header from "./Header";
 import Spinner from "core/components/Spinner";
+import User from "core/features/User";
 
 type PipelineTemplatesProps = {
   workspace: PipelineTemplates_WorkspaceFragment;
@@ -46,6 +47,7 @@ const PipelineTemplates = ({
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [tagsFilter, setTagsFilter] = useState<string[]>([]);
   const [functionalTypeFilter, setFunctionalTypeFilter] = useState<any>(null);
+  const [validationFilter, setValidationFilter] = useState<boolean | null>(null);
   const workspaceFilterOptions = [
     { id: 1, label: "All templates", workspaceSlug: "" },
     { id: 2, label: "From this workspace", workspaceSlug: workspace.slug },
@@ -63,6 +65,7 @@ const PipelineTemplates = ({
       workspaceSlug: workspaceFilter.workspaceSlug ?? undefined,
       tags: tagsFilter.length > 0 ? tagsFilter : undefined,
       functionalType: functionalTypeFilter,
+      isValidated: validationFilter,
       orderBy: sortOrder.orderBy,
     },
     fetchPolicy: "cache-and-network", // The template list is a global list across the instance, so we want to check the network for updates and show the cached data in the meantime
@@ -158,6 +161,8 @@ const PipelineTemplates = ({
         templateTags={templateTags}
         functionalTypeFilter={functionalTypeFilter}
         setFunctionalTypeFilter={setFunctionalTypeFilter}
+        validationFilter={validationFilter}
+        setValidationFilter={setValidationFilter}
         sortOrder={sortOrder}
         setSortOrder={setSortOrder}
         sortOptions={sortOptions}
@@ -193,6 +198,7 @@ const GET_PIPELINE_TEMPLATES = gql`
     $workspaceSlug: String
     $tags: [String!]
     $functionalType: PipelineFunctionalType
+    $isValidated: Boolean
     $orderBy: PipelineTemplateOrderBy
   ) {
     workspace(slug: $currentWorkspaceSlug) {
@@ -206,6 +212,7 @@ const GET_PIPELINE_TEMPLATES = gql`
       workspaceSlug: $workspaceSlug
       tags: $tags
       functionalType: $functionalType
+      isValidated: $isValidated
       orderBy: $orderBy
     ) {
       pageNumber
@@ -217,6 +224,7 @@ const GET_PIPELINE_TEMPLATES = gql`
         code
         name
         functionalType
+        validatedAt
         pipelinesCount
         tags {
           id
@@ -228,6 +236,10 @@ const GET_PIPELINE_TEMPLATES = gql`
         workspace {
           slug
           name
+        }
+        organization {
+          name
+          logo
         }
         currentVersion {
           id
@@ -245,6 +257,7 @@ const GET_PIPELINE_TEMPLATES = gql`
       }
     }
   }
+  ${User.fragments.user}
 `;
 
 PipelineTemplates.fragments = {

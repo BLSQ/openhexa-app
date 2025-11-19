@@ -83,6 +83,22 @@ def resolve_pipeline_template_tags(pipeline_template: PipelineTemplate, info, **
     return pipeline_template.tags.all()
 
 
+@pipeline_template_object.field("validatedAt")
+def resolve_pipeline_template_validated_at(
+    pipeline_template: PipelineTemplate, info, **kwargs
+):
+    return pipeline_template.validated_at
+
+
+@pipeline_template_object.field("organization")
+def resolve_pipeline_template_organization(
+    pipeline_template: PipelineTemplate, info, **kwargs
+):
+    if not pipeline_template.workspace:
+        return None
+    return pipeline_template.workspace.organization
+
+
 @pipeline_template_object.field("pipelinesCount")
 def resolve_pipeline_template_pipelines_count(
     pipeline_template: PipelineTemplate, info, **kwargs

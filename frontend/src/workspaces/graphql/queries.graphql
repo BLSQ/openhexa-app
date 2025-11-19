@@ -700,6 +700,11 @@ query WorkspaceTemplatePage($workspaceSlug: String!, $templateCode: String!) {
     code
     name
     description
+    validatedAt
+    organization {
+      name
+      logo
+    }
     functionalType
     tags {
       ...Tag_tag

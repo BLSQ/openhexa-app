@@ -53,6 +53,13 @@ def resolve_pipeline_templates(_, info, **kwargs):
         except InvalidTag:
             pipeline_templates = PipelineTemplate.objects.none()
 
+    is_validated = kwargs.get("is_validated")
+    if is_validated is not None:
+        if is_validated:
+            pipeline_templates = pipeline_templates.filter(validated_at__isnull=False)
+        else:
+            pipeline_templates = pipeline_templates.filter(validated_at__isnull=True)
+
     order_by = kwargs.get("order_by")
     if order_by:
         base_field = order_by.lstrip("-")
