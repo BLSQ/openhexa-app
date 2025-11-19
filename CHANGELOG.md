@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.12.0](https://github.com/BLSQ/openhexa-app/compare/2.11.0...2.12.0) (2025-11-19)
+
+
+### Features
+
+* add publisher property to template pipelines  ([#1439](https://github.com/BLSQ/openhexa-app/issues/1439)) ([abcdb0c](https://github.com/BLSQ/openhexa-app/commit/abcdb0c26bb5b6448d4bbfa40f4ba03ca30fce95))
+
 ## [2.11.0](https://github.com/BLSQ/openhexa-app/compare/2.10.0...2.11.0) (2025-11-19)
 
 
