@@ -301,7 +301,7 @@ oauthlib==3.3.1
     # via
     #   kubernetes
     #   requests-oauthlib
-openhexa-sdk==2.15.0
+openhexa-sdk==2.15.1
     # via
     #   -r requirements.in
     #   openhexa-toolbox
