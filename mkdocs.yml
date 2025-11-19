@@ -111,38 +111,6 @@ plugins:
             Notebooks: Notebooks
             Administration: Administration
             Admin Guide: Guide d'administration
-        - locale: es
-          name: Español
-          build: true
-          nav_translations:
-            User Manual: Manual de usuario
-            Account: Cuenta
-            Navigation: Navegación
-            Workspaces: Espacios de trabajo
-            Files: Archivos
-            Datasets: Conjuntos de datos
-            Database: Base de datos
-            Connections: Conexiones
-            Pipelines: Pipelines
-            Notebooks: Notebooks
-            Administration: Administración
-            Admin Guide: Guía de administración
-        - locale: pt
-          name: Português
-          build: true
-          nav_translations:
-            User Manual: Manual do usuário
-            Account: Conta
-            Navigation: Navegação
-            Workspaces: Espaços de trabalho
-            Files: Arquivos
-            Datasets: Conjuntos de dados
-            Database: Banco de dados
-            Connections: Conexões
-            Pipelines: Pipelines
-            Notebooks: Notebooks
-            Administration: Administração
-            Admin Guide: Guia de administração
   - awesome-pages
   - glightbox
   - mermaid2:
@@ -183,12 +151,6 @@ extra:
     - name: Français
       link: /fr/
       lang: fr
-    - name: Español
-      link: /es/
-      lang: es
-    - name: Português
-      link: /pt/
-      lang: pt
 
 # Extensions
 markdown_extensions:
