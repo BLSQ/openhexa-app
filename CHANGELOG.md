@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.11.0](https://github.com/BLSQ/openhexa-app/compare/2.10.0...2.11.0) (2025-11-19)
+
+
+### Features
+
+* Add application_name parameter to Postgres connections from Pipelines (HEXA-1419) ([#1460](https://github.com/BLSQ/openhexa-app/issues/1460)) ([d91b83b](https://github.com/BLSQ/openhexa-app/commit/d91b83b5c34390141fae976b9cf95e60643b97df))
+* expose public key used to deliver jwt token ([#1464](https://github.com/BLSQ/openhexa-app/issues/1464)) ([2f06e50](https://github.com/BLSQ/openhexa-app/commit/2f06e5077b5e9aaa8a2c4438c7ca3a9592540d79))
+* implements shortcuts app and extend webapps with shortcuts ([#1453](https://github.com/BLSQ/openhexa-app/issues/1453)) ([e7c7b7b](https://github.com/BLSQ/openhexa-app/commit/e7c7b7b07a76bc38d3b4a56fb644fe6131751de6))
+* refactor the pipelines runner process to be stateless (HEXA-1417) ([#1463](https://github.com/BLSQ/openhexa-app/issues/1463)) ([6eaea5e](https://github.com/BLSQ/openhexa-app/commit/6eaea5e64c2a70195b12cba5977215e021cad43c))
+
+
+### Bug Fixes
+
+* add CNAME file to docs directory for GitHub Pages deployment ([fce4bfc](https://github.com/BLSQ/openhexa-app/commit/fce4bfce4b0c446085b12d3d21eddae3a837c0e0))
+* configure mkdocs to properly serve documentation site ([#1478](https://github.com/BLSQ/openhexa-app/issues/1478)) ([748e2e9](https://github.com/BLSQ/openhexa-app/commit/748e2e973178483350444175534b8ef68edc2480))
+* jupyter lab pod not starting due to lack of workspace membership (HEXA-1392) ([#1458](https://github.com/BLSQ/openhexa-app/issues/1458)) ([2c5867a](https://github.com/BLSQ/openhexa-app/commit/2c5867a06a07efb91813f1e2c94a977b5a651548))
+* remove empty elemnts from documentation ([f5ef6ff](https://github.com/BLSQ/openhexa-app/commit/f5ef6ffe322bdb0e7a619574dba92e399fd8fd4d))
+* remove Spanish and Portuguese translations, keep only English and French ([f48e812](https://github.com/BLSQ/openhexa-app/commit/f48e8126c469730f393f169a0c6640c60b424573))
+
 ## [2.10.0](https://github.com/BLSQ/openhexa-app/compare/2.9.1...2.10.0) (2025-11-03)
 
 
