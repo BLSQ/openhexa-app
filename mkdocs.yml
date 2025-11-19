@@ -1,11 +1,14 @@
 site_name: OpenHEXA Documentation
 site_description: 'OpenHEXA - Open-source data integration platform for public health projects'
-site_url: https://openhexa.wiki
+site_url: https://docs.openhexa.com
 
 # Repository
 repo_name: BLSQ/openhexa
 repo_url: https://github.com/BLSQ/openhexa
 edit_uri: wiki
+
+# Documentation directory
+docs_dir: docs
 
 # Configuration
 theme:
@@ -153,7 +156,7 @@ plugins:
       enable_git_follow: false
   - redirects:
       redirect_maps:
-        'Home.md': 'index.md'
+        'en/Home.md': 'en/index.md'
 
 # Additional configuration
 extra:
@@ -237,15 +240,16 @@ markdown_extensions:
 
 # Page tree
 nav:
+  - Home: index.md
   - User Manual:
-    - Account: en/account.md
-    - Navigation: en/navigation.md
-    - Workspaces: en/workspaces.md
-    - Files: en/files.md
-    - Datasets: en/datasets.md
-    - Database: en/database.md
-    - Connections: en/connections.md
-    - Pipelines: en/pipelines.md
-    - Notebooks: en/notebooks.md
+    - Account: account.md
+    - Navigation: navigation.md
+    - Workspaces: workspaces.md
+    - Files: files.md
+    - Datasets: datasets.md
+    - Database: database.md
+    - Connections: connections.md
+    - Pipelines: pipelines.md
+    - Notebooks: notebooks.md
   - Administration:
-    - Admin Guide: en/admin.md
+    - Admin Guide: admin.md
