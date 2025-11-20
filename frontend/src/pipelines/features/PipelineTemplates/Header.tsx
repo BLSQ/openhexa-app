@@ -69,20 +69,36 @@ const Header = ({
   ];
 
   const validationOptions = [
-    { value: null, label: t("All templates") },
+    { value: null, label: t("All publishers") },
     { value: true, label: t("Validated") },
     { value: false, label: t("Community") },
   ];
 
   return (
-    <div className={"my-5 flex justify-between"}>
-      <div className="flex gap-3">
+    <div className={"my-5 space-y-3"}>
+      <div className="flex justify-between items-center gap-3">
         <SearchInput
           onSubmit={(event) => event.preventDefault()}
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value ?? "")}
           className="shadow-xs border-gray-50 w-96"
         />
+        <div className={"flex gap-3"}>
+          {filter && (
+            <Listbox
+              value={filter.workspaceFilter}
+              onChange={filter.setWorkspaceFilter}
+              options={filter.workspaceFilterOptions}
+              by="id"
+              getOptionLabel={(option) => option.label}
+              className={"min-w-72"}
+            />
+          )}
+          {showCard && <ViewToggleButton view={view} setView={setView} />}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
         {setTagsFilter && tags && tags.length > 0 && (
           <Popover
             trigger={
@@ -170,20 +186,6 @@ const Header = ({
             className={"min-w-56"}
           />
         )}
-      </div>
-
-      <div className={"flex gap-5"}>
-        {filter && (
-          <Listbox
-            value={filter.workspaceFilter}
-            onChange={filter.setWorkspaceFilter}
-            options={filter.workspaceFilterOptions}
-            by="id"
-            getOptionLabel={(option) => option.label}
-            className={"min-w-72"}
-          />
-        )}
-        {showCard && <ViewToggleButton view={view} setView={setView} />}
       </div>
     </div>
   );
