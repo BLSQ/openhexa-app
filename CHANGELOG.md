@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.12.1](https://github.com/BLSQ/openhexa-app/compare/2.12.0...2.12.1) (2025-11-20)
+
+
+### Bug Fixes
+
+* Force new release ([0643b15](https://github.com/BLSQ/openhexa-app/commit/0643b15016c639a0c5d2cff3b3077bc357a6132f))
+
 ## [2.12.0](https://github.com/BLSQ/openhexa-app/compare/2.11.0...2.12.0) (2025-11-19)
 
 
