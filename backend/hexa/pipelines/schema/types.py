@@ -298,6 +298,7 @@ def get_language_from_path(path: str) -> str:
         ".R": "r",
         ".r": "r",
         ".md": "markdown",
+        ".sql": "sql",
     }
     return supported_languages.get(extension, "text")
 
