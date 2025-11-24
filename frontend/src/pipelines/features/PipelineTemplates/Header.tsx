@@ -62,10 +62,10 @@ const Header = ({
 
   const functionalTypeOptions = [
     { value: null, label: t("All types") },
-    ...Object.values(PipelineFunctionalType).map(type => ({
+    ...Object.values(PipelineFunctionalType).map((type) => ({
       value: type,
-      label: formatPipelineFunctionalType(type)
-    }))
+      label: formatPipelineFunctionalType(type),
+    })),
   ];
 
   const validationOptions = [
@@ -81,19 +81,9 @@ const Header = ({
           onSubmit={(event) => event.preventDefault()}
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value ?? "")}
-          className="shadow-xs border-gray-50 w-96"
+          className="shadow-xs border-gray-50 w-72"
         />
         <div className={"flex gap-3"}>
-          {filter && (
-            <Listbox
-              value={filter.workspaceFilter}
-              onChange={filter.setWorkspaceFilter}
-              options={filter.workspaceFilterOptions}
-              by="id"
-              getOptionLabel={(option) => option.label}
-              className={"min-w-72"}
-            />
-          )}
           {showCard && <ViewToggleButton view={view} setView={setView} />}
         </div>
       </div>
@@ -116,7 +106,9 @@ const Header = ({
           >
             <div className="w-64 max-h-80 overflow-y-auto">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-gray-900">{t("Filter by tags")}</h3>
+                <h3 className="text-sm font-semibold text-gray-900">
+                  {t("Filter by tags")}
+                </h3>
                 {tagsFilter && tagsFilter.length > 0 && (
                   <button
                     onClick={() => setTagsFilter([])}
@@ -132,7 +124,9 @@ const Header = ({
                   const handleToggle = () => {
                     const isSelected = tagsFilter?.includes(tag) || false;
                     if (isSelected) {
-                      setTagsFilter((tagsFilter || []).filter((t) => t !== tag));
+                      setTagsFilter(
+                        (tagsFilter || []).filter((t) => t !== tag),
+                      );
                     } else {
                       setTagsFilter([...(tagsFilter || []), tag]);
                     }
@@ -158,8 +152,12 @@ const Header = ({
         )}
         {setFunctionalTypeFilter && (
           <Listbox
-            value={functionalTypeOptions.find(opt => opt.value === functionalTypeFilter)}
-            onChange={(option) => setFunctionalTypeFilter(option?.value || null)}
+            value={functionalTypeOptions.find(
+              (opt) => opt.value === functionalTypeFilter,
+            )}
+            onChange={(option) =>
+              setFunctionalTypeFilter(option?.value || null)
+            }
             options={functionalTypeOptions}
             by="value"
             getOptionLabel={(option) => option.label}
@@ -168,8 +166,12 @@ const Header = ({
         )}
         {setValidationFilter && (
           <Listbox
-            value={validationOptions.find(opt => opt.value === validationFilter)}
-            onChange={(option) => setValidationFilter(option ? option.value : null)}
+            value={validationOptions.find(
+              (opt) => opt.value === validationFilter,
+            )}
+            onChange={(option) =>
+              setValidationFilter(option ? option.value : null)
+            }
             options={validationOptions}
             by="value"
             getOptionLabel={(option) => option.label}
@@ -184,6 +186,16 @@ const Header = ({
             by="value"
             getOptionLabel={(option) => option.label}
             className={"min-w-56"}
+          />
+        )}
+        {filter && (
+          <Listbox
+            value={filter.workspaceFilter}
+            onChange={filter.setWorkspaceFilter}
+            options={filter.workspaceFilterOptions}
+            by="id"
+            getOptionLabel={(option) => option.label}
+            className={"min-w-48"}
           />
         )}
       </div>
