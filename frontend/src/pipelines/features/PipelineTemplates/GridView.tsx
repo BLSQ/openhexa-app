@@ -9,7 +9,10 @@ import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "core/components/Link";
 import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
-import { TagsCell, FunctionalTypeCell } from "pipelines/features/PipelineMetadataGrid";
+import {
+  TagsCell,
+  FunctionalTypeCell,
+} from "pipelines/features/PipelineMetadataGrid";
 import {
   GetPipelineTemplatesQuery,
   PipelineTemplates_WorkspaceFragment,
@@ -18,7 +21,8 @@ import { PipelineTemplateOrderBy } from "graphql/types";
 import { templateSorting } from "pipelines/config/sorting";
 import TemplateBadge from "pipelines/features/TemplateBadge";
 
-type PipelineTemplateItem = GetPipelineTemplatesQuery['pipelineTemplates']['items'][number];
+type PipelineTemplateItem =
+  GetPipelineTemplatesQuery["pipelineTemplates"]["items"][number];
 
 type GridViewProps = {
   items: PipelineTemplateItem[];
@@ -48,11 +52,12 @@ const GridView = ({
   currentSort,
 }: GridViewProps) => {
   const { t } = useTranslation();
-  const [templateToDelete, setTemplateToDelete] = useState<PipelineTemplateItem | null>(null);
+  const [templateToDelete, setTemplateToDelete] =
+    useState<PipelineTemplateItem | null>(null);
 
   const defaultSortBy = useMemo(
     () => templateSorting.convertToDataGridSort(currentSort),
-    [currentSort]
+    [currentSort],
   );
 
   return (
@@ -76,7 +81,12 @@ const GridView = ({
             </Link>
           )}
         </BaseColumn>
-        <BaseColumn id="publisher" label={t("Publisher")} className="w-40" disableSortBy={true}>
+        <BaseColumn
+          id="publisher"
+          label={t("Publisher")}
+          className="min-w-32"
+          disableSortBy={true}
+        >
           {(template) => (
             <TemplateBadge
               organization={template.organization}
@@ -85,7 +95,12 @@ const GridView = ({
             />
           )}
         </BaseColumn>
-        <BaseColumn id="version" label={t("Version")} className="w-20" disableSortBy={true}>
+        <BaseColumn
+          id="version"
+          label={t("Version")}
+          className="w-20"
+          disableSortBy={true}
+        >
           {({ currentVersion }) => (
             <span className="text-sm">
               {currentVersion ? `v${currentVersion.versionNumber}` : "-"}
@@ -99,12 +114,20 @@ const GridView = ({
           className="w-36"
           disableSortBy={true}
         />
-        <BaseColumn id="tags" label={t("Tags")} className="w-32" disableSortBy={true}>
-          {(template) => (
-            <TagsCell tags={template.tags} maxTags={2} />
-          )}
+        <BaseColumn
+          id="tags"
+          label={t("Tags")}
+          className="w-32"
+          disableSortBy={true}
+        >
+          {(template) => <TagsCell tags={template.tags} maxTags={2} />}
         </BaseColumn>
-        <BaseColumn id="functionalType" label={t("Type")} className="w-28" disableSortBy={true}>
+        <BaseColumn
+          id="functionalType"
+          label={t("Type")}
+          className="w-28"
+          disableSortBy={true}
+        >
           {(template) => (
             <FunctionalTypeCell functionalType={template.functionalType} />
           )}
@@ -126,7 +149,11 @@ const GridView = ({
           label={t("Updated")}
           className="w-32"
         />
-        <BaseColumn id="actions" className="text-right w-52" disableSortBy={true}>
+        <BaseColumn
+          id="actions"
+          className="text-right w-52"
+          disableSortBy={true}
+        >
           {(template) => {
             const {
               permissions: { delete: canDelete },
