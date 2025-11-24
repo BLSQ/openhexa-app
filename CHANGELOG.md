@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.12.2](https://github.com/BLSQ/openhexa-app/compare/2.12.1...2.12.2) (2025-11-24)
+
+
+### Bug Fixes
+
+* Small improvement on pipeline templates filters ([#1484](https://github.com/BLSQ/openhexa-app/issues/1484)) ([8a5776d](https://github.com/BLSQ/openhexa-app/commit/8a5776d5d7702e4a9555e9c0ac2923f3156ded52))
+
 ## [2.12.1](https://github.com/BLSQ/openhexa-app/compare/2.12.0...2.12.1) (2025-11-20)
 
 
