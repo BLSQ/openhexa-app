@@ -20,6 +20,7 @@ x-app: &common
 
 services:
   db:
+    platform: linux/amd64
     image: postgis/postgis:16-3.5
     env_file:
       - path: ./.env
