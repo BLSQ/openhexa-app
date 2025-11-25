@@ -22,12 +22,9 @@ def create_webapp_slug(name: str, workspace):
     """Generate a unique slug for a webapp within a workspace."""
     suffix = ""
     while True:
-        base_slug = slugify(name)[:40].rstrip("-")
-        slug = base_slug + suffix
-
+        slug = slugify(name[: 100 - len(suffix)] + suffix)
         if not Webapp.objects.filter(workspace=workspace, slug=slug).exists():
             return slug
-
         suffix = "-" + secrets.token_hex(3)
 
 
