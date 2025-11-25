@@ -18,7 +18,7 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 
-def create_webapp_slug(name: str, workspace):
+def create_webapp_slug(name: str, workspace: Workspace):
     """Generate a unique slug for a webapp within a workspace."""
     suffix = ""
     while True:
