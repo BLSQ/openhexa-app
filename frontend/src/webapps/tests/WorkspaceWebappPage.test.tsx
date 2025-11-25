@@ -6,7 +6,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import WorkspaceWebappPage from "pages/workspaces/[workspaceSlug]/webapps/[webappId]";
+import WorkspaceWebappPage from "pages/workspaces/[workspaceSlug]/webapps/[webappSlug]";
 import { toast } from "react-toastify";
 import { TestApp } from "core/helpers/testutils";
 import {
@@ -64,7 +64,7 @@ const graphqlMocks: MockedResponse[] = [
       query: WorkspaceWebappPageDocument,
       variables: {
         workspaceSlug: "test-workspace",
-        webappId: "1",
+        webappSlug: "test-webapp",
       },
     },
     result: {
@@ -72,6 +72,7 @@ const graphqlMocks: MockedResponse[] = [
         webapp: {
           __typename: "Webapp",
           id: "1",
+          slug: "test-webapp",
           name: "Test Webapp",
           description: "Test Webapp Description",
           url: "https://test-url.com",
@@ -95,6 +96,7 @@ const graphqlMocks: MockedResponse[] = [
           name: "Test Workspace",
           countries: [],
           shortcuts: [],
+          organization: null,
           permissions: {
             launchNotebookServer: false,
             manageMembers: false,
@@ -118,6 +120,7 @@ const graphqlMocks: MockedResponse[] = [
           name: "Test Workspace",
           countries: [],
           shortcuts: [],
+          organization: null,
           permissions: {
             launchNotebookServer: false,
             manageMembers: false,
@@ -154,7 +157,7 @@ describe("WorkspaceWebappPage", () => {
           },
         })}
       >
-        <WorkspaceWebappPage webappId="1" workspaceSlug="test-workspace" />
+        <WorkspaceWebappPage webappSlug="test-webapp" workspaceSlug="test-workspace" />
       </TestApp>,
     );
 
@@ -204,7 +207,7 @@ describe("WorkspaceWebappPage", () => {
           },
         })}
       >
-        <WorkspaceWebappPage webappId="1" workspaceSlug="test-workspace" />
+        <WorkspaceWebappPage webappSlug="test-webapp" workspaceSlug="test-workspace" />
       </TestApp>,
     );
 

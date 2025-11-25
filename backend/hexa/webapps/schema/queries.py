@@ -12,12 +12,16 @@ webapp_query = QueryType()
 def resolve_webapp(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     try:
-        workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=kwargs["workspace_slug"]
-        )
-        return Webapp.objects.filter_for_user(request.user).get(
-            workspace=workspace, slug=kwargs["slug"]
-        )
+        if kwargs.get("id"):
+            return Webapp.objects.filter_for_user(request.user).get(id=kwargs["id"])
+        elif kwargs.get("slug") and kwargs.get("workspace_slug"):
+            workspace = Workspace.objects.filter_for_user(request.user).get(
+                slug=kwargs["workspace_slug"]
+            )
+            return Webapp.objects.filter_for_user(request.user).get(
+                workspace=workspace, slug=kwargs["slug"]
+            )
+        return None
     except (Webapp.DoesNotExist, Workspace.DoesNotExist):
         return None
 

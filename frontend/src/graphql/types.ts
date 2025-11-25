@@ -4381,8 +4381,9 @@ export type QueryUsersArgs = {
 
 
 export type QueryWebappArgs = {
-  slug: Scalars['String']['input'];
-  workspaceSlug: Scalars['String']['input'];
+  id?: InputMaybe<Scalars['UUID']['input']>;
+  slug?: InputMaybe<Scalars['String']['input']>;
+  workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };
 
 
