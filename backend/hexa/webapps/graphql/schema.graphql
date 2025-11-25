@@ -154,7 +154,7 @@ type WebappsPage {
 }
 
 extend type Query {
-  webapp(id: UUID, workspaceSlug: String, slug: String): Webapp @loginRequired
+  webapp(workspaceSlug: String!, slug: String!): Webapp @loginRequired
   webapps(workspaceSlug: String, favorite: Boolean, page: Int, perPage: Int): WebappsPage! @loginRequired
 }
 

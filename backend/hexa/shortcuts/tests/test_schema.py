@@ -35,13 +35,17 @@ class ShortcutsSchemaTest(GraphQLTestCase):
             workspace=cls.WS1,
             role=WorkspaceMembershipRole.EDITOR,
         )
-        cls.WEBAPP1 = Webapp.objects.create(
+        cls.WEBAPP1 = Webapp.objects.create_if_has_perm(
+            cls.USER_ROOT,
+            cls.WS1,
             name="Test Webapp 1",
             url="http://example1.com",
             workspace=cls.WS1,
             created_by=cls.USER_ROOT,
         )
-        cls.WEBAPP2 = Webapp.objects.create(
+        cls.WEBAPP2 = Webapp.objects.create_if_has_perm(
+            cls.USER_ROOT,
+            cls.WS1,
             name="Test Webapp 2",
             url="http://example2.com",
             workspace=cls.WS1,

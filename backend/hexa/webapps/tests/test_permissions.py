@@ -76,6 +76,7 @@ class WebappsOrganizationPermissionsTest(TestCase):
         cls.WEBAPP = Webapp.objects.create(
             workspace=cls.WORKSPACE,
             name="Test Webapp",
+            slug="test-webapp",
             created_by=cls.USER_WORKSPACE_ADMIN,
         )
 
@@ -163,6 +164,7 @@ class WebappsOrganizationPermissionsTest(TestCase):
         webapp_no_org = Webapp.objects.create(
             workspace=workspace_no_org,
             name="Test Webapp No Org",
+            slug="test-webapp-no-org",
             created_by=self.USER_WORKSPACE_ADMIN,
         )
 

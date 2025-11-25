@@ -48,6 +48,7 @@ class WebappModelTest(TestCase):
         )
         self.webapp = Webapp.objects.create(
             name="Test Webapp",
+            slug="test-webapp",
             description="A test webapp",
             workspace=self.workspace,
             created_by=self.user_admin,
@@ -242,6 +243,7 @@ class WebappModelTest(TestCase):
         with self.assertRaises(IntegrityError):
             Webapp.objects.create(
                 name=self.webapp.name,
+                slug=self.webapp.slug,
                 workspace=self.webapp.workspace,
                 created_by=self.user_admin,
                 url="https://example.com",
@@ -310,6 +312,7 @@ class WebappOrganizationAdminOwnerPermissionsTest(TestCase):
         cls.WEBAPP_1 = Webapp.objects.create(
             workspace=cls.WORKSPACE_1,
             name="Webapp in workspace 1",
+            slug="webapp-in-workspace-1",
             description="Webapp in workspace where org admin/owner is not a member",
             created_by=cls.WORKSPACE_ADMIN,
             url="https://example1.com",
@@ -318,6 +321,7 @@ class WebappOrganizationAdminOwnerPermissionsTest(TestCase):
         cls.WEBAPP_2 = Webapp.objects.create(
             workspace=cls.WORKSPACE_2,
             name="Webapp in workspace 2",
+            slug="webapp-in-workspace-2",
             description="Webapp in another workspace in same org",
             created_by=cls.WORKSPACE_ADMIN,
             url="https://example2.com",
