@@ -19,22 +19,15 @@ from hexa.workspaces.models import Workspace
 
 
 def create_webapp_slug(name: str, workspace):
-    """Generate a unique slug for a webapp within a workspace.
-
-    Uses the webapp name to generate a slug, truncating to 40 characters
-    and adding a random suffix if there's a collision.
-    """
+    """Generate a unique slug for a webapp within a workspace."""
     suffix = ""
     while True:
-        # Truncate to 40 chars to leave room for potential suffix
         base_slug = slugify(name)[:40].rstrip("-")
         slug = base_slug + suffix
 
-        # Check if slug already exists in this workspace
         if not Webapp.objects.filter(workspace=workspace, slug=slug).exists():
             return slug
 
-        # Add random suffix for collision handling (6 hex characters)
         suffix = "-" + secrets.token_hex(3)
 
 
@@ -63,7 +56,6 @@ class WebappManager(
     BaseManager, DefaultSoftDeletedManager.from_queryset(WebappQuerySet)
 ):
     def create_if_has_perm(self, principal, ws, **kwargs):
-        """Create a webapp with an auto-generated slug."""
         from django.core.exceptions import PermissionDenied
 
         if not principal.has_perm(
@@ -71,7 +63,6 @@ class WebappManager(
         ):
             raise PermissionDenied
 
-        # Generate slug from name if not provided
         if "slug" not in kwargs:
             kwargs["slug"] = create_webapp_slug(kwargs["name"], kwargs["workspace"])
 
