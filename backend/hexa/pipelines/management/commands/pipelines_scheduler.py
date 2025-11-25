@@ -58,7 +58,8 @@ class Command(BaseCommand):
                     state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
                 ).exists():
                     logger.warning(
-                        "pipeline %s already has a run in progress, skipping scheduled execution",
+                        "Pipeline %s (%s) already has a run in progress, skipping scheduled execution",
+                        pipeline.code,
                         pipeline.id,
                     )
                     continue
