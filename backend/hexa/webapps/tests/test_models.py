@@ -159,34 +159,30 @@ class WebappModelTest(TestCase):
         self.assertEqual(webapp.slug, "my-test-webapp")
 
     def test_webapp_slug_collision_handling(self):
+        from hexa.webapps.models import create_webapp_slug
+
         webapp1 = Webapp.objects.create_if_has_perm(
             self.user_admin,
             self.workspace,
-            name="Test",
+            name="Collision Test",
             workspace=self.workspace,
             created_by=self.user_admin,
             url="https://example.com",
         )
-        self.assertEqual(webapp1.slug, "test")
+        self.assertEqual(webapp1.slug, "collision-test")
 
-        webapp2 = Webapp.objects.create_if_has_perm(
-            self.user_admin,
-            self.workspace,
-            name="Test",
-            workspace=self.workspace,
-            created_by=self.user_admin,
-            url="https://example2.com",
-        )
-        self.assertNotEqual(webapp2.slug, "test")
-        self.assertTrue(webapp2.slug.startswith("test-"))
-        self.assertEqual(len(webapp2.slug), len("test-") + 6)
+        slug2 = create_webapp_slug("Collision Test", self.workspace)
+
+        self.assertNotEqual(slug2, "collision-test")
+        self.assertTrue(slug2.startswith("collision-test-"))
+        self.assertEqual(len(slug2), len("collision-test-") + 6)
 
     def test_webapp_slug_uniqueness_per_workspace(self):
-        workspace2 = Workspace.objects.create(name="Test Workspace 2")
-        WorkspaceMembership.objects.create(
-            user=self.user_admin,
-            workspace=workspace2,
-            role=WorkspaceMembershipRole.ADMIN,
+        workspace2 = Workspace.objects.create_if_has_perm(
+            self.user_admin,
+            name="Test Workspace 2",
+            description="Second test workspace",
+            countries=[{"code": "FR"}],
         )
 
         webapp1 = Webapp.objects.create_if_has_perm(

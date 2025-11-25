@@ -3482,7 +3482,7 @@ type Query {
 
   """Search users."""
   users(organizationId: UUID, query: String!, workspaceSlug: String): [User!]!
-  webapp(id: UUID!): Webapp
+  webapp(slug: String!, workspaceSlug: String!): Webapp
   webapps(favorite: Boolean, page: Int, perPage: Int, workspaceSlug: String): WebappsPage!
   workspace(slug: String!): Workspace
   workspaces(organizationId: UUID, page: Int, perPage: Int, query: String): WorkspacePage!
@@ -4667,6 +4667,7 @@ type Webapp {
   isShortcut: Boolean!
   name: String!
   permissions: WebappPermissions!
+  slug: String!
   url: String!
   workspace: Workspace!
 }
