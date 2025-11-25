@@ -1,6 +1,10 @@
+import secrets
+
 from django.contrib.auth.models import AnonymousUser
+from django.core.validators import validate_slug
 from django.db import models
 from django.db.models import Q
+from slugify import slugify
 
 from hexa.core.models.base import Base, BaseManager, BaseQuerySet
 from hexa.core.models.soft_delete import (
@@ -12,6 +16,26 @@ from hexa.core.models.soft_delete import (
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
+
+
+def create_webapp_slug(name: str, workspace):
+    """Generate a unique slug for a webapp within a workspace.
+
+    Uses the webapp name to generate a slug, truncating to 40 characters
+    and adding a random suffix if there's a collision.
+    """
+    suffix = ""
+    while True:
+        # Truncate to 40 chars to leave room for potential suffix
+        base_slug = slugify(name)[:40].rstrip("-")
+        slug = base_slug + suffix
+
+        # Check if slug already exists in this workspace
+        if not Webapp.objects.filter(workspace=workspace, slug=slug).exists():
+            return slug
+
+        # Add random suffix for collision handling (6 hex characters)
+        suffix = "-" + secrets.token_hex(3)
 
 
 class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):
@@ -38,7 +62,20 @@ class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):
 class WebappManager(
     BaseManager, DefaultSoftDeletedManager.from_queryset(WebappQuerySet)
 ):
-    pass
+    def create_if_has_perm(self, principal, ws, **kwargs):
+        """Create a webapp with an auto-generated slug."""
+        from django.core.exceptions import PermissionDenied
+
+        if not principal.has_perm(
+            f"{self.model._meta.app_label}.create_{self.model._meta.model_name}", ws
+        ):
+            raise PermissionDenied
+
+        # Generate slug from name if not provided
+        if "slug" not in kwargs:
+            kwargs["slug"] = create_webapp_slug(kwargs["name"], kwargs["workspace"])
+
+        return super(BaseManager, self).create(**kwargs)
 
 
 class AllWebappManager(
@@ -56,10 +93,19 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
                 "name",
                 name="unique_webapp_name_per_workspace",
                 condition=Q(deleted_at__isnull=True),
-            )
+            ),
+            models.UniqueConstraint(
+                "workspace_id",
+                "slug",
+                name="unique_webapp_slug_per_workspace",
+                condition=Q(deleted_at__isnull=True),
+            ),
         ]
 
     name = models.CharField(max_length=255)
+    slug = models.CharField(
+        max_length=100, null=False, editable=False, validators=[validate_slug]
+    )
     description = models.TextField(blank=True)
     icon = models.BinaryField(blank=True, null=True)
     workspace = models.ForeignKey(
@@ -88,7 +134,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         """Convert this webapp to a shortcut item dict for GraphQL"""
         return {
             "label": self.name,
-            "url": f"/workspaces/{self.workspace.slug}/webapps/{self.id}/play",
+            "url": f"/workspaces/{self.workspace.slug}/webapps/{self.slug}/play",
         }
 
     def __str__(self):

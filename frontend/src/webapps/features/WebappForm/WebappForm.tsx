@@ -131,6 +131,7 @@ WebappForm.fragment = {
   webapp: gql`
     fragment WebappForm_webapp on Webapp {
       id
+      slug
       name
       description
       url

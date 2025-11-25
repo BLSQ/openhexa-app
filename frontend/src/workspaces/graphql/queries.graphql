@@ -800,11 +800,11 @@ query WorkspaceWebappsPage(
   }
 }
 
-query WorkspaceWebappPage($workspaceSlug: String!, $webappId: UUID!) {
+query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
   workspace(slug: $workspaceSlug) {
     ...WebappForm_workspace
   }
-  webapp: webapp(id: $webappId) {
+  webapp: webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
     ...WebappForm_webapp
   }
 }
