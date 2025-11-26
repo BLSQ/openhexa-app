@@ -29,25 +29,23 @@ class PipelineSchedulerTest(TestCase):
             description="Test workspace",
             countries=[{"code": "AL"}],
         )
-
-    def test_scheduled_run_skipped_when_queued_run_exists(self):
-        pipeline = Pipeline.objects.create(
-            workspace=self.WORKSPACE,
+        cls.PIPELINE = Pipeline.objects.create(
+            workspace=cls.WORKSPACE,
             name="Test Pipeline",
             code="test_pipeline",
             schedule="*/5 * * * *",
             type=PipelineType.NOTEBOOK,
         )
-
-        version = PipelineVersion.objects.create(
-            pipeline=pipeline,
+        cls.VERSION = PipelineVersion.objects.create(
+            pipeline=cls.PIPELINE,
             name="v1",
             parameters=[],
         )
 
+    def test_scheduled_run_skipped_when_queued_run_exists(self):
         PipelineRun.objects.create(
-            pipeline=pipeline,
-            pipeline_version=version,
+            pipeline=self.PIPELINE,
+            pipeline_version=self.VERSION,
             run_id=f"{PipelineRunTrigger.MANUAL}__1234567890",
             trigger_mode=PipelineRunTrigger.MANUAL,
             execution_date=timezone.now(),
@@ -56,46 +54,27 @@ class PipelineSchedulerTest(TestCase):
         )
 
         with patch("hexa.analytics.api.track"):
-            initial_run_count = PipelineRun.objects.filter(pipeline=pipeline).count()
+            initial_run_count = PipelineRun.objects.filter(
+                pipeline=self.PIPELINE
+            ).count()
             self.assertEqual(initial_run_count, 1)
 
             should_skip = PipelineRun.objects.filter(
-                pipeline=pipeline,
+                pipeline=self.PIPELINE,
                 state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
             ).exists()
             self.assertTrue(should_skip)
 
-            if not should_skip:
-                pipeline.run(
-                    user=None,
-                    pipeline_version=version,
-                    trigger_mode=PipelineRunTrigger.SCHEDULED,
-                )
-
-            final_run_count = PipelineRun.objects.filter(pipeline=pipeline).count()
+            final_run_count = PipelineRun.objects.filter(pipeline=self.PIPELINE).count()
             self.assertEqual(
                 final_run_count,
                 initial_run_count,
             )
 
     def test_scheduled_run_skipped_when_running_run_exists(self):
-        pipeline = Pipeline.objects.create(
-            workspace=self.WORKSPACE,
-            name="Test Pipeline",
-            code="test_pipeline",
-            schedule="*/5 * * * *",
-            type=PipelineType.NOTEBOOK,
-        )
-
-        version = PipelineVersion.objects.create(
-            pipeline=pipeline,
-            name="v1",
-            parameters=[],
-        )
-
         PipelineRun.objects.create(
-            pipeline=pipeline,
-            pipeline_version=version,
+            pipeline=self.PIPELINE,
+            pipeline_version=self.VERSION,
             run_id=f"{PipelineRunTrigger.MANUAL}__1234567890",
             trigger_mode=PipelineRunTrigger.MANUAL,
             execution_date=timezone.now(),
@@ -104,46 +83,27 @@ class PipelineSchedulerTest(TestCase):
         )
 
         with patch("hexa.analytics.api.track"):
-            initial_run_count = PipelineRun.objects.filter(pipeline=pipeline).count()
+            initial_run_count = PipelineRun.objects.filter(
+                pipeline=self.PIPELINE
+            ).count()
             self.assertEqual(initial_run_count, 1)
 
             should_skip = PipelineRun.objects.filter(
-                pipeline=pipeline,
+                pipeline=self.PIPELINE,
                 state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
             ).exists()
             self.assertTrue(should_skip)
 
-            if not should_skip:
-                pipeline.run(
-                    user=None,
-                    pipeline_version=version,
-                    trigger_mode=PipelineRunTrigger.SCHEDULED,
-                )
-
-            final_run_count = PipelineRun.objects.filter(pipeline=pipeline).count()
+            final_run_count = PipelineRun.objects.filter(pipeline=self.PIPELINE).count()
             self.assertEqual(
                 final_run_count,
                 initial_run_count,
             )
 
     def test_scheduled_run_allowed_when_previous_run_completed(self):
-        pipeline = Pipeline.objects.create(
-            workspace=self.WORKSPACE,
-            name="Test Pipeline",
-            code="test_pipeline",
-            schedule="*/5 * * * *",
-            type=PipelineType.NOTEBOOK,
-        )
-
-        version = PipelineVersion.objects.create(
-            pipeline=pipeline,
-            name="v1",
-            parameters=[],
-        )
-
         PipelineRun.objects.create(
-            pipeline=pipeline,
-            pipeline_version=version,
+            pipeline=self.PIPELINE,
+            pipeline_version=self.VERSION,
             run_id=f"{PipelineRunTrigger.MANUAL}__1234567890",
             trigger_mode=PipelineRunTrigger.MANUAL,
             execution_date=timezone.now(),
@@ -152,43 +112,30 @@ class PipelineSchedulerTest(TestCase):
         )
 
         with patch("hexa.analytics.api.track"):
-            initial_run_count = PipelineRun.objects.filter(pipeline=pipeline).count()
+            initial_run_count = PipelineRun.objects.filter(
+                pipeline=self.PIPELINE
+            ).count()
             self.assertEqual(initial_run_count, 1)
 
             should_skip = PipelineRun.objects.filter(
-                pipeline=pipeline,
+                pipeline=self.PIPELINE,
                 state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
             ).exists()
             self.assertFalse(should_skip)
 
-            if not should_skip:
-                pipeline.run(
-                    user=None,
-                    pipeline_version=version,
-                    trigger_mode=PipelineRunTrigger.SCHEDULED,
-                )
+            self.PIPELINE.run(
+                user=None,
+                pipeline_version=self.VERSION,
+                trigger_mode=PipelineRunTrigger.SCHEDULED,
+            )
 
-            final_run_count = PipelineRun.objects.filter(pipeline=pipeline).count()
+            final_run_count = PipelineRun.objects.filter(pipeline=self.PIPELINE).count()
             self.assertEqual(final_run_count, initial_run_count + 1)
 
     def test_scheduled_run_allowed_when_previous_run_failed(self):
-        pipeline = Pipeline.objects.create(
-            workspace=self.WORKSPACE,
-            name="Test Pipeline",
-            code="test_pipeline",
-            schedule="*/5 * * * *",
-            type=PipelineType.NOTEBOOK,
-        )
-
-        version = PipelineVersion.objects.create(
-            pipeline=pipeline,
-            name="v1",
-            parameters=[],
-        )
-
         PipelineRun.objects.create(
-            pipeline=pipeline,
-            pipeline_version=version,
+            pipeline=self.PIPELINE,
+            pipeline_version=self.VERSION,
             run_id=f"{PipelineRunTrigger.MANUAL}__1234567890",
             trigger_mode=PipelineRunTrigger.MANUAL,
             execution_date=timezone.now(),
@@ -197,56 +144,44 @@ class PipelineSchedulerTest(TestCase):
         )
 
         with patch("hexa.analytics.api.track"):
-            initial_run_count = PipelineRun.objects.filter(pipeline=pipeline).count()
+            initial_run_count = PipelineRun.objects.filter(
+                pipeline=self.PIPELINE
+            ).count()
             self.assertEqual(initial_run_count, 1)
 
             should_skip = PipelineRun.objects.filter(
-                pipeline=pipeline,
+                pipeline=self.PIPELINE,
                 state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
             ).exists()
             self.assertFalse(should_skip)
 
-            if not should_skip:
-                pipeline.run(
-                    user=None,
-                    pipeline_version=version,
-                    trigger_mode=PipelineRunTrigger.SCHEDULED,
-                )
+            self.PIPELINE.run(
+                user=None,
+                pipeline_version=self.VERSION,
+                trigger_mode=PipelineRunTrigger.SCHEDULED,
+            )
 
-            final_run_count = PipelineRun.objects.filter(pipeline=pipeline).count()
+            final_run_count = PipelineRun.objects.filter(pipeline=self.PIPELINE).count()
             self.assertEqual(final_run_count, initial_run_count + 1)
 
     def test_scheduled_run_allowed_when_no_previous_runs(self):
-        pipeline = Pipeline.objects.create(
-            workspace=self.WORKSPACE,
-            name="Test Pipeline",
-            code="test_pipeline",
-            schedule="*/5 * * * *",
-            type=PipelineType.NOTEBOOK,
-        )
-
-        version = PipelineVersion.objects.create(
-            pipeline=pipeline,
-            name="v1",
-            parameters=[],
-        )
-
         with patch("hexa.analytics.api.track"):
-            initial_run_count = PipelineRun.objects.filter(pipeline=pipeline).count()
+            initial_run_count = PipelineRun.objects.filter(
+                pipeline=self.PIPELINE
+            ).count()
             self.assertEqual(initial_run_count, 0)
 
             should_skip = PipelineRun.objects.filter(
-                pipeline=pipeline,
+                pipeline=self.PIPELINE,
                 state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
             ).exists()
             self.assertFalse(should_skip)
 
-            if not should_skip:
-                pipeline.run(
-                    user=None,
-                    pipeline_version=version,
-                    trigger_mode=PipelineRunTrigger.SCHEDULED,
-                )
+            self.PIPELINE.run(
+                user=None,
+                pipeline_version=self.VERSION,
+                trigger_mode=PipelineRunTrigger.SCHEDULED,
+            )
 
-            final_run_count = PipelineRun.objects.filter(pipeline=pipeline).count()
+            final_run_count = PipelineRun.objects.filter(pipeline=self.PIPELINE).count()
             self.assertEqual(final_run_count, 1)
