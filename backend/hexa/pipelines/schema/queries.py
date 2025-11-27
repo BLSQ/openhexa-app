@@ -31,6 +31,7 @@ def resolve_pipelines(_, info, **kwargs):
             | Q(tags__name__icontains=search)
             | Q(functional_type__icontains=search)
         )
+        .distinct()
     )
 
     if kwargs.get("functional_type"):
