@@ -2146,9 +2146,6 @@ input InviteOrganizationMemberInput {
   """The unique identifier of the organization."""
   organizationId: UUID!
 
-  """The role of the user in the organization."""
-  organizationRole: OrganizationMembershipRole!
-
   """The email address of the user to invite to the organization."""
   userEmail: String!
 
