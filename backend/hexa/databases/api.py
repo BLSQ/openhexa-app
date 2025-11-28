@@ -62,6 +62,38 @@ def create_database(db_name: str, pwd: str):
                     db_name=sql.Identifier(db_name),
                 )
             )
+            # Set limitations to make sure one workspace doesn't starve the DB server:
+            # - Amount of open connections
+            # - idle_in_transaction_session_timeout:
+            #       Ensure that idle sessions do not hold locks for an unreasonable
+            #       amount of time. Set to a low value because idle sessions in transaction
+            #       can cause big performance issues.
+            # - statement_timeout:
+            #       Avoid accumulation of idle sessions over time. Incorrectly terminated
+            #       processes could cause idle connections that accumulate over time,
+            #       eventually hitting the connection limit.
+            #       We've observed this with e.g. PowerBI dashboard refreshes that don't
+            #       properly close connections.
+            cursor.execute(
+                sql.SQL("ALTER DATABASE {db_name} CONNECTION LIMIT 50;").format(
+                    db_name=sql.Identifier(db_name),
+                )
+            )
+            cursor.execute(
+                sql.SQL(
+                    "ALTER DATABASE {db_name} SET idle_in_transaction_session_timeout = '5min';"
+                ).format(
+                    db_name=sql.Identifier(db_name),
+                )
+            )
+            cursor.execute(
+                sql.SQL(
+                    "ALTER DATABASE {db_name} SET statement_timeout = '90min';"
+                ).format(
+                    db_name=sql.Identifier(db_name),
+                )
+            )
+
     finally:
         if conn:
             conn.close()
