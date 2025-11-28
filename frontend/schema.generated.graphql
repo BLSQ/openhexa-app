@@ -2174,6 +2174,7 @@ type InviteOrganizationMemberResult {
 
 """Represents the input for inviting a member to a workspace."""
 input InviteWorkspaceMemberInput {
+  organizationRole: OrganizationMembershipRole
   role: WorkspaceMembershipRole!
   userEmail: String!
   workspaceSlug: String!
@@ -4733,6 +4734,7 @@ type WorkspaceInvitation {
   email: String!
   id: UUID!
   invitedBy: User
+  organizationRole: OrganizationMembershipRole
   role: WorkspaceMembershipRole!
   status: WorkspaceInvitationStatus!
   updatedAt: DateTime
