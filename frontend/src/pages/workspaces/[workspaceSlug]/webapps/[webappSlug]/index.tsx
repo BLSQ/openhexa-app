@@ -10,23 +10,30 @@ import {
 } from "workspaces/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Breadcrumbs from "core/components/Breadcrumbs";
-import WebappIframe from "webapps/features/WebappIframe";
+import WebappForm from "webapps/features/WebappForm";
+import { TrashIcon } from "@heroicons/react/24/outline";
+import Button from "core/components/Button";
+import { useState } from "react";
+import DeleteWebappDialog from "workspaces/features/DeleteWebappDialog/DeleteWebappDialog";
+import useCacheKey from "core/hooks/useCacheKey";
 
 type Props = {
-  webappId: string;
+  webappSlug: string;
   workspaceSlug: string;
 };
 
-const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
-  const { webappId, workspaceSlug } = props;
+const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
+  const { webappSlug, workspaceSlug } = props;
   const { t } = useTranslation();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const { data } = useWorkspaceWebappPageQuery({
+  const { data, refetch } = useWorkspaceWebappPageQuery({
     variables: {
       workspaceSlug,
-      webappId,
+      webappSlug,
     },
   });
+  useCacheKey("webapps", refetch);
 
   if (!data?.workspace || !data?.webapp) {
     return null;
@@ -57,24 +64,39 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
               <Breadcrumbs.Part
                 href={`/workspaces/${encodeURIComponent(
                   workspace.slug,
-                )}/webapps/${encodeURIComponent(webapp.id)}`}
+                )}/webapps/${encodeURIComponent(webapp.slug)}`}
                 isLast
               >
                 {webapp.name}
               </Breadcrumbs.Part>
             </Breadcrumbs>
+            {webapp?.permissions.delete && (
+              <Button
+                variant={"danger"}
+                leadingIcon={<TrashIcon className="h-4 w-4" />}
+                onClick={() => setIsDeleteDialogOpen(true)}
+              >
+                {t("Delete")}
+              </Button>
+            )}
           </>
         }
       >
         <WorkspaceLayout.PageContent>
-          <WebappIframe url={webapp.url} />
+          <WebappForm workspace={workspace} webapp={webapp} />
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
+      <DeleteWebappDialog
+        open={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        webapp={webapp}
+        workspace={workspace}
+      />
     </Page>
   );
 };
 
-WorkspaceWebappPlayPage.getLayout = (page) => page;
+WorkspaceWebappPage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
@@ -87,7 +109,7 @@ export const getServerSideProps = createGetServerSideProps({
       query: WorkspaceWebappPageDocument,
       variables: {
         workspaceSlug: ctx.params!.workspaceSlug as string,
-        webappId: ctx.params!.webappId as string,
+        webappSlug: ctx.params!.webappSlug as string,
       },
     });
 
@@ -98,7 +120,7 @@ export const getServerSideProps = createGetServerSideProps({
     return {
       props: {
         workspaceSlug: ctx.params!.workspaceSlug,
-        webappId: ctx.params!.webappId,
+        webappSlug: ctx.params!.webappSlug,
         workspace: data.workspace,
         webapp: data.webapp,
       },
@@ -106,4 +128,4 @@ export const getServerSideProps = createGetServerSideProps({
   },
 });
 
-export default WorkspaceWebappPlayPage;
+export default WorkspaceWebappPage;

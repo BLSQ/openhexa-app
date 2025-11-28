@@ -27,6 +27,7 @@ class WebappsTest(GraphQLTestCase):
         )
         cls.WEBAPP = Webapp.objects.create(
             name="Test Webapp",
+            slug="test-webapp",
             url="http://example.com",
             workspace=cls.WS1,
             created_by=cls.USER_ROOT,

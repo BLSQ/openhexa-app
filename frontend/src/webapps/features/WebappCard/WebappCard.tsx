@@ -9,12 +9,12 @@ type WebappCardProps = {
 };
 
 const WebappCard = ({ webapp }: WebappCardProps) => {
-  const { workspace, id, name, icon } = webapp;
+  const { workspace, slug, name, icon } = webapp;
   return (
     <Card
       href={{
-        pathname: "/workspaces/[workspaceSlug]/webapps/[webappId]/play",
-        query: { workspaceSlug: workspace.slug, webappId: id },
+        pathname: "/workspaces/[workspaceSlug]/webapps/[webappSlug]/play",
+        query: { workspaceSlug: workspace.slug, webappSlug: slug },
       }}
       title={
         <div className={"flex items-center"}>
@@ -42,6 +42,7 @@ WebappCard.fragments = {
   webapp: gql`
     fragment WebappCard_webapp on Webapp {
       id
+      slug
       icon
       name
       workspace {

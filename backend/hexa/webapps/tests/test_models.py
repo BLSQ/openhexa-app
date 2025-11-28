@@ -48,6 +48,7 @@ class WebappModelTest(TestCase):
         )
         self.webapp = Webapp.objects.create(
             name="Test Webapp",
+            slug="test-webapp",
             description="A test webapp",
             workspace=self.workspace,
             created_by=self.user_admin,
@@ -147,10 +148,102 @@ class WebappModelTest(TestCase):
         self.assertFalse(Webapp.objects.filter(id=self.webapp.id).exists())
         self.assertTrue(Webapp.all_objects.get(id=self.webapp.id).is_deleted)
 
+    def test_webapp_slug_auto_generation(self):
+        webapp = Webapp.objects.create_if_has_perm(
+            self.user_admin,
+            self.workspace,
+            name="My Test Webapp",
+            workspace=self.workspace,
+            created_by=self.user_admin,
+            url="https://example.com",
+        )
+        self.assertEqual(webapp.slug, "my-test-webapp")
+
+    def test_webapp_slug_collision_handling(self):
+        from hexa.webapps.models import create_webapp_slug
+
+        webapp1 = Webapp.objects.create_if_has_perm(
+            self.user_admin,
+            self.workspace,
+            name="Collision Test",
+            workspace=self.workspace,
+            created_by=self.user_admin,
+            url="https://example.com",
+        )
+        self.assertEqual(webapp1.slug, "collision-test")
+
+        slug2 = create_webapp_slug("Collision Test", self.workspace)
+
+        self.assertNotEqual(slug2, "collision-test")
+        self.assertTrue(slug2.startswith("collision-test-"))
+        self.assertEqual(len(slug2), len("collision-test-") + 6)
+
+    def test_webapp_slug_uniqueness_per_workspace(self):
+        workspace2 = Workspace.objects.create_if_has_perm(
+            self.user_admin,
+            name="Test Workspace 2",
+            description="Second test workspace",
+            countries=[{"code": "FR"}],
+        )
+
+        webapp1 = Webapp.objects.create_if_has_perm(
+            self.user_admin,
+            self.workspace,
+            name="Unique Webapp",
+            workspace=self.workspace,
+            created_by=self.user_admin,
+            url="https://example.com",
+        )
+
+        webapp2 = Webapp.objects.create_if_has_perm(
+            self.user_admin,
+            workspace2,
+            name="Unique Webapp",
+            workspace=workspace2,
+            created_by=self.user_admin,
+            url="https://example.com",
+        )
+
+        self.assertEqual(webapp1.slug, "unique-webapp")
+        self.assertEqual(webapp2.slug, "unique-webapp")
+        self.assertNotEqual(webapp1.workspace, webapp2.workspace)
+
+    def test_webapp_slug_read_only(self):
+        webapp = Webapp.objects.create_if_has_perm(
+            self.user_admin,
+            self.workspace,
+            name="Original Name",
+            workspace=self.workspace,
+            created_by=self.user_admin,
+            url="https://example.com",
+        )
+        original_slug = webapp.slug
+
+        webapp.name = "New Name"
+        webapp.save()
+
+        self.assertEqual(webapp.slug, original_slug)
+
+    def test_webapp_slug_in_shortcut_url(self):
+        webapp = Webapp.objects.create_if_has_perm(
+            self.user_admin,
+            self.workspace,
+            name="Shortcut Test",
+            workspace=self.workspace,
+            created_by=self.user_admin,
+            url="https://example.com",
+        )
+        shortcut = webapp.to_shortcut_item()
+        expected_url = f"/workspaces/{self.workspace.slug}/webapps/{webapp.slug}/play"
+        self.assertEqual(shortcut["url"], expected_url)
+        self.assertIn(webapp.slug, shortcut["url"])
+        self.assertNotIn(str(webapp.id), shortcut["url"])
+
     def test_unique_constraint(self):
         with self.assertRaises(IntegrityError):
             Webapp.objects.create(
                 name=self.webapp.name,
+                slug=self.webapp.slug,
                 workspace=self.webapp.workspace,
                 created_by=self.user_admin,
                 url="https://example.com",
@@ -219,6 +312,7 @@ class WebappOrganizationAdminOwnerPermissionsTest(TestCase):
         cls.WEBAPP_1 = Webapp.objects.create(
             workspace=cls.WORKSPACE_1,
             name="Webapp in workspace 1",
+            slug="webapp-in-workspace-1",
             description="Webapp in workspace where org admin/owner is not a member",
             created_by=cls.WORKSPACE_ADMIN,
             url="https://example1.com",
@@ -227,6 +321,7 @@ class WebappOrganizationAdminOwnerPermissionsTest(TestCase):
         cls.WEBAPP_2 = Webapp.objects.create(
             workspace=cls.WORKSPACE_2,
             name="Webapp in workspace 2",
+            slug="webapp-in-workspace-2",
             description="Webapp in another workspace in same org",
             created_by=cls.WORKSPACE_ADMIN,
             url="https://example2.com",

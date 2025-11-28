@@ -3,6 +3,7 @@ Represents a web app.
 """
 type Webapp {
   id: UUID!
+  slug: String!
   name: String!
   description: String
   url: String!
@@ -153,7 +154,7 @@ type WebappsPage {
 }
 
 extend type Query {
-  webapp(id: UUID!): Webapp @loginRequired
+  webapp(workspaceSlug: String!, slug: String!): Webapp @loginRequired
   webapps(workspaceSlug: String, favorite: Boolean, page: Int, perPage: Int): WebappsPage! @loginRequired
 }
 

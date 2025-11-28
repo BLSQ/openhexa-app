@@ -4381,7 +4381,8 @@ export type QueryUsersArgs = {
 
 
 export type QueryWebappArgs = {
-  id: Scalars['UUID']['input'];
+  slug: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
 };
 
 
@@ -5477,6 +5478,7 @@ export type Webapp = {
   isShortcut: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   permissions: WebappPermissions;
+  slug: Scalars['String']['output'];
   url: Scalars['String']['output'];
   workspace: Workspace;
 };

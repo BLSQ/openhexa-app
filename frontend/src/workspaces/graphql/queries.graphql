@@ -45,7 +45,14 @@ query WorkspacePipelinesPage(
     ...CreatePipelineDialog_workspace
   }
 
-  pipelines(workspaceSlug: $workspaceSlug, search: $search, tags: $tags, functionalType: $functionalType, page: $page, perPage: $perPage) {
+  pipelines(
+    workspaceSlug: $workspaceSlug
+    search: $search
+    tags: $tags
+    functionalType: $functionalType
+    page: $page
+    perPage: $perPage
+  ) {
     items {
       ...PipelineCard_pipeline
     }
@@ -129,7 +136,10 @@ query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
   }
 }
 
-query WorkspacePipelineCodePage($workspaceSlug: String!, $pipelineCode: String!) {
+query WorkspacePipelineCodePage(
+  $workspaceSlug: String!
+  $pipelineCode: String!
+) {
   workspace(slug: $workspaceSlug) {
     slug
     name
@@ -152,13 +162,13 @@ query WorkspacePipelineCodePage($workspaceSlug: String!, $pipelineCode: String!)
 }
 
 query GetPipelineVersionFiles($versionId: UUID!) {
-    pipelineVersion(id: $versionId) {
-      id
-      versionName
-      files {
-        ...FilesEditor_file
-      }
+  pipelineVersion(id: $versionId) {
+    id
+    versionName
+    files {
+      ...FilesEditor_file
     }
+  }
 }
 
 query WorkspacePipelineRunsPage(
@@ -439,8 +449,8 @@ query WorkspaceDatasetAccessPage(
   workspace(slug: $workspaceSlug) {
     slug
     organization {
-        id
-        name
+      id
+      name
     }
     ...DatasetLayout_workspace
   }
@@ -458,8 +468,8 @@ query WorkspaceDatasetAccessPage(
       sharedWithOrganization
       workspace {
         organization {
-            id
-            name
+          id
+          name
         }
       }
       ...DatasetLinksDataGrid_dataset
@@ -502,7 +512,7 @@ query WorkspaceDatasetFilesPage(
         ...DatasetLayout_version
         ...DatasetExplorer_version
         files(page: $page, perPage: $perPage) {
-           items {
+          items {
             ...DatasetExplorer_file
           }
         }
@@ -512,7 +522,7 @@ query WorkspaceDatasetFilesPage(
         ...DatasetLayout_version
         ...DatasetExplorer_version
         files(page: $page, perPage: $perPage) {
-           items {
+          items {
             ...DatasetExplorer_file
           }
         }
@@ -714,7 +724,7 @@ query WorkspaceTemplatePage($workspaceSlug: String!, $templateCode: String!) {
       versionNumber
       sourcePipelineVersion {
         files {
-            ...FilesEditor_file
+          ...FilesEditor_file
         }
         zipfile
       }
@@ -767,6 +777,7 @@ query WorkspaceWebappsPage(
     totalItems
     items {
       id
+      slug
       name
       icon
       description
@@ -800,48 +811,47 @@ query WorkspaceWebappsPage(
   }
 }
 
-query WorkspaceWebappPage($workspaceSlug: String!, $webappId: UUID!) {
+query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
   workspace(slug: $workspaceSlug) {
     ...WebappForm_workspace
   }
-  webapp: webapp(id: $webappId) {
+  webapp: webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
     ...WebappForm_webapp
   }
 }
 
 query PipelineVersionPicker($pipelineId: UUID!, $page: Int, $perPage: Int) {
-        pipeline(id: $pipelineId) {
-          versions(page: $page, perPage: $perPage) {
-            pageNumber
-            totalPages
-            totalItems
-            items {
-              ...PipelineVersionPicker_version
-            }
-          }
-        }
+  pipeline(id: $pipelineId) {
+    versions(page: $page, perPage: $perPage) {
+      pageNumber
+      totalPages
+      totalItems
+      items {
+        ...PipelineVersionPicker_version
+      }
+    }
+  }
 }
 
- query WorkspacePicker($query: String, $perPage: Int = 10) {
-      workspaces(query: $query, page: 1, perPage: $perPage) {
-        totalItems
-        items {
-          ...WorkspacePicker_value
-        }
-      }
- }
+query WorkspacePicker($query: String, $perPage: Int = 10) {
+  workspaces(query: $query, page: 1, perPage: $perPage) {
+    totalItems
+    items {
+      ...WorkspacePicker_value
+    }
+  }
+}
 
 query WorkspaceMemberPicker($slug: String!) {
-      workspace(slug: $slug) {
-        slug
-        ...WorkspaceMemberPicker_workspace
-      }
+  workspace(slug: $slug) {
+    slug
+    ...WorkspaceMemberPicker_workspace
+  }
 }
 
 query WorkspaceConnectionPicker($slug: String!) {
-        workspace(slug: $slug) {
-          slug
-          ...WorkspaceConnectionPicker_workspace
-        }
+  workspace(slug: $slug) {
+    slug
+    ...WorkspaceConnectionPicker_workspace
+  }
 }
-
