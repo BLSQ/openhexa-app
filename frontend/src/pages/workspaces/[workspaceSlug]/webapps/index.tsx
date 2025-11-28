@@ -131,7 +131,7 @@ const WebappsPage = (props: Props) => {
                     />
                     <Link
                       href={{
-                        pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${item.id}`,
+                        pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${item.slug}`,
                       }}
                     >
                       {item.name}
@@ -151,7 +151,7 @@ const WebappsPage = (props: Props) => {
               <LinkColumn
                 id="play"
                 url={(item) => ({
-                  pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${item.id}/play`,
+                  pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${item.slug}/play`,
                 })}
                 className={"flex items-center justify-center"}
               >
@@ -164,10 +164,10 @@ const WebappsPage = (props: Props) => {
                 </div>
               </LinkColumn>
               <ChevronLinkColumn
-                accessor="id"
+                accessor="slug"
                 customLabel={t("Details")}
-                url={(value: any) => ({
-                  pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${value}`,
+                url={(slug) => ({
+                  pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${slug}`,
                 })}
               />
             </DataGrid>
