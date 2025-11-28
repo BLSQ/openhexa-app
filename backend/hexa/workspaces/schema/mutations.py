@@ -142,7 +142,6 @@ def resolve_invite_workspace_member(_, info, **kwargs):
             slug=input["workspace_slug"]
         )
         user = User.objects.filter(email=input["user_email"]).first()
-        organization_role = input.get("organization_role")
 
         if user:
             is_workspace_member = WorkspaceMembership.objects.filter(
@@ -158,19 +157,6 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                     user=user,
                     role=input["role"],
                 )
-
-                if organization_role and workspace.organization:
-                    from hexa.user_management.models import OrganizationMembership
-
-                    if not OrganizationMembership.objects.filter(
-                        organization=workspace.organization, user=user
-                    ).exists():
-                        OrganizationMembership.create_if_has_perm(
-                            principal=request.user,
-                            organization=workspace.organization,
-                            user=user,
-                            role=organization_role,
-                        )
 
                 send_workspace_add_user_email(
                     invited_by=request.user,
@@ -193,7 +179,6 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                     workspace=workspace,
                     email=input["user_email"],
                     role=input["role"],
-                    organization_role=organization_role,
                 )
                 send_workspace_invite_new_user_email(invitation)
 
