@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.12.3](https://github.com/BLSQ/openhexa-app/compare/2.12.2...2.12.3) (2025-11-28)
+
+
+### Bug Fixes
+
+* Pipelines with multiple tags were shown multiple times ([#1492](https://github.com/BLSQ/openhexa-app/issues/1492)) (HEXA-1445) ([490e6c8](https://github.com/BLSQ/openhexa-app/commit/490e6c8e188d2e740c066a159750a514584c6365))
+
 ## [2.12.2](https://github.com/BLSQ/openhexa-app/compare/2.12.1...2.12.2) (2025-11-24)
 
 
