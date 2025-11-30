@@ -7,7 +7,12 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from hexa.analytics.api import track
-from hexa.pipelines.models import Pipeline, PipelineRunTrigger
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineRun,
+    PipelineRunState,
+    PipelineRunTrigger,
+)
 
 logger = getLogger(__name__)
 
@@ -47,6 +52,17 @@ class Command(BaseCommand):
                 if real_delay > 0:
                     logger.debug(f"sleep before run: {real_delay}")
                     sleep(real_delay)
+
+                if PipelineRun.objects.filter(
+                    pipeline=pipeline,
+                    state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
+                ).exists():
+                    logger.warning(
+                        "Pipeline %s (%s) already has a run in progress, skipping scheduled execution",
+                        pipeline.code,
+                        pipeline.id,
+                    )
+                    continue
 
                 pipeline.run(
                     user=None,
