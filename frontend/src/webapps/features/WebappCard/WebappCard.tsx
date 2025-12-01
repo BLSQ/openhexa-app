@@ -9,7 +9,22 @@ type WebappCardProps = {
 };
 
 const WebappCard = ({ webapp }: WebappCardProps) => {
-  const { workspace, slug, name, icon } = webapp;
+  const { workspace, slug, name, icon, type } = webapp;
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "IFRAME":
+        return "iFrame";
+      case "HTML":
+        return "HTML";
+      case "BUNDLE":
+        return "Bundle";
+      case "SUPERSET":
+        return "Superset";
+      default:
+        return type;
+    }
+  };
   return (
     <Card
       href={{
@@ -17,11 +32,16 @@ const WebappCard = ({ webapp }: WebappCardProps) => {
         query: { workspaceSlug: workspace.slug, webappSlug: slug },
       }}
       title={
-        <div className={"flex items-center"}>
-          {icon && (
-            <img src={icon} className="h-8 w-8 rounded mr-3" alt={"Icon"} />
-          )}
-          <h3 className="text-lg font-semibold">{name}</h3>
+        <div className={"flex items-center justify-between"}>
+          <div className={"flex items-center"}>
+            {icon && (
+              <img src={icon} className="h-8 w-8 rounded mr-3" alt={"Icon"} />
+            )}
+            <h3 className="text-lg font-semibold">{name}</h3>
+          </div>
+          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+            {getTypeLabel(type)}
+          </span>
         </div>
       }
     >
@@ -45,6 +65,7 @@ WebappCard.fragments = {
       slug
       icon
       name
+      type
       workspace {
         slug
         name

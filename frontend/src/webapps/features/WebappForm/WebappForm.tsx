@@ -13,11 +13,13 @@ import {
 } from "./WebappForm.generated";
 import DataCard from "core/components/DataCard";
 import TextProperty from "core/components/DataCard/TextProperty";
+import SelectProperty from "core/components/DataCard/SelectProperty";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import useCacheKey from "core/hooks/useCacheKey";
 import ImageProperty from "core/components/DataCard/ImageProperty";
 import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
+import { WebappType } from "graphql/types";
 
 type WebappFormProps = {
   webapp?: WebappForm_WebappFragment;
@@ -104,6 +106,32 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           label={""}
           editButtonLabel={t("Change Icon")}
         />
+        <SelectProperty
+          id="type"
+          accessor="type"
+          label={t("Type")}
+          required
+          options={[
+            WebappType.Iframe,
+            WebappType.Html,
+            WebappType.Bundle,
+            WebappType.Superset,
+          ]}
+          getOptionLabel={(option) => {
+            switch (option) {
+              case WebappType.Iframe:
+                return "iFrame";
+              case WebappType.Html:
+                return "HTML";
+              case WebappType.Bundle:
+                return "Bundle";
+              case WebappType.Superset:
+                return "Superset";
+              default:
+                return option;
+            }
+          }}
+        />
         <TextProperty
           id="url"
           accessor="url"
@@ -135,6 +163,7 @@ WebappForm.fragment = {
       name
       description
       url
+      type
       icon
       permissions {
         update
