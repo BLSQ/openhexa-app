@@ -1,3 +1,4 @@
+import time as time_module
 from datetime import datetime
 from logging import getLogger
 from time import sleep
@@ -13,6 +14,7 @@ from hexa.pipelines.models import (
     PipelineRunState,
     PipelineRunTrigger,
 )
+from hexa.pipelines.utils import mail_skipped_run_recipients
 
 logger = getLogger(__name__)
 
@@ -62,6 +64,28 @@ class Command(BaseCommand):
                         pipeline.code,
                         pipeline.id,
                     )
+
+                    PipelineRun.objects.create(
+                        user=None,
+                        pipeline=pipeline,
+                        pipeline_version=pipeline.last_version,
+                        run_id=str(PipelineRunTrigger.SCHEDULED.value)
+                        + "__"
+                        + str(time_module.time()),
+                        trigger_mode=PipelineRunTrigger.SCHEDULED,
+                        execution_date=exec_time,
+                        state=PipelineRunState.SKIPPED,
+                        config=(
+                            pipeline.merge_pipeline_config(
+                                {}, pipeline.last_version.config
+                            )
+                            if pipeline.last_version
+                            else {}
+                        ),
+                        send_mail_notifications=False,
+                    )
+
+                    mail_skipped_run_recipients(pipeline, exec_time)
                     continue
 
                 pipeline.run(

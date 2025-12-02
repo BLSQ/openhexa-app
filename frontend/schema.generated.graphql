@@ -3112,6 +3112,7 @@ enum PipelineRunStatus {
   failed
   queued
   running
+  skipped
   stopped
   success
   terminating
