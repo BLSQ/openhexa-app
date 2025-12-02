@@ -29,6 +29,8 @@ const PipelineRunStatusBadge = (props: PipelineRunStatusBadgeProps) => {
         return "bg-sky-100 text-sky-600";
       case PipelineRunStatus.Success:
         return "bg-emerald-50 text-emerald-500";
+      case PipelineRunStatus.Skipped:
+        return "bg-gray-100 text-gray-500";
     }
   }, [run.status]);
 
