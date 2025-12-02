@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.13.0](https://github.com/BLSQ/openhexa-app/compare/2.12.3...2.13.0) (2025-12-02)
+
+
+### Features
+
+* Set limitations on the workspace DB upon creation ([#1496](https://github.com/BLSQ/openhexa-app/issues/1496)) (HEXA-1418) ([bda10fb](https://github.com/BLSQ/openhexa-app/commit/bda10fb9f940a26b9513be9744bc3f1fea5abdec))
+
+
+### Bug Fixes
+
+* pod name should comply with kubernetes requirements (HEXA-1446) ([#1503](https://github.com/BLSQ/openhexa-app/issues/1503)) ([de918be](https://github.com/BLSQ/openhexa-app/commit/de918be5064bada77cc596284f00181a2297efd4))
+
 ## [2.12.3](https://github.com/BLSQ/openhexa-app/compare/2.12.2...2.12.3) (2025-11-28)
 
 
