@@ -79,8 +79,8 @@ class PipelineUtilsTest(TestCase):
         self.assertNotIn(
             "_", container_name, "Underscores should be replaced with hyphens"
         )
-        self.assertIn("my-workspace", container_name)
-        self.assertIn("get-campaigns", container_name)
+        self.assertIn("my-works", container_name)  # truncated "my-workspace"
+        self.assertIn("get-camp", container_name)  # truncated "get-campaigns"
 
         run.pipeline.workspace.slug = "MyWorkspace"
         run.pipeline.code = "GetCampaigns"
