@@ -1005,6 +1005,11 @@ type Organization {
     members(page: Int, perPage: Int, term: String, role: OrganizationMembershipRole): OrganizationMembershipPage!
 
     """
+    External collaborators who have workspace access but no organization membership.
+    """
+    externalCollaborators(page: Int, perPage: Int, term: String): ExternalCollaboratorPage!
+
+    """
     The workspaces associated with the organization.
     """
     workspaces(page: Int, perPage: Int): WorkspacePage!
@@ -1111,6 +1116,40 @@ type OrganizationMembershipPage {
 
     # The list of organization memberships on the current page.
     items: [OrganizationMembership!]!
+}
+
+"""
+Represents an external collaborator who has workspace access but no organization membership.
+"""
+type ExternalCollaborator {
+    # The unique identifier (user ID).
+    id: UUID!
+
+    # The user who is an external collaborator.
+    user: User!
+
+    # The workspace memberships of the user within this organization.
+    workspaceMemberships: [WorkspaceMembership!]!
+
+    # The date and time when the user first joined a workspace in this organization.
+    createdAt: DateTime!
+}
+
+"""
+Represents a page of external collaborators.
+"""
+type ExternalCollaboratorPage {
+    # The current page number.
+    pageNumber: Int!
+
+    # The total number of pages.
+    totalPages: Int!
+
+    # The total number of items.
+    totalItems: Int!
+
+    # The list of external collaborators on the current page.
+    items: [ExternalCollaborator!]!
 }
 
 """
