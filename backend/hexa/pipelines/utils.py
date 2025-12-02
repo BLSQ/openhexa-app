@@ -78,7 +78,15 @@ def generate_pipeline_container_name(run: PipelineRun) -> str:
     workspace_max = max_prefix_length // 2
     pipeline_max = max_prefix_length - workspace_max
 
-    truncated_workspace_slug = run.pipeline.workspace.slug[:workspace_max]
-    truncated_pipeline_slug = run.pipeline.code[:pipeline_max]
+    # RFC 1123 compliance: must be lowercase alphanumeric with hyphens only
+    # - Replace underscores with hyphens (e.g., "get_campaigns" -> "get-campaigns")
+    # - Convert to lowercase to ensure compliance
+    # - Strip leading/trailing hyphens to meet RFC 1123 requirements
+    truncated_workspace_slug = (
+        run.pipeline.workspace.slug[:workspace_max].replace("_", "-").lower().strip("-")
+    )
+    truncated_pipeline_slug = (
+        run.pipeline.code[:pipeline_max].replace("_", "-").lower().strip("-")
+    )
 
     return f"pipeline-{truncated_workspace_slug}-{truncated_pipeline_slug}-{run_id}"
