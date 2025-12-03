@@ -3,6 +3,7 @@ import clsx from "clsx";
 import {
   ChevronLeftIcon,
   UsersIcon,
+  UserGroupIcon,
   Square2StackIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
@@ -12,6 +13,7 @@ import { OrganizationQuery } from "organizations/graphql/queries.generated";
 import NavItem from "./NavItem";
 import SidebarToggleButton from "./SidebarToggleButton";
 import Logo from "./Logo";
+import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { HomeIcon } from "@heroicons/react/20/solid";
 
@@ -27,6 +29,8 @@ const OrganizationSidebar = ({
   setSidebarOpen,
 }: OrganizationSidebarProps) => {
   const { t } = useTranslation();
+  const router = useRouter();
+
   if (!organization) {
     return null;
   }
@@ -57,6 +61,7 @@ const OrganizationSidebar = ({
               Icon={HomeIcon}
               label={t("Workspaces")}
               compact={!isSidebarOpen}
+              isCurrent={/organizations\/[^/]+\/$/.test(router.asPath)}
             />
             {organization.permissions.manageMembers && (
               <NavItem
@@ -64,6 +69,16 @@ const OrganizationSidebar = ({
                 Icon={UsersIcon}
                 label={t("Members")}
                 compact={!isSidebarOpen}
+                isCurrent={router.asPath.includes("/members")}
+              />
+            )}
+            {organization.permissions.manageMembers && (
+              <NavItem
+                href={`/organizations/${organization.id}/external-collaborators`}
+                Icon={UserGroupIcon}
+                label={t("External Collaborators")}
+                compact={!isSidebarOpen}
+                isCurrent={router.asPath.includes("/external-collaborators")}
               />
             )}
             <NavItem
@@ -71,6 +86,7 @@ const OrganizationSidebar = ({
               Icon={Square2StackIcon}
               label={t("Datasets")}
               compact={!isSidebarOpen}
+              isCurrent={router.asPath.includes("/datasets")}
             />
             {organization.permissions.update && (
               <NavItem
@@ -78,6 +94,7 @@ const OrganizationSidebar = ({
                 Icon={Cog6ToothIcon}
                 label={t("Settings")}
                 compact={!isSidebarOpen}
+                isCurrent={router.asPath.includes("/settings")}
               />
             )}
           </div>

@@ -4,14 +4,16 @@ import { gql } from '@apollo/client';
 import { UserAvatar_UserFragmentDoc } from '../../identity/features/UserAvatar.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type Organization_OrganizationFragment = { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } };
+export type Organization_LightFragment = { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean } };
+
+export type Organization_OrganizationFragment = { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean } };
 
 export type OrganizationQueryVariables = Types.Exact<{
   id: Types.Scalars['UUID']['input'];
 }>;
 
 
-export type OrganizationQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null };
+export type OrganizationQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean } } | null };
 
 export type OrganizationsQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
@@ -28,7 +30,7 @@ export type OrganizationDatasetsQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationDatasetsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, datasetLinks: { __typename?: 'DatasetLinkPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'DatasetLink', id: string, workspace: { __typename?: 'Workspace', slug: string, name: string }, dataset: { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } } }> }, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null };
+export type OrganizationDatasetsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, datasetLinks: { __typename?: 'DatasetLinkPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'DatasetLink', id: string, workspace: { __typename?: 'Workspace', slug: string, name: string }, dataset: { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } } }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean } } | null };
 
 export type OrganizationWorkspace_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, createdAt: any, updatedAt?: any | null, countries: Array<{ __typename?: 'Country', code: string }>, createdBy: { __typename?: 'User', displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, delete: boolean } };
 
@@ -40,14 +42,27 @@ export type OrganizationWorkspacesQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationWorkspacesQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, createdAt: any, updatedAt?: any | null, countries: Array<{ __typename?: 'Country', code: string }>, createdBy: { __typename?: 'User', displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, delete: boolean } }> } };
+export type OrganizationWorkspacesQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean } } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, createdAt: any, updatedAt?: any | null, countries: Array<{ __typename?: 'Country', code: string }>, createdBy: { __typename?: 'User', displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, delete: boolean } }> } };
 
-export const Organization_OrganizationFragmentDoc = gql`
-    fragment Organization_organization on Organization {
+export const Organization_LightFragmentDoc = gql`
+    fragment Organization_light on Organization {
   id
   name
   shortName
   logo
+  permissions {
+    createWorkspace
+    archiveWorkspace
+    manageMembers
+    manageOwners
+    update
+    delete
+  }
+}
+    `;
+export const Organization_OrganizationFragmentDoc = gql`
+    fragment Organization_organization on Organization {
+  ...Organization_light
   workspaces {
     totalItems
     items {
@@ -58,19 +73,11 @@ export const Organization_OrganizationFragmentDoc = gql`
       }
     }
   }
-  permissions {
-    createWorkspace
-    archiveWorkspace
-    manageMembers
-    manageOwners
-    update
-    delete
-  }
   members {
     totalItems
   }
 }
-    `;
+    ${Organization_LightFragmentDoc}`;
 export const OrganizationDataset_LinkFragmentDoc = gql`
     fragment OrganizationDataset_link on DatasetLink {
   id
@@ -124,10 +131,10 @@ export const OrganizationWorkspace_WorkspaceFragmentDoc = gql`
 export const OrganizationDocument = gql`
     query Organization($id: UUID!) {
   organization(id: $id) {
-    ...Organization_organization
+    ...Organization_light
   }
 }
-    ${Organization_OrganizationFragmentDoc}`;
+    ${Organization_LightFragmentDoc}`;
 
 /**
  * __useOrganizationQuery__
@@ -210,7 +217,7 @@ export type OrganizationsQueryResult = Apollo.QueryResult<OrganizationsQuery, Or
 export const OrganizationDatasetsDocument = gql`
     query OrganizationDatasets($id: UUID!, $page: Int = 1, $perPage: Int = 10, $query: String) {
   organization(id: $id) {
-    ...Organization_organization
+    ...Organization_light
     datasetLinks(page: $page, perPage: $perPage, query: $query) {
       totalItems
       pageNumber
@@ -221,7 +228,7 @@ export const OrganizationDatasetsDocument = gql`
     }
   }
 }
-    ${Organization_OrganizationFragmentDoc}
+    ${Organization_LightFragmentDoc}
 ${OrganizationDataset_LinkFragmentDoc}`;
 
 /**

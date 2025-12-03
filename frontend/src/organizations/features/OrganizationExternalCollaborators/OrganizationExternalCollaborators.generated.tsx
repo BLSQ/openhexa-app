@@ -5,16 +5,15 @@ import { WorkspaceRoleFragmentDoc } from '../../components/WorkspaceRolesList.ge
 import { User_UserFragmentDoc } from '../../../core/features/User/User.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type OrganizationMembersQueryVariables = Types.Exact<{
+export type OrganizationExternalCollaboratorsQueryVariables = Types.Exact<{
   id: Types.Scalars['UUID']['input'];
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   term?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  role?: Types.InputMaybe<Types.OrganizationMembershipRole>;
 }>;
 
 
-export type OrganizationMembersQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean, manageOwners: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number, items: Array<{ __typename?: 'OrganizationMembership', id: string, role: Types.OrganizationMembershipRole, createdAt: any, workspaceMemberships: Array<{ __typename?: 'WorkspaceMembership', id: string, role: Types.WorkspaceMembershipRole, workspace: { __typename?: 'Workspace', slug: string, name: string } }>, user: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } }> } } | null };
+export type OrganizationExternalCollaboratorsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean, manageOwners: boolean }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', items: Array<{ __typename?: 'ExternalCollaborator', id: string, createdAt: any, workspaceMemberships: Array<{ __typename?: 'WorkspaceMembership', id: string, role: Types.WorkspaceMembershipRole, workspace: { __typename?: 'Workspace', slug: string, name: string } }>, user: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } }> } } | null };
 
 export type UpdateOrganizationMemberMutationVariables = Types.Exact<{
   input: Types.UpdateOrganizationMemberInput;
@@ -38,19 +37,17 @@ export type InviteOrganizationMemberMutationVariables = Types.Exact<{
 export type InviteOrganizationMemberMutation = { __typename?: 'Mutation', inviteOrganizationMember: { __typename?: 'InviteOrganizationMemberResult', success: boolean, errors: Array<Types.InviteOrganizationMemberError> } };
 
 
-export const OrganizationMembersDocument = gql`
-    query OrganizationMembers($id: UUID!, $page: Int, $perPage: Int, $term: String, $role: OrganizationMembershipRole) {
+export const OrganizationExternalCollaboratorsDocument = gql`
+    query OrganizationExternalCollaborators($id: UUID!, $page: Int, $perPage: Int, $term: String) {
   organization(id: $id) {
     id
     permissions {
       manageMembers
       manageOwners
     }
-    members(page: $page, perPage: $perPage, term: $term, role: $role) {
-      totalItems
+    externalCollaborators(page: $page, perPage: $perPage, term: $term) {
       items {
         id
-        role
         workspaceMemberships {
           ...WorkspaceRole
           id
@@ -72,41 +69,40 @@ export const OrganizationMembersDocument = gql`
 ${User_UserFragmentDoc}`;
 
 /**
- * __useOrganizationMembersQuery__
+ * __useOrganizationExternalCollaboratorsQuery__
  *
- * To run a query within a React component, call `useOrganizationMembersQuery` and pass it any options that fit your needs.
- * When your component renders, `useOrganizationMembersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useOrganizationExternalCollaboratorsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useOrganizationExternalCollaboratorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useOrganizationMembersQuery({
+ * const { data, loading, error } = useOrganizationExternalCollaboratorsQuery({
  *   variables: {
  *      id: // value for 'id'
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *      term: // value for 'term'
- *      role: // value for 'role'
  *   },
  * });
  */
-export function useOrganizationMembersQuery(baseOptions: Apollo.QueryHookOptions<OrganizationMembersQuery, OrganizationMembersQueryVariables> & ({ variables: OrganizationMembersQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useOrganizationExternalCollaboratorsQuery(baseOptions: Apollo.QueryHookOptions<OrganizationExternalCollaboratorsQuery, OrganizationExternalCollaboratorsQueryVariables> & ({ variables: OrganizationExternalCollaboratorsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<OrganizationMembersQuery, OrganizationMembersQueryVariables>(OrganizationMembersDocument, options);
+        return Apollo.useQuery<OrganizationExternalCollaboratorsQuery, OrganizationExternalCollaboratorsQueryVariables>(OrganizationExternalCollaboratorsDocument, options);
       }
-export function useOrganizationMembersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OrganizationMembersQuery, OrganizationMembersQueryVariables>) {
+export function useOrganizationExternalCollaboratorsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OrganizationExternalCollaboratorsQuery, OrganizationExternalCollaboratorsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<OrganizationMembersQuery, OrganizationMembersQueryVariables>(OrganizationMembersDocument, options);
+          return Apollo.useLazyQuery<OrganizationExternalCollaboratorsQuery, OrganizationExternalCollaboratorsQueryVariables>(OrganizationExternalCollaboratorsDocument, options);
         }
-export function useOrganizationMembersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<OrganizationMembersQuery, OrganizationMembersQueryVariables>) {
+export function useOrganizationExternalCollaboratorsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<OrganizationExternalCollaboratorsQuery, OrganizationExternalCollaboratorsQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<OrganizationMembersQuery, OrganizationMembersQueryVariables>(OrganizationMembersDocument, options);
+          return Apollo.useSuspenseQuery<OrganizationExternalCollaboratorsQuery, OrganizationExternalCollaboratorsQueryVariables>(OrganizationExternalCollaboratorsDocument, options);
         }
-export type OrganizationMembersQueryHookResult = ReturnType<typeof useOrganizationMembersQuery>;
-export type OrganizationMembersLazyQueryHookResult = ReturnType<typeof useOrganizationMembersLazyQuery>;
-export type OrganizationMembersSuspenseQueryHookResult = ReturnType<typeof useOrganizationMembersSuspenseQuery>;
-export type OrganizationMembersQueryResult = Apollo.QueryResult<OrganizationMembersQuery, OrganizationMembersQueryVariables>;
+export type OrganizationExternalCollaboratorsQueryHookResult = ReturnType<typeof useOrganizationExternalCollaboratorsQuery>;
+export type OrganizationExternalCollaboratorsLazyQueryHookResult = ReturnType<typeof useOrganizationExternalCollaboratorsLazyQuery>;
+export type OrganizationExternalCollaboratorsSuspenseQueryHookResult = ReturnType<typeof useOrganizationExternalCollaboratorsSuspenseQuery>;
+export type OrganizationExternalCollaboratorsQueryResult = Apollo.QueryResult<OrganizationExternalCollaboratorsQuery, OrganizationExternalCollaboratorsQueryVariables>;
 export const UpdateOrganizationMemberDocument = gql`
     mutation UpdateOrganizationMember($input: UpdateOrganizationMemberInput!) {
   updateOrganizationMember(input: $input) {
