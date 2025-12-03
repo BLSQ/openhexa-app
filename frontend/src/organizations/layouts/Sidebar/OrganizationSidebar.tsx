@@ -3,6 +3,7 @@ import clsx from "clsx";
 import {
   ChevronLeftIcon,
   UsersIcon,
+  UserGroupIcon,
   Square2StackIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
@@ -69,6 +70,15 @@ const OrganizationSidebar = ({
                 label={t("Members")}
                 compact={!isSidebarOpen}
                 isCurrent={router.asPath.includes("/members")}
+              />
+            )}
+            {organization.permissions.manageMembers && (
+              <NavItem
+                href={`/organizations/${organization.id}/external-collaborators`}
+                Icon={UserGroupIcon}
+                label={t("External Collaborators")}
+                compact={!isSidebarOpen}
+                isCurrent={router.asPath.includes("/external-collaborators")}
               />
             )}
             <NavItem

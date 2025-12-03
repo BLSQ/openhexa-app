@@ -1,7 +1,7 @@
 import * as Types from '../../graphql/types';
 
 import { gql } from '@apollo/client';
-import { Organization_OrganizationFragmentDoc } from './queries.generated';
+import { Organization_LightFragmentDoc } from './queries.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type UpdateOrganizationMutationVariables = Types.Exact<{
@@ -9,7 +9,7 @@ export type UpdateOrganizationMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateOrganizationMutation = { __typename?: 'Mutation', updateOrganization: { __typename?: 'UpdateOrganizationResult', success: boolean, errors: Array<Types.UpdateOrganizationError>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null } };
+export type UpdateOrganizationMutation = { __typename?: 'Mutation', updateOrganization: { __typename?: 'UpdateOrganizationResult', success: boolean, errors: Array<Types.UpdateOrganizationError>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean } } | null } };
 
 export type DeleteOrganizationMutationVariables = Types.Exact<{
   input: Types.DeleteOrganizationInput;
@@ -25,11 +25,11 @@ export const UpdateOrganizationDocument = gql`
     success
     errors
     organization {
-      ...Organization_organization
+      ...Organization_light
     }
   }
 }
-    ${Organization_OrganizationFragmentDoc}`;
+    ${Organization_LightFragmentDoc}`;
 export type UpdateOrganizationMutationFn = Apollo.MutationFunction<UpdateOrganizationMutation, UpdateOrganizationMutationVariables>;
 
 /**
