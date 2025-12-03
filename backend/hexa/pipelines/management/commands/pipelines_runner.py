@@ -242,7 +242,15 @@ def attach_to_pod_kube(run: PipelineRun):
         container_name,
         run.id,
     )
-    return v1.read_namespaced_pod(container_name, namespace)
+    pod_list = v1.list_namespaced_pod(
+        namespace=namespace, label_selector=f"hexa-run-id={run.id}"
+    )
+
+    if not pod_list.items:
+        logger.info("No pod found for run %s, exiting attachment process", run.id)
+        sys.exit(0)
+
+    return pod_list.items[0]
 
 
 def monitor_pod_kube(run: PipelineRun, pod):

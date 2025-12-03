@@ -252,7 +252,9 @@ class TestKubernetesPipelineIntegration(TestCase):
     @patch("kubernetes.config.load_incluster_config")
     @patch("kubernetes.client.CoreV1Api")
     def test_attach_to_existing_pod(self, mock_k8s_client, mock_config, mock_sleep):
-        mock_api = self._create_mock_kubernetes_api()
+        mock_api = Mock()
+        mock_pod = self._create_mock_pod()
+        mock_api.list_namespaced_pod.return_value.items = [mock_pod]
         mock_k8s_client.return_value = mock_api
 
         self.run.state = PipelineRunState.RUNNING
@@ -260,9 +262,35 @@ class TestKubernetesPipelineIntegration(TestCase):
 
         pod = attach_to_pod_kube(self.run)
 
-        mock_api.read_namespaced_pod.assert_called_once()
+        mock_api.list_namespaced_pod.assert_called_once_with(
+            namespace="default", label_selector=f"hexa-run-id={self.run.id}"
+        )
         mock_api.create_namespaced_pod.assert_not_called()
         self.assertIsNotNone(pod)
+        self.assertEqual(pod, mock_pod)
+
+    @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
+    @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
+    @patch("kubernetes.config.load_incluster_config")
+    @patch("kubernetes.client.CoreV1Api")
+    def test_attach_to_pod_when_no_pod_found_exits_gracefully(
+        self, mock_k8s_client, mock_config
+    ):
+        """Test that attach_to_pod_kube exits when no pod is found for the run."""
+        mock_api = Mock()
+        mock_api.list_namespaced_pod.return_value.items = []
+        mock_k8s_client.return_value = mock_api
+
+        self.run.state = PipelineRunState.RUNNING
+        self.run.save()
+
+        with self.assertRaises(SystemExit) as cm:
+            attach_to_pod_kube(self.run)
+
+        self.assertEqual(cm.exception.code, 0)
+        mock_api.list_namespaced_pod.assert_called_once_with(
+            namespace="default", label_selector=f"hexa-run-id={self.run.id}"
+        )
 
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
