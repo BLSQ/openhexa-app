@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.13.1](https://github.com/BLSQ/openhexa-app/compare/2.13.0...2.13.1) (2025-12-04)
+
+
+### Bug Fixes
+
+* pipeline runner reattachement should support missing pod (HEXA-1447) ([107d44c](https://github.com/BLSQ/openhexa-app/commit/107d44c0595106c3999a1af91d3898b08f31db2c))
+* pipeline runner should support heavier load (HEXA-1448) ([9963f9a](https://github.com/BLSQ/openhexa-app/commit/9963f9a9e3e3c9a7c3937e00f0e20d6475b05a65))
+
 ## [2.13.0](https://github.com/BLSQ/openhexa-app/compare/2.12.3...2.13.0) (2025-12-02)
 
 
