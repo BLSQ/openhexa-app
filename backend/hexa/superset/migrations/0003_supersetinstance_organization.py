@@ -17,7 +17,6 @@ def set_blsq_organization(apps, schema_editor):
         # In production, BLSQ should exist
         return
 
-    # Update all SupersetInstance records to use BLSQ organization
     SupersetInstance.objects.filter(organization__isnull=True).update(
         organization=blsq_org
     )
@@ -33,7 +32,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Add the field as nullable first
         migrations.AddField(
             model_name="supersetinstance",
             name="organization",
@@ -45,9 +43,7 @@ class Migration(migrations.Migration):
                 to="user_management.organization",
             ),
         ),
-        # Set existing instances to BLSQ organization
         migrations.RunPython(set_blsq_organization, migrations.RunPython.noop),
-        # Make the field required
         migrations.AlterField(
             model_name="supersetinstance",
             name="organization",
