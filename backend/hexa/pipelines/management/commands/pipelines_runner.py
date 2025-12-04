@@ -623,9 +623,11 @@ class Command(BaseCommand):
             )[:batch_size]
 
             for run in runs:
-                # mark pipeline to be sure to never try executing it again
+                # mark all pipelines to be sure to never try executing them again
+                # we first update the status for all because the fork (in run_pipeline) close the connection
                 run.state = PipelineRunState.RUNNING
                 run.save()
+            for run in runs:
                 run_pipeline(run)
 
             sleep(sleeptime)
