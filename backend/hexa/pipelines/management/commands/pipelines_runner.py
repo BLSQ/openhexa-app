@@ -603,8 +603,7 @@ class Command(BaseCommand):
                 batch = orphaned_runs[:batch_size]
                 orphaned_runs = orphaned_runs[batch_size:]
                 for run in batch:
-                    if run.state == PipelineRunState.RUNNING:
-                        run_pipeline(run, create_container=False)
+                    run_pipeline(run, create_container=False)
 
             # cycle DB connection because of fork()
             db.connections.close_all()
