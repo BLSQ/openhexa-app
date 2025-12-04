@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.13.2](https://github.com/BLSQ/openhexa-app/compare/2.13.1...2.13.2) (2025-12-04)
+
+
+### Bug Fixes
+
+* pipeline runner django.db.utils.OperationalError: server closed the connection unexpectedly ([#1511](https://github.com/BLSQ/openhexa-app/issues/1511)) ([5d09a68](https://github.com/BLSQ/openhexa-app/commit/5d09a6836d7dafcd75cb6edf012c2a7d2a3c59f8))
+
 ## [2.13.1](https://github.com/BLSQ/openhexa-app/compare/2.13.0...2.13.1) (2025-12-04)
 
 
