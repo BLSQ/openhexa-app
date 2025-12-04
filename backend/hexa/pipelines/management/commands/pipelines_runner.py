@@ -603,7 +603,6 @@ class Command(BaseCommand):
                 batch = orphaned_runs[:batch_size]
                 orphaned_runs = orphaned_runs[batch_size:]
                 for run in batch:
-                    run.refresh_from_db()
                     if run.state == PipelineRunState.RUNNING:
                         run_pipeline(run, create_container=False)
 
