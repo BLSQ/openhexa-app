@@ -960,6 +960,7 @@ export type CreateWebappInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
+  type: WebappType;
   url: Scalars['String']['input'];
   workspaceSlug: Scalars['String']['input'];
 };
@@ -5302,6 +5303,7 @@ export type UpdateWebappInput = {
   icon?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
+  type?: InputMaybe<WebappType>;
   url?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -5479,6 +5481,7 @@ export type Webapp = {
   name: Scalars['String']['output'];
   permissions: WebappPermissions;
   slug: Scalars['String']['output'];
+  type: WebappType;
   url: Scalars['String']['output'];
   workspace: Workspace;
 };
@@ -5489,6 +5492,14 @@ export type WebappPermissions = {
   delete: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
+
+/** Represents the type of a web app. */
+export enum WebappType {
+  Bundle = 'BUNDLE',
+  Html = 'HTML',
+  Iframe = 'IFRAME',
+  Superset = 'SUPERSET'
+}
 
 /** Represents a page of webapps. */
 export type WebappsPage = {

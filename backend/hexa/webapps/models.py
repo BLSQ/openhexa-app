@@ -90,6 +90,12 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
             ),
         ]
 
+    class WebappType(models.TextChoices):
+        IFRAME = "iframe", "iFrame"
+        HTML = "html", "HTML"
+        BUNDLE = "bundle", "Bundle"
+        SUPERSET = "superset", "Superset"
+
     name = models.CharField(max_length=255)
     slug = models.CharField(
         max_length=100, null=False, editable=False, validators=[validate_slug]
@@ -101,6 +107,9 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     )
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     url = models.URLField()
+    type = models.CharField(
+        max_length=20, choices=WebappType.choices, default=WebappType.IFRAME
+    )
     favorites = models.ManyToManyField(
         User, related_name="favorite_webapps", blank=True
     )

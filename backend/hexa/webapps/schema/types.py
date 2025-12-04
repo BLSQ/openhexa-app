@@ -49,6 +49,11 @@ def resolve_description(webapp: Webapp, info, **kwargs):
     return webapp.description
 
 
+@webapp_object.field("type")
+def resolve_type(webapp: Webapp, info, **kwargs):
+    return webapp.type
+
+
 @webapp_permissions.field("update")
 def resolve_webapp_permissions_update(obj, info, **kwargs):
     request = info.context["request"]
