@@ -111,6 +111,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           accessor="type"
           label={t("Type")}
           required
+          defaultValue={WebappType.Iframe}
           options={[
             WebappType.Iframe,
             WebappType.Html,
