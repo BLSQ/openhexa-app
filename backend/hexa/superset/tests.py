@@ -3,15 +3,21 @@ import requests_mock
 from hexa.core.test import TestCase
 from hexa.superset.api import SupersetAuthError
 from hexa.superset.models import SupersetInstance
+from hexa.user_management.models import Organization
 
 
 class SupersetTestCase(TestCase):
     def setUp(self):
+        self.organization = Organization.objects.create(
+            name="Test Organization",
+            short_name="test-org-superset",
+        )
         self.superset_instance = SupersetInstance.objects.create(
             name="Superset",
             url="https://superset.com",
             api_username="test",
             api_password="password",
+            organization=self.organization,
         )
 
     def test_superset_dashboard(self):

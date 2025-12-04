@@ -5,11 +5,15 @@ from django.urls import reverse
 from hexa.core.models.base import Base
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.superset.api import SupersetClient
+from hexa.user_management.models import Organization
 
 
 class SupersetInstance(Base):
     name = models.CharField(max_length=255)
     url = models.URLField()
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="superset_instances"
+    )
 
     # Make sure to not use a admin user as they do not have the same permissions (you won't be able to get the dashboards' list)
     api_username = models.CharField(max_length=255)

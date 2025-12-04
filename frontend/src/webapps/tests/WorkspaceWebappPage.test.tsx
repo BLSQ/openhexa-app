@@ -145,6 +145,8 @@ describe("WorkspaceWebappPage", () => {
                 input: {
                   id: "1",
                   name: "Updated Webapp",
+                  icon: "",
+                  type: "IFRAME",
                   url: "https://updated-url.com",
                 },
               },
@@ -152,6 +154,7 @@ describe("WorkspaceWebappPage", () => {
             result: {
               data: {
                 updateWebapp: {
+                  __typename: "UpdateWebappResult",
                   success: true,
                   errors: [],
                 },
