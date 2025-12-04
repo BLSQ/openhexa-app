@@ -599,16 +599,14 @@ class Command(BaseCommand):
         sleeptime = 5
         batch_size = 8
         while True:
-            # cycle DB connection because of fork()
-            db.connections.close_all()
-
             if orphaned_runs:
                 batch = orphaned_runs[:batch_size]
                 orphaned_runs = orphaned_runs[batch_size:]
                 for run in batch:
-                    run.refresh_from_db()
-                    if run.state == PipelineRunState.RUNNING:
-                        run_pipeline(run, create_container=False)
+                    run_pipeline(run, create_container=False)
+
+            # cycle DB connection because of fork()
+            db.connections.close_all()
 
             # timeout-manager/zombie-reaper
             if i > 60:
@@ -623,9 +621,11 @@ class Command(BaseCommand):
             )[:batch_size]
 
             for run in runs:
-                # mark pipeline to be sure to never try executing it again
+                # mark all pipelines to be sure to never try executing them again
+                # we first update the status for all because the fork (in run_pipeline) closes the connection
                 run.state = PipelineRunState.RUNNING
                 run.save()
+            for run in runs:
                 run_pipeline(run)
 
             sleep(sleeptime)
