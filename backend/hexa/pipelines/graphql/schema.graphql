@@ -48,6 +48,7 @@ enum PipelineRunStatus {
   queued
   stopped
   terminating
+  skipped
 }
 
 """
