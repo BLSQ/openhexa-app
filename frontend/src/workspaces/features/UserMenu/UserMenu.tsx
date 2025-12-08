@@ -23,8 +23,6 @@ import { usePopper } from "react-popper";
 import useOnClickOutside from "use-onclickoutside";
 import { UserMenuQuery, UserMenuQueryVariables } from "./UserMenu.generated";
 
-// TODO : data query for pending invitations
-
 interface UserMenuProps {
   compact?: boolean;
 }
