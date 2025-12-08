@@ -101,33 +101,33 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           },
         ]}
         header={
-          <>
-            <Breadcrumbs withHome={false} className="flex-1">
-              <Breadcrumbs.Part
-                isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-              >
-                {workspace.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                isLast
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/settings/?tab=${tab}`}
-              >
-                {t("Settings")}
-              </Breadcrumbs.Part>
-            </Breadcrumbs>
-            {workspace.permissions.delete && (
-              <Button
-                className="bg-red-700 hover:bg-red-800 focus:ring-red-500"
-                onClick={() => setIsArchiveDialogOpen(true)}
-                leadingIcon={<TrashIcon className="w-4" />}
-              >
-                {t("Archive")}
-              </Button>
-            )}
-          </>
+          <Breadcrumbs withHome={false} className="flex-1">
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+            >
+              {workspace.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              isLast
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/settings/?tab=${tab}`}
+            >
+              {t("Settings")}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+        }
+        headerActions={
+          workspace.permissions.delete && (
+            <Button
+              className="bg-red-700 hover:bg-red-800 focus:ring-red-500"
+              onClick={() => setIsArchiveDialogOpen(true)}
+              leadingIcon={<TrashIcon className="w-4" />}
+            >
+              {t("Archive")}
+            </Button>
+          )
         }
       >
         <WorkspaceLayout.PageContent className="divide divide-y-2">
