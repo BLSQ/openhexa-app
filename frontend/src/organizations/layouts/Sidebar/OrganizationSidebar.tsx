@@ -9,7 +9,7 @@ import {
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
 import NavItem from "./NavItem";
 import SidebarToggleButton from "./SidebarToggleButton";
-import Logo from "./Logo";
+import UserMenu from "workspaces/features/UserMenu";
 import { useTranslation } from "next-i18next";
 import { HomeIcon } from "@heroicons/react/20/solid";
 
@@ -75,7 +75,7 @@ const OrganizationSidebar = ({
               />
             )}
           </div>
-          <Logo isSidebarOpen={isSidebarOpen} />
+          <UserMenu compact={!isSidebarOpen} />
         </div>
         <SidebarToggleButton
           isSidebarOpen={isSidebarOpen}
