@@ -20,6 +20,7 @@ import ImageProperty from "core/components/DataCard/ImageProperty";
 import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
 import { WebappType } from "graphql/types";
+import { getWebappTypeLabel } from "webapps/helpers";
 
 type WebappFormProps = {
   webapp?: WebappForm_WebappFragment;
@@ -118,20 +119,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             WebappType.Bundle,
             WebappType.Superset,
           ]}
-          getOptionLabel={(option) => {
-            switch (option) {
-              case WebappType.Iframe:
-                return "iFrame";
-              case WebappType.Html:
-                return "HTML";
-              case WebappType.Bundle:
-                return "Bundle";
-              case WebappType.Superset:
-                return "Superset";
-              default:
-                return option;
-            }
-          }}
+          getOptionLabel={getWebappTypeLabel}
         />
         <TextProperty
           id="url"
