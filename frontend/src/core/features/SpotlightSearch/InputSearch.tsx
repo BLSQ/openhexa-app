@@ -15,13 +15,13 @@ function getIsMac() {
 }
 
 type InputSearchProps = {
-  isSidebarOpen: boolean;
+  compact: boolean;
   onClick: () => void;
 };
-const InputSearch = ({ isSidebarOpen, onClick }: InputSearchProps) => {
+const InputSearch = ({ compact, onClick }: InputSearchProps) => {
   const { t } = useTranslation();
 
-  return isSidebarOpen ? (
+  return compact ? (
     <div className="flex flex-col border-gray-200 bg-gray-800 p-2">
       <button
         onClick={onClick}

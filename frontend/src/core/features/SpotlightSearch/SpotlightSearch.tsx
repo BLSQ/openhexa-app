@@ -64,10 +64,10 @@ const getTabLabel = (label: string, totalItems?: number): string => {
 const pageSize = 15;
 
 const SpotlightSearch = ({
-  isSidebarOpen,
+  compact,
   organizationId,
 }: {
-  isSidebarOpen: boolean;
+  compact: boolean;
   organizationId?: string;
 }) => {
   const { t } = useTranslation();
@@ -82,7 +82,8 @@ const SpotlightSearch = ({
     () => selectedWorkspaces?.map((workspace) => workspace.slug),
     [selectedWorkspaces],
   );
-  const [functionalTypeFilter, setFunctionalTypeFilter] = useState<PipelineFunctionalType | null>(ALL_FUNCTIONAL_TYPES);
+  const [functionalTypeFilter, setFunctionalTypeFilter] =
+    useState<PipelineFunctionalType | null>(ALL_FUNCTIONAL_TYPES);
 
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -389,13 +390,30 @@ const SpotlightSearch = ({
                   onChange={setSelectedWorkspaces}
                 />
                 <div className="bg-white p-4 border-t border-gray-200">
-                  <p className="text-md font-medium mb-3">{t("Filter by Functional Type")}</p>
+                  <p className="text-md font-medium mb-3">
+                    {t("Filter by Functional Type")}
+                  </p>
                   <Select
-                    options={[ALL_FUNCTIONAL_TYPES, ...Object.values(PipelineFunctionalType)]}
+                    options={[
+                      ALL_FUNCTIONAL_TYPES,
+                      ...Object.values(PipelineFunctionalType),
+                    ]}
                     value={functionalTypeFilter}
-                    onChange={(value) => setFunctionalTypeFilter(value as PipelineFunctionalType | null)}
-                    getOptionLabel={(option) => option ? formatPipelineFunctionalType(option) : t("All types")}
-                    displayValue={(option) => option ? formatPipelineFunctionalType(option) : t("All types")}
+                    onChange={(value) =>
+                      setFunctionalTypeFilter(
+                        value as PipelineFunctionalType | null,
+                      )
+                    }
+                    getOptionLabel={(option) =>
+                      option
+                        ? formatPipelineFunctionalType(option)
+                        : t("All types")
+                    }
+                    displayValue={(option) =>
+                      option
+                        ? formatPipelineFunctionalType(option)
+                        : t("All types")
+                    }
                     className="w-full"
                   />
                 </div>
@@ -474,7 +492,7 @@ const SpotlightSearch = ({
   return (
     <>
       <InputSearch
-        isSidebarOpen={isSidebarOpen}
+        compact={compact}
         onClick={() => setIsOpen((prev) => !prev)}
       />
       {typeof window !== "undefined" &&

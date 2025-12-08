@@ -48,7 +48,7 @@ const OrganizationSidebar = ({
             compact={!isSidebarOpen}
           />
           <SpotlightSearch
-            isSidebarOpen={isSidebarOpen}
+            compact={!isSidebarOpen}
             organizationId={organization.id}
           />
           <div className="mt-5 flex grow flex-col gap-y-2">
