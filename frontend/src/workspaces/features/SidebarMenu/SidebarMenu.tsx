@@ -1,20 +1,12 @@
 import { gql, useQuery } from "@apollo/client";
 import { Transition } from "@headlessui/react";
-import {
-  ArrowRightOnRectangleIcon,
-  Cog6ToothIcon,
-  GlobeAltIcon,
-  QuestionMarkCircleIcon,
-  UserIcon,
-} from "@heroicons/react/24/outline";
+import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import { ChevronDownIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 import Link from "core/components/Link";
-import User from "core/features/User";
 import { CustomApolloClient } from "core/helpers/apollo";
 import useCacheKey from "core/hooks/useCacheKey";
 import useToggle from "core/hooks/useToggle";
-import useFeature from "identity/hooks/useFeature";
 import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
@@ -22,7 +14,6 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { usePopper } from "react-popper";
 import useOnClickOutside from "use-onclickoutside";
 
-import UserAvatar from "identity/features/UserAvatar";
 import CreateWorkspaceDialog from "../CreateWorkspaceDialog";
 import {
   SidebarMenu_WorkspaceFragment,
@@ -30,10 +21,6 @@ import {
   SidebarMenuQuery,
   SidebarMenuQueryVariables,
 } from "./SidebarMenu.generated";
-import { logout } from "identity/helpers/auth";
-import Tooltip from "core/components/Tooltip";
-import UILanguagePicker from "identity/features/UILanguagePicker";
-import Field from "core/components/forms/Field";
 import Flag from "react-world-flags";
 
 interface SidebarMenuProps {
@@ -47,7 +34,6 @@ const SidebarMenu = (props: SidebarMenuProps) => {
   const { t } = useTranslation();
   const me = useMe();
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const [hasLegacyAccess] = useFeature("openhexa_legacy");
   const router = useRouter();
   useEffect(() => {
     if (isOpen) {
@@ -79,9 +65,6 @@ const SidebarMenu = (props: SidebarMenuProps) => {
   >(
     gql`
       query SidebarMenu($page: Int, $perPage: Int) {
-        pendingWorkspaceInvitations(page: 1, perPage: 1) {
-          totalItems
-        }
         workspaces(page: $page, perPage: $perPage) {
           totalItems
           items {
@@ -139,19 +122,13 @@ const SidebarMenu = (props: SidebarMenuProps) => {
               title={workspace.name}
             >
               {workspace.name}
-              {me.user && (
-                <div className="text-xs tracking-tighter text-gray-500 group-hover:text-gray-400">
-                  {me.user.email}
-                </div>
-              )}
-              {/* This will be pushed outside of the block if there is not enough space to display it */}
             </div>
             <ChevronDownIcon className="ml-1 h-4 w-4 text-gray-500 group-hover:text-gray-100" />
           </>
-        ) : me.user ? (
-          <UserAvatar size="sm" user={me.user} />
         ) : (
-          <UserIcon className="h-6 w-6 text-gray-500" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-700 text-lg font-semibold text-gray-200">
+            {workspace.name.charAt(0).toUpperCase()}
+          </div>
         )}
       </button>
 
@@ -237,96 +214,6 @@ const SidebarMenu = (props: SidebarMenuProps) => {
               )}
             </div>
           </section>
-
-          <section className="flex flex-col text-sm font-normal">
-            <Link
-              href="/user/account"
-              noStyle
-              className="group flex gap-2 px-4 py-2.5 text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-800"
-            >
-              <UserIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
-              {t("Account settings")}
-              {data?.pendingWorkspaceInvitations.totalItems ? (
-                <div className="ml-auto">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-pink-500">
-                    {data.pendingWorkspaceInvitations.totalItems}
-                  </span>
-                </div>
-              ) : null}
-            </Link>
-            {me.permissions.adminPanel && (
-              <Link
-                href="/admin"
-                noStyle
-                className="group flex gap-2 px-4 py-2.5 text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-800"
-              >
-                <Cog6ToothIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
-                {t("Administration")}
-              </Link>
-            )}
-            <Link
-              href="https://github.com/BLSQ/openhexa/wiki/User-manual"
-              noStyle
-              className="group flex gap-2 px-4 py-2.5 text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-800"
-            >
-              <QuestionMarkCircleIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
-              {t("Documentation")}
-            </Link>
-
-            <button
-              onClick={() => logout()}
-              className="group flex gap-2 px-4 py-2.5 text-red-600 transition-all hover:bg-gray-100 hover:text-gray-800"
-            >
-              <ArrowRightOnRectangleIcon className="h-5 w-5" />
-              {t("Sign out")}
-            </button>
-          </section>
-          {hasLegacyAccess && (
-            <section className="flex flex-col text-sm font-normal">
-              <div className="flex items-center justify-between px-4 py-2 pt-5 text-sm font-medium tracking-wide text-gray-500 opacity-90">
-                {t("Deprecated features")}
-                <Tooltip
-                  label={t(
-                    "Features linked here are deprecated and will be removed from OpenHEXA in the coming months",
-                  )}
-                >
-                  <QuestionMarkCircleIcon className="h-4 w-4 text-gray-500" />
-                </Tooltip>
-              </div>
-              <Link
-                href="/notebooks"
-                noStyle
-                className="px-4 py-2.5 text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-800"
-              >
-                {t("Notebooks")}
-              </Link>
-              <Link
-                href="/pipelines"
-                noStyle
-                className="px-4 py-2.5 text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-800"
-              >
-                {t("Airflow pipelines")}
-              </Link>
-            </section>
-          )}
-
-          {me.user && (
-            <>
-              <section className=" px-3 py-3">
-                <Field
-                  name="language"
-                  labelColor="text-gray-400 font-normal"
-                  label={t("Interface language")}
-                  showOptional={false}
-                >
-                  <UILanguagePicker className="w-2/" />
-                </Field>
-              </section>
-              <section className="bg-gray-100 px-3 py-3">
-                <User textColor="text-gray-600" user={me.user} subtext />
-              </section>
-            </>
-          )}
         </div>
       </Transition>
     </div>
