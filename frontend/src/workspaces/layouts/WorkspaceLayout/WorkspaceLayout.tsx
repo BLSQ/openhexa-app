@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { getCookie, hasCookie, setCookie } from "cookies-next";
 import { CustomApolloClient } from "core/helpers/apollo";
 import useLocalStorage from "core/hooks/useLocalStorage";
+import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { GetServerSidePropsContext } from "next";
 import {
   ComponentProps,
@@ -23,7 +24,8 @@ export type WorkspaceLayoutProps = {
   workspace: WorkspaceLayout_WorkspaceFragment;
   forceCompactSidebar?: boolean;
   helpLinks?: ComponentProps<typeof Help>["links"];
-  header?: ReactNode | ReactNode[];
+  header?: ReactNode;
+  headerActions?: ReactNode;
   headerClassName?: string;
   withMarginBottom?: boolean;
 };
@@ -55,6 +57,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
     forceCompactSidebar = false,
     helpLinks,
     header,
+    headerActions,
     className,
     headerClassName = "flex items-center justify-between",
     withMarginBottom = true,
@@ -101,11 +104,15 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
         >
           <div
             className={clsx(
-              "px-4 md:px-6 xl:px-10 2xl:px-12 h-full gap-2",
+              "px-4 md:px-6 xl:px-10 2xl:px-12 h-full gap-4",
               headerClassName,
             )}
           >
-            {header}
+            <div className="flex items-center min-w-0">{header}</div>
+            <div className="flex-1 flex justify-center max-w-md">
+              <SpotlightSearch />
+            </div>
+            <div className="flex items-center gap-2">{headerActions}</div>
           </div>
         </header>
       )}
@@ -153,6 +160,7 @@ WorkspaceLayout.prefetch = async (
     ? (await getCookie("sidebar-open", ctx)) === "true"
     : true;
   await Sidebar.prefetch(ctx, client);
+  await SpotlightSearch.prefetch(ctx);
 };
 
 WorkspaceLayout.PageContent = PageContent;
