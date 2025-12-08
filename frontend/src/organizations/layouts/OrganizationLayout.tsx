@@ -22,7 +22,6 @@ const OrganizationLayout = ({
 
 OrganizationLayout.prefetch = async (ctx: GetServerSidePropsContext) => {
   await BaseLayout.prefetch(ctx);
-  await OrganizationSidebar.prefetch(ctx);
 };
 
 export default OrganizationLayout;

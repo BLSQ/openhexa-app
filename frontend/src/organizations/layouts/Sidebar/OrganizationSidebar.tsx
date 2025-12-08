@@ -6,8 +6,6 @@ import {
   Square2StackIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
-import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
-import { GetServerSidePropsContext } from "next";
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
 import NavItem from "./NavItem";
 import SidebarToggleButton from "./SidebarToggleButton";
@@ -46,10 +44,6 @@ const OrganizationSidebar = ({
             Icon={ChevronLeftIcon}
             label={organization.shortName ?? organization.name}
             compact={!isSidebarOpen}
-          />
-          <SpotlightSearch
-            compact={!isSidebarOpen}
-            organizationId={organization.id}
           />
           <div className="mt-5 flex grow flex-col gap-y-2">
             <NavItem
@@ -90,10 +84,6 @@ const OrganizationSidebar = ({
       </div>
     </div>
   );
-};
-
-OrganizationSidebar.prefetch = async (ctx: GetServerSidePropsContext) => {
-  await SpotlightSearch.prefetch(ctx);
 };
 
 export default OrganizationSidebar;

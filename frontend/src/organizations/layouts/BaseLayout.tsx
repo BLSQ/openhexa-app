@@ -90,6 +90,7 @@ BaseLayout.prefetch = async (ctx: any) => {
   cookieSidebarOpenState = (await hasCookie("sidebar-open", ctx))
     ? (await getCookie("sidebar-open", ctx)) === "true"
     : true;
+  await SpotlightSearch.prefetch(ctx);
 };
 
 export default BaseLayout;
