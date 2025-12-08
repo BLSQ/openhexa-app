@@ -47,8 +47,8 @@ const BaseLayout = ({
             isSidebarOpen ? "left-64 2xl:left-72" : "left-16",
           )}
         >
-          <div className={clsx("px-4 md:px-6 xl:px-10 2xl:px-12 h-full gap-4")}>
-            <div className="flex-1 flex justify-center max-w-md">
+          <div className="flex items-center justify-center h-full px-4">
+            <div className="w-full max-w-md">
               <SpotlightSearch organizationId={organizationId} />
             </div>
           </div>

@@ -63,13 +63,7 @@ const getTabLabel = (label: string, totalItems?: number): string => {
 
 const pageSize = 15;
 
-const SpotlightSearch = ({
-  compact,
-  organizationId,
-}: {
-  compact?: boolean;
-  organizationId?: string;
-}) => {
+const SpotlightSearch = ({ organizationId }: { organizationId?: string }) => {
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -491,10 +485,7 @@ const SpotlightSearch = ({
 
   return (
     <>
-      <InputSearch
-        compact={compact}
-        onClick={() => setIsOpen((prev) => !prev)}
-      />
+      <InputSearch onClick={() => setIsOpen((prev) => !prev)} />
       {typeof window !== "undefined" &&
         isOpen &&
         createPortal(overlay, document.body)}
