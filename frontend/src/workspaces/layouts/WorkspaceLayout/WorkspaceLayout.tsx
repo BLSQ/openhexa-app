@@ -102,17 +102,14 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
             isSidebarOpen ? "left-64 2xl:left-72" : "left-16",
           )}
         >
-          <div
-            className={clsx(
-              "px-4 md:px-6 xl:px-10 2xl:px-12 h-full gap-4",
-              headerClassName,
-            )}
-          >
-            <div className="flex items-center min-w-0">{header}</div>
-            <div className="flex-1 flex justify-center max-w-md">
+          <div className="flex items-center h-full px-4">
+            <div className="flex-1 min-w-0">{header}</div>
+            <div className="flex-shrink-0 w-full max-w-md mx-auto">
               <SpotlightSearch />
             </div>
-            <div className="flex items-center gap-2">{headerActions}</div>
+            <div className="flex-1 flex justify-end items-center gap-2">
+              {headerActions}
+            </div>
           </div>
         </header>
       )}
