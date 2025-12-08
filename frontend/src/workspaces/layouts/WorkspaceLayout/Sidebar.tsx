@@ -26,7 +26,6 @@ import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
 import { LayoutContext } from "./WorkspaceLayout";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next";
-import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 
 type SidebarProps = {
   workspace: Sidebar_WorkspaceFragment;
@@ -178,7 +177,6 @@ const Sidebar = (props: SidebarProps) => {
             compact={!isSidebarOpen}
           />
         )}
-        <SpotlightSearch isSidebarOpen={isSidebarOpen} />
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
         <div className="mt-5 flex grow flex-col overflow-y-auto scrollbar-visible">
@@ -292,7 +290,6 @@ Sidebar.prefetch = async (
   client: CustomApolloClient,
 ) => {
   await SidebarMenu.prefetch(client);
-  await SpotlightSearch.prefetch(ctx);
 };
 
 export default Sidebar;
