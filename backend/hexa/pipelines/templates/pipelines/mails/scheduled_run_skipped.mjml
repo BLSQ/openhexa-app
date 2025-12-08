@@ -48,7 +48,7 @@
           </ul>
         </mj-text>
         <mj-text color="#333333" padding-top="10px">
-          {% trans "The next scheduled execution will proceed as normal if no run is in progress at that time." %}
+          {% trans "The next scheduled execution will proceed as normal if no run is in progress at that time. If this happens regularly, we advise you to check if you're scheduling interval is configured too tight, or if your pipeline has started to run slower over time." %}
         </mj-text>
 
         <mj-button href="{{pipeline_url}}" background-color="#FF499C" color="#ffffff" padding="30px 0 30px 0">
