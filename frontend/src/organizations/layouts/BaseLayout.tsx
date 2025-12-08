@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import clsx from "clsx";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
+import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { useTranslation } from "next-i18next";
 import { getCookie, hasCookie, setCookie } from "cookies-next";
 
@@ -20,9 +21,15 @@ type BaseLayoutProps = {
   children: React.ReactNode;
   Sidebar: React.ElementType;
   sidebarProps: any;
+  organizationId?: string;
 };
 
-const BaseLayout = ({ children, Sidebar, sidebarProps }: BaseLayoutProps) => {
+const BaseLayout = ({
+  children,
+  Sidebar,
+  sidebarProps,
+  organizationId,
+}: BaseLayoutProps) => {
   const [isSidebarOpen, setSidebarOpen] = useState(getDefaultSidebarOpen());
   const { t } = useTranslation();
 
@@ -33,9 +40,23 @@ const BaseLayout = ({ children, Sidebar, sidebarProps }: BaseLayoutProps) => {
 
   return (
     <div className="flex h-screen">
+      {organizationId && (
+        <header
+          className={clsx(
+            "fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header",
+            isSidebarOpen ? "left-64 2xl:left-72" : "left-16",
+          )}
+        >
+          <div className={clsx("px-4 md:px-6 xl:px-10 2xl:px-12 h-full gap-4")}>
+            <div className="flex-1 flex justify-center max-w-md">
+              <SpotlightSearch organizationId={organizationId} />
+            </div>
+          </div>
+        </header>
+      )}
       <main
         className={clsx(
-          "w-full mb-12 transition-all duration-200",
+          "w-full mb-12 transition-all duration-200 pt-16",
           isSidebarOpen ? "pl-64 2xl:pl-72" : "pl-16",
         )}
       >
