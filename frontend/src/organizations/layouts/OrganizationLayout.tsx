@@ -14,7 +14,11 @@ const OrganizationLayout = ({
   organization,
 }: OrganizationLayoutProps) => {
   return (
-    <BaseLayout Sidebar={OrganizationSidebar} sidebarProps={{ organization }}>
+    <BaseLayout
+      Sidebar={OrganizationSidebar}
+      sidebarProps={{ organization }}
+      organizationId={organization?.id}
+    >
       {children}
     </BaseLayout>
   );
