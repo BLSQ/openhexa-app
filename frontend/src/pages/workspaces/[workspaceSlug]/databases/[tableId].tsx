@@ -89,42 +89,42 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = ({
           },
         ]}
         header={
-          <>
-            <Breadcrumbs withHome={false}>
-              <Breadcrumbs.Part
-                isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+          <Breadcrumbs withHome={false}>
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+            >
+              {workspace.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/databases`}
+            >
+              {t("Database")}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              isLast
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/databases/${router.query.tableId}`}
+            >
+              {table.name}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+        }
+        headerActions={
+          <DeleteDatabaseTableTrigger workspace={workspace} table={table}>
+            {({ onClick }) => (
+              <Button
+                className="bg-red-500 hover:bg-red-700 focus:ring-red-500"
+                onClick={onClick}
+                leadingIcon={<TrashIcon className="w-4" />}
               >
-                {workspace.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/databases`}
-              >
-                {t("Database")}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                isLast
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/databases/${router.query.tableId}`}
-              >
-                {table.name}
-              </Breadcrumbs.Part>
-            </Breadcrumbs>
-            <DeleteDatabaseTableTrigger workspace={workspace} table={table}>
-              {({ onClick }) => (
-                <Button
-                  className="bg-red-500 hover:bg-red-700 focus:ring-red-500"
-                  onClick={onClick}
-                  leadingIcon={<TrashIcon className="w-4" />}
-                >
-                  {t("Delete")}
-                </Button>
-              )}
-            </DeleteDatabaseTableTrigger>
-          </>
+                {t("Delete")}
+              </Button>
+            )}
+          </DeleteDatabaseTableTrigger>
         }
       >
         <WorkspaceLayout.PageContent className="space-y-4">

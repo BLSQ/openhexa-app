@@ -88,35 +88,32 @@ const WorkspaceDatasetsPage: NextPageWithLayout = (props: Props) => {
           },
         ]}
         header={
-          <>
-            <Breadcrumbs withHome={false} className="flex-1">
-              <Breadcrumbs.Part
-                isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-              >
-                {workspace.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                isLast
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/datasets`}
-              >
-                {t("Datasets")}
-              </Breadcrumbs.Part>
-            </Breadcrumbs>
-
-            {workspace.permissions.createDataset && (
-              <>
-                <Button
-                  leadingIcon={<PlusIcon className="h-4 w-4" />}
-                  onClick={() => setDialogOpen(true)}
-                >
-                  {t("Create")}
-                </Button>
-              </>
-            )}
-          </>
+          <Breadcrumbs withHome={false} className="flex-1">
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+            >
+              {workspace.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              isLast
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/datasets`}
+            >
+              {t("Datasets")}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+        }
+        headerActions={
+          workspace.permissions.createDataset && (
+            <Button
+              leadingIcon={<PlusIcon className="h-4 w-4" />}
+              onClick={() => setDialogOpen(true)}
+            >
+              {t("Create")}
+            </Button>
+          )
         }
       >
         <WorkspaceLayout.PageContent className="flex flex-col">

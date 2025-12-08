@@ -58,30 +58,30 @@ const WorkspacePipelinesPage: NextPageWithLayout = ({
           },
         ]}
         header={
-          <>
-            <Breadcrumbs withHome={false} className="flex-1">
-              <Breadcrumbs.Part
-                isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-              >
-                {workspace.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                isLast
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/pipelines/?tab=${tab}`}
-              >
-                {tab === "pipelines" ? t("Pipelines") : t("Templates")}
-              </Breadcrumbs.Part>
-            </Breadcrumbs>
-            <Button
-              leadingIcon={<PlusIcon className="h-4 w-4" />}
-              onClick={() => setDialogOpen(true)}
+          <Breadcrumbs withHome={false} className="flex-1">
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
             >
-              {t("Create")}
-            </Button>
-          </>
+              {workspace.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              isLast
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/pipelines/?tab=${tab}`}
+            >
+              {tab === "pipelines" ? t("Pipelines") : t("Templates")}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+        }
+        headerActions={
+          <Button
+            leadingIcon={<PlusIcon className="h-4 w-4" />}
+            onClick={() => setDialogOpen(true)}
+          >
+            {t("Create")}
+          </Button>
         }
       >
         <WorkspaceLayout.PageContent className="divide divide-y-2">
