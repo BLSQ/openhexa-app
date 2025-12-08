@@ -15,25 +15,13 @@ function getIsMac() {
 }
 
 type InputSearchProps = {
-  compact: boolean;
+  compact?: boolean;
   onClick: () => void;
 };
 const InputSearch = ({ compact, onClick }: InputSearchProps) => {
   const { t } = useTranslation();
 
   return compact ? (
-    <div className="flex flex-col border-gray-200 bg-gray-800 p-2">
-      <button
-        onClick={onClick}
-        className="text-gray-400 bg-gray-700 hover:bg-gray-600 flex gap-4 p-2 rounded items-center"
-      >
-        <MagnifyingGlassIcon className="h-4 text-gray-400 ml-2" />
-        <span className="whitespace-nowrap overflow-hidden transition-opacity duration-200">
-          {t("Search")} {getIsMac() ? "(⌘K)" : "(Ctrl+K)"}
-        </span>
-      </button>
-    </div>
-  ) : (
     <button
       onClick={onClick}
       className="relative flex justify-center px-2 py-2 text-gray-400 hover:bg-gray-700 hover:text-white group text-md font-medium"
@@ -45,6 +33,18 @@ const InputSearch = ({ compact, onClick }: InputSearchProps) => {
         </Badge>
       </div>
     </button>
+  ) : (
+    <div className="flex flex-col border-gray-200 bg-gray-800 p-2">
+      <button
+        onClick={onClick}
+        className="text-gray-400 bg-gray-700 hover:bg-gray-600 flex gap-4 p-2 rounded items-center"
+      >
+        <MagnifyingGlassIcon className="h-4 text-gray-400 ml-2" />
+        <span className="whitespace-nowrap overflow-hidden transition-opacity duration-200">
+          {t("Search")} {getIsMac() ? "(⌘K)" : "(Ctrl+K)"}
+        </span>
+      </button>
+    </div>
   );
 };
 

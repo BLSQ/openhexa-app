@@ -67,7 +67,7 @@ const SpotlightSearch = ({
   compact,
   organizationId,
 }: {
-  compact: boolean;
+  compact?: boolean;
   organizationId?: string;
 }) => {
   const { t } = useTranslation();
