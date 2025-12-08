@@ -11,7 +11,7 @@ import { GetServerSidePropsContext } from "next";
 import { OrganizationQuery } from "organizations/graphql/queries.generated";
 import NavItem from "./NavItem";
 import SidebarToggleButton from "./SidebarToggleButton";
-import UserMenu from "workspaces/features/UserMenu";
+import Logo from "./Logo";
 import { useTranslation } from "next-i18next";
 import { HomeIcon } from "@heroicons/react/20/solid";
 
@@ -81,7 +81,7 @@ const OrganizationSidebar = ({
               />
             )}
           </div>
-          <UserMenu compact={!isSidebarOpen} />
+          <Logo isSidebarOpen={isSidebarOpen} />
         </div>
         <SidebarToggleButton
           isSidebarOpen={isSidebarOpen}
