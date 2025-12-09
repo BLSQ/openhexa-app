@@ -1,3 +1,5 @@
+import base64
+
 from django.http import HttpRequest
 
 from hexa.utils.base64_image_encode_decode import decode_base64_image
@@ -15,15 +17,25 @@ def _normalize_type_if_present(input: dict):
         input["type"] = input["type"].lower()
 
 
+def _decode_bundle_if_present(input: dict):
+    if input.get("bundle"):
+        try:
+            input["bundle"] = base64.b64decode(input["bundle"])
+        except Exception:
+            pass
+
+
 class WebappsWorkspaceMutationType(BaseWorkspaceMutationType):
     def pre_create(self, request: HttpRequest, input: dict):
         input["created_by"] = request.user
         _decode_icon_if_present(input)
         _normalize_type_if_present(input)
+        _decode_bundle_if_present(input)
 
     def pre_update(self, request: HttpRequest, instance, input: dict):
         _decode_icon_if_present(input)
         _normalize_type_if_present(input)
+        _decode_bundle_if_present(input)
 
 
 webapps_mutations = WebappsWorkspaceMutationType(Webapp)

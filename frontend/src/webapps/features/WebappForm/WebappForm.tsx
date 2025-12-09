@@ -21,10 +21,58 @@ import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
 import { WebappType } from "graphql/types";
 import { getWebappTypeLabel } from "webapps/helpers";
+import { useDataCardProperty } from "core/components/DataCard/context";
 
 type WebappFormProps = {
   webapp?: WebappForm_WebappFragment;
   workspace: WebappForm_WorkspaceFragment;
+};
+
+const BundleFileInput = ({ id, accessor, label, required, helpText }: any) => {
+  const { property, section } = useDataCardProperty({ id, accessor, label, required });
+  const { t } = useTranslation();
+
+  if (!property.visible) {
+    return null;
+  }
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        const base64Data = base64.split(",")[1];
+        property.setValue(base64Data);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  if (section.isEdited && !property.readonly) {
+    return (
+      <DataCard.Property property={property}>
+        <div className="space-y-2">
+          <input
+            type="file"
+            accept=".zip"
+            onChange={handleFileChange}
+            required={property.required}
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+          />
+          {helpText && <p className="text-xs text-gray-500">{helpText}</p>}
+        </div>
+      </DataCard.Property>
+    );
+  }
+
+  return (
+    <DataCard.Property property={property}>
+      <div className="text-sm text-gray-500 italic">
+        {property.displayValue ? t("Bundle uploaded") : t("No bundle")}
+      </div>
+    </DataCard.Property>
+  );
 };
 
 const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
@@ -34,9 +82,17 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const [updateWebapp] = useUpdateWebappMutation();
   const [loading, setLoading] = useState(false);
   const [url, setUrl] = useState(webapp?.url || "");
+  const [selectedType, setSelectedType] = useState<WebappType>(
+    webapp?.type || WebappType.Iframe,
+  );
   const debouncedUrl = useDebounce(url, 500);
 
   const clearCache = useCacheKey("webapps");
+
+  const showUrlField =
+    selectedType === WebappType.Iframe || selectedType === WebappType.Superset;
+  const showContentField = selectedType === WebappType.Html;
+  const showBundleField = selectedType === WebappType.Bundle;
 
   const updateExistingWebapp = async (values: any) => {
     setLoading(true);
@@ -75,6 +131,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
 
   useEffect(() => {
     setUrl(webapp?.url || "");
+    setSelectedType(webapp?.type || WebappType.Iframe);
   }, [webapp]);
 
   return (
@@ -120,16 +177,41 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             WebappType.Superset,
           ]}
           getOptionLabel={getWebappTypeLabel}
-        />
-        <TextProperty
-          id="url"
-          accessor="url"
-          label={t("URL")}
-          required
           onChange={(e) => {
-            setUrl(e.target.value);
+            setSelectedType(e.target.value as WebappType);
           }}
         />
+        {showUrlField && (
+          <TextProperty
+            id="url"
+            accessor="url"
+            label={t("URL")}
+            required
+            onChange={(e) => {
+              setUrl(e.target.value);
+            }}
+          />
+        )}
+        {showContentField && (
+          <TextProperty
+            id="content"
+            accessor="content"
+            label={t("Content")}
+            required
+            rows={15}
+          />
+        )}
+        {showBundleField && (
+          <BundleFileInput
+            id="bundle"
+            accessor="bundle"
+            label={t("Bundle File")}
+            required
+            helpText={t(
+              "Upload a zip file containing your built React app (index.html + assets)",
+            )}
+          />
+        )}
       </DataCard.FormSection>
       {debouncedUrl && (
         <DataCard.Section
@@ -154,6 +236,7 @@ WebappForm.fragment = {
       url
       type
       icon
+      content
       permissions {
         update
         delete
