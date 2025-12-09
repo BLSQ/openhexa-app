@@ -20,7 +20,6 @@ const WebappIframe = ({
   className,
   style,
 }: WebappIframeProps) => {
-  // Determine the URL based on webapp type
   const url = useMemo(() => {
     if (type === WebappType.Html && workspaceSlug && webappSlug) {
       return `/webapps/${workspaceSlug}/${webappSlug}/html/`;

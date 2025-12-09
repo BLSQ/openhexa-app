@@ -22,7 +22,8 @@ class Migration(migrations.Migration):
             model_name="webapp",
             name="content",
             field=models.TextField(
-                blank=True, help_text="HTML content for HTML type webapps"
+                blank=True,
+                help_text="Text content for the webapp (e.g., HTML markup, configuration, etc.)",
             ),
         ),
         migrations.AlterField(

@@ -22,10 +22,40 @@ import WebappIframe from "webapps/features/WebappIframe";
 import { WebappType } from "graphql/types";
 import { getWebappTypeLabel } from "webapps/helpers";
 import { useDataCardProperty } from "core/components/DataCard/context";
+import CodeEditor from "core/components/CodeEditor";
+import Dropzone from "core/components/Dropzone";
 
 type WebappFormProps = {
   webapp?: WebappForm_WebappFragment;
   workspace: WebappForm_WorkspaceFragment;
+};
+
+const HtmlContentEditor = ({ id, accessor, label, required }: any) => {
+  const { property, section } = useDataCardProperty({ id, accessor, label, required });
+
+  if (!property.visible) {
+    return null;
+  }
+
+  if (section.isEdited && !property.readonly) {
+    return (
+      <DataCard.Property property={property}>
+        <CodeEditor
+          value={property.formValue || ""}
+          onChange={(value) => property.setValue(value)}
+          height="400px"
+        />
+      </DataCard.Property>
+    );
+  }
+
+  return (
+    <DataCard.Property property={property}>
+      <div className="text-sm text-gray-500 italic">
+        {property.displayValue ? "HTML content provided" : "No content"}
+      </div>
+    </DataCard.Property>
+  );
 };
 
 const BundleFileInput = ({ id, accessor, label, required, helpText }: any) => {
@@ -36,9 +66,9 @@ const BundleFileInput = ({ id, accessor, label, required, helpText }: any) => {
     return null;
   }
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
+  const handleFilesChange = async (files: readonly File[]) => {
+    if (files.length > 0) {
+      const file = files[0];
       const reader = new FileReader();
       reader.onload = () => {
         const base64 = reader.result as string;
@@ -53,14 +83,14 @@ const BundleFileInput = ({ id, accessor, label, required, helpText }: any) => {
     return (
       <DataCard.Property property={property}>
         <div className="space-y-2">
-          <input
-            type="file"
-            accept=".zip"
-            onChange={handleFileChange}
-            required={property.required}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+          <Dropzone
+            accept={{ "application/zip": [".zip"] }}
+            maxFiles={1}
+            onChange={handleFilesChange}
+            label={t("Drag & drop a .zip file here, or click to select")}
+            help={helpText}
+            className="h-32"
           />
-          {helpText && <p className="text-xs text-gray-500">{helpText}</p>}
         </div>
       </DataCard.Property>
     );
@@ -75,24 +105,96 @@ const BundleFileInput = ({ id, accessor, label, required, helpText }: any) => {
   );
 };
 
+const TypeAwareFields = ({
+  webapp,
+  currentType,
+  onTypeChange
+}: {
+  webapp?: WebappForm_WebappFragment;
+  currentType: WebappType;
+  onTypeChange: (type: WebappType) => void;
+}) => {
+  const { t } = useTranslation();
+  const [url, setUrl] = useState(webapp?.url || "");
+  const debouncedUrl = useDebounce(url, 500);
+
+  const showUrlField =
+    currentType === WebappType.Iframe || currentType === WebappType.Superset;
+  const showContentField = currentType === WebappType.Html;
+  const showBundleField = currentType === WebappType.Bundle;
+
+  return (
+    <>
+      {showUrlField && (
+        <TextProperty
+          id="url"
+          accessor="url"
+          label={t("URL")}
+          required
+          onChange={(e) => {
+            setUrl(e.target.value);
+          }}
+        />
+      )}
+      {showContentField && (
+        <HtmlContentEditor
+          id="content"
+          accessor="content"
+          label={t("Content")}
+          required
+        />
+      )}
+      {showBundleField && (
+        <BundleFileInput
+          id="bundle"
+          accessor="bundle"
+          label={t("Bundle File")}
+          required
+          helpText={t(
+            "Upload a zip file containing your built React app (index.html + assets)",
+          )}
+        />
+      )}
+      {debouncedUrl && showUrlField && (
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t("Preview")}
+          </label>
+          <WebappIframe url={debouncedUrl} style={{ height: "400px" }} />
+        </div>
+      )}
+    </>
+  );
+};
+
+const TypeSelectProperty = ({
+  currentType,
+  onTypeChange,
+  ...props
+}: any) => {
+  const { property } = useDataCardProperty(props);
+
+  // Watch for changes in the form value and update parent state
+  useEffect(() => {
+    if (property.formValue && property.formValue !== currentType) {
+      onTypeChange(property.formValue as WebappType);
+    }
+  }, [property.formValue, currentType, onTypeChange]);
+
+  return <SelectProperty {...props} />;
+};
+
 const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const { t } = useTranslation();
   const router = useRouter();
   const [createWebapp] = useCreateWebappMutation();
   const [updateWebapp] = useUpdateWebappMutation();
   const [loading, setLoading] = useState(false);
-  const [url, setUrl] = useState(webapp?.url || "");
-  const [selectedType, setSelectedType] = useState<WebappType>(
+  const [currentType, setCurrentType] = useState<WebappType>(
     webapp?.type || WebappType.Iframe,
   );
-  const debouncedUrl = useDebounce(url, 500);
 
   const clearCache = useCacheKey("webapps");
-
-  const showUrlField =
-    selectedType === WebappType.Iframe || selectedType === WebappType.Superset;
-  const showContentField = selectedType === WebappType.Html;
-  const showBundleField = selectedType === WebappType.Bundle;
 
   const updateExistingWebapp = async (values: any) => {
     setLoading(true);
@@ -111,6 +213,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   };
 
   const createNewWebapp = async (values: any) => {
+    console.log("Creating webapp with values:", values);
     setLoading(true);
     try {
       await createWebapp({
@@ -123,16 +226,12 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         router.push(`/workspaces/${workspace.slug}/webapps`);
       });
     } catch (error) {
+      console.error("Webapp creation error:", error);
       toast.error(t("An error occurred while creating the webapp"));
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    setUrl(webapp?.url || "");
-    setSelectedType(webapp?.type || WebappType.Iframe);
-  }, [webapp]);
 
   return (
     <DataCard item={webapp}>
@@ -164,7 +263,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           label={""}
           editButtonLabel={t("Change Icon")}
         />
-        <SelectProperty
+        <TypeSelectProperty
           id="type"
           accessor="type"
           label={t("Type")}
@@ -177,51 +276,15 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             WebappType.Superset,
           ]}
           getOptionLabel={getWebappTypeLabel}
-          onChange={(e) => {
-            setSelectedType(e.target.value as WebappType);
-          }}
+          currentType={currentType}
+          onTypeChange={setCurrentType}
         />
-        {showUrlField && (
-          <TextProperty
-            id="url"
-            accessor="url"
-            label={t("URL")}
-            required
-            onChange={(e) => {
-              setUrl(e.target.value);
-            }}
-          />
-        )}
-        {showContentField && (
-          <TextProperty
-            id="content"
-            accessor="content"
-            label={t("Content")}
-            required
-            rows={15}
-          />
-        )}
-        {showBundleField && (
-          <BundleFileInput
-            id="bundle"
-            accessor="bundle"
-            label={t("Bundle File")}
-            required
-            helpText={t(
-              "Upload a zip file containing your built React app (index.html + assets)",
-            )}
-          />
-        )}
+        <TypeAwareFields
+          webapp={webapp}
+          currentType={currentType}
+          onTypeChange={setCurrentType}
+        />
       </DataCard.FormSection>
-      {debouncedUrl && (
-        <DataCard.Section
-          title={t("Preview")}
-          collapsible={false}
-          loading={loading}
-        >
-          <WebappIframe url={debouncedUrl} style={{ height: "65vh" }} />
-        </DataCard.Section>
-      )}
     </DataCard>
   );
 };
