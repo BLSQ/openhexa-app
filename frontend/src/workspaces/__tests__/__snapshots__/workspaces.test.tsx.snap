@@ -16,37 +16,6 @@ exports[`Workspaces renders the workspace page 1`] = `
         class="flex h-full grow flex-col border-r border-gray-200 bg-gray-800"
       >
         <div
-          class="flex flex-col border-gray-200 bg-gray-800 p-2"
-        >
-          <button
-            class="text-gray-400 bg-gray-700 hover:bg-gray-600 flex gap-4 p-2 rounded items-center"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 text-gray-400 ml-2"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <span
-              class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
-            >
-              Search
-               
-              (Ctrl+K)
-            </span>
-          </button>
-        </div>
-        <div
           class="w-full"
         >
           <button
@@ -359,39 +328,81 @@ exports[`Workspaces renders the workspace page 1`] = `
     class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
   >
     <div
-      class="px-4 md:px-6 xl:px-10 2xl:px-12 h-full gap-2 flex items-center justify-between"
+      class="flex items-center h-full px-4"
     >
-      <nav
-        aria-label="Breadcrumbs"
-      >
-        <ol
-          class="flex items-center"
-          role="list"
-        >
-          <li
-            class=""
-          >
-            <div
-              class="flex items-center"
-            >
-              <span
-                class="text-sm hover:text-gray-700 font-medium text-gray-500"
-              >
-                <a
-                  class=""
-                  href="/workspaces/test"
-                  rel="noopener noreferrer"
-                >
-                  Rwanda Workspace
-                </a>
-              </span>
-            </div>
-          </li>
-        </ol>
-      </nav>
       <div
-        class="flex items-center gap-2"
-      />
+        class="flex-1 min-w-0"
+      >
+        <nav
+          aria-label="Breadcrumbs"
+        >
+          <ol
+            class="flex items-center"
+            role="list"
+          >
+            <li
+              class=""
+            >
+              <div
+                class="flex items-center"
+              >
+                <span
+                  class="text-sm hover:text-gray-700 font-medium text-gray-500"
+                >
+                  <a
+                    class=""
+                    href="/workspaces/test"
+                    rel="noopener noreferrer"
+                  >
+                    Rwanda Workspace
+                  </a>
+                </span>
+              </div>
+            </li>
+          </ol>
+        </nav>
+      </div>
+      <div
+        class="flex-shrink-0 w-full max-w-md mx-auto"
+      >
+        <button
+          class="flex items-center gap-2 w-full px-3 py-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors cursor-pointer"
+        >
+          <svg
+            aria-hidden="true"
+            class="h-4 w-4 text-gray-500"
+            data-slot="icon"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span
+            class="flex-1 text-left text-gray-500"
+          >
+            Search...
+          </span>
+          <kbd
+            class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-xs font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
+          >
+            Ctrl+K
+          </kbd>
+        </button>
+      </div>
+      <div
+        class="flex-1 flex justify-end items-center gap-2"
+      >
+        <div
+          class="flex items-center gap-2"
+        />
+      </div>
     </div>
   </header>
   <main
@@ -459,37 +470,6 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
       <div
         class="flex h-full grow flex-col border-r border-gray-200 bg-gray-800"
       >
-        <div
-          class="flex flex-col border-gray-200 bg-gray-800 p-2"
-        >
-          <button
-            class="text-gray-400 bg-gray-700 hover:bg-gray-600 flex gap-4 p-2 rounded items-center"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 text-gray-400 ml-2"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <span
-              class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
-            >
-              Search
-               
-              (Ctrl+K)
-            </span>
-          </button>
-        </div>
         <div
           class="w-full"
         >
@@ -833,39 +813,81 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
     class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
   >
     <div
-      class="px-4 md:px-6 xl:px-10 2xl:px-12 h-full gap-2 flex items-center justify-between"
+      class="flex items-center h-full px-4"
     >
-      <nav
-        aria-label="Breadcrumbs"
-      >
-        <ol
-          class="flex items-center"
-          role="list"
-        >
-          <li
-            class=""
-          >
-            <div
-              class="flex items-center"
-            >
-              <span
-                class="text-sm hover:text-gray-700 font-medium text-gray-500"
-              >
-                <a
-                  class=""
-                  href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63"
-                  rel="noopener noreferrer"
-                >
-                  Rwanda Workspace
-                </a>
-              </span>
-            </div>
-          </li>
-        </ol>
-      </nav>
       <div
-        class="flex items-center gap-2"
-      />
+        class="flex-1 min-w-0"
+      >
+        <nav
+          aria-label="Breadcrumbs"
+        >
+          <ol
+            class="flex items-center"
+            role="list"
+          >
+            <li
+              class=""
+            >
+              <div
+                class="flex items-center"
+              >
+                <span
+                  class="text-sm hover:text-gray-700 font-medium text-gray-500"
+                >
+                  <a
+                    class=""
+                    href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63"
+                    rel="noopener noreferrer"
+                  >
+                    Rwanda Workspace
+                  </a>
+                </span>
+              </div>
+            </li>
+          </ol>
+        </nav>
+      </div>
+      <div
+        class="flex-shrink-0 w-full max-w-md mx-auto"
+      >
+        <button
+          class="flex items-center gap-2 w-full px-3 py-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors cursor-pointer"
+        >
+          <svg
+            aria-hidden="true"
+            class="h-4 w-4 text-gray-500"
+            data-slot="icon"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span
+            class="flex-1 text-left text-gray-500"
+          >
+            Search...
+          </span>
+          <kbd
+            class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-xs font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
+          >
+            Ctrl+K
+          </kbd>
+        </button>
+      </div>
+      <div
+        class="flex-1 flex justify-end items-center gap-2"
+      >
+        <div
+          class="flex items-center gap-2"
+        />
+      </div>
     </div>
   </header>
   <main

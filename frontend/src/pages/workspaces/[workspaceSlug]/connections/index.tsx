@@ -50,33 +50,32 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
             },
           ]}
           header={
-            <>
-              <Breadcrumbs withHome={false}>
-                <Breadcrumbs.Part
-                  isFirst
-                  href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-                >
-                  {workspace.name}
-                </Breadcrumbs.Part>
-                <Breadcrumbs.Part
-                  isLast
-                  href={`/workspaces/${encodeURIComponent(
-                    workspace.slug,
-                  )}/connections`}
-                >
-                  {t("Connections")}
-                </Breadcrumbs.Part>
-              </Breadcrumbs>
-
-              {workspace.permissions.createConnection && (
-                <Button
-                  leadingIcon={<PlusIcon className="w-4" />}
-                  onClick={() => setOpenModal(true)}
-                >
-                  {t("Add connection")}
-                </Button>
-              )}
-            </>
+            <Breadcrumbs withHome={false}>
+              <Breadcrumbs.Part
+                isFirst
+                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+              >
+                {workspace.name}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                isLast
+                href={`/workspaces/${encodeURIComponent(
+                  workspace.slug,
+                )}/connections`}
+              >
+                {t("Connections")}
+              </Breadcrumbs.Part>
+            </Breadcrumbs>
+          }
+          headerActions={
+            workspace.permissions.createConnection && (
+              <Button
+                leadingIcon={<PlusIcon className="w-4" />}
+                onClick={() => setOpenModal(true)}
+              >
+                {t("Add connection")}
+              </Button>
+            )
           }
         >
           <WorkspaceLayout.PageContent className="space-y-4">

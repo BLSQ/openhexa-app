@@ -22,7 +22,7 @@ const OrganizationsSidebar = ({
   return (
     <div
       className={clsx(
-        "fixed h-full bg-gray-800 transition-all duration-200",
+        "fixed h-full bg-gray-800 transition-all duration-75",
         isSidebarOpen ? "w-64 2xl:w-72" : "w-16",
       )}
     >

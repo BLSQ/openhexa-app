@@ -61,39 +61,37 @@ const PipelineVersionsPage: NextPageWithLayout<Props> = ({
           },
         ]}
         header={
-          <div className="flex items-center gap-2">
-            <Breadcrumbs withHome={false} className="flex-1">
-              <Breadcrumbs.Part
-                isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-              >
-                {workspace.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/pipelines`}
-              >
-                {t("Pipelines")}
-              </Breadcrumbs.Part>
+          <Breadcrumbs withHome={false} className="flex-1">
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+            >
+              {workspace.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/pipelines`}
+            >
+              {t("Pipelines")}
+            </Breadcrumbs.Part>
 
-              <Breadcrumbs.Part
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/pipelines/${encodeURIComponent(pipeline.code)}`}
-              >
-                {pipeline.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                isLast
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/pipelines/${encodeURIComponent(pipeline.code)}/versions`}
-              >
-                {t("Versions")}
-              </Breadcrumbs.Part>
-            </Breadcrumbs>
-          </div>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/pipelines/${encodeURIComponent(pipeline.code)}`}
+            >
+              {pipeline.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              isLast
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/pipelines/${encodeURIComponent(pipeline.code)}/versions`}
+            >
+              {t("Versions")}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
         }
       >
         <WorkspaceLayout.PageContent className="grid grid-cols-1 gap-4">

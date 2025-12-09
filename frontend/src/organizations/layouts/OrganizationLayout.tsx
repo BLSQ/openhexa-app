@@ -14,7 +14,11 @@ const OrganizationLayout = ({
   organization,
 }: OrganizationLayoutProps) => {
   return (
-    <BaseLayout Sidebar={OrganizationSidebar} sidebarProps={{ organization }}>
+    <BaseLayout
+      Sidebar={OrganizationSidebar}
+      sidebarProps={{ organization }}
+      organizationId={organization?.id}
+    >
       {children}
     </BaseLayout>
   );
@@ -22,7 +26,6 @@ const OrganizationLayout = ({
 
 OrganizationLayout.prefetch = async (ctx: GetServerSidePropsContext) => {
   await BaseLayout.prefetch(ctx);
-  await OrganizationSidebar.prefetch(ctx);
 };
 
 export default OrganizationLayout;

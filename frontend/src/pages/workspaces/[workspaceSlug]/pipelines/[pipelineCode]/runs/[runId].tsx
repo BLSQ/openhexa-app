@@ -141,50 +141,52 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
           },
         ]}
         header={
+          <Breadcrumbs withHome={false}>
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspaceSlug)}`}
+            >
+              {workspace.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspaceSlug,
+              )}/pipelines`}
+            >
+              {t("Pipelines")}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspaceSlug,
+              )}/pipelines/${encodeURIComponent(run.pipeline.code)}`}
+            >
+              {run.pipeline.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspaceSlug,
+              )}/pipelines/${encodeURIComponent(run.pipeline.code)}/runs`}
+            >
+              {t("Runs")}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              isLast
+              href={{
+                pathname:
+                  "/workspaces/[workspaceSlug]/pipelines/[pipelineCode]/runs/[runId]",
+                query: {
+                  workspaceSlug: workspaceSlug,
+                  pipelineCode: run.pipeline.code,
+                  runId: run.id,
+                },
+              }}
+            >
+              <Time datetime={run.executionDate} />
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+        }
+        headerActions={
           <>
-            <Breadcrumbs withHome={false}>
-              <Breadcrumbs.Part
-                isFirst
-                href={`/workspaces/${encodeURIComponent(workspaceSlug)}`}
-              >
-                {workspace.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                href={`/workspaces/${encodeURIComponent(
-                  workspaceSlug,
-                )}/pipelines`}
-              >
-                {t("Pipelines")}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                href={`/workspaces/${encodeURIComponent(
-                  workspaceSlug,
-                )}/pipelines/${encodeURIComponent(run.pipeline.code)}`}
-              >
-                {run.pipeline.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                href={`/workspaces/${encodeURIComponent(
-                  workspaceSlug,
-                )}/pipelines/${encodeURIComponent(run.pipeline.code)}/runs`}
-              >
-                {t("Runs")}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                isLast
-                href={{
-                  pathname:
-                    "/workspaces/[workspaceSlug]/pipelines/[pipelineCode]/runs/[runId]",
-                  query: {
-                    workspaceSlug: workspaceSlug,
-                    pipelineCode: run.pipeline.code,
-                    runId: run.id,
-                  },
-                }}
-              >
-                <Time datetime={run.executionDate} />
-              </Breadcrumbs.Part>
-            </Breadcrumbs>
             {isFinished && (
               <RunPipelineDialog pipeline={run.pipeline} run={run}>
                 {(onClick) => (
