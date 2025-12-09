@@ -57,9 +57,6 @@ exports[`Workspaces renders the workspace page 1`] = `
               title="Rwanda Workspace"
             >
               Rwanda Workspace
-              <div
-                class="text-xs tracking-tighter text-gray-500 group-hover:text-gray-400"
-              />
             </div>
             <svg
               aria-hidden="true"
@@ -296,19 +293,32 @@ exports[`Workspaces renders the workspace page 1`] = `
           </nav>
         </div>
         <div
-          class="mb-5 flex shrink-0 flex-col items-center px-4"
+          class="w-full"
         >
-          <a
-            class="flex h-8 items-center"
-            href="/"
-            rel="noopener noreferrer"
+          <button
+            class="group flex w-full items-center bg-gray-800 text-left hover:bg-gray-700 transition-colors h-auto gap-3 px-3 py-3"
           >
-            <img
-              alt="OpenHEXA logo"
-              class="h-full"
-              src="/images/logo_with_text_white.svg"
-            />
-          </a>
+            <span
+              class="inline-flex shrink-0 items-center justify-center rounded-full bg-gray-500 text-sm h-8 w-8"
+              style="background: red;"
+            >
+              <span
+                class="font-medium leading-none text-white"
+              >
+                AE
+              </span>
+            </span>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <div
+                class="text-sm font-medium text-gray-50 truncate"
+              />
+              <div
+                class="text-xs text-gray-400 truncate"
+              />
+            </div>
+          </button>
         </div>
       </div>
       <button
@@ -491,9 +501,6 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               title="Rwanda Workspace"
             >
               Rwanda Workspace
-              <div
-                class="text-xs tracking-tighter text-gray-500 group-hover:text-gray-400"
-              />
             </div>
             <svg
               aria-hidden="true"
@@ -760,19 +767,32 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
           </nav>
         </div>
         <div
-          class="mb-5 flex shrink-0 flex-col items-center px-4"
+          class="w-full"
         >
-          <a
-            class="flex h-8 items-center"
-            href="/"
-            rel="noopener noreferrer"
+          <button
+            class="group flex w-full items-center bg-gray-800 text-left hover:bg-gray-700 transition-colors h-auto gap-3 px-3 py-3"
           >
-            <img
-              alt="OpenHEXA logo"
-              class="h-full"
-              src="/images/logo_with_text_white.svg"
-            />
-          </a>
+            <span
+              class="inline-flex shrink-0 items-center justify-center rounded-full bg-gray-500 text-sm h-8 w-8"
+              style="background: red;"
+            >
+              <span
+                class="font-medium leading-none text-white"
+              >
+                AE
+              </span>
+            </span>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <div
+                class="text-sm font-medium text-gray-50 truncate"
+              />
+              <div
+                class="text-xs text-gray-400 truncate"
+              />
+            </div>
+          </button>
         </div>
       </div>
       <button
