@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { OrganizationsQuery } from "organizations/graphql/queries.generated";
 import OrganizationsPage from "pages/organizations";
-import { TestApp } from "../../core/helpers/testutils";
+import { TestApp } from "core/helpers/testutils";
 
 const organizations = [
   { id: "1", name: "Organization 1" },

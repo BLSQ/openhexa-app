@@ -3,7 +3,7 @@ import { MockedProvider } from "@apollo/client/testing";
 import OrganizationPage from "pages/organizations/[organizationId]";
 import { OrganizationWorkspacesDocument } from "organizations/graphql/queries.generated";
 import mockRouter from "next-router-mock";
-import { TestApp } from "../../core/helpers/testutils";
+import { TestApp } from "core/helpers/testutils";
 
 jest.mock("next/router", () => require("next-router-mock"));
 jest.mock("next-i18next", () => ({
