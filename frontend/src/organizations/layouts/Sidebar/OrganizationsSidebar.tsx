@@ -2,7 +2,6 @@ import React from "react";
 import clsx from "clsx";
 import { BuildingOffice2Icon } from "@heroicons/react/24/outline";
 import { OrganizationsQuery } from "organizations/graphql/queries.generated";
-import Badge from "core/components/Badge";
 import SidebarToggleButton from "./SidebarToggleButton";
 import Logo from "./Logo";
 import NavItem from "./NavItem";
@@ -23,7 +22,7 @@ const OrganizationsSidebar = ({
   return (
     <div
       className={clsx(
-        "fixed h-full bg-gray-800 transition-all duration-200",
+        "fixed h-full bg-gray-800 transition-all duration-75",
         isSidebarOpen ? "w-64 2xl:w-72" : "w-16",
       )}
     >

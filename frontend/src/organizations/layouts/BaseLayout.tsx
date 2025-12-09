@@ -40,6 +40,18 @@ const BaseLayout = ({
 
   return (
     <div className="flex h-screen">
+      <div
+        className={clsx(
+          "fixed h-screen bg-gray-800 transition-all duration-75 z-20",
+          isSidebarOpen ? "w-64 2xl:w-72" : "w-16",
+        )}
+      >
+        <Sidebar
+          {...sidebarProps}
+          isSidebarOpen={isSidebarOpen}
+          setSidebarOpen={onChangeSidebar}
+        />
+      </div>
       {organizationId && (
         <header
           className={clsx(
@@ -56,17 +68,12 @@ const BaseLayout = ({
       )}
       <main
         className={clsx(
-          "w-full mb-12 transition-all duration-200 pt-16",
+          "w-full mb-12 transition-all duration-75 pt-16",
           isSidebarOpen ? "pl-64 2xl:pl-72" : "pl-16",
         )}
       >
         {children}
       </main>
-      <Sidebar
-        {...sidebarProps}
-        isSidebarOpen={isSidebarOpen}
-        setSidebarOpen={onChangeSidebar}
-      />
       <div className="fixed bottom-6 right-6">
         <Help
           links={[
