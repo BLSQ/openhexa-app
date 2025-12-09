@@ -3,6 +3,7 @@ import { MockedProvider } from "@apollo/client/testing";
 import OrganizationPage from "pages/organizations/[organizationId]";
 import { OrganizationWorkspacesDocument } from "organizations/graphql/queries.generated";
 import mockRouter from "next-router-mock";
+import { TestApp } from "../../core/helpers/testutils";
 
 jest.mock("next/router", () => require("next-router-mock"));
 jest.mock("next-i18next", () => ({
@@ -153,9 +154,11 @@ describe("OrganizationPage", () => {
 
   it("renders organization name and workspaces", async () => {
     render(
-      <MockedProvider mocks={mocks}>
-        <OrganizationPage organization={organization} />
-      </MockedProvider>,
+      <TestApp>
+        <MockedProvider mocks={mocks}>
+          <OrganizationPage organization={organization} />
+        </MockedProvider>
+      </TestApp>,
     );
 
     expect(screen.getByText("Test Organization")).toBeInTheDocument();
@@ -168,9 +171,11 @@ describe("OrganizationPage", () => {
 
   it("renders nothing if organization is null", () => {
     render(
-      <MockedProvider mocks={emptyMocks}>
-        <OrganizationPage organization={null} />
-      </MockedProvider>,
+      <TestApp>
+        <MockedProvider mocks={emptyMocks}>
+          <OrganizationPage organization={null} />
+        </MockedProvider>
+      </TestApp>,
     );
 
     expect(screen.queryByText("Test Organization")).not.toBeInTheDocument();
@@ -178,9 +183,11 @@ describe("OrganizationPage", () => {
 
   it("opens create workspace dialog when 'Create Workspace' button is clicked", () => {
     render(
-      <MockedProvider mocks={mocks}>
-        <OrganizationPage organization={organization} />
-      </MockedProvider>,
+      <TestApp>
+        <MockedProvider mocks={mocks}>
+          <OrganizationPage organization={organization} />
+        </MockedProvider>
+      </TestApp>,
     );
 
     const createButton = screen.getByText("Create Workspace");
@@ -191,9 +198,11 @@ describe("OrganizationPage", () => {
 
   it("opens archive workspace dialog when 'Archive' button is clicked", async () => {
     render(
-      <MockedProvider mocks={mocks}>
-        <OrganizationPage organization={organization} />
-      </MockedProvider>,
+      <TestApp>
+        <MockedProvider mocks={mocks}>
+          <OrganizationPage organization={organization} />
+        </MockedProvider>
+      </TestApp>,
     );
 
     await waitFor(() => {
@@ -210,9 +219,11 @@ describe("OrganizationPage", () => {
 
   it("navigates to the settings page when 'Settings' button is clicked", async () => {
     render(
-      <MockedProvider mocks={mocks}>
-        <OrganizationPage organization={organization} />
-      </MockedProvider>,
+      <TestApp>
+        <MockedProvider mocks={mocks}>
+          <OrganizationPage organization={organization} />
+        </MockedProvider>
+      </TestApp>,
     );
 
     await waitFor(() => {
