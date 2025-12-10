@@ -25,11 +25,6 @@ def _decode_bundle_if_present(input: dict):
             pass
 
 
-def _normalize_type_if_present(input: dict):
-    if input.get("type"):
-        input["type"] = input["type"].lower()
-
-
 class WebappsWorkspaceMutationType(BaseWorkspaceMutationType):
     def pre_create(self, request: HttpRequest, input: dict):
         input["created_by"] = request.user

@@ -17,12 +17,11 @@ logger = getLogger(__name__)
 
 def _check_webapp_permission(request: HttpRequest, webapp: Webapp) -> bool:
     """Check if user has permission to view the webapp."""
-    if request.user.is_authenticated:
-        # Check if user is a member of the workspace
-        return (
-            Webapp.objects.filter_for_user(request.user).filter(id=webapp.id).exists()
-        )
-    return False
+    if not request.user.is_authenticated:
+        return False
+
+    # Check if user is a member of the workspace
+    return webapp.workspace.members.filter(id=request.user.id).exists()
 
 
 @xframe_options_sameorigin
@@ -45,7 +44,7 @@ def serve_webapp_html(
     # Note: HTML content is served in a sandboxed iframe for security
     # The iframe sandbox provides isolation and prevents malicious scripts
     # from accessing the parent page or making same-origin requests
-    return HttpResponse(webapp.content, content_type="text/html")
+    return HttpResponse(webapp.content, content_type="text/html; charset=utf-8")
 
 
 @xframe_options_sameorigin

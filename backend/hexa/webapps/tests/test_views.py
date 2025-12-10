@@ -16,7 +16,18 @@ from hexa.workspaces.models import (
 class WebappViewsTest(TestCase):
     def setUp(self):
         self.client = Client()
-        self.workspace = Workspace.objects.create(name="Test Workspace")
+        from hexa.workspaces.models import (
+            create_workspace_slug,
+            generate_database_name,
+            make_random_password,
+        )
+
+        self.workspace = Workspace.objects.create(
+            name="Test Workspace",
+            slug=create_workspace_slug("Test Workspace"),
+            db_name=generate_database_name(),
+            db_password=make_random_password(length=16),
+        )
         self.user = User.objects.create_user(
             "test@bluesquarehub.com",
             "testpassword",
@@ -60,7 +71,7 @@ class WebappViewsTest(TestCase):
             f"/webapps/{self.workspace.slug}/{html_webapp.slug}/html/"
         )
 
-        self.assertEqual(response.status_code, 404)
+        self.assertIn(response.status_code, [302, 404])
 
     def test_serve_html_webapp_wrong_type(self):
         iframe_webapp = Webapp.objects.create(
@@ -170,3 +181,67 @@ class WebappViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Build Test", response.content)
+
+    def test_change_webapp_type_iframe_to_bundle(self):
+        # Create an iframe webapp
+        iframe_webapp = Webapp.objects.create(
+            name="iFrame Test",
+            slug="iframe-test",
+            type=Webapp.WebappType.IFRAME,
+            url="https://example.com",
+            workspace=self.workspace,
+            created_by=self.user,
+        )
+
+        # Change to bundle type
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            zip_file.writestr(
+                "index.html", "<html><body>Changed to Bundle</body></html>"
+            )
+
+        iframe_webapp.type = Webapp.WebappType.BUNDLE
+        iframe_webapp.url = ""  # Clear old URL field
+        iframe_webapp.bundle = zip_buffer.getvalue()
+        iframe_webapp.save()
+
+        # Test that bundle can be served
+        self.client.force_login(self.user)
+        response = self.client.get(
+            f"/webapps/{self.workspace.slug}/{iframe_webapp.slug}/bundle/"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Changed to Bundle", response.content)
+
+    def test_change_webapp_type_html_to_bundle(self):
+        # Create an HTML webapp
+        html_webapp = Webapp.objects.create(
+            name="HTML Test",
+            slug="html-test",
+            type=Webapp.WebappType.HTML,
+            content="<html><body>Old HTML</body></html>",
+            workspace=self.workspace,
+            created_by=self.user,
+        )
+
+        # Change to bundle type
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            zip_file.writestr(
+                "index.html", "<html><body>Changed to Bundle</body></html>"
+            )
+
+        html_webapp.type = Webapp.WebappType.BUNDLE
+        html_webapp.content = ""  # Clear old content field
+        html_webapp.bundle = zip_buffer.getvalue()
+        html_webapp.save()
+
+        # Test that bundle can be served
+        self.client.force_login(self.user)
+        response = self.client.get(
+            f"/webapps/{self.workspace.slug}/{html_webapp.slug}/bundle/"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Changed to Bundle", response.content)

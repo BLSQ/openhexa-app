@@ -68,19 +68,41 @@ const HtmlContentEditor = ({ id, accessor, label, required, visible }: any) => {
   }
 
   return (
-    <DataCard.Property property={property}>
-      <div className="text-sm text-gray-500 italic">
-        {property.displayValue ? "HTML content provided" : "No content"}
-      </div>
-    </DataCard.Property>
+    <>
+      <DataCard.Property property={property}>
+        <div className="text-sm text-gray-500 italic">
+          {property.displayValue ? "HTML content provided" : "No content"}
+        </div>
+      </DataCard.Property>
+      {property.displayValue && (
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t("Preview")}
+          </label>
+          <iframe
+            srcDoc={property.displayValue}
+            className="w-full border border-gray-300 rounded"
+            style={{ height: "400px" }}
+            sandbox="allow-scripts"
+            title="HTML Preview"
+          />
+        </div>
+      )}
+    </>
   );
 };
 
-const BundleFileInput = ({ id, accessor, label, required, helpText, visible }: any) => {
+const BundleFileInput = ({ id, accessor, label, required, helpText, visible, webapp, workspace }: any) => {
   const { property, section } = useDataCardProperty({ id, accessor, label, required, visible });
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<string>("");
+
+  useEffect(() => {
+    if (!section.isEdited) {
+      setFileName("");
+    }
+  }, [section.isEdited]);
 
   if (!property.visible) {
     return null;
@@ -129,9 +151,27 @@ const BundleFileInput = ({ id, accessor, label, required, helpText, visible }: a
         </DataCard.Property>
         {fileName && !isLoading && (
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-sm text-gray-700">
-              {t("Bundle uploaded successfully. The webapp will be available after creation.")}
+            <p className="text-sm text-gray-700 mb-2">
+              <span className="font-medium">✓ {t("Bundle uploaded successfully!")}</span>
             </p>
+            <p className="text-sm text-gray-600">
+              {webapp
+                ? t("The bundle will be updated after saving. Preview will refresh after the update.")
+                : t("Preview will be available after creation. The bundle contains your app's HTML, CSS, JavaScript, and other assets.")}
+            </p>
+          </div>
+        )}
+        {!fileName && webapp && webapp.type === WebappType.Bundle && (
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t("Current Bundle Preview")}
+            </label>
+            <WebappIframe
+              type={WebappType.Bundle}
+              workspaceSlug={workspace?.slug}
+              webappSlug={webapp?.slug}
+              style={{ height: "400px" }}
+            />
           </div>
         )}
       </>
@@ -139,20 +179,36 @@ const BundleFileInput = ({ id, accessor, label, required, helpText, visible }: a
   }
 
   return (
-    <DataCard.Property property={property}>
-      <div className="text-sm text-gray-500 italic">
-        {property.displayValue ? t("Bundle uploaded") : t("No bundle")}
-      </div>
-    </DataCard.Property>
+    <>
+      <DataCard.Property property={property}>
+        <div className="text-sm text-gray-500 italic">
+          {webapp && webapp.type === WebappType.Bundle ? t("Bundle uploaded") : t("No bundle")}
+        </div>
+      </DataCard.Property>
+      {webapp && webapp.type === WebappType.Bundle && (
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t("Preview")}
+          </label>
+          <WebappIframe
+            type={WebappType.Bundle}
+            workspaceSlug={workspace?.slug}
+            webappSlug={webapp?.slug}
+            style={{ height: "400px" }}
+          />
+        </div>
+      )}
+    </>
   );
 };
 
 const TypeAwareFields = ({
   webapp,
+  workspace,
   currentType,
-  onTypeChange
 }: {
   webapp?: WebappForm_WebappFragment;
+  workspace: WebappForm_WorkspaceFragment;
   currentType: WebappType;
   onTypeChange: (type: WebappType) => void;
 }) => {
@@ -162,8 +218,6 @@ const TypeAwareFields = ({
 
   const showUrlField =
     currentType === WebappType.Iframe || currentType === WebappType.Superset;
-  const showContentField = currentType === WebappType.Html;
-  const showBundleField = currentType === WebappType.Bundle;
 
   return (
     <>
@@ -173,7 +227,7 @@ const TypeAwareFields = ({
         label={t("URL")}
         required
         defaultValue=""
-        visible={(displayValue, isEdited, formData) => {
+        visible={(_displayValue: any, _isEdited: any, formData: any) => {
           const type = formData.type || currentType;
           return type === WebappType.Iframe || type === WebappType.Superset;
         }}
@@ -187,7 +241,7 @@ const TypeAwareFields = ({
         label={t("Content")}
         required
         defaultValue=""
-        visible={(displayValue, isEdited, formData) => {
+        visible={(_displayValue: any, _isEdited: any, formData: any) => {
           const type = formData.type || currentType;
           return type === WebappType.Html;
         }}
@@ -201,10 +255,12 @@ const TypeAwareFields = ({
         helpText={t(
           "Upload a zip file containing your built React app (index.html + assets)",
         )}
-        visible={(displayValue, isEdited, formData) => {
+        visible={(_displayValue: any, _isEdited: any, formData: any) => {
           const type = formData.type || currentType;
           return type === WebappType.Bundle;
         }}
+        webapp={webapp}
+        workspace={workspace}
       />
       {debouncedUrl && showUrlField && (
         <div className="mt-4">
@@ -240,7 +296,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const router = useRouter();
   const [createWebapp] = useCreateWebappMutation();
   const [updateWebapp] = useUpdateWebappMutation();
-  const [loading, setLoading] = useState(false);
   const [currentType, setCurrentType] = useState<WebappType>(
     webapp?.type || WebappType.Iframe,
   );
@@ -248,7 +303,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const clearCache = useCacheKey("webapps");
 
   const updateExistingWebapp = async (values: any) => {
-    setLoading(true);
     try {
       await updateWebapp({
         variables: { input: { id: webapp?.id, ...values } },
@@ -258,13 +312,10 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       });
     } catch (error) {
       toast.error(t("An error occurred while updating the webapp"));
-    } finally {
-      setLoading(false);
     }
   };
 
   const createNewWebapp = async (values: any) => {
-    setLoading(true);
     try {
       await createWebapp({
         variables: { input: { workspaceSlug: workspace.slug, ...values } },
@@ -277,8 +328,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       });
     } catch (error) {
       toast.error(t("An error occurred while creating the webapp"));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -330,6 +379,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         />
         <TypeAwareFields
           webapp={webapp}
+          workspace={workspace}
           currentType={currentType}
           onTypeChange={setCurrentType}
         />
