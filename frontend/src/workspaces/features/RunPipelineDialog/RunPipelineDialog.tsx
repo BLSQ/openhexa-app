@@ -67,6 +67,12 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     }
   };
 
+  useEffect(() => {
+    if (open) {
+      setActiveVersion(run?.version ?? pipeline.currentVersion ?? null);
+    }
+  }, [open]);
+
   const form = useForm<{ [key: string]: any }>({
     async onSubmit(values) {
       const { sendMailNotifications, enableDebugLogs, ...params } = values;
