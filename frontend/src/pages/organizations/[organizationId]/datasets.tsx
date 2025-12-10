@@ -32,8 +32,7 @@ const OrganizationDatasetsPage: NextPageWithLayout<Props> = ({
           <div>
             <h1 className="text-2xl font-bold">{t("Datasets")}</h1>
             <p className="text-sm text-gray-500">
-              {totalDatasets}{" "}
-              {totalDatasets > 1 ? t("datasets") : t("dataset")}
+              {totalDatasets} {totalDatasets > 1 ? t("Datasets") : t("Dataset")}
             </p>
           </div>
         }
