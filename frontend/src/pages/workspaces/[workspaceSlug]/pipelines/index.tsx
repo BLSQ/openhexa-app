@@ -128,6 +128,9 @@ WorkspacePipelinesPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    await Pipelines.prefetch(ctx);
+    await PipelineTemplates.prefetch(ctx);
+
     const workspaceSlug = ctx.params?.workspaceSlug as string;
     const page = (ctx.query.page as string)
       ? parseInt(ctx.query.page as string, 10)
