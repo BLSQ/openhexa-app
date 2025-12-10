@@ -22,19 +22,24 @@ const OrganizationDatasetsPage: NextPageWithLayout<Props> = ({
     return null;
   }
 
+  const totalDatasets = organization.datasetLinks?.totalItems ?? 0;
+
   return (
     <Page title={t("Datasets")}>
-      <OrganizationLayout organization={organization}>
-        <div className="p-6">
-          <div className="m-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold">{t("Datasets")}</h1>
-              <p className="text-lg mt-2 text-gray-500">
-                {t("All datasets available in this organization")}
-              </p>
-            </div>
+      <OrganizationLayout
+        organization={organization}
+        header={
+          <div>
+            <h1 className="text-2xl font-bold">{t("Datasets")}</h1>
+            <p className="text-sm text-gray-500">
+              {totalDatasets}{" "}
+              {totalDatasets > 1 ? t("datasets") : t("dataset")}
+            </p>
           </div>
-          <div className="m-8">
+        }
+      >
+        <div className="p-2">
+          <div className="m-2">
             <OrganizationDatasets organization={organization} />
           </div>
         </div>
