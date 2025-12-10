@@ -94,28 +94,30 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
 
   return (
     <Page title={t("Organization")}>
-      <OrganizationLayout organization={organization}>
-        <div className="p-6">
-          <div className="m-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold">{organization.name}</h1>
-              <p className="text-lg mt-2 text-gray-500">
-                {totalWorkspaces}{" "}
-                {totalWorkspaces > 1 ? t("workspaces") : t("workspace")}
-              </p>
-            </div>
-            <Button
-              variant="primary"
-              className="static"
-              onClick={() => setIsCreateDialogOpen(true)}
-              leadingIcon={<PlusIcon className="w-4" />}
-              disabled={!organization.permissions.createWorkspace}
-            >
-              {t("Create Workspace")}
-            </Button>
+      <OrganizationLayout
+        organization={organization}
+        header={
+          <div>
+            <h1 className="text-2xl font-bold">{organization.name}</h1>
+            <p className="text-sm text-gray-500">
+              {totalWorkspaces}{" "}
+              {totalWorkspaces > 1 ? t("workspaces") : t("workspace")}
+            </p>
           </div>
-
-          <div className="m-8">
+        }
+        headerActions={
+          <Button
+            variant="primary"
+            onClick={() => setIsCreateDialogOpen(true)}
+            leadingIcon={<PlusIcon className="w-4" />}
+            disabled={!organization.permissions.createWorkspace}
+          >
+            {t("Create Workspace")}
+          </Button>
+        }
+      >
+        <div className="p-2">
+          <div className="m-2">
             <WorkspacesHeader
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
@@ -184,7 +186,7 @@ export const getServerSideProps = createGetServerSideProps({
   async getServerSideProps(ctx, client) {
     // Load the cookie value from the request to render it correctly on the server
     cookieWorkspacesView = (await hasCookie("workspaces-view", ctx))
-      ? (await getCookie("workspaces-view", ctx)) as "grid" | "card"
+      ? ((await getCookie("workspaces-view", ctx)) as "grid" | "card")
       : "card";
 
     await OrganizationLayout.prefetch(ctx);
