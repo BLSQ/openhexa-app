@@ -19,20 +19,6 @@ export type RunPipelineDialog_PipelineFragment = { __typename?: 'Pipeline', id: 
 
 export type RunPipelineDialog_RunFragment = { __typename?: 'PipelineRun', id: string, config: any, version?: { __typename?: 'PipelineVersion', id: string, versionName: string, createdAt: any, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null }>, user?: { __typename?: 'User', displayName: string } | null } | null };
 
-export const RunPipelineDialog_VersionFragmentDoc = gql`
-    fragment RunPipelineDialog_version on PipelineVersion {
-  id
-  versionName
-  createdAt
-  config
-  user {
-    displayName
-  }
-  parameters {
-    ...ParameterField_parameter
-  }
-}
-    ${ParameterField_ParameterFragmentDoc}`;
 export const RunPipelineDialog_PipelineFragmentDoc = gql`
     fragment RunPipelineDialog_pipeline on Pipeline {
   id
@@ -71,20 +57,11 @@ export const PipelineCurrentVersionDocument = gql`
     query PipelineCurrentVersion($workspaceSlug: String!, $pipelineCode: String!) {
   pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
     currentVersion {
-      id
-      versionName
-      createdAt
-      user {
-        displayName
-      }
-      config
-      parameters {
-        ...ParameterField_parameter
-      }
+      ...RunPipelineDialog_version
     }
   }
 }
-    ${ParameterField_ParameterFragmentDoc}`;
+    ${RunPipelineDialog_VersionFragmentDoc}`;
 
 /**
  * __usePipelineCurrentVersionQuery__
