@@ -51,7 +51,7 @@ def resolve_description(webapp: Webapp, info, **kwargs):
 
 @webapp_object.field("type")
 def resolve_type(webapp: Webapp, info, **kwargs):
-    return webapp.type
+    return webapp.type.upper()
 
 
 @webapp_permissions.field("update")
