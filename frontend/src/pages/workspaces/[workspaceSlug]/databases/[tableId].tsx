@@ -92,11 +92,6 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = ({
           <Breadcrumbs withHome={false}>
             <Breadcrumbs.Part
               isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
               href={`/workspaces/${encodeURIComponent(
                 workspace.slug,
               )}/databases`}

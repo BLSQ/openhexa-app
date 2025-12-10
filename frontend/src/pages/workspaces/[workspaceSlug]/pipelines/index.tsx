@@ -61,11 +61,6 @@ const WorkspacePipelinesPage: NextPageWithLayout = ({
           <Breadcrumbs withHome={false} className="flex-1">
             <Breadcrumbs.Part
               isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
               isLast
               href={`/workspaces/${encodeURIComponent(
                 workspace.slug,
@@ -139,7 +134,8 @@ export const getServerSideProps = createGetServerSideProps({
       : 1;
     const perPage = 15;
     const search = (ctx.query.search as string) ?? "";
-    const functionalType = (ctx.query.functionalType as PipelineFunctionalType) || null;
+    const functionalType =
+      (ctx.query.functionalType as PipelineFunctionalType) || null;
 
     await WorkspaceLayout.prefetch(ctx, client);
 

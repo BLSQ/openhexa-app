@@ -104,11 +104,6 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           <Breadcrumbs withHome={false} className="flex-1">
             <Breadcrumbs.Part
               isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
               isLast
               href={`/workspaces/${encodeURIComponent(
                 workspace.slug,
