@@ -316,6 +316,21 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
 };
 
 RunPipelineDialog.fragments = {
+  version: gql`
+    fragment RunPipelineDialog_version on PipelineVersion {
+      id
+      versionName
+      createdAt
+      config
+      user {
+        displayName
+      }
+      parameters {
+        ...ParameterField_parameter
+      }
+    }
+    ${ParameterField.fragments.parameter}
+  `,
   pipeline: gql`
     fragment RunPipelineDialog_pipeline on Pipeline {
       id
