@@ -1,4 +1,4 @@
-import { gql, useLazyQuery } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import { ChevronDownIcon, PlayIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Button from "core/components/Button";
@@ -82,7 +82,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     }
   };
 
-  const [fetch] = useLazyQuery<PipelineCurrentVersionQuery>(
+  const { data } = useQuery<PipelineCurrentVersionQuery>(
     gql`
       query PipelineCurrentVersion(
         $workspaceSlug: String!
@@ -90,22 +90,20 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       ) {
         pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
           currentVersion {
-            id
-            versionName
-            createdAt
-            user {
-              displayName
-            }
-            config
-            parameters {
-              ...ParameterField_parameter
-            }
+            ...RunPipelineDialog_version
           }
         }
       }
-      ${ParameterField.fragments.parameter}
+      ${VERSION_FRAGMENT}
     `,
-    { fetchPolicy: "no-cache" },
+    {
+      variables: {
+        workspaceSlug: pipeline.workspace?.slug!,
+        pipelineCode: pipeline.code,
+      },
+      skip: !!run?.version,
+      fetchPolicy: "cache-first",
+    },
   );
 
   const form = useForm<{ [key: string]: any }>({
@@ -185,23 +183,12 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   });
 
   useEffect(() => {
-    if (!open) {
-      setActiveVersion(null);
-    } else if (run?.version) {
+    if (run?.version) {
       setActiveVersion(run.version);
-    } else {
-      fetch({
-        variables: {
-          workspaceSlug: pipeline.workspace?.slug,
-          pipelineCode: pipeline.code,
-        },
-      }).then(({ data }) => {
-        if (data?.pipelineByCode?.currentVersion) {
-          setActiveVersion(data.pipelineByCode.currentVersion);
-        }
-      });
+    } else if (data?.pipelineByCode?.currentVersion) {
+      setActiveVersion(data.pipelineByCode.currentVersion);
     }
-  }, [open, form, fetch, run, pipeline.code, pipeline.workspace]);
+  }, [run, data]);
 
   useEffect(() => {
     form.resetForm();
