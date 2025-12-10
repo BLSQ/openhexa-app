@@ -16,6 +16,7 @@ type TabLayoutProps = {
   children: React.ReactNode;
   helpLinks?: { label: string; href: string }[];
   header?: ReactNode | ReactNode[];
+  headerActions?: ReactNode | ReactNode[];
   tabs: { label: string; href: string; id: string }[];
   title?: string | ReactElement;
 };
@@ -28,6 +29,7 @@ const TabLayout = ({
   helpLinks,
   tabs,
   header,
+  headerActions,
   title,
 }: TabLayoutProps) => {
   return (
@@ -35,6 +37,7 @@ const TabLayout = ({
       workspace={workspace}
       helpLinks={helpLinks}
       header={header}
+      headerActions={headerActions}
     >
       <WorkspaceLayout.PageContent>
         {typeof title === "string" ? (

@@ -1,9 +1,5 @@
 import { gql } from "@apollo/client";
-import {
-  PlayIcon,
-  QuestionMarkCircleIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
+import { PlayIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import { useMemo, useState } from "react";
@@ -112,91 +108,102 @@ const PipelineLayout = (props: PipelineLayoutProps) => {
       )}
       title={pipeline.name ?? t("Pipeline")}
       header={
-        <>
-          <Breadcrumbs withHome={false} className="flex-1">
+        <Breadcrumbs withHome={false} className="flex-1">
+          <Breadcrumbs.Part
+            isFirst
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+          >
+            {workspace.name}
+          </Breadcrumbs.Part>
+          <Breadcrumbs.Part
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}/pipelines`}
+          >
+            {t("Pipelines")}
+          </Breadcrumbs.Part>
+          <Breadcrumbs.Part
+            isLast={!extraBreadcrumbs.length}
+            href={`/workspaces/${encodeURIComponent(
+              workspace.slug,
+            )}/pipelines/${encodeURIComponent(pipeline.code)}`}
+          >
+            {pipeline.name}
+          </Breadcrumbs.Part>
+          {extraBreadcrumbs.map(({ href, title }, index) => (
             <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+              key={index}
+              isLast={extraBreadcrumbs.length - 1 == index}
+              href={href}
             >
-              {workspace.name}
+              {title}
             </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}/pipelines`}
-            >
-              {t("Pipelines")}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              isLast={!extraBreadcrumbs.length}
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/pipelines/${encodeURIComponent(pipeline.code)}`}
-            >
-              {pipeline.name}
-            </Breadcrumbs.Part>
-            {extraBreadcrumbs.map(({ href, title }, index) => (
-              <Breadcrumbs.Part
-                key={index}
-                isLast={extraBreadcrumbs.length - 1 == index}
-                href={href}
-              >
-                {title}
-              </Breadcrumbs.Part>
-            ))}
-          </Breadcrumbs>
-          <div className="flex items-center gap-2">
-            <>
-              {!pipeline.permissions.createTemplateVersion.isAllowed && (
-                <Tooltip
-                  label={createTemplateVersionReasonMessages.map((m, index) => (
-                    <p key={index}>{m}</p>
-                  ))}
-                >
-                  <QuestionMarkCircleIcon className="h-5 w-5" />
-                </Tooltip>
-              )}
-              <Button
-                onClick={() => setPublishPipelineDialogOpen(true)}
-                variant={"secondary"}
-                disabled={!pipeline.permissions.createTemplateVersion.isAllowed}
-              >
-                {pipeline.template
-                  ? t("Publish a new Template Version")
-                  : t("Publish as Template")}
-              </Button>
-            </>
-            {pipeline.currentVersion && (
-              <DownloadPipelineVersion version={pipeline.currentVersion}>
-                {({ onClick, isDownloading }) => (
-                  <Button onClick={onClick} variant="secondary">
-                    {isDownloading && <Spinner size="sm" />}
-                    {t("Download code")}
-                  </Button>
-                )}
-              </DownloadPipelineVersion>
-            )}
-            {pipeline.permissions.run && (
-              <RunPipelineDialog pipeline={pipeline}>
-                {(onClick) => (
+          ))}
+        </Breadcrumbs>
+      }
+      headerActions={
+        <div className="flex items-center gap-2">
+          <>
+            <Tooltip
+              label={
+                !pipeline.permissions.createTemplateVersion.isAllowed
+                  ? createTemplateVersionReasonMessages.map((m, index) => (
+                      <p key={index}>{m}</p>
+                    ))
+                  : undefined
+              }
+              renderTrigger={(ref) => (
+                <span ref={ref}>
                   <Button
-                    leadingIcon={<PlayIcon className="w-4" />}
-                    onClick={onClick}
+                    onClick={() => setPublishPipelineDialogOpen(true)}
+                    variant={"secondary"}
+                    disabled={
+                      !pipeline.permissions.createTemplateVersion.isAllowed
+                    }
+                    className="whitespace-nowrap"
                   >
-                    {t("Run")}
+                    {pipeline.template
+                      ? t("Publish a new Template Version")
+                      : t("Publish as Template")}
                   </Button>
-                )}
-              </RunPipelineDialog>
-            )}
-            {pipeline.permissions.delete && (
-              <Button
-                onClick={() => setDeletePipelineDialogOpen(true)}
-                className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
-                leadingIcon={<TrashIcon className="w-4" />}
-              >
-                {t("Delete")}
-              </Button>
-            )}
-          </div>
-        </>
+                </span>
+              )}
+            />
+          </>
+          {pipeline.currentVersion && (
+            <DownloadPipelineVersion version={pipeline.currentVersion}>
+              {({ onClick, isDownloading }) => (
+                <Button
+                  onClick={onClick}
+                  variant="secondary"
+                  className="whitespace-nowrap"
+                >
+                  {isDownloading && <Spinner size="sm" />}
+                  {t("Download code")}
+                </Button>
+              )}
+            </DownloadPipelineVersion>
+          )}
+          {pipeline.permissions.run && (
+            <RunPipelineDialog pipeline={pipeline}>
+              {(onClick) => (
+                <Button
+                  leadingIcon={<PlayIcon className="w-4" />}
+                  onClick={onClick}
+                >
+                  {t("Run")}
+                </Button>
+              )}
+            </RunPipelineDialog>
+          )}
+          {pipeline.permissions.delete && (
+            <Button
+              onClick={() => setDeletePipelineDialogOpen(true)}
+              className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
+              leadingIcon={<TrashIcon className="w-4" />}
+            >
+              {t("Delete")}
+            </Button>
+          )}
+        </div>
       }
     >
       {children}

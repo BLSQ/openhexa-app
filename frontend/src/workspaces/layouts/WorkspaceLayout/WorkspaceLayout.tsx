@@ -104,7 +104,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
         >
           <div className="flex items-center h-full px-4">
             <div className="flex-1 min-w-0">{header}</div>
-            <div className="flex-shrink-0 w-full max-w-md mx-auto">
+            <div className="flex-shrink-0 w-100 max-w-md mx-auto p-2">
               <SpotlightSearch />
             </div>
             <div className="flex-1 flex justify-end items-center gap-2">
