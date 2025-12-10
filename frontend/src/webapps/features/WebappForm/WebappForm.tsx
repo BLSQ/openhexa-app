@@ -47,6 +47,7 @@ const HtmlContentEditor = ({ id, accessor, label, required, visible }: any) => {
             value={property.formValue || ""}
             onChange={(value) => property.setValue(value)}
             height="400px"
+            lang="html"
           />
         </DataCard.Property>
         {debouncedContent && (
