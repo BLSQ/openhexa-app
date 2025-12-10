@@ -1,4 +1,4 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { ChevronDownIcon, PlayIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Button from "core/components/Button";
@@ -20,7 +20,6 @@ import {
 import PipelineVersionPicker from "../PipelineVersionPicker";
 import ParameterField from "./ParameterField";
 import {
-  PipelineCurrentVersionQuery,
   RunPipelineDialog_PipelineFragment,
   RunPipelineDialog_RunFragment,
   RunPipelineDialog_VersionFragment,
@@ -39,22 +38,6 @@ type RunPipelineDialogProps = {
   run?: RunPipelineDialog_RunFragment;
 };
 
-const VERSION_FRAGMENT = gql`
-  fragment RunPipelineDialog_version on PipelineVersion {
-    id
-    versionName
-    createdAt
-    config
-    user {
-      displayName
-    }
-    parameters {
-      ...ParameterField_parameter
-    }
-  }
-  ${ParameterField.fragments.parameter}
-`;
-
 const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   const router = useRouter();
   const { pipeline, run, children } = props;
@@ -64,7 +47,9 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   const onClose = () => setOpen(false);
 
   const [activeVersion, setActiveVersion] =
-    useState<RunPipelineDialog_VersionFragment | null>(run?.version ?? null);
+    useState<RunPipelineDialog_VersionFragment | null>(
+      run?.version ?? pipeline.currentVersion ?? null,
+    );
   const onClick = () => {
     if (pipeline.type === PipelineType.ZipFile) {
       setOpen(true);
@@ -81,30 +66,6 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       });
     }
   };
-
-  const { data } = useQuery<PipelineCurrentVersionQuery>(
-    gql`
-      query PipelineCurrentVersion(
-        $workspaceSlug: String!
-        $pipelineCode: String!
-      ) {
-        pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
-          currentVersion {
-            ...RunPipelineDialog_version
-          }
-        }
-      }
-      ${VERSION_FRAGMENT}
-    `,
-    {
-      variables: {
-        workspaceSlug: pipeline.workspace?.slug!,
-        pipelineCode: pipeline.code,
-      },
-      skip: !!run?.version,
-      fetchPolicy: "cache-first",
-    },
-  );
 
   const form = useForm<{ [key: string]: any }>({
     async onSubmit(values) {
@@ -181,14 +142,6 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       return errors;
     },
   });
-
-  useEffect(() => {
-    if (run?.version) {
-      setActiveVersion(run.version);
-    } else if (data?.pipelineByCode?.currentVersion) {
-      setActiveVersion(data.pipelineByCode.currentVersion);
-    }
-  }, [run, data]);
 
   useEffect(() => {
     form.resetForm();
@@ -376,6 +329,15 @@ RunPipelineDialog.fragments = {
       type
       currentVersion {
         id
+        versionName
+        createdAt
+        config
+        user {
+          displayName
+        }
+        parameters {
+          ...ParameterField_parameter
+        }
       }
       ...PipelineVersionPicker_pipeline
     }
