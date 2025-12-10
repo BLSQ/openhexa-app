@@ -330,7 +330,7 @@ const SpotlightSearch = ({ organizationId }: { organizationId?: string }) => {
       className="fixed inset-0 z-50 bg-gray-900/70 flex justify-center backdrop-blur-xs"
       tabIndex={0}
     >
-      <div className="flex w-2/3 mt-30">
+      <div className="flex w-2/3 m-5">
         <div className="relative">
           <div ref={searchBarRef}>
             <Input
