@@ -168,13 +168,18 @@ function useForm<T = FormData, TData = void>(
         event.stopPropagation();
       }
 
-      if (isSubmitting) return;
+      if (isSubmitting) {
+        return;
+      }
 
       setSubmitError(null);
       setSubmitting(true);
       setSubmitted(true);
 
-      if (_validate() && Object.keys(timeouts.current).length === 0) {
+      const isValid = _validate();
+      const hasPendingTimeouts = Object.keys(timeouts.current).length > 0;
+
+      if (isValid && !hasPendingTimeouts) {
         try {
           const result = await onSubmit(formData as T);
           setInitialState();

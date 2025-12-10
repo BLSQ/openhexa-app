@@ -30,8 +30,10 @@ type WebappFormProps = {
   workspace: WebappForm_WorkspaceFragment;
 };
 
-const HtmlContentEditor = ({ id, accessor, label, required }: any) => {
-  const { property, section } = useDataCardProperty({ id, accessor, label, required });
+const HtmlContentEditor = ({ id, accessor, label, required, visible }: any) => {
+  const { property, section } = useDataCardProperty({ id, accessor, label, required, visible });
+  const { t } = useTranslation();
+  const debouncedContent = useDebounce(property.formValue || "", 500);
 
   if (!property.visible) {
     return null;
@@ -39,13 +41,29 @@ const HtmlContentEditor = ({ id, accessor, label, required }: any) => {
 
   if (section.isEdited && !property.readonly) {
     return (
-      <DataCard.Property property={property}>
-        <CodeEditor
-          value={property.formValue || ""}
-          onChange={(value) => property.setValue(value)}
-          height="400px"
-        />
-      </DataCard.Property>
+      <>
+        <DataCard.Property property={property}>
+          <CodeEditor
+            value={property.formValue || ""}
+            onChange={(value) => property.setValue(value)}
+            height="400px"
+          />
+        </DataCard.Property>
+        {debouncedContent && (
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t("Preview")}
+            </label>
+            <iframe
+              srcDoc={debouncedContent}
+              className="w-full border border-gray-300 rounded"
+              style={{ height: "400px" }}
+              sandbox="allow-scripts"
+              title="HTML Preview"
+            />
+          </div>
+        )}
+      </>
     );
   }
 
@@ -58,9 +76,11 @@ const HtmlContentEditor = ({ id, accessor, label, required }: any) => {
   );
 };
 
-const BundleFileInput = ({ id, accessor, label, required, helpText }: any) => {
-  const { property, section } = useDataCardProperty({ id, accessor, label, required });
+const BundleFileInput = ({ id, accessor, label, required, helpText, visible }: any) => {
+  const { property, section } = useDataCardProperty({ id, accessor, label, required, visible });
   const { t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(false);
+  const [fileName, setFileName] = useState<string>("");
 
   if (!property.visible) {
     return null;
@@ -69,11 +89,18 @@ const BundleFileInput = ({ id, accessor, label, required, helpText }: any) => {
   const handleFilesChange = async (files: readonly File[]) => {
     if (files.length > 0) {
       const file = files[0];
+      setFileName(file.name);
+      setIsLoading(true);
+
       const reader = new FileReader();
       reader.onload = () => {
         const base64 = reader.result as string;
         const base64Data = base64.split(",")[1];
         property.setValue(base64Data);
+        setIsLoading(false);
+      };
+      reader.onerror = () => {
+        setIsLoading(false);
       };
       reader.readAsDataURL(file);
     }
@@ -81,18 +108,33 @@ const BundleFileInput = ({ id, accessor, label, required, helpText }: any) => {
 
   if (section.isEdited && !property.readonly) {
     return (
-      <DataCard.Property property={property}>
-        <div className="space-y-2">
-          <Dropzone
-            accept={{ "application/zip": [".zip"] }}
-            maxFiles={1}
-            onChange={handleFilesChange}
-            label={t("Drag & drop a .zip file here, or click to select")}
-            help={helpText}
-            className="h-32"
-          />
-        </div>
-      </DataCard.Property>
+      <>
+        <DataCard.Property property={property}>
+          <div className="space-y-2">
+            <Dropzone
+              accept={{ "application/zip": [".zip"] }}
+              maxFiles={1}
+              onChange={handleFilesChange}
+              label={t("Drag & drop a .zip file here, or click to select")}
+              help={helpText}
+              className="h-32"
+            />
+            {isLoading && (
+              <p className="text-sm text-blue-600">{t("Loading file...")}</p>
+            )}
+            {fileName && !isLoading && (
+              <p className="text-sm text-green-600">✓ {fileName} {t("ready")}</p>
+            )}
+          </div>
+        </DataCard.Property>
+        {fileName && !isLoading && (
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
+            <p className="text-sm text-gray-700">
+              {t("Bundle uploaded successfully. The webapp will be available after creation.")}
+            </p>
+          </div>
+        )}
+      </>
     );
   }
 
@@ -125,36 +167,45 @@ const TypeAwareFields = ({
 
   return (
     <>
-      {showUrlField && (
-        <TextProperty
-          id="url"
-          accessor="url"
-          label={t("URL")}
-          required
-          onChange={(e) => {
-            setUrl(e.target.value);
-          }}
-        />
-      )}
-      {showContentField && (
-        <HtmlContentEditor
-          id="content"
-          accessor="content"
-          label={t("Content")}
-          required
-        />
-      )}
-      {showBundleField && (
-        <BundleFileInput
-          id="bundle"
-          accessor="bundle"
-          label={t("Bundle File")}
-          required
-          helpText={t(
-            "Upload a zip file containing your built React app (index.html + assets)",
-          )}
-        />
-      )}
+      <TextProperty
+        id="url"
+        accessor="url"
+        label={t("URL")}
+        required
+        defaultValue=""
+        visible={(displayValue, isEdited, formData) => {
+          const type = formData.type || currentType;
+          return type === WebappType.Iframe || type === WebappType.Superset;
+        }}
+        onChange={(e) => {
+          setUrl(e.target.value);
+        }}
+      />
+      <HtmlContentEditor
+        id="content"
+        accessor="content"
+        label={t("Content")}
+        required
+        defaultValue=""
+        visible={(displayValue, isEdited, formData) => {
+          const type = formData.type || currentType;
+          return type === WebappType.Html;
+        }}
+      />
+      <BundleFileInput
+        id="bundle"
+        accessor="bundle"
+        label={t("Bundle File")}
+        required
+        defaultValue=""
+        helpText={t(
+          "Upload a zip file containing your built React app (index.html + assets)",
+        )}
+        visible={(displayValue, isEdited, formData) => {
+          const type = formData.type || currentType;
+          return type === WebappType.Bundle;
+        }}
+      />
       {debouncedUrl && showUrlField && (
         <div className="mt-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -213,7 +264,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   };
 
   const createNewWebapp = async (values: any) => {
-    console.log("Creating webapp with values:", values);
     setLoading(true);
     try {
       await createWebapp({
@@ -226,7 +276,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         router.push(`/workspaces/${workspace.slug}/webapps`);
       });
     } catch (error) {
-      console.error("Webapp creation error:", error);
       toast.error(t("An error occurred while creating the webapp"));
     } finally {
       setLoading(false);
