@@ -74,6 +74,7 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
             label: t("Editing the workspace homepage"),
           },
         ]}
+        header={<></>}
         headerActions={
           <div className="flex items-center gap-2">
             {workspace.permissions.update &&
