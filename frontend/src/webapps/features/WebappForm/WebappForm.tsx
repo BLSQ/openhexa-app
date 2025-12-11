@@ -115,9 +115,10 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           defaultValue={WebappType.Iframe}
           options={[
             WebappType.Iframe,
-            WebappType.Html,
-            WebappType.Bundle,
-            WebappType.Superset,
+            // Coming soon
+            // WebappType.Html,
+            // WebappType.Bundle,
+            // WebappType.Superset,
           ]}
           getOptionLabel={getWebappTypeLabel}
         />
