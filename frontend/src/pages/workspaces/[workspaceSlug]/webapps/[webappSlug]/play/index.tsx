@@ -58,12 +58,7 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
         }
       >
         <WorkspaceLayout.PageContent>
-          <WebappIframe
-            url={webapp.url ?? undefined}
-            type={webapp.type}
-            workspaceSlug={workspace.slug}
-            webappSlug={webapp.slug}
-          />
+          <WebappIframe url={webapp.url ?? undefined} />
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
     </Page>
