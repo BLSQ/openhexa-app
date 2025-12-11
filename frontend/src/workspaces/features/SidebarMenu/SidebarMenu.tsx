@@ -27,6 +27,12 @@ interface SidebarMenuProps {
   workspace: SidebarMenu_WorkspaceFragment;
   compact?: boolean;
 }
+
+// TODO : search
+// TODO : favorite
+// TODO : remove show more time
+// TODO : compact UI
+
 const POPPER_MODIFIERS = [{ name: "offset", options: { offset: [8, 4] } }];
 
 const SidebarMenu = (props: SidebarMenuProps) => {
