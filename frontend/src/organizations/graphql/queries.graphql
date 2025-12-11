@@ -5,13 +5,6 @@ fragment Organization_organization on Organization {
   logo
   workspaces {
     totalItems
-    items {
-      slug
-      name
-      countries {
-        code
-      }
-    }
   }
   permissions {
     createWorkspace
@@ -25,9 +18,26 @@ fragment Organization_organization on Organization {
     totalItems
   }
 }
+
 query Organization($id: UUID!) {
   organization(id: $id) {
     ...Organization_organization
+  }
+}
+
+query OrganizationWithWorkspaces($id: UUID!) {
+  organization(id: $id) {
+    ...Organization_organization
+    workspaces {
+      totalItems
+      items {
+        slug
+        name
+        countries {
+          code
+        }
+      }
+    }
   }
 }
 

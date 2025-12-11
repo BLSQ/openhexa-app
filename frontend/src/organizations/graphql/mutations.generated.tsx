@@ -9,7 +9,7 @@ export type UpdateOrganizationMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateOrganizationMutation = { __typename?: 'Mutation', updateOrganization: { __typename?: 'UpdateOrganizationResult', success: boolean, errors: Array<Types.UpdateOrganizationError>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null } };
+export type UpdateOrganizationMutation = { __typename?: 'Mutation', updateOrganization: { __typename?: 'UpdateOrganizationResult', success: boolean, errors: Array<Types.UpdateOrganizationError>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null } };
 
 export type DeleteOrganizationMutationVariables = Types.Exact<{
   input: Types.DeleteOrganizationInput;

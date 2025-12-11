@@ -4,8 +4,8 @@ import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "organizations/layouts/OrganizationLayout";
 import {
   OrganizationDocument,
-  OrganizationQuery,
-  useOrganizationQuery,
+  OrganizationWithWorkspacesQuery,
+  useOrganizationWithWorkspacesQuery,
 } from "organizations/graphql/queries.generated";
 import Page from "core/components/Page";
 import Button from "core/components/Button";
@@ -18,7 +18,7 @@ import OrganizationWorkspaceInvitations from "organizations/features/Organizatio
 import Title from "core/components/Title";
 
 type Props = {
-  organization: OrganizationQuery["organization"];
+  organization: OrganizationWithWorkspacesQuery["organization"];
 };
 
 const OrganizationMembersPage: NextPageWithLayout<Props> = ({
@@ -28,7 +28,7 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
 
   const { t } = useTranslation();
 
-  const { data: clientOrganization } = useOrganizationQuery({
+  const { data: clientOrganization } = useOrganizationWithWorkspacesQuery({
     variables: { id: SRROrganization?.id },
     skip: !SRROrganization?.id,
   });
@@ -48,9 +48,7 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
             <h1 className="text-2xl font-bold">{t("Members")}</h1>
             <p className="text-sm text-gray-500">
               {organization.members.totalItems}{" "}
-              {organization.members.totalItems > 1
-                ? t("members")
-                : t("member")}
+              {organization.members.totalItems > 1 ? t("members") : t("member")}
             </p>
           </div>
         }

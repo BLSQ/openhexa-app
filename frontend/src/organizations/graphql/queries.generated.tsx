@@ -4,14 +4,21 @@ import { gql } from '@apollo/client';
 import { UserAvatar_UserFragmentDoc } from '../../identity/features/UserAvatar.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type Organization_OrganizationFragment = { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } };
+export type Organization_OrganizationFragment = { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } };
 
 export type OrganizationQueryVariables = Types.Exact<{
   id: Types.Scalars['UUID']['input'];
 }>;
 
 
-export type OrganizationQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null };
+export type OrganizationQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null };
+
+export type OrganizationWithWorkspacesQueryVariables = Types.Exact<{
+  id: Types.Scalars['UUID']['input'];
+}>;
+
+
+export type OrganizationWithWorkspacesQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null };
 
 export type OrganizationsQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
@@ -28,7 +35,7 @@ export type OrganizationDatasetsQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationDatasetsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, datasetLinks: { __typename?: 'DatasetLinkPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'DatasetLink', id: string, workspace: { __typename?: 'Workspace', slug: string, name: string }, dataset: { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } } }> }, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null };
+export type OrganizationDatasetsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, datasetLinks: { __typename?: 'DatasetLinkPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'DatasetLink', id: string, workspace: { __typename?: 'Workspace', slug: string, name: string }, dataset: { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } } }> }, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null };
 
 export type OrganizationWorkspace_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, createdAt: any, updatedAt?: any | null, countries: Array<{ __typename?: 'Country', code: string }>, createdBy: { __typename?: 'User', displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, delete: boolean } };
 
@@ -40,7 +47,7 @@ export type OrganizationWorkspacesQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationWorkspacesQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, createdAt: any, updatedAt?: any | null, countries: Array<{ __typename?: 'Country', code: string }>, createdBy: { __typename?: 'User', displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, delete: boolean } }> } };
+export type OrganizationWorkspacesQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number } } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, createdAt: any, updatedAt?: any | null, countries: Array<{ __typename?: 'Country', code: string }>, createdBy: { __typename?: 'User', displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, delete: boolean } }> } };
 
 export const Organization_OrganizationFragmentDoc = gql`
     fragment Organization_organization on Organization {
@@ -50,13 +57,6 @@ export const Organization_OrganizationFragmentDoc = gql`
   logo
   workspaces {
     totalItems
-    items {
-      slug
-      name
-      countries {
-        code
-      }
-    }
   }
   permissions {
     createWorkspace
@@ -161,6 +161,56 @@ export type OrganizationQueryHookResult = ReturnType<typeof useOrganizationQuery
 export type OrganizationLazyQueryHookResult = ReturnType<typeof useOrganizationLazyQuery>;
 export type OrganizationSuspenseQueryHookResult = ReturnType<typeof useOrganizationSuspenseQuery>;
 export type OrganizationQueryResult = Apollo.QueryResult<OrganizationQuery, OrganizationQueryVariables>;
+export const OrganizationWithWorkspacesDocument = gql`
+    query OrganizationWithWorkspaces($id: UUID!) {
+  organization(id: $id) {
+    ...Organization_organization
+    workspaces {
+      totalItems
+      items {
+        slug
+        name
+        countries {
+          code
+        }
+      }
+    }
+  }
+}
+    ${Organization_OrganizationFragmentDoc}`;
+
+/**
+ * __useOrganizationWithWorkspacesQuery__
+ *
+ * To run a query within a React component, call `useOrganizationWithWorkspacesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useOrganizationWithWorkspacesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOrganizationWithWorkspacesQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useOrganizationWithWorkspacesQuery(baseOptions: Apollo.QueryHookOptions<OrganizationWithWorkspacesQuery, OrganizationWithWorkspacesQueryVariables> & ({ variables: OrganizationWithWorkspacesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<OrganizationWithWorkspacesQuery, OrganizationWithWorkspacesQueryVariables>(OrganizationWithWorkspacesDocument, options);
+      }
+export function useOrganizationWithWorkspacesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OrganizationWithWorkspacesQuery, OrganizationWithWorkspacesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<OrganizationWithWorkspacesQuery, OrganizationWithWorkspacesQueryVariables>(OrganizationWithWorkspacesDocument, options);
+        }
+export function useOrganizationWithWorkspacesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<OrganizationWithWorkspacesQuery, OrganizationWithWorkspacesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<OrganizationWithWorkspacesQuery, OrganizationWithWorkspacesQueryVariables>(OrganizationWithWorkspacesDocument, options);
+        }
+export type OrganizationWithWorkspacesQueryHookResult = ReturnType<typeof useOrganizationWithWorkspacesQuery>;
+export type OrganizationWithWorkspacesLazyQueryHookResult = ReturnType<typeof useOrganizationWithWorkspacesLazyQuery>;
+export type OrganizationWithWorkspacesSuspenseQueryHookResult = ReturnType<typeof useOrganizationWithWorkspacesSuspenseQuery>;
+export type OrganizationWithWorkspacesQueryResult = Apollo.QueryResult<OrganizationWithWorkspacesQuery, OrganizationWithWorkspacesQueryVariables>;
 export const OrganizationsDocument = gql`
     query Organizations {
   organizations {
