@@ -233,6 +233,7 @@ SidebarMenu.fragments = {
         id
         name
         shortName
+        logo
         permissions {
           createWorkspace
         }

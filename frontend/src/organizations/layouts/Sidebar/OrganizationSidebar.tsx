@@ -42,6 +42,7 @@ const OrganizationSidebar = ({
             key="organization"
             href="/organizations/"
             Icon={ChevronLeftIcon}
+            logo={organization.logo}
             label={organization.shortName ?? organization.name}
             compact={!isSidebarOpen}
           />

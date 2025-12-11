@@ -16,7 +16,7 @@ export type OrganizationQuery = { __typename?: 'Query', organization?: { __typen
 export type OrganizationsQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type OrganizationsQuery = { __typename?: 'Query', organizations: Array<{ __typename?: 'Organization', id: string, name: string, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> } }> };
+export type OrganizationsQuery = { __typename?: 'Query', organizations: Array<{ __typename?: 'Organization', id: string, name: string, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> } }> };
 
 export type OrganizationDataset_LinkFragment = { __typename?: 'DatasetLink', id: string, workspace: { __typename?: 'Workspace', slug: string, name: string }, dataset: { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } } };
 
@@ -166,6 +166,7 @@ export const OrganizationsDocument = gql`
   organizations {
     id
     name
+    logo
     workspaces {
       items {
         slug

@@ -27,6 +27,7 @@ import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
 import { LayoutContext } from "./WorkspaceLayout";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next";
+import OrgNavItem from "organizations/layouts/Sidebar/NavItem";
 
 type SidebarProps = {
   workspace: Sidebar_WorkspaceFragment;
@@ -166,15 +167,15 @@ const Sidebar = (props: SidebarProps) => {
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
         {workspace.organization && (
-          <NavItem
+          <OrgNavItem
             className="h-16"
             key="organization"
             href={"/organizations/" + workspace.organization.id}
             Icon={ChevronLeftIcon}
+            logo={workspace.organization.logo}
             label={
               workspace.organization.shortName ?? workspace.organization.name
             }
-            isCurrent={false}
             compact={!isSidebarOpen}
           />
         )}
