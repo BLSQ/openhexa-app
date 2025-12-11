@@ -114,7 +114,8 @@ const SidebarMenu = (props: SidebarMenuProps) => {
       }
     `,
     {
-      variables: { page: 1, perPage: 1000 },
+      variables: { page: 1, perPage: 2000 },
+      fetchPolicy: "cache-and-network",
     },
   );
 
@@ -343,7 +344,7 @@ SidebarMenu.fragments = {
 SidebarMenu.prefetch = async (client: CustomApolloClient) => {
   await client.query({
     query: SidebarMenuDocument,
-    variables: { page: 1, perPage: 1000 },
+    variables: { page: 1, perPage: 2000 },
   });
 };
 
