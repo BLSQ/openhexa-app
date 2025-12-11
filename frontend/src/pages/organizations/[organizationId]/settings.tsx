@@ -45,11 +45,7 @@ const OrganizationSettingsPage: NextPageWithLayout<Props> = ({
           </div>
         }
       >
-        <div className="p-2">
-          <div className="m-2">
-            <OrganizationSettings organization={organization} />
-          </div>
-        </div>
+        <OrganizationSettings organization={organization} />
       </OrganizationLayout>
     </Page>
   );

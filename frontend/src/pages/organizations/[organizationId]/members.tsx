@@ -65,20 +65,16 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
           </Button>
         }
       >
-        <div className="p-2">
-          <div className="m-2">
-            <OrganizationMembers organizationId={organization.id} />
-          </div>
-          <div className="m-8">
-            <Title level={2}>{t("Pending Organization invitations")}</Title>
-            <OrganizationInvitations organizationId={organization.id} />
-          </div>
-          <div className="m-8">
-            <Title level={2}>{t("Pending Direct Workspace Invitations")}</Title>
-            <OrganizationWorkspaceInvitations
-              organizationId={organization.id}
-            />
-          </div>
+        <OrganizationMembers organizationId={organization.id} />
+        <div className="mt-12">
+          <Title level={2}>{t("Pending Organization invitations")}</Title>
+          <OrganizationInvitations organizationId={organization.id} />
+        </div>
+        <div className="mt-12">
+          <Title level={2}>{t("Pending Direct Workspace Invitations")}</Title>
+          <OrganizationWorkspaceInvitations
+            organizationId={organization.id}
+          />
         </div>
         <AddOrganizationMemberDialog
           open={isNewMemberDialogOpen}

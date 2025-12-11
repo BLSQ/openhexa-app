@@ -78,10 +78,14 @@ const BaseLayout = ({
         className={clsx(
           "w-full mb-12 transition-all duration-75",
           isSidebarOpen ? "pl-64 2xl:pl-72" : "pl-16",
-          organizationId && header ? "pt-16" : "pt-2",
+          organizationId && header && "pt-16",
         )}
       >
-        {children}
+        <div className="py-6 xl:py-8">
+          <div className="mx-auto px-4 md:px-6 xl:px-10 2xl:px-12">
+            {children}
+          </div>
+        </div>
       </main>
       <div className="fixed bottom-6 right-6">
         <Help
