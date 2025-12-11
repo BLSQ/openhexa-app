@@ -39,31 +39,22 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
       <WorkspaceLayout
         workspace={workspace}
         header={
-          <>
-            <Breadcrumbs withHome={false} className="flex-1">
-              <Breadcrumbs.Part
-                isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-              >
-                {workspace.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/webapps`}
-              >
-                {t("Web Apps")}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/webapps/${encodeURIComponent(webapp.slug)}`}
-                isLast
-              >
-                {webapp.name}
-              </Breadcrumbs.Part>
-            </Breadcrumbs>
-          </>
+          <Breadcrumbs withHome={false} className="flex-1">
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}/webapps`}
+            >
+              {t("Web Apps")}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/webapps/${encodeURIComponent(webapp.slug)}`}
+              isLast
+            >
+              {webapp.name}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
         }
       >
         <WorkspaceLayout.PageContent>

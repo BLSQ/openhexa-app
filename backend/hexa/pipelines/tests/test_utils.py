@@ -66,3 +66,26 @@ class PipelineUtilsTest(TestCase):
             container_name_2,
             "Container names should be unique for different runs",
         )
+
+    def test_generate_pipeline_container_name_rfc1123_compliance(self):
+        """Test that generated names comply with RFC 1123 (lowercase alphanumeric + hyphens)."""
+        run = MagicMock()
+        run.id = uuid.uuid4()
+
+        run.pipeline.workspace.slug = "my_workspace"
+        run.pipeline.code = "get_campaigns"
+        container_name = generate_pipeline_container_name(run)
+
+        self.assertNotIn(
+            "_", container_name, "Underscores should be replaced with hyphens"
+        )
+        self.assertIn("my-works", container_name)  # truncated "my-workspace"
+        self.assertIn("get-camp", container_name)  # truncated "get-campaigns"
+
+        run.pipeline.workspace.slug = "MyWorkspace"
+        run.pipeline.code = "GetCampaigns"
+        container_name = generate_pipeline_container_name(run)
+
+        self.assertEqual(
+            container_name, container_name.lower(), "Name should be lowercase"
+        )

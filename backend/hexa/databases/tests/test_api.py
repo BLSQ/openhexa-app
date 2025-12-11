@@ -139,6 +139,37 @@ class DatabaseAPITest(TestCase):
             )
             self.assertEqual(len(cursor.fetchall()), 1)
 
+    def test_database_limitation_settings(self):
+        """Test that database-level limits are properly configured when creating a database."""
+        credentials = get_db_server_credentials()
+        host = credentials["host"]
+        port = credentials["port"]
+
+        with psycopg2.connect(
+            host=host,
+            port=port,
+            dbname=self.DB1_NAME,
+            user=self.DB1_NAME,
+            password=self.PWD_1,
+        ) as conn:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                sql.SQL(
+                    "SELECT datconnlimit FROM pg_database WHERE datname = {db_name};"
+                ).format(db_name=sql.Literal(self.DB1_NAME))
+            )
+            connection_limit = cursor.fetchone()[0]
+            self.assertEqual(connection_limit, 50)
+
+            cursor.execute("SHOW idle_in_transaction_session_timeout;")
+            idle_timeout = cursor.fetchone()[0]
+            self.assertEqual(idle_timeout, "5min")
+
+            cursor.execute("SHOW statement_timeout;")
+            statement_timeout = cursor.fetchone()[0]
+            self.assertEqual(statement_timeout, "90min")
+
     def test_delete_database(self):
         db_name = "pnlp"
         db_password = "pnlp"

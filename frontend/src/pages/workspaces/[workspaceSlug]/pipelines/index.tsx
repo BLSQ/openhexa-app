@@ -58,30 +58,25 @@ const WorkspacePipelinesPage: NextPageWithLayout = ({
           },
         ]}
         header={
-          <>
-            <Breadcrumbs withHome={false} className="flex-1">
-              <Breadcrumbs.Part
-                isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-              >
-                {workspace.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                isLast
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/pipelines/?tab=${tab}`}
-              >
-                {tab === "pipelines" ? t("Pipelines") : t("Templates")}
-              </Breadcrumbs.Part>
-            </Breadcrumbs>
-            <Button
-              leadingIcon={<PlusIcon className="h-4 w-4" />}
-              onClick={() => setDialogOpen(true)}
+          <Breadcrumbs withHome={false} className="flex-1">
+            <Breadcrumbs.Part
+              isFirst
+              isLast
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/pipelines/?tab=${tab}`}
             >
-              {t("Create")}
-            </Button>
-          </>
+              {tab === "pipelines" ? t("Pipelines") : t("Templates")}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+        }
+        headerActions={
+          <Button
+            leadingIcon={<PlusIcon className="h-4 w-4" />}
+            onClick={() => setDialogOpen(true)}
+          >
+            {t("Create")}
+          </Button>
         }
       >
         <WorkspaceLayout.PageContent className="divide divide-y-2">
@@ -133,13 +128,17 @@ WorkspacePipelinesPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    await Pipelines.prefetch(ctx);
+    await PipelineTemplates.prefetch(ctx);
+
     const workspaceSlug = ctx.params?.workspaceSlug as string;
     const page = (ctx.query.page as string)
       ? parseInt(ctx.query.page as string, 10)
       : 1;
     const perPage = 15;
     const search = (ctx.query.search as string) ?? "";
-    const functionalType = (ctx.query.functionalType as PipelineFunctionalType) || null;
+    const functionalType =
+      (ctx.query.functionalType as PipelineFunctionalType) || null;
 
     await WorkspaceLayout.prefetch(ctx, client);
 

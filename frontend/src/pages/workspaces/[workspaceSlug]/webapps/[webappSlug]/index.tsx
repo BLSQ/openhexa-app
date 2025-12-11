@@ -46,40 +46,33 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
       <WorkspaceLayout
         workspace={workspace}
         header={
-          <>
-            <Breadcrumbs withHome={false} className="flex-1">
-              <Breadcrumbs.Part
-                isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-              >
-                {workspace.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/webapps`}
-              >
-                {t("Web Apps")}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/webapps/${encodeURIComponent(webapp.slug)}`}
-                isLast
-              >
-                {webapp.name}
-              </Breadcrumbs.Part>
-            </Breadcrumbs>
-            {webapp?.permissions.delete && (
-              <Button
-                variant={"danger"}
-                leadingIcon={<TrashIcon className="h-4 w-4" />}
-                onClick={() => setIsDeleteDialogOpen(true)}
-              >
-                {t("Delete")}
-              </Button>
-            )}
-          </>
+          <Breadcrumbs withHome={false} className="flex-1">
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}/webapps`}
+            >
+              {t("Web Apps")}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/webapps/${encodeURIComponent(webapp.slug)}`}
+              isLast
+            >
+              {webapp.name}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+        }
+        headerActions={
+          webapp?.permissions.delete && (
+            <Button
+              variant={"danger"}
+              leadingIcon={<TrashIcon className="h-4 w-4" />}
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
+              {t("Delete")}
+            </Button>
+          )
         }
       >
         <WorkspaceLayout.PageContent>

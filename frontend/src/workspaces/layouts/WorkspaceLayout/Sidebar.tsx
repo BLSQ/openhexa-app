@@ -22,11 +22,11 @@ import { CustomApolloClient } from "core/helpers/apollo";
 import { useTranslation } from "next-i18next";
 import React, { useContext, useMemo, useState } from "react";
 import SidebarMenu from "workspaces/features/SidebarMenu";
+import UserMenu from "workspaces/features/UserMenu";
 import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
 import { LayoutContext } from "./WorkspaceLayout";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next";
-import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 
 type SidebarProps = {
   workspace: Sidebar_WorkspaceFragment;
@@ -178,7 +178,6 @@ const Sidebar = (props: SidebarProps) => {
             compact={!isSidebarOpen}
           />
         )}
-        <SpotlightSearch isSidebarOpen={isSidebarOpen} />
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
         <div className="mt-5 flex grow flex-col overflow-y-auto scrollbar-visible">
@@ -232,19 +231,7 @@ const Sidebar = (props: SidebarProps) => {
           </nav>
         </div>
 
-        <div className="mb-5 flex shrink-0 flex-col items-center px-4">
-          <Link noStyle href="/" className="flex h-8 items-center">
-            <img
-              className="h-full"
-              src={
-                isSidebarOpen
-                  ? "/images/logo_with_text_white.svg"
-                  : "/images/logo.svg"
-              }
-              alt="OpenHEXA logo"
-            />
-          </Link>
-        </div>
+        <UserMenu compact={!isSidebarOpen} />
       </div>
       <button
         onClick={() => setSidebarOpen(!isSidebarOpen)}
@@ -292,7 +279,6 @@ Sidebar.prefetch = async (
   client: CustomApolloClient,
 ) => {
   await SidebarMenu.prefetch(client);
-  await SpotlightSearch.prefetch(ctx);
 };
 
 export default Sidebar;

@@ -1,5 +1,32 @@
 # Changelog
 
+## [2.13.2](https://github.com/BLSQ/openhexa-app/compare/2.13.1...2.13.2) (2025-12-04)
+
+
+### Bug Fixes
+
+* pipeline runner django.db.utils.OperationalError: server closed the connection unexpectedly ([#1511](https://github.com/BLSQ/openhexa-app/issues/1511)) ([5d09a68](https://github.com/BLSQ/openhexa-app/commit/5d09a6836d7dafcd75cb6edf012c2a7d2a3c59f8))
+
+## [2.13.1](https://github.com/BLSQ/openhexa-app/compare/2.13.0...2.13.1) (2025-12-04)
+
+
+### Bug Fixes
+
+* pipeline runner reattachement should support missing pod (HEXA-1447) ([107d44c](https://github.com/BLSQ/openhexa-app/commit/107d44c0595106c3999a1af91d3898b08f31db2c))
+* pipeline runner should support heavier load (HEXA-1448) ([9963f9a](https://github.com/BLSQ/openhexa-app/commit/9963f9a9e3e3c9a7c3937e00f0e20d6475b05a65))
+
+## [2.13.0](https://github.com/BLSQ/openhexa-app/compare/2.12.3...2.13.0) (2025-12-02)
+
+
+### Features
+
+* Set limitations on the workspace DB upon creation ([#1496](https://github.com/BLSQ/openhexa-app/issues/1496)) (HEXA-1418) ([bda10fb](https://github.com/BLSQ/openhexa-app/commit/bda10fb9f940a26b9513be9744bc3f1fea5abdec))
+
+
+### Bug Fixes
+
+* pod name should comply with kubernetes requirements (HEXA-1446) ([#1503](https://github.com/BLSQ/openhexa-app/issues/1503)) ([de918be](https://github.com/BLSQ/openhexa-app/commit/de918be5064bada77cc596284f00181a2297efd4))
+
 ## [2.12.3](https://github.com/BLSQ/openhexa-app/compare/2.12.2...2.12.3) (2025-11-28)
 
 

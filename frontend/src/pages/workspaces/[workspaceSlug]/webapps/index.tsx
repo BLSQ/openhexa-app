@@ -63,34 +63,27 @@ const WebappsPage = (props: Props) => {
       <WorkspaceLayout
         workspace={workspace}
         header={
-          <>
-            <Breadcrumbs withHome={false} className="flex-1">
-              <Breadcrumbs.Part
-                isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-              >
-                {workspace.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                isLast
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/webapps`}
-              >
-                {t("Web Apps")}
-              </Breadcrumbs.Part>
-            </Breadcrumbs>
-            <Button
-              leadingIcon={<PlusIcon className="h-4 w-4" />}
-              onClick={() =>
-                router.push(
-                  `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/create`,
-                )
-              }
+          <Breadcrumbs withHome={false} className="flex-1">
+            <Breadcrumbs.Part
+              isFirst
+              isLast
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}/webapps`}
             >
-              {t("Create")}
-            </Button>
-          </>
+              {t("Web Apps")}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+        }
+        headerActions={
+          <Button
+            leadingIcon={<PlusIcon className="h-4 w-4" />}
+            onClick={() =>
+              router.push(
+                `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/create`,
+              )
+            }
+          >
+            {t("Create")}
+          </Button>
         }
       >
         <WorkspaceLayout.PageContent>

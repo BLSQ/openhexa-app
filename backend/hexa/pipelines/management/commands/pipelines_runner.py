@@ -242,7 +242,15 @@ def attach_to_pod_kube(run: PipelineRun):
         container_name,
         run.id,
     )
-    return v1.read_namespaced_pod(container_name, namespace)
+    pod_list = v1.list_namespaced_pod(
+        namespace=namespace, label_selector=f"hexa-run-id={run.id}"
+    )
+
+    if not pod_list.items:
+        logger.info("No pod found for run %s, exiting attachment process", run.id)
+        sys.exit(0)
+
+    return pod_list.items[0]
 
 
 def monitor_pod_kube(run: PipelineRun, pod):
@@ -577,12 +585,26 @@ class Command(BaseCommand):
         logger.info("start pipeline runner")
         sleep(10)
 
-        for run in PipelineRun.objects.filter(state=PipelineRunState.RUNNING):
-            run_pipeline(run, create_container=False)
+        orphaned_runs = list(
+            PipelineRun.objects.filter(state=PipelineRunState.RUNNING).order_by(
+                "execution_date"
+            )
+        )
+        logger.info(
+            "Found %d orphaned RUNNING pipeline(s) to re-attach gradually",
+            len(orphaned_runs),
+        )
 
         i = 0
         sleeptime = 5
+        batch_size = 8
         while True:
+            if orphaned_runs:
+                batch = orphaned_runs[:batch_size]
+                orphaned_runs = orphaned_runs[batch_size:]
+                for run in batch:
+                    run_pipeline(run, create_container=False)
+
             # cycle DB connection because of fork()
             db.connections.close_all()
 
@@ -593,11 +615,14 @@ class Command(BaseCommand):
             else:
                 i += sleeptime
 
+            # Process QUEUED runs in batches to prevent spikes
             runs = PipelineRun.objects.filter(state=PipelineRunState.QUEUED).order_by(
                 "execution_date"
-            )
+            )[:batch_size]
+
             for run in runs:
                 # mark all pipelines to be sure to never try executing them again
+                # we first update the status for all because the fork (in run_pipeline) closes the connection
                 run.state = PipelineRunState.RUNNING
                 run.save()
             for run in runs:

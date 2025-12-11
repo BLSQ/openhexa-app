@@ -39,9 +39,6 @@ import { max } from "lodash";
 import InputSearch from "./InputSearch";
 import Spinner from "core/components/Spinner";
 import { GetServerSidePropsContext } from "next";
-import { PipelineFunctionalType } from "graphql/types";
-import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
-import Select from "core/components/forms/Select";
 
 type Workspace = GetWorkspacesQuery["workspaces"]["items"][0];
 
@@ -55,21 +52,13 @@ type TabConfig = {
   setPage: React.Dispatch<React.SetStateAction<number>>;
 };
 
-const ALL_FUNCTIONAL_TYPES = null;
-
 const getTabLabel = (label: string, totalItems?: number): string => {
   return `${label} (${totalItems || 0})`;
 };
 
 const pageSize = 15;
 
-const SpotlightSearch = ({
-  isSidebarOpen,
-  organizationId,
-}: {
-  isSidebarOpen: boolean;
-  organizationId?: string;
-}) => {
+const SpotlightSearch = ({ organizationId }: { organizationId?: string }) => {
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -82,7 +71,6 @@ const SpotlightSearch = ({
     () => selectedWorkspaces?.map((workspace) => workspace.slug),
     [selectedWorkspaces],
   );
-  const [functionalTypeFilter, setFunctionalTypeFilter] = useState<PipelineFunctionalType | null>(ALL_FUNCTIONAL_TYPES);
 
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -151,7 +139,6 @@ const SpotlightSearch = ({
           workspaceSlugs: selectedWorkspaceSlugs,
           page: pipelinePage,
           perPage: pageSize,
-          functionalType: functionalTypeFilter,
         },
       }).then();
       searchPipelineTemplates({
@@ -183,7 +170,6 @@ const SpotlightSearch = ({
     isOpen,
     query,
     selectedWorkspaceSlugs,
-    functionalTypeFilter,
     datasetPage,
     pipelinePage,
     filePage,
@@ -344,7 +330,7 @@ const SpotlightSearch = ({
       className="fixed inset-0 z-50 bg-gray-900/70 flex justify-center backdrop-blur-xs"
       tabIndex={0}
     >
-      <div className="flex w-2/3 mt-30">
+      <div className="flex w-2/3 m-5">
         <div className="relative">
           <div ref={searchBarRef}>
             <Input
@@ -388,17 +374,6 @@ const SpotlightSearch = ({
                   selectedWorkspaces={selectedWorkspaces}
                   onChange={setSelectedWorkspaces}
                 />
-                <div className="bg-white p-4 border-t border-gray-200">
-                  <p className="text-md font-medium mb-3">{t("Filter by Functional Type")}</p>
-                  <Select
-                    options={[ALL_FUNCTIONAL_TYPES, ...Object.values(PipelineFunctionalType)]}
-                    value={functionalTypeFilter}
-                    onChange={(value) => setFunctionalTypeFilter(value as PipelineFunctionalType | null)}
-                    getOptionLabel={(option) => option ? formatPipelineFunctionalType(option) : t("All types")}
-                    displayValue={(option) => option ? formatPipelineFunctionalType(option) : t("All types")}
-                    className="w-full"
-                  />
-                </div>
                 <Tabs
                   defaultIndex={0}
                   className="bg-white p-3 border-none"
@@ -473,10 +448,7 @@ const SpotlightSearch = ({
 
   return (
     <>
-      <InputSearch
-        isSidebarOpen={isSidebarOpen}
-        onClick={() => setIsOpen((prev) => !prev)}
-      />
+      <InputSearch onClick={() => setIsOpen((prev) => !prev)} />
       {typeof window !== "undefined" &&
         isOpen &&
         createPortal(overlay, document.body)}

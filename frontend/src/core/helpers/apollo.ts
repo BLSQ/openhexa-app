@@ -85,10 +85,6 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
       merge: true,
     },
 
-    PipelineParameter: {
-      keyFields: ["code"],
-    },
-
     Connection: {
       merge: true,
     },

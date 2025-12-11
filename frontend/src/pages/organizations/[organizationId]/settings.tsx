@@ -37,12 +37,16 @@ const OrganizationSettingsPage: NextPageWithLayout<Props> = ({
 
   return (
     <Page title={t("Settings")}>
-      <OrganizationLayout organization={organization}>
-        <div className="p-6">
-          <div className="m-8">
-            <h1 className="text-4xl font-bold">{t("Organization Settings")}</h1>
+      <OrganizationLayout
+        organization={organization}
+        header={
+          <div>
+            <h1 className="text-xl font-bold">{t("Organization Settings")}</h1>
           </div>
-          <div className="m-8">
+        }
+      >
+        <div className="p-2">
+          <div className="m-2">
             <OrganizationSettings organization={organization} />
           </div>
         </div>
