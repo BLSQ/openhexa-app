@@ -254,7 +254,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                     }}
                     className={clsx(
                       "group/item flex items-center px-4 py-2.5 hover:bg-gray-100",
-                      ws.slug === workspace.slug && "bg-gray-100 font-medium",
+                      ws.slug === workspace.slug && "font-semibold",
                     )}
                     key={ws.slug}
                   >
