@@ -78,7 +78,7 @@ const BaseLayout = ({
         className={clsx(
           "w-full mb-12 transition-all duration-75",
           isSidebarOpen ? "pl-64 2xl:pl-72" : "pl-16",
-          organizationId && header && "pt-16",
+          organizationId && header && "pt-12",
         )}
       >
         <div className="py-6 xl:py-8">
