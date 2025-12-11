@@ -17,5 +17,7 @@ export function formatPipelineRunStatus(
       return i18n!.t("Stopped");
     case PipelineRunStatus.Terminating:
       return i18n!.t("Terminating");
+    case PipelineRunStatus.Skipped:
+      return i18n!.t("Skipped");
   }
 }

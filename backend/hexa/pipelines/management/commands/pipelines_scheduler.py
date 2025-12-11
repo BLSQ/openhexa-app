@@ -1,3 +1,4 @@
+import time as time_module
 from datetime import datetime
 from logging import getLogger
 from time import sleep
@@ -7,7 +8,13 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from hexa.analytics.api import track
-from hexa.pipelines.models import Pipeline, PipelineRunTrigger
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineRun,
+    PipelineRunState,
+    PipelineRunTrigger,
+)
+from hexa.pipelines.utils import mail_skipped_run_recipients
 
 logger = getLogger(__name__)
 
@@ -47,6 +54,39 @@ class Command(BaseCommand):
                 if real_delay > 0:
                     logger.debug(f"sleep before run: {real_delay}")
                     sleep(real_delay)
+
+                if PipelineRun.objects.filter(
+                    pipeline=pipeline,
+                    state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
+                ).exists():
+                    logger.warning(
+                        "Pipeline %s (%s) already has a run in progress, skipping scheduled execution",
+                        pipeline.code,
+                        pipeline.id,
+                    )
+
+                    PipelineRun.objects.create(
+                        user=None,
+                        pipeline=pipeline,
+                        pipeline_version=pipeline.last_version,
+                        run_id=str(PipelineRunTrigger.SCHEDULED.value)
+                        + "__"
+                        + str(time_module.time()),
+                        trigger_mode=PipelineRunTrigger.SCHEDULED,
+                        execution_date=exec_time,
+                        state=PipelineRunState.SKIPPED,
+                        config=(
+                            pipeline.merge_pipeline_config(
+                                {}, pipeline.last_version.config
+                            )
+                            if pipeline.last_version
+                            else {}
+                        ),
+                        send_mail_notifications=False,
+                    )
+
+                    mail_skipped_run_recipients(pipeline, exec_time)
+                    continue
 
                 pipeline.run(
                     user=None,

@@ -3733,6 +3733,7 @@ export enum PipelineRunStatus {
   Failed = 'failed',
   Queued = 'queued',
   Running = 'running',
+  Skipped = 'skipped',
   Stopped = 'stopped',
   Success = 'success',
   Terminating = 'terminating'
