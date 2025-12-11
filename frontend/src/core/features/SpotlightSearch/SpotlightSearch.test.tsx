@@ -24,7 +24,7 @@ describe("SpotlightSearch", () => {
     render(
       <MemoryRouterProvider>
         <TestApp mocks={mocks}>
-          <SpotlightSearch isSidebarOpen={false} />
+          <SpotlightSearch />
         </TestApp>
       </MemoryRouterProvider>,
     );

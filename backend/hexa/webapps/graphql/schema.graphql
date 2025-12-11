@@ -1,4 +1,14 @@
 """
+Represents the type of a web app.
+"""
+enum WebappType {
+  IFRAME
+  HTML
+  BUNDLE
+  SUPERSET
+}
+
+"""
 Represents a web app.
 """
 type Webapp {
@@ -7,6 +17,7 @@ type Webapp {
   name: String!
   description: String
   url: String!
+  type: WebappType!
   icon: String
   workspace: Workspace!
   createdBy: User!
@@ -29,6 +40,7 @@ input CreateWebappInput {
   name: String!
   description: String
   url: String!
+  type: WebappType!
   icon: String
   workspaceSlug: String!
 }
@@ -58,6 +70,7 @@ input UpdateWebappInput {
   name: String
   description: String
   url: String
+  type: WebappType
   icon: String
 }
 

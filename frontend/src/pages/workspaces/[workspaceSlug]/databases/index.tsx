@@ -59,24 +59,17 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
           },
         ]}
         header={
-          <>
-            <Breadcrumbs withHome={false}>
-              <Breadcrumbs.Part
-                isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-              >
-                {workspace.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                isLast
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug,
-                )}/databases`}
-              >
-                {t("Database")}
-              </Breadcrumbs.Part>
-            </Breadcrumbs>
-          </>
+          <Breadcrumbs withHome={false}>
+            <Breadcrumbs.Part
+              isFirst
+              isLast
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/databases`}
+            >
+              {t("Database")}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
         }
       >
         <WorkspaceLayout.PageContent className="space-y-8">

@@ -74,40 +74,29 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
             label: t("Editing the workspace homepage"),
           },
         ]}
-        header={
-          <>
-            <Breadcrumbs withHome={false}>
-              <Breadcrumbs.Part
-                isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-              >
-                {workspace.name}
-              </Breadcrumbs.Part>
-            </Breadcrumbs>
-            <div className="flex items-center gap-2">
-              {workspace.permissions.update &&
-                (isEditing ? (
-                  <>
-                    <Button
-                      variant="secondary"
-                      onClick={() => setIsEditing(false)}
-                    >
-                      {t("Cancel")}
-                    </Button>
-                    <Button
-                      onClick={onSave}
-                      leadingIcon={loading && <Spinner size="xs" />}
-                    >
-                      {t("Save")}
-                    </Button>
-                  </>
-                ) : (
-                  <Button onClick={() => setIsEditing(true)}>
-                    {t("Edit")}
+        header={<></>}
+        headerActions={
+          <div className="flex items-center gap-2">
+            {workspace.permissions.update &&
+              (isEditing ? (
+                <>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    {t("Cancel")}
                   </Button>
-                ))}
-            </div>
-          </>
+                  <Button
+                    onClick={onSave}
+                    leadingIcon={loading && <Spinner size="xs" />}
+                  >
+                    {t("Save")}
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={() => setIsEditing(true)}>{t("Edit")}</Button>
+              ))}
+          </div>
         }
       >
         <WorkspaceLayout.PageContent>

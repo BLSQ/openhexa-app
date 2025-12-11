@@ -118,11 +118,6 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
           <Breadcrumbs withHome={false}>
             <Breadcrumbs.Part
               isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
               href={`/workspaces/${encodeURIComponent(workspace.slug)}/files`}
               isLast={crumbs.length === 0}
             >

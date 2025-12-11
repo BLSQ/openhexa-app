@@ -7,14 +7,24 @@ import BaseLayout from "./BaseLayout";
 type OrganizationLayoutProps = {
   children: React.ReactNode;
   organization: OrganizationQuery["organization"];
+  header?: React.ReactNode;
+  headerActions?: React.ReactNode;
 };
 
 const OrganizationLayout = ({
   children,
   organization,
+  header,
+  headerActions,
 }: OrganizationLayoutProps) => {
   return (
-    <BaseLayout Sidebar={OrganizationSidebar} sidebarProps={{ organization }}>
+    <BaseLayout
+      Sidebar={OrganizationSidebar}
+      sidebarProps={{ organization }}
+      organizationId={organization?.id}
+      header={header}
+      headerActions={headerActions}
+    >
       {children}
     </BaseLayout>
   );
@@ -22,7 +32,6 @@ const OrganizationLayout = ({
 
 OrganizationLayout.prefetch = async (ctx: GetServerSidePropsContext) => {
   await BaseLayout.prefetch(ctx);
-  await OrganizationSidebar.prefetch(ctx);
 };
 
 export default OrganizationLayout;
