@@ -55,27 +55,15 @@ const SidebarMenu = (props: SidebarMenuProps) => {
     [],
   );
 
-  useEffect(() => {
-    if (isOpen) {
-      setFalse();
-    }
-  }, [router.asPath]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 50);
-    } else {
-      setSearch("");
-    }
-  }, [isOpen]);
-
   const [listRef] = useAutoAnimate<HTMLDivElement>({ duration: 200 });
   const [isAnimationReady, setIsAnimationReady] = useState(false);
   // Only enable auto-animate after the menu has rendered to prevent initial flicker
   useEffect(() => {
     if (isOpen) {
+      setSearch("");
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
       // Wait for the menu transition to complete before enabling animations
       const timer = setTimeout(() => setIsAnimationReady(true), 150);
       return () => clearTimeout(timer);
@@ -83,6 +71,12 @@ const SidebarMenu = (props: SidebarMenuProps) => {
       setIsAnimationReady(false);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setFalse();
+    }
+  }, [router.asPath]);
 
   const innerMenuRef = useRef<HTMLDivElement>(null);
   const [referenceElement, setReferenceElement] =
