@@ -118,7 +118,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             // Coming soon
             // WebappType.Html,
             // WebappType.Bundle,
-            // WebappType.Superset,
+            WebappType.Superset,
           ]}
           getOptionLabel={getWebappTypeLabel}
         />
