@@ -74,16 +74,7 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
             label: t("Editing the workspace homepage"),
           },
         ]}
-        header={
-          <Breadcrumbs withHome={false}>
-            <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-          </Breadcrumbs>
-        }
+        header={<></>}
         headerActions={
           <div className="flex items-center gap-2">
             {workspace.permissions.update &&
@@ -103,9 +94,7 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
                   </Button>
                 </>
               ) : (
-                <Button onClick={() => setIsEditing(true)}>
-                  {t("Edit")}
-                </Button>
+                <Button onClick={() => setIsEditing(true)}>{t("Edit")}</Button>
               ))}
           </div>
         }

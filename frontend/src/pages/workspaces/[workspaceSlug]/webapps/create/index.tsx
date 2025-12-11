@@ -20,14 +20,7 @@ const WebappCreatePage = ({ workspace }: any) => {
           <Breadcrumbs withHome={false} className="flex-1">
             <Breadcrumbs.Part
               isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/webapps`}
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}/webapps`}
             >
               {t("Web Apps")}
             </Breadcrumbs.Part>

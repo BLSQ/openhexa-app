@@ -64,7 +64,9 @@ describe("Workspaces", () => {
         <WorkspacePage page={1} perPage={1} workspaceSlug={slug} />
       </TestApp>,
     );
-    const elm = await screen.findByText("Rwanda Workspace", { selector: "a" });
+    const elm = await screen.findByText("Rwanda Workspace", {
+      selector: "div",
+    });
     expect(elm).toBeInTheDocument();
     expect(container).toMatchSnapshot();
   });

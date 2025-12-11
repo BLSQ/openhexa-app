@@ -41,29 +41,32 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
 
   return (
     <Page title={t("Members")}>
-      <OrganizationLayout organization={organization}>
-        <div className="p-6">
-          <div className="m-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold">{t("Members")}</h1>
-              <p className="text-lg mt-2 text-gray-500">
-                {organization.members.totalItems}{" "}
-                {organization.members.totalItems > 1
-                  ? t("members")
-                  : t("member")}
-              </p>
-            </div>
-            <Button
-              variant="primary"
-              className="static"
-              onClick={() => setIsNewMemberDialogOpen(true)}
-              leadingIcon={<PlusIcon className="w-4" />}
-              disabled={!organization.permissions.manageMembers}
-            >
-              {t("Invite member")}
-            </Button>
+      <OrganizationLayout
+        organization={organization}
+        header={
+          <div>
+            <h1 className="text-2xl font-bold">{t("Members")}</h1>
+            <p className="text-sm text-gray-500">
+              {organization.members.totalItems}{" "}
+              {organization.members.totalItems > 1
+                ? t("members")
+                : t("member")}
+            </p>
           </div>
-          <div className="m-8">
+        }
+        headerActions={
+          <Button
+            variant="primary"
+            onClick={() => setIsNewMemberDialogOpen(true)}
+            leadingIcon={<PlusIcon className="w-4" />}
+            disabled={!organization.permissions.manageMembers}
+          >
+            {t("Invite member")}
+          </Button>
+        }
+      >
+        <div className="p-2">
+          <div className="m-2">
             <OrganizationMembers organizationId={organization.id} />
           </div>
           <div className="m-8">

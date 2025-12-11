@@ -26,7 +26,6 @@ export type WorkspaceLayoutProps = {
   helpLinks?: ComponentProps<typeof Help>["links"];
   header?: ReactNode;
   headerActions?: ReactNode;
-  headerClassName?: string;
   withMarginBottom?: boolean;
 };
 
@@ -59,7 +58,6 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
     header,
     headerActions,
     className,
-    headerClassName = "flex items-center justify-between",
     withMarginBottom = true,
   } = props;
   const [_, setLastWorkspace] = useLocalStorage("last-visited-workspace");
@@ -103,8 +101,8 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
           )}
         >
           <div className="flex items-center h-full px-4">
-            <div className="flex-1 min-w-0">{header}</div>
-            <div className="flex-shrink-0 w-full max-w-md mx-auto">
+            <div className="flex-1 min-w-0 pl-4">{header}</div>
+            <div className="flex-shrink-0 w-100 max-w-md mx-auto p-2">
               <SpotlightSearch />
             </div>
             <div className="flex-1 flex justify-end items-center gap-2">
