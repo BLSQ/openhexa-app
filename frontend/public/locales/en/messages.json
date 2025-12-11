@@ -293,6 +293,7 @@
   "I confirm that I want to publish this code and make it available <1>to all users of the OpenHEXA platform</1>": "I confirm that I want to publish this code and make it available <1>to all users of the OpenHEXA platform</1>",
   "Iaso Instance URL": "Iaso Instance URL",
   "Identifier": "Identifier",
+  "If there is already a running or scheduled pipeline run, the execution will be skipped.": "If there is already a running or scheduled pipeline run, the execution will be skipped.",
   "Image": "Image",
   "In order to create pipelines, you need to setup the <2>openhexa</2> CLI using the <5>guide</5> on Github.": "In order to create pipelines, you need to setup the <2>openhexa</2> CLI using the <5>guide</5> on Github.",
   "Information": "Information",

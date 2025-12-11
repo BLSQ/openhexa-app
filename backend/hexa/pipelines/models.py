@@ -740,7 +740,7 @@ class PipelineRun(Base, WithStatus):
         PipelineRunState.QUEUED: Status.PENDING,
         PipelineRunState.STOPPED: Status.STOPPED,
         PipelineRunState.TERMINATING: Status.TERMINATING,
-        PipelineRunState.SKIPPED: Status.STOPPED,
+        PipelineRunState.SKIPPED: Status.SKIPPED,
     }
 
     class Meta:
