@@ -56,6 +56,37 @@ def mail_run_recipients(run: PipelineRun):
             )
 
 
+def mail_skipped_run_recipients(pipeline, scheduled_time):
+    workspace_slug = pipeline.workspace.slug
+    for recipient in pipeline.pipelinerecipient_set.all():
+        with override(recipient.user.language):
+            send_mail(
+                title=gettext_lazy("Scheduled run of {code} was skipped").format(
+                    code=pipeline.code
+                ),
+                template_name="pipelines/mails/scheduled_run_skipped",
+                template_variables={
+                    "pipeline_code": pipeline.code,
+                    "scheduled_time": scheduled_time,
+                    "pipeline_url": f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace_slug}/pipelines/{pipeline.code}",
+                },
+                recipient_list=[recipient.user.email],
+                attachments=[
+                    (
+                        "logo_with_text_white.svg",
+                        open(
+                            os.path.join(
+                                settings.BASE_DIR,
+                                "hexa/static/img/logo/logo_with_text_white.svg",
+                            ),
+                            "rb",
+                        ).read(),
+                        "image/svg+xml",
+                    ),
+                ],
+            )
+
+
 def generate_pipeline_container_name(run: PipelineRun) -> str:
     """
     Generate a deterministic Kubernetes-compliant pod name for a pipeline run.

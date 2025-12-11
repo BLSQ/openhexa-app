@@ -84,6 +84,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
       PipelineRunStatus.Failed,
       PipelineRunStatus.Success,
       PipelineRunStatus.Stopped,
+      PipelineRunStatus.Skipped,
     ].includes(data.pipelineRun.status);
 
   if (!data?.workspace || !data.pipelineRun) {
@@ -244,6 +245,11 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                     {run.status === PipelineRunStatus.Stopped && (
                       <>
                         {t("Stopped on")} <Time datetime={run.executionDate} />
+                      </>
+                    )}
+                    {run.status === PipelineRunStatus.Skipped && (
+                      <>
+                        {t("Skipped on")} <Time datetime={run.executionDate} />
                       </>
                     )}
                   </div>

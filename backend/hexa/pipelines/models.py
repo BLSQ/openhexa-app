@@ -729,6 +729,7 @@ class PipelineRunState(models.TextChoices):
     QUEUED = "queued", _("Queued")
     TERMINATING = "terminating", _("terminating")
     STOPPED = "stopped", _("Stopped")
+    SKIPPED = "skipped", _("Skipped")
 
 
 class PipelineRun(Base, WithStatus):
@@ -739,6 +740,7 @@ class PipelineRun(Base, WithStatus):
         PipelineRunState.QUEUED: Status.PENDING,
         PipelineRunState.STOPPED: Status.STOPPED,
         PipelineRunState.TERMINATING: Status.TERMINATING,
+        PipelineRunState.SKIPPED: Status.SKIPPED,
     }
 
     class Meta:

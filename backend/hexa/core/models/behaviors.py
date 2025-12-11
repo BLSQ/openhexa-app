@@ -9,6 +9,7 @@ class Status(enum.Enum):
     TERMINATING = "TERMINATING"
     ERROR = "ERROR"
     UNKNOWN = "UNKNOWN"
+    SKIPPED = "SKIPPED"
 
 
 class WithStatus:

@@ -1,0 +1,18 @@
+{% load i18n %}
+{% blocktranslate %}
+The scheduled execution of pipeline {{pipeline_code}} was skipped because another run is already in progress.
+
+Pipeline: {{pipeline_code}}
+Scheduled time: {{scheduled_time}}
+Reason: A pipeline run is already queued or running
+
+The next scheduled execution will proceed as normal if no run is in progress at that time.
+If this happens regularly, we advise you to check if you're scheduling interval is configured too tight, or if your pipeline has started to run slower over time.
+Please go to the following page to view the pipeline: {{ pipeline_url }}
+{% endblocktranslate %}
+
+{%blocktranslate%}
+The OpenHEXA team
+
+© 2025 Bluesquare SA. All Rights Reserved
+{%endblocktranslate%}

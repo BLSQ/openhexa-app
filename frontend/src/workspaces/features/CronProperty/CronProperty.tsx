@@ -4,6 +4,7 @@ import { PropertyDefinition } from "core/components/DataCard/types";
 import Input from "core/components/forms/Input";
 import { Trans, useTranslation } from "next-i18next";
 import Link from "core/components/Link";
+import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import {
   getCronExpressionDescription,
   validateCronExpression,
@@ -61,6 +62,14 @@ const CronProperty = (props: CronPropertyProps) => {
             to help you create a cron expression.
           </div>
         </Trans>
+        <div className="flex items-start gap-1 text-xs text-gray-600 mt-1">
+          <ExclamationCircleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>
+            {t(
+              "If there is already a running or scheduled pipeline run, the execution will be skipped.",
+            )}
+          </span>
+        </div>
       </DataCard.Property>
     );
   } else {

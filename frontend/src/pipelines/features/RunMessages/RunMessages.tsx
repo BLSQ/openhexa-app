@@ -44,9 +44,12 @@ const RunMessages = (props: RunMessagesProps) => {
       <div className="max-h-96 overflow-y-auto">
         <div ref={ref}>
           {run.messages.length === 0 &&
-          [PipelineRunStatus.Failed, PipelineRunStatus.Success].includes(
-            run.status as PipelineRunStatus,
-          ) ? (
+          [
+            PipelineRunStatus.Failed,
+            PipelineRunStatus.Success,
+            PipelineRunStatus.Stopped,
+            PipelineRunStatus.Skipped,
+          ].includes(run.status as PipelineRunStatus) ? (
             <p className="text-sm italic text-gray-600">{t("No messages")}</p>
           ) : (
             <table className="table-fixed">
