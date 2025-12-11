@@ -10,13 +10,20 @@ def _decode_icon_if_present(input: dict):
         input["icon"] = decode_base64_image(input["icon"])
 
 
+def _normalize_type_if_present(input: dict):
+    if input.get("type"):
+        input["type"] = input["type"].lower()
+
+
 class WebappsWorkspaceMutationType(BaseWorkspaceMutationType):
     def pre_create(self, request: HttpRequest, input: dict):
         input["created_by"] = request.user
         _decode_icon_if_present(input)
+        _normalize_type_if_present(input)
 
     def pre_update(self, request: HttpRequest, instance, input: dict):
         _decode_icon_if_present(input)
+        _normalize_type_if_present(input)
 
 
 webapps_mutations = WebappsWorkspaceMutationType(Webapp)

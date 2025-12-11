@@ -6,6 +6,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import WebappCreatePage from "pages/workspaces/[workspaceSlug]/webapps/create";
 import { toast } from "react-toastify";
 import { TestApp } from "core/helpers/testutils";
@@ -71,6 +72,7 @@ const graphqlMocks: MockedResponse[] = [
         input: {
           workspaceSlug: "test-workspace",
           name: "Test Webapp",
+          type: "IFRAME",
           url: "http://test-webapp.com",
         },
       },
@@ -78,9 +80,10 @@ const graphqlMocks: MockedResponse[] = [
     result: {
       data: {
         createWebapp: {
+          success: true,
+          errors: [],
           webapp: {
             id: "1",
-            name: "Test Webapp",
           },
         },
       },
@@ -111,11 +114,19 @@ describe("WebappCreatePage", () => {
     fireEvent.change(urlInput, {
       target: { value: "http://test-webapp.com" },
     });
-    fireEvent.change(screen.getByLabelText("Change Icon"), {
-      target: { files: [new File([""], "icon.png", { type: "image/png" })] },
+
+    const typeParent = screen.getByText("Type").closest("div") as HTMLDivElement;
+    const typeCombobox = within(typeParent).getByRole("combobox");
+    await userEvent.click(typeCombobox);
+
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: "iFrame" })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+    await userEvent.click(screen.getByRole("option", { name: "iFrame" }));
+
+    const createButton = screen.getByRole("button", { name: "Create" });
+    fireEvent.click(createButton);
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("Webapp created successfully");

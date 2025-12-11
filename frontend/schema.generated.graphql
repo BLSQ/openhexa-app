@@ -924,6 +924,7 @@ input CreateWebappInput {
   description: String
   icon: String
   name: String!
+  type: WebappType!
   url: String!
   workspaceSlug: String!
 }
@@ -4479,6 +4480,7 @@ input UpdateWebappInput {
   icon: String
   id: UUID!
   name: String
+  type: WebappType
   url: String
 }
 
@@ -4668,6 +4670,7 @@ type Webapp {
   name: String!
   permissions: WebappPermissions!
   slug: String!
+  type: WebappType!
   url: String!
   workspace: Workspace!
 }
@@ -4676,6 +4679,14 @@ type Webapp {
 type WebappPermissions {
   delete: Boolean!
   update: Boolean!
+}
+
+"""Represents the type of a web app."""
+enum WebappType {
+  BUNDLE
+  HTML
+  IFRAME
+  SUPERSET
 }
 
 """Represents a page of webapps."""

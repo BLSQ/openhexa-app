@@ -1,0 +1,1 @@
+export { getWebappTypeLabel } from "./webappType";

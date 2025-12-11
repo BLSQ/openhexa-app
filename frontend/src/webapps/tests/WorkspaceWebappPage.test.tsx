@@ -76,6 +76,7 @@ const graphqlMocks: MockedResponse[] = [
           name: "Test Webapp",
           description: "Test Webapp Description",
           url: "https://test-url.com",
+          type: "IFRAME",
           isFavorite: false,
           icon: "",
           createdBy: {
@@ -136,26 +137,184 @@ describe("WorkspaceWebappPage", () => {
   it("can update a web app", async () => {
     render(
       <TestApp
-        mocks={graphqlMocks.concat({
-          request: {
-            query: UpdateWebappDocument,
-            variables: {
-              input: {
-                id: "1",
-                name: "Updated Webapp",
-                url: "https://updated-url.com",
-                icon: "",
+        mocks={graphqlMocks.concat([
+          {
+            request: {
+              query: UpdateWebappDocument,
+              variables: {
+                input: {
+                  id: "1",
+                  name: "Updated Webapp",
+                  icon: "",
+                  type: "IFRAME",
+                  url: "https://updated-url.com",
+                },
+              },
+            },
+            result: {
+              data: {
+                updateWebapp: {
+                  success: true,
+                  errors: [],
+                },
               },
             },
           },
-          result: {
-            data: {
-              updateWebapp: {
-                success: true,
+          {
+            request: {
+              query: SidebarMenuDocument,
+              variables: {
+                page: 1,
+                perPage: 5,
+              },
+            },
+            result: {
+              data: {
+                pendingWorkspaceInvitations: { totalItems: 1 },
+                workspaces: {
+                  totalItems: 2,
+                  items: [
+                    {
+                      slug: "workspace-1",
+                      name: "Workspace 1",
+                      countries: [{ code: "US", flag: "🇺🇸" }],
+                    },
+                    {
+                      slug: "workspace-2",
+                      name: "Workspace 2",
+                      countries: [{ code: "FR", flag: "🇫🇷" }],
+                    },
+                  ],
+                },
               },
             },
           },
-        })}
+          {
+            request: {
+              query: WorkspaceWebappPageDocument,
+              variables: {
+                workspaceSlug: "test-workspace",
+                webappSlug: "test-webapp",
+              },
+            },
+            result: {
+              data: {
+                webapp: {
+                  __typename: "Webapp",
+                  id: "1",
+                  slug: "test-webapp",
+                  name: "Updated Webapp",
+                  description: "Test Webapp Description",
+                  url: "https://updated-url.com",
+                  type: "IFRAME",
+                  isFavorite: false,
+                  icon: "",
+                  createdBy: {
+                    displayName: "User 1",
+                    avatar: {
+                      initials: "U",
+                      color: "",
+                    },
+                  },
+                  permissions: {
+                    delete: true,
+                    update: true,
+                  },
+                },
+                workspace: {
+                  __typename: "Workspace",
+                  slug: "test-workspace",
+                  name: "Test Workspace",
+                  countries: [],
+                  shortcuts: [],
+                  organization: null,
+                  permissions: {
+                    launchNotebookServer: false,
+                    manageMembers: false,
+                    update: true,
+                  },
+                },
+              },
+            },
+          },
+          {
+            request: {
+              query: SidebarMenuDocument,
+              variables: {
+                page: 1,
+                perPage: 5,
+              },
+            },
+            result: {
+              data: {
+                pendingWorkspaceInvitations: { totalItems: 1 },
+                workspaces: {
+                  totalItems: 2,
+                  items: [
+                    {
+                      slug: "workspace-1",
+                      name: "Workspace 1",
+                      countries: [{ code: "US", flag: "🇺🇸" }],
+                    },
+                    {
+                      slug: "workspace-2",
+                      name: "Workspace 2",
+                      countries: [{ code: "FR", flag: "🇫🇷" }],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          {
+            request: {
+              query: WorkspaceWebappPageDocument,
+              variables: {
+                workspaceSlug: "test-workspace",
+                webappSlug: "test-webapp",
+              },
+            },
+            result: {
+              data: {
+                webapp: {
+                  __typename: "Webapp",
+                  id: "1",
+                  slug: "test-webapp",
+                  name: "Updated Webapp",
+                  description: "Test Webapp Description",
+                  url: "https://updated-url.com",
+                  type: "IFRAME",
+                  isFavorite: false,
+                  icon: "",
+                  createdBy: {
+                    displayName: "User 1",
+                    avatar: {
+                      initials: "U",
+                      color: "",
+                    },
+                  },
+                  permissions: {
+                    delete: true,
+                    update: true,
+                  },
+                },
+                workspace: {
+                  __typename: "Workspace",
+                  slug: "test-workspace",
+                  name: "Test Workspace",
+                  countries: [],
+                  shortcuts: [],
+                  organization: null,
+                  permissions: {
+                    launchNotebookServer: false,
+                    manageMembers: false,
+                    update: true,
+                  },
+                },
+              },
+            },
+          },
+        ])}
       >
         <WorkspaceWebappPage webappSlug="test-webapp" workspaceSlug="test-workspace" />
       </TestApp>,
