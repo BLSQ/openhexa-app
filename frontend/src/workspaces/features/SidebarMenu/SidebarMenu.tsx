@@ -38,8 +38,6 @@ interface SidebarMenuProps {
   compact?: boolean;
 }
 
-// TODO : very first star is flickering
-
 const POPPER_MODIFIERS = [{ name: "offset", options: { offset: [8, 4] } }];
 
 const SidebarMenu = (props: SidebarMenuProps) => {
@@ -74,6 +72,17 @@ const SidebarMenu = (props: SidebarMenuProps) => {
   }, [isOpen]);
 
   const [listRef] = useAutoAnimate<HTMLDivElement>({ duration: 200 });
+  const [isAnimationReady, setIsAnimationReady] = useState(false);
+  // Only enable auto-animate after the menu has rendered to prevent initial flicker
+  useEffect(() => {
+    if (isOpen) {
+      // Wait for the menu transition to complete before enabling animations
+      const timer = setTimeout(() => setIsAnimationReady(true), 150);
+      return () => clearTimeout(timer);
+    } else {
+      setIsAnimationReady(false);
+    }
+  }, [isOpen]);
 
   const innerMenuRef = useRef<HTMLDivElement>(null);
   const [referenceElement, setReferenceElement] =
@@ -241,7 +250,10 @@ const SidebarMenu = (props: SidebarMenuProps) => {
               )}
             </div>
 
-            <div ref={listRef} className="max-h-96 overflow-y-auto">
+            <div
+              ref={isAnimationReady ? listRef : undefined}
+              className="max-h-96 overflow-y-auto"
+            >
               {sortedWorkspaces.map((ws) => {
                 const isFavorite = favorites.includes(ws.slug);
                 return (
