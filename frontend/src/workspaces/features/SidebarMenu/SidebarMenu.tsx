@@ -39,7 +39,6 @@ interface SidebarMenuProps {
 }
 
 // TODO : very first star is flickering
-// TODO : align + icon
 
 const POPPER_MODIFIERS = [{ name: "offset", options: { offset: [8, 4] } }];
 
@@ -214,7 +213,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
           className="divide z-50 flex w-72 flex-col divide-y divide-gray-200 overflow-x-hidden max-h-9/12 overflow-y-auto rounded-sm bg-white pt-2 text-base shadow-md ring-1 ring-black/5 focus:outline-hidden"
         >
           <section>
-            <div className="flex w-full items-center gap-2 px-3 py-2">
+            <div className="flex w-full items-center gap-2 px-3 py-2 justify-between">
               <SearchInput
                 ref={searchInputRef}
                 value={search}
