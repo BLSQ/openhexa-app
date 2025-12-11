@@ -16,9 +16,10 @@ type Webapp {
   slug: String!
   name: String!
   description: String
-  url: String!
+  url: String
   type: WebappType!
   icon: String
+  content: String
   workspace: Workspace!
   createdBy: User!
   isFavorite: Boolean!
@@ -39,9 +40,11 @@ Represents the input for creating a web app.
 input CreateWebappInput {
   name: String!
   description: String
-  url: String!
+  url: String
   type: WebappType!
   icon: String
+  content: String
+  bundle: String
   workspaceSlug: String!
 }
 
@@ -72,6 +75,8 @@ input UpdateWebappInput {
   url: String
   type: WebappType
   icon: String
+  content: String
+  bundle: String
 }
 
 """
