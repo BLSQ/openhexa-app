@@ -41,9 +41,6 @@ def serve_webapp_html(
     if not webapp.content:
         return HttpResponse("No content available", status=404)
 
-    # Note: HTML content is served in a sandboxed iframe for security
-    # The iframe sandbox provides isolation and prevents malicious scripts
-    # from accessing the parent page or making same-origin requests
     return HttpResponse(webapp.content, content_type="text/html; charset=utf-8")
 
 
@@ -64,24 +61,17 @@ def serve_webapp_bundle(
     if not webapp.bundle:
         return HttpResponse("No bundle available", status=404)
 
-    # Default to index.html if no path specified
     if not path:
         path = "index.html"
 
-    # Security: Prevent path traversal attacks
     requested_path = Path(path)
     if requested_path.is_absolute() or ".." in requested_path.parts:
         raise Http404("Invalid path")
 
     try:
-        # Extract file from zip bundle
         bundle_io = io.BytesIO(webapp.bundle)
         with zipfile.ZipFile(bundle_io, "r") as zip_file:
-            # List all files in the zip to find the requested file
-            # Handle both flat structure and nested structure (e.g., build/)
             available_files = zip_file.namelist()
-
-            # Try to find the file - could be at root or in a subdirectory
             file_path = None
             for zip_path in available_files:
                 if zip_path.endswith(path) or zip_path == path:
@@ -89,7 +79,6 @@ def serve_webapp_bundle(
                     break
 
             if not file_path:
-                # If exact match not found, try looking in common build directories
                 for prefix in ["build/", "dist/", ""]:
                     candidate = prefix + path
                     if candidate in available_files:
@@ -99,10 +88,7 @@ def serve_webapp_bundle(
             if not file_path:
                 raise Http404(f"File not found in bundle: {path}")
 
-            # Read the file content
             file_content = zip_file.read(file_path)
-
-            # Determine content type
             content_type, _ = mimetypes.guess_type(path)
             if not content_type:
                 content_type = "application/octet-stream"

@@ -10,18 +10,15 @@ from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
+    create_workspace_slug,
+    generate_database_name,
+    make_random_password,
 )
 
 
 class WebappViewsTest(TestCase):
     def setUp(self):
         self.client = Client()
-        from hexa.workspaces.models import (
-            create_workspace_slug,
-            generate_database_name,
-            make_random_password,
-        )
-
         self.workspace = Workspace.objects.create(
             name="Test Workspace",
             slug=create_workspace_slug("Test Workspace"),
@@ -183,7 +180,6 @@ class WebappViewsTest(TestCase):
         self.assertIn(b"Build Test", response.content)
 
     def test_change_webapp_type_iframe_to_bundle(self):
-        # Create an iframe webapp
         iframe_webapp = Webapp.objects.create(
             name="iFrame Test",
             slug="iframe-test",
@@ -193,7 +189,6 @@ class WebappViewsTest(TestCase):
             created_by=self.user,
         )
 
-        # Change to bundle type
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
             zip_file.writestr(
@@ -201,11 +196,10 @@ class WebappViewsTest(TestCase):
             )
 
         iframe_webapp.type = Webapp.WebappType.BUNDLE
-        iframe_webapp.url = ""  # Clear old URL field
+        iframe_webapp.url = ""
         iframe_webapp.bundle = zip_buffer.getvalue()
         iframe_webapp.save()
 
-        # Test that bundle can be served
         self.client.force_login(self.user)
         response = self.client.get(
             f"/webapps/{self.workspace.slug}/{iframe_webapp.slug}/bundle/"
@@ -215,7 +209,6 @@ class WebappViewsTest(TestCase):
         self.assertIn(b"Changed to Bundle", response.content)
 
     def test_change_webapp_type_html_to_bundle(self):
-        # Create an HTML webapp
         html_webapp = Webapp.objects.create(
             name="HTML Test",
             slug="html-test",
@@ -225,7 +218,6 @@ class WebappViewsTest(TestCase):
             created_by=self.user,
         )
 
-        # Change to bundle type
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
             zip_file.writestr(
@@ -233,11 +225,10 @@ class WebappViewsTest(TestCase):
             )
 
         html_webapp.type = Webapp.WebappType.BUNDLE
-        html_webapp.content = ""  # Clear old content field
+        html_webapp.content = ""
         html_webapp.bundle = zip_buffer.getvalue()
         html_webapp.save()
 
-        # Test that bundle can be served
         self.client.force_login(self.user)
         response = self.client.get(
             f"/webapps/{self.workspace.slug}/{html_webapp.slug}/bundle/"
