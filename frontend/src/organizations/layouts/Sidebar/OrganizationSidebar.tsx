@@ -1,6 +1,7 @@
 import React from "react";
 import clsx from "clsx";
 import {
+  HomeIcon,
   ChevronLeftIcon,
   UsersIcon,
   Square2StackIcon,
@@ -11,7 +12,6 @@ import NavItem from "./NavItem";
 import SidebarToggleButton from "./SidebarToggleButton";
 import UserMenu from "workspaces/features/UserMenu";
 import { useTranslation } from "next-i18next";
-import { HomeIcon } from "@heroicons/react/20/solid";
 import { useRouter } from "next/router";
 
 type OrganizationSidebarProps = {
