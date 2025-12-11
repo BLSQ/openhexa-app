@@ -8,6 +8,7 @@ type NavItemProps = {
   href: string;
   Icon?: any;
   logo?: string | null;
+  isCurrent?: boolean;
   compact?: boolean;
   className?: string;
 };
@@ -17,6 +18,7 @@ const NavItem = ({
   href,
   Icon,
   logo,
+  isCurrent = false,
   compact,
   className,
 }: NavItemProps) => {
@@ -43,6 +45,14 @@ const NavItem = ({
         compact && "justify-center",
       )}
     >
+      {isCurrent && (
+        <div
+          className={clsx(
+            "absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity",
+            isCurrent ? "opacity-100" : "opacity-0",
+          )}
+        ></div>
+      )}
       {logo ? (
         <img
           src={logo}

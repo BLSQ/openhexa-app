@@ -32,7 +32,6 @@ import OrgNavItem from "organizations/layouts/Sidebar/NavItem";
 // TODO : search
 // TODO : favorite
 // TODO : remove show more time
-// TODO : isCurrent
 
 type SidebarProps = {
   workspace: Sidebar_WorkspaceFragment;
