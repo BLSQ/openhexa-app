@@ -217,13 +217,14 @@ const SidebarMenu = (props: SidebarMenuProps) => {
           className="divide z-50 flex w-72 flex-col divide-y divide-gray-200 overflow-x-hidden max-h-9/12 overflow-y-auto rounded-sm bg-white pt-2 text-base shadow-md ring-1 ring-black/5 focus:outline-hidden"
         >
           <section>
-            <div className="flex w-full items-center gap-2 px-3 py-2 justify-between">
+            <div className="flex w-full items-center gap-2 px-2 py-2 justify-between">
               <SearchInput
                 ref={searchInputRef}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("Search workspaces...")}
                 className="flex-1"
+                fullWidth
               />
               {(me.permissions.createWorkspace ||
                 workspace.organization?.permissions.createWorkspace) && (
