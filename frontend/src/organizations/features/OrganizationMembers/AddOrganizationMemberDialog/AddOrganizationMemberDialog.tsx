@@ -21,7 +21,7 @@ import SimpleSelect from "core/components/forms/SimpleSelect";
 import React, { useEffect, useState } from "react";
 import { useInviteOrganizationMemberMutation } from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
 import Input from "core/components/forms/Input";
-import { OrganizationQuery } from "organizations/graphql/queries.generated";
+import { OrganizationWithWorkspacesQuery } from "organizations/graphql/queries.generated";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
 import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
 import SearchInput from "core/features/SearchInput";
@@ -30,7 +30,7 @@ import { toast } from "react-toastify";
 type AddOrganizationMemberDialogProps = {
   onClose(): void;
   open: boolean;
-  organization: OrganizationQuery["organization"];
+  organization: OrganizationWithWorkspacesQuery["organization"];
 };
 
 type Form = {
