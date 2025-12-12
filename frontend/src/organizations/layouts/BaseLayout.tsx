@@ -82,7 +82,7 @@ const BaseLayout = ({
         )}
       >
         <div className="py-6 xl:py-8">
-          <div className="mx-auto px-4 md:px-6 xl:px-10 2xl:px-12">
+          <div className="mx-auto px-4 md:px-6 xl:px-10 2xl:px-12 mt-4">
             {children}
           </div>
         </div>
