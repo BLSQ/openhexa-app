@@ -503,13 +503,10 @@ def process_zombie_runs():
             run.save()
         return
 
-    from kubernetes import config
-    from kubernetes.client import CoreV1Api
-
     is_local_dev = os.environ.get("IS_LOCAL_DEV", "false").lower() == "true"
     namespace = os.environ.get("PIPELINE_NAMESPACE", "default")
     try:
-        config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
+        k8s_config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
     except Exception as e:
         logger.exception(
             "Could not load Kubernetes config for zombie run killing : %s", e
