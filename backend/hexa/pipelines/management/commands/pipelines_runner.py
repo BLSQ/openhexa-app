@@ -13,6 +13,10 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.core.signing import Signer
 from django.utils import timezone
+from kubernetes import config as k8s_config
+from kubernetes.client import CoreV1Api
+from kubernetes.client import models as k8s
+from kubernetes.client.rest import ApiException
 
 from hexa.files import storage
 from hexa.pipelines.models import PipelineRun, PipelineRunState, PipelineType
@@ -32,7 +36,6 @@ def load_local_dev_kubernetes_config():
     import tempfile
 
     import yaml
-    from kubernetes import config
 
     kubeconfig_path = os.path.expanduser("~/.kube/config")
     with open(kubeconfig_path) as file:
@@ -55,16 +58,12 @@ def load_local_dev_kubernetes_config():
         yaml.dump(kubeconfig, temp_file)
         temp_config = temp_file.name
 
-    config.load_kube_config(config_file=temp_config)
+    k8s_config.load_kube_config(config_file=temp_config)
     os.unlink(temp_config)
 
 
 def create_pod_kube(run: PipelineRun, image: str, env_vars: dict):
     """Create a new Kubernetes pod for the pipeline run."""
-    from kubernetes import config
-    from kubernetes.client import CoreV1Api
-    from kubernetes.client import models as k8s
-
     exec_time_str = timezone.now().replace(tzinfo=None, microsecond=0).isoformat()
     logger.debug(
         "K8S RUN %s: Creating new pod - %s for %s",
@@ -74,7 +73,7 @@ def create_pod_kube(run: PipelineRun, image: str, env_vars: dict):
     )
 
     is_local_dev = os.environ.get("IS_LOCAL_DEV", "false").lower() == "true"
-    config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
+    k8s_config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
 
     v1 = CoreV1Api()
     container_name = generate_pipeline_container_name(run)
@@ -219,9 +218,6 @@ def create_pod_kube(run: PipelineRun, image: str, env_vars: dict):
 
 def attach_to_pod_kube(run: PipelineRun):
     """Attach to an existing Kubernetes pod for the pipeline run."""
-    from kubernetes import config
-    from kubernetes.client import CoreV1Api
-
     exec_time_str = timezone.now().replace(tzinfo=None, microsecond=0).isoformat()
     logger.debug(
         "K8S RUN %s: Re-attaching to existing pod - %s for %s",
@@ -231,7 +227,7 @@ def attach_to_pod_kube(run: PipelineRun):
     )
 
     is_local_dev = os.environ.get("IS_LOCAL_DEV", "false").lower() == "true"
-    config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
+    k8s_config.load_incluster_config() if not is_local_dev else load_local_dev_kubernetes_config()
 
     v1 = CoreV1Api()
     namespace = os.environ.get("PIPELINE_NAMESPACE", "default")
@@ -255,10 +251,6 @@ def attach_to_pod_kube(run: PipelineRun):
 
 def monitor_pod_kube(run: PipelineRun, pod):
     """Monitor a Kubernetes pod until completion and return success status and logs."""
-    from kubernetes.client import CoreV1Api
-    from kubernetes.client import models as k8s
-    from kubernetes.client.rest import ApiException
-
     v1 = CoreV1Api()
     container_name = generate_pipeline_container_name(run)
 
