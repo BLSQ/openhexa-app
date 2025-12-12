@@ -9,9 +9,17 @@ type NavItemProps = {
   Icon?: any;
   compact?: boolean;
   className?: string;
+  isCurrent?: boolean;
 };
 
-const NavItem = ({ label, href, Icon, compact, className }: NavItemProps) => {
+const NavItem = ({
+  label,
+  href,
+  Icon,
+  compact,
+  className,
+  isCurrent,
+}: NavItemProps) => {
   const [delayedLabel, setDelayedLabel] = useState(compact ? "" : label);
 
   useEffect(() => {
@@ -31,10 +39,18 @@ const NavItem = ({ label, href, Icon, compact, className }: NavItemProps) => {
       className={clsx(
         className,
         "text-md group relative flex items-center gap-3 px-2 py-2 font-medium",
-        "text-gray-300 hover:bg-gray-700 hover:text-white",
+        isCurrent
+          ? "text-white"
+          : "text-gray-300 hover:bg-gray-700 hover:text-white",
         compact && "justify-center",
       )}
     >
+      <div
+        className={clsx(
+          "absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity",
+          isCurrent ? "opacity-100" : "opacity-0",
+        )}
+      ></div>
       {Icon && (
         <Icon className={clsx("h-7 w-7 flex-shrink-0", !compact && "ml-1")} />
       )}
