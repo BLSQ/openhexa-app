@@ -116,44 +116,40 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
           </Button>
         }
       >
-        <div className="p-2">
-          <div className="m-2">
-            <WorkspacesHeader
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              view={view}
-              setView={handleSetView}
-            />
+        <WorkspacesHeader
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          view={view}
+          setView={handleSetView}
+        />
 
-            <div className="relative min-h-[200px]">
-              {loading && (
-                <div className="absolute inset-0 flex items-center justify-center  backdrop-blur-sm z-10 rounded-lg">
-                  <Spinner />
-                </div>
-              )}
-              {view === "card" ? (
-                <WorkspacesCardView
-                  items={workspaces}
-                  page={page}
-                  setPage={setPage}
-                  perPage={perPage}
-                  totalPages={data?.workspaces?.totalPages || 0}
-                  totalItems={data?.workspaces?.totalItems || 0}
-                  onArchiveClick={handleArchiveClick}
-                />
-              ) : (
-                <WorkspacesListView
-                  items={workspaces}
-                  page={page}
-                  setPage={setPage}
-                  perPage={perPage}
-                  totalPages={data?.workspaces?.totalPages || 0}
-                  totalItems={data?.workspaces?.totalItems || 0}
-                  onArchiveClick={handleArchiveClick}
-                />
-              )}
+        <div className="relative min-h-[200px]">
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center  backdrop-blur-sm z-10 rounded-lg">
+              <Spinner />
             </div>
-          </div>
+          )}
+          {view === "card" ? (
+            <WorkspacesCardView
+              items={workspaces}
+              page={page}
+              setPage={setPage}
+              perPage={perPage}
+              totalPages={data?.workspaces?.totalPages || 0}
+              totalItems={data?.workspaces?.totalItems || 0}
+              onArchiveClick={handleArchiveClick}
+            />
+          ) : (
+            <WorkspacesListView
+              items={workspaces}
+              page={page}
+              setPage={setPage}
+              perPage={perPage}
+              totalPages={data?.workspaces?.totalPages || 0}
+              totalItems={data?.workspaces?.totalItems || 0}
+              onArchiveClick={handleArchiveClick}
+            />
+          )}
         </div>
       </OrganizationLayout>
 

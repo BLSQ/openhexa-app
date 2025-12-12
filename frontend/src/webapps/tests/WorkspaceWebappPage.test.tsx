@@ -35,9 +35,10 @@ const graphqlMocks: MockedResponse[] = [
       query: SidebarMenuDocument,
       variables: {
         page: 1,
-        perPage: 5,
+        perPage: 2000,
       },
     },
+    maxUsageCount: Infinity,
     result: {
       data: {
         pendingWorkspaceInvitations: { totalItems: 1 },
@@ -165,7 +166,7 @@ describe("WorkspaceWebappPage", () => {
               query: SidebarMenuDocument,
               variables: {
                 page: 1,
-                perPage: 5,
+                perPage: 2000,
               },
             },
             result: {
@@ -242,7 +243,7 @@ describe("WorkspaceWebappPage", () => {
               query: SidebarMenuDocument,
               variables: {
                 page: 1,
-                perPage: 5,
+                perPage: 2000,
               },
             },
             result: {
@@ -316,7 +317,10 @@ describe("WorkspaceWebappPage", () => {
           },
         ])}
       >
-        <WorkspaceWebappPage webappSlug="test-webapp" workspaceSlug="test-workspace" />
+        <WorkspaceWebappPage
+          webappSlug="test-webapp"
+          workspaceSlug="test-workspace"
+        />
       </TestApp>,
     );
 
@@ -366,7 +370,10 @@ describe("WorkspaceWebappPage", () => {
           },
         })}
       >
-        <WorkspaceWebappPage webappSlug="test-webapp" workspaceSlug="test-workspace" />
+        <WorkspaceWebappPage
+          webappSlug="test-webapp"
+          workspaceSlug="test-workspace"
+        />
       </TestApp>,
     );
 

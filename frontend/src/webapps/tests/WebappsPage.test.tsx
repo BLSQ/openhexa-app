@@ -71,36 +71,39 @@ const webapp = (id: string) => ({
   workspace: mockWorkspace,
 });
 
-const graphqlMocks: MockedResponse[] = [
-  {
-    request: {
-      query: SidebarMenuDocument,
-      variables: {
-        page: 1,
-        perPage: 5,
-      },
+const sidebarMenuMock: MockedResponse = {
+  request: {
+    query: SidebarMenuDocument,
+    variables: {
+      page: 1,
+      perPage: 2000,
     },
-    result: {
-      data: {
-        pendingWorkspaceInvitations: { totalItems: 1 },
-        workspaces: {
-          totalItems: 2,
-          items: [
-            {
-              slug: "workspace-1",
-              name: "Workspace 1",
-              countries: [{ code: "US", flag: "🇺🇸" }],
-            },
-            {
-              slug: "workspace-2",
-              name: "Workspace 2",
-              countries: [{ code: "FR", flag: "🇫🇷" }],
-            },
-          ],
-        },
+  },
+  maxUsageCount: Infinity,
+  result: {
+    data: {
+      pendingWorkspaceInvitations: { totalItems: 1 },
+      workspaces: {
+        totalItems: 2,
+        items: [
+          {
+            slug: "workspace-1",
+            name: "Workspace 1",
+            countries: [{ code: "US", flag: "🇺🇸" }],
+          },
+          {
+            slug: "workspace-2",
+            name: "Workspace 2",
+            countries: [{ code: "FR", flag: "🇫🇷" }],
+          },
+        ],
       },
     },
   },
+};
+
+const graphqlMocks: MockedResponse[] = [
+  sidebarMenuMock,
   {
     request: {
       query: WorkspaceWebappsPageDocument,

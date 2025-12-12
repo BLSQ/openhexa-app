@@ -1,6 +1,7 @@
 import React from "react";
 import clsx from "clsx";
 import {
+  HomeIcon,
   ChevronLeftIcon,
   UsersIcon,
   Square2StackIcon,
@@ -11,7 +12,7 @@ import NavItem from "./NavItem";
 import SidebarToggleButton from "./SidebarToggleButton";
 import UserMenu from "workspaces/features/UserMenu";
 import { useTranslation } from "next-i18next";
-import { HomeIcon } from "@heroicons/react/20/solid";
+import { useRouter } from "next/router";
 
 type OrganizationSidebarProps = {
   organization: OrganizationQuery["organization"];
@@ -25,9 +26,19 @@ const OrganizationSidebar = ({
   setSidebarOpen,
 }: OrganizationSidebarProps) => {
   const { t } = useTranslation();
+  const router = useRouter();
+
   if (!organization) {
     return null;
   }
+
+  const currentPath = router.asPath;
+
+  const homeHref = `/organizations/${organization.id}/`;
+  const membersHref = `/organizations/${organization.id}/members`;
+  const datasetsHref = `/organizations/${organization.id}/datasets`;
+  const settingsHref = `/organizations/${organization.id}/settings`;
+
   return (
     <div
       className={clsx(
@@ -42,38 +53,45 @@ const OrganizationSidebar = ({
             key="organization"
             href="/organizations/"
             Icon={ChevronLeftIcon}
+            logo={organization.logo}
             label={organization.shortName ?? organization.name}
             compact={!isSidebarOpen}
           />
-          <div className="mt-5 flex grow flex-col gap-y-2">
-            <NavItem
-              href={`/organizations/${organization.id}`}
-              Icon={HomeIcon}
-              label={t("Workspaces")}
-              compact={!isSidebarOpen}
-            />
-            {organization.permissions.manageMembers && (
+          <div className="mt-5 flex grow flex-col overflow-y-auto scrollbar-visible">
+            <nav className="flex-1 space-y-1 px-0 pb-4">
               <NavItem
-                href={`/organizations/${organization.id}/members`}
-                Icon={UsersIcon}
-                label={t("Members")}
+                href={homeHref}
+                Icon={HomeIcon}
+                label={t("Workspaces")}
+                isCurrent={currentPath === homeHref}
                 compact={!isSidebarOpen}
               />
-            )}
-            <NavItem
-              href={`/organizations/${organization.id}/datasets`}
-              Icon={Square2StackIcon}
-              label={t("Datasets")}
-              compact={!isSidebarOpen}
-            />
-            {organization.permissions.update && (
+              {organization.permissions.manageMembers && (
+                <NavItem
+                  href={membersHref}
+                  Icon={UsersIcon}
+                  label={t("Members")}
+                  isCurrent={currentPath.startsWith(membersHref)}
+                  compact={!isSidebarOpen}
+                />
+              )}
               <NavItem
-                href={`/organizations/${organization.id}/settings`}
-                Icon={Cog6ToothIcon}
-                label={t("Settings")}
+                href={datasetsHref}
+                Icon={Square2StackIcon}
+                label={t("Datasets")}
+                isCurrent={currentPath.startsWith(datasetsHref)}
                 compact={!isSidebarOpen}
               />
-            )}
+              {organization.permissions.update && (
+                <NavItem
+                  href={settingsHref}
+                  Icon={Cog6ToothIcon}
+                  label={t("Settings")}
+                  isCurrent={currentPath.startsWith(settingsHref)}
+                  compact={!isSidebarOpen}
+                />
+              )}
+            </nav>
           </div>
           <UserMenu compact={!isSidebarOpen} />
         </div>

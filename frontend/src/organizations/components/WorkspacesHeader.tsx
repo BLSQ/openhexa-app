@@ -18,7 +18,7 @@ const WorkspacesHeader = ({
 }: WorkspacesHeaderProps) => {
   const { t } = useTranslation();
   return (
-    <div className="my-5 flex justify-between">
+    <div className="mb-5 flex justify-between">
       <SearchInput
         onSubmit={(event) => event.preventDefault()}
         value={searchQuery}

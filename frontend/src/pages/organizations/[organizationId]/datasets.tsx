@@ -37,11 +37,7 @@ const OrganizationDatasetsPage: NextPageWithLayout<Props> = ({
           </div>
         }
       >
-        <div className="p-2">
-          <div className="m-2">
-            <OrganizationDatasets organization={organization} />
-          </div>
-        </div>
+        <OrganizationDatasets organization={organization} />
       </OrganizationLayout>
     </Page>
   );

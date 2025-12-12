@@ -63,8 +63,8 @@ const BaseLayout = ({
             isSidebarOpen ? "left-64 2xl:left-72" : "left-16",
           )}
         >
-          <div className="flex items-center h-full px-4">
-            <div className="flex-1 min-w-0 pl-4">{header}</div>
+          <div className="flex items-center h-full px-4 md:px-6 xl:px-10 2xl:px-12">
+            <div className="flex-1 min-w-0">{header}</div>
             <div className="flex-shrink-0 w-100 max-w-md mx-auto p-2">
               <SpotlightSearch organizationId={organizationId} />
             </div>
@@ -78,10 +78,14 @@ const BaseLayout = ({
         className={clsx(
           "w-full mb-12 transition-all duration-75",
           isSidebarOpen ? "pl-64 2xl:pl-72" : "pl-16",
-          organizationId && header ? "pt-16" : "pt-2",
+          organizationId && header && "pt-12",
         )}
       >
-        {children}
+        <div className="py-6 xl:py-8">
+          <div className="mx-auto px-4 md:px-6 xl:px-10 2xl:px-12 mt-4">
+            {children}
+          </div>
+        </div>
       </main>
       <div className="fixed bottom-6 right-6">
         <Help

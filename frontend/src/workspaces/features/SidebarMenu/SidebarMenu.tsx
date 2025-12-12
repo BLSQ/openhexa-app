@@ -1,17 +1,28 @@
 import { gql, useQuery } from "@apollo/client";
 import { Transition } from "@headlessui/react";
-import { GlobeAltIcon } from "@heroicons/react/24/outline";
-import { ChevronDownIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import {
+  GlobeAltIcon,
+  StarIcon as OutlineStarIcon,
+} from "@heroicons/react/24/outline";
+import {
+  ChevronDownIcon,
+  PlusCircleIcon,
+  StarIcon as SolidStarIcon,
+} from "@heroicons/react/24/solid";
 import clsx from "clsx";
 import Link from "core/components/Link";
+import SearchInput from "core/features/SearchInput";
 import { CustomApolloClient } from "core/helpers/apollo";
 import useCacheKey from "core/hooks/useCacheKey";
+import useLocalStorage from "core/hooks/useLocalStorage";
 import useToggle from "core/hooks/useToggle";
 import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { Fragment, useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { usePopper } from "react-popper";
+import Flag from "react-world-flags";
 import useOnClickOutside from "use-onclickoutside";
 
 import CreateWorkspaceDialog from "../CreateWorkspaceDialog";
@@ -21,12 +32,12 @@ import {
   SidebarMenuQuery,
   SidebarMenuQueryVariables,
 } from "./SidebarMenu.generated";
-import Flag from "react-world-flags";
 
 interface SidebarMenuProps {
   workspace: SidebarMenu_WorkspaceFragment;
   compact?: boolean;
 }
+
 const POPPER_MODIFIERS = [{ name: "offset", options: { offset: [8, 4] } }];
 
 const SidebarMenu = (props: SidebarMenuProps) => {
@@ -35,13 +46,37 @@ const SidebarMenu = (props: SidebarMenuProps) => {
   const me = useMe();
   const [isDialogOpen, setDialogOpen] = useState(false);
   const router = useRouter();
+  const [isOpen, { toggle, setFalse }] = useToggle();
+
+  const [search, setSearch] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [favorites, setFavorites] = useLocalStorage<string[]>(
+    "workspace-favorites",
+    [],
+  );
+
+  const [listRef] = useAutoAnimate<HTMLDivElement>({ duration: 200 });
+  const [isAnimationReady, setIsAnimationReady] = useState(false);
+  // Only enable auto-animate after the menu has rendered to prevent initial flicker
+  useEffect(() => {
+    if (isOpen) {
+      setSearch("");
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+      // Wait for the menu transition to complete before enabling animations
+      const timer = setTimeout(() => setIsAnimationReady(true), 150);
+      return () => clearTimeout(timer);
+    } else {
+      setIsAnimationReady(false);
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen) {
       setFalse();
     }
   }, [router.asPath]);
-
-  const [isOpen, { toggle, setFalse }] = useToggle();
 
   const innerMenuRef = useRef<HTMLDivElement>(null);
   const [referenceElement, setReferenceElement] =
@@ -79,20 +114,46 @@ const SidebarMenu = (props: SidebarMenuProps) => {
       }
     `,
     {
-      variables: { page: 1, perPage: 5 },
+      variables: { page: 1, perPage: 2000 },
+      fetchPolicy: "cache-and-network",
     },
   );
 
   useCacheKey("workspaces", () => {
-    refetch();
+    refetch().then();
   });
 
-  const showMore = () => {
-    refetch({
-      page: 1,
-      perPage: data?.workspaces.totalItems,
-    });
+  const toggleFavorite = (slug: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (favorites.includes(slug)) {
+      setFavorites(favorites.filter((s) => s !== slug));
+    } else {
+      setFavorites([...favorites, slug]);
+    }
   };
+
+  const sortedWorkspaces = useMemo(() => {
+    if (!data?.workspaces.items) return [];
+
+    let filtered = data.workspaces.items;
+
+    if (search.trim()) {
+      const searchLower = search.toLowerCase().trim();
+      filtered = filtered.filter((ws) =>
+        ws.name.toLowerCase().includes(searchLower),
+      );
+    }
+
+    // Sort: favorites first, then alphabetical
+    return [...filtered].sort((a, b) => {
+      const aFav = favorites.includes(a.slug);
+      const bFav = favorites.includes(b.slug);
+      if (aFav && !bFav) return -1;
+      if (!aFav && bFav) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [data?.workspaces.items, favorites, search]);
 
   if (!workspace) {
     return null;
@@ -126,8 +187,15 @@ const SidebarMenu = (props: SidebarMenuProps) => {
             <ChevronDownIcon className="ml-1 h-4 w-4 text-gray-500 group-hover:text-gray-100" />
           </>
         ) : (
-          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-700 text-lg font-semibold text-gray-200">
-            {workspace.name.charAt(0).toUpperCase()}
+          <div className="flex h-10 w-10 items-center justify-center rounded-md text-lg font-semibold text-gray-200">
+            {workspace.countries.length === 1 ? (
+              <Flag
+                code={workspace.countries[0].code}
+                className="w-5 h-4 shrink rounded-xs"
+              />
+            ) : (
+              workspace.name.charAt(0).toUpperCase()
+            )}
           </div>
         )}
       </button>
@@ -149,9 +217,15 @@ const SidebarMenu = (props: SidebarMenuProps) => {
           className="divide z-50 flex w-72 flex-col divide-y divide-gray-200 overflow-x-hidden max-h-9/12 overflow-y-auto rounded-sm bg-white pt-2 text-base shadow-md ring-1 ring-black/5 focus:outline-hidden"
         >
           <section>
-            <div className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium tracking-wide text-gray-500 opacity-90">
-              {t("Your workspaces")}
-
+            <div className="flex w-full items-center gap-2 px-2 py-2 justify-between">
+              <SearchInput
+                ref={searchInputRef}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t("Search workspaces...")}
+                className="flex-1"
+                fullWidth
+              />
               {(me.permissions.createWorkspace ||
                 workspace.organization?.permissions.createWorkspace) && (
                 <>
@@ -159,9 +233,9 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                     type="button"
                     onClick={() => setDialogOpen(true)}
                     title={t("Create a new workspace")}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
                   >
-                    <PlusCircleIcon className="h-5 w-5 " />
+                    <PlusCircleIcon className="h-5 w-5" />
                   </button>
                   <CreateWorkspaceDialog
                     open={isDialogOpen}
@@ -172,44 +246,70 @@ const SidebarMenu = (props: SidebarMenuProps) => {
               )}
             </div>
 
-            <div className="max-h-96 overflow-y-auto">
-              {data?.workspaces.items.map((ws, index) => (
-                <Link
-                  noStyle
-                  href={{
-                    pathname: "/workspaces/[workspaceSlug]",
-                    query: { workspaceSlug: ws.slug },
-                  }}
-                  className={clsx(
-                    "flex items-center px-4 py-2.5 hover:bg-gray-100",
-                    ws.slug === workspace.slug && "bg-gray-100 font-medium",
-                  )}
-                  key={index}
-                >
-                  <div className="mr-2.5 flex h-full w-5 items-center">
-                    {ws.countries && ws.countries.length === 1 ? (
-                      <Flag
-                        code={ws.countries[0].code}
-                        className="w-5 shrink rounded-xs"
-                      />
-                    ) : (
-                      <GlobeAltIcon className="w-5 shrink rounded-xs text-gray-400" />
+            <div
+              ref={isAnimationReady ? listRef : undefined}
+              className="max-h-96 overflow-y-auto"
+            >
+              {sortedWorkspaces.map((ws) => {
+                const isFavorite = favorites.includes(ws.slug);
+                return (
+                  <Link
+                    noStyle
+                    href={{
+                      pathname: "/workspaces/[workspaceSlug]",
+                      query: { workspaceSlug: ws.slug },
+                    }}
+                    className={clsx(
+                      "group/item flex items-center px-4 py-2.5 hover:bg-gray-100",
+                      ws.slug === workspace.slug && "font-semibold",
                     )}
-                  </div>
-                  <span className="text-sm leading-tight tracking-tight">
-                    {ws.name}
-                  </span>
-                </Link>
-              ))}
-              {data?.workspaces.totalItems !==
-                data?.workspaces.items.length && (
-                <div className="pb-2 text-center">
-                  <button
-                    onClick={() => showMore()}
-                    className="ml-4 inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-400"
+                    key={ws.slug}
                   >
-                    {t("Show more")}
-                  </button>
+                    <div className="mr-2.5 flex h-full w-5 shrink-0 items-center">
+                      {ws.countries && ws.countries.length === 1 ? (
+                        <Flag
+                          code={ws.countries[0].code}
+                          className="w-5 shrink rounded-xs"
+                        />
+                      ) : (
+                        <GlobeAltIcon className="w-5 shrink rounded-xs text-gray-400" />
+                      )}
+                    </div>
+                    <span className="flex-1 text-sm leading-tight tracking-tight">
+                      {ws.name}
+                    </span>
+                    <button
+                      onClick={(e) => toggleFavorite(ws.slug, e)}
+                      className="relative ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all duration-200 hover:bg-amber-50 active:scale-75"
+                      title={
+                        isFavorite
+                          ? t("Remove from favorites")
+                          : t("Add to favorites")
+                      }
+                    >
+                      <SolidStarIcon
+                        className={clsx(
+                          "h-4 w-4 transition-all duration-200",
+                          isFavorite
+                            ? "scale-100 text-amber-400"
+                            : "scale-0 text-amber-400",
+                        )}
+                      />
+                      <OutlineStarIcon
+                        className={clsx(
+                          "absolute h-4 w-4 transition-all duration-200",
+                          isFavorite
+                            ? "scale-0 text-gray-300"
+                            : "scale-100 text-gray-300 group-hover/item:text-gray-400",
+                        )}
+                      />
+                    </button>
+                  </Link>
+                );
+              })}
+              {sortedWorkspaces.length === 0 && search.trim() && (
+                <div className="px-4 py-3 text-center text-sm text-gray-500">
+                  {t("No workspaces found")}
                 </div>
               )}
             </div>
@@ -233,6 +333,7 @@ SidebarMenu.fragments = {
         id
         name
         shortName
+        logo
         permissions {
           createWorkspace
         }
@@ -244,7 +345,7 @@ SidebarMenu.fragments = {
 SidebarMenu.prefetch = async (client: CustomApolloClient) => {
   await client.query({
     query: SidebarMenuDocument,
-    variables: { page: 1, perPage: 5 },
+    variables: { page: 1, perPage: 2000 },
   });
 };
 

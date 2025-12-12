@@ -40,6 +40,7 @@ const OrganizationsSidebar = ({
             {organizations.map((organization) => (
               <NavItem
                 Icon={BuildingOffice2Icon}
+                logo={organization.logo}
                 className="rounded-md text-wrap m-2"
                 key={organization.id}
                 href={"/organizations/" + organization.id}

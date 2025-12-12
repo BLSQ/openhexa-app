@@ -12,7 +12,7 @@ type SearchInputProps = {
   required?: boolean;
 } & Pick<
   React.ComponentProps<typeof Input>,
-  "onChange" | "value" | "name" | "fitWidth"
+  "onChange" | "value" | "name" | "fitWidth" | "fullWidth"
 >;
 
 const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
