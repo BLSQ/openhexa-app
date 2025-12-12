@@ -123,8 +123,8 @@ class TestKubernetesPipelineIntegration(TestCase):
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
     @patch("hexa.pipelines.management.commands.pipelines_runner.sleep")
-    @patch("kubernetes.config.load_incluster_config")
-    @patch("kubernetes.client.CoreV1Api")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
     def test_create_pod_with_correct_configuration(
         self, mock_k8s_client, mock_config, mock_sleep
     ):
@@ -155,8 +155,8 @@ class TestKubernetesPipelineIntegration(TestCase):
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
     @patch("hexa.pipelines.management.commands.pipelines_runner.sleep")
-    @patch("kubernetes.config.load_incluster_config")
-    @patch("kubernetes.client.CoreV1Api")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
     def test_successful_pipeline_execution_end_to_end(
         self, mock_k8s_client, mock_config, mock_sleep
     ):
@@ -182,8 +182,8 @@ class TestKubernetesPipelineIntegration(TestCase):
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
     @patch("hexa.pipelines.management.commands.pipelines_runner.sleep")
-    @patch("kubernetes.config.load_incluster_config")
-    @patch("kubernetes.client.CoreV1Api")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
     def test_failed_pipeline_execution(self, mock_k8s_client, mock_config, mock_sleep):
         mock_api = self._create_mock_kubernetes_api("Failed")
         mock_k8s_client.return_value = mock_api
@@ -202,8 +202,8 @@ class TestKubernetesPipelineIntegration(TestCase):
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
     @patch("hexa.pipelines.management.commands.pipelines_runner.sleep")
-    @patch("kubernetes.config.load_incluster_config")
-    @patch("kubernetes.client.CoreV1Api")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
     def test_pipeline_timeout_handling(self, mock_k8s_client, mock_config, mock_sleep):
         mock_api = self._create_mock_kubernetes_api("Failed", "DeadlineExceeded")
         mock_k8s_client.return_value = mock_api
@@ -221,8 +221,8 @@ class TestKubernetesPipelineIntegration(TestCase):
 
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch("hexa.pipelines.management.commands.pipelines_runner.sleep")
-    @patch("kubernetes.config.load_incluster_config")
-    @patch("kubernetes.client.CoreV1Api")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
     def test_monitor_updates_heartbeat(self, mock_k8s_client, mock_config, mock_sleep):
         call_count = [0]
 
@@ -249,8 +249,8 @@ class TestKubernetesPipelineIntegration(TestCase):
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
     @patch("hexa.pipelines.management.commands.pipelines_runner.sleep")
-    @patch("kubernetes.config.load_incluster_config")
-    @patch("kubernetes.client.CoreV1Api")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
     def test_attach_to_existing_pod(self, mock_k8s_client, mock_config, mock_sleep):
         mock_api = Mock()
         mock_pod = self._create_mock_pod()
@@ -271,8 +271,8 @@ class TestKubernetesPipelineIntegration(TestCase):
 
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
-    @patch("kubernetes.config.load_incluster_config")
-    @patch("kubernetes.client.CoreV1Api")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
     def test_attach_to_pod_when_no_pod_found_exits_gracefully(
         self, mock_k8s_client, mock_config
     ):
@@ -295,8 +295,8 @@ class TestKubernetesPipelineIntegration(TestCase):
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
     @patch("hexa.pipelines.management.commands.pipelines_runner.sleep")
-    @patch("kubernetes.config.load_incluster_config")
-    @patch("kubernetes.client.CoreV1Api")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
     def test_pod_logs_retrieval_failure_handled(
         self, mock_k8s_client, mock_config, mock_sleep
     ):
@@ -318,8 +318,8 @@ class TestKubernetesPipelineIntegration(TestCase):
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
     @patch("hexa.pipelines.management.commands.pipelines_runner.sleep")
-    @patch("kubernetes.config.load_incluster_config")
-    @patch("kubernetes.client.CoreV1Api")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
     def test_pod_deletion_404_ignored(self, mock_k8s_client, mock_config, mock_sleep):
         mock_api = self._create_mock_kubernetes_api("Succeeded")
 
@@ -339,8 +339,8 @@ class TestKubernetesPipelineIntegration(TestCase):
 
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
-    @patch("kubernetes.config.load_incluster_config")
-    @patch("kubernetes.client.CoreV1Api")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
     def test_zombie_run_without_pod_marked_failed(self, mock_k8s_client, mock_config):
         old_time = timezone.now() - timedelta(minutes=20)
         self.run.state = PipelineRunState.RUNNING
@@ -358,8 +358,8 @@ class TestKubernetesPipelineIntegration(TestCase):
 
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
-    @patch("kubernetes.config.load_incluster_config")
-    @patch("kubernetes.client.CoreV1Api")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
     def test_zombie_run_with_completed_pod_gets_final_state(
         self, mock_k8s_client, mock_config
     ):
@@ -382,8 +382,8 @@ class TestKubernetesPipelineIntegration(TestCase):
 
     @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
     @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
-    @patch("kubernetes.config.load_incluster_config")
-    @patch("kubernetes.client.CoreV1Api")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
     def test_zombie_run_with_running_pod_still_marked_failed(
         self, mock_k8s_client, mock_config
     ):
