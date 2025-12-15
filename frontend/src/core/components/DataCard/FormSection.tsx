@@ -128,7 +128,13 @@ function FormSection<F extends { [key: string]: any }>(
     validate(values) {
       const errors = {} as any;
 
-      for (const property of Object.values(properties.current)) {
+      for (const definition of definitions.current) {
+        const property = getProperty<F>(definition, item, form, isEdited);
+
+        if (!property.visible) {
+          continue;
+        }
+
         if (property.required && !values[property.id]) {
           errors[property.id] = t("This field is required");
         }
@@ -139,6 +145,7 @@ function FormSection<F extends { [key: string]: any }>(
           }
         }
       }
+
       return errors;
     },
   });

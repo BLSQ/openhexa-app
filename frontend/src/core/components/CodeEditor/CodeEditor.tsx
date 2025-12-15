@@ -1,5 +1,6 @@
 import { json } from "@codemirror/lang-json";
 import { python } from "@codemirror/lang-python";
+import { html } from "@codemirror/lang-html";
 import CodeMirror from "@uiw/react-codemirror";
 import clsx from "clsx";
 import { useMemo } from "react";
@@ -10,7 +11,7 @@ type CodeEditorProps = {
   editable?: boolean;
   minHeight?: string;
   height?: string;
-  lang?: "json" | "python" | string;
+  lang?: "json" | "python" | "html" | string;
   className?: string;
 };
 
@@ -32,6 +33,8 @@ function CodeEditor(props: CodeEditorProps) {
         return [json()];
       case "python":
         return [python()];
+      case "html":
+        return [html()];
       default:
         return [];
     }

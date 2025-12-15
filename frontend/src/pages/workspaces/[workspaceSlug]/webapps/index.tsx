@@ -109,23 +109,26 @@ const WebappsPage = (props: Props) => {
               totalItems={data.webapps.totalItems}
               fetchData={onChangePage}
             >
-              <BaseColumn id="name" label={t("Name")}>
+              <BaseColumn id="name" label={t("Name")} width={400}>
                 {(item) => (
                   <div className="flex items-center space-x-1">
-                    <FavoriteWebappButton webapp={item} />
-                    <ShortcutWebappButton webapp={item} />
-                    <img
-                      src={item.icon}
-                      className={clsx(
-                        "h-4 w-4 rounded",
-                        !item.icon && "invisible",
-                      )}
-                      alt={"Icon"}
-                    />
+                    <div className="flex items-center space-x-1 flex-shrink-0">
+                      <FavoriteWebappButton webapp={item} />
+                      <ShortcutWebappButton webapp={item} />
+                      <img
+                        src={item.icon}
+                        className={clsx(
+                          "h-4 w-4 rounded",
+                          !item.icon && "invisible",
+                        )}
+                        alt={"Icon"}
+                      />
+                    </div>
                     <Link
                       href={{
                         pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${item.slug}`,
                       }}
+                      className="truncate"
                     >
                       {item.name}
                     </Link>
@@ -146,14 +149,15 @@ const WebappsPage = (props: Props) => {
                 url={(item) => ({
                   pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${item.slug}/play`,
                 })}
+                width={80}
                 className={"flex items-center justify-center"}
               >
                 <div
                   className={
-                    "flex items-center justify-center bg-blue-500 rounded-full h-6 w-6 hover:bg-blue-600 cursor-pointer hover:scale-110"
+                    "flex items-center justify-center bg-blue-500 rounded-full h-8 w-8 hover:bg-blue-600 cursor-pointer hover:scale-110"
                   }
                 >
-                  <PlayIcon className="h-3 w-3 text-white fill-white translate-x-0.25" />
+                  <PlayIcon className="h-4 w-4 text-white fill-white translate-x-0.25" />
                 </div>
               </LinkColumn>
               <ChevronLinkColumn

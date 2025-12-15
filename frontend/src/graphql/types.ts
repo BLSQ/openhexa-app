@@ -957,11 +957,13 @@ export enum CreateWebappError {
 
 /** Represents the input for creating a web app. */
 export type CreateWebappInput = {
+  bundle?: InputMaybe<Scalars['String']['input']>;
+  content?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   type: WebappType;
-  url: Scalars['String']['input'];
+  url?: InputMaybe<Scalars['String']['input']>;
   workspaceSlug: Scalars['String']['input'];
 };
 
@@ -5300,6 +5302,8 @@ export enum UpdateWebappError {
 
 /** Represents the input for updating a web app. */
 export type UpdateWebappInput = {
+  bundle?: InputMaybe<Scalars['String']['input']>;
+  content?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
@@ -5473,6 +5477,7 @@ export type WhoRegion = {
 /** Represents a web app. */
 export type Webapp = {
   __typename?: 'Webapp';
+  content?: Maybe<Scalars['String']['output']>;
   createdBy: User;
   description?: Maybe<Scalars['String']['output']>;
   icon?: Maybe<Scalars['String']['output']>;
@@ -5483,7 +5488,7 @@ export type Webapp = {
   permissions: WebappPermissions;
   slug: Scalars['String']['output'];
   type: WebappType;
-  url: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
   workspace: Workspace;
 };
 

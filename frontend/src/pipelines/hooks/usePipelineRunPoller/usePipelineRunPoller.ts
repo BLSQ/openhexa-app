@@ -34,7 +34,6 @@ function usePipelineRunPoller(
     return () => {
       clearInterval(timeout);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run.status, polling]);
 }
 

@@ -1,14 +1,34 @@
 import clsx from "clsx";
 import React, { useEffect, useMemo, useState } from "react";
 import Spinner from "core/components/Spinner";
+import { WebappType } from "graphql/types";
 
 type WebappIframeProps = {
-  url: string;
+  url?: string;
+  type?: WebappType;
+  workspaceSlug?: string;
+  webappSlug?: string;
   className?: string;
   style?: React.CSSProperties;
 };
 
-const WebappIframe = ({ url, className, style }: WebappIframeProps) => {
+const WebappIframe = ({
+  url: externalUrl,
+  type,
+  workspaceSlug,
+  webappSlug,
+  className,
+  style,
+}: WebappIframeProps) => {
+  const url = useMemo(() => {
+    if (type === WebappType.Html && workspaceSlug && webappSlug) {
+      return `/webapps/${workspaceSlug}/${webappSlug}/html/`;
+    } else if (type === WebappType.Bundle && workspaceSlug && webappSlug) {
+      return `/webapps/${workspaceSlug}/${webappSlug}/bundle/`;
+    } else {
+      return externalUrl || "";
+    }
+  }, [type, workspaceSlug, webappSlug, externalUrl]);
   const [iframeLoading, setIframeLoading] = useState(true);
 
   useEffect(() => {

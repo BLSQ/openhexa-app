@@ -921,11 +921,13 @@ enum CreateWebappError {
 
 """Represents the input for creating a web app."""
 input CreateWebappInput {
+  bundle: String
+  content: String
   description: String
   icon: String
   name: String!
   type: WebappType!
-  url: String!
+  url: String
   workspaceSlug: String!
 }
 
@@ -4477,6 +4479,8 @@ enum UpdateWebappError {
 
 """Represents the input for updating a web app."""
 input UpdateWebappInput {
+  bundle: String
+  content: String
   description: String
   icon: String
   id: UUID!
@@ -4662,6 +4666,7 @@ type WHORegion {
 
 """Represents a web app."""
 type Webapp {
+  content: String
   createdBy: User!
   description: String
   icon: String
@@ -4672,7 +4677,7 @@ type Webapp {
   permissions: WebappPermissions!
   slug: String!
   type: WebappType!
-  url: String!
+  url: String
   workspace: Workspace!
 }
 
