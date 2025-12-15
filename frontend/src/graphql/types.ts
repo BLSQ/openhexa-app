@@ -957,7 +957,6 @@ export enum CreateTemplateVersionPermissionReason {
 export enum CreateWebappError {
   AlreadyExists = 'ALREADY_EXISTS',
   PermissionDenied = 'PERMISSION_DENIED',
-  ValidationError = 'VALIDATION_ERROR',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
@@ -5315,7 +5314,6 @@ export type UpdateUserResult = {
 /** Represents the error message for a web app update. */
 export enum UpdateWebappError {
   PermissionDenied = 'PERMISSION_DENIED',
-  ValidationError = 'VALIDATION_ERROR',
   WebappNotFound = 'WEBAPP_NOT_FOUND'
 }
 

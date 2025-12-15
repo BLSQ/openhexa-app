@@ -921,7 +921,6 @@ enum CreateTemplateVersionPermissionReason {
 enum CreateWebappError {
   ALREADY_EXISTS
   PERMISSION_DENIED
-  VALIDATION_ERROR
   WORKSPACE_NOT_FOUND
 }
 
@@ -4492,7 +4491,6 @@ type UpdateUserResult {
 """Represents the error message for a web app update."""
 enum UpdateWebappError {
   PERMISSION_DENIED
-  VALIDATION_ERROR
   WEBAPP_NOT_FOUND
 }
 

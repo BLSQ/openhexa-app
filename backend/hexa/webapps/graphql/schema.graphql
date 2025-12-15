@@ -103,7 +103,6 @@ enum CreateWebappError {
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
   ALREADY_EXISTS
-  VALIDATION_ERROR
 }
 
 """
@@ -132,7 +131,6 @@ Represents the error message for a web app update.
 enum UpdateWebappError {
   WEBAPP_NOT_FOUND
   PERMISSION_DENIED
-  VALIDATION_ERROR
 }
 
 """
