@@ -20,7 +20,6 @@ def _check_webapp_permission(request: HttpRequest, webapp: Webapp) -> bool:
     if not request.user.is_authenticated:
         return False
 
-    # Check if user is a member of the workspace
     return webapp.workspace.members.filter(id=request.user.id).exists()
 
 

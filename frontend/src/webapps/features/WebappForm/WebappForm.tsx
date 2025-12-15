@@ -145,15 +145,12 @@ const BundleFileInput = ({ id, accessor, label, required, helpText, visible, web
             {isLoading && (
               <p className="text-sm text-blue-600">{t("Loading file...")}</p>
             )}
-            {fileName && !isLoading && (
-              <p className="text-sm text-green-600">✓ {fileName} {t("ready")}</p>
-            )}
           </div>
         </DataCard.Property>
         {fileName && !isLoading && (
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
             <p className="text-sm text-gray-700 mb-2">
-              <span className="font-medium">✓ {t("Bundle uploaded successfully!")}</span>
+              <span className="font-medium">✓ {fileName}</span> {t("uploaded successfully")}
             </p>
             <p className="text-sm text-gray-600">
               {webapp
@@ -303,14 +300,41 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
 
   const clearCache = useCacheKey("webapps");
 
+  const buildWebappContentInput = (values: any) => {
+    const type = values.type || currentType;
+    const cleaned: any = {
+      name: values.name,
+      description: values.description,
+      icon: values.icon,
+    };
+
+    // Build the nested content structure based on webapp type
+    if (type === WebappType.Iframe && values.url) {
+      cleaned.content = { iframe: { url: values.url } };
+    } else if (type === WebappType.Html && values.content) {
+      cleaned.content = { html: { content: values.content } };
+    } else if (type === WebappType.Bundle && values.bundle) {
+      cleaned.content = { bundle: { bundle: values.bundle } };
+    } else if (type === WebappType.Superset && values.url) {
+      cleaned.content = { superset: { url: values.url } };
+    }
+
+    return cleaned;
+  };
+
   const updateExistingWebapp = async (values: any) => {
     try {
-      await updateWebapp({
-        variables: { input: { id: webapp?.id, ...values } },
-      }).then(() => {
+      const cleanedInput = buildWebappContentInput(values);
+      const result = await updateWebapp({
+        variables: { input: { id: webapp?.id, ...cleanedInput } },
+      });
+
+      if (result.data?.updateWebapp?.success) {
         toast.success(t("Webapp updated successfully"));
         clearCache();
-      });
+      } else {
+        toast.error(t("An error occurred while updating the webapp"));
+      }
     } catch (error) {
       toast.error(t("An error occurred while updating the webapp"));
     }
@@ -318,8 +342,9 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
 
   const createNewWebapp = async (values: any) => {
     try {
+      const cleanedInput = buildWebappContentInput(values);
       await createWebapp({
-        variables: { input: { workspaceSlug: workspace.slug, ...values } },
+        variables: { input: { workspaceSlug: workspace.slug, ...cleanedInput } },
       }).then(({ data }) => {
         if (!data?.createWebapp?.webapp) {
           throw new Error("Webapp creation failed");

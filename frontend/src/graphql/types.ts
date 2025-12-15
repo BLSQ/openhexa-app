@@ -499,6 +499,11 @@ export enum BucketObjectType {
   File = 'FILE'
 }
 
+/** Content input for a BUNDLE webapp. */
+export type BundleWebappContentInput = {
+  bundle: Scalars['String']['input'];
+};
+
 export type Config = {
   __typename?: 'Config';
   /** List of requirements for the password. */
@@ -952,18 +957,16 @@ export enum CreateTemplateVersionPermissionReason {
 export enum CreateWebappError {
   AlreadyExists = 'ALREADY_EXISTS',
   PermissionDenied = 'PERMISSION_DENIED',
+  ValidationError = 'VALIDATION_ERROR',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
 /** Represents the input for creating a web app. */
 export type CreateWebappInput = {
-  bundle?: InputMaybe<Scalars['String']['input']>;
-  content?: InputMaybe<Scalars['String']['input']>;
+  content: WebappContentInput;
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
-  type: WebappType;
-  url?: InputMaybe<Scalars['String']['input']>;
   workspaceSlug: Scalars['String']['input'];
 };
 
@@ -2151,6 +2154,11 @@ export type GenericOutput = {
   uri: Scalars['String']['output'];
 };
 
+/** Content input for an HTML webapp. */
+export type HtmlWebappContentInput = {
+  content: Scalars['String']['input'];
+};
+
 /** IASO connection object */
 export type IasoConnection = Connection & {
   __typename?: 'IASOConnection';
@@ -2211,6 +2219,11 @@ export type IasoQueryResultPage = {
   success: Scalars['Boolean']['output'];
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
+};
+
+/** Content input for an IFRAME webapp. */
+export type IframeWebappContentInput = {
+  url: Scalars['String']['input'];
 };
 
 /** The InviteOrganizationMemberError enum represents the possible errors that can occur during the inviteOrganizationMember mutation. */
@@ -4730,6 +4743,11 @@ export type StopPipelineResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Content input for a SUPERSET webapp. */
+export type SupersetWebappContentInput = {
+  url: Scalars['String']['input'];
+};
+
 export type TableColumn = {
   __typename?: 'TableColumn';
   name: Scalars['String']['output'];
@@ -5297,19 +5315,17 @@ export type UpdateUserResult = {
 /** Represents the error message for a web app update. */
 export enum UpdateWebappError {
   PermissionDenied = 'PERMISSION_DENIED',
+  ValidationError = 'VALIDATION_ERROR',
   WebappNotFound = 'WEBAPP_NOT_FOUND'
 }
 
 /** Represents the input for updating a web app. */
 export type UpdateWebappInput = {
-  bundle?: InputMaybe<Scalars['String']['input']>;
-  content?: InputMaybe<Scalars['String']['input']>;
+  content?: InputMaybe<WebappContentInput>;
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
-  type?: InputMaybe<WebappType>;
-  url?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Represents the result of updating a web app. */
@@ -5491,6 +5507,13 @@ export type Webapp = {
   url?: Maybe<Scalars['String']['output']>;
   workspace: Workspace;
 };
+
+/** Content input for a webapp. Exactly one field must be provided. */
+export type WebappContentInput =
+  { bundle: BundleWebappContentInput; html?: never; iframe?: never; superset?: never; }
+  |  { bundle?: never; html: HtmlWebappContentInput; iframe?: never; superset?: never; }
+  |  { bundle?: never; html?: never; iframe: IframeWebappContentInput; superset?: never; }
+  |  { bundle?: never; html?: never; iframe?: never; superset: SupersetWebappContentInput; };
 
 /** Represents the permissions for a web app. */
 export type WebappPermissions = {

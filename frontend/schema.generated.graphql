@@ -451,6 +451,11 @@ enum BucketObjectType {
   FILE
 }
 
+"""Content input for a BUNDLE webapp."""
+input BundleWebappContentInput {
+  bundle: String!
+}
+
 type Config {
   """List of requirements for the password."""
   passwordRequirements: [String!]
@@ -916,18 +921,16 @@ enum CreateTemplateVersionPermissionReason {
 enum CreateWebappError {
   ALREADY_EXISTS
   PERMISSION_DENIED
+  VALIDATION_ERROR
   WORKSPACE_NOT_FOUND
 }
 
 """Represents the input for creating a web app."""
 input CreateWebappInput {
-  bundle: String
-  content: String
+  content: WebappContentInput!
   description: String
   icon: String
   name: String!
-  type: WebappType!
-  url: String
   workspaceSlug: String!
 }
 
@@ -2074,6 +2077,11 @@ type GenericOutput {
   uri: String!
 }
 
+"""Content input for an HTML webapp."""
+input HtmlWebappContentInput {
+  content: String!
+}
+
 """IASO connection object"""
 type IASOConnection implements Connection {
   createdAt: DateTime!
@@ -2121,6 +2129,11 @@ type IASOQueryResultPage {
   success: Boolean!
   totalItems: Int!
   totalPages: Int!
+}
+
+"""Content input for an IFRAME webapp."""
+input IframeWebappContentInput {
+  url: String!
 }
 
 """
@@ -3834,6 +3847,11 @@ type StopPipelineResult {
   success: Boolean!
 }
 
+"""Content input for a SUPERSET webapp."""
+input SupersetWebappContentInput {
+  url: String!
+}
+
 type TableColumn {
   name: String!
   type: String!
@@ -4474,19 +4492,17 @@ type UpdateUserResult {
 """Represents the error message for a web app update."""
 enum UpdateWebappError {
   PERMISSION_DENIED
+  VALIDATION_ERROR
   WEBAPP_NOT_FOUND
 }
 
 """Represents the input for updating a web app."""
 input UpdateWebappInput {
-  bundle: String
-  content: String
+  content: WebappContentInput
   description: String
   icon: String
   id: UUID!
   name: String
-  type: WebappType
-  url: String
 }
 
 """Represents the result of updating a web app."""
@@ -4679,6 +4695,14 @@ type Webapp {
   type: WebappType!
   url: String
   workspace: Workspace!
+}
+
+"""Content input for a webapp. Exactly one field must be provided."""
+input WebappContentInput @oneOf {
+  bundle: BundleWebappContentInput
+  html: HtmlWebappContentInput
+  iframe: IframeWebappContentInput
+  superset: SupersetWebappContentInput
 }
 
 """Represents the permissions for a web app."""

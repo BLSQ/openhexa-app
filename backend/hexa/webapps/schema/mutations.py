@@ -12,30 +12,45 @@ def _decode_icon_if_present(input: dict):
         input["icon"] = decode_base64_image(input["icon"])
 
 
-def _normalize_type_if_present(input: dict):
-    if input.get("type"):
-        input["type"] = input["type"].lower()
+def _flatten_webapp_content(input: dict):
+    """
+    Flatten the WebappContentInput structure to extract type and content fields.
+    GraphQL's @oneOf ensures only one content type is provided.
+    """
+    content_input = input.get("content")
+    if not content_input:
+        return
 
-
-def _decode_bundle_if_present(input: dict):
-    if input.get("bundle"):
-        try:
-            input["bundle"] = base64.b64decode(input["bundle"])
-        except Exception:
-            pass
+    # Determine type and extract content based on which field is set
+    if "iframe" in content_input:
+        input["type"] = "iframe"
+        input["url"] = content_input["iframe"]["url"]
+        del input["content"]
+    elif "html" in content_input:
+        input["type"] = "html"
+        html_content = content_input["html"]["content"]
+        del input["content"]
+        input["content"] = html_content
+    elif "bundle" in content_input:
+        input["type"] = "bundle"
+        bundle_b64 = content_input["bundle"]["bundle"]
+        del input["content"]
+        input["bundle"] = base64.b64decode(bundle_b64)
+    elif "superset" in content_input:
+        input["type"] = "superset"
+        input["url"] = content_input["superset"]["url"]
+        del input["content"]
 
 
 class WebappsWorkspaceMutationType(BaseWorkspaceMutationType):
     def pre_create(self, request: HttpRequest, input: dict):
         input["created_by"] = request.user
+        _flatten_webapp_content(input)
         _decode_icon_if_present(input)
-        _normalize_type_if_present(input)
-        _decode_bundle_if_present(input)
 
     def pre_update(self, request: HttpRequest, instance, input: dict):
+        _flatten_webapp_content(input)
         _decode_icon_if_present(input)
-        _normalize_type_if_present(input)
-        _decode_bundle_if_present(input)
 
 
 webapps_mutations = WebappsWorkspaceMutationType(Webapp)

@@ -59,7 +59,6 @@
   "All {{count}} members accesses___other": "All {{count}} members accesses",
   "All apps": "All apps",
   "All datasets": "All datasets",
-  "All datasets available in this organization": "All datasets available in this organization",
   "All publishers": "All publishers",
   "All results": "All results",
   "All roles": "All roles",
@@ -105,7 +104,6 @@
   "Bucket name": "Bucket name",
   "Bundle File": "Bundle File",
   "Bundle uploaded": "Bundle uploaded",
-  "Bundle uploaded successfully!": "Bundle uploaded successfully!",
   "By proceeding, the invitation link for {{email}} will no longer be usable.": "By proceeding, the invitation link for {{email}} will no longer be usable.",
   "By proceeding, the invitation link for <1>{invitation.email}</1> will no longer be usable.": "By proceeding, the invitation link for <1>{invitation.email}</1> will no longer be usable.",
   "Cancel": "Cancel",
@@ -487,7 +485,6 @@
   "Queued on": "Queued on",
   "Re-run job": "Re-run job",
   "Re-use existing extract": "Re-use existing extract",
-  "ready": "ready",
   "Regenerate database password": "Regenerate database password",
   "Regenerate password": "Regenerate password",
   "Regenerating the database password": "Regenerating the database password",
@@ -707,6 +704,7 @@
   "Upload files in workspace": "Upload files in workspace",
   "Upload in progress...": "Upload in progress...",
   "Upload successful!": "Upload successful!",
+  "uploaded successfully": "uploaded successfully",
   "Uploading: {{progress}}%": "Uploading: {{progress}}%",
   "URL": "URL",
   "User": "User",
@@ -791,6 +789,5 @@
   "You must confirm publishing": "You must confirm publishing",
   "You're about to archive the {{workspaceName}} workspace and all its content.": "You're about to archive the {{workspaceName}} workspace and all its content.",
   "You're about to remove {{name}} from this workspace.": "You're about to remove {{name}} from this workspace.",
-  "Your account": "Your account",
-  "Your workspaces": "Your workspaces"
+  "Your account": "Your account"
 }
