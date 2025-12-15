@@ -112,6 +112,11 @@ const BundleFileInput = ({ id, accessor, label, required, helpText, visible, web
   const handleFilesChange = async (files: readonly File[]) => {
     if (files.length > 0) {
       const file = files[0];
+      const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(t("The selected file is too large. Maximum allowed size is 50MB."));
+        return;
+      }
       setFileName(file.name);
       setIsLoading(true);
 
