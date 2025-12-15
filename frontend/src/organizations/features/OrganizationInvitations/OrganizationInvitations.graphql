@@ -27,14 +27,18 @@ query OrganizationInvitations($id: UUID!, $page: Int, $perPage: Int) {
   }
 }
 
-mutation DeleteOrganizationInvitation($input: DeleteOrganizationInvitationInput!) {
+mutation DeleteOrganizationInvitation(
+  $input: DeleteOrganizationInvitationInput!
+) {
   deleteOrganizationInvitation(input: $input) {
     success
     errors
   }
 }
 
-mutation ResendOrganizationInvitation($input: ResendOrganizationInvitationInput!) {
+mutation ResendOrganizationInvitation(
+  $input: ResendOrganizationInvitationInput!
+) {
   resendOrganizationInvitation(input: $input) {
     success
     errors

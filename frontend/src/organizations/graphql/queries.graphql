@@ -1,122 +1,147 @@
 fragment Organization_organization on Organization {
-    id
-        name
-        shortName
-        logo
-        workspaces {
-            totalItems
-            items {
-                slug
-                name
-                countries {
-                    code
-                }
-            }
-        }
-        permissions {
-            createWorkspace
-            archiveWorkspace
-            manageMembers
-            manageOwners
-            update
-            delete
-        }
-        members {
-            totalItems
-        }
+  id
+  name
+  shortName
+  logo
+  workspaces {
+    totalItems
+  }
+  permissions {
+    createWorkspace
+    archiveWorkspace
+    manageMembers
+    manageOwners
+    update
+    delete
+  }
+  members {
+    totalItems
+  }
 }
+
 query Organization($id: UUID!) {
-    organization(id: $id) {
-        ...Organization_organization
+  organization(id: $id) {
+    ...Organization_organization
+  }
+}
+
+query OrganizationWithWorkspaces($id: UUID!) {
+  organization(id: $id) {
+    ...Organization_organization
+    workspaces {
+      totalItems
+      items {
+        slug
+        name
+        countries {
+          code
+        }
+      }
     }
+  }
 }
 
 query Organizations {
-    organizations {
-        id
+  organizations {
+    id
+    name
+    logo
+    workspaces {
+      items {
+        slug
         name
-        logo
-        workspaces {
-            items {
-                slug
-                name
-            }
-        }
+      }
     }
+  }
 }
 
 fragment OrganizationDataset_link on DatasetLink {
+  id
+  workspace {
+    slug
+    name
+  }
+  dataset {
     id
+    slug
+    name
+    description
+    updatedAt
+    sharedWithOrganization
     workspace {
-        slug
-        name
+      slug
+      name
     }
-    dataset {
-        id
-        slug
-        name
-        description
-        updatedAt
-        sharedWithOrganization
+    links(page: 1, perPage: 50) {
+      items {
         workspace {
-            slug
-            name
+          slug
+          name
         }
-        links(page: 1, perPage: 50) {
-        items {
-            workspace {
-                slug
-                name
-            }
-        }
+      }
     }
-    }
+  }
 }
 
-query OrganizationDatasets($id: UUID!, $page: Int = 1, $perPage: Int = 10, $query: String) {
-    organization(id: $id) {
-        ...Organization_organization
-        datasetLinks(page: $page, perPage: $perPage, query: $query) {
-            totalItems
-            pageNumber
-            totalPages
-            items {
-                ...OrganizationDataset_link
-            }
-        }
+query OrganizationDatasets(
+  $id: UUID!
+  $page: Int = 1
+  $perPage: Int = 10
+  $query: String
+) {
+  organization(id: $id) {
+    ...Organization_organization
+    datasetLinks(page: $page, perPage: $perPage, query: $query) {
+      totalItems
+      pageNumber
+      totalPages
+      items {
+        ...OrganizationDataset_link
+      }
     }
+  }
 }
 
 fragment OrganizationWorkspace_workspace on Workspace {
-    slug
-    name
-    createdAt
-    updatedAt
-    countries {
-        code
-    }
-    createdBy {
-        ...UserAvatar_user
-    }
-    members {
-        totalItems
-    }
-    permissions {
-        manageMembers
-        delete
-    }
+  slug
+  name
+  createdAt
+  updatedAt
+  countries {
+    code
+  }
+  createdBy {
+    ...UserAvatar_user
+  }
+  members {
+    totalItems
+  }
+  permissions {
+    manageMembers
+    delete
+  }
 }
 
-query OrganizationWorkspaces($organizationId: UUID!, $page: Int = 1, $perPage: Int = 10, $query: String) {
-    organization(id: $organizationId) {
-        ...Organization_organization
+query OrganizationWorkspaces(
+  $organizationId: UUID!
+  $page: Int = 1
+  $perPage: Int = 10
+  $query: String
+) {
+  organization(id: $organizationId) {
+    ...Organization_organization
+  }
+  workspaces(
+    organizationId: $organizationId
+    page: $page
+    perPage: $perPage
+    query: $query
+  ) {
+    totalItems
+    pageNumber
+    totalPages
+    items {
+      ...OrganizationWorkspace_workspace
     }
-    workspaces(organizationId: $organizationId, page: $page, perPage: $perPage, query: $query) {
-        totalItems
-        pageNumber
-        totalPages
-        items {
-            ...OrganizationWorkspace_workspace
-        }
-    }
+  }
 }
