@@ -3335,6 +3335,7 @@ enum PrepareObjectDownloadError {
 }
 
 input PrepareObjectDownloadInput {
+  forceAttachment: Boolean = true
   objectKey: String!
   workspaceSlug: String!
 }

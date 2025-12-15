@@ -3978,6 +3978,7 @@ export enum PrepareObjectDownloadError {
 }
 
 export type PrepareObjectDownloadInput = {
+  forceAttachment?: InputMaybe<Scalars['Boolean']['input']>;
   objectKey: Scalars['String']['input'];
   workspaceSlug: Scalars['String']['input'];
 };
