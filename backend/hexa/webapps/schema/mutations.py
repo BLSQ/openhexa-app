@@ -51,7 +51,8 @@ class WebappsWorkspaceMutationType(BaseWorkspaceMutationType):
         _decode_icon_if_present(input)
 
     def pre_update(self, request: HttpRequest, instance, input: dict):
-        _flatten_webapp_content(input)
+        if "content" in input:
+            _flatten_webapp_content(input)
         _decode_icon_if_present(input)
 
 
