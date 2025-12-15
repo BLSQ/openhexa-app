@@ -34,6 +34,8 @@ export default function useIntersectionObserver(
     observer.observe(element);
 
     return () => observer.disconnect();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [element, threshold, root, rootMargin, frozen]);
 
   return entry;

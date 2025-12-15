@@ -21,7 +21,6 @@ def _flatten_webapp_content(input: dict):
     if not content_input:
         return
 
-    # Determine type and extract content based on which field is set
     if "iframe" in content_input:
         input["type"] = "iframe"
         input["url"] = content_input["iframe"]["url"]
