@@ -302,6 +302,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
 
   const buildWebappContentInput = (values: any) => {
     const type = values.type || currentType;
+
     const cleaned: any = {
       name: values.name,
       description: values.description,
