@@ -308,14 +308,27 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       icon: values.icon,
     };
 
-    if (type === WebappType.Iframe && values.url) {
-      cleaned.content = { iframe: { url: values.url } };
-    } else if (type === WebappType.Html && values.content) {
-      cleaned.content = { html: { content: values.content } };
-    } else if (type === WebappType.Bundle && values.bundle) {
-      cleaned.content = { bundle: { bundle: values.bundle } };
-    } else if (type === WebappType.Superset && values.url) {
-      cleaned.content = { superset: { url: values.url } };
+    switch (type) {
+      case WebappType.Iframe:
+        if (values.url) {
+          cleaned.content = { iframe: { url: values.url } };
+        }
+        break;
+      case WebappType.Html:
+        if (values.content) {
+          cleaned.content = { html: { content: values.content } };
+        }
+        break;
+      case WebappType.Bundle:
+        if (values.bundle) {
+          cleaned.content = { bundle: { bundle: values.bundle } };
+        }
+        break;
+      case WebappType.Superset:
+        if (values.url) {
+          cleaned.content = { superset: { url: values.url } };
+        }
+        break;
     }
 
     if (!cleaned.content && !isUpdate) {
