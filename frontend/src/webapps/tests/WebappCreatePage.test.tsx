@@ -75,8 +75,11 @@ const graphqlMocks: MockedResponse[] = [
         input: {
           workspaceSlug: "test-workspace",
           name: "Test Webapp",
-          type: "IFRAME",
-          url: "http://test-webapp.com",
+          content: {
+            iframe: {
+              url: "http://test-webapp.com",
+            },
+          },
         },
       },
     },
@@ -181,8 +184,11 @@ describe("WebappCreatePage", () => {
             input: {
               workspaceSlug: "test-workspace",
               name: "Test Webapp",
-              type: "IFRAME",
-              url: "http://test-webapp.com",
+              content: {
+                iframe: {
+                  url: "http://test-webapp.com",
+                },
+              },
             },
           },
         },
@@ -280,8 +286,11 @@ describe("WebappCreatePage", () => {
             input: {
               workspaceSlug: "test-workspace",
               name: "Test Webapp",
-              type: "IFRAME",
-              url: "http://test-webapp.com",
+              content: {
+                iframe: {
+                  url: "http://test-webapp.com",
+                },
+              },
             },
           },
         },
