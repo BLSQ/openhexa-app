@@ -10,6 +10,8 @@ import {
   TableRow,
 } from "core/components/Table";
 import { useTranslation } from "next-i18next";
+import { GlobeAltIcon } from "@heroicons/react/24/outline";
+import Flag from "react-world-flags";
 import useForm from "core/hooks/useForm";
 import {
   InviteOrganizationMemberError,
@@ -332,7 +334,20 @@ const AddOrganizationMemberDialog = (
                               className="truncate font-medium max-w-0"
                               title={workspace.name}
                             >
-                              {workspace.name}
+                              <div className="flex items-center gap-2">
+                                <div className="flex h-full w-5 items-center">
+                                  {workspace.countries &&
+                                  workspace.countries.length === 1 ? (
+                                    <Flag
+                                      code={workspace.countries[0].code}
+                                      className="w-5 shrink rounded-xs"
+                                    />
+                                  ) : (
+                                    <GlobeAltIcon className="w-5 shrink rounded-xs text-gray-400" />
+                                  )}
+                                </div>
+                                {workspace.name}
+                              </div>
                             </TableCell>
 
                             {[
