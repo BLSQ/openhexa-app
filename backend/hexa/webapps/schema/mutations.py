@@ -19,7 +19,7 @@ def _flatten_webapp_content(input: dict):
     """
     content_input = input.get("content")
     if not content_input:
-        return
+        raise ValueError("Content is required for webapp")
 
     if "iframe" in content_input:
         input["type"] = "iframe"

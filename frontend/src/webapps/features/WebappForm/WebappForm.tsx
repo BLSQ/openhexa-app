@@ -279,7 +279,6 @@ const TypeSelectProperty = ({
 }: any) => {
   const { property } = useDataCardProperty(props);
 
-  // Watch for changes in the form value and update parent state
   useEffect(() => {
     if (property.formValue && property.formValue !== currentType) {
       onTypeChange(property.formValue as WebappType);
@@ -300,7 +299,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
 
   const clearCache = useCacheKey("webapps");
 
-  const buildWebappContentInput = (values: any) => {
+  const buildWebappContentInput = (values: any, isUpdate: boolean = false) => {
     const type = values.type || currentType;
 
     const cleaned: any = {
@@ -309,7 +308,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       icon: values.icon,
     };
 
-    // Build the nested content structure based on webapp type
     if (type === WebappType.Iframe && values.url) {
       cleaned.content = { iframe: { url: values.url } };
     } else if (type === WebappType.Html && values.content) {
@@ -320,12 +318,16 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       cleaned.content = { superset: { url: values.url } };
     }
 
+    if (!cleaned.content && !isUpdate) {
+      throw new Error(`Content is required for ${type} webapp`);
+    }
+
     return cleaned;
   };
 
   const updateExistingWebapp = async (values: any) => {
     try {
-      const cleanedInput = buildWebappContentInput(values);
+      const cleanedInput = buildWebappContentInput(values, true);
       const result = await updateWebapp({
         variables: { input: { id: webapp?.id, ...cleanedInput } },
       });
@@ -343,7 +345,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
 
   const createNewWebapp = async (values: any) => {
     try {
-      const cleanedInput = buildWebappContentInput(values);
+      const cleanedInput = buildWebappContentInput(values, false);
       await createWebapp({
         variables: { input: { workspaceSlug: workspace.slug, ...cleanedInput } },
       }).then(({ data }) => {

@@ -44,6 +44,7 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
       }, 1000);
     }
     return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [server]);
 
   if (!data?.workspace) {
