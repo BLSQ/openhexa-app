@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import Button from "core/components/Button";
 import { ButtonProps } from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
-import { ReactElement, ReactNode, useState } from "react";
+import { ReactElement, useState } from "react";
 import { useTranslation } from "next-i18next";
 import {
   downloadURL,
@@ -32,9 +32,14 @@ const DownloadBucketObject = (props: DownloadBucketObjectProps) => {
 
   const onClick = async () => {
     setIsPreparing(true);
+    const openInNewTab = object.key.toLowerCase().endsWith(".html");
     try {
-      const url = await getBucketObjectDownloadUrl(workspace.slug, object.key);
-      await downloadURL(url);
+      const url = await getBucketObjectDownloadUrl(
+        workspace.slug,
+        object.key,
+        !openInNewTab,
+      );
+      await downloadURL(url, openInNewTab ? "_blank" : "");
     } finally {
       setIsPreparing(false);
     }
