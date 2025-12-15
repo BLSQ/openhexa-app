@@ -1,16 +1,16 @@
 mutation UpdateOrganization($input: UpdateOrganizationInput!) {
-    updateOrganization(input: $input) {
-        success
-        errors
-        organization {
-            ...Organization_organization
-        }
+  updateOrganization(input: $input) {
+    success
+    errors
+    organization {
+      ...Organization_organization
     }
+  }
 }
 
 mutation DeleteOrganization($input: DeleteOrganizationInput!) {
-    deleteOrganization(input: $input) {
-        success
-        errors
-    }
+  deleteOrganization(input: $input) {
+    success
+    errors
+  }
 }
