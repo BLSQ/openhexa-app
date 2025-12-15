@@ -45,6 +45,7 @@ query Organizations {
   organizations {
     id
     name
+    logo
     workspaces {
       items {
         slug
