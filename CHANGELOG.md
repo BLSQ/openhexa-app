@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.14.0](https://github.com/BLSQ/openhexa-app/compare/2.13.2...2.14.0) (2025-12-15)
+
+
+### Features
+
+* add organisation to superset instance webapp ([#1500](https://github.com/BLSQ/openhexa-app/issues/1500)) ([7d6374a](https://github.com/BLSQ/openhexa-app/commit/7d6374a3004b001068abcde618d9b8399042b2e5))
+* extend webapp types ([#1501](https://github.com/BLSQ/openhexa-app/issues/1501)) ([e962968](https://github.com/BLSQ/openhexa-app/commit/e9629682a5bc38c3b20e98321c075a0dce660ff7))
+* move the search bar from sidebar to header (HEXA-1375) ([#1514](https://github.com/BLSQ/openhexa-app/issues/1514)) ([1de03b1](https://github.com/BLSQ/openhexa-app/commit/1de03b15efe3558a738a6511080253d651a9d261))
+* move the user settings to the sidebar bottom (HEXA-1375) ([#1515](https://github.com/BLSQ/openhexa-app/issues/1515)) ([5eed438](https://github.com/BLSQ/openhexa-app/commit/5eed4382a5623c1181f0bb24a68c85c3e5ee08d6))
+* new Workspace switcher + minor org UI improvements (HEXA-1375) ([#1521](https://github.com/BLSQ/openhexa-app/issues/1521)) ([8c88f14](https://github.com/BLSQ/openhexa-app/commit/8c88f149cda69cd13960ad8ee32aa879dd32144c))
+* skip run if pipeline is already running for scheduld pipelines ([#1489](https://github.com/BLSQ/openhexa-app/issues/1489)) ([6e2b03c](https://github.com/BLSQ/openhexa-app/commit/6e2b03cc257735afb36a4895e7529bf74e305bd6))
+
+
+### Bug Fixes
+
+* global UI/UX improvements ([#1518](https://github.com/BLSQ/openhexa-app/issues/1518)) ([b7eddba](https://github.com/BLSQ/openhexa-app/commit/b7eddba5d7c2d71733c41948f243f9db86b05dab))
+* reduce pipeline runner memory usage by 80% (from ~120MB to ~20MB per run) (HEXA-1453) ([#1524](https://github.com/BLSQ/openhexa-app/issues/1524)) ([5c4a64b](https://github.com/BLSQ/openhexa-app/commit/5c4a64be502f8c785bc79dde2003ce090b97bdd7))
+* run pipeline dialog intempestive loader (HEXA-1452) ([#1519](https://github.com/BLSQ/openhexa-app/issues/1519)) ([9639087](https://github.com/BLSQ/openhexa-app/commit/9639087d8f05b0335226946f79fb2a89f33ffb60))
+
 ## [2.13.2](https://github.com/BLSQ/openhexa-app/compare/2.13.1...2.13.2) (2025-12-04)
 
 
