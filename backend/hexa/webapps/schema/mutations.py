@@ -19,31 +19,34 @@ def _flatten_webapp_content(input: dict):
     """
     content_input = input.get("content")
     if not content_input:
-        raise ValueError("Content is required for webapp")
+        return
 
-    if "iframe" in content_input:
-        input["type"] = "iframe"
-        input["url"] = content_input["iframe"]["url"]
-        del input["content"]
-    elif "html" in content_input:
-        input["type"] = "html"
-        html_content = content_input["html"]["content"]
-        del input["content"]
-        input["content"] = html_content
-    elif "bundle" in content_input:
-        input["type"] = "bundle"
-        bundle_b64 = content_input["bundle"]["bundle"]
-        del input["content"]
-        input["bundle"] = base64.b64decode(bundle_b64)
-    elif "superset" in content_input:
-        input["type"] = "superset"
-        input["url"] = content_input["superset"]["url"]
-        del input["content"]
+    match content_input:
+        case {"iframe": iframe_data}:
+            input["type"] = "iframe"
+            input["url"] = iframe_data["url"]
+            del input["content"]
+        case {"html": html_data}:
+            input["type"] = "html"
+            input["content"] = html_data["content"]
+        case {"bundle": bundle_data}:
+            input["type"] = "bundle"
+            input["bundle"] = base64.b64decode(bundle_data["bundle"])
+        case {"superset": superset_data}:
+            input["type"] = "superset"
+            input["url"] = superset_data["url"]
+            del input["content"]
+        case _:
+            raise ValueError(
+                f"Unknown webapp content type: {list(content_input.keys())}"
+            )
 
 
 class WebappsWorkspaceMutationType(BaseWorkspaceMutationType):
     def pre_create(self, request: HttpRequest, input: dict):
         input["created_by"] = request.user
+        if not input.get("content"):
+            raise ValueError("Content is required when creating a webapp")
         _flatten_webapp_content(input)
         _decode_icon_if_present(input)
 
