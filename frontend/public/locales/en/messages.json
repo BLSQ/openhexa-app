@@ -59,7 +59,6 @@
   "All {{count}} members accesses___other": "All {{count}} members accesses",
   "All apps": "All apps",
   "All datasets": "All datasets",
-  "All datasets available in this organization": "All datasets available in this organization",
   "All publishers": "All publishers",
   "All results": "All results",
   "All roles": "All roles",
@@ -649,6 +648,7 @@
   "This pipeline does not have any version.": "This pipeline does not have any version.",
   "This pipeline has no parameters.": "This pipeline has no parameters.",
   "This pipeline has not been uploaded yet": "This pipeline has not been uploaded yet",
+  "This run completed with errors or warnings in the logs": "This run completed with errors or warnings in the logs",
   "This table has no columns": "This table has no columns",
   "This user is an organization {{role}} and will still be able to access this workspace even after being removed from the workspace members list.": "This user is an organization {{role}} and will still be able to access this workspace even after being removed from the workspace members list.",
   "This version does not exist": "This version does not exist",
@@ -779,6 +779,5 @@
   "You must confirm publishing": "You must confirm publishing",
   "You're about to archive the {{workspaceName}} workspace and all its content.": "You're about to archive the {{workspaceName}} workspace and all its content.",
   "You're about to remove {{name}} from this workspace.": "You're about to remove {{name}} from this workspace.",
-  "Your account": "Your account",
-  "Your workspaces": "Your workspaces"
+  "Your account": "Your account"
 }

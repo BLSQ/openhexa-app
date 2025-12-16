@@ -194,6 +194,7 @@ type PipelineRun {
   timeout: Int  # The timeout value for the pipeline run.
   datasetVersions: [DatasetVersion!]!  # The dataset versions associated with the pipeline run.
   stoppedBy: User  # The user who stopped the pipeline run.
+  hasErrorMessages: Boolean!  # Indicates if the pipeline run has any error or critical messages in the logs.
 }
 
 """

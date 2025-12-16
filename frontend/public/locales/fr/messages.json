@@ -63,7 +63,6 @@
   "All {{count}} members accesses___other": "Aucun accès membre",
   "All apps": "Toutes les applications",
   "All datasets": "Tous les ensembles de données",
-  "All datasets available in this organization": "Tous les ensembles de données disponibles dans cette organisation",
   "All publishers": "Tous les éditeurs",
   "All results": "Tous les résultats",
   "All roles": "Tous les rôles",
@@ -653,6 +652,7 @@
   "This pipeline does not have any version.": "Ce pipeline n'a pas de version.",
   "This pipeline has no parameters.": "Ce pipeline n'a pas de paramètres.",
   "This pipeline has not been uploaded yet": "Ce pipeline n'a pas encore été téléchargé",
+  "This run completed with errors or warnings in the logs": "Cette exécution s'est terminée avec des erreurs ou des avertissements dans les journaux",
   "This table has no columns": "Ce tableau n'a pas de colonnes",
   "This user is an organization {{role}} and will still be able to access this workspace even after being removed from the workspace members list.": "Cet utilisateur est un {{role}} de l'organisation et pourra toujours accéder à ce workspace même après avoir été supprimé de la liste des membres du workspace.",
   "This version does not exist": "Cette version n'existe pas",
@@ -783,6 +783,5 @@
   "You must confirm publishing": "Vous devez confirmer la publication",
   "You're about to archive the {{workspaceName}} workspace and all its content.": "Vous êtes sur le point d'archiver le workspace {{workspaceName}} et tout son contenu.",
   "You're about to remove {{name}} from this workspace.": "Vous êtes sur le point de supprimer {{name}} de ce workspace.",
-  "Your account": "Votre compte",
-  "Your workspaces": "Vos workspaces"
+  "Your account": "Votre compte"
 }

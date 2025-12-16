@@ -3066,6 +3066,7 @@ type PipelineRun {
   duration: Int
   enableDebugLogs: Boolean!
   executionDate: DateTime
+  hasErrorMessages: Boolean!
   id: UUID!
   logs: String
   messages: [PipelineRunMessage!]!
