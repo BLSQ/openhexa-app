@@ -142,23 +142,20 @@ const GridView = ({
           )}
         </BaseColumn>
         <BaseColumn id="actions" className="text-right" disableSortBy={true}>
-          {(template) => {
-            const { currentVersion } = template;
-            return (
-              <div className="flex justify-end">
-                {currentVersion && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={createPipeline(currentVersion.id)}
-                    leadingIcon={<PlusIcon className="h-4 w-4" />}
-                  >
-                    {t("Create pipeline")}
-                  </Button>
-                )}
-              </div>
-            );
-          }}
+          {(template) => (
+            <div className="flex justify-end">
+              {template.currentVersion && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={createPipeline(template.currentVersion.id)}
+                  leadingIcon={<PlusIcon className="h-4 w-4" />}
+                >
+                  {t("Create pipeline")}
+                </Button>
+              )}
+            </div>
+          )}
         </BaseColumn>
       </DataGrid>
     </Block>
