@@ -486,6 +486,10 @@ class Pipeline(SoftDeletedModel):
                 for new_parameter in new_parameters
                 if remove_default(new_parameter) in previous_parameters
             ]
+            previous_param_default_by_code = {
+                previous_parameter["code"]: previous_parameter.get("default")
+                for previous_parameter in self.last_version.parameters
+            }
             previous_config_from_overlapping_parameters = {
                 overlapping_parameter["code"]: value
                 for overlapping_parameter in overlapping_parameters
@@ -496,6 +500,12 @@ class Pipeline(SoftDeletedModel):
                     )
                 )
                 is not None
+                # Skip if default was removed and config value equals old default
+                and not (
+                    overlapping_parameter.get("default") is None
+                    and value
+                    == previous_param_default_by_code[overlapping_parameter["code"]]
+                )
             }
         return {
             new_parameter["code"]: value
