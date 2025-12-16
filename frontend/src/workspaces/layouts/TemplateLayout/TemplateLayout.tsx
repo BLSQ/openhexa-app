@@ -1,9 +1,10 @@
 import { gql } from "@apollo/client";
-import { TrashIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
+import { toast } from "react-toastify";
 import TabLayout from "../TabLayout";
 import { GetServerSidePropsContext } from "next";
 import { CustomApolloClient } from "core/helpers/apollo";
@@ -15,6 +16,9 @@ import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import router from "next/router";
 import DownloadTemplateVersion from "pipelines/features/DownloadTemplateVersion";
 import Spinner from "core/components/Spinner";
+import { useCreatePipelineFromTemplateVersionMutation } from "pipelines/graphql/mutations.generated";
+import { CreatePipelineFromTemplateVersionError } from "graphql/types";
+import useCacheKey from "core/hooks/useCacheKey";
 
 type TemplateLayoutProps = {
   template: TemplateLayout_TemplateFragment;
@@ -36,6 +40,54 @@ const TemplateLayout = (props: TemplateLayoutProps) => {
   const { t } = useTranslation();
   const [isDeleteTemplateDialogOpen, setDeleteTemplateDialogOpen] =
     useState(false);
+  const [createPipelineFromTemplateVersion] =
+    useCreatePipelineFromTemplateVersionMutation();
+  const clearCache = useCacheKey(["pipelines"]);
+
+  const createPipeline = () => {
+    if (!template.currentVersion) return;
+
+    createPipelineFromTemplateVersion({
+      variables: {
+        input: {
+          pipelineTemplateVersionId: template.currentVersion.id,
+          workspaceSlug: workspace.slug,
+        },
+      },
+    })
+      .then((result) => {
+        const success = result.data?.createPipelineFromTemplateVersion?.success;
+        const errors = result.data?.createPipelineFromTemplateVersion?.errors;
+        const pipeline =
+          result.data?.createPipelineFromTemplateVersion?.pipeline;
+        if (success && pipeline) {
+          clearCache();
+          toast.success(
+            t("Successfully created pipeline {{pipelineName}}", {
+              pipelineName: pipeline.name,
+            }),
+          );
+          router
+            .push(
+              `/workspaces/${encodeURIComponent(
+                workspace.slug,
+              )}/pipelines/${encodeURIComponent(pipeline.code)}`,
+            )
+            .then();
+        } else if (
+          errors?.includes(
+            CreatePipelineFromTemplateVersionError.PermissionDenied,
+          )
+        ) {
+          toast.error(t("You are not allowed to create a pipeline."));
+        } else {
+          toast.error(t("Unknown error : Failed to create pipeline"));
+        }
+      })
+      .catch(() => {
+        toast.error(t("Failed to create pipeline"));
+      });
+  };
 
   return (
     <TabLayout
@@ -97,6 +149,15 @@ const TemplateLayout = (props: TemplateLayoutProps) => {
       }
       headerActions={
         <div className="flex items-center gap-2">
+          {template.currentVersion && (
+            <Button
+              variant="primary"
+              onClick={createPipeline}
+              leadingIcon={<PlusIcon className="h-4 w-4" />}
+            >
+              {t("Create pipeline")}
+            </Button>
+          )}
           {template.currentVersion && (
             <DownloadTemplateVersion version={template.currentVersion}>
               {({ onClick, isDownloading }) => (
