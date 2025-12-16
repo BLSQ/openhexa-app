@@ -99,6 +99,7 @@ const WebappIframe = ({
       style={{ height: "90vh", ...style }}
     >
       {iframeLoading && <Spinner size="md" />}{" "}
+      {/* URL is sanitized via sanitizeUrl() to prevent XSS - only allows http:, https:, and relative paths */}
       <iframe
         src={url}
         className={clsx("w-full h-full", iframeLoading && "hidden")}
