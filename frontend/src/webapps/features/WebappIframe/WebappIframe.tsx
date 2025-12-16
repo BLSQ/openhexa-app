@@ -44,6 +44,10 @@ const WebappIframe = ({
     }
   };
 
+  // CodeQL suppression: URL is sanitized to prevent XSS attacks
+  // sanitizeUrl() blocks dangerous protocols (javascript:, data:, etc.)
+  // and only allows http:, https:, and relative paths
+  // lgtm[js/xss-through-dom]
   const url = useMemo(() => {
     if (type === WebappType.Html && workspaceSlug && webappSlug) {
       return `/webapps/${workspaceSlug}/${webappSlug}/html/`;
