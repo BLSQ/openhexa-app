@@ -20,13 +20,37 @@ const WebappIframe = ({
   className,
   style,
 }: WebappIframeProps) => {
+  const sanitizeUrl = (urlToSanitize: string): string => {
+    if (!urlToSanitize) return "";
+
+    const trimmedUrl = urlToSanitize.trim();
+
+    if (trimmedUrl.startsWith("/")) {
+      return trimmedUrl;
+    }
+
+    try {
+      const parsedUrl = new URL(trimmedUrl);
+      const protocol = parsedUrl.protocol.toLowerCase();
+
+      if (protocol === "http:" || protocol === "https:") {
+        return trimmedUrl;
+      }
+
+      console.warn(`Blocked unsafe URL protocol: ${protocol}`);
+      return "";
+    } catch {
+      return "";
+    }
+  };
+
   const url = useMemo(() => {
     if (type === WebappType.Html && workspaceSlug && webappSlug) {
       return `/webapps/${workspaceSlug}/${webappSlug}/html/`;
     } else if (type === WebappType.Bundle && workspaceSlug && webappSlug) {
       return `/webapps/${workspaceSlug}/${webappSlug}/bundle/`;
     } else {
-      return externalUrl || "";
+      return sanitizeUrl(externalUrl || "");
     }
   }, [type, workspaceSlug, webappSlug, externalUrl]);
   const [iframeLoading, setIframeLoading] = useState(true);
