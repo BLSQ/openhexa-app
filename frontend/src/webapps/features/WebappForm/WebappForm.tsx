@@ -304,7 +304,22 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
 
   const clearCache = useCacheKey("webapps");
 
-  const buildWebappContentInput = (values: any, isUpdate: boolean = false) => {
+  const getRequiredContentDescription = (type: WebappType): string => {
+    switch (type) {
+      case WebappType.Iframe:
+        return "a valid URL";
+      case WebappType.Html:
+        return "HTML content";
+      case WebappType.Bundle:
+        return "a bundle file (.zip)";
+      case WebappType.Superset:
+        return "a valid Superset URL";
+      default:
+        return "content";
+    }
+  };
+
+  const buildWebappContentInput = (values: any, allowMissingContent: boolean = false) => {
     const type = values.type || currentType;
 
     const cleaned: any = {
@@ -336,8 +351,10 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         break;
     }
 
-    if (!cleaned.content && !isUpdate) {
-      throw new Error(`Content is required for ${type} webapp`);
+    if (!cleaned.content && !allowMissingContent) {
+      throw new Error(
+        `Content is required for ${type} webapp. Please provide ${getRequiredContentDescription(type)}.`
+      );
     }
 
     return cleaned;

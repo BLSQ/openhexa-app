@@ -64,7 +64,11 @@ def serve_webapp_bundle(
         path = "index.html"
 
     requested_path = Path(path)
-    if requested_path.is_absolute() or ".." in requested_path.parts:
+    if (
+        requested_path.is_absolute()
+        or ".." in requested_path.parts
+        or any(part.startswith(".") for part in requested_path.parts)
+    ):
         raise Http404("Invalid path")
 
     try:

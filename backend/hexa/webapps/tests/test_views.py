@@ -154,6 +154,34 @@ class WebappViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_serve_bundle_webapp_hidden_files_blocked(self):
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            zip_file.writestr("index.html", "<html><body>Test</body></html>")
+            zip_file.writestr(".env", "SECRET_KEY=sensitive_data")
+            zip_file.writestr(".git/config", "[core]")
+
+        bundle_webapp = Webapp.objects.create(
+            name="Bundle Test",
+            slug="bundle-test",
+            type=Webapp.WebappType.BUNDLE,
+            bundle=zip_buffer.getvalue(),
+            workspace=self.workspace,
+            created_by=self.user,
+        )
+
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            f"/webapps/{self.workspace.slug}/{bundle_webapp.slug}/bundle/.env"
+        )
+        self.assertEqual(response.status_code, 404)
+
+        response = self.client.get(
+            f"/webapps/{self.workspace.slug}/{bundle_webapp.slug}/bundle/.git/config"
+        )
+        self.assertEqual(response.status_code, 404)
+
     def test_serve_bundle_webapp_nested_structure(self):
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
