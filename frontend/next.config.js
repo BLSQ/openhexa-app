@@ -12,14 +12,14 @@ let config = {
     optimizePackageImports: ["luxon"],
   },
 
-  publicRuntimeConfig: {
-    OPENHEXA_BACKEND_URL: process.env.OPENHEXA_BACKEND_URL,
-    SENTRY_TRACES_SAMPLE_RATE: parseFloat(
+  // Map existing env vars to NEXT_PUBLIC_* for client-side access
+  env: {
+    NEXT_PUBLIC_OPENHEXA_BACKEND_URL: process.env.OPENHEXA_BACKEND_URL,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.SENTRY_DSN,
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT,
+    NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE:
       process.env.SENTRY_TRACES_SAMPLE_RATE || "1",
-    ),
-    SENTRY_DSN: process.env.SENTRY_DSN,
-    SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT,
-    DISABLE_ANALYTICS: process.env.DISABLE_ANALYTICS === "true",
+    NEXT_PUBLIC_DISABLE_ANALYTICS: process.env.DISABLE_ANALYTICS,
   },
 
   // Next.js in pages mode seems to choke on the ESM format of the editor and one of its dependencies.
