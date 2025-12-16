@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import { SortingRule } from "react-table";
-import DateColumn from "core/components/DataGrid/DateColumn";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
 import { useTranslation } from "next-i18next";
@@ -69,10 +68,12 @@ const GridView = ({
         defaultSortBy={defaultSortBy}
         fixedLayout={false}
       >
-        <BaseColumn id="name" label={t("Name")}>
+        <BaseColumn id="name" label={t("Name")} className="max-w-xs">
           {(template) => (
             <Link
               href={`/workspaces/${encodeURIComponent(workspace.slug)}/templates/${template.code}`}
+              className="block truncate hover:underline"
+              title={template.name}
             >
               {template.name}
             </Link>
@@ -140,17 +141,7 @@ const GridView = ({
             </span>
           )}
         </BaseColumn>
-        <DateColumn
-          id="createdAt"
-          accessor={"currentVersion.createdAt"}
-          label={t("Updated")}
-          className="w-32"
-        />
-        <BaseColumn
-          id="actions"
-          className="text-right"
-          disableSortBy={true}
-        >
+        <BaseColumn id="actions" className="text-right" disableSortBy={true}>
           {(template) => {
             const { currentVersion } = template;
             return (
