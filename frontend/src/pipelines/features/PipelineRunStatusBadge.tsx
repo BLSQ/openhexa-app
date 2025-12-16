@@ -1,4 +1,3 @@
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { gql } from "@apollo/client";
 import clsx from "clsx";
 import Badge from "core/components/Badge";
@@ -49,18 +48,21 @@ const PipelineRunStatusBadge = (props: PipelineRunStatusBadgeProps) => {
     run.status === PipelineRunStatus.Success && run.hasErrorMessages;
 
   return (
-    <Badge className={clsx(className, "flex items-center ring-gray-500/20")}>
-      {loading && <Spinner className="mr-1" size="xs" />}
+    <div className="flex items-center gap-1">
+      <Badge className={clsx(className, "flex items-center ring-gray-500/20")}>
+        {loading && <Spinner className="mr-1" size="xs" />}
+        {formatPipelineRunStatus(run.status)}
+      </Badge>
       {showWarning && (
         <Tooltip
           label={t("This run completed with errors or warnings in the logs")}
           as="span"
+          placement="right"
         >
-          <ExclamationTriangleIcon className="mr-1 h-3.5 w-3.5 text-amber-500" />
+          <span className="relative -top-0.5 text-xs">⚠️</span>
         </Tooltip>
       )}
-      {formatPipelineRunStatus(run.status)}
-    </Badge>
+    </div>
   );
 };
 
@@ -77,6 +79,3 @@ PipelineRunStatusBadge.fragments = {
 };
 
 export default PipelineRunStatusBadge;
-
-// TODO : refresh
-// TODO : design
