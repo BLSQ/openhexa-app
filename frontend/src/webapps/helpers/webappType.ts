@@ -1,4 +1,5 @@
 import { WebappType } from "graphql/types";
+import { i18n } from "next-i18next";
 
 /**
  * Get the display label for a webapp type.
@@ -8,13 +9,13 @@ import { WebappType } from "graphql/types";
 export function getWebappTypeLabel(type: WebappType | string): string {
   switch (type) {
     case WebappType.Iframe:
-      return "iFrame";
+      return i18n!.t("iFrame");
     case WebappType.Html:
-      return "HTML";
+      return i18n!.t("HTML");
     case WebappType.Bundle:
-      return "Bundle";
+      return i18n!.t("Bundle");
     case WebappType.Superset:
-      return "Superset";
+      return i18n!.t("Superset");
     default:
       return String(type);
   }
