@@ -7,6 +7,7 @@ import { WebappType } from "graphql/types";
 
 jest.mock("next-i18next", () => ({
   useTranslation: jest.fn().mockReturnValue({ t: (key: string) => key }),
+  i18n: { t: (key: string) => key },
 }));
 
 jest.mock("next/router", () => ({

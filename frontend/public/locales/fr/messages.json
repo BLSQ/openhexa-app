@@ -647,7 +647,7 @@
   "The object on which you try to add metadata does not exist": "L'objet sur lequel vous essayez d'ajouter des métadonnées n'existe pas",
   "The pipeline version is not available.": "Cette version de pipeline n'est pas disponible.",
   "The schedule value should follow the CRON syntax.": "La valeur du calendrier doit respecter la syntaxe CRON.",
-  "The selected file is too large. Maximum allowed size is 50MB.": "",
+  "The selected file is too large. Maximum allowed size is 50MB.": "Le fichier sélectionné est trop volumineux. La taille maximale autorisée est de 50 Mo.",
   "The service account key in JSON format": "Clé du compte de service au format JSON",
   "The two passwords are not the same": "Les deux mots de passe ne sont pas les mêmes",
   "The two passwords are not the same.": "Les deux mots de passe ne sont pas identiques.",
