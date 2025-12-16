@@ -248,9 +248,6 @@ const GET_PIPELINE_TEMPLATES = gql`
           id
           name
         }
-        permissions {
-          delete
-        }
         workspace {
           slug
           name
