@@ -3686,6 +3686,7 @@ export type PipelineRun = {
   duration?: Maybe<Scalars['Int']['output']>;
   enableDebugLogs: Scalars['Boolean']['output'];
   executionDate?: Maybe<Scalars['DateTime']['output']>;
+  hasErrorMessages: Scalars['Boolean']['output'];
   id: Scalars['UUID']['output'];
   logs?: Maybe<Scalars['String']['output']>;
   messages: Array<PipelineRunMessage>;
