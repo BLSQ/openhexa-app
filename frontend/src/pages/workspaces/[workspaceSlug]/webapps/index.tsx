@@ -1,7 +1,6 @@
 import Block from "core/components/Block";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
-import { TextColumn } from "core/components/DataGrid/TextColumn";
 import Page from "core/components/Page";
 import Link from "core/components/Link";
 import { createGetServerSideProps } from "core/helpers/page";
@@ -143,7 +142,6 @@ const WebappsPage = (props: Props) => {
                   </div>
                 )}
               </BaseColumn>
-              <TextColumn label={t("Workspace")} accessor="workspace.name" />
               <LinkColumn
                 id="play"
                 url={(item) => ({

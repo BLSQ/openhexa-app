@@ -20,6 +20,7 @@ jest.mock("react-toastify", () => ({
 
 jest.mock("next-i18next", () => ({
   useTranslation: jest.fn().mockReturnValue({ t: (key: string) => key }),
+  i18n: { t: (key: string) => key },
 }));
 
 const mockWorkspace = {
