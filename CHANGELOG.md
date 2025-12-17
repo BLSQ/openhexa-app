@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.15.0](https://github.com/BLSQ/openhexa-app/compare/2.14.0...2.15.0) (2025-12-17)
+
+
+### Features
+
+* html pipeline run outputs to be opened in a new tab (HEXA-1251) ([#1527](https://github.com/BLSQ/openhexa-app/issues/1527)) ([c0a12d4](https://github.com/BLSQ/openhexa-app/commit/c0a12d4b0d556703bd1f6d060dc4f939afa75d42))
+* succeeded pipelines but with errors in logs should show a flag next to status  (HEXA-1456)  ([#1531](https://github.com/BLSQ/openhexa-app/issues/1531)) ([5eff106](https://github.com/BLSQ/openhexa-app/commit/5eff10650d323f17f9fdcc3991cb6a606ff775c4))
+
+
+### Bug Fixes
+
+* add a create pipeline button to the template page view ([#1530](https://github.com/BLSQ/openhexa-app/issues/1530)) ([b038369](https://github.com/BLSQ/openhexa-app/commit/b0383690ecf6096d79c8492f6c87d6baa76c32b4))
+* adjust header padding for improved layout consistency (HEXA-1460) ([#1535](https://github.com/BLSQ/openhexa-app/issues/1535)) ([3e48a05](https://github.com/BLSQ/openhexa-app/commit/3e48a0559479aa5839fde894a541d01bcfccd0cb))
+* minor UI issue with long organization names ([#1528](https://github.com/BLSQ/openhexa-app/issues/1528)) ([6847b9c](https://github.com/BLSQ/openhexa-app/commit/6847b9c91f811372a1e5a939ffa1f6144b5f3b09))
+* pipeline creation modal UI improvement (HEXA-1450) ([#1534](https://github.com/BLSQ/openhexa-app/issues/1534)) ([1218c41](https://github.com/BLSQ/openhexa-app/commit/1218c4196a91d4abb882235469d060a2c363099f))
+* pushing default value of pipeline parameters from defined value to none doesn't work (HEXA-1459) ([#1533](https://github.com/BLSQ/openhexa-app/issues/1533)) ([ff72ca5](https://github.com/BLSQ/openhexa-app/commit/ff72ca50796e5ac9f22250115ab16585d9821935))
+* remove container names from docker-compose configuration ([#1532](https://github.com/BLSQ/openhexa-app/issues/1532)) ([e2aff5e](https://github.com/BLSQ/openhexa-app/commit/e2aff5efd84275529c87fd19569681ec6a012ca5))
+* runtime config is deprecated (HEXA-1461) ([#1537](https://github.com/BLSQ/openhexa-app/issues/1537)) ([7bb3ba2](https://github.com/BLSQ/openhexa-app/commit/7bb3ba2164422db96f0413cae6c674d4a8abb544))
+* small UI issue with dataset layout ([#1529](https://github.com/BLSQ/openhexa-app/issues/1529)) ([87d035e](https://github.com/BLSQ/openhexa-app/commit/87d035ee4f56bacd82758e43c977eed070129563))
+
 ## [2.14.0](https://github.com/BLSQ/openhexa-app/compare/2.13.2...2.14.0) (2025-12-15)
 
 
