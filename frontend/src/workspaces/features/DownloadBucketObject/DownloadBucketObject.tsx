@@ -29,10 +29,10 @@ const DownloadBucketObject = (props: DownloadBucketObjectProps) => {
   const { workspace, object, children, ...delegated } = props;
   const [isPreparing, setIsPreparing] = useState(false);
   const { t } = useTranslation();
+  const openInNewTab = object.key.toLowerCase().endsWith(".html");
 
   const onClick = async () => {
     setIsPreparing(true);
-    const openInNewTab = object.key.toLowerCase().endsWith(".html");
     try {
       const url = await getBucketObjectDownloadUrl(
         workspace.slug,
@@ -52,7 +52,7 @@ const DownloadBucketObject = (props: DownloadBucketObjectProps) => {
   return (
     <Button disabled={isPreparing} onClick={onClick} {...delegated}>
       {isPreparing && <Spinner size="xs" className="mr-1" />}
-      {t("Download")}
+      {openInNewTab ? t("View") : t("Download")}
     </Button>
   );
 };

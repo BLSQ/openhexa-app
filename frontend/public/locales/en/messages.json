@@ -59,7 +59,6 @@
   "All {{count}} members accesses___other": "All {{count}} members accesses",
   "All apps": "All apps",
   "All datasets": "All datasets",
-  "All datasets available in this organization": "All datasets available in this organization",
   "All publishers": "All publishers",
   "All results": "All results",
   "All roles": "All roles",
@@ -779,6 +778,5 @@
   "You must confirm publishing": "You must confirm publishing",
   "You're about to archive the {{workspaceName}} workspace and all its content.": "You're about to archive the {{workspaceName}} workspace and all its content.",
   "You're about to remove {{name}} from this workspace.": "You're about to remove {{name}} from this workspace.",
-  "Your account": "Your account",
-  "Your workspaces": "Your workspaces"
+  "Your account": "Your account"
 }
