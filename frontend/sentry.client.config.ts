@@ -3,16 +3,10 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
-import getConfig from "next/config";
 
-/* 
-Sentry will only be initialized on the client side if the page use getServersideProps or getStaticProps! This is a limitation of `getConfig`
-*/
-
-const { publicRuntimeConfig } = getConfig();
 Sentry.init({
-  dsn: publicRuntimeConfig.SENTRY_DSN,
-  environment: publicRuntimeConfig.SENTRY_ENVIRONMENT,
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
   // Add optional integrations for additional features
   integrations: [Sentry.replayIntegration()],
 
@@ -20,7 +14,7 @@ Sentry.init({
     if (request?.requestPath?.startsWith("/ready")) {
       return 0;
     }
-    return publicRuntimeConfig.SENTRY_TRACES_SAMPLE_RATE;
+    return parseFloat(process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE || "1");
   },
 
   // Define how likely Replay events are sampled.

@@ -70,9 +70,7 @@ const NavItem = ({
           <Badge className="bg-gray-800 ring-gray-500/20">{label}</Badge>
         </div>
       ) : (
-        <span className="whitespace-nowrap overflow-hidden transition-opacity duration-200">
-          {delayedLabel}
-        </span>
+        <span className="transition-opacity duration-200">{delayedLabel}</span>
       )}
     </Link>
   );

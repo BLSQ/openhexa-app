@@ -3066,6 +3066,7 @@ type PipelineRun {
   duration: Int
   enableDebugLogs: Boolean!
   executionDate: DateTime
+  hasErrorMessages: Boolean!
   id: UUID!
   logs: String
   messages: [PipelineRunMessage!]!
@@ -3335,6 +3336,7 @@ enum PrepareObjectDownloadError {
 }
 
 input PrepareObjectDownloadInput {
+  forceAttachment: Boolean = true
   objectKey: String!
   workspaceSlug: String!
 }

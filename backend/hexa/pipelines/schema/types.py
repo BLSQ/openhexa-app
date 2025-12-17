@@ -288,6 +288,13 @@ pipeline_run_object.set_alias("logs", "run_logs")
 pipeline_run_object.set_alias("version", "pipeline_version")
 
 
+@pipeline_run_object.field("hasErrorMessages")
+def resolve_pipeline_run_has_error_messages(run: PipelineRun, info, **kwargs):
+    if not run.messages:
+        return False
+    return any(msg.get("priority") in ("ERROR", "CRITICAL") for msg in run.messages)
+
+
 def get_language_from_path(path: str) -> str:
     """Get language from file path extension."""
     extension = Path(path).suffix

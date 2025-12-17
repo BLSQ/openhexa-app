@@ -71,6 +71,7 @@ type DeleteBucketObjectResult {
 input PrepareObjectDownloadInput {
   workspaceSlug: String!
   objectKey: String!
+  forceAttachment: Boolean = true
 }
 
 """

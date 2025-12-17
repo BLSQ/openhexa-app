@@ -54,7 +54,7 @@ export type PipelineRunPollerQueryVariables = Types.Exact<{
 }>;
 
 
-export type PipelineRunPollerQuery = { __typename?: 'Query', run?: { __typename?: 'PipelineRun', duration?: number | null, progress: number, id: string, status: Types.PipelineRunStatus } | null };
+export type PipelineRunPollerQuery = { __typename?: 'Query', run?: { __typename?: 'PipelineRun', duration?: number | null, progress: number, hasErrorMessages: boolean, id: string, status: Types.PipelineRunStatus } | null };
 
 
 export const PipelinesPageDocument = gql`
@@ -352,6 +352,7 @@ export const PipelineRunPollerDocument = gql`
     ...usePipelineRunPoller_run
     duration
     progress
+    hasErrorMessages
   }
 }
     ${UsePipelineRunPoller_RunFragmentDoc}`;
