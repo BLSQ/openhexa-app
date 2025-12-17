@@ -500,12 +500,9 @@ class Pipeline(SoftDeletedModel):
                     )
                 )
                 is not None
-                # Skip if default was removed and config value equals old default
-                and not (
-                    overlapping_parameter.get("default") is None
-                    and value
-                    == previous_param_default_by_code[overlapping_parameter["code"]]
-                )
+                # Skip if config value equals old default
+                and value
+                != previous_param_default_by_code[overlapping_parameter["code"]]
             }
         return {
             new_parameter["code"]: value
