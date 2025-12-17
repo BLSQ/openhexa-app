@@ -108,7 +108,7 @@ const WebappsPage = (props: Props) => {
               totalItems={data.webapps.totalItems}
               fetchData={onChangePage}
             >
-              <BaseColumn id="name" label={t("Name")} width={400}>
+              <BaseColumn id="name" label={t("Name")} minWidth={200} maxWidth={350}>
                 {(item) => (
                   <div className="flex items-center space-x-1">
                     <div className="flex items-center space-x-1 flex-shrink-0">
@@ -134,14 +134,6 @@ const WebappsPage = (props: Props) => {
                   </div>
                 )}
               </BaseColumn>
-              <BaseColumn id="createdBy" label={t("Created by")}>
-                {(item) => (
-                  <div className={"flex space-x-1"}>
-                    <UserAvatar user={item.createdBy} size="xs" />
-                    <p>{item.createdBy.displayName}</p>
-                  </div>
-                )}
-              </BaseColumn>
               <LinkColumn
                 id="play"
                 url={(item) => ({
@@ -158,6 +150,14 @@ const WebappsPage = (props: Props) => {
                   <PlayIcon className="h-4 w-4 text-white fill-white translate-x-0.25" />
                 </div>
               </LinkColumn>
+              <BaseColumn id="createdBy" label={t("Created by")}>
+                {(item) => (
+                  <div className={"flex space-x-1"}>
+                    <UserAvatar user={item.createdBy} size="xs" />
+                    <p>{item.createdBy.displayName}</p>
+                  </div>
+                )}
+              </BaseColumn>
               <ChevronLinkColumn
                 accessor="slug"
                 customLabel={t("Details")}
