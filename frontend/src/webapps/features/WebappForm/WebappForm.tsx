@@ -14,6 +14,7 @@ import {
 import DataCard from "core/components/DataCard";
 import TextProperty from "core/components/DataCard/TextProperty";
 import SelectProperty from "core/components/DataCard/SelectProperty";
+import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import useCacheKey from "core/hooks/useCacheKey";
 import ImageProperty from "core/components/DataCard/ImageProperty";
@@ -131,6 +132,14 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             setUrl(e.target.value);
           }}
         />
+        <SwitchProperty
+          id="isPublic"
+          accessor="isPublic"
+          label={t("Public Access")}
+          help={t(
+            "Allow anyone with the link to view this web app without logging in",
+          )}
+        />
       </DataCard.FormSection>
       {debouncedUrl && (
         <DataCard.Section
@@ -155,6 +164,7 @@ WebappForm.fragment = {
       url
       type
       icon
+      isPublic
       permissions {
         update
         delete

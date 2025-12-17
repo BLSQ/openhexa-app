@@ -48,6 +48,19 @@ def resolve_webapps(_, info, **kwargs):
     )
 
 
+@webapp_query.field("publicWebapp")
+def resolve_public_webapp(_, info, **kwargs):
+    try:
+        workspace = Workspace.objects.filter(archived=False).get(
+            slug=kwargs["workspace_slug"]
+        )
+        return Webapp.objects.filter(
+            workspace=workspace, slug=kwargs["slug"], is_public=True
+        ).first()
+    except Workspace.DoesNotExist:
+        return None
+
+
 bindables = [
     webapp_query,
 ]

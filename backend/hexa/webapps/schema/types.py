@@ -54,6 +54,11 @@ def resolve_type(webapp: Webapp, info, **kwargs):
     return webapp.type.upper()
 
 
+@webapp_object.field("isPublic")
+def resolve_is_public(webapp: Webapp, info, **kwargs):
+    return webapp.is_public
+
+
 @webapp_permissions.field("update")
 def resolve_webapp_permissions_update(obj, info, **kwargs):
     request = info.context["request"]

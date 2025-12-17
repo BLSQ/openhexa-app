@@ -4094,6 +4094,7 @@ export type Query = {
   pipelineVersion?: Maybe<PipelineVersion>;
   /** Retrieves a page of pipelines ordered by relevant name. */
   pipelines: PipelinesPage;
+  publicWebapp?: Maybe<Webapp>;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
   searchFiles: FileResultPage;
@@ -4310,6 +4311,12 @@ export type QueryPipelinesArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryPublicWebappArgs = {
+  slug: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
 };
 
 
@@ -5305,6 +5312,7 @@ export type UpdateWebappInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
+  isPublic?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   type?: InputMaybe<WebappType>;
   url?: InputMaybe<Scalars['String']['input']>;
@@ -5480,6 +5488,7 @@ export type Webapp = {
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   isFavorite: Scalars['Boolean']['output'];
+  isPublic: Scalars['Boolean']['output'];
   isShortcut: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   permissions: WebappPermissions;

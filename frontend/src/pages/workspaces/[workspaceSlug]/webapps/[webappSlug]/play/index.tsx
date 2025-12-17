@@ -8,6 +8,12 @@ import {
   WorkspaceWebappPageQuery,
   WorkspaceWebappPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
+import {
+  usePublicWebappQuery,
+  PublicWebappDocument,
+  PublicWebappQuery,
+  PublicWebappQueryVariables,
+} from "webapps/graphql/publicQueries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import WebappIframe from "webapps/features/WebappIframe";
@@ -15,18 +21,37 @@ import WebappIframe from "webapps/features/WebappIframe";
 type Props = {
   webappSlug: string;
   workspaceSlug: string;
+  isPublic?: boolean;
 };
 
 const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
-  const { webappSlug, workspaceSlug } = props;
+  const { webappSlug, workspaceSlug, isPublic } = props;
   const { t } = useTranslation();
 
-  const { data } = useWorkspaceWebappPageQuery({
-    variables: {
-      workspaceSlug,
-      webappSlug,
-    },
+  const publicQueryResult = usePublicWebappQuery({
+    variables: { workspaceSlug, webappSlug },
+    skip: !isPublic,
   });
+
+  const authenticatedQueryResult = useWorkspaceWebappPageQuery({
+    variables: { workspaceSlug, webappSlug },
+    skip: isPublic,
+  });
+
+  const data = isPublic ? publicQueryResult.data : authenticatedQueryResult.data;
+
+  if (isPublic) {
+    const webapp = data?.publicWebapp;
+    if (!webapp) return null;
+
+    return (
+      <Page title={webapp.name}>
+        <div className="h-screen">
+          <WebappIframe url={webapp.url ?? undefined} />
+        </div>
+      </Page>
+    );
+  }
 
   if (!data?.workspace || !data?.webapp) {
     return null;
@@ -68,30 +93,53 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
 WorkspaceWebappPlayPage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
-  requireAuth: true,
+  requireAuth: false,
   async getServerSideProps(ctx, client) {
-    await WorkspaceLayout.prefetch(ctx, client);
+    const workspaceSlug = ctx.params!.workspaceSlug as string;
+    const webappSlug = ctx.params!.webappSlug as string;
+
+    if (ctx.me?.user) {
+      await WorkspaceLayout.prefetch(ctx, client);
+      const { data } = await client.query<
+        WorkspaceWebappPageQuery,
+        WorkspaceWebappPageQueryVariables
+      >({
+        query: WorkspaceWebappPageDocument,
+        variables: { workspaceSlug, webappSlug },
+      });
+
+      if (!data.workspace || !data.webapp) {
+        return { notFound: true };
+      }
+
+      return {
+        props: {
+          workspaceSlug,
+          webappSlug,
+          workspace: data.workspace,
+          webapp: data.webapp,
+          isPublic: false,
+        },
+      };
+    }
+
     const { data } = await client.query<
-      WorkspaceWebappPageQuery,
-      WorkspaceWebappPageQueryVariables
+      PublicWebappQuery,
+      PublicWebappQueryVariables
     >({
-      query: WorkspaceWebappPageDocument,
-      variables: {
-        workspaceSlug: ctx.params!.workspaceSlug as string,
-        webappSlug: ctx.params!.webappSlug as string,
-      },
+      query: PublicWebappDocument,
+      variables: { workspaceSlug, webappSlug },
     });
 
-    if (!data.workspace || !data.webapp) {
+    if (!data.publicWebapp) {
       return { notFound: true };
     }
 
     return {
       props: {
-        workspaceSlug: ctx.params!.workspaceSlug,
-        webappSlug: ctx.params!.webappSlug,
-        workspace: data.workspace,
-        webapp: data.webapp,
+        workspaceSlug,
+        webappSlug,
+        isPublic: true,
       },
     };
   },
