@@ -100,8 +100,8 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
             isSidebarOpen ? "left-64 2xl:left-72" : "left-16",
           )}
         >
-          <div className="flex items-center h-full px-4">
-            <div className="flex-1 min-w-0 pl-4">{header}</div>
+          <div className="flex items-center h-full px-4 md:px-6 xl:px-10 2xl:px-12">
+            <div className="flex-1 min-w-0">{header}</div>
             <div className="flex-shrink-0 w-100 max-w-md mx-auto p-2">
               <SpotlightSearch />
             </div>

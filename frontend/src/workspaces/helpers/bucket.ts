@@ -13,6 +13,7 @@ import {
 export async function getBucketObjectDownloadUrl(
   workspaceSlug: string,
   objectKey: string,
+  forceAttachment: boolean = true,
 ): Promise<string> {
   const client = getApolloClient();
   const { data } = await client.mutate<
@@ -31,6 +32,7 @@ export async function getBucketObjectDownloadUrl(
       input: {
         workspaceSlug,
         objectKey,
+        forceAttachment,
       },
     },
   });

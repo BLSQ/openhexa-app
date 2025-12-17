@@ -85,32 +85,34 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
         },
       ]}
       header={
+        <Breadcrumbs withHome={false}>
+          <Breadcrumbs.Part
+            isFirst
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}/datasets`}
+          >
+            {t("Datasets")}
+          </Breadcrumbs.Part>
+          <Breadcrumbs.Part
+            isLast={!extraBreadcrumbs.length}
+            href={`/workspaces/${encodeURIComponent(
+              workspace.slug,
+            )}/datasets/${encodeURIComponent(dataset.slug)}/from/${encodeURIComponent(sourceWorkspace.slug)}`}
+          >
+            {dataset.name}
+          </Breadcrumbs.Part>
+          {extraBreadcrumbs.map(({ href, title }, index) => (
+            <Breadcrumbs.Part
+              key={index}
+              isLast={extraBreadcrumbs.length - 1 == index}
+              href={href}
+            >
+              {title}
+            </Breadcrumbs.Part>
+          ))}
+        </Breadcrumbs>
+      }
+      headerActions={
         <>
-          <Breadcrumbs withHome={false} className="flex-1">
-            <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}/datasets`}
-            >
-              {t("Datasets")}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              isLast={!extraBreadcrumbs.length}
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/datasets/${encodeURIComponent(dataset.slug)}/from/${encodeURIComponent(sourceWorkspace.slug)}`}
-            >
-              {dataset.name}
-            </Breadcrumbs.Part>
-            {extraBreadcrumbs.map(({ href, title }, index) => (
-              <Breadcrumbs.Part
-                key={index}
-                isLast={extraBreadcrumbs.length - 1 == index}
-                href={href}
-              >
-                {title}
-              </Breadcrumbs.Part>
-            ))}
-          </Breadcrumbs>
           <PinDatasetButton link={datasetLink} />
           {dataset.permissions.createVersion && isWorkspaceSource && (
             <Button

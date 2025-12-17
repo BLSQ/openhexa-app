@@ -36,8 +36,9 @@ def resolve_prepare_download_object(_, info, **kwargs):
         if not request.user.has_perm("files.download_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
         object_key = mutation_input["object_key"]
+        force_attachment = mutation_input.get("force_attachment", True)
         download_url = storage.generate_download_url(
-            workspace.bucket_name, object_key, force_attachment=True
+            workspace.bucket_name, object_key, force_attachment=force_attachment
         )
         track(
             request,

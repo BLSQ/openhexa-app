@@ -1,13 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import { SortingRule } from "react-table";
-import DateColumn from "core/components/DataGrid/DateColumn";
 import Block from "core/components/Block";
-import Button from "core/components/Button";
 import { useTranslation } from "next-i18next";
-import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import Link from "core/components/Link";
-import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import {
   TagsCell,
@@ -20,6 +17,7 @@ import {
 import { PipelineTemplateOrderBy } from "graphql/types";
 import { templateSorting } from "pipelines/config/sorting";
 import TemplateBadge from "pipelines/features/TemplateBadge";
+import PipelineCreateFromTemplateButton from "pipelines/features/PipelineCreateFromTemplateButton";
 
 type PipelineTemplateItem =
   GetPipelineTemplatesQuery["pipelineTemplates"]["items"][number];
@@ -30,7 +28,6 @@ type GridViewProps = {
   page: number;
   perPage: number;
   totalItems: number;
-  createPipeline: (pipelineTemplateVersionId: string) => () => void;
   setPage: (page: number) => void;
   onSort?: (params: {
     page: number;
@@ -46,14 +43,11 @@ const GridView = ({
   workspace,
   perPage,
   totalItems,
-  createPipeline,
   setPage,
   onSort,
   currentSort,
 }: GridViewProps) => {
   const { t } = useTranslation();
-  const [templateToDelete, setTemplateToDelete] =
-    useState<PipelineTemplateItem | null>(null);
 
   const defaultSortBy = useMemo(
     () => templateSorting.convertToDataGridSort(currentSort),
@@ -72,10 +66,12 @@ const GridView = ({
         defaultSortBy={defaultSortBy}
         fixedLayout={false}
       >
-        <BaseColumn id="name" label={t("Name")}>
+        <BaseColumn id="name" label={t("Name")} className="max-w-xs">
           {(template) => (
             <Link
               href={`/workspaces/${encodeURIComponent(workspace.slug)}/templates/${template.code}`}
+              className="block truncate hover:underline"
+              title={template.name}
             >
               {template.name}
             </Link>
@@ -143,56 +139,22 @@ const GridView = ({
             </span>
           )}
         </BaseColumn>
-        <DateColumn
-          id="createdAt"
-          accessor={"currentVersion.createdAt"}
-          label={t("Updated")}
-          className="w-32"
-        />
-        <BaseColumn
-          id="actions"
-          className="text-right w-52"
-          disableSortBy={true}
-        >
-          {(template) => {
-            const {
-              permissions: { delete: canDelete },
-              currentVersion,
-            } = template;
-            return (
-              <div className="flex justify-end gap-1">
-                {currentVersion && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={createPipeline(currentVersion.id)}
-                    leadingIcon={<PlusIcon className="h-4 w-4" />}
-                  >
-                    {t("Create pipeline")}
-                  </Button>
-                )}
-                {canDelete && (
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => setTemplateToDelete(template)}
-                    leadingIcon={<TrashIcon className="h-4 w-4" />}
-                  >
-                    {t("Delete")}
-                  </Button>
-                )}
-              </div>
-            );
-          }}
+        <BaseColumn id="actions" className="text-right" disableSortBy={true}>
+          {(template) => (
+            <div className="flex justify-end">
+              {template.currentVersion && (
+                <PipelineCreateFromTemplateButton
+                  workspaceSlug={workspace.slug}
+                  pipelineTemplateVersionId={template.currentVersion.id}
+                  variant="primary"
+                  size="sm"
+                  leadingIcon={<PlusIcon className="h-4 w-4" />}
+                />
+              )}
+            </div>
+          )}
         </BaseColumn>
       </DataGrid>
-      {templateToDelete && (
-        <DeleteTemplateDialog
-          open={true}
-          pipelineTemplate={templateToDelete}
-          onClose={() => setTemplateToDelete(null)}
-        />
-      )}
     </Block>
   );
 };

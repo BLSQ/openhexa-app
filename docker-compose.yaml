@@ -36,7 +36,6 @@ services:
     <<: *common
     command: "manage runserver 0:8000"
     restart: unless-stopped
-    container_name: app
     image: blsq/openhexa-app
     ports:
       - "8000:8000"
@@ -106,7 +105,6 @@ services:
     env_file: ./.env
     networks:
       - openhexa
-    container_name: frontend
     profiles:
       - "frontend"
     ports:

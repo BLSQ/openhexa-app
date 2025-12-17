@@ -328,10 +328,10 @@ exports[`Workspaces renders the workspace page 1`] = `
     class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
   >
     <div
-      class="flex items-center h-full px-4"
+      class="flex items-center h-full px-4 md:px-6 xl:px-10 2xl:px-12"
     >
       <div
-        class="flex-1 min-w-0 pl-4"
+        class="flex-1 min-w-0"
       />
       <div
         class="flex-shrink-0 w-100 max-w-md mx-auto p-2"
@@ -784,10 +784,10 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
     class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
   >
     <div
-      class="flex items-center h-full px-4"
+      class="flex items-center h-full px-4 md:px-6 xl:px-10 2xl:px-12"
     >
       <div
-        class="flex-1 min-w-0 pl-4"
+        class="flex-1 min-w-0"
       />
       <div
         class="flex-shrink-0 w-100 max-w-md mx-auto p-2"

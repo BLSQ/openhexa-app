@@ -9,7 +9,6 @@ type CardViewProps = {
   page: number;
   perPage: number;
   totalItems: number;
-  createPipeline: (pipelineTemplateVersionId: string) => () => void;
   setPage: (page: number) => void;
 };
 
@@ -19,7 +18,6 @@ const CardView = ({
   page,
   perPage,
   totalItems,
-  createPipeline,
   setPage,
 }: CardViewProps) => {
   const { t } = useTranslation();
@@ -38,11 +36,6 @@ const CardView = ({
                 workspace={workspace}
                 key={index}
                 template={template}
-                onCreate={
-                  template.currentVersion?.id
-                    ? createPipeline(template.currentVersion?.id)
-                    : undefined
-                }
               />
             ))}
           </div>

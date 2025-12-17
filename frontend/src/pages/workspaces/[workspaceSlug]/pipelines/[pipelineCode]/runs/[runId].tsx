@@ -144,15 +144,10 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
         header={
           <Breadcrumbs withHome={false}>
             <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspaceSlug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
               href={`/workspaces/${encodeURIComponent(
                 workspaceSlug,
               )}/pipelines`}
+              isFirst
             >
               {t("Pipelines")}
             </Breadcrumbs.Part>
@@ -224,7 +219,8 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                   <div className="mt-1.5 text-sm font-normal text-gray-500">
                     {run.status === PipelineRunStatus.Success && (
                       <>
-                        {t("Succeeded on")} <Time datetime={run.executionDate} />
+                        {t("Succeeded on")}{" "}
+                        <Time datetime={run.executionDate} />
                       </>
                     )}
                     {run.status === PipelineRunStatus.Failed && (
@@ -279,7 +275,12 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                   <Time datetime={run.executionDate} />
                 </DescriptionList.Item>
                 <DescriptionList.Item label={t("Source")}>
-                  <Badge>{formatPipelineSource(run.pipeline.type, !!run.pipeline.sourceTemplate)}</Badge>
+                  <Badge>
+                    {formatPipelineSource(
+                      run.pipeline.type,
+                      !!run.pipeline.sourceTemplate,
+                    )}
+                  </Badge>
                 </DescriptionList.Item>
                 {run.pipeline.type === PipelineType.Notebook && (
                   <DescriptionList.Item label={t("Notebook")}>
