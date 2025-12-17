@@ -106,9 +106,18 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         Workspace, on_delete=models.CASCADE, related_name="webapps"
     )
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    url = models.URLField()
+    url = models.URLField(blank=True)
     type = models.CharField(
         max_length=20, choices=WebappType.choices, default=WebappType.IFRAME
+    )
+    content = models.TextField(
+        blank=True,
+        help_text="Text content for the webapp (e.g., HTML markup, configuration, etc.)",
+    )
+    bundle = models.BinaryField(
+        blank=True,
+        null=True,
+        help_text="Zipfile containing the webapp bundle (HTML, JS, CSS, assets)",
     )
     is_public = models.BooleanField(default=False)
     favorites = models.ManyToManyField(

@@ -62,6 +62,52 @@ class WebappModelTest(TestCase):
         self.assertEqual(self.webapp.created_by, self.user_admin)
         self.assertEqual(self.webapp.url, "https://example.com")
 
+    def test_webapp_with_html_content(self):
+        html_webapp = Webapp.objects.create(
+            name="HTML Webapp",
+            slug="html-webapp",
+            type=Webapp.WebappType.HTML,
+            content="<html><body><h1>Test</h1></body></html>",
+            workspace=self.workspace,
+            created_by=self.user_admin,
+        )
+        self.assertEqual(html_webapp.type, Webapp.WebappType.HTML)
+        self.assertEqual(html_webapp.content, "<html><body><h1>Test</h1></body></html>")
+        self.assertEqual(html_webapp.url, "")
+
+    def test_webapp_with_bundle(self):
+        import io
+        import zipfile
+
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            zip_file.writestr("index.html", "<html><body>Bundle Test</body></html>")
+            zip_file.writestr("app.js", "console.log('test');")
+
+        bundle_webapp = Webapp.objects.create(
+            name="Bundle Webapp",
+            slug="bundle-webapp",
+            type=Webapp.WebappType.BUNDLE,
+            bundle=zip_buffer.getvalue(),
+            workspace=self.workspace,
+            created_by=self.user_admin,
+        )
+        self.assertEqual(bundle_webapp.type, Webapp.WebappType.BUNDLE)
+        self.assertIsNotNone(bundle_webapp.bundle)
+        self.assertEqual(bundle_webapp.url, "")
+
+    def test_webapp_url_optional(self):
+        webapp_no_url = Webapp.objects.create(
+            name="No URL Webapp",
+            slug="no-url-webapp",
+            type=Webapp.WebappType.HTML,
+            content="<html><body>Test</body></html>",
+            workspace=self.workspace,
+            created_by=self.user_admin,
+            url="",
+        )
+        self.assertEqual(webapp_no_url.url, "")
+
     def test_webapp_str(self):
         self.assertEqual(str(self.webapp), "Test Webapp")
 

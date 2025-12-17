@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("webapps", "0006_merge_0004_webapp_type_0005_fix_slug_constraint"),
+        ("webapps", "0007_webapp_bundle_webapp_content_alter_webapp_url"),
     ]
 
     operations = [

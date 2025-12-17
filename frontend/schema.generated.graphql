@@ -451,6 +451,11 @@ enum BucketObjectType {
   FILE
 }
 
+"""Content input for a BUNDLE webapp."""
+input BundleWebappContentInput {
+  bundle: String!
+}
+
 type Config {
   """List of requirements for the password."""
   passwordRequirements: [String!]
@@ -921,11 +926,10 @@ enum CreateWebappError {
 
 """Represents the input for creating a web app."""
 input CreateWebappInput {
+  content: WebappContentInput!
   description: String
   icon: String
   name: String!
-  type: WebappType!
-  url: String!
   workspaceSlug: String!
 }
 
@@ -2072,6 +2076,11 @@ type GenericOutput {
   uri: String!
 }
 
+"""Content input for an HTML webapp."""
+input HtmlWebappContentInput {
+  content: String!
+}
+
 """IASO connection object"""
 type IASOConnection implements Connection {
   createdAt: DateTime!
@@ -2119,6 +2128,11 @@ type IASOQueryResultPage {
   success: Boolean!
   totalItems: Int!
   totalPages: Int!
+}
+
+"""Content input for an IFRAME webapp."""
+input IframeWebappContentInput {
+  url: String!
 }
 
 """
@@ -3835,6 +3849,11 @@ type StopPipelineResult {
   success: Boolean!
 }
 
+"""Content input for a SUPERSET webapp."""
+input SupersetWebappContentInput {
+  url: String!
+}
+
 type TableColumn {
   name: String!
   type: String!
@@ -4480,13 +4499,12 @@ enum UpdateWebappError {
 
 """Represents the input for updating a web app."""
 input UpdateWebappInput {
+  content: WebappContentInput
   description: String
   icon: String
   id: UUID!
   isPublic: Boolean
   name: String
-  type: WebappType
-  url: String
 }
 
 """Represents the result of updating a web app."""
@@ -4666,6 +4684,7 @@ type WHORegion {
 
 """Represents a web app."""
 type Webapp {
+  content: String
   createdBy: User!
   description: String
   icon: String
@@ -4677,8 +4696,16 @@ type Webapp {
   permissions: WebappPermissions!
   slug: String!
   type: WebappType!
-  url: String!
+  url: String
   workspace: Workspace!
+}
+
+"""Content input for a webapp. Exactly one field must be provided."""
+input WebappContentInput @oneOf {
+  bundle: BundleWebappContentInput
+  html: HtmlWebappContentInput
+  iframe: IframeWebappContentInput
+  superset: SupersetWebappContentInput
 }
 
 """Represents the permissions for a web app."""

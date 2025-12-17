@@ -9,7 +9,7 @@ export type PublicWebappQueryVariables = Types.Exact<{
 }>;
 
 
-export type PublicWebappQuery = { __typename?: 'Query', publicWebapp?: { __typename?: 'Webapp', id: string, slug: string, name: string, url: string, type: Types.WebappType } | null };
+export type PublicWebappQuery = { __typename?: 'Query', publicWebapp?: { __typename?: 'Webapp', id: string, slug: string, name: string, url?: string | null, type: Types.WebappType } | null };
 
 
 export const PublicWebappDocument = gql`

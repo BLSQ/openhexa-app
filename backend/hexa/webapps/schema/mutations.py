@@ -1,3 +1,5 @@
+import base64
+
 from django.http import HttpRequest
 
 from hexa.utils.base64_image_encode_decode import decode_base64_image
@@ -10,20 +12,48 @@ def _decode_icon_if_present(input: dict):
         input["icon"] = decode_base64_image(input["icon"])
 
 
-def _normalize_type_if_present(input: dict):
-    if input.get("type"):
-        input["type"] = input["type"].lower()
+def _flatten_webapp_content(input: dict):
+    """
+    Flatten the WebappContentInput structure to extract type and content fields.
+    GraphQL's @oneOf ensures only one content type is provided.
+    """
+    content_input = input.get("content")
+    if not content_input:
+        return
+
+    match content_input:
+        case {"iframe": iframe_data}:
+            input["type"] = "iframe"
+            input["url"] = iframe_data["url"]
+            del input["content"]
+        case {"html": html_data}:
+            input["type"] = "html"
+            input["content"] = html_data["content"]
+        case {"bundle": bundle_data}:
+            input["type"] = "bundle"
+            input["bundle"] = base64.b64decode(bundle_data["bundle"])
+        case {"superset": superset_data}:
+            input["type"] = "superset"
+            input["url"] = superset_data["url"]
+            del input["content"]
+        case _:
+            raise ValueError(
+                f"Unknown webapp content type: {list(content_input.keys())}"
+            )
 
 
 class WebappsWorkspaceMutationType(BaseWorkspaceMutationType):
     def pre_create(self, request: HttpRequest, input: dict):
         input["created_by"] = request.user
+        if not input.get("content"):
+            raise ValueError("Content is required when creating a webapp")
+        _flatten_webapp_content(input)
         _decode_icon_if_present(input)
-        _normalize_type_if_present(input)
 
     def pre_update(self, request: HttpRequest, instance, input: dict):
+        if "content" in input:
+            _flatten_webapp_content(input)
         _decode_icon_if_present(input)
-        _normalize_type_if_present(input)
 
 
 webapps_mutations = WebappsWorkspaceMutationType(Webapp)
