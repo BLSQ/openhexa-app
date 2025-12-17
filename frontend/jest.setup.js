@@ -4,7 +4,6 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import "@testing-library/jest-dom";
 import { faker } from "@faker-js/faker";
-import { setConfig } from "next/config";
 
 import {
   configMocks,
@@ -13,8 +12,16 @@ import {
 } from "jsdom-testing-mocks";
 import { act } from "react";
 import { Settings } from "luxon";
-// @ts-ignore
-import { publicRuntimeConfig } from "./next.config";
+
+// Set environment variables for tests
+process.env.OPENHEXA_BACKEND_URL = "http://localhost:8000";
+process.env.NEXT_PUBLIC_OPENHEXA_BACKEND_URL = "http://localhost:8000";
+process.env.NEXT_PUBLIC_SENTRY_DSN = "";
+process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT = "test";
+process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE = "1";
+process.env.NEXT_PUBLIC_DISABLE_ANALYTICS = "true";
+process.env.SENTRY_DSN = "";
+process.env.SENTRY_TRACES_SAMPLE_RATE = "1";
 
 Settings.defaultLocale = "en";
 Settings.defaultZone = "Europe/Brussels";
@@ -27,14 +34,6 @@ configMocks({ act });
 globalThis.resizeObserverMock = mockResizeObserver();
 
 mockAnimationsApi();
-
-// Make sure you can use "publicRuntimeConfig" within tests.
-setConfig({
-  publicRuntimeConfig: {
-    ...publicRuntimeConfig,
-    GRAPHQL_ENDPOINT: "http://localhost:3000/graphql/",
-  },
-});
 
 beforeEach(() => {
   // Set seed for faker
