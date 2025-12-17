@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { TrashIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import { useState } from "react";
@@ -15,6 +15,7 @@ import DeleteTemplateDialog from "pipelines/features/DeleteTemplateDialog";
 import router from "next/router";
 import DownloadTemplateVersion from "pipelines/features/DownloadTemplateVersion";
 import Spinner from "core/components/Spinner";
+import PipelineCreateFromTemplateButton from "pipelines/features/PipelineCreateFromTemplateButton";
 
 type TemplateLayoutProps = {
   template: TemplateLayout_TemplateFragment;
@@ -97,6 +98,14 @@ const TemplateLayout = (props: TemplateLayoutProps) => {
       }
       headerActions={
         <div className="flex items-center gap-2">
+          {template.currentVersion && (
+            <PipelineCreateFromTemplateButton
+              workspaceSlug={workspace.slug}
+              pipelineTemplateVersionId={template.currentVersion.id}
+              variant="primary"
+              leadingIcon={<PlusIcon className="h-4 w-4" />}
+            />
+          )}
           {template.currentVersion && (
             <DownloadTemplateVersion version={template.currentVersion}>
               {({ onClick, isDownloading }) => (

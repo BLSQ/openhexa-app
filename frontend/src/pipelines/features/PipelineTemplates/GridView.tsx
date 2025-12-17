@@ -2,7 +2,6 @@ import React, { useMemo } from "react";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import { SortingRule } from "react-table";
 import Block from "core/components/Block";
-import Button from "core/components/Button";
 import { useTranslation } from "next-i18next";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import Link from "core/components/Link";
@@ -18,6 +17,7 @@ import {
 import { PipelineTemplateOrderBy } from "graphql/types";
 import { templateSorting } from "pipelines/config/sorting";
 import TemplateBadge from "pipelines/features/TemplateBadge";
+import PipelineCreateFromTemplateButton from "pipelines/features/PipelineCreateFromTemplateButton";
 
 type PipelineTemplateItem =
   GetPipelineTemplatesQuery["pipelineTemplates"]["items"][number];
@@ -28,7 +28,6 @@ type GridViewProps = {
   page: number;
   perPage: number;
   totalItems: number;
-  createPipeline: (pipelineTemplateVersionId: string) => () => void;
   setPage: (page: number) => void;
   onSort?: (params: {
     page: number;
@@ -44,7 +43,6 @@ const GridView = ({
   workspace,
   perPage,
   totalItems,
-  createPipeline,
   setPage,
   onSort,
   currentSort,
@@ -145,14 +143,13 @@ const GridView = ({
           {(template) => (
             <div className="flex justify-end">
               {template.currentVersion && (
-                <Button
+                <PipelineCreateFromTemplateButton
+                  workspaceSlug={workspace.slug}
+                  pipelineTemplateVersionId={template.currentVersion.id}
                   variant="primary"
                   size="sm"
-                  onClick={createPipeline(template.currentVersion.id)}
                   leadingIcon={<PlusIcon className="h-4 w-4" />}
-                >
-                  {t("Create pipeline")}
-                </Button>
+                />
               )}
             </div>
           )}
