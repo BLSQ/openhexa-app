@@ -67,6 +67,7 @@ const MarkdownEditor = ({
           python: "Python",
           js: "JavaScript",
           css: "CSS",
+          json: "JSON",
           txt: "text",
         },
       }),
