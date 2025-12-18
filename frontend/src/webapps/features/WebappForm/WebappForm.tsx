@@ -229,7 +229,7 @@ const TypeAwareFields = ({
         id="url"
         accessor="url"
         label={t("URL")}
-        required
+        required={!webapp}
         defaultValue=""
         visible={(_displayValue: any, _isEdited: any, formData: any) => {
           const type = formData.type || currentType;
@@ -243,7 +243,7 @@ const TypeAwareFields = ({
         id="content"
         accessor="content"
         label={t("Content")}
-        required
+        required={!webapp}
         defaultValue=""
         visible={(_displayValue: any, _isEdited: any, formData: any) => {
           const type = formData.type || currentType;
@@ -254,7 +254,7 @@ const TypeAwareFields = ({
         id="bundle"
         accessor="bundle"
         label={t("Bundle File")}
-        required
+        required={!webapp}
         defaultValue=""
         helpText={t(
           "Upload a zip file containing your built React app (index.html + assets)",
