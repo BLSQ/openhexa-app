@@ -16,7 +16,7 @@ import {
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import MarkdownEditor from "../../../core/components/MarkdownEditor/MarkdownEditor";
+import MarkdownEditor from "core/components/MarkdownEditor/MarkdownEditor";
 import { UploadDatasetVersionDialog_DatasetLinkFragment } from "./UploadDatasetVersionDialog.generated";
 
 type UploadDatasetVersionDialogProps = {
