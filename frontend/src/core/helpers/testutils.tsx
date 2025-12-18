@@ -3,6 +3,7 @@ import { faker } from "@faker-js/faker";
 import { ByRoleOptions, screen } from "@testing-library/react";
 import { MeProvider } from "identity/hooks/useMe";
 import { ReactNode } from "react";
+import { CookiesProvider } from "react-cookie";
 
 type TestAppProps = {
   children: ReactNode;
@@ -25,7 +26,9 @@ export function TestApp(props: TestAppProps) {
   };
   return (
     <MockedProvider mocks={props.mocks ?? []}>
-      <MeProvider me={me}>{props.children}</MeProvider>
+      <CookiesProvider>
+        <MeProvider me={me}>{props.children}</MeProvider>
+      </CookiesProvider>
     </MockedProvider>
   );
 }

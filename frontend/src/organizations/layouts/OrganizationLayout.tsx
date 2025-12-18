@@ -19,8 +19,7 @@ const OrganizationLayout = ({
 }: OrganizationLayoutProps) => {
   return (
     <BaseLayout
-      Sidebar={OrganizationSidebar}
-      sidebarProps={{ organization }}
+      sidebar={<OrganizationSidebar organization={organization} />}
       organizationId={organization?.id}
       header={header}
       headerActions={headerActions}
