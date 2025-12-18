@@ -43,13 +43,23 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props & { webapp?: a
   if (isPublic && initialWebapp) {
     return (
       <Page title={initialWebapp.name}>
-        <div className="h-screen">
-          <WebappIframe
-            url={initialWebapp.url ?? undefined}
-            type={initialWebapp.type}
-            workspaceSlug={workspaceSlug}
-            webappSlug={webappSlug}
-          />
+        <div className="h-screen flex flex-col">
+          <div className="flex-1 min-h-0">
+            <WebappIframe
+              url={initialWebapp.url ?? undefined}
+              type={initialWebapp.type}
+              workspaceSlug={workspaceSlug}
+              webappSlug={webappSlug}
+            />
+          </div>
+          <div className="bg-white border-t border-gray-200 px-4 py-2 flex items-center justify-center gap-2 shadow-sm">
+            <span className="text-xs text-gray-600">{t("Powered by")}</span>
+            <img
+              src="/images/logo_with_text_black.svg"
+              alt="OpenHEXA"
+              className="h-5"
+            />
+          </div>
         </div>
       </Page>
     );
@@ -80,7 +90,12 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props & { webapp?: a
           }
         >
           <WorkspaceLayout.PageContent>
-            <WebappIframe url={initialWebapp.url ?? undefined} />
+            <WebappIframe
+              url={initialWebapp.url ?? undefined}
+              type={initialWebapp.type}
+              workspaceSlug={workspaceSlug}
+              webappSlug={webappSlug}
+            />
           </WorkspaceLayout.PageContent>
         </WorkspaceLayout>
       </Page>
@@ -97,13 +112,23 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props & { webapp?: a
 
     return (
       <Page title={webapp.name}>
-        <div className="h-screen">
-          <WebappIframe
-            url={webapp.url ?? undefined}
-            type={webapp.type}
-            workspaceSlug={workspaceSlug}
-            webappSlug={webappSlug}
-          />
+        <div className="h-screen flex flex-col">
+          <div className="flex-1 min-h-0">
+            <WebappIframe
+              url={webapp.url ?? undefined}
+              type={webapp.type}
+              workspaceSlug={workspaceSlug}
+              webappSlug={webappSlug}
+            />
+          </div>
+          <div className="bg-white border-t border-gray-200 px-4 py-2 flex items-center justify-center gap-2 shadow-sm">
+            <span className="text-xs text-gray-600">{t("Powered by")}</span>
+            <img
+              src="/images/logo_with_text_black.svg"
+              alt="OpenHEXA"
+              className="h-5"
+            />
+          </div>
         </div>
       </Page>
     );

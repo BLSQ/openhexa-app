@@ -784,6 +784,7 @@ query WorkspaceWebappsPage(
       url
       isFavorite
       isShortcut
+      isPublic
       createdBy {
         firstName
         lastName

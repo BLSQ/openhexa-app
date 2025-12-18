@@ -10,7 +10,7 @@ import React, { useMemo } from "react";
 import Button from "core/components/Button";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Breadcrumbs from "core/components/Breadcrumbs";
-import { PlayIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { PlayIcon, PlusIcon, GlobeAltIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 import {
   useWorkspaceWebappsPageQuery,
   WorkspaceWebappsPageDocument,
@@ -155,6 +155,23 @@ const WebappsPage = (props: Props) => {
                   <div className={"flex space-x-1"}>
                     <UserAvatar user={item.createdBy} size="xs" />
                     <p>{item.createdBy.displayName}</p>
+                  </div>
+                )}
+              </BaseColumn>
+              <BaseColumn id="isPublic" label={t("Access")} width={120}>
+                {(item) => (
+                  <div className="flex items-center space-x-1.5">
+                    {item.isPublic ? (
+                      <>
+                        <GlobeAltIcon className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm text-blue-600">{t("Public")}</span>
+                      </>
+                    ) : (
+                      <>
+                        <LockClosedIcon className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm text-gray-500">{t("Private")}</span>
+                      </>
+                    )}
                   </div>
                 )}
               </BaseColumn>

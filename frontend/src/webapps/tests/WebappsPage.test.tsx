@@ -47,9 +47,11 @@ const mockWorkspace = {
 const webapp = (id: string) => ({
   __typename: "Webapp",
   id: id,
+  slug: `webapp-${id}`,
   name: `Webapp ${id}`,
   isFavorite: id === "2",
   isShortcut: false,
+  isPublic: id === "1",
   description: "Webapp description",
   url: `https://example${id}.com`,
   icon: "",
