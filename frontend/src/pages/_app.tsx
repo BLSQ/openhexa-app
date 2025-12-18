@@ -10,6 +10,7 @@ import { appWithTranslation } from "next-i18next";
 import Head from "next/head";
 import NavigationProgress from "nextjs-progressbar";
 import { useEffect } from "react";
+import { CookiesProvider } from "react-cookie";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/globals.css";
@@ -38,25 +39,27 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
   }, [me]);
   return (
     <ErrorBoundary>
-      <MeProvider me={me}>
-        <NavigationProgress color="#002C5F" height={3} />
-        <OverlayProgress />
-        <ApolloProvider client={apolloClient}>
-          <Head>
-            <meta
-              name="viewport"
-              content="width=device-width, initial-scale=1"
+      <CookiesProvider>
+        <MeProvider me={me}>
+          <NavigationProgress color="#002C5F" height={3} />
+          <OverlayProgress />
+          <ApolloProvider client={apolloClient}>
+            <Head>
+              <meta
+                name="viewport"
+                content="width=device-width, initial-scale=1"
+              />
+              <meta name="description" content="" />
+            </Head>
+            {getLayout(<Component {...pageProps} />, pageProps)}
+            <ToastContainer
+              pauseOnFocusLoss={false}
+              pauseOnHover={false}
+              hideProgressBar={true}
             />
-            <meta name="description" content="" />
-          </Head>
-          {getLayout(<Component {...pageProps} />, pageProps)}
-          <ToastContainer
-            pauseOnFocusLoss={false}
-            pauseOnHover={false}
-            hideProgressBar={true}
-          />
-        </ApolloProvider>
-      </MeProvider>
+          </ApolloProvider>
+        </MeProvider>
+      </CookiesProvider>
     </ErrorBoundary>
   );
 }
