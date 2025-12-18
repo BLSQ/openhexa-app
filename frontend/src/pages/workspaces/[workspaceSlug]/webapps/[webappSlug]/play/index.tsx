@@ -24,40 +24,97 @@ type Props = {
   isPublic?: boolean;
 };
 
-const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
-  const { webappSlug, workspaceSlug, isPublic } = props;
+const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props & { webapp?: any; workspace?: any }) => {
+  const { webappSlug, workspaceSlug, isPublic, webapp: initialWebapp, workspace: initialWorkspace } = props;
   const { t } = useTranslation();
 
   const publicQueryResult = usePublicWebappQuery({
     variables: { workspaceSlug, webappSlug },
-    skip: !isPublic,
+    skip: !isPublic || !!initialWebapp,
   });
 
   const authenticatedQueryResult = useWorkspaceWebappPageQuery({
     variables: { workspaceSlug, webappSlug },
-    skip: isPublic,
+    skip: isPublic || !!initialWebapp,
   });
 
-  const data = isPublic ? publicQueryResult.data : authenticatedQueryResult.data;
+  const loading = isPublic ? publicQueryResult.loading : authenticatedQueryResult.loading;
 
-  if (isPublic) {
-    const webapp = data?.publicWebapp;
-    if (!webapp) return null;
-
+  if (isPublic && initialWebapp) {
     return (
-      <Page title={webapp.name}>
+      <Page title={initialWebapp.name}>
         <div className="h-screen">
-          <WebappIframe url={webapp.url ?? undefined} />
+          <WebappIframe
+            url={initialWebapp.url ?? undefined}
+            type={initialWebapp.type}
+            workspaceSlug={workspaceSlug}
+            webappSlug={webappSlug}
+          />
         </div>
       </Page>
     );
   }
 
-  if (!data?.workspace || !data?.webapp) {
+  if (!isPublic && initialWebapp && initialWorkspace) {
+    return (
+      <Page title={t("Web Apps")}>
+        <WorkspaceLayout
+          workspace={initialWorkspace}
+          header={
+            <Breadcrumbs withHome={false} className="flex-1">
+              <Breadcrumbs.Part
+                isFirst
+                href={`/workspaces/${encodeURIComponent(initialWorkspace.slug)}/webapps`}
+              >
+                {t("Web Apps")}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                href={`/workspaces/${encodeURIComponent(
+                  initialWorkspace.slug,
+                )}/webapps/${encodeURIComponent(initialWebapp.slug)}`}
+                isLast
+              >
+                {initialWebapp.name}
+              </Breadcrumbs.Part>
+            </Breadcrumbs>
+          }
+        >
+          <WorkspaceLayout.PageContent>
+            <WebappIframe url={initialWebapp.url ?? undefined} />
+          </WorkspaceLayout.PageContent>
+        </WorkspaceLayout>
+      </Page>
+    );
+  }
+
+  if (loading) {
     return null;
   }
 
-  const { workspace, webapp } = data;
+  if (isPublic) {
+    const webapp = publicQueryResult.data?.publicWebapp;
+    if (!webapp) return null;
+
+    return (
+      <Page title={webapp.name}>
+        <div className="h-screen">
+          <WebappIframe
+            url={webapp.url ?? undefined}
+            type={webapp.type}
+            workspaceSlug={workspaceSlug}
+            webappSlug={webappSlug}
+          />
+        </div>
+      </Page>
+    );
+  }
+
+  const workspace = authenticatedQueryResult.data?.workspace;
+  const webapp = authenticatedQueryResult.data?.webapp;
+
+  if (!workspace || !webapp) {
+    return null;
+  }
 
   return (
     <Page title={t("Web Apps")}>
@@ -124,7 +181,7 @@ export const getServerSideProps = createGetServerSideProps({
           webappSlug,
           workspace: data.workspace,
           webapp: data.webapp,
-          isPublic: false,
+          isPublic: data.webapp.isPublic,
         },
       };
     }
@@ -145,6 +202,7 @@ export const getServerSideProps = createGetServerSideProps({
       props: {
         workspaceSlug,
         webappSlug,
+        webapp: data.publicWebapp,
         isPublic: true,
       },
     };

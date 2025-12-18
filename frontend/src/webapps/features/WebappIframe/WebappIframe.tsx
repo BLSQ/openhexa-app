@@ -55,11 +55,15 @@ const WebappIframe = ({
       return sanitizeUrl(externalUrl || "");
     }
   }, [type, workspaceSlug, webappSlug, externalUrl]);
-  const [iframeLoading, setIframeLoading] = useState(true);
+
+  const shouldShowSpinner = type !== WebappType.Html && type !== WebappType.Bundle;
+  const [iframeLoading, setIframeLoading] = useState(shouldShowSpinner);
 
   useEffect(() => {
-    setIframeLoading(true);
-  }, [url]);
+    if (shouldShowSpinner) {
+      setIframeLoading(true);
+    }
+  }, [url, shouldShowSpinner]);
 
   const isSameOrigin = useMemo(() => {
     try {
@@ -97,14 +101,18 @@ const WebappIframe = ({
 
   return (
     <div
-      className={clsx("flex justify-center items-center", className)}
+      className={clsx("relative flex justify-center items-center", className)}
       style={{ height: "90vh", ...style }}
     >
-      {iframeLoading && <Spinner size="md" />}{" "}
+      {iframeLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+          <Spinner size="md" />
+        </div>
+      )}
       {/* URL is sanitized via sanitizeUrl() to prevent XSS - only allows http:, https:, and relative paths */}
       <iframe
         src={url}
-        className={clsx("w-full h-full", iframeLoading && "hidden")}
+        className="w-full h-full"
         sandbox={sandboxPermissions}
         onLoad={() => setIframeLoading(false)}
         onError={() => setIframeLoading(false)}

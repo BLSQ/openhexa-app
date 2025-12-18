@@ -17,6 +17,9 @@ logger = getLogger(__name__)
 
 def _check_webapp_permission(request: HttpRequest, webapp: Webapp) -> bool:
     """Check if user has permission to view the webapp."""
+    if webapp.is_public:
+        return True
+
     if not request.user.is_authenticated:
         return False
 

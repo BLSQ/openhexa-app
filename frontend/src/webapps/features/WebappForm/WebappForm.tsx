@@ -327,6 +327,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       name: values.name,
       description: values.description,
       icon: values.icon,
+      isPublic: values.isPublic,
     };
 
     switch (type) {
