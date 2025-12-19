@@ -1,8 +1,7 @@
 from logging import getLogger
 
-import sentry_sdk
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 
 from hexa.superset.models import SupersetDashboard
 
@@ -37,28 +36,3 @@ def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResp
         "superset/dashboard.html",
         {"dashboard": dashboard, "guest_token": guest_token},
     )
-
-
-def view_superset_dashboard_by_external_id(
-    request: HttpRequest, external_id: str
-) -> HttpResponse:
-    """
-    Warning: This endpoint is only implemented to ease the migration from the Vercel app to the new system of embedded dashboard.
-    It has to be removed in the future once the app https://vercel.com/bluesquare/superset-dashboards-poc is deleted.
-    """
-    logger.error(
-        "view_superset_dashboard_by_external_id is deprecated. Use view_superset_dashboard instead.",
-        extra={"request": request, "external_id": external_id},
-    )
-    try:
-        dashboard: SupersetDashboard = SupersetDashboard.objects.get(
-            external_id=external_id
-        )
-    except SupersetDashboard.DoesNotExist:
-        sentry_sdk.capture_message(
-            "Legacy Superset dashboard not found",
-            level="error",
-            extras={"request": request, "external_id": external_id},
-        )
-        return HttpResponse(status=404)
-    return redirect(dashboard.get_absolute_url())
