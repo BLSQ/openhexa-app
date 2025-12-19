@@ -40,7 +40,7 @@ def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResp
     )
 
 
-LEGACY_ENDPOINT_SUNSET_DATE = date(2025, 3, 1)
+LEGACY_ENDPOINT_SUNSET_DATE = date(2025, 1, 31)
 
 
 def view_superset_dashboard_by_external_id(
