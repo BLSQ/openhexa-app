@@ -34,6 +34,23 @@ import clsx from "clsx";
 import styles from "./MarkdownEditor.module.css";
 import { useMemo } from "react";
 
+const CODE_BLOCK_LANGUAGES: Record<string, string> = {
+  python: "Python",
+  js: "JavaScript",
+  css: "CSS",
+  json: "JSON",
+  txt: "text",
+};
+
+function normalizeCodeBlockLanguages(markdown: string): string {
+  return markdown.replace(/```(\w+)/g, (match, lang) => {
+    if (lang.toLowerCase() in CODE_BLOCK_LANGUAGES) {
+      return match;
+    }
+    return "```txt";
+  });
+}
+
 export type MarkdownEditorProps = MDXEditorProps & {
   sm?: boolean;
   id?: string;
@@ -56,6 +73,11 @@ const MarkdownEditor = ({
   readOnly,
   ...delegated
 }: MarkdownEditorProps) => {
+  const normalizedMarkdown = useMemo(
+    () => normalizeCodeBlockLanguages(markdown),
+    [markdown],
+  );
+
   const plugins = useMemo(() => {
     const basePlugins = [
       headingsPlugin(),
@@ -63,16 +85,10 @@ const MarkdownEditor = ({
       listsPlugin(),
       codeBlockPlugin({ defaultCodeBlockLanguage: "txt" }),
       codeMirrorPlugin({
-        codeBlockLanguages: {
-          python: "Python",
-          js: "JavaScript",
-          css: "CSS",
-          json: "JSON",
-          txt: "text",
-        },
+        codeBlockLanguages: CODE_BLOCK_LANGUAGES,
       }),
       diffSourcePlugin({
-        diffMarkdown: markdown,
+        diffMarkdown: normalizedMarkdown,
         viewMode: "rich-text",
         readOnlyDiff: true,
       }),
@@ -132,7 +148,7 @@ const MarkdownEditor = ({
       );
     }
     return basePlugins;
-  }, [readOnly]);
+  }, [readOnly, normalizedMarkdown]);
 
   return (
     <div
@@ -145,7 +161,7 @@ const MarkdownEditor = ({
     >
       <MDXEditor
         data-testid="markdown-editor"
-        markdown={markdown}
+        markdown={normalizedMarkdown}
         contentEditableClassName={clsx(
           "max-w-none ring-none outline-none",
           // Standard styles
