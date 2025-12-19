@@ -1,8 +1,9 @@
+from datetime import date
 from logging import getLogger
 
 import sentry_sdk
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 
 from hexa.superset.models import SupersetDashboard
 
@@ -39,6 +40,9 @@ def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResp
     )
 
 
+LEGACY_ENDPOINT_SUNSET_DATE = date(2025, 3, 1)
+
+
 def view_superset_dashboard_by_external_id(
     request: HttpRequest, external_id: str
 ) -> HttpResponse:
@@ -46,7 +50,13 @@ def view_superset_dashboard_by_external_id(
     Warning: This endpoint is only implemented to ease the migration from the Vercel app to the new system of embedded dashboard.
     It has to be removed in the future once the app https://vercel.com/bluesquare/superset-dashboards-poc is deleted.
     """
-    logger.error(
+    if date.today() >= LEGACY_ENDPOINT_SUNSET_DATE:
+        return HttpResponse(
+            "This endpoint has been removed. Please use the new dashboard URL. Contact the OpenHEXA team for more information.",
+            status=410,
+        )
+
+    logger.warning(
         "view_superset_dashboard_by_external_id is deprecated. Use view_superset_dashboard instead.",
         extra={"request": request, "external_id": external_id},
     )
@@ -61,4 +71,13 @@ def view_superset_dashboard_by_external_id(
             extras={"request": request, "external_id": external_id},
         )
         return HttpResponse(status=404)
-    return redirect(dashboard.get_absolute_url())
+
+    return render(
+        request,
+        "superset/deprecated_redirect.html",
+        {
+            "new_url": dashboard.get_absolute_url(),
+            "dashboard": dashboard,
+            "sunset_date": LEGACY_ENDPOINT_SUNSET_DATE,
+        },
+    )
