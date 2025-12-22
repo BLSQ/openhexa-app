@@ -22,6 +22,7 @@ interface CreateGetServerSideProps {
 
 interface ServerSideProps {
   me: Awaited<ReturnType<typeof getMe>>;
+  cookieHeader?: string;
 
   [key: string]: any;
 }
@@ -80,6 +81,7 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
     result.props = {
       ...result.props,
       me: ctx.me,
+      cookieHeader: ctx.req.headers.cookie ?? "",
     };
 
     if (getServerSideProps) {

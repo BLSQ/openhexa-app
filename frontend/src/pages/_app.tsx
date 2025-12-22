@@ -9,8 +9,9 @@ import { Settings } from "luxon";
 import { appWithTranslation } from "next-i18next";
 import Head from "next/head";
 import NavigationProgress from "nextjs-progressbar";
-import { useEffect } from "react";
+import { useMemo, useEffect } from "react";
 import { CookiesProvider } from "react-cookie";
+import { Cookies } from "react-cookie";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/globals.css";
@@ -28,10 +29,15 @@ if (typeof window !== "undefined") {
 
 function App({ Component, pageProps }: AppPropsWithLayout) {
   const apolloClient = useApollo(pageProps);
-  const { me } = pageProps;
+  const { me, cookieHeader } = pageProps;
   const getLayout =
     Component.getLayout ??
     ((page) => <DefaultLayout pageProps={pageProps}>{page}</DefaultLayout>);
+
+  const cookies = useMemo(
+    () => (cookieHeader ? new Cookies(cookieHeader) : undefined),
+    [cookieHeader],
+  );
 
   Settings.defaultLocale = me?.user?.language ?? "en";
   useEffect(() => {
@@ -39,7 +45,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
   }, [me]);
   return (
     <ErrorBoundary>
-      <CookiesProvider>
+      <CookiesProvider cookies={cookies}>
         <MeProvider me={me}>
           <NavigationProgress color="#002C5F" height={3} />
           <OverlayProgress />

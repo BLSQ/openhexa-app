@@ -1,9 +1,8 @@
-import { useCookies } from "react-cookie";
+import useCookieState from "./useCookieState";
 
 export default function useSidebarOpen() {
-  const [cookies, setCookie] = useCookies(["sidebar-open"]);
-  const isSidebarOpen = cookies["sidebar-open"];
-  const setSidebarOpen = (open: boolean) => setCookie("sidebar-open", open);
-
-  return [isSidebarOpen, setSidebarOpen] as const;
+  return useCookieState<boolean>({
+    name: "sidebar-open",
+    defaultValue: true,
+  });
 }
