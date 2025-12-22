@@ -14,7 +14,6 @@ import SidebarToggleButton from "./SidebarToggleButton";
 import UserMenu from "workspaces/features/UserMenu";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 
 type OrganizationSidebarProps = {
   organization: OrganizationQuery["organization"];
