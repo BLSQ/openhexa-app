@@ -21,6 +21,7 @@ import WorkspacesListView from "organizations/components/WorkspacesListView";
 import WorkspacesCardView from "organizations/components/WorkspacesCardView";
 import { getCookie, hasCookie, setCookie } from "cookies-next";
 
+// TODO : use a better way to handle SSR cookies (see useCookieState), same for similar cases
 export let cookieWorkspacesView: "grid" | "card" = "card";
 
 function getDefaultWorkspacesView(): "grid" | "card" {
