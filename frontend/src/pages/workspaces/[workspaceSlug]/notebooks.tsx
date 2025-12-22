@@ -26,6 +26,7 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
   const client = useApolloClient();
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [server, setServer] = useState(props.server);
   const workspaceSlug = router.query.workspaceSlug as string;
   const { data } = useWorkspaceNotebooksPageQuery({
@@ -96,6 +97,8 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
             </Breadcrumbs.Part>
           </Breadcrumbs>
         }
+        forceSidebarOpen={isSidebarOpen}
+        setForceSidebarOpen={setSidebarOpen}
       >
         {server?.ready ? (
           <iframe

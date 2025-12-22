@@ -19,6 +19,8 @@ export type WorkspaceLayoutProps = {
   header?: ReactNode;
   headerActions?: ReactNode;
   withMarginBottom?: boolean;
+  forceSidebarOpen?: boolean;
+  setForceSidebarOpen?: (open: boolean) => void;
 };
 
 const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
@@ -30,10 +32,13 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
     headerActions,
     className,
     withMarginBottom = true,
+    forceSidebarOpen,
+    setForceSidebarOpen,
   } = props;
   const [_, setLastWorkspace] = useLocalStorage("last-visited-workspace");
 
-  const [isSidebarOpen] = useSidebarOpen();
+  const [cookieSidebarOpen] = useSidebarOpen();
+  const isSidebarOpen = forceSidebarOpen ?? cookieSidebarOpen;
 
   useEffect(() => {
     setLastWorkspace(workspace.slug);
@@ -47,7 +52,11 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
           isSidebarOpen ? "w-64 2xl:w-72" : "w-16",
         )}
       >
-        <Sidebar workspace={workspace} />
+        <Sidebar
+          workspace={workspace}
+          forceSidebarOpen={forceSidebarOpen}
+          setForceSidebarOpen={setForceSidebarOpen}
+        />
       </div>
       {header && (
         <header
