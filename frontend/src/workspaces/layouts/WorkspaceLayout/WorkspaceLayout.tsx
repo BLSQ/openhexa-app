@@ -15,7 +15,6 @@ export type WorkspaceLayoutProps = {
   children: ReactElement | ReactElement[];
   className?: string;
   workspace: WorkspaceLayout_WorkspaceFragment;
-  forceCompactSidebar?: boolean;
   helpLinks?: ComponentProps<typeof Help>["links"];
   header?: ReactNode;
   headerActions?: ReactNode;
@@ -26,7 +25,6 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
   const {
     children,
     workspace,
-    forceCompactSidebar = false,
     helpLinks,
     header,
     headerActions,
@@ -35,9 +33,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
   } = props;
   const [_, setLastWorkspace] = useLocalStorage("last-visited-workspace");
 
-  const [cookieIsSidebarOpen] = useSidebarOpen();
-
-  const isSidebarOpen = !forceCompactSidebar && cookieIsSidebarOpen;
+  const [isSidebarOpen] = useSidebarOpen();
 
   useEffect(() => {
     setLastWorkspace(workspace.slug);
