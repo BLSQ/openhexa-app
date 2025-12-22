@@ -4,14 +4,14 @@ import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "organizations/layouts/OrganizationLayout";
 import {
   OrganizationDocument,
-  OrganizationQuery,
-  useOrganizationQuery,
+  OrganizationWithWorkspacesQuery,
+  useOrganizationWithWorkspacesQuery,
 } from "organizations/graphql/queries.generated";
 import Page from "core/components/Page";
 import OrganizationExternalCollaborators from "organizations/features/OrganizationExternalCollaborators";
 
 type Props = {
-  organization: OrganizationQuery["organization"];
+  organization: OrganizationWithWorkspacesQuery["organization"];
 };
 
 const OrganizationExternalCollaboratorsPage: NextPageWithLayout<Props> = ({
@@ -19,7 +19,7 @@ const OrganizationExternalCollaboratorsPage: NextPageWithLayout<Props> = ({
 }) => {
   const { t } = useTranslation();
 
-  const { data: clientOrganization } = useOrganizationQuery({
+  const { data: clientOrganization } = useOrganizationWithWorkspacesQuery({
     variables: { id: SRROrganization?.id },
     skip: !SRROrganization?.id,
   });
@@ -32,20 +32,22 @@ const OrganizationExternalCollaboratorsPage: NextPageWithLayout<Props> = ({
 
   return (
     <Page title={t("External Collaborators")}>
-      <OrganizationLayout organization={organization}>
-        <div className="p-6">
-          <div className="m-8">
-            <h1 className="text-4xl font-bold">{t("External Collaborators")}</h1>
-            <p className="text-lg mt-2 text-gray-500">
-              {t("Users with workspace access but no organization membership")}
+      <OrganizationLayout
+        organization={organization}
+        header={
+          <div>
+            <h1 className="text-2xl font-bold">
+              {t("External Collaborators")}
+            </h1>
+            <p className="text-sm text-gray-500">
+              {t(
+                "Users with workspace access but without organization membership",
+              )}
             </p>
           </div>
-          <div className="m-8">
-            <OrganizationExternalCollaborators
-              organizationId={organization.id}
-            />
-          </div>
-        </div>
+        }
+      >
+        <OrganizationExternalCollaborators organizationId={organization.id} />
       </OrganizationLayout>
     </Page>
   );

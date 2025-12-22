@@ -88,7 +88,7 @@ export default function OrganizationExternalCollaborators({
 
   return (
     <>
-      <div className="mb-4">
+      <div className="mb-4 flex gap-4">
         <SearchInput
           name="search-collaborators"
           value={searchTerm}
