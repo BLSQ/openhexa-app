@@ -40,9 +40,14 @@ const OrganizationExternalCollaboratorsPage: NextPageWithLayout<Props> = ({
               {t("External Collaborators")}
             </h1>
             <p className="text-sm text-gray-500">
-              {t(
-                "Users with workspace access but without organization membership",
-              )}
+              {organization.externalCollaborators.totalItems}{" "}
+              {organization.externalCollaborators.totalItems > 1
+                ? t(
+                    "users with workspace access but without organization membership",
+                  )
+                : t(
+                    "user with workspace access but without organization membership",
+                  )}
             </p>
           </div>
         }

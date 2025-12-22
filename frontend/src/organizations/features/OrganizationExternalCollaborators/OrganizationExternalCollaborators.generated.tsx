@@ -13,7 +13,7 @@ export type OrganizationExternalCollaboratorsQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationExternalCollaboratorsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean, manageOwners: boolean }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', items: Array<{ __typename?: 'ExternalCollaborator', id: string, createdAt: any, workspaceMemberships: Array<{ __typename?: 'WorkspaceMembership', id: string, role: Types.WorkspaceMembershipRole, workspace: { __typename?: 'Workspace', slug: string, name: string } }>, user: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } }> } } | null };
+export type OrganizationExternalCollaboratorsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean, manageOwners: boolean }, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number, items: Array<{ __typename?: 'ExternalCollaborator', id: string, createdAt: any, workspaceMemberships: Array<{ __typename?: 'WorkspaceMembership', id: string, role: Types.WorkspaceMembershipRole, workspace: { __typename?: 'Workspace', slug: string, name: string } }>, user: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } }> } } | null };
 
 export type UpdateOrganizationMemberMutationVariables = Types.Exact<{
   input: Types.UpdateOrganizationMemberInput;
@@ -45,7 +45,14 @@ export const OrganizationExternalCollaboratorsDocument = gql`
       manageMembers
       manageOwners
     }
+    workspaces(perPage: 1000, page: 1) {
+      items {
+        slug
+        name
+      }
+    }
     externalCollaborators(page: $page, perPage: $perPage, term: $term) {
+      totalItems
       items {
         id
         workspaceMemberships {

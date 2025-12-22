@@ -2236,6 +2236,9 @@ input InviteOrganizationMemberInput {
   """The unique identifier of the organization."""
   organizationId: UUID!
 
+  """The role of the user in the organization."""
+  organizationRole: OrganizationMembershipRole!
+
   """The email address of the user to invite to the organization."""
   userEmail: String!
 
@@ -2833,10 +2836,6 @@ type Organization {
 
   """The name of the organization."""
   name: String!
-
-  """
-  The direct invitations sent to join a specific workspace in the organization.
-  """
   pendingWorkspaceInvitations(page: Int, perPage: Int): WorkspaceInvitationPage!
 
   """The permissions the current user has in the organization."""
