@@ -17,6 +17,9 @@ fragment Organization_organization on Organization {
   members {
     totalItems
   }
+  externalCollaborators {
+    totalItems
+  }
 }
 
 query Organization($id: UUID!) {
