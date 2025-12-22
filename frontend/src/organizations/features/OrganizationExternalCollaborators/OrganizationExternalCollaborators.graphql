@@ -10,14 +10,14 @@ query OrganizationExternalCollaborators(
       manageMembers
       manageOwners
     }
-    # workspaces(perPage: 1000, page: 1) {
-    #   items {
-    #     slug
-    #     name
-    #   }
-    # }
+    workspaces(perPage: 1000, page: 1) {
+      items {
+        slug
+        name
+      }
+    }
     externalCollaborators(page: $page, perPage: $perPage, term: $term) {
-      # totalItems
+      totalItems
       items {
         id
         workspaceMemberships {
