@@ -11,7 +11,6 @@ type NavItemProps = {
   isCurrent?: boolean;
   compact?: boolean;
   className?: string;
-  isCurrent?: boolean;
 };
 
 const NavItem = ({
