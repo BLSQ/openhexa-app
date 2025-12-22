@@ -1972,6 +1972,24 @@ export type EnableTwoFactorResult = {
   verified?: Maybe<Scalars['Boolean']['output']>;
 };
 
+/** Represents an external collaborator who has workspace access but no organization membership. */
+export type ExternalCollaborator = {
+  __typename?: 'ExternalCollaborator';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['UUID']['output'];
+  user: User;
+  workspaceMemberships: Array<WorkspaceMembership>;
+};
+
+/** Represents a page of external collaborators. */
+export type ExternalCollaboratorPage = {
+  __typename?: 'ExternalCollaboratorPage';
+  items: Array<ExternalCollaborator>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
 /** The FeatureFlag type represents a feature flag in the system. */
 export type FeatureFlag = {
   __typename?: 'FeatureFlag';
@@ -2665,6 +2683,7 @@ export type Mutation = {
   updateDataset: UpdateDatasetResult;
   /** Update a dataset version. */
   updateDatasetVersion: UpdateDatasetVersionResult;
+  updateExternalCollaborator: UpdateExternalCollaboratorResult;
   updateMembership: UpdateMembershipResult;
   updateOrganization: UpdateOrganizationResult;
   updateOrganizationMember: UpdateOrganizationMemberResult;
@@ -3185,6 +3204,11 @@ export type MutationUpdateDatasetVersionArgs = {
 };
 
 
+export type MutationUpdateExternalCollaboratorArgs = {
+  input: UpdateExternalCollaboratorInput;
+};
+
+
 export type MutationUpdateMembershipArgs = {
   input: UpdateMembershipInput;
 };
@@ -3291,6 +3315,8 @@ export type Organization = {
   datasetLinks: DatasetLinkPage;
   /** Datasets available in the organization */
   datasets: DatasetPage;
+  /** External collaborators who have workspace access but no organization membership. */
+  externalCollaborators: ExternalCollaboratorPage;
   /** The unique identifier of the organization. */
   id: Scalars['UUID']['output'];
   /** The invitations sent to join the organization. */
@@ -3301,7 +3327,6 @@ export type Organization = {
   members: OrganizationMembershipPage;
   /** The name of the organization. */
   name: Scalars['String']['output'];
-  /** The direct invitations sent to join a specific workspace in the organization. */
   pendingWorkspaceInvitations: WorkspaceInvitationPage;
   /** The permissions the current user has in the organization. */
   permissions: OrganizationPermissions;
@@ -3333,6 +3358,14 @@ export type OrganizationDatasetsArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** The Organization type represents an organization in the system. */
+export type OrganizationExternalCollaboratorsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  term?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -5006,6 +5039,37 @@ export type UpdateDatasetVersionResult = {
   errors: Array<UpdateDatasetVersionError>;
   success: Scalars['Boolean']['output'];
   version?: Maybe<DatasetVersion>;
+};
+
+/** The UpdateExternalCollaboratorError enum represents the possible errors that can occur during the updateExternalCollaborator mutation. */
+export enum UpdateExternalCollaboratorError {
+  /** Indicates that the organization was not found. */
+  OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
+  /** Indicates that the user does not have permission to update external collaborators. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** Indicates that the user is an organization member, not an external collaborator. */
+  UserIsOrganizationMember = 'USER_IS_ORGANIZATION_MEMBER',
+  /** Indicates that the user was not found. */
+  UserNotFound = 'USER_NOT_FOUND'
+}
+
+/** The UpdateExternalCollaboratorInput type represents the input for the updateExternalCollaborator mutation. */
+export type UpdateExternalCollaboratorInput = {
+  /** The unique identifier of the organization. */
+  organization_id: Scalars['UUID']['input'];
+  /** The unique identifier of the user who is an external collaborator. */
+  user_id: Scalars['UUID']['input'];
+  /** The list of workspace permissions to update for the external collaborator. */
+  workspacePermissions?: InputMaybe<Array<WorkspacePermissionInput>>;
+};
+
+/** The UpdateExternalCollaboratorResult type represents the result of the updateExternalCollaborator mutation. */
+export type UpdateExternalCollaboratorResult = {
+  __typename?: 'UpdateExternalCollaboratorResult';
+  /** The list of errors that occurred during the updateExternalCollaborator mutation. */
+  errors: Array<UpdateExternalCollaboratorError>;
+  /** Indicates whether the updateExternalCollaborator mutation was successful. */
+  success: Scalars['Boolean']['output'];
 };
 
 /** The UpdateMembershipError enum represents the possible errors that can occur during the updateMembership mutation. */

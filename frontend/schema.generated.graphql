@@ -1901,6 +1901,24 @@ type EnableTwoFactorResult {
   verified: Boolean
 }
 
+"""
+Represents an external collaborator who has workspace access but no organization membership.
+"""
+type ExternalCollaborator {
+  createdAt: DateTime!
+  id: UUID!
+  user: User!
+  workspaceMemberships: [WorkspaceMembership!]!
+}
+
+"""Represents a page of external collaborators."""
+type ExternalCollaboratorPage {
+  items: [ExternalCollaborator!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
 """The FeatureFlag type represents a feature flag in the system."""
 type FeatureFlag {
   """The code of the feature flag."""
@@ -2653,6 +2671,7 @@ type Mutation {
 
   """Update a dataset version."""
   updateDatasetVersion(input: UpdateDatasetVersionInput!): UpdateDatasetVersionResult!
+  updateExternalCollaborator(input: UpdateExternalCollaboratorInput!): UpdateExternalCollaboratorResult!
   updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
   updateOrganization(input: UpdateOrganizationInput!): UpdateOrganizationResult!
   updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult!
@@ -2723,6 +2742,11 @@ type Organization {
   """Datasets available in the organization"""
   datasets(page: Int = 1, perPage: Int = 15, query: String): DatasetPage!
 
+  """
+  External collaborators who have workspace access but no organization membership.
+  """
+  externalCollaborators(page: Int, perPage: Int, term: String): ExternalCollaboratorPage!
+
   """The unique identifier of the organization."""
   id: UUID!
 
@@ -2737,10 +2761,6 @@ type Organization {
 
   """The name of the organization."""
   name: String!
-
-  """
-  The direct invitations sent to join a specific workspace in the organization.
-  """
   pendingWorkspaceInvitations(page: Int, perPage: Int): WorkspaceInvitationPage!
 
   """The permissions the current user has in the organization."""
@@ -4108,6 +4128,58 @@ type UpdateDatasetVersionResult {
   errors: [UpdateDatasetVersionError!]!
   success: Boolean!
   version: DatasetVersion
+}
+
+"""
+The UpdateExternalCollaboratorError enum represents the possible errors that can occur during the updateExternalCollaborator mutation.
+"""
+enum UpdateExternalCollaboratorError {
+  """Indicates that the organization was not found."""
+  ORGANIZATION_NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to update external collaborators.
+  """
+  PERMISSION_DENIED
+
+  """
+  Indicates that the user is an organization member, not an external collaborator.
+  """
+  USER_IS_ORGANIZATION_MEMBER
+
+  """Indicates that the user was not found."""
+  USER_NOT_FOUND
+}
+
+"""
+The UpdateExternalCollaboratorInput type represents the input for the updateExternalCollaborator mutation.
+"""
+input UpdateExternalCollaboratorInput {
+  """The unique identifier of the organization."""
+  organization_id: UUID!
+
+  """The unique identifier of the user who is an external collaborator."""
+  user_id: UUID!
+
+  """
+  The list of workspace permissions to update for the external collaborator.
+  """
+  workspacePermissions: [WorkspacePermissionInput!]
+}
+
+"""
+The UpdateExternalCollaboratorResult type represents the result of the updateExternalCollaborator mutation.
+"""
+type UpdateExternalCollaboratorResult {
+  """
+  The list of errors that occurred during the updateExternalCollaborator mutation.
+  """
+  errors: [UpdateExternalCollaboratorError!]!
+
+  """
+  Indicates whether the updateExternalCollaborator mutation was successful.
+  """
+  success: Boolean!
 }
 
 """

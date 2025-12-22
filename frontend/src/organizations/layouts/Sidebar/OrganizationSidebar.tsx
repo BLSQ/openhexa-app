@@ -4,6 +4,7 @@ import {
   HomeIcon,
   ChevronLeftIcon,
   UsersIcon,
+  UserGroupIcon,
   Square2StackIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
@@ -11,8 +12,8 @@ import { OrganizationQuery } from "organizations/graphql/queries.generated";
 import NavItem from "./NavItem";
 import SidebarToggleButton from "./SidebarToggleButton";
 import UserMenu from "workspaces/features/UserMenu";
-import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import { useTranslation } from "next-i18next";
 
 type OrganizationSidebarProps = {
   organization: OrganizationQuery["organization"];
@@ -36,6 +37,7 @@ const OrganizationSidebar = ({
 
   const homeHref = `/organizations/${organization.id}/`;
   const membersHref = `/organizations/${organization.id}/members`;
+  const externalCollaboratorsHref = `/organizations/${organization.id}/external-collaborators`;
   const datasetsHref = `/organizations/${organization.id}/datasets`;
   const settingsHref = `/organizations/${organization.id}/settings`;
 
@@ -67,13 +69,24 @@ const OrganizationSidebar = ({
                 compact={!isSidebarOpen}
               />
               {organization.permissions.manageMembers && (
-                <NavItem
-                  href={membersHref}
-                  Icon={UsersIcon}
-                  label={t("Members")}
-                  isCurrent={currentPath.startsWith(membersHref)}
-                  compact={!isSidebarOpen}
-                />
+                <>
+                  <NavItem
+                    href={membersHref}
+                    Icon={UsersIcon}
+                    label={t("Members")}
+                    isCurrent={currentPath.startsWith(membersHref)}
+                    compact={!isSidebarOpen}
+                  />
+                  <NavItem
+                    href={externalCollaboratorsHref}
+                    Icon={UserGroupIcon}
+                    label={t("External Collaborators")}
+                    compact={!isSidebarOpen}
+                    isCurrent={currentPath.startsWith(
+                      externalCollaboratorsHref,
+                    )}
+                  />
+                </>
               )}
               <NavItem
                 href={datasetsHref}

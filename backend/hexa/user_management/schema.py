@@ -664,6 +664,45 @@ def resolve_members(organization: Organization, info, **kwargs):
     )
 
 
+@organization_object.field("externalCollaborators")
+def resolve_external_collaborators(organization: Organization, info, **kwargs):
+    org_member_user_ids = organization.organizationmembership_set.values_list(
+        "user_id", flat=True
+    )
+
+    qs = WorkspaceMembership.objects.filter(
+        workspace__organization=organization,
+        workspace__archived=False,
+    ).exclude(user_id__in=org_member_user_ids)
+
+    # Annotate with collated email field to handle case-insensitive email search
+    # as well as ordering
+    qs = qs.annotate(
+        case_insensitive_email=Collate("user__email", "und-x-icu")
+    ).order_by("case_insensitive_email")
+
+    term = kwargs.get("term")
+    if term:
+        qs = qs.filter(
+            Q(user__first_name__icontains=term)
+            | Q(user__last_name__icontains=term)
+            | Q(case_insensitive_email__contains=term)
+        )
+
+    page_result = result_page(
+        queryset=qs.values("user_id", "created_at"),
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", qs.count() or 10),
+    )
+
+    # Add organization reference to each paginated item for user in workspace_membership
+    # resolver
+    for item in page_result["items"]:
+        item["organization"] = organization
+
+    return page_result
+
+
 @organization_object.field("workspaces")
 def resolve_workspaces(organization: Organization, info, **kwargs):
     request = info.context["request"]
@@ -1066,6 +1105,50 @@ def resolve_update_user(_, info, **kwargs):
     return {"success": True, "errors": [], "user": user}
 
 
+def update_workspace_permissions(user: User, organization: Organization, workspace_permissions: list):
+    """
+    Helper function to update workspace permissions for a user within an organization.
+
+    Shared by updateOrganizationMember and updateExternalCollaborator mutations.
+
+    Args:
+        user: The user whose workspace permissions to update
+        organization: The organization containing the workspaces
+        workspace_permissions: List of workspace permission dicts with 'workspace_slug' and optional 'role'
+    """
+    for workspace_permission in workspace_permissions:
+        workspace_slug = workspace_permission["workspace_slug"]
+        role = workspace_permission.get("role")
+
+        try:
+            workspace = Workspace.objects.get(
+                slug=workspace_slug,
+                organization=organization,
+                archived=False,
+            )
+
+            existing_membership = WorkspaceMembership.objects.filter(
+                user=user, workspace=workspace
+            ).first()
+
+            if role is None:
+                if existing_membership:
+                    existing_membership.delete()
+            else:
+                if existing_membership:
+                    existing_membership.role = role
+                    existing_membership.save()
+                else:
+                    WorkspaceMembership.objects.create(
+                        user=user,
+                        workspace=workspace,
+                        role=role,
+                    )
+
+        except Workspace.DoesNotExist:
+            continue
+
+
 @identity_mutations.field("updateOrganizationMember")
 @transaction.atomic
 def resolve_update_organization_member(_, info, **kwargs):
@@ -1081,44 +1164,75 @@ def resolve_update_organization_member(_, info, **kwargs):
 
         workspace_permissions = update_input.get("workspace_permissions", [])
         if workspace_permissions:
-            user = membership.user
+            update_workspace_permissions(
+                user=membership.user,
+                organization=membership.organization,
+                workspace_permissions=workspace_permissions,
+            )
 
-            for workspace_permission in workspace_permissions:
-                workspace_slug = workspace_permission["workspace_slug"]
-                role = workspace_permission.get("role")
-
-                try:
-                    workspace = Workspace.objects.get(
-                        slug=workspace_slug,
-                        organization=membership.organization,
-                        archived=False,
-                    )
-
-                    existing_membership = WorkspaceMembership.objects.filter(
-                        user=user, workspace=workspace
-                    ).first()
-
-                    if role is None:
-                        if existing_membership:
-                            existing_membership.delete()
-                    else:
-                        if existing_membership:
-                            existing_membership.role = role
-                            existing_membership.save()
-                        else:
-                            WorkspaceMembership.objects.create(
-                                user=user,
-                                workspace=workspace,
-                                role=role,
-                            )
-
-                except Workspace.DoesNotExist:
-                    continue
         return {"success": True, "membership": membership, "errors": []}
     except OrganizationMembership.DoesNotExist:
         return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
+
+
+@identity_mutations.field("updateExternalCollaborator")
+@transaction.atomic
+def resolve_update_external_collaborator(_, info, **kwargs):
+    """
+    Update workspace permissions for an external collaborator.
+
+    External collaborators are users who have workspace memberships but no organization membership.
+    This mutation only updates their workspace permissions, as they have no organization role.
+    """
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    update_input = kwargs["input"]
+
+    try:
+        user_id = update_input["user_id"]
+        organization_id = update_input["organization_id"]
+
+        # Verify the user exists
+        user = User.objects.get(id=user_id)
+
+        # Verify the organization exists and the principal has permission to manage members
+        organization = Organization.objects.filter_for_user(principal).get(
+            id=organization_id
+        )
+
+        if not organization.has_perm(principal, "manage_members"):
+            raise PermissionDenied()
+
+        # Verify this is actually an external collaborator (no org membership)
+        has_org_membership = OrganizationMembership.objects.filter(
+            user=user, organization=organization
+        ).exists()
+
+        if has_org_membership:
+            return {
+                "success": False,
+                "errors": ["USER_IS_ORGANIZATION_MEMBER"],
+            }
+
+        # Update workspace permissions
+        workspace_permissions = update_input.get("workspace_permissions", [])
+        if workspace_permissions:
+            update_workspace_permissions(
+                user=user,
+                organization=organization,
+                workspace_permissions=workspace_permissions,
+            )
+
+        return {"success": True, "errors": []}
+
+    except User.DoesNotExist:
+        return {"success": False, "errors": ["USER_NOT_FOUND"]}
+    except Organization.DoesNotExist:
+        return {"success": False, "errors": ["ORGANIZATION_NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
 @identity_mutations.field("deleteOrganizationMember")
@@ -1432,6 +1546,30 @@ def resolve_organization_membership_workspace_memberships(
     ).select_related("workspace")
 
 
+external_collaborator_object = ObjectType("ExternalCollaborator")
+
+
+@external_collaborator_object.field("id")
+def resolve_external_collaborator_id(collaborator, info, **kwargs):
+    """Return user ID as the external collaborator ID"""
+    return collaborator["user_id"]
+
+
+@external_collaborator_object.field("user")
+def resolve_external_collaborator_user(collaborator, info, **kwargs):
+    return User.objects.get(id=collaborator["user_id"])
+
+
+@external_collaborator_object.field("workspaceMemberships")
+def resolve_external_collaborator_workspace_memberships(collaborator, info, **kwargs):
+    """Return workspace memberships for this user within the organization"""
+    return WorkspaceMembership.objects.filter(
+        user_id=collaborator["user_id"],
+        workspace__organization=collaborator["organization"],
+        workspace__archived=False,
+    ).select_related("workspace")
+
+
 organization_invitation_object = ObjectType("OrganizationInvitation")
 
 
@@ -1464,6 +1602,7 @@ identity_bindables = [
     organization_queries,
     organization_permissions_object,
     organization_membership_object,
+    external_collaborator_object,
     organization_invitation_object,
     identity_mutations,
 ]

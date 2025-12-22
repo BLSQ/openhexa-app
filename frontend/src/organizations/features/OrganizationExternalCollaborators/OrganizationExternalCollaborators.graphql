@@ -1,9 +1,8 @@
-query OrganizationMembers(
+query OrganizationExternalCollaborators(
   $id: UUID!
   $page: Int
   $perPage: Int
   $term: String
-  $role: OrganizationMembershipRole
 ) {
   organization(id: $id) {
     id
@@ -17,11 +16,10 @@ query OrganizationMembers(
         name
       }
     }
-    members(page: $page, perPage: $perPage, term: $term, role: $role) {
+    externalCollaborators(page: $page, perPage: $perPage, term: $term) {
       totalItems
       items {
         id
-        role
         workspaceMemberships {
           ...WorkspaceRole
           id
@@ -36,17 +34,6 @@ query OrganizationMembers(
         }
         createdAt
       }
-    }
-  }
-}
-
-mutation UpdateOrganizationMember($input: UpdateOrganizationMemberInput!) {
-  updateOrganizationMember(input: $input) {
-    success
-    errors
-    membership {
-      id
-      role
     }
   }
 }
