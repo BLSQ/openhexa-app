@@ -1,5 +1,4 @@
 import Block from "core/components/Block";
-import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import MarkdownEditor from "core/components/MarkdownEditor/MarkdownEditor";
 import MarkdownViewer from "core/components/MarkdownViewer";
