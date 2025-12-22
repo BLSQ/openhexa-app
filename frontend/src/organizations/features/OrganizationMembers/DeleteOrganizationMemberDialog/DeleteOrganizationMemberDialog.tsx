@@ -10,7 +10,19 @@ import {
 import { useApolloClient } from "@apollo/client";
 import useForm from "core/hooks/useForm";
 
-type OrganizationMember = Pick<OrganizationMembership, "id" | "role"> & {
+/**
+ * Generic dialog for removing organization members and external collaborators.
+ *
+ * This component is used in two contexts:
+ * 1. Organization Members - removes a member from the organization and all associated workspaces
+ * 2. External Collaborators - removes a collaborator from all workspace memberships
+ *
+ * Both use the same GraphQL mutation (deleteOrganizationMember) as external collaborators
+ * are represented as organization memberships without an organization role.
+ */
+
+type OrganizationMember = Pick<OrganizationMembership, "id"> & {
+  role?: OrganizationMembership["role"]; // Optional - external collaborators don't have org roles
   user: Pick<User, "id" | "displayName">;
 };
 
@@ -29,7 +41,11 @@ export default function DeleteOrganizationMemberDialog({
   const client = useApolloClient();
 
   const [deleteOrganizationMember] = useDeleteOrganizationMemberMutation({
-    refetchQueries: ["OrganizationMembers", "Organization"],
+    refetchQueries: [
+      "OrganizationMembers",
+      "OrganizationExternalCollaborators",
+      "Organization",
+    ],
   });
 
   const form = useForm({

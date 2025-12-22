@@ -1105,6 +1105,50 @@ def resolve_update_user(_, info, **kwargs):
     return {"success": True, "errors": [], "user": user}
 
 
+def update_workspace_permissions(user: User, organization: Organization, workspace_permissions: list):
+    """
+    Helper function to update workspace permissions for a user within an organization.
+
+    Shared by updateOrganizationMember and updateExternalCollaborator mutations.
+
+    Args:
+        user: The user whose workspace permissions to update
+        organization: The organization containing the workspaces
+        workspace_permissions: List of workspace permission dicts with 'workspace_slug' and optional 'role'
+    """
+    for workspace_permission in workspace_permissions:
+        workspace_slug = workspace_permission["workspace_slug"]
+        role = workspace_permission.get("role")
+
+        try:
+            workspace = Workspace.objects.get(
+                slug=workspace_slug,
+                organization=organization,
+                archived=False,
+            )
+
+            existing_membership = WorkspaceMembership.objects.filter(
+                user=user, workspace=workspace
+            ).first()
+
+            if role is None:
+                if existing_membership:
+                    existing_membership.delete()
+            else:
+                if existing_membership:
+                    existing_membership.role = role
+                    existing_membership.save()
+                else:
+                    WorkspaceMembership.objects.create(
+                        user=user,
+                        workspace=workspace,
+                        role=role,
+                    )
+
+        except Workspace.DoesNotExist:
+            continue
+
+
 @identity_mutations.field("updateOrganizationMember")
 @transaction.atomic
 def resolve_update_organization_member(_, info, **kwargs):
@@ -1120,44 +1164,75 @@ def resolve_update_organization_member(_, info, **kwargs):
 
         workspace_permissions = update_input.get("workspace_permissions", [])
         if workspace_permissions:
-            user = membership.user
+            update_workspace_permissions(
+                user=membership.user,
+                organization=membership.organization,
+                workspace_permissions=workspace_permissions,
+            )
 
-            for workspace_permission in workspace_permissions:
-                workspace_slug = workspace_permission["workspace_slug"]
-                role = workspace_permission.get("role")
-
-                try:
-                    workspace = Workspace.objects.get(
-                        slug=workspace_slug,
-                        organization=membership.organization,
-                        archived=False,
-                    )
-
-                    existing_membership = WorkspaceMembership.objects.filter(
-                        user=user, workspace=workspace
-                    ).first()
-
-                    if role is None:
-                        if existing_membership:
-                            existing_membership.delete()
-                    else:
-                        if existing_membership:
-                            existing_membership.role = role
-                            existing_membership.save()
-                        else:
-                            WorkspaceMembership.objects.create(
-                                user=user,
-                                workspace=workspace,
-                                role=role,
-                            )
-
-                except Workspace.DoesNotExist:
-                    continue
         return {"success": True, "membership": membership, "errors": []}
     except OrganizationMembership.DoesNotExist:
         return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
+
+
+@identity_mutations.field("updateExternalCollaborator")
+@transaction.atomic
+def resolve_update_external_collaborator(_, info, **kwargs):
+    """
+    Update workspace permissions for an external collaborator.
+
+    External collaborators are users who have workspace memberships but no organization membership.
+    This mutation only updates their workspace permissions, as they have no organization role.
+    """
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    update_input = kwargs["input"]
+
+    try:
+        user_id = update_input["user_id"]
+        organization_id = update_input["organization_id"]
+
+        # Verify the user exists
+        user = User.objects.get(id=user_id)
+
+        # Verify the organization exists and the principal has permission to manage members
+        organization = Organization.objects.filter_for_user(principal).get(
+            id=organization_id
+        )
+
+        if not organization.has_perm(principal, "manage_members"):
+            raise PermissionDenied()
+
+        # Verify this is actually an external collaborator (no org membership)
+        has_org_membership = OrganizationMembership.objects.filter(
+            user=user, organization=organization
+        ).exists()
+
+        if has_org_membership:
+            return {
+                "success": False,
+                "errors": ["USER_IS_ORGANIZATION_MEMBER"],
+            }
+
+        # Update workspace permissions
+        workspace_permissions = update_input.get("workspace_permissions", [])
+        if workspace_permissions:
+            update_workspace_permissions(
+                user=user,
+                organization=organization,
+                workspace_permissions=workspace_permissions,
+            )
+
+        return {"success": True, "errors": []}
+
+    except User.DoesNotExist:
+        return {"success": False, "errors": ["USER_NOT_FOUND"]}
+    except Organization.DoesNotExist:
+        return {"success": False, "errors": ["ORGANIZATION_NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
 @identity_mutations.field("deleteOrganizationMember")

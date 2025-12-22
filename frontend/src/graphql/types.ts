@@ -2683,6 +2683,7 @@ export type Mutation = {
   updateDataset: UpdateDatasetResult;
   /** Update a dataset version. */
   updateDatasetVersion: UpdateDatasetVersionResult;
+  updateExternalCollaborator: UpdateExternalCollaboratorResult;
   updateMembership: UpdateMembershipResult;
   updateOrganization: UpdateOrganizationResult;
   updateOrganizationMember: UpdateOrganizationMemberResult;
@@ -3200,6 +3201,11 @@ export type MutationUpdateDatasetArgs = {
 
 export type MutationUpdateDatasetVersionArgs = {
   input: UpdateDatasetVersionInput;
+};
+
+
+export type MutationUpdateExternalCollaboratorArgs = {
+  input: UpdateExternalCollaboratorInput;
 };
 
 
@@ -5033,6 +5039,37 @@ export type UpdateDatasetVersionResult = {
   errors: Array<UpdateDatasetVersionError>;
   success: Scalars['Boolean']['output'];
   version?: Maybe<DatasetVersion>;
+};
+
+/** The UpdateExternalCollaboratorError enum represents the possible errors that can occur during the updateExternalCollaborator mutation. */
+export enum UpdateExternalCollaboratorError {
+  /** Indicates that the organization was not found. */
+  OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
+  /** Indicates that the user does not have permission to update external collaborators. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** Indicates that the user is an organization member, not an external collaborator. */
+  UserIsOrganizationMember = 'USER_IS_ORGANIZATION_MEMBER',
+  /** Indicates that the user was not found. */
+  UserNotFound = 'USER_NOT_FOUND'
+}
+
+/** The UpdateExternalCollaboratorInput type represents the input for the updateExternalCollaborator mutation. */
+export type UpdateExternalCollaboratorInput = {
+  /** The unique identifier of the organization. */
+  organization_id: Scalars['UUID']['input'];
+  /** The unique identifier of the user who is an external collaborator. */
+  user_id: Scalars['UUID']['input'];
+  /** The list of workspace permissions to update for the external collaborator. */
+  workspacePermissions?: InputMaybe<Array<WorkspacePermissionInput>>;
+};
+
+/** The UpdateExternalCollaboratorResult type represents the result of the updateExternalCollaborator mutation. */
+export type UpdateExternalCollaboratorResult = {
+  __typename?: 'UpdateExternalCollaboratorResult';
+  /** The list of errors that occurred during the updateExternalCollaborator mutation. */
+  errors: Array<UpdateExternalCollaboratorError>;
+  /** Indicates whether the updateExternalCollaborator mutation was successful. */
+  success: Scalars['Boolean']['output'];
 };
 
 /** The UpdateMembershipError enum represents the possible errors that can occur during the updateMembership mutation. */
