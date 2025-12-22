@@ -2245,6 +2245,8 @@ export enum InviteOrganizationMemberError {
 export type InviteOrganizationMemberInput = {
   /** The unique identifier of the organization. */
   organizationId: Scalars['UUID']['input'];
+  /** The role of the user in the organization. */
+  organizationRole: OrganizationMembershipRole;
   /** The email address of the user to invite to the organization. */
   userEmail: Scalars['String']['input'];
   /** The list of workspaces to invite the user to. */
@@ -3319,7 +3321,6 @@ export type Organization = {
   members: OrganizationMembershipPage;
   /** The name of the organization. */
   name: Scalars['String']['output'];
-  /** The direct invitations sent to join a specific workspace in the organization. */
   pendingWorkspaceInvitations: WorkspaceInvitationPage;
   /** The permissions the current user has in the organization. */
   permissions: OrganizationPermissions;
