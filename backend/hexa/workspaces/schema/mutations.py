@@ -213,30 +213,15 @@ def resolve_join_workspace(_, info, **kwargs):
                 f"Already got a membership for {request.user} and workspace {invitation.workspace.name}"
             )
 
-        with transaction.atomic():
-            # Create workspace membership
-            WorkspaceMembership.objects.create(
-                workspace=invitation.workspace,
-                user=request.user,
-                role=invitation.role,
-            )
+        # Create workspace membership
+        WorkspaceMembership.objects.create(
+            workspace=invitation.workspace,
+            user=request.user,
+            role=invitation.role,
+        )
 
-            # Create organization membership if specified in invitation
-            if invitation.organization_role and invitation.workspace.organization:
-                from hexa.user_management.models import OrganizationMembership
-
-                # Only create if user is not already an organization member
-                if not OrganizationMembership.objects.filter(
-                    organization=invitation.workspace.organization, user=request.user
-                ).exists():
-                    OrganizationMembership.objects.create(
-                        organization=invitation.workspace.organization,
-                        user=request.user,
-                        role=invitation.organization_role,
-                    )
-
-            invitation.status = WorkspaceInvitationStatus.ACCEPTED
-            invitation.save()
+        invitation.status = WorkspaceInvitationStatus.ACCEPTED
+        invitation.save()
 
         return {
             "success": True,

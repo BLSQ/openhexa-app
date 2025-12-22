@@ -940,9 +940,7 @@ extend type MePermissions {
 }
 
 extend type Organization {
-    """
-    The direct invitations sent to join a specific workspace in the organization.
-    """
+    # The direct invitations sent to join a specific workspace in the organization.
     pendingWorkspaceInvitations(page: Int, perPage: Int): WorkspaceInvitationPage!
 }
 

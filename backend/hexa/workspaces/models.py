@@ -35,7 +35,6 @@ from hexa.files import storage
 from hexa.user_management.models import (
     Organization,
     OrganizationInvitation,
-    OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
@@ -417,11 +416,6 @@ class WorkspaceMembership(models.Model):
 
         if self.access_token == "":
             self.access_token = str(uuid.uuid4())
-
-        # TODO : clean backend and tests
-        # TODO : update frontend to show an optional org role to chose from (the list should be dynamic based on the current user roles)
-        # TODO : prevent non org members to access org pages
-        # TODO : only org member can create workspaces
 
         super().save(*args, **kwargs)
 

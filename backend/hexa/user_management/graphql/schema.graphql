@@ -1650,6 +1650,11 @@ input InviteOrganizationMemberInput {
     organizationId: UUID!
 
     """
+    The role of the user in the organization.
+    """
+    organizationRole: OrganizationMembershipRole!
+
+    """
     The list of workspaces to invite the user to.
     """
     workspaceInvitations: [WorkspaceInvitationInput!]!
