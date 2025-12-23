@@ -643,6 +643,16 @@ def resolve_logo(obj: Organization, *_):
 
 @organization_object.field("members")
 def resolve_members(organization: Organization, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    # Return empty result if user doesn't have manageMembers permission
+    if not request.user.has_perm("user_management.manage_members", organization):
+        return result_page(
+            queryset=organization.organizationmembership_set.none(),
+            page=kwargs.get("page", 1),
+            per_page=kwargs.get("per_page", 10),
+        )
+
     qs = organization.organizationmembership_set
 
     term = kwargs.get("term")
@@ -669,6 +679,16 @@ def resolve_members(organization: Organization, info, **kwargs):
 
 @organization_object.field("externalCollaborators")
 def resolve_external_collaborators(organization: Organization, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    # Return empty result if user doesn't have manageMembers permission
+    if not request.user.has_perm("user_management.manage_members", organization):
+        return result_page(
+            queryset=WorkspaceMembership.objects.none(),
+            page=kwargs.get("page", 1),
+            per_page=kwargs.get("per_page", 10),
+        )
+
     org_member_user_ids = organization.organizationmembership_set.values_list(
         "user_id", flat=True
     )
