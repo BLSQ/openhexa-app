@@ -8,7 +8,9 @@ import {
   useOrganizationWithWorkspacesQuery,
 } from "organizations/graphql/queries.generated";
 import Page from "core/components/Page";
+import Title from "core/components/Title";
 import OrganizationExternalCollaborators from "organizations/features/OrganizationExternalCollaborators";
+import OrganizationWorkspaceInvitations from "organizations/features/OrganizationWorkspaceInvitations";
 
 type Props = {
   organization: OrganizationWithWorkspacesQuery["organization"];
@@ -41,18 +43,22 @@ const OrganizationExternalCollaboratorsPage: NextPageWithLayout<Props> = ({
             </h1>
             <p className="text-sm text-gray-500">
               {organization.externalCollaborators.totalItems}{" "}
-              {organization.externalCollaborators.totalItems > 1
+              {organization.externalCollaborators.totalItems === 1
                 ? t(
-                    "users with workspace access but without organization membership",
+                    "user with workspace access but without organization membership",
                   )
                 : t(
-                    "user with workspace access but without organization membership",
+                    "users with workspace access but without organization membership",
                   )}
             </p>
           </div>
         }
       >
         <OrganizationExternalCollaborators organizationId={organization.id} />
+        <div className="mt-12">
+          <Title level={2}>{t("Pending Direct Workspace Invitations")}</Title>
+          <OrganizationWorkspaceInvitations organizationId={organization.id} />
+        </div>
       </OrganizationLayout>
     </Page>
   );
