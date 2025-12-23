@@ -14,7 +14,7 @@ const OrganizationsLayout = ({
   organizations,
 }: OrganizationsLayoutProps) => {
   return (
-    <BaseLayout Sidebar={OrganizationsSidebar} sidebarProps={{ organizations }}>
+    <BaseLayout sidebar={<OrganizationsSidebar organizations={organizations} />}>
       {children}
     </BaseLayout>
   );

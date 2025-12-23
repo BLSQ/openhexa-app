@@ -1,22 +1,10 @@
 import React from "react";
 import { render } from "@testing-library/react";
 import { PipelineType } from "graphql/types";
-import { MockedProvider } from "@apollo/client/testing";
-import useFeature from "identity/hooks/useFeature";
 import PipelineLayout from "./index";
-import useMe from "identity/hooks/useMe";
-
-jest.mock("identity/hooks/useMe", () => jest.fn());
-jest.mock("identity/hooks/useFeature", () => jest.fn());
+import { TestApp } from "core/helpers/testutils";
 
 describe("PipelineLayout", () => {
-  beforeEach(() => {
-    (useMe as jest.Mock).mockReturnValue({
-      permissions: { createWorkspace: true },
-    });
-    (useFeature as jest.Mock).mockReturnValue([true]);
-  });
-
   const pipeline = {
     permissions: {
       run: true,
@@ -75,11 +63,11 @@ describe("PipelineLayout", () => {
 
   it("should show 'Publish as Template' button when createTemplateVersion is true", () => {
     const { getByRole } = render(
-      <MockedProvider>
+      <TestApp>
         <PipelineLayout pipeline={pipeline} workspace={workspace}>
           <div>Child Content</div>
         </PipelineLayout>
-      </MockedProvider>,
+      </TestApp>,
     );
 
     expect(

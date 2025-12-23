@@ -1,97 +1,62 @@
 import { gql } from "@apollo/client";
 import clsx from "clsx";
-import { getCookie, hasCookie, setCookie } from "cookies-next";
 import { CustomApolloClient } from "core/helpers/apollo";
 import useLocalStorage from "core/hooks/useLocalStorage";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { GetServerSidePropsContext } from "next";
-import {
-  ComponentProps,
-  createContext,
-  ReactElement,
-  ReactNode,
-  useEffect,
-  useState,
-} from "react";
+import { ComponentProps, ReactElement, ReactNode, useEffect } from "react";
 import Help from "./Help";
 import PageContent from "./PageContent";
 import Sidebar from "./Sidebar";
 import { WorkspaceLayout_WorkspaceFragment } from "./WorkspaceLayout.generated";
+import useSidebarOpen from "core/hooks/useSidebarOpen";
 
 export type WorkspaceLayoutProps = {
   children: ReactElement | ReactElement[];
   className?: string;
   workspace: WorkspaceLayout_WorkspaceFragment;
-  forceCompactSidebar?: boolean;
   helpLinks?: ComponentProps<typeof Help>["links"];
   header?: ReactNode;
   headerActions?: ReactNode;
   withMarginBottom?: boolean;
+  forceSidebarOpen?: boolean;
+  setForceSidebarOpen?: (open: boolean) => void;
 };
-
-export const LayoutContext = createContext<{
-  isSidebarOpen: boolean;
-  setSidebarOpen(open: boolean): void;
-}>({
-  isSidebarOpen: false,
-  setSidebarOpen: (open: boolean) => {},
-});
-
-export let cookieSidebarOpenState = true;
-
-function getDefaultSidebarOpen() {
-  if (typeof window === "undefined") {
-    return cookieSidebarOpenState;
-  } else if (hasCookie("sidebar-open")) {
-    return getCookie("sidebar-open") === "true";
-  } else {
-    return true;
-  }
-}
 
 const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
   const {
     children,
     workspace,
-    forceCompactSidebar = false,
     helpLinks,
     header,
     headerActions,
     className,
     withMarginBottom = true,
+    forceSidebarOpen,
+    setForceSidebarOpen,
   } = props;
   const [_, setLastWorkspace] = useLocalStorage("last-visited-workspace");
-  const defaultSidebarOpen = getDefaultSidebarOpen();
 
-  const [isSidebarOpen, setSidebarOpen] = useState(
-    !forceCompactSidebar && defaultSidebarOpen,
-  );
+  const [cookieSidebarOpen] = useSidebarOpen();
+  const isSidebarOpen = forceSidebarOpen ?? cookieSidebarOpen;
 
   useEffect(() => {
     setLastWorkspace(workspace.slug);
   }, [workspace.slug, setLastWorkspace]);
 
-  const onChangeSidebar = (open: boolean) => {
-    if (!forceCompactSidebar) {
-      setCookie("sidebar-open", open);
-    }
-    setSidebarOpen(open);
-  };
-
   return (
-    <LayoutContext.Provider
-      value={{
-        isSidebarOpen,
-        setSidebarOpen: onChangeSidebar,
-      }}
-    >
+    <>
       <div
         className={clsx(
           "fixed h-screen bg-gray-800 transition-all duration-75 z-20",
           isSidebarOpen ? "w-64 2xl:w-72" : "w-16",
         )}
       >
-        <Sidebar workspace={workspace} />
+        <Sidebar
+          workspace={workspace}
+          forceSidebarOpen={forceSidebarOpen}
+          setForceSidebarOpen={setForceSidebarOpen}
+        />
       </div>
       {header && (
         <header
@@ -102,7 +67,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
         >
           <div className="flex items-center h-full px-4 md:px-6 xl:px-10 2xl:px-12">
             <div className="flex-1 min-w-0">{header}</div>
-            <div className="flex-shrink-0 w-100 max-w-md mx-auto p-2">
+            <div className="shrink-0 w-100 max-w-md mx-auto p-2">
               <SpotlightSearch />
             </div>
             <div className="flex-1 flex justify-end items-center gap-2">
@@ -132,7 +97,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
           </div>
         </Help>
       </div>
-    </LayoutContext.Provider>
+    </>
   );
 };
 
@@ -150,10 +115,6 @@ WorkspaceLayout.prefetch = async (
   ctx: GetServerSidePropsContext,
   client: CustomApolloClient,
 ) => {
-  // Load the cookie value from the request to render it correctly on the server
-  cookieSidebarOpenState = (await hasCookie("sidebar-open", ctx))
-    ? (await getCookie("sidebar-open", ctx)) === "true"
-    : true;
   await Sidebar.prefetch(ctx, client);
   await SpotlightSearch.prefetch(ctx);
 };

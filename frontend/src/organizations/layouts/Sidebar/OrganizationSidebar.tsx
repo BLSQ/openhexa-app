@@ -13,20 +13,16 @@ import SidebarToggleButton from "./SidebarToggleButton";
 import UserMenu from "workspaces/features/UserMenu";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import useSidebarOpen from "core/hooks/useSidebarOpen";
 
 type OrganizationSidebarProps = {
   organization: OrganizationQuery["organization"];
-  isSidebarOpen: boolean;
-  setSidebarOpen: (newValue: boolean) => void;
 };
 
-const OrganizationSidebar = ({
-  organization,
-  isSidebarOpen,
-  setSidebarOpen,
-}: OrganizationSidebarProps) => {
+const OrganizationSidebar = ({ organization }: OrganizationSidebarProps) => {
   const { t } = useTranslation();
   const router = useRouter();
+  const [isSidebarOpen] = useSidebarOpen();
 
   if (!organization) {
     return null;
@@ -95,10 +91,7 @@ const OrganizationSidebar = ({
           </div>
           <UserMenu compact={!isSidebarOpen} />
         </div>
-        <SidebarToggleButton
-          isSidebarOpen={isSidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-        />
+        <SidebarToggleButton />
       </div>
     </div>
   );

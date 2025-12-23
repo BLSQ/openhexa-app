@@ -1,15 +1,10 @@
 import React from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import useSidebarOpen from "core/hooks/useSidebarOpen";
 
-type SidebarToggleButtonProps = {
-  isSidebarOpen: boolean;
-  setSidebarOpen: (newValue: boolean) => void;
-};
+const SidebarToggleButton = () => {
+  const [isSidebarOpen, setSidebarOpen] = useSidebarOpen();
 
-const SidebarToggleButton = ({
-  isSidebarOpen,
-  setSidebarOpen,
-}: SidebarToggleButtonProps) => {
   return (
     <button
       onClick={() => setSidebarOpen(!isSidebarOpen)}
