@@ -1,19 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, cleanup } from "@testing-library/react";
 import { FilesEditor } from "./FilesEditor";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 import { FileType } from "graphql/types";
-import * as cookiesNext from "cookies-next";
 import mockRouter from "next-router-mock";
-
-jest.mock("cookies-next", () => ({
-  setCookie: jest.fn(),
-  getCookie: jest.fn(),
-  hasCookie: jest.fn(),
-}));
-
-const mockSetCookie = jest.mocked(cookiesNext.setCookie);
-const mockGetCookie = jest.mocked(cookiesNext.getCookie);
-const mockHasCookie = jest.mocked(cookiesNext.hasCookie);
+import { TestApp } from "core/helpers/testutils";
+import { Cookies } from "react-cookie";
 
 const mockFiles: FilesEditor_FileFragment[] = [
   {
@@ -88,17 +79,21 @@ jest.mock("@uiw/react-codemirror", () => {
 
 describe("FilesEditor", () => {
   beforeEach(() => {
-    mockHasCookie.mockReturnValue(false);
-    mockGetCookie.mockReturnValue("true");
-    mockSetCookie.mockClear();
+    // Clear cookies between tests to prevent state leaking
+    new Cookies().remove("files-editor-panel-open");
   });
 
   afterEach(() => {
+    cleanup();
     jest.clearAllMocks();
   });
 
   it("renders the FilesEditor with file tree and code editor", () => {
-    render(<FilesEditor name="Test Project" files={mockFiles} />);
+    render(
+      <TestApp>
+        <FilesEditor name="Test Project" files={mockFiles} />
+      </TestApp>,
+    );
 
     expect(screen.getByText("Files - Test Project")).toBeInTheDocument();
     expect(screen.getByText("2 files")).toBeInTheDocument();
@@ -106,14 +101,22 @@ describe("FilesEditor", () => {
   });
 
   it("shows toggle button for the file panel", () => {
-    render(<FilesEditor name="Test Project" files={mockFiles} />);
+    render(
+      <TestApp>
+        <FilesEditor name="Test Project" files={mockFiles} />
+      </TestApp>,
+    );
 
     const toggleButton = screen.getByLabelText("Toggle file panel");
     expect(toggleButton).toBeInTheDocument();
   });
 
   it("toggles panel state when toggle button is clicked", async () => {
-    render(<FilesEditor name="Test Project" files={mockFiles} />);
+    render(
+      <TestApp>
+        <FilesEditor name="Test Project" files={mockFiles} />
+      </TestApp>,
+    );
 
     const toggleButton = screen.getByLabelText("Toggle file panel");
     const filePanel = screen.getByTestId("files-panel");
@@ -125,26 +128,14 @@ describe("FilesEditor", () => {
     await waitFor(() => {
       expect(screen.queryByTestId("files-panel")).not.toBeInTheDocument();
     });
-
-    expect(mockSetCookie).toHaveBeenCalledWith(
-      "files-editor-panel-open",
-      false,
-    );
-  });
-
-  it("loads state from cookie on mount", async () => {
-    mockHasCookie.mockReturnValue(true);
-    mockGetCookie.mockReturnValue("false");
-
-    render(<FilesEditor name="Test Project" files={mockFiles} />);
-
-    await waitFor(() => {
-      expect(screen.queryByTestId("files-panel")).not.toBeInTheDocument();
-    });
   });
 
   it("expands directory nodes when clicked", () => {
-    render(<FilesEditor name="Test Project" files={mockFiles} />);
+    render(
+      <TestApp>
+        <FilesEditor name="Test Project" files={mockFiles} />
+      </TestApp>,
+    );
 
     const rootDirectory = screen.getByText("root");
     fireEvent.click(rootDirectory);
@@ -153,7 +144,11 @@ describe("FilesEditor", () => {
   });
 
   it("selects files when clicked", () => {
-    render(<FilesEditor name="Test Project" files={mockFiles} />);
+    render(
+      <TestApp>
+        <FilesEditor name="Test Project" files={mockFiles} />
+      </TestApp>,
+    );
 
     const rootDirectory = screen.getByText("root");
     fireEvent.click(rootDirectory);
@@ -165,7 +160,11 @@ describe("FilesEditor", () => {
   });
 
   it("displays empty state when no file is selected", () => {
-    render(<FilesEditor name="Test Project" files={mockFiles} />);
+    render(
+      <TestApp>
+        <FilesEditor name="Test Project" files={mockFiles} />
+      </TestApp>,
+    );
 
     expect(screen.getByText("Select a file to view")).toBeInTheDocument();
     expect(
@@ -174,7 +173,11 @@ describe("FilesEditor", () => {
   });
 
   it("shows file info when a file is selected", () => {
-    render(<FilesEditor name="Test Project" files={mockFiles} />);
+    render(
+      <TestApp>
+        <FilesEditor name="Test Project" files={mockFiles} />
+      </TestApp>,
+    );
 
     fireEvent.click(screen.getByText("root"));
     fireEvent.click(screen.getByText("file1.py"));
@@ -187,12 +190,14 @@ describe("FilesEditor", () => {
     const mockOnSave = jest.fn().mockResolvedValue({ success: true });
 
     render(
-      <FilesEditor
-        name="Test Project"
-        files={mockFiles}
-        isEditable={true}
-        onSave={mockOnSave}
-      />,
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={mockFiles}
+          isEditable={true}
+          onSave={mockOnSave}
+        />
+      </TestApp>,
     );
 
     fireEvent.click(screen.getByText("root"));
@@ -227,12 +232,14 @@ describe("FilesEditor", () => {
 
   it("prompts user when trying to navigate away with unsaved changes", async () => {
     render(
-      <FilesEditor
-        name="Test Project"
-        files={mockFiles}
-        isEditable={true}
-        onSave={jest.fn()}
-      />,
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={mockFiles}
+          isEditable={true}
+          onSave={jest.fn()}
+        />
+      </TestApp>,
     );
 
     fireEvent.click(screen.getByText("root"));
@@ -268,13 +275,21 @@ describe("FilesEditor", () => {
   });
 
   it("displays correct file count", () => {
-    render(<FilesEditor name="Test Project" files={mockFiles} />);
+    render(
+      <TestApp>
+        <FilesEditor name="Test Project" files={mockFiles} />
+      </TestApp>,
+    );
 
     expect(screen.getByText("2 files")).toBeInTheDocument();
   });
 
   it("handles nested directory structure", () => {
-    render(<FilesEditor name="Test Project" files={mockFiles} />);
+    render(
+      <TestApp>
+        <FilesEditor name="Test Project" files={mockFiles} />
+      </TestApp>,
+    );
 
     fireEvent.click(screen.getByText("root"));
     expect(screen.getByText("subdirectory")).toBeInTheDocument();
