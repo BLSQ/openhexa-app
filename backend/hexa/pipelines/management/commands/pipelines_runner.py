@@ -586,11 +586,12 @@ class Command(BaseCommand):
 
         i = 0
         sleeptime = 5
-        batch_size = 8
+        orphaned_batch_size = 10
+        batch_size = 20
         while True:
             if orphaned_runs:
-                batch = orphaned_runs[:batch_size]
-                orphaned_runs = orphaned_runs[batch_size:]
+                batch = orphaned_runs[:orphaned_batch_size]
+                orphaned_runs = orphaned_runs[orphaned_batch_size:]
                 for run in batch:
                     run_pipeline(run, create_container=False)
 
