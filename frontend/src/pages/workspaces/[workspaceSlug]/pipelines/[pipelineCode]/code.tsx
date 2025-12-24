@@ -119,7 +119,6 @@ export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
     await PipelineLayout.prefetch(ctx, client);
-    await FilesEditor.prefetch(ctx, client);
 
     const { data } = await client.query<
       WorkspacePipelineCodePageQuery,
