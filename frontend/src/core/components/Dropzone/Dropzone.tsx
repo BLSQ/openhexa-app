@@ -131,7 +131,7 @@ const Dropzone = (props: DropzoneProps) => {
         }}
         {...({
           webkitdirectory: "",
-        } as InputHTMLAttributes<HTMLInputElement>)}
+        } as InputHTMLAttributes<HTMLInputElement>)} // Allow folder selection
       />
       {fileRejections.length + acceptedFiles.length === 0 && children}
       {acceptedFiles.length > 0 && (
