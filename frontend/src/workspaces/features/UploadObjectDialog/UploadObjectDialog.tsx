@@ -67,7 +67,6 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
           onChange={(files) => form.setFieldValue("files", files)}
           disabled={form.isSubmitting}
           label={t("Drop files or folders here")}
-          allowFolders
         />
         {form.submitError && (
           <p className={"text-sm text-red-600"}>{form.submitError}</p>
