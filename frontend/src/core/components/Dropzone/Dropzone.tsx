@@ -58,7 +58,7 @@ const Dropzone = (props: DropzoneProps) => {
     rejections: FileRejection[] = [],
   ) => {
     const newMap = new Map(acceptedFilesMap);
-    files.forEach((f) => newMap.set(getFileKey(f), f));
+    files.forEach((f) => newMap.set(getFileKey(f), f)); // Ignore duplicates by name
     setAcceptedFilesMap(newMap);
     onChange(Array.from(newMap.values()), rejections);
   };
