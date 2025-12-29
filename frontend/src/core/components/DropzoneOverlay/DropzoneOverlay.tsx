@@ -10,7 +10,7 @@ const DropzoneOverlay: React.FC<DropzoneOverlayProps> = (props) => {
   const { onDroppingFiles, children, className, ...otherDivProps } = props;
 
   const { getRootProps, isDragActive } = useDropzone({
-    onDrop: (files) => onDroppingFiles(files),
+    onDrop: onDroppingFiles,
     noClick: true,
     useFsAccessApi: false,
   });
