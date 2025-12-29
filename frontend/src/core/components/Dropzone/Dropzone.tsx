@@ -48,7 +48,7 @@ const Dropzone = (props: DropzoneProps) => {
   const [acceptedFilesMap, setAcceptedFilesMap] = useState<
     Map<string, FileWithPath>
   >(new Map());
-  const acceptedFiles = Array.from(acceptedFilesMap.values());
+  const acceptedFiles = Array.from<File>(acceptedFilesMap.values());
 
   const getFileKey = (f: FileWithPath) =>
     f.path || f.webkitRelativePath || f.name;
@@ -127,7 +127,9 @@ const Dropzone = (props: DropzoneProps) => {
         onChange={(e) => {
           if (e.target.files) {
             const filesWithPath = Array.from(e.target.files).map((file) =>
-              Object.assign(file, { path: file.webkitRelativePath || file.name }),
+              Object.assign(file, {
+                path: file.webkitRelativePath || file.name,
+              }),
             );
             addFiles(filesWithPath);
           }
