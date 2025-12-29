@@ -1,4 +1,5 @@
 import { createDeferred, Deferred } from "./promise";
+import { FileWithPath } from "react-dropzone";
 
 type XHROptions = {
   url: string;
@@ -25,7 +26,7 @@ type JobItem<T extends File> = {
   A Job represents the upload of a set of files.
 */
 
-export interface JobFile extends File {
+export interface JobFile extends FileWithPath {
   loaded?: number;
   isUploaded?: boolean;
 }
