@@ -81,8 +81,8 @@ const Dropzone = (props: DropzoneProps) => {
   return (
     <div
       className={clsx(
-        "flex w-full cursor-pointer items-center justify-center gap-3 rounded-md border-2 border-dashed border-blue-500 px-5 py-5 text-sm text-gray-500 shadow-xs hover:border-blue-700",
-        isDragAccept && "bg-blue-100",
+        "flex w-full cursor-pointer items-center justify-center gap-3 rounded-md border-2 border-dashed px-5 py-5 text-sm text-gray-500 shadow-xs hover:border-blue-700",
+        isDragAccept && "border-blue-500 bg-blue-100",
         className,
       )}
       {...getRootProps()}
