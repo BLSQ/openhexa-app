@@ -45,21 +45,29 @@ const Dropzone = (props: DropzoneProps) => {
   } = props;
   const { t } = useTranslation();
   const folderInputRef = useRef<HTMLInputElement>(null);
-  const [acceptedFiles, setAcceptedFiles] = useState<FileWithPath[]>([]);
+  const [acceptedFilesMap, setAcceptedFilesMap] = useState<
+    Map<string, FileWithPath>
+  >(new Map());
+  const acceptedFiles = Array.from(acceptedFilesMap.values());
+
+  const getFileKey = (f: FileWithPath) =>
+    f.path || f.webkitRelativePath || f.name;
 
   const addFiles = (
     files: FileWithPath[],
     rejections: FileRejection[] = [],
   ) => {
-    const newFiles = [...acceptedFiles, ...files];
-    setAcceptedFiles(newFiles);
-    onChange(newFiles, rejections);
+    const newMap = new Map(acceptedFilesMap);
+    files.forEach((f) => newMap.set(getFileKey(f), f));
+    setAcceptedFilesMap(newMap);
+    onChange(Array.from(newMap.values()), rejections);
   };
 
-  const removeFile = (index: number) => {
-    const newFiles = acceptedFiles.filter((_, i) => i !== index);
-    setAcceptedFiles(newFiles);
-    onChange(newFiles, []);
+  const removeFile = (key: string) => {
+    const newMap = new Map(acceptedFilesMap);
+    newMap.delete(key);
+    setAcceptedFilesMap(newMap);
+    onChange(Array.from(newMap.values()), []);
   };
 
   const { getInputProps, getRootProps, fileRejections, isDragAccept, open } =
@@ -133,19 +141,16 @@ const Dropzone = (props: DropzoneProps) => {
             {t("selected")}
           </p>
           <ul className="max-h-40 space-y-1 overflow-y-auto">
-            {acceptedFiles.map((f, index) => {
-              const displayName = f.path || f.webkitRelativePath || f.name;
+            {acceptedFiles.map((f) => {
+              const key = getFileKey(f);
               return (
                 <li
-                  key={index}
+                  key={key}
                   className="flex items-center gap-2 rounded bg-gray-50 px-2 py-1"
                 >
                   <DocumentIcon className="h-4 w-4 shrink-0 text-gray-400" />
-                  <span
-                    className="min-w-0 flex-1 truncate text-xs"
-                    title={displayName}
-                  >
-                    {displayName}
+                  <span className="min-w-0 flex-1 truncate text-xs" title={key}>
+                    {key}
                   </span>
                   <Filesize
                     className="shrink-0 text-xs text-gray-400"
@@ -153,7 +158,7 @@ const Dropzone = (props: DropzoneProps) => {
                   />
                   <button
                     type="button"
-                    onClick={() => removeFile(index)}
+                    onClick={() => removeFile(key)}
                     className="shrink-0 rounded p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
                   >
                     <XMarkIcon className="h-3 w-3" />
