@@ -1,6 +1,8 @@
 import {
   ExclamationTriangleIcon,
   ArrowUpTrayIcon,
+  DocumentIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
@@ -43,21 +45,21 @@ const Dropzone = (props: DropzoneProps) => {
   } = props;
   const { t } = useTranslation();
   const folderInputRef = useRef<HTMLInputElement>(null);
-  const [acceptedFilesMap, setAcceptedFilesMap] = useState<
-    Map<string, FileWithPath>
-  >(new Map());
-  const acceptedFiles = Array.from<FileWithPath>(acceptedFilesMap.values());
+  const [acceptedFiles, setAcceptedFiles] = useState<FileWithPath[]>([]);
 
   const addFiles = (
     files: FileWithPath[],
     rejections: FileRejection[] = [],
   ) => {
-    const newMap = new Map(acceptedFilesMap);
-    files.forEach((f) =>
-      newMap.set(f.path ?? f.webkitRelativePath ?? f.name, f),
-    );
-    setAcceptedFilesMap(newMap);
-    onChange(Array.from(newMap.values()), rejections);
+    const newFiles = [...acceptedFiles, ...files];
+    setAcceptedFiles(newFiles);
+    onChange(newFiles, rejections);
+  };
+
+  const removeFile = (index: number) => {
+    const newFiles = acceptedFiles.filter((_, i) => i !== index);
+    setAcceptedFiles(newFiles);
+    onChange(newFiles, []);
   };
 
   const { getInputProps, getRootProps, fileRejections, isDragAccept, open } =
@@ -125,22 +127,42 @@ const Dropzone = (props: DropzoneProps) => {
       />
       {fileRejections.length + acceptedFiles.length === 0 && children}
       {acceptedFiles.length > 0 && (
-        <span className="line-clamp-4 text-xs">
-          <p>
+        <div className="w-full space-y-2">
+          <p className="text-center text-xs text-gray-500">
             {acceptedFiles.length} {pluralize("file", acceptedFiles.length)}{" "}
-            selected:{" "}
+            {t("selected")}
           </p>
-          <ul>
-            {acceptedFiles.map((f) => (
-              <li key={f.path ?? f.webkitRelativePath ?? f.name}>
-                <p className="inline">
-                  {f.path ?? f.webkitRelativePath ?? f.name} -{" "}
-                </p>
-                <Filesize className="inline" size={f.size} />
-              </li>
-            ))}
+          <ul className="max-h-40 space-y-1 overflow-y-auto">
+            {acceptedFiles.map((f, index) => {
+              const displayName = f.path || f.webkitRelativePath || f.name;
+              return (
+                <li
+                  key={index}
+                  className="flex items-center gap-2 rounded bg-gray-50 px-2 py-1"
+                >
+                  <DocumentIcon className="h-4 w-4 shrink-0 text-gray-400" />
+                  <span
+                    className="min-w-0 flex-1 truncate text-xs"
+                    title={displayName}
+                  >
+                    {displayName}
+                  </span>
+                  <Filesize
+                    className="shrink-0 text-xs text-gray-400"
+                    size={f.size}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeFile(index)}
+                    className="shrink-0 rounded p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+                  >
+                    <XMarkIcon className="h-3 w-3" />
+                  </button>
+                </li>
+              );
+            })}
           </ul>
-        </span>
+        </div>
       )}
       {fileRejections?.length > 0 && (
         <div className="flex items-center">
