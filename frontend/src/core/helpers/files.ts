@@ -221,10 +221,12 @@ export const constructFolderKey = (
   folderName: string,
   prefix: string | null,
 ) => {
+  // Remove leading slash from folderName if any
+  const normalizedName = folderName.replace(/^\//, "");
   if (prefix) {
     // Remove trailing slash from prefix if any to avoid double slash
-    return `${prefix.replace(/\/$/, "")}/${folderName}`;
+    return `${prefix.replace(/\/$/, "")}/${normalizedName}`;
   } else {
-    return folderName;
+    return normalizedName;
   }
 };
