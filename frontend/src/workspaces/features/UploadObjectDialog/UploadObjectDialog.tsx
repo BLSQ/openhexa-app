@@ -3,6 +3,7 @@ import { ArrowUpTrayIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Dropzone from "core/components/Dropzone";
+import { FileWithPath } from "react-dropzone";
 import useForm from "core/hooks/useForm";
 import { useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
@@ -30,7 +31,7 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
     onProgress: setProgress,
     onFileUploaded: handleClose,
   });
-  const form = useForm<{ files: File[] }>({
+  const form = useForm<{ files: FileWithPath[] }>({
     validate(values) {
       const errors = {} as any;
       if (!values.files?.length) {
@@ -65,7 +66,8 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
           className="h-80"
           onChange={(files) => form.setFieldValue("files", files)}
           disabled={form.isSubmitting}
-          label={t("Drop files here or click to select")}
+          label={t("Drop files or folders here")}
+          allowFolders
         />
         {form.submitError && (
           <p className={"text-sm text-red-600"}>{form.submitError}</p>
