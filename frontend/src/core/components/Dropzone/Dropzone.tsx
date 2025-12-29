@@ -46,7 +46,7 @@ const Dropzone = (props: DropzoneProps) => {
   const [acceptedFilesMap, setAcceptedFilesMap] = useState<
     Map<string, FileWithPath>
   >(new Map());
-  const acceptedFiles = Array.from<File>(acceptedFilesMap.values());
+  const acceptedFiles = Array.from<FileWithPath>(acceptedFilesMap.values());
   const { getInputProps, getRootProps, fileRejections, isDragAccept } =
     useDropzone({
       validator,
@@ -55,10 +55,10 @@ const Dropzone = (props: DropzoneProps) => {
       disabled,
       useFsAccessApi: false,
       multiple: maxFiles !== 1,
-      onDrop: (newAcceptedFiles, fileRejections) => {
+      onDrop: (newAcceptedFiles: FileWithPath[], fileRejections) => {
         const newAcceptedFilesMap = new Map(acceptedFilesMap);
         newAcceptedFiles.forEach(
-          (file) => newAcceptedFilesMap.set(file.name, file), //  Ignore duplicates by names
+          (file) => newAcceptedFilesMap.set(file.path ?? file.name, file), //  Ignore duplicates by names
         );
         setAcceptedFilesMap(newAcceptedFilesMap);
         onChange(
@@ -97,8 +97,8 @@ const Dropzone = (props: DropzoneProps) => {
           </p>
           <ul>
             {acceptedFiles.map((f) => (
-              <li key={f.name}>
-                <p className="inline">{f.name} - </p>
+              <li key={f.path ?? f.name}>
+                <p className="inline">{f.path} - </p>
                 <Filesize className="inline" size={f.size} />
               </li>
             ))}
