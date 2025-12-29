@@ -126,7 +126,10 @@ const Dropzone = (props: DropzoneProps) => {
         hidden
         onChange={(e) => {
           if (e.target.files) {
-            addFiles(Array.from(e.target.files) as FileWithPath[]);
+            const filesWithPath = Array.from(e.target.files).map((file) =>
+              Object.assign(file, { path: file.webkitRelativePath || file.name }),
+            );
+            addFiles(filesWithPath);
           }
         }}
         {...({
