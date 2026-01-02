@@ -1,12 +1,14 @@
 import logging
 
 from ariadne import EnumType, InterfaceType, ObjectType
+from django.db.models import OuterRef, Subquery
 from django.http import HttpRequest
 from openhexa.toolbox.dhis2.api import DHIS2ToolboxError
 from openhexa.toolbox.iaso.api_client import IASOError
 
 from hexa.core.graphql import result_page
 from hexa.pipelines.authentication import PipelineRunUser
+from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.tags.models import Tag
 from hexa.user_management.models import OrganizationMembership
 from hexa.user_management.schema import me_permissions_object
@@ -186,6 +188,25 @@ def resolve_workspace_pipeline_tags(workspace: Workspace, info, **kwargs):
         .values_list("name", flat=True)
         .order_by("name")
     )
+
+
+@workspace_object.field("pipelineLastRunStatuses")
+def resolve_workspace_pipeline_last_run_statuses(workspace: Workspace, info, **kwargs):
+    last_run_state_subquery = (
+        PipelineRun.objects.filter(pipeline=OuterRef("pk"))
+        .order_by("-execution_date")
+        .values("state")[:1]
+    )
+
+    statuses = (
+        Pipeline.objects.filter(workspace=workspace, deleted_at__isnull=True)
+        .annotate(last_run_status=Subquery(last_run_state_subquery))
+        .exclude(last_run_status__isnull=True)
+        .values_list("last_run_status", flat=True)
+        .distinct()
+    )
+
+    return list(statuses)
 
 
 @workspace_object.field("pipelineTemplateTags")
