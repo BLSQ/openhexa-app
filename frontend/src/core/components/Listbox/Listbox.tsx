@@ -7,7 +7,7 @@ import {
 } from "@headlessui/react";
 import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { sameWidthModifier } from "core/helpers/popper";
 import { usePopper } from "react-popper";
@@ -17,6 +17,10 @@ type ListboxProps = {
   value: any;
   options: any[];
   getOptionLabel(value?: any): string;
+  renderOption?(
+    option: any,
+    { focus, selected }: { focus: boolean; selected: boolean },
+  ): ReactNode;
   by: string;
   placeholder?: string;
   onChange(value: any): void;
@@ -33,6 +37,7 @@ const Listbox = (props: ListboxProps) => {
   const { t } = useTranslation();
   const {
     getOptionLabel,
+    renderOption,
     value,
     options,
     onScrollBottom,
@@ -97,14 +102,20 @@ const Listbox = (props: ListboxProps) => {
                       }
                     >
                       {({ focus, selected }) => (
-                        <span
-                          className={clsx(
-                            "flex-1 truncate",
-                            selected && "font-semibold",
+                        <>
+                          {renderOption ? (
+                            renderOption(option, { focus, selected })
+                          ) : (
+                            <span
+                              className={clsx(
+                                "flex-1 truncate",
+                                selected && "font-semibold",
+                              )}
+                            >
+                              {getOptionLabel(option)}
+                            </span>
                           )}
-                        >
-                          {getOptionLabel(option)}
-                        </span>
+                        </>
                       )}
                     </UIListboxOption>
                   ))}
