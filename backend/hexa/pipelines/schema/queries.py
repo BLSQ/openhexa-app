@@ -62,8 +62,8 @@ def resolve_pipelines(_, info, **kwargs):
 
     last_run_states = kwargs.get("last_run_states")
     if last_run_states:
-        last_run_states = [
-            PipelineRun.REVERSE_STATUS_MAPPINGS[status] for status in last_run_states
+        last_run_status = [
+            PipelineRun.REVERSE_STATUS_MAPPINGS[state] for state in last_run_states
         ]
 
         last_run_state_subquery = (
@@ -72,7 +72,7 @@ def resolve_pipelines(_, info, **kwargs):
             .values("state")[:1]
         )
         qs = qs.annotate(last_run_status=Subquery(last_run_state_subquery)).filter(
-            last_run_status__in=last_run_states
+            last_run_status__in=last_run_status
         )
 
     if "name" in kwargs:

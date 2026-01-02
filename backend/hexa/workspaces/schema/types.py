@@ -198,7 +198,7 @@ def resolve_workspace_pipeline_last_run_statuses(workspace: Workspace, info, **k
         .values("state")[:1]
     )
 
-    statuses = (
+    states = (
         Pipeline.objects.filter(workspace=workspace, deleted_at__isnull=True)
         .annotate(last_run_status=Subquery(last_run_state_subquery))
         .exclude(last_run_status__isnull=True)
@@ -206,7 +206,7 @@ def resolve_workspace_pipeline_last_run_statuses(workspace: Workspace, info, **k
         .distinct()
     )
 
-    return [PipelineRun.STATUS_MAPPINGS.get(state) for state in statuses if state]
+    return [PipelineRun.STATUS_MAPPINGS.get(state) for state in states if state]
 
 
 @workspace_object.field("pipelineTemplateTags")
