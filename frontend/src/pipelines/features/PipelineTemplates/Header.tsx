@@ -31,8 +31,8 @@ type HeaderProps = {
   showCard?: boolean;
   functionalTypeFilter?: PipelineFunctionalType | null;
   setFunctionalTypeFilter?: (filter: PipelineFunctionalType | null) => void;
-  lastRunStateFilter?: PipelineRunStatus | null;
-  setLastRunStateFilter?: (filter: PipelineRunStatus | null) => void;
+  lastRunStatesFilter?: PipelineRunStatus[];
+  setLastRunStatesFilter?: (filter: PipelineRunStatus[]) => void;
   validationFilter?: boolean | null;
   setValidationFilter?: (filter: boolean | null) => void;
   tagsFilter?: string[];
@@ -53,8 +53,8 @@ const Header = ({
   showCard,
   functionalTypeFilter,
   setFunctionalTypeFilter,
-  lastRunStateFilter,
-  setLastRunStateFilter,
+  lastRunStatesFilter,
+  setLastRunStatesFilter,
   validationFilter,
   setValidationFilter,
   tagsFilter,
@@ -83,13 +83,12 @@ const Header = ({
     { value: false, label: t("Community") },
   ];
 
-  const lastRunStateOptions = [
-    { value: null, label: t("All status") },
-    ...Object.values(PipelineRunStatus).map((status) => ({
+  const lastRunStateOptions = Object.values(PipelineRunStatus).map(
+    (status) => ({
       value: status,
       label: formatPipelineRunStatus(status),
-    })),
-  ];
+    }),
+  );
 
   return (
     <div className={"my-5 space-y-3"}>
@@ -181,30 +180,28 @@ const Header = ({
             className={"min-w-48"}
           />
         )}
-        {setLastRunStateFilter && (
+        {setLastRunStatesFilter && (
           <Listbox
-            value={lastRunStateOptions.find(
-              (opt) => opt.value === lastRunStateFilter,
+            value={lastRunStateOptions.filter((opt) =>
+              lastRunStatesFilter?.includes(opt.value),
             )}
-            onChange={(option) => setLastRunStateFilter(option?.value || null)}
+            onChange={(options) =>
+              setLastRunStatesFilter(options.map((opt: any) => opt.value))
+            }
             options={lastRunStateOptions}
             by="value"
+            multiple
+            placeholder={t("All status")}
             getOptionLabel={(option) => option.label}
-            renderOption={(option, { selected }) => (
-              <span className="flex-1 truncate">
-                {option.value ? (
-                  <Badge
-                    className={clsx(
-                      getPipelineRunStatusBadgeClassName(option.value),
-                      "ring-gray-500/20",
-                    )}
-                  >
-                    {option.label}
-                  </Badge>
-                ) : (
-                  option.label
+            renderOption={(option) => (
+              <Badge
+                className={clsx(
+                  getPipelineRunStatusBadgeClassName(option.value),
+                  "ring-gray-500/20",
                 )}
-              </span>
+              >
+                {option.label}
+              </Badge>
             )}
             className={"min-w-48"}
           />
