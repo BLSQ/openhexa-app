@@ -10,7 +10,6 @@ import { useWorkspacePipelinesPageQuery } from "workspaces/graphql/queries.gener
 import { PipelineFunctionalType, PipelineRunStatus } from "graphql/types";
 import { getCookie, hasCookie, setCookie } from "cookies-next";
 
-// TODO : can select multiple ?
 // TODO : can the list be dynamic ?
 // TODO : tags flickering
 
@@ -33,7 +32,7 @@ type PipelinesProps = {
   search: string;
   tags?: string[];
   functionalType?: PipelineFunctionalType | null;
-  lastRunState?: PipelineRunStatus | null;
+  lastRunStates?: PipelineRunStatus[];
 };
 
 const Pipelines = ({
@@ -43,7 +42,7 @@ const Pipelines = ({
   search: initialSearch,
   tags,
   functionalType: initialFunctionalType,
-  lastRunState: initialLastRunState,
+  lastRunStates: initialLastRunStates,
 }: PipelinesProps) => {
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const debouncedSearchQuery = useDebounce(searchQuery, 300, () => {
@@ -58,8 +57,8 @@ const Pipelines = ({
   };
   const [functionalType, setFunctionalType] =
     useState<PipelineFunctionalType | null>(initialFunctionalType || null);
-  const [lastRunState, setLastRunState] = useState<PipelineRunStatus | null>(
-    initialLastRunState || null,
+  const [lastRunStates, setLastRunStates] = useState<PipelineRunStatus[]>(
+    initialLastRunStates || [],
   );
   const [selectedTags, setSelectedTags] = useState<string[]>(tags || []);
 
@@ -69,7 +68,7 @@ const Pipelines = ({
       search: debouncedSearchQuery,
       tags: selectedTags.length > 0 ? selectedTags : undefined,
       functionalType,
-      lastRunState,
+      lastRunStates: lastRunStates.length > 0 ? lastRunStates : undefined,
       page,
       perPage,
     },
@@ -99,8 +98,8 @@ const Pipelines = ({
         showCard={true}
         functionalTypeFilter={functionalType}
         setFunctionalTypeFilter={setFunctionalType}
-        lastRunStateFilter={lastRunState}
-        setLastRunStateFilter={setLastRunState}
+        lastRunStatesFilter={lastRunStates}
+        setLastRunStatesFilter={setLastRunStates}
         tagsFilter={selectedTags}
         setTagsFilter={setSelectedTags}
         pipelineTags={pipelineTags}
