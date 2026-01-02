@@ -72,20 +72,28 @@ const Pipelines = ({
   });
 
   const [items, setItems] = useState(data?.pipelines?.items || []);
+  const [pipelineTags, setPipelineTags] = useState<string[]>(
+    data?.workspace?.pipelineTags || [],
+  );
+  const [pipelineLastRunStatuses, setPipelineLastRunStatuses] = useState<
+    PipelineRunStatus[]
+  >(data?.workspace?.pipelineLastRunStatuses || []);
 
   useEffect(() => {
     if (!loading && data?.pipelines?.items) {
       setItems(data.pipelines.items);
+    }
+    if (!loading && data?.workspace?.pipelineTags) {
+      setPipelineTags(data.workspace.pipelineTags);
+    }
+    if (!loading && data?.workspace?.pipelineLastRunStatuses) {
+      setPipelineLastRunStatuses(data.workspace.pipelineLastRunStatuses);
     }
   }, [loading, data]);
 
   const ViewComponent = view === "grid" ? GridView : CardView;
 
   const totalItems = data?.pipelines?.totalItems ?? 0;
-
-  const pipelineTags = data?.workspace?.pipelineTags || [];
-  const pipelineLastRunStatuses =
-    data?.workspace?.pipelineLastRunStatuses || [];
 
   return (
     <div>
