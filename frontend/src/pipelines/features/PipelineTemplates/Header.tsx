@@ -114,13 +114,16 @@ const Header = ({
           <Popover
             trigger={
               <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer">
-                <TagIcon className="w-4 h-4 text-gray-600" />
+                <TagIcon className="w-4 h-4 text-gray-600 shrink-0" />
                 <span className="text-sm text-gray-700">{t("Tags")}</span>
-                {tagsFilter && tagsFilter.length > 0 && (
-                  <Badge className="bg-purple-100 text-purple-700 ring-purple-400/20">
-                    {tagsFilter.length}
-                  </Badge>
-                )}
+                <Badge
+                  className={clsx(
+                    "bg-purple-100 text-purple-700 ring-purple-400/20 w-7 justify-center",
+                    (!tagsFilter || tagsFilter.length === 0) && "invisible",
+                  )}
+                >
+                  {tagsFilter?.length || 0}
+                </Badge>
               </div>
             }
             placement="bottom-start"
