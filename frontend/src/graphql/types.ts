@@ -4304,7 +4304,7 @@ export type QueryPipelineVersionArgs = {
 
 export type QueryPipelinesArgs = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
-  lastRunState?: InputMaybe<PipelineRunStatus>;
+  lastRunStates?: InputMaybe<Array<PipelineRunStatus>>;
   name?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
