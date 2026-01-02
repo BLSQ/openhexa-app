@@ -60,15 +60,15 @@ def resolve_pipelines(_, info, **kwargs):
         except InvalidTag:
             qs = Pipeline.objects.none()
 
-    last_run_state = kwargs.get("last_run_state")
-    if last_run_state:
+    last_run_states = kwargs.get("last_run_states")
+    if last_run_states:
         last_run_state_subquery = (
             PipelineRun.objects.filter(pipeline=OuterRef("pk"))
             .order_by("-execution_date")
             .values("state")[:1]
         )
         qs = qs.annotate(last_run_status=Subquery(last_run_state_subquery)).filter(
-            last_run_status=last_run_state
+            last_run_status__in=last_run_states
         )
 
     if "name" in kwargs:
