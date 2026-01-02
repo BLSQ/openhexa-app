@@ -4,8 +4,9 @@ import Listbox from "core/components/Listbox";
 import ViewToggleButton from "core/components/ViewToggleButton";
 import Popover from "core/components/Popover";
 import Checkbox from "core/components/forms/Checkbox";
-import { PipelineFunctionalType } from "graphql/types";
+import { PipelineFunctionalType, PipelineRunStatus } from "graphql/types";
 import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
+import { formatPipelineRunStatus } from "pipelines/helpers/format";
 import { useTranslation } from "next-i18next";
 import { TagIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
@@ -26,6 +27,8 @@ type HeaderProps = {
   showCard?: boolean;
   functionalTypeFilter?: PipelineFunctionalType | null;
   setFunctionalTypeFilter?: (filter: PipelineFunctionalType | null) => void;
+  lastRunStateFilter?: PipelineRunStatus | null;
+  setLastRunStateFilter?: (filter: PipelineRunStatus | null) => void;
   validationFilter?: boolean | null;
   setValidationFilter?: (filter: boolean | null) => void;
   tagsFilter?: string[];
@@ -46,6 +49,8 @@ const Header = ({
   showCard,
   functionalTypeFilter,
   setFunctionalTypeFilter,
+  lastRunStateFilter,
+  setLastRunStateFilter,
   validationFilter,
   setValidationFilter,
   tagsFilter,
@@ -72,6 +77,14 @@ const Header = ({
     { value: null, label: t("All publishers") },
     { value: true, label: t("Validated") },
     { value: false, label: t("Community") },
+  ];
+
+  const lastRunStateOptions = [
+    { value: null, label: t("All statuses") },
+    ...Object.values(PipelineRunStatus).map((status) => ({
+      value: status,
+      label: formatPipelineRunStatus(status),
+    })),
   ];
 
   return (
@@ -159,6 +172,20 @@ const Header = ({
               setFunctionalTypeFilter(option?.value || null)
             }
             options={functionalTypeOptions}
+            by="value"
+            getOptionLabel={(option) => option.label}
+            className={"min-w-48"}
+          />
+        )}
+        {setLastRunStateFilter && (
+          <Listbox
+            value={lastRunStateOptions.find(
+              (opt) => opt.value === lastRunStateFilter,
+            )}
+            onChange={(option) =>
+              setLastRunStateFilter(option?.value || null)
+            }
+            options={lastRunStateOptions}
             by="value"
             getOptionLabel={(option) => option.label}
             className={"min-w-48"}
