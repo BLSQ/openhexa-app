@@ -64,7 +64,7 @@ export type WorkspacePipelinesPageQueryVariables = Types.Exact<{
   search?: Types.InputMaybe<Types.Scalars['String']['input']>;
   tags?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
   functionalType?: Types.InputMaybe<Types.PipelineFunctionalType>;
-  lastRunState?: Types.InputMaybe<Types.PipelineRunStatus>;
+  lastRunStates?: Types.InputMaybe<Array<Types.PipelineRunStatus> | Types.PipelineRunStatus>;
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
@@ -418,7 +418,7 @@ export type WorkspacePageLazyQueryHookResult = ReturnType<typeof useWorkspacePag
 export type WorkspacePageSuspenseQueryHookResult = ReturnType<typeof useWorkspacePageSuspenseQuery>;
 export type WorkspacePageQueryResult = Apollo.QueryResult<WorkspacePageQuery, WorkspacePageQueryVariables>;
 export const WorkspacePipelinesPageDocument = gql`
-    query WorkspacePipelinesPage($workspaceSlug: String!, $search: String, $tags: [String!], $functionalType: PipelineFunctionalType, $lastRunState: PipelineRunStatus, $page: Int, $perPage: Int) {
+    query WorkspacePipelinesPage($workspaceSlug: String!, $search: String, $tags: [String!], $functionalType: PipelineFunctionalType, $lastRunStates: [PipelineRunStatus!], $page: Int, $perPage: Int) {
   workspace(slug: $workspaceSlug) {
     slug
     name
@@ -431,7 +431,7 @@ export const WorkspacePipelinesPageDocument = gql`
     search: $search
     tags: $tags
     functionalType: $functionalType
-    lastRunState: $lastRunState
+    lastRunStates: $lastRunStates
     page: $page
     perPage: $perPage
   ) {
@@ -463,7 +463,7 @@ ${PipelineCard_PipelineFragmentDoc}`;
  *      search: // value for 'search'
  *      tags: // value for 'tags'
  *      functionalType: // value for 'functionalType'
- *      lastRunState: // value for 'lastRunState'
+ *      lastRunStates: // value for 'lastRunStates'
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *   },

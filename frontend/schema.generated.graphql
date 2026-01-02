@@ -3472,7 +3472,7 @@ type Query {
   pipelineVersion(id: UUID!): PipelineVersion
 
   """Retrieves a page of pipelines ordered by relevant name."""
-  pipelines(functionalType: PipelineFunctionalType, lastRunState: PipelineRunStatus, name: String, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
+  pipelines(functionalType: PipelineFunctionalType, lastRunStates: [PipelineRunStatus!], name: String, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
