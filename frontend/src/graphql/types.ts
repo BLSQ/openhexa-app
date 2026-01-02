@@ -5534,6 +5534,7 @@ export type Workspace = {
   name: Scalars['String']['output'];
   organization?: Maybe<Organization>;
   permissions: WorkspacePermissions;
+  pipelineLastRunStatuses: Array<PipelineRunStatus>;
   pipelineTags: Array<Scalars['String']['output']>;
   pipelineTemplateTags: Array<Scalars['String']['output']>;
   shortcuts: Array<ShortcutItem>;
