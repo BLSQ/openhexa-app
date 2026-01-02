@@ -34,6 +34,7 @@ query WorkspacePipelinesPage(
   $search: String
   $tags: [String!]
   $functionalType: PipelineFunctionalType
+  $lastRunState: PipelineRunStatus
   $page: Int
   $perPage: Int
 ) {
@@ -50,6 +51,7 @@ query WorkspacePipelinesPage(
     search: $search
     tags: $tags
     functionalType: $functionalType
+    lastRunState: $lastRunState
     page: $page
     perPage: $perPage
   ) {

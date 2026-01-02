@@ -717,7 +717,7 @@ extend type Query {
   """
   Retrieves a page of pipelines ordered by relevant name.
   """
-  pipelines(workspaceSlug: String, name: String, search: String, tags: [String!], functionalType: PipelineFunctionalType, page: Int, perPage: Int): PipelinesPage! @loginRequired
+  pipelines(workspaceSlug: String, name: String, search: String, tags: [String!], functionalType: PipelineFunctionalType, lastRunState: PipelineRunStatus, page: Int, perPage: Int): PipelinesPage! @loginRequired
 
   """
   Retrieves a pipeline by ID.
