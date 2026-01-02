@@ -33,6 +33,7 @@ type HeaderProps = {
   setFunctionalTypeFilter?: (filter: PipelineFunctionalType | null) => void;
   lastRunStatesFilter?: PipelineRunStatus[];
   setLastRunStatesFilter?: (filter: PipelineRunStatus[]) => void;
+  pipelineLastRunStatuses?: PipelineRunStatus[];
   validationFilter?: boolean | null;
   setValidationFilter?: (filter: boolean | null) => void;
   tagsFilter?: string[];
@@ -55,6 +56,7 @@ const Header = ({
   setFunctionalTypeFilter,
   lastRunStatesFilter,
   setLastRunStatesFilter,
+  pipelineLastRunStatuses,
   validationFilter,
   setValidationFilter,
   tagsFilter,
@@ -83,12 +85,15 @@ const Header = ({
     { value: false, label: t("Community") },
   ];
 
-  const lastRunStateOptions = Object.values(PipelineRunStatus).map(
-    (status) => ({
-      value: status,
-      label: formatPipelineRunStatus(status),
-    }),
-  );
+  const statusesToShow =
+    pipelineLastRunStatuses && pipelineLastRunStatuses.length > 0
+      ? pipelineLastRunStatuses
+      : Object.values(PipelineRunStatus);
+
+  const lastRunStateOptions = statusesToShow.map((status) => ({
+    value: status,
+    label: formatPipelineRunStatus(status),
+  }));
 
   return (
     <div className={"my-5 space-y-3"}>
@@ -180,7 +185,7 @@ const Header = ({
             className={"min-w-48"}
           />
         )}
-        {setLastRunStatesFilter && (
+        {setLastRunStatesFilter && lastRunStateOptions.length > 0 && (
           <Listbox
             value={lastRunStateOptions.filter((opt) =>
               lastRunStatesFilter?.includes(opt.value),
