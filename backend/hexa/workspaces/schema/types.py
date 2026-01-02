@@ -206,7 +206,7 @@ def resolve_workspace_pipeline_last_run_statuses(workspace: Workspace, info, **k
         .distinct()
     )
 
-    return list(statuses)
+    return [PipelineRun.STATUS_MAPPINGS.get(state) for state in statuses if state]
 
 
 @workspace_object.field("pipelineTemplateTags")

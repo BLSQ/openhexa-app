@@ -750,6 +750,8 @@ class PipelineRun(Base, WithStatus):
         PipelineRunState.SKIPPED: Status.SKIPPED,
     }
 
+    REVERSE_STATUS_MAPPINGS = {v: k for k, v in STATUS_MAPPINGS.items()}
+
     class Meta:
         ordering = ("-execution_date",)
         indexes = [

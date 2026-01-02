@@ -62,6 +62,10 @@ def resolve_pipelines(_, info, **kwargs):
 
     last_run_states = kwargs.get("last_run_states")
     if last_run_states:
+        last_run_states = [
+            PipelineRun.REVERSE_STATUS_MAPPINGS[status] for status in last_run_states
+        ]
+
         last_run_state_subquery = (
             PipelineRun.objects.filter(pipeline=OuterRef("pk"))
             .order_by("-execution_date")
