@@ -10,8 +10,6 @@ import { useWorkspacePipelinesPageQuery } from "workspaces/graphql/queries.gener
 import { PipelineFunctionalType, PipelineRunStatus } from "graphql/types";
 import { getCookie, hasCookie, setCookie } from "cookies-next";
 
-// TODO : tags flickering
-
 export let cookiePipelinesView: "grid" | "card" = "grid";
 
 function getDefaultPipelinesView(): "grid" | "card" {
@@ -86,7 +84,8 @@ const Pipelines = ({
   const totalItems = data?.pipelines?.totalItems ?? 0;
 
   const pipelineTags = data?.workspace?.pipelineTags || [];
-  const pipelineLastRunStatuses = data?.workspace?.pipelineLastRunStatuses || [];
+  const pipelineLastRunStatuses =
+    data?.workspace?.pipelineLastRunStatuses || [];
 
   return (
     <div>

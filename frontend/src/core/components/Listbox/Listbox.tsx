@@ -89,7 +89,6 @@ const Listbox = (props: ListboxProps) => {
               open
                 ? "border-blue-500 ring-1 ring-blue-500"
                 : "border-gray-300 hover:border-gray-400",
-              !hasValue && "text-gray-600/70",
               className,
             )}
           >
