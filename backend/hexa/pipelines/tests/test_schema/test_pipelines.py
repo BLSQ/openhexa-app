@@ -3238,7 +3238,7 @@ def test_pipeline(input_file, threshold, enable_debug):
         self.assertIsNotNone(pipeline_data)
         self.assertEqual(pipeline_data["functionalType"], "loading")
 
-    def test_filter_pipelines_by_last_run_state(self):
+    def test_filter_pipelines_by_last_run_states(self):
         """Test filtering pipelines by the state of their last run"""
         self.client.force_login(self.USER_ROOT)
 
@@ -3289,8 +3289,8 @@ def test_pipeline(input_file, threshold, enable_debug):
 
         r = self.run_query(
             """
-            query pipelines($workspaceSlug: String!, $lastRunState: PipelineRunStatus) {
-                pipelines(workspaceSlug: $workspaceSlug, lastRunState: $lastRunState) {
+            query pipelines($workspaceSlug: String!, $lastRunStates: [PipelineRunStatus!]) {
+                pipelines(workspaceSlug: $workspaceSlug, lastRunStates: $lastRunStates) {
                     items {
                         id
                         name
@@ -3301,18 +3301,17 @@ def test_pipeline(input_file, threshold, enable_debug):
             """,
             {
                 "workspaceSlug": self.WS1.slug,
-                "lastRunState": PipelineRunState.SUCCESS,
+                "lastRunStates": [PipelineRunState.SUCCESS],
             },
         )
 
         self.assertEqual(r["data"]["pipelines"]["totalItems"], 1)
         self.assertEqual(r["data"]["pipelines"]["items"][0]["name"], "Pipeline Success")
 
-        # Test filter by FAILED state
         r = self.run_query(
             """
-            query pipelines($workspaceSlug: String!, $lastRunState: PipelineRunStatus) {
-                pipelines(workspaceSlug: $workspaceSlug, lastRunState: $lastRunState) {
+            query pipelines($workspaceSlug: String!, $lastRunStates: [PipelineRunStatus!]) {
+                pipelines(workspaceSlug: $workspaceSlug, lastRunStates: $lastRunStates) {
                     items {
                         id
                         name
@@ -3323,12 +3322,32 @@ def test_pipeline(input_file, threshold, enable_debug):
             """,
             {
                 "workspaceSlug": self.WS1.slug,
-                "lastRunState": PipelineRunState.FAILED,
+                "lastRunStates": [PipelineRunState.FAILED],
             },
         )
 
         self.assertEqual(r["data"]["pipelines"]["totalItems"], 1)
         self.assertEqual(r["data"]["pipelines"]["items"][0]["name"], "Pipeline Failed")
+
+        r = self.run_query(
+            """
+            query pipelines($workspaceSlug: String!, $lastRunStates: [PipelineRunStatus!]) {
+                pipelines(workspaceSlug: $workspaceSlug, lastRunStates: $lastRunStates) {
+                    items {
+                        id
+                        name
+                    }
+                    totalItems
+                }
+            }
+            """,
+            {
+                "workspaceSlug": self.WS1.slug,
+                "lastRunStates": [PipelineRunState.SUCCESS, PipelineRunState.FAILED],
+            },
+        )
+
+        self.assertEqual(r["data"]["pipelines"]["totalItems"], 2)
 
         r = self.run_query(
             """
@@ -3349,7 +3368,7 @@ def test_pipeline(input_file, threshold, enable_debug):
 
         self.assertEqual(r["data"]["pipelines"]["totalItems"], 3)
 
-    def test_filter_pipelines_by_last_run_state_uses_most_recent_run(self):
+    def test_filter_pipelines_by_last_run_states_uses_most_recent_run(self):
         """Test that the filter uses the most recent run, not any run"""
         self.client.force_login(self.USER_ROOT)
 
@@ -3385,8 +3404,8 @@ def test_pipeline(input_file, threshold, enable_debug):
 
         r = self.run_query(
             """
-            query pipelines($workspaceSlug: String!, $lastRunState: PipelineRunStatus) {
-                pipelines(workspaceSlug: $workspaceSlug, lastRunState: $lastRunState) {
+            query pipelines($workspaceSlug: String!, $lastRunStates: [PipelineRunStatus!]) {
+                pipelines(workspaceSlug: $workspaceSlug, lastRunStates: $lastRunStates) {
                     items {
                         id
                         name
@@ -3397,7 +3416,7 @@ def test_pipeline(input_file, threshold, enable_debug):
             """,
             {
                 "workspaceSlug": self.WS1.slug,
-                "lastRunState": PipelineRunState.SUCCESS,
+                "lastRunStates": [PipelineRunState.SUCCESS],
             },
         )
 
@@ -3405,8 +3424,8 @@ def test_pipeline(input_file, threshold, enable_debug):
 
         r = self.run_query(
             """
-            query pipelines($workspaceSlug: String!, $lastRunState: PipelineRunStatus) {
-                pipelines(workspaceSlug: $workspaceSlug, lastRunState: $lastRunState) {
+            query pipelines($workspaceSlug: String!, $lastRunStates: [PipelineRunStatus!]) {
+                pipelines(workspaceSlug: $workspaceSlug, lastRunStates: $lastRunStates) {
                     items {
                         id
                         name
@@ -3417,7 +3436,7 @@ def test_pipeline(input_file, threshold, enable_debug):
             """,
             {
                 "workspaceSlug": self.WS1.slug,
-                "lastRunState": PipelineRunState.FAILED,
+                "lastRunStates": [PipelineRunState.FAILED],
             },
         )
 
