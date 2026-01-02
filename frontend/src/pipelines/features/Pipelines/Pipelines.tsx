@@ -10,7 +10,6 @@ import { useWorkspacePipelinesPageQuery } from "workspaces/graphql/queries.gener
 import { PipelineFunctionalType, PipelineRunStatus } from "graphql/types";
 import { getCookie, hasCookie, setCookie } from "cookies-next";
 
-// TODO : badge UI
 // TODO : can select multiple ?
 // TODO : can the list be dynamic ?
 // TODO : tags flickering

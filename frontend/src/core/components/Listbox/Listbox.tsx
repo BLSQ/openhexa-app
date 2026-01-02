@@ -73,7 +73,11 @@ const Listbox = (props: ListboxProps) => {
             )}
           >
             <span className="block truncate">
-              {value ? getOptionLabel(value) : placeholder}
+              {value
+                ? renderOption
+                  ? renderOption(value, { focus: false, selected: true })
+                  : getOptionLabel(value)
+                : placeholder}
             </span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 hover:text-gray-600">
               <ChevronUpDownIcon className="h-5 w-5" aria-hidden="true" />

@@ -1,4 +1,5 @@
 import React from "react";
+import clsx from "clsx";
 import SearchInput from "core/features/SearchInput";
 import Listbox from "core/components/Listbox";
 import ViewToggleButton from "core/components/ViewToggleButton";
@@ -6,7 +7,10 @@ import Popover from "core/components/Popover";
 import Checkbox from "core/components/forms/Checkbox";
 import { PipelineFunctionalType, PipelineRunStatus } from "graphql/types";
 import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
-import { formatPipelineRunStatus } from "pipelines/helpers/format";
+import {
+  formatPipelineRunStatus,
+  getPipelineRunStatusBadgeClassName,
+} from "pipelines/helpers/format";
 import { useTranslation } from "next-i18next";
 import { TagIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
@@ -80,7 +84,7 @@ const Header = ({
   ];
 
   const lastRunStateOptions = [
-    { value: null, label: t("All statuses") },
+    { value: null, label: t("All status") },
     ...Object.values(PipelineRunStatus).map((status) => ({
       value: status,
       label: formatPipelineRunStatus(status),
@@ -182,12 +186,26 @@ const Header = ({
             value={lastRunStateOptions.find(
               (opt) => opt.value === lastRunStateFilter,
             )}
-            onChange={(option) =>
-              setLastRunStateFilter(option?.value || null)
-            }
+            onChange={(option) => setLastRunStateFilter(option?.value || null)}
             options={lastRunStateOptions}
             by="value"
             getOptionLabel={(option) => option.label}
+            renderOption={(option, { selected }) => (
+              <span className="flex-1 truncate">
+                {option.value ? (
+                  <Badge
+                    className={clsx(
+                      getPipelineRunStatusBadgeClassName(option.value),
+                      "ring-gray-500/20",
+                    )}
+                  >
+                    {option.label}
+                  </Badge>
+                ) : (
+                  option.label
+                )}
+              </span>
+            )}
             className={"min-w-48"}
           />
         )}
