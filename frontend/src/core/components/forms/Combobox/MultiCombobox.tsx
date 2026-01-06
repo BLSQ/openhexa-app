@@ -21,6 +21,7 @@ import {
   useState,
 } from "react";
 import { usePopper } from "react-popper";
+import { useTranslation } from "next-i18next";
 import CheckOption from "./CheckOption";
 import OptionsWrapper from "./OptionsWrapper";
 
@@ -80,6 +81,8 @@ function MultiCombobox<T extends { [key: string]: any }>(
     error,
     maxDisplayedValues,
   } = props;
+
+  const { t } = useTranslation();
 
   const displayedValues = maxDisplayedValues
     ? value?.slice(0, maxDisplayedValues)
@@ -170,8 +173,8 @@ function MultiCombobox<T extends { [key: string]: any }>(
                 </Badge>
               ))}
               {hiddenCount > 0 && (
-                <Badge className="bg-gray-200 py-0 ring-gray-500/20 text-gray-600">
-                  +{hiddenCount}
+                <Badge className="bg-gray-100 py-0 ring-gray-500/20 text-gray-600">
+                  {t("+{{count}} more", { count: hiddenCount })}
                 </Badge>
               )}
               <UIComboboxInput as={Fragment} onChange={onInputChange}>
