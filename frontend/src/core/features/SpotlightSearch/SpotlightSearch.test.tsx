@@ -47,7 +47,9 @@ describe("SpotlightSearch", () => {
       );
     });
 
-    fireEvent.click(screen.getByText("Test Workspace")); // The mock data has a workspace called "Test Workspace" and expecting only one workspace in the query
+    const workspaceText = await screen.findByText("Test Workspace");
+    const badge = workspaceText.parentElement!.parentElement!;
+    fireEvent.click(badge.querySelector("svg")!);
 
     const tabs = screen.getAllByRole("tab");
     expect(tabs).toHaveLength(6);
