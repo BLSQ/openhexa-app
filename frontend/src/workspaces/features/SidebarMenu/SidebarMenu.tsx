@@ -99,8 +99,8 @@ const SidebarMenu = (props: SidebarMenuProps) => {
     SidebarMenuQueryVariables
   >(
     gql`
-      query SidebarMenu($page: Int, $perPage: Int) {
-        workspaces(page: $page, perPage: $perPage) {
+      query SidebarMenu($page: Int, $perPage: Int, $organizationId: UUID) {
+        workspaces(page: $page, perPage: $perPage, organizationId: $organizationId) {
           totalItems
           items {
             slug
@@ -114,7 +114,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
       }
     `,
     {
-      variables: { page: 1, perPage: 2000 },
+      variables: { page: 1, perPage: 2000, organizationId: workspace.organization?.id },
       fetchPolicy: "cache-and-network",
     },
   );
