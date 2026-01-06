@@ -166,6 +166,7 @@ function MultiCombobox<T extends { [key: string]: any }>(
                   {displayValue(val)}
                   {!disabled && !required && (
                     <XMarkIcon
+                      data-testid={`remove-badge-${i}`}
                       className="ml-1 h-3 w-3 cursor-pointer"
                       onClick={() => onRemoveItem(val)}
                     />

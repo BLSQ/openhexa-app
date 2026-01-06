@@ -47,9 +47,8 @@ describe("SpotlightSearch", () => {
       );
     });
 
-    const workspaceText = await screen.findByText("Test Workspace");
-    const badge = workspaceText.parentElement!.parentElement!;
-    fireEvent.click(badge.querySelector("svg")!);
+    // Remove "Test Workspace" (first badge, index 0) from selection
+    fireEvent.click(await screen.findByTestId("remove-badge-0"));
 
     const tabs = screen.getAllByRole("tab");
     expect(tabs).toHaveLength(6);
