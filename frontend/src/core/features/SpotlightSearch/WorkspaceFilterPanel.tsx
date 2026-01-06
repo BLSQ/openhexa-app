@@ -37,7 +37,11 @@ const WorkspaceFilterPanel = ({
   );
 
   return (
-    <div className="bg-white p-4" onKeyDown={(e) => e.stopPropagation()}>
+    <div
+      className="bg-white p-4"
+      onKeyDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+    >
       <div className="flex justify-between items-center mb-3">
         <p className="text-sm font-medium">{t("Filter by Workspace")}</p>
         <div className="flex gap-2">
