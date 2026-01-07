@@ -38,14 +38,10 @@ query OrganizationExternalCollaborators(
   }
 }
 
-mutation UpdateOrganizationMember($input: UpdateOrganizationMemberInput!) {
-  updateOrganizationMember(input: $input) {
+mutation UpdateExternalCollaborator($input: UpdateExternalCollaboratorInput!) {
+  updateExternalCollaborator(input: $input) {
     success
     errors
-    membership {
-      id
-      role
-    }
   }
 }
 

@@ -6,16 +6,12 @@ import useCacheKey from "core/hooks/useCacheKey";
 import useDebounce from "core/hooks/useDebounce";
 import SearchInput from "core/features/SearchInput";
 import Listbox from "core/components/Listbox";
-import {
-  User as UserType,
-  OrganizationMembership,
-  OrganizationMembershipRole,
-} from "graphql/types";
+import { OrganizationMembershipRole } from "graphql/types";
 import { DateTime } from "luxon";
 import { useState, useEffect } from "react";
 import { useTranslation } from "next-i18next";
-import DeleteOrganizationMemberDialog from "./DeleteOrganizationMemberDialog";
-import UpdateOrganizationMemberDialog from "./UpdateOrganizationMemberDialog";
+import RemoveMemberDialog from "organizations/components/RemoveMemberDialog";
+import UpdateMemberPermissionsDialog from "organizations/components/UpdateMemberPermissionsDialog";
 import {
   useOrganizationMembersQuery,
   OrganizationMembersQuery,
@@ -31,12 +27,10 @@ const DEFAULT_PAGE_SIZE = 10;
 
 const ALL_ROLES = "ALL_ROLES";
 type RoleFilterOption = OrganizationMembershipRole | typeof ALL_ROLES;
-type OrganizationMember = Pick<
-  OrganizationMembership,
-  "id" | "role" | "workspaceMemberships"
-> & {
-  user: Pick<UserType, "id" | "displayName" | "email">;
-};
+
+type OrganizationMember = NonNullable<
+  OrganizationMembersQuery["organization"]
+>["members"]["items"][0];
 
 export default function OrganizationMembers({
   organizationId,
@@ -209,7 +203,7 @@ export default function OrganizationMembers({
         </DataGrid>
       </Block>
       {selectedMember && (
-        <DeleteOrganizationMemberDialog
+        <RemoveMemberDialog
           open={openDeleteDialog}
           onClose={() => {
             setSelectedMember(undefined);
@@ -219,7 +213,7 @@ export default function OrganizationMembers({
         />
       )}
       {selectedMember && (
-        <UpdateOrganizationMemberDialog
+        <UpdateMemberPermissionsDialog
           open={openEditDialog}
           onClose={() => {
             setSelectedMember(undefined);

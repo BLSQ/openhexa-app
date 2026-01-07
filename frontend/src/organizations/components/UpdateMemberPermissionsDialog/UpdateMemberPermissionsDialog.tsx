@@ -15,38 +15,61 @@ import {
   OrganizationMembershipRole,
   WorkspaceMembershipRole,
   UpdateOrganizationMemberError,
+  UpdateExternalCollaboratorError,
   WorkspacePermissionInput,
 } from "graphql/types";
 import SimpleSelect from "core/components/forms/SimpleSelect";
 import useCacheKey from "core/hooks/useCacheKey";
 import React, { useEffect, useState } from "react";
-import { useUpdateOrganizationMemberMutation } from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
+import {
+  useUpdateOrganizationMemberMutation,
+  useUpdateExternalCollaboratorMutation,
+} from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
 import SearchInput from "core/features/SearchInput";
 import { gql } from "@apollo/client";
-import { OrganizationMembersQuery } from "../OrganizationMembers.generated";
-import { UpdateOrganizationMemberDialog_OrganizationMemberFragment } from "./UpdateOrganizationMemberDialog.generated";
+import { UpdateMemberPermissionsDialog_MemberFragment } from "./UpdateMemberPermissionsDialog.generated";
 
-type UpdateOrganizationMemberDialogProps = {
+type OrganizationForDialog = {
+  id: string;
+  permissions: {
+    manageMembers: boolean;
+    manageOwners: boolean;
+  };
+  workspaces: {
+    items: Array<{
+      slug: string;
+      name: string;
+    }>;
+  };
+};
+
+type UpdateMemberPermissionsDialogProps = {
   onClose(): void;
   open: boolean;
-  member: UpdateOrganizationMemberDialog_OrganizationMemberFragment;
-  organization: NonNullable<OrganizationMembersQuery["organization"]>;
+  member: UpdateMemberPermissionsDialog_MemberFragment;
+  organization: OrganizationForDialog;
 };
 
 type Form = {
-  organizationRole: OrganizationMembershipRole;
+  organizationRole?: OrganizationMembershipRole;
   workspacePermissions: WorkspacePermissionInput[];
 };
 
-const UpdateOrganizationMemberDialog = (
-  props: UpdateOrganizationMemberDialogProps,
+const UpdateMemberPermissionsDialog = (
+  props: UpdateMemberPermissionsDialogProps,
 ) => {
   const { t } = useTranslation();
   const { open, onClose, member, organization } = props;
 
+  const isOrganizationMember = member.__typename === "OrganizationMembership";
+
   const [updateOrganizationMember] = useUpdateOrganizationMemberMutation({
-    refetchQueries: ["OrganizationMembers"],
+    refetchQueries: ["OrganizationMembers", "OrganizationExternalCollaborators"],
+  });
+
+  const [updateExternalCollaborator] = useUpdateExternalCollaboratorMutation({
+    refetchQueries: ["OrganizationMembers", "OrganizationExternalCollaborators"],
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,31 +78,70 @@ const UpdateOrganizationMemberDialog = (
 
   const form = useForm<Form>({
     onSubmit: async (values) => {
-      const result = await updateOrganizationMember({
-        variables: {
-          input: {
-            id: member.id,
-            role: values.organizationRole,
-            workspacePermissions: values.workspacePermissions,
+      if (!isOrganizationMember) {
+        const result = await updateExternalCollaborator({
+          variables: {
+            input: {
+              user_id: member.user.id,
+              organization_id: organization.id,
+              workspacePermissions: values.workspacePermissions,
+            },
           },
-        },
-      });
+        });
 
-      if (!result.data?.updateOrganizationMember.success) {
-        const errors = result.data?.updateOrganizationMember.errors || [];
-        if (errors.includes(UpdateOrganizationMemberError.PermissionDenied)) {
-          throw new Error(t("You are not authorized to perform this action"));
+        if (!result.data?.updateExternalCollaborator.success) {
+          const errors = result.data?.updateExternalCollaborator.errors || [];
+          if (
+            errors.includes(UpdateExternalCollaboratorError.PermissionDenied)
+          ) {
+            throw new Error(
+              t("You are not authorized to perform this action"),
+            );
+          }
+          if (errors.includes(UpdateExternalCollaboratorError.UserNotFound)) {
+            throw new Error(t("User not found"));
+          }
+          if (
+            errors.includes(
+              UpdateExternalCollaboratorError.OrganizationNotFound,
+            )
+          ) {
+            throw new Error(t("Organization not found"));
+          }
+          throw new Error(
+            t("Failed to update external collaborator permissions"),
+          );
         }
-        if (errors.includes(UpdateOrganizationMemberError.NotFound)) {
-          throw new Error(t("Organization member not found"));
+      } else {
+        const result = await updateOrganizationMember({
+          variables: {
+            input: {
+              id: member.id,
+              role: values.organizationRole!,
+              workspacePermissions: values.workspacePermissions,
+            },
+          },
+        });
+
+        if (!result.data?.updateOrganizationMember.success) {
+          const errors = result.data?.updateOrganizationMember.errors || [];
+          if (errors.includes(UpdateOrganizationMemberError.PermissionDenied)) {
+            throw new Error(
+              t("You are not authorized to perform this action"),
+            );
+          }
+          if (errors.includes(UpdateOrganizationMemberError.NotFound)) {
+            throw new Error(t("Organization member not found"));
+          }
+          throw new Error(t("Failed to update member permissions"));
         }
-        throw new Error(t("Failed to update member permissions"));
       }
+
       clearCache();
       onClose();
     },
     initialState: {
-      organizationRole: member.role,
+      ...(isOrganizationMember && { organizationRole: member.role }),
       workspacePermissions: organization.workspaces.items.map((workspace) => {
         const existingMembership = member.workspaceMemberships.find(
           ({ workspace: { slug } }) => slug === workspace.slug,
@@ -136,29 +198,35 @@ const UpdateOrganizationMemberDialog = (
           </p>
         </div>
 
-        <Field name="organizationRole" label={t("Organization Role")} required>
-          <SimpleSelect
-            id="organizationRole"
+        {isOrganizationMember && (
+          <Field
             name="organizationRole"
-            value={form.formData.organizationRole}
-            onChange={form.handleInputChange}
+            label={t("Organization Role")}
             required
-            disabled={member.role === OrganizationMembershipRole.Owner}
           >
-            {Object.values(OrganizationMembershipRole)
-              .filter((role) => {
-                if (role === OrganizationMembershipRole.Owner) {
-                  return organization.permissions.manageOwners;
-                }
-                return true;
-              })
-              .map((role) => (
-                <option key={role} value={role}>
-                  {formatOrganizationMembershipRole(role)}
-                </option>
-              ))}
-          </SimpleSelect>
-        </Field>
+            <SimpleSelect
+              id="organizationRole"
+              name="organizationRole"
+              value={form.formData.organizationRole}
+              onChange={form.handleInputChange}
+              required
+              disabled={member.role === OrganizationMembershipRole.Owner}
+            >
+              {Object.values(OrganizationMembershipRole)
+                .filter((role) => {
+                  if (role === OrganizationMembershipRole.Owner) {
+                    return organization.permissions.manageOwners;
+                  }
+                  return true;
+                })
+                .map((role) => (
+                  <option key={role} value={role}>
+                    {formatOrganizationMembershipRole(role)}
+                  </option>
+                ))}
+            </SimpleSelect>
+          </Field>
+        )}
 
         <Field name="workspaces" label={t("Workspaces")} required>
           <div className="space-y-3">
@@ -270,11 +338,10 @@ const UpdateOrganizationMemberDialog = (
   );
 };
 
-UpdateOrganizationMemberDialog.fragments = {
-  organizationMember: gql`
-    fragment UpdateOrganizationMemberDialog_organizationMember on OrganizationMembership {
+UpdateMemberPermissionsDialog.fragments = {
+  member: gql`
+    fragment UpdateMemberPermissionsDialog_member on OrganizationMember {
       id
-      role
       workspaceMemberships {
         id
         role
@@ -288,14 +355,17 @@ UpdateOrganizationMemberDialog.fragments = {
         displayName
         email
       }
+      ... on OrganizationMembership {
+        role
+      }
     }
   `,
   workspace: gql`
-    fragment UpdateOrganizationMemberDialog_workspace on Workspace {
+    fragment UpdateMemberPermissionsDialog_workspace on Workspace {
       slug
       name
     }
   `,
 };
 
-export default UpdateOrganizationMemberDialog;
+export default UpdateMemberPermissionsDialog;
