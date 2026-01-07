@@ -3,7 +3,7 @@ import { useTranslation } from "next-i18next";
 import { gql } from "@apollo/client";
 import useDebounce from "core/hooks/useDebounce";
 import useCacheKey from "core/hooks/useCacheKey";
-import { getCookie, hasCookie, setCookie } from "cookies-next";
+import usePipelineTemplatesView from "pipelines/hooks/usePipelineTemplatesView";
 import {
   getTemplateSortOptions,
   templateSorting,
@@ -20,18 +20,6 @@ import Header from "./Header";
 import Spinner from "core/components/Spinner";
 import User from "core/features/User";
 
-export let cookiePipelineTemplatesView: "grid" | "card" = "grid";
-
-function getDefaultPipelineTemplatesView(): "grid" | "card" {
-  if (typeof window === "undefined") {
-    return cookiePipelineTemplatesView;
-  } else if (hasCookie("pipeline-templates-view")) {
-    return getCookie("pipeline-templates-view") as "grid" | "card";
-  } else {
-    return "grid";
-  }
-}
-
 type PipelineTemplatesProps = {
   workspace: PipelineTemplates_WorkspaceFragment;
   showCard?: boolean;
@@ -42,17 +30,8 @@ const PipelineTemplates = ({
   showCard = true,
 }: PipelineTemplatesProps) => {
   const { t } = useTranslation();
-  const [view, setView] = useState<"grid" | "card">(
-    getDefaultPipelineTemplatesView(),
-  );
+  const [view, setView] = usePipelineTemplatesView();
   const [page, setPage] = useState(1);
-
-  const handleSetView = (newView: "grid" | "card") => {
-    setView(newView);
-    setCookie("pipeline-templates-view", newView, {
-      maxAge: 60 * 60 * 24 * 365,
-    });
-  };
   const perPage = 10;
 
   const sortOptions = getTemplateSortOptions();
@@ -128,7 +107,7 @@ const PipelineTemplates = ({
         setSearchQuery={setSearchQuery}
         filter={{ workspaceFilter, setWorkspaceFilter, workspaceFilterOptions }}
         view={view}
-        setView={handleSetView}
+        setView={setView}
         showCard={showCard}
         tagsFilter={tagsFilter}
         setTagsFilter={setTagsFilter}
@@ -236,16 +215,6 @@ PipelineTemplates.fragments = {
       slug
     }
   `,
-};
-
-PipelineTemplates.prefetch = async (ctx: any) => {
-  // Load the cookie value from the request to render it correctly on the server
-  cookiePipelineTemplatesView = (await hasCookie(
-    "pipeline-templates-view",
-    ctx,
-  ))
-    ? ((await getCookie("pipeline-templates-view", ctx)) as "grid" | "card")
-    : "grid";
 };
 
 export default PipelineTemplates;

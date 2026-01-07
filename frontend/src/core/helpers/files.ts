@@ -1,4 +1,5 @@
 import { createDeferred, Deferred } from "./promise";
+import { FileWithPath } from "react-dropzone";
 
 type XHROptions = {
   url: string;
@@ -25,7 +26,7 @@ type JobItem<T extends File> = {
   A Job represents the upload of a set of files.
 */
 
-export interface JobFile extends File {
+export interface JobFile extends FileWithPath {
   loaded?: number;
   isUploaded?: boolean;
 }
@@ -220,10 +221,12 @@ export const constructFolderKey = (
   folderName: string,
   prefix: string | null,
 ) => {
+  // Remove leading slash from folderName if any
+  const normalizedName = folderName.replace(/^\//, "");
   if (prefix) {
     // Remove trailing slash from prefix if any to avoid double slash
-    return `${prefix.replace(/\/$/, "")}/${folderName}`;
+    return `${prefix.replace(/\/$/, "")}/${normalizedName}`;
   } else {
-    return folderName;
+    return normalizedName;
   }
 };

@@ -361,9 +361,13 @@ exports[`Workspaces renders the workspace page 1`] = `
             Search...
           </span>
           <kbd
-            class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-xs font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
+            class="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
           >
-            Ctrl+K
+            <span
+              class="text-xs"
+            >
+              Ctrl+K
+            </span>
           </kbd>
         </button>
       </div>
@@ -817,9 +821,13 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
             Search...
           </span>
           <kbd
-            class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-xs font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
+            class="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
           >
-            Ctrl+K
+            <span
+              class="text-xs"
+            >
+              Ctrl+K
+            </span>
           </kbd>
         </button>
       </div>

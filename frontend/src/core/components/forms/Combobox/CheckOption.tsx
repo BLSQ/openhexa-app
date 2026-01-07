@@ -32,35 +32,33 @@ function CheckOption(props: CheckOptionsProps) {
     <UIComboboxOption
       value={value}
       disabled={disabled}
-      className={({ focus }) =>
+      className={({ focus, selected }) =>
         clsx(
-          "relative cursor-default select-none px-2 py-2",
-          focus ? "bg-blue-500 text-white" : "text-gray-900",
+          "relative cursor-default select-none px-3 py-2 rounded-md mx-1",
+          focus && "bg-gray-100",
+          selected || forceSelected ? "bg-gray-50" : "",
           className,
         )
       }
     >
       {({ focus, selected }) => (
-        <div className="group flex w-full items-center">
+        <div className="group flex w-full items-center gap-3">
           <span
             className={clsx(
-              "flex items-center pr-4",
-              !selected && !forceSelected && "invisible",
-              focus ? "text-white" : "text-gray-900",
+              "flex h-4 w-4 items-center justify-center rounded border transition-colors",
+              selected || forceSelected
+                ? "bg-blue-500 border-blue-500"
+                : "border-gray-300",
             )}
           >
-            <CheckIcon
-              className={clsx(
-                "h-5 w-5",
-                (selected || forceSelected) && !focus && "text-blue-500",
-              )}
-              aria-hidden="true"
-            />
+            {(selected || forceSelected) && (
+              <CheckIcon className="h-3 w-3 text-white" aria-hidden="true" />
+            )}
           </span>
           <span
             className={clsx(
-              "flex-1 truncate",
-              (selected || forceSelected) && "font-semibold",
+              "flex-1 truncate text-gray-700",
+              (selected || forceSelected) && "text-gray-900",
             )}
           >
             {typeof children === "function"

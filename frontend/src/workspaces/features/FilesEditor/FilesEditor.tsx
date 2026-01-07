@@ -7,10 +7,8 @@ import {
   FolderIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
-import { getCookie, hasCookie, setCookie } from "cookies-next";
-import { CustomApolloClient } from "core/helpers/apollo";
-import { GetServerSidePropsContext } from "next";
 import { useTranslation } from "next-i18next";
+import useFilesEditorPanelOpen from "workspaces/hooks/useFilesEditorPanelOpen";
 import { useEffect, useMemo, useState } from "react";
 import { python } from "@codemirror/lang-python";
 import { json } from "@codemirror/lang-json";
@@ -124,18 +122,6 @@ export type FileNode = FilesEditor_FileFragment & {
   children: FileNode[];
 };
 
-export let cookieFilesEditorPanelOpenState = true;
-
-function getDefaultFilesEditorPanelOpen() {
-  if (typeof window === "undefined") {
-    return cookieFilesEditorPanelOpenState;
-  } else if (hasCookie("files-editor-panel-open")) {
-    return getCookie("files-editor-panel-open") === "true";
-  } else {
-    return true;
-  }
-}
-
 export interface SaveResult {
   success: boolean;
   error?: string;
@@ -168,9 +154,7 @@ export const FilesEditor = ({
     files.filter((file) => file.autoSelect)[0] || null,
   );
 
-  const [isPanelOpen, setIsPanelOpen] = useState(
-    getDefaultFilesEditorPanelOpen(),
-  );
+  const [isPanelOpen, setIsPanelOpen] = useFilesEditorPanelOpen();
   const [isClient, setIsClient] = useState(false);
 
   const [modifiedFiles, setModifiedFiles] = useState<Map<string, string>>(
@@ -194,11 +178,6 @@ export const FilesEditor = ({
   useNavigationWarning({
     when: () => isEditable && modifiedFiles.size > 0,
   });
-
-  const handlePanelToggle = (newState: boolean) => {
-    setIsPanelOpen(newState);
-    setCookie("files-editor-panel-open", newState);
-  };
 
   const handleContentChange = (content: string) => {
     if (selectedFile && isEditable) {
@@ -275,7 +254,7 @@ export const FilesEditor = ({
           </div>
 
           <button
-            onClick={() => handlePanelToggle(false)}
+            onClick={() => setIsPanelOpen(false)}
             className="group absolute inset-y-0 right-0 border-r-2 border-transparent after:absolute after:inset-y-0 after:-left-1.5 after:block after:w-3 after:content-[''] hover:border-r-gray-300"
             aria-label="Toggle file panel"
           >
@@ -293,7 +272,7 @@ export const FilesEditor = ({
       {!isPanelOpen && (
         <div
           className="group absolute left-0 top-0 z-30 h-full w-3 cursor-pointer"
-          onClick={() => handlePanelToggle(true)}
+          onClick={() => setIsPanelOpen(true)}
         >
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center">
             <div className="pointer-events-auto invisible rounded-r-md bg-gray-400 p-0.5 pl-0.5 align-middle text-white group-hover:visible">
@@ -399,18 +378,6 @@ FilesEditor.fragment = {
       lineCount
     }
   `,
-};
-
-FilesEditor.prefetch = async (
-  ctx: GetServerSidePropsContext,
-  _client: CustomApolloClient,
-) => {
-  cookieFilesEditorPanelOpenState = (await hasCookie(
-    "files-editor-panel-open",
-    ctx,
-  ))
-    ? (await getCookie("files-editor-panel-open", ctx)) === "true"
-    : true;
 };
 
 export default FilesEditor;

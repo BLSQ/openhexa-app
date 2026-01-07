@@ -6,6 +6,7 @@ const defaultOptions = {} as const;
 export type SidebarMenuQueryVariables = Types.Exact<{
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  organizationId?: Types.InputMaybe<Types.Scalars['UUID']['input']>;
 }>;
 
 
@@ -33,8 +34,8 @@ export const SidebarMenu_WorkspaceFragmentDoc = gql`
 }
     `;
 export const SidebarMenuDocument = gql`
-    query SidebarMenu($page: Int, $perPage: Int) {
-  workspaces(page: $page, perPage: $perPage) {
+    query SidebarMenu($page: Int, $perPage: Int, $organizationId: UUID) {
+  workspaces(page: $page, perPage: $perPage, organizationId: $organizationId) {
     totalItems
     items {
       slug
@@ -62,6 +63,7 @@ export const SidebarMenuDocument = gql`
  *   variables: {
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
+ *      organizationId: // value for 'organizationId'
  *   },
  * });
  */

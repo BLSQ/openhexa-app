@@ -7,6 +7,7 @@ import { BucketObject, BucketObjectType } from "graphql/types";
 
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import Filesize from "core/components/Filesize";
+import { FileWithPath } from "react-dropzone";
 import Link from "core/components/Link";
 import SimplePagination from "core/components/Pagination/SimplePagination";
 import Pagination from "core/components/Pagination/Pagination";
@@ -47,7 +48,7 @@ export interface FileSystemDataGridProps {
   actionsRenderer?: (item: BucketObject) => React.ReactElement | null;
   directoryLinkGenerator?: (item: BucketObject) => string;
   onChangePage: (page: number, perPage: number) => void;
-  onDroppingFiles?: (files: File[]) => void;
+  onDroppingFiles?: (files: FileWithPath[]) => void;
   onRowClick?: (item: BucketObject | object) => void;
   showPageSizeSelect?: boolean;
   displayField?: "name" | "key";

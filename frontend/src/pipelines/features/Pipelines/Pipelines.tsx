@@ -8,19 +8,7 @@ import useDebounce from "core/hooks/useDebounce";
 import Spinner from "core/components/Spinner";
 import { useWorkspacePipelinesPageQuery } from "workspaces/graphql/queries.generated";
 import { PipelineFunctionalType, PipelineRunStatus } from "graphql/types";
-import { getCookie, hasCookie, setCookie } from "cookies-next";
-
-export let cookiePipelinesView: "grid" | "card" = "grid";
-
-function getDefaultPipelinesView(): "grid" | "card" {
-  if (typeof window === "undefined") {
-    return cookiePipelinesView;
-  } else if (hasCookie("pipelines-view")) {
-    return getCookie("pipelines-view") as "grid" | "card";
-  } else {
-    return "grid";
-  }
-}
+import usePipelinesView from "pipelines/hooks/usePipelinesView";
 
 type PipelinesProps = {
   workspace: Pipelines_WorkspaceFragment;
@@ -45,16 +33,13 @@ const Pipelines = ({
   const debouncedSearchQuery = useDebounce(searchQuery, 300, () => {
     setPage(1); // Reset to first page when debounce completes
   });
-  const [view, setView] = useState<"grid" | "card">(getDefaultPipelinesView());
+  const [view, setView] = usePipelinesView();
   const [page, setPage] = useState(initialPage);
 
-  const handleSetView = (newView: "grid" | "card") => {
-    setView(newView);
-    setCookie("pipelines-view", newView, { maxAge: 60 * 60 * 24 * 365 });
-  };
-  const [functionalType, setFunctionalType] =
-    useState<PipelineFunctionalType | null>(initialFunctionalType || null);
-  const [lastRunStates, setLastRunStates] = useState<PipelineRunStatus[]>(
+  const [functionalType, setFunctionalType] = useState<PipelineFunctionalType | null>(
+    initialFunctionalType || null
+  );
+    const [lastRunStates, setLastRunStates] = useState<PipelineRunStatus[]>(
     initialLastRunStates || [],
   );
   const [selectedTags, setSelectedTags] = useState<string[]>(tags || []);
@@ -101,7 +86,7 @@ const Pipelines = ({
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         view={view}
-        setView={handleSetView}
+        setView={setView}
         showCard={true}
         functionalTypeFilter={functionalType}
         setFunctionalTypeFilter={setFunctionalType}
@@ -137,13 +122,6 @@ Pipelines.fragments = {
       slug
     }
   `,
-};
-
-Pipelines.prefetch = async (ctx: any) => {
-  // Load the cookie value from the request to render it correctly on the server
-  cookiePipelinesView = (await hasCookie("pipelines-view", ctx))
-    ? ((await getCookie("pipelines-view", ctx)) as "grid" | "card")
-    : "grid";
 };
 
 export default Pipelines;
