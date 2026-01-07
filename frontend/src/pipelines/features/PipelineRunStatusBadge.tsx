@@ -5,7 +5,10 @@ import Spinner from "core/components/Spinner";
 import Tooltip from "core/components/Tooltip";
 import { PipelineRunStatus } from "graphql/types";
 import { useTranslation } from "next-i18next";
-import { formatPipelineRunStatus } from "pipelines/helpers/format";
+import {
+  formatPipelineRunStatus,
+  getPipelineRunStatusBadgeClassName,
+} from "pipelines/helpers/format";
 import usePipelineRunPoller from "pipelines/hooks/usePipelineRunPoller";
 import { useMemo } from "react";
 import { PipelineRunStatusBadge_RunFragment } from "./PipelineRunStatusBadge.generated";
@@ -19,23 +22,10 @@ const PipelineRunStatusBadge = (props: PipelineRunStatusBadgeProps) => {
   const { t } = useTranslation();
   const { run, polling = true } = props;
   usePipelineRunPoller(run, polling);
-  let className = useMemo(() => {
-    switch (run.status) {
-      case PipelineRunStatus.Stopped:
-        return "bg-yellow-100 text-gray-600";
-      case PipelineRunStatus.Failed:
-        return "bg-red-100 text-red-500";
-      case PipelineRunStatus.Queued:
-        return "bg-gray-100 text-gray-600";
-      case PipelineRunStatus.Running:
-      case PipelineRunStatus.Terminating:
-        return "bg-sky-100 text-sky-600";
-      case PipelineRunStatus.Success:
-        return "bg-emerald-50 text-emerald-500";
-      case PipelineRunStatus.Skipped:
-        return "bg-gray-100 text-gray-500";
-    }
-  }, [run.status]);
+  const className = useMemo(
+    () => getPipelineRunStatusBadgeClassName(run.status),
+    [run.status],
+  );
 
   const loading = useMemo(() => {
     return (

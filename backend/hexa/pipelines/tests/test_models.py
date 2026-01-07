@@ -321,6 +321,165 @@ class PipelineTest(TestCase):
             "Config from previous version with a change of default values",
         )
 
+    def test_get_config_from_previous_version_default_removed(self):
+        """Test that removing a default value clears the auto-generated config value."""
+        pipeline = Pipeline.objects.create(
+            name="Test pipeline default removal",
+        )
+        pipeline.upload_new_version(
+            user=self.USER_ADMIN,
+            zipfile=b"",
+            parameters=[
+                {
+                    "choices": None,
+                    "code": "param_1",
+                    "default": 42,
+                    "help": None,
+                    "multiple": False,
+                    "name": "Param 1",
+                    "required": False,
+                    "type": "int",
+                },
+            ],
+            name="Version 1",
+            config=None,
+        )
+        self.assertEqual(
+            {"param_1": 42},
+            pipeline.last_version.config,
+            "V1: Config should be auto-generated from default",
+        )
+
+        pipeline.upload_new_version(
+            user=self.USER_ADMIN,
+            zipfile=b"",
+            parameters=[
+                {
+                    "choices": None,
+                    "code": "param_1",
+                    "default": None,
+                    "help": None,
+                    "multiple": False,
+                    "name": "Param 1",
+                    "required": False,
+                    "type": "int",
+                },
+            ],
+            name="Version 2",
+            config=None,
+        )
+        self.assertEqual(
+            {},
+            pipeline.last_version.config,
+            "V2: Config should be empty since default was removed and old config matched old default",
+        )
+
+    def test_get_config_from_previous_version_user_override_preserved(self):
+        """Test that user-configured values are preserved even when default is removed."""
+        pipeline = Pipeline.objects.create(
+            name="Test pipeline user override",
+        )
+        pipeline.upload_new_version(
+            user=self.USER_ADMIN,
+            zipfile=b"",
+            parameters=[
+                {
+                    "choices": None,
+                    "code": "param_1",
+                    "default": 42,
+                    "help": None,
+                    "multiple": False,
+                    "name": "Param 1",
+                    "required": False,
+                    "type": "int",
+                },
+            ],
+            name="Version 1",
+            config={"param_1": 100},
+        )
+        self.assertEqual(
+            {"param_1": 100},
+            pipeline.last_version.config,
+            "V1: Config should be user-specified value",
+        )
+
+        pipeline.upload_new_version(
+            user=self.USER_ADMIN,
+            zipfile=b"",
+            parameters=[
+                {
+                    "choices": None,
+                    "code": "param_1",
+                    "default": None,
+                    "help": None,
+                    "multiple": False,
+                    "name": "Param 1",
+                    "required": False,
+                    "type": "int",
+                },
+            ],
+            name="Version 2",
+            config=None,
+        )
+        self.assertEqual(
+            {"param_1": 100},
+            pipeline.last_version.config,
+            "V2: User-configured value should be preserved even when default is removed",
+        )
+
+    def test_get_config_from_previous_version_default_changed(self):
+        """Test that when config value equals old default and new default is set, new default is used."""
+        pipeline = Pipeline.objects.create(
+            name="Test pipeline default changed",
+        )
+        pipeline.upload_new_version(
+            user=self.USER_ADMIN,
+            zipfile=b"",
+            parameters=[
+                {
+                    "choices": None,
+                    "code": "param_1",
+                    "default": 42,
+                    "help": None,
+                    "multiple": False,
+                    "name": "Param 1",
+                    "required": False,
+                    "type": "int",
+                },
+            ],
+            name="Version 1",
+            config=None,
+        )
+        self.assertEqual(
+            {"param_1": 42},
+            pipeline.last_version.config,
+            "V1: Config should be auto-generated from default",
+        )
+
+        pipeline.upload_new_version(
+            user=self.USER_ADMIN,
+            zipfile=b"",
+            parameters=[
+                {
+                    "choices": None,
+                    "code": "param_1",
+                    "default": 50,
+                    "help": None,
+                    "multiple": False,
+                    "name": "Param 1",
+                    "required": False,
+                    "type": "int",
+                },
+            ],
+            name="Version 2",
+            config=None,
+        )
+        self.assertEqual(
+            {"param_1": 50},
+            pipeline.last_version.config,
+            "V2: Config should use new default since old config value matched old default",
+        )
+
     def test_get_or_create_template(self):
         template_name = "Test Template"
         template, _ = self.PIPELINE.get_or_create_template(

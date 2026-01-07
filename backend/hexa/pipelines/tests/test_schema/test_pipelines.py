@@ -24,6 +24,7 @@ from hexa.pipelines.models import (
     PipelineRunState,
     PipelineRunTrigger,
     PipelineType,
+    PipelineVersion,
 )
 from hexa.pipelines.tests.test_schema.fixtures_for_pipelines import (
     pipelines_example_parameters,
@@ -3236,3 +3237,210 @@ def test_pipeline(input_file, threshold, enable_debug):
         )
         self.assertIsNotNone(pipeline_data)
         self.assertEqual(pipeline_data["functionalType"], "loading")
+
+    def test_filter_pipelines_by_last_run_states(self):
+        """Test filtering pipelines by the state of their last run"""
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline_success = Pipeline.objects.create_if_has_perm(
+            principal=self.USER_ROOT,
+            workspace=self.WS1,
+            name="Pipeline Success",
+        )
+        pipeline_failed = Pipeline.objects.create_if_has_perm(
+            principal=self.USER_ROOT,
+            workspace=self.WS1,
+            name="Pipeline Failed",
+        )
+        Pipeline.objects.create_if_has_perm(
+            principal=self.USER_ROOT,
+            workspace=self.WS1,
+            name="Pipeline No Runs",
+        )
+
+        version_success = PipelineVersion.objects.create(
+            pipeline=pipeline_success,
+            user=self.USER_ROOT,
+            parameters=[],
+        )
+        version_failed = PipelineVersion.objects.create(
+            pipeline=pipeline_failed,
+            user=self.USER_ROOT,
+            parameters=[],
+        )
+
+        run_success = pipeline_success.run(
+            user=self.USER_ROOT,
+            pipeline_version=version_success,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+        run_success.state = PipelineRunState.SUCCESS
+        run_success.save()
+
+        run_failed = pipeline_failed.run(
+            user=self.USER_ROOT,
+            pipeline_version=version_failed,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+        run_failed.state = PipelineRunState.FAILED
+        run_failed.save()
+
+        r = self.run_query(
+            """
+            query pipelines($workspaceSlug: String!, $lastRunStates: [PipelineRunStatus!]) {
+                pipelines(workspaceSlug: $workspaceSlug, lastRunStates: $lastRunStates) {
+                    items {
+                        id
+                        name
+                    }
+                    totalItems
+                }
+            }
+            """,
+            {
+                "workspaceSlug": self.WS1.slug,
+                "lastRunStates": [PipelineRunState.SUCCESS],
+            },
+        )
+
+        self.assertEqual(r["data"]["pipelines"]["totalItems"], 1)
+        self.assertEqual(r["data"]["pipelines"]["items"][0]["name"], "Pipeline Success")
+
+        r = self.run_query(
+            """
+            query pipelines($workspaceSlug: String!, $lastRunStates: [PipelineRunStatus!]) {
+                pipelines(workspaceSlug: $workspaceSlug, lastRunStates: $lastRunStates) {
+                    items {
+                        id
+                        name
+                    }
+                    totalItems
+                }
+            }
+            """,
+            {
+                "workspaceSlug": self.WS1.slug,
+                "lastRunStates": [PipelineRunState.FAILED],
+            },
+        )
+
+        self.assertEqual(r["data"]["pipelines"]["totalItems"], 1)
+        self.assertEqual(r["data"]["pipelines"]["items"][0]["name"], "Pipeline Failed")
+
+        r = self.run_query(
+            """
+            query pipelines($workspaceSlug: String!, $lastRunStates: [PipelineRunStatus!]) {
+                pipelines(workspaceSlug: $workspaceSlug, lastRunStates: $lastRunStates) {
+                    items {
+                        id
+                        name
+                    }
+                    totalItems
+                }
+            }
+            """,
+            {
+                "workspaceSlug": self.WS1.slug,
+                "lastRunStates": [PipelineRunState.SUCCESS, PipelineRunState.FAILED],
+            },
+        )
+
+        self.assertEqual(r["data"]["pipelines"]["totalItems"], 2)
+
+        r = self.run_query(
+            """
+            query pipelines($workspaceSlug: String!) {
+                pipelines(workspaceSlug: $workspaceSlug) {
+                    items {
+                        id
+                        name
+                    }
+                    totalItems
+                }
+            }
+            """,
+            {
+                "workspaceSlug": self.WS1.slug,
+            },
+        )
+
+        self.assertEqual(r["data"]["pipelines"]["totalItems"], 3)
+
+    def test_filter_pipelines_by_last_run_states_uses_most_recent_run(self):
+        """Test that the filter uses the most recent run, not any run"""
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.create_if_has_perm(
+            principal=self.USER_ROOT,
+            workspace=self.WS1,
+            name="Pipeline Multiple Runs",
+        )
+
+        version = PipelineVersion.objects.create(
+            pipeline=pipeline,
+            user=self.USER_ROOT,
+            parameters=[],
+        )
+
+        run1 = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+        run1.state = PipelineRunState.SUCCESS
+        run1.save()
+
+        run2 = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+        run2.state = PipelineRunState.FAILED
+        run2.save()
+
+        r = self.run_query(
+            """
+            query pipelines($workspaceSlug: String!, $lastRunStates: [PipelineRunStatus!]) {
+                pipelines(workspaceSlug: $workspaceSlug, lastRunStates: $lastRunStates) {
+                    items {
+                        id
+                        name
+                    }
+                    totalItems
+                }
+            }
+            """,
+            {
+                "workspaceSlug": self.WS1.slug,
+                "lastRunStates": [PipelineRunState.SUCCESS],
+            },
+        )
+
+        self.assertEqual(r["data"]["pipelines"]["totalItems"], 0)
+
+        r = self.run_query(
+            """
+            query pipelines($workspaceSlug: String!, $lastRunStates: [PipelineRunStatus!]) {
+                pipelines(workspaceSlug: $workspaceSlug, lastRunStates: $lastRunStates) {
+                    items {
+                        id
+                        name
+                    }
+                    totalItems
+                }
+            }
+            """,
+            {
+                "workspaceSlug": self.WS1.slug,
+                "lastRunStates": [PipelineRunState.FAILED],
+            },
+        )
+
+        self.assertEqual(r["data"]["pipelines"]["totalItems"], 1)
+        self.assertEqual(
+            r["data"]["pipelines"]["items"][0]["name"], "Pipeline Multiple Runs"
+        )

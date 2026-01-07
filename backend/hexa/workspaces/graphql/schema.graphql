@@ -48,6 +48,9 @@ type Workspace {
   # Pipeline template tags used within this workspace's organization.
   pipelineTemplateTags: [String!]!
 
+  # Distinct last run statuses for pipelines in this workspace.
+  pipelineLastRunStatuses: [PipelineRunStatus!]!
+
   # The invitations sent to join the workspace.
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
 

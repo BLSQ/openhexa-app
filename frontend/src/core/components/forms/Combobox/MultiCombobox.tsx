@@ -21,6 +21,7 @@ import {
   useState,
 } from "react";
 import { usePopper } from "react-popper";
+import { useTranslation } from "next-i18next";
 import CheckOption from "./CheckOption";
 import OptionsWrapper from "./OptionsWrapper";
 
@@ -48,6 +49,7 @@ type MultiComboboxProps<T> = {
   value: T[];
   error?: string;
   onChange(value: T[]): void;
+  maxDisplayedValues?: number;
 };
 
 const Classes = {
@@ -77,7 +79,17 @@ function MultiCombobox<T extends { [key: string]: any }>(
     name,
     by,
     error,
+    maxDisplayedValues,
   } = props;
+
+  const { t } = useTranslation();
+
+  const displayedValues = maxDisplayedValues
+    ? value?.slice(0, maxDisplayedValues)
+    : value;
+  const hiddenCount = maxDisplayedValues
+    ? Math.max(0, (value?.length ?? 0) - maxDisplayedValues)
+    : 0;
 
   const btnRef = useRef<HTMLButtonElement>(null);
   const [referenceElement, setReferenceElement] =
@@ -146,7 +158,7 @@ function MultiCombobox<T extends { [key: string]: any }>(
             )}
           >
             <div className="mr-1 flex flex-1 flex-wrap items-center gap-2 truncate">
-              {value?.map((val, i) => (
+              {displayedValues?.map((val, i) => (
                 <Badge
                   className="bg-gray-100 py-0 hover:bg-gray-50 ring-gray-500/20"
                   key={i}
@@ -154,12 +166,18 @@ function MultiCombobox<T extends { [key: string]: any }>(
                   {displayValue(val)}
                   {!disabled && !required && (
                     <XMarkIcon
+                      data-testid={`remove-badge-${i}`}
                       className="ml-1 h-3 w-3 cursor-pointer"
                       onClick={() => onRemoveItem(val)}
                     />
                   )}
                 </Badge>
               ))}
+              {hiddenCount > 0 && (
+                <Badge className="bg-gray-100 py-0 ring-gray-500/20 text-gray-600">
+                  {t("+{{count}} more", { count: hiddenCount })}
+                </Badge>
+              )}
               <UIComboboxInput as={Fragment} onChange={onInputChange}>
                 <input
                   data-testid="combobox-input"

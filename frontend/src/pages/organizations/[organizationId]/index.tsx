@@ -19,19 +19,7 @@ import Spinner from "core/components/Spinner";
 import WorkspacesHeader from "organizations/components/WorkspacesHeader";
 import WorkspacesListView from "organizations/components/WorkspacesListView";
 import WorkspacesCardView from "organizations/components/WorkspacesCardView";
-import { getCookie, hasCookie, setCookie } from "cookies-next";
-
-export let cookieWorkspacesView: "grid" | "card" = "card";
-
-function getDefaultWorkspacesView(): "grid" | "card" {
-  if (typeof window === "undefined") {
-    return cookieWorkspacesView;
-  } else if (hasCookie("workspaces-view")) {
-    return getCookie("workspaces-view") as "grid" | "card";
-  } else {
-    return "card";
-  }
-}
+import useWorkspacesView from "organizations/hooks/useWorkspacesView";
 
 type Props = {
   organization: OrganizationQuery["organization"];
@@ -45,13 +33,8 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] =
     useState<ArchiveWorkspace_WorkspaceFragment | null>(null);
-  const [view, setView] = useState<"grid" | "card">(getDefaultWorkspacesView());
+  const [view, setView] = useWorkspacesView();
   const [page, setPage] = useState(1);
-
-  const handleSetView = (newView: "grid" | "card") => {
-    setView(newView);
-    setCookie("workspaces-view", newView, { maxAge: 60 * 60 * 24 * 365 });
-  };
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const perPage = 15;
@@ -120,7 +103,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           view={view}
-          setView={handleSetView}
+          setView={setView}
         />
 
         <div className="relative min-h-[200px]">
@@ -180,11 +163,6 @@ OrganizationPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
-    // Load the cookie value from the request to render it correctly on the server
-    cookieWorkspacesView = (await hasCookie("workspaces-view", ctx))
-      ? ((await getCookie("workspaces-view", ctx)) as "grid" | "card")
-      : "card";
-
     await OrganizationLayout.prefetch(ctx);
     const { data } = await client.query({
       query: OrganizationDocument,

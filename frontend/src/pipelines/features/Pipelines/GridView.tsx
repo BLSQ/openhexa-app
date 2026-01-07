@@ -100,7 +100,11 @@ const GridView = ({
           }}
         </BaseColumn>
         <BaseColumn id="description" label={t("Description")}>
-          {(pipeline) => <span>{pipeline.description}</span>}
+          {(pipeline) => (
+            <span className="block max-w-xs truncate" title={pipeline.description}>
+              {pipeline.description}
+            </span>
+          )}
         </BaseColumn>
         <DateColumn
           accessor={"currentVersion.createdAt"}

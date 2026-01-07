@@ -16,14 +16,14 @@ import User from "core/features/User";
 import { stripMarkdown } from "core/helpers";
 import PipelineMetadataDisplay from "pipelines/features/PipelineMetadataDisplay";
 import TemplateBadge from "pipelines/features/TemplateBadge";
+import PipelineCreateFromTemplateButton from "pipelines/features/PipelineCreateFromTemplateButton";
 
 interface TemplateCardProps {
   workspace: TemplateCard_WorkspaceFragment;
   template: TemplateCard_TemplateFragment;
-  onCreate?: () => void;
 }
 
-const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
+const TemplateCard = ({ template, workspace }: TemplateCardProps) => {
   const { t } = useTranslation();
   return (
     <Card
@@ -54,7 +54,9 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
           {template.pipelinesCount !== undefined && (
             <div className="text-xs text-gray-500 flex items-center gap-1">
               <span className="font-medium">{template.pipelinesCount}</span>
-              <span>{template.pipelinesCount === 1 ? t("pipeline") : t("pipelines")}</span>
+              <span>
+                {template.pipelinesCount === 1 ? t("pipeline") : t("pipelines")}
+              </span>
             </div>
           )}
         </div>
@@ -74,24 +76,23 @@ const TemplateCard = ({ template, workspace, onCreate }: TemplateCardProps) => {
         )}
       </Card.Content>
       <Card.Actions>
+        {template.currentVersion && (
+          <PipelineCreateFromTemplateButton
+            workspaceSlug={workspace.slug}
+            pipelineTemplateVersionId={template.currentVersion.id}
+            variant="secondary"
+            size="md"
+            onClick={(event) => event.preventDefault()}
+          />
+        )}
         <Button
           variant="secondary"
           size="md"
           onClick={(event) => {
             event.preventDefault();
-            onCreate?.();
-          }}
-        >
-          {t("Create pipeline")}
-        </Button>
-        <Button
-          variant="secondary"
-          size="md"
-          onClick={(event) => {
-            event.preventDefault();
-            router.push(
-              `/workspaces/${workspace.slug}/templates/${template.code}`,
-            );
+            router
+              .push(`/workspaces/${workspace.slug}/templates/${template.code}`)
+              .then();
           }}
         >
           {t("Details")}

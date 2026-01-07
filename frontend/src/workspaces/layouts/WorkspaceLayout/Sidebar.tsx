@@ -24,14 +24,16 @@ import React, { useContext, useMemo, useState } from "react";
 import SidebarMenu from "workspaces/features/SidebarMenu";
 import UserMenu from "workspaces/features/UserMenu";
 import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
-import { LayoutContext } from "./WorkspaceLayout";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next";
 import OrgNavItem from "organizations/layouts/Sidebar/NavItem";
+import useSidebarOpen from "core/hooks/useSidebarOpen";
 
 type SidebarProps = {
   workspace: Sidebar_WorkspaceFragment;
   className?: string;
+  forceSidebarOpen?: boolean;
+  setForceSidebarOpen?: (open: boolean) => void;
 };
 
 const NavItem = (props: {
@@ -78,9 +80,12 @@ const NavItem = (props: {
 };
 
 const Sidebar = (props: SidebarProps) => {
-  const { workspace, className } = props;
+  const { workspace, forceSidebarOpen, setForceSidebarOpen, className } = props;
   const { t } = useTranslation();
-  const { isSidebarOpen, setSidebarOpen } = useContext(LayoutContext);
+  const [isSidebarOpenCookie, setSidebarOpenCookie] = useSidebarOpen();
+  const isSidebarOpen = forceSidebarOpen ?? isSidebarOpenCookie;
+  const setSidebarOpen = setForceSidebarOpen ?? setSidebarOpenCookie;
+
   const [isShortcutsExpanded, setShortcutsExpanded] = useState(true);
 
   const router = useRouter();

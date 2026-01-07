@@ -35,7 +35,11 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
 
   const [mutate] = useCreatePipelineMutation();
 
-  const form = useForm<{ notebookObject: any; name: string; functionalType: PipelineFunctionalType | null }>({
+  const form = useForm<{
+    notebookObject: any;
+    name: string;
+    functionalType: PipelineFunctionalType | null;
+  }>({
     onSubmit: async (values) => {
       const { notebookObject } = values;
 
@@ -103,7 +107,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   }, [open]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="max-w-6xl">
+    <Dialog open={open} onClose={onClose} maxWidth="max-w-7/8">
       <Dialog.Title>{t("How to create a pipeline")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
         <Tabs onChange={(index) => setTabIndex(index)} defaultIndex={tabIndex}>
@@ -139,9 +143,17 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
                   <Select
                     options={Object.values(PipelineFunctionalType)}
                     value={form.formData.functionalType}
-                    onChange={(value) => form.setFieldValue("functionalType", value)}
-                    getOptionLabel={(option) => option ? formatPipelineFunctionalType(option) : t("Not specified")}
-                    displayValue={(option) => option ? formatPipelineFunctionalType(option) : ""}
+                    onChange={(value) =>
+                      form.setFieldValue("functionalType", value)
+                    }
+                    getOptionLabel={(option) =>
+                      option
+                        ? formatPipelineFunctionalType(option)
+                        : t("Not specified")
+                    }
+                    displayValue={(option) =>
+                      option ? formatPipelineFunctionalType(option) : ""
+                    }
                     placeholder={t("Select functional type (optional)")}
                     className="max-w-xs"
                   />

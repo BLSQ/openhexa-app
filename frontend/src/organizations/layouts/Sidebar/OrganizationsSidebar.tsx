@@ -6,19 +6,17 @@ import SidebarToggleButton from "./SidebarToggleButton";
 import UserMenu from "workspaces/features/UserMenu";
 import NavItem from "./NavItem";
 import { useTranslation } from "next-i18next";
+import useSidebarOpen from "core/hooks/useSidebarOpen";
 
 type OrganizationsSidebarProps = {
   organizations: OrganizationsQuery["organizations"];
-  isSidebarOpen: boolean;
-  setSidebarOpen: (newValue: boolean) => void;
 };
 
-const OrganizationsSidebar = ({
-  organizations,
-  isSidebarOpen,
-  setSidebarOpen,
-}: OrganizationsSidebarProps) => {
+const OrganizationsSidebar = ({ organizations }: OrganizationsSidebarProps) => {
   const { t } = useTranslation();
+
+  const [isSidebarOpen] = useSidebarOpen();
+
   return (
     <div
       className={clsx(
@@ -51,10 +49,7 @@ const OrganizationsSidebar = ({
           </div>
           <UserMenu compact={!isSidebarOpen} />
         </div>
-        <SidebarToggleButton
-          isSidebarOpen={isSidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-        />
+        <SidebarToggleButton />
       </div>
     </div>
   );

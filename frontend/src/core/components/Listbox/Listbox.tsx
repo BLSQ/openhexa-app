@@ -5,9 +5,9 @@ import {
   ListboxOptions as UIListboxOptions,
   Portal,
 } from "@headlessui/react";
-import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { sameWidthModifier } from "core/helpers/popper";
 import { usePopper } from "react-popper";
@@ -17,8 +17,13 @@ type ListboxProps = {
   value: any;
   options: any[];
   getOptionLabel(value?: any): string;
+  renderOption?(
+    option: any,
+    { focus, selected }: { focus: boolean; selected: boolean },
+  ): ReactNode;
   by: string;
   placeholder?: string;
+  multiple?: boolean;
   onChange(value: any): void;
   onScrollBottom?(): void;
   className?: string;
@@ -33,14 +38,35 @@ const Listbox = (props: ListboxProps) => {
   const { t } = useTranslation();
   const {
     getOptionLabel,
+    renderOption,
     value,
     options,
     onScrollBottom,
     onChange,
     className,
     by,
+    multiple = false,
     placeholder = t("Select..."),
   } = props;
+
+  const hasValue = multiple
+    ? Array.isArray(value) && value.length > 0
+    : Boolean(value);
+
+  const getButtonLabel = () => {
+    if (!hasValue) return placeholder;
+    if (multiple && Array.isArray(value)) {
+      if (value.length === 1) {
+        return renderOption
+          ? renderOption(value[0], { focus: false, selected: true })
+          : getOptionLabel(value[0]);
+      }
+      return t("{{count}} selected", { count: value.length });
+    }
+    return renderOption
+      ? renderOption(value, { focus: false, selected: true })
+      : getOptionLabel(value);
+  };
   const [referenceElement, setReferenceElement] =
     useState<HTMLDivElement | null>(null);
   const [popperElement, setPopperElement] = useState<HTMLElement | null>(null);
@@ -52,7 +78,7 @@ const Listbox = (props: ListboxProps) => {
   });
 
   return (
-    <UIListbox value={value} onChange={onChange} by={by}>
+    <UIListbox value={value} onChange={onChange} by={by} multiple={multiple}>
       {({ open }) => (
         <div ref={setReferenceElement}>
           <UIListboxButton
@@ -63,13 +89,10 @@ const Listbox = (props: ListboxProps) => {
               open
                 ? "border-blue-500 ring-1 ring-blue-500"
                 : "border-gray-300 hover:border-gray-400",
-              !value && "text-gray-600/70",
               className,
             )}
           >
-            <span className="block truncate">
-              {value ? getOptionLabel(value) : placeholder}
-            </span>
+            <span className="block truncate">{getButtonLabel()}</span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 hover:text-gray-600">
               <ChevronUpDownIcon className="h-5 w-5" aria-hidden="true" />
             </span>
@@ -93,18 +116,31 @@ const Listbox = (props: ListboxProps) => {
                         clsx(
                           "relative cursor-default select-none px-2 py-2",
                           focus ? "bg-blue-500 text-white" : "text-gray-900",
+                          multiple && "pl-8",
                         )
                       }
                     >
                       {({ focus, selected }) => (
-                        <span
-                          className={clsx(
-                            "flex-1 truncate",
-                            selected && "font-semibold",
+                        <>
+                          {multiple && selected && (
+                            <CheckIcon
+                              className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2"
+                              aria-hidden="true"
+                            />
                           )}
-                        >
-                          {getOptionLabel(option)}
-                        </span>
+                          {renderOption ? (
+                            renderOption(option, { focus, selected })
+                          ) : (
+                            <span
+                              className={clsx(
+                                "flex-1 truncate",
+                                selected && "font-semibold",
+                              )}
+                            >
+                              {getOptionLabel(option)}
+                            </span>
+                          )}
+                        </>
                       )}
                     </UIListboxOption>
                   ))}

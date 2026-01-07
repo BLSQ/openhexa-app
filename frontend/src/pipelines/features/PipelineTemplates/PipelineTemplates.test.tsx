@@ -2,6 +2,7 @@ import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useMutation, useQuery } from "@apollo/client";
 import PipelineTemplates from "./PipelineTemplates";
+import { TestApp } from "core/helpers/testutils";
 
 jest.mock("@apollo/client", () => ({
   __esModule: true,
@@ -62,12 +63,15 @@ describe("PipelineTemplates", () => {
       error: null,
     });
 
-    render(<PipelineTemplates workspace={mockWorkspace} />);
+    render(
+      <TestApp>
+        <PipelineTemplates workspace={mockWorkspace} />
+      </TestApp>,
+    );
 
     await waitFor(() => {
       expect(screen.getByText("Template 1")).toBeInTheDocument();
       expect(screen.getByText("v1")).toBeInTheDocument();
-      expect(screen.getByText("1/1/2023, 1:01 AM")).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByTestId("card-view"));
@@ -82,7 +86,11 @@ describe("PipelineTemplates", () => {
       error: null,
     });
 
-    render(<PipelineTemplates workspace={mockWorkspace} />);
+    render(
+      <TestApp>
+        <PipelineTemplates workspace={mockWorkspace} />
+      </TestApp>,
+    );
 
     const previousButton = screen.getByRole("button", { name: /Previous/i });
     const nextButton = previousButton.nextElementSibling as HTMLButtonElement;
@@ -115,7 +123,11 @@ describe("PipelineTemplates", () => {
       error: null,
     });
 
-    render(<PipelineTemplates workspace={mockWorkspace} />);
+    render(
+      <TestApp>
+        <PipelineTemplates workspace={mockWorkspace} />
+      </TestApp>,
+    );
 
     const searchInput = screen.getByTestId("search-input");
 
@@ -141,7 +153,11 @@ describe("PipelineTemplates", () => {
       error: new Error("An error occurred"),
     });
 
-    render(<PipelineTemplates workspace={mockWorkspace} />);
+    render(
+      <TestApp>
+        <PipelineTemplates workspace={mockWorkspace} />
+      </TestApp>,
+    );
 
     await waitFor(() => {
       expect(screen.getByText("Error loading templates")).toBeInTheDocument();

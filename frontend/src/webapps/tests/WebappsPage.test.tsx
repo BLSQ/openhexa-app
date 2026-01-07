@@ -80,6 +80,7 @@ const sidebarMenuMock: MockedResponse = {
     variables: {
       page: 1,
       perPage: 2000,
+      organizationId: mockWorkspace.organization.id,
     },
   },
   maxUsageCount: Infinity,

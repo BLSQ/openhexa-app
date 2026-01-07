@@ -4319,6 +4319,7 @@ export type QueryPipelineVersionArgs = {
 
 export type QueryPipelinesArgs = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
+  lastRunStates?: InputMaybe<Array<PipelineRunStatus>>;
   name?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
@@ -5568,6 +5569,7 @@ export type Workspace = {
   name: Scalars['String']['output'];
   organization?: Maybe<Organization>;
   permissions: WorkspacePermissions;
+  pipelineLastRunStatuses: Array<PipelineRunStatus>;
   pipelineTags: Array<Scalars['String']['output']>;
   pipelineTemplateTags: Array<Scalars['String']['output']>;
   shortcuts: Array<ShortcutItem>;

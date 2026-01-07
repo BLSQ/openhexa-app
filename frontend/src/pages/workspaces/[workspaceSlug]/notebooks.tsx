@@ -26,6 +26,7 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
   const client = useApolloClient();
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [server, setServer] = useState(props.server);
   const workspaceSlug = router.query.workspaceSlug as string;
   const { data } = useWorkspaceNotebooksPageQuery({
@@ -44,7 +45,6 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
       }, 1000);
     }
     return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [server]);
 
   if (!data?.workspace) {
@@ -78,7 +78,6 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
             href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHEXA",
           },
         ]}
-        forceCompactSidebar
         withMarginBottom={false}
         header={
           <Breadcrumbs withHome={false}>
@@ -98,6 +97,8 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
             </Breadcrumbs.Part>
           </Breadcrumbs>
         }
+        forceSidebarOpen={isSidebarOpen}
+        setForceSidebarOpen={setSidebarOpen}
       >
         {server?.ready ? (
           <iframe

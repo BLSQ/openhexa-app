@@ -4752,6 +4752,7 @@ type Workspace {
   name: String!
   organization: Organization
   permissions: WorkspacePermissions!
+  pipelineLastRunStatuses: [PipelineRunStatus!]!
   pipelineTags: [String!]!
   pipelineTemplateTags: [String!]!
   shortcuts: [ShortcutItem!]!

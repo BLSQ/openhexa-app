@@ -1,26 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import clsx from "clsx";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { useTranslation } from "next-i18next";
-import { getCookie, hasCookie, setCookie } from "cookies-next";
-
-export let cookieSidebarOpenState = true;
-
-function getDefaultSidebarOpen() {
-  if (typeof window === "undefined") {
-    return cookieSidebarOpenState;
-  } else if (hasCookie("sidebar-open")) {
-    return getCookie("sidebar-open") === "true";
-  } else {
-    return true;
-  }
-}
+import useSidebarOpen from "core/hooks/useSidebarOpen";
 
 type BaseLayoutProps = {
   children: React.ReactNode;
-  Sidebar: React.ElementType;
-  sidebarProps: any;
+  sidebar: React.ReactNode;
   organizationId?: string;
   header?: React.ReactNode;
   headerActions?: React.ReactNode;
@@ -28,19 +15,14 @@ type BaseLayoutProps = {
 
 const BaseLayout = ({
   children,
-  Sidebar,
-  sidebarProps,
+  sidebar,
   organizationId,
   header,
   headerActions,
 }: BaseLayoutProps) => {
-  const [isSidebarOpen, setSidebarOpen] = useState(getDefaultSidebarOpen());
   const { t } = useTranslation();
 
-  const onChangeSidebar = (open: boolean) => {
-    setCookie("sidebar-open", open);
-    setSidebarOpen(open);
-  };
+  const [isSidebarOpen] = useSidebarOpen();
 
   return (
     <div className="flex h-screen">
@@ -50,11 +32,7 @@ const BaseLayout = ({
           isSidebarOpen ? "w-64 2xl:w-72" : "w-16",
         )}
       >
-        <Sidebar
-          {...sidebarProps}
-          isSidebarOpen={isSidebarOpen}
-          setSidebarOpen={onChangeSidebar}
-        />
+        {sidebar}
       </div>
       {organizationId && (
         <header
@@ -65,7 +43,7 @@ const BaseLayout = ({
         >
           <div className="flex items-center h-full px-4 md:px-6 xl:px-10 2xl:px-12">
             <div className="flex-1 min-w-0">{header}</div>
-            <div className="flex-shrink-0 w-100 max-w-md mx-auto p-2">
+            <div className="shrink-0 w-100 max-w-md mx-auto p-2">
               <SpotlightSearch organizationId={organizationId} />
             </div>
             <div className="flex-1 flex justify-end items-center gap-2">
@@ -106,10 +84,6 @@ const BaseLayout = ({
 };
 
 BaseLayout.prefetch = async (ctx: any) => {
-  // Load the cookie value from the request to render it correctly on the server
-  cookieSidebarOpenState = (await hasCookie("sidebar-open", ctx))
-    ? (await getCookie("sidebar-open", ctx)) === "true"
-    : true;
   await SpotlightSearch.prefetch(ctx);
 };
 

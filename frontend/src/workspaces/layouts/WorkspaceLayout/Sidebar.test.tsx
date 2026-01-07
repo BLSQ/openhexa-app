@@ -2,7 +2,6 @@ import React from "react";
 import { render } from "@testing-library/react";
 import { MemoryRouterProvider } from "next-router-mock/MemoryRouterProvider";
 import mockRouter from "next-router-mock";
-import { LayoutContext } from "./WorkspaceLayout";
 import Sidebar from "./Sidebar";
 import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
 import { TestApp } from "core/helpers/testutils";
@@ -29,11 +28,7 @@ describe("Sidebar", () => {
     const { getByText } = render(
       <MemoryRouterProvider>
         <TestApp>
-          <LayoutContext.Provider
-            value={{ isSidebarOpen: true, setSidebarOpen: jest.fn() }}
-          >
-            <Sidebar workspace={mockWorkspace} />
-          </LayoutContext.Provider>
+          <Sidebar workspace={mockWorkspace} />
         </TestApp>
       </MemoryRouterProvider>,
     );
@@ -48,11 +43,7 @@ describe("Sidebar", () => {
     const { getByText } = render(
       <MemoryRouterProvider>
         <TestApp>
-          <LayoutContext.Provider
-            value={{ isSidebarOpen: true, setSidebarOpen: jest.fn() }}
-          >
-            <Sidebar workspace={mockWorkspace} />
-          </LayoutContext.Provider>
+          <Sidebar workspace={mockWorkspace} />
         </TestApp>
       </MemoryRouterProvider>,
     );

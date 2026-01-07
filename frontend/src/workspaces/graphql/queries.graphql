@@ -34,6 +34,7 @@ query WorkspacePipelinesPage(
   $search: String
   $tags: [String!]
   $functionalType: PipelineFunctionalType
+  $lastRunStates: [PipelineRunStatus!]
   $page: Int
   $perPage: Int
 ) {
@@ -41,6 +42,7 @@ query WorkspacePipelinesPage(
     slug
     name
     pipelineTags
+    pipelineLastRunStatuses
     ...WorkspaceLayout_workspace
     ...CreatePipelineDialog_workspace
   }
@@ -50,6 +52,7 @@ query WorkspacePipelinesPage(
     search: $search
     tags: $tags
     functionalType: $functionalType
+    lastRunStates: $lastRunStates
     page: $page
     perPage: $perPage
   ) {

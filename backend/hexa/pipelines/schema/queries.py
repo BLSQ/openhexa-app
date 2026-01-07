@@ -1,6 +1,6 @@
 from ariadne import QueryType
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from django.db.models import Q
+from django.db.models import OuterRef, Q, Subquery
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
@@ -59,6 +59,21 @@ def resolve_pipelines(_, info, **kwargs):
             qs = qs.filter_by_tags(tag_objects)
         except InvalidTag:
             qs = Pipeline.objects.none()
+
+    last_run_states = kwargs.get("last_run_states")
+    if last_run_states:
+        last_run_status = [
+            PipelineRun.REVERSE_STATUS_MAPPINGS[state] for state in last_run_states
+        ]
+
+        last_run_state_subquery = (
+            PipelineRun.objects.filter(pipeline=OuterRef("pk"))
+            .order_by("-execution_date")
+            .values("state")[:1]
+        )
+        qs = qs.annotate(last_run_status=Subquery(last_run_state_subquery)).filter(
+            last_run_status__in=last_run_status
+        )
 
     if "name" in kwargs:
         name_to_order_by = kwargs.get("name")

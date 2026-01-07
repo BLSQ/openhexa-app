@@ -33,7 +33,7 @@ export const useUploadFiles = ({
           const contentType = file.type || "application/octet-stream";
           const url = await getBucketObjectUploadUrl(
             workspaceSlug,
-            constructFolderKey(file.name, prefix || ""),
+            constructFolderKey(file.path ?? file.name, prefix || ""),
             contentType,
           );
 

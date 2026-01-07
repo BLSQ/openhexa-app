@@ -24,8 +24,15 @@ const InputSearch = ({ onClick }: InputSearchProps) => {
     >
       <MagnifyingGlassIcon className="h-4 w-4 text-gray-500" />
       <span className="flex-1 text-left text-gray-500">{t("Search...")}</span>
-      <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-xs font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded">
-        {getIsMac() ? "⌘K" : "Ctrl+K"}
+      <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded">
+        {getIsMac() ? (
+          <>
+            <span className="text-sm">⌘</span>
+            <span className="text-xs">K</span>
+          </>
+        ) : (
+          <span className="text-xs">Ctrl+K</span>
+        )}
       </kbd>
     </button>
   );
