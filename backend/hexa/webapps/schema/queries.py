@@ -55,7 +55,10 @@ def resolve_public_webapp(_, info, **kwargs):
             slug=kwargs["workspace_slug"]
         )
         return Webapp.objects.filter(
-            workspace=workspace, slug=kwargs["slug"], is_public=True
+            workspace=workspace,
+            slug=kwargs["slug"],
+            is_public=True,
+            deleted_at__isnull=True,
         ).first()
     except Workspace.DoesNotExist:
         return None

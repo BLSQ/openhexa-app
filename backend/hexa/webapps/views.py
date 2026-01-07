@@ -52,7 +52,7 @@ def serve_webapp_html(
     request: HttpRequest, workspace_slug: str, webapp_slug: str
 ) -> HttpResponse:
     """Serve content for HTML type webapps."""
-    workspace = get_object_or_404(Workspace, slug=workspace_slug)
+    workspace = get_object_or_404(Workspace, slug=workspace_slug, archived=False)
     webapp = get_object_or_404(Webapp, workspace=workspace, slug=webapp_slug)
 
     if not _check_webapp_permission(request, webapp):
@@ -89,7 +89,7 @@ def serve_webapp_bundle(
     """Serve files from Bundle type webapps."""
     from hexa.files import storage
 
-    workspace = get_object_or_404(Workspace, slug=workspace_slug)
+    workspace = get_object_or_404(Workspace, slug=workspace_slug, archived=False)
     webapp = get_object_or_404(Webapp, workspace=workspace, slug=webapp_slug)
 
     if not _check_webapp_permission(request, webapp):

@@ -211,3 +211,132 @@ class WebappViewsTest(TestCase):
         mock_storage.get_bucket_object.assert_called_once_with(
             self.workspace.bucket_name, f"webapps/{bundle_webapp.slug}/build/index.html"
         )
+
+    def test_serve_public_html_webapp_without_auth(self):
+        html_webapp = Webapp.objects.create(
+            name="Public HTML Test",
+            slug="public-html-test",
+            type=Webapp.WebappType.HTML,
+            content="<html><body><h1>Public Content</h1></body></html>",
+            workspace=self.workspace,
+            created_by=self.user,
+            is_public=True,
+        )
+
+        response = self.client.get(
+            f"/webapps/{self.workspace.slug}/{html_webapp.slug}/html/"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/html; charset=utf-8")
+        self.assertIn(b"Public Content", response.content)
+
+    def test_serve_private_html_webapp_without_auth_fails(self):
+        html_webapp = Webapp.objects.create(
+            name="Private HTML Test",
+            slug="private-html-test",
+            type=Webapp.WebappType.HTML,
+            content="<html><body><h1>Private Content</h1></body></html>",
+            workspace=self.workspace,
+            created_by=self.user,
+            is_public=False,
+        )
+
+        response = self.client.get(
+            f"/webapps/{self.workspace.slug}/{html_webapp.slug}/html/"
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    @patch("hexa.webapps.views._read_file_from_storage")
+    @patch("hexa.files.storage")
+    def test_serve_public_bundle_webapp_without_auth(
+        self, mock_storage, mock_read_file
+    ):
+        bundle_webapp = Webapp.objects.create(
+            name="Public Bundle Test",
+            slug="public-bundle-test",
+            type=Webapp.WebappType.BUNDLE,
+            bundle_manifest=[
+                {"path": "index.html", "size": 39},
+                {"path": "static/js/app.js", "size": 21},
+            ],
+            workspace=self.workspace,
+            created_by=self.user,
+            is_public=True,
+        )
+
+        mock_storage.get_bucket_object.return_value = Mock()
+        mock_read_file.return_value = b"<html><body>Public Bundle</body></html>"
+
+        response = self.client.get(
+            f"/webapps/{self.workspace.slug}/{bundle_webapp.slug}/bundle/"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Public Bundle", response.content)
+
+    @patch("hexa.webapps.views._read_file_from_storage")
+    @patch("hexa.files.storage")
+    def test_serve_private_bundle_webapp_without_auth_fails(
+        self, mock_storage, mock_read_file
+    ):
+        bundle_webapp = Webapp.objects.create(
+            name="Private Bundle Test",
+            slug="private-bundle-test",
+            type=Webapp.WebappType.BUNDLE,
+            bundle_manifest=[{"path": "index.html", "size": 39}],
+            workspace=self.workspace,
+            created_by=self.user,
+            is_public=False,
+        )
+
+        mock_storage.get_bucket_object.return_value = Mock()
+        mock_read_file.return_value = b"<html><body>Private Bundle</body></html>"
+
+        response = self.client.get(
+            f"/webapps/{self.workspace.slug}/{bundle_webapp.slug}/bundle/"
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_serve_public_webapp_in_archived_workspace_fails(self):
+        self.workspace.archived = True
+        self.workspace.save()
+
+        html_webapp = Webapp.objects.create(
+            name="Public HTML in Archived",
+            slug="public-archived",
+            type=Webapp.WebappType.HTML,
+            content="<html><body>Archived</body></html>",
+            workspace=self.workspace,
+            created_by=self.user,
+            is_public=True,
+        )
+
+        response = self.client.get(
+            f"/webapps/{self.workspace.slug}/{html_webapp.slug}/html/"
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_serve_deleted_public_webapp_fails(self):
+        from django.utils import timezone
+
+        html_webapp = Webapp.objects.create(
+            name="Deleted Public",
+            slug="deleted-public",
+            type=Webapp.WebappType.HTML,
+            content="<html><body>Deleted</body></html>",
+            workspace=self.workspace,
+            created_by=self.user,
+            is_public=True,
+        )
+        html_webapp.deleted_at = timezone.now()
+        html_webapp.save()
+
+        response = self.client.get(
+            f"/webapps/{self.workspace.slug}/{html_webapp.slug}/html/"
+        )
+
+        self.assertEqual(response.status_code, 404)
