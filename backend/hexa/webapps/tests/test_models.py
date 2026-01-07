@@ -88,12 +88,15 @@ class WebappModelTest(TestCase):
             name="Bundle Webapp",
             slug="bundle-webapp",
             type=Webapp.WebappType.BUNDLE,
-            bundle=zip_buffer.getvalue(),
+            bundle_manifest=[
+                {"path": "index.html", "size": 32},
+                {"path": "app.js", "size": 21},
+            ],
             workspace=self.workspace,
             created_by=self.user_admin,
         )
         self.assertEqual(bundle_webapp.type, Webapp.WebappType.BUNDLE)
-        self.assertIsNotNone(bundle_webapp.bundle)
+        self.assertIsNotNone(bundle_webapp.bundle_manifest)
         self.assertEqual(bundle_webapp.url, "")
 
     def test_webapp_url_optional(self):

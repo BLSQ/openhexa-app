@@ -1,4 +1,7 @@
 import base64
+import io
+import zipfile
+from unittest.mock import Mock, patch
 
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
@@ -27,6 +30,15 @@ class WebappMutationsTest(GraphQLTestCase):
             workspace=cls.WS1,
             role=WorkspaceMembershipRole.ADMIN,
         )
+
+    def _create_test_bundle(self, files=None):
+        if files is None:
+            files = {"index.html": "<html><body>Test</body></html>"}
+        bundle_io = io.BytesIO()
+        with zipfile.ZipFile(bundle_io, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            for file_path, content in files.items():
+                zip_file.writestr(file_path, content)
+        return base64.b64encode(bundle_io.getvalue()).decode("utf-8")
 
     def test_create_iframe_webapp_with_url_succeeds(self):
         """IFRAME webapp can be created with URL"""
@@ -93,11 +105,14 @@ class WebappMutationsTest(GraphQLTestCase):
             "<h1>Hello World</h1>",
         )
 
-    def test_create_bundle_webapp_with_bundle_succeeds(self):
+    @patch("hexa.files.storage")
+    def test_create_bundle_webapp_with_bundle_succeeds(self, mock_storage):
         """Bundle webapp can be created with bundle"""
+        mock_storage.list_bucket_objects.side_effect = mock_storage.exceptions.NotFound
+        mock_storage.save_object = Mock()
+
         self.client.force_login(self.USER_ROOT)
-        bundle_data = b"PK\x03\x04test bundle content"
-        bundle_b64 = base64.b64encode(bundle_data).decode("utf-8")
+        bundle_b64 = self._create_test_bundle()
 
         response = self.run_query(
             """
@@ -123,6 +138,7 @@ class WebappMutationsTest(GraphQLTestCase):
         )
         self.assertEqual(response["data"]["createWebapp"]["success"], True)
         self.assertEqual(response["data"]["createWebapp"]["webapp"]["type"], "BUNDLE")
+        self.assertTrue(mock_storage.save_object.called)
 
     def test_update_webapp_name_only_succeeds(self):
         """Updating only the name should work without validation errors"""
@@ -204,11 +220,10 @@ class WebappMutationsTest(GraphQLTestCase):
 
     def test_update_webapp_type_from_bundle_to_html_succeeds(self):
         """Changing type from BUNDLE to HTML with content succeeds"""
-        bundle_data = b"PK\x03\x04test bundle content"
         webapp = Webapp.objects.create(
             name="Bundle App",
             slug="bundle-app",
-            bundle=bundle_data,
+            bundle_manifest=[{"path": "index.html", "size": 32}],
             type="bundle",
             workspace=self.WS1,
             created_by=self.USER_ROOT,
@@ -242,8 +257,12 @@ class WebappMutationsTest(GraphQLTestCase):
             "<h1>New HTML Content</h1>",
         )
 
-    def test_update_webapp_type_from_html_to_bundle_succeeds(self):
+    @patch("hexa.files.storage")
+    def test_update_webapp_type_from_html_to_bundle_succeeds(self, mock_storage):
         """Changing type from HTML to BUNDLE with bundle succeeds"""
+        mock_storage.list_bucket_objects.side_effect = mock_storage.exceptions.NotFound
+        mock_storage.save_object = Mock()
+
         webapp = Webapp.objects.create(
             name="HTML App",
             slug="html-app",
@@ -252,8 +271,7 @@ class WebappMutationsTest(GraphQLTestCase):
             workspace=self.WS1,
             created_by=self.USER_ROOT,
         )
-        bundle_data = b"PK\x03\x04new bundle content"
-        bundle_b64 = base64.b64encode(bundle_data).decode("utf-8")
+        bundle_b64 = self._create_test_bundle()
 
         self.client.force_login(self.USER_ROOT)
         response = self.run_query(
@@ -277,9 +295,14 @@ class WebappMutationsTest(GraphQLTestCase):
         )
         self.assertEqual(response["data"]["updateWebapp"]["success"], True)
         self.assertEqual(response["data"]["updateWebapp"]["webapp"]["type"], "BUNDLE")
+        self.assertTrue(mock_storage.save_object.called)
 
-    def test_update_webapp_type_from_iframe_to_bundle_succeeds(self):
+    @patch("hexa.files.storage")
+    def test_update_webapp_type_from_iframe_to_bundle_succeeds(self, mock_storage):
         """Changing type from IFRAME to BUNDLE with bundle succeeds"""
+        mock_storage.list_bucket_objects.side_effect = mock_storage.exceptions.NotFound
+        mock_storage.save_object = Mock()
+
         webapp = Webapp.objects.create(
             name="iFrame App",
             slug="iframe-app",
@@ -288,8 +311,7 @@ class WebappMutationsTest(GraphQLTestCase):
             workspace=self.WS1,
             created_by=self.USER_ROOT,
         )
-        bundle_data = b"PK\x03\x04new bundle content"
-        bundle_b64 = base64.b64encode(bundle_data).decode("utf-8")
+        bundle_b64 = self._create_test_bundle()
 
         self.client.force_login(self.USER_ROOT)
         response = self.run_query(
@@ -313,3 +335,4 @@ class WebappMutationsTest(GraphQLTestCase):
         )
         self.assertEqual(response["data"]["updateWebapp"]["success"], True)
         self.assertEqual(response["data"]["updateWebapp"]["webapp"]["type"], "BUNDLE")
+        self.assertTrue(mock_storage.save_object.called)

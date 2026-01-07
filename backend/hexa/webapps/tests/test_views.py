@@ -1,5 +1,4 @@
-import io
-import zipfile
+from unittest.mock import Mock, patch
 
 from django.test import Client
 
@@ -87,20 +86,23 @@ class WebappViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
-    def test_serve_bundle_webapp(self):
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-            zip_file.writestr("index.html", "<html><body>Bundle Test</body></html>")
-            zip_file.writestr("static/js/app.js", "console.log('test');")
-
+    @patch("hexa.webapps.views._read_file_from_storage")
+    @patch("hexa.files.storage")
+    def test_serve_bundle_webapp(self, mock_storage, mock_read_file):
         bundle_webapp = Webapp.objects.create(
             name="Bundle Test",
             slug="bundle-test",
             type=Webapp.WebappType.BUNDLE,
-            bundle=zip_buffer.getvalue(),
+            bundle_manifest=[
+                {"path": "index.html", "size": 39},
+                {"path": "static/js/app.js", "size": 21},
+            ],
             workspace=self.workspace,
             created_by=self.user,
         )
+
+        mock_storage.get_bucket_object.return_value = Mock()
+        mock_read_file.return_value = b"<html><body>Bundle Test</body></html>"
 
         self.client.force_login(self.user)
         response = self.client.get(
@@ -109,21 +111,27 @@ class WebappViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Bundle Test", response.content)
+        mock_storage.get_bucket_object.assert_called_once_with(
+            self.workspace.bucket_name, f"webapps/{bundle_webapp.slug}/index.html"
+        )
 
-    def test_serve_bundle_webapp_static_file(self):
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-            zip_file.writestr("index.html", "<html><body>Test</body></html>")
-            zip_file.writestr("static/js/app.js", "console.log('test');")
-
+    @patch("hexa.webapps.views._read_file_from_storage")
+    @patch("hexa.files.storage")
+    def test_serve_bundle_webapp_static_file(self, mock_storage, mock_read_file):
         bundle_webapp = Webapp.objects.create(
             name="Bundle Test",
             slug="bundle-test",
             type=Webapp.WebappType.BUNDLE,
-            bundle=zip_buffer.getvalue(),
+            bundle_manifest=[
+                {"path": "index.html", "size": 32},
+                {"path": "static/js/app.js", "size": 21},
+            ],
             workspace=self.workspace,
             created_by=self.user,
         )
+
+        mock_storage.get_bucket_object.return_value = Mock()
+        mock_read_file.return_value = b"console.log('test');"
 
         self.client.force_login(self.user)
         response = self.client.get(
@@ -132,17 +140,16 @@ class WebappViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"console.log", response.content)
+        mock_storage.get_bucket_object.assert_called_once_with(
+            self.workspace.bucket_name, f"webapps/{bundle_webapp.slug}/static/js/app.js"
+        )
 
     def test_serve_bundle_webapp_path_traversal_blocked(self):
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-            zip_file.writestr("index.html", "<html><body>Test</body></html>")
-
         bundle_webapp = Webapp.objects.create(
             name="Bundle Test",
             slug="bundle-test",
             type=Webapp.WebappType.BUNDLE,
-            bundle=zip_buffer.getvalue(),
+            bundle_manifest=[{"path": "index.html", "size": 32}],
             workspace=self.workspace,
             created_by=self.user,
         )
@@ -155,17 +162,11 @@ class WebappViewsTest(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_serve_bundle_webapp_hidden_files_blocked(self):
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-            zip_file.writestr("index.html", "<html><body>Test</body></html>")
-            zip_file.writestr(".env", "SECRET_KEY=sensitive_data")
-            zip_file.writestr(".git/config", "[core]")
-
         bundle_webapp = Webapp.objects.create(
             name="Bundle Test",
             slug="bundle-test",
             type=Webapp.WebappType.BUNDLE,
-            bundle=zip_buffer.getvalue(),
+            bundle_manifest=[{"path": "index.html", "size": 32}],
             workspace=self.workspace,
             created_by=self.user,
         )
@@ -182,22 +183,23 @@ class WebappViewsTest(TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_serve_bundle_webapp_nested_structure(self):
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-            zip_file.writestr(
-                "build/index.html", "<html><body>Build Test</body></html>"
-            )
-            zip_file.writestr("build/static/main.js", "console.log('main');")
-
+    @patch("hexa.webapps.views._read_file_from_storage")
+    @patch("hexa.files.storage")
+    def test_serve_bundle_webapp_nested_structure(self, mock_storage, mock_read_file):
         bundle_webapp = Webapp.objects.create(
             name="Nested Bundle Test",
             slug="nested-bundle-test",
             type=Webapp.WebappType.BUNDLE,
-            bundle=zip_buffer.getvalue(),
+            bundle_manifest=[
+                {"path": "build/index.html", "size": 40},
+                {"path": "build/static/main.js", "size": 22},
+            ],
             workspace=self.workspace,
             created_by=self.user,
         )
+
+        mock_storage.get_bucket_object.return_value = Mock()
+        mock_read_file.return_value = b"<html><body>Build Test</body></html>"
 
         self.client.force_login(self.user)
         response = self.client.get(
@@ -206,61 +208,6 @@ class WebappViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Build Test", response.content)
-
-    def test_change_webapp_type_iframe_to_bundle(self):
-        iframe_webapp = Webapp.objects.create(
-            name="iFrame Test",
-            slug="iframe-test",
-            type=Webapp.WebappType.IFRAME,
-            url="https://example.com",
-            workspace=self.workspace,
-            created_by=self.user,
+        mock_storage.get_bucket_object.assert_called_once_with(
+            self.workspace.bucket_name, f"webapps/{bundle_webapp.slug}/build/index.html"
         )
-
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-            zip_file.writestr(
-                "index.html", "<html><body>Changed to Bundle</body></html>"
-            )
-
-        iframe_webapp.type = Webapp.WebappType.BUNDLE
-        iframe_webapp.url = ""
-        iframe_webapp.bundle = zip_buffer.getvalue()
-        iframe_webapp.save()
-
-        self.client.force_login(self.user)
-        response = self.client.get(
-            f"/webapps/{self.workspace.slug}/{iframe_webapp.slug}/bundle/"
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Changed to Bundle", response.content)
-
-    def test_change_webapp_type_html_to_bundle(self):
-        html_webapp = Webapp.objects.create(
-            name="HTML Test",
-            slug="html-test",
-            type=Webapp.WebappType.HTML,
-            content="<html><body>Old HTML</body></html>",
-            workspace=self.workspace,
-            created_by=self.user,
-        )
-
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-            zip_file.writestr(
-                "index.html", "<html><body>Changed to Bundle</body></html>"
-            )
-
-        html_webapp.type = Webapp.WebappType.BUNDLE
-        html_webapp.content = ""
-        html_webapp.bundle = zip_buffer.getvalue()
-        html_webapp.save()
-
-        self.client.force_login(self.user)
-        response = self.client.get(
-            f"/webapps/{self.workspace.slug}/{html_webapp.slug}/bundle/"
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Changed to Bundle", response.content)
