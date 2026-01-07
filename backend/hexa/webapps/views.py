@@ -1,6 +1,4 @@
-import io
 import mimetypes
-import zipfile
 from logging import getLogger
 from pathlib import Path
 
@@ -23,6 +21,29 @@ def _check_webapp_permission(request: HttpRequest, webapp: Webapp) -> bool:
     return webapp.workspace.members.filter(id=request.user.id).exists()
 
 
+def _resolve_bundle_file_path(webapp: Webapp, requested_path: str) -> str | None:
+    """
+    Resolve requested path to actual file path in bundle manifest.
+    Handles common prefixes like build/ and dist/.
+    """
+    manifest = webapp.bundle_manifest or []
+    available_files = [f["path"] for f in manifest]
+
+    if requested_path in available_files:
+        return requested_path
+
+    for file_path in available_files:
+        if file_path.endswith(requested_path):
+            return file_path
+
+    for prefix in ["build/", "dist/", ""]:
+        candidate = prefix + requested_path
+        if candidate in available_files:
+            return candidate
+
+    return None
+
+
 @xframe_options_sameorigin
 def serve_webapp_html(
     request: HttpRequest, workspace_slug: str, webapp_slug: str
@@ -43,11 +64,28 @@ def serve_webapp_html(
     return HttpResponse(webapp.content, content_type="text/html; charset=utf-8")
 
 
+def _read_file_from_storage(storage, bucket_name: str, object_key: str) -> bytes:
+    """Read file content from storage backend."""
+    if hasattr(storage, "path"):
+        file_path = str(storage.path(bucket_name, object_key))
+        with open(file_path, "rb") as f:
+            return f.read()
+    else:
+        from google.cloud import storage as gcp_storage
+
+        client = gcp_storage.Client()
+        bucket = client.bucket(bucket_name)
+        blob = bucket.blob(object_key)
+        return blob.download_as_bytes()
+
+
 @xframe_options_sameorigin
 def serve_webapp_bundle(
     request: HttpRequest, workspace_slug: str, webapp_slug: str, path: str = ""
 ) -> HttpResponse:
     """Serve files from Bundle type webapps."""
+    from hexa.files import storage
+
     workspace = get_object_or_404(Workspace, slug=workspace_slug)
     webapp = get_object_or_404(Webapp, workspace=workspace, slug=webapp_slug)
 
@@ -57,7 +95,7 @@ def serve_webapp_bundle(
     if webapp.type != Webapp.WebappType.BUNDLE:
         raise Http404("Not a Bundle webapp")
 
-    if not webapp.bundle:
+    if not webapp.bundle_manifest:
         return HttpResponse("No bundle available", status=404)
 
     if not path:
@@ -71,36 +109,27 @@ def serve_webapp_bundle(
     ):
         raise Http404("Invalid path")
 
+    storage_path = _resolve_bundle_file_path(webapp, path)
+    if not storage_path:
+        raise Http404(f"File not found in bundle: {path}")
+
+    bucket_name = workspace.bucket_name
+    object_key = f"webapps/{webapp.slug}/{storage_path}"
+
     try:
-        bundle_io = io.BytesIO(webapp.bundle)
-        with zipfile.ZipFile(bundle_io, "r") as zip_file:
-            available_files = zip_file.namelist()
-            file_path = None
-            for zip_path in available_files:
-                if zip_path.endswith(path) or zip_path == path:
-                    file_path = zip_path
-                    break
+        storage.get_bucket_object(bucket_name, object_key)
 
-            if not file_path:
-                for prefix in ["build/", "dist/", ""]:
-                    candidate = prefix + path
-                    if candidate in available_files:
-                        file_path = candidate
-                        break
+        content_type, _ = mimetypes.guess_type(path)
+        if not content_type:
+            content_type = "application/octet-stream"
 
-            if not file_path:
-                raise Http404(f"File not found in bundle: {path}")
+        content = _read_file_from_storage(storage, bucket_name, object_key)
 
-            file_content = zip_file.read(file_path)
-            content_type, _ = mimetypes.guess_type(path)
-            if not content_type:
-                content_type = "application/octet-stream"
+        return HttpResponse(content, content_type=content_type)
 
-            return HttpResponse(file_content, content_type=content_type)
-
-    except zipfile.BadZipFile:
-        logger.error(f"Invalid zip file for webapp {webapp.id}")
-        return HttpResponse("Invalid bundle format", status=500)
     except Exception as e:
-        logger.error(f"Error serving bundle file: {e}")
-        raise Http404("Error reading bundle")
+        if hasattr(storage, "exceptions") and isinstance(
+            e, storage.exceptions.NotFound
+        ):
+            raise Http404("File not found in storage")
+        raise

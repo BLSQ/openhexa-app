@@ -114,10 +114,15 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         blank=True,
         help_text="Text content for the webapp (e.g., HTML markup, configuration, etc.)",
     )
-    bundle = models.BinaryField(
+    bundle_manifest = models.JSONField(
         blank=True,
         null=True,
-        help_text="Zipfile containing the webapp bundle (HTML, JS, CSS, assets)",
+        help_text="Manifest of files in bundle stored in bucket (JSON array of {path, size})",
+    )
+    bundle_uploaded_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Timestamp when bundle was last uploaded to bucket",
     )
     favorites = models.ManyToManyField(
         User, related_name="favorite_webapps", blank=True
