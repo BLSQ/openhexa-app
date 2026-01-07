@@ -1,6 +1,8 @@
 {
   "{{count}} row___one": "{{count}} row",
   "{{count}} row___other": "{{count}} rows",
+  "{{count}} selected___one": "{{count}} selected",
+  "{{count}} selected___other": "{{count}} selected",
   "{{files}} is not a valid file___one": "{{files}} is not a valid file",
   "{{files}} is not a valid file___other": "{{files}} is not a valid file",
   "{{value}}d": "{{value}}d",
@@ -64,6 +66,7 @@
   "All publishers": "All publishers",
   "All results": "All results",
   "All roles": "All roles",
+  "All statuses": "All statuses",
   "All types": "All types",
   "Already have an account?": "Already have an account?",
   "An error occurred while creating the folder.": "An error occurred while creating the folder.",

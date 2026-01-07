@@ -7,7 +7,7 @@ import CardView from "./CardView";
 import useDebounce from "core/hooks/useDebounce";
 import Spinner from "core/components/Spinner";
 import { useWorkspacePipelinesPageQuery } from "workspaces/graphql/queries.generated";
-import { PipelineFunctionalType } from "graphql/types";
+import { PipelineFunctionalType, PipelineRunStatus } from "graphql/types";
 import usePipelinesView from "pipelines/hooks/usePipelinesView";
 
 type PipelinesProps = {
@@ -17,6 +17,7 @@ type PipelinesProps = {
   search: string;
   tags?: string[];
   functionalType?: PipelineFunctionalType | null;
+  lastRunStates?: PipelineRunStatus[];
 };
 
 const Pipelines = ({
@@ -26,6 +27,7 @@ const Pipelines = ({
   search: initialSearch,
   tags,
   functionalType: initialFunctionalType,
+  lastRunStates: initialLastRunStates,
 }: PipelinesProps) => {
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const debouncedSearchQuery = useDebounce(searchQuery, 300, () => {
@@ -33,8 +35,12 @@ const Pipelines = ({
   });
   const [view, setView] = usePipelinesView();
   const [page, setPage] = useState(initialPage);
+
   const [functionalType, setFunctionalType] = useState<PipelineFunctionalType | null>(
     initialFunctionalType || null
+  );
+    const [lastRunStates, setLastRunStates] = useState<PipelineRunStatus[]>(
+    initialLastRunStates || [],
   );
   const [selectedTags, setSelectedTags] = useState<string[]>(tags || []);
 
@@ -44,24 +50,35 @@ const Pipelines = ({
       search: debouncedSearchQuery,
       tags: selectedTags.length > 0 ? selectedTags : undefined,
       functionalType,
+      lastRunStates: lastRunStates.length > 0 ? lastRunStates : undefined,
       page,
       perPage,
     },
   });
 
   const [items, setItems] = useState(data?.pipelines?.items || []);
+  const [pipelineTags, setPipelineTags] = useState<string[]>(
+    data?.workspace?.pipelineTags || [],
+  );
+  const [pipelineLastRunStatuses, setPipelineLastRunStatuses] = useState<
+    PipelineRunStatus[]
+  >(data?.workspace?.pipelineLastRunStatuses || []);
 
   useEffect(() => {
     if (!loading && data?.pipelines?.items) {
       setItems(data.pipelines.items);
+    }
+    if (!loading && data?.workspace?.pipelineTags) {
+      setPipelineTags(data.workspace.pipelineTags);
+    }
+    if (!loading && data?.workspace?.pipelineLastRunStatuses) {
+      setPipelineLastRunStatuses(data.workspace.pipelineLastRunStatuses);
     }
   }, [loading, data]);
 
   const ViewComponent = view === "grid" ? GridView : CardView;
 
   const totalItems = data?.pipelines?.totalItems ?? 0;
-
-  const pipelineTags = data?.workspace?.pipelineTags || [];
 
   return (
     <div>
@@ -73,9 +90,12 @@ const Pipelines = ({
         showCard={true}
         functionalTypeFilter={functionalType}
         setFunctionalTypeFilter={setFunctionalType}
+        lastRunStatesFilter={lastRunStates}
+        setLastRunStatesFilter={setLastRunStates}
         tagsFilter={selectedTags}
         setTagsFilter={setSelectedTags}
         pipelineTags={pipelineTags}
+        pipelineLastRunStatuses={pipelineLastRunStatuses}
       />
       <div className="relative">
         {loading && (

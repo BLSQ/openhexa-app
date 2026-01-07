@@ -21,3 +21,21 @@ export function formatPipelineRunStatus(
       return i18n!.t("Skipped");
   }
 }
+
+export function getPipelineRunStatusBadgeClassName(status: PipelineRunStatus) {
+  switch (status) {
+    case PipelineRunStatus.Stopped:
+      return "bg-yellow-100 text-gray-600";
+    case PipelineRunStatus.Failed:
+      return "bg-red-100 text-red-500";
+    case PipelineRunStatus.Queued:
+      return "bg-gray-100 text-gray-600";
+    case PipelineRunStatus.Running:
+    case PipelineRunStatus.Terminating:
+      return "bg-sky-100 text-sky-600";
+    case PipelineRunStatus.Success:
+      return "bg-emerald-50 text-emerald-500";
+    case PipelineRunStatus.Skipped:
+      return "bg-gray-100 text-gray-500";
+  }
+}

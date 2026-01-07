@@ -1,11 +1,16 @@
 import React from "react";
+import clsx from "clsx";
 import SearchInput from "core/features/SearchInput";
 import Listbox from "core/components/Listbox";
 import ViewToggleButton from "core/components/ViewToggleButton";
 import Popover from "core/components/Popover";
 import Checkbox from "core/components/forms/Checkbox";
-import { PipelineFunctionalType } from "graphql/types";
+import { PipelineFunctionalType, PipelineRunStatus } from "graphql/types";
 import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
+import {
+  formatPipelineRunStatus,
+  getPipelineRunStatusBadgeClassName,
+} from "pipelines/helpers/format";
 import { useTranslation } from "next-i18next";
 import { TagIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
@@ -26,6 +31,9 @@ type HeaderProps = {
   showCard?: boolean;
   functionalTypeFilter?: PipelineFunctionalType | null;
   setFunctionalTypeFilter?: (filter: PipelineFunctionalType | null) => void;
+  lastRunStatesFilter?: PipelineRunStatus[];
+  setLastRunStatesFilter?: (filter: PipelineRunStatus[]) => void;
+  pipelineLastRunStatuses?: PipelineRunStatus[];
   validationFilter?: boolean | null;
   setValidationFilter?: (filter: boolean | null) => void;
   tagsFilter?: string[];
@@ -46,6 +54,9 @@ const Header = ({
   showCard,
   functionalTypeFilter,
   setFunctionalTypeFilter,
+  lastRunStatesFilter,
+  setLastRunStatesFilter,
+  pipelineLastRunStatuses,
   validationFilter,
   setValidationFilter,
   tagsFilter,
@@ -74,6 +85,16 @@ const Header = ({
     { value: false, label: t("Community") },
   ];
 
+  const statusesToShow =
+    pipelineLastRunStatuses && pipelineLastRunStatuses.length > 0
+      ? pipelineLastRunStatuses
+      : Object.values(PipelineRunStatus);
+
+  const lastRunStateOptions = statusesToShow.map((status) => ({
+    value: status,
+    label: formatPipelineRunStatus(status),
+  }));
+
   return (
     <div className={"my-5 space-y-3"}>
       <div className="flex justify-between items-center gap-3">
@@ -93,13 +114,16 @@ const Header = ({
           <Popover
             trigger={
               <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer">
-                <TagIcon className="w-4 h-4 text-gray-600" />
+                <TagIcon className="w-4 h-4 text-gray-600 shrink-0" />
                 <span className="text-sm text-gray-700">{t("Tags")}</span>
-                {tagsFilter && tagsFilter.length > 0 && (
-                  <Badge className="bg-purple-100 text-purple-700 ring-purple-400/20">
-                    {tagsFilter.length}
-                  </Badge>
-                )}
+                <Badge
+                  className={clsx(
+                    "bg-purple-100 text-purple-700 ring-purple-400/20 w-7 justify-center",
+                    (!tagsFilter || tagsFilter.length === 0) && "invisible",
+                  )}
+                >
+                  {tagsFilter?.length || 0}
+                </Badge>
               </div>
             }
             placement="bottom-start"
@@ -161,6 +185,32 @@ const Header = ({
             options={functionalTypeOptions}
             by="value"
             getOptionLabel={(option) => option.label}
+            className={"min-w-48"}
+          />
+        )}
+        {setLastRunStatesFilter && lastRunStateOptions.length > 0 && (
+          <Listbox
+            value={lastRunStateOptions.filter((opt) =>
+              lastRunStatesFilter?.includes(opt.value),
+            )}
+            onChange={(options) =>
+              setLastRunStatesFilter(options.map((opt: any) => opt.value))
+            }
+            options={lastRunStateOptions}
+            by="value"
+            multiple
+            placeholder={t("All status")}
+            getOptionLabel={(option) => option.label}
+            renderOption={(option) => (
+              <Badge
+                className={clsx(
+                  getPipelineRunStatusBadgeClassName(option.value),
+                  "ring-gray-500/20",
+                )}
+              >
+                {option.label}
+              </Badge>
+            )}
             className={"min-w-48"}
           />
         )}

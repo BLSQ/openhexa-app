@@ -64,12 +64,13 @@ export type WorkspacePipelinesPageQueryVariables = Types.Exact<{
   search?: Types.InputMaybe<Types.Scalars['String']['input']>;
   tags?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
   functionalType?: Types.InputMaybe<Types.PipelineFunctionalType>;
+  lastRunStates?: Types.InputMaybe<Array<Types.PipelineRunStatus> | Types.PipelineRunStatus>;
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
 
 
-export type WorkspacePipelinesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, pipelineTags: Array<string>, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean } } | null } | null, pipelines: { __typename?: 'PipelinesPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<{ __typename?: 'Pipeline', id: string, code: string, name?: string | null, schedule?: string | null, description?: string | null, type: Types.PipelineType, functionalType?: Types.PipelineFunctionalType | null, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, name: string } | null, currentVersion?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } | null, lastRuns: { __typename?: 'PipelineRunPage', items: Array<{ __typename?: 'PipelineRun', executionDate?: any | null, id: string, status: Types.PipelineRunStatus, hasErrorMessages: boolean, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }> }, tags: Array<{ __typename?: 'Tag', id: string, name: string }> }> } };
+export type WorkspacePipelinesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, pipelineTags: Array<string>, pipelineLastRunStatuses: Array<Types.PipelineRunStatus>, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean } } | null } | null, pipelines: { __typename?: 'PipelinesPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<{ __typename?: 'Pipeline', id: string, code: string, name?: string | null, schedule?: string | null, description?: string | null, type: Types.PipelineType, functionalType?: Types.PipelineFunctionalType | null, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, name: string } | null, currentVersion?: { __typename?: 'PipelineVersion', versionName: string, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } | null, lastRuns: { __typename?: 'PipelineRunPage', items: Array<{ __typename?: 'PipelineRun', executionDate?: any | null, id: string, status: Types.PipelineRunStatus, hasErrorMessages: boolean, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }> }, tags: Array<{ __typename?: 'Tag', id: string, name: string }> }> } };
 
 export type WorkspaceNotebooksPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -417,11 +418,12 @@ export type WorkspacePageLazyQueryHookResult = ReturnType<typeof useWorkspacePag
 export type WorkspacePageSuspenseQueryHookResult = ReturnType<typeof useWorkspacePageSuspenseQuery>;
 export type WorkspacePageQueryResult = Apollo.QueryResult<WorkspacePageQuery, WorkspacePageQueryVariables>;
 export const WorkspacePipelinesPageDocument = gql`
-    query WorkspacePipelinesPage($workspaceSlug: String!, $search: String, $tags: [String!], $functionalType: PipelineFunctionalType, $page: Int, $perPage: Int) {
+    query WorkspacePipelinesPage($workspaceSlug: String!, $search: String, $tags: [String!], $functionalType: PipelineFunctionalType, $lastRunStates: [PipelineRunStatus!], $page: Int, $perPage: Int) {
   workspace(slug: $workspaceSlug) {
     slug
     name
     pipelineTags
+    pipelineLastRunStatuses
     ...WorkspaceLayout_workspace
     ...CreatePipelineDialog_workspace
   }
@@ -430,6 +432,7 @@ export const WorkspacePipelinesPageDocument = gql`
     search: $search
     tags: $tags
     functionalType: $functionalType
+    lastRunStates: $lastRunStates
     page: $page
     perPage: $perPage
   ) {
@@ -461,6 +464,7 @@ ${PipelineCard_PipelineFragmentDoc}`;
  *      search: // value for 'search'
  *      tags: // value for 'tags'
  *      functionalType: // value for 'functionalType'
+ *      lastRunStates: // value for 'lastRunStates'
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *   },
