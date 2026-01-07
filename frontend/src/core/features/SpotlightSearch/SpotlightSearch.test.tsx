@@ -47,7 +47,8 @@ describe("SpotlightSearch", () => {
       );
     });
 
-    fireEvent.click(screen.getByText("Test Workspace")); // The mock data has a workspace called "Test Workspace" and expecting only one workspace in the query
+    // Remove "Test Workspace" (first badge, index 0) from selection
+    fireEvent.click(await screen.findByTestId("remove-badge-0"));
 
     const tabs = screen.getAllByRole("tab");
     expect(tabs).toHaveLength(6);

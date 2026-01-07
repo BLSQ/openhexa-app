@@ -86,7 +86,7 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
       >
         <div
           aria-selected="false"
-          class="relative cursor-default select-none px-2 py-2 bg-blue-500 text-white"
+          class="relative cursor-default select-none px-3 py-2 rounded-md mx-1 bg-gray-100"
           data-active=""
           data-focus=""
           data-headlessui-state="active focus"
@@ -95,30 +95,13 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
           tabindex="-1"
         >
           <div
-            class="group flex w-full items-center"
+            class="group flex w-full items-center gap-3"
           >
             <span
-              class="flex items-center pr-4 invisible text-white"
-            >
-              <svg
-                aria-hidden="true"
-                class="h-5 w-5"
-                data-slot="icon"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m4.5 12.75 6 6 9-13.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </span>
+              class="flex h-4 w-4 items-center justify-center rounded border transition-colors border-gray-300"
+            />
             <span
-              class="flex-1 truncate"
+              class="flex-1 truncate text-gray-700"
             >
               <div
                 class="flex items-center"
@@ -138,37 +121,20 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
         </div>
         <div
           aria-selected="false"
-          class="relative cursor-default select-none px-2 py-2 text-gray-900"
+          class="relative cursor-default select-none px-3 py-2 rounded-md mx-1"
           data-headlessui-state=""
           id="headlessui-combobox-option-bc5cc96b-0ce3-4134-9e84-249577d65a37"
           role="option"
           tabindex="-1"
         >
           <div
-            class="group flex w-full items-center"
+            class="group flex w-full items-center gap-3"
           >
             <span
-              class="flex items-center pr-4 invisible text-gray-900"
-            >
-              <svg
-                aria-hidden="true"
-                class="h-5 w-5"
-                data-slot="icon"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m4.5 12.75 6 6 9-13.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </span>
+              class="flex h-4 w-4 items-center justify-center rounded border transition-colors border-gray-300"
+            />
             <span
-              class="flex-1 truncate"
+              class="flex-1 truncate text-gray-700"
             >
               <div
                 class="flex items-center"
@@ -188,37 +154,20 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
         </div>
         <div
           aria-selected="false"
-          class="relative cursor-default select-none px-2 py-2 text-gray-900"
+          class="relative cursor-default select-none px-3 py-2 rounded-md mx-1"
           data-headlessui-state=""
           id="headlessui-combobox-option-ae7c7a26-e9c8-47d1-b9f8-3d4b8f9d0f15"
           role="option"
           tabindex="-1"
         >
           <div
-            class="group flex w-full items-center"
+            class="group flex w-full items-center gap-3"
           >
             <span
-              class="flex items-center pr-4 invisible text-gray-900"
-            >
-              <svg
-                aria-hidden="true"
-                class="h-5 w-5"
-                data-slot="icon"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m4.5 12.75 6 6 9-13.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </span>
+              class="flex h-4 w-4 items-center justify-center rounded border transition-colors border-gray-300"
+            />
             <span
-              class="flex-1 truncate"
+              class="flex-1 truncate text-gray-700"
             >
               <div
                 class="flex items-center"
