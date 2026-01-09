@@ -239,9 +239,10 @@ def load_database_sample_data(db_name: str):
 
 def delete_database(db_name: str):
     """
-    Delete database, role and all objects associated with the role.
+    Delete database, role, read-only role and all objects associated with them.
     """
     conn = None
+    ro_role = f"{db_name}_ro"
     try:
         conn = get_database_connection(settings.WORKSPACES_DATABASE_DEFAULT_DB)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
@@ -256,6 +257,9 @@ def delete_database(db_name: str):
             )
             cursor.execute(
                 sql.SQL("DROP ROLE {role};").format(role=sql.Identifier(db_name))
+            )
+            cursor.execute(
+                sql.SQL("DROP ROLE {role};").format(role=sql.Identifier(ro_role))
             )
     finally:
         if conn:
