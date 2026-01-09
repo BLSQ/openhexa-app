@@ -29,6 +29,7 @@ from hexa.databases.api import (
     get_db_server_credentials,
     load_database_sample_data,
     update_database_password,
+    update_database_ro_password,
 )
 from hexa.datasets.models import Dataset
 from hexa.files import storage
@@ -130,10 +131,12 @@ class WorkspaceManager(models.Manager):
             create_kwargs["configuration"] = configuration
 
         db_password = make_random_password(length=16)
+        db_ro_password = make_random_password(length=16)
         db_name = generate_database_name()
         create_kwargs["db_password"] = db_password
+        create_kwargs["db_ro_password"] = db_ro_password
         create_kwargs["db_name"] = db_name
-        create_database(db_name, db_password)
+        create_database(db_name, db_password, db_ro_password)
 
         bucket_name = create_workspace_bucket(slug)
         create_kwargs["bucket_name"] = bucket_name
@@ -218,6 +221,7 @@ class Workspace(Base):
 
     db_name = models.CharField(null=False, unique=True, max_length=63)
     db_password = EncryptedTextField(null=False)
+    db_ro_password = EncryptedTextField(null=False)
     bucket_name = models.TextField(
         null=True,
     )
@@ -255,6 +259,18 @@ class Workspace(Base):
     @property
     def db_url(self):
         return f"postgresql://{self.db_name}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
+
+    @property
+    def db_ro_username(self):
+        """Read-only database role name (derived from db_name)."""
+        return f"{self.db_name}_ro"
+
+    @property
+    def db_ro_url(self):
+        """Connection URL for read-only access."""
+        if not self.db_ro_password:
+            return None
+        return f"postgresql://{self.db_ro_username}:{self.db_ro_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
     def update_if_has_perm(self, *, principal: User, **kwargs):
         if not principal.has_perm("workspaces.update_workspace", self):
@@ -299,6 +315,16 @@ class Workspace(Base):
         update_database_password(self.db_name, new_password)
 
         setattr(self, "db_password", new_password)
+        self.save()
+
+    def generate_new_database_ro_password(self, *, principal: User):
+        if not principal.has_perm("workspaces.update_workspace", self):
+            raise PermissionDenied
+
+        new_password = make_random_password(length=16)
+        update_database_ro_password(self.db_name, new_password)
+
+        self.db_ro_password = new_password
         self.save()
 
 
