@@ -54,7 +54,7 @@ const DatabaseVariablesSection = ({
   );
   return (
     <DataGrid
-      className="rounded-md border 2xl:w-3/4"
+      className="rounded-md border"
       data={dbCredentials}
       fixedLayout={true}
     >
