@@ -24,11 +24,13 @@ class DatabaseAPITest(TestCase):
         )
         self.DB1_NAME = "rdcproject"
         self.PWD_1 = "p%ygy+_'#wd@"
+        self.RO_PWD_1 = "ro_p%ygy+_'#wd@"
         self.DB2_NAME = "rwandaproject"
         self.PWD_2 = "password_2"
+        self.RO_PWD_2 = "ro_password_2"
 
-        create_database(self.DB1_NAME, self.PWD_1)
-        create_database(self.DB2_NAME, self.PWD_2)
+        create_database(self.DB1_NAME, self.PWD_1, self.RO_PWD_1)
+        create_database(self.DB2_NAME, self.PWD_2, self.RO_PWD_2)
 
     @classmethod
     def tearDownClass(self):
@@ -63,7 +65,17 @@ class DatabaseAPITest(TestCase):
                 )
                 cursor.execute(
                     sql.SQL("DROP ROLE {role_name};").format(
+                        role_name=sql.Identifier(f"{self.DB1_NAME}_ro")
+                    )
+                )
+                cursor.execute(
+                    sql.SQL("DROP ROLE {role_name};").format(
                         role_name=sql.Identifier(self.DB2_NAME)
+                    )
+                )
+                cursor.execute(
+                    sql.SQL("DROP ROLE {role_name};").format(
+                        role_name=sql.Identifier(f"{self.DB2_NAME}_ro")
                     )
                 )
 
@@ -83,8 +95,9 @@ class DatabaseAPITest(TestCase):
     def test_create_database_raise_error(self):
         bad_input = "1_invalid_db_name"
         password = "password"
+        ro_password = "ro_password"
         with self.assertRaises(ValidationError):
-            create_database(bad_input, password)
+            create_database(bad_input, password, ro_password)
 
     def test_role_access_denied(self):
         credentials = get_db_server_credentials()
@@ -173,7 +186,8 @@ class DatabaseAPITest(TestCase):
     def test_delete_database(self):
         db_name = "pnlp"
         db_password = "pnlp"
-        create_database(db_name, db_password)
+        ro_password = "ro_pnlp"
+        create_database(db_name, db_password, ro_password)
 
         credentials = get_db_server_credentials()
         host = credentials["host"]
