@@ -1,5 +1,6 @@
 import os
 import re
+from contextlib import contextmanager
 
 import psycopg2
 from django.conf import settings
@@ -29,6 +30,27 @@ def get_database_connection(database: str):
     )
 
 
+@contextmanager
+def get_cursor(db_name: str, cursor=None):
+    """
+    Context manager that yields a cursor.
+    If cursor is provided, yields it directly.
+    Otherwise, creates a new connection and cursor.
+    """
+    if cursor:
+        yield cursor
+    else:
+        conn = None
+        try:
+            conn = get_database_connection(db_name)
+            conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+            with conn.cursor() as cur:
+                yield cur
+        finally:
+            if conn:
+                conn.close()
+
+
 def validate_db_name(name: str):
     if not name:
         raise ValidationError("Empty value for name")
@@ -39,12 +61,57 @@ def validate_db_name(name: str):
         )
 
 
-def create_database(db_name: str, pwd: str):
+def create_read_only_role(db_name: str, ro_pwd: str, cursor=None):
     """
-    Create a database and role associated to it
-    Args :
-    name - database name (it will be used also for the role name)
-    pwd  - password used by the created role to connect to the db
+    Create a read-only role for a database.
+
+    Args:
+        db_name: Database name (also the main role name)
+        ro_pwd: Password for the read-only role
+        cursor: Optional cursor to use (if None, creates its own connection)
+    """
+    ro_role = f"{db_name}_ro"
+    with get_cursor(db_name, cursor) as cur:
+        cur.execute(
+            sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password};").format(
+                role_name=sql.Identifier(ro_role), password=sql.Literal(ro_pwd)
+            )
+        )
+        cur.execute(
+            sql.SQL("GRANT CONNECT ON DATABASE {db_name} TO {role};").format(
+                db_name=sql.Identifier(db_name),
+                role=sql.Identifier(ro_role),
+            )
+        )
+        cur.execute(
+            sql.SQL("GRANT USAGE ON SCHEMA public TO {role}").format(
+                role=sql.Identifier(ro_role)
+            )
+        )
+        cur.execute(
+            sql.SQL("GRANT SELECT ON ALL TABLES IN SCHEMA public TO {role}").format(
+                role=sql.Identifier(ro_role)
+            )
+        )
+        cur.execute(
+            sql.SQL(
+                "ALTER DEFAULT PRIVILEGES FOR ROLE {owner_role} IN SCHEMA public "
+                "GRANT SELECT ON TABLES TO {ro_role}"
+            ).format(
+                owner_role=sql.Identifier(db_name),
+                ro_role=sql.Identifier(ro_role),
+            )
+        )
+
+
+def create_database(db_name: str, pwd: str, ro_pwd: str):
+    """
+    Create a database and roles associated to it.
+
+    Args:
+        db_name: Database name (also used for the main role name)
+        pwd: Password for the main read-write role
+        ro_pwd: Password for the read-only role
     """
     validate_db_name(db_name)
     conn = None
@@ -126,6 +193,8 @@ def create_database(db_name: str, pwd: str):
             )
             cursor.execute("CREATE EXTENSION POSTGIS;")
             cursor.execute("CREATE EXTENSION POSTGIS_TOPOLOGY;")
+
+            create_read_only_role(db_name, ro_pwd, cursor)
     finally:
         if conn:
             conn.close()
