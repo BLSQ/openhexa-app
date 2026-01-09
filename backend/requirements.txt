@@ -526,7 +526,7 @@ urllib3==2.6.0
     #   sentry-sdk
 websocket-client==1.8.0
     # via kubernetes
-werkzeug==3.1.4
+werkzeug==3.1.5
     # via moto
 wheel==0.45.1
     # via pip-tools
