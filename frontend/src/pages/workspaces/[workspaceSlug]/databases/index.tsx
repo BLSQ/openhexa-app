@@ -163,11 +163,17 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
                   {t("Read/Write Connection (Full Access)")}
                 </Block.Header>
                 <Block.Section collapsible={false}>
-                  <p className="mb-4 text-sm text-gray-600">
-                    {t(
-                      "Use these credentials in notebooks and pipelines that need to write data to the database.",
-                    )}
-                  </p>
+                  <div className="mb-4 flex items-start gap-2 rounded-md bg-amber-50 p-4">
+                    <InformationCircleIcon className="h-5 w-5 shrink-0 text-amber-600" />
+                    <p className="text-sm text-amber-800">
+                      <strong>
+                        {t("For notebooks and pipelines:")}
+                      </strong>{" "}
+                      {t(
+                        "Use these credentials in notebooks and pipelines that need to write data to the database.",
+                      )}
+                    </p>
+                  </div>
                   <DatabaseVariablesSection
                     credentials={workspace.database.credentials}
                   />
