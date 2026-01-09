@@ -62,8 +62,9 @@ const DatabaseVariablesSection = ({
         className="py-3 font-mono"
         label={t("Name")}
         accessor="name"
+        width={100}
       />
-      <BaseColumn label={t("Environment variable")} accessor="name">
+      <BaseColumn label={t("Environment variable")} accessor="name" width={150}>
         {(value) => (
           <Clipboard value={slugify(`WORKSPACE_DATABASE_${value}`)}>
             <code className="rounded-md bg-slate-100 p-1.5 font-mono text-xs font-medium text-gray-600">
@@ -75,6 +76,7 @@ const DatabaseVariablesSection = ({
       <BaseColumn
         className="flex gap-x-1.5 font-mono text-gray-900"
         label={t("Value")}
+        width={400}
       >
         {(field) => (
           <div className="flex gap-x-1">
