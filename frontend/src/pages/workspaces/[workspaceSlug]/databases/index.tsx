@@ -1,4 +1,7 @@
-import { TableCellsIcon } from "@heroicons/react/24/outline";
+import {
+  InformationCircleIcon,
+  TableCellsIcon,
+} from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
@@ -134,16 +137,41 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
               })}
             />
           </DataGrid>
-          <Block className="divide-y-2">
-            {workspace.permissions.update && (
+          {workspace.permissions.update && (
+            <Block className="divide-y-2">
               <Block.Section
                 collapsible={false}
-                title={t("Connection parameters")}
+                title={t("Read/Write Connection (Full Access)")}
               >
-                <DatabaseVariablesSection workspace={workspace} />
+                <p className="mb-4 text-sm text-gray-600">
+                  {t(
+                    "Use these credentials in notebooks and pipelines that need to write data to the database.",
+                  )}
+                </p>
+                <DatabaseVariablesSection
+                  credentials={workspace.database.credentials}
+                />
               </Block.Section>
-            )}
-          </Block>
+
+              <Block.Section
+                collapsible={false}
+                title={t("Read-Only Connection (Recommended for Dashboards)")}
+              >
+                <div className="mb-4 flex items-start gap-2 rounded-md bg-blue-50 p-4">
+                  <InformationCircleIcon className="h-5 w-5 shrink-0 text-blue-600" />
+                  <p className="text-sm text-blue-800">
+                    <strong>{t("Recommended for visualization tools:")}</strong>{" "}
+                    {t(
+                      "Use these read-only credentials for Superset, PowerBI, Tableau, and other dashboard tools. This prevents accidental data modification.",
+                    )}
+                  </p>
+                </div>
+                <DatabaseVariablesSection
+                  credentials={workspace.database.readOnlyCredentials}
+                />
+              </Block.Section>
+            </Block>
+          )}
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
     </Page>

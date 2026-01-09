@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { DatabaseVariablesSection_WorkspaceFragment } from "./DatabaseVariablesSection.generated";
+import { DatabaseVariablesSection_CredentialsFragment } from "./DatabaseVariablesSection.generated";
 import { useTranslation } from "next-i18next";
 import { useMemo } from "react";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
@@ -9,14 +9,14 @@ import Clipboard from "core/components/Clipboard";
 import { slugify } from "workspaces/helpers/connections/utils";
 
 type DatabaseVariablesSectionProps = {
-  workspace: DatabaseVariablesSection_WorkspaceFragment;
+  credentials: DatabaseVariablesSection_CredentialsFragment | null | undefined;
 };
 
-const DatabaseVariablesSection = (props: DatabaseVariablesSectionProps) => {
+const DatabaseVariablesSection = ({
+  credentials,
+}: DatabaseVariablesSectionProps) => {
   const { t } = useTranslation();
-  const {
-    database: { credentials },
-  } = props.workspace;
+
   const dbCredentials = useMemo(
     () => [
       {
@@ -91,20 +91,15 @@ const DatabaseVariablesSection = (props: DatabaseVariablesSectionProps) => {
   );
 };
 
-DatabaseVariablesSection.fragment = {
-  workspace: gql`
-    fragment DatabaseVariablesSection_workspace on Workspace {
-      slug
-      database {
-        credentials {
-          dbName
-          username
-          password
-          host
-          port
-          url
-        }
-      }
+DatabaseVariablesSection.fragments = {
+  credentials: gql`
+    fragment DatabaseVariablesSection_credentials on DatabaseCredentials {
+      dbName
+      username
+      password
+      host
+      port
+      url
     }
   `,
 };
