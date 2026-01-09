@@ -127,7 +127,6 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
               )}
             </BaseColumn>
             <ChevronLinkColumn
-              maxWidth="100"
               accessor="name"
               url={(value: any) => ({
                 pathname: `/workspaces/${encodeURIComponent(
