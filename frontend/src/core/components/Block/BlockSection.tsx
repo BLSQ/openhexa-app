@@ -40,7 +40,7 @@ function BlockSection(props: BlockSectionProps) {
       typeof title === "function" ? (
         title({ open })
       ) : (
-        <>
+        <div className="flex w-full cursor-pointer">
           <h4 className="font-medium">{title}</h4>
           <div className="flex flex-1 shrink items-center justify-end">
             {loading && <Spinner size="sm" />}
@@ -54,7 +54,7 @@ function BlockSection(props: BlockSectionProps) {
               </button>
             )}
           </div>
-        </>
+        </div>
       );
     return collapsible ? (
       <DisclosureButton as="div" className="-my-7 flex items-center py-7">

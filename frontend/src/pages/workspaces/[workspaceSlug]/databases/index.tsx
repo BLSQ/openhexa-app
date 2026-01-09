@@ -140,8 +140,7 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
           {workspace.permissions.update && (
             <>
               <Block>
-                <Block.Header>{t("Read-Only Connection")}</Block.Header>
-                <Block.Section collapsible={false}>
+                <Block.Section title={t("Read-Only Connection")} collapsible>
                   <div className="mb-4 flex items-start gap-2 rounded-md bg-blue-50 p-4">
                     <InformationCircleIcon className="h-5 w-5 shrink-0 text-blue-600" />
                     <p className="text-sm text-blue-800">
