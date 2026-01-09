@@ -138,39 +138,42 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
             />
           </DataGrid>
           {workspace.permissions.update && (
-            <Block className="divide-y-2">
-              <Block.Section
-                collapsible={false}
-                title={t("Read/Write Connection (Full Access)")}
-              >
-                <p className="mb-4 text-sm text-gray-600">
-                  {t(
-                    "Use these credentials in notebooks and pipelines that need to write data to the database.",
-                  )}
-                </p>
-                <DatabaseVariablesSection
-                  credentials={workspace.database.credentials}
-                />
-              </Block.Section>
-
-              <Block.Section
-                collapsible={false}
-                title={t("Read-Only Connection (Recommended for Dashboards)")}
-              >
-                <div className="mb-4 flex items-start gap-2 rounded-md bg-blue-50 p-4">
-                  <InformationCircleIcon className="h-5 w-5 shrink-0 text-blue-600" />
-                  <p className="text-sm text-blue-800">
-                    <strong>{t("Recommended for visualization tools:")}</strong>{" "}
+            <>
+              <Block>
+                <Block.Header>{t("Read-Only Connection")}</Block.Header>
+                <Block.Section collapsible={false}>
+                  <div className="mb-4 flex items-start gap-2 rounded-md bg-blue-50 p-4">
+                    <InformationCircleIcon className="h-5 w-5 shrink-0 text-blue-600" />
+                    <p className="text-sm text-blue-800">
+                      <strong>
+                        {t("Recommended for visualization tools:")}
+                      </strong>{" "}
+                      {t(
+                        "Use these read-only credentials for Superset, PowerBI, Tableau, and other dashboard tools. This prevents accidental data modification.",
+                      )}
+                    </p>
+                  </div>
+                  <DatabaseVariablesSection
+                    credentials={workspace.database.readOnlyCredentials}
+                  />
+                </Block.Section>
+              </Block>
+              <Block>
+                <Block.Header>
+                  {t("Read/Write Connection (Full Access)")}
+                </Block.Header>
+                <Block.Section collapsible={false}>
+                  <p className="mb-4 text-sm text-gray-600">
                     {t(
-                      "Use these read-only credentials for Superset, PowerBI, Tableau, and other dashboard tools. This prevents accidental data modification.",
+                      "Use these credentials in notebooks and pipelines that need to write data to the database.",
                     )}
                   </p>
-                </div>
-                <DatabaseVariablesSection
-                  credentials={workspace.database.readOnlyCredentials}
-                />
-              </Block.Section>
-            </Block>
+                  <DatabaseVariablesSection
+                    credentials={workspace.database.credentials}
+                  />
+                </Block.Section>
+              </Block>
+            </>
           )}
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>

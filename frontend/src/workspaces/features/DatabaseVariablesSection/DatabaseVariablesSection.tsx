@@ -56,7 +56,7 @@ const DatabaseVariablesSection = ({
     <DataGrid
       className="rounded-md border 2xl:w-3/4"
       data={dbCredentials}
-      fixedLayout={false}
+      fixedLayout={true}
     >
       <TextColumn
         className="py-3 font-mono"
