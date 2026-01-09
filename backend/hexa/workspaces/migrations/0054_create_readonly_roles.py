@@ -1,9 +1,6 @@
-import logging
 import secrets
 
 from django.db import migrations
-
-logger = logging.getLogger(__name__)
 
 
 def make_random_password(
@@ -24,10 +21,10 @@ def create_readonly_roles_for_existing_workspaces(apps, schema_editor):
             create_read_only_role(workspace.db_name, ro_password)
             workspace.db_ro_password = ro_password
             workspace.save(update_fields=["db_ro_password"])
-            logger.info(f"Created read-only role for workspace {workspace.slug}")
+            print(f"Created read-only role for workspace {workspace.slug}")
         except Exception as e:
-            logger.error(
-                f"Failed to create read-only role for workspace {workspace.slug}: {e}"
+            print(
+                f"ERROR: Failed to create read-only role for workspace {workspace.slug}: {e}"
             )
 
 
