@@ -29,7 +29,6 @@ from hexa.databases.api import (
     get_db_server_credentials,
     load_database_sample_data,
     update_database_password,
-    update_database_ro_password,
 )
 from hexa.datasets.models import Dataset
 from hexa.files import storage
@@ -322,7 +321,7 @@ class Workspace(Base):
             raise PermissionDenied
 
         new_password = make_random_password(length=16)
-        update_database_ro_password(self.db_name, new_password)
+        update_database_password(self.db_ro_username, new_password)
 
         self.db_ro_password = new_password
         self.save()
