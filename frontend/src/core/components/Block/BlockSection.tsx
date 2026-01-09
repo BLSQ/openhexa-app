@@ -40,7 +40,7 @@ function BlockSection(props: BlockSectionProps) {
       typeof title === "function" ? (
         title({ open })
       ) : (
-        <div className={clsx(collapsible && "flex w-full cursor-pointer")}>
+        <div className={clsx("flex w-full", collapsible && "cursor-pointer")}>
           <h4 className="font-medium">{title}</h4>
           <div className="flex flex-1 shrink items-center justify-end">
             {loading && <Spinner size="sm" />}
