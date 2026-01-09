@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import signal
 import sys
 from datetime import timedelta
 from enum import Enum
@@ -25,6 +26,18 @@ from hexa.pipelines.utils import generate_pipeline_container_name, mail_run_reci
 logger = getLogger(__name__)
 
 HEARTBEAT_TIMEOUT = 15 * 60  # 15 minutes
+
+
+def setup_child_process_reaping():
+    """
+    Configure automatic cleanup of child processes when they exit.
+
+    When a child process exits after fork(), the OS keeps a process table
+    entry (zombie) until the parent calls wait(). Setting SIGCHLD to SIG_IGN
+    tells the OS to automatically clean up terminated children, preventing
+    zombie accumulation in long-running daemons.
+    """
+    signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
 
 class PodTerminationReason(Enum):
@@ -572,6 +585,7 @@ def process_zombie_runs():
 class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info("start pipeline runner")
+        setup_child_process_reaping()
         sleep(10)
 
         orphaned_runs = list(
