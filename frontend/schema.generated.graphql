@@ -1120,6 +1120,7 @@ type DHIS2QueryResultPage {
 
 type Database {
   credentials: DatabaseCredentials
+  readOnlyCredentials: DatabaseCredentials
   table(name: String!): DatabaseTable
   tables(page: Int, perPage: Int): DatabaseTablePage!
 }
@@ -2574,6 +2575,9 @@ type Mutation {
 
   """Generates a new password for a database."""
   generateNewDatabasePassword(input: GenerateNewDatabasePasswordInput!): GenerateNewDatabasePasswordResult!
+
+  """Generates a new password for the read-only database user."""
+  generateNewDatabaseRoPassword(input: GenerateNewDatabasePasswordInput!): GenerateNewDatabasePasswordResult!
 
   """Generates a webhook URL for a pipeline."""
   generatePipelineWebhookUrl(input: GeneratePipelineWebhookUrlInput!): GeneratePipelineWebhookUrlResult!
