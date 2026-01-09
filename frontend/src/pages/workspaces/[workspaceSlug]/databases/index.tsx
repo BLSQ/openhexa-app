@@ -34,7 +34,7 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
     refetch({
       workspaceSlug: props.workspaceSlug,
       page,
-    });
+    }).then();
   };
 
   if (!data?.workspace) {
