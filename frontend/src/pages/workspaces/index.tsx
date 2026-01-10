@@ -54,7 +54,6 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   if (!isChecking && !me.permissions.createWorkspace) {
     return (
       <WarningAlert onClose={() => router.push("/")}>

@@ -38,4 +38,74 @@ describe("WebappIframe", () => {
       "allow-forms allow-popups allow-downloads allow-presentation allow-modals allow-scripts allow-same-origin",
     );
   });
+
+  it("should block javascript: protocol URLs", () => {
+    const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+    const url = "javascript:alert('xss')";
+    render(<WebappIframe url={url} />);
+
+    const iframe = screen.getByTestId("webapp-iframe");
+    expect(iframe).toHaveAttribute("src", "");
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      "Blocked unsafe URL protocol: javascript:",
+    );
+    consoleWarnSpy.mockRestore();
+  });
+
+  it("should block data: protocol URLs", () => {
+    const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+    const url = "data:text/html,<script>alert('xss')</script>";
+    render(<WebappIframe url={url} />);
+
+    const iframe = screen.getByTestId("webapp-iframe");
+    expect(iframe).toHaveAttribute("src", "");
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      "Blocked unsafe URL protocol: data:",
+    );
+    consoleWarnSpy.mockRestore();
+  });
+
+  it("should block vbscript: protocol URLs", () => {
+    const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+    const url = "vbscript:msgbox('xss')";
+    render(<WebappIframe url={url} />);
+
+    const iframe = screen.getByTestId("webapp-iframe");
+    expect(iframe).toHaveAttribute("src", "");
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      "Blocked unsafe URL protocol: vbscript:",
+    );
+    consoleWarnSpy.mockRestore();
+  });
+
+  it("should allow valid HTTPS URLs", () => {
+    const url = "https://example.com/webapp";
+    render(<WebappIframe url={url} />);
+
+    const iframe = screen.getByTestId("webapp-iframe");
+    expect(iframe).toHaveAttribute("src", url);
+  });
+
+  it("should allow valid HTTP URLs", () => {
+    const url = "http://example.com/webapp";
+    render(<WebappIframe url={url} />);
+
+    const iframe = screen.getByTestId("webapp-iframe");
+    expect(iframe).toHaveAttribute("src", url);
+  });
+
+  it("should allow relative URLs", () => {
+    const url = "/workspace/webapp/path";
+    render(<WebappIframe url={url} />);
+
+    const iframe = screen.getByTestId("webapp-iframe");
+    expect(iframe).toHaveAttribute("src", url);
+  });
+
+  it("should handle empty or invalid URLs", () => {
+    render(<WebappIframe url="" />);
+
+    const iframe = screen.getByTestId("webapp-iframe");
+    expect(iframe).toHaveAttribute("src", "");
+  });
 });
