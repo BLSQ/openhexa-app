@@ -1970,7 +1970,7 @@ type EnableTwoFactorResult {
 """
 Represents an external collaborator who has workspace access but no organization membership.
 """
-type ExternalCollaborator {
+type ExternalCollaborator implements OrganizationMember {
   createdAt: DateTime!
   id: UUID!
   user: User!
@@ -2746,6 +2746,7 @@ type Mutation {
 
   """Update a dataset version."""
   updateDatasetVersion(input: UpdateDatasetVersionInput!): UpdateDatasetVersionResult!
+  updateExternalCollaborator(input: UpdateExternalCollaboratorInput!): UpdateExternalCollaboratorResult!
   updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
   updateOrganization(input: UpdateOrganizationInput!): UpdateOrganizationResult!
   updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult!
@@ -2914,8 +2915,19 @@ enum OrganizationInvitationStatus {
   PENDING
 }
 
+"""
+Common interface for organization members and external collaborators.
+Used by shared UI components that handle both types.
+"""
+interface OrganizationMember {
+  createdAt: DateTime!
+  id: UUID!
+  user: User!
+  workspaceMemberships: [WorkspaceMembership!]!
+}
+
 """Represents a membership in an organization."""
-type OrganizationMembership {
+type OrganizationMembership implements OrganizationMember {
   createdAt: DateTime!
   id: UUID!
   organization: Organization!
@@ -4252,6 +4264,53 @@ type UpdateDatasetVersionResult {
   errors: [UpdateDatasetVersionError!]!
   success: Boolean!
   version: DatasetVersion
+}
+
+"""
+The UpdateExternalCollaboratorError enum represents the possible errors that can occur during the updateExternalCollaborator mutation.
+"""
+enum UpdateExternalCollaboratorError {
+  """Indicates that the organization was not found."""
+  ORGANIZATION_NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to update external collaborators.
+  """
+  PERMISSION_DENIED
+
+  """Indicates that the user was not found."""
+  USER_NOT_FOUND
+}
+
+"""
+The UpdateExternalCollaboratorInput type represents the input for the updateExternalCollaborator mutation.
+"""
+input UpdateExternalCollaboratorInput {
+  """The unique identifier of the organization."""
+  organization_id: UUID!
+
+  """The unique identifier of the user who is an external collaborator."""
+  user_id: UUID!
+
+  """
+  The list of workspace permissions to update for the external collaborator.
+  """
+  workspacePermissions: [WorkspacePermissionInput!]
+}
+
+"""
+The UpdateExternalCollaboratorResult type represents the result of the updateExternalCollaborator mutation.
+"""
+type UpdateExternalCollaboratorResult {
+  """
+  The list of errors that occurred during the updateExternalCollaborator mutation.
+  """
+  errors: [UpdateExternalCollaboratorError!]!
+
+  """
+  Indicates whether the updateExternalCollaborator mutation was successful.
+  """
+  success: Boolean!
 }
 
 """

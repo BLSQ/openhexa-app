@@ -1179,9 +1179,27 @@ type OrganizationMembershipPage {
 }
 
 """
+Common interface for organization members and external collaborators.
+Used by shared UI components that handle both types.
+"""
+interface OrganizationMember {
+    # The unique identifier.
+    id: UUID!
+
+    # The user.
+    user: User!
+
+    # The workspace memberships of the user within this organization.
+    workspaceMemberships: [WorkspaceMembership!]!
+
+    # The date and time when the membership was created.
+    createdAt: DateTime!
+}
+
+"""
 Represents an external collaborator who has workspace access but no organization membership.
 """
-type ExternalCollaborator {
+type ExternalCollaborator implements OrganizationMember {
     # The unique identifier (user ID).
     id: UUID!
 
@@ -1215,7 +1233,7 @@ type ExternalCollaboratorPage {
 """
 Represents a membership in an organization.
 """
-type OrganizationMembership {
+type OrganizationMembership implements OrganizationMember {
     # The unique identifier for the membership.
     id: UUID!
 
@@ -1502,6 +1520,61 @@ enum UpdateOrganizationMemberError {
     Indicates that the provided role is invalid.
     """
     INVALID_ROLE
+}
+
+"""
+The UpdateExternalCollaboratorInput type represents the input for the updateExternalCollaborator mutation.
+"""
+input UpdateExternalCollaboratorInput {
+    """
+    The unique identifier of the user who is an external collaborator.
+    """
+    user_id: UUID!
+
+    """
+    The unique identifier of the organization.
+    """
+    organization_id: UUID!
+
+    """
+    The list of workspace permissions to update for the external collaborator.
+    """
+    workspacePermissions: [WorkspacePermissionInput!]
+}
+
+"""
+The UpdateExternalCollaboratorResult type represents the result of the updateExternalCollaborator mutation.
+"""
+type UpdateExternalCollaboratorResult {
+    """
+    Indicates whether the updateExternalCollaborator mutation was successful.
+    """
+    success: Boolean!
+
+    """
+    The list of errors that occurred during the updateExternalCollaborator mutation.
+    """
+    errors: [UpdateExternalCollaboratorError!]!
+}
+
+"""
+The UpdateExternalCollaboratorError enum represents the possible errors that can occur during the updateExternalCollaborator mutation.
+"""
+enum UpdateExternalCollaboratorError {
+    """
+    Indicates that the user does not have permission to update external collaborators.
+    """
+    PERMISSION_DENIED
+
+    """
+    Indicates that the user was not found.
+    """
+    USER_NOT_FOUND
+
+    """
+    Indicates that the organization was not found.
+    """
+    ORGANIZATION_NOT_FOUND
 }
 
 """
@@ -2009,6 +2082,7 @@ enum UpdateOrganizationSubscriptionError {
 extend type Mutation {
     inviteOrganizationMember(input: InviteOrganizationMemberInput!): InviteOrganizationMemberResult! @loginRequired
     updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult! @loginRequired
+    updateExternalCollaborator(input: UpdateExternalCollaboratorInput!): UpdateExternalCollaboratorResult! @loginRequired
     deleteOrganizationMember(input: DeleteOrganizationMemberInput!): DeleteOrganizationMemberResult! @loginRequired
     deleteOrganizationInvitation(input: DeleteOrganizationInvitationInput!): DeleteOrganizationInvitationResult!
         @loginRequired
