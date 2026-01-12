@@ -1227,7 +1227,7 @@ def resolve_update_external_collaborator(_, info, **kwargs):
         organization = Organization.objects.filter_for_user(principal).get(
             id=update_input["organization_id"]
         )
-        if not organization.has_perm(principal, "manage_members"):
+        if not principal.has_perm("user_management.manage_members", organization):
             raise PermissionDenied()
 
         workspace_permissions = update_input.get("workspace_permissions", [])
@@ -1248,6 +1248,36 @@ def resolve_update_external_collaborator(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
+@identity_mutations.field("deleteExternalCollaborator")
+@transaction.atomic
+def resolve_delete_external_collaborator(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    delete_input = kwargs["input"]
+
+    try:
+        user = User.objects.get(id=delete_input["user_id"])
+        organization = Organization.objects.filter_for_user(principal).get(
+            id=delete_input["organization_id"]
+        )
+        if not principal.has_perm("user_management.manage_members", organization):
+            raise PermissionDenied()
+
+        # Delete all workspace memberships for this user within the organization
+        WorkspaceMembership.objects.filter(
+            user=user, workspace__organization=organization
+        ).delete()
+
+        return {"success": True, "errors": []}
+
+    except User.DoesNotExist:
+        return {"success": False, "errors": ["USER_NOT_FOUND"]}
+    except Organization.DoesNotExist:
+        return {"success": False, "errors": ["ORGANIZATION_NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
 @identity_mutations.field("deleteOrganizationMember")
 @transaction.atomic
 def resolve_delete_organization_member(_, info, **kwargs):
@@ -1257,11 +1287,10 @@ def resolve_delete_organization_member(_, info, **kwargs):
 
     try:
         membership = OrganizationMembership.objects.get(id=delete_input["id"])
-        with transaction.atomic():
-            WorkspaceMembership.objects.filter(
-                user=membership.user, workspace__organization=membership.organization
-            ).delete()
-            membership.delete_if_has_perm(principal=principal)
+        WorkspaceMembership.objects.filter(
+            user=membership.user, workspace__organization=membership.organization
+        ).delete()
+        membership.delete_if_has_perm(principal=principal)
 
         return {"success": True, "errors": []}
 

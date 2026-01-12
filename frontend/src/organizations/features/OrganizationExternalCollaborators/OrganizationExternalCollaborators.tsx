@@ -8,8 +8,8 @@ import SearchInput from "core/features/SearchInput";
 import { DateTime } from "luxon";
 import { useState, useEffect } from "react";
 import { useTranslation } from "next-i18next";
-// import DeleteOrganizationMemberDialog from "./DeleteOrganizationMemberDialog";
-// import UpdateOrganizationMemberDialog from "./UpdateOrganizationMemberDialog";
+import RemoveMemberDialog from "organizations/components/RemoveMemberDialog";
+import UpdateMemberPermissionsDialog from "organizations/components/UpdateMemberPermissionsDialog";
 import {
   useOrganizationExternalCollaboratorsQuery,
   OrganizationExternalCollaboratorsQuery,
@@ -21,8 +21,9 @@ import useMe from "identity/hooks/useMe";
 
 const DEFAULT_PAGE_SIZE = 10;
 
-type ExternalCollaborator =
-  OrganizationExternalCollaboratorsQuery["organization"]["externalCollaborators"]["items"][0];
+type ExternalCollaborator = NonNullable<
+  OrganizationExternalCollaboratorsQuery["organization"]
+>["externalCollaborators"]["items"][0];
 
 export default function OrganizationExternalCollaborators({
   organizationId,
@@ -33,8 +34,8 @@ export default function OrganizationExternalCollaborators({
   const me = useMe();
   const [selectedCollaborator, setSelectedCollaborator] =
     useState<ExternalCollaborator>();
-  // const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  // const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [previousData, setPreviousData] =
     useState<OrganizationExternalCollaboratorsQuery | null>(null);
@@ -78,12 +79,12 @@ export default function OrganizationExternalCollaborators({
 
   const handleDeleteClicked = (collaborator: ExternalCollaborator) => {
     setSelectedCollaborator(collaborator);
-    // setOpenDeleteDialog(true);
+    setOpenDeleteDialog(true);
   };
 
   const handleUpdateClicked = (collaborator: ExternalCollaborator) => {
     setSelectedCollaborator(collaborator);
-    // setOpenEditDialog(true);
+    setOpenEditDialog(true);
   };
 
   return (
@@ -166,18 +167,19 @@ export default function OrganizationExternalCollaborators({
           </BaseColumn>
         </DataGrid>
       </Block>
-      {/* {selectedCollaborator && (
-        <DeleteOrganizationMemberDialog
+      {selectedCollaborator && (
+        <RemoveMemberDialog
           open={openDeleteDialog}
           onClose={() => {
             setSelectedCollaborator(undefined);
             setOpenDeleteDialog(false);
           }}
           member={selectedCollaborator}
+          organizationId={organizationId}
         />
       )}
       {selectedCollaborator && (
-        <UpdateOrganizationMemberDialog
+        <UpdateMemberPermissionsDialog
           open={openEditDialog}
           onClose={() => {
             setSelectedCollaborator(undefined);
@@ -186,7 +188,7 @@ export default function OrganizationExternalCollaborators({
           member={selectedCollaborator}
           organization={organization}
         />
-      )} */}
+      )}
     </>
   );
 }

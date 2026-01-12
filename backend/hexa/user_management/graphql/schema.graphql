@@ -1578,6 +1578,56 @@ enum UpdateExternalCollaboratorError {
 }
 
 """
+The DeleteExternalCollaboratorInput type represents the input for the deleteExternalCollaborator mutation.
+"""
+input DeleteExternalCollaboratorInput {
+    """
+    The unique identifier of the user to remove as an external collaborator.
+    """
+    user_id: UUID!
+
+    """
+    The unique identifier of the organization.
+    """
+    organization_id: UUID!
+}
+
+"""
+The DeleteExternalCollaboratorResult type represents the result of the deleteExternalCollaborator mutation.
+"""
+type DeleteExternalCollaboratorResult {
+    """
+    Indicates whether the deleteExternalCollaborator mutation was successful.
+    """
+    success: Boolean!
+
+    """
+    The list of errors that occurred during the deleteExternalCollaborator mutation.
+    """
+    errors: [DeleteExternalCollaboratorError!]!
+}
+
+"""
+The DeleteExternalCollaboratorError enum represents the possible errors that can occur during the deleteExternalCollaborator mutation.
+"""
+enum DeleteExternalCollaboratorError {
+    """
+    Indicates that the user does not have permission to delete external collaborators.
+    """
+    PERMISSION_DENIED
+
+    """
+    Indicates that the user was not found.
+    """
+    USER_NOT_FOUND
+
+    """
+    Indicates that the organization was not found.
+    """
+    ORGANIZATION_NOT_FOUND
+}
+
+"""
 The DeleteOrganizationMemberInput type represents the input for the deleteOrganizationMember mutation.
 """
 input DeleteOrganizationMemberInput {
@@ -2084,6 +2134,7 @@ extend type Mutation {
     updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult! @loginRequired
     updateExternalCollaborator(input: UpdateExternalCollaboratorInput!): UpdateExternalCollaboratorResult! @loginRequired
     deleteOrganizationMember(input: DeleteOrganizationMemberInput!): DeleteOrganizationMemberResult! @loginRequired
+    deleteExternalCollaborator(input: DeleteExternalCollaboratorInput!): DeleteExternalCollaboratorResult! @loginRequired
     deleteOrganizationInvitation(input: DeleteOrganizationInvitationInput!): DeleteOrganizationInvitationResult!
         @loginRequired
     resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult!

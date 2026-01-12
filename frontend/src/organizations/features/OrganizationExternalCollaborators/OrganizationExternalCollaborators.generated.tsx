@@ -15,19 +15,19 @@ export type OrganizationExternalCollaboratorsQueryVariables = Types.Exact<{
 
 export type OrganizationExternalCollaboratorsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, permissions: { __typename?: 'OrganizationPermissions', manageMembers: boolean, manageOwners: boolean }, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number, items: Array<{ __typename?: 'ExternalCollaborator', id: string, createdAt: any, workspaceMemberships: Array<{ __typename?: 'WorkspaceMembership', id: string, role: Types.WorkspaceMembershipRole, workspace: { __typename?: 'Workspace', slug: string, name: string } }>, user: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } }> } } | null };
 
-export type UpdateOrganizationMemberMutationVariables = Types.Exact<{
-  input: Types.UpdateOrganizationMemberInput;
+export type UpdateExternalCollaboratorMutationVariables = Types.Exact<{
+  input: Types.UpdateExternalCollaboratorInput;
 }>;
 
 
-export type UpdateOrganizationMemberMutation = { __typename?: 'Mutation', updateOrganizationMember: { __typename?: 'UpdateOrganizationMemberResult', success: boolean, errors: Array<Types.UpdateOrganizationMemberError>, membership?: { __typename?: 'OrganizationMembership', id: string, role: Types.OrganizationMembershipRole } | null } };
+export type UpdateExternalCollaboratorMutation = { __typename?: 'Mutation', updateExternalCollaborator: { __typename?: 'UpdateExternalCollaboratorResult', success: boolean, errors: Array<Types.UpdateExternalCollaboratorError> } };
 
-export type DeleteOrganizationMemberMutationVariables = Types.Exact<{
-  input: Types.DeleteOrganizationMemberInput;
+export type DeleteExternalCollaboratorMutationVariables = Types.Exact<{
+  input: Types.DeleteExternalCollaboratorInput;
 }>;
 
 
-export type DeleteOrganizationMemberMutation = { __typename?: 'Mutation', deleteOrganizationMember: { __typename?: 'DeleteOrganizationMemberResult', success: boolean, errors: Array<Types.DeleteOrganizationMemberError> } };
+export type DeleteExternalCollaboratorMutation = { __typename?: 'Mutation', deleteExternalCollaborator: { __typename?: 'DeleteExternalCollaboratorResult', success: boolean, errors: Array<Types.DeleteExternalCollaboratorError> } };
 
 export type InviteOrganizationMemberMutationVariables = Types.Exact<{
   input: Types.InviteOrganizationMemberInput;
@@ -110,78 +110,74 @@ export type OrganizationExternalCollaboratorsQueryHookResult = ReturnType<typeof
 export type OrganizationExternalCollaboratorsLazyQueryHookResult = ReturnType<typeof useOrganizationExternalCollaboratorsLazyQuery>;
 export type OrganizationExternalCollaboratorsSuspenseQueryHookResult = ReturnType<typeof useOrganizationExternalCollaboratorsSuspenseQuery>;
 export type OrganizationExternalCollaboratorsQueryResult = Apollo.QueryResult<OrganizationExternalCollaboratorsQuery, OrganizationExternalCollaboratorsQueryVariables>;
-export const UpdateOrganizationMemberDocument = gql`
-    mutation UpdateOrganizationMember($input: UpdateOrganizationMemberInput!) {
-  updateOrganizationMember(input: $input) {
+export const UpdateExternalCollaboratorDocument = gql`
+    mutation UpdateExternalCollaborator($input: UpdateExternalCollaboratorInput!) {
+  updateExternalCollaborator(input: $input) {
     success
     errors
-    membership {
-      id
-      role
-    }
   }
 }
     `;
-export type UpdateOrganizationMemberMutationFn = Apollo.MutationFunction<UpdateOrganizationMemberMutation, UpdateOrganizationMemberMutationVariables>;
+export type UpdateExternalCollaboratorMutationFn = Apollo.MutationFunction<UpdateExternalCollaboratorMutation, UpdateExternalCollaboratorMutationVariables>;
 
 /**
- * __useUpdateOrganizationMemberMutation__
+ * __useUpdateExternalCollaboratorMutation__
  *
- * To run a mutation, you first call `useUpdateOrganizationMemberMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateOrganizationMemberMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useUpdateExternalCollaboratorMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateExternalCollaboratorMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [updateOrganizationMemberMutation, { data, loading, error }] = useUpdateOrganizationMemberMutation({
+ * const [updateExternalCollaboratorMutation, { data, loading, error }] = useUpdateExternalCollaboratorMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useUpdateOrganizationMemberMutation(baseOptions?: Apollo.MutationHookOptions<UpdateOrganizationMemberMutation, UpdateOrganizationMemberMutationVariables>) {
+export function useUpdateExternalCollaboratorMutation(baseOptions?: Apollo.MutationHookOptions<UpdateExternalCollaboratorMutation, UpdateExternalCollaboratorMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateOrganizationMemberMutation, UpdateOrganizationMemberMutationVariables>(UpdateOrganizationMemberDocument, options);
+        return Apollo.useMutation<UpdateExternalCollaboratorMutation, UpdateExternalCollaboratorMutationVariables>(UpdateExternalCollaboratorDocument, options);
       }
-export type UpdateOrganizationMemberMutationHookResult = ReturnType<typeof useUpdateOrganizationMemberMutation>;
-export type UpdateOrganizationMemberMutationResult = Apollo.MutationResult<UpdateOrganizationMemberMutation>;
-export type UpdateOrganizationMemberMutationOptions = Apollo.BaseMutationOptions<UpdateOrganizationMemberMutation, UpdateOrganizationMemberMutationVariables>;
-export const DeleteOrganizationMemberDocument = gql`
-    mutation DeleteOrganizationMember($input: DeleteOrganizationMemberInput!) {
-  deleteOrganizationMember(input: $input) {
+export type UpdateExternalCollaboratorMutationHookResult = ReturnType<typeof useUpdateExternalCollaboratorMutation>;
+export type UpdateExternalCollaboratorMutationResult = Apollo.MutationResult<UpdateExternalCollaboratorMutation>;
+export type UpdateExternalCollaboratorMutationOptions = Apollo.BaseMutationOptions<UpdateExternalCollaboratorMutation, UpdateExternalCollaboratorMutationVariables>;
+export const DeleteExternalCollaboratorDocument = gql`
+    mutation DeleteExternalCollaborator($input: DeleteExternalCollaboratorInput!) {
+  deleteExternalCollaborator(input: $input) {
     success
     errors
   }
 }
     `;
-export type DeleteOrganizationMemberMutationFn = Apollo.MutationFunction<DeleteOrganizationMemberMutation, DeleteOrganizationMemberMutationVariables>;
+export type DeleteExternalCollaboratorMutationFn = Apollo.MutationFunction<DeleteExternalCollaboratorMutation, DeleteExternalCollaboratorMutationVariables>;
 
 /**
- * __useDeleteOrganizationMemberMutation__
+ * __useDeleteExternalCollaboratorMutation__
  *
- * To run a mutation, you first call `useDeleteOrganizationMemberMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteOrganizationMemberMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useDeleteExternalCollaboratorMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteExternalCollaboratorMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [deleteOrganizationMemberMutation, { data, loading, error }] = useDeleteOrganizationMemberMutation({
+ * const [deleteExternalCollaboratorMutation, { data, loading, error }] = useDeleteExternalCollaboratorMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useDeleteOrganizationMemberMutation(baseOptions?: Apollo.MutationHookOptions<DeleteOrganizationMemberMutation, DeleteOrganizationMemberMutationVariables>) {
+export function useDeleteExternalCollaboratorMutation(baseOptions?: Apollo.MutationHookOptions<DeleteExternalCollaboratorMutation, DeleteExternalCollaboratorMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteOrganizationMemberMutation, DeleteOrganizationMemberMutationVariables>(DeleteOrganizationMemberDocument, options);
+        return Apollo.useMutation<DeleteExternalCollaboratorMutation, DeleteExternalCollaboratorMutationVariables>(DeleteExternalCollaboratorDocument, options);
       }
-export type DeleteOrganizationMemberMutationHookResult = ReturnType<typeof useDeleteOrganizationMemberMutation>;
-export type DeleteOrganizationMemberMutationResult = Apollo.MutationResult<DeleteOrganizationMemberMutation>;
-export type DeleteOrganizationMemberMutationOptions = Apollo.BaseMutationOptions<DeleteOrganizationMemberMutation, DeleteOrganizationMemberMutationVariables>;
+export type DeleteExternalCollaboratorMutationHookResult = ReturnType<typeof useDeleteExternalCollaboratorMutation>;
+export type DeleteExternalCollaboratorMutationResult = Apollo.MutationResult<DeleteExternalCollaboratorMutation>;
+export type DeleteExternalCollaboratorMutationOptions = Apollo.BaseMutationOptions<DeleteExternalCollaboratorMutation, DeleteExternalCollaboratorMutationVariables>;
 export const InviteOrganizationMemberDocument = gql`
     mutation InviteOrganizationMember($input: InviteOrganizationMemberInput!) {
   inviteOrganizationMember(input: $input) {

@@ -1674,6 +1674,33 @@ export type DeleteDatasetVersionResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** The DeleteExternalCollaboratorError enum represents the possible errors that can occur during the deleteExternalCollaborator mutation. */
+export enum DeleteExternalCollaboratorError {
+  /** Indicates that the organization was not found. */
+  OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
+  /** Indicates that the user does not have permission to delete external collaborators. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** Indicates that the user was not found. */
+  UserNotFound = 'USER_NOT_FOUND'
+}
+
+/** The DeleteExternalCollaboratorInput type represents the input for the deleteExternalCollaborator mutation. */
+export type DeleteExternalCollaboratorInput = {
+  /** The unique identifier of the organization. */
+  organization_id: Scalars['UUID']['input'];
+  /** The unique identifier of the user to remove as an external collaborator. */
+  user_id: Scalars['UUID']['input'];
+};
+
+/** The DeleteExternalCollaboratorResult type represents the result of the deleteExternalCollaborator mutation. */
+export type DeleteExternalCollaboratorResult = {
+  __typename?: 'DeleteExternalCollaboratorResult';
+  /** The list of errors that occurred during the deleteExternalCollaborator mutation. */
+  errors: Array<DeleteExternalCollaboratorError>;
+  /** Indicates whether the deleteExternalCollaborator mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
 /** The DeleteMembershipError enum represents the possible errors that can occur during the deleteMembership mutation. */
 export enum DeleteMembershipError {
   /** Indicates that the membership was not found. */
@@ -2638,6 +2665,7 @@ export type Mutation = {
   deleteDatasetLink: DeleteDatasetLinkResult;
   /** Delete a dataset version. */
   deleteDatasetVersion: DeleteDatasetVersionResult;
+  deleteExternalCollaborator: DeleteExternalCollaboratorResult;
   deleteMembership: DeleteMembershipResult;
   /** Delete an metadata attribute from an object instance */
   deleteMetadataAttribute: DeleteMetadataAttributeResult;
@@ -2943,6 +2971,11 @@ export type MutationDeleteDatasetLinkArgs = {
 
 export type MutationDeleteDatasetVersionArgs = {
   input: DeleteDatasetVersionInput;
+};
+
+
+export type MutationDeleteExternalCollaboratorArgs = {
+  input: DeleteExternalCollaboratorInput;
 };
 
 

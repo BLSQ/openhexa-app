@@ -2,7 +2,11 @@ import { Trans, useTranslation } from "next-i18next";
 import Dialog from "core/components/Dialog";
 import Button from "core/components/Button";
 import { useDeleteOrganizationMemberMutation } from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
-import { DeleteOrganizationMemberError } from "graphql/types";
+import { useDeleteExternalCollaboratorMutation } from "organizations/features/OrganizationExternalCollaborators/OrganizationExternalCollaborators.generated";
+import {
+  DeleteOrganizationMemberError,
+  DeleteExternalCollaboratorError,
+} from "graphql/types";
 import { useApolloClient, gql } from "@apollo/client";
 import useForm from "core/hooks/useForm";
 import { RemoveMemberDialog_MemberFragment } from "./RemoveMemberDialog.generated";
@@ -11,15 +15,19 @@ type RemoveMemberDialogProps = {
   open: boolean;
   onClose: () => void;
   member: RemoveMemberDialog_MemberFragment;
+  organizationId?: string;
 };
 
 export default function RemoveMemberDialog({
   open,
   onClose,
   member,
+  organizationId,
 }: RemoveMemberDialogProps) {
   const { t } = useTranslation();
   const client = useApolloClient();
+
+  const isOrganizationMember = member.__typename === "OrganizationMembership";
 
   const [deleteOrganizationMember] = useDeleteOrganizationMemberMutation({
     refetchQueries: [
@@ -29,30 +37,73 @@ export default function RemoveMemberDialog({
     ],
   });
 
+  const [deleteExternalCollaborator] = useDeleteExternalCollaboratorMutation({
+    refetchQueries: [
+      "OrganizationMembers",
+      "OrganizationExternalCollaborators",
+      "Organization",
+    ],
+  });
+
   const form = useForm({
     onSubmit: async () => {
-      const result = await deleteOrganizationMember({
-        variables: {
-          input: {
-            id: member.id,
+      if (isOrganizationMember) {
+        const result = await deleteOrganizationMember({
+          variables: {
+            input: {
+              id: member.id,
+            },
           },
-        },
-      });
+        });
 
-      if (!result.data?.deleteOrganizationMember.success) {
-        const errors = result.data?.deleteOrganizationMember.errors || [];
-        if (errors.includes(DeleteOrganizationMemberError.PermissionDenied)) {
-          throw new Error(t("You are not authorized to perform this action"));
+        if (!result.data?.deleteOrganizationMember.success) {
+          const errors = result.data?.deleteOrganizationMember.errors || [];
+          if (errors.includes(DeleteOrganizationMemberError.PermissionDenied)) {
+            throw new Error(t("You are not authorized to perform this action"));
+          }
+          if (errors.includes(DeleteOrganizationMemberError.NotFound)) {
+            throw new Error(t("Organization member not found"));
+          }
+          if (errors.includes(DeleteOrganizationMemberError.CannotDeleteSelf)) {
+            throw new Error(
+              t("You cannot remove yourself from the organization"),
+            );
+          }
+          throw new Error(t("Failed to remove member"));
         }
-        if (errors.includes(DeleteOrganizationMemberError.NotFound)) {
-          throw new Error(t("Organization member not found"));
+      } else {
+        if (!organizationId) {
+          throw new Error(t("Organization ID is required"));
         }
-        if (errors.includes(DeleteOrganizationMemberError.CannotDeleteSelf)) {
-          throw new Error(
-            t("You cannot remove yourself from the organization"),
-          );
+
+        const result = await deleteExternalCollaborator({
+          variables: {
+            input: {
+              user_id: member.user.id,
+              organization_id: organizationId,
+            },
+          },
+        });
+
+        if (!result.data?.deleteExternalCollaborator.success) {
+          const errors = result.data?.deleteExternalCollaborator.errors || [];
+          if (
+            errors.includes(DeleteExternalCollaboratorError.PermissionDenied)
+          ) {
+            throw new Error(t("You are not authorized to perform this action"));
+          }
+          if (errors.includes(DeleteExternalCollaboratorError.UserNotFound)) {
+            throw new Error(t("User not found"));
+          }
+          if (
+            errors.includes(
+              DeleteExternalCollaboratorError.OrganizationNotFound,
+            )
+          ) {
+            throw new Error(t("Organization not found"));
+          }
+          throw new Error(t("Failed to remove external collaborator"));
         }
-        throw new Error(t("Failed to remove member"));
       }
 
       client.cache.evict({ fieldName: "users" });
@@ -64,12 +115,19 @@ export default function RemoveMemberDialog({
 
   return (
     <Dialog open={open} onClose={onClose} onSubmit={form.handleSubmit} centered>
-      <Dialog.Title>{t("Remove Member")}</Dialog.Title>
+      <Dialog.Title>
+        {isOrganizationMember
+          ? t("Remove Member")
+          : t("Remove External Collaborator")}
+      </Dialog.Title>
       <Dialog.Content>
         <Trans>
           <p>
             Are you sure you want to remove <b>{member.user.displayName}</b>{" "}
-            from this organization and associated workspaces ?
+            {isOrganizationMember
+              ? "from this organization and associated workspaces"
+              : "from all workspaces in this organization"}
+            ?
           </p>
         </Trans>
         {form.submitError && (

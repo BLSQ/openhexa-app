@@ -65,11 +65,17 @@ const UpdateMemberPermissionsDialog = (
   const isOrganizationMember = member.__typename === "OrganizationMembership";
 
   const [updateOrganizationMember] = useUpdateOrganizationMemberMutation({
-    refetchQueries: ["OrganizationMembers", "OrganizationExternalCollaborators"],
+    refetchQueries: [
+      "OrganizationMembers",
+      "OrganizationExternalCollaborators",
+    ],
   });
 
   const [updateExternalCollaborator] = useUpdateExternalCollaboratorMutation({
-    refetchQueries: ["OrganizationMembers", "OrganizationExternalCollaborators"],
+    refetchQueries: [
+      "OrganizationMembers",
+      "OrganizationExternalCollaborators",
+    ],
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -78,7 +84,28 @@ const UpdateMemberPermissionsDialog = (
 
   const form = useForm<Form>({
     onSubmit: async (values) => {
-      if (!isOrganizationMember) {
+      if (isOrganizationMember) {
+        const result = await updateOrganizationMember({
+          variables: {
+            input: {
+              id: member.id,
+              role: values.organizationRole!,
+              workspacePermissions: values.workspacePermissions,
+            },
+          },
+        });
+
+        if (!result.data?.updateOrganizationMember.success) {
+          const errors = result.data?.updateOrganizationMember.errors || [];
+          if (errors.includes(UpdateOrganizationMemberError.PermissionDenied)) {
+            throw new Error(t("You are not authorized to perform this action"));
+          }
+          if (errors.includes(UpdateOrganizationMemberError.NotFound)) {
+            throw new Error(t("Organization member not found"));
+          }
+          throw new Error(t("Failed to update member permissions"));
+        }
+      } else {
         const result = await updateExternalCollaborator({
           variables: {
             input: {
@@ -94,9 +121,7 @@ const UpdateMemberPermissionsDialog = (
           if (
             errors.includes(UpdateExternalCollaboratorError.PermissionDenied)
           ) {
-            throw new Error(
-              t("You are not authorized to perform this action"),
-            );
+            throw new Error(t("You are not authorized to perform this action"));
           }
           if (errors.includes(UpdateExternalCollaboratorError.UserNotFound)) {
             throw new Error(t("User not found"));
@@ -111,29 +136,6 @@ const UpdateMemberPermissionsDialog = (
           throw new Error(
             t("Failed to update external collaborator permissions"),
           );
-        }
-      } else {
-        const result = await updateOrganizationMember({
-          variables: {
-            input: {
-              id: member.id,
-              role: values.organizationRole!,
-              workspacePermissions: values.workspacePermissions,
-            },
-          },
-        });
-
-        if (!result.data?.updateOrganizationMember.success) {
-          const errors = result.data?.updateOrganizationMember.errors || [];
-          if (errors.includes(UpdateOrganizationMemberError.PermissionDenied)) {
-            throw new Error(
-              t("You are not authorized to perform this action"),
-            );
-          }
-          if (errors.includes(UpdateOrganizationMemberError.NotFound)) {
-            throw new Error(t("Organization member not found"));
-          }
-          throw new Error(t("Failed to update member permissions"));
         }
       }
 
