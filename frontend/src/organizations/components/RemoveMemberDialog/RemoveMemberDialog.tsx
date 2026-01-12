@@ -1,35 +1,32 @@
 import { Trans, useTranslation } from "next-i18next";
 import Dialog from "core/components/Dialog";
 import Button from "core/components/Button";
-import { useDeleteOrganizationMemberMutation } from "../OrganizationMembers.generated";
-import {
-  User,
-  OrganizationMembership,
-  DeleteOrganizationMemberError,
-} from "graphql/types";
-import { useApolloClient } from "@apollo/client";
+import { useDeleteOrganizationMemberMutation } from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
+import { DeleteOrganizationMemberError } from "graphql/types";
+import { useApolloClient, gql } from "@apollo/client";
 import useForm from "core/hooks/useForm";
+import { RemoveMemberDialog_MemberFragment } from "./RemoveMemberDialog.generated";
 
-type OrganizationMember = Pick<OrganizationMembership, "id" | "role"> & {
-  user: Pick<User, "id" | "displayName">;
-};
-
-interface DeleteOrganizationMemberDialogProps {
+type RemoveMemberDialogProps = {
   open: boolean;
   onClose: () => void;
-  member: OrganizationMember;
-}
+  member: RemoveMemberDialog_MemberFragment;
+};
 
-export default function DeleteOrganizationMemberDialog({
+export default function RemoveMemberDialog({
   open,
   onClose,
   member,
-}: DeleteOrganizationMemberDialogProps) {
+}: RemoveMemberDialogProps) {
   const { t } = useTranslation();
   const client = useApolloClient();
 
   const [deleteOrganizationMember] = useDeleteOrganizationMemberMutation({
-    refetchQueries: ["OrganizationMembers", "Organization"],
+    refetchQueries: [
+      "OrganizationMembers",
+      "OrganizationExternalCollaborators",
+      "Organization",
+    ],
   });
 
   const form = useForm({
@@ -58,7 +55,6 @@ export default function DeleteOrganizationMemberDialog({
         throw new Error(t("Failed to remove member"));
       }
 
-      // Clear users cache so UserPicker gets fresh data, used instead of refetchQueries because the refetch is not happening when the dialog is closed
       client.cache.evict({ fieldName: "users" });
       client.cache.gc();
       onClose();
@@ -91,3 +87,18 @@ export default function DeleteOrganizationMemberDialog({
     </Dialog>
   );
 }
+
+RemoveMemberDialog.fragments = {
+  member: gql`
+    fragment RemoveMemberDialog_member on OrganizationMember {
+      id
+      user {
+        id
+        displayName
+      }
+      ... on OrganizationMembership {
+        role
+      }
+    }
+  `,
+};
