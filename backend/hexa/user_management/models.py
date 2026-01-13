@@ -23,6 +23,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.pipelines.models import PipelineRun
 
 
 class UserManager(BaseUserManager):
@@ -232,6 +233,104 @@ class Organization(Base, SoftDeletedModel):
         if user.has_perm("user_management.has_admin_privileges", self):
             return workspaces
         return workspaces.filter(members=user)
+
+    @property
+    def active_subscription(self):
+        """
+        Returns the currently active subscription based on today's date.
+        Returns None if no subscription exists (self-hosted mode).
+        """
+        today = timezone.now().date()
+        return self.subscriptions.filter(
+            subscription_start_date__lte=today,
+            subscription_end_date__gte=today,
+        ).first()
+
+    @property
+    def pending_subscription(self):
+        """
+        Returns the next pending subscription (if any).
+        Used for downgrades that take effect at end of billing period.
+        """
+        today = timezone.now().date()
+        return (
+            self.subscriptions.filter(
+                subscription_start_date__gt=today,
+            )
+            .order_by("subscription_start_date")
+            .first()
+        )
+
+    def is_users_limit_reached(self) -> bool:
+        """Check if the organization has reached its user limit."""
+        subscription = self.active_subscription
+        return subscription.is_users_limit_reached() if subscription else False
+
+    def is_workspaces_limit_reached(self) -> bool:
+        """Check if the organization has reached its workspace limit."""
+        subscription = self.active_subscription
+        return subscription.is_workspaces_limit_reached() if subscription else False
+
+    def is_pipeline_runs_limit_reached(self) -> bool:
+        """Check if the organization has reached its pipeline runs limit."""
+        subscription = self.active_subscription
+        return subscription.is_pipeline_runs_limit_reached() if subscription else False
+
+
+class OrganizationSubscription(Base):
+    """
+    Stores SaaS subscription information for an organization.
+    Created and managed by the Bluesquare Console via GraphQL mutations.
+
+    An organization can have multiple subscriptions (current + pending).
+    Use organization.active_subscription to get the currently active one.
+
+    Self-hosted deployments have no subscription (active_subscription returns None).
+    """
+
+    class Meta:
+        db_table = "identity_organization_subscription"
+        ordering = ["-subscription_start_date"]  # Most recent first
+
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name="subscriptions",
+    )
+    subscription_id = models.UUIDField(
+        unique=True
+    )  # External subscription ID from the Bluesquare Console
+    plan_code = models.CharField(max_length=100)
+    subscription_start_date = models.DateField()
+    subscription_end_date = models.DateField()
+
+    users_limit = models.PositiveIntegerField()
+    workspaces_limit = models.PositiveIntegerField()
+    pipeline_runs_limit = models.PositiveIntegerField()
+
+    def is_users_limit_reached(self) -> bool:
+        """Check if the organization has reached its user limit."""
+        current_users = (
+            self.organization.organizationmembership_set.count()
+        )  # TODO : this does not count workspace-only membership
+        return current_users >= self.users_limit
+
+    def is_workspaces_limit_reached(self) -> bool:
+        """Check if the organization has reached its workspace limit."""
+        current_workspaces = self.organization.workspaces.filter(archived=False).count()
+        return current_workspaces >= self.workspaces_limit
+
+    def is_pipeline_runs_limit_reached(self) -> bool:
+        """Check if the organization has reached its monthly pipeline runs limit."""
+        today = timezone.now().date()
+        month_start = today.replace(
+            day=1
+        )  # TODO : we might want to consider the subscription start date instead
+        current_runs = PipelineRun.objects.filter(
+            pipeline__workspace__organization=self.organization,
+            created_at__date__gte=month_start,
+        ).count()
+        return current_runs >= self.pipeline_runs_limit
 
 
 class OrganizationMembershipRole(models.TextChoices):
