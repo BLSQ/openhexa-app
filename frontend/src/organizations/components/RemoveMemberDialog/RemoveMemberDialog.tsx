@@ -121,15 +121,18 @@ export default function RemoveMemberDialog({
           : t("Remove External Collaborator")}
       </Dialog.Title>
       <Dialog.Content>
-        <Trans>
-          <p>
-            Are you sure you want to remove <b>{member.user.displayName}</b>{" "}
-            {isOrganizationMember
-              ? "from this organization and associated workspaces"
-              : "from all workspaces in this organization"}
-            ?
-          </p>
-        </Trans>
+        <p className="mb-4">
+          {t("User:")} <b>{member.user.displayName}</b>
+        </p>
+        <p>
+          {isOrganizationMember
+            ? t(
+                "Are you sure you want to remove this user from this organization and associated workspaces?",
+              )
+            : t(
+                "Are you sure you want to remove this user from all workspaces in this organization?",
+              )}
+        </p>
         {form.submitError && (
           <div className="text-danger mt-3 text-sm">{form.submitError}</div>
         )}

@@ -1,9 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import {
-  useUpdateOrganizationMemberMutation,
-  useUpdateExternalCollaboratorMutation,
-} from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
+import { useUpdateOrganizationMemberMutation } from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
+import { useUpdateExternalCollaboratorMutation } from "organizations/features/OrganizationExternalCollaborators/OrganizationExternalCollaborators.generated";
 import { TestApp } from "core/helpers/testutils";
 import UpdateMemberPermissionsDialog from "../UpdateMemberPermissionsDialog";
 import { v4 } from "uuid";
@@ -13,7 +11,6 @@ import {
   UpdateOrganizationMemberError,
   UpdateExternalCollaboratorError,
 } from "graphql/types";
-import { ReactNode } from "react";
 
 const ORGANIZATION_ID = v4();
 const MEMBER_ID = v4();
@@ -107,6 +104,15 @@ jest.mock(
       "organizations/features/OrganizationMembers/OrganizationMembers.generated",
     ),
     useUpdateOrganizationMemberMutation: jest.fn(),
+  }),
+);
+
+jest.mock(
+  "organizations/features/OrganizationExternalCollaborators/OrganizationExternalCollaborators.generated",
+  () => ({
+    ...jest.requireActual(
+      "organizations/features/OrganizationExternalCollaborators/OrganizationExternalCollaborators.generated",
+    ),
     useUpdateExternalCollaboratorMutation: jest.fn(),
   }),
 );
@@ -115,7 +121,6 @@ jest.mock("next-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
-  Trans: ({ children }: { children: ReactNode }) => <>{children}</>,
   i18n: {
     t: (key: string) => key,
   },
