@@ -23,7 +23,6 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
-from hexa.pipelines.models import PipelineRun
 
 
 class UserManager(BaseUserManager):
@@ -322,6 +321,8 @@ class OrganizationSubscription(Base):
 
     def is_pipeline_runs_limit_reached(self) -> bool:
         """Check if the organization has reached its monthly pipeline runs limit."""
+        from hexa.pipelines.models import PipelineRun
+
         today = timezone.now().date()
         month_start = today.replace(
             day=1
