@@ -109,8 +109,8 @@ const UpdateMemberPermissionsDialog = (
         const result = await updateExternalCollaborator({
           variables: {
             input: {
-              user_id: member.user.id,
-              organization_id: organization.id,
+              userId: member.user.id,
+              organizationId: organization.id,
               workspacePermissions: values.workspacePermissions,
             },
           },
