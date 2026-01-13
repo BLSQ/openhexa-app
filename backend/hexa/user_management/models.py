@@ -241,8 +241,8 @@ class Organization(Base, SoftDeletedModel):
         """
         today = timezone.now().date()
         return self.subscriptions.filter(
-            subscription_start_date__lte=today,
-            subscription_end_date__gte=today,
+            start_date__lte=today,
+            end_date__gte=today,
         ).first()
 
     @property
@@ -253,10 +253,8 @@ class Organization(Base, SoftDeletedModel):
         """
         today = timezone.now().date()
         return (
-            self.subscriptions.filter(
-                subscription_start_date__gt=today,
-            )
-            .order_by("subscription_start_date")
+            self.subscriptions.filter(start_date__gt=today)
+            .order_by("start_date")
             .first()
         )
 
@@ -310,7 +308,7 @@ class OrganizationSubscription(Base):
 
     class Meta:
         db_table = "identity_organization_subscription"
-        ordering = ["-subscription_start_date"]  # Most recent first
+        ordering = ["-start_date"]
 
     organization = models.ForeignKey(
         Organization,
@@ -321,8 +319,8 @@ class OrganizationSubscription(Base):
         unique=True
     )  # External subscription ID from the Bluesquare Console
     plan_code = models.CharField(max_length=100)
-    subscription_start_date = models.DateField()
-    subscription_end_date = models.DateField()
+    start_date = models.DateField()
+    end_date = models.DateField()
 
     users_limit = models.PositiveIntegerField()
     workspaces_limit = models.PositiveIntegerField()
