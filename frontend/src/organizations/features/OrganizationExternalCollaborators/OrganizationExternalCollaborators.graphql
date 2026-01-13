@@ -51,10 +51,3 @@ mutation DeleteExternalCollaborator($input: DeleteExternalCollaboratorInput!) {
     errors
   }
 }
-
-mutation InviteOrganizationMember($input: InviteOrganizationMemberInput!) {
-  inviteOrganizationMember(input: $input) {
-    success
-    errors
-  }
-}
