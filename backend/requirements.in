@@ -11,6 +11,7 @@ django-model-utils
 django-postgres-queue
 django-storages[google]
 django_otp
+djangorestframework
 geopandas
 markdown
 pandas

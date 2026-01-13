@@ -78,11 +78,7 @@ ALLOWED_HOSTS = (
 CORS_ALLOWED_ORIGINS = []
 CSRF_TRUSTED_ORIGINS = []
 if "PROXY_HOSTNAME_AND_PORT" in os.environ:
-    SCHEME = (
-        "https"
-        if os.environ.get("TRUST_FORWARDED_PROTO", "false") == "true"
-        else SCHEME
-    )
+    SCHEME = "https" if os.environ.get("TRUST_FORWARDED_PROTO", "false") == "true" else SCHEME
     PROXY_URL = f"{SCHEME}://{os.environ.get('PROXY_HOSTNAME_AND_PORT')}"
     BASE_URL = PROXY_URL
     NEW_FRONTEND_DOMAIN = os.environ.get(
@@ -118,9 +114,7 @@ if "CORS_ALLOWED_ORIGINS" in os.environ:
 
 CORS_ALLOWED_ORIGIN_REGEXES = []
 if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
-    CORS_ALLOWED_ORIGIN_REGEXES += os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES").split(
-        ","
-    )
+    CORS_ALLOWED_ORIGIN_REGEXES += os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES").split(",")
 
 CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$"
 CORS_ALLOW_CREDENTIALS = True
@@ -157,6 +151,7 @@ INSTALLED_APPS = [
     "django_countries",
     "django_ltree",
     "ariadne_django",
+    "rest_framework",
     "dpq",
     "hexa.user_management",
     "hexa.analytics",
@@ -363,9 +358,7 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL", "OpenHEXA <hexatron@notifications.openhexa.org>"
 )
 
-EMAIL_BACKEND = os.environ.get(
-    "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
-)
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
 
 # Sync settings: sync datasource with a worker (good for scaling) or in the web serv (good for dev)
 EXTERNAL_ASYNC_REFRESH = os.environ.get("EXTERNAL_ASYNC_REFRESH") == "true"
@@ -381,9 +374,7 @@ PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "docke
 DEFAULT_WORKSPACE_IMAGE = os.environ.get(
     "DEFAULT_WORKSPACE_IMAGE", "blsq/openhexa-base-environment:latest"
 )
-PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT = os.environ.get(
-    "PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT", "2"
-)
+PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT = os.environ.get("PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT", "2")
 PIPELINE_DEFAULT_CONTAINER_MEMORY_LIMIT = os.environ.get(
     "PIPELINE_DEFAULT_CONTAINER_MEMORY_LIMIT", "4G"
 )
@@ -408,9 +399,7 @@ WORKSPACES_DATABASE_HOST = os.environ.get("WORKSPACES_DATABASE_HOST")
 WORKSPACES_DATABASE_PORT = os.environ.get("WORKSPACES_DATABASE_PORT")
 WORKSPACES_DATABASE_DEFAULT_DB = os.environ.get("WORKSPACES_DATABASE_DEFAULT_DB")
 WORKSPACES_DATABASE_PROXY_HOST = os.environ.get("WORKSPACES_DATABASE_PROXY_HOST")
-OVERRIDE_WORKSPACES_DATABASE_HOST = os.environ.get(
-    "OVERRIDE_WORKSPACES_DATABASE_HOST", ""
-)
+OVERRIDE_WORKSPACES_DATABASE_HOST = os.environ.get("OVERRIDE_WORKSPACES_DATABASE_HOST", "")
 
 # Datasets config
 WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET", "hexa-datasets")
@@ -460,9 +449,24 @@ AWS_ENDPOINT_URL = os.environ.get("AWS_ENDPOINT_URL", "")
 AWS_DEFAULT_REGION = os.environ.get("AWS_DEFAULT_REGION", "")
 AWS_USER_ARN = os.environ.get("AWS_USER_ARN", "")
 AWS_APP_ROLE_ARN = os.environ.get("AWS_APP_ROLE_ARN", "")
-AWS_PERMISSIONS_BOUNDARY_POLICY_ARN = os.environ.get(
-    "AWS_PERMISSIONS_BOUNDARY_POLICY_ARN", ""
-)
+AWS_PERMISSIONS_BOUNDARY_POLICY_ARN = os.environ.get("AWS_PERMISSIONS_BOUNDARY_POLICY_ARN", "")
 
 # MIXPANEL
 MIXPANEL_TOKEN = os.environ.get("MIXPANEL_TOKEN")
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+        "hexa.databases.authentication.WorkspaceTokenAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+    ],
+}

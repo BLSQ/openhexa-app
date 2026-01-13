@@ -175,13 +175,9 @@ def get_table_rows(
         conn = get_workspace_database_connection(workspace)
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             if direction == OrderByDirectionEnum.ASC:
-                sql_select = (
-                    "SELECT * FROM {table} ORDER BY {order_by} ASC LIMIT %s OFFSET %s;"
-                )
+                sql_select = "SELECT * FROM {table} ORDER BY {order_by} ASC LIMIT %s OFFSET %s;"
             else:
-                sql_select = (
-                    "SELECT * FROM {table} ORDER BY {order_by} DESC LIMIT %s OFFSET %s;"
-                )
+                sql_select = "SELECT * FROM {table} ORDER BY {order_by} DESC LIMIT %s OFFSET %s;"
             cursor.execute(
                 sql.SQL(sql_select).format(
                     table=sql.Identifier(table_name),
@@ -198,6 +194,220 @@ def get_table_rows(
             has_next=len(data) > per_page,
             items=data[:per_page],
         )
+    finally:
+        if conn:
+            conn.close()
+
+
+def validate_recipe_parameters(parameters: dict, parameters_schema: dict) -> dict:
+    """
+    Validate and coerce parameters according to the recipe's parameters_schema.
+
+    Returns a dictionary of validated parameters.
+    Raises ValueError if validation fails.
+    """
+    validated = {}
+
+    for param_name, param_config in parameters_schema.items():
+        param_type = param_config.get("type", "string")
+        required = param_config.get("required", False)
+        default = param_config.get("default")
+
+        # Get the value from input parameters
+        value = parameters.get(param_name)
+
+        # Handle required parameters
+        if required and value is None:
+            raise ValueError(f"Required parameter '{param_name}' is missing")
+
+        # Use default if value is None
+        if value is None:
+            if default is not None:
+                value = default
+            else:
+                continue
+
+        # Type validation and coercion
+        if param_type == "integer":
+            try:
+                value = int(value)
+            except (ValueError, TypeError) as err:
+                raise ValueError(f"Parameter '{param_name}' must be an integer") from err
+
+            # Check min/max constraints
+            min_val = param_config.get("min")
+            if min_val is not None and value < min_val:
+                raise ValueError(f"Parameter '{param_name}' must be >= {min_val}")
+            max_val = param_config.get("max")
+            if max_val is not None and value > max_val:
+                raise ValueError(f"Parameter '{param_name}' must be <= {max_val}")
+
+        elif param_type == "date":
+            # Accept date strings in ISO format (YYYY-MM-DD)
+            if not isinstance(value, str):
+                raise ValueError(f"Parameter '{param_name}' must be a date string (YYYY-MM-DD)")
+            # Basic validation - full validation happens in SQL
+            if len(value.split("-")) != 3:
+                raise ValueError(f"Parameter '{param_name}' must be in YYYY-MM-DD format")
+
+        elif param_type == "string":
+            value = str(value)
+
+            # Check length constraints
+            max_length = param_config.get("max_length")
+            if max_length is not None and len(value) > max_length:
+                raise ValueError(f"Parameter '{param_name}' exceeds maximum length of {max_length}")
+
+        validated[param_name] = value
+
+    return validated
+
+
+def render_recipe_sql(sql_template: str, parameters: dict) -> str:
+    """
+    Render a parameterized SQL template with provided parameters.
+
+    Uses simple {{param_name}} placeholder syntax.
+    Returns the rendered SQL string.
+    """
+    rendered = sql_template
+    for param_name, param_value in parameters.items():
+        placeholder = f"{{{{{param_name}}}}}"
+        # Convert value to string for replacement
+        if isinstance(param_value, str):
+            # Escape single quotes for SQL string literals
+            escaped_value = param_value.replace("'", "''")
+            rendered = rendered.replace(placeholder, f"'{escaped_value}'")
+        else:
+            rendered = rendered.replace(placeholder, str(param_value))
+
+    return rendered
+
+
+def build_filter_conditions(column_filters: list) -> tuple[sql.Composable, list]:
+    """
+    Build SQL WHERE conditions from column filters.
+
+    Returns tuple of (where_clause_sql, where_params).
+    Used for both table queries and recipe filtering (V1: single table).
+
+    V2 TODO: Implement filtering for multi-table queries (JOINs).
+    For queries with JOINs, we need to:
+    - Parse the SQL to identify tables and their aliases
+    - Match filter columns to their source table
+    - Qualify column names with table aliases (e.g., t1.date, t2.status)
+    - Handle ambiguous column names that exist in multiple tables
+    Potential approaches:
+    - SQL parsing library (sqlparse, sqlglot) to analyze query structure
+    - Require recipe schema to specify column-to-table mappings
+    - Allow filtering only on columns with unique names across tables
+    """
+    # Operator mapping
+    operator_map = {
+        "eq": "=",
+        "neq": "!=",
+        "gt": ">",
+        "gte": ">=",
+        "lt": "<",
+        "lte": "<=",
+        "contains": "LIKE",
+        "icontains": "ILIKE",
+        "startswith": "LIKE",
+        "endswith": "LIKE",
+    }
+
+    where_conditions = []
+    where_params = []
+
+    for filter_item in column_filters:
+        col_name = filter_item["column"]
+        operator = filter_item["operator"]
+        col_value = filter_item["value"]
+
+        # Get SQL operator
+        sql_operator = operator_map[operator]
+
+        # Handle LIKE operators with pattern matching
+        if operator == "contains" or operator == "icontains":
+            where_conditions.append(
+                sql.SQL("{column} " + sql_operator + " %s").format(column=sql.Identifier(col_name))
+            )
+            where_params.append(f"%{col_value}%")
+        elif operator == "startswith":
+            where_conditions.append(
+                sql.SQL("{column} " + sql_operator + " %s").format(column=sql.Identifier(col_name))
+            )
+            where_params.append(f"{col_value}%")
+        elif operator == "endswith":
+            where_conditions.append(
+                sql.SQL("{column} " + sql_operator + " %s").format(column=sql.Identifier(col_name))
+            )
+            where_params.append(f"%{col_value}")
+        else:
+            # Standard comparison operators
+            where_conditions.append(
+                sql.SQL("{column} " + sql_operator + " %s").format(column=sql.Identifier(col_name))
+            )
+            where_params.append(col_value)
+
+    # Build WHERE clause SQL
+    if where_conditions:
+        where_clause = sql.SQL(" WHERE ") + sql.SQL(" AND ").join(where_conditions)
+    else:
+        where_clause = sql.SQL("")
+
+    return where_clause, where_params
+
+
+def execute_recipe_query(
+    workspace: Workspace,
+    sql_query: str,
+    limit: int | None = None,
+    column_filters: list | None = None,
+) -> list[dict]:
+    """
+    Execute a recipe SQL query against the workspace database.
+
+    V1 Implementation: Supports filtering on columns from the recipe result set.
+    Assumes the recipe SQL is either a simple SELECT or can be wrapped in a subquery.
+
+    Args:
+        workspace: Workspace instance
+        sql_query: The rendered SQL query from the recipe
+        limit: Optional row limit
+        column_filters: Optional list of column filters (V1: single table support)
+
+    Returns a list of result rows as dictionaries.
+    """
+    conn = None
+    try:
+        conn = get_workspace_database_connection(workspace)
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            # Wrap the recipe query in a subquery to enable filtering on results
+            # This allows filtering on computed columns and multi-table queries
+            base_query = f"SELECT * FROM ({sql_query}) AS recipe_result"
+
+            # Apply column filters if provided (V1: works on result columns)
+            if column_filters:
+                where_clause, where_params = build_filter_conditions(column_filters)
+                query_with_filters = sql.SQL(base_query) + where_clause
+            else:
+                query_with_filters = sql.SQL(base_query)
+                where_params = []
+
+            # Apply limit if specified
+            if limit:
+                final_query = query_with_filters + sql.SQL(" LIMIT %s")
+                final_params = where_params + [limit]
+            else:
+                final_query = query_with_filters
+                final_params = where_params
+
+            cursor.execute(final_query, final_params)
+            data = cursor.fetchall()
+
+            # Convert RealDictRow to regular dict
+            return [dict(row) for row in data]
     finally:
         if conn:
             conn.close()

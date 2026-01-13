@@ -40,6 +40,7 @@ urlpatterns = [
     path("files/", include("hexa.files.urls", namespace="files")),
     path("analytics/", include("hexa.analytics.urls", namespace="analytics")),
     path("superset/", include("hexa.superset.urls", namespace="superset")),
+    path("", include("hexa.databases.urls", namespace="databases")),
     # Order matters, we override the default logout view defined later
     # We do this to logout the user from jupyterhub at the end of the openhexa
     # session. the jupyterhub will redirect to the openhexa login after it
