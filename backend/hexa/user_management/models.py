@@ -679,6 +679,9 @@ class OrganizationInvitationManager(models.Manager):
             if not principal.has_perm("user_management.manage_owners", organization):
                 raise PermissionDenied
 
+        if organization.is_users_limit_reached():
+            raise UsersLimitReached
+
         invitation = self.create(
             email=email,
             organization=organization,
