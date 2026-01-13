@@ -9,7 +9,7 @@ import {
   TableHead,
   TableRow,
 } from "core/components/Table";
-import { Trans, useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next";
 import useForm from "core/hooks/useForm";
 import {
   OrganizationMembershipRole,
@@ -21,10 +21,8 @@ import {
 import SimpleSelect from "core/components/forms/SimpleSelect";
 import useCacheKey from "core/hooks/useCacheKey";
 import React, { useEffect, useState } from "react";
-import {
-  useUpdateOrganizationMemberMutation,
-  useUpdateExternalCollaboratorMutation,
-} from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
+import { useUpdateOrganizationMemberMutation } from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
+import { useUpdateExternalCollaboratorMutation } from "organizations/features/OrganizationExternalCollaborators/OrganizationExternalCollaborators.generated";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
 import SearchInput from "core/features/SearchInput";
 import { gql } from "@apollo/client";
@@ -193,10 +191,7 @@ const UpdateMemberPermissionsDialog = (
       <Dialog.Content className="space-y-4">
         <div>
           <p className="text-sm text-gray-600 mb-4">
-            <Trans>
-              Updating permissions for{" "}
-              <b className="font-medium">{member.user.displayName}</b>
-            </Trans>
+            {t("Updating permissions for")} <b>{member.user.displayName}</b>
           </p>
         </div>
 
