@@ -723,7 +723,7 @@ def resolve_external_collaborators(organization: Organization, info, **kwargs):
     page_result = result_page(
         queryset=memberships_qs,
         page=kwargs.get("page", 1),
-        per_page=kwargs.get("per_page", memberships_qs.count() or 10),
+        per_page=kwargs.get("per_page", 10),
     )
 
     # Convert to dicts with organization reference for resolvers
