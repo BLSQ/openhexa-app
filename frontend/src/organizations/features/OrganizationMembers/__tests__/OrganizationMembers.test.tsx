@@ -13,6 +13,7 @@ const ORGANIZATION_ID = v4();
 
 const MOCK_MEMBERS = [
   {
+    __typename: "OrganizationMembership" as const,
     id: v4(),
     role: OrganizationMembershipRole.Admin,
     createdAt: "2023-01-15T10:00:00Z",
@@ -37,6 +38,7 @@ const MOCK_MEMBERS = [
     },
   },
   {
+    __typename: "OrganizationMembership" as const,
     id: v4(),
     role: OrganizationMembershipRole.Member,
     createdAt: "2023-02-20T14:30:00Z",
