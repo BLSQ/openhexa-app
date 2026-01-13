@@ -1,12 +1,16 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useDeleteOrganizationMemberMutation } from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
+import { useDeleteExternalCollaboratorMutation } from "organizations/features/OrganizationExternalCollaborators/OrganizationExternalCollaborators.generated";
 import { TestApp } from "core/helpers/testutils";
 import RemoveMemberDialog from "../RemoveMemberDialog";
 import { v4 } from "uuid";
 import { OrganizationMembershipRole } from "graphql/types";
 
 const MEMBER_ID = v4();
+const EXTERNAL_COLLABORATOR_ID = v4();
+const EXTERNAL_USER_ID = v4();
+const ORGANIZATION_ID = v4();
 
 const MOCK_ORGANIZATION_MEMBER = {
   __typename: "OrganizationMembership" as const,
@@ -20,9 +24,9 @@ const MOCK_ORGANIZATION_MEMBER = {
 
 const MOCK_EXTERNAL_COLLABORATOR = {
   __typename: "ExternalCollaborator" as const,
-  id: MEMBER_ID,
+  id: EXTERNAL_COLLABORATOR_ID,
   user: {
-    id: v4(),
+    id: EXTERNAL_USER_ID,
     displayName: "Jane External",
   },
 };
@@ -34,6 +38,16 @@ jest.mock(
       "organizations/features/OrganizationMembers/OrganizationMembers.generated",
     ),
     useDeleteOrganizationMemberMutation: jest.fn(),
+  }),
+);
+
+jest.mock(
+  "organizations/features/OrganizationExternalCollaborators/OrganizationExternalCollaborators.generated",
+  () => ({
+    ...jest.requireActual(
+      "organizations/features/OrganizationExternalCollaborators/OrganizationExternalCollaborators.generated",
+    ),
+    useDeleteExternalCollaboratorMutation: jest.fn(),
   }),
 );
 
@@ -50,15 +64,28 @@ jest.mock("next-i18next", () => ({
 const useDeleteOrganizationMemberMutationMock =
   useDeleteOrganizationMemberMutation as jest.Mock;
 
+const useDeleteExternalCollaboratorMutationMock =
+  useDeleteExternalCollaboratorMutation as jest.Mock;
+
 describe("RemoveMemberDialog", () => {
   const mockOnClose = jest.fn();
 
   beforeEach(() => {
     useDeleteOrganizationMemberMutationMock.mockClear();
+    useDeleteExternalCollaboratorMutationMock.mockClear();
     mockOnClose.mockClear();
   });
 
   describe("Organization Member", () => {
+    beforeEach(() => {
+      // Organization member tests still need the external collaborator mock to be set up
+      // since the component calls both hooks
+      useDeleteExternalCollaboratorMutationMock.mockReturnValue([
+        jest.fn(),
+        { loading: false },
+      ]);
+    });
+
     it("is displayed when open is true", async () => {
       useDeleteOrganizationMemberMutationMock.mockReturnValue([
         jest.fn(),
@@ -151,8 +178,17 @@ describe("RemoveMemberDialog", () => {
   });
 
   describe("External Collaborator", () => {
-    it("displays external collaborator information correctly", async () => {
+    beforeEach(() => {
+      // External collaborator tests still need the organization member mock to be set up
+      // since the component calls both hooks
       useDeleteOrganizationMemberMutationMock.mockReturnValue([
+        jest.fn(),
+        { loading: false },
+      ]);
+    });
+
+    it("displays external collaborator information correctly", async () => {
+      useDeleteExternalCollaboratorMutationMock.mockReturnValue([
         jest.fn(),
         { loading: false },
       ]);
@@ -163,6 +199,7 @@ describe("RemoveMemberDialog", () => {
             open={true}
             onClose={mockOnClose}
             member={MOCK_EXTERNAL_COLLABORATOR}
+            organizationId={ORGANIZATION_ID}
           />
         </TestApp>,
       );
@@ -173,14 +210,14 @@ describe("RemoveMemberDialog", () => {
     it("successfully deletes an external collaborator", async () => {
       const mockDeleteMutation = jest.fn().mockResolvedValue({
         data: {
-          deleteOrganizationMember: {
+          deleteExternalCollaborator: {
             success: true,
             errors: [],
           },
         },
       });
 
-      useDeleteOrganizationMemberMutationMock.mockReturnValue([
+      useDeleteExternalCollaboratorMutationMock.mockReturnValue([
         mockDeleteMutation,
         { loading: false },
       ]);
@@ -193,6 +230,7 @@ describe("RemoveMemberDialog", () => {
             open={true}
             onClose={mockOnClose}
             member={MOCK_EXTERNAL_COLLABORATOR}
+            organizationId={ORGANIZATION_ID}
           />
         </TestApp>,
       );
@@ -204,7 +242,8 @@ describe("RemoveMemberDialog", () => {
         expect(mockDeleteMutation).toHaveBeenCalledWith({
           variables: {
             input: {
-              id: MEMBER_ID,
+              userId: EXTERNAL_USER_ID,
+              organizationId: ORGANIZATION_ID,
             },
           },
         });
@@ -213,6 +252,14 @@ describe("RemoveMemberDialog", () => {
   });
 
   describe("Common functionality", () => {
+    beforeEach(() => {
+      // Common tests need both mocks set up since the component calls both hooks
+      useDeleteExternalCollaboratorMutationMock.mockReturnValue([
+        jest.fn(),
+        { loading: false },
+      ]);
+    });
+
     it("displays action buttons correctly", async () => {
       useDeleteOrganizationMemberMutationMock.mockReturnValue([
         jest.fn(),
