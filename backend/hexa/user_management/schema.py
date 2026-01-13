@@ -698,30 +698,44 @@ def resolve_external_collaborators(organization: Organization, info, **kwargs):
         workspace__archived=False,
     ).exclude(user_id__in=org_member_user_ids)
 
-    # Annotate with collated email field to handle case-insensitive email search
-    # as well as ordering
-    qs = qs.annotate(
-        case_insensitive_email=Collate("user__email", "und-x-icu")
-    ).order_by("case_insensitive_email")
-
     term = kwargs.get("term")
     if term:
+        qs = qs.annotate(case_insensitive_email=Collate("user__email", "und-x-icu"))
         qs = qs.filter(
             Q(user__first_name__icontains=term)
             | Q(user__last_name__icontains=term)
-            | Q(case_insensitive_email__contains=term)
+            | Q(case_insensitive_email__icontains=term)
         )
 
-    page_result = result_page(
-        queryset=qs.values("user_id", "created_at"),
-        page=kwargs.get("page", 1),
-        per_page=kwargs.get("per_page", qs.count() or 10),
+    # Get IDs of earliest membership per user
+    earliest_membership_ids = (
+        qs.order_by("user_id", "created_at").distinct("user_id").values("id")
     )
 
-    # Add organization reference to each paginated item for user in workspace_membership
-    # resolver
-    for item in page_result["items"]:
-        item["organization"] = organization
+    # Query again with proper email ordering for pagination
+    memberships_qs = (
+        WorkspaceMembership.objects.filter(id__in=earliest_membership_ids)
+        .select_related("user")
+        .annotate(case_insensitive_email=Collate("user__email", "und-x-icu"))
+        .order_by("case_insensitive_email")
+    )
+
+    page_result = result_page(
+        queryset=memberships_qs,
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("per_page", memberships_qs.count() or 10),
+    )
+
+    # Convert to dicts with organization reference for resolvers
+    page_result["items"] = [
+        {
+            "user": m.user,
+            "user_id": m.user_id,
+            "organization": organization,
+            "created_at": m.created_at,
+        }
+        for m in page_result["items"]
+    ]
 
     return page_result
 
@@ -1752,7 +1766,7 @@ def resolve_external_collaborator_id(collaborator, info, **kwargs):
 
 @external_collaborator_object.field("user")
 def resolve_external_collaborator_user(collaborator, info, **kwargs):
-    return User.objects.get(id=collaborator["user_id"])
+    return collaborator["user"]
 
 
 @external_collaborator_object.field("workspaceMemberships")
