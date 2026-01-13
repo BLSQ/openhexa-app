@@ -1,5 +1,11 @@
 import base64
+import uuid
+from datetime import date, timedelta
 from unittest.mock import patch
+
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import (
@@ -8,6 +14,7 @@ from hexa.user_management.models import (
     OrganizationInvitationStatus,
     OrganizationMembership,
     OrganizationMembershipRole,
+    OrganizationSubscription,
     User,
 )
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
@@ -1144,3 +1151,817 @@ class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
         )
 
         self.assertTrue(Organization.objects.filter(id=org_to_delete.id).exists())
+
+
+class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
+    """Tests for the createOrganization mutation (SaaS provisioning)."""
+
+    def setUp(self):
+        super().setUp()
+        self.superuser = User.objects.create_superuser(
+            email="superuser@blsq.org", password="Pa$$w0rd"
+        )
+        self.regular_user = self.create_user("regular@blsq.org")
+
+    @patch("hexa.user_management.schema.send_organization_invite")
+    def test_create_organization_success(self, mock_send_invite):
+        """Test superuser can create organization with new user (invitation flow)."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                        name
+                    }
+                    user {
+                        email
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "ownerEmail": "newowner@example.org",
+                    "name": "New SaaS Organization",
+                    "subscriptionId": "12345678-1234-1234-1234-123456789012",
+                    "planCode": "openhexa_starter",
+                    "subscriptionStartDate": "2026-01-01",
+                    "subscriptionEndDate": "2026-12-31",
+                    "limits": {
+                        "users": 10,
+                        "workspaces": 5,
+                        "pipelineRuns": 1000,
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["createOrganization"]["success"])
+        self.assertEqual(r["data"]["createOrganization"]["errors"], [])
+        self.assertEqual(
+            r["data"]["createOrganization"]["organization"]["name"],
+            "New SaaS Organization",
+        )
+        self.assertIsNone(r["data"]["createOrganization"]["user"])
+        org = Organization.objects.get(name="New SaaS Organization")
+        subscription = org.active_subscription
+        self.assertIsNotNone(subscription)
+        self.assertEqual(
+            subscription.subscription_id,
+            uuid.UUID("12345678-1234-1234-1234-123456789012"),
+        )
+        self.assertEqual(subscription.plan_code, "openhexa_starter")
+        self.assertEqual(subscription.users_limit, 10)
+        self.assertEqual(subscription.workspaces_limit, 5)
+        self.assertEqual(subscription.pipeline_runs_limit, 1000)
+        self.assertEqual(subscription.start_date, date(2026, 1, 1))
+        self.assertEqual(subscription.end_date, date(2026, 12, 31))
+
+        invitation = OrganizationInvitation.objects.get(
+            organization=org,
+            email="newowner@example.org",
+        )
+        self.assertEqual(invitation.role, OrganizationMembershipRole.OWNER)
+        mock_send_invite.assert_called_once_with(invitation)
+
+    @patch("hexa.user_management.schema.send_organization_add_user_email")
+    def test_create_organization_with_existing_user(self, mock_send_email):
+        """Test creating organization with an existing user as owner."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) {
+                    success
+                    errors
+                    user {
+                        email
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "ownerEmail": self.regular_user.email,
+                    "name": "Org for Existing User",
+                    "subscriptionId": "22222222-2222-2222-2222-222222222222",
+                    "planCode": "openhexa_starter",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2025-12-31",
+                    "limits": {
+                        "users": 10,
+                        "workspaces": 5,
+                        "pipelineRuns": 1000,
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["createOrganization"]["success"])
+        self.assertEqual(
+            r["data"]["createOrganization"]["user"]["email"], self.regular_user.email
+        )
+
+        self.assertEqual(User.objects.filter(email=self.regular_user.email).count(), 1)
+
+        org = Organization.objects.get(name="Org for Existing User")
+        self.assertTrue(self.regular_user.is_organization_owner(org))
+        mock_send_email.assert_called_once()
+
+    def test_create_organization_permission_denied(self):
+        """Test user cannot create organization."""
+        self.client.force_login(self.regular_user)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "ownerEmail": "test@example.org",
+                    "name": "Unauthorized Org",
+                    "subscriptionId": "33333333-3333-3333-3333-333333333333",
+                    "planCode": "openhexa_starter",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2025-12-31",
+                    "limits": {
+                        "users": 10,
+                        "workspaces": 5,
+                        "pipelineRuns": 1000,
+                    },
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+                "organization": None,
+            },
+            r["data"]["createOrganization"],
+        )
+
+    def test_create_organization_duplicate_name(self):
+        """Test that duplicate organization name is rejected."""
+        Organization.objects.create(
+            name="Existing Organization",
+            organization_type="CORPORATE",
+        )
+
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "ownerEmail": "test@example.org",
+                    "name": "Existing Organization",
+                    "subscriptionId": "44444444-4444-4444-4444-444444444444",
+                    "planCode": "openhexa_starter",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2025-12-31",
+                    "limits": {
+                        "users": 10,
+                        "workspaces": 5,
+                        "pipelineRuns": 1000,
+                    },
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["NAME_DUPLICATE"],
+                "organization": None,
+            },
+            r["data"]["createOrganization"],
+        )
+
+    @patch("hexa.user_management.schema.send_organization_invite")
+    def test_create_organization_with_service_account_permission(
+        self, mock_send_invite
+    ):
+        """Test that a non-superuser with manage_all_organizations permission can create organization."""
+        service_account = self.create_user("service@console.blsq.org")
+        content_type = ContentType.objects.get_for_model(Organization)
+        permission = Permission.objects.get(
+            codename="manage_all_organizations",
+            content_type=content_type,
+        )
+        service_account.user_permissions.add(permission)
+
+        self.client.force_login(service_account)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "ownerEmail": "newowner@serviceaccount.org",
+                    "name": "Service Account Created Org",
+                    "subscriptionId": "66666666-6666-6666-6666-666666666666",
+                    "planCode": "openhexa_starter",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2025-12-31",
+                    "limits": {
+                        "users": 10,
+                        "workspaces": 5,
+                        "pipelineRuns": 1000,
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["createOrganization"]["success"])
+        self.assertEqual(r["data"]["createOrganization"]["errors"], [])
+
+
+class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin):
+    """Tests for the updateOrganizationSubscription mutation."""
+
+    def setUp(self):
+        super().setUp()
+        self.superuser = User.objects.create_superuser(
+            email="superuser@blsq.org", password="Pa$$w0rd"
+        )
+        self.regular_user = self.create_user("regular@blsq.org")
+        self.owner = self.create_user("owner@blsq.org")
+
+        # Create organization with subscription
+        self.organization = Organization.objects.create(
+            name="Test Organization",
+            organization_type="CORPORATE",
+            short_name="TORG",
+        )
+        OrganizationMembership.objects.create(
+            organization=self.organization,
+            user=self.owner,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        self.subscription = OrganizationSubscription.objects.create(
+            organization=self.organization,
+            subscription_id=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            plan_code="openhexa_starter",
+            start_date=date(2025, 1, 1),
+            end_date=date(2025, 12, 31),
+            users_limit=10,
+            workspaces_limit=5,
+            pipeline_runs_limit=1000,
+        )
+
+        # Create organization without subscription
+        self.org_no_subscription = Organization.objects.create(
+            name="No Subscription Org",
+            organization_type="CORPORATE",
+            short_name="NOSUB",
+        )
+
+    def test_update_subscription_success(self):
+        """Test superuser can update organization subscription."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation UpdateOrganizationSubscription($input: UpdateOrganizationSubscriptionInput!) {
+                updateOrganizationSubscription(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                        name
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "organizationId": str(self.organization.id),
+                    "subscriptionId": str(self.subscription.subscription_id),
+                    "planCode": "openhexa_pro",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2026-12-31",
+                    "limits": {
+                        "users": 50,
+                        "workspaces": 20,
+                        "pipelineRuns": 10000,
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["updateOrganizationSubscription"]["success"])
+        self.assertEqual(r["data"]["updateOrganizationSubscription"]["errors"], [])
+
+        self.subscription.refresh_from_db()
+        self.assertEqual(self.subscription.plan_code, "openhexa_pro")
+        self.assertEqual(self.subscription.users_limit, 50)
+        self.assertEqual(self.subscription.workspaces_limit, 20)
+        self.assertEqual(self.subscription.pipeline_runs_limit, 10000)
+        self.assertEqual(self.subscription.end_date, date(2026, 12, 31))
+
+    def test_update_subscription_creates_new_for_new_subscription_id(self):
+        """Test that using a new subscriptionId creates a new subscription (for downgrades/renewals)."""
+        self.client.force_login(self.superuser)
+        new_subscription_id = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+        r = self.run_query(
+            """
+            mutation UpdateOrganizationSubscription($input: UpdateOrganizationSubscriptionInput!) {
+                updateOrganizationSubscription(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "organizationId": str(self.organization.id),
+                    "subscriptionId": new_subscription_id,
+                    "planCode": "openhexa_enterprise",
+                    "subscriptionStartDate": "2026-01-01",
+                    "subscriptionEndDate": "2026-12-31",
+                    "limits": {
+                        "users": 100,
+                        "workspaces": 50,
+                        "pipelineRuns": 50000,
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["updateOrganizationSubscription"]["success"])
+
+        # Verify new subscription was created
+        new_sub = OrganizationSubscription.objects.get(
+            subscription_id=uuid.UUID(new_subscription_id)
+        )
+        self.assertEqual(new_sub.organization, self.organization)
+        self.assertEqual(new_sub.plan_code, "openhexa_enterprise")
+        self.assertEqual(new_sub.users_limit, 100)
+
+        # Original subscription should still exist
+        self.assertTrue(
+            OrganizationSubscription.objects.filter(
+                subscription_id=self.subscription.subscription_id
+            ).exists()
+        )
+
+    def test_update_subscription_permission_denied(self):
+        """Test that non-superuser cannot update subscription."""
+        self.client.force_login(self.regular_user)
+        r = self.run_query(
+            """
+            mutation UpdateOrganizationSubscription($input: UpdateOrganizationSubscriptionInput!) {
+                updateOrganizationSubscription(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "organizationId": str(self.organization.id),
+                    "subscriptionId": str(self.subscription.subscription_id),
+                    "planCode": "openhexa_pro",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2025-12-31",
+                    "limits": {
+                        "users": 10,
+                        "workspaces": 5,
+                        "pipelineRuns": 1000,
+                    },
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+                "organization": None,
+            },
+            r["data"]["updateOrganizationSubscription"],
+        )
+
+    def test_update_subscription_not_found(self):
+        """Test updating subscription for non-existent organization."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation UpdateOrganizationSubscription($input: UpdateOrganizationSubscriptionInput!) {
+                updateOrganizationSubscription(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "organizationId": "00000000-0000-0000-0000-000000000000",
+                    "subscriptionId": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+                    "planCode": "openhexa_pro",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2025-12-31",
+                    "limits": {
+                        "users": 10,
+                        "workspaces": 5,
+                        "pipelineRuns": 1000,
+                    },
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["NOT_FOUND"],
+                "organization": None,
+            },
+            r["data"]["updateOrganizationSubscription"],
+        )
+
+    def test_update_subscription_creates_for_org_without_subscription(self):
+        """Test that mutation creates subscription for organization without one."""
+        self.client.force_login(self.superuser)
+        new_subscription_id = "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"
+        r = self.run_query(
+            """
+            mutation UpdateOrganizationSubscription($input: UpdateOrganizationSubscriptionInput!) {
+                updateOrganizationSubscription(input: $input) {
+                    success
+                    errors
+                    organization {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "organizationId": str(self.org_no_subscription.id),
+                    "subscriptionId": new_subscription_id,
+                    "planCode": "openhexa_pro",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2025-12-31",
+                    "limits": {
+                        "users": 10,
+                        "workspaces": 5,
+                        "pipelineRuns": 1000,
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["updateOrganizationSubscription"]["success"])
+
+        subscription = OrganizationSubscription.objects.get(
+            subscription_id=uuid.UUID(new_subscription_id)
+        )
+        self.assertEqual(subscription.organization, self.org_no_subscription)
+        self.assertEqual(subscription.plan_code, "openhexa_pro")
+
+    def test_update_subscription_with_service_account_permission(self):
+        """Test that a non-superuser with manage_all_organizations permission can update subscription."""
+        service_account = self.create_user("service@console.blsq.org")
+        content_type = ContentType.objects.get_for_model(Organization)
+        permission = Permission.objects.get(
+            codename="manage_all_organizations",
+            content_type=content_type,
+        )
+        service_account.user_permissions.add(permission)
+
+        self.client.force_login(service_account)
+        r = self.run_query(
+            """
+            mutation UpdateOrganizationSubscription($input: UpdateOrganizationSubscriptionInput!) {
+                updateOrganizationSubscription(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "organizationId": str(self.organization.id),
+                    "subscriptionId": str(self.subscription.subscription_id),
+                    "planCode": "openhexa_enterprise",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2027-12-31",
+                    "limits": {
+                        "users": 100,
+                        "workspaces": 50,
+                        "pipelineRuns": 50000,
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["updateOrganizationSubscription"]["success"])
+        self.assertEqual(r["data"]["updateOrganizationSubscription"]["errors"], [])
+
+
+class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
+    """Tests for the usage and limits resolvers on Organization type."""
+
+    def setUp(self):
+        super().setUp()
+        self.owner = self.create_user("owner@blsq.org")
+        self.member = self.create_user("member@blsq.org")
+
+        self.organization = self.create_organization(
+            self.owner, "Test Organization", "Description"
+        )
+        self.join_organization(
+            self.member, self.organization, OrganizationMembershipRole.MEMBER
+        )
+
+    def test_organization_usage_self_hosted(self):
+        """Test usage and subscription for self-hosted (no subscription)."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            query OrganizationUsage($organizationId: UUID!) {
+                organization(id: $organizationId) {
+                    usage {
+                        users
+                        workspaces
+                        pipelineRuns
+                    }
+                    subscription {
+                        subscriptionId
+                        planCode
+                        startDate
+                        endDate
+                        limits {
+                            users
+                            workspaces
+                            pipelineRuns
+                        }
+                    }
+                }
+            }
+            """,
+            {"organizationId": str(self.organization.id)},
+        )
+
+        usage = r["data"]["organization"]["usage"]
+        subscription = r["data"]["organization"]["subscription"]
+        # Usage counts should be present
+        self.assertEqual(usage["users"], 2)
+        self.assertEqual(usage["workspaces"], 0)
+        self.assertEqual(usage["pipelineRuns"], 0)
+        self.assertIsNone(subscription)
+
+    def test_organization_usage_and_subscription_saas(self):
+        """Test usage and subscription with SaaS subscription details."""
+        today = timezone.now().date()
+        start_date = today - timedelta(days=30)
+        end_date = today + timedelta(days=335)
+        OrganizationSubscription.objects.create(
+            organization=self.organization,
+            subscription_id=uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+            plan_code="openhexa_starter",
+            start_date=start_date,
+            end_date=end_date,
+            users_limit=10,
+            workspaces_limit=5,
+            pipeline_runs_limit=1000,
+        )
+
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            query OrganizationUsageSubscription($organizationId: UUID!) {
+                organization(id: $organizationId) {
+                    usage {
+                        users
+                        workspaces
+                        pipelineRuns
+                    }
+                    subscription {
+                        subscriptionId
+                        planCode
+                        startDate
+                        endDate
+                        limits {
+                            users
+                            workspaces
+                            pipelineRuns
+                        }
+                    }
+                }
+            }
+            """,
+            {"organizationId": str(self.organization.id)},
+        )
+
+        usage = r["data"]["organization"]["usage"]
+        subscription = r["data"]["organization"]["subscription"]
+        self.assertEqual(usage["users"], 2)
+        self.assertEqual(usage["workspaces"], 0)
+        self.assertEqual(usage["pipelineRuns"], 0)
+        self.assertEqual(
+            subscription["subscriptionId"],
+            "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        )
+        self.assertEqual(subscription["planCode"], "openhexa_starter")
+        self.assertEqual(subscription["startDate"], start_date.isoformat())
+        self.assertEqual(subscription["endDate"], end_date.isoformat())
+        self.assertEqual(subscription["limits"]["users"], 10)
+        self.assertEqual(subscription["limits"]["workspaces"], 5)
+        self.assertEqual(subscription["limits"]["pipelineRuns"], 1000)
+
+
+class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
+    """Tests for subscription limit enforcement."""
+
+    def setUp(self):
+        super().setUp()
+        self.owner = self.create_user("owner@blsq.org")
+        self.organization = self.create_organization(
+            self.owner, "Test Organization", "Description", short_name="SLIM"
+        )
+
+        today = timezone.now().date()
+        self.subscription = OrganizationSubscription.objects.create(
+            organization=self.organization,
+            subscription_id=uuid.UUID("11111111-1111-1111-1111-111111111111"),
+            plan_code="openhexa_starter",
+            start_date=today - timedelta(days=30),
+            end_date=today + timedelta(days=335),
+            users_limit=2,
+            workspaces_limit=1,
+            pipeline_runs_limit=5,
+        )
+
+    @patch("hexa.user_management.schema.send_organization_invite")
+    def test_invite_member_at_user_limit(self, mock_send_invite):
+        """Test that inviting a member when at user limit returns error."""
+        member = self.create_user("member@blsq.org")
+        self.join_organization(
+            member, self.organization, OrganizationMembershipRole.MEMBER
+        )
+
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation InviteOrganizationMember($input: InviteOrganizationMemberInput!) {
+                inviteOrganizationMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "organizationId": str(self.organization.id),
+                    "userEmail": "newuser@blsq.org",
+                    "organizationRole": "MEMBER",
+                    "workspaceInvitations": [],
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["USERS_LIMIT_REACHED"]},
+            r["data"]["inviteOrganizationMember"],
+        )
+        mock_send_invite.assert_not_called()
+
+    @patch("hexa.user_management.schema.send_organization_invite")
+    def test_invite_member_under_user_limit(self, mock_send_invite):
+        """Test that inviting a member when under limit succeeds."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation InviteOrganizationMember($input: InviteOrganizationMemberInput!) {
+                inviteOrganizationMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "organizationId": str(self.organization.id),
+                    "userEmail": "newuser@blsq.org",
+                    "organizationRole": "MEMBER",
+                    "workspaceInvitations": [],
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["inviteOrganizationMember"],
+        )
+        mock_send_invite.assert_called_once()
+
+    @patch("hexa.user_management.schema.send_organization_invite")
+    def test_invite_member_no_subscription(self, mock_send_invite):
+        """Test that inviting works without subscription (self-hosted mode)."""
+        owner2 = self.create_user("owner2@blsq.org")
+        org_no_sub = self.create_organization(
+            owner2, "No Sub Org", "Description", short_name="NSUB"
+        )
+
+        self.client.force_login(owner2)
+        r = self.run_query(
+            """
+                mutation InviteOrganizationMember($input: InviteOrganizationMemberInput!) {
+                    inviteOrganizationMember(input: $input) {
+                        success
+                        errors
+                    }
+                }
+                """,
+            {
+                "input": {
+                    "organizationId": str(org_no_sub.id),
+                    "userEmail": "newuser@blsq.org",
+                    "organizationRole": "MEMBER",
+                    "workspaceInvitations": [],
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["inviteOrganizationMember"],
+        )
+        mock_send_invite.assert_called_once()
+
+    def test_active_subscription_date_based(self):
+        """Test that limits only apply to active subscriptions based on date."""
+        today = timezone.now().date()
+        future_subscription = OrganizationSubscription.objects.create(
+            organization=self.organization,
+            subscription_id=uuid.UUID("22222222-2222-2222-2222-222222222222"),
+            plan_code="openhexa_pro",
+            start_date=today + timedelta(days=365),
+            end_date=today + timedelta(days=730),
+            users_limit=100,  # Higher limit
+            workspaces_limit=50,
+            pipeline_runs_limit=10000,
+        )
+
+        self.assertEqual(
+            self.organization.active_subscription.subscription_id,
+            self.subscription.subscription_id,
+        )
+
+        self.assertEqual(
+            self.organization.pending_subscription.subscription_id,
+            future_subscription.subscription_id,
+        )
+
+    def test_is_users_limit_reached_method(self):
+        """Test the is_users_limit_reached helper method."""
+        self.assertFalse(self.organization.is_users_limit_reached())
+
+        member = self.create_user("member2@blsq.org")
+        self.join_organization(
+            member, self.organization, OrganizationMembershipRole.MEMBER
+        )
+
+        self.assertTrue(self.organization.is_users_limit_reached())
+
+    def test_is_workspaces_limit_reached_method(self):
+        """Test the is_workspaces_limit_reached helper method."""
+        self.assertFalse(self.organization.is_workspaces_limit_reached())
+
+        self.create_workspace(
+            self.owner, self.organization, "Test Workspace", "Description"
+        )
+        self.assertTrue(self.organization.is_workspaces_limit_reached())
