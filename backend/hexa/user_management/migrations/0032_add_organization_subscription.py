@@ -28,8 +28,8 @@ class Migration(migrations.Migration):
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 ("subscription_id", models.UUIDField(unique=True)),
                 ("plan_code", models.CharField(max_length=100)),
-                ("subscription_start_date", models.DateField()),
-                ("subscription_end_date", models.DateField()),
+                ("start_date", models.DateField()),
+                ("end_date", models.DateField()),
                 ("users_limit", models.PositiveIntegerField()),
                 ("workspaces_limit", models.PositiveIntegerField()),
                 ("pipeline_runs_limit", models.PositiveIntegerField()),
@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 "db_table": "identity_organization_subscription",
-                "ordering": ["-subscription_start_date"],
+                "ordering": ["-start_date"],
             },
         ),
     ]
