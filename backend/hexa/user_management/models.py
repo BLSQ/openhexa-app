@@ -312,7 +312,7 @@ class OrganizationSubscription(Base):
         """Check if the organization has reached its user limit."""
         current_users = (
             self.organization.organizationmembership_set.count()
-        )  # TODO : this does not count workspace-only membership
+        )  # TODO : this does not account for workspace-only memberships
         return current_users >= self.users_limit
 
     def is_workspaces_limit_reached(self) -> bool:
