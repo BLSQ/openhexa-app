@@ -25,6 +25,10 @@ from hexa.core.models.soft_delete import (
 )
 
 
+class UsersLimitReached(Exception):
+    pass
+
+
 class UserManager(BaseUserManager):
     """
     Custom user model manager where email is the unique identifiers
@@ -382,6 +386,9 @@ class OrganizationMembership(Base):
         if role == OrganizationMembershipRole.OWNER:
             if not principal.has_perm("user_management.manage_owners", organization):
                 raise PermissionDenied
+
+        if organization.is_users_limit_reached():
+            raise UsersLimitReached
 
         return cls.objects.create(
             organization=organization,
