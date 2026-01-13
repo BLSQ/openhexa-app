@@ -783,6 +783,70 @@ type CreateMembershipResult {
 }
 
 """
+The CreateOrganizationError enum represents the possible errors that can occur during the createOrganization mutation.
+"""
+enum CreateOrganizationError {
+  """Indicates that the provided email is invalid."""
+  INVALID_EMAIL
+
+  """Indicates that an organization with the same name already exists."""
+  NAME_DUPLICATE
+
+  """
+  Indicates that the user does not have permission to create an organization.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The CreateOrganizationInput type represents the input for the createOrganization mutation.
+Used by the Bluesquare Console to provision new organizations after Stripe payment.
+"""
+input CreateOrganizationInput {
+  """The resource limits for the organization."""
+  limits: ResourceCountsInput!
+
+  """The name of the organization."""
+  name: String!
+
+  """
+  The email address of the organization owner. Creates user if doesn't exist.
+  """
+  ownerEmail: String!
+
+  """The subscription plan code (e.g., "openhexa_starter")."""
+  planCode: String!
+
+  """The date when the subscription ends."""
+  subscriptionEndDate: Date!
+
+  """The external subscription ID from the Bluesquare Console."""
+  subscriptionId: UUID!
+
+  """The date when the subscription starts."""
+  subscriptionStartDate: Date!
+}
+
+"""
+The CreateOrganizationResult type represents the result of the createOrganization mutation.
+"""
+type CreateOrganizationResult {
+  """
+  The list of errors that occurred during the createOrganization mutation.
+  """
+  errors: [CreateOrganizationError!]!
+
+  """The created organization object."""
+  organization: Organization
+
+  """Indicates whether the createOrganization mutation was successful."""
+  success: Boolean!
+
+  """The owner user object (created or existing)."""
+  user: User
+}
+
+"""
 Enum representing the possible errors that can occur when creating a pipeline from a template version.
 """
 enum CreatePipelineFromTemplateVersionError {
@@ -943,6 +1007,7 @@ enum CreateWorkspaceError {
   INVALID_SLUG
   ORGANIZATION_NOT_FOUND
   PERMISSION_DENIED
+  WORKSPACES_LIMIT_REACHED
 }
 
 """Represents the input for creating a workspace."""
@@ -2136,6 +2201,11 @@ enum InviteOrganizationMemberError {
   """
   PERMISSION_DENIED
 
+  """
+  Indicates that the organization has reached its user limit (SaaS only).
+  """
+  USERS_LIMIT_REACHED
+
   """Indicates that one or more workspaces were not found."""
   WORKSPACE_NOT_FOUND
 }
@@ -2498,6 +2568,7 @@ type Mutation {
   """Create a new file in a dataset version."""
   createDatasetVersionFile(input: CreateDatasetVersionFileInput!): CreateDatasetVersionFileResult!
   createMembership(input: CreateMembershipInput!): CreateMembershipResult!
+  createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult!
 
   """Creates a new pipeline."""
   createPipeline(input: CreatePipelineInput!): CreatePipelineResult!
@@ -2656,6 +2727,7 @@ type Mutation {
   updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
   updateOrganization(input: UpdateOrganizationInput!): UpdateOrganizationResult!
   updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult!
+  updateOrganizationSubscription(input: UpdateOrganizationSubscriptionInput!): UpdateOrganizationSubscriptionResult!
 
   """Updates an existing pipeline."""
   updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult!
@@ -2755,11 +2827,17 @@ type Organization {
   """The short name of the organization."""
   shortName: String
 
+  """Subscription details with limits. Null for self-hosted deployments."""
+  subscription: Subscription
+
   """The type of the organization."""
   type: String!
 
   """The URL of the organization."""
   url: String!
+
+  """Current resource usage counts."""
+  usage: ResourceCounts!
 
   """The workspaces associated with the organization."""
   workspaces(page: Int, perPage: Int): WorkspacePage!
@@ -2975,6 +3053,7 @@ enum PipelineError {
   PIPELINE_CODE_PARSING_ERROR
   PIPELINE_DOES_NOT_SUPPORT_PARAMETERS
   PIPELINE_NOT_FOUND
+  PIPELINE_RUNS_LIMIT_REACHED
   PIPELINE_VERSION_NOT_FOUND
   TABLE_NOT_FOUND
   WORKSPACE_NOT_FOUND
@@ -3648,6 +3727,30 @@ type ResetPasswordResult {
   success: Boolean!
 }
 
+"""Resource counts"""
+type ResourceCounts {
+  """Number of pipeline runs."""
+  pipelineRuns: Int!
+
+  """Number of users."""
+  users: Int!
+
+  """Number of workspaces."""
+  workspaces: Int!
+}
+
+"""Input type for resource counts (used for subscription limits)."""
+input ResourceCountsInput {
+  """Number of pipeline runs."""
+  pipelineRuns: Int!
+
+  """Number of users."""
+  users: Int!
+
+  """Number of workspaces."""
+  workspaces: Int!
+}
+
 enum RunDAGError {
   DAG_NOT_FOUND
   INVALID_CONFIG
@@ -3832,6 +3935,24 @@ input StopPipelineInput {
 type StopPipelineResult {
   errors: [PipelineError!]!
   success: Boolean!
+}
+
+"""Subscription details from the Bluesquare Console."""
+type Subscription {
+  """The date when the subscription ends."""
+  endDate: Date!
+
+  """Resource limits for this subscription."""
+  limits: ResourceCounts!
+
+  """The subscription plan code (e.g., "openhexa_starter")."""
+  planCode: String!
+
+  """The date when the subscription starts."""
+  startDate: Date!
+
+  """The external subscription ID from the Bluesquare Console."""
+  subscriptionId: UUID!
 }
 
 type TableColumn {
@@ -4258,6 +4379,67 @@ type UpdateOrganizationResult {
   organization: Organization
 
   """Indicates whether the updateOrganization mutation was successful."""
+  success: Boolean!
+}
+
+"""
+The UpdateOrganizationSubscriptionError enum represents the possible errors that can occur.
+"""
+enum UpdateOrganizationSubscriptionError {
+  """Indicates that the organization was not found."""
+  NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to update the organization subscription.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The UpdateOrganizationSubscriptionInput type represents the input for updating organization subscription.
+Used by the Bluesquare Console to update subscription when it changes.
+
+Behavior: If a subscription with the given subscriptionId exists, it will be updated.
+Otherwise, a new subscription record will be created (used for downgrades/renewals).
+"""
+input UpdateOrganizationSubscriptionInput {
+  """The resource limits for the organization."""
+  limits: ResourceCountsInput!
+
+  """The unique identifier of the organization."""
+  organizationId: UUID!
+
+  """The updated subscription plan code."""
+  planCode: String!
+
+  """The subscription end date."""
+  subscriptionEndDate: Date!
+
+  """
+  The external subscription ID from the Bluesquare Console.
+  Used as lookup key - if exists, update; if not, create new record.
+  """
+  subscriptionId: UUID!
+
+  """The subscription start date."""
+  subscriptionStartDate: Date!
+}
+
+"""
+The UpdateOrganizationSubscriptionResult type represents the result of the updateOrganizationSubscription mutation.
+"""
+type UpdateOrganizationSubscriptionResult {
+  """
+  The list of errors that occurred during the updateOrganizationSubscription mutation.
+  """
+  errors: [UpdateOrganizationSubscriptionError!]!
+
+  """The updated organization object."""
+  organization: Organization
+
+  """
+  Indicates whether the updateOrganizationSubscription mutation was successful.
+  """
   success: Boolean!
 }
 
