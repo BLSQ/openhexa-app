@@ -260,6 +260,27 @@ class Organization(Base, SoftDeletedModel):
             .first()
         )
 
+    def get_users_count(self) -> int:
+        """Count organization members."""
+        return (
+            self.organizationmembership_set.count()
+        )  # TODO: this does not consider workspace-only users
+
+    def get_workspaces_count(self) -> int:
+        """Count active (non-archived) workspaces."""
+        return self.workspaces.filter(archived=False).count()
+
+    def get_monthly_pipeline_runs_count(self) -> int:
+        """Count pipeline runs for the current calendar month."""
+        from hexa.pipelines.models import PipelineRun
+
+        today = timezone.now().date()
+        month_start = today.replace(day=1)  # TODO: should we consider start date ?
+        return PipelineRun.objects.filter(
+            pipeline__workspace__organization=self,
+            created_at__date__gte=month_start,
+        ).count()
+
     def is_users_limit_reached(self) -> bool:
         """Check if the organization has reached its user limit."""
         subscription = self.active_subscription
@@ -309,29 +330,18 @@ class OrganizationSubscription(Base):
 
     def is_users_limit_reached(self) -> bool:
         """Check if the organization has reached its user limit."""
-        current_users = (
-            self.organization.organizationmembership_set.count()
-        )  # TODO : this does not account for workspace-only memberships
-        return current_users >= self.users_limit
+        return self.organization.get_users_count() >= self.users_limit
 
     def is_workspaces_limit_reached(self) -> bool:
         """Check if the organization has reached its workspace limit."""
-        current_workspaces = self.organization.workspaces.filter(archived=False).count()
-        return current_workspaces >= self.workspaces_limit
+        return self.organization.get_workspaces_count() >= self.workspaces_limit
 
     def is_pipeline_runs_limit_reached(self) -> bool:
         """Check if the organization has reached its monthly pipeline runs limit."""
-        from hexa.pipelines.models import PipelineRun
-
-        today = timezone.now().date()
-        month_start = today.replace(
-            day=1
-        )  # TODO : we might want to consider the subscription start date instead
-        current_runs = PipelineRun.objects.filter(
-            pipeline__workspace__organization=self.organization,
-            created_at__date__gte=month_start,
-        ).count()
-        return current_runs >= self.pipeline_runs_limit
+        return (
+            self.organization.get_monthly_pipeline_runs_count()
+            >= self.pipeline_runs_limit
+        )
 
 
 class OrganizationMembershipRole(models.TextChoices):
