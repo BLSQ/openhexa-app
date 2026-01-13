@@ -194,6 +194,12 @@ class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
 class Organization(Base, SoftDeletedModel):
     class Meta:
         db_table = "identity_organization"
+        permissions = [
+            (
+                "manage_all_organizations",
+                "Can manage all organizations (create, update subscriptions)",
+            ),
+        ]
 
     organization_type = models.CharField(
         choices=OrganizationType.choices, max_length=100
