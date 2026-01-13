@@ -75,6 +75,7 @@ class CustomUserAdmin(UserAdmin):
     )
 
     list_filter = ("last_login", "is_staff", "is_superuser", "is_active")
+    filter_horizontal = ("user_permissions",)
     inlines = [MembershipInline, FeatureFlagInline]
     fieldsets = (
         (
@@ -90,6 +91,13 @@ class CustomUserAdmin(UserAdmin):
             },
         ),
         ("Permissions", {"fields": ("is_staff", "is_superuser", "is_active")}),
+        (
+            "Advanced permissions",
+            {
+                "classes": ("collapse",),
+                "fields": ("user_permissions",),
+            },
+        ),
     )
 
     add_form = UserCreationForm
