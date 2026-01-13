@@ -1529,12 +1529,12 @@ input UpdateExternalCollaboratorInput {
     """
     The unique identifier of the user who is an external collaborator.
     """
-    user_id: UUID!
+    userId: UUID!
 
     """
     The unique identifier of the organization.
     """
-    organization_id: UUID!
+    organizationId: UUID!
 
     """
     The list of workspace permissions to update for the external collaborator.
@@ -1584,12 +1584,12 @@ input DeleteExternalCollaboratorInput {
     """
     The unique identifier of the user to remove as an external collaborator.
     """
-    user_id: UUID!
+    userId: UUID!
 
     """
     The unique identifier of the organization.
     """
-    organization_id: UUID!
+    organizationId: UUID!
 }
 
 """

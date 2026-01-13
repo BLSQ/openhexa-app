@@ -2164,8 +2164,8 @@ class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "user_id": str(self.external_collaborator.id),
-                    "organization_id": str(self.organization.id),
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
                     "workspacePermissions": [
                         {
                             "workspaceSlug": self.workspace1.slug,
@@ -2211,8 +2211,8 @@ class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "user_id": str(self.external_collaborator.id),
-                    "organization_id": str(self.organization.id),
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
                     "workspacePermissions": [
                         {
                             "workspaceSlug": self.workspace1.slug,
@@ -2249,8 +2249,8 @@ class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "user_id": str(self.external_collaborator.id),
-                    "organization_id": str(self.organization.id),
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
                     "workspacePermissions": [],
                 }
             },
@@ -2275,8 +2275,8 @@ class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "user_id": str(self.external_collaborator.id),
-                    "organization_id": str(self.organization.id),
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
                     "workspacePermissions": [],
                 }
             },
@@ -2301,8 +2301,8 @@ class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "user_id": str(self.external_collaborator.id),
-                    "organization_id": str(self.organization.id),
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
                     "workspacePermissions": [
                         {
                             "workspaceSlug": self.workspace1.slug,
@@ -2332,8 +2332,8 @@ class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "user_id": "00000000-0000-0000-0000-000000000000",
-                    "organization_id": str(self.organization.id),
+                    "userId": "00000000-0000-0000-0000-000000000000",
+                    "organizationId": str(self.organization.id),
                     "workspacePermissions": [],
                 }
             },
@@ -2365,8 +2365,8 @@ class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "user_id": str(self.external_collaborator.id),
-                    "organization_id": str(self.organization.id),
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
                 }
             },
         )
@@ -2398,8 +2398,8 @@ class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "user_id": str(self.external_collaborator.id),
-                    "organization_id": str(self.organization.id),
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
                 }
             },
         )
@@ -2430,8 +2430,8 @@ class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "user_id": str(self.external_collaborator.id),
-                    "organization_id": str(self.organization.id),
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
                 }
             },
         )
@@ -2471,8 +2471,8 @@ class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "user_id": str(self.external_collaborator.id),
-                    "organization_id": str(self.organization.id),
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
                 }
             },
         )
@@ -2504,8 +2504,8 @@ class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
             """,
             {
                 "input": {
-                    "user_id": "00000000-0000-0000-0000-000000000000",
-                    "organization_id": str(self.organization.id),
+                    "userId": "00000000-0000-0000-0000-000000000000",
+                    "organizationId": str(self.organization.id),
                 }
             },
         )

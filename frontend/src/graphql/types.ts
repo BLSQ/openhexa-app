@@ -1687,9 +1687,9 @@ export enum DeleteExternalCollaboratorError {
 /** The DeleteExternalCollaboratorInput type represents the input for the deleteExternalCollaborator mutation. */
 export type DeleteExternalCollaboratorInput = {
   /** The unique identifier of the organization. */
-  organization_id: Scalars['UUID']['input'];
+  organizationId: Scalars['UUID']['input'];
   /** The unique identifier of the user to remove as an external collaborator. */
-  user_id: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
 };
 
 /** The DeleteExternalCollaboratorResult type represents the result of the deleteExternalCollaborator mutation. */
@@ -5207,9 +5207,9 @@ export enum UpdateExternalCollaboratorError {
 /** The UpdateExternalCollaboratorInput type represents the input for the updateExternalCollaborator mutation. */
 export type UpdateExternalCollaboratorInput = {
   /** The unique identifier of the organization. */
-  organization_id: Scalars['UUID']['input'];
+  organizationId: Scalars['UUID']['input'];
   /** The unique identifier of the user who is an external collaborator. */
-  user_id: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
   /** The list of workspace permissions to update for the external collaborator. */
   workspacePermissions?: InputMaybe<Array<WorkspacePermissionInput>>;
 };

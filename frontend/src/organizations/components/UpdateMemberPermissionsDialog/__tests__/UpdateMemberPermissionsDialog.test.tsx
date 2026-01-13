@@ -370,8 +370,8 @@ describe("UpdateMemberPermissionsDialog", () => {
         expect(mockUpdateMutation).toHaveBeenCalledWith({
           variables: {
             input: {
-              user_id: USER_ID,
-              organization_id: ORGANIZATION_ID,
+              userId: USER_ID,
+              organizationId: ORGANIZATION_ID,
               workspacePermissions: expect.any(Array),
             },
           },

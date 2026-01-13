@@ -79,8 +79,8 @@ export default function RemoveMemberDialog({
         const result = await deleteExternalCollaborator({
           variables: {
             input: {
-              user_id: member.user.id,
-              organization_id: organizationId,
+              userId: member.user.id,
+              organizationId: organizationId,
             },
           },
         });
