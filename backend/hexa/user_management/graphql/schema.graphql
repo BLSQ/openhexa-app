@@ -1753,10 +1753,6 @@ enum SignupError {
     Email address is already taken.
     """
     EMAIL_TAKEN
-    """
-    Invalid email format.
-    """
-    INVALID_EMAIL
 }
 
 """

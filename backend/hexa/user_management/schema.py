@@ -44,6 +44,8 @@ from hexa.user_management.models import (
     OrganizationInvitation,
     OrganizationInvitationStatus,
     OrganizationMembership,
+    SignupRequest,
+    SignupRequestStatus,
     Team,
     User,
 )
@@ -67,6 +69,7 @@ from .utils import (
     has_configured_two_factor,
     send_organization_add_user_email,
     send_organization_invite,
+    send_signup_email,
 )
 
 logger = logging.getLogger(__name__)
@@ -419,6 +422,33 @@ def resolve_logout(_, info, **kwargs):
     return {"success": True}
 
 
+@identity_mutations.field("signup")
+def resolve_signup(_, info, **kwargs):
+    """Handle self-registration signup request."""
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    if not settings.ALLOW_SELF_REGISTRATION:
+        return {"success": False, "errors": ["SELF_REGISTRATION_DISABLED"]}
+
+    email = remove_whitespace(mutation_input["email"]).lower()
+
+    if User.objects.filter(email=email).exists():
+        return {"success": False, "errors": ["EMAIL_TAKEN"]}
+
+    existing = SignupRequest.objects.filter(
+        email=email,
+        status=SignupRequestStatus.PENDING,
+    ).first()
+
+    signup_request = existing or SignupRequest.objects.create(email=email)
+    send_signup_email(signup_request)
+
+    track(request, "users.signup_requested", properties={"email": email})
+
+    return {"success": True, "errors": []}
+
+
 @identity_mutations.field("register")
 def resolve_register(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -427,11 +457,12 @@ def resolve_register(_, info, **kwargs):
     if request.user.is_authenticated:
         return {"success": False, "errors": ["ALREADY_LOGGED_IN"]}
 
-    # We only accept registration if the invitation token to a workspace/organization is valid and pending.
-    # Once the user is created, their invitation is automatically accepted.
+    # We accept registration if the invitation token to a workspace/organization or signup request is valid.
+    # Once the user is created, their invitation/signup request is automatically accepted.
 
     workspace_invitation = None
     organization_invitation = None
+    signup_request = None
 
     try:
         workspace_invitation = WorkspaceInvitation.objects.get_by_token(
@@ -484,13 +515,38 @@ def resolve_register(_, info, **kwargs):
             BadSignature,
             OrganizationInvitation.DoesNotExist,
         ):
-            return {"success": False, "errors": ["INVALID_TOKEN"]}
+            try:
+                signup_request = SignupRequest.objects.get_by_token(
+                    token=mutation_input["invitation_token"]
+                )
+                if signup_request.status != SignupRequestStatus.PENDING:
+                    return {"success": False, "errors": ["INVALID_TOKEN"]}
 
-    invitation_email = (
-        workspace_invitation.email
-        if workspace_invitation
-        else organization_invitation.email
-    )
+                track(
+                    request=request,
+                    event="emails.registration_landed",
+                    properties={
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "signup_email": signup_request.email,
+                        "status": signup_request.status,
+                    },
+                )
+            except (
+                UnicodeDecodeError,
+                SignatureExpired,
+                binascii.Error,
+                BadSignature,
+                SignupRequest.DoesNotExist,
+            ):
+                return {"success": False, "errors": ["INVALID_TOKEN"]}
+
+    if workspace_invitation:
+        invitation_email = workspace_invitation.email
+    elif organization_invitation:
+        invitation_email = organization_invitation.email
+    else:
+        invitation_email = signup_request.email
+
     if User.objects.filter(email=invitation_email).exists():
         return {"success": False, "errors": ["EMAIL_TAKEN"]}
 
@@ -527,7 +583,7 @@ def resolve_register(_, info, **kwargs):
                         "status": workspace_invitation.status,
                     },
                 )
-            else:
+            elif organization_invitation:
                 OrganizationMembership.objects.create(
                     organization=organization_invitation.organization,
                     user=user,
@@ -557,6 +613,18 @@ def resolve_register(_, info, **kwargs):
                         "invitee_email": organization_invitation.email,
                         "invitee_role": organization_invitation.role,
                         "status": organization_invitation.status,
+                    },
+                )
+            elif signup_request:
+                signup_request.status = SignupRequestStatus.ACCEPTED
+                signup_request.save()
+
+                track(
+                    request,
+                    event="emails.registration_complete",
+                    properties={
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "email": signup_request.email,
                     },
                 )
 
