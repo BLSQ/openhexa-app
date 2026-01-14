@@ -14,6 +14,13 @@ from hexa.user_management.models import (
     FeatureFlag,
     Membership,
     MembershipRole,
+    Organization,
+    OrganizationInvitation,
+    OrganizationInvitationStatus,
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    SignupRequest,
+    SignupRequestStatus,
     Team,
     User,
 )
@@ -1481,6 +1488,24 @@ class RegisterTest(GraphQLTestCase):
             role=WorkspaceMembershipRole.EDITOR,
         )
 
+        cls.ORGANIZATION = Organization.objects.create(name="Test Organization")
+        cls.ORG_OWNER = User.objects.create_user("owner@test.com", "ownerpass")
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.ORG_OWNER,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        cls.ORG_INVITATION = OrganizationInvitation.objects.create(
+            organization=cls.ORGANIZATION,
+            email="orginvitee@email.com",
+            role=OrganizationMembershipRole.MEMBER,
+            invited_by=cls.ORG_OWNER,
+        )
+
+        cls.SIGNUP_REQUEST = SignupRequest.objects.create(
+            email="selfregister@email.com"
+        )
+
     def test_register_invalid_token(self):
         r = self.run_query(
             """
@@ -1579,3 +1604,277 @@ class RegisterTest(GraphQLTestCase):
                 "email": self.WORKSPACE_INVITATION.email,
             },
         )
+
+    def test_register_with_organization_invitation(self):
+        """Test registration using an organization invitation token."""
+        r = self.run_query(
+            """
+            mutation register($input: RegisterInput!) {
+                register(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "password1": "Pa$$Word1",
+                    "password2": "Pa$$Word1",
+                    "firstName": "Org",
+                    "lastName": "Invitee",
+                    "invitationToken": self.ORG_INVITATION.generate_token(),
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["register"]["success"])
+
+        user = User.objects.get(email=self.ORG_INVITATION.email)
+        self.assertEqual(user.first_name, "Org")
+        self.assertEqual(user.last_name, "Invitee")
+
+        self.assertTrue(
+            OrganizationMembership.objects.filter(
+                user=user, organization=self.ORGANIZATION
+            ).exists()
+        )
+        self.ORG_INVITATION.refresh_from_db()
+        self.assertEqual(
+            self.ORG_INVITATION.status, OrganizationInvitationStatus.ACCEPTED
+        )
+
+    def test_register_with_signup_request(self):
+        """Test registration using a self-registration signup request token."""
+        r = self.run_query(
+            """
+            mutation register($input: RegisterInput!) {
+                register(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "password1": "Pa$$Word1",
+                    "password2": "Pa$$Word1",
+                    "firstName": "Self",
+                    "lastName": "Register",
+                    "invitationToken": self.SIGNUP_REQUEST.generate_token(),
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["register"]["success"])
+
+        user = User.objects.get(email=self.SIGNUP_REQUEST.email)
+        self.assertEqual(user.first_name, "Self")
+        self.assertEqual(user.last_name, "Register")
+
+        self.assertFalse(OrganizationMembership.objects.filter(user=user).exists())
+
+        self.SIGNUP_REQUEST.refresh_from_db()
+        self.assertEqual(self.SIGNUP_REQUEST.status, SignupRequestStatus.ACCEPTED)
+
+    def test_register_already_logged_in(self):
+        """Test that already logged-in users cannot register."""
+        self.client.force_login(self.USER_REGULAR)
+        r = self.run_query(
+            """
+            mutation register($input: RegisterInput!) {
+                register(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "password1": "Pa$$Word1",
+                    "password2": "Pa$$Word1",
+                    "firstName": "New",
+                    "lastName": "User",
+                    "invitationToken": self.SIGNUP_REQUEST.generate_token(),
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["register"], {"success": False, "errors": ["ALREADY_LOGGED_IN"]}
+        )
+
+    def test_register_email_taken(self):
+        """Test registration fails when email is already taken."""
+        existing_email_request = SignupRequest.objects.create(
+            email=self.USER_REGULAR.email
+        )
+
+        r = self.run_query(
+            """
+            mutation register($input: RegisterInput!) {
+                register(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "password1": "Pa$$Word1",
+                    "password2": "Pa$$Word1",
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "invitationToken": existing_email_request.generate_token(),
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["register"], {"success": False, "errors": ["EMAIL_TAKEN"]}
+        )
+
+    def test_register_invalid_password(self):
+        """Test registration fails with invalid password."""
+        r = self.run_query(
+            """
+            mutation register($input: RegisterInput!) {
+                register(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "password1": "short",
+                    "password2": "short",
+                    "firstName": "Self",
+                    "lastName": "Register",
+                    "invitationToken": self.SIGNUP_REQUEST.generate_token(),
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["register"], {"success": False, "errors": ["INVALID_PASSWORD"]}
+        )
+
+
+class SignupTest(GraphQLTestCase):
+    """Tests for the self-registration signup mutation."""
+
+    @classmethod
+    def setUp(cls):
+        cls.USER_EXISTING = User.objects.create_user(
+            "existing@email.com",
+            "existingpass",
+        )
+
+    @override_settings(ALLOW_SELF_REGISTRATION=True)
+    @patch("hexa.user_management.schema.send_signup_email")
+    def test_signup_success(self, mock_send_email):
+        """Test successful signup request."""
+        r = self.run_query(
+            """
+            mutation signup($input: SignupInput!) {
+                signup(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"email": "newuser@email.com"}},
+        )
+
+        self.assertEqual(r["data"]["signup"], {"success": True, "errors": []})
+
+        signup_request = SignupRequest.objects.get(email="newuser@email.com")
+        self.assertEqual(signup_request.status, SignupRequestStatus.PENDING)
+        mock_send_email.assert_called_once()
+
+    @override_settings(ALLOW_SELF_REGISTRATION=False)
+    def test_signup_self_registration_disabled(self):
+        """Test signup fails when self-registration is disabled."""
+        r = self.run_query(
+            """
+            mutation signup($input: SignupInput!) {
+                signup(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"email": "newuser@email.com"}},
+        )
+
+        self.assertEqual(
+            r["data"]["signup"],
+            {"success": False, "errors": ["SELF_REGISTRATION_DISABLED"]},
+        )
+
+    @override_settings(ALLOW_SELF_REGISTRATION=True)
+    def test_signup_email_taken(self):
+        """Test signup fails when email is already taken by existing user."""
+        r = self.run_query(
+            """
+            mutation signup($input: SignupInput!) {
+                signup(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"email": self.USER_EXISTING.email}},
+        )
+
+        self.assertEqual(
+            r["data"]["signup"], {"success": False, "errors": ["EMAIL_TAKEN"]}
+        )
+
+    @override_settings(ALLOW_SELF_REGISTRATION=True)
+    @patch("hexa.user_management.schema.send_signup_email")
+    def test_signup_existing_pending_request(self, mock_send_email):
+        """Test signup with existing pending request resends email."""
+        existing_request = SignupRequest.objects.create(email="pending@email.com")
+
+        r = self.run_query(
+            """
+            mutation signup($input: SignupInput!) {
+                signup(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"email": "pending@email.com"}},
+        )
+
+        self.assertEqual(r["data"]["signup"], {"success": True, "errors": []})
+
+        self.assertEqual(
+            SignupRequest.objects.filter(email="pending@email.com").count(), 1
+        )
+        mock_send_email.assert_called_once()
+        called_request = mock_send_email.call_args[0][0]
+        self.assertEqual(called_request.id, existing_request.id)
+
+    @override_settings(ALLOW_SELF_REGISTRATION=True)
+    @patch("hexa.user_management.schema.send_signup_email")
+    def test_signup_email_normalized(self, mock_send_email):
+        """Test that email is normalized (lowercase, trimmed)."""
+        r = self.run_query(
+            """
+            mutation signup($input: SignupInput!) {
+                signup(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"email": "  NewUser@Email.Com  "}},
+        )
+
+        self.assertEqual(r["data"]["signup"], {"success": True, "errors": []})
+
+        signup_request = SignupRequest.objects.get(email="newuser@email.com")
+        self.assertIsNotNone(signup_request)
