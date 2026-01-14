@@ -209,19 +209,6 @@ const LoginPage: NextPageWithLayout = () => {
                 </Link>
               </div>
             </div>
-            {configData?.config?.allowSelfRegistration && (
-              <div className="mt-4 text-center text-sm">
-                <span className="text-gray-600">
-                  {t("Don't have an account?")}
-                </span>{" "}
-                <Link
-                  href="/signup"
-                  customStyle="text-blue-600 hover:text-blue-500"
-                >
-                  {t("Sign up")}
-                </Link>
-              </div>
-            )}
           </>
         )}
         <div className="space-y-2">
@@ -246,6 +233,17 @@ const LoginPage: NextPageWithLayout = () => {
             </Button>
           )}
         </div>
+        {configData?.config?.allowSelfRegistration && (
+          <div className="mt-4 text-center text-sm">
+            <span className="text-gray-600">{t("Don't have an account?")}</span>{" "}
+            <Link
+              href="/signup"
+              customStyle="text-blue-600 hover:text-blue-500"
+            >
+              {t("Sign up")}
+            </Link>
+          </div>
+        )}
       </form>
     </Page>
   );
