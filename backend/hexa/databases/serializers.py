@@ -40,7 +40,7 @@ class RecipeExecuteSerializer(serializers.Serializer):
     We accept:
     - format: json or csv
     - limit: optional safety cap (still bounded by server-side max)
-    - any recipe parameter: passed through, validated by parameters_schema in code
+    - any recipe parameter: passed through and substituted in SQL template
     - column filters with operators (e.g., date__gte, status__eq): applied to result set
       Supported operators: eq, neq, gt, gte, lt, lte, contains, icontains,
       startswith, endswith
@@ -56,5 +56,4 @@ class RecipeCreateUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=200)
     description = serializers.CharField(required=False, allow_blank=True, default="")
     sql_template = serializers.CharField()
-    parameters_schema = serializers.JSONField(required=False, default=dict)
     is_active = serializers.BooleanField(required=False, default=True)

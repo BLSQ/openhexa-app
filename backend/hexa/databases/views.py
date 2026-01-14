@@ -25,7 +25,6 @@ from .utils import (
     get_table_definition,
     get_workspace_database_connection,
     render_recipe_sql,
-    validate_recipe_parameters,
 )
 
 
@@ -34,10 +33,11 @@ class TableDataAPIView(APIView):
     REST API endpoint for querying workspace database tables with filtering, pagination, and sorting.
 
     URL: /api/workspace/<workspace_slug>/database/<db_name>/table/<table_name>/
+
+    Supports both token authentication (Bearer token) and session authentication (cookies).
     """
 
-    # Support both session auth (web) and token auth (API)
-    authentication_classes = [SessionAuthentication, WorkspaceTokenAuthentication]
+    authentication_classes = [WorkspaceTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, workspace_slug, db_name, table_name):
@@ -335,10 +335,11 @@ class DatasetRecipeAPIView(APIView):
     REST API endpoint for executing dataset recipes (parameterized SQL queries).
 
     URL: /api/workspace/<workspace_slug>/database/<db_name>/datasetrecipe/<recipe_id>/
+
+    Supports both token authentication (Bearer token) and session authentication (cookies).
     """
 
-    # Support both session auth (web) and token auth (API)
-    authentication_classes = [SessionAuthentication, WorkspaceTokenAuthentication]
+    authentication_classes = [WorkspaceTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request, workspace_slug, db_name):
@@ -349,7 +350,6 @@ class DatasetRecipeAPIView(APIView):
         - name: Recipe name (required)
         - sql_template: SQL query template with {{param}} placeholders (required)
         - description: Recipe description (optional)
-        - parameters_schema: JSON schema for parameters (optional)
         - is_active: Whether the recipe is active (optional, default: true)
         """
         # Validate workspace access
@@ -400,7 +400,6 @@ class DatasetRecipeAPIView(APIView):
             name=validated_data["name"],
             description=validated_data.get("description", ""),
             sql_template=validated_data["sql_template"],
-            parameters_schema=validated_data.get("parameters_schema", {}),
             is_active=validated_data.get("is_active", True),
             created_by=request.user,
             updated_by=request.user,
@@ -412,7 +411,6 @@ class DatasetRecipeAPIView(APIView):
             "name": recipe.name,
             "description": recipe.description,
             "sql_template": recipe.sql_template,
-            "parameters_schema": recipe.parameters_schema,
             "is_active": recipe.is_active,
             "workspace": workspace_slug,
             "database": db_name,
@@ -430,7 +428,6 @@ class DatasetRecipeAPIView(APIView):
         - name: Recipe name
         - sql_template: SQL query template with {{param}} placeholders
         - description: Recipe description
-        - parameters_schema: JSON schema for parameters
         - is_active: Whether the recipe is active
         """
         # Validate workspace access
@@ -494,8 +491,6 @@ class DatasetRecipeAPIView(APIView):
             recipe.description = validated_data["description"]
         if "sql_template" in validated_data:
             recipe.sql_template = validated_data["sql_template"]
-        if "parameters_schema" in validated_data:
-            recipe.parameters_schema = validated_data["parameters_schema"]
         if "is_active" in validated_data:
             recipe.is_active = validated_data["is_active"]
 
@@ -508,7 +503,6 @@ class DatasetRecipeAPIView(APIView):
             "name": recipe.name,
             "description": recipe.description,
             "sql_template": recipe.sql_template,
-            "parameters_schema": recipe.parameters_schema,
             "is_active": recipe.is_active,
             "workspace": workspace_slug,
             "database": db_name,
@@ -522,26 +516,16 @@ class DatasetRecipeAPIView(APIView):
 
     def get(self, request, workspace_slug, db_name, recipe_id=None):
         """
-        GET endpoint to execute a dataset recipe with optional parameters and filters.
-
-        Query Parameters:
-        - format: Response format ('json' or 'csv', default: 'json')
-        - limit: Optional limit on number of rows (default: from recipe schema)
-        - Any recipe-specific parameters defined in the recipe's parameters_schema
-        - Column filters using operators (e.g., date__gte=2024-01-01, status__eq=active)
-          Supported operators: eq, neq, gt, gte, lt, lte, contains, icontains,
-          startswith, endswith
-
-        V1 Implementation: Filters are applied to the recipe result set.
-        Works for single-table and multi-table (JOIN) queries.
+        GET endpoint for dataset recipes.
+        - If recipe_id is provided, return the requested recipe (with execution logic as before).
+        - If recipe_id is None, return all recipes (name, sql_template, description) for the workspace/db.
         """
         # Validate workspace access
         try:
             workspace = Workspace.objects.filter_for_user(request.user).get(slug=workspace_slug)
         except Workspace.DoesNotExist:
             return Response(
-                {"error": "Workspace not found or access denied"},
-                status=status.HTTP_404_NOT_FOUND,
+                {"error": "Workspace not found or access denied"}, status=status.HTTP_404_NOT_FOUND
             )
 
         # Check permission to view database tables
@@ -557,6 +541,20 @@ class DatasetRecipeAPIView(APIView):
                 {"error": "Database does not belong to this workspace"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        if recipe_id is None:
+            # Return all recipes for this workspace/db
+            recipes = DatasetRecipe.objects.filter(workspace=workspace, is_active=True)
+            result = [
+                {
+                    "id": str(r.id),
+                    "name": r.name,
+                    "description": r.description,
+                    "sql_template": r.sql_template,
+                }
+                for r in recipes
+            ]
+            return Response(result, status=status.HTTP_200_OK)
 
         # Fetch the recipe
         try:
@@ -596,37 +594,21 @@ class DatasetRecipeAPIView(APIView):
         # Separate recipe parameters from column filters
         recipe_params = {}
         column_filters = []
-
         for param_name, param_value in request.query_params.items():
             if param_name in reserved_params:
                 continue
-
-            # Check if this is a column filter (has __ operator)
             if "__" in param_name:
                 column_name, operator = param_name.rsplit("__", 1)
-
-                # If it's a valid filter operator, treat as column filter
                 if operator in filter_operators:
                     column_filters.append(
                         {"column": column_name, "operator": operator, "value": param_value}
                     )
                     continue
-
-            # Otherwise, treat as recipe parameter
             recipe_params[param_name] = param_value
-
-        # Validate recipe parameters against schema
-        try:
-            validated_params = validate_recipe_parameters(recipe_params, recipe.parameters_schema)
-        except ValueError as e:
-            return Response(
-                {"error": f"Parameter validation failed: {e!s}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Render the SQL template with parameters
         try:
-            rendered_sql = render_recipe_sql(recipe.sql_template, validated_params)
+            rendered_sql = render_recipe_sql(recipe.sql_template, recipe_params)
         except Exception as e:
             return Response(
                 {"error": f"SQL template rendering failed: {e!s}"},
@@ -650,7 +632,7 @@ class DatasetRecipeAPIView(APIView):
             "recipe_name": recipe.name,
             "sql_template": recipe.sql_template,
             "rendered_sql": rendered_sql,
-            "parameters": validated_params,
+            "parameters": recipe_params,
             "filters": column_filters,
             "data": data,
             "row_count": len(data),
@@ -664,8 +646,7 @@ class DatasetRecipeAPIView(APIView):
                 columns = list(data[0].keys())
                 return self._generate_csv_response(data, columns)
             return Response(
-                {"error": "No data to export as CSV"},
-                status=status.HTTP_204_NO_CONTENT,
+                {"error": "No data to export as CSV"}, status=status.HTTP_204_NO_CONTENT
             )
         return Response(response_data, status=status.HTTP_200_OK)
 

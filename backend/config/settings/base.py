@@ -116,7 +116,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = []
 if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
     CORS_ALLOWED_ORIGIN_REGEXES += os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES").split(",")
 
-CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$"
+CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$|^/api/"
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = list(default_headers) + [

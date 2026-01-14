@@ -26,15 +26,6 @@ class DatasetRecipe(models.Model):
     # Parameterized SQL template (SELECT-only). See utils.render_recipe_sql
     sql_template = models.TextField()
 
-    # JSON schema-like definition of allowed parameters:
-    # Example:
-    # {
-    #   "start_date": {"type": "date", "required": false},
-    #   "end_date": {"type": "date", "required": false},
-    #   "limit": {"type": "integer", "required": false, "min": 1, "max": 5000, "default": 1000}
-    # }
-    parameters_schema = models.JSONField(default=dict, blank=True)
-
     is_active = models.BooleanField(default=True)
 
     created_by = models.ForeignKey(
