@@ -15,7 +15,11 @@ from hexa.workspaces.models import Workspace
 from .authentication import WorkspaceTokenAuthentication
 from .models import DatasetRecipe
 from .permissions import view_database_tables
-from .serializers import RecipeExecuteSerializer, TableDataSerializer
+from .serializers import (
+    RecipeCreateUpdateSerializer,
+    RecipeExecuteSerializer,
+    TableDataSerializer,
+)
 from .utils import (
     execute_recipe_query,
     get_table_definition,
@@ -50,9 +54,7 @@ class TableDataAPIView(APIView):
         """
         # Validate workspace access
         try:
-            workspace = Workspace.objects.filter_for_user(request.user).get(
-                slug=workspace_slug
-            )
+            workspace = Workspace.objects.filter_for_user(request.user).get(slug=workspace_slug)
         except Workspace.DoesNotExist:
             return Response(
                 {"error": "Workspace not found or access denied"},
@@ -102,16 +104,16 @@ class TableDataAPIView(APIView):
 
         # Supported operators with their SQL equivalents
         operator_map = {
-            "eq": "=",      # Equal (default)
-            "neq": "!=",    # Not equal
-            "gt": ">",      # Greater than
-            "gte": ">=",    # Greater than or equal
-            "lt": "<",      # Less than
-            "lte": "<=",    # Less than or equal
-            "contains": "LIKE",     # Contains (case-sensitive)
-            "icontains": "ILIKE",   # Contains (case-insensitive)
-            "startswith": "LIKE",   # Starts with
-            "endswith": "LIKE",     # Ends with
+            "eq": "=",  # Equal (default)
+            "neq": "!=",  # Not equal
+            "gt": ">",  # Greater than
+            "gte": ">=",  # Greater than or equal
+            "lt": "<",  # Less than
+            "lte": "<=",  # Less than or equal
+            "contains": "LIKE",  # Contains (case-sensitive)
+            "icontains": "ILIKE",  # Contains (case-insensitive)
+            "startswith": "LIKE",  # Starts with
+            "endswith": "LIKE",  # Ends with
         }
 
         for param_name, param_value in request.query_params.items():
@@ -121,7 +123,9 @@ class TableDataAPIView(APIView):
                     column_name, operator = param_name.rsplit("__", 1)
                     if operator not in operator_map:
                         return Response(
-                            {"error": f"Invalid operator '{operator}'. Supported: {', '.join(operator_map.keys())}"},
+                            {
+                                "error": f"Invalid operator '{operator}'. Supported: {', '.join(operator_map.keys())}"
+                            },
                             status=status.HTTP_400_BAD_REQUEST,
                         )
                 else:
@@ -135,11 +139,13 @@ class TableDataAPIView(APIView):
                         status=status.HTTP_400_BAD_REQUEST,
                     )
 
-                column_filters.append({
-                    "column": column_name,
-                    "operator": operator,
-                    "value": param_value,
-                })
+                column_filters.append(
+                    {
+                        "column": column_name,
+                        "operator": operator,
+                        "value": param_value,
+                    }
+                )
 
         # Validate sort column if provided
         if sort_column and sort_column not in available_columns:
@@ -271,9 +277,7 @@ class TableDataAPIView(APIView):
 
                 # Build WHERE clause SQL
                 if where_conditions:
-                    where_clause = sql.SQL(" WHERE ") + sql.SQL(" AND ").join(
-                        where_conditions
-                    )
+                    where_clause = sql.SQL(" WHERE ") + sql.SQL(" AND ").join(where_conditions)
                 else:
                     where_clause = sql.SQL("")
 
@@ -337,7 +341,186 @@ class DatasetRecipeAPIView(APIView):
     authentication_classes = [SessionAuthentication, WorkspaceTokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, workspace_slug, db_name, recipe_id):
+    def post(self, request, workspace_slug, db_name):
+        """
+        POST endpoint to create a new dataset recipe.
+
+        Request Body (JSON):
+        - name: Recipe name (required)
+        - sql_template: SQL query template with {{param}} placeholders (required)
+        - description: Recipe description (optional)
+        - parameters_schema: JSON schema for parameters (optional)
+        - is_active: Whether the recipe is active (optional, default: true)
+        """
+        # Validate workspace access
+        try:
+            workspace = Workspace.objects.filter_for_user(request.user).get(slug=workspace_slug)
+        except Workspace.DoesNotExist:
+            return Response(
+                {"error": "Workspace not found or access denied"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Check permission to view database tables (reusing existing permission)
+        if not view_database_tables(request.user, workspace):
+            return Response(
+                {"error": "Permission denied to create dataset recipes"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Verify database belongs to workspace
+        if workspace.db_name != db_name:
+            return Response(
+                {"error": "Database does not belong to this workspace"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate request data
+        serializer = RecipeCreateUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data = serializer.validated_data
+
+        # Check if recipe with same name already exists in workspace
+        if DatasetRecipe.objects.filter(workspace=workspace, name=validated_data["name"]).exists():
+            return Response(
+                {
+                    "error": (
+                        f"Recipe with name '{validated_data['name']}' "
+                        "already exists in this workspace"
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Create the recipe
+        recipe = DatasetRecipe.objects.create(
+            workspace=workspace,
+            name=validated_data["name"],
+            description=validated_data.get("description", ""),
+            sql_template=validated_data["sql_template"],
+            parameters_schema=validated_data.get("parameters_schema", {}),
+            is_active=validated_data.get("is_active", True),
+            created_by=request.user,
+            updated_by=request.user,
+        )
+
+        # Return created recipe details
+        response_data = {
+            "id": str(recipe.id),
+            "name": recipe.name,
+            "description": recipe.description,
+            "sql_template": recipe.sql_template,
+            "parameters_schema": recipe.parameters_schema,
+            "is_active": recipe.is_active,
+            "workspace": workspace_slug,
+            "database": db_name,
+            "created_at": recipe.created_at.isoformat(),
+            "created_by": request.user.email if request.user else None,
+        }
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
+    def patch(self, request, workspace_slug, db_name, recipe_id):
+        """
+        PATCH endpoint to update an existing dataset recipe.
+
+        Request Body (JSON) - all fields optional:
+        - name: Recipe name
+        - sql_template: SQL query template with {{param}} placeholders
+        - description: Recipe description
+        - parameters_schema: JSON schema for parameters
+        - is_active: Whether the recipe is active
+        """
+        # Validate workspace access
+        try:
+            workspace = Workspace.objects.filter_for_user(request.user).get(slug=workspace_slug)
+        except Workspace.DoesNotExist:
+            return Response(
+                {"error": "Workspace not found or access denied"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Check permission to view database tables (reusing existing permission)
+        if not view_database_tables(request.user, workspace):
+            return Response(
+                {"error": "Permission denied to update dataset recipes"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Verify database belongs to workspace
+        if workspace.db_name != db_name:
+            return Response(
+                {"error": "Database does not belong to this workspace"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Fetch the recipe
+        try:
+            recipe = DatasetRecipe.objects.get(id=recipe_id, workspace=workspace)
+        except DatasetRecipe.DoesNotExist:
+            return Response(
+                {"error": f"Recipe '{recipe_id!s}' not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Validate request data (partial update, all fields optional)
+        serializer = RecipeCreateUpdateSerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data = serializer.validated_data
+
+        # Check if trying to rename to an existing recipe name
+        if "name" in validated_data and validated_data["name"] != recipe.name:
+            if DatasetRecipe.objects.filter(
+                workspace=workspace, name=validated_data["name"]
+            ).exists():
+                return Response(
+                    {
+                        "error": (
+                            f"Recipe with name '{validated_data['name']}' "
+                            "already exists in this workspace"
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        # Update recipe fields
+        if "name" in validated_data:
+            recipe.name = validated_data["name"]
+        if "description" in validated_data:
+            recipe.description = validated_data["description"]
+        if "sql_template" in validated_data:
+            recipe.sql_template = validated_data["sql_template"]
+        if "parameters_schema" in validated_data:
+            recipe.parameters_schema = validated_data["parameters_schema"]
+        if "is_active" in validated_data:
+            recipe.is_active = validated_data["is_active"]
+
+        recipe.updated_by = request.user
+        recipe.save()
+
+        # Return updated recipe details
+        response_data = {
+            "id": str(recipe.id),
+            "name": recipe.name,
+            "description": recipe.description,
+            "sql_template": recipe.sql_template,
+            "parameters_schema": recipe.parameters_schema,
+            "is_active": recipe.is_active,
+            "workspace": workspace_slug,
+            "database": db_name,
+            "created_at": recipe.created_at.isoformat(),
+            "updated_at": recipe.updated_at.isoformat(),
+            "created_by": recipe.created_by.email if recipe.created_by else None,
+            "updated_by": request.user.email if request.user else None,
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    def get(self, request, workspace_slug, db_name, recipe_id=None):
         """
         GET endpoint to execute a dataset recipe with optional parameters and filters.
 
@@ -354,9 +537,7 @@ class DatasetRecipeAPIView(APIView):
         """
         # Validate workspace access
         try:
-            workspace = Workspace.objects.filter_for_user(request.user).get(
-                slug=workspace_slug
-            )
+            workspace = Workspace.objects.filter_for_user(request.user).get(slug=workspace_slug)
         except Workspace.DoesNotExist:
             return Response(
                 {"error": "Workspace not found or access denied"},
@@ -379,9 +560,7 @@ class DatasetRecipeAPIView(APIView):
 
         # Fetch the recipe
         try:
-            recipe = DatasetRecipe.objects.get(
-                id=recipe_id, workspace=workspace, is_active=True
-            )
+            recipe = DatasetRecipe.objects.get(id=recipe_id, workspace=workspace, is_active=True)
         except DatasetRecipe.DoesNotExist:
             return Response(
                 {"error": f"Recipe '{recipe_id!s}' not found or not active"},
@@ -438,9 +617,7 @@ class DatasetRecipeAPIView(APIView):
 
         # Validate recipe parameters against schema
         try:
-            validated_params = validate_recipe_parameters(
-                recipe_params, recipe.parameters_schema
-            )
+            validated_params = validate_recipe_parameters(recipe_params, recipe.parameters_schema)
         except ValueError as e:
             return Response(
                 {"error": f"Parameter validation failed: {e!s}"},

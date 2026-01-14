@@ -16,7 +16,7 @@ x-app: &common
       - openhexa
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-./backend}:/code"
-      - "${WORKSPACE_STORAGE_LOCATION:-/data/openhexa}:/data"
+      - workspace_data:/data
 
 services:
   db:
@@ -37,8 +37,9 @@ services:
     command: "manage runserver 0:8000"
     restart: unless-stopped
     image: blsq/openhexa-app
+    user: "root"  # Run as root for local development to avoid permission issues
     ports:
-      - "8000:8000"
+      - "8001:8000"
     depends_on:
       - db
 
@@ -152,3 +153,4 @@ networks:
 volumes:
   pgdata:
   minio_data:
+  workspace_data:
