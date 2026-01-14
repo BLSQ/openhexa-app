@@ -119,12 +119,8 @@ const SignupPage: NextPageWithLayout = () => {
             />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {t("Create your account")}
+            {t("Sign up")}
           </h2>
-          <p className="mt-2 text-center">
-            {t("Already have an account?")}&nbsp;
-            <Link href="/login">{t("Sign in")}</Link>
-          </p>
         </div>
         <div className="space-y-4 pt-2">
           <Field
@@ -138,7 +134,7 @@ const SignupPage: NextPageWithLayout = () => {
             error={form.touched.email && form.errors.email}
           />
           {form.submitError && (
-            <div className="text-red-500">{form.submitError}</div>
+            <div className="text-sm text-red-600">{form.submitError}</div>
           )}
         </div>
         <div className="space-y-2">
@@ -151,6 +147,12 @@ const SignupPage: NextPageWithLayout = () => {
             {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
             {t("Sign up")}
           </Button>
+        </div>
+        <div className="mt-4 text-center text-sm">
+          <span className="text-gray-600">{t("Already have an account?")}</span>{" "}
+          <Link href="/login" customStyle="text-blue-600 hover:text-blue-500">
+            {t("Sign in")}
+          </Link>
         </div>
       </form>
     </Page>
