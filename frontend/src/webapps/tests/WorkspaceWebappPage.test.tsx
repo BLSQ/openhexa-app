@@ -27,6 +27,7 @@ jest.mock("react-toastify", () => ({
 
 jest.mock("next-i18next", () => ({
   useTranslation: jest.fn().mockReturnValue({ t: (key: string) => key }),
+  i18n: { t: (key: string) => key },
 }));
 
 const graphqlMocks: MockedResponse[] = [
@@ -147,8 +148,11 @@ describe("WorkspaceWebappPage", () => {
                   id: "1",
                   name: "Updated Webapp",
                   icon: "",
-                  type: "IFRAME",
-                  url: "https://updated-url.com",
+                  content: {
+                    iframe: {
+                      url: "https://updated-url.com",
+                    },
+                  },
                 },
               },
             },

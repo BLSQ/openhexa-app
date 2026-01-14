@@ -1,3 +1,7 @@
+import base64
+import io
+import zipfile
+
 from django.http import HttpRequest
 
 from hexa.utils.base64_image_encode_decode import decode_base64_image
@@ -10,20 +14,119 @@ def _decode_icon_if_present(input: dict):
         input["icon"] = decode_base64_image(input["icon"])
 
 
-def _normalize_type_if_present(input: dict):
-    if input.get("type"):
-        input["type"] = input["type"].lower()
+def _upload_bundle_to_storage(workspace, webapp_slug, bundle_bytes):
+    """
+    Unpack bundle zipfile and upload individual files to workspace bucket.
+    Returns manifest of uploaded files.
+    """
+    import logging
+
+    from hexa.files import storage
+
+    logger = logging.getLogger(__name__)
+    logger.info(
+        f"Uploading bundle for webapp {webapp_slug} in workspace {workspace.slug}"
+    )
+
+    bucket_name = workspace.bucket_name
+    bundle_prefix = f"webapps/{webapp_slug}/"
+
+    try:
+        objects = storage.list_bucket_objects(bucket_name, prefix=bundle_prefix)
+        for obj in objects.items:
+            storage.delete_object(bucket_name, obj.key)
+    except storage.exceptions.NotFound:
+        pass
+
+    manifest = []
+    with zipfile.ZipFile(io.BytesIO(bundle_bytes), "r") as zip_file:
+        for file_path in zip_file.namelist():
+            if file_path.endswith("/"):
+                continue
+
+            if any(part.startswith(".") for part in file_path.split("/")):
+                continue
+
+            file_content = zip_file.read(file_path)
+            storage_path = f"{bundle_prefix}{file_path}"
+
+            storage.save_object(
+                bucket_name=bucket_name,
+                file_path=storage_path,
+                file=io.BytesIO(file_content),
+            )
+
+            manifest.append({"path": file_path, "size": len(file_content)})
+
+    logger.info(f"Successfully uploaded {len(manifest)} files for webapp {webapp_slug}")
+    return manifest
+
+
+def _flatten_webapp_content(input: dict):
+    """
+    Flatten the WebappContentInput structure to extract type and content fields.
+    GraphQL's @oneOf ensures only one content type is provided.
+    """
+    content_input = input.get("content")
+    if not content_input:
+        return
+
+    match content_input:
+        case {"iframe": iframe_data}:
+            input["type"] = "iframe"
+            input["url"] = iframe_data["url"]
+            del input["content"]
+        case {"html": html_data}:
+            input["type"] = "html"
+            input["content"] = html_data["content"]
+        case {"bundle": bundle_data}:
+            input["type"] = "bundle"
+            input["bundle"] = base64.b64decode(bundle_data["bundle"])
+        case {"superset": superset_data}:
+            input["type"] = "superset"
+            input["url"] = superset_data["url"]
+            del input["content"]
+        case _:
+            raise ValueError(
+                f"Unknown webapp content type: {list(content_input.keys())}"
+            )
 
 
 class WebappsWorkspaceMutationType(BaseWorkspaceMutationType):
     def pre_create(self, request: HttpRequest, input: dict):
+        from django.utils import timezone
+
+        from hexa.webapps.models import create_webapp_slug
+
         input["created_by"] = request.user
+        if not input.get("content"):
+            raise ValueError("Content is required when creating a webapp")
+        _flatten_webapp_content(input)
         _decode_icon_if_present(input)
-        _normalize_type_if_present(input)
+
+        if "slug" not in input:
+            input["slug"] = create_webapp_slug(input["name"], input["workspace"])
+
+        if input.get("type") == "bundle" and "bundle" in input:
+            manifest = _upload_bundle_to_storage(
+                input["workspace"], input["slug"], input.pop("bundle")
+            )
+            input["bundle_manifest"] = manifest
+            input["bundle_uploaded_at"] = timezone.now()
 
     def pre_update(self, request: HttpRequest, instance, input: dict):
+        from django.utils import timezone
+
+        if "content" in input:
+            _flatten_webapp_content(input)
         _decode_icon_if_present(input)
-        _normalize_type_if_present(input)
+
+        if input.get("type") == "bundle" and "bundle" in input:
+            manifest = _upload_bundle_to_storage(
+                instance.workspace, instance.slug, input.pop("bundle")
+            )
+            input["bundle_manifest"] = manifest
+            input["bundle_uploaded_at"] = timezone.now()
 
 
 webapps_mutations = WebappsWorkspaceMutationType(Webapp)

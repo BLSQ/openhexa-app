@@ -106,9 +106,23 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         Workspace, on_delete=models.CASCADE, related_name="webapps"
     )
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    url = models.URLField()
+    url = models.URLField(blank=True)
     type = models.CharField(
         max_length=20, choices=WebappType.choices, default=WebappType.IFRAME
+    )
+    content = models.TextField(
+        blank=True,
+        help_text="Text content for the webapp (e.g., HTML markup, configuration, etc.)",
+    )
+    bundle_manifest = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Manifest of files in bundle stored in bucket (JSON array of {path, size})",
+    )
+    bundle_uploaded_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Timestamp when bundle was last uploaded to bucket",
     )
     favorites = models.ManyToManyField(
         User, related_name="favorite_webapps", blank=True

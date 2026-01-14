@@ -1,4 +1,9 @@
 """
+Directive to ensure exactly one field is provided in an input type.
+"""
+directive @oneOf on INPUT_OBJECT
+
+"""
 Represents the type of a web app.
 """
 enum WebappType {
@@ -16,9 +21,10 @@ type Webapp {
   slug: String!
   name: String!
   description: String
-  url: String!
+  url: String
   type: WebappType!
   icon: String
+  content: String
   workspace: Workspace!
   createdBy: User!
   isFavorite: Boolean!
@@ -34,14 +40,51 @@ type WebappPermissions {
 }
 
 """
+Content input for an IFRAME webapp.
+"""
+input IframeWebappContentInput {
+  url: String!
+}
+
+"""
+Content input for an HTML webapp.
+"""
+input HtmlWebappContentInput {
+  content: String!
+}
+
+"""
+Content input for a BUNDLE webapp.
+"""
+input BundleWebappContentInput {
+  bundle: String!
+}
+
+"""
+Content input for a SUPERSET webapp.
+"""
+input SupersetWebappContentInput {
+  url: String!
+}
+
+"""
+Content input for a webapp. Exactly one field must be provided.
+"""
+input WebappContentInput @oneOf {
+  iframe: IframeWebappContentInput
+  html: HtmlWebappContentInput
+  bundle: BundleWebappContentInput
+  superset: SupersetWebappContentInput
+}
+
+"""
 Represents the input for creating a web app.
 """
 input CreateWebappInput {
   name: String!
   description: String
-  url: String!
-  type: WebappType!
   icon: String
+  content: WebappContentInput!
   workspaceSlug: String!
 }
 
@@ -69,9 +112,8 @@ input UpdateWebappInput {
   id: UUID!
   name: String
   description: String
-  url: String
-  type: WebappType
   icon: String
+  content: WebappContentInput
 }
 
 """

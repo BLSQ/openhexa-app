@@ -52,7 +52,6 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
         setChecking(false);
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!isChecking && !me.permissions.createWorkspace) {
