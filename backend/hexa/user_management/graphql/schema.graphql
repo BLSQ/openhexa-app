@@ -1728,4 +1728,47 @@ extend type Mutation {
     resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult! @loginRequired
     updateOrganization(input: UpdateOrganizationInput!): UpdateOrganizationResult! @loginRequired
     deleteOrganization(input: DeleteOrganizationInput!): DeleteOrganizationResult! @loginRequired
+    signup(input: SignupInput!): SignupResult!
+}
+
+"""
+Input for self-registration (signup) mutation.
+"""
+input SignupInput {
+    """
+    Email address for the new account.
+    """
+    email: String!
+}
+
+"""
+Possible errors during signup.
+"""
+enum SignupError {
+    """
+    Self-registration is not enabled.
+    """
+    SELF_REGISTRATION_DISABLED
+    """
+    Email address is already taken.
+    """
+    EMAIL_TAKEN
+    """
+    Invalid email format.
+    """
+    INVALID_EMAIL
+}
+
+"""
+Result of signup mutation.
+"""
+type SignupResult {
+    """
+    Indicates whether the signup request was successful.
+    """
+    success: Boolean!
+    """
+    The list of errors that occurred during the signup process.
+    """
+    errors: [SignupError!]
 }

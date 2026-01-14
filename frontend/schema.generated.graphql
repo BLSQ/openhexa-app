@@ -452,6 +452,9 @@ enum BucketObjectType {
 }
 
 type Config {
+  """Whether self-registration is enabled."""
+  allowSelfRegistration: Boolean!
+
   """List of requirements for the password."""
   passwordRequirements: [String!]
 }
@@ -2638,6 +2641,11 @@ type Mutation {
   """Sets a new password for the user."""
   setPassword(input: SetPasswordInput!): SetPasswordResult!
 
+  """
+  Self-registration for new users (requires ALLOW_SELF_REGISTRATION to be enabled).
+  """
+  signup(input: SignupInput!): SignupResult!
+
   """Stops a pipeline."""
   stopPipeline(input: StopPipelineInput!): StopPipelineResult!
   updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult!
@@ -3817,6 +3825,33 @@ type ShortcutItem {
   name: String!
   order: Int!
   url: String!
+}
+
+"""Possible errors during signup."""
+enum SignupError {
+  """Email address is already taken."""
+  EMAIL_TAKEN
+
+  """Invalid email format."""
+  INVALID_EMAIL
+
+  """Self-registration is not enabled."""
+  SELF_REGISTRATION_DISABLED
+}
+
+"""Input for self-registration (signup) mutation."""
+input SignupInput {
+  """Email address for the new account."""
+  email: String!
+}
+
+"""Result of signup mutation."""
+type SignupResult {
+  """The list of errors that occurred during the signup process."""
+  errors: [SignupError!]
+
+  """Indicates whether the signup request was successful."""
+  success: Boolean!
 }
 
 scalar SimplifiedExtentType
