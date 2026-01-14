@@ -574,7 +574,6 @@ class OrganizationInvitationManager(InvitationManager):
 
 
 class OrganizationInvitation(Invitation):
-    email = EmailField(db_collation="case_insensitive")
     organization = models.ForeignKey(
         Organization,
         on_delete=models.CASCADE,
@@ -600,6 +599,14 @@ class OrganizationInvitation(Invitation):
             raise PermissionDenied
 
         return self.delete()
+
+    def get_tracking_properties(self) -> dict:
+        return {
+            "organization": self.organization.name,
+            "invitee_email": self.email,
+            "invitee_role": self.role,
+            "status": self.status,
+        }
 
     def accept(self, user: User):
         """Accept the invitation and create organization/workspace memberships."""
@@ -630,7 +637,6 @@ class SignupRequestManager(InvitationManager):
 
 
 class SignupRequest(Invitation):
-    email = EmailField(db_collation="case_insensitive")
     status = models.CharField(
         max_length=50,
         choices=SignupRequestStatus.choices,
@@ -638,6 +644,11 @@ class SignupRequest(Invitation):
     )
 
     objects = SignupRequestManager()
+
+    def get_tracking_properties(self) -> dict:
+        return {
+            "email": self.email,
+        }
 
     def accept(self, user: User):
         """Accept the signup request."""

@@ -10,7 +10,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.validators import RegexValidator, validate_slug
 from django.db import models
-from django.db.models import EmailField, Q
+from django.db.models import Q
 from django.forms import ValidationError
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -454,7 +454,6 @@ class WorkspaceInvitationManager(InvitationManager):
 
 
 class WorkspaceInvitation(Invitation):
-    email = EmailField(db_collation="case_insensitive")
     workspace = models.ForeignKey(
         Workspace,
         on_delete=models.CASCADE,
@@ -478,6 +477,14 @@ class WorkspaceInvitation(Invitation):
             raise PermissionDenied
 
         return self.delete()
+
+    def get_tracking_properties(self) -> dict:
+        return {
+            "workspace": self.workspace.slug,
+            "invitee_email": self.email,
+            "invitee_role": self.role,
+            "status": self.status,
+        }
 
     def accept(self, user: User):
         """Accept the invitation and create workspace membership."""
