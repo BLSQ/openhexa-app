@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import uuid
 from datetime import timedelta
 
@@ -8,14 +7,13 @@ from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.signing import TimestampSigner
 from django.db import models
 from django.db.models import EmailField, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
-from hexa.core.models import Base
+from hexa.core.models import Base, Invitation, InvitationManager
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.soft_delete import (
     DefaultSoftDeletedManager,
@@ -541,7 +539,7 @@ class OrganizationInvitationQuerySet(BaseQuerySet):
         )
 
 
-class OrganizationInvitationManager(models.Manager):
+class OrganizationInvitationManager(InvitationManager):
     def create_if_has_perm(
         self,
         principal: User,
@@ -574,15 +572,8 @@ class OrganizationInvitationManager(models.Manager):
 
         return invitation
 
-    def get_by_token(self, token: str):
-        signer = TimestampSigner()
-        decoded_value = base64.b64decode(token).decode("utf-8")
-        # the token is valid for 48h
-        invitation_id = signer.unsign(decoded_value, max_age=48 * 3600)
-        return self.get(id=invitation_id)
 
-
-class OrganizationInvitation(Base):
+class OrganizationInvitation(Invitation):
     email = EmailField(db_collation="case_insensitive")
     organization = models.ForeignKey(
         Organization,
@@ -604,15 +595,29 @@ class OrganizationInvitation(Base):
         OrganizationInvitationQuerySet
     )()
 
-    def generate_invitation_token(self):
-        signer = TimestampSigner()
-        return base64.b64encode(signer.sign(self.id).encode("utf-8")).decode()
-
     def delete_if_has_perm(self, principal: User):
         if not principal.has_perm("user_management.manage_members", self.organization):
             raise PermissionDenied
 
         return self.delete()
+
+    def accept(self, user: User):
+        """Accept the invitation and create organization/workspace memberships."""
+        from hexa.workspaces.models import WorkspaceMembership
+
+        OrganizationMembership.objects.create(
+            organization=self.organization,
+            user=user,
+            role=self.role,
+        )
+        for ws_invitation in self.workspace_invitations.all():
+            WorkspaceMembership.objects.create(
+                workspace=ws_invitation.workspace,
+                user=user,
+                role=ws_invitation.role,
+            )
+        self.status = OrganizationInvitationStatus.ACCEPTED
+        self.save()
 
 
 class SignupRequestStatus(models.TextChoices):
@@ -620,16 +625,11 @@ class SignupRequestStatus(models.TextChoices):
     ACCEPTED = "ACCEPTED", _("Accepted")
 
 
-class SignupRequestManager(models.Manager):
-    def get_by_token(self, token: str):
-        signer = TimestampSigner()
-        decoded_value = base64.b64decode(token).decode("utf-8")
-        # Token valid for 48h (same as invitations)
-        request_id = signer.unsign(decoded_value, max_age=48 * 3600)
-        return self.get(id=request_id)
+class SignupRequestManager(InvitationManager):
+    pass
 
 
-class SignupRequest(Base):
+class SignupRequest(Invitation):
     email = EmailField(db_collation="case_insensitive")
     status = models.CharField(
         max_length=50,
@@ -639,6 +639,7 @@ class SignupRequest(Base):
 
     objects = SignupRequestManager()
 
-    def generate_token(self):
-        signer = TimestampSigner()
-        return base64.b64encode(signer.sign(str(self.id)).encode("utf-8")).decode()
+    def accept(self, user: User):
+        """Accept the signup request."""
+        self.status = SignupRequestStatus.ACCEPTED
+        self.save()
