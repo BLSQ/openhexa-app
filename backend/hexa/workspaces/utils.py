@@ -54,7 +54,7 @@ def send_workspace_invite_new_user_email(invitation: WorkspaceInvitation):
     title = gettext_lazy(
         f"You've been invited to join the workspace {invitation.workspace.name} on OpenHEXA"
     )
-    token = invitation.generate_invitation_token()
+    token = invitation.generate_token()
     action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
     invited_by = invitation.invited_by
 

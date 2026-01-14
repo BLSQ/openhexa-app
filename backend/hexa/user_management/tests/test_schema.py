@@ -1522,7 +1522,7 @@ class RegisterTest(GraphQLTestCase):
                     "password2": "Pa$$Word2",
                     "firstName": "John",
                     "lastName": "Doe",
-                    "invitationToken": self.WORKSPACE_INVITATION.generate_invitation_token(),
+                    "invitationToken": self.WORKSPACE_INVITATION.generate_token(),
                 }
             },
         )
@@ -1547,7 +1547,7 @@ class RegisterTest(GraphQLTestCase):
                     "password2": "Pa$$Word1",
                     "firstName": "John",
                     "lastName": "Doe",
-                    "invitationToken": self.WORKSPACE_INVITATION.generate_invitation_token(),
+                    "invitationToken": self.WORKSPACE_INVITATION.generate_token(),
                 }
             },
         )
