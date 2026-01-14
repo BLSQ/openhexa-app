@@ -17,6 +17,15 @@ class InvitationManager(models.Manager):
         invitation_id = signer.unsign(decoded_value, max_age=48 * 3600)
         return self.get(id=invitation_id)
 
+    def get_pending_by_token(self, token: str):
+        try:
+            obj = self.get_by_token(token)
+            if obj.status == "PENDING":
+                return obj
+        except Exception:
+            pass
+        return None
+
 
 class Invitation(Base):
     """Abstract base model for invitation-like models that can be accepted."""

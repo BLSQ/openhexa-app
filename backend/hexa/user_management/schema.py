@@ -28,7 +28,6 @@ from graphql import default_field_resolver
 
 from hexa.analytics.api import track
 from hexa.core.graphql import result_page
-from hexa.core.models import Invitation
 from hexa.core.string import remove_whitespace
 from hexa.core.templatetags.colors import hash_color
 from hexa.datasets.models import Dataset, DatasetLink
@@ -448,26 +447,6 @@ def resolve_signup(_, info, **kwargs):
     return {"success": True, "errors": []}
 
 
-# TODO : to refactor
-def _get_pending_invitation_or_signup(token: str) -> Invitation | None:
-    """
-    Try to find a pending invitation or signup request for the given token.
-    Returns the invitation/signup object or None if not found.
-    """
-    for model, status_enum in [
-        (WorkspaceInvitation, WorkspaceInvitationStatus),
-        (OrganizationInvitation, OrganizationInvitationStatus),
-        (SignupRequest, SignupRequestStatus),
-    ]:
-        try:
-            obj = model.objects.get_by_token(token=token)
-            if obj.status == status_enum.PENDING:
-                return obj
-        except Exception:
-            pass
-    return None
-
-
 @identity_mutations.field("register")
 def resolve_register(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -476,7 +455,12 @@ def resolve_register(_, info, **kwargs):
     if request.user.is_authenticated:
         return {"success": False, "errors": ["ALREADY_LOGGED_IN"]}
 
-    invitation = _get_pending_invitation_or_signup(mutation_input["invitation_token"])
+    token = mutation_input["invitation_token"]
+    invitation = (
+        WorkspaceInvitation.objects.get_pending_by_token(token)
+        or OrganizationInvitation.objects.get_pending_by_token(token)
+        or SignupRequest.objects.get_pending_by_token(token)
+    )
     if not invitation:
         return {"success": False, "errors": ["INVALID_TOKEN"]}
 
