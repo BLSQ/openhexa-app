@@ -1,4 +1,3 @@
-import binascii
 import logging
 import pathlib
 from datetime import datetime, timezone
@@ -18,7 +17,6 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.signing import BadSignature, SignatureExpired
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.functions import Collate
@@ -30,6 +28,7 @@ from graphql import default_field_resolver
 
 from hexa.analytics.api import track
 from hexa.core.graphql import result_page
+from hexa.core.models import Invitation
 from hexa.core.string import remove_whitespace
 from hexa.core.templatetags.colors import hash_color
 from hexa.datasets.models import Dataset, DatasetLink
@@ -449,6 +448,26 @@ def resolve_signup(_, info, **kwargs):
     return {"success": True, "errors": []}
 
 
+# TODO : to refactor
+def _get_pending_invitation_or_signup(token: str) -> Invitation | None:
+    """
+    Try to find a pending invitation or signup request for the given token.
+    Returns the invitation/signup object or None if not found.
+    """
+    for model, status_enum in [
+        (WorkspaceInvitation, WorkspaceInvitationStatus),
+        (OrganizationInvitation, OrganizationInvitationStatus),
+        (SignupRequest, SignupRequestStatus),
+    ]:
+        try:
+            obj = model.objects.get_by_token(token=token)
+            if obj.status == status_enum.PENDING:
+                return obj
+        except Exception:
+            pass
+    return None
+
+
 @identity_mutations.field("register")
 def resolve_register(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -457,186 +476,44 @@ def resolve_register(_, info, **kwargs):
     if request.user.is_authenticated:
         return {"success": False, "errors": ["ALREADY_LOGGED_IN"]}
 
-    # We accept registration if the invitation token to a workspace/organization or signup request is valid.
-    # Once the user is created, their invitation/signup request is automatically accepted.
+    invitation = _get_pending_invitation_or_signup(mutation_input["invitation_token"])
+    if not invitation:
+        return {"success": False, "errors": ["INVALID_TOKEN"]}
 
-    workspace_invitation = None
-    organization_invitation = None
-    signup_request = None
-
-    try:
-        workspace_invitation = WorkspaceInvitation.objects.get_by_token(
-            token=mutation_input["invitation_token"]
-        )
-        if workspace_invitation.status != WorkspaceInvitationStatus.PENDING:
-            return {"success": False, "errors": ["INVALID_TOKEN"]}
-
-        track(
-            request=request,
-            event="emails.registration_landed",
-            properties={
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "workspace": workspace_invitation.workspace.slug,
-                "invitee_email": workspace_invitation.email,
-                "invitee_role": workspace_invitation.role,
-                "status": workspace_invitation.status,
-            },
-        )
-
-    except (
-        UnicodeDecodeError,
-        SignatureExpired,
-        binascii.Error,
-        BadSignature,
-        WorkspaceInvitation.DoesNotExist,
-    ):
-        try:
-            organization_invitation = OrganizationInvitation.objects.get_by_token(
-                token=mutation_input["invitation_token"]
-            )
-            if organization_invitation.status != OrganizationInvitationStatus.PENDING:
-                return {"success": False, "errors": ["INVALID_TOKEN"]}
-
-            track(
-                request=request,
-                event="emails.registration_landed",
-                properties={
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "organization": organization_invitation.organization.name,
-                    "invitee_email": organization_invitation.email,
-                    "invitee_role": organization_invitation.role,
-                    "status": organization_invitation.status,
-                },
-            )
-        except (
-            UnicodeDecodeError,
-            SignatureExpired,
-            binascii.Error,
-            BadSignature,
-            OrganizationInvitation.DoesNotExist,
-        ):
-            try:
-                signup_request = SignupRequest.objects.get_by_token(
-                    token=mutation_input["invitation_token"]
-                )
-                if signup_request.status != SignupRequestStatus.PENDING:
-                    return {"success": False, "errors": ["INVALID_TOKEN"]}
-
-                track(
-                    request=request,
-                    event="emails.registration_landed",
-                    properties={
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "signup_email": signup_request.email,
-                        "status": signup_request.status,
-                    },
-                )
-            except (
-                UnicodeDecodeError,
-                SignatureExpired,
-                binascii.Error,
-                BadSignature,
-                SignupRequest.DoesNotExist,
-            ):
-                return {"success": False, "errors": ["INVALID_TOKEN"]}
-
-    if workspace_invitation:
-        invitation_email = workspace_invitation.email
-    elif organization_invitation:
-        invitation_email = organization_invitation.email
-    else:
-        invitation_email = signup_request.email
-
-    if User.objects.filter(email=invitation_email).exists():
+    if User.objects.filter(email=invitation.email).exists():
         return {"success": False, "errors": ["EMAIL_TAKEN"]}
 
+    if mutation_input["password1"] != mutation_input["password2"]:
+        return {"success": False, "errors": ["PASSWORD_MISMATCH"]}
+
     try:
-        if mutation_input["password1"] != mutation_input["password2"]:
-            return {"success": False, "errors": ["PASSWORD_MISMATCH"]}
         validate_password(password=mutation_input["password1"])
-
-        with transaction.atomic():
-            user = User.objects.create_user(
-                email=invitation_email,
-                password=mutation_input["password1"],
-                first_name=mutation_input["first_name"],
-                last_name=mutation_input["last_name"],
-            )
-
-            if workspace_invitation:
-                WorkspaceMembership.objects.create(
-                    workspace=workspace_invitation.workspace,
-                    user=user,
-                    role=workspace_invitation.role,
-                )
-                workspace_invitation.status = WorkspaceInvitationStatus.ACCEPTED
-                workspace_invitation.save()
-
-                track(
-                    request,
-                    event="emails.registration_complete",
-                    properties={
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "workspace": workspace_invitation.workspace.slug,
-                        "invitee_email": workspace_invitation.email,
-                        "invitee_role": workspace_invitation.role,
-                        "status": workspace_invitation.status,
-                    },
-                )
-            elif organization_invitation:
-                OrganizationMembership.objects.create(
-                    organization=organization_invitation.organization,
-                    user=user,
-                    role=organization_invitation.role,
-                )
-                for (
-                    workspace_invitation
-                ) in organization_invitation.workspace_invitations.all():
-                    try:
-                        WorkspaceMembership.objects.create(
-                            workspace=workspace_invitation.workspace,
-                            user=user,
-                            role=workspace_invitation.role,
-                        )
-                    except Exception:
-                        continue
-
-                organization_invitation.status = OrganizationInvitationStatus.ACCEPTED
-                organization_invitation.save()
-
-                track(
-                    request,
-                    event="emails.registration_complete",
-                    properties={
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "organization": organization_invitation.organization.name,
-                        "invitee_email": organization_invitation.email,
-                        "invitee_role": organization_invitation.role,
-                        "status": organization_invitation.status,
-                    },
-                )
-            elif signup_request:
-                signup_request.status = SignupRequestStatus.ACCEPTED
-                signup_request.save()
-
-                track(
-                    request,
-                    event="emails.registration_complete",
-                    properties={
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "email": signup_request.email,
-                    },
-                )
-
-        # Let's authenticate the user automatically
-        authenticated_user = authenticate(
-            username=user.email, password=mutation_input["password1"]
-        )
-        login(request, authenticated_user)
-        return {"success": True, "errors": []}
-
     except ValidationError:
         return {"success": False, "errors": ["INVALID_PASSWORD"]}
+
+    with transaction.atomic():
+        user = User.objects.create_user(
+            email=invitation.email,
+            password=mutation_input["password1"],
+            first_name=mutation_input["first_name"],
+            last_name=mutation_input["last_name"],
+        )
+        invitation.accept(user)
+
+    track(
+        request,
+        event="emails.registration_complete",
+        properties={
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            **invitation.get_tracking_properties(),
+        },
+    )
+
+    authenticated_user = authenticate(
+        username=user.email, password=mutation_input["password1"]
+    )
+    login(request, authenticated_user)
+    return {"success": True, "errors": []}
 
 
 @identity_mutations.field("resetPassword")
