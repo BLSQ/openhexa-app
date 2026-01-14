@@ -34,7 +34,7 @@ def send_organization_invite(invitation):
     title = gettext_lazy(
         f"You've been invited to join the organization {invitation.organization.name} on OpenHEXA"
     )
-    token = invitation.generate_invitation_token()
+    token = invitation.generate_token()
     action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
     invited_by = invitation.invited_by
 
