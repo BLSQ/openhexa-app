@@ -24,6 +24,7 @@ jest.mock("react-toastify", () => ({
 
 jest.mock("next-i18next", () => ({
   useTranslation: jest.fn().mockReturnValue({ t: (key: string) => key }),
+  i18n: { t: (key: string) => key },
 }));
 
 jest.mock("next/router", () => require("next-router-mock"));
@@ -75,8 +76,11 @@ const graphqlMocks: MockedResponse[] = [
         input: {
           workspaceSlug: "test-workspace",
           name: "Test Webapp",
-          type: "IFRAME",
-          url: "http://test-webapp.com",
+          content: {
+            iframe: {
+              url: "http://test-webapp.com",
+            },
+          },
         },
       },
     },
@@ -181,8 +185,11 @@ describe("WebappCreatePage", () => {
             input: {
               workspaceSlug: "test-workspace",
               name: "Test Webapp",
-              type: "IFRAME",
-              url: "http://test-webapp.com",
+              content: {
+                iframe: {
+                  url: "http://test-webapp.com",
+                },
+              },
             },
           },
         },
@@ -280,8 +287,11 @@ describe("WebappCreatePage", () => {
             input: {
               workspaceSlug: "test-workspace",
               name: "Test Webapp",
-              type: "IFRAME",
-              url: "http://test-webapp.com",
+              content: {
+                iframe: {
+                  url: "http://test-webapp.com",
+                },
+              },
             },
           },
         },

@@ -59,6 +59,20 @@ let config = {
     ];
   },
 
+  async rewrites() {
+    const backendUrl = process.env.OPENHEXA_BACKEND_URL || "http://localhost:8000";
+    return [
+      {
+        source: "/webapps/:workspace/:webapp/html/",
+        destination: `${backendUrl}/webapps/:workspace/:webapp/html/`,
+      },
+      {
+        source: "/webapps/:workspace/:webapp/bundle/:path*",
+        destination: `${backendUrl}/webapps/:workspace/:webapp/bundle/:path*`,
+      },
+    ];
+  },
+
   poweredByHeader: false, // Disable 'x-powered-by' header
   reactStrictMode: true,
   trailingSlash: true,

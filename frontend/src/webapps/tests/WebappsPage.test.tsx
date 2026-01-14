@@ -20,6 +20,7 @@ jest.mock("react-toastify", () => ({
 
 jest.mock("next-i18next", () => ({
   useTranslation: jest.fn().mockReturnValue({ t: (key: string) => key }),
+  i18n: { t: (key: string) => key },
 }));
 
 const mockWorkspace = {
@@ -46,9 +47,11 @@ const mockWorkspace = {
 const webapp = (id: string) => ({
   __typename: "Webapp",
   id: id,
+  slug: `webapp-${id}`,
   name: `Webapp ${id}`,
   isFavorite: id === "2",
   isShortcut: false,
+  isPublic: id === "1",
   description: "Webapp description",
   url: `https://example${id}.com`,
   icon: "",

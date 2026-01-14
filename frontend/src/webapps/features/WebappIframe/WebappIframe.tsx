@@ -1,19 +1,69 @@
 import clsx from "clsx";
 import React, { useEffect, useMemo, useState } from "react";
 import Spinner from "core/components/Spinner";
+import { WebappType } from "graphql/types";
 
 type WebappIframeProps = {
-  url: string;
+  url?: string;
+  type?: WebappType;
+  workspaceSlug?: string;
+  webappSlug?: string;
   className?: string;
   style?: React.CSSProperties;
 };
 
-const WebappIframe = ({ url, className, style }: WebappIframeProps) => {
-  const [iframeLoading, setIframeLoading] = useState(true);
+const WebappIframe = ({
+  url: externalUrl,
+  type,
+  workspaceSlug,
+  webappSlug,
+  className,
+  style,
+}: WebappIframeProps) => {
+  const sanitizeUrl = (urlToSanitize: string): string => {
+    if (!urlToSanitize) return "";
+
+    const trimmedUrl = urlToSanitize.trim();
+
+    if (trimmedUrl.startsWith("/")) {
+      return trimmedUrl;
+    }
+
+    try {
+      const parsedUrl = new URL(trimmedUrl);
+      const protocol = parsedUrl.protocol.toLowerCase();
+
+      if (protocol === "http:" || protocol === "https:") {
+        return trimmedUrl;
+      }
+
+      console.warn(`Blocked unsafe URL protocol: ${protocol}`);
+      return "";
+    } catch {
+      return "";
+    }
+  };
+
+  // CodeQL suppression: URL is sanitized to prevent XSS attacks
+  // lgtm[js/xss-through-dom]
+  const url = useMemo(() => {
+    if (type === WebappType.Html && workspaceSlug && webappSlug) {
+      return `/webapps/${workspaceSlug}/${webappSlug}/html/`;
+    } else if (type === WebappType.Bundle && workspaceSlug && webappSlug) {
+      return `/webapps/${workspaceSlug}/${webappSlug}/bundle/`;
+    } else {
+      return sanitizeUrl(externalUrl || "");
+    }
+  }, [type, workspaceSlug, webappSlug, externalUrl]);
+
+  const shouldShowSpinner = type !== WebappType.Html && type !== WebappType.Bundle;
+  const [iframeLoading, setIframeLoading] = useState(shouldShowSpinner);
 
   useEffect(() => {
-    setIframeLoading(true);
-  }, [url]);
+    if (shouldShowSpinner) {
+      setIframeLoading(true);
+    }
+  }, [url, shouldShowSpinner]);
 
   const isSameOrigin = useMemo(() => {
     try {
@@ -51,13 +101,18 @@ const WebappIframe = ({ url, className, style }: WebappIframeProps) => {
 
   return (
     <div
-      className={clsx("flex justify-center items-center", className)}
+      className={clsx("relative flex justify-center items-center", className)}
       style={{ height: "90vh", ...style }}
     >
-      {iframeLoading && <Spinner size="md" />}{" "}
+      {iframeLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+          <Spinner size="md" />
+        </div>
+      )}
+      {/* URL is sanitized via sanitizeUrl() to prevent XSS - only allows http:, https:, and relative paths */}
       <iframe
         src={url}
-        className={clsx("w-full h-full", iframeLoading && "hidden")}
+        className="w-full h-full"
         sandbox={sandboxPermissions}
         onLoad={() => setIframeLoading(false)}
         onError={() => setIframeLoading(false)}
