@@ -613,3 +613,32 @@ class OrganizationInvitation(Base):
             raise PermissionDenied
 
         return self.delete()
+
+
+class SignupRequestStatus(models.TextChoices):
+    PENDING = "PENDING", _("Pending")
+    ACCEPTED = "ACCEPTED", _("Accepted")
+
+
+class SignupRequestManager(models.Manager):
+    def get_by_token(self, token: str):
+        signer = TimestampSigner()
+        decoded_value = base64.b64decode(token).decode("utf-8")
+        # Token valid for 48h (same as invitations)
+        request_id = signer.unsign(decoded_value, max_age=48 * 3600)
+        return self.get(id=request_id)
+
+
+class SignupRequest(Base):
+    email = EmailField(db_collation="case_insensitive")
+    status = models.CharField(
+        max_length=50,
+        choices=SignupRequestStatus.choices,
+        default=SignupRequestStatus.PENDING,
+    )
+
+    objects = SignupRequestManager()
+
+    def generate_token(self):
+        signer = TimestampSigner()
+        return base64.b64encode(signer.sign(str(self.id)).encode("utf-8")).decode()
