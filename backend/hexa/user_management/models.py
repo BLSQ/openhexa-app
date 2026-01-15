@@ -279,15 +279,19 @@ class Organization(Base, SoftDeletedModel):
         return self.workspaces.filter(archived=False).count()
 
     def get_monthly_pipeline_runs_count(self) -> int:
-        """Count pipeline runs for the current calendar month."""
-        from hexa.pipelines.models import PipelineRun
+        """Count pipeline runs for the current calendar month, excluding skipped runs."""
+        from hexa.pipelines.models import PipelineRun, PipelineRunState
 
         today = timezone.now().date()
         month_start = today.replace(day=1)  # TODO: should we consider start date ?
-        return PipelineRun.objects.filter(
-            pipeline__workspace__organization=self,
-            created_at__date__gte=month_start,
-        ).count()
+        return (
+            PipelineRun.objects.filter(
+                pipeline__workspace__organization=self,
+                created_at__date__gte=month_start,
+            )
+            .exclude(state=PipelineRunState.SKIPPED)
+            .count()
+        )
 
     def is_users_limit_reached(self) -> bool:
         """Check if the organization has reached its user limit."""
