@@ -61,6 +61,38 @@ def validate_db_name(name: str):
         )
 
 
+def create_read_and_write_role(db_name: str, pwd: str, cursor=None):
+    """
+    Create a read-write role for a database.
+
+    Args:
+        db_name: Database name (also the main role name)
+        pwd: Password for the read-write role
+        cursor: Optional cursor to use (if None, creates its own connection)
+    """
+    with get_cursor(db_name, cursor) as cur:
+        cur.execute(
+            sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password};").format(
+                role_name=sql.Identifier(db_name), password=sql.Literal(pwd)
+            )
+        )
+        cur.execute(
+            sql.SQL("GRANT CREATE, CONNECT ON DATABASE {db_name} TO {role};").format(
+                db_name=sql.Identifier(db_name),
+                role=sql.Identifier(db_name),
+            )
+        )
+        # Starting from PostgreSQL 15+, we need to grant all access to the public schema
+        # to the role when creating a database
+        # No changes are needed for existing databases, the default behavior is kept
+        # More info on https://www.postgresql.org/docs/release/15.0/
+        cur.execute(
+            sql.SQL("GRANT ALL ON SCHEMA public TO {role}").format(
+                role=sql.Identifier(db_name)
+            )
+        )
+
+
 def create_read_only_role(db_name: str, ro_pwd: str, cursor=None):
     """
     Create a read-only role for a database.
@@ -170,31 +202,10 @@ def create_database(db_name: str, pwd: str, ro_pwd: str):
         conn = get_database_connection(db_name)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with conn.cursor() as cursor:
-            cursor.execute(
-                sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password};").format(
-                    role_name=sql.Identifier(db_name), password=sql.Literal(pwd)
-                )
-            )
-            cursor.execute(
-                sql.SQL(
-                    "GRANT CREATE, CONNECT ON DATABASE {db_name} TO {role};"
-                ).format(
-                    db_name=sql.Identifier(db_name),
-                    role=sql.Identifier(db_name),
-                )
-            )
-            # Starting from PostgreSQL 15+, we need to grand all access to the public schema to the role when creating a database
-            # No changes are needed for existing databases, the default behavior is kept
-            # More info on https://www.postgresql.org/docs/release/15.0/
-            cursor.execute(
-                sql.SQL("GRANT ALL ON SCHEMA public TO {role}").format(
-                    role=sql.Identifier(db_name)
-                )
-            )
+            create_read_and_write_role(db_name, pwd, cursor)
+            create_read_only_role(db_name, ro_pwd, cursor)
             cursor.execute("CREATE EXTENSION POSTGIS;")
             cursor.execute("CREATE EXTENSION POSTGIS_TOPOLOGY;")
-
-            create_read_only_role(db_name, ro_pwd, cursor)
     finally:
         if conn:
             conn.close()
