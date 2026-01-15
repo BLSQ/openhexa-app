@@ -256,9 +256,9 @@ class Organization(Base, SoftDeletedModel):
         ).first()
 
     @property
-    def pending_subscription(self):
+    def upcoming_subscription(self):
         """
-        Returns the next pending subscription (if any).
+        Returns the next upcoming subscription (if any).
         Used for downgrades that take effect at end of billing period.
         """
         today = timezone.now().date()

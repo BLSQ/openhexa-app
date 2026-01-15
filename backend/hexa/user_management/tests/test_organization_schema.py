@@ -1942,7 +1942,7 @@ class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
         )
 
         self.assertEqual(
-            self.organization.pending_subscription.subscription_id,
+            self.organization.upcoming_subscription.subscription_id,
             future_subscription.subscription_id,
         )
 
