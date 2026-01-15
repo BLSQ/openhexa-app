@@ -211,6 +211,27 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
 
             <Tabs.Tab label={t("Database")} className={"space-y-6 pt-6"}>
               <DataCard className="w-full" item={workspace}>
+                <DataCard.Section title={t("Read-only access")}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setGeneratePwdDialogType("ro")}
+                  >
+                    {t("Regenerate password")}
+                  </Button>
+                  <p className="my-4 text-sm text-gray-500 flex items-center">
+                    <Tooltip
+                      label={t(
+                        "This password is used for read-only access to the database, typically for dashboards and visualization tools.",
+                      )}
+                    >
+                      <InformationCircleIcon className="ml-1 h-4 w-4 mr-1" />
+                    </Tooltip>
+                    {t(
+                      "This action will replace the current read-only password of the workspace database.",
+                    )}
+                  </p>
+                </DataCard.Section>
                 <DataCard.Section title={t("Read & Write access")}>
                   <Button
                     size="sm"
@@ -230,27 +251,6 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                     </Tooltip>
                     {t(
                       "This action will replace the current password of the workspace database.",
-                    )}
-                  </p>
-                </DataCard.Section>
-                <DataCard.Section title={t("Read-only access")}>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => setGeneratePwdDialogType("ro")}
-                  >
-                    {t("Regenerate password")}
-                  </Button>
-                  <p className="my-4 text-sm text-gray-500 flex items-center">
-                    <Tooltip
-                      label={t(
-                        "This password is used for read-only access to the database, typically for dashboards and visualization tools.",
-                      )}
-                    >
-                      <InformationCircleIcon className="ml-1 h-4 w-4 mr-1" />
-                    </Tooltip>
-                    {t(
-                      "This action will replace the current read-only password of the workspace database.",
                     )}
                   </p>
                 </DataCard.Section>
