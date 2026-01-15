@@ -12,6 +12,7 @@ jest.mock("workspaces/graphql/mutations.generated", () => ({
   ...jest.requireActual("workspaces/graphql/mutations.generated"),
   __esModule: true,
   useGenerateNewDatabasePasswordMutation: jest.fn().mockReturnValue([]),
+  useGenerateNewDatabaseRoPasswordMutation: jest.fn().mockReturnValue([]),
 }));
 
 const WORKSPACE = {
@@ -35,7 +36,7 @@ describe("GenerateDatabasePasswordDialog", () => {
         onClose={() => {}}
       />,
     );
-    const dialog = await screen.queryByRole("dialog");
+    const dialog = screen.queryByRole("dialog");
     expect(dialog).not.toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
     expect(container).toMatchSnapshot();
@@ -52,7 +53,7 @@ describe("GenerateDatabasePasswordDialog", () => {
       </TestApp>,
     );
 
-    const dialog = await screen.queryByRole("dialog");
+    const dialog = screen.queryByRole("dialog");
     expect(dialog).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
     expect(container).toMatchSnapshot();
