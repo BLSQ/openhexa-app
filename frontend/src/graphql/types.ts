@@ -831,6 +831,50 @@ export type CreateMembershipResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** The CreateOrganizationError enum represents the possible errors that can occur during the createOrganization mutation. */
+export enum CreateOrganizationError {
+  /** Indicates that the provided email is invalid. */
+  InvalidEmail = 'INVALID_EMAIL',
+  /** Indicates that an organization with the same name already exists. */
+  NameDuplicate = 'NAME_DUPLICATE',
+  /** Indicates that the user does not have permission to create an organization. */
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/**
+ * The CreateOrganizationInput type represents the input for the createOrganization mutation.
+ * Used by the Bluesquare Console to provision new organizations after Stripe payment.
+ */
+export type CreateOrganizationInput = {
+  /** The resource limits for the organization. */
+  limits: ResourceCountsInput;
+  /** The name of the organization. */
+  name: Scalars['String']['input'];
+  /** The email address of the organization owner. Creates user if doesn't exist. */
+  ownerEmail: Scalars['String']['input'];
+  /** The subscription plan code (e.g., "openhexa_starter"). */
+  planCode: Scalars['String']['input'];
+  /** The date when the subscription ends. */
+  subscriptionEndDate: Scalars['Date']['input'];
+  /** The external subscription ID from the Bluesquare Console. */
+  subscriptionId: Scalars['UUID']['input'];
+  /** The date when the subscription starts. */
+  subscriptionStartDate: Scalars['Date']['input'];
+};
+
+/** The CreateOrganizationResult type represents the result of the createOrganization mutation. */
+export type CreateOrganizationResult = {
+  __typename?: 'CreateOrganizationResult';
+  /** The list of errors that occurred during the createOrganization mutation. */
+  errors: Array<CreateOrganizationError>;
+  /** The created organization object. */
+  organization?: Maybe<Organization>;
+  /** Indicates whether the createOrganization mutation was successful. */
+  success: Scalars['Boolean']['output'];
+  /** The owner user object (created or existing). */
+  user?: Maybe<User>;
+};
+
 /** Enum representing the possible errors that can occur when creating a pipeline from a template version. */
 export enum CreatePipelineFromTemplateVersionError {
   PermissionDenied = 'PERMISSION_DENIED',
@@ -977,7 +1021,8 @@ export type CreateWebappResult = {
 export enum CreateWorkspaceError {
   InvalidSlug = 'INVALID_SLUG',
   OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
-  PermissionDenied = 'PERMISSION_DENIED'
+  PermissionDenied = 'PERMISSION_DENIED',
+  WorkspacesLimitReached = 'WORKSPACES_LIMIT_REACHED'
 }
 
 /** Represents the input for creating a workspace. */
@@ -2219,6 +2264,8 @@ export enum InviteOrganizationMemberError {
   OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
   /** Indicates that the user does not have permission to invite members to the organization. */
   PermissionDenied = 'PERMISSION_DENIED',
+  /** Indicates that the organization has reached its user limit (SaaS only). */
+  UsersLimitReached = 'USERS_LIMIT_REACHED',
   /** Indicates that one or more workspaces were not found. */
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
@@ -2549,6 +2596,7 @@ export type Mutation = {
   /** Create a new file in a dataset version. */
   createDatasetVersionFile: CreateDatasetVersionFileResult;
   createMembership: CreateMembershipResult;
+  createOrganization: CreateOrganizationResult;
   /** Creates a new pipeline. */
   createPipeline: CreatePipelineResult;
   createPipelineFromTemplateVersion: CreatePipelineFromTemplateVersionResult;
@@ -2668,6 +2716,7 @@ export type Mutation = {
   updateMembership: UpdateMembershipResult;
   updateOrganization: UpdateOrganizationResult;
   updateOrganizationMember: UpdateOrganizationMemberResult;
+  updateOrganizationSubscription: UpdateOrganizationSubscriptionResult;
   /** Updates an existing pipeline. */
   updatePipeline: UpdatePipelineResult;
   /**
@@ -2787,6 +2836,11 @@ export type MutationCreateDatasetVersionFileArgs = {
 
 export type MutationCreateMembershipArgs = {
   input: CreateMembershipInput;
+};
+
+
+export type MutationCreateOrganizationArgs = {
+  input: CreateOrganizationInput;
 };
 
 
@@ -3200,6 +3254,11 @@ export type MutationUpdateOrganizationMemberArgs = {
 };
 
 
+export type MutationUpdateOrganizationSubscriptionArgs = {
+  input: UpdateOrganizationSubscriptionInput;
+};
+
+
 export type MutationUpdatePipelineArgs = {
   input: UpdatePipelineInput;
 };
@@ -3311,10 +3370,14 @@ export type Organization = {
   pipelineTemplateTags: Array<Scalars['String']['output']>;
   /** The short name of the organization. */
   shortName?: Maybe<Scalars['String']['output']>;
+  /** Subscription details with limits. Null for self-hosted deployments. */
+  subscription?: Maybe<Subscription>;
   /** The type of the organization. */
   type: Scalars['String']['output'];
   /** The URL of the organization. */
   url: Scalars['String']['output'];
+  /** Current resource usage counts. */
+  usage: ResourceCounts;
   /** The workspaces associated with the organization. */
   workspaces: WorkspacePage;
 };
@@ -3589,6 +3652,7 @@ export enum PipelineError {
   PipelineCodeParsingError = 'PIPELINE_CODE_PARSING_ERROR',
   PipelineDoesNotSupportParameters = 'PIPELINE_DOES_NOT_SUPPORT_PARAMETERS',
   PipelineNotFound = 'PIPELINE_NOT_FOUND',
+  PipelineRunsLimitReached = 'PIPELINE_RUNS_LIMIT_REACHED',
   PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND',
   TableNotFound = 'TABLE_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
@@ -4551,6 +4615,27 @@ export type ResetPasswordResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Resource counts */
+export type ResourceCounts = {
+  __typename?: 'ResourceCounts';
+  /** Number of pipeline runs. */
+  pipelineRuns: Scalars['Int']['output'];
+  /** Number of users. */
+  users: Scalars['Int']['output'];
+  /** Number of workspaces. */
+  workspaces: Scalars['Int']['output'];
+};
+
+/** Input type for resource counts (used for subscription limits). */
+export type ResourceCountsInput = {
+  /** Number of pipeline runs. */
+  pipelineRuns: Scalars['Int']['input'];
+  /** Number of users. */
+  users: Scalars['Int']['input'];
+  /** Number of workspaces. */
+  workspaces: Scalars['Int']['input'];
+};
+
 export enum RunDagError {
   DagNotFound = 'DAG_NOT_FOUND',
   InvalidConfig = 'INVALID_CONFIG'
@@ -4729,6 +4814,21 @@ export type StopPipelineResult = {
   __typename?: 'StopPipelineResult';
   errors: Array<PipelineError>;
   success: Scalars['Boolean']['output'];
+};
+
+/** Subscription details from the Bluesquare Console. */
+export type Subscription = {
+  __typename?: 'Subscription';
+  /** The date when the subscription ends. */
+  endDate: Scalars['Date']['output'];
+  /** Resource limits for this subscription. */
+  limits: ResourceCounts;
+  /** The subscription plan code (e.g., "openhexa_starter"). */
+  planCode: Scalars['String']['output'];
+  /** The date when the subscription starts. */
+  startDate: Scalars['Date']['output'];
+  /** The external subscription ID from the Bluesquare Console. */
+  subscriptionId: Scalars['UUID']['output'];
 };
 
 export type TableColumn = {
@@ -5105,6 +5205,50 @@ export type UpdateOrganizationResult = {
   /** The updated organization object. */
   organization?: Maybe<Organization>;
   /** Indicates whether the updateOrganization mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
+/** The UpdateOrganizationSubscriptionError enum represents the possible errors that can occur. */
+export enum UpdateOrganizationSubscriptionError {
+  /** Indicates that the organization was not found. */
+  NotFound = 'NOT_FOUND',
+  /** Indicates that the user does not have permission to update the organization subscription. */
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/**
+ * The UpdateOrganizationSubscriptionInput type represents the input for updating organization subscription.
+ * Used by the Bluesquare Console to update subscription when it changes.
+ *
+ * Behavior: If a subscription with the given subscriptionId exists, it will be updated.
+ * Otherwise, a new subscription record will be created (used for downgrades/renewals).
+ */
+export type UpdateOrganizationSubscriptionInput = {
+  /** The resource limits for the organization. */
+  limits: ResourceCountsInput;
+  /** The unique identifier of the organization. */
+  organizationId: Scalars['UUID']['input'];
+  /** The updated subscription plan code. */
+  planCode: Scalars['String']['input'];
+  /** The subscription end date. */
+  subscriptionEndDate: Scalars['Date']['input'];
+  /**
+   * The external subscription ID from the Bluesquare Console.
+   * Used as lookup key - if exists, update; if not, create new record.
+   */
+  subscriptionId: Scalars['UUID']['input'];
+  /** The subscription start date. */
+  subscriptionStartDate: Scalars['Date']['input'];
+};
+
+/** The UpdateOrganizationSubscriptionResult type represents the result of the updateOrganizationSubscription mutation. */
+export type UpdateOrganizationSubscriptionResult = {
+  __typename?: 'UpdateOrganizationSubscriptionResult';
+  /** The list of errors that occurred during the updateOrganizationSubscription mutation. */
+  errors: Array<UpdateOrganizationSubscriptionError>;
+  /** The updated organization object. */
+  organization?: Maybe<Organization>;
+  /** Indicates whether the updateOrganizationSubscription mutation was successful. */
   success: Scalars['Boolean']['output'];
 };
 

@@ -45,6 +45,10 @@ class AlreadyExists(Exception):
     pass
 
 
+class WorkspacesLimitReached(Exception):
+    pass
+
+
 def make_random_password(
     length=10, allowed_chars="abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 ):
@@ -110,6 +114,9 @@ class WorkspaceManager(models.Manager):
     ):
         if not principal.has_perm("user_management.create_workspace", organization):
             raise PermissionDenied
+
+        if organization and organization.is_workspaces_limit_reached():
+            raise WorkspacesLimitReached
 
         slug = create_workspace_slug(name)
         create_kwargs = {

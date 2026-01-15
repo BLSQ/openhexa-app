@@ -61,6 +61,12 @@ class MissingPipelineConfiguration(Exception):
     pass
 
 
+class PipelineRunsLimitReached(Exception):
+    """The organization has reached its monthly pipeline runs limit."""
+
+    pass
+
+
 class Index(BaseIndex):
     class Meta:
         verbose_name = "Pipeline index"
@@ -430,6 +436,10 @@ class Pipeline(SoftDeletedModel):
         send_mail_notifications: bool = True,
         log_level: PipelineRunLogLevel = PipelineRunLogLevel.INFO,
     ):
+        organization = self.workspace.organization if self.workspace else None
+        if organization and organization.is_pipeline_runs_limit_reached():
+            raise PipelineRunsLimitReached
+
         timeout = settings.PIPELINE_RUN_DEFAULT_TIMEOUT
         if pipeline_version and pipeline_version.timeout:
             timeout = pipeline_version.timeout
