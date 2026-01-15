@@ -44,6 +44,8 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "false") == "true"
 
+ALLOW_SELF_REGISTRATION = os.environ.get("ALLOW_SELF_REGISTRATION", "false") == "true"
+
 # Trust the X_FORWARDED_PROTO header from the proxy or load balancer so Django is aware it is accessed by https
 if os.environ.get("TRUST_FORWARDED_PROTO", "false") == "true":
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

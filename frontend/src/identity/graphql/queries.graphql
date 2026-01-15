@@ -63,3 +63,9 @@ query RegisterPage {
     passwordRequirements
   }
 }
+
+query SignupPage {
+  config {
+    allowSelfRegistration
+  }
+}

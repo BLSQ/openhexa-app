@@ -1,0 +1,18 @@
+{% load i18n %}
+{% autoescape off %}
+{% trans "Welcome to OpenHEXA!" %}
+
+{% trans "Thank you for signing up. Please click the link below to verify your email address and complete your registration." %}
+
+{% trans "This link will expire in 48 hours." %}
+
+{{url}}
+
+{% trans "If you didn't sign up for an OpenHEXA account, you can safely ignore this email." %}
+
+{% trans "Need help? Check out our resources:" %}
+- {% trans "User Manual" %}: https://github.com/BLSQ/openhexa/wiki/User-manual
+- Wiki: https://github.com/BLSQ/openhexa/wiki
+
+{% trans "The OpenHEXA Team" %}
+{% endautoescape %}

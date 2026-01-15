@@ -1130,7 +1130,7 @@ class WorkspaceTest(GraphQLTestCase):
         import random
         import string
 
-        with patch("hexa.workspaces.models.TimestampSigner") as mocked_signer:
+        with patch("hexa.core.models.invitation.TimestampSigner") as mocked_signer:
             random_string = "".join(random.choices(string.ascii_lowercase, k=10))
 
             signer = mocked_signer.return_value
@@ -1724,7 +1724,7 @@ class WorkspaceTest(GraphQLTestCase):
         import random
         import string
 
-        with patch("hexa.workspaces.models.TimestampSigner") as mocked_signer:
+        with patch("hexa.core.models.invitation.TimestampSigner") as mocked_signer:
             random_string = "".join(random.choices(string.ascii_lowercase, k=10))
 
             signer = mocked_signer.return_value

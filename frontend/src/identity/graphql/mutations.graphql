@@ -72,3 +72,10 @@ mutation UpdateUser($input: UpdateUserInput!) {
     }
   }
 }
+
+mutation Signup($input: SignupInput!) {
+  signup(input: $input) {
+    success
+    errors
+  }
+}

@@ -7,11 +7,14 @@ from .indexes import (
     BaseIndexPermission,
     BaseIndexQuerySet,
 )
+from .invitation import Invitation, InvitationManager
 from .postgres import PostgresTextSearchConfigField
 
 __all__ = [
     "Base",
     "DynamicTextChoices",
+    "Invitation",
+    "InvitationManager",
     "PostgresTextSearchConfigField",
     "WithStatus",
     "BaseIndex",

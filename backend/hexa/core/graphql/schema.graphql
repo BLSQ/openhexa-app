@@ -3,6 +3,10 @@ type Config {
     List of requirements for the password.
     """
     passwordRequirements: [String!]
+    """
+    Whether self-registration is enabled.
+    """
+    allowSelfRegistration: Boolean!
 }
 
 extend type Query {

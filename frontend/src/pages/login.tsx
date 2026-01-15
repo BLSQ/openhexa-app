@@ -2,6 +2,7 @@ import Input from "core/components/forms/Input";
 import Spinner from "core/components/Spinner";
 import Button from "core/components/Button";
 import { useLoginMutation } from "identity/graphql/mutations.generated";
+import { useSignupPageQuery } from "identity/graphql/queries.generated";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
@@ -26,6 +27,7 @@ interface LoginForm {
 const LoginPage: NextPageWithLayout = () => {
   const router = useRouter();
   const [doLogin] = useLoginMutation();
+  const { data: configData } = useSignupPageQuery();
   const [showOTPForm, setOTPForm] = useState(false);
   const { t } = useTranslation();
 
@@ -231,6 +233,17 @@ const LoginPage: NextPageWithLayout = () => {
             </Button>
           )}
         </div>
+        {configData?.config?.allowSelfRegistration && (
+          <div className="mt-4 text-center text-sm">
+            <span className="text-gray-600">{t("Don't have an account?")}</span>{" "}
+            <Link
+              href="/signup"
+              customStyle="text-blue-600 hover:text-blue-500"
+            >
+              {t("Sign up")}
+            </Link>
+          </div>
+        )}
       </form>
     </Page>
   );

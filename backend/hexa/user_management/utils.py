@@ -34,7 +34,7 @@ def send_organization_invite(invitation):
     title = gettext_lazy(
         f"You've been invited to join the organization {invitation.organization.name} on OpenHEXA"
     )
-    token = invitation.generate_invitation_token()
+    token = invitation.generate_token()
     action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
     invited_by = invitation.invited_by
 
@@ -101,3 +101,30 @@ def send_organization_add_user_email(
                 "invitee_role": role,
             },
         )
+
+
+def send_signup_email(signup_request):
+    """Send verification email for self-registration signup request."""
+    title = gettext_lazy("Complete your OpenHEXA registration")
+    token = signup_request.generate_token()
+    action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': signup_request.email, 'token': token})}"
+
+    send_mail(
+        title=title,
+        template_name="user_management/mails/signup_verification",
+        template_variables={
+            "email": signup_request.email,
+            "url": action_url,
+        },
+        recipient_list=[signup_request.email],
+        attachments=get_email_attachments(),
+    )
+
+    track(
+        request=None,
+        event="emails.signup_verification_sent",
+        properties={
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "email": signup_request.email,
+        },
+    )
