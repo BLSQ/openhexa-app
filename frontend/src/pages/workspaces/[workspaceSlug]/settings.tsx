@@ -48,7 +48,9 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
   const [mutate] = useUpdateWorkspaceMutation();
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
   const [isNewMemberDialogOpen, setIsNewMemberDialogOpen] = useState(false);
-  const [isGeneratePwdDialogOpen, setIsGeneratePwdDialogOpen] = useState(false);
+  const [generatePwdDialogType, setGeneratePwdDialogType] = useState<
+    "rw" | "ro" | null
+  >(null);
 
   const tab =
     router.query.tab === "members"
@@ -209,11 +211,11 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
 
             <Tabs.Tab label={t("Database")} className={"space-y-6 pt-6"}>
               <DataCard className="w-full" item={workspace}>
-                <DataCard.Section title={t("Database")}>
+                <DataCard.Section title={t("Read & Write access")}>
                   <Button
                     size="sm"
                     variant="secondary"
-                    onClick={() => setIsGeneratePwdDialogOpen(true)}
+                    onClick={() => setGeneratePwdDialogType("rw")}
                   >
                     {t("Regenerate password")}
                   </Button>
@@ -228,6 +230,27 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                     </Tooltip>
                     {t(
                       "This action will replace the current password of the workspace database.",
+                    )}
+                  </p>
+                </DataCard.Section>
+                <DataCard.Section title={t("Read-only access")}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setGeneratePwdDialogType("ro")}
+                  >
+                    {t("Regenerate password")}
+                  </Button>
+                  <p className="my-4 text-sm text-gray-500 flex items-center">
+                    <Tooltip
+                      label={t(
+                        "This password is used for read-only access to the database, typically for dashboards and visualization tools.",
+                      )}
+                    >
+                      <InformationCircleIcon className="ml-1 h-4 w-4 mr-1" />
+                    </Tooltip>
+                    {t(
+                      "This action will replace the current read-only password of the workspace database.",
                     )}
                   </p>
                 </DataCard.Section>
@@ -252,9 +275,10 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           workspace={workspace}
         />
         <GenerateWorkspaceDatabasePasswordDialog
-          open={isGeneratePwdDialogOpen}
-          onClose={() => setIsGeneratePwdDialogOpen(false)}
+          open={generatePwdDialogType !== null}
+          onClose={() => setGeneratePwdDialogType(null)}
           workspace={workspace}
+          passwordType={generatePwdDialogType ?? "rw"}
         />
       </WorkspaceLayout>
     </Page>
