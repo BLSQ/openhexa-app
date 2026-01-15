@@ -267,8 +267,6 @@ class Workspace(Base):
     @property
     def db_ro_url(self):
         """Connection URL for read-only access."""
-        if not self.db_ro_password:
-            return None
         return f"postgresql://{self.db_ro_username}:{self.db_ro_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
     def update_if_has_perm(self, *, principal: User, **kwargs):
