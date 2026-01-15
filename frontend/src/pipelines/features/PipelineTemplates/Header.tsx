@@ -199,7 +199,7 @@ const Header = ({
             options={lastRunStateOptions}
             by="value"
             multiple
-            placeholder={t("All status")}
+            placeholder={t("All statuses")}
             getOptionLabel={(option) => option.label}
             renderOption={(option) => (
               <Badge
