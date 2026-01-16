@@ -44,7 +44,7 @@ const TemplateLayout = (props: TemplateLayoutProps) => {
       helpLinks={[
         {
           label: t("About templates"),
-          href: "https://github.com/BLSQ/openhexa/wiki/User-manual",
+          href: "https://docs.openhexa.com/#user-manual",
         },
       ]}
       item={template}

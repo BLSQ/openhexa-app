@@ -65,11 +65,11 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
         workspace={workspace}
         helpLinks={[
           {
-            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#about-workspaces",
+            href: "https://docs.openhexa.com/workspaces/",
             label: t("About workspaces"),
           },
           {
-            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#editing-the-workspace-homepage",
+            href: "https://docs.openhexa.com/workspaces/",
             label: t("Editing the workspace homepage"),
           },
         ]}

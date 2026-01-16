@@ -70,7 +70,7 @@ const PipelineLayout = (props: PipelineLayoutProps) => {
       helpLinks={[
         {
           label: t("About pipelines"),
-          href: "https://github.com/BLSQ/openhexa/wiki/User-manual#using-pipelines",
+          href: "https://docs.openhexa.com/pipelines/",
         },
         {
           label: t("Writing OpenHEXA pipelines"),

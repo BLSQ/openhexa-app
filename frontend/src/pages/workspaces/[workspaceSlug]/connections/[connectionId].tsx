@@ -70,7 +70,7 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
         helpLinks={[
           {
             label: t("About connections"),
-            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections",
+            href: "https://docs.openhexa.com/connections/",
           },
           {
             label: t("Using connections in notebooks"),

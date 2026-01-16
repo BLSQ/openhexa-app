@@ -70,7 +70,7 @@ const BaseLayout = ({
           links={[
             {
               label: t("User manual"),
-              href: "https://github.com/BLSQ/openhexa/wiki/User-manual",
+              href: "https://docs.openhexa.com/#user-manual",
             },
           ]}
         >
