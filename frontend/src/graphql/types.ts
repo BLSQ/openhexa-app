@@ -1229,6 +1229,7 @@ export type Dhis2QueryResultPage = {
 export type Database = {
   __typename?: 'Database';
   credentials?: Maybe<DatabaseCredentials>;
+  readOnlyCredentials?: Maybe<DatabaseCredentials>;
   table?: Maybe<DatabaseTable>;
   tables: DatabaseTablePage;
 };
@@ -2652,6 +2653,8 @@ export type Mutation = {
   generateDatasetUploadUrl: GenerateDatasetUploadUrlResult;
   /** Generates a new password for a database. */
   generateNewDatabasePassword: GenerateNewDatabasePasswordResult;
+  /** Generates a new password for the read-only database user. */
+  generateNewDatabaseRoPassword: GenerateNewDatabasePasswordResult;
   /** Generates a webhook URL for a pipeline. */
   generatePipelineWebhookUrl: GeneratePipelineWebhookUrlResult;
   generateWorkspaceToken: GenerateWorkspaceTokenResult;
@@ -3025,6 +3028,11 @@ export type MutationGenerateDatasetUploadUrlArgs = {
 
 
 export type MutationGenerateNewDatabasePasswordArgs = {
+  input: GenerateNewDatabasePasswordInput;
+};
+
+
+export type MutationGenerateNewDatabaseRoPasswordArgs = {
   input: GenerateNewDatabasePasswordInput;
 };
 

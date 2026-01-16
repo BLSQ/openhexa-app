@@ -60,6 +60,21 @@ def resolve_database_credentials(workspace: Workspace, info, **kwargs):
     return None
 
 
+@database_object.field("readOnlyCredentials")
+def resolve_database_ro_credentials(workspace: Workspace, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    if request.user.has_perm("databases.view_database_credentials", workspace):
+        return {
+            "db_name": workspace.db_name,
+            "username": workspace.db_ro_username,
+            "host": workspace.db_host,
+            "port": workspace.db_port,
+            "password": workspace.db_ro_password,
+            "url": workspace.db_ro_url,
+        }
+    return None
+
+
 @database_table_object.field("columns")
 def resolve_database_table_columns(table, info, **kwargs):
     columns = table.get("columns")
@@ -111,6 +126,24 @@ def resolve_generate_new_database_password(_, info, **kwargs):
         )
 
         workspace.generate_new_database_password(principal=request.user)
+
+        return {"success": True, "workspace": workspace, "errors": []}
+    except Workspace.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
+@workspace_mutations.field("generateNewDatabaseRoPassword")
+def resolve_generate_new_database_ro_password(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=input["workspace_slug"]
+        )
+
+        workspace.generate_new_database_ro_password(principal=request.user)
 
         return {"success": True, "workspace": workspace, "errors": []}
     except Workspace.DoesNotExist:

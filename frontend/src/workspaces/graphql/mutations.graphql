@@ -112,6 +112,15 @@ mutation generateNewDatabasePassword(
   }
 }
 
+mutation generateNewDatabaseRoPassword(
+  $input: GenerateNewDatabasePasswordInput!
+) {
+  generateNewDatabaseRoPassword(input: $input) {
+    success
+    errors
+  }
+}
+
 mutation createPipeline($input: CreatePipelineInput!) {
   createPipeline(input: $input) {
     success

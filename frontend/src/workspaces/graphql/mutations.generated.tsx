@@ -75,6 +75,13 @@ export type GenerateNewDatabasePasswordMutationVariables = Types.Exact<{
 
 export type GenerateNewDatabasePasswordMutation = { __typename?: 'Mutation', generateNewDatabasePassword: { __typename?: 'GenerateNewDatabasePasswordResult', success: boolean, errors: Array<Types.GenerateNewDatabasePasswordError> } };
 
+export type GenerateNewDatabaseRoPasswordMutationVariables = Types.Exact<{
+  input: Types.GenerateNewDatabasePasswordInput;
+}>;
+
+
+export type GenerateNewDatabaseRoPasswordMutation = { __typename?: 'Mutation', generateNewDatabaseRoPassword: { __typename?: 'GenerateNewDatabasePasswordResult', success: boolean, errors: Array<Types.GenerateNewDatabasePasswordError> } };
+
 export type CreatePipelineMutationVariables = Types.Exact<{
   input: Types.CreatePipelineInput;
 }>;
@@ -543,6 +550,40 @@ export function useGenerateNewDatabasePasswordMutation(baseOptions?: Apollo.Muta
 export type GenerateNewDatabasePasswordMutationHookResult = ReturnType<typeof useGenerateNewDatabasePasswordMutation>;
 export type GenerateNewDatabasePasswordMutationResult = Apollo.MutationResult<GenerateNewDatabasePasswordMutation>;
 export type GenerateNewDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<GenerateNewDatabasePasswordMutation, GenerateNewDatabasePasswordMutationVariables>;
+export const GenerateNewDatabaseRoPasswordDocument = gql`
+    mutation generateNewDatabaseRoPassword($input: GenerateNewDatabasePasswordInput!) {
+  generateNewDatabaseRoPassword(input: $input) {
+    success
+    errors
+  }
+}
+    `;
+export type GenerateNewDatabaseRoPasswordMutationFn = Apollo.MutationFunction<GenerateNewDatabaseRoPasswordMutation, GenerateNewDatabaseRoPasswordMutationVariables>;
+
+/**
+ * __useGenerateNewDatabaseRoPasswordMutation__
+ *
+ * To run a mutation, you first call `useGenerateNewDatabaseRoPasswordMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGenerateNewDatabaseRoPasswordMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [generateNewDatabaseRoPasswordMutation, { data, loading, error }] = useGenerateNewDatabaseRoPasswordMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useGenerateNewDatabaseRoPasswordMutation(baseOptions?: Apollo.MutationHookOptions<GenerateNewDatabaseRoPasswordMutation, GenerateNewDatabaseRoPasswordMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateNewDatabaseRoPasswordMutation, GenerateNewDatabaseRoPasswordMutationVariables>(GenerateNewDatabaseRoPasswordDocument, options);
+      }
+export type GenerateNewDatabaseRoPasswordMutationHookResult = ReturnType<typeof useGenerateNewDatabaseRoPasswordMutation>;
+export type GenerateNewDatabaseRoPasswordMutationResult = Apollo.MutationResult<GenerateNewDatabaseRoPasswordMutation>;
+export type GenerateNewDatabaseRoPasswordMutationOptions = Apollo.BaseMutationOptions<GenerateNewDatabaseRoPasswordMutation, GenerateNewDatabaseRoPasswordMutationVariables>;
 export const CreatePipelineDocument = gql`
     mutation createPipeline($input: CreatePipelineInput!) {
   createPipeline(input: $input) {
