@@ -30,6 +30,8 @@ const MOCK_ORGANIZATION = {
     manageMembers: true,
     createWorkspace: true,
     archiveWorkspace: true,
+    update: true,
+    delete: true,
   },
   workspaces: {
     totalItems: 1,
@@ -41,6 +43,12 @@ const MOCK_ORGANIZATION = {
       },
     ],
   },
+  usage: {
+    users: 5,
+    workspaces: 1,
+    pipelineRuns: 0,
+  },
+  subscription: null,
 };
 
 const MOCK_ORGANIZATION_NO_PERMISSIONS = {
@@ -50,6 +58,8 @@ const MOCK_ORGANIZATION_NO_PERMISSIONS = {
     manageMembers: false,
     createWorkspace: false,
     archiveWorkspace: false,
+    update: false,
+    delete: false,
   },
 };
 
@@ -171,6 +181,8 @@ describe("OrganizationMembersPage", () => {
         manageMembers: true,
         createWorkspace: true,
         archiveWorkspace: true,
+        update: true,
+        delete: true,
       },
       workspaces: {
         totalItems: 0,
@@ -180,6 +192,12 @@ describe("OrganizationMembersPage", () => {
         totalItems: 0,
         items: [],
       },
+      usage: {
+        users: 0,
+        workspaces: 0,
+        pipelineRuns: 0,
+      },
+      subscription: null,
     };
 
     render(

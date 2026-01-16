@@ -14,6 +14,12 @@ module.exports = {
         xtall: { raw: "(min-height: 1201px)" },
         // => @media (min-height: 901px) { ... }
       },
+
+      keyframes: {
+        shimmer: {
+          "100%": { transform: "translateX(100%)" },
+        },
+      },
     },
   },
   plugins: [

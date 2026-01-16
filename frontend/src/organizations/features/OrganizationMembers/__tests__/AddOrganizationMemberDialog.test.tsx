@@ -22,6 +22,8 @@ const MOCK_ORGANIZATION = {
     createWorkspace: true,
     archiveWorkspace: true,
     manageOwners: true,
+    update: true,
+    delete: true,
   },
   members: {
     totalItems: 0,
@@ -42,6 +44,12 @@ const MOCK_ORGANIZATION = {
       },
     ],
   },
+  usage: {
+    users: 0,
+    workspaces: 2,
+    pipelineRuns: 0,
+  },
+  subscription: null,
 };
 
 const MOCK_USER = {

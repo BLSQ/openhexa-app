@@ -20,6 +20,7 @@ let config = {
     NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE:
       process.env.SENTRY_TRACES_SAMPLE_RATE || "1",
     NEXT_PUBLIC_DISABLE_ANALYTICS: process.env.DISABLE_ANALYTICS,
+    NEXT_PUBLIC_CONSOLE_URL: process.env.CONSOLE_URL,
   },
 
   // Next.js in pages mode seems to choke on the ESM format of the editor and one of its dependencies.

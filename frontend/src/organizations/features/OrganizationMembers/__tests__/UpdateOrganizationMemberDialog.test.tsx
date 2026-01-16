@@ -47,6 +47,7 @@ const MOCK_ORGANIZATION = {
   name: "Test Organization",
   permissions: {
     manageMembers: true,
+    manageOwners: true,
   },
   members: {
     totalItems: 0,

@@ -20,9 +20,10 @@ import Badge from "core/components/Badge";
 import Link from "core/components/Link";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { useTranslation } from "next-i18next";
-import React, { useContext, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import SidebarMenu from "workspaces/features/SidebarMenu";
 import UserMenu from "workspaces/features/UserMenu";
+import ExternalCollaboratorNotice from "workspaces/features/ExternalCollaboratorNotice";
 import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next";
@@ -235,6 +236,7 @@ const Sidebar = (props: SidebarProps) => {
               </div>
             )}
           </nav>
+          <ExternalCollaboratorNotice compact={!isSidebarOpen} />
         </div>
 
         <UserMenu compact={!isSidebarOpen} />
