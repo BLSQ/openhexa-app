@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.16.1](https://github.com/BLSQ/openhexa-app/compare/2.16.0...2.16.1) (2026-01-19)
+
+
+### Bug Fixes
+
+* create read-only role migration ([#1560](https://github.com/BLSQ/openhexa-app/issues/1560)) ([f14cdeb](https://github.com/BLSQ/openhexa-app/commit/f14cdebd2928af5d8bfc50f7d99643040311afeb))
+
 ## [2.16.0](https://github.com/BLSQ/openhexa-app/compare/2.15.0...2.16.0) (2026-01-19)
 
 
