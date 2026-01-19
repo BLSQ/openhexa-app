@@ -89,7 +89,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
         helpLinks={[
           {
             label: t("Workspace settings"),
-            href: "https://docs.openhexa.com/workspaces/#general-AC",
+            href: "https://docs.openhexa.com/workspaces/#general-configuration",
           },
           {
             label: t("Inviting and managing users"),
