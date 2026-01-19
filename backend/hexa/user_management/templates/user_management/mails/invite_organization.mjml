@@ -99,7 +99,7 @@
 
       <mj-section background-color="#fff2f2" padding="40px 30px 30px 30px">
         <mj-column width="50%">
-          <mj-button href="https://github.com/BLSQ/openhexa/wiki/User-manual" width="100%" background-color="#FF499C" color="#ffffff">
+          <mj-button href="https://docs.openhexa.com/#user-manual" width="100%" background-color="#FF499C" color="#ffffff">
             {% trans "User Manual" %}
           </mj-button>
         </mj-column>

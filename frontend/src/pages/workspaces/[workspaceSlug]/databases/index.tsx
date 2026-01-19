@@ -50,7 +50,7 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
         helpLinks={[
           {
             label: t("About the workspace database"),
-            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#using-the-workspaces-database",
+            href: "https://docs.openhexa.com/database/",
           },
           {
             label: t("Using the workspace database in pipelines"),

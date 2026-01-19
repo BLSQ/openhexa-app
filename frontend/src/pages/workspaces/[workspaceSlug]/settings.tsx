@@ -91,15 +91,15 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
         helpLinks={[
           {
             label: t("Workspace settings"),
-            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#workspace-settings",
+            href: "https://docs.openhexa.com/workspaces/#general-configuration",
           },
           {
             label: t("Inviting and managing users"),
-            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#inviting-and-managing-users",
+            href: "https://docs.openhexa.com/workspaces/#members",
           },
           {
             label: t("Regenerating the database password"),
-            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#regenerating-the-workspace-database-password",
+            href: "https://docs.openhexa.com/workspaces/#regenerate-the-workspace-database-password",
           },
         ]}
         header={

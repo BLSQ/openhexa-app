@@ -80,7 +80,7 @@ const WorkspaceDatasetsPage: NextPageWithLayout = (props: Props) => {
         helpLinks={[
           {
             label: t("About datasets"),
-            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#datasets",
+            href: "https://docs.openhexa.com/datasets/",
           },
           {
             label: t("Using the OpenHEXA SDK with datasets"),
