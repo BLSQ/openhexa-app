@@ -121,7 +121,6 @@ def create_readonly_roles_for_existing_workspaces(apps, schema_editor):
         create_read_only_role(workspace.db_name, workspace.db_password, ro_password)
         workspace.db_ro_password = ro_password
         workspace.save(update_fields=["db_ro_password"])
-        print(f"Created read-only role for workspace {workspace.slug}")
 
 
 def reverse_migration(apps, schema_editor):
