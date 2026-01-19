@@ -14,12 +14,20 @@ def make_random_password(
     return "".join(secrets.choice(allowed_chars) for i in range(length))
 
 
+def role_exists(cursor, role_name):
+    """Check if a PostgreSQL role exists."""
+    cursor.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (role_name,))
+    return cursor.fetchone() is not None
+
+
 def create_read_only_role_as_owner(db_name, db_password, ro_password):
     """
     Create a read-only role for a database, connecting as the workspace owner.
 
     This ensures we have proper permissions to GRANT SELECT on tables
     and ALTER DEFAULT PRIVILEGES, even when the migration role is not a superuser.
+
+    This function is idempotent - it can be run multiple times safely.
     """
     host = settings.WORKSPACES_DATABASE_HOST
     port = settings.WORKSPACES_DATABASE_PORT
@@ -32,13 +40,26 @@ def create_read_only_role_as_owner(db_name, db_password, ro_password):
     ro_role = f"{db_name}_ro"
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password};").format(
-                    role_name=sql.Identifier(ro_role), password=sql.Literal(ro_password)
+            # Create role only if it doesn't exist
+            if not role_exists(cur, ro_role):
+                cur.execute(
+                    sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password}").format(
+                        role_name=sql.Identifier(ro_role),
+                        password=sql.Literal(ro_password),
+                    )
                 )
-            )
+            else:
+                # Update password if role already exists
+                cur.execute(
+                    sql.SQL("ALTER ROLE {role_name} WITH PASSWORD {password}").format(
+                        role_name=sql.Identifier(ro_role),
+                        password=sql.Literal(ro_password),
+                    )
+                )
+
+            # GRANT statements are idempotent - safe to run multiple times
             cur.execute(
-                sql.SQL("GRANT CONNECT ON DATABASE {db_name} TO {role};").format(
+                sql.SQL("GRANT CONNECT ON DATABASE {db_name} TO {role}").format(
                     db_name=sql.Identifier(db_name),
                     role=sql.Identifier(ro_role),
                 )
@@ -53,12 +74,12 @@ def create_read_only_role_as_owner(db_name, db_password, ro_password):
                     role=sql.Identifier(ro_role)
                 )
             )
+            # Set default privileges for future tables created by this role
             cur.execute(
                 sql.SQL(
-                    "ALTER DEFAULT PRIVILEGES FOR ROLE {owner_role} IN SCHEMA public "
+                    "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
                     "GRANT SELECT ON TABLES TO {ro_role}"
                 ).format(
-                    owner_role=sql.Identifier(db_name),
                     ro_role=sql.Identifier(ro_role),
                 )
             )
