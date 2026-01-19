@@ -20,15 +20,22 @@ def role_exists(cursor, role_name):
     return cursor.fetchone() is not None
 
 
-def create_read_only_role_as_owner(db_name, db_password, ro_password):
-    """
-    Create a read-only role for a database, connecting as the workspace owner.
+def get_admin_connection(db_name):
+    """Get a connection using the admin role (has CREATEROLE privilege)."""
+    host = settings.WORKSPACES_DATABASE_HOST
+    port = settings.WORKSPACES_DATABASE_PORT
+    admin_role = settings.WORKSPACES_DATABASE_ROLE
+    admin_password = settings.WORKSPACES_DATABASE_PASSWORD
 
-    This ensures we have proper permissions to GRANT SELECT on tables
-    and ALTER DEFAULT PRIVILEGES, even when the migration role is not a superuser.
+    conn = psycopg2.connect(
+        host=host, port=port, dbname=db_name, user=admin_role, password=admin_password
+    )
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    return conn
 
-    This function is idempotent - it can be run multiple times safely.
-    """
+
+def get_owner_connection(db_name, db_password):
+    """Get a connection using the workspace owner (owns the tables)."""
     host = settings.WORKSPACES_DATABASE_HOST
     port = settings.WORKSPACES_DATABASE_PORT
 
@@ -36,11 +43,24 @@ def create_read_only_role_as_owner(db_name, db_password, ro_password):
         host=host, port=port, dbname=db_name, user=db_name, password=db_password
     )
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    return conn
 
+
+def create_read_only_role(db_name, db_password, ro_password):
+    """
+    Create a read-only role for a database.
+
+    Uses admin role for CREATE/ALTER ROLE (has CREATEROLE privilege).
+    Uses workspace owner for GRANTs (owns the tables).
+
+    This function is idempotent - it can be run multiple times safely.
+    """
     ro_role = f"{db_name}_ro"
+
+    # Step 1: Create or update role using admin connection
+    admin_conn = get_admin_connection(db_name)
     try:
-        with conn.cursor() as cur:
-            # Create role only if it doesn't exist
+        with admin_conn.cursor() as cur:
             if not role_exists(cur, ro_role):
                 cur.execute(
                     sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password}").format(
@@ -49,14 +69,20 @@ def create_read_only_role_as_owner(db_name, db_password, ro_password):
                     )
                 )
             else:
-                # Update password if role already exists
+                # Update password for existing role
                 cur.execute(
                     sql.SQL("ALTER ROLE {role_name} WITH PASSWORD {password}").format(
                         role_name=sql.Identifier(ro_role),
                         password=sql.Literal(ro_password),
                     )
                 )
+    finally:
+        admin_conn.close()
 
+    # Step 2: Grant permissions using workspace owner connection
+    owner_conn = get_owner_connection(db_name, db_password)
+    try:
+        with owner_conn.cursor() as cur:
             # GRANT statements are idempotent - safe to run multiple times
             cur.execute(
                 sql.SQL("GRANT CONNECT ON DATABASE {db_name} TO {role}").format(
@@ -84,7 +110,7 @@ def create_read_only_role_as_owner(db_name, db_password, ro_password):
                 )
             )
     finally:
-        conn.close()
+        owner_conn.close()
 
 
 def create_readonly_roles_for_existing_workspaces(apps, schema_editor):
@@ -92,9 +118,7 @@ def create_readonly_roles_for_existing_workspaces(apps, schema_editor):
 
     for workspace in Workspace.objects.filter(db_ro_password__isnull=True):
         ro_password = make_random_password(length=16)
-        create_read_only_role_as_owner(
-            workspace.db_name, workspace.db_password, ro_password
-        )
+        create_read_only_role(workspace.db_name, workspace.db_password, ro_password)
         workspace.db_ro_password = ro_password
         workspace.save(update_fields=["db_ro_password"])
         print(f"Created read-only role for workspace {workspace.slug}")
