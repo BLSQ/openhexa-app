@@ -4,7 +4,6 @@ import Link, { LinkProps } from "next/link";
 import { ReactElement, useMemo } from "react";
 import { BaseColumnProps } from "./BaseColumn";
 import { useCellContext } from "./helpers";
-import Tooltip from "core/components/Tooltip";
 
 type URLResolver = (value: any) => LinkProps["href"];
 type TextColumnProps = BaseColumnProps & {
@@ -58,18 +57,12 @@ export function TextColumn(props: TextColumnProps) {
         </div>
       )}
       <div className="truncate min-w-0">
-        <Tooltip
-          label={textValue}
-          placement="top"
-          renderTrigger={(ref) => (
-            <div
-              ref={ref as any}
-              className={clsx("truncate whitespace-nowrap", textClassName)}
-            >
-              {text ?? defaultValue}
-            </div>
-          )}
-        />
+        <div
+          title={textValue}
+          className={clsx("block truncate", textClassName)}
+        >
+          {text ?? defaultValue}
+        </div>
         {subtext && (
           <div className=" mt-1 truncate text-sm text-gray-400">{subtext}</div>
         )}

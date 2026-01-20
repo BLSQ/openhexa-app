@@ -14,7 +14,6 @@ import ErrorBoundary from "core/components/ErrorBoundary";
 import DatasetVersionFileColumns from "../DatasetVersionFileColumns";
 import Pagination from "core/components/Pagination";
 import { DatasetExplorer_FileFragment } from "./fragments.generated";
-import Tooltip from "core/components/Tooltip";
 
 type DatasetExplorerProps = {
   version: DatasetExplorer_VersionFragment;
@@ -43,24 +42,16 @@ const DatasetExplorer = ({
               <li
                 key={file.id}
                 onClick={() => onClickFile(file)}
+                title={file.filename}
                 className={clsx(
                   "pl-6 pr-3 py-2 text-xs font-mono tracking-tighter hover:bg-gray-100 hover:text-gray-900 cursor-pointer",
                   currentFile.id === file.id &&
                     "bg-gray-100 text-gray-800 font-semibold",
                 )}
               >
-                <Tooltip
-                  label={file.filename}
-                  placement="right"
-                  renderTrigger={(ref) => (
-                    <span
-                      ref={ref}
-                      className="block truncate whitespace-nowrap max-w-[30ch] xl:max-w-[50ch]"
-                    >
-                      {file.filename}
-                    </span>
-                  )}
-                />
+                <span className="block truncate max-w-[30ch] xl:max-w-[50ch]">
+                  {file.filename}
+                </span>
               </li>
             ))}
           </ul>
@@ -77,20 +68,12 @@ const DatasetExplorer = ({
       <div className="flex-1 py-2 space-y-4 min-w-0">
         <div className="px-4 py-1 space-y-6">
           <Title level={3} className="flex justify-between gap-4 min-w-0">
-            <div className="min-w-0 flex-1">
-              <Tooltip
-                label={currentFile.filename}
-                placement="top"
-                renderTrigger={(ref) => (
-                  <span
-                    ref={ref}
-                    className="font-mono tracking-tight truncate whitespace-nowrap block"
-                  >
-                    {currentFile.filename}
-                  </span>
-                )}
-              />
-            </div>
+            <span
+              className="font-mono tracking-tight block truncate min-w-0 flex-1"
+              title={currentFile.filename}
+            >
+              {currentFile.filename}
+            </span>
             <DownloadVersionFile
               file={currentFile}
               variant="secondary"
