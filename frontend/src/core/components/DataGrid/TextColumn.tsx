@@ -4,6 +4,7 @@ import Link, { LinkProps } from "next/link";
 import { ReactElement, useMemo } from "react";
 import { BaseColumnProps } from "./BaseColumn";
 import { useCellContext } from "./helpers";
+import Tooltip from "core/components/Tooltip";
 
 type URLResolver = (value: any) => LinkProps["href"];
 type TextColumnProps = BaseColumnProps & {
@@ -48,20 +49,27 @@ export function TextColumn(props: TextColumnProps) {
     }
   }, [cell.value, url]);
 
+  const textValue = text?.toString() ?? "";
   const children = (
     <div className="flex max-w-full items-center gap-4">
       {symbol && (
         <div className="w-8">
-          <img src={symbol} alt={text} />
+          <img src={symbol} alt={textValue} />
         </div>
       )}
-      <div className="truncate">
-        <div
-          title={text?.toString()}
-          className={clsx("truncate lg:whitespace-nowrap", textClassName)}
-        >
-          {text ?? defaultValue}
-        </div>
+      <div className="truncate min-w-0">
+        <Tooltip
+          label={textValue}
+          placement="top"
+          renderTrigger={(ref) => (
+            <div
+              ref={ref as any}
+              className={clsx("truncate whitespace-nowrap", textClassName)}
+            >
+              {text ?? defaultValue}
+            </div>
+          )}
+        />
         {subtext && (
           <div className=" mt-1 truncate text-sm text-gray-400">{subtext}</div>
         )}
