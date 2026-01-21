@@ -300,13 +300,43 @@ class AzureBlobStorageTest(TestCase):
         self.storage.create_bucket(bucket_name)
         self.storage.save_object(bucket_name, file_path, b"content")
 
-        url = self.storage.generate_download_url(bucket_name, file_path)
+        url = self.storage.generate_download_url(
+            bucket_name=bucket_name, target_key=file_path
+        )
 
         self.assertIsNotNone(url)
         self.assertIn(bucket_name, url)
         self.assertIn(file_path, url)
         self.assertIn("mock_sas_token", url)
         self.assertTrue(mock_generate_sas.called)
+        # Verify content_disposition is None when force_attachment is False
+        call_kwargs = mock_generate_sas.call_args.kwargs
+        self.assertIsNone(call_kwargs.get("content_disposition"))
+
+    @patch("hexa.files.backends.azure.generate_blob_sas")
+    def test_generate_download_url_force_attachment(self, mock_generate_sas):
+        """Test generating a download URL with force_attachment=True"""
+        mock_generate_sas.return_value = "mock_sas_token"
+
+        bucket_name = "test-bucket-download-attach"
+        file_path = "folder/test-file.txt"
+
+        self.storage.create_bucket(bucket_name)
+        self.storage.save_object(bucket_name, file_path, b"content")
+
+        url = self.storage.generate_download_url(
+            bucket_name=bucket_name, target_key=file_path, force_attachment=True
+        )
+
+        self.assertIsNotNone(url)
+        self.assertIn(bucket_name, url)
+        self.assertIn("mock_sas_token", url)
+        self.assertTrue(mock_generate_sas.called)
+        # Verify content_disposition is set correctly
+        call_kwargs = mock_generate_sas.call_args.kwargs
+        self.assertEqual(
+            call_kwargs.get("content_disposition"), "attachment; filename=test-file.txt"
+        )
 
     @patch("hexa.files.backends.azure.generate_blob_sas")
     def test_generate_upload_url(self, mock_generate_sas):
