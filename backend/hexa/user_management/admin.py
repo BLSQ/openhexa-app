@@ -17,6 +17,7 @@ from .models import (
     Organization,
     OrganizationInvitation,
     OrganizationMembership,
+    SignupRequest,
     Team,
     User,
 )
@@ -285,3 +286,17 @@ class OrganizationInvitationAdmin(admin.ModelAdmin):
         "role",
     )
     inlines = [OrganizationWorkspaceInvitationInline]
+
+
+@admin.register(SignupRequest)
+class SignupRequestAdmin(admin.ModelAdmin):
+    list_display = (
+        "email",
+        "status",
+        "created_at",
+        "updated_at",
+    )
+    list_filter = ("status", "created_at")
+    search_fields = ("email",)
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ("-created_at",)
