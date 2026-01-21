@@ -2,7 +2,6 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import useLocalStorage from "core/hooks/useLocalStorage";
 import useMe from "identity/hooks/useMe";
-import noop from "lodash/noop";
 import { useRouter } from "next/router";
 import { ReactElement, useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
@@ -13,7 +12,12 @@ import {
   WorkspacesPageQueryVariables,
   useCheckWorkspaceAvailabilityLazyQuery,
 } from "workspaces/graphql/queries.generated";
-import { WarningAlert } from "core/components/Alert";
+import NoWorkspaceLayout from "workspaces/layouts/NoWorkspaceLayout";
+import {
+  ArrowTopRightOnSquareIcon,
+  InboxIcon,
+} from "@heroicons/react/24/outline";
+import Link from "core/components/Link";
 
 type WorkspacesHomeProps = {
   workspaceSlug: string | null;
@@ -29,6 +33,7 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
     "last-visited-workspace",
   );
   const [isChecking, setChecking] = useState(true);
+  const [isDialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!isChecking || typeof window === "undefined") return;
@@ -52,25 +57,57 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
         setChecking(false);
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!isChecking && !me.permissions.createWorkspace) {
-    return (
-      <WarningAlert onClose={() => router.push("/")}>
-        {t("No workspace available at the moment")}
-      </WarningAlert>
-    );
-  }
-  if (typeof window === "undefined") {
+  if (typeof window === "undefined" || isChecking) {
     return null;
   }
 
+  const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL;
+
   return (
-    <Page title={isChecking ? "" : t("New workspace")}>
-      {!isChecking ? (
-        <CreateWorkspaceDialog showCancel={false} open onClose={noop} />
-      ) : null}
+    <Page title={t("Workspaces")}>
+      <NoWorkspaceLayout>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <InboxIcon className="h-12 w-12 text-gray-400 mb-4" />
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            {t("No workspace available")}
+          </h2>
+          <p className="text-sm text-gray-500 max-w-md">
+            {t("You don't have access to any workspace yet.")}
+          </p>
+          <p className="text-sm text-gray-500 max-w-md mt-2">
+            {t(
+              "Contact your administrator or a member of the OpenHEXA team to get invited to a workspace.",
+            )}
+          </p>
+          {consoleUrl && (
+            <Link
+              href={consoleUrl}
+              target="_blank"
+              noStyle
+              className="mt-6 inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+            >
+              {t("Or create your own organization")}
+              <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+            </Link>
+          )}
+          {me.permissions.createWorkspace && (
+            <button
+              onClick={() => setDialogOpen(true)}
+              className="mt-6 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
+            >
+              {t("Create a workspace")}
+            </button>
+          )}
+        </div>
+        {me.permissions.createWorkspace && (
+          <CreateWorkspaceDialog
+            open={isDialogOpen}
+            onClose={() => setDialogOpen(false)}
+          />
+        )}
+      </NoWorkspaceLayout>
     </Page>
   );
 };
