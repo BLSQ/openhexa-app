@@ -92,7 +92,13 @@ class AzureBlobStorage(Storage):
         return _blob_to_obj(blob.get_blob_properties(), bucket_name)
 
     def generate_download_url(
-        self, bucket_name, target_key, expiration=3600, *args, **kwargs
+        self,
+        *,
+        bucket_name,
+        target_key,
+        force_attachment=False,
+        expiration=3600,
+        **kwargs,
     ):
         # Get a blob client for the target blob
         blob_client = self.client.get_blob_client(
@@ -103,6 +109,12 @@ class AzureBlobStorage(Storage):
         sas_start_time = datetime.now(timezone.utc)
         sas_expiry_time = sas_start_time + timedelta(seconds=expiration)
 
+        # Set content disposition to force download if requested
+        filename = blob_client.blob_name.split("/")[-1]
+        content_disposition = (
+            f"attachment; filename={filename}" if force_attachment else None
+        )
+
         # Generate the Azure Blob Storage SAS token
         sas_token = generate_blob_sas(
             account_name=str(self.client.account_name),
@@ -111,6 +123,7 @@ class AzureBlobStorage(Storage):
             blob_name=blob_client.blob_name,
             permission=BlobSasPermissions(read=True),
             expiry=sas_expiry_time,
+            content_disposition=content_disposition,
         )
 
         return f"{blob_client.url}?{sas_token}"
