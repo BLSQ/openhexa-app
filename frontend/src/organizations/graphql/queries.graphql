@@ -20,6 +20,22 @@ fragment Organization_organization on Organization {
   externalCollaborators {
     totalItems
   }
+  usage {
+    users
+    workspaces
+    pipelineRuns
+  }
+  subscription {
+    subscriptionId
+    planCode
+    startDate
+    endDate
+    limits {
+      users
+      workspaces
+      pipelineRuns
+    }
+  }
 }
 
 query Organization($id: UUID!) {

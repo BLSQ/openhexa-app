@@ -9,6 +9,7 @@ import {
 } from "organizations/graphql/queries.generated";
 import Page from "core/components/Page";
 import OrganizationSettings from "organizations/features/OrganizationSettings";
+import OrganizationUsageLimits from "organizations/features/OrganizationUsageLimits";
 
 type Props = {
   organization: OrganizationQuery["organization"];
@@ -46,6 +47,7 @@ const OrganizationSettingsPage: NextPageWithLayout<Props> = ({
         }
       >
         <OrganizationSettings organization={organization} />
+        <OrganizationUsageLimits organization={organization} />
       </OrganizationLayout>
     </Page>
   );
