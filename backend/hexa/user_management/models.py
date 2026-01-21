@@ -184,7 +184,7 @@ class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             )
         return self._filter_for_user_and_query_object(
             user,
-            Q(organizationmembership__user=user),
+            Q(organizationmembership__user=user) | Q(workspaces__members=user),
             return_all_if_superuser=True,
         )
 

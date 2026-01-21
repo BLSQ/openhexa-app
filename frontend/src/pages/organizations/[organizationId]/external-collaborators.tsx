@@ -8,23 +8,17 @@ import {
   useOrganizationWithWorkspacesQuery,
 } from "organizations/graphql/queries.generated";
 import Page from "core/components/Page";
-import Button from "core/components/Button";
-import { PlusIcon } from "@heroicons/react/24/outline";
-import OrganizationMembers from "organizations/features/OrganizationMembers";
-import AddOrganizationMemberDialog from "organizations/features/OrganizationMembers/AddOrganizationMemberDialog";
-import { useState } from "react";
-import OrganizationInvitations from "organizations/features/OrganizationInvitations";
 import Title from "core/components/Title";
+import OrganizationExternalCollaborators from "organizations/features/OrganizationExternalCollaborators";
+import OrganizationWorkspaceInvitations from "organizations/features/OrganizationWorkspaceInvitations";
 
 type Props = {
   organization: OrganizationWithWorkspacesQuery["organization"];
 };
 
-const OrganizationMembersPage: NextPageWithLayout<Props> = ({
+const OrganizationExternalCollaboratorsPage: NextPageWithLayout<Props> = ({
   organization: SRROrganization,
 }) => {
-  const [isNewMemberDialogOpen, setIsNewMemberDialogOpen] = useState(false);
-
   const { t } = useTranslation();
 
   const { data: clientOrganization } = useOrganizationWithWorkspacesQuery({
@@ -39,45 +33,34 @@ const OrganizationMembersPage: NextPageWithLayout<Props> = ({
   }
 
   return (
-    <Page title={t("Members")}>
+    <Page title={t("External Collaborators")}>
       <OrganizationLayout
         organization={organization}
         header={
           <div>
-            <h1 className="text-2xl font-bold">{t("Members")}</h1>
+            <h1 className="text-2xl font-bold">
+              {t("External Collaborators")}
+            </h1>
             <p className="text-sm text-gray-500">
-              {organization.members.totalItems}{" "}
-              {organization.members.totalItems > 1 ? t("members") : t("member")}
+              {organization.externalCollaborators.totalItems}{" "}
+              {organization.externalCollaborators.totalItems === 1
+                ? t("workspace user without org membership")
+                : t("workspace users without org membership")}
             </p>
           </div>
         }
-        headerActions={
-          <Button
-            variant="primary"
-            onClick={() => setIsNewMemberDialogOpen(true)}
-            leadingIcon={<PlusIcon className="w-4" />}
-            disabled={!organization.permissions.manageMembers}
-          >
-            {t("Invite member")}
-          </Button>
-        }
       >
-        <OrganizationMembers organizationId={organization.id} />
+        <OrganizationExternalCollaborators organizationId={organization.id} />
         <div className="mt-12">
-          <Title level={2}>{t("Pending Organization invitations")}</Title>
-          <OrganizationInvitations organizationId={organization.id} />
+          <Title level={2}>{t("Pending Direct Workspace Invitations")}</Title>
+          <OrganizationWorkspaceInvitations organizationId={organization.id} />
         </div>
-        <AddOrganizationMemberDialog
-          open={isNewMemberDialogOpen}
-          onClose={() => setIsNewMemberDialogOpen(false)}
-          organization={organization}
-        />
       </OrganizationLayout>
     </Page>
   );
 };
 
-OrganizationMembersPage.getLayout = (page) => page;
+OrganizationExternalCollaboratorsPage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
@@ -104,4 +87,4 @@ export const getServerSideProps = createGetServerSideProps({
   },
 });
 
-export default OrganizationMembersPage;
+export default OrganizationExternalCollaboratorsPage;

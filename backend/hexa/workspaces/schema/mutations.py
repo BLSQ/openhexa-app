@@ -160,6 +160,7 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                     user=user,
                     role=input["role"],
                 )
+
                 send_workspace_add_user_email(
                     invited_by=request.user,
                     workspace=workspace,
@@ -212,12 +213,13 @@ def resolve_join_workspace(_, info, **kwargs):
                 f"Already got a membership for {request.user} and workspace {invitation.workspace.name}"
             )
 
-        # We create the membership
+        # Create workspace membership
         WorkspaceMembership.objects.create(
             workspace=invitation.workspace,
             user=request.user,
             role=invitation.role,
         )
+
         invitation.status = WorkspaceInvitationStatus.ACCEPTED
         invitation.save()
 

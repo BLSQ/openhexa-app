@@ -1005,6 +1005,11 @@ type Organization {
     members(page: Int, perPage: Int, term: String, role: OrganizationMembershipRole): OrganizationMembershipPage!
 
     """
+    External collaborators who have workspace access but no organization membership.
+    """
+    externalCollaborators(page: Int, perPage: Int, term: String): ExternalCollaboratorPage!
+
+    """
     The workspaces associated with the organization.
     """
     workspaces(page: Int, perPage: Int): WorkspacePage!
@@ -1103,112 +1108,162 @@ type OrganizationPermissions {
 Represents a page of organization invitations.
 """
 type OrganizationInvitationPage {
-  # The current page number.
-  pageNumber: Int!
-  # The total number of pages.
-  totalPages: Int!
-  # The total number of items.
-  totalItems: Int!
-  # The list of organization invitations on the current page.
-  items: [OrganizationInvitation!]!
+    # The current page number.
+    pageNumber: Int!
+    # The total number of pages.
+    totalPages: Int!
+    # The total number of items.
+    totalItems: Int!
+    # The list of organization invitations on the current page.
+    items: [OrganizationInvitation!]!
 }
 
 """
 Represents an invitation to join an organization.
 """
 type OrganizationInvitation {
-  # The unique identifier for the invitation.
-  id: UUID!
-  # The email address of the invitee.
-  email: String!
-  # The organization associated with the invitation.
-  organization: Organization!
-  # The role of the invitee in the organization.
-  role: OrganizationMembershipRole!
-  # The status of the invitation.
-  status: OrganizationInvitationStatus!
-  # The user who sent the invitation.
-  invitedBy: User
-  # The date and time when the invitation was created.
-  createdAt: DateTime!
-  # The date and time when the invitation was last updated.
-  updatedAt: DateTime
-  # The workspace invitations associated with this organization invitation.
-  workspaceInvitations: [OrganizationWorkspaceInvitation!]!
+    # The unique identifier for the invitation.
+    id: UUID!
+    # The email address of the invitee.
+    email: String!
+    # The organization associated with the invitation.
+    organization: Organization!
+    # The role of the invitee in the organization.
+    role: OrganizationMembershipRole!
+    # The status of the invitation.
+    status: OrganizationInvitationStatus!
+    # The user who sent the invitation.
+    invitedBy: User
+    # The date and time when the invitation was created.
+    createdAt: DateTime!
+    # The date and time when the invitation was last updated.
+    updatedAt: DateTime
+    # The workspace invitations associated with this organization invitation.
+    workspaceInvitations: [OrganizationWorkspaceInvitation!]!
 }
 
 """
 Represents a workspace invitation within an organization invitation.
 """
 type OrganizationWorkspaceInvitation {
-  # The workspace associated with this invitation.
-  workspace: Workspace!
-  # The role of the invitee in the workspace.
-  role: WorkspaceMembershipRole!
+    # The workspace associated with this invitation.
+    workspace: Workspace!
+    # The role of the invitee in the workspace.
+    role: WorkspaceMembershipRole!
 }
 
 """
 Represents the status of an organization invitation.
 """
 enum OrganizationInvitationStatus {
-  PENDING
-  ACCEPTED
-  DECLINED
+    PENDING
+    ACCEPTED
+    DECLINED
 }
-
 
 """
 Represents a page of organization memberships.
 """
 type OrganizationMembershipPage {
-  # The current page number.
-  pageNumber: Int!
+    # The current page number.
+    pageNumber: Int!
 
-  # The total number of pages.
-  totalPages: Int!
+    # The total number of pages.
+    totalPages: Int!
 
-  # The total number of items.
-  totalItems: Int!
+    # The total number of items.
+    totalItems: Int!
 
-  # The list of organization memberships on the current page.
-  items: [OrganizationMembership!]!
+    # The list of organization memberships on the current page.
+    items: [OrganizationMembership!]!
+}
+
+"""
+Common interface for organization members and external collaborators.
+Used by shared UI components that handle both types.
+"""
+interface OrganizationMember {
+    # The unique identifier.
+    id: UUID!
+
+    # The user.
+    user: User!
+
+    # The workspace memberships of the user within this organization.
+    workspaceMemberships: [WorkspaceMembership!]!
+
+    # The date and time when the membership was created.
+    createdAt: DateTime!
+}
+
+"""
+Represents an external collaborator who has workspace access but no organization membership.
+"""
+type ExternalCollaborator implements OrganizationMember {
+    # The unique identifier (user ID).
+    id: UUID!
+
+    # The user who is an external collaborator.
+    user: User!
+
+    # The workspace memberships of the user within this organization.
+    workspaceMemberships: [WorkspaceMembership!]!
+
+    # The date and time when the user first joined a workspace in this organization.
+    createdAt: DateTime!
+}
+
+"""
+Represents a page of external collaborators.
+"""
+type ExternalCollaboratorPage {
+    # The current page number.
+    pageNumber: Int!
+
+    # The total number of pages.
+    totalPages: Int!
+
+    # The total number of items.
+    totalItems: Int!
+
+    # The list of external collaborators on the current page.
+    items: [ExternalCollaborator!]!
 }
 
 """
 Represents a membership in an organization.
 """
-type OrganizationMembership {
-  # The unique identifier for the membership.
-  id: UUID!
+type OrganizationMembership implements OrganizationMember {
+    # The unique identifier for the membership.
+    id: UUID!
 
-  # The user who is a member of the organization.
-  user: User!
+    # The user who is a member of the organization.
+    user: User!
 
-  # The organization associated with the membership.
-  organization: Organization!
+    # The organization associated with the membership.
+    organization: Organization!
 
-  # The role of the member in the organization.
-  role: OrganizationMembershipRole!
+    # The role of the member in the organization.
+    role: OrganizationMembershipRole!
 
-  # The workspace memberships of the user within this organization.
-  workspaceMemberships: [WorkspaceMembership!]!
+    # The workspace memberships of the user within this organization.
+    workspaceMemberships: [WorkspaceMembership!]!
 
-  # The date and time when the membership was created.
-  createdAt: DateTime!
+    # The date and time when the membership was created.
+    createdAt: DateTime!
 
-  # The date and time when the membership was last updated.
-  updatedAt: DateTime
+    # The date and time when the membership was last updated.
+    updatedAt: DateTime
 }
 
 """
 Represents the role of a organization membership.
 """
 enum OrganizationMembershipRole {
-  OWNER
-  ADMIN
-  MEMBER
+    OWNER
+    ADMIN
+    MEMBER
 }
-
 
 """
 The OrganizationInput type represents the input for creating or updating an organization.
@@ -1251,7 +1306,10 @@ type FeatureFlag {
     """
     The configuration of the feature flag (deprecated).
     """
-    config: JSON! @deprecated(reason: "This field is deprecated and will be removed in the next version. In the meantime it always returns an empty object.")
+    config: JSON!
+        @deprecated(
+            reason: "This field is deprecated and will be removed in the next version. In the meantime it always returns an empty object."
+        )
 }
 
 extend type Query {
@@ -1417,7 +1475,7 @@ input UpdateOrganizationMemberInput {
     The updated role of the user in the organization.
     """
     role: OrganizationMembershipRole!
-    
+
     """
     The list of workspace permissions to update for the user.
     """
@@ -1465,6 +1523,111 @@ enum UpdateOrganizationMemberError {
 }
 
 """
+The UpdateExternalCollaboratorInput type represents the input for the updateExternalCollaborator mutation.
+"""
+input UpdateExternalCollaboratorInput {
+    """
+    The unique identifier of the user who is an external collaborator.
+    """
+    userId: UUID!
+
+    """
+    The unique identifier of the organization.
+    """
+    organizationId: UUID!
+
+    """
+    The list of workspace permissions to update for the external collaborator.
+    """
+    workspacePermissions: [WorkspacePermissionInput!]
+}
+
+"""
+The UpdateExternalCollaboratorResult type represents the result of the updateExternalCollaborator mutation.
+"""
+type UpdateExternalCollaboratorResult {
+    """
+    Indicates whether the updateExternalCollaborator mutation was successful.
+    """
+    success: Boolean!
+
+    """
+    The list of errors that occurred during the updateExternalCollaborator mutation.
+    """
+    errors: [UpdateExternalCollaboratorError!]!
+}
+
+"""
+The UpdateExternalCollaboratorError enum represents the possible errors that can occur during the updateExternalCollaborator mutation.
+"""
+enum UpdateExternalCollaboratorError {
+    """
+    Indicates that the user does not have permission to update external collaborators.
+    """
+    PERMISSION_DENIED
+
+    """
+    Indicates that the user was not found.
+    """
+    USER_NOT_FOUND
+
+    """
+    Indicates that the organization was not found.
+    """
+    ORGANIZATION_NOT_FOUND
+}
+
+"""
+The DeleteExternalCollaboratorInput type represents the input for the deleteExternalCollaborator mutation.
+"""
+input DeleteExternalCollaboratorInput {
+    """
+    The unique identifier of the user to remove as an external collaborator.
+    """
+    userId: UUID!
+
+    """
+    The unique identifier of the organization.
+    """
+    organizationId: UUID!
+}
+
+"""
+The DeleteExternalCollaboratorResult type represents the result of the deleteExternalCollaborator mutation.
+"""
+type DeleteExternalCollaboratorResult {
+    """
+    Indicates whether the deleteExternalCollaborator mutation was successful.
+    """
+    success: Boolean!
+
+    """
+    The list of errors that occurred during the deleteExternalCollaborator mutation.
+    """
+    errors: [DeleteExternalCollaboratorError!]!
+}
+
+"""
+The DeleteExternalCollaboratorError enum represents the possible errors that can occur during the deleteExternalCollaborator mutation.
+"""
+enum DeleteExternalCollaboratorError {
+    """
+    Indicates that the user does not have permission to delete external collaborators.
+    """
+    PERMISSION_DENIED
+
+    """
+    Indicates that the user was not found.
+    """
+    USER_NOT_FOUND
+
+    """
+    Indicates that the organization was not found.
+    """
+    ORGANIZATION_NOT_FOUND
+}
+
+"""
 The DeleteOrganizationMemberInput type represents the input for the deleteOrganizationMember mutation.
 """
 input DeleteOrganizationMemberInput {
@@ -1502,11 +1665,11 @@ enum DeleteOrganizationMemberError {
     Indicates that the organization membership was not found.
     """
     NOT_FOUND
-  """
-  Indicates that users cannot delete themselves from an organization.
-  """
-   CANNOT_DELETE_SELF
-   }
+    """
+    Indicates that users cannot delete themselves from an organization.
+    """
+    CANNOT_DELETE_SELF
+}
 
 """
 The DeleteOrganizationInvitationInput type represents the input for the deleteOrganizationInvitation mutation.
@@ -1522,16 +1685,16 @@ input DeleteOrganizationInvitationInput {
 The DeleteOrganizationInvitationResult type represents the result of the deleteOrganizationInvitation mutation.
 """
 type DeleteOrganizationInvitationResult {
-  success: Boolean!
-  errors: [DeleteOrganizationInvitationError!]!
+    success: Boolean!
+    errors: [DeleteOrganizationInvitationError!]!
 }
 
 """
 The DeleteOrganizationInvitationError enum represents the possible errors that can occur during the deleteOrganizationInvitation mutation.
 """
 enum DeleteOrganizationInvitationError {
-  INVITATION_NOT_FOUND
-  PERMISSION_DENIED
+    INVITATION_NOT_FOUND
+    PERMISSION_DENIED
 }
 
 """
@@ -1548,16 +1711,16 @@ input ResendOrganizationInvitationInput {
 The ResendOrganizationInvitationResult type represents the result of the resendOrganizationInvitation mutation.
 """
 type ResendOrganizationInvitationResult {
-  success: Boolean!
-  errors: [ResendOrganizationInvitationError!]!
+    success: Boolean!
+    errors: [ResendOrganizationInvitationError!]!
 }
 
 """
 The ResendOrganizationInvitationError enum represents the possible errors that can occur during the resendOrganizationInvitation mutation.
 """
 enum ResendOrganizationInvitationError {
-  INVITATION_NOT_FOUND
-  PERMISSION_DENIED
+    INVITATION_NOT_FOUND
+    PERMISSION_DENIED
 }
 
 """
@@ -1573,7 +1736,7 @@ input WorkspaceInvitationInput {
     The name of the workspace to invite the user to.
     """
     workspaceName: String!
-    
+
     """
     The role of the user in the workspace.
     """
@@ -1588,7 +1751,7 @@ input WorkspacePermissionInput {
     The slug of the workspace to update permissions for.
     """
     workspaceSlug: String!
-    
+
     """
     The role of the user in the workspace. If null, the user will be removed from the workspace.
     """
@@ -1613,7 +1776,7 @@ input InviteOrganizationMemberInput {
     The role of the user in the organization.
     """
     organizationRole: OrganizationMembershipRole!
-    
+
     """
     The list of workspaces to invite the user to.
     """
@@ -1643,17 +1806,17 @@ enum InviteOrganizationMemberError {
     Indicates that the user does not have permission to invite members to the organization.
     """
     PERMISSION_DENIED
-    
+
     """
     Indicates that the organization was not found.
     """
     ORGANIZATION_NOT_FOUND
-    
+
     """
     Indicates that one or more workspaces were not found.
     """
     WORKSPACE_NOT_FOUND
-    
+
     """
     Indicates that the user is already a member of the organization.
     """
@@ -1969,9 +2132,13 @@ enum UpdateOrganizationSubscriptionError {
 extend type Mutation {
     inviteOrganizationMember(input: InviteOrganizationMemberInput!): InviteOrganizationMemberResult! @loginRequired
     updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult! @loginRequired
+    updateExternalCollaborator(input: UpdateExternalCollaboratorInput!): UpdateExternalCollaboratorResult! @loginRequired
     deleteOrganizationMember(input: DeleteOrganizationMemberInput!): DeleteOrganizationMemberResult! @loginRequired
-    deleteOrganizationInvitation(input: DeleteOrganizationInvitationInput!): DeleteOrganizationInvitationResult! @loginRequired
-    resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult! @loginRequired
+    deleteExternalCollaborator(input: DeleteExternalCollaboratorInput!): DeleteExternalCollaboratorResult! @loginRequired
+    deleteOrganizationInvitation(input: DeleteOrganizationInvitationInput!): DeleteOrganizationInvitationResult!
+        @loginRequired
+    resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult!
+        @loginRequired
     updateOrganization(input: UpdateOrganizationInput!): UpdateOrganizationResult! @loginRequired
     deleteOrganization(input: DeleteOrganizationInput!): DeleteOrganizationResult! @loginRequired
     createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult! @loginRequired

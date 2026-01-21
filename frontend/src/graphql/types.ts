@@ -1676,6 +1676,33 @@ export type DeleteDatasetVersionResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** The DeleteExternalCollaboratorError enum represents the possible errors that can occur during the deleteExternalCollaborator mutation. */
+export enum DeleteExternalCollaboratorError {
+  /** Indicates that the organization was not found. */
+  OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
+  /** Indicates that the user does not have permission to delete external collaborators. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** Indicates that the user was not found. */
+  UserNotFound = 'USER_NOT_FOUND'
+}
+
+/** The DeleteExternalCollaboratorInput type represents the input for the deleteExternalCollaborator mutation. */
+export type DeleteExternalCollaboratorInput = {
+  /** The unique identifier of the organization. */
+  organizationId: Scalars['UUID']['input'];
+  /** The unique identifier of the user to remove as an external collaborator. */
+  userId: Scalars['UUID']['input'];
+};
+
+/** The DeleteExternalCollaboratorResult type represents the result of the deleteExternalCollaborator mutation. */
+export type DeleteExternalCollaboratorResult = {
+  __typename?: 'DeleteExternalCollaboratorResult';
+  /** The list of errors that occurred during the deleteExternalCollaborator mutation. */
+  errors: Array<DeleteExternalCollaboratorError>;
+  /** Indicates whether the deleteExternalCollaborator mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
 /** The DeleteMembershipError enum represents the possible errors that can occur during the deleteMembership mutation. */
 export enum DeleteMembershipError {
   /** Indicates that the membership was not found. */
@@ -2018,6 +2045,24 @@ export type EnableTwoFactorResult = {
   errors?: Maybe<Array<EnableTwoFactorError>>;
   success: Scalars['Boolean']['output'];
   verified?: Maybe<Scalars['Boolean']['output']>;
+};
+
+/** Represents an external collaborator who has workspace access but no organization membership. */
+export type ExternalCollaborator = OrganizationMember & {
+  __typename?: 'ExternalCollaborator';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['UUID']['output'];
+  user: User;
+  workspaceMemberships: Array<WorkspaceMembership>;
+};
+
+/** Represents a page of external collaborators. */
+export type ExternalCollaboratorPage = {
+  __typename?: 'ExternalCollaboratorPage';
+  items: Array<ExternalCollaborator>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
 };
 
 /** The FeatureFlag type represents a feature flag in the system. */
@@ -2622,6 +2667,7 @@ export type Mutation = {
   deleteDatasetLink: DeleteDatasetLinkResult;
   /** Delete a dataset version. */
   deleteDatasetVersion: DeleteDatasetVersionResult;
+  deleteExternalCollaborator: DeleteExternalCollaboratorResult;
   deleteMembership: DeleteMembershipResult;
   /** Delete an metadata attribute from an object instance */
   deleteMetadataAttribute: DeleteMetadataAttributeResult;
@@ -2719,6 +2765,7 @@ export type Mutation = {
   updateDataset: UpdateDatasetResult;
   /** Update a dataset version. */
   updateDatasetVersion: UpdateDatasetVersionResult;
+  updateExternalCollaborator: UpdateExternalCollaboratorResult;
   updateMembership: UpdateMembershipResult;
   updateOrganization: UpdateOrganizationResult;
   updateOrganizationMember: UpdateOrganizationMemberResult;
@@ -2927,6 +2974,11 @@ export type MutationDeleteDatasetLinkArgs = {
 
 export type MutationDeleteDatasetVersionArgs = {
   input: DeleteDatasetVersionInput;
+};
+
+
+export type MutationDeleteExternalCollaboratorArgs = {
+  input: DeleteExternalCollaboratorInput;
 };
 
 
@@ -3255,6 +3307,11 @@ export type MutationUpdateDatasetVersionArgs = {
 };
 
 
+export type MutationUpdateExternalCollaboratorArgs = {
+  input: UpdateExternalCollaboratorInput;
+};
+
+
 export type MutationUpdateMembershipArgs = {
   input: UpdateMembershipInput;
 };
@@ -3366,6 +3423,8 @@ export type Organization = {
   datasetLinks: DatasetLinkPage;
   /** Datasets available in the organization */
   datasets: DatasetPage;
+  /** External collaborators who have workspace access but no organization membership. */
+  externalCollaborators: ExternalCollaboratorPage;
   /** The unique identifier of the organization. */
   id: Scalars['UUID']['output'];
   /** The invitations sent to join the organization. */
@@ -3376,7 +3435,6 @@ export type Organization = {
   members: OrganizationMembershipPage;
   /** The name of the organization. */
   name: Scalars['String']['output'];
-  /** The direct invitations sent to join a specific workspace in the organization. */
   pendingWorkspaceInvitations: WorkspaceInvitationPage;
   /** The permissions the current user has in the organization. */
   permissions: OrganizationPermissions;
@@ -3412,6 +3470,14 @@ export type OrganizationDatasetsArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** The Organization type represents an organization in the system. */
+export type OrganizationExternalCollaboratorsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  term?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -3489,8 +3555,19 @@ export enum OrganizationInvitationStatus {
   Pending = 'PENDING'
 }
 
+/**
+ * Common interface for organization members and external collaborators.
+ * Used by shared UI components that handle both types.
+ */
+export type OrganizationMember = {
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['UUID']['output'];
+  user: User;
+  workspaceMemberships: Array<WorkspaceMembership>;
+};
+
 /** Represents a membership in an organization. */
-export type OrganizationMembership = {
+export type OrganizationMembership = OrganizationMember & {
   __typename?: 'OrganizationMembership';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
@@ -5144,6 +5221,35 @@ export type UpdateDatasetVersionResult = {
   errors: Array<UpdateDatasetVersionError>;
   success: Scalars['Boolean']['output'];
   version?: Maybe<DatasetVersion>;
+};
+
+/** The UpdateExternalCollaboratorError enum represents the possible errors that can occur during the updateExternalCollaborator mutation. */
+export enum UpdateExternalCollaboratorError {
+  /** Indicates that the organization was not found. */
+  OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
+  /** Indicates that the user does not have permission to update external collaborators. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** Indicates that the user was not found. */
+  UserNotFound = 'USER_NOT_FOUND'
+}
+
+/** The UpdateExternalCollaboratorInput type represents the input for the updateExternalCollaborator mutation. */
+export type UpdateExternalCollaboratorInput = {
+  /** The unique identifier of the organization. */
+  organizationId: Scalars['UUID']['input'];
+  /** The unique identifier of the user who is an external collaborator. */
+  userId: Scalars['UUID']['input'];
+  /** The list of workspace permissions to update for the external collaborator. */
+  workspacePermissions?: InputMaybe<Array<WorkspacePermissionInput>>;
+};
+
+/** The UpdateExternalCollaboratorResult type represents the result of the updateExternalCollaborator mutation. */
+export type UpdateExternalCollaboratorResult = {
+  __typename?: 'UpdateExternalCollaboratorResult';
+  /** The list of errors that occurred during the updateExternalCollaborator mutation. */
+  errors: Array<UpdateExternalCollaboratorError>;
+  /** Indicates whether the updateExternalCollaborator mutation was successful. */
+  success: Scalars['Boolean']['output'];
 };
 
 /** The UpdateMembershipError enum represents the possible errors that can occur during the updateMembership mutation. */

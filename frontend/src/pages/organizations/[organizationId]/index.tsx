@@ -131,6 +131,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
               totalPages={data?.workspaces?.totalPages || 0}
               totalItems={data?.workspaces?.totalItems || 0}
               onArchiveClick={handleArchiveClick}
+              canManageMembers={organization.permissions.manageMembers}
             />
           )}
         </div>

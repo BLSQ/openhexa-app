@@ -25,6 +25,7 @@ type WorkspacesListViewProps = {
   totalPages: number;
   totalItems: number;
   onArchiveClick: (workspace: ArchiveWorkspace_WorkspaceFragment) => void;
+  canManageMembers?: boolean;
 };
 
 const WorkspacesListView = ({
@@ -34,6 +35,7 @@ const WorkspacesListView = ({
   perPage,
   totalItems,
   onArchiveClick,
+  canManageMembers = false,
 }: WorkspacesListViewProps) => {
   const { t } = useTranslation();
 
@@ -72,14 +74,16 @@ const WorkspacesListView = ({
             </div>
           )}
         </BaseColumn>
-        <BaseColumn id="members" label={t("Members")}>
-          {(workspace) => (
-            <div className="flex items-center gap-1 text-sm text-gray-600">
-              <UsersIcon className="h-4 w-4" />
-              <span>{workspace.members?.totalItems || 0}</span>
-            </div>
-          )}
-        </BaseColumn>
+        {canManageMembers && (
+          <BaseColumn id="members" label={t("Members")}>
+            {(workspace) => (
+              <div className="flex items-center gap-1 text-sm text-gray-600">
+                <UsersIcon className="h-4 w-4" />
+                <span>{workspace.members?.totalItems || 0}</span>
+              </div>
+            )}
+          </BaseColumn>
+        )}
         <BaseColumn id="createdBy" label={t("Created by")}>
           {(workspace) => (
             <div className={"flex space-x-1"}>
