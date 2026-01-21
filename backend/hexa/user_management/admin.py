@@ -17,6 +17,7 @@ from .models import (
     Organization,
     OrganizationInvitation,
     OrganizationMembership,
+    OrganizationSubscription,
     Team,
     User,
 )
@@ -187,6 +188,20 @@ class OrganizationMembershipInline(admin.TabularInline):
     extra = 0
 
 
+class OrganizationSubscriptionInline(admin.TabularInline):
+    model = OrganizationSubscription
+    extra = 0
+    fields = (
+        "subscription_id",
+        "plan_code",
+        "start_date",
+        "end_date",
+        "users_limit",
+        "workspaces_limit",
+        "pipeline_runs_limit",
+    )
+
+
 @admin.action(description="Restore selected organizations")
 def restore_organizations(_modeladmin, _request, queryset):
     for obj in queryset:
@@ -208,7 +223,7 @@ class OrganizationAdmin(GlobalObjectsModelAdmin):
     search_fields = ("name", "short_name")
     readonly_fields = ("created_at", "updated_at", "deleted_at")
     ordering = ("-created_at",)
-    inlines = [OrganizationMembershipInline]
+    inlines = [OrganizationMembershipInline, OrganizationSubscriptionInline]
     actions = [restore_organizations]
 
     def is_active(self, obj):
@@ -285,3 +300,63 @@ class OrganizationInvitationAdmin(admin.ModelAdmin):
         "role",
     )
     inlines = [OrganizationWorkspaceInvitationInline]
+
+
+@admin.register(OrganizationSubscription)
+class OrganizationSubscriptionAdmin(admin.ModelAdmin):
+    list_display = (
+        "organization",
+        "plan_code",
+        "start_date",
+        "end_date",
+        "users_limit",
+        "workspaces_limit",
+        "pipeline_runs_limit",
+        "created_at",
+    )
+    list_filter = ("plan_code", "start_date", "end_date")
+    search_fields = ("organization__name", "plan_code", "subscription_id")
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ("-start_date",)
+    autocomplete_fields = ("organization",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "organization",
+                    "subscription_id",
+                    "plan_code",
+                )
+            },
+        ),
+        (
+            "Dates",
+            {
+                "fields": (
+                    "start_date",
+                    "end_date",
+                )
+            },
+        ),
+        (
+            "Limits",
+            {
+                "fields": (
+                    "users_limit",
+                    "workspaces_limit",
+                    "pipeline_runs_limit",
+                )
+            },
+        ),
+        (
+            "Metadata",
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                ),
+            },
+        ),
+    )
