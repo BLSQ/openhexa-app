@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.17.0](https://github.com/BLSQ/openhexa-app/compare/2.16.1...2.17.0) (2026-01-21)
+
+
+### Features
+
+* External collaborators (HEXA-1421) ([#1465](https://github.com/BLSQ/openhexa-app/issues/1465)) ([83eaf8f](https://github.com/BLSQ/openhexa-app/commit/83eaf8f9cee5b1ec9cd6a66ee61fb6d446b4b212))
+* sign up page (HEXA-1474) ([#1555](https://github.com/BLSQ/openhexa-app/issues/1555)) ([806ef98](https://github.com/BLSQ/openhexa-app/commit/806ef98e7e9dec96c69cd06e5aca8280028e9b4f))
+* UI in OH for usage and limits and a link to the console (SAAS-45) ([#1557](https://github.com/BLSQ/openhexa-app/issues/1557)) ([289d805](https://github.com/BLSQ/openhexa-app/commit/289d805d1728c82c0b5754e450df99dcc13e8959))
+
+
+### Bug Fixes
+
+* improve filename display with proper truncation and tooltips ([#1562](https://github.com/BLSQ/openhexa-app/issues/1562)) ([7e3c117](https://github.com/BLSQ/openhexa-app/commit/7e3c117ac3671001488bcb38b4274b014dd82469))
+
 ## [2.16.1](https://github.com/BLSQ/openhexa-app/compare/2.16.0...2.16.1) (2026-01-19)
 
 
