@@ -49,12 +49,12 @@ const Tooltip = (props: Props) => {
               ref={setTooltipRef}
               {...getTooltipProps({
                 className: clsx(
-                  "z-50 flex max-w-sm flex-col rounded-sm border bg-white px-2.5 py-1.5 text-xs text-gray-600 shadow-md",
+                  "z-50 flex max-w-md flex-col rounded-sm border bg-white px-2.5 py-1.5 text-xs text-gray-600 shadow-md break-words",
                 ),
               })}
             >
               <div {...getArrowProps()} />
-              {label}
+              <span className="break-all">{label}</span>
             </div>
           </Transition>,
           document.body,
