@@ -1576,6 +1576,50 @@ type DeleteDatasetVersionResult {
 }
 
 """
+The DeleteExternalCollaboratorError enum represents the possible errors that can occur during the deleteExternalCollaborator mutation.
+"""
+enum DeleteExternalCollaboratorError {
+  """Indicates that the organization was not found."""
+  ORGANIZATION_NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to delete external collaborators.
+  """
+  PERMISSION_DENIED
+
+  """Indicates that the user was not found."""
+  USER_NOT_FOUND
+}
+
+"""
+The DeleteExternalCollaboratorInput type represents the input for the deleteExternalCollaborator mutation.
+"""
+input DeleteExternalCollaboratorInput {
+  """The unique identifier of the organization."""
+  organizationId: UUID!
+
+  """
+  The unique identifier of the user to remove as an external collaborator.
+  """
+  userId: UUID!
+}
+
+"""
+The DeleteExternalCollaboratorResult type represents the result of the deleteExternalCollaborator mutation.
+"""
+type DeleteExternalCollaboratorResult {
+  """
+  The list of errors that occurred during the deleteExternalCollaborator mutation.
+  """
+  errors: [DeleteExternalCollaboratorError!]!
+
+  """
+  Indicates whether the deleteExternalCollaborator mutation was successful.
+  """
+  success: Boolean!
+}
+
+"""
 The DeleteMembershipError enum represents the possible errors that can occur during the deleteMembership mutation.
 """
 enum DeleteMembershipError {
@@ -1965,6 +2009,24 @@ type EnableTwoFactorResult {
   errors: [EnableTwoFactorError!]
   success: Boolean!
   verified: Boolean
+}
+
+"""
+Represents an external collaborator who has workspace access but no organization membership.
+"""
+type ExternalCollaborator implements OrganizationMember {
+  createdAt: DateTime!
+  id: UUID!
+  user: User!
+  workspaceMemberships: [WorkspaceMembership!]!
+}
+
+"""Represents a page of external collaborators."""
+type ExternalCollaboratorPage {
+  items: [ExternalCollaborator!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
 }
 
 """The FeatureFlag type represents a feature flag in the system."""
@@ -2598,6 +2660,7 @@ type Mutation {
 
   """Delete a dataset version."""
   deleteDatasetVersion(input: DeleteDatasetVersionInput!): DeleteDatasetVersionResult!
+  deleteExternalCollaborator(input: DeleteExternalCollaboratorInput!): DeleteExternalCollaboratorResult!
   deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult!
 
   """Delete an metadata attribute from an object instance"""
@@ -2728,6 +2791,7 @@ type Mutation {
 
   """Update a dataset version."""
   updateDatasetVersion(input: UpdateDatasetVersionInput!): UpdateDatasetVersionResult!
+  updateExternalCollaborator(input: UpdateExternalCollaboratorInput!): UpdateExternalCollaboratorResult!
   updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
   updateOrganization(input: UpdateOrganizationInput!): UpdateOrganizationResult!
   updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult!
@@ -2799,6 +2863,11 @@ type Organization {
   """Datasets available in the organization"""
   datasets(page: Int = 1, perPage: Int = 15, query: String): DatasetPage!
 
+  """
+  External collaborators who have workspace access but no organization membership.
+  """
+  externalCollaborators(page: Int, perPage: Int, term: String): ExternalCollaboratorPage!
+
   """The unique identifier of the organization."""
   id: UUID!
 
@@ -2813,10 +2882,6 @@ type Organization {
 
   """The name of the organization."""
   name: String!
-
-  """
-  The direct invitations sent to join a specific workspace in the organization.
-  """
   pendingWorkspaceInvitations(page: Int, perPage: Int): WorkspaceInvitationPage!
 
   """The permissions the current user has in the organization."""
@@ -2895,8 +2960,19 @@ enum OrganizationInvitationStatus {
   PENDING
 }
 
+"""
+Common interface for organization members and external collaborators.
+Used by shared UI components that handle both types.
+"""
+interface OrganizationMember {
+  createdAt: DateTime!
+  id: UUID!
+  user: User!
+  workspaceMemberships: [WorkspaceMembership!]!
+}
+
 """Represents a membership in an organization."""
-type OrganizationMembership {
+type OrganizationMembership implements OrganizationMember {
   createdAt: DateTime!
   id: UUID!
   organization: Organization!
@@ -4233,6 +4309,53 @@ type UpdateDatasetVersionResult {
   errors: [UpdateDatasetVersionError!]!
   success: Boolean!
   version: DatasetVersion
+}
+
+"""
+The UpdateExternalCollaboratorError enum represents the possible errors that can occur during the updateExternalCollaborator mutation.
+"""
+enum UpdateExternalCollaboratorError {
+  """Indicates that the organization was not found."""
+  ORGANIZATION_NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to update external collaborators.
+  """
+  PERMISSION_DENIED
+
+  """Indicates that the user was not found."""
+  USER_NOT_FOUND
+}
+
+"""
+The UpdateExternalCollaboratorInput type represents the input for the updateExternalCollaborator mutation.
+"""
+input UpdateExternalCollaboratorInput {
+  """The unique identifier of the organization."""
+  organizationId: UUID!
+
+  """The unique identifier of the user who is an external collaborator."""
+  userId: UUID!
+
+  """
+  The list of workspace permissions to update for the external collaborator.
+  """
+  workspacePermissions: [WorkspacePermissionInput!]
+}
+
+"""
+The UpdateExternalCollaboratorResult type represents the result of the updateExternalCollaborator mutation.
+"""
+type UpdateExternalCollaboratorResult {
+  """
+  The list of errors that occurred during the updateExternalCollaborator mutation.
+  """
+  errors: [UpdateExternalCollaboratorError!]!
+
+  """
+  Indicates whether the updateExternalCollaborator mutation was successful.
+  """
+  success: Boolean!
 }
 
 """

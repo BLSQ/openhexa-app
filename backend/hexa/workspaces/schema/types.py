@@ -131,6 +131,16 @@ def resolve_workspace_organization(workspace: Workspace, info):
 
 @workspace_object.field("members")
 def resolve_workspace_members(workspace: Workspace, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    # Return empty result if user doesn't have manageMembers permission
+    if not request.user.has_perm("workspaces.manage_members", workspace):
+        return result_page(
+            queryset=workspace.workspacemembership_set.none(),
+            page=kwargs.get("page", 1),
+            per_page=kwargs.get("per_page", 10),
+        )
+
     qs = workspace.workspacemembership_set.all().order_by("-updated_at")
     return result_page(
         queryset=qs,

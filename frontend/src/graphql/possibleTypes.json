@@ -29,6 +29,10 @@
       "DatasetVersion",
       "DatasetVersionFile"
     ],
+    "OrganizationMember": [
+      "ExternalCollaborator",
+      "OrganizationMembership"
+    ],
     "PipelineRunOutput": [
       "BucketObject",
       "DatabaseTable",

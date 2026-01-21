@@ -5,57 +5,49 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import useCacheKey from "core/hooks/useCacheKey";
 import useDebounce from "core/hooks/useDebounce";
 import SearchInput from "core/features/SearchInput";
-import Listbox from "core/components/Listbox";
-import { OrganizationMembershipRole } from "graphql/types";
 import { DateTime } from "luxon";
 import { useState, useEffect } from "react";
 import { useTranslation } from "next-i18next";
 import RemoveMemberDialog from "organizations/components/RemoveMemberDialog";
 import UpdateMemberPermissionsDialog from "organizations/components/UpdateMemberPermissionsDialog";
 import {
-  useOrganizationMembersQuery,
-  OrganizationMembersQuery,
-} from "./OrganizationMembers.generated";
+  useOrganizationExternalCollaboratorsQuery,
+  OrganizationExternalCollaboratorsQuery,
+} from "./OrganizationExternalCollaborators.generated";
 import Block from "core/components/Block";
 import User from "core/features/User";
-import OrganizationRoleBadge from "organizations/components/OrganizationRoleBadge";
 import WorkspaceRolesList from "organizations/components/WorkspaceRolesList";
 import useMe from "identity/hooks/useMe";
-import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
 
 const DEFAULT_PAGE_SIZE = 10;
 
-const ALL_ROLES = "ALL_ROLES";
-type RoleFilterOption = OrganizationMembershipRole | typeof ALL_ROLES;
+type ExternalCollaborator = NonNullable<
+  OrganizationExternalCollaboratorsQuery["organization"]
+>["externalCollaborators"]["items"][0];
 
-type OrganizationMember = NonNullable<
-  OrganizationMembersQuery["organization"]
->["members"]["items"][0];
-
-export default function OrganizationMembers({
+export default function OrganizationExternalCollaborators({
   organizationId,
 }: {
   organizationId: string;
 }) {
   const { t } = useTranslation();
   const me = useMe();
-  const [selectedMember, setSelectedMember] = useState<OrganizationMember>();
+  const [selectedCollaborator, setSelectedCollaborator] =
+    useState<ExternalCollaborator>();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<RoleFilterOption>(ALL_ROLES);
   const [previousData, setPreviousData] =
-    useState<OrganizationMembersQuery | null>(null);
+    useState<OrganizationExternalCollaboratorsQuery | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  const { data, refetch, loading } = useOrganizationMembersQuery({
+  const { data, refetch, loading } = useOrganizationExternalCollaboratorsQuery({
     variables: {
       id: organizationId,
       page: 1,
       perPage: DEFAULT_PAGE_SIZE,
       term: debouncedSearchTerm,
-      role: roleFilter === ALL_ROLES ? undefined : roleFilter,
     },
     fetchPolicy: "cache-and-network",
     notifyOnNetworkStatusChange: true,
@@ -74,83 +66,59 @@ export default function OrganizationMembers({
       page,
       id: organizationId,
       term: debouncedSearchTerm || undefined,
-      role: roleFilter === ALL_ROLES ? undefined : roleFilter,
     }).then();
   };
 
   const displayData = data || previousData;
   const organization = displayData?.organization ?? {
     id: organizationId,
-    members: { items: [], totalItems: 0 },
+    externalCollaborators: { items: [], totalItems: 0 },
     permissions: { manageMembers: false, manageOwners: false },
     workspaces: { items: [] },
   };
 
-  const handleDeleteClicked = (member: OrganizationMember) => {
-    setSelectedMember(member);
+  const handleDeleteClicked = (collaborator: ExternalCollaborator) => {
+    setSelectedCollaborator(collaborator);
     setOpenDeleteDialog(true);
   };
 
-  const handleUpdateClicked = (member: OrganizationMember) => {
-    setSelectedMember(member);
+  const handleUpdateClicked = (collaborator: ExternalCollaborator) => {
+    setSelectedCollaborator(collaborator);
     setOpenEditDialog(true);
   };
-
-  const roleOptions = [
-    { value: ALL_ROLES, label: t("All roles") },
-    ...Object.values(OrganizationMembershipRole).map((role) => ({
-      value: role,
-      label: formatOrganizationMembershipRole(role),
-    })),
-  ];
 
   return (
     <>
       <div className="mb-4 flex gap-4">
         <SearchInput
-          name="search-members"
+          name="search-collaborators"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder={t("Search members...")}
+          placeholder={t("Search external collaborators...")}
           loading={loading}
           className="max-w-md"
           fitWidth
         />
-        <div className="w-30">
-          <Listbox
-            value={
-              roleOptions.find((opt) => opt.value === roleFilter) ||
-              roleOptions[0]
-            }
-            options={roleOptions}
-            onChange={(option) => setRoleFilter(option.value)}
-            getOptionLabel={(opt) => opt.label}
-            by="value"
-          />
-        </div>
       </div>
       <Block>
         <DataGrid
           defaultPageSize={DEFAULT_PAGE_SIZE}
-          totalItems={organization.members.totalItems}
-          data={organization.members.items}
+          totalItems={organization.externalCollaborators.totalItems}
+          data={organization.externalCollaborators.items}
           fetchData={onChangePage}
           className="min-h-30"
         >
           <BaseColumn label={t("User")} id="user" minWidth={350}>
-            {(membership) => <User user={membership.user} subtext />}
-          </BaseColumn>
-          <BaseColumn label={t("Organization Role")} id="org_role">
-            {(member) => <OrganizationRoleBadge role={member.role} size="sm" />}
+            {(collaborator) => <User user={collaborator.user} subtext />}
           </BaseColumn>
           <BaseColumn
             label={t("Workspace Roles")}
             id="workspace_roles"
             minWidth={300}
           >
-            {(member: OrganizationMember) => (
+            {(collaborator: ExternalCollaborator) => (
               <WorkspaceRolesList
-                items={member.workspaceMemberships}
+                items={collaborator.workspaceMemberships}
                 size="sm"
                 maxVisible={2}
               />
@@ -164,21 +132,18 @@ export default function OrganizationMembers({
             format={DateTime.DATE_FULL}
           />
           <BaseColumn className="flex justify-end gap-x-2">
-            {(member) => {
-              const isCurrentUser = me?.user?.id === member.user.id;
-              const isOwner = member.role === OrganizationMembershipRole.Owner;
-              const canManageOwners = organization.permissions.manageOwners;
+            {(collaborator) => {
+              const isCurrentUser = me?.user?.id === collaborator.user.id;
               const canManageMembers = organization.permissions.manageMembers;
 
-              const canUpdateMember =
-                canManageMembers && (!isOwner || canManageOwners);
-              const canDeleteMember = canUpdateMember && !isCurrentUser;
+              const canUpdateCollaborator = canManageMembers;
+              const canDeleteCollaborator = canManageMembers && !isCurrentUser;
 
               return (
                 <>
-                  {canUpdateMember && (
+                  {canUpdateCollaborator && (
                     <Button
-                      onClick={() => handleUpdateClicked(member)}
+                      onClick={() => handleUpdateClicked(collaborator)}
                       size="sm"
                       variant="secondary"
                       aria-label="edit"
@@ -186,9 +151,9 @@ export default function OrganizationMembers({
                       <PencilIcon className="h-4" />
                     </Button>
                   )}
-                  {canDeleteMember && (
+                  {canDeleteCollaborator && (
                     <Button
-                      onClick={() => handleDeleteClicked(member)}
+                      onClick={() => handleDeleteClicked(collaborator)}
                       size="sm"
                       variant="secondary"
                       aria-label="delete"
@@ -202,24 +167,25 @@ export default function OrganizationMembers({
           </BaseColumn>
         </DataGrid>
       </Block>
-      {selectedMember && (
+      {selectedCollaborator && (
         <RemoveMemberDialog
           open={openDeleteDialog}
           onClose={() => {
-            setSelectedMember(undefined);
+            setSelectedCollaborator(undefined);
             setOpenDeleteDialog(false);
           }}
-          member={selectedMember}
+          member={selectedCollaborator}
+          organizationId={organizationId}
         />
       )}
-      {selectedMember && (
+      {selectedCollaborator && (
         <UpdateMemberPermissionsDialog
           open={openEditDialog}
           onClose={() => {
-            setSelectedMember(undefined);
+            setSelectedCollaborator(undefined);
             setOpenEditDialog(false);
           }}
-          member={selectedMember}
+          member={selectedCollaborator}
           organization={organization}
         />
       )}

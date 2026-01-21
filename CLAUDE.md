@@ -1,5 +1,11 @@
 # CLAUDE.md
 
+## Important: Coding Guidelines
+
+Follow these guidelines when writing code:
+
+-   **Comments**: Do not write comments that merely restate what the code does. Only add comments when explaining _why_ something is done a certain way, not _what_ it does.
+
 ## Common Development Commands
 
 ### Backend (Django)
@@ -105,12 +111,11 @@ The frontend uses **domain-driven architecture** with TypeScript:
 5. Access at http://localhost:8000 (backend) and http://localhost:3000 (frontend)
 6. Default login: `root@openhexa.org` / `root`
 
-### Code Quality
+### Code Quality Tooling
 
 -   **Python**: Uses `ruff` for linting, formatting, and import sorting (targets Python 3.13)
 -   **JavaScript/TypeScript**: Uses `eslint` and `prettier` via Next.js
 -   **Pre-commit hooks**: Automatically lint code before commits
--   **Conventional commits**: Required for automated releases
 -   **Tests**: Comprehensive test suites for both backend and frontend
 
 ### GraphQL Development

@@ -35,7 +35,6 @@ from hexa.files import storage
 from hexa.user_management.models import (
     Organization,
     OrganizationInvitation,
-    OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
@@ -418,18 +417,6 @@ class WorkspaceMembership(models.Model):
         if self.access_token == "":
             self.access_token = str(uuid.uuid4())
 
-        if (
-            self.workspace.organization
-            and not OrganizationMembership.objects.filter(
-                organization=self.workspace.organization, user=self.user
-            ).exists()
-        ):
-            OrganizationMembership.objects.create(
-                organization=self.workspace.organization,
-                user=self.user,
-                role=OrganizationMembershipRole.MEMBER,
-            )
-
         super().save(*args, **kwargs)
 
     def update_if_has_perm(self, *, principal: User, role: WorkspaceMembershipRole):
@@ -481,7 +468,10 @@ class WorkspaceInvitationManager(models.Manager):
             raise PermissionDenied
 
         return self.create(
-            email=email, workspace=workspace, role=role, invited_by=principal
+            email=email,
+            workspace=workspace,
+            role=role,
+            invited_by=principal,
         )
 
     def get_by_token(self, token: string):

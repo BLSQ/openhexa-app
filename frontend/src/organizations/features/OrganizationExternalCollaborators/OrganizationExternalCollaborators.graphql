@@ -1,0 +1,53 @@
+query OrganizationExternalCollaborators(
+  $id: UUID!
+  $page: Int
+  $perPage: Int
+  $term: String
+) {
+  organization(id: $id) {
+    id
+    permissions {
+      manageMembers
+      manageOwners
+    }
+    workspaces(perPage: 1000, page: 1) {
+      items {
+        slug
+        name
+      }
+    }
+    externalCollaborators(page: $page, perPage: $perPage, term: $term) {
+      totalItems
+      items {
+        id
+        workspaceMemberships {
+          ...WorkspaceRole
+          id
+          role
+          workspace {
+            slug
+            name
+          }
+        }
+        user {
+          ...User_user
+        }
+        createdAt
+      }
+    }
+  }
+}
+
+mutation UpdateExternalCollaborator($input: UpdateExternalCollaboratorInput!) {
+  updateExternalCollaborator(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation DeleteExternalCollaborator($input: DeleteExternalCollaboratorInput!) {
+  deleteExternalCollaborator(input: $input) {
+    success
+    errors
+  }
+}

@@ -17,7 +17,11 @@ from hexa.user_management.models import (
     OrganizationSubscription,
     User,
 )
-from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 
 class OrganizationTestMixin:
@@ -1965,3 +1969,566 @@ class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
             self.owner, self.organization, "Test Workspace", "Description"
         )
         self.assertTrue(self.organization.is_workspaces_limit_reached())
+
+
+class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
+    """Tests for external collaborators - users with workspace access but no organization membership."""
+
+    def setUp(self):
+        super().setUp()
+        self.owner = self.create_user("owner@blsq.org")
+        self.admin = self.create_user("admin@blsq.org")
+        self.member = self.create_user("member@blsq.org")
+        self.external_collaborator = self.create_user("external@blsq.org")
+        self.non_member = self.create_user("non_member@blsq.org")
+
+        self.organization = self.create_organization(
+            self.owner, "Test Organization", "Description"
+        )
+        self.admin_membership = self.join_organization(
+            self.admin, self.organization, OrganizationMembershipRole.ADMIN
+        )
+        self.member_membership = self.join_organization(
+            self.member, self.organization, OrganizationMembershipRole.MEMBER
+        )
+
+        # Create workspaces
+        self.workspace1 = self.create_workspace(
+            self.owner, self.organization, "Workspace 1", "Description 1"
+        )
+        self.workspace2 = self.create_workspace(
+            self.owner, self.organization, "Workspace 2", "Description 2"
+        )
+
+        # Add external collaborator to workspace (no organization membership)
+        self.external_workspace_membership = WorkspaceMembership.objects.create(
+            user=self.external_collaborator,
+            workspace=self.workspace1,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+    def test_external_collaborators_query(self):
+        """Test that external collaborators are returned correctly."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            query ExternalCollaborators($organizationId: UUID!) {
+                organization(id: $organizationId) {
+                    externalCollaborators {
+                        totalItems
+                        items {
+                            id
+                            user {
+                                email
+                            }
+                            workspaceMemberships {
+                                workspace {
+                                    slug
+                                }
+                                role
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            {"organizationId": str(self.organization.id)},
+        )
+
+        external_collaborators = r["data"]["organization"]["externalCollaborators"]
+        self.assertEqual(external_collaborators["totalItems"], 1)
+        self.assertEqual(len(external_collaborators["items"]), 1)
+        self.assertEqual(
+            external_collaborators["items"][0]["user"]["email"], "external@blsq.org"
+        )
+        self.assertEqual(
+            external_collaborators["items"][0]["workspaceMemberships"][0]["workspace"][
+                "slug"
+            ],
+            self.workspace1.slug,
+        )
+
+    def test_external_collaborators_query_excludes_org_members(self):
+        """Test that organization members are not returned as external collaborators."""
+        # Add organization member to workspace
+        WorkspaceMembership.objects.create(
+            user=self.member,
+            workspace=self.workspace1,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            query ExternalCollaborators($organizationId: UUID!) {
+                organization(id: $organizationId) {
+                    externalCollaborators {
+                        totalItems
+                        items {
+                            user {
+                                email
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            {"organizationId": str(self.organization.id)},
+        )
+
+        external_collaborators = r["data"]["organization"]["externalCollaborators"]
+        emails = {item["user"]["email"] for item in external_collaborators["items"]}
+        self.assertIn("external@blsq.org", emails)
+        self.assertNotIn("member@blsq.org", emails)
+
+    def test_external_collaborators_query_empty_for_regular_member(self):
+        """Test that regular members cannot see external collaborators list."""
+        self.client.force_login(self.member)
+        r = self.run_query(
+            """
+            query ExternalCollaborators($organizationId: UUID!) {
+                organization(id: $organizationId) {
+                    externalCollaborators {
+                        totalItems
+                        items {
+                            id
+                        }
+                    }
+                }
+            }
+            """,
+            {"organizationId": str(self.organization.id)},
+        )
+
+        external_collaborators = r["data"]["organization"]["externalCollaborators"]
+        self.assertEqual(external_collaborators["totalItems"], 0)
+        self.assertEqual(len(external_collaborators["items"]), 0)
+
+    def test_external_collaborators_query_with_search_term(self):
+        """Test searching external collaborators by email/name."""
+        # Add another external collaborator
+        other_external = self.create_user("other_external@blsq.org")
+        WorkspaceMembership.objects.create(
+            user=other_external,
+            workspace=self.workspace2,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            query ExternalCollaborators($organizationId: UUID!, $term: String) {
+                organization(id: $organizationId) {
+                    externalCollaborators(term: $term) {
+                        totalItems
+                        items {
+                            user {
+                                email
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            {"organizationId": str(self.organization.id), "term": "other"},
+        )
+
+        external_collaborators = r["data"]["organization"]["externalCollaborators"]
+        self.assertEqual(external_collaborators["totalItems"], 1)
+        self.assertEqual(
+            external_collaborators["items"][0]["user"]["email"],
+            "other_external@blsq.org",
+        )
+
+    def test_update_external_collaborator(self):
+        """Test updating external collaborator workspace permissions."""
+        # Verify initial state before update
+        self.assertEqual(
+            self.external_workspace_membership.role, WorkspaceMembershipRole.VIEWER
+        )
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                user=self.external_collaborator, workspace=self.workspace2
+            ).exists()
+        )
+
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation UpdateExternalCollaborator($input: UpdateExternalCollaboratorInput!) {
+                updateExternalCollaborator(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "workspacePermissions": [
+                        {
+                            "workspaceSlug": self.workspace1.slug,
+                            "role": "EDITOR",
+                        },
+                        {
+                            "workspaceSlug": self.workspace2.slug,
+                            "role": "VIEWER",
+                        },
+                    ],
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["updateExternalCollaborator"],
+        )
+
+        # Verify workspace1 role was updated
+        self.external_workspace_membership.refresh_from_db()
+        self.assertEqual(
+            self.external_workspace_membership.role, WorkspaceMembershipRole.EDITOR
+        )
+
+        # Verify workspace2 membership was created
+        workspace2_membership = WorkspaceMembership.objects.get(
+            user=self.external_collaborator, workspace=self.workspace2
+        )
+        self.assertEqual(workspace2_membership.role, WorkspaceMembershipRole.VIEWER)
+
+    def test_update_external_collaborator_remove_from_workspace(self):
+        """Test removing external collaborator from a workspace."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation UpdateExternalCollaborator($input: UpdateExternalCollaboratorInput!) {
+                updateExternalCollaborator(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "workspacePermissions": [
+                        {
+                            "workspaceSlug": self.workspace1.slug,
+                            "role": None,
+                        },
+                    ],
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["updateExternalCollaborator"],
+        )
+
+        # Verify membership was deleted
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                user=self.external_collaborator, workspace=self.workspace1
+            ).exists()
+        )
+
+    def test_update_external_collaborator_unauthorized(self):
+        """Test that non-members cannot update external collaborators."""
+        self.client.force_login(self.non_member)
+        r = self.run_query(
+            """
+            mutation UpdateExternalCollaborator($input: UpdateExternalCollaboratorInput!) {
+                updateExternalCollaborator(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "workspacePermissions": [],
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["ORGANIZATION_NOT_FOUND"]},
+            r["data"]["updateExternalCollaborator"],
+        )
+
+    def test_update_external_collaborator_by_regular_member(self):
+        """Test that regular members cannot update external collaborators."""
+        self.client.force_login(self.member)
+        r = self.run_query(
+            """
+            mutation UpdateExternalCollaborator($input: UpdateExternalCollaboratorInput!) {
+                updateExternalCollaborator(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "workspacePermissions": [],
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["updateExternalCollaborator"],
+        )
+
+    def test_update_external_collaborator_by_admin(self):
+        """Test that organization admins can update external collaborators."""
+        self.client.force_login(self.admin)
+        r = self.run_query(
+            """
+            mutation UpdateExternalCollaborator($input: UpdateExternalCollaboratorInput!) {
+                updateExternalCollaborator(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "workspacePermissions": [
+                        {
+                            "workspaceSlug": self.workspace1.slug,
+                            "role": "ADMIN",
+                        },
+                    ],
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["updateExternalCollaborator"],
+        )
+
+    def test_update_external_collaborator_user_not_found(self):
+        """Test updating a non-existent user."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation UpdateExternalCollaborator($input: UpdateExternalCollaboratorInput!) {
+                updateExternalCollaborator(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": "00000000-0000-0000-0000-000000000000",
+                    "organizationId": str(self.organization.id),
+                    "workspacePermissions": [],
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["USER_NOT_FOUND"]},
+            r["data"]["updateExternalCollaborator"],
+        )
+
+    def test_delete_external_collaborator(self):
+        """Test deleting an external collaborator removes all workspace memberships."""
+        # Add external collaborator to second workspace
+        WorkspaceMembership.objects.create(
+            user=self.external_collaborator,
+            workspace=self.workspace2,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation DeleteExternalCollaborator($input: DeleteExternalCollaboratorInput!) {
+                deleteExternalCollaborator(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["deleteExternalCollaborator"],
+        )
+
+        # Verify all workspace memberships within the organization are deleted
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                user=self.external_collaborator,
+                workspace__organization=self.organization,
+            ).exists()
+        )
+
+    def test_delete_external_collaborator_unauthorized(self):
+        """Test that non-members cannot delete external collaborators."""
+        self.client.force_login(self.non_member)
+        r = self.run_query(
+            """
+            mutation DeleteExternalCollaborator($input: DeleteExternalCollaboratorInput!) {
+                deleteExternalCollaborator(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["ORGANIZATION_NOT_FOUND"]},
+            r["data"]["deleteExternalCollaborator"],
+        )
+
+        # Verify membership still exists
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(
+                id=self.external_workspace_membership.id
+            ).exists()
+        )
+
+    def test_delete_external_collaborator_by_regular_member(self):
+        """Test that regular members cannot delete external collaborators."""
+        self.client.force_login(self.member)
+        r = self.run_query(
+            """
+            mutation DeleteExternalCollaborator($input: DeleteExternalCollaboratorInput!) {
+                deleteExternalCollaborator(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["deleteExternalCollaborator"],
+        )
+
+    def test_delete_external_collaborator_by_admin(self):
+        """Test that organization admins can delete external collaborators."""
+        # Add external collaborator to second workspace
+        WorkspaceMembership.objects.create(
+            user=self.external_collaborator,
+            workspace=self.workspace2,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+
+        # Verify memberships exist before deletion
+        self.assertEqual(
+            WorkspaceMembership.objects.filter(
+                user=self.external_collaborator,
+                workspace__organization=self.organization,
+            ).count(),
+            2,
+        )
+
+        self.client.force_login(self.admin)
+        r = self.run_query(
+            """
+            mutation DeleteExternalCollaborator($input: DeleteExternalCollaboratorInput!) {
+                deleteExternalCollaborator(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["deleteExternalCollaborator"],
+        )
+
+        # Verify all workspace memberships within the organization are deleted
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                user=self.external_collaborator,
+                workspace__organization=self.organization,
+            ).exists()
+        )
+
+    def test_delete_external_collaborator_user_not_found(self):
+        """Test deleting a non-existent user."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation DeleteExternalCollaborator($input: DeleteExternalCollaboratorInput!) {
+                deleteExternalCollaborator(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": "00000000-0000-0000-0000-000000000000",
+                    "organizationId": str(self.organization.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["USER_NOT_FOUND"]},
+            r["data"]["deleteExternalCollaborator"],
+        )
+
+    def test_external_collaborator_can_view_organization(self):
+        """Test that external collaborators can view the organization they have workspace access to."""
+        self.client.force_login(self.external_collaborator)
+        r = self.run_query(
+            """
+            query Organization($organizationId: UUID!) {
+                organization(id: $organizationId) {
+                    id
+                    name
+                }
+            }
+            """,
+            {"organizationId": str(self.organization.id)},
+        )
+
+        self.assertIsNotNone(r["data"]["organization"])
+        self.assertEqual(r["data"]["organization"]["name"], "Test Organization")
