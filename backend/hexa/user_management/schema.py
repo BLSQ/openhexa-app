@@ -435,7 +435,7 @@ def resolve_signup(_, info, **kwargs):
     email = remove_whitespace(mutation_input["email"]).lower()
 
     if User.objects.filter(email=email).exists():
-        return {"success": False, "errors": ["EMAIL_TAKEN"]}
+        return {"success": True, "errors": []}
 
     existing = SignupRequest.objects.filter(
         email=email,

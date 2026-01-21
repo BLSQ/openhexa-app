@@ -4822,8 +4822,6 @@ export type ShortcutItem = {
 
 /** Possible errors during signup. */
 export enum SignupError {
-  /** Email address is already taken. */
-  EmailTaken = 'EMAIL_TAKEN',
   /** Self-registration is not enabled. */
   SelfRegistrationDisabled = 'SELF_REGISTRATION_DISABLED'
 }

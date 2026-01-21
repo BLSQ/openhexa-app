@@ -44,10 +44,6 @@ const SignupPage: NextPageWithLayout = () => {
         data?.signup.errors?.includes(SignupError.SelfRegistrationDisabled)
       ) {
         throw new Error(t("Self-registration is currently disabled."));
-      } else if (data?.signup.errors?.includes(SignupError.EmailTaken)) {
-        throw new Error(
-          t("This email address is already taken. Please login instead."),
-        );
       }
     },
     initialState: {},

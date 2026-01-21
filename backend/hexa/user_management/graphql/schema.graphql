@@ -1997,10 +1997,6 @@ enum SignupError {
     Self-registration is not enabled.
     """
     SELF_REGISTRATION_DISABLED
-    """
-    Email address is already taken.
-    """
-    EMAIL_TAKEN
 }
 
 """

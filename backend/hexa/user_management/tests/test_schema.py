@@ -1814,7 +1814,7 @@ class SignupTest(GraphQLTestCase):
 
     @override_settings(ALLOW_SELF_REGISTRATION=True)
     def test_signup_email_taken(self):
-        """Test signup fails when email is already taken by existing user."""
+        """Test signup returns success even when email is already taken (to prevent email enumeration)."""
         r = self.run_query(
             """
             mutation signup($input: SignupInput!) {
@@ -1827,9 +1827,8 @@ class SignupTest(GraphQLTestCase):
             {"input": {"email": self.USER_EXISTING.email}},
         )
 
-        self.assertEqual(
-            r["data"]["signup"], {"success": False, "errors": ["EMAIL_TAKEN"]}
-        )
+        # Returns success to prevent email enumeration attacks
+        self.assertEqual(r["data"]["signup"], {"success": True, "errors": []})
 
     @override_settings(ALLOW_SELF_REGISTRATION=True)
     @patch("hexa.user_management.schema.send_signup_email")

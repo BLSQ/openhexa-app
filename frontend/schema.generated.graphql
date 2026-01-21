@@ -3932,9 +3932,6 @@ type ShortcutItem {
 
 """Possible errors during signup."""
 enum SignupError {
-  """Email address is already taken."""
-  EMAIL_TAKEN
-
   """Self-registration is not enabled."""
   SELF_REGISTRATION_DISABLED
 }
