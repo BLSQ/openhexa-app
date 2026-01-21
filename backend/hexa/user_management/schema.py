@@ -725,16 +725,9 @@ def resolve_external_collaborators(organization: Organization, info, **kwargs):
         per_page=kwargs.get("per_page", 10),
     )
 
-    # Convert to dicts with organization reference for resolvers
-    page_result["items"] = [
-        {
-            "user": m.user,
-            "user_id": m.user_id,
-            "organization": organization,
-            "created_at": m.created_at,
-        }
-        for m in page_result["items"]
-    ]
+    # Add organization reference for workspace_memberships resolver
+    for m in page_result["items"]:
+        m.organization = organization
 
     return page_result
 
@@ -1758,20 +1751,20 @@ external_collaborator_object = ObjectType("ExternalCollaborator")
 @external_collaborator_object.field("id")
 def resolve_external_collaborator_id(collaborator, info, **kwargs):
     """Return user ID as the external collaborator ID"""
-    return collaborator["user_id"]
+    return collaborator.user_id
 
 
 @external_collaborator_object.field("user")
 def resolve_external_collaborator_user(collaborator, info, **kwargs):
-    return collaborator["user"]
+    return collaborator.user
 
 
 @external_collaborator_object.field("workspaceMemberships")
 def resolve_external_collaborator_workspace_memberships(collaborator, info, **kwargs):
     """Return workspace memberships for this user within the organization"""
     return WorkspaceMembership.objects.filter(
-        user_id=collaborator["user_id"],
-        workspace__organization=collaborator["organization"],
+        user_id=collaborator.user_id,
+        workspace__organization=collaborator.organization,
         workspace__archived=False,
     ).select_related("workspace")
 
