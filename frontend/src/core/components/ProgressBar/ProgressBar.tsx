@@ -17,9 +17,9 @@ const getUsageLevel = (percentage: number): UsageLevel => {
 };
 
 const colorClasses: Record<UsageLevel, { bar: string; text: string }> = {
-  normal: { bar: "bg-green-500", text: "text-green-700" },
-  warning: { bar: "bg-yellow-500", text: "text-yellow-700" },
-  critical: { bar: "bg-red-500", text: "text-red-700" },
+  normal: { bar: "bg-emerald-400", text: "text-emerald-400" },
+  warning: { bar: "bg-amber-400", text: "text-amber-400" },
+  critical: { bar: "bg-rose-800", text: "text-rose-800" },
 };
 
 const ProgressBar = (props: ProgressBarProps) => {
@@ -46,7 +46,12 @@ const ProgressBar = (props: ProgressBarProps) => {
           />
         </div>
         {showLabel && (
-          <span className={clsx("text-sm font-medium whitespace-nowrap", colors.text)}>
+          <span
+            className={clsx(
+              "text-sm font-medium whitespace-nowrap",
+              colors.text,
+            )}
+          >
             {value} / {max}
           </span>
         )}
