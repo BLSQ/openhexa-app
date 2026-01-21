@@ -26,11 +26,16 @@ class WorkspaceAdmin(admin.ModelAdmin):
         "slug",
         "name",
         "organization",
+        "docker_image",
         "archived",
         "created_at",
         "updated_at",
     )
-    list_filter = ("archived", "organization")
+    list_filter = (
+        "archived",
+        "organization",
+        ("docker_image", admin.EmptyFieldListFilter),
+    )
     readonly_fields = ("created_at", "updated_at", "archived_at")
 
     search_fields = (
