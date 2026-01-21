@@ -12,6 +12,8 @@ venv
 *.pyc
 backend/k8s/*
 !backend/k8s/sample_app.yaml
+backend/.bash_history
+backend/.python_history
 
 #for mac and idea
 .idea/
