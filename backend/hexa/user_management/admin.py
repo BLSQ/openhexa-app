@@ -18,6 +18,7 @@ from .models import (
     OrganizationInvitation,
     OrganizationMembership,
     OrganizationSubscription,
+    SignupRequest,
     Team,
     User,
 )
@@ -360,3 +361,17 @@ class OrganizationSubscriptionAdmin(admin.ModelAdmin):
             },
         ),
     )
+
+
+@admin.register(SignupRequest)
+class SignupRequestAdmin(admin.ModelAdmin):
+    list_display = (
+        "email",
+        "status",
+        "created_at",
+        "updated_at",
+    )
+    list_filter = ("status", "created_at")
+    search_fields = ("email",)
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ("-created_at",)

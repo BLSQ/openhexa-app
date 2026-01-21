@@ -1,4 +1,3 @@
-import binascii
 import logging
 import pathlib
 from datetime import datetime, timezone
@@ -18,7 +17,6 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.signing import BadSignature, SignatureExpired
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.functions import Collate
@@ -46,6 +44,8 @@ from hexa.user_management.models import (
     OrganizationMembership,
     OrganizationMembershipRole,
     OrganizationSubscription,
+    SignupRequest,
+    SignupRequestStatus,
     Team,
     User,
     UsersLimitReached,
@@ -70,6 +70,7 @@ from .utils import (
     has_configured_two_factor,
     send_organization_add_user_email,
     send_organization_invite,
+    send_signup_email,
 )
 
 logger = logging.getLogger(__name__)
@@ -422,6 +423,33 @@ def resolve_logout(_, info, **kwargs):
     return {"success": True}
 
 
+@identity_mutations.field("signup")
+def resolve_signup(_, info, **kwargs):
+    """Handle self-registration signup request."""
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    if not settings.ALLOW_SELF_REGISTRATION:
+        return {"success": False, "errors": ["SELF_REGISTRATION_DISABLED"]}
+
+    email = remove_whitespace(mutation_input["email"]).lower()
+
+    if User.objects.filter(email=email).exists():
+        return {"success": True, "errors": []}
+
+    existing = SignupRequest.objects.filter(
+        email=email,
+        status=SignupRequestStatus.PENDING,
+    ).first()
+
+    signup_request = existing or SignupRequest.objects.create(email=email)
+    send_signup_email(signup_request)
+
+    track(request, "users.signup_requested", properties={"email": email})
+
+    return {"success": True, "errors": []}
+
+
 @identity_mutations.field("register")
 def resolve_register(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -430,148 +458,49 @@ def resolve_register(_, info, **kwargs):
     if request.user.is_authenticated:
         return {"success": False, "errors": ["ALREADY_LOGGED_IN"]}
 
-    # We only accept registration if the invitation token to a workspace/organization is valid and pending.
-    # Once the user is created, their invitation is automatically accepted.
-
-    workspace_invitation = None
-    organization_invitation = None
-
-    try:
-        workspace_invitation = WorkspaceInvitation.objects.get_by_token(
-            token=mutation_input["invitation_token"]
-        )
-        if workspace_invitation.status != WorkspaceInvitationStatus.PENDING:
-            return {"success": False, "errors": ["INVALID_TOKEN"]}
-
-        track(
-            request=request,
-            event="emails.registration_landed",
-            properties={
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "workspace": workspace_invitation.workspace.slug,
-                "invitee_email": workspace_invitation.email,
-                "invitee_role": workspace_invitation.role,
-                "status": workspace_invitation.status,
-            },
-        )
-
-    except (
-        UnicodeDecodeError,
-        SignatureExpired,
-        binascii.Error,
-        BadSignature,
-        WorkspaceInvitation.DoesNotExist,
-    ):
-        try:
-            organization_invitation = OrganizationInvitation.objects.get_by_token(
-                token=mutation_input["invitation_token"]
-            )
-            if organization_invitation.status != OrganizationInvitationStatus.PENDING:
-                return {"success": False, "errors": ["INVALID_TOKEN"]}
-
-            track(
-                request=request,
-                event="emails.registration_landed",
-                properties={
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "organization": organization_invitation.organization.name,
-                    "invitee_email": organization_invitation.email,
-                    "invitee_role": organization_invitation.role,
-                    "status": organization_invitation.status,
-                },
-            )
-        except (
-            UnicodeDecodeError,
-            SignatureExpired,
-            binascii.Error,
-            BadSignature,
-            OrganizationInvitation.DoesNotExist,
-        ):
-            return {"success": False, "errors": ["INVALID_TOKEN"]}
-
-    invitation_email = (
-        workspace_invitation.email
-        if workspace_invitation
-        else organization_invitation.email
+    token = mutation_input["invitation_token"]
+    invitation = (
+        WorkspaceInvitation.objects.get_pending_by_token(token)
+        or OrganizationInvitation.objects.get_pending_by_token(token)
+        or SignupRequest.objects.get_pending_by_token(token)
     )
-    if User.objects.filter(email=invitation_email).exists():
+    if not invitation:
+        return {"success": False, "errors": ["INVALID_TOKEN"]}
+
+    if User.objects.filter(email=invitation.email).exists():
         return {"success": False, "errors": ["EMAIL_TAKEN"]}
 
+    if mutation_input["password1"] != mutation_input["password2"]:
+        return {"success": False, "errors": ["PASSWORD_MISMATCH"]}
+
     try:
-        if mutation_input["password1"] != mutation_input["password2"]:
-            return {"success": False, "errors": ["PASSWORD_MISMATCH"]}
         validate_password(password=mutation_input["password1"])
-
-        with transaction.atomic():
-            user = User.objects.create_user(
-                email=invitation_email,
-                password=mutation_input["password1"],
-                first_name=mutation_input["first_name"],
-                last_name=mutation_input["last_name"],
-            )
-
-            if workspace_invitation:
-                WorkspaceMembership.objects.create(
-                    workspace=workspace_invitation.workspace,
-                    user=user,
-                    role=workspace_invitation.role,
-                )
-                workspace_invitation.status = WorkspaceInvitationStatus.ACCEPTED
-                workspace_invitation.save()
-
-                track(
-                    request,
-                    event="emails.registration_complete",
-                    properties={
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "workspace": workspace_invitation.workspace.slug,
-                        "invitee_email": workspace_invitation.email,
-                        "invitee_role": workspace_invitation.role,
-                        "status": workspace_invitation.status,
-                    },
-                )
-            else:
-                OrganizationMembership.objects.create(
-                    organization=organization_invitation.organization,
-                    user=user,
-                    role=organization_invitation.role,
-                )
-                for (
-                    workspace_invitation
-                ) in organization_invitation.workspace_invitations.all():
-                    try:
-                        WorkspaceMembership.objects.create(
-                            workspace=workspace_invitation.workspace,
-                            user=user,
-                            role=workspace_invitation.role,
-                        )
-                    except Exception:
-                        continue
-
-                organization_invitation.status = OrganizationInvitationStatus.ACCEPTED
-                organization_invitation.save()
-
-                track(
-                    request,
-                    event="emails.registration_complete",
-                    properties={
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "organization": organization_invitation.organization.name,
-                        "invitee_email": organization_invitation.email,
-                        "invitee_role": organization_invitation.role,
-                        "status": organization_invitation.status,
-                    },
-                )
-
-        # Let's authenticate the user automatically
-        authenticated_user = authenticate(
-            username=user.email, password=mutation_input["password1"]
-        )
-        login(request, authenticated_user)
-        return {"success": True, "errors": []}
-
     except ValidationError:
         return {"success": False, "errors": ["INVALID_PASSWORD"]}
+
+    with transaction.atomic():
+        user = User.objects.create_user(
+            email=invitation.email,
+            password=mutation_input["password1"],
+            first_name=mutation_input["first_name"],
+            last_name=mutation_input["last_name"],
+        )
+        invitation.accept(user)
+
+    track(
+        request,
+        event="emails.registration_complete",
+        properties={
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            **invitation.get_tracking_properties(),
+        },
+    )
+
+    authenticated_user = authenticate(
+        username=user.email, password=mutation_input["password1"]
+    )
+    login(request, authenticated_user)
+    return {"success": True, "errors": []}
 
 
 @identity_mutations.field("resetPassword")

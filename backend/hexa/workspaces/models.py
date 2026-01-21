@@ -1,4 +1,3 @@
-import base64
 import hashlib
 import secrets
 import string
@@ -9,10 +8,9 @@ import stringcase
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
-from django.core.signing import TimestampSigner
 from django.core.validators import RegexValidator, validate_slug
 from django.db import models
-from django.db.models import EmailField, Q
+from django.db.models import Q
 from django.forms import ValidationError
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -21,7 +19,7 @@ from django.utils.translation import gettext_lazy as _
 from django_countries.fields import Country, CountryField
 from slugify import slugify
 
-from hexa.core.models import Base
+from hexa.core.models import Base, Invitation, InvitationManager
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.databases.api import (
@@ -455,7 +453,7 @@ class WorkspaceInvitationQuerySet(BaseQuerySet):
         )
 
 
-class WorkspaceInvitationManager(models.Manager):
+class WorkspaceInvitationManager(InvitationManager):
     def create_if_has_perm(
         self,
         principal: User,
@@ -474,16 +472,8 @@ class WorkspaceInvitationManager(models.Manager):
             invited_by=principal,
         )
 
-    def get_by_token(self, token: string):
-        signer = TimestampSigner()
-        decoded_value = base64.b64decode(token).decode("utf-8")
-        # the token is valid for 48h
-        invitation_id = signer.unsign(decoded_value, max_age=48 * 3600)
-        return self.get(id=invitation_id)
 
-
-class WorkspaceInvitation(Base):
-    email = EmailField(db_collation="case_insensitive")
+class WorkspaceInvitation(Invitation):
     workspace = models.ForeignKey(
         Workspace,
         on_delete=models.CASCADE,
@@ -502,15 +492,29 @@ class WorkspaceInvitation(Base):
 
     objects = WorkspaceInvitationManager.from_queryset(WorkspaceInvitationQuerySet)()
 
-    def generate_invitation_token(self):
-        signer = TimestampSigner()
-        return base64.b64encode(signer.sign(self.id).encode("utf-8")).decode()
-
     def delete_if_has_perm(self, principal: User):
         if not principal.has_perm("workspaces.manage_members", self.workspace):
             raise PermissionDenied
 
         return self.delete()
+
+    def get_tracking_properties(self) -> dict:
+        return {
+            "workspace": self.workspace.slug,
+            "invitee_email": self.email,
+            "invitee_role": self.role,
+            "status": self.status,
+        }
+
+    def accept(self, user: User):
+        """Accept the invitation and create workspace membership."""
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=user,
+            role=self.role,
+        )
+        self.status = WorkspaceInvitationStatus.ACCEPTED
+        self.save()
 
 
 class ConnectionQuerySet(BaseQuerySet):

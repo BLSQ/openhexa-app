@@ -501,6 +501,8 @@ export enum BucketObjectType {
 
 export type Config = {
   __typename?: 'Config';
+  /** Whether self-registration is enabled. */
+  allowSelfRegistration: Scalars['Boolean']['output'];
   /** List of requirements for the password. */
   passwordRequirements?: Maybe<Array<Scalars['String']['output']>>;
 };
@@ -2749,6 +2751,7 @@ export type Mutation = {
   setMetadataAttribute: SetMetadataAttributeResult;
   /** Sets a new password for the user. */
   setPassword: SetPasswordResult;
+  signup: SignupResult;
   /** Stops a pipeline. */
   stopPipeline: StopPipelineResult;
   updateAccessmodAccessibilityAnalysis: UpdateAccessmodAccessibilityAnalysisResult;
@@ -3246,6 +3249,11 @@ export type MutationSetMetadataAttributeArgs = {
 
 export type MutationSetPasswordArgs = {
   input: SetPasswordInput;
+};
+
+
+export type MutationSignupArgs = {
+  input: SignupInput;
 };
 
 
@@ -4887,6 +4895,27 @@ export type ShortcutItem = {
   name: Scalars['String']['output'];
   order: Scalars['Int']['output'];
   url: Scalars['String']['output'];
+};
+
+/** Possible errors during signup. */
+export enum SignupError {
+  /** Self-registration is not enabled. */
+  SelfRegistrationDisabled = 'SELF_REGISTRATION_DISABLED'
+}
+
+/** Input for self-registration (signup) mutation. */
+export type SignupInput = {
+  /** Email address for the new account. */
+  email: Scalars['String']['input'];
+};
+
+/** Result of signup mutation. */
+export type SignupResult = {
+  __typename?: 'SignupResult';
+  /** The list of errors that occurred during the signup process. */
+  errors?: Maybe<Array<SignupError>>;
+  /** Indicates whether the signup request was successful. */
+  success: Scalars['Boolean']['output'];
 };
 
 /** Represents the input for stopping a pipeline. */

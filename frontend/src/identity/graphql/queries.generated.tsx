@@ -20,6 +20,11 @@ export type RegisterPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 export type RegisterPageQuery = { __typename?: 'Query', config: { __typename?: 'Config', passwordRequirements?: Array<string> | null } };
 
+export type SignupPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
+
+
+export type SignupPageQuery = { __typename?: 'Query', config: { __typename?: 'Config', allowSelfRegistration: boolean } };
+
 
 export const GetUserDocument = gql`
     query GetUser {
@@ -185,3 +190,42 @@ export type RegisterPageQueryHookResult = ReturnType<typeof useRegisterPageQuery
 export type RegisterPageLazyQueryHookResult = ReturnType<typeof useRegisterPageLazyQuery>;
 export type RegisterPageSuspenseQueryHookResult = ReturnType<typeof useRegisterPageSuspenseQuery>;
 export type RegisterPageQueryResult = Apollo.QueryResult<RegisterPageQuery, RegisterPageQueryVariables>;
+export const SignupPageDocument = gql`
+    query SignupPage {
+  config {
+    allowSelfRegistration
+  }
+}
+    `;
+
+/**
+ * __useSignupPageQuery__
+ *
+ * To run a query within a React component, call `useSignupPageQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSignupPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSignupPageQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useSignupPageQuery(baseOptions?: Apollo.QueryHookOptions<SignupPageQuery, SignupPageQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SignupPageQuery, SignupPageQueryVariables>(SignupPageDocument, options);
+      }
+export function useSignupPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SignupPageQuery, SignupPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SignupPageQuery, SignupPageQueryVariables>(SignupPageDocument, options);
+        }
+export function useSignupPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SignupPageQuery, SignupPageQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SignupPageQuery, SignupPageQueryVariables>(SignupPageDocument, options);
+        }
+export type SignupPageQueryHookResult = ReturnType<typeof useSignupPageQuery>;
+export type SignupPageLazyQueryHookResult = ReturnType<typeof useSignupPageLazyQuery>;
+export type SignupPageSuspenseQueryHookResult = ReturnType<typeof useSignupPageSuspenseQuery>;
+export type SignupPageQueryResult = Apollo.QueryResult<SignupPageQuery, SignupPageQueryVariables>;

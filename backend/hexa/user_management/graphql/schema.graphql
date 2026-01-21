@@ -2143,4 +2143,39 @@ extend type Mutation {
     deleteOrganization(input: DeleteOrganizationInput!): DeleteOrganizationResult! @loginRequired
     createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult! @loginRequired
     updateOrganizationSubscription(input: UpdateOrganizationSubscriptionInput!): UpdateOrganizationSubscriptionResult! @loginRequired
+    signup(input: SignupInput!): SignupResult!
+}
+
+"""
+Input for self-registration (signup) mutation.
+"""
+input SignupInput {
+    """
+    Email address for the new account.
+    """
+    email: String!
+}
+
+"""
+Possible errors during signup.
+"""
+enum SignupError {
+    """
+    Self-registration is not enabled.
+    """
+    SELF_REGISTRATION_DISABLED
+}
+
+"""
+Result of signup mutation.
+"""
+type SignupResult {
+    """
+    Indicates whether the signup request was successful.
+    """
+    success: Boolean!
+    """
+    The list of errors that occurred during the signup process.
+    """
+    errors: [SignupError!]
 }
