@@ -149,7 +149,7 @@ const UserMenu = (props: UserMenuProps) => {
               </Link>
             )}
             <Link
-              href="https://github.com/BLSQ/openhexa/wiki/User-manual"
+              href="https://docs.openhexa.com/#user-manual"
               noStyle
               className="group flex gap-2 px-4 py-2.5 text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-800"
             >

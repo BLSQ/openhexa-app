@@ -1,5 +1,33 @@
 # Changelog
 
+## [2.16.1](https://github.com/BLSQ/openhexa-app/compare/2.16.0...2.16.1) (2026-01-19)
+
+
+### Bug Fixes
+
+* create read-only role migration ([#1560](https://github.com/BLSQ/openhexa-app/issues/1560)) ([f14cdeb](https://github.com/BLSQ/openhexa-app/commit/f14cdebd2928af5d8bfc50f7d99643040311afeb))
+
+## [2.16.0](https://github.com/BLSQ/openhexa-app/compare/2.15.0...2.16.0) (2026-01-19)
+
+
+### Features
+
+* create/update organization endpoints, usage and limits (SAAS-43, SAAS-44) ([#1554](https://github.com/BLSQ/openhexa-app/issues/1554)) ([3cfcaa7](https://github.com/BLSQ/openhexa-app/commit/3cfcaa76d38cc588a29539a4a9d5e9fbad96ea07))
+* pipelines page users can filter on the state of the last run (HEXA-1465) ([#1548](https://github.com/BLSQ/openhexa-app/issues/1548)) ([2d85e45](https://github.com/BLSQ/openhexa-app/commit/2d85e4567d9137c430bfd407396784f07f7498ed))
+* read only user for workspace DBs (HEXA-1173) ([#1553](https://github.com/BLSQ/openhexa-app/issues/1553)) ([7b064bc](https://github.com/BLSQ/openhexa-app/commit/7b064bc3c5463e53cb26fbb8d066b6256d2f9fd1))
+* support upload of folders (HEXA-1403) ([#1546](https://github.com/BLSQ/openhexa-app/issues/1546)) ([6ca9369](https://github.com/BLSQ/openhexa-app/commit/6ca93698c96b50fe7ae9fd9a82888a8d69871e07))
+
+
+### Bug Fixes
+
+* add maximum width to pipeline description for better readability ([#1545](https://github.com/BLSQ/openhexa-app/issues/1545)) ([3b9520a](https://github.com/BLSQ/openhexa-app/commit/3b9520a4f0d1395626735c59a943839104f19587))
+* adjust pipeline_runner batch sizes ([#1544](https://github.com/BLSQ/openhexa-app/issues/1544)) ([d5d5b00](https://github.com/BLSQ/openhexa-app/commit/d5d5b00e24fb464545e2f0acadeed3bfdb8ca4a9))
+* reap forked pipeline runner processes on exit (HEXA-1467) ([#1551](https://github.com/BLSQ/openhexa-app/issues/1551)) ([3761445](https://github.com/BLSQ/openhexa-app/commit/376144560f5231113b9573a80f15abcb7e45771e))
+* scope global search and workspace switch to org + improve search UI (HEXA-1468) ([#1549](https://github.com/BLSQ/openhexa-app/issues/1549)) ([d5c5c7b](https://github.com/BLSQ/openhexa-app/commit/d5c5c7b1ed905a0b3bf320329faa9b21ff01cadf))
+* sidebar hydration errors (HEXA-1400) ([#1542](https://github.com/BLSQ/openhexa-app/issues/1542)) ([cf96ccb](https://github.com/BLSQ/openhexa-app/commit/cf96ccb722c1282b8d06386f43bde5e187dc825b))
+* superset spammy errors & sunset external url by 31 March 2026 ([#1540](https://github.com/BLSQ/openhexa-app/issues/1540)) ([81ca95b](https://github.com/BLSQ/openhexa-app/commit/81ca95ba0f994d45d40301d9d7abbcfb3fc5825d))
+* support json in Markdown ([#1538](https://github.com/BLSQ/openhexa-app/issues/1538)) ([2e041c9](https://github.com/BLSQ/openhexa-app/commit/2e041c972ae8a791beab04dac6369ab1ad65eb50))
+
 ## [2.15.0](https://github.com/BLSQ/openhexa-app/compare/2.14.0...2.15.0) (2025-12-17)
 
 

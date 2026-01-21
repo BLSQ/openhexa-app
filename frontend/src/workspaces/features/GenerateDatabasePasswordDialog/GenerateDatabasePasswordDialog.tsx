@@ -3,49 +3,56 @@ import Dialog from "core/components/Dialog";
 import Spinner from "core/components/Spinner";
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
-import { useGenerateNewDatabasePasswordMutation } from "workspaces/graphql/mutations.generated";
+import {
+  useGenerateNewDatabasePasswordMutation,
+  useGenerateNewDatabaseRoPasswordMutation,
+} from "workspaces/graphql/mutations.generated";
 import { gql } from "@apollo/client";
 import { GenerateWorkspaceDatabasePasswordDialog_WorkspaceFragment } from "./GenerateDatabasePasswordDialog.generated";
 import { GenerateNewDatabasePasswordError } from "graphql/types";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-toastify";
 
+type PasswordType = "rw" | "ro";
+
 type GenerateDatabasePasswordDialogProps = {
   onClose(): void;
   open: boolean;
   workspace: GenerateWorkspaceDatabasePasswordDialog_WorkspaceFragment;
+  passwordType?: PasswordType;
 };
 
 const GenerateWorkspaceDatabasePasswordDialog = (
   props: GenerateDatabasePasswordDialogProps,
 ) => {
-  const { open, onClose, workspace } = props;
+  const { open, onClose, workspace, passwordType = "rw" } = props;
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generateNewPassword] = useGenerateNewDatabasePasswordMutation();
+  const [generateNewRoPassword] = useGenerateNewDatabaseRoPasswordMutation();
+
+  const isReadOnly = passwordType === "ro";
+
   const onSubmit = async () => {
     setIsSubmitting(true);
-    const { data } = await generateNewPassword({
-      variables: {
-        input: {
-          workspaceSlug: workspace.slug,
-        },
-      },
-    });
 
-    if (!data?.generateNewDatabasePassword) {
+    const variables = { input: { workspaceSlug: workspace.slug } };
+    const result = isReadOnly
+      ? (await generateNewRoPassword({ variables })).data
+          ?.generateNewDatabaseRoPassword
+      : (await generateNewPassword({ variables })).data
+          ?.generateNewDatabasePassword;
+
+    if (!result) {
       throw new Error("Unknown error.");
     }
-
-    if (data.generateNewDatabasePassword.success) {
+    if (result.success) {
       toast.info(t("Password successfully changed"));
       onClose();
       setIsSubmitting(false);
     }
     if (
-      data.generateNewDatabasePassword.errors.includes(
-        GenerateNewDatabasePasswordError.PermissionDenied,
-      )
+      result.errors.includes(GenerateNewDatabasePasswordError.PermissionDenied)
     ) {
       throw new Error("You are not authorized to perform this action");
     }

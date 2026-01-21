@@ -23,6 +23,7 @@ from ..models import (
     WorkspaceInvitationStatus,
     WorkspaceMembership,
     WorkspaceMembershipRole,
+    WorkspacesLimitReached,
 )
 from ..utils import send_workspace_add_user_email, send_workspace_invite_new_user_email
 
@@ -62,6 +63,8 @@ def resolve_create_workspace(_, info, **kwargs):
         return {"success": False, "errors": ["ORGANIZATION_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except WorkspacesLimitReached:
+        return {"success": False, "errors": ["WORKSPACES_LIMIT_REACHED"]}
 
 
 @workspace_mutations.field("updateWorkspace")

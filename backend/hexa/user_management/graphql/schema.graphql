@@ -1028,6 +1028,66 @@ type Organization {
     Pipeline template tags used within this organization.
     """
     pipelineTemplateTags: [String!]!
+
+    """
+    Current resource usage counts.
+    """
+    usage: ResourceCounts!
+
+    """
+    Subscription details with limits. Null for self-hosted deployments.
+    """
+    subscription: Subscription
+}
+
+"""
+Resource counts
+"""
+type ResourceCounts {
+    """
+    Number of users.
+    """
+    users: Int!
+
+    """
+    Number of workspaces.
+    """
+    workspaces: Int!
+
+    """
+    Number of pipeline runs.
+    """
+    pipelineRuns: Int!
+}
+
+"""
+Subscription details from the Bluesquare Console.
+"""
+type Subscription {
+    """
+    The external subscription ID from the Bluesquare Console.
+    """
+    subscriptionId: UUID!
+
+    """
+    The subscription plan code (e.g., "openhexa_starter").
+    """
+    planCode: String!
+
+    """
+    The date when the subscription starts.
+    """
+    startDate: Date!
+
+    """
+    The date when the subscription ends.
+    """
+    endDate: Date!
+
+    """
+    Resource limits for this subscription.
+    """
+    limits: ResourceCounts!
 }
 
 type OrganizationPermissions {
@@ -1598,6 +1658,11 @@ enum InviteOrganizationMemberError {
     Indicates that the user is already a member of the organization.
     """
     ALREADY_MEMBER
+
+    """
+    Indicates that the organization has reached its user limit (SaaS only).
+    """
+    USERS_LIMIT_REACHED
 }
 
 """
@@ -1720,6 +1785,187 @@ enum DeleteOrganizationError {
     PERMISSION_DENIED
 }
 
+"""
+Input type for resource counts (used for subscription limits).
+"""
+input ResourceCountsInput {
+    """
+    Number of users.
+    """
+    users: Int!
+
+    """
+    Number of workspaces.
+    """
+    workspaces: Int!
+
+    """
+    Number of pipeline runs.
+    """
+    pipelineRuns: Int!
+}
+
+"""
+The CreateOrganizationInput type represents the input for the createOrganization mutation.
+Used by the Bluesquare Console to provision new organizations after Stripe payment.
+"""
+input CreateOrganizationInput {
+    """
+    The email address of the organization owner. Creates user if doesn't exist.
+    """
+    ownerEmail: String!
+
+    """
+    The name of the organization.
+    """
+    name: String!
+
+    """
+    The external subscription ID from the Bluesquare Console.
+    """
+    subscriptionId: UUID!
+
+    """
+    The subscription plan code (e.g., "openhexa_starter").
+    """
+    planCode: String!
+
+    """
+    The date when the subscription starts.
+    """
+    subscriptionStartDate: Date!
+
+    """
+    The date when the subscription ends.
+    """
+    subscriptionEndDate: Date!
+
+    """
+    The resource limits for the organization.
+    """
+    limits: ResourceCountsInput!
+}
+
+"""
+The CreateOrganizationResult type represents the result of the createOrganization mutation.
+"""
+type CreateOrganizationResult {
+    """
+    Indicates whether the createOrganization mutation was successful.
+    """
+    success: Boolean!
+
+    """
+    The created organization object.
+    """
+    organization: Organization
+
+    """
+    The owner user object (created or existing).
+    """
+    user: User
+
+    """
+    The list of errors that occurred during the createOrganization mutation.
+    """
+    errors: [CreateOrganizationError!]!
+}
+
+"""
+The CreateOrganizationError enum represents the possible errors that can occur during the createOrganization mutation.
+"""
+enum CreateOrganizationError {
+    """
+    Indicates that the user does not have permission to create an organization.
+    """
+    PERMISSION_DENIED
+
+    """
+    Indicates that an organization with the same name already exists.
+    """
+    NAME_DUPLICATE
+
+    """
+    Indicates that the provided email is invalid.
+    """
+    INVALID_EMAIL
+}
+
+"""
+The UpdateOrganizationSubscriptionInput type represents the input for updating organization subscription.
+Used by the Bluesquare Console to update subscription when it changes.
+
+Behavior: If a subscription with the given subscriptionId exists, it will be updated.
+Otherwise, a new subscription record will be created (used for downgrades/renewals).
+"""
+input UpdateOrganizationSubscriptionInput {
+    """
+    The unique identifier of the organization.
+    """
+    organizationId: UUID!
+
+    """
+    The external subscription ID from the Bluesquare Console.
+    Used as lookup key - if exists, update; if not, create new record.
+    """
+    subscriptionId: UUID!
+
+    """
+    The updated subscription plan code.
+    """
+    planCode: String!
+
+    """
+    The subscription start date.
+    """
+    subscriptionStartDate: Date!
+
+    """
+    The subscription end date.
+    """
+    subscriptionEndDate: Date!
+
+    """
+    The resource limits for the organization.
+    """
+    limits: ResourceCountsInput!
+}
+
+"""
+The UpdateOrganizationSubscriptionResult type represents the result of the updateOrganizationSubscription mutation.
+"""
+type UpdateOrganizationSubscriptionResult {
+    """
+    Indicates whether the updateOrganizationSubscription mutation was successful.
+    """
+    success: Boolean!
+
+    """
+    The updated organization object.
+    """
+    organization: Organization
+
+    """
+    The list of errors that occurred during the updateOrganizationSubscription mutation.
+    """
+    errors: [UpdateOrganizationSubscriptionError!]!
+}
+
+"""
+The UpdateOrganizationSubscriptionError enum represents the possible errors that can occur.
+"""
+enum UpdateOrganizationSubscriptionError {
+    """
+    Indicates that the organization was not found.
+    """
+    NOT_FOUND
+
+    """
+    Indicates that the user does not have permission to update the organization subscription.
+    """
+    PERMISSION_DENIED
+}
+
 extend type Mutation {
     inviteOrganizationMember(input: InviteOrganizationMemberInput!): InviteOrganizationMemberResult! @loginRequired
     updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult! @loginRequired
@@ -1728,6 +1974,8 @@ extend type Mutation {
     resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult! @loginRequired
     updateOrganization(input: UpdateOrganizationInput!): UpdateOrganizationResult! @loginRequired
     deleteOrganization(input: DeleteOrganizationInput!): DeleteOrganizationResult! @loginRequired
+    createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult! @loginRequired
+    updateOrganizationSubscription(input: UpdateOrganizationSubscriptionInput!): UpdateOrganizationSubscriptionResult! @loginRequired
     signup(input: SignupInput!): SignupResult!
 }
 

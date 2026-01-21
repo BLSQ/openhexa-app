@@ -48,17 +48,18 @@ export function TextColumn(props: TextColumnProps) {
     }
   }, [cell.value, url]);
 
+  const textValue = text?.toString() ?? "";
   const children = (
     <div className="flex max-w-full items-center gap-4">
       {symbol && (
         <div className="w-8">
-          <img src={symbol} alt={text} />
+          <img src={symbol} alt={textValue} />
         </div>
       )}
-      <div className="truncate">
+      <div className="truncate min-w-0">
         <div
-          title={text?.toString()}
-          className={clsx("truncate lg:whitespace-nowrap", textClassName)}
+          title={textValue}
+          className={clsx("block truncate", textClassName)}
         >
           {text ?? defaultValue}
         </div>

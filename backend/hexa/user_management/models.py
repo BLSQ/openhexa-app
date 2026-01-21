@@ -23,6 +23,10 @@ from hexa.core.models.soft_delete import (
 )
 
 
+class UsersLimitReached(Exception):
+    pass
+
+
 class UserManager(BaseUserManager):
     """
     Custom user model manager where email is the unique identifiers
@@ -188,6 +192,12 @@ class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
 class Organization(Base, SoftDeletedModel):
     class Meta:
         db_table = "identity_organization"
+        permissions = [
+            (
+                "manage_all_organizations",
+                "Can manage all organizations (create, update subscriptions)",
+            ),
+        ]
 
     organization_type = models.CharField(
         choices=OrganizationType.choices, max_length=100
@@ -231,6 +241,118 @@ class Organization(Base, SoftDeletedModel):
             return workspaces
         return workspaces.filter(members=user)
 
+    @property
+    def active_subscription(self):
+        """
+        Returns the currently active subscription based on today's date.
+        Returns None if no subscription exists (self-hosted mode).
+        """
+        today = timezone.now().date()
+        return self.subscriptions.filter(
+            start_date__lte=today,
+            end_date__gte=today,
+        ).first()
+
+    @property
+    def upcoming_subscription(self):
+        """
+        Returns the next upcoming subscription (if any).
+        Used for downgrades that take effect at end of billing period.
+        """
+        today = timezone.now().date()
+        return (
+            self.subscriptions.filter(start_date__gt=today)
+            .order_by("start_date")
+            .first()
+        )
+
+    def get_users_count(self) -> int:
+        """Count organization members."""
+        return (
+            self.organizationmembership_set.count()
+        )  # TODO: this does not consider workspace-only users
+
+    def get_workspaces_count(self) -> int:
+        """Count active (non-archived) workspaces."""
+        return self.workspaces.filter(archived=False).count()
+
+    def get_monthly_pipeline_runs_count(self) -> int:
+        """Count pipeline runs for the current calendar month, excluding skipped runs."""
+        from hexa.pipelines.models import PipelineRun, PipelineRunState
+
+        today = timezone.now().date()
+        month_start = today.replace(day=1)  # TODO: should we consider start date ?
+        return (
+            PipelineRun.objects.filter(
+                pipeline__workspace__organization=self,
+                created_at__date__gte=month_start,
+            )
+            .exclude(state=PipelineRunState.SKIPPED)
+            .count()
+        )
+
+    def is_users_limit_reached(self) -> bool:
+        """Check if the organization has reached its user limit."""
+        subscription = self.active_subscription
+        return subscription.is_users_limit_reached() if subscription else False
+
+    def is_workspaces_limit_reached(self) -> bool:
+        """Check if the organization has reached its workspace limit."""
+        subscription = self.active_subscription
+        return subscription.is_workspaces_limit_reached() if subscription else False
+
+    def is_pipeline_runs_limit_reached(self) -> bool:
+        """Check if the organization has reached its pipeline runs limit."""
+        subscription = self.active_subscription
+        return subscription.is_pipeline_runs_limit_reached() if subscription else False
+
+
+class OrganizationSubscription(Base):
+    """
+    Stores SaaS subscription information for an organization.
+    Created and managed by the Bluesquare Console via GraphQL mutations.
+
+    An organization can have multiple subscriptions (current + pending).
+    Use organization.active_subscription to get the currently active one.
+
+    Self-hosted deployments have no subscription (active_subscription returns None).
+    """
+
+    class Meta:
+        db_table = "identity_organization_subscription"
+        ordering = ["-start_date"]
+
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name="subscriptions",
+    )
+    subscription_id = models.UUIDField(
+        unique=True
+    )  # External subscription ID from the Bluesquare Console
+    plan_code = models.CharField(max_length=100)
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    users_limit = models.PositiveIntegerField()
+    workspaces_limit = models.PositiveIntegerField()
+    pipeline_runs_limit = models.PositiveIntegerField()
+
+    def is_users_limit_reached(self) -> bool:
+        """Check if the organization has reached its user limit."""
+        return self.organization.get_users_count() >= self.users_limit
+
+    def is_workspaces_limit_reached(self) -> bool:
+        """Check if the organization has reached its workspace limit."""
+        return self.organization.get_workspaces_count() >= self.workspaces_limit
+
+    def is_pipeline_runs_limit_reached(self) -> bool:
+        """Check if the organization has reached its monthly pipeline runs limit."""
+        return (
+            self.organization.get_monthly_pipeline_runs_count()
+            >= self.pipeline_runs_limit
+        )
+
 
 class OrganizationMembershipRole(models.TextChoices):
     OWNER = "owner", _("Owner")
@@ -272,6 +394,9 @@ class OrganizationMembership(Base):
         if role == OrganizationMembershipRole.OWNER:
             if not principal.has_perm("user_management.manage_owners", organization):
                 raise PermissionDenied
+
+        if organization.is_users_limit_reached():
+            raise UsersLimitReached
 
         return cls.objects.create(
             organization=organization,
@@ -555,6 +680,9 @@ class OrganizationInvitationManager(InvitationManager):
         if role == OrganizationMembershipRole.OWNER:
             if not principal.has_perm("user_management.manage_owners", organization):
                 raise PermissionDenied
+
+        if organization.is_users_limit_reached():
+            raise UsersLimitReached
 
         invitation = self.create(
             email=email,

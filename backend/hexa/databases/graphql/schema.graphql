@@ -9,6 +9,9 @@ type Database {
 
   # 'credentials' field returns the credentials used to connect to the database.
   credentials: DatabaseCredentials
+
+  # 'readOnlyCredentials' field returns the read-only credentials for dashboards and visualization tools.
+  readOnlyCredentials: DatabaseCredentials
 }
 
 # The 'DatabaseCredentials' type represents the credentials used to connect to a database.
@@ -199,4 +202,9 @@ extend type Mutation {
   Generates a new password for a database.
   """
   generateNewDatabasePassword(input: GenerateNewDatabasePasswordInput!): GenerateNewDatabasePasswordResult! @loginRequired
+
+  """
+  Generates a new password for the read-only database user.
+  """
+  generateNewDatabaseRoPassword(input: GenerateNewDatabasePasswordInput!): GenerateNewDatabasePasswordResult! @loginRequired
 }

@@ -42,10 +42,13 @@ from hexa.user_management.models import (
     OrganizationInvitation,
     OrganizationInvitationStatus,
     OrganizationMembership,
+    OrganizationMembershipRole,
+    OrganizationSubscription,
     SignupRequest,
     SignupRequestStatus,
     Team,
     User,
+    UsersLimitReached,
 )
 from hexa.utils.base64_image_encode_decode import (
     decode_base64_image,
@@ -674,6 +677,34 @@ def resolve_organization_pipeline_template_tags(
     )
 
 
+@organization_object.field("usage")
+def resolve_organization_usage(organization: Organization, info, **kwargs):
+    """Resolve current resource usage counts."""
+    return {
+        "users": organization.get_users_count(),
+        "workspaces": organization.get_workspaces_count(),
+        "pipeline_runs": organization.get_monthly_pipeline_runs_count(),
+    }
+
+
+@organization_object.field("subscription")
+def resolve_organization_subscription(organization: Organization, info, **kwargs):
+    """Resolve subscription details. Returns null for self-hosted deployments."""
+    return organization.active_subscription
+
+
+subscription_object = ObjectType("Subscription")
+
+
+@subscription_object.field("limits")
+def resolve_subscription_limits(subscription: OrganizationSubscription, info):
+    return {
+        "users": subscription.users_limit,
+        "workspaces": subscription.workspaces_limit,
+        "pipeline_runs": subscription.pipeline_runs_limit,
+    }
+
+
 @organization_object.field("datasets")
 def resolve_organization_datasets(
     organization: Organization, info, query=None, **kwargs
@@ -1163,6 +1194,8 @@ def resolve_invite_organization_member(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
     except AlreadyExists:
         return {"success": False, "errors": ["ALREADY_MEMBER"]}
+    except UsersLimitReached:
+        return {"success": False, "errors": ["USERS_LIMIT_REACHED"]}
 
 
 @identity_mutations.field("deleteOrganizationInvitation")
@@ -1338,6 +1371,157 @@ def resolve_delete_organization(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
+@identity_mutations.field("createOrganization")
+@transaction.atomic
+def resolve_create_organization(_, info, **kwargs):
+    """
+    Create a new organization with subscription.
+    Requires 'manage_all_organizations' permission (for service accounts).
+    """
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+
+    if not principal.has_perm("user_management.manage_all_organizations"):
+        return {
+            "success": False,
+            "organization": None,
+            "user": None,
+            "errors": ["PERMISSION_DENIED"],
+        }
+
+    create_input = kwargs["input"]
+    owner_email = create_input["owner_email"].strip().lower()
+    name = create_input["name"].strip()
+    subscription_id = create_input["subscription_id"]
+    plan_code = create_input["plan_code"]
+    subscription_start_date = create_input["subscription_start_date"]
+    subscription_end_date = create_input["subscription_end_date"]
+    limits = create_input["limits"]
+
+    if Organization.objects.filter(name=name).exists():
+        return {
+            "success": False,
+            "organization": None,
+            "user": None,
+            "errors": ["NAME_DUPLICATE"],
+        }
+
+    organization = Organization.objects.create(
+        name=name,
+        organization_type="CORPORATE",
+    )
+
+    OrganizationSubscription.objects.create(
+        organization=organization,
+        subscription_id=subscription_id,
+        plan_code=plan_code,
+        start_date=subscription_start_date,
+        end_date=subscription_end_date,
+        users_limit=limits["users"],
+        workspaces_limit=limits["workspaces"],
+        pipeline_runs_limit=limits["pipeline_runs"],
+    )
+
+    try:
+        user = User.objects.get(email__iexact=owner_email)
+        OrganizationMembership.objects.create(
+            organization=organization,
+            user=user,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        send_organization_add_user_email(
+            invited_by=principal,
+            organization=organization,
+            invitee=user,
+            role=OrganizationMembershipRole.OWNER,
+        )
+    except User.DoesNotExist:
+        invitation = OrganizationInvitation.objects.create(
+            email=owner_email,
+            organization=organization,
+            invited_by=principal,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        send_organization_invite(invitation)
+        user = None  # User will be created when they accept the invitation
+
+    return {
+        "success": True,
+        "organization": organization,
+        "user": user,
+        "errors": [],
+    }
+
+
+@identity_mutations.field("updateOrganizationSubscription")
+@transaction.atomic
+def resolve_update_organization_subscription(_, info, **kwargs):
+    """
+    Create or update organization subscription.
+    Used by the Bluesquare Console when subscription changes.
+    Requires 'manage_all_organizations' permission (for service accounts).
+
+    Behavior:
+    - If subscription with subscriptionId exists → update it
+    - If subscription with subscriptionId doesn't exist → create new record
+    """
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+
+    if not principal.has_perm("user_management.manage_all_organizations"):
+        return {
+            "success": False,
+            "organization": None,
+            "errors": ["PERMISSION_DENIED"],
+        }
+
+    update_input = kwargs["input"]
+    organization_id = update_input["organization_id"]
+    subscription_id = update_input["subscription_id"]
+    plan_code = update_input["plan_code"]
+    subscription_start_date = update_input["subscription_start_date"]
+    subscription_end_date = update_input["subscription_end_date"]
+    limits = update_input["limits"]
+
+    try:
+        organization = Organization.objects.get(id=organization_id)
+    except Organization.DoesNotExist:
+        return {
+            "success": False,
+            "organization": None,
+            "errors": ["NOT_FOUND"],
+        }
+
+    try:
+        subscription = OrganizationSubscription.objects.get(
+            subscription_id=subscription_id
+        )
+        subscription.plan_code = plan_code
+        subscription.start_date = subscription_start_date
+        subscription.end_date = subscription_end_date
+        subscription.users_limit = limits["users"]
+        subscription.workspaces_limit = limits["workspaces"]
+        subscription.pipeline_runs_limit = limits["pipeline_runs"]
+        subscription.save()
+    except OrganizationSubscription.DoesNotExist:
+        OrganizationSubscription.objects.create(
+            organization=organization,
+            subscription_id=subscription_id,
+            plan_code=plan_code,
+            start_date=subscription_start_date,
+            end_date=subscription_end_date,
+            users_limit=limits["users"],
+            workspaces_limit=limits["workspaces"],
+            pipeline_runs_limit=limits["pipeline_runs"],
+        )
+
+    return {
+        "success": True,
+        "organization": organization,
+        "errors": [],
+    }
+
+
 organization_membership_object = ObjectType("OrganizationMembership")
 
 
@@ -1394,6 +1578,7 @@ identity_bindables = [
     organization_permissions_object,
     organization_membership_object,
     organization_invitation_object,
+    subscription_object,
     identity_mutations,
 ]
 

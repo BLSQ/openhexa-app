@@ -28,6 +28,7 @@ from hexa.pipelines.models import (
     PipelineRecipient,
     PipelineRun,
     PipelineRunLogLevel,
+    PipelineRunsLimitReached,
     PipelineRunState,
     PipelineRunTrigger,
     PipelineType,
@@ -266,6 +267,8 @@ def resolve_run_pipeline(_, info, **kwargs):
             "errors": [],
             "run": run,
         }
+    except PipelineRunsLimitReached:
+        return {"success": False, "errors": ["PIPELINE_RUNS_LIMIT_REACHED"]}
     except ValueError:
         return {"success": False, "errors": ["INVALID_CONFIG"]}
 

@@ -97,3 +97,13 @@ def manage_owners(principal: User, organization: Organization):
 def delete_organization(principal: User, organization: Organization):
     """Only organization owners can delete an organization"""
     return principal.is_organization_owner(organization)
+
+
+def manage_all_organizations(principal: User):
+    """
+    Check if the user can manage all organizations (create, update subscriptions).
+    This is used for service accounts from the Bluesquare Console.
+    """
+    return principal.user_permissions.filter(
+        codename="manage_all_organizations"
+    ).exists()

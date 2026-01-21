@@ -588,8 +588,13 @@ query WorkspaceDatabasesPage(
           count
         }
       }
+      credentials {
+        ...DatabaseVariablesSection_credentials
+      }
+      readOnlyCredentials {
+        ...DatabaseVariablesSection_credentials
+      }
     }
-    ...DatabaseVariablesSection_workspace
     ...WorkspaceLayout_workspace
   }
 }
