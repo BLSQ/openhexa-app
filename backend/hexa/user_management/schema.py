@@ -645,7 +645,6 @@ def resolve_logo(obj: Organization, *_):
 def resolve_members(organization: Organization, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
-    # Return empty result if user doesn't have manageMembers permission
     if not request.user.has_perm("user_management.manage_members", organization):
         return result_page(
             queryset=organization.organizationmembership_set.none(),
