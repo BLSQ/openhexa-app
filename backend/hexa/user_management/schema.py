@@ -1170,7 +1170,9 @@ def resolve_update_user(_, info, **kwargs):
     return {"success": True, "errors": [], "user": user}
 
 
-def update_workspace_permissions(user, organization, workspace_permissions):
+def update_workspace_permissions(
+    user: User, organization: Organization, workspace_permissions
+):
     for workspace_permission in workspace_permissions:
         workspace_slug = workspace_permission["workspace_slug"]
         role = workspace_permission.get("role")
@@ -1214,13 +1216,11 @@ def resolve_update_organization_member(_, info, **kwargs):
         if new_role != membership.role:
             membership.update_if_has_perm(principal=principal, role=new_role)
 
-        workspace_permissions = update_input.get("workspace_permissions", [])
-        if workspace_permissions:
-            update_workspace_permissions(
-                user=membership.user,
-                organization=membership.organization,
-                workspace_permissions=workspace_permissions,
-            )
+        update_workspace_permissions(
+            user=membership.user,
+            organization=membership.organization,
+            workspace_permissions=update_input.get("workspace_permissions", []),
+        )
 
         return {"success": True, "membership": membership, "errors": []}
     except OrganizationMembership.DoesNotExist:
@@ -1244,13 +1244,11 @@ def resolve_update_external_collaborator(_, info, **kwargs):
         if not principal.has_perm("user_management.manage_members", organization):
             raise PermissionDenied()
 
-        workspace_permissions = update_input.get("workspace_permissions", [])
-        if workspace_permissions:
-            update_workspace_permissions(
-                user=user,
-                organization=organization,
-                workspace_permissions=workspace_permissions,
-            )
+        update_workspace_permissions(
+            user=user,
+            organization=organization,
+            workspace_permissions=update_input.get("workspace_permissions", []),
+        )
 
         return {"success": True, "errors": []}
 
