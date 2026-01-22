@@ -4,6 +4,7 @@ import {
   SparklesIcon,
 } from "@heroicons/react/24/outline";
 import Link from "core/components/Link";
+import { usePublicEnv } from "core/helpers/runtimeConfig";
 import { useOrganizationsQuery } from "organizations/graphql/queries.generated";
 
 type ExternalCollaboratorNoticeProps = {
@@ -14,18 +15,18 @@ const ExternalCollaboratorNotice = ({
   compact = false,
 }: ExternalCollaboratorNoticeProps) => {
   const { t } = useTranslation();
-  const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL;
+  const { CONSOLE_URL } = usePublicEnv();
 
   const { data, loading } = useOrganizationsQuery();
 
-  if (loading || !data || data.organizations.length > 0 || !consoleUrl) {
+  if (loading || !data || data.organizations.length > 0 || !CONSOLE_URL) {
     return null;
   }
 
   if (compact) {
     return (
       <Link
-        href={consoleUrl}
+        href={CONSOLE_URL}
         target="_blank"
         noStyle
         className="group relative mx-auto mb-4 flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-linear-to-r from-indigo-500 to-purple-500"
@@ -39,7 +40,7 @@ const ExternalCollaboratorNotice = ({
 
   return (
     <Link
-      href={consoleUrl}
+      href={CONSOLE_URL}
       target="_blank"
       noStyle
       className="group relative mx-2 my-4 block overflow-hidden rounded-lg bg-linear-to-r from-indigo-500 to-purple-500 p-4 text-white transition-shadow hover:shadow-lg"
