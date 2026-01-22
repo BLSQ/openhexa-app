@@ -9,16 +9,15 @@ const { SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_TRACES_SAMPLE_RATE } =
   getPublicEnv();
 
 Sentry.init({
-  dsn: SENTRY_DSN || "",
-  environment: SENTRY_ENVIRONMENT || "",
-  // Add optional integrations for additional features
+  dsn: SENTRY_DSN,
+  environment: SENTRY_ENVIRONMENT,
   integrations: [Sentry.replayIntegration()],
 
   tracesSampler({ request }) {
     if (request?.requestPath?.startsWith("/ready")) {
       return 0;
     }
-    return parseFloat(SENTRY_TRACES_SAMPLE_RATE || "1");
+    return parseFloat(SENTRY_TRACES_SAMPLE_RATE);
   },
 
   // Define how likely Replay events are sampled.
