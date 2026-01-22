@@ -78,8 +78,10 @@ def get_database_definition(workspace: Workspace):
             for name, data in tables.items():
                 if (
                     data["count"] < 0
-                ):  # reltuples is -1 when not analyzed yet, valid for views
+                ):  # reltuples is -1 when not analyzed yet, which is the case for views
                     tables[name]["count"] = get_row_count_estimate(cursor, name)
+                # For the sake of performance we only run SELECT COUNT(*) for relatively small tables N_row < 10000 entries)
+                # due to the fact PostgreSQL will need to scan either the entire table or the entirety of an index which includes all rows in the table.
                 elif data["count"] < 10_000:
                     cursor.execute(
                         sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
