@@ -3,10 +3,14 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import { getPublicEnv } from "./src/core/helpers/runtimeConfig";
+
+const { SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_TRACES_SAMPLE_RATE } =
+  getPublicEnv();
 
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+  dsn: SENTRY_DSN || "",
+  environment: SENTRY_ENVIRONMENT || "",
   // Add optional integrations for additional features
   integrations: [Sentry.replayIntegration()],
 
@@ -14,7 +18,7 @@ Sentry.init({
     if (request?.requestPath?.startsWith("/ready")) {
       return 0;
     }
-    return parseFloat(process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE || "1");
+    return parseFloat(SENTRY_TRACES_SAMPLE_RATE || "1");
   },
 
   // Define how likely Replay events are sampled.
