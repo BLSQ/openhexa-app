@@ -126,6 +126,11 @@ class DatabasesOrganizationPermissionsTest(TestCase):
         )
         WorkspaceMembership.objects.create(
             workspace=workspace_no_org,
+            user=self.USER_WORKSPACE_ADMIN,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=workspace_no_org,
             user=self.USER_WORKSPACE_EDITOR,
             role=WorkspaceMembershipRole.EDITOR,
         )

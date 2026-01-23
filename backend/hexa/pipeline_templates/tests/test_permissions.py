@@ -355,6 +355,11 @@ class PipelineTemplatesOrganizationPermissionsTest(TestCase):
             name="No Org Workspace",
             description="Workspace without organization",
         )
+        WorkspaceMembership.objects.create(
+            workspace=workspace_no_org,
+            user=self.USER_WORKSPACE_ADMIN,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
 
         self.PIPELINE_TEMPLATE.workspace = workspace_no_org
         self.PIPELINE_TEMPLATE.save()

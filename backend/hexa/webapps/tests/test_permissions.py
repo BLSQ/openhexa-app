@@ -158,6 +158,11 @@ class WebappsOrganizationPermissionsTest(TestCase):
             name="No Org Workspace",
             description="Workspace without organization",
         )
+        WorkspaceMembership.objects.create(
+            workspace=workspace_no_org,
+            user=self.USER_WORKSPACE_ADMIN,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
 
         webapp_no_org = Webapp.objects.create(
             workspace=workspace_no_org,

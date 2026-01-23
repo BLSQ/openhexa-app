@@ -8,6 +8,8 @@ from hexa.user_management.models import (
 )
 from hexa.workspaces.models import (
     Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
 )
 
 
@@ -107,6 +109,11 @@ class FilesOrganizationPermissionsTest(TestCase):
         workspace_no_org = Workspace.objects.create(
             name="No Org Workspace",
             description="Workspace without organization",
+        )
+        WorkspaceMembership.objects.create(
+            workspace=workspace_no_org,
+            user=self.USER_WORKSPACE_ADMIN,
+            role=WorkspaceMembershipRole.ADMIN,
         )
 
         # Organization admin/owner should not have permissions for workspace without organization
