@@ -265,9 +265,11 @@ def resolve_membership_permissions_delete(membership: Membership, info, **kwargs
 
 
 @identity_query.field("organizations")
-def resolve_organizations(_, info, **kwargs):
+def resolve_organizations(_, info, direct_membership_only: bool = False, **kwargs):
     request: HttpRequest = info.context["request"]
-    return Organization.objects.filter_for_user(request.user).all()
+    return Organization.objects.filter_for_user(
+        request.user, direct_membership_only=direct_membership_only
+    ).all()
 
 
 @identity_query.field("users")
