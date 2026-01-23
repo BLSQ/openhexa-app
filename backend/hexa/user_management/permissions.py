@@ -55,10 +55,9 @@ def manage_members(principal: User, organization: Organization):
 
 
 def create_workspace(principal: User, organization: Organization = None):
-    """Admin/owner users of the organization OR admin of any workspace in any org can create a workspace
+    """Any member of the organization can create a workspace.
 
-    If organization is provided: checks org admin/owner OR workspace admin who is org member
-    If organization is None (legacy): checks workspace admin status only
+    Legacy (no organizations on instance): workspace admins can create workspaces.
     """
     if principal.has_feature_flag("workspaces.prevent_create"):
         return False
@@ -66,17 +65,16 @@ def create_workspace(principal: User, organization: Organization = None):
     if principal.has_feature_flag("workspaces.create"):
         return True
 
-    is_workspace_admin = WorkspaceMembership.objects.filter(
-        user=principal,
-        role=WorkspaceMembershipRole.ADMIN,
-    ).exists()
+    if not Organization.objects.exists():
+        return WorkspaceMembership.objects.filter(
+            user=principal,
+            role=WorkspaceMembershipRole.ADMIN,
+        ).exists()
 
-    if organization:
-        is_org_admin_or_owner = principal.is_organization_admin_or_owner(organization)
-        is_org_member = principal.is_organization_member(organization)
-        return is_org_admin_or_owner or (is_workspace_admin and is_org_member)
-    else:
-        return is_workspace_admin
+    if not organization:
+        return False
+
+    return principal.is_organization_member(organization)
 
 
 def archive_workspace(principal: User, organization: Organization):
