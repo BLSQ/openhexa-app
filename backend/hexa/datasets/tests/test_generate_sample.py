@@ -24,6 +24,7 @@ from hexa.datasets.queue import (
 )
 from hexa.datasets.tests.fixtures.wkb_geometry_encoded import wkb_geometry
 from hexa.datasets.tests.testutils import DatasetTestMixin
+from hexa.files import storage
 from hexa.metadata.models import MetadataAttribute
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
@@ -38,7 +39,7 @@ class TestDataframeJsonEncoder(TestCase):
 class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
     @classmethod
     def setUpTestData(cls):
-        # storage.reset()
+        storage.reset()
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com", "serena's password", is_superuser=True
         )
