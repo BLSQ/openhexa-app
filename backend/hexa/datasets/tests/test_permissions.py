@@ -187,11 +187,9 @@ class DatasetsOrganizationPermissionsTest(TestCase):
 
     def test_permissions_with_null_organization(self):
         """Test permissions when workspace has no organization"""
-        workspace_no_org = Workspace.objects.create_if_has_perm(
-            self.USER_WORKSPACE_ADMIN,
+        workspace_no_org = Workspace.objects.create(
             name="No Org Workspace",
             description="Workspace without organization",
-            organization=None,
         )
 
         dataset_no_org = Dataset.objects.create(
