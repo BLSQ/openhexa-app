@@ -1315,8 +1315,9 @@ type FeatureFlag {
 extend type Query {
     """
     Retrieves a list of organizations.
+    If directMembershipOnly is true, only returns organizations where the user is a direct member (not via workspace access).
     """
-    organizations: [Organization!]! @loginRequired
+    organizations(directMembershipOnly: Boolean): [Organization!]! @loginRequired
     organization(id: UUID!): Organization @loginRequired
 }
 

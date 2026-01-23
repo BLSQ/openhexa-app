@@ -3612,8 +3612,11 @@ type Query {
   notebooksUrl: URL!
   organization(id: UUID!): Organization
 
-  """Retrieves a list of organizations."""
-  organizations: [Organization!]!
+  """
+  Retrieves a list of organizations.
+  If directMembershipOnly is true, only returns organizations where the user is a direct member (not via workspace access).
+  """
+  organizations(directMembershipOnly: Boolean): [Organization!]!
   pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
 
   """Retrieves a pipeline by ID."""
