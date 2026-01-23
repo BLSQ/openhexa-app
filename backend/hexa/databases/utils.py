@@ -64,6 +64,7 @@ def get_database_definition(workspace: Workspace):
                         JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
                         WHERE
                             table_schema = 'public'
+                            -- Exclude child tables from inheritance hierarchies (e.g., partition children)
                             AND pg_class.oid NOT IN (SELECT inhrelid FROM pg_inherits)
                         ORDER BY table_name;
                 """
