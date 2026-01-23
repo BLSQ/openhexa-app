@@ -5,11 +5,12 @@ import { WorkspaceLayout_WorkspaceFragmentDoc } from '../../workspaces/layouts/W
 import { UploadDatasetVersionDialog_DatasetLinkFragmentDoc } from '../features/UploadDatasetVersionDialog/UploadDatasetVersionDialog.generated';
 import { PinDatasetButton_LinkFragmentDoc } from '../features/PinDatasetButton/PinDatasetButton.generated';
 import { DatasetVersionPicker_VersionFragmentDoc } from '../features/DatasetVersionPicker/DatasetVersionPicker.generated';
+import { DeleteDatasetVersionDialog_VersionFragmentDoc } from '../features/DeleteDatasetVersionDialog/DeleteDatasetVersionDialog.generated';
 export type DatasetLayout_WorkspaceFragment = { __typename?: 'Workspace', name: string, slug: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean } } | null };
 
 export type DatasetLayout_DatasetLinkFragment = { __typename?: 'DatasetLink', id: string, isPinned: boolean, dataset: { __typename?: 'Dataset', slug: string, id: string, name: string, workspace?: { __typename?: 'Workspace', slug: string } | null, permissions: { __typename?: 'DatasetPermissions', delete: boolean, createVersion: boolean } }, workspace: { __typename?: 'Workspace', slug: string }, permissions: { __typename?: 'DatasetLinkPermissions', pin: boolean } };
 
-export type DatasetLayout_VersionFragment = { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any };
+export type DatasetLayout_VersionFragment = { __typename?: 'DatasetVersion', id: string, name: string, createdAt: any, dataset: { __typename?: 'Dataset', slug: string }, permissions: { __typename?: 'DatasetVersionPermissions', delete: boolean } };
 
 export const DatasetLayout_WorkspaceFragmentDoc = gql`
     fragment DatasetLayout_workspace on Workspace {
@@ -40,5 +41,7 @@ export const DatasetLayout_VersionFragmentDoc = gql`
   id
   name
   ...DatasetVersionPicker_version
+  ...DeleteDatasetVersionDialog_version
 }
-    ${DatasetVersionPicker_VersionFragmentDoc}`;
+    ${DatasetVersionPicker_VersionFragmentDoc}
+${DeleteDatasetVersionDialog_VersionFragmentDoc}`;
