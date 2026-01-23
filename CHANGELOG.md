@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.17.1](https://github.com/BLSQ/openhexa-app/compare/2.17.0...2.17.1) (2026-01-23)
+
+
+### Bug Fixes
+
+* database page isnt loading when views with a lot of rows is present (HEXA-1476) ([#1569](https://github.com/BLSQ/openhexa-app/issues/1569)) ([5355457](https://github.com/BLSQ/openhexa-app/commit/53554577a9bbbd916db28d795ad1780936e3afcd))
+* env variables are not passed to the frontend at runtime (HEXA-1477) ([#1568](https://github.com/BLSQ/openhexa-app/issues/1568)) ([4475659](https://github.com/BLSQ/openhexa-app/commit/447565949888ca3f5e769b472873a099293d1b90))
+
 ## [2.17.0](https://github.com/BLSQ/openhexa-app/compare/2.16.1...2.17.0) (2026-01-21)
 
 

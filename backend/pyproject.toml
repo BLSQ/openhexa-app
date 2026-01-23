@@ -1,6 +1,6 @@
 [project]
 name = "openhexa-app"
-version = "2.17.0"
+version = "2.17.1"
 authors = [
     {name = "BLSQ", email = "tech@bluesquarehub.com"},
 ]
