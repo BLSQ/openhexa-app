@@ -1,4 +1,5 @@
 import enum
+import json
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
@@ -12,6 +13,20 @@ from hexa.workspaces.models import Workspace
 from .api import get_db_server_credentials
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
+
+
+def get_row_count_estimate(cursor, table_name: str) -> int:
+    """Get a fast row count estimate using EXPLAIN."""
+    cursor.execute(
+        sql.SQL("EXPLAIN (FORMAT JSON) SELECT * FROM {};").format(
+            sql.Identifier(table_name)
+        ),
+    )
+    result = cursor.fetchone()
+    explain_output = result[0] if isinstance(result, tuple) else result["QUERY PLAN"]
+    if isinstance(explain_output, str):
+        explain_output = json.loads(explain_output)
+    return int(explain_output[0]["Plan"]["Plan Rows"])
 
 
 class TableNotFound(Exception):
@@ -49,6 +64,8 @@ def get_database_definition(workspace: Workspace):
                         JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
                         WHERE
                             table_schema = 'public'
+                            -- Exclude child tables from inheritance hierarchies (e.g., partition children)
+                            AND pg_class.oid NOT IN (SELECT inhrelid FROM pg_inherits)
                         ORDER BY table_name;
                 """
             )
@@ -60,9 +77,13 @@ def get_database_definition(workspace: Workspace):
 
             result = []
             for name, data in tables.items():
+                if (
+                    data["count"] < 0
+                ):  # reltuples is -1 when not analyzed yet, which is the case for views
+                    tables[name]["count"] = get_row_count_estimate(cursor, name)
                 # For the sake of performance we only run SELECT COUNT(*) for relatively small tables N_row < 10000 entries)
                 # due to the fact PostgreSQL will need to scan either the entire table or the entirety of an index which includes all rows in the table.
-                if data["count"] < 10_000:
+                elif data["count"] < 10_000:
                     cursor.execute(
                         sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
                             sql.Identifier(name)
@@ -108,6 +129,8 @@ def get_table_definition(workspace: Workspace, table_name: str):
             )
             res = cursor.fetchone()
             row_count = res["row_count"]
+            if row_count < 0:
+                row_count = get_row_count_estimate(cursor, table_name)
         return {
             "name": table_name,
             "columns": columns,
