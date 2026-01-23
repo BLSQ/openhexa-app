@@ -12,17 +12,6 @@ let config = {
     optimizePackageImports: ["luxon"],
   },
 
-  // Map existing env vars to NEXT_PUBLIC_* for client-side access
-  env: {
-    NEXT_PUBLIC_OPENHEXA_BACKEND_URL: process.env.OPENHEXA_BACKEND_URL,
-    NEXT_PUBLIC_SENTRY_DSN: process.env.SENTRY_DSN,
-    NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT,
-    NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE:
-      process.env.SENTRY_TRACES_SAMPLE_RATE || "1",
-    NEXT_PUBLIC_DISABLE_ANALYTICS: process.env.DISABLE_ANALYTICS,
-    NEXT_PUBLIC_CONSOLE_URL: process.env.CONSOLE_URL,
-  },
-
   // Next.js in pages mode seems to choke on the ESM format of the editor and one of its dependencies.
   // https://mdxeditor.dev/editor/docs/getting-started#nextjs-pages-router
   transpilePackages: ["@mdweditor/editor", "@uiw/react-codemirror"],

@@ -1,5 +1,6 @@
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
+import { usePublicEnv } from "core/helpers/runtimeConfig";
 import useLocalStorage from "core/hooks/useLocalStorage";
 import useMe from "identity/hooks/useMe";
 import { useRouter } from "next/router";
@@ -59,11 +60,11 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
     });
   }, []);
 
+  const { CONSOLE_URL } = usePublicEnv();
+
   if (typeof window === "undefined" || isChecking) {
     return null;
   }
-
-  const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL;
 
   return (
     <Page title={t("Workspaces")}>
@@ -81,9 +82,9 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
               "Contact your administrator or a member of the OpenHEXA team to get invited to a workspace.",
             )}
           </p>
-          {consoleUrl && (
+          {CONSOLE_URL && (
             <Link
-              href={consoleUrl}
+              href={CONSOLE_URL}
               target="_blank"
               noStyle
               className="mt-6 inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"

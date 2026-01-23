@@ -13,15 +13,13 @@ import {
 import { act } from "react";
 import { Settings } from "luxon";
 
-// Set environment variables for tests
+// Set environment variables for tests (used by getPublicEnv in runtimeConfig.ts)
 process.env.OPENHEXA_BACKEND_URL = "http://localhost:8000";
-process.env.NEXT_PUBLIC_OPENHEXA_BACKEND_URL = "http://localhost:8000";
-process.env.NEXT_PUBLIC_SENTRY_DSN = "";
-process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT = "test";
-process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE = "1";
-process.env.NEXT_PUBLIC_DISABLE_ANALYTICS = "true";
 process.env.SENTRY_DSN = "";
+process.env.SENTRY_ENVIRONMENT = "test";
 process.env.SENTRY_TRACES_SAMPLE_RATE = "1";
+process.env.DISABLE_ANALYTICS = "true";
+process.env.CONSOLE_URL = "";
 
 Settings.defaultLocale = "en";
 Settings.defaultZone = "Europe/Brussels";

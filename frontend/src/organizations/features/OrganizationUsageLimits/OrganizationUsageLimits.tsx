@@ -4,6 +4,7 @@ import { Organization_OrganizationFragment } from "organizations/graphql/queries
 import ProgressBar from "core/components/ProgressBar";
 import Link from "core/components/Link";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import { usePublicEnv } from "core/helpers/runtimeConfig";
 
 type OrganizationUsageLimitsProps = {
   organization: Organization_OrganizationFragment;
@@ -13,7 +14,7 @@ const OrganizationUsageLimits = ({
   organization,
 }: OrganizationUsageLimitsProps) => {
   const { t } = useTranslation();
-  const consoleUrl = process.env.NEXT_PUBLIC_CONSOLE_URL;
+  const { CONSOLE_URL } = usePublicEnv();
 
   const { usage, subscription } = organization;
   const limits = subscription?.limits;
@@ -47,9 +48,9 @@ const OrganizationUsageLimits = ({
             {t("Current resource usage for your organization")}
           </p>
         </div>
-        {consoleUrl && (
+        {CONSOLE_URL && (
           <Link
-            href={consoleUrl}
+            href={CONSOLE_URL}
             target="_blank"
             noStyle
             className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"

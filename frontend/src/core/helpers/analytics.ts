@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { getPublicEnv } from "./runtimeConfig";
 
 interface TrackEventProperties {
   [key: string]: any;
@@ -9,19 +10,17 @@ async function sendEvent(
   properties: TrackEventProperties,
   headers?: Headers,
 ): Promise<void> {
-  if (process.env.NEXT_PUBLIC_DISABLE_ANALYTICS === "true") {
+  const { DISABLE_ANALYTICS, OPENHEXA_BACKEND_URL } = getPublicEnv();
+  if (DISABLE_ANALYTICS === "true") {
     return;
   }
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_OPENHEXA_BACKEND_URL ?? ""}/analytics/track/`,
-    {
-      method: "POST",
-      priority: "low",
-      headers: headers,
-      credentials: "include",
-      body: JSON.stringify({ event, properties }),
-    },
-  );
+  const res = await fetch(`${OPENHEXA_BACKEND_URL}/analytics/track/`, {
+    method: "POST",
+    priority: "low",
+    headers: headers,
+    credentials: "include",
+    body: JSON.stringify({ event, properties }),
+  });
 
   if (!res.ok) {
     throw new Error(`Failed to send event: ${res.statusText}`);
