@@ -116,6 +116,11 @@ class WorkspaceTest(GraphQLTestCase):
             user=cls.USER_WORKSPACE_EDITOR_ONLY,
             role=OrganizationMembershipRole.MEMBER,
         )
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION_2,
+            user=cls.USER_JULIA,
+            role=OrganizationMembershipRole.ADMIN,
+        )
 
         with (
             patch("hexa.workspaces.models.create_database"),
@@ -135,6 +140,7 @@ class WorkspaceTest(GraphQLTestCase):
                 name="Burundi Workspace",
                 description="This is a workspace for Burundi",
                 countries=[{"code": "AD"}],
+                organization=cls.ORGANIZATION_2,
             )
 
         cls.WORKSPACE_MEMBERSHIP = WorkspaceMembership.objects.create(
@@ -293,8 +299,8 @@ class WorkspaceTest(GraphQLTestCase):
                 r["data"]["createWorkspace"],
             )
 
-    def test_create_workspace_as_workspace_editor_denied(self):
-        """Test that a workspace editor (not admin) cannot create workspaces"""
+    def test_create_workspace_as_org_member(self):
+        """Test that any organization member can create workspaces"""
         self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
         r = self.run_query(
             """
@@ -311,14 +317,21 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "name": "New Workspace by WS Editor",
-                    "description": "Attempt by workspace editor",
+                    "name": "New Workspace by Org Member",
+                    "description": "Created by org member",
                     "organizationId": str(self.ORGANIZATION.id),
                 }
             },
         )
         self.assertEqual(
-            {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
+            {
+                "success": True,
+                "errors": [],
+                "workspace": {
+                    "name": "New Workspace by Org Member",
+                    "description": "Created by org member",
+                },
+            },
             r["data"]["createWorkspace"],
         )
 
