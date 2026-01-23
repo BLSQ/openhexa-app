@@ -1,3 +1,4 @@
+import hashlib
 import os
 from unittest.mock import patch
 
@@ -23,7 +24,6 @@ from hexa.datasets.queue import (
 )
 from hexa.datasets.tests.fixtures.wkb_geometry_encoded import wkb_geometry
 from hexa.datasets.tests.testutils import DatasetTestMixin
-from hexa.files import storage
 from hexa.metadata.models import MetadataAttribute
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
@@ -38,7 +38,7 @@ class TestDataframeJsonEncoder(TestCase):
 class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
     @classmethod
     def setUpTestData(cls):
-        storage.reset()
+        # storage.reset()
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com", "serena's password", is_superuser=True
         )
@@ -396,6 +396,13 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                                 expected_df["column_name"] == original_key, value
                             ].values[0]
                             self.assertEqual(attribute.value, expected_value)
+
+                    self.assertIn("column_order", version_file.properties)
+                    column_order = version_file.properties["column_order"]
+                    self.assertEqual(len(column_order), len(df.columns))
+                    for i, col_name in enumerate(df.columns):
+                        hashed = hashlib.md5(col_name.encode()).hexdigest()
+                        self.assertEqual(column_order[i], hashed)
 
     def test_copy_attributes_with_no_previous_version(self):
         user = self.create_user(email="superuser@blsq.com", is_superuser=True)
