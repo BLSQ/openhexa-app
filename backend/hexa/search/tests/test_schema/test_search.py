@@ -390,6 +390,90 @@ class SearchResolversTest(GraphQLTestCase):
             ],
         )
 
+    def test_search_pipelines_with_multiple_tags_no_duplicates(self):
+        """Test that a pipeline with multiple tags appears only once in search results."""
+        self.client.force_login(self.USER)
+
+        tag1 = Tag.objects.create(name="etl")
+        tag2 = Tag.objects.create(name="etl-process")
+        tag3 = Tag.objects.create(name="etl-job")
+        self.PIPELINE1.tags.add(tag1, tag2, tag3)
+
+        response = self.run_query(
+            """
+            query searchPipelines($query: String!, $page: Int, $perPage: Int, $workspaceSlugs: [String]!) {
+                searchPipelines(query: $query, page: $page, perPage: $perPage, workspaceSlugs: $workspaceSlugs) {
+                    items {
+                        pipeline {
+                            name
+                            code
+                        }
+                        score
+                    }
+                    totalItems
+                }
+            }
+            """,
+            {
+                "query": "etl",
+                "page": 1,
+                "perPage": 10,
+                "workspaceSlugs": ["workspace1", "workspace2"],
+            },
+        )
+        self.assertEqual(response["data"]["searchPipelines"]["totalItems"], 1)
+        self.assertEqual(
+            response["data"]["searchPipelines"]["items"],
+            [
+                {
+                    "pipeline": {"name": "Pipeline 1", "code": "pipeline-1"},
+                    "score": 1,
+                },
+            ],
+        )
+
+    def test_search_pipeline_templates_with_multiple_tags_no_duplicates(self):
+        """Test that a pipeline template with multiple tags appears only once in search results."""
+        self.client.force_login(self.USER)
+
+        tag1 = Tag.objects.create(name="reporting")
+        tag2 = Tag.objects.create(name="reporting-tool")
+        tag3 = Tag.objects.create(name="reporting-dashboard")
+        self.TEMPLATE1.tags.add(tag1, tag2, tag3)
+
+        response = self.run_query(
+            """
+            query searchPipelineTemplates($query: String!, $page: Int, $perPage: Int, $workspaceSlugs: [String]!) {
+                searchPipelineTemplates(query: $query, page: $page, perPage: $perPage, workspaceSlugs: $workspaceSlugs) {
+                    items {
+                        pipelineTemplate {
+                            name
+                            code
+                        }
+                        score
+                    }
+                    totalItems
+                }
+            }
+            """,
+            {
+                "query": "reporting",
+                "page": 1,
+                "perPage": 10,
+                "workspaceSlugs": ["workspace1", "workspace2"],
+            },
+        )
+        self.assertEqual(response["data"]["searchPipelineTemplates"]["totalItems"], 1)
+        self.assertEqual(
+            response["data"]["searchPipelineTemplates"]["items"],
+            [
+                {
+                    "pipelineTemplate": {"name": "Template", "code": "template"},
+                    "score": 1,
+                },
+            ],
+        )
+
     def test_search_pipeline_templates_organization_wide(self):
         """Test that searchPipelineTemplates returns templates from entire organization, not just specific workspaces."""
         self.client.force_login(self.USER)
