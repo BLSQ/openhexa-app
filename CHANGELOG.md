@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.17.2](https://github.com/BLSQ/openhexa-app/compare/2.17.1...2.17.2) (2026-01-26)
+
+
+### Bug Fixes
+
+* external collaborator notice should show for users without orgs + revisit create workspace permission (HEXA-1478, HEXA-1479) ([#1573](https://github.com/BLSQ/openhexa-app/issues/1573)) ([84c300b](https://github.com/BLSQ/openhexa-app/commit/84c300b2a3007ae7227d70baff51fdf2a7191bfc))
+
 ## [2.17.1](https://github.com/BLSQ/openhexa-app/compare/2.17.0...2.17.1) (2026-01-23)
 
 
