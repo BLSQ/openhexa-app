@@ -77,6 +77,14 @@ def create_read_and_write_role(db_name: str, pwd: str, cursor=None):
             )
         )
         cur.execute(
+            sql.SQL("GRANT {role_name} TO {workspace_database_role};").format(
+                role_name=sql.Identifier(db_name),
+                workspace_database_role=sql.Identifier(
+                    settings.WORKSPACES_DATABASE_ROLE
+                ),
+            )
+        )
+        cur.execute(
             sql.SQL("GRANT CREATE, CONNECT ON DATABASE {db_name} TO {role};").format(
                 db_name=sql.Identifier(db_name),
                 role=sql.Identifier(db_name),
