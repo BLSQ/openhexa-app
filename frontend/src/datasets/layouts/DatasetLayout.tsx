@@ -209,18 +209,20 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
         datasetLink={datasetLink}
       />
 
-      {version ? (
-        <DeleteDatasetVersionDialog
-          open={isDeleteVersionDialogOpen}
-          onClose={() => setDeleteVersionDialogOpen(false)}
-          version={version}
-          onDelete={() => {
-            router.push({
-              pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/datasets/${encodeURIComponent(dataset.slug)}/from/${encodeURIComponent(sourceWorkspace.slug)}`,
-            });
-          }}
-        />
-      ) : null}
+      <>
+        {version && (
+          <DeleteDatasetVersionDialog
+            open={isDeleteVersionDialogOpen}
+            onClose={() => setDeleteVersionDialogOpen(false)}
+            version={version}
+            onDelete={() => {
+              router.push({
+                pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/datasets/${encodeURIComponent(dataset.slug)}/from/${encodeURIComponent(sourceWorkspace.slug)}`,
+              });
+            }}
+          />
+        )}
+      </>
     </WorkspaceLayout>
   );
 };
