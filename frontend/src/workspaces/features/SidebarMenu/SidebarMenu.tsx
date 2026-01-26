@@ -226,8 +226,9 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                 className="flex-1"
                 fullWidth
               />
-              {(me.permissions.createWorkspace ||
-                workspace.organization?.permissions.createWorkspace) && (
+              {(workspace.organization
+                ? workspace.organization.permissions.createWorkspace
+                : me.permissions.createWorkspace) && (
                 <>
                   <button
                     type="button"

@@ -4234,7 +4234,10 @@ export type Query = {
   metadataAttributes: Array<Maybe<MetadataAttribute>>;
   notebooksUrl: Scalars['URL']['output'];
   organization?: Maybe<Organization>;
-  /** Retrieves a list of organizations. */
+  /**
+   * Retrieves a list of organizations.
+   * If directMembershipOnly is true, only returns organizations where the user is a direct member (not via workspace access).
+   */
   organizations: Array<Organization>;
   pendingWorkspaceInvitations: WorkspaceInvitationPage;
   /** Retrieves a pipeline by ID. */
@@ -4412,6 +4415,11 @@ export type QueryMetadataAttributesArgs = {
 
 export type QueryOrganizationArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryOrganizationsArgs = {
+  directMembershipOnly?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 

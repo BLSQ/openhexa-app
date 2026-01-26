@@ -20,7 +20,9 @@ export type OrganizationWithWorkspacesQueryVariables = Types.Exact<{
 
 export type OrganizationWithWorkspacesQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean, archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number }, usage: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number }, subscription?: { __typename?: 'Subscription', subscriptionId: string, planCode: string, startDate: any, endDate: any, limits: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number } } | null } | null };
 
-export type OrganizationsQueryVariables = Types.Exact<{ [key: string]: never; }>;
+export type OrganizationsQueryVariables = Types.Exact<{
+  directMembershipOnly?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
+}>;
 
 
 export type OrganizationsQuery = { __typename?: 'Query', organizations: Array<{ __typename?: 'Organization', id: string, name: string, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string, name: string }> } }> };
@@ -231,8 +233,8 @@ export type OrganizationWithWorkspacesLazyQueryHookResult = ReturnType<typeof us
 export type OrganizationWithWorkspacesSuspenseQueryHookResult = ReturnType<typeof useOrganizationWithWorkspacesSuspenseQuery>;
 export type OrganizationWithWorkspacesQueryResult = Apollo.QueryResult<OrganizationWithWorkspacesQuery, OrganizationWithWorkspacesQueryVariables>;
 export const OrganizationsDocument = gql`
-    query Organizations {
-  organizations {
+    query Organizations($directMembershipOnly: Boolean) {
+  organizations(directMembershipOnly: $directMembershipOnly) {
     id
     name
     logo
@@ -258,6 +260,7 @@ export const OrganizationsDocument = gql`
  * @example
  * const { data, loading, error } = useOrganizationsQuery({
  *   variables: {
+ *      directMembershipOnly: // value for 'directMembershipOnly'
  *   },
  * });
  */

@@ -351,11 +351,14 @@ class PipelineTemplatesOrganizationPermissionsTest(TestCase):
 
     def test_permissions_with_null_organization(self):
         """Test permissions when workspace has no organization"""
-        workspace_no_org = Workspace.objects.create_if_has_perm(
-            self.USER_WORKSPACE_ADMIN,
+        workspace_no_org = Workspace.objects.create(
             name="No Org Workspace",
             description="Workspace without organization",
-            organization=None,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=workspace_no_org,
+            user=self.USER_WORKSPACE_ADMIN,
+            role=WorkspaceMembershipRole.ADMIN,
         )
 
         self.PIPELINE_TEMPLATE.workspace = workspace_no_org

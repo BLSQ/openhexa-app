@@ -17,7 +17,9 @@ const ExternalCollaboratorNotice = ({
   const { t } = useTranslation();
   const { CONSOLE_URL } = usePublicEnv();
 
-  const { data, loading } = useOrganizationsQuery();
+  const { data, loading } = useOrganizationsQuery({
+    variables: { directMembershipOnly: true },
+  });
 
   if (loading || !data || data.organizations.length > 0 || !CONSOLE_URL) {
     return null;
