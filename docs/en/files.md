@@ -16,12 +16,12 @@ The file browser interface provides several key features:
 - Search for files and folders by name
 - Toggle visibility of hidden files (starting with ".")
 - Create folders to organize your workspace (Editors and Admins only)
-- Upload any type of file to your workspace (Editors and Admins only)
+- Upload files or entire folders to your workspace (Editors and Admins only)
 
 Files are displayed in a table showing:
 
 - File/folder names with type icons
-- File sizes in readable format  
+- File sizes in readable format
 - Last modified dates with sorting capability
 
 You can perform common file operations:
