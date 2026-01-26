@@ -798,7 +798,6 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             r["data"]["updateDatasetVersion"],
         )
 
-
     def test_delete_dataset_version(self):
         superuser = self.create_user("superuser@blsq.com", is_superuser=True)
         user = self.create_user("user@blsq.com")

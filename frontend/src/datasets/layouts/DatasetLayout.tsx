@@ -209,7 +209,7 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
         datasetLink={datasetLink}
       />
 
-      {version && (
+      {version ? (
         <DeleteDatasetVersionDialog
           open={isDeleteVersionDialogOpen}
           onClose={() => setDeleteVersionDialogOpen(false)}
@@ -220,7 +220,7 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
             });
           }}
         />
-      )}
+      ) : null}
     </WorkspaceLayout>
   );
 };
