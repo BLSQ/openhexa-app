@@ -34,14 +34,17 @@ def _blob_to_obj(blob_properties, container_name):
             type="directory",
         )
     else:
+        updated_at = (
+            blob_properties.last_modified.isoformat()
+            if blob_properties.last_modified
+            else None
+        )
         return StorageObject(
             name=blob_properties.name.split("/")[-1],
             path=f"{container_name}/{blob_properties.name}",
             key=blob_properties.name,
             content_type=blob_properties.content_settings.content_type,
-            updated=blob_properties.last_modified.isoformat()
-            if blob_properties.last_modified
-            else None,
+            updated_at=updated_at,
             size=blob_properties.size,
             type="file",
         )
@@ -80,7 +83,6 @@ class AzureBlobStorage(Storage):
         blob_client.upload_blob(file, overwrite=True)
 
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
-        # Create a key to a empty placeholder file used to create the folder
         folder_key = folder_key.rstrip("/") + "/"
 
         blob_client = self.client.get_blob_client(
@@ -88,8 +90,12 @@ class AzureBlobStorage(Storage):
         )
         blob_client.upload_blob(b"", overwrite=True)
 
-        blob = self.client.get_blob_client(container=bucket_name, blob=folder_key)
-        return _blob_to_obj(blob.get_blob_properties(), bucket_name)
+        return StorageObject(
+            name=folder_key.rstrip("/").split("/")[-1],
+            key=folder_key,
+            path=f"{bucket_name}/{folder_key}",
+            type="directory",
+        )
 
     def generate_download_url(
         self,
