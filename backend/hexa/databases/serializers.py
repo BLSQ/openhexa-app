@@ -6,7 +6,7 @@ class TableDataSerializer(serializers.Serializer):
 
     # Query parameters
     page = serializers.IntegerField(default=1, min_value=1)
-    limit = serializers.IntegerField(default=10, min_value=1, max_value=1000)
+    limit = serializers.IntegerField(default=10, min_value=1, max_value=10000)
     sort = serializers.CharField(required=False, allow_blank=True)
     direction = serializers.ChoiceField(choices=["asc", "desc"], default="asc", required=False)
     format = serializers.ChoiceField(choices=["json", "csv"], default="json", required=False)

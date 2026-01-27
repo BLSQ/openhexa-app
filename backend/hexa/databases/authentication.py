@@ -4,6 +4,30 @@ from rest_framework import authentication, exceptions
 from hexa.workspaces.models import WorkspaceMembership
 
 
+class CsrfExemptSessionAuthentication(authentication.SessionAuthentication):
+    """
+    Session authentication with conditional CSRF enforcement.
+
+    CSRF is enforced ONLY for session-authenticated requests.
+    If a valid Bearer token is present, CSRF is skipped.
+
+    This allows:
+    - Browser users with session cookies + CSRF token can POST/PATCH/DELETE
+    - API clients with Bearer tokens can POST/PATCH/DELETE without CSRF
+    """
+
+    def enforce_csrf(self, request):
+        # Check if request has a Bearer token in Authorization header
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+
+        # If Bearer token is present, skip CSRF (token auth is being used)
+        if auth_header.startswith('Bearer '):
+            return
+
+        # Otherwise, enforce CSRF for session auth
+        return super().enforce_csrf(request)
+
+
 class WorkspaceTokenAuthentication(authentication.BaseAuthentication):
     """
     Custom authentication class that supports workspace access tokens.

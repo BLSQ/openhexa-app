@@ -5,14 +5,13 @@ import psycopg2
 from django.http import HttpResponse
 from psycopg2 import sql
 from rest_framework import status
-from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from hexa.workspaces.models import Workspace
 
-from .authentication import WorkspaceTokenAuthentication
+from .authentication import CsrfExemptSessionAuthentication, WorkspaceTokenAuthentication
 from .models import DatasetRecipe
 from .permissions import view_database_tables
 from .serializers import (
@@ -37,8 +36,33 @@ class TableDataAPIView(APIView):
     Supports both token authentication (Bearer token) and session authentication (cookies).
     """
 
-    authentication_classes = [WorkspaceTokenAuthentication, SessionAuthentication]
+    authentication_classes = [WorkspaceTokenAuthentication, CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
+
+    def _add_cors_headers(self, response, request):
+        """Add CORS headers to response."""
+        origin = request.META.get("HTTP_ORIGIN")
+        if origin:
+            response["Access-Control-Allow-Origin"] = origin
+            response["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+            response["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
+            response["Access-Control-Allow-Credentials"] = "true"
+        return response
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        """Add CORS headers to all responses."""
+        response = super().finalize_response(request, response, *args, **kwargs)
+        return self._add_cors_headers(response, request)
+
+    def check_permissions(self, request):
+        """Allow OPTIONS requests without authentication for CORS preflight."""
+        if request.method == "OPTIONS":
+            return None
+        return super().check_permissions(request)
+
+    def options(self, request, *args, **kwargs):
+        """Handle OPTIONS requests for CORS preflight."""
+        return Response(status=status.HTTP_200_OK)
 
     def get(self, request, workspace_slug, db_name, table_name):
         """
@@ -46,7 +70,7 @@ class TableDataAPIView(APIView):
 
         Query Parameters:
         - page: Page number (default: 1)
-        - limit: Results per page (default: 10, max: 1000)
+        - limit: Results per page (default: 10, max: 10000)
         - sort: Column name to sort by
         - direction: Sort direction ('asc' or 'desc', default: 'asc')
         - format: Response format ('json' or 'csv', default: 'json')
@@ -339,8 +363,33 @@ class DatasetRecipeAPIView(APIView):
     Supports both token authentication (Bearer token) and session authentication (cookies).
     """
 
-    authentication_classes = [WorkspaceTokenAuthentication, SessionAuthentication]
+    authentication_classes = [WorkspaceTokenAuthentication, CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
+
+    def _add_cors_headers(self, response, request):
+        """Add CORS headers to response."""
+        origin = request.META.get("HTTP_ORIGIN")
+        if origin:
+            response["Access-Control-Allow-Origin"] = origin
+            response["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+            response["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
+            response["Access-Control-Allow-Credentials"] = "true"
+        return response
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        """Add CORS headers to all responses."""
+        response = super().finalize_response(request, response, *args, **kwargs)
+        return self._add_cors_headers(response, request)
+
+    def check_permissions(self, request):
+        """Allow OPTIONS requests without authentication for CORS preflight."""
+        if request.method == "OPTIONS":
+            return None
+        return super().check_permissions(request)
+
+    def options(self, request, *args, **kwargs):
+        """Handle OPTIONS requests for CORS preflight."""
+        return Response(status=status.HTTP_200_OK)
 
     def post(self, request, workspace_slug, db_name):
         """

@@ -1,7 +1,7 @@
-from django.apps import AppConfig
+from hexa.app import CoreAppConfig
 
 
-class DatabasesConfig(AppConfig):
+class DatabasesConfig(CoreAppConfig):
     name = "hexa.databases"
     label = "databases"
 

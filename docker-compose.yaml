@@ -16,7 +16,7 @@ x-app: &common
       - openhexa
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-./backend}:/code"
-      - workspace_data:/data
+      - /data:/data  # Use host bind mount so JupyterHub can access the same files
 
 services:
   db:

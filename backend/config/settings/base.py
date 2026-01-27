@@ -118,6 +118,14 @@ if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
 
 CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$|^/api/"
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "sentry-trace",
