@@ -59,6 +59,13 @@ export type DeleteDatasetMutationVariables = Types.Exact<{
 
 export type DeleteDatasetMutation = { __typename?: 'Mutation', deleteDataset: { __typename?: 'DeleteDatasetResult', success: boolean, errors: Array<Types.DeleteDatasetError> } };
 
+export type DeleteDatasetVersionMutationVariables = Types.Exact<{
+  input: Types.DeleteDatasetVersionInput;
+}>;
+
+
+export type DeleteDatasetVersionMutation = { __typename?: 'Mutation', deleteDatasetVersion: { __typename?: 'DeleteDatasetVersionResult', success: boolean, errors: Array<Types.DeleteDatasetVersionError> } };
+
 export type SetMetadataAttributeMutationVariables = Types.Exact<{
   input: Types.SetMetadataAttributeInput;
 }>;
@@ -369,6 +376,40 @@ export function useDeleteDatasetMutation(baseOptions?: Apollo.MutationHookOption
 export type DeleteDatasetMutationHookResult = ReturnType<typeof useDeleteDatasetMutation>;
 export type DeleteDatasetMutationResult = Apollo.MutationResult<DeleteDatasetMutation>;
 export type DeleteDatasetMutationOptions = Apollo.BaseMutationOptions<DeleteDatasetMutation, DeleteDatasetMutationVariables>;
+export const DeleteDatasetVersionDocument = gql`
+    mutation DeleteDatasetVersion($input: DeleteDatasetVersionInput!) {
+  deleteDatasetVersion(input: $input) {
+    success
+    errors
+  }
+}
+    `;
+export type DeleteDatasetVersionMutationFn = Apollo.MutationFunction<DeleteDatasetVersionMutation, DeleteDatasetVersionMutationVariables>;
+
+/**
+ * __useDeleteDatasetVersionMutation__
+ *
+ * To run a mutation, you first call `useDeleteDatasetVersionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteDatasetVersionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteDatasetVersionMutation, { data, loading, error }] = useDeleteDatasetVersionMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDeleteDatasetVersionMutation(baseOptions?: Apollo.MutationHookOptions<DeleteDatasetVersionMutation, DeleteDatasetVersionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteDatasetVersionMutation, DeleteDatasetVersionMutationVariables>(DeleteDatasetVersionDocument, options);
+      }
+export type DeleteDatasetVersionMutationHookResult = ReturnType<typeof useDeleteDatasetVersionMutation>;
+export type DeleteDatasetVersionMutationResult = Apollo.MutationResult<DeleteDatasetVersionMutation>;
+export type DeleteDatasetVersionMutationOptions = Apollo.BaseMutationOptions<DeleteDatasetVersionMutation, DeleteDatasetVersionMutationVariables>;
 export const SetMetadataAttributeDocument = gql`
     mutation SetMetadataAttribute($input: SetMetadataAttributeInput!) {
   setMetadataAttribute(input: $input) {

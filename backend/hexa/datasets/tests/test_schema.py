@@ -798,6 +798,89 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             r["data"]["updateDatasetVersion"],
         )
 
+    def test_delete_dataset_version(self):
+        superuser = self.create_user("superuser@blsq.com", is_superuser=True)
+        user = self.create_user("user@blsq.com")
+        workspace = self.create_workspace(superuser, "My Workspace", "Test workspace")
+        membership = self.join_workspace(
+            user, workspace, WorkspaceMembershipRole.VIEWER
+        )
+
+        dataset = self.create_dataset(
+            superuser, workspace, "My dataset", "Description of dataset"
+        )
+        version = self.create_dataset_version(superuser, dataset=dataset, name="v1")
+
+        self.client.force_login(user)
+        r = self.run_query(
+            """
+            mutation DeleteDatasetVersion ($input: DeleteDatasetVersionInput!) {
+                deleteDatasetVersion(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "versionId": str(version.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["deleteDatasetVersion"],
+        )
+
+        membership.role = WorkspaceMembershipRole.EDITOR
+        membership.save()
+        r = self.run_query(
+            """
+            mutation DeleteDatasetVersion ($input: DeleteDatasetVersionInput!) {
+                deleteDatasetVersion(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "versionId": str(version.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["deleteDatasetVersion"],
+        )
+        self.assertFalse(DatasetVersion.objects.filter(id=version.id).exists())
+
+    def test_delete_dataset_version_not_found(self):
+        superuser = self.create_user("superuser@blsq.com", is_superuser=True)
+        workspace = self.create_workspace(superuser, "My Workspace", "Test workspace")
+        self.create_dataset(superuser, workspace, "My dataset", "Description")
+
+        self.client.force_login(superuser)
+        r = self.run_query(
+            """
+            mutation DeleteDatasetVersion ($input: DeleteDatasetVersionInput!) {
+                deleteDatasetVersion(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "versionId": "00000000-0000-0000-0000-000000000000",
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["VERSION_NOT_FOUND"]},
+            r["data"]["deleteDatasetVersion"],
+        )
+
 
 class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
     @classmethod
