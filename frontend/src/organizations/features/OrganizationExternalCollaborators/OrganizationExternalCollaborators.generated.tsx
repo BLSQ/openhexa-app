@@ -29,6 +29,13 @@ export type DeleteExternalCollaboratorMutationVariables = Types.Exact<{
 
 export type DeleteExternalCollaboratorMutation = { __typename?: 'Mutation', deleteExternalCollaborator: { __typename?: 'DeleteExternalCollaboratorResult', success: boolean, errors: Array<Types.DeleteExternalCollaboratorError> } };
 
+export type ConvertExternalCollaboratorToMemberMutationVariables = Types.Exact<{
+  input: Types.ConvertExternalCollaboratorToMemberInput;
+}>;
+
+
+export type ConvertExternalCollaboratorToMemberMutation = { __typename?: 'Mutation', convertExternalCollaboratorToMember: { __typename?: 'ConvertExternalCollaboratorToMemberResult', success: boolean, errors: Array<Types.ConvertExternalCollaboratorToMemberError>, membership?: { __typename?: 'OrganizationMembership', id: string, role: Types.OrganizationMembershipRole, user: { __typename?: 'User', id: string, email: string, displayName: string } } | null } };
+
 
 export const OrganizationExternalCollaboratorsDocument = gql`
     query OrganizationExternalCollaborators($id: UUID!, $page: Int, $perPage: Int, $term: String) {
@@ -171,3 +178,46 @@ export function useDeleteExternalCollaboratorMutation(baseOptions?: Apollo.Mutat
 export type DeleteExternalCollaboratorMutationHookResult = ReturnType<typeof useDeleteExternalCollaboratorMutation>;
 export type DeleteExternalCollaboratorMutationResult = Apollo.MutationResult<DeleteExternalCollaboratorMutation>;
 export type DeleteExternalCollaboratorMutationOptions = Apollo.BaseMutationOptions<DeleteExternalCollaboratorMutation, DeleteExternalCollaboratorMutationVariables>;
+export const ConvertExternalCollaboratorToMemberDocument = gql`
+    mutation ConvertExternalCollaboratorToMember($input: ConvertExternalCollaboratorToMemberInput!) {
+  convertExternalCollaboratorToMember(input: $input) {
+    success
+    errors
+    membership {
+      id
+      role
+      user {
+        id
+        email
+        displayName
+      }
+    }
+  }
+}
+    `;
+export type ConvertExternalCollaboratorToMemberMutationFn = Apollo.MutationFunction<ConvertExternalCollaboratorToMemberMutation, ConvertExternalCollaboratorToMemberMutationVariables>;
+
+/**
+ * __useConvertExternalCollaboratorToMemberMutation__
+ *
+ * To run a mutation, you first call `useConvertExternalCollaboratorToMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useConvertExternalCollaboratorToMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [convertExternalCollaboratorToMemberMutation, { data, loading, error }] = useConvertExternalCollaboratorToMemberMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useConvertExternalCollaboratorToMemberMutation(baseOptions?: Apollo.MutationHookOptions<ConvertExternalCollaboratorToMemberMutation, ConvertExternalCollaboratorToMemberMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ConvertExternalCollaboratorToMemberMutation, ConvertExternalCollaboratorToMemberMutationVariables>(ConvertExternalCollaboratorToMemberDocument, options);
+      }
+export type ConvertExternalCollaboratorToMemberMutationHookResult = ReturnType<typeof useConvertExternalCollaboratorToMemberMutation>;
+export type ConvertExternalCollaboratorToMemberMutationResult = Apollo.MutationResult<ConvertExternalCollaboratorToMemberMutation>;
+export type ConvertExternalCollaboratorToMemberMutationOptions = Apollo.BaseMutationOptions<ConvertExternalCollaboratorToMemberMutation, ConvertExternalCollaboratorToMemberMutationVariables>;
