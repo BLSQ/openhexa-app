@@ -133,9 +133,22 @@ export const DatasetVersionFileSample: ApolloComponent<
       };
     } else if (data.datasetVersionFile.fileSample.status === "FINISHED") {
       const sample = data.datasetVersionFile.fileSample.sample;
+      const properties = data.datasetVersionFile.properties ?? {};
+      const columnOrder: string[] | undefined = properties.column_order;
+      const colsMapping: Record<string, string> = properties.columns ?? {};
+
+      let columns: string[];
+      if (columnOrder && colsMapping) {
+        columns = columnOrder.map((key: string) => colsMapping[key]);
+      } else if (sample.length > 0) {
+        columns = Object.keys(sample[0]);
+      } else {
+        columns = [];
+      }
+
       return {
         sample,
-        columns: sample.length > 0 ? Object.keys(sample[0]) : [],
+        columns,
         status: "FINISHED",
       };
     } else if (data.datasetVersionFile.fileSample.status === "PROCESSING") {

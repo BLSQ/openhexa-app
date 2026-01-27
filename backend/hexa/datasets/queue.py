@@ -213,18 +213,21 @@ def add_system_attributes(version_file: DatasetVersionFile, df: pd.DataFrame | N
         return
     profiling = generate_profile(df)
     columns = {}
+    column_order = []
     for column_profile in profiling:
+        hashed_column_name = hashlib.md5(
+            column_profile["column_name"].encode()
+        ).hexdigest()
+        columns[hashed_column_name] = column_profile["column_name"]
+        column_order.append(hashed_column_name)
         for key, value in column_profile.items():
-            hashed_column_name = hashlib.md5(
-                column_profile["column_name"].encode()
-            ).hexdigest()
-            columns[hashed_column_name] = column_profile["column_name"]
             version_file.update_or_create_attribute(
                 key=f"{hashed_column_name}.{key}",
                 value=value,
                 system=True,
             )
     version_file.properties["columns"] = columns
+    version_file.properties["column_order"] = column_order
     version_file.save()
     # Set properties map
 
