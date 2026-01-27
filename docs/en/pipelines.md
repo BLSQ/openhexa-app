@@ -77,8 +77,8 @@ For developers and data engineers, the CLI provides the most flexible approach:
 
 See our guides: [Using the OpenHEXA CLI](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-CLI) and [Writing OpenHEXA Pipelines](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines).
 
-#### 2. From a Jupyter notebook 
-You can use a Notebook from the workspace file system to be run as a pipeline. This is the easiest way to create a pipeline: 
+#### 2. From a Jupyter notebook
+You can use a Notebook from the workspace file system to be run as a pipeline. This is the easiest way to create a pipeline:
 - **Quick start**: Transform exploratory analysis into production workflows
 - **Limitations**: Notebook-based pipelines don't support input parameters
 
@@ -127,13 +127,13 @@ When you create a pipeline from a template, OpenHEXA maintains a connection betw
 You can choose between two upgrade methods when creating a template-based pipeline:
 
 - **Manual (Default)**: You control when to upgrade. Leave "Auto-update from template" disabled.
- 
+
     - Receive notifications about new versions
     - Review changes between versions
     - Upgrade using the "Upgrade to latest version" button
-  
+
 - **Automatic**: Pipeline automatically updates when template changes. Set "Auto-update from template" enabled.
-    
+
     - No manual intervention needed
     - Pipeline stays in sync with template automatically
 
@@ -141,7 +141,7 @@ You can choose between two upgrade methods when creating a template-based pipeli
 
 ### Publish template pipelines
 
-Pipeline creators can publish their own template pipelines to share with other users and workspaces. 
+Pipeline creators can publish their own template pipelines to share with other users and workspaces.
 
 1. **Develop your pipeline**: Create and test your pipeline using standard development practices.
 2. **Prepare documentation**: Ensure your pipeline has comprehensive documentation and clear parameter descriptions.
@@ -192,7 +192,7 @@ You can schedule pipelines to run automatically at specified intervals, enabling
 !!! info "Common scheduling patterns"
 
     - `0 0 * * *` - Run daily at midnight
-    - `0 0 * * MON` - Run every Monday at midnight  
+    - `0 0 * * MON` - Run every Monday at midnight
     - `0 0 1 * *` - Run on the first day of every month at midnight
     - `0 */6 * * *` - Run every 6 hours
     - `*/15 * * * *` - Run every 15 minutes
@@ -222,9 +222,5 @@ Set default parameter values that will be used for scheduled runs.
 
 - **View and edit code**: Browse and modify pipeline source code directly in the web interface
 - **Download**: Export pipeline code for local development or backup
- 
+
 ![Code Management Interface](../assets/images/pipelines/code.png)
-
-
-
-

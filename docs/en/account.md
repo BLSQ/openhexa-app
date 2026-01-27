@@ -3,6 +3,29 @@
 </div>
 </div>
 
+## Creating an account
+
+### Sign up
+
+If self-registration is enabled on your OpenHEXA instance, you can create an account directly from the sign-up page:
+
+1. Navigate to the **Sign up** page.
+2. Enter your email address.
+3. Click **Sign up**.
+4. Check your email inbox for a verification link.
+5. Click the link to complete your registration (the link expires after 48 hours).
+
+If you already have an account, click **Already have an account? Sign in** to go to the login page.
+
+!!! info "Self-registration availability"
+    Self-registration may not be available on all OpenHEXA instances. If you see a message indicating that self-registration is disabled, contact your administrator to request an invitation.
+
+### Accept an invitation
+
+If you received an invitation to join a workspace, click the link in the invitation email to create your account and access the workspace.
+
+## Managing your account
+
 You can manage your personal information and security settings on the **Account** page in OpenHEXA.
 
 ![Account Admin Access](../assets/images/account/account.png)

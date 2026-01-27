@@ -77,8 +77,8 @@ Pour les développeurs et les ingénieurs de données, le CLI fournit l'approche
 
 Voir nos guides : [Utiliser l'OpenHEXA CLI](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-CLI) et [Écrire des pipelines OpenHEXA](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines).
 
-#### 2. À partir d'un notebook Jupyter 
-Vous pouvez utiliser un Notebook du système de fichiers de l'espace de travail pour être exécuté comme un pipeline. C'est la façon la plus simple de créer un pipeline : 
+#### 2. À partir d'un notebook Jupyter
+Vous pouvez utiliser un Notebook du système de fichiers de l'espace de travail pour être exécuté comme un pipeline. C'est la façon la plus simple de créer un pipeline :
 - **Démarrage rapide** : Transformez l'analyse exploratoire en flux de travail de production
 - **Limitations** : Les pipelines basés sur des notebooks ne prennent pas en charge les paramètres d'entrée
 
@@ -127,13 +127,13 @@ Lorsque vous créez un pipeline à partir d'un modèle, OpenHEXA maintient une c
 Vous pouvez choisir entre deux méthodes de mise à niveau lors de la création d'un pipeline basé sur un modèle :
 
 - **Manuel (par défaut)** : Vous contrôlez quand mettre à niveau. Laissez "Mise à jour automatique depuis le modèle" désactivé.
- 
+
     - Recevez des notifications sur les nouvelles versions
     - Examinez les modifications entre les versions
     - Mettez à niveau en utilisant le bouton "Mettre à niveau vers la dernière version"
-  
+
 - **Automatique** : Le pipeline se met à jour automatiquement lorsque le modèle change. Activez "Mise à jour automatique depuis le modèle".
-    
+
     - Aucune intervention manuelle nécessaire
     - Le pipeline reste synchronisé avec le modèle automatiquement
 
@@ -141,7 +141,7 @@ Vous pouvez choisir entre deux méthodes de mise à niveau lors de la création 
 
 ### Publier des modèles de pipelines
 
-Les créateurs de pipelines peuvent publier leurs propres modèles de pipelines pour les partager avec d'autres utilisateurs et espaces de travail. 
+Les créateurs de pipelines peuvent publier leurs propres modèles de pipelines pour les partager avec d'autres utilisateurs et espaces de travail.
 
 1. **Développer votre pipeline** : Créez et testez votre pipeline en utilisant les pratiques de développement standard.
 2. **Préparer la documentation** : Assurez-vous que votre pipeline dispose d'une documentation complète et de descriptions claires des paramètres.
@@ -192,7 +192,7 @@ Vous pouvez planifier des pipelines pour qu'ils s'exécutent automatiquement à 
 !!! info "Modèles de planification courants"
 
     - `0 0 * * *` - Exécuter quotidiennement à minuit
-    - `0 0 * * MON` - Exécuter tous les lundis à minuit  
+    - `0 0 * * MON` - Exécuter tous les lundis à minuit
     - `0 0 1 * *` - Exécuter le premier jour de chaque mois à minuit
     - `0 */6 * * *` - Exécuter toutes les 6 heures
     - `*/15 * * * *` - Exécuter toutes les 15 minutes
@@ -222,10 +222,5 @@ Définissez les valeurs de paramètres par défaut qui seront utilisées pour le
 
 - **Voir et modifier le code** : Parcourez et modifiez le code source du pipeline directement dans l'interface web
 - **Télécharger** : Exportez le code du pipeline pour le développement local ou la sauvegarde
- 
+
 ![Code Management Interface](../assets/images/pipelines/code.png)
-
-
-
-
-

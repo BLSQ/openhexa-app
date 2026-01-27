@@ -3,6 +3,29 @@
 </div>
 </div>
 
+## Créer un compte
+
+### S'inscrire
+
+Si l'auto-inscription est activée sur votre instance OpenHEXA, vous pouvez créer un compte directement depuis la page d'inscription :
+
+1. Accédez à la page **S'inscrire**.
+2. Entrez votre adresse e-mail.
+3. Cliquez sur **S'inscrire**.
+4. Vérifiez votre boîte de réception pour un lien de vérification.
+5. Cliquez sur le lien pour terminer votre inscription (le lien expire après 48 heures).
+
+Si vous avez déjà un compte, cliquez sur **Vous avez déjà un compte ? Se connecter** pour accéder à la page de connexion.
+
+!!! info "Disponibilité de l'auto-inscription"
+    L'auto-inscription peut ne pas être disponible sur toutes les instances OpenHEXA. Si vous voyez un message indiquant que l'auto-inscription est désactivée, contactez votre administrateur pour demander une invitation.
+
+### Accepter une invitation
+
+Si vous avez reçu une invitation à rejoindre un espace de travail, cliquez sur le lien dans l'e-mail d'invitation pour créer votre compte et accéder à l'espace de travail.
+
+## Gérer votre compte
+
 Vous pouvez gérer vos informations personnelles et vos paramètres de sécurité sur la page **Compte** dans OpenHEXA.
 
 ![Account Admin Access](../assets/images/account/account.png)
