@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.17.3](https://github.com/BLSQ/openhexa-app/compare/2.17.2...2.17.3) (2026-01-27)
+
+
+### Bug Fixes
+
+* creating workspace is failing because of read-only role creation (HEXA-1483) ([#1577](https://github.com/BLSQ/openhexa-app/issues/1577)) ([b7770d5](https://github.com/BLSQ/openhexa-app/commit/b7770d5e653905a7b6cb614866e9a5e89be61692))
+* file upload with file picker is not working (HEXA-1484) [#1582](https://github.com/BLSQ/openhexa-app/issues/1582) ([9a74bc7](https://github.com/BLSQ/openhexa-app/commit/9a74bc7b6ccd514d38b2c2fcf5f5951b5a27231d))
+* spotlight search Pipelines are shown multiple times when multiple tags (HEXA-1482) ([#1578](https://github.com/BLSQ/openhexa-app/issues/1578)) ([0401dea](https://github.com/BLSQ/openhexa-app/commit/0401dea6be1f5cf5901bb2d20e62205778131a8e))
+
 ## [2.17.2](https://github.com/BLSQ/openhexa-app/compare/2.17.1...2.17.2) (2026-01-26)
 
 
