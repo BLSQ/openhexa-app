@@ -2532,3 +2532,293 @@ class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
 
         self.assertIsNotNone(r["data"]["organization"])
         self.assertEqual(r["data"]["organization"]["name"], "Test Organization")
+
+    def test_convert_external_collaborator_to_member(self):
+        """Test converting an external collaborator to an organization member with MEMBER role."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation ConvertExternalCollaboratorToMember($input: ConvertExternalCollaboratorToMemberInput!) {
+                convertExternalCollaboratorToMember(input: $input) {
+                    success
+                    errors
+                    membership {
+                        id
+                        role
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "role": "MEMBER",
+                }
+            },
+        )
+
+        result = r["data"]["convertExternalCollaboratorToMember"]
+        self.assertTrue(result["success"])
+        self.assertEqual(result["errors"], [])
+        self.assertIsNotNone(result["membership"])
+        self.assertEqual(result["membership"]["role"], "MEMBER")
+        self.assertEqual(result["membership"]["user"]["email"], "external@blsq.org")
+
+        self.assertTrue(
+            OrganizationMembership.objects.filter(
+                user=self.external_collaborator,
+                organization=self.organization,
+                role=OrganizationMembershipRole.MEMBER,
+            ).exists()
+        )
+
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(
+                user=self.external_collaborator, workspace=self.workspace1
+            ).exists()
+        )
+
+    def test_convert_external_collaborator_to_admin(self):
+        """Test converting an external collaborator to an organization admin."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation ConvertExternalCollaboratorToMember($input: ConvertExternalCollaboratorToMemberInput!) {
+                convertExternalCollaboratorToMember(input: $input) {
+                    success
+                    errors
+                    membership {
+                        role
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "role": "ADMIN",
+                }
+            },
+        )
+
+        result = r["data"]["convertExternalCollaboratorToMember"]
+        self.assertTrue(result["success"])
+        self.assertEqual(result["membership"]["role"], "ADMIN")
+
+        self.assertTrue(
+            OrganizationMembership.objects.filter(
+                user=self.external_collaborator,
+                organization=self.organization,
+                role=OrganizationMembershipRole.ADMIN,
+            ).exists()
+        )
+
+    def test_convert_external_collaborator_to_owner(self):
+        """Test converting an external collaborator to an organization owner."""
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation ConvertExternalCollaboratorToMember($input: ConvertExternalCollaboratorToMemberInput!) {
+                convertExternalCollaboratorToMember(input: $input) {
+                    success
+                    errors
+                    membership {
+                        role
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "role": "OWNER",
+                }
+            },
+        )
+
+        result = r["data"]["convertExternalCollaboratorToMember"]
+        self.assertTrue(result["success"])
+        self.assertEqual(result["membership"]["role"], "OWNER")
+
+        self.assertTrue(
+            OrganizationMembership.objects.filter(
+                user=self.external_collaborator,
+                organization=self.organization,
+                role=OrganizationMembershipRole.OWNER,
+            ).exists()
+        )
+
+    def test_convert_external_collaborator_to_owner_denied_for_admin(self):
+        """Test that admins cannot convert external collaborators to owners."""
+        self.client.force_login(self.admin)
+        r = self.run_query(
+            """
+            mutation ConvertExternalCollaboratorToMember($input: ConvertExternalCollaboratorToMemberInput!) {
+                convertExternalCollaboratorToMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "role": "OWNER",
+                }
+            },
+        )
+
+        result = r["data"]["convertExternalCollaboratorToMember"]
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["PERMISSION_DENIED"])
+
+        self.assertFalse(
+            OrganizationMembership.objects.filter(
+                user=self.external_collaborator,
+                organization=self.organization,
+            ).exists()
+        )
+
+    def test_convert_external_collaborator_already_member(self):
+        """Test that converting a user who is already an org member fails."""
+        OrganizationMembership.objects.create(
+            user=self.external_collaborator,
+            organization=self.organization,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation ConvertExternalCollaboratorToMember($input: ConvertExternalCollaboratorToMemberInput!) {
+                convertExternalCollaboratorToMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "role": "MEMBER",
+                }
+            },
+        )
+
+        result = r["data"]["convertExternalCollaboratorToMember"]
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["NOT_EXTERNAL_COLLABORATOR"])
+
+    def test_convert_external_collaborator_no_workspace_membership(self):
+        """Test that converting a user without workspace access fails."""
+        self.external_workspace_membership.delete()
+
+        self.client.force_login(self.owner)
+        r = self.run_query(
+            """
+            mutation ConvertExternalCollaboratorToMember($input: ConvertExternalCollaboratorToMemberInput!) {
+                convertExternalCollaboratorToMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "role": "MEMBER",
+                }
+            },
+        )
+
+        result = r["data"]["convertExternalCollaboratorToMember"]
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["NOT_EXTERNAL_COLLABORATOR"])
+
+    def test_convert_external_collaborator_unauthorized(self):
+        """Test that non-members cannot convert external collaborators."""
+        self.client.force_login(self.non_member)
+        r = self.run_query(
+            """
+            mutation ConvertExternalCollaboratorToMember($input: ConvertExternalCollaboratorToMemberInput!) {
+                convertExternalCollaboratorToMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "role": "MEMBER",
+                }
+            },
+        )
+
+        result = r["data"]["convertExternalCollaboratorToMember"]
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["ORGANIZATION_NOT_FOUND"])
+
+    def test_convert_external_collaborator_by_regular_member(self):
+        """Test that regular members cannot convert external collaborators."""
+        self.client.force_login(self.member)
+        r = self.run_query(
+            """
+            mutation ConvertExternalCollaboratorToMember($input: ConvertExternalCollaboratorToMemberInput!) {
+                convertExternalCollaboratorToMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "role": "MEMBER",
+                }
+            },
+        )
+
+        result = r["data"]["convertExternalCollaboratorToMember"]
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["PERMISSION_DENIED"])
+
+    def test_convert_external_collaborator_by_admin(self):
+        """Test that organization admins can convert external collaborators."""
+        self.client.force_login(self.admin)
+        r = self.run_query(
+            """
+            mutation ConvertExternalCollaboratorToMember($input: ConvertExternalCollaboratorToMemberInput!) {
+                convertExternalCollaboratorToMember(input: $input) {
+                    success
+                    errors
+                    membership {
+                        role
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "userId": str(self.external_collaborator.id),
+                    "organizationId": str(self.organization.id),
+                    "role": "ADMIN",
+                }
+            },
+        )
+
+        result = r["data"]["convertExternalCollaboratorToMember"]
+        self.assertTrue(result["success"])
+        self.assertEqual(result["membership"]["role"], "ADMIN")
