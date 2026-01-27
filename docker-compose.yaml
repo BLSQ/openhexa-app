@@ -144,6 +144,7 @@ services:
     container_name: azurite
     hostname: azurite
     restart: always
+    command: azurite --skipApiVersionCheck --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
     profiles:
       - "test"
     ports:
