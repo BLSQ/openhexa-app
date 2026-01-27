@@ -505,6 +505,64 @@ enum ConnectionType {
   S3
 }
 
+"""
+The ConvertExternalCollaboratorToMemberError enum represents the possible errors that can occur during the convertExternalCollaboratorToMember mutation.
+"""
+enum ConvertExternalCollaboratorToMemberError {
+  """
+  Indicates that the user is not an external collaborator (either not in any workspace or already an org member).
+  """
+  NOT_EXTERNAL_COLLABORATOR
+
+  """Indicates that the organization was not found."""
+  ORGANIZATION_NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to convert external collaborators.
+  """
+  PERMISSION_DENIED
+
+  """
+  Indicates that the organization has reached its user limit (SaaS only).
+  """
+  USERS_LIMIT_REACHED
+
+  """Indicates that the user was not found."""
+  USER_NOT_FOUND
+}
+
+"""
+The ConvertExternalCollaboratorToMemberInput type represents the input for the convertExternalCollaboratorToMember mutation.
+"""
+input ConvertExternalCollaboratorToMemberInput {
+  """The unique identifier of the organization."""
+  organizationId: UUID!
+
+  """The role to assign to the new organization member."""
+  role: OrganizationMembershipRole!
+
+  """The unique identifier of the user to convert to organization member."""
+  userId: UUID!
+}
+
+"""
+The ConvertExternalCollaboratorToMemberResult type represents the result of the convertExternalCollaboratorToMember mutation.
+"""
+type ConvertExternalCollaboratorToMemberResult {
+  """
+  The list of errors that occurred during the convertExternalCollaboratorToMember mutation.
+  """
+  errors: [ConvertExternalCollaboratorToMemberError!]!
+
+  """The created organization membership object."""
+  membership: OrganizationMembership
+
+  """
+  Indicates whether the convertExternalCollaboratorToMember mutation was successful.
+  """
+  success: Boolean!
+}
+
 type Country {
   alpha3: String!
   code: String!
@@ -2614,6 +2672,7 @@ type Mutation {
   addWebappToShortcuts(input: AddWebappToShortcutsInput!): AddWebappToShortcutsResult!
   approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
   archiveWorkspace(input: ArchiveWorkspaceInput!): ArchiveWorkspaceResult!
+  convertExternalCollaboratorToMember(input: ConvertExternalCollaboratorToMemberInput!): ConvertExternalCollaboratorToMemberResult!
   createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult!
   createAccessmodFile(input: CreateAccessmodFileInput!): CreateAccessmodFileResult!
   createAccessmodFileset(input: CreateAccessmodFilesetInput!): CreateAccessmodFilesetResult!
