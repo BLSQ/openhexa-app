@@ -21,11 +21,27 @@ def apply_scored_search(queryset: QuerySet, fields: list[str], query: str):
         When(**{f"{field}__iexact": query}, then=Value(1.0)) for field in fields
     ] + [When(**{f"{field}__icontains": query}, then=Value(0.5)) for field in fields]
 
-    return (
+    pk_scores = dict(
         queryset.annotate(
             score=Case(*score_cases, default=Value(0), output_field=FloatField())
         )
         .filter(score__gt=0)
+        .order_by("pk", "-score")
+        .distinct("pk")
+        .values_list("pk", "score")
+    )
+
+    if not pk_scores:
+        return queryset.none()
+
+    return (
+        queryset.filter(pk__in=pk_scores)
+        .annotate(
+            score=Case(
+                *[When(pk=pk, then=Value(s)) for pk, s in pk_scores.items()],
+                output_field=FloatField(),
+            )
+        )
         .order_by("-score")
     )
 
@@ -103,12 +119,11 @@ def resolve_search_pipeline_templates(
             id=organization_id
         ).workspaces.values_list("slug", flat=True)
 
-    qs = PipelineTemplate.objects.filter_for_user(request.user).with_pipelines_count()
+    qs = PipelineTemplate.objects.filter_for_user(request.user)
 
     if organization_id:
         qs = qs.filter(workspace__organization_id=organization_id)
 
-    qs = qs.order_by(*PipelineTemplate.default_order_by())
     qs = apply_scored_search(qs, ["name", "code", "description", "tags__name"], query)
     return page_result_with_scores(qs, page, per_page, "pipeline_template")
 
