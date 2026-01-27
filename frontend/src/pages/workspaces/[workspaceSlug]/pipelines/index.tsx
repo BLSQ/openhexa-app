@@ -74,6 +74,7 @@ const WorkspacePipelinesPage: NextPageWithLayout = ({
           <Button
             leadingIcon={<PlusIcon className="h-4 w-4" />}
             onClick={() => setDialogOpen(true)}
+            disabled={!workspace.permissions.update}
           >
             {t("Create")}
           </Button>
