@@ -28,8 +28,9 @@ class ConnectiontTest(GraphQLTestCase):
         cls.USER_ADMIN = User.objects.create_user(
             "admin@bluesquarehub.com", "admin", is_superuser=True
         )
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             cls.WORKSPACE = Workspace.objects.create_if_has_perm(
                 cls.USER_ADMIN, name="Workspace's title"

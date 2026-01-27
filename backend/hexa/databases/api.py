@@ -70,10 +70,18 @@ def create_read_and_write_role(db_name: str, pwd: str, cursor=None):
         pwd: Password for the read-write role
         cursor: Optional cursor to use (if None, creates its own connection)
     """
+    credentials = get_db_server_credentials()
     with get_cursor(db_name, cursor) as cur:
         cur.execute(
             sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password};").format(
                 role_name=sql.Identifier(db_name), password=sql.Literal(pwd)
+            )
+        )
+        # Grant the newly created role to the db user used to connect to this server. This is needed in PG16+
+        cursor.execute(
+            sql.SQL("GRANT {role} TO {admin_role}").format(
+                role=sql.Identifier(db_name),
+                admin_role=sql.Identifier(credentials["role"]),
             )
         )
         cur.execute(
@@ -155,6 +163,7 @@ def create_database(db_name: str, pwd: str, ro_pwd: str):
     """
     validate_db_name(db_name)
     conn = None
+
     try:
         conn = get_database_connection(settings.WORKSPACES_DATABASE_DEFAULT_DB)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
