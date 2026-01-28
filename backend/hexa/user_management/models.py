@@ -302,6 +302,30 @@ class Organization(Base, SoftDeletedModel):
             .count()
         )
 
+    def get_assistant_usage(self) -> dict:
+        """Get assistant usage stats for the current calendar month."""
+        from django.db.models import Sum
+
+        from hexa.assistant.models import Conversation
+
+        today = timezone.now().date()
+        month_start = today.replace(day=1)
+
+        stats = Conversation.objects.filter(
+            workspace__organization=self,
+            created_at__date__gte=month_start,
+        ).aggregate(
+            total_input_tokens=Sum("total_input_tokens"),
+            total_output_tokens=Sum("total_output_tokens"),
+            total_cost=Sum("estimated_cost"),
+        )
+
+        return {
+            "input_tokens": stats["total_input_tokens"] or 0,
+            "output_tokens": stats["total_output_tokens"] or 0,
+            "cost": float(stats["total_cost"] or 0),
+        }
+
     def is_users_limit_reached(self) -> bool:
         """Check if the organization has reached its user limit."""
         subscription = self.active_subscription

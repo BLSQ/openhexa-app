@@ -756,6 +756,7 @@ def resolve_organization_usage(organization: Organization, info, **kwargs):
         "users": organization.get_users_count(),
         "workspaces": organization.get_workspaces_count(),
         "pipeline_runs": organization.get_monthly_pipeline_runs_count(),
+        "assistant_usage": organization.get_assistant_usage(),
     }
 
 

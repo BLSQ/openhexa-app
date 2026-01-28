@@ -24,6 +24,11 @@ fragment Organization_organization on Organization {
     users
     workspaces
     pipelineRuns
+    assistantUsage {
+      inputTokens
+      outputTokens
+      cost
+    }
   }
   subscription {
     subscriptionId

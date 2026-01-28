@@ -37,6 +37,25 @@ const OrganizationUsageLimits = ({
     },
   ];
 
+  const formatTokens = (tokens: number) => {
+    if (tokens >= 1_000_000) {
+      return `${(tokens / 1_000_000).toFixed(2)}M`;
+    }
+    if (tokens >= 1_000) {
+      return `${(tokens / 1_000).toFixed(1)}K`;
+    }
+    return tokens.toString();
+  };
+
+  const formatCost = (cost: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4,
+    }).format(cost);
+  };
+
   return (
     <div className="mt-6 rounded-lg bg-white shadow">
       <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
@@ -76,6 +95,34 @@ const OrganizationUsageLimits = ({
             )}
           </div>
         ))}
+
+        {organization.assistantEnabled && (
+          <div className="border-t border-gray-200 pt-4">
+            <div className="mb-2 text-sm font-medium text-gray-700">
+              {t("AI Assistant (this month)")}
+            </div>
+            <dl className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <dt className="text-gray-500">{t("Input tokens")}</dt>
+                <dd className="font-medium text-gray-900">
+                  {formatTokens(usage.assistantUsage.inputTokens)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">{t("Output tokens")}</dt>
+                <dd className="font-medium text-gray-900">
+                  {formatTokens(usage.assistantUsage.outputTokens)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">{t("Estimated cost")}</dt>
+                <dd className="font-medium text-gray-900">
+                  {formatCost(usage.assistantUsage.cost)}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        )}
 
         {subscription && (
           <div className="border-t border-gray-200 pt-4">

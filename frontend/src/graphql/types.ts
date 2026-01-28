@@ -469,10 +469,14 @@ export type AssistantModelConfig = {
   label: Scalars['String']['output'];
 };
 
+/** AI Assistant usage statistics. */
 export type AssistantUsage = {
   __typename?: 'AssistantUsage';
+  /** Estimated cost in USD this month. */
   cost: Scalars['Float']['output'];
+  /** Total input tokens used this month. */
   inputTokens: Scalars['Int']['output'];
+  /** Total output tokens used this month. */
   outputTokens: Scalars['Int']['output'];
 };
 
@@ -4787,6 +4791,8 @@ export type ResetPasswordResult = {
 /** Resource counts */
 export type ResourceCounts = {
   __typename?: 'ResourceCounts';
+  /** AI assistant usage statistics for the current month. */
+  assistantUsage: AssistantUsage;
   /** Number of pipeline runs. */
   pipelineRuns: Scalars['Int']['output'];
   /** Number of users. */

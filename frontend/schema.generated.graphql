@@ -433,9 +433,15 @@ type AssistantModelConfig {
   label: String!
 }
 
+"""AI Assistant usage statistics."""
 type AssistantUsage {
+  """Estimated cost in USD this month."""
   cost: Float!
+
+  """Total input tokens used this month."""
   inputTokens: Int!
+
+  """Total output tokens used this month."""
   outputTokens: Int!
 }
 
@@ -3871,6 +3877,9 @@ type ResetPasswordResult {
 
 """Resource counts"""
 type ResourceCounts {
+  """AI assistant usage statistics for the current month."""
+  assistantUsage: AssistantUsage!
+
   """Number of pipeline runs."""
   pipelineRuns: Int!
 
