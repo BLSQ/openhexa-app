@@ -1,8 +1,11 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import clsx from "clsx";
 import Spinner from "core/components/Spinner";
 import { useTranslation } from "next-i18next";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const SEND_MESSAGE_MUTATION = gql`
   mutation SendAssistantMessage($input: SendAssistantMessageInput!) {
@@ -265,13 +268,22 @@ const AssistantChat = ({ workspaceSlug }: AssistantChatProps) => {
               className={`mb-4 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[75%] rounded-lg px-4 py-2 ${
+                className={clsx(
+                  "max-w-[75%] rounded-lg px-4 py-2",
                   msg.role === "user"
                     ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-800"
-                }`}
+                    : "bg-gray-100 text-gray-800",
+                )}
               >
-                <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                {msg.role === "user" ? (
+                  <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                ) : (
+                  <div className="prose prose-sm max-w-none prose-headings:mb-2 prose-headings:mt-4 prose-headings:font-semibold prose-p:my-2 prose-pre:my-2 prose-pre:bg-gray-800 prose-pre:text-gray-100 prose-code:rounded prose-code:bg-gray-200 prose-code:px-1 prose-code:py-0.5 prose-code:text-gray-800 prose-code:before:content-none prose-code:after:content-none prose-pre:prose-code:bg-transparent prose-pre:prose-code:p-0 prose-pre:prose-code:text-gray-100 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
+                    <Markdown remarkPlugins={[remarkGfm]}>
+                      {msg.content}
+                    </Markdown>
+                  </div>
+                )}
               </div>
             </div>
           ))}
