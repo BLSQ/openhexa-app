@@ -2,6 +2,7 @@ type AssistantConversation {
   id: UUID!
   createdAt: DateTime!
   updatedAt: DateTime!
+  model: String!
   messages: [AssistantMessage!]!
   totalInputTokens: Int!
   totalOutputTokens: Int!
@@ -36,6 +37,7 @@ enum SendAssistantMessageError {
   CONVERSATION_NOT_FOUND
   EMPTY_MESSAGE
   AGENT_ERROR
+  ASSISTANT_DISABLED
 }
 
 input SendAssistantMessageInput {
@@ -58,7 +60,17 @@ input DeleteAssistantConversationInput {
   id: UUID!
 }
 
+type AssistantModelConfig {
+  id: String!
+  label: String!
+}
+
+extend type Query {
+  assistantModels: [AssistantModelConfig!]! @loginRequired
+}
+
 extend type Workspace {
+  assistantEnabled: Boolean!
   assistantConversations: [AssistantConversation!]!
 }
 

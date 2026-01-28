@@ -1043,6 +1043,16 @@ type Organization {
     Subscription details with limits. Null for self-hosted deployments.
     """
     subscription: Subscription
+
+    """
+    Whether the AI assistant is enabled for this organization.
+    """
+    assistantEnabled: Boolean!
+
+    """
+    The Claude model used for AI assistant conversations.
+    """
+    assistantModel: String
 }
 
 """
@@ -1852,6 +1862,16 @@ input UpdateOrganizationInput {
     The updated logo of the organization (base64 encoded).
     """
     logo: String
+
+    """
+    Whether the AI assistant is enabled for this organization.
+    """
+    assistantEnabled: Boolean
+
+    """
+    The Claude model to use for AI assistant conversations.
+    """
+    assistantModel: String
 }
 
 """
@@ -1907,6 +1927,11 @@ enum UpdateOrganizationError {
     Indicates that an organization with the same short name already exists.
     """
     SHORT_NAME_DUPLICATE
+
+    """
+    Indicates that the provided assistant model is not a valid model.
+    """
+    INVALID_ASSISTANT_MODEL
 }
 
 """

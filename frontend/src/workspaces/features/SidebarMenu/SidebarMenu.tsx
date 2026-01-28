@@ -326,6 +326,7 @@ SidebarMenu.fragments = {
     fragment SidebarMenu_workspace on Workspace {
       slug
       name
+      assistantEnabled
       countries {
         flag
         code

@@ -1,12 +1,12 @@
 import logging
 import pathlib
 
-from ariadne import MutationType, ObjectType, load_schema_from_path
+from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
 from django.http import HttpRequest
 
 from hexa.workspaces.models import Workspace
 
-from .models import Conversation
+from .models import ASSISTANT_MODELS, Conversation
 
 logger = logging.getLogger(__name__)
 
@@ -14,9 +14,26 @@ assistant_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
 )
 
+assistant_query = QueryType()
 workspace_object = ObjectType("Workspace")
 conversation_object = ObjectType("AssistantConversation")
 assistant_mutations = MutationType()
+
+
+@assistant_query.field("assistantModels")
+def resolve_assistant_models(_, info):
+    return [
+        {"id": model_id, "label": config["label"]}
+        for model_id, config in ASSISTANT_MODELS.items()
+    ]
+
+
+@workspace_object.field("assistantEnabled")
+def resolve_workspace_assistant_enabled(workspace: Workspace, info):
+    return (
+        workspace.organization is not None
+        and workspace.organization.assistant_enabled
+    )
 
 
 @workspace_object.field("assistantConversations")
@@ -52,6 +69,9 @@ def resolve_send_assistant_message(_, info, **kwargs):
         workspace = Workspace.objects.filter_for_user(request.user).get(slug=workspace_slug)
     except Workspace.DoesNotExist:
         return {"success": False, "errors": ["PERMISSION_DENIED"], "message": None, "usage": None}
+
+    if not (workspace.organization and workspace.organization.assistant_enabled):
+        return {"success": False, "errors": ["ASSISTANT_DISABLED"], "message": None, "usage": None}
 
     if conversation_id:
         try:
@@ -106,6 +126,7 @@ def resolve_delete_assistant_conversation(_, info, **kwargs):
 
 
 assistant_bindables = [
+    assistant_query,
     workspace_object,
     conversation_object,
     assistant_mutations,

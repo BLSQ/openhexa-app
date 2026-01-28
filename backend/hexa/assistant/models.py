@@ -5,6 +5,25 @@ from hexa.core.models.base import Base, BaseQuerySet
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
+ASSISTANT_MODELS = {
+    "claude-sonnet-4-20250514": {
+        "label": "Claude Sonnet 4",
+        "input_price_per_million": 3.00,
+        "output_price_per_million": 15.00,
+    },
+    "claude-opus-4-5-20251101": {
+        "label": "Claude Opus 4.5",
+        "input_price_per_million": 5.00,
+        "output_price_per_million": 25.00,
+    },
+    "claude-haiku-3-5-20241022": {
+        "label": "Claude Haiku 3.5",
+        "input_price_per_million": 0.80,
+        "output_price_per_million": 4.00,
+    },
+}
+DEFAULT_ASSISTANT_MODEL = "claude-sonnet-4-20250514"
+
 
 class ConversationQuerySet(BaseQuerySet):
     def filter_for_user(self, user):
@@ -20,6 +39,8 @@ class Conversation(Base):
     workspace = models.ForeignKey(
         Workspace, on_delete=models.CASCADE, related_name="assistant_conversations"
     )
+
+    model = models.CharField(max_length=100, default="")
 
     total_input_tokens = models.IntegerField(default=0)
     total_output_tokens = models.IntegerField(default=0)

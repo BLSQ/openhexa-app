@@ -407,6 +407,38 @@ type ArchiveWorkspaceResult {
   success: Boolean!
 }
 
+type AssistantConversation {
+  createdAt: DateTime!
+  estimatedCost: Float!
+  id: UUID!
+  messages: [AssistantMessage!]!
+  model: String!
+  totalInputTokens: Int!
+  totalOutputTokens: Int!
+  updatedAt: DateTime!
+}
+
+type AssistantMessage {
+  content: String!
+  cost: Float
+  createdAt: DateTime!
+  id: UUID!
+  inputTokens: Int
+  outputTokens: Int
+  role: String!
+}
+
+type AssistantModelConfig {
+  id: String!
+  label: String!
+}
+
+type AssistantUsage {
+  cost: Float!
+  inputTokens: Int!
+  outputTokens: Int!
+}
+
 """The Avatar type represents the avatar of a user."""
 type Avatar {
   """The color of the user's avatar."""
@@ -1487,6 +1519,20 @@ type DeleteAccessmodProjectMemberResult {
 
 type DeleteAccessmodProjectResult {
   errors: [DeleteAccessmodProjectError!]!
+  success: Boolean!
+}
+
+enum DeleteAssistantConversationError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input DeleteAssistantConversationInput {
+  id: UUID!
+}
+
+type DeleteAssistantConversationResult {
+  errors: [DeleteAssistantConversationError!]!
   success: Boolean!
 }
 
@@ -2650,6 +2696,7 @@ type Mutation {
   deleteAccessmodFileset(input: DeleteAccessmodFilesetInput!): DeleteAccessmodFilesetResult!
   deleteAccessmodProject(input: DeleteAccessmodProjectInput!): DeleteAccessmodProjectResult!
   deleteAccessmodProjectMember(input: DeleteAccessmodProjectMemberInput!): DeleteAccessmodProjectMemberResult!
+  deleteAssistantConversation(input: DeleteAssistantConversationInput!): DeleteAssistantConversationResult!
 
   """Delete an object from a workspace's bucket."""
   deleteBucketObject(input: DeleteBucketObjectInput!): DeleteBucketObjectResult!
@@ -2771,6 +2818,7 @@ type Mutation {
 
   """Runs a pipeline."""
   runPipeline(input: RunPipelineInput): RunPipelineResult!
+  sendAssistantMessage(input: SendAssistantMessageInput!): SendAssistantMessageResult!
   setDAGRunFavorite(input: SetDAGRunFavoriteInput!): SetDAGRunFavoriteResult
 
   """Set a custom metadata attribute to an object instance"""
@@ -2858,6 +2906,12 @@ enum OrderByDirection {
 
 """The Organization type represents an organization in the system."""
 type Organization {
+  """Whether the AI assistant is enabled for this organization."""
+  assistantEnabled: Boolean!
+
+  """The Claude model used for AI assistant conversations."""
+  assistantModel: String
+
   """The contact information of the organization."""
   contactInfo: String!
 
@@ -3572,6 +3626,7 @@ type Query {
   accessmodFilesets(mode: AccessmodFilesetMode, page: Int, perPage: Int, projectId: String!, roleId: String, term: String): AccessmodFilesetPage!
   accessmodProject(id: String): AccessmodProject
   accessmodProjects(countries: [String!], orderBy: AccessmodProjectOrder, page: Int, perPage: Int, teams: [String!], term: String): AccessmodProjectPage!
+  assistantModels: [AssistantModelConfig!]!
   boundaries(country_code: String!, level: String!): [WHOBoundary!]!
 
   """Retrieves the configuration of the system."""
@@ -3916,6 +3971,27 @@ type S3ObjectPage {
 
 interface SearchResult {
   score: Float!
+}
+
+enum SendAssistantMessageError {
+  AGENT_ERROR
+  ASSISTANT_DISABLED
+  CONVERSATION_NOT_FOUND
+  EMPTY_MESSAGE
+  PERMISSION_DENIED
+}
+
+input SendAssistantMessageInput {
+  conversationId: UUID
+  message: String!
+  workspaceSlug: String!
+}
+
+type SendAssistantMessageResult {
+  errors: [SendAssistantMessageError!]!
+  message: AssistantMessage
+  success: Boolean!
+  usage: AssistantUsage
 }
 
 enum SetDAGRunFavoriteError {
@@ -4431,6 +4507,9 @@ type UpdateMembershipResult {
 The UpdateOrganizationError enum represents the possible errors that can occur during the updateOrganization mutation.
 """
 enum UpdateOrganizationError {
+  """Indicates that the provided assistant model is not a valid model."""
+  INVALID_ASSISTANT_MODEL
+
   """Indicates that the provided logo is in an invalid format."""
   INVALID_LOGO
 
@@ -4460,6 +4539,12 @@ enum UpdateOrganizationError {
 The UpdateOrganizationInput type represents the input for the updateOrganization mutation.
 """
 input UpdateOrganizationInput {
+  """Whether the AI assistant is enabled for this organization."""
+  assistantEnabled: Boolean
+
+  """The Claude model to use for AI assistant conversations."""
+  assistantModel: String
+
   """The unique identifier of the organization."""
   id: UUID!
 
@@ -5041,6 +5126,9 @@ type WebappsPage {
 Represents a workspace. A workspace is a shared environment where users can collaborate on data projects.
 """
 type Workspace {
+  assistantConversations: [AssistantConversation!]!
+  assistantEnabled: Boolean!
+
   """File storage of the workspace represented as a bucket"""
   bucket: Bucket!
   configuration: JSON!

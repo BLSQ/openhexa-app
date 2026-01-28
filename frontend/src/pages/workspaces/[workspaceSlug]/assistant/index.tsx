@@ -12,6 +12,7 @@ const WORKSPACE_ASSISTANT_QUERY = gql`
     workspace(slug: $workspaceSlug) {
       slug
       name
+      assistantEnabled
       permissions {
         update
       }
@@ -77,6 +78,15 @@ export const getServerSideProps = createGetServerSideProps({
     if (!data.workspace) {
       return {
         notFound: true,
+      };
+    }
+
+    if (!data.workspace.assistantEnabled) {
+      return {
+        redirect: {
+          destination: `/workspaces/${encodeURIComponent(data.workspace.slug)}`,
+          permanent: false,
+        },
       };
     }
 

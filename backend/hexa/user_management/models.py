@@ -219,6 +219,9 @@ class Organization(Base, SoftDeletedModel):
     logo = models.BinaryField(blank=True, null=True)
     members = models.ManyToManyField(User, through="OrganizationMembership")
 
+    assistant_enabled = models.BooleanField(default=False)
+    assistant_model = models.CharField(max_length=100, blank=True, default="")
+
     objects = DefaultSoftDeletedManager.from_queryset(OrganizationQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(OrganizationQuerySet)()
 

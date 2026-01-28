@@ -36,6 +36,8 @@ fragment Organization_organization on Organization {
       pipelineRuns
     }
   }
+  assistantEnabled
+  assistantModel
 }
 
 query Organization($id: UUID!) {

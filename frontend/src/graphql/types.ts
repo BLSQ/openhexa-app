@@ -440,6 +440,42 @@ export type ArchiveWorkspaceResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export type AssistantConversation = {
+  __typename?: 'AssistantConversation';
+  createdAt: Scalars['DateTime']['output'];
+  estimatedCost: Scalars['Float']['output'];
+  id: Scalars['UUID']['output'];
+  messages: Array<AssistantMessage>;
+  model: Scalars['String']['output'];
+  totalInputTokens: Scalars['Int']['output'];
+  totalOutputTokens: Scalars['Int']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type AssistantMessage = {
+  __typename?: 'AssistantMessage';
+  content: Scalars['String']['output'];
+  cost?: Maybe<Scalars['Float']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['UUID']['output'];
+  inputTokens?: Maybe<Scalars['Int']['output']>;
+  outputTokens?: Maybe<Scalars['Int']['output']>;
+  role: Scalars['String']['output'];
+};
+
+export type AssistantModelConfig = {
+  __typename?: 'AssistantModelConfig';
+  id: Scalars['String']['output'];
+  label: Scalars['String']['output'];
+};
+
+export type AssistantUsage = {
+  __typename?: 'AssistantUsage';
+  cost: Scalars['Float']['output'];
+  inputTokens: Scalars['Int']['output'];
+  outputTokens: Scalars['Int']['output'];
+};
+
 /** The Avatar type represents the avatar of a user. */
 export type Avatar = {
   __typename?: 'Avatar';
@@ -1585,6 +1621,21 @@ export type DeleteAccessmodProjectResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export enum DeleteAssistantConversationError {
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type DeleteAssistantConversationInput = {
+  id: Scalars['UUID']['input'];
+};
+
+export type DeleteAssistantConversationResult = {
+  __typename?: 'DeleteAssistantConversationResult';
+  errors: Array<DeleteAssistantConversationError>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** Errors that can occur when deleting an object from a workspace's bucket. */
 export enum DeleteBucketObjectError {
   NotFound = 'NOT_FOUND',
@@ -2658,6 +2709,7 @@ export type Mutation = {
   deleteAccessmodFileset: DeleteAccessmodFilesetResult;
   deleteAccessmodProject: DeleteAccessmodProjectResult;
   deleteAccessmodProjectMember: DeleteAccessmodProjectMemberResult;
+  deleteAssistantConversation: DeleteAssistantConversationResult;
   /** Delete an object from a workspace's bucket. */
   deleteBucketObject: DeleteBucketObjectResult;
   deleteConnection: DeleteConnectionResult;
@@ -2746,6 +2798,7 @@ export type Mutation = {
   runDAG: RunDagResult;
   /** Runs a pipeline. */
   runPipeline: RunPipelineResult;
+  sendAssistantMessage: SendAssistantMessageResult;
   setDAGRunFavorite?: Maybe<SetDagRunFavoriteResult>;
   /** Set a custom metadata attribute to an object instance */
   setMetadataAttribute: SetMetadataAttributeResult;
@@ -2949,6 +3002,11 @@ export type MutationDeleteAccessmodProjectArgs = {
 
 export type MutationDeleteAccessmodProjectMemberArgs = {
   input: DeleteAccessmodProjectMemberInput;
+};
+
+
+export type MutationDeleteAssistantConversationArgs = {
+  input: DeleteAssistantConversationInput;
 };
 
 
@@ -3237,6 +3295,11 @@ export type MutationRunPipelineArgs = {
 };
 
 
+export type MutationSendAssistantMessageArgs = {
+  input: SendAssistantMessageInput;
+};
+
+
 export type MutationSetDagRunFavoriteArgs = {
   input: SetDagRunFavoriteInput;
 };
@@ -3417,6 +3480,10 @@ export enum OrderByDirection {
 /** The Organization type represents an organization in the system. */
 export type Organization = {
   __typename?: 'Organization';
+  /** Whether the AI assistant is enabled for this organization. */
+  assistantEnabled: Scalars['Boolean']['output'];
+  /** The Claude model used for AI assistant conversations. */
+  assistantModel?: Maybe<Scalars['String']['output']>;
   /** The contact information of the organization. */
   contactInfo: Scalars['String']['output'];
   /** Dataset links available in the organization */
@@ -4204,6 +4271,7 @@ export type Query = {
   accessmodFilesets: AccessmodFilesetPage;
   accessmodProject?: Maybe<AccessmodProject>;
   accessmodProjects: AccessmodProjectPage;
+  assistantModels: Array<AssistantModelConfig>;
   boundaries: Array<WhoBoundary>;
   /** Retrieves the configuration of the system. */
   config: Config;
@@ -4823,6 +4891,28 @@ export type SearchResult = {
   score: Scalars['Float']['output'];
 };
 
+export enum SendAssistantMessageError {
+  AgentError = 'AGENT_ERROR',
+  AssistantDisabled = 'ASSISTANT_DISABLED',
+  ConversationNotFound = 'CONVERSATION_NOT_FOUND',
+  EmptyMessage = 'EMPTY_MESSAGE',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type SendAssistantMessageInput = {
+  conversationId?: InputMaybe<Scalars['UUID']['input']>;
+  message: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
+};
+
+export type SendAssistantMessageResult = {
+  __typename?: 'SendAssistantMessageResult';
+  errors: Array<SendAssistantMessageError>;
+  message?: Maybe<AssistantMessage>;
+  success: Scalars['Boolean']['output'];
+  usage?: Maybe<AssistantUsage>;
+};
+
 export enum SetDagRunFavoriteError {
   Invalid = 'INVALID',
   MissingLabel = 'MISSING_LABEL',
@@ -5291,6 +5381,8 @@ export type UpdateMembershipResult = {
 
 /** The UpdateOrganizationError enum represents the possible errors that can occur during the updateOrganization mutation. */
 export enum UpdateOrganizationError {
+  /** Indicates that the provided assistant model is not a valid model. */
+  InvalidAssistantModel = 'INVALID_ASSISTANT_MODEL',
   /** Indicates that the provided logo is in an invalid format. */
   InvalidLogo = 'INVALID_LOGO',
   /** Indicates that the provided short name is invalid (must be max 5 uppercase letters). */
@@ -5307,6 +5399,10 @@ export enum UpdateOrganizationError {
 
 /** The UpdateOrganizationInput type represents the input for the updateOrganization mutation. */
 export type UpdateOrganizationInput = {
+  /** Whether the AI assistant is enabled for this organization. */
+  assistantEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  /** The Claude model to use for AI assistant conversations. */
+  assistantModel?: InputMaybe<Scalars['String']['input']>;
   /** The unique identifier of the organization. */
   id: Scalars['UUID']['input'];
   /** The updated logo of the organization (base64 encoded). */
@@ -5812,6 +5908,8 @@ export type WebappsPage = {
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type Workspace = {
   __typename?: 'Workspace';
+  assistantConversations: Array<AssistantConversation>;
+  assistantEnabled: Scalars['Boolean']['output'];
   /** File storage of the workspace represented as a bucket */
   bucket: Bucket;
   configuration: Scalars['JSON']['output'];

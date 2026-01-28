@@ -7,14 +7,12 @@ from django.db.models import F
 
 from hexa.workspaces.models import Workspace
 
-from .models import Conversation, Message, ToolExecution
+from .models import ASSISTANT_MODELS, DEFAULT_ASSISTANT_MODEL, Conversation, Message, ToolExecution
 from .tool_executors import WorkspaceDatabaseTools, WorkspaceFileSystemTools
 from .tools import get_database_tools, get_file_system_tools
 
 logger = logging.getLogger(__name__)
 
-INPUT_PRICE_PER_MILLION = 5.00
-OUTPUT_PRICE_PER_MILLION = 25.00
 MAX_TOOL_ITERATIONS = 10
 
 SYSTEM_PROMPT = """You are a helpful AI assistant integrated into OpenHEXA, a data platform. You have access to the user's workspace file system and PostgreSQL database.
@@ -40,6 +38,13 @@ class AgentService:
         self.client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
         self.fs_tools = WorkspaceFileSystemTools(workspace)
         self.db_tools = WorkspaceDatabaseTools(workspace)
+
+        org = workspace.organization
+        org_model = getattr(org, "assistant_model", "") if org else ""
+        self.model_id = org_model if org_model and org_model in ASSISTANT_MODELS else DEFAULT_ASSISTANT_MODEL
+        model_config = ASSISTANT_MODELS[self.model_id]
+        self.input_price_per_million = model_config["input_price_per_million"]
+        self.output_price_per_million = model_config["output_price_per_million"]
 
     def execute_tool(self, tool_name: str, tool_input: dict) -> dict:
         if tool_name == "list_files":
@@ -80,8 +85,11 @@ class AgentService:
 
         tools = get_file_system_tools() + get_database_tools()
 
+        if not self.conversation.model:
+            Conversation.objects.filter(id=self.conversation.id).update(model=self.model_id)
+
         response = self.client.messages.create(
-            model="claude-opus-4-5-20251101",
+            model=self.model_id,
             max_tokens=4096,
             system=SYSTEM_PROMPT,
             tools=tools,
@@ -111,7 +119,7 @@ class AgentService:
             messages.append({"role": "user", "content": tool_results})
 
             response = self.client.messages.create(
-                model="claude-opus-4-5-20251101",
+                model=self.model_id,
                 max_tokens=4096,
                 system=SYSTEM_PROMPT,
                 tools=tools,
@@ -126,9 +134,9 @@ class AgentService:
             if hasattr(block, "text"):
                 final_text += block.text
 
-        cost = (total_input_tokens / 1_000_000) * INPUT_PRICE_PER_MILLION + (
+        cost = (total_input_tokens / 1_000_000) * self.input_price_per_million + (
             total_output_tokens / 1_000_000
-        ) * OUTPUT_PRICE_PER_MILLION
+        ) * self.output_price_per_million
 
         Message.objects.create(
             conversation=self.conversation,

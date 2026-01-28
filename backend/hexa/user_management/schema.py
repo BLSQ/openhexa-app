@@ -572,6 +572,11 @@ def resolve_logo(obj: Organization, *_):
     return encode_base64_image(bytes(obj.logo)) if obj.logo else None
 
 
+@organization_object.field("assistantModel")
+def resolve_assistant_model(obj: Organization, *_):
+    return obj.assistant_model or None
+
+
 @organization_object.field("members")
 def resolve_members(organization: Organization, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -1447,6 +1452,21 @@ def resolve_update_organization(_, info, **kwargs):
                         "errors": ["SHORT_NAME_DUPLICATE"],
                     }
                 organization.short_name = short_name
+
+        if "assistant_enabled" in update_input:
+            organization.assistant_enabled = update_input["assistant_enabled"]
+
+        if "assistant_model" in update_input:
+            from hexa.assistant.models import ASSISTANT_MODELS
+
+            model_value = update_input["assistant_model"]
+            if model_value and model_value not in ASSISTANT_MODELS:
+                return {
+                    "success": False,
+                    "organization": None,
+                    "errors": ["INVALID_ASSISTANT_MODEL"],
+                }
+            organization.assistant_model = model_value or ""
 
         if "logo" in update_input:
             if update_input["logo"]:

@@ -141,11 +141,15 @@ const Sidebar = (props: SidebarProps) => {
       label: t("Apps"),
       Icon: GlobeAltIcon,
     },
-    {
-      href: `/workspaces/${encodeURIComponent(slug)}/assistant`,
-      label: t("Assistant"),
-      Icon: ChatBubbleLeftRightIcon,
-    },
+    ...(workspace.assistantEnabled
+      ? [
+          {
+            href: `/workspaces/${encodeURIComponent(slug)}/assistant`,
+            label: t("Assistant"),
+            Icon: ChatBubbleLeftRightIcon,
+          },
+        ]
+      : []),
     ...(workspace.permissions.manageMembers
       ? [
           {
