@@ -78,5 +78,8 @@ openhexa-sdk==2.15.2
 
 # email templating
 mjml-python
+
+# AI assistant
+anthropic
 #
 filetype

@@ -37,6 +37,9 @@ OPENHEXA_JWT_ISSUER = os.environ.get("OPENHEXA_JWT_ISSUER", "https://app.openhex
 OPENHEXA_JWT_AUDIENCE = os.environ.get("OPENHEXA_JWT_AUDIENCE", "openhexa-clients")
 OPENHEXA_JWT_TTL = int(os.environ.get("OPENHEXA_JWT_TTL", "3600"))
 
+# Anthropic API (AI Assistant)
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+
 # X Frame Options
 # Allow OpenHEXA to embed itself, typical use is a Superset dashboards in a Web App
 X_FRAME_OPTIONS = "SAMEORIGIN"
@@ -185,6 +188,7 @@ INSTALLED_APPS = [
     "hexa.superset",
     "hexa.webapps",
     "hexa.shortcuts",
+    "hexa.assistant",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",

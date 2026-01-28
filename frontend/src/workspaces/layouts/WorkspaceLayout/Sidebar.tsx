@@ -3,6 +3,7 @@ import {
   BoltIcon,
   BookmarkIcon,
   BookOpenIcon,
+  ChatBubbleLeftRightIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -139,6 +140,11 @@ const Sidebar = (props: SidebarProps) => {
       href: `/workspaces/${encodeURIComponent(slug)}/webapps`,
       label: t("Apps"),
       Icon: GlobeAltIcon,
+    },
+    {
+      href: `/workspaces/${encodeURIComponent(slug)}/assistant`,
+      label: t("Assistant"),
+      Icon: ChatBubbleLeftRightIcon,
     },
     ...(workspace.permissions.manageMembers
       ? [
