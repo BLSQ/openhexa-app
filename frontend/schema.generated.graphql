@@ -388,6 +388,27 @@ type ApproveAccessmodAccessRequestResult {
   success: Boolean!
 }
 
+enum ApproveToolExecutionError {
+  AGENT_ERROR
+  ALREADY_PROCESSED
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input ApproveToolExecutionInput {
+  approved: Boolean!
+  pendingToolCallId: UUID!
+}
+
+type ApproveToolExecutionResult {
+  errors: [ApproveToolExecutionError!]!
+  message: AssistantMessage
+  pendingToolCall: PendingToolCall
+  status: SendAssistantMessageStatus!
+  success: Boolean!
+  usage: AssistantUsage
+}
+
 """
 Enum representing the possible errors that can occur when archiving a workspace.
 """
@@ -433,15 +454,9 @@ type AssistantModelConfig {
   label: String!
 }
 
-"""AI Assistant usage statistics."""
 type AssistantUsage {
-  """Estimated cost in USD this month."""
   cost: Float!
-
-  """Total input tokens used this month."""
   inputTokens: Int!
-
-  """Total output tokens used this month."""
   outputTokens: Int!
 }
 
@@ -2665,6 +2680,7 @@ type Mutation {
   addToFavorites(input: AddToFavoritesInput!): AddToFavoritesResult!
   addWebappToShortcuts(input: AddWebappToShortcutsInput!): AddWebappToShortcutsResult!
   approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
+  approveToolExecution(input: ApproveToolExecutionInput!): ApproveToolExecutionResult!
   archiveWorkspace(input: ArchiveWorkspaceInput!): ArchiveWorkspaceResult!
   createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult!
   createAccessmodFile(input: CreateAccessmodFileInput!): CreateAccessmodFileResult!
@@ -3120,6 +3136,13 @@ enum ParameterWidget {
   IASO_FORMS
   IASO_ORG_UNITS
   IASO_PROJECTS
+}
+
+type PendingToolCall {
+  createdAt: DateTime!
+  id: UUID!
+  toolInput: JSON!
+  toolName: String!
 }
 
 """The PermissionMode enum represents the mode of permissions for a team."""
@@ -3999,8 +4022,15 @@ input SendAssistantMessageInput {
 type SendAssistantMessageResult {
   errors: [SendAssistantMessageError!]!
   message: AssistantMessage
+  pendingToolCall: PendingToolCall
+  status: SendAssistantMessageStatus!
   success: Boolean!
   usage: AssistantUsage
+}
+
+enum SendAssistantMessageStatus {
+  AWAITING_APPROVAL
+  COMPLETE
 }
 
 enum SetDAGRunFavoriteError {

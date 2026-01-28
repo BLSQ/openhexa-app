@@ -6,11 +6,13 @@ import { useTranslation } from "next-i18next";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import ToolApprovalDialog from "./ToolApprovalDialog";
 
 const SEND_MESSAGE_MUTATION = gql`
   mutation SendAssistantMessage($input: SendAssistantMessageInput!) {
     sendAssistantMessage(input: $input) {
       success
+      status
       errors
       message {
         id
@@ -22,6 +24,37 @@ const SEND_MESSAGE_MUTATION = gql`
         inputTokens
         outputTokens
         cost
+      }
+      pendingToolCall {
+        id
+        toolName
+        toolInput
+      }
+    }
+  }
+`;
+
+const APPROVE_TOOL_MUTATION = gql`
+  mutation ApproveToolExecution($input: ApproveToolExecutionInput!) {
+    approveToolExecution(input: $input) {
+      success
+      status
+      message {
+        id
+        role
+        content
+        createdAt
+      }
+      errors
+      usage {
+        inputTokens
+        outputTokens
+        cost
+      }
+      pendingToolCall {
+        id
+        toolName
+        toolInput
       }
     }
   }
@@ -73,6 +106,12 @@ type Conversation = {
   estimatedCost: number;
 };
 
+type PendingToolCall = {
+  id: string;
+  toolName: string;
+  toolInput: Record<string, unknown>;
+};
+
 type AssistantChatProps = {
   workspaceSlug: string;
 };
@@ -84,6 +123,9 @@ const AssistantChat = ({ workspaceSlug }: AssistantChatProps) => {
     string | null
   >(null);
   const [pendingMessages, setPendingMessages] = useState<Message[]>([]);
+  const [pendingToolCall, setPendingToolCall] = useState<PendingToolCall | null>(
+    null,
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data, refetch } = useQuery(WORKSPACE_CONVERSATIONS_QUERY, {
@@ -92,6 +134,9 @@ const AssistantChat = ({ workspaceSlug }: AssistantChatProps) => {
 
   const [sendMessage, { loading: sending }] = useMutation(
     SEND_MESSAGE_MUTATION,
+  );
+  const [approveTool, { loading: approving }] = useMutation(
+    APPROVE_TOOL_MUTATION,
   );
   const [deleteConversation] = useMutation(DELETE_CONVERSATION_MUTATION);
 
@@ -140,6 +185,18 @@ const AssistantChat = ({ workspaceSlug }: AssistantChatProps) => {
       });
 
       if (result?.sendAssistantMessage?.success) {
+        if (result.sendAssistantMessage.status === "AWAITING_APPROVAL") {
+          setPendingToolCall(result.sendAssistantMessage.pendingToolCall);
+          const { data: refreshed } = await refetch();
+          if (!selectedConversationId && refreshed?.workspace) {
+            const convos = refreshed.workspace.assistantConversations;
+            if (convos.length > 0) {
+              setSelectedConversationId(convos[0].id);
+            }
+          }
+          return;
+        }
+
         const { data: refreshed } = await refetch();
         setPendingMessages([]);
 
@@ -175,9 +232,68 @@ const AssistantChat = ({ workspaceSlug }: AssistantChatProps) => {
     }
   };
 
+  const handleApprove = async () => {
+    if (!pendingToolCall) return;
+
+    try {
+      const { data } = await approveTool({
+        variables: {
+          input: { pendingToolCallId: pendingToolCall.id, approved: true },
+        },
+      });
+
+      if (data?.approveToolExecution?.status === "AWAITING_APPROVAL") {
+        setPendingToolCall(data.approveToolExecution.pendingToolCall);
+      } else {
+        setPendingToolCall(null);
+        await refetch();
+        setPendingMessages([]);
+      }
+    } catch {
+      setPendingToolCall(null);
+      setPendingMessages((prev) => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          role: "assistant",
+          content: t("Failed to approve tool execution. Please try again."),
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!pendingToolCall) return;
+
+    try {
+      await approveTool({
+        variables: {
+          input: { pendingToolCallId: pendingToolCall.id, approved: false },
+        },
+      });
+
+      setPendingToolCall(null);
+      await refetch();
+      setPendingMessages([]);
+    } catch {
+      setPendingToolCall(null);
+      setPendingMessages((prev) => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          role: "assistant",
+          content: t("Failed to reject tool execution."),
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+    }
+  };
+
   const handleNewConversation = () => {
     setSelectedConversationId(null);
     setPendingMessages([]);
+    setPendingToolCall(null);
   };
 
   const handleDeleteConversation = async (id: string) => {
@@ -187,6 +303,7 @@ const AssistantChat = ({ workspaceSlug }: AssistantChatProps) => {
     if (selectedConversationId === id) {
       setSelectedConversationId(null);
       setPendingMessages([]);
+      setPendingToolCall(null);
     }
     await refetch();
   };
@@ -213,6 +330,7 @@ const AssistantChat = ({ workspaceSlug }: AssistantChatProps) => {
               onClick={() => {
                 setSelectedConversationId(conv.id);
                 setPendingMessages([]);
+                setPendingToolCall(null);
               }}
             >
               <div className="min-w-0 flex-1">
@@ -287,7 +405,7 @@ const AssistantChat = ({ workspaceSlug }: AssistantChatProps) => {
               </div>
             </div>
           ))}
-          {sending && (
+          {(sending || approving) && !pendingToolCall && (
             <div className="mb-4 flex justify-start">
               <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-gray-500">
                 <Spinner size="xs" />
@@ -309,12 +427,12 @@ const AssistantChat = ({ workspaceSlug }: AssistantChatProps) => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={t("Type your message...")}
-              disabled={sending}
+              disabled={sending || approving || !!pendingToolCall}
               className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50"
             />
             <button
               type="submit"
-              disabled={sending || !input.trim()}
+              disabled={sending || approving || !input.trim() || !!pendingToolCall}
               className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
             >
               <PaperAirplaneIcon className="h-5 w-5" />
@@ -322,6 +440,14 @@ const AssistantChat = ({ workspaceSlug }: AssistantChatProps) => {
           </div>
         </form>
       </div>
+
+      <ToolApprovalDialog
+        open={!!pendingToolCall}
+        pendingToolCall={pendingToolCall}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        loading={approving}
+      />
     </div>
   );
 };

@@ -422,6 +422,28 @@ export type ApproveAccessmodAccessRequestResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export enum ApproveToolExecutionError {
+  AgentError = 'AGENT_ERROR',
+  AlreadyProcessed = 'ALREADY_PROCESSED',
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type ApproveToolExecutionInput = {
+  approved: Scalars['Boolean']['input'];
+  pendingToolCallId: Scalars['UUID']['input'];
+};
+
+export type ApproveToolExecutionResult = {
+  __typename?: 'ApproveToolExecutionResult';
+  errors: Array<ApproveToolExecutionError>;
+  message?: Maybe<AssistantMessage>;
+  pendingToolCall?: Maybe<PendingToolCall>;
+  status: SendAssistantMessageStatus;
+  success: Scalars['Boolean']['output'];
+  usage?: Maybe<AssistantUsage>;
+};
+
 /** Enum representing the possible errors that can occur when archiving a workspace. */
 export enum ArchiveWorkspaceError {
   NotFound = 'NOT_FOUND',
@@ -469,14 +491,10 @@ export type AssistantModelConfig = {
   label: Scalars['String']['output'];
 };
 
-/** AI Assistant usage statistics. */
 export type AssistantUsage = {
   __typename?: 'AssistantUsage';
-  /** Estimated cost in USD this month. */
   cost: Scalars['Float']['output'];
-  /** Total input tokens used this month. */
   inputTokens: Scalars['Int']['output'];
-  /** Total output tokens used this month. */
   outputTokens: Scalars['Int']['output'];
 };
 
@@ -2682,6 +2700,7 @@ export type Mutation = {
   addToFavorites: AddToFavoritesResult;
   addWebappToShortcuts: AddWebappToShortcutsResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
+  approveToolExecution: ApproveToolExecutionResult;
   archiveWorkspace: ArchiveWorkspaceResult;
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
   createAccessmodFile: CreateAccessmodFileResult;
@@ -2881,6 +2900,11 @@ export type MutationAddWebappToShortcutsArgs = {
 
 export type MutationApproveAccessmodAccessRequestArgs = {
   input: ApproveAccessmodAccessRequestInput;
+};
+
+
+export type MutationApproveToolExecutionArgs = {
+  input: ApproveToolExecutionInput;
 };
 
 
@@ -3727,6 +3751,14 @@ export enum ParameterWidget {
   IasoOrgUnits = 'IASO_ORG_UNITS',
   IasoProjects = 'IASO_PROJECTS'
 }
+
+export type PendingToolCall = {
+  __typename?: 'PendingToolCall';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['UUID']['output'];
+  toolInput: Scalars['JSON']['output'];
+  toolName: Scalars['String']['output'];
+};
 
 /** The PermissionMode enum represents the mode of permissions for a team. */
 export enum PermissionMode {
@@ -4915,9 +4947,16 @@ export type SendAssistantMessageResult = {
   __typename?: 'SendAssistantMessageResult';
   errors: Array<SendAssistantMessageError>;
   message?: Maybe<AssistantMessage>;
+  pendingToolCall?: Maybe<PendingToolCall>;
+  status: SendAssistantMessageStatus;
   success: Scalars['Boolean']['output'];
   usage?: Maybe<AssistantUsage>;
 };
+
+export enum SendAssistantMessageStatus {
+  AwaitingApproval = 'AWAITING_APPROVAL',
+  Complete = 'COMPLETE'
+}
 
 export enum SetDagRunFavoriteError {
   Invalid = 'INVALID',

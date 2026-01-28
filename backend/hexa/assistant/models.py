@@ -35,7 +35,9 @@ class ConversationQuerySet(BaseQuerySet):
 
 
 class Conversation(Base):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="assistant_conversations")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="assistant_conversations"
+    )
     workspace = models.ForeignKey(
         Workspace, on_delete=models.CASCADE, related_name="assistant_conversations"
     )
@@ -87,3 +89,34 @@ class ToolExecution(Base):
 
     def __str__(self):
         return f"{self.tool_name} ({'ok' if self.success else 'error'})"
+
+
+class PendingToolApproval(Base):
+    conversation = models.ForeignKey(
+        Conversation, on_delete=models.CASCADE, related_name="pending_approvals"
+    )
+    tool_use_id = models.CharField(max_length=100)
+    tool_name = models.CharField(max_length=100)
+    tool_input = models.JSONField()
+
+    claude_response = models.JSONField()
+    messages_snapshot = models.JSONField()
+
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ("pending", "Pending"),
+            ("approved", "Approved"),
+            ("rejected", "Rejected"),
+        ],
+        default="pending",
+    )
+
+    input_tokens_so_far = models.IntegerField(default=0)
+    output_tokens_so_far = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"PendingToolApproval({self.tool_name}, {self.status})"

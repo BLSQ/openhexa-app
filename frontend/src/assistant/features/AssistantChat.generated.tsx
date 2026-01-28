@@ -8,7 +8,14 @@ export type SendAssistantMessageMutationVariables = Types.Exact<{
 }>;
 
 
-export type SendAssistantMessageMutation = { __typename?: 'Mutation', sendAssistantMessage: { __typename?: 'SendAssistantMessageResult', success: boolean, errors: Array<Types.SendAssistantMessageError>, message?: { __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any } | null, usage?: { __typename?: 'AssistantUsage', inputTokens: number, outputTokens: number, cost: number } | null } };
+export type SendAssistantMessageMutation = { __typename?: 'Mutation', sendAssistantMessage: { __typename?: 'SendAssistantMessageResult', success: boolean, status: Types.SendAssistantMessageStatus, errors: Array<Types.SendAssistantMessageError>, message?: { __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any } | null, usage?: { __typename?: 'AssistantUsage', inputTokens: number, outputTokens: number, cost: number } | null, pendingToolCall?: { __typename?: 'PendingToolCall', id: string, toolName: string, toolInput: any } | null } };
+
+export type ApproveToolExecutionMutationVariables = Types.Exact<{
+  input: Types.ApproveToolExecutionInput;
+}>;
+
+
+export type ApproveToolExecutionMutation = { __typename?: 'Mutation', approveToolExecution: { __typename?: 'ApproveToolExecutionResult', success: boolean, status: Types.SendAssistantMessageStatus, errors: Array<Types.ApproveToolExecutionError>, message?: { __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any } | null, usage?: { __typename?: 'AssistantUsage', inputTokens: number, outputTokens: number, cost: number } | null, pendingToolCall?: { __typename?: 'PendingToolCall', id: string, toolName: string, toolInput: any } | null } };
 
 export type WorkspaceAssistantConversationsQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -29,6 +36,7 @@ export const SendAssistantMessageDocument = gql`
     mutation SendAssistantMessage($input: SendAssistantMessageInput!) {
   sendAssistantMessage(input: $input) {
     success
+    status
     errors
     message {
       id
@@ -40,6 +48,11 @@ export const SendAssistantMessageDocument = gql`
       inputTokens
       outputTokens
       cost
+    }
+    pendingToolCall {
+      id
+      toolName
+      toolInput
     }
   }
 }
@@ -70,6 +83,57 @@ export function useSendAssistantMessageMutation(baseOptions?: Apollo.MutationHoo
 export type SendAssistantMessageMutationHookResult = ReturnType<typeof useSendAssistantMessageMutation>;
 export type SendAssistantMessageMutationResult = Apollo.MutationResult<SendAssistantMessageMutation>;
 export type SendAssistantMessageMutationOptions = Apollo.BaseMutationOptions<SendAssistantMessageMutation, SendAssistantMessageMutationVariables>;
+export const ApproveToolExecutionDocument = gql`
+    mutation ApproveToolExecution($input: ApproveToolExecutionInput!) {
+  approveToolExecution(input: $input) {
+    success
+    status
+    message {
+      id
+      role
+      content
+      createdAt
+    }
+    errors
+    usage {
+      inputTokens
+      outputTokens
+      cost
+    }
+    pendingToolCall {
+      id
+      toolName
+      toolInput
+    }
+  }
+}
+    `;
+export type ApproveToolExecutionMutationFn = Apollo.MutationFunction<ApproveToolExecutionMutation, ApproveToolExecutionMutationVariables>;
+
+/**
+ * __useApproveToolExecutionMutation__
+ *
+ * To run a mutation, you first call `useApproveToolExecutionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useApproveToolExecutionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [approveToolExecutionMutation, { data, loading, error }] = useApproveToolExecutionMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useApproveToolExecutionMutation(baseOptions?: Apollo.MutationHookOptions<ApproveToolExecutionMutation, ApproveToolExecutionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ApproveToolExecutionMutation, ApproveToolExecutionMutationVariables>(ApproveToolExecutionDocument, options);
+      }
+export type ApproveToolExecutionMutationHookResult = ReturnType<typeof useApproveToolExecutionMutation>;
+export type ApproveToolExecutionMutationResult = Apollo.MutationResult<ApproveToolExecutionMutation>;
+export type ApproveToolExecutionMutationOptions = Apollo.BaseMutationOptions<ApproveToolExecutionMutation, ApproveToolExecutionMutationVariables>;
 export const WorkspaceAssistantConversationsDocument = gql`
     query WorkspaceAssistantConversations($workspaceSlug: String!) {
   workspace(slug: $workspaceSlug) {

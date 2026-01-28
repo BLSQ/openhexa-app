@@ -6,7 +6,7 @@ from django.http import HttpRequest
 
 from hexa.workspaces.models import Workspace
 
-from .models import ASSISTANT_MODELS, Conversation
+from .models import ASSISTANT_MODELS, Conversation, Message, PendingToolApproval
 
 logger = logging.getLogger(__name__)
 
@@ -31,17 +31,16 @@ def resolve_assistant_models(_, info):
 @workspace_object.field("assistantEnabled")
 def resolve_workspace_assistant_enabled(workspace: Workspace, info):
     return (
-        workspace.organization is not None
-        and workspace.organization.assistant_enabled
+        workspace.organization is not None and workspace.organization.assistant_enabled
     )
 
 
 @workspace_object.field("assistantConversations")
 def resolve_workspace_assistant_conversations(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]
-    return Conversation.objects.filter(
-        workspace=workspace, user=request.user
-    ).order_by("-updated_at")
+    return Conversation.objects.filter(workspace=workspace, user=request.user).order_by(
+        "-updated_at"
+    )
 
 
 @conversation_object.field("messages")
@@ -63,15 +62,38 @@ def resolve_send_assistant_message(_, info, **kwargs):
     conversation_id = input_data.get("conversation_id")
 
     if not message_text or not message_text.strip():
-        return {"success": False, "errors": ["EMPTY_MESSAGE"], "message": None, "usage": None}
+        return {
+            "success": False,
+            "status": "COMPLETE",
+            "errors": ["EMPTY_MESSAGE"],
+            "message": None,
+            "usage": None,
+            "pending_tool_call": None,
+        }
 
     try:
-        workspace = Workspace.objects.filter_for_user(request.user).get(slug=workspace_slug)
+        workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=workspace_slug
+        )
     except Workspace.DoesNotExist:
-        return {"success": False, "errors": ["PERMISSION_DENIED"], "message": None, "usage": None}
+        return {
+            "success": False,
+            "status": "COMPLETE",
+            "errors": ["PERMISSION_DENIED"],
+            "message": None,
+            "usage": None,
+            "pending_tool_call": None,
+        }
 
     if not (workspace.organization and workspace.organization.assistant_enabled):
-        return {"success": False, "errors": ["ASSISTANT_DISABLED"], "message": None, "usage": None}
+        return {
+            "success": False,
+            "status": "COMPLETE",
+            "errors": ["ASSISTANT_DISABLED"],
+            "message": None,
+            "usage": None,
+            "pending_tool_call": None,
+        }
 
     if conversation_id:
         try:
@@ -81,9 +103,11 @@ def resolve_send_assistant_message(_, info, **kwargs):
         except Conversation.DoesNotExist:
             return {
                 "success": False,
+                "status": "COMPLETE",
                 "errors": ["CONVERSATION_NOT_FOUND"],
                 "message": None,
                 "usage": None,
+                "pending_tool_call": None,
             }
     else:
         conversation = Conversation.objects.create(
@@ -97,15 +121,121 @@ def resolve_send_assistant_message(_, info, **kwargs):
         result = agent.send_message(message_text)
     except Exception:
         logger.exception("Agent error in conversation %s", conversation.id)
-        return {"success": False, "errors": ["AGENT_ERROR"], "message": None, "usage": None}
+        return {
+            "success": False,
+            "status": "COMPLETE",
+            "errors": ["AGENT_ERROR"],
+            "message": None,
+            "usage": None,
+            "pending_tool_call": None,
+        }
+
+    if result.get("status") == "awaiting_approval":
+        return {
+            "success": True,
+            "status": "AWAITING_APPROVAL",
+            "errors": [],
+            "message": None,
+            "usage": result["usage"],
+            "pending_tool_call": result["pending_tool"],
+        }
 
     assistant_message = conversation.messages.filter(role="assistant").last()
 
     return {
         "success": True,
+        "status": "COMPLETE",
         "errors": [],
         "message": assistant_message,
         "usage": result["usage"],
+        "pending_tool_call": None,
+    }
+
+
+@assistant_mutations.field("approveToolExecution")
+def resolve_approve_tool_execution(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input_data = kwargs["input"]
+    pending_id = input_data["pending_tool_call_id"]
+    approved = input_data["approved"]
+
+    try:
+        pending = PendingToolApproval.objects.select_related(
+            "conversation", "conversation__workspace"
+        ).get(
+            id=pending_id,
+            conversation__user=request.user,
+            status="pending",
+        )
+    except PendingToolApproval.DoesNotExist:
+        return {
+            "success": False,
+            "status": "COMPLETE",
+            "errors": ["NOT_FOUND"],
+            "message": None,
+            "usage": None,
+            "pending_tool_call": None,
+        }
+
+    if not approved:
+        pending.status = "rejected"
+        pending.save()
+
+        Message.objects.create(
+            conversation=pending.conversation,
+            role="assistant",
+            content="Tool execution was not approved. How else can I help you?",
+        )
+
+        return {
+            "success": True,
+            "status": "COMPLETE",
+            "message": pending.conversation.messages.filter(role="assistant").last(),
+            "errors": [],
+            "usage": {
+                "input_tokens": pending.input_tokens_so_far,
+                "output_tokens": pending.output_tokens_so_far,
+                "cost": 0,
+            },
+            "pending_tool_call": None,
+        }
+
+    pending.status = "approved"
+    pending.save()
+
+    try:
+        from .agent import AgentService
+
+        agent = AgentService(pending.conversation.workspace, pending.conversation)
+        result = agent.resume_after_approval(pending)
+    except Exception:
+        logger.exception("Agent error resuming approval %s", pending.id)
+        return {
+            "success": False,
+            "status": "COMPLETE",
+            "errors": ["AGENT_ERROR"],
+            "message": None,
+            "usage": None,
+            "pending_tool_call": None,
+        }
+
+    if result.get("status") == "awaiting_approval":
+        return {
+            "success": True,
+            "status": "AWAITING_APPROVAL",
+            "errors": [],
+            "message": None,
+            "usage": result["usage"],
+            "pending_tool_call": result["pending_tool"],
+        }
+
+    return {
+        "success": True,
+        "status": "COMPLETE",
+        "message": pending.conversation.messages.filter(role="assistant").last(),
+        "errors": [],
+        "usage": result["usage"],
+        "pending_tool_call": None,
     }
 
 

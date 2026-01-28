@@ -13,6 +13,7 @@ def get_file_system_tools():
                 },
                 "required": [],
             },
+            "requires_approval": False,
         },
         {
             "name": "read_file",
@@ -27,6 +28,7 @@ def get_file_system_tools():
                 },
                 "required": ["path"],
             },
+            "requires_approval": False,
         },
         {
             "name": "write_file",
@@ -45,6 +47,7 @@ def get_file_system_tools():
                 },
                 "required": ["path", "content"],
             },
+            "requires_approval": True,
         },
         {
             "name": "search_files",
@@ -63,6 +66,7 @@ def get_file_system_tools():
                 },
                 "required": ["pattern"],
             },
+            "requires_approval": False,
         },
     ]
 
@@ -86,6 +90,7 @@ def get_database_tools():
                 },
                 "required": ["query"],
             },
+            "requires_approval": False,
         },
         {
             "name": "describe_tables",
@@ -100,5 +105,19 @@ def get_database_tools():
                 },
                 "required": [],
             },
+            "requires_approval": False,
         },
+    ]
+
+
+def get_tools_requiring_approval() -> set[str]:
+    all_tools = get_file_system_tools() + get_database_tools()
+    return {t["name"] for t in all_tools if t.get("requires_approval", False)}
+
+
+def get_tools_for_api() -> list[dict]:
+    all_tools = get_file_system_tools() + get_database_tools()
+    return [
+        {k: v for k, v in tool.items() if k != "requires_approval"}
+        for tool in all_tools
     ]

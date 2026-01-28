@@ -19,11 +19,25 @@ type AssistantMessage {
   cost: Float
 }
 
+type PendingToolCall {
+  id: UUID!
+  toolName: String!
+  toolInput: JSON!
+  createdAt: DateTime!
+}
+
+enum SendAssistantMessageStatus {
+  COMPLETE
+  AWAITING_APPROVAL
+}
+
 type SendAssistantMessageResult {
   success: Boolean!
+  status: SendAssistantMessageStatus!
   message: AssistantMessage
   errors: [SendAssistantMessageError!]!
   usage: AssistantUsage
+  pendingToolCall: PendingToolCall
 }
 
 type AssistantUsage {
@@ -60,6 +74,27 @@ input DeleteAssistantConversationInput {
   id: UUID!
 }
 
+input ApproveToolExecutionInput {
+  pendingToolCallId: UUID!
+  approved: Boolean!
+}
+
+type ApproveToolExecutionResult {
+  success: Boolean!
+  status: SendAssistantMessageStatus!
+  message: AssistantMessage
+  errors: [ApproveToolExecutionError!]!
+  usage: AssistantUsage
+  pendingToolCall: PendingToolCall
+}
+
+enum ApproveToolExecutionError {
+  PERMISSION_DENIED
+  NOT_FOUND
+  ALREADY_PROCESSED
+  AGENT_ERROR
+}
+
 type AssistantModelConfig {
   id: String!
   label: String!
@@ -77,4 +112,5 @@ extend type Workspace {
 extend type Mutation {
   sendAssistantMessage(input: SendAssistantMessageInput!): SendAssistantMessageResult! @loginRequired
   deleteAssistantConversation(input: DeleteAssistantConversationInput!): DeleteAssistantConversationResult! @loginRequired
+  approveToolExecution(input: ApproveToolExecutionInput!): ApproveToolExecutionResult! @loginRequired
 }
