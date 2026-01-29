@@ -71,12 +71,14 @@ const WorkspacePipelinesPage: NextPageWithLayout = ({
           </Breadcrumbs>
         }
         headerActions={
-          <Button
-            leadingIcon={<PlusIcon className="h-4 w-4" />}
-            onClick={() => setDialogOpen(true)}
-          >
-            {t("Create")}
-          </Button>
+          workspace.permissions.update && (
+            <Button
+              leadingIcon={<PlusIcon className="h-4 w-4" />}
+              onClick={() => setDialogOpen(true)}
+            >
+              {t("Create")}
+            </Button>
+          )
         }
       >
         <WorkspaceLayout.PageContent className="divide divide-y-2">
