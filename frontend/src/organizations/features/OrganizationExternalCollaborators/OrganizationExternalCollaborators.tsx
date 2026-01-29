@@ -1,4 +1,8 @@
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  PencilIcon,
+  TrashIcon,
+  UserPlusIcon,
+} from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
@@ -10,6 +14,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "next-i18next";
 import RemoveMemberDialog from "organizations/components/RemoveMemberDialog";
 import UpdateMemberPermissionsDialog from "organizations/components/UpdateMemberPermissionsDialog";
+import ConvertToMemberDialog from "organizations/components/ConvertToMemberDialog";
 import {
   useOrganizationExternalCollaboratorsQuery,
   OrganizationExternalCollaboratorsQuery,
@@ -36,6 +41,7 @@ export default function OrganizationExternalCollaborators({
     useState<ExternalCollaborator>();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [openConvertDialog, setOpenConvertDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [previousData, setPreviousData] =
     useState<OrganizationExternalCollaboratorsQuery | null>(null);
@@ -85,6 +91,11 @@ export default function OrganizationExternalCollaborators({
   const handleUpdateClicked = (collaborator: ExternalCollaborator) => {
     setSelectedCollaborator(collaborator);
     setOpenEditDialog(true);
+  };
+
+  const handleConvertClicked = (collaborator: ExternalCollaborator) => {
+    setSelectedCollaborator(collaborator);
+    setOpenConvertDialog(true);
   };
 
   return (
@@ -143,6 +154,16 @@ export default function OrganizationExternalCollaborators({
                 <>
                   {canUpdateCollaborator && (
                     <Button
+                      onClick={() => handleConvertClicked(collaborator)}
+                      size="sm"
+                      variant="secondary"
+                      aria-label="convert to member"
+                    >
+                      <UserPlusIcon className="h-4" />
+                    </Button>
+                  )}
+                  {canUpdateCollaborator && (
+                    <Button
                       onClick={() => handleUpdateClicked(collaborator)}
                       size="sm"
                       variant="secondary"
@@ -186,6 +207,17 @@ export default function OrganizationExternalCollaborators({
             setOpenEditDialog(false);
           }}
           member={selectedCollaborator}
+          organization={organization}
+        />
+      )}
+      {selectedCollaborator && (
+        <ConvertToMemberDialog
+          open={openConvertDialog}
+          onClose={() => {
+            setSelectedCollaborator(undefined);
+            setOpenConvertDialog(false);
+          }}
+          collaborator={selectedCollaborator}
           organization={organization}
         />
       )}

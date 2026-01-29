@@ -1629,6 +1629,76 @@ enum DeleteExternalCollaboratorError {
 }
 
 """
+The ConvertExternalCollaboratorToMemberInput type represents the input for the convertExternalCollaboratorToMember mutation.
+"""
+input ConvertExternalCollaboratorToMemberInput {
+    """
+    The unique identifier of the user to convert to organization member.
+    """
+    userId: UUID!
+
+    """
+    The unique identifier of the organization.
+    """
+    organizationId: UUID!
+
+    """
+    The role to assign to the new organization member.
+    """
+    role: OrganizationMembershipRole!
+}
+
+"""
+The ConvertExternalCollaboratorToMemberResult type represents the result of the convertExternalCollaboratorToMember mutation.
+"""
+type ConvertExternalCollaboratorToMemberResult {
+    """
+    Indicates whether the convertExternalCollaboratorToMember mutation was successful.
+    """
+    success: Boolean!
+
+    """
+    The created organization membership object.
+    """
+    membership: OrganizationMembership
+
+    """
+    The list of errors that occurred during the convertExternalCollaboratorToMember mutation.
+    """
+    errors: [ConvertExternalCollaboratorToMemberError!]!
+}
+
+"""
+The ConvertExternalCollaboratorToMemberError enum represents the possible errors that can occur during the convertExternalCollaboratorToMember mutation.
+"""
+enum ConvertExternalCollaboratorToMemberError {
+    """
+    Indicates that the user does not have permission to convert external collaborators.
+    """
+    PERMISSION_DENIED
+
+    """
+    Indicates that the user was not found.
+    """
+    USER_NOT_FOUND
+
+    """
+    Indicates that the organization was not found.
+    """
+    ORGANIZATION_NOT_FOUND
+
+    """
+    Indicates that the user is not an external collaborator (either not in any workspace or already an org member).
+    """
+    NOT_EXTERNAL_COLLABORATOR
+
+    """
+    Indicates that the organization has reached its user limit (SaaS only).
+    """
+    USERS_LIMIT_REACHED
+}
+
+"""
 The DeleteOrganizationMemberInput type represents the input for the deleteOrganizationMember mutation.
 """
 input DeleteOrganizationMemberInput {
@@ -2136,6 +2206,7 @@ extend type Mutation {
     updateExternalCollaborator(input: UpdateExternalCollaboratorInput!): UpdateExternalCollaboratorResult! @loginRequired
     deleteOrganizationMember(input: DeleteOrganizationMemberInput!): DeleteOrganizationMemberResult! @loginRequired
     deleteExternalCollaborator(input: DeleteExternalCollaboratorInput!): DeleteExternalCollaboratorResult! @loginRequired
+    convertExternalCollaboratorToMember(input: ConvertExternalCollaboratorToMemberInput!): ConvertExternalCollaboratorToMemberResult! @loginRequired
     deleteOrganizationInvitation(input: DeleteOrganizationInvitationInput!): DeleteOrganizationInvitationResult!
         @loginRequired
     resendOrganizationInvitation(input: ResendOrganizationInvitationInput!): ResendOrganizationInvitationResult!

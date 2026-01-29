@@ -1213,6 +1213,62 @@ def resolve_delete_external_collaborator(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
+@identity_mutations.field("convertExternalCollaboratorToMember")
+@transaction.atomic
+def resolve_convert_external_collaborator_to_member(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    input_data = kwargs["input"]
+
+    try:
+        user = User.objects.get(id=input_data["user_id"])
+        organization = Organization.objects.filter_for_user(principal).get(
+            id=input_data["organization_id"]
+        )
+
+        is_already_org_member = OrganizationMembership.objects.filter(
+            user=user, organization=organization
+        ).exists()
+        if is_already_org_member:
+            return {
+                "success": False,
+                "membership": None,
+                "errors": ["NOT_EXTERNAL_COLLABORATOR"],
+            }
+
+        has_workspace_membership = WorkspaceMembership.objects.filter(
+            user=user, workspace__organization=organization, workspace__archived=False
+        ).exists()
+        if not has_workspace_membership:
+            return {
+                "success": False,
+                "membership": None,
+                "errors": ["NOT_EXTERNAL_COLLABORATOR"],
+            }
+
+        membership = OrganizationMembership.create_if_has_perm(
+            principal=principal,
+            organization=organization,
+            user=user,
+            role=input_data["role"].lower(),
+        )
+
+        return {"success": True, "membership": membership, "errors": []}
+
+    except User.DoesNotExist:
+        return {"success": False, "membership": None, "errors": ["USER_NOT_FOUND"]}
+    except Organization.DoesNotExist:
+        return {
+            "success": False,
+            "membership": None,
+            "errors": ["ORGANIZATION_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
+    except UsersLimitReached:
+        return {"success": False, "membership": None, "errors": ["USERS_LIMIT_REACHED"]}
+
+
 @identity_mutations.field("deleteOrganizationMember")
 @transaction.atomic
 def resolve_delete_organization_member(_, info, **kwargs):

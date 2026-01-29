@@ -555,6 +555,41 @@ export enum ConnectionType {
   S3 = 'S3'
 }
 
+/** The ConvertExternalCollaboratorToMemberError enum represents the possible errors that can occur during the convertExternalCollaboratorToMember mutation. */
+export enum ConvertExternalCollaboratorToMemberError {
+  /** Indicates that the user is not an external collaborator (either not in any workspace or already an org member). */
+  NotExternalCollaborator = 'NOT_EXTERNAL_COLLABORATOR',
+  /** Indicates that the organization was not found. */
+  OrganizationNotFound = 'ORGANIZATION_NOT_FOUND',
+  /** Indicates that the user does not have permission to convert external collaborators. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** Indicates that the organization has reached its user limit (SaaS only). */
+  UsersLimitReached = 'USERS_LIMIT_REACHED',
+  /** Indicates that the user was not found. */
+  UserNotFound = 'USER_NOT_FOUND'
+}
+
+/** The ConvertExternalCollaboratorToMemberInput type represents the input for the convertExternalCollaboratorToMember mutation. */
+export type ConvertExternalCollaboratorToMemberInput = {
+  /** The unique identifier of the organization. */
+  organizationId: Scalars['UUID']['input'];
+  /** The role to assign to the new organization member. */
+  role: OrganizationMembershipRole;
+  /** The unique identifier of the user to convert to organization member. */
+  userId: Scalars['UUID']['input'];
+};
+
+/** The ConvertExternalCollaboratorToMemberResult type represents the result of the convertExternalCollaboratorToMember mutation. */
+export type ConvertExternalCollaboratorToMemberResult = {
+  __typename?: 'ConvertExternalCollaboratorToMemberResult';
+  /** The list of errors that occurred during the convertExternalCollaboratorToMember mutation. */
+  errors: Array<ConvertExternalCollaboratorToMemberError>;
+  /** The created organization membership object. */
+  membership?: Maybe<OrganizationMembership>;
+  /** Indicates whether the convertExternalCollaboratorToMember mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
 export type Country = {
   __typename?: 'Country';
   alpha3: Scalars['String']['output'];
@@ -2628,6 +2663,7 @@ export type Mutation = {
   addWebappToShortcuts: AddWebappToShortcutsResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
   archiveWorkspace: ArchiveWorkspaceResult;
+  convertExternalCollaboratorToMember: ConvertExternalCollaboratorToMemberResult;
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
   createAccessmodFile: CreateAccessmodFileResult;
   createAccessmodFileset: CreateAccessmodFilesetResult;
@@ -2829,6 +2865,11 @@ export type MutationApproveAccessmodAccessRequestArgs = {
 
 export type MutationArchiveWorkspaceArgs = {
   input: ArchiveWorkspaceInput;
+};
+
+
+export type MutationConvertExternalCollaboratorToMemberArgs = {
+  input: ConvertExternalCollaboratorToMemberInput;
 };
 
 
