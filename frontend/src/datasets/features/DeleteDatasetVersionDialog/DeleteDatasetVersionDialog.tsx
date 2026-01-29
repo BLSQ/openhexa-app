@@ -2,6 +2,7 @@ import { gql } from "@apollo/client";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Spinner from "core/components/Spinner";
+import useCacheKey from "core/hooks/useCacheKey";
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
 import { deleteDatasetVersion } from "datasets/helpers/dataset";
@@ -12,18 +13,17 @@ type DeleteDatasetVersionDialogProps = {
   open: boolean;
   onClose: () => void;
   version: DeleteDatasetVersionDialog_VersionFragment;
-  onDelete: () => void;
 };
 
 const DeleteDatasetVersionDialog = ({
   open,
   onClose,
   version,
-  onDelete,
 }: DeleteDatasetVersionDialogProps) => {
   const { t } = useTranslation();
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState("");
+  const clearCache = useCacheKey("datasets");
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -31,8 +31,8 @@ const DeleteDatasetVersionDialog = ({
 
     try {
       await deleteDatasetVersion(version.id);
+      clearCache();
       onClose();
-      onDelete();
     } catch (err: any) {
       setError(err.message || t("An error occurred while deleting the version"));
     } finally {
