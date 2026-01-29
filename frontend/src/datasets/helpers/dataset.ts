@@ -5,6 +5,7 @@ import {
   CreateDatasetVersionError,
   DeleteDatasetError,
   DeleteDatasetLinkError,
+  DeleteDatasetVersionError,
   SetMetadataAttributeError,
   UpdateDatasetVersionError,
 } from "graphql/types";
@@ -17,6 +18,8 @@ import {
   DeleteDatasetLinkMutationVariables,
   DeleteDatasetMutation,
   DeleteDatasetMutationVariables,
+  DeleteDatasetVersionMutation,
+  DeleteDatasetVersionMutationVariables,
   DeleteMetadataAttributeMutation,
   DeleteMetadataAttributeMutationVariables,
   GenerateDatasetUploadUrlMutation,
@@ -390,6 +393,53 @@ export async function deleteDataset(datasetId: string) {
     throw new Error("You do not have permission to delete this dataset");
   } else {
     throw new Error("An unknown error occurred");
+  }
+}
+
+export async function deleteDatasetVersion(versionId: string) {
+  const client = getApolloClient();
+
+  const { data } = await client.mutate<
+    DeleteDatasetVersionMutation,
+    DeleteDatasetVersionMutationVariables
+  >({
+    mutation: gql`
+      mutation DeleteDatasetVersion($input: DeleteDatasetVersionInput!) {
+        deleteDatasetVersion(input: $input) {
+          success
+          errors
+        }
+      }
+    `,
+    variables: {
+      input: {
+        versionId,
+      },
+    },
+    update(cache) {
+      cache.evict({ id: `DatasetVersion:${versionId}` });
+      cache.gc();
+    },
+  });
+
+  if (data?.deleteDatasetVersion.success) {
+    return true;
+  } else if (
+    data?.deleteDatasetVersion.errors.includes(
+      DeleteDatasetVersionError.VersionNotFound,
+    )
+  ) {
+    throw new Error(i18n!.t("This version does not exist"));
+  } else if (
+    data?.deleteDatasetVersion.errors.includes(
+      DeleteDatasetVersionError.PermissionDenied,
+    )
+  ) {
+    throw new Error(
+      i18n!.t("You do not have permission to delete this version"),
+    );
+  } else {
+    throw new Error(i18n!.t("An unknown error occurred"));
   }
 }
 

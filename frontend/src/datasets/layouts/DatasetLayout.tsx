@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import DatasetVersionPicker from "../features/DatasetVersionPicker";
 import DeleteDatasetTrigger from "../features/DeleteDatasetTrigger";
+import DeleteDatasetVersionDialog from "../features/DeleteDatasetVersionDialog";
 import PinDatasetButton from "../features/PinDatasetButton";
 import UploadDatasetVersionDialog from "../features/UploadDatasetVersionDialog";
 import {
@@ -44,6 +45,8 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
   const { t } = useTranslation();
   const router = useRouter();
   const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [isDeleteVersionDialogOpen, setDeleteVersionDialogOpen] =
+    useState(false);
 
   const onChangeVersion: React.ComponentProps<
     typeof DatasetVersionPicker
@@ -150,13 +153,24 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
         <Title level={2} className="flex items-center justify-between">
           {dataset.name}
           {version && (
-            // Only show the version picker if we have a version
-            <DatasetVersionPicker
-              onChange={onChangeVersion}
-              dataset={dataset}
-              version={version}
-              className="min-w-40"
-            />
+            <div className="flex items-center gap-2">
+              <DatasetVersionPicker
+                onChange={onChangeVersion}
+                dataset={dataset}
+                version={version}
+                className="min-w-40"
+              />
+              {version.permissions.delete && isWorkspaceSource && (
+                <Button
+                  variant="danger"
+                  size="sm"
+                  leadingIcon={<TrashIcon className="w-4" />}
+                  onClick={() => setDeleteVersionDialogOpen(true)}
+                >
+                  {t("Delete version")}
+                </Button>
+              )}
+            </div>
           )}
         </Title>
         <Block className="divide-y divide-gray-200">
@@ -194,6 +208,16 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
         onClose={() => setUploadDialogOpen(false)}
         datasetLink={datasetLink}
       />
+
+      <>
+        {version && (
+          <DeleteDatasetVersionDialog
+            open={isDeleteVersionDialogOpen}
+            onClose={() => setDeleteVersionDialogOpen(false)}
+            version={version}
+          />
+        )}
+      </>
     </WorkspaceLayout>
   );
 };
@@ -231,8 +255,10 @@ DatasetLayout.fragments = {
       id
       name
       ...DatasetVersionPicker_version
+      ...DeleteDatasetVersionDialog_version
     }
     ${DatasetVersionPicker.fragments.version}
+    ${DeleteDatasetVersionDialog.fragments.version}
   `,
 };
 
