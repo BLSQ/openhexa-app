@@ -6,7 +6,7 @@ from django.http import HttpRequest
 
 from hexa.workspaces.models import Workspace
 
-from .models import ASSISTANT_MODELS, Conversation, Message, PendingToolApproval
+from .models import ASSISTANT_MODELS, Conversation, Message, PendingToolApproval, ToolExecution
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,28 @@ def resolve_workspace_assistant_conversations(workspace: Workspace, info):
 
 @conversation_object.field("messages")
 def resolve_conversation_messages(conversation: Conversation, info):
-    return conversation.messages.all()
+    messages = list(conversation.messages.all())
+    tool_executions = list(conversation.tool_executions.all())
+
+    merged = messages + [
+        _tool_execution_as_message(te) for te in tool_executions
+    ]
+    merged.sort(key=lambda m: m.created_at if hasattr(m, "created_at") else m["created_at"])
+    return merged
+
+
+def _tool_execution_as_message(te: ToolExecution) -> dict:
+    return {
+        "id": te.id,
+        "role": "tool_use",
+        "content": "",
+        "created_at": te.created_at,
+        "input_tokens": None,
+        "output_tokens": None,
+        "cost": None,
+        "tool_name": te.tool_name,
+        "tool_input": te.tool_input,
+    }
 
 
 @conversation_object.field("estimatedCost")

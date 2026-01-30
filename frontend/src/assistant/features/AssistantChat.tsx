@@ -73,6 +73,7 @@ const WORKSPACE_CONVERSATIONS_QUERY = gql`
           role
           content
           createdAt
+          toolName
         }
         estimatedCost
       }
@@ -96,6 +97,8 @@ type Message = {
   role: string;
   content: string;
   createdAt: string;
+  toolName?: string;
+  toolInput?: Record<string, unknown>;
 };
 
 type Conversation = {
@@ -385,24 +388,30 @@ const AssistantChat = ({ workspaceSlug }: AssistantChatProps) => {
               key={msg.id}
               className={`mb-4 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
-              <div
-                className={clsx(
-                  "max-w-[75%] rounded-lg px-4 py-2",
-                  msg.role === "user"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-800",
-                )}
-              >
-                {msg.role === "user" ? (
-                  <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
-                ) : (
-                  <div className="prose prose-sm max-w-none prose-headings:mb-2 prose-headings:mt-4 prose-headings:font-semibold prose-p:my-2 prose-pre:my-2 prose-pre:bg-gray-800 prose-pre:text-gray-100 prose-code:rounded prose-code:bg-gray-200 prose-code:px-1 prose-code:py-0.5 prose-code:text-gray-800 prose-code:before:content-none prose-code:after:content-none prose-pre:prose-code:bg-transparent prose-pre:prose-code:p-0 prose-pre:prose-code:text-gray-100 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
-                    <Markdown remarkPlugins={[remarkGfm]}>
-                      {msg.content}
-                    </Markdown>
-                  </div>
-                )}
-              </div>
+              {msg.role === "tool_use" ? (
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs text-amber-700 ring-1 ring-amber-200">
+                  <span>{t("Used tool: {{toolName}}", { toolName: msg.toolName })}</span>
+                </div>
+              ) : (
+                <div
+                  className={clsx(
+                    "max-w-[75%] rounded-lg px-4 py-2",
+                    msg.role === "user"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 text-gray-800",
+                  )}
+                >
+                  {msg.role === "user" ? (
+                    <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                  ) : (
+                    <div className="prose prose-sm max-w-none prose-headings:mb-2 prose-headings:mt-4 prose-headings:font-semibold prose-p:my-2 prose-pre:my-2 prose-pre:bg-gray-800 prose-pre:text-gray-100 prose-code:rounded prose-code:bg-gray-200 prose-code:px-1 prose-code:py-0.5 prose-code:text-gray-800 prose-code:before:content-none prose-code:after:content-none prose-pre:prose-code:bg-transparent prose-pre:prose-code:p-0 prose-pre:prose-code:text-gray-100 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
+                      <Markdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </Markdown>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
           {(sending || approving) && !pendingToolCall && (

@@ -17,6 +17,8 @@ type AssistantMessage {
   inputTokens: Int
   outputTokens: Int
   cost: Float
+  toolName: String
+  toolInput: JSON
 }
 
 type PendingToolCall {
