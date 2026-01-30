@@ -50,6 +50,31 @@ def get_file_system_tools():
             "requires_approval": True,
         },
         {
+            "name": "edit_file",
+            "description": "Edit an existing file by replacing a specific string with new content. "
+            "The old_string must match exactly (including whitespace and indentation). "
+            "Use read_file first to see the current content, then specify the exact text to replace.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "File path relative to workspace root",
+                    },
+                    "old_string": {
+                        "type": "string",
+                        "description": "The exact text to find and replace. Must be unique within the file.",
+                    },
+                    "new_string": {
+                        "type": "string",
+                        "description": "The text to replace old_string with. Use empty string to delete.",
+                    },
+                },
+                "required": ["path", "old_string", "new_string"],
+            },
+            "requires_approval": True,
+        },
+        {
             "name": "search_files",
             "description": "Search for files matching a glob pattern in the workspace file system.",
             "input_schema": {

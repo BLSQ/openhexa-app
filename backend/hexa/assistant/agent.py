@@ -25,7 +25,7 @@ MAX_TOOL_ITERATIONS = 10
 SYSTEM_PROMPT = """You are a helpful AI assistant integrated into OpenHEXA, a data platform. You have access to the user's workspace file system and PostgreSQL database.
 
 You can:
-- List, read, write, and search files in the workspace file system
+- List, read, write, edit, and search files in the workspace file system
 - Query the workspace database with SELECT statements
 - Explore database schemas and table structures
 
@@ -63,6 +63,10 @@ class AgentService:
             result = self.fs_tools.read_file(tool_input["path"])
         elif tool_name == "write_file":
             result = self.fs_tools.write_file(tool_input["path"], tool_input["content"])
+        elif tool_name == "edit_file":
+            result = self.fs_tools.edit_file(
+                tool_input["path"], tool_input["old_string"], tool_input["new_string"]
+            )
         elif tool_name == "search_files":
             result = self.fs_tools.search_files(
                 tool_input["pattern"], tool_input.get("path", "")

@@ -483,6 +483,8 @@ export type AssistantMessage = {
   inputTokens?: Maybe<Scalars['Int']['output']>;
   outputTokens?: Maybe<Scalars['Int']['output']>;
   role: Scalars['String']['output'];
+  toolInput?: Maybe<Scalars['JSON']['output']>;
+  toolName?: Maybe<Scalars['String']['output']>;
 };
 
 export type AssistantModelConfig = {

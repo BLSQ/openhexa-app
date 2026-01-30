@@ -447,6 +447,8 @@ type AssistantMessage {
   inputTokens: Int
   outputTokens: Int
   role: String!
+  toolInput: JSON
+  toolName: String
 }
 
 type AssistantModelConfig {

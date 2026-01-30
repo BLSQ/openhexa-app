@@ -87,6 +87,38 @@ class WorkspaceFileSystemTools:
             logger.exception("Error writing file")
             return {"error": str(e)}
 
+    def edit_file(self, path: str, old_string: str, new_string: str):
+        if _validate_path(path) is None:
+            return {"error": "Invalid path."}
+        try:
+            obj = storage.get_bucket_object(self.bucket_name, path)
+            if obj.type == "directory":
+                return {"error": "Cannot edit a directory."}
+            if obj.size > MAX_FILE_SIZE:
+                return {"error": f"File too large ({obj.size} bytes). Maximum is {MAX_FILE_SIZE} bytes."}
+
+            full_path = storage.path(self.bucket_name, path)
+            with open(full_path, "r") as f:
+                content = f.read()
+
+            count = content.count(old_string)
+            if count == 0:
+                return {"error": "old_string not found in file."}
+            if count > 1:
+                return {"error": f"old_string found {count} times. It must be unique. Provide more context to disambiguate."}
+
+            new_content = content.replace(old_string, new_string, 1)
+            file_bytes = new_content.encode("utf-8")
+            storage.save_object(self.bucket_name, path, io.BytesIO(file_bytes))
+            return {"success": True, "path": path, "size": len(file_bytes)}
+        except storage.exceptions.NotFound:
+            return {"error": f"File not found: {path}"}
+        except UnicodeDecodeError:
+            return {"error": "File is binary and cannot be edited as text."}
+        except Exception as e:
+            logger.exception("Error editing file")
+            return {"error": str(e)}
+
     def search_files(self, pattern: str, path: str = ""):
         if path and _validate_path(path) is None:
             return {"error": "Invalid path."}

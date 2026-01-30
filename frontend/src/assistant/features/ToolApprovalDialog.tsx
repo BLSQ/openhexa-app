@@ -34,6 +34,8 @@ const ToolApprovalDialog = ({
     switch (toolName) {
       case "write_file":
         return t("The assistant wants to write a file");
+      case "edit_file":
+        return t("The assistant wants to edit a file");
       default:
         return t("The assistant wants to perform an action");
     }
@@ -77,7 +79,35 @@ const ToolApprovalDialog = ({
                 </div>
               </>
             )}
-            {toolName !== "write_file" && (
+            {toolName === "edit_file" && (
+              <>
+                <div>
+                  <dt className="font-medium text-gray-700">{t("File path")}</dt>
+                  <dd className="mt-1 font-mono text-gray-900">
+                    {toolInput.path as string}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-gray-700">{t("Removing")}</dt>
+                  <dd className="mt-1">
+                    <pre className="max-h-32 overflow-auto rounded bg-red-950 p-3 text-xs text-red-200">
+                      {(toolInput.old_string as string)?.slice(0, 1000)}
+                      {(toolInput.old_string as string)?.length > 1000 && "..."}
+                    </pre>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-gray-700">{t("Adding")}</dt>
+                  <dd className="mt-1">
+                    <pre className="max-h-32 overflow-auto rounded bg-green-950 p-3 text-xs text-green-200">
+                      {(toolInput.new_string as string)?.slice(0, 1000)}
+                      {(toolInput.new_string as string)?.length > 1000 && "..."}
+                    </pre>
+                  </dd>
+                </div>
+              </>
+            )}
+            {toolName !== "write_file" && toolName !== "edit_file" && (
               <div>
                 <dt className="font-medium text-gray-700">{t("Tool")}</dt>
                 <dd className="mt-1 font-mono text-gray-900">{toolName}</dd>

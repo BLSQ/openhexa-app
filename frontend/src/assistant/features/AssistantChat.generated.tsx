@@ -22,7 +22,7 @@ export type WorkspaceAssistantConversationsQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceAssistantConversationsQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, assistantConversations: Array<{ __typename?: 'AssistantConversation', id: string, createdAt: any, updatedAt: any, estimatedCost: number, messages: Array<{ __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any }> }> } | null };
+export type WorkspaceAssistantConversationsQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, assistantConversations: Array<{ __typename?: 'AssistantConversation', id: string, createdAt: any, updatedAt: any, estimatedCost: number, messages: Array<{ __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any, toolName?: string | null }> }> } | null };
 
 export type DeleteAssistantConversationMutationVariables = Types.Exact<{
   input: Types.DeleteAssistantConversationInput;
@@ -147,6 +147,7 @@ export const WorkspaceAssistantConversationsDocument = gql`
         role
         content
         createdAt
+        toolName
       }
       estimatedCost
     }
