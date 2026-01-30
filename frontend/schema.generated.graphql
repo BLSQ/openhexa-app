@@ -4508,11 +4508,6 @@ enum UpdateOrganizationError {
   Indicates that the user does not have permission to update the organization.
   """
   PERMISSION_DENIED
-
-  """
-  Indicates that an organization with the same short name already exists.
-  """
-  SHORT_NAME_DUPLICATE
 }
 
 """
