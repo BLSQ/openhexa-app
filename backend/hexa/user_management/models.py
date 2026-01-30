@@ -211,7 +211,7 @@ class Organization(Base, SoftDeletedModel):
         choices=OrganizationType.choices, max_length=100
     )
     name = models.CharField(max_length=200, unique=True)
-    short_name = models.CharField(max_length=100, blank=True, unique=True)
+    short_name = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
     url = models.URLField(blank=True)
