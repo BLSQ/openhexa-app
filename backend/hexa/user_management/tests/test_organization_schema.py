@@ -1371,6 +1371,76 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertTrue(r["data"]["createOrganization"]["success"])
         self.assertEqual(r["data"]["createOrganization"]["errors"], [])
 
+    @patch("hexa.user_management.schema.send_organization_invite")
+    def test_create_organization_with_custom_short_name(self, mock_send_invite):
+        """Test creating organization with a custom short name."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "ownerEmail": "owner@example.org",
+                    "name": "World Health Organization",
+                    "shortName": "WHO",
+                    "subscriptionId": "77777777-7777-7777-7777-777777777777",
+                    "planCode": "openhexa_starter",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2025-12-31",
+                    "limits": {
+                        "users": 10,
+                        "workspaces": 5,
+                        "pipelineRuns": 1000,
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["createOrganization"]["success"])
+        org = Organization.objects.get(name="World Health Organization")
+        self.assertEqual(org.short_name, "WHO")
+
+    def test_create_organization_with_invalid_short_name(self):
+        """Test creating organization with invalid short name."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "ownerEmail": "owner@example.org",
+                    "name": "Some Organization",
+                    "shortName": "invalid",
+                    "subscriptionId": "88888888-8888-8888-8888-888888888888",
+                    "planCode": "openhexa_starter",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2025-12-31",
+                    "limits": {
+                        "users": 10,
+                        "workspaces": 5,
+                        "pipelineRuns": 1000,
+                    },
+                }
+            },
+        )
+
+        self.assertFalse(r["data"]["createOrganization"]["success"])
+        self.assertEqual(
+            r["data"]["createOrganization"]["errors"], ["INVALID_SHORT_NAME"]
+        )
+
 
 class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin):
     """Tests for the updateOrganizationSubscription mutation."""
