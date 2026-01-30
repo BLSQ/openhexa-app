@@ -28,7 +28,7 @@ from graphql import default_field_resolver
 
 from hexa.analytics.api import track
 from hexa.core.graphql import result_page
-from hexa.core.string import remove_whitespace
+from hexa.core.string import generate_short_name, remove_whitespace
 from hexa.core.templatetags.colors import hash_color
 from hexa.datasets.models import Dataset, DatasetLink
 from hexa.tags.models import Tag
@@ -1492,16 +1492,6 @@ def resolve_update_organization(_, info, **kwargs):
                         "organization": None,
                         "errors": ["INVALID_SHORT_NAME"],
                     }
-                if (
-                    Organization.objects.exclude(id=organization.id)
-                    .filter(short_name=short_name)
-                    .exists()
-                ):
-                    return {
-                        "success": False,
-                        "organization": None,
-                        "errors": ["SHORT_NAME_DUPLICATE"],
-                    }
                 organization.short_name = short_name
 
         if "logo" in update_input:
@@ -1595,6 +1585,7 @@ def resolve_create_organization(_, info, **kwargs):
 
     organization = Organization.objects.create(
         name=name,
+        short_name=generate_short_name(name),
         organization_type="CORPORATE",
     )
 

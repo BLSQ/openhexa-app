@@ -849,42 +849,6 @@ class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
             r["data"]["updateOrganization"],
         )
 
-    def test_update_organization_short_name_duplicate(self):
-        """Test organization update with duplicate short name."""
-        other_org = self.create_organization(
-            self.owner, "Other Organization", "Other Description", short_name="WHO"
-        )
-
-        self.client.force_login(self.owner)
-        r = self.run_query(
-            """
-            mutation UpdateOrganization($input: UpdateOrganizationInput!) {
-                updateOrganization(input: $input) {
-                    success
-                    errors
-                    organization {
-                        id
-                    }
-                }
-            }
-            """,
-            {
-                "input": {
-                    "id": str(self.organization.id),
-                    "shortName": other_org.short_name,
-                }
-            },
-        )
-
-        self.assertEqual(
-            {
-                "success": False,
-                "errors": ["SHORT_NAME_DUPLICATE"],
-                "organization": None,
-            },
-            r["data"]["updateOrganization"],
-        )
-
     def test_update_organization_invalid_short_name_too_long(self):
         """Test organization update with short name that's too long."""
         self.client.force_login(self.owner)
@@ -1212,6 +1176,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         )
         self.assertIsNone(r["data"]["createOrganization"]["user"])
         org = Organization.objects.get(name="New SaaS Organization")
+        self.assertEqual(org.short_name, "NSO")
         subscription = org.active_subscription
         self.assertIsNotNone(subscription)
         self.assertEqual(
