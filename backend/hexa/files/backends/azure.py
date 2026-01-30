@@ -1,3 +1,4 @@
+import fnmatch
 from datetime import datetime, timedelta, timezone
 
 from azure.core.exceptions import (
@@ -184,33 +185,32 @@ class AzureBlobStorage(Storage):
         self,
         bucket_name,
         prefix=None,
+        match_glob=None,
         page: int = 1,
         per_page=30,
         query=None,
         ignore_hidden_files=True,
-        **kwargs,
     ):
         """List objects in a Azure Blob Container
 
         Limitations:
-            It cannot returns the list of objects matching a glob pattern. In order to implement such a feature,
-            we would need to implement a Blob Indexer
-            (https://learn.microsoft.com/en-us/azure/search/search-blob-storage-integration?toc=%2Fazure%2Fstorage%2Fblobs%2Ftoc.json&bc=%2Fazure%2Fstorage%2Fblobs%2Fbreadcrumb%2Ftoc.json)
+            Azure Blob Storage does not support server-side glob filtering. Glob matching is done
+            client-side using fnmatch after listing all blobs. This may be slow on containers with
+            many files, as it requires iterating through all blobs under the prefix.
 
             It's not possible to create a empty directory using the Azure SDK/API. To simulate it, we create a empty `.keep` blob and filter it out.
 
-        Args:
-            bucket_name (_type_): _description_
-            prefix (_type_, optional): _description_. Defaults to None.
-            page (int, optional): _description_. Defaults to 1.
-            per_page (int, optional): _description_. Defaults to 30.
-            query (_type_, optional): _description_. Defaults to None.
-            ignore_hidden_files (bool, optional): _description_. Defaults to True.
-
         """
-        iter_blobs = self.client.get_container_client(bucket_name).walk_blobs(
-            name_starts_with=prefix, delimiter="/", results_per_page=per_page * 2
-        )
+        container_client = self.client.get_container_client(bucket_name)
+
+        if match_glob:
+            iter_blobs = container_client.list_blobs(
+                name_starts_with=prefix, results_per_page=per_page * 2
+            )
+        else:
+            iter_blobs = container_client.walk_blobs(
+                name_starts_with=prefix, delimiter="/", results_per_page=per_page * 2
+            )
 
         max_items = (page * per_page) + 1
         start_offset = (page - 1) * per_page
@@ -218,14 +218,21 @@ class AzureBlobStorage(Storage):
 
         objects = []
 
+        lower_match_glob = match_glob.lower() if match_glob else None
+
         def is_object_match_query(obj):
+            lower_name = obj.name.lower()
             # Filter out ".keep" files used to create folders
-            if obj.name.endswith(self.folder_placeholder):
+            if lower_name.endswith(self.folder_placeholder):
                 return False
-            if ignore_hidden_files and obj.name.startswith("."):
+            if ignore_hidden_files and any(
+                part.startswith(".") for part in lower_name.split("/")
+            ):
                 return False
-            if query:
-                return query.lower() in obj.name.lower()
+            if query and query.lower() not in lower_name:
+                return False
+            if lower_match_glob and not fnmatch.fnmatch(lower_name, lower_match_glob):
+                return False
             return True
 
         while True:
