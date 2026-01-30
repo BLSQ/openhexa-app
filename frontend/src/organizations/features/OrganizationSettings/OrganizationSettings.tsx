@@ -106,12 +106,8 @@ const OrganizationSettings = ({ organization }: OrganizationSettingsProps) => {
         const errors = result?.updateOrganization.errors ?? [];
         if (errors.includes(UpdateOrganizationError.NameDuplicate)) {
           setNameError(t("An organization with this name already exists"));
-        } else if (
-          errors.includes(UpdateOrganizationError.ShortNameDuplicate)
-        ) {
-          setShortNameError(
-            t("An organization with this short name already exists"),
-          );
+        } else if (errors.includes(UpdateOrganizationError.InvalidShortName)) {
+          setShortNameError(t("The short name is invalid"));
         } else if (errors.includes(UpdateOrganizationError.InvalidShortName)) {
           setShortNameError(
             t("Short name must be maximum 5 uppercase letters"),
