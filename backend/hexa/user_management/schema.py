@@ -1569,6 +1569,7 @@ def resolve_create_organization(_, info, **kwargs):
     create_input = kwargs["input"]
     owner_email = create_input["owner_email"].strip().lower()
     name = create_input["name"].strip()
+    short_name_input = (create_input.get("short_name") or "").strip()
     subscription_id = create_input["subscription_id"]
     plan_code = create_input["plan_code"]
     subscription_start_date = create_input["subscription_start_date"]
@@ -1583,9 +1584,21 @@ def resolve_create_organization(_, info, **kwargs):
             "errors": ["NAME_DUPLICATE"],
         }
 
+    if short_name_input and (
+        not short_name_input.isupper()
+        or not short_name_input.isalpha()
+        or len(short_name_input) > 5
+    ):
+        return {
+            "success": False,
+            "organization": None,
+            "user": None,
+            "errors": ["INVALID_SHORT_NAME"],
+        }
+
     organization = Organization.objects.create(
         name=name,
-        short_name=generate_short_name(name),
+        short_name=short_name_input or generate_short_name(name),
         organization_type="CORPORATE",
     )
 
