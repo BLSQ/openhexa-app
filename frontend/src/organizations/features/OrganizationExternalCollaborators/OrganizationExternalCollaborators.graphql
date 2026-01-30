@@ -51,3 +51,21 @@ mutation DeleteExternalCollaborator($input: DeleteExternalCollaboratorInput!) {
     errors
   }
 }
+
+mutation ConvertExternalCollaboratorToMember(
+  $input: ConvertExternalCollaboratorToMemberInput!
+) {
+  convertExternalCollaboratorToMember(input: $input) {
+    success
+    errors
+    membership {
+      id
+      role
+      user {
+        id
+        email
+        displayName
+      }
+    }
+  }
+}
