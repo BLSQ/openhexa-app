@@ -62,7 +62,9 @@ class WorkspaceFileSystemTools:
             if obj.type == "directory":
                 return {"error": "Cannot read a directory. Use list_files instead."}
             if obj.size > MAX_FILE_SIZE:
-                return {"error": f"File too large ({obj.size} bytes). Maximum is {MAX_FILE_SIZE} bytes."}
+                return {
+                    "error": f"File too large ({obj.size} bytes). Maximum is {MAX_FILE_SIZE} bytes."
+                }
 
             full_path = storage.path(self.bucket_name, path)
             with open(full_path, "r") as f:
@@ -95,7 +97,9 @@ class WorkspaceFileSystemTools:
             if obj.type == "directory":
                 return {"error": "Cannot edit a directory."}
             if obj.size > MAX_FILE_SIZE:
-                return {"error": f"File too large ({obj.size} bytes). Maximum is {MAX_FILE_SIZE} bytes."}
+                return {
+                    "error": f"File too large ({obj.size} bytes). Maximum is {MAX_FILE_SIZE} bytes."
+                }
 
             full_path = storage.path(self.bucket_name, path)
             with open(full_path, "r") as f:
@@ -105,7 +109,9 @@ class WorkspaceFileSystemTools:
             if count == 0:
                 return {"error": "old_string not found in file."}
             if count > 1:
-                return {"error": f"old_string found {count} times. It must be unique. Provide more context to disambiguate."}
+                return {
+                    "error": f"old_string found {count} times. It must be unique. Provide more context to disambiguate."
+                }
 
             new_content = content.replace(old_string, new_string, 1)
             file_bytes = new_content.encode("utf-8")
@@ -176,11 +182,19 @@ class WorkspaceDatabaseTools:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                 cursor.execute(limited_query)
                 rows = cursor.fetchall()
-                columns = [desc[0] for desc in cursor.description] if cursor.description else []
+                columns = (
+                    [desc[0] for desc in cursor.description]
+                    if cursor.description
+                    else []
+                )
             serializable_rows = [
                 {k: _make_serializable(v) for k, v in row.items()} for row in rows
             ]
-            return {"columns": columns, "rows": serializable_rows, "row_count": len(rows)}
+            return {
+                "columns": columns,
+                "rows": serializable_rows,
+                "row_count": len(rows),
+            }
         except psycopg2.Error as e:
             return {"error": str(e).strip()}
         except Exception as e:

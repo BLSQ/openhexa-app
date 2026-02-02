@@ -1,3 +1,6 @@
+from .dhis2_tools import get_dhis2_tools, get_skill_tool
+
+
 def get_file_system_tools():
     return [
         {
@@ -47,7 +50,7 @@ def get_file_system_tools():
                 },
                 "required": ["path", "content"],
             },
-            "requires_approval": True,
+            "requires_approval": False,
         },
         {
             "name": "edit_file",
@@ -135,14 +138,22 @@ def get_database_tools():
     ]
 
 
-def get_tools_requiring_approval() -> set[str]:
-    all_tools = get_file_system_tools() + get_database_tools()
-    return {t["name"] for t in all_tools if t.get("requires_approval", False)}
+def get_all_tools(has_dhis2=False):
+    tools = get_file_system_tools() + get_database_tools()
+    if has_dhis2:
+        tools.append(get_skill_tool())
+        tools.extend(get_dhis2_tools())
+    return tools
 
 
-def get_tools_for_api() -> list[dict]:
-    all_tools = get_file_system_tools() + get_database_tools()
+def get_tools_requiring_approval(has_dhis2=False) -> set[str]:
+    return {
+        t["name"] for t in get_all_tools(has_dhis2) if t.get("requires_approval", False)
+    }
+
+
+def get_tools_for_api(has_dhis2=False) -> list[dict]:
     return [
         {k: v for k, v in tool.items() if k != "requires_approval"}
-        for tool in all_tools
+        for tool in get_all_tools(has_dhis2)
     ]

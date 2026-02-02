@@ -5,8 +5,9 @@ from anthropic import Anthropic
 from django.conf import settings
 from django.db.models import F
 
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.models import ConnectionType, Workspace
 
+from .dhis2_tool_executors import WorkspaceDHIS2Tools
 from .models import (
     ASSISTANT_MODELS,
     DEFAULT_ASSISTANT_MODEL,
@@ -15,12 +16,17 @@ from .models import (
     PendingToolApproval,
     ToolExecution,
 )
+from .skills import SKILLS_REGISTRY, get_skill, get_sub_skill_details
+from .skills.dhis2 import register_dhis2_skills
 from .tool_executors import WorkspaceDatabaseTools, WorkspaceFileSystemTools
 from .tools import get_tools_for_api, get_tools_requiring_approval
 
 logger = logging.getLogger(__name__)
 
-MAX_TOOL_ITERATIONS = 10
+if not SKILLS_REGISTRY:
+    register_dhis2_skills()
+
+MAX_TOOL_ITERATIONS = 20
 
 SYSTEM_PROMPT = """You are a helpful AI assistant integrated into OpenHEXA, a data platform. You have access to the user's workspace file system and PostgreSQL database.
 
@@ -37,6 +43,20 @@ Guidelines:
 """
 
 
+def _build_system_prompt(workspace: Workspace) -> tuple[str, bool]:
+    prompt = SYSTEM_PROMPT
+    has_dhis2 = workspace.connections.filter(
+        connection_type=ConnectionType.DHIS2
+    ).exists()
+
+    if has_dhis2:
+        dhis2_skill = get_skill("dhis2")
+        if dhis2_skill:
+            prompt += "\n" + dhis2_skill["content"]
+
+    return prompt, has_dhis2
+
+
 class AgentService:
     def __init__(self, workspace: Workspace, conversation: Conversation):
         self.workspace = workspace
@@ -44,6 +64,9 @@ class AgentService:
         self.client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
         self.fs_tools = WorkspaceFileSystemTools(workspace)
         self.db_tools = WorkspaceDatabaseTools(workspace)
+
+        self.system_prompt, self.has_dhis2 = _build_system_prompt(workspace)
+        self.dhis2_tools = WorkspaceDHIS2Tools(workspace) if self.has_dhis2 else None
 
         org = workspace.organization
         org_model = getattr(org, "assistant_model", "") if org else ""
@@ -77,6 +100,45 @@ class AgentService:
             )
         elif tool_name == "describe_tables":
             result = self.db_tools.describe_tables(tool_input.get("table_name"))
+        elif tool_name == "get_skill_details":
+            result = self._get_skill_details(tool_input["skill_name"])
+        elif tool_name == "list_dhis2_connections":
+            result = self.dhis2_tools.list_connections()
+        elif tool_name == "dhis2_query_metadata":
+            result = self.dhis2_tools.query_metadata(
+                connection_slug=tool_input["connection_slug"],
+                query_type=tool_input["query_type"],
+                fields=tool_input.get("fields"),
+                filters=tool_input.get("filters"),
+                page=tool_input.get("page"),
+                page_size=tool_input.get("page_size"),
+            )
+        elif tool_name == "dhis2_query_analytics":
+            result = self.dhis2_tools.query_analytics(
+                connection_slug=tool_input["connection_slug"],
+                data_elements=tool_input.get("data_elements"),
+                data_element_groups=tool_input.get("data_element_groups"),
+                indicators=tool_input.get("indicators"),
+                indicator_groups=tool_input.get("indicator_groups"),
+                org_units=tool_input.get("org_units"),
+                org_unit_groups=tool_input.get("org_unit_groups"),
+                org_unit_levels=tool_input.get("org_unit_levels"),
+                periods=tool_input.get("periods"),
+                include_cocs=tool_input.get("include_cocs"),
+            )
+        elif tool_name == "dhis2_query_data_values":
+            result = self.dhis2_tools.query_data_values(
+                connection_slug=tool_input["connection_slug"],
+                data_elements=tool_input.get("data_elements"),
+                datasets=tool_input.get("datasets"),
+                data_element_groups=tool_input.get("data_element_groups"),
+                org_units=tool_input.get("org_units"),
+                org_unit_groups=tool_input.get("org_unit_groups"),
+                periods=tool_input.get("periods"),
+                start_date=tool_input.get("start_date"),
+                end_date=tool_input.get("end_date"),
+                children=tool_input.get("children"),
+            )
         else:
             result = {"error": f"Unknown tool: {tool_name}"}
 
@@ -89,6 +151,13 @@ class AgentService:
         )
 
         return result
+
+    def _get_skill_details(self, skill_name: str) -> dict:
+        for registered_skill_name in SKILLS_REGISTRY:
+            content = get_sub_skill_details(registered_skill_name, skill_name)
+            if content:
+                return {"content": content}
+        return {"error": f"Unknown skill: {skill_name}"}
 
     def _serialize_response(self, response) -> dict:
         content = []
@@ -177,12 +246,12 @@ class AgentService:
         messages.append({"role": "assistant", "content": claude_response_content})
         messages.append({"role": "user", "content": tool_results})
 
-        tools = get_tools_for_api()
+        tools = get_tools_for_api(has_dhis2=self.has_dhis2)
 
         response = self.client.messages.create(
             model=self.model_id,
-            max_tokens=4096,
-            system=SYSTEM_PROMPT,
+            max_tokens=16384,
+            system=self.system_prompt,
             tools=tools,
             messages=messages,
         )
@@ -202,7 +271,13 @@ class AgentService:
         )
 
     def _process_with_tools(self, messages: list, user_message: str) -> dict:
-        tools = get_tools_for_api()
+        tools = get_tools_for_api(has_dhis2=self.has_dhis2)
+        tool_names = [t["name"] for t in tools]
+        print(
+            f"[Agent] Processing message with model={self.model_id}, "
+            f"has_dhis2={self.has_dhis2}, tools={tool_names}",
+            flush=True,
+        )
 
         if not self.conversation.model:
             Conversation.objects.filter(id=self.conversation.id).update(
@@ -215,16 +290,22 @@ class AgentService:
             content=user_message,
         )
 
+        print("[Agent] Calling Claude API (initial)...", flush=True)
         response = self.client.messages.create(
             model=self.model_id,
-            max_tokens=4096,
-            system=SYSTEM_PROMPT,
+            max_tokens=16384,
+            system=self.system_prompt,
             tools=tools,
             messages=messages,
         )
 
         total_input_tokens = response.usage.input_tokens
         total_output_tokens = response.usage.output_tokens
+        print(
+            f"[Agent] Initial API response: stop_reason={response.stop_reason}, "
+            f"input_tokens={total_input_tokens}, output_tokens={total_output_tokens}",
+            flush=True,
+        )
 
         return self._continue_tool_loop(
             messages,
@@ -240,15 +321,35 @@ class AgentService:
         total_input_tokens: int,
         total_output_tokens: int,
     ) -> dict:
-        tools = get_tools_for_api()
-        tools_requiring_approval = get_tools_requiring_approval()
+        tools = get_tools_for_api(has_dhis2=self.has_dhis2)
+        tools_requiring_approval = get_tools_requiring_approval(
+            has_dhis2=self.has_dhis2
+        )
 
         iterations = 0
+        print(
+            f"[Agent] Starting tool loop. stop_reason={response.stop_reason}, "
+            f"max_iterations={MAX_TOOL_ITERATIONS}",
+            flush=True,
+        )
         while response.stop_reason == "tool_use" and iterations < MAX_TOOL_ITERATIONS:
             iterations += 1
             tool_uses = [
                 block for block in response.content if block.type == "tool_use"
             ]
+            text_blocks = [
+                block.text
+                for block in response.content
+                if block.type == "text" and block.text.strip()
+            ]
+
+            tool_names = [tu.name for tu in tool_uses]
+            print(
+                f"[Agent] Iteration {iterations}/{MAX_TOOL_ITERATIONS}: "
+                f"tools={tool_names}, "
+                f"text_preview={text_blocks[0][:100] if text_blocks else '(none)'}",
+                flush=True,
+            )
 
             tools_needing_approval = [
                 tu for tu in tool_uses if tu.name in tools_requiring_approval
@@ -256,6 +357,10 @@ class AgentService:
 
             if tools_needing_approval:
                 tool_use = tools_needing_approval[0]
+                print(
+                    f"[Agent] Tool {tool_use.name} requires approval, pausing loop",
+                    flush=True,
+                )
                 return self._create_pending_approval(
                     tool_use,
                     messages,
@@ -267,6 +372,13 @@ class AgentService:
             tool_results = []
             for tool_use in tool_uses:
                 result = self.execute_tool(tool_use.name, tool_use.input)
+                result_preview = str(result)[:200]
+                print(
+                    f"[Agent]   Executed {tool_use.name}: "
+                    f"success={'error' not in result}, "
+                    f"result_preview={result_preview}",
+                    flush=True,
+                )
                 tool_results.append(
                     {
                         "type": "tool_result",
@@ -278,16 +390,35 @@ class AgentService:
             messages.append({"role": "assistant", "content": response.content})
             messages.append({"role": "user", "content": tool_results})
 
+            print(f"[Agent] Calling Claude API (iteration {iterations})...", flush=True)
             response = self.client.messages.create(
                 model=self.model_id,
-                max_tokens=4096,
-                system=SYSTEM_PROMPT,
+                max_tokens=16384,
+                system=self.system_prompt,
                 tools=tools,
                 messages=messages,
             )
 
             total_input_tokens += response.usage.input_tokens
             total_output_tokens += response.usage.output_tokens
+            print(
+                f"[Agent] API response: stop_reason={response.stop_reason}, "
+                f"input_tokens={response.usage.input_tokens}, "
+                f"output_tokens={response.usage.output_tokens}",
+                flush=True,
+            )
+
+        if iterations >= MAX_TOOL_ITERATIONS:
+            print(
+                f"[Agent] Exited loop: hit max iterations ({MAX_TOOL_ITERATIONS})",
+                flush=True,
+            )
+        else:
+            print(
+                f"[Agent] Exited loop: stop_reason={response.stop_reason} "
+                f"after {iterations} iterations",
+                flush=True,
+            )
 
         return self._finalize_response(
             response, total_input_tokens, total_output_tokens
