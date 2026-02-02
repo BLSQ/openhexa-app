@@ -1972,11 +1972,6 @@ enum UpdateOrganizationError {
     Indicates that the provided short name is invalid (must be max 5 uppercase letters).
     """
     INVALID_SHORT_NAME
-
-    """
-    Indicates that an organization with the same short name already exists.
-    """
-    SHORT_NAME_DUPLICATE
 }
 
 """
@@ -2055,6 +2050,12 @@ input CreateOrganizationInput {
     name: String!
 
     """
+    The short name of the organization (max 5 uppercase letters).
+    If not provided, it will be auto-generated from the name.
+    """
+    shortName: String
+
+    """
     The external subscription ID from the Bluesquare Console.
     """
     subscriptionId: UUID!
@@ -2123,6 +2124,11 @@ enum CreateOrganizationError {
     Indicates that the provided email is invalid.
     """
     INVALID_EMAIL
+
+    """
+    Indicates that the provided short name is invalid (must be max 5 uppercase letters).
+    """
+    INVALID_SHORT_NAME
 }
 
 """

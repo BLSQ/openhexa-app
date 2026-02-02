@@ -28,7 +28,7 @@ from graphql import default_field_resolver
 
 from hexa.analytics.api import track
 from hexa.core.graphql import result_page
-from hexa.core.string import remove_whitespace
+from hexa.core.string import generate_short_name, remove_whitespace
 from hexa.core.templatetags.colors import hash_color
 from hexa.datasets.models import Dataset, DatasetLink
 from hexa.tags.models import Tag
@@ -1492,16 +1492,6 @@ def resolve_update_organization(_, info, **kwargs):
                         "organization": None,
                         "errors": ["INVALID_SHORT_NAME"],
                     }
-                if (
-                    Organization.objects.exclude(id=organization.id)
-                    .filter(short_name=short_name)
-                    .exists()
-                ):
-                    return {
-                        "success": False,
-                        "organization": None,
-                        "errors": ["SHORT_NAME_DUPLICATE"],
-                    }
                 organization.short_name = short_name
 
         if "logo" in update_input:
@@ -1579,6 +1569,7 @@ def resolve_create_organization(_, info, **kwargs):
     create_input = kwargs["input"]
     owner_email = create_input["owner_email"].strip().lower()
     name = create_input["name"].strip()
+    short_name_input = (create_input.get("short_name") or "").strip()
     subscription_id = create_input["subscription_id"]
     plan_code = create_input["plan_code"]
     subscription_start_date = create_input["subscription_start_date"]
@@ -1593,8 +1584,21 @@ def resolve_create_organization(_, info, **kwargs):
             "errors": ["NAME_DUPLICATE"],
         }
 
+    if short_name_input and (
+        not short_name_input.isupper()
+        or not short_name_input.isalpha()
+        or len(short_name_input) > 5
+    ):
+        return {
+            "success": False,
+            "organization": None,
+            "user": None,
+            "errors": ["INVALID_SHORT_NAME"],
+        }
+
     organization = Organization.objects.create(
         name=name,
+        short_name=short_name_input or generate_short_name(name),
         organization_type="CORPORATE",
     )
 

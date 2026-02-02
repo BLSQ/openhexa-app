@@ -872,6 +872,8 @@ export type CreateMembershipResult = {
 export enum CreateOrganizationError {
   /** Indicates that the provided email is invalid. */
   InvalidEmail = 'INVALID_EMAIL',
+  /** Indicates that the provided short name is invalid (must be max 5 uppercase letters). */
+  InvalidShortName = 'INVALID_SHORT_NAME',
   /** Indicates that an organization with the same name already exists. */
   NameDuplicate = 'NAME_DUPLICATE',
   /** Indicates that the user does not have permission to create an organization. */
@@ -891,6 +893,11 @@ export type CreateOrganizationInput = {
   ownerEmail: Scalars['String']['input'];
   /** The subscription plan code (e.g., "openhexa_starter"). */
   planCode: Scalars['String']['input'];
+  /**
+   * The short name of the organization (max 5 uppercase letters).
+   * If not provided, it will be auto-generated from the name.
+   */
+  shortName?: InputMaybe<Scalars['String']['input']>;
   /** The date when the subscription ends. */
   subscriptionEndDate: Scalars['Date']['input'];
   /** The external subscription ID from the Bluesquare Console. */
@@ -5341,9 +5348,7 @@ export enum UpdateOrganizationError {
   /** Indicates that the organization was not found. */
   NotFound = 'NOT_FOUND',
   /** Indicates that the user does not have permission to update the organization. */
-  PermissionDenied = 'PERMISSION_DENIED',
-  /** Indicates that an organization with the same short name already exists. */
-  ShortNameDuplicate = 'SHORT_NAME_DUPLICATE'
+  PermissionDenied = 'PERMISSION_DENIED'
 }
 
 /** The UpdateOrganizationInput type represents the input for the updateOrganization mutation. */
