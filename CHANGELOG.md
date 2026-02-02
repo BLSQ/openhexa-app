@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.18.0](https://github.com/BLSQ/openhexa-app/compare/2.17.3...2.18.0) (2026-02-02)
+
+
+### Features
+
+* button to convert external collaborator to org member (HEXA-1481) ([#1579](https://github.com/BLSQ/openhexa-app/issues/1579)) ([0822d5b](https://github.com/BLSQ/openhexa-app/commit/0822d5be44f690560a69858e85fa22c936fca19e))
+* Deleting Dataset versions (HEXA-1322) ([#1576](https://github.com/BLSQ/openhexa-app/issues/1576)) ([10694f7](https://github.com/BLSQ/openhexa-app/commit/10694f75c4b83d295779eb0c615d695a316f882d))
+
+
+### Bug Fixes
+
+* Hide create pipeline button for viewers(HEXA-1439) ([#1581](https://github.com/BLSQ/openhexa-app/issues/1581)) ([d44367c](https://github.com/BLSQ/openhexa-app/commit/d44367c4184a5648a05b45d3d88adde8a0275bba))
+* read only user is working in demo but not prod (HEXA-1489) ([#1587](https://github.com/BLSQ/openhexa-app/issues/1587)) ([e4bcf51](https://github.com/BLSQ/openhexa-app/commit/e4bcf51ff5c1ef22499a7f97c6477d37803e43b9))
+
 ## [2.17.3](https://github.com/BLSQ/openhexa-app/compare/2.17.2...2.17.3) (2026-01-27)
 
 
