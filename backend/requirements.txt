@@ -321,6 +321,7 @@ packaging==25.0
     #   gunicorn
     #   openlineage-python
     #   pyogrio
+    #   wheel
     #   xarray
 pandas==2.3.0
     # via
@@ -528,7 +529,7 @@ websocket-client==1.8.0
     # via kubernetes
 werkzeug==3.1.5
     # via moto
-wheel==0.45.1
+wheel==0.46.2
     # via pip-tools
 whitenoise==6.9.0
     # via -r requirements.in
