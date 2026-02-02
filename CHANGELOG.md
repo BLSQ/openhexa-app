@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0](https://github.com/BLSQ/openhexa-app/compare/2.18.0...3.0.0) (2026-02-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* organization shortname requirements (HEXA-1490) ([#1586](https://github.com/BLSQ/openhexa-app/issues/1586))
+
+### Bug Fixes
+
+* organization shortname requirements (HEXA-1490) ([#1586](https://github.com/BLSQ/openhexa-app/issues/1586)) ([fa6332d](https://github.com/BLSQ/openhexa-app/commit/fa6332d2cbaecda6b4db16d1ffb2cfd93f2717ed))
+
 ## [2.18.0](https://github.com/BLSQ/openhexa-app/compare/2.17.3...2.18.0) (2026-02-02)
 
 
