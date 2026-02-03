@@ -214,6 +214,13 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
           <DeleteDatasetVersionDialog
             open={isDeleteVersionDialogOpen}
             onClose={() => setDeleteVersionDialogOpen(false)}
+            onDelete={() => {
+              delete router.query["version"];
+              router.push({
+                pathname: router.pathname,
+                query: { ...router.query },
+              });
+            }}
             version={version}
           />
         )}
