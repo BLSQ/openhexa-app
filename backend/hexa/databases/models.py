@@ -12,6 +12,7 @@ class DatasetRecipe(models.Model):
 
     This is the source of truth. It can be executed on-demand against the workspace DB.
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     workspace = models.ForeignKey(
