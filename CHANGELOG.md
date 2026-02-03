@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/BLSQ/openhexa-app/compare/3.0.0...3.0.1) (2026-02-03)
+
+
+### Bug Fixes
+
+* removed the version id from the url after deletion (HEXA-1494) ([#1595](https://github.com/BLSQ/openhexa-app/issues/1595)) ([2a1e31e](https://github.com/BLSQ/openhexa-app/commit/2a1e31e6602e20a491f082291c1770140217c047))
+
 ## [3.0.0](https://github.com/BLSQ/openhexa-app/compare/2.18.0...3.0.0) (2026-02-02)
 
 
