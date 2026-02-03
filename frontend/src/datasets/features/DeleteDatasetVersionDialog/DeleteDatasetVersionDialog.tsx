@@ -12,12 +12,14 @@ import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 type DeleteDatasetVersionDialogProps = {
   open: boolean;
   onClose: () => void;
+  onDelete?: () => void;
   version: DeleteDatasetVersionDialog_VersionFragment;
 };
 
 const DeleteDatasetVersionDialog = ({
   open,
   onClose,
+  onDelete,
   version,
 }: DeleteDatasetVersionDialogProps) => {
   const { t } = useTranslation();
@@ -32,6 +34,7 @@ const DeleteDatasetVersionDialog = ({
     try {
       await deleteDatasetVersion(version.id);
       clearCache();
+      onDelete?.();
       onClose();
     } catch (err: any) {
       setError(err.message || t("An error occurred while deleting the version"));

@@ -208,16 +208,22 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
         onClose={() => setUploadDialogOpen(false)}
         datasetLink={datasetLink}
       />
-
-      <>
-        {version && (
-          <DeleteDatasetVersionDialog
-            open={isDeleteVersionDialogOpen}
-            onClose={() => setDeleteVersionDialogOpen(false)}
-            version={version}
+<>
+      {version && (
+        <DeleteDatasetVersionDialog
+          open={isDeleteVersionDialogOpen}
+          onClose={() => setDeleteVersionDialogOpen(false)}
+          onDelete={() => {
+            const { version, ...restQuery } = router.query;
+            router.push({
+              pathname: router.pathname,
+              query: restQuery,
+            });
+          }}
+          version={version}
           />
         )}
-      </>
+        </>
     </WorkspaceLayout>
   );
 };
