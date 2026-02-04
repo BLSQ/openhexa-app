@@ -5,6 +5,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
+from django.core.signing import Signer
 from django.db.models.functions import Collate
 from django.utils.crypto import get_random_string
 
@@ -18,6 +19,7 @@ from .models import (
     OrganizationInvitation,
     OrganizationMembership,
     OrganizationSubscription,
+    ServiceAccount,
     SignupRequest,
     Team,
     User,
@@ -375,3 +377,39 @@ class SignupRequestAdmin(admin.ModelAdmin):
     search_fields = ("email",)
     readonly_fields = ("created_at", "updated_at")
     ordering = ("-created_at",)
+
+
+@admin.register(ServiceAccount)
+class ServiceAccountAdmin(admin.ModelAdmin):
+    list_display = ("email", "is_active")
+    list_filter = ("is_active",)
+    search_fields = "email"
+    filter_horizontal = ("user_permissions",)
+    readonly_fields = ("signed_token_display",)
+    fieldsets = (
+        (
+            None,
+            {"fields": ("email",)},
+        ),
+        ("Permissions", {"fields": ("is_active", "user_permissions")}),
+        (
+            "Token",
+            {
+                "fields": ("access_token", "signed_token_display"),
+            },
+        ),
+    )
+    actions = ["rotate_tokens"]
+
+    def signed_token_display(self, obj):
+        if obj.pk and obj.access_token:
+            return Signer().sign_object(str(obj.access_token))
+        return "-"
+
+    signed_token_display.short_description = "Signed Bearer Token (for API calls)"
+
+    @admin.action(description="Rotate access tokens for selected service accounts")
+    def rotate_tokens(self, request, queryset):
+        for svc in queryset:
+            svc.rotate_token()
+        self.message_user(request, "Tokens rotated.")
