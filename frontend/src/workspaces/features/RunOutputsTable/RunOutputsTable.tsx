@@ -67,6 +67,7 @@ const RunOutputsTable = (props: RunOutputsTableProps) => {
                   workspaceSlug: workspace.slug,
                   sourceWorkspaceSlug: output.dataset.workspace.slug,
                   dataset: output.dataset.slug,
+                  version: output.id,
                 },
               }}
             >
@@ -180,6 +181,7 @@ RunOutputsTable.fragments = {
         }
       }
       datasetVersions {
+        id
         name
         dataset {
           slug
