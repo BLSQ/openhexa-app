@@ -2198,6 +2198,7 @@ input GenerateDatasetUploadUrlInput {
 """Result of creating an upload url"""
 type GenerateDatasetUploadUrlResult {
   errors: [CreateDatasetVersionFileError!]!
+  headers: JSON
   success: Boolean!
   uploadUrl: String
 }
@@ -3605,6 +3606,7 @@ The result of preparing to upload an object to a workspace's bucket. It contains
 """
 type PrepareObjectUploadResult {
   errors: [PrepareObjectUploadError!]!
+  headers: JSON
   success: Boolean!
 
   """

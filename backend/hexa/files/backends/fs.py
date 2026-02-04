@@ -287,11 +287,11 @@ class FileSystemStorage(Storage):
 
     def generate_upload_url(
         self,
+        *,
         bucket_name: str,
         target_key: str,
         raise_if_exists=False,
         host: str | None = None,
-        *args,
         **kwargs,
     ):
         if not self.exists(bucket_name):
@@ -301,21 +301,24 @@ class FileSystemStorage(Storage):
             raise self.exceptions.AlreadyExists(f"Object {target_key} already exist")
 
         token = self._create_token_for_payload(
-            {"bucket_name": bucket_name, "file_path": target_key}
+            {
+                "bucket_name": bucket_name,
+                "file_path": target_key,
+            }
         )
         internal_url = reverse("files:upload_file", args=(token,))
         if host is None:
             host = settings.BASE_URL
 
-        return f"{host}{internal_url}"
+        return f"{host}{internal_url}", None
 
     def generate_download_url(
         self,
+        *,
         bucket_name: str,
         target_key: str,
         force_attachment=False,
         host: str | None = None,
-        *args,
         **kwargs,
     ):
         if not self.exists(bucket_name):
@@ -325,7 +328,10 @@ class FileSystemStorage(Storage):
             raise self.exceptions.NotFound(f"Object {target_key} not found")
 
         token = self._create_token_for_payload(
-            {"bucket_name": bucket_name, "file_path": target_key}
+            {
+                "bucket_name": bucket_name,
+                "file_path": target_key,
+            }
         )
         endpoint = reverse("files:download_file", args=(token,))
         if force_attachment:
