@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.signing import Signer
 from django.db.models.functions import Collate
 from django.utils.crypto import get_random_string
+from django.utils.html import format_html
 
 from hexa.core.admin import GlobalObjectsModelAdmin, country_list
 
@@ -385,13 +386,13 @@ class ServiceAccountAdmin(admin.ModelAdmin):
     list_filter = ("is_active",)
     search_fields = ("email",)
     filter_horizontal = ("user_permissions",)
-    readonly_fields = ("access_token", "signed_token")
+    readonly_fields = ["signed_token"]
     actions = ["rotate_tokens"]
 
     _fieldsets_edit = (
         (
             None,
-            {"fields": ("email", "access_token", "signed_token")},
+            {"fields": ("email", "signed_token")},
         ),
         ("Permissions", {"fields": ("is_active", "user_permissions")}),
     )
@@ -406,7 +407,18 @@ class ServiceAccountAdmin(admin.ModelAdmin):
 
     def signed_token(self, obj):
         if obj.pk and obj.access_token:
-            return Signer().sign_object(str(obj.access_token))
+            token = Signer().sign_object(str(obj.access_token))
+            return format_html(
+                '<code data-t="{token}">{mask}</code>'
+                " <a href='#' onclick=\""
+                "var c=this.previousElementSibling,t=c.dataset.t;"
+                "c.dataset.t=c.textContent;c.textContent=t;"
+                "this.textContent=this.textContent==='Reveal'?'Hide':'Reveal';"
+                "return false;"
+                '">Reveal</a>',
+                mask="\u2022" * 16,
+                token=token,
+            )
         return "-"
 
     def get_fieldsets(self, request, obj=None):
