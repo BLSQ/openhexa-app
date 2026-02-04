@@ -185,6 +185,9 @@ class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
                 models.Q(workspaces=user.pipeline_run.pipeline.workspace),
             )
 
+        if user.has_perm("user_management.manage_all_organizations"):
+            return self.all()
+
         if direct_membership_only:
             query = Q(organizationmembership__user=user)
         else:
@@ -790,3 +793,15 @@ class SignupRequest(Invitation):
         """Accept the signup request."""
         self.status = SignupRequestStatus.ACCEPTED
         self.save()
+
+
+class ServiceAccount(User):
+    class Meta:
+        db_table = "identity_service_account"
+
+    access_token = models.UUIDField(default=uuid.uuid4, unique=True)
+
+    def rotate_token(self):
+        self.access_token = uuid.uuid4()
+        self.save(update_fields=["access_token"])
+        return self.access_token
