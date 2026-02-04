@@ -385,28 +385,34 @@ class ServiceAccountAdmin(admin.ModelAdmin):
     list_filter = ("is_active",)
     search_fields = ("email",)
     filter_horizontal = ("user_permissions",)
-    readonly_fields = ("signed_token_display",)
-    fieldsets = (
+    readonly_fields = ("access_token", "signed_token")
+    actions = ["rotate_tokens"]
+
+    _fieldsets_edit = (
+        (
+            None,
+            {"fields": ("email", "access_token", "signed_token")},
+        ),
+        ("Permissions", {"fields": ("is_active", "user_permissions")}),
+    )
+
+    _fieldsets_add = (
         (
             None,
             {"fields": ("email",)},
         ),
         ("Permissions", {"fields": ("is_active", "user_permissions")}),
-        (
-            "Token",
-            {
-                "fields": ("access_token", "signed_token_display"),
-            },
-        ),
     )
-    actions = ["rotate_tokens"]
 
-    def signed_token_display(self, obj):
+    def signed_token(self, obj):
         if obj.pk and obj.access_token:
             return Signer().sign_object(str(obj.access_token))
         return "-"
 
-    signed_token_display.short_description = "Signed Bearer Token (for API calls)"
+    def get_fieldsets(self, request, obj=None):
+        if obj is None:
+            return self._fieldsets_add
+        return self._fieldsets_edit
 
     @admin.action(description="Rotate access tokens for selected service accounts")
     def rotate_tokens(self, request, queryset):
