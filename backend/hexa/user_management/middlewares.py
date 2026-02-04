@@ -4,6 +4,7 @@ from functools import cache
 from typing import Callable
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.signing import BadSignature, Signer
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
@@ -69,7 +70,7 @@ def service_account_token_middleware(get_response):
             logger.exception(
                 "service account authentication error",
             )
-        except (UnicodeDecodeError, binascii.Error, BadSignature):
+        except (UnicodeDecodeError, binascii.Error, BadSignature, ValidationError):
             pass
         except ServiceAccount.DoesNotExist:
             pass
