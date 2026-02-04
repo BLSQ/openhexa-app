@@ -1,8 +1,10 @@
+import binascii
 import logging
 from functools import cache
 from typing import Callable
 
 from django.conf import settings
+from django.core.signing import BadSignature, Signer
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
@@ -44,6 +46,36 @@ def is_protected_routes(request: HttpRequest) -> bool:
     Is the URL should be behind login screen? Must the user accept the TOS to get this page?
     """
     return get_view_name(request) not in get_anonymous_urls()
+
+
+def service_account_token_middleware(get_response):
+    """This middleware allows a service account to be authenticated through a signed Bearer token."""
+
+    def middleware(request: HttpRequest):
+        from .models import ServiceAccount
+
+        try:
+            auth_type, token = request.headers["Authorization"].split(" ")
+            if auth_type.lower() == "bearer":
+                token = Signer().unsign_object(token)
+                service_account = ServiceAccount.objects.get(
+                    access_token=token,
+                    is_active=True,
+                )
+                request.user = service_account
+        except KeyError:
+            pass  # No Authorization header
+        except ValueError:
+            logger.exception(
+                "service account authentication error",
+            )
+        except (UnicodeDecodeError, binascii.Error, BadSignature):
+            pass
+        except ServiceAccount.DoesNotExist:
+            pass
+        return get_response(request)
+
+    return middleware
 
 
 def login_required_middleware(
