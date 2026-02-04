@@ -383,7 +383,7 @@ class SignupRequestAdmin(admin.ModelAdmin):
 class ServiceAccountAdmin(admin.ModelAdmin):
     list_display = ("email", "is_active")
     list_filter = ("is_active",)
-    search_fields = "email"
+    search_fields = ("email",)
     filter_horizontal = ("user_permissions",)
     readonly_fields = ("signed_token_display",)
     fieldsets = (
