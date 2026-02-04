@@ -204,6 +204,7 @@ MIDDLEWARE = [
     "hexa.plugins.connector_airflow.middlewares.dag_run_authentication_middleware",
     "hexa.pipelines.middlewares.pipeline_run_authentication_middleware",
     "hexa.workspaces.middlewares.workspace_token_authentication_middleware",
+    "hexa.user_management.middlewares.service_account_token_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
