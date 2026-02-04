@@ -16,12 +16,12 @@ L'interface du navigateur de fichiers fournit plusieurs fonctionnalités clés :
 - Rechercher des fichiers et des dossiers par nom
 - Basculer la visibilité des fichiers cachés (commençant par ".")
 - Créer des dossiers pour organiser votre espace de travail (Editors et Admins uniquement)
-- Télécharger tout type de fichier dans votre espace de travail (Editors et Admins uniquement)
+- Téléverser des fichiers ou des dossiers entiers dans votre espace de travail (Editors et Admins uniquement)
 
 Les fichiers sont affichés dans un tableau montrant :
 
 - Noms de fichiers/dossiers avec icônes de type
-- Tailles de fichiers en format lisible  
+- Tailles de fichiers en format lisible
 - Dates de dernière modification avec capacité de tri
 
 Vous pouvez effectuer des opérations courantes sur les fichiers :
@@ -39,4 +39,3 @@ Le système de fichiers de l'espace de travail s'intègre parfaitement avec les 
 
 - **Notebooks** : Accédez directement aux fichiers depuis les notebooks Jupyter en utilisant le système de fichiers de l'espace de travail. Voir [Notebooks](notebooks.md).
 - **Pipelines de données** : Lisez et écrivez des fichiers dans vos flux de travail de traitement de données. Voir [OpenHEXA SDK](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK).
-
