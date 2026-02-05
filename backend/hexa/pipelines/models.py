@@ -5,12 +5,13 @@ import typing
 import uuid
 from datetime import datetime
 
+from croniter import croniter
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import Signer, TimestampSigner
 from django.db import models, transaction
 from django.db.models import Q
@@ -571,9 +572,12 @@ class Pipeline(SoftDeletedModel):
         ):
             raise MissingPipelineConfiguration
 
-        for key in ["name", "description", "schedule", "config", "functional_type"]:
+        for key in ["name", "description", "config", "functional_type"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
+
+        if "schedule" in kwargs:
+            self.set_schedule(kwargs["schedule"])
 
         if "auto_update_from_template" in kwargs:
             self.auto_update_from_template = kwargs["auto_update_from_template"]
@@ -621,6 +625,12 @@ class Pipeline(SoftDeletedModel):
             self.generate_webhook_token()
 
         self.webhook_enabled = enabled
+
+    def set_schedule(self, schedule: str):
+        if not croniter.is_valid(schedule):
+            raise ValidationError("Invalid cron expression")
+        else:
+            self.schedule = schedule
 
     def generate_webhook_token(self):
         signer = TimestampSigner()

@@ -28,7 +28,7 @@ class Command(BaseCommand):
             sequence, start_time = [], timezone.now()
             for pipeline in Pipeline.objects.exclude(schedule=None):
                 if not croniter.is_valid(pipeline.schedule):
-                    logger.warning("pipeline %s invalid schedule", pipeline.id)
+                    logger.error("pipeline %s invalid schedule", pipeline.id)
                     continue
                 if pipeline.is_schedulable is False:
                     # A pipeline may have a schedule but not be schedulable because the configuration of the version has changed
