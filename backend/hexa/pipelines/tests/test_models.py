@@ -480,6 +480,97 @@ class PipelineTest(TestCase):
             "V2: Config should use new default since old config value matched old default",
         )
 
+    def test_get_config_from_previous_version_new_field_added(self):
+        """Test that user config is preserved when SDK adds a new field to parameter serialization.
+
+        This is a regression test for HEXA-1493: when a new field (like 'directory') is added
+        to parameter serialization, the parameter matching should still work based on 'code'
+        and 'type', not full dict comparison.
+        """
+        pipeline = Pipeline.objects.create(name="Test pipeline")
+
+        v1_parameters = [
+            {
+                "code": "sheet_id",
+                "type": "str",
+                "default": None,
+                "required": True,
+            },
+            {
+                "code": "org_unit_id",
+                "type": "int",
+                "default": None,
+                "required": True,
+            },
+        ]
+
+        pipeline.upload_new_version(
+            user=self.USER_ADMIN,
+            zipfile=b"",
+            parameters=v1_parameters,
+            name="Version 1",
+            config={"sheet_id": "user_configured_sheet_id", "org_unit_id": 12345},
+        )
+
+        v2_parameters = [
+            {
+                "code": "sheet_id",
+                "type": "str",
+                "default": None,
+                "required": True,
+                "directory": None,
+            },
+            {
+                "code": "org_unit_id",
+                "type": "int",
+                "default": None,
+                "required": True,
+                "directory": None,
+            },
+        ]
+
+        pipeline.upload_new_version(
+            user=self.USER_ADMIN,
+            zipfile=b"",
+            parameters=v2_parameters,
+            name="Version 2",
+            config=None,
+        )
+
+        self.assertEqual(
+            pipeline.last_version.config,
+            {"sheet_id": "user_configured_sheet_id", "org_unit_id": 12345},
+            "User config should be preserved when parameter structure changes",
+        )
+
+    def test_get_config_from_previous_version_type_changed(self):
+        """Test that config is NOT preserved when a parameter's type changes."""
+        pipeline = Pipeline.objects.create(name="Test pipeline")
+
+        pipeline.upload_new_version(
+            user=self.USER_ADMIN,
+            zipfile=b"",
+            parameters=[
+                {"code": "my_param", "type": "str", "default": "default_value"}
+            ],
+            name="Version 1",
+            config={"my_param": "user_string_value"},
+        )
+
+        pipeline.upload_new_version(
+            user=self.USER_ADMIN,
+            zipfile=b"",
+            parameters=[{"code": "my_param", "type": "int", "default": 42}],
+            name="Version 2",
+            config=None,
+        )
+
+        self.assertEqual(
+            pipeline.last_version.config,
+            {"my_param": 42},
+            "Config should use new default when parameter type changes",
+        )
+
     def test_get_or_create_template(self):
         template_name = "Test Template"
         template, _ = self.PIPELINE.get_or_create_template(
