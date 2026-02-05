@@ -3238,6 +3238,74 @@ def test_pipeline(input_file, threshold, enable_debug):
         self.assertIsNotNone(pipeline_data)
         self.assertEqual(pipeline_data["functionalType"], "loading")
 
+    def test_update_pipeline_cron_valid(self):
+        """Test updating pipeline functional type via GraphQL"""
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
+
+        r = self.run_query(
+            """
+            mutation updatePipeline($input: UpdatePipelineInput!) {
+                updatePipeline(input: $input) {
+                    success
+                    errors
+                    pipeline {
+                        id
+                        schedule
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(pipeline.id),
+                    "schedule": "10,40 * * * *",
+                }
+            },
+        )
+
+        self.assertEqual(r["data"]["updatePipeline"]["success"], True)
+        self.assertEqual(r["data"]["updatePipeline"]["errors"], [])
+        self.assertEqual(
+            r["data"]["updatePipeline"]["pipeline"]["functionalType"], "10,40 * * * *"
+        )
+
+        pipeline.refresh_from_db()
+        self.assertEqual(pipeline.schedule, "10,40 * * * *")
+
+    def test_update_pipeline_cron_invalid(self):
+        """Test updating pipeline functional type via GraphQL"""
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
+
+        r = self.run_query(
+            """
+            mutation updatePipeline($input: UpdatePipelineInput!) {
+                updatePipeline(input: $input) {
+                    success
+                    errors
+                    pipeline {
+                        id
+                        schedule
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(pipeline.id),
+                    "schedule": "0 10,40 * * * *",
+                }
+            },
+        )
+
+        self.assertEqual(r["data"]["uploadPipeline"]["success"], False)
+        self.assertIn("INVALID_CONFIG", r["data"]["uploadPipeline"]["errors"])
+
     def test_filter_pipelines_by_last_run_states(self):
         """Test filtering pipelines by the state of their last run"""
         self.client.force_login(self.USER_ROOT)
