@@ -3303,8 +3303,8 @@ def test_pipeline(input_file, threshold, enable_debug):
             },
         )
 
-        self.assertEqual(r["data"]["uploadPipeline"]["success"], False)
-        self.assertIn("INVALID_CONFIG", r["data"]["uploadPipeline"]["errors"])
+        self.assertEqual(r["data"]["updatePipeline"]["success"], False)
+        self.assertIn("INVALID_CONFIG", r["data"]["updatePipeline"]["errors"])
 
     def test_filter_pipelines_by_last_run_states(self):
         """Test filtering pipelines by the state of their last run"""
