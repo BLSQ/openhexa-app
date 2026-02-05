@@ -3269,7 +3269,7 @@ def test_pipeline(input_file, threshold, enable_debug):
         self.assertEqual(r["data"]["updatePipeline"]["success"], True)
         self.assertEqual(r["data"]["updatePipeline"]["errors"], [])
         self.assertEqual(
-            r["data"]["updatePipeline"]["pipeline"]["functionalType"], "10,40 * * * *"
+            r["data"]["updatePipeline"]["pipeline"]["schedule"], "10,40 * * * *"
         )
 
         pipeline.refresh_from_db()
