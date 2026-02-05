@@ -9,6 +9,7 @@ import {
 } from "graphql/types";
 import { useApolloClient, gql } from "@apollo/client";
 import useForm from "core/hooks/useForm";
+import { toast } from "react-toastify";
 import { RemoveMemberDialog_MemberFragment } from "./RemoveMemberDialog.generated";
 
 type RemoveMemberDialogProps = {
@@ -71,6 +72,7 @@ export default function RemoveMemberDialog({
           }
           throw new Error(t("Failed to remove member"));
         }
+        toast.success(t("Member removed"));
       } else {
         if (!organizationId) {
           throw new Error(t("Organization ID is required"));
@@ -104,6 +106,7 @@ export default function RemoveMemberDialog({
           }
           throw new Error(t("Failed to remove external collaborator"));
         }
+        toast.success(t("External collaborator removed"));
       }
 
       client.cache.evict({ fieldName: "users" });
