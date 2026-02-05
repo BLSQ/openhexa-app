@@ -159,7 +159,7 @@ def test_pipeline(input_file, threshold, enable_debug):
             r["data"]["createPipeline"],
         )
 
-    def test_create_pipeline(self):
+    def test_create_pipeline(self) -> Pipeline:
         self.assertEqual(0, len(Pipeline.objects.all()))
 
         self._create_pipeline("MonBeauPipeline")
@@ -285,10 +285,8 @@ def test_pipeline(input_file, threshold, enable_debug):
 
     def test_create_pipeline_version(self, parameters=[], config={}):
         self.assertEqual(0, len(PipelineRun.objects.all()))
-        self.test_create_pipeline()
-        self.assertEqual(1, len(Pipeline.objects.all()))
-
-        code1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().code
+        pipeline = self.test_create_pipeline()
+        code1 = pipeline.code
         self.client.force_login(self.USER_ROOT)
 
         r = self.run_query(
@@ -325,10 +323,8 @@ def test_pipeline(input_file, threshold, enable_debug):
 
     def test_create_pipeline_version_negative_timeout(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
-        self.test_create_pipeline()
-        self.assertEqual(1, len(Pipeline.objects.all()))
-
-        code1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().code
+        pipeline = self.test_create_pipeline()
+        code1 = pipeline.code
         self.client.force_login(self.USER_ROOT)
 
         r = self.run_query(
@@ -357,10 +353,8 @@ def test_pipeline(input_file, threshold, enable_debug):
 
     def test_create_pipeline_version_timeout_greater_than_max_timeout(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
-        self.test_create_pipeline()
-        self.assertEqual(1, len(Pipeline.objects.all()))
-
-        code1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().code
+        pipeline = self.test_create_pipeline()
+        code1 = pipeline.code
         self.client.force_login(self.USER_ROOT)
 
         r = self.run_query(
@@ -388,10 +382,7 @@ def test_pipeline(input_file, threshold, enable_debug):
         )
 
     def test_create_pipeline_w_scalar_parameters(self):
-        self.test_create_pipeline()
-        self.assertEqual(1, len(Pipeline.objects.all()))
-
-        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
 
         r = self.run_query(
@@ -451,10 +442,7 @@ def test_pipeline(input_file, threshold, enable_debug):
         )
 
     def test_create_pipeline_w_conn_parameters(self):
-        self.test_create_pipeline()
-        self.assertEqual(1, len(Pipeline.objects.all()))
-
-        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
 
         r = self.run_query(
@@ -514,10 +502,7 @@ def test_pipeline(input_file, threshold, enable_debug):
         )
 
     def test_create_pipeline_w_unvalid_parameters(self):
-        self.test_create_pipeline()
-        self.assertEqual(1, len(Pipeline.objects.all()))
-
-        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
 
         r = self.run_query(
@@ -816,9 +801,8 @@ def test_pipeline(input_file, threshold, enable_debug):
         )
 
     def test_pipeline_by_code(self):
-        self.test_create_pipeline()
+        pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
-        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
         r = self.run_query(
             """
             query pipelineByCode($code: String!, $workspaceSlug: String!) {
@@ -1091,10 +1075,8 @@ def test_pipeline(input_file, threshold, enable_debug):
             )
 
     def test_delete_pipeline_version_not_found(self):
-        self.test_create_pipeline()
+        pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
-
-        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
             name="Version 1",
@@ -1119,10 +1101,8 @@ def test_pipeline(input_file, threshold, enable_debug):
         )
 
     def test_delete_pipeline_version_permission_denied_no_admin(self):
-        self.test_create_pipeline()
+        pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_LAMBDA)
-
-        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
             name="Version 1",
@@ -1152,10 +1132,8 @@ def test_pipeline(input_file, threshold, enable_debug):
         )
 
     def test_delete_pipeline_version_permission_denied_one_version(self):
-        self.test_create_pipeline()
+        pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_LAMBDA)
-
-        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
             name="Version 1",
@@ -1186,10 +1164,8 @@ def test_pipeline(input_file, threshold, enable_debug):
         )
 
     def test_delete_pipeline_version(self):
-        self.test_create_pipeline()
+        pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
-
-        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
             name="Version 1",
@@ -1732,9 +1708,8 @@ def test_pipeline(input_file, threshold, enable_debug):
         )
 
     def test_pipelines_permissions_schedule_with_params_true(self):
-        self.test_create_pipeline()
+        pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
-        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
             name="Version 1",
@@ -1934,9 +1909,8 @@ def test_pipeline(input_file, threshold, enable_debug):
 
     def test_upload_pipeline_auto_extract_parameters(self):
         """Test that parameters are automatically extracted from pipeline.py in zip file when not provided."""
-        self.test_create_pipeline()
+        pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
-        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
 
         r = self.run_query(
             """
@@ -1985,9 +1959,9 @@ def test_pipeline(input_file, threshold, enable_debug):
 
     def test_upload_pipeline_parsing_fallback(self):
         """Test that parsing incorrect fails gracefully."""
+        pipeline = self.test_create_pipeline()
         self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
-        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
 
         pipeline_py_content = '''from openhexa.sdk import pipeline, parameter
 @pipeline(name="Test Data Pipeline")
@@ -2037,9 +2011,8 @@ def test_pipeline(input_file, threshold, enable_debug):
         )
 
     def test_pipeline_new_run_with_timeout(self):
-        self.test_create_pipeline()
-
-        code1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().code
+        pipeline = self.test_create_pipeline()
+        code1 = pipeline.code
         self.client.force_login(self.USER_ROOT)
 
         r = self.run_query(
@@ -2104,10 +2077,8 @@ def test_pipeline(input_file, threshold, enable_debug):
 
     def test_pipeline_new_run_default_timeout(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
-        self.test_create_pipeline_version()
-        self.assertEqual(1, len(Pipeline.objects.all()))
-
-        id1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().id
+        pipeline = self.test_create_pipeline()
+        id1 = pipeline.id
 
         self.client.force_login(self.USER_ROOT)
         r = self.run_query(
@@ -3150,10 +3121,8 @@ def test_pipeline(input_file, threshold, enable_debug):
 
     def test_update_pipeline_functional_type(self):
         """Test updating pipeline functional type via GraphQL"""
-        self.test_create_pipeline()
+        pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
-
-        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
 
         r = self.run_query(
             """
@@ -3240,10 +3209,8 @@ def test_pipeline(input_file, threshold, enable_debug):
 
     def test_update_pipeline_cron_valid(self):
         """Test updating pipeline functional type via GraphQL"""
-        self.test_create_pipeline()
+        pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
-
-        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
 
         r = self.run_query(
             """
@@ -3277,10 +3244,8 @@ def test_pipeline(input_file, threshold, enable_debug):
 
     def test_update_pipeline_cron_invalid(self):
         """Test updating pipeline functional type via GraphQL"""
-        self.test_create_pipeline()
+        pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
-
-        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
 
         r = self.run_query(
             """
