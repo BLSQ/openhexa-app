@@ -1960,7 +1960,6 @@ def test_pipeline(input_file, threshold, enable_debug):
     def test_upload_pipeline_parsing_fallback(self):
         """Test that parsing incorrect fails gracefully."""
         pipeline = self.test_create_pipeline()
-        self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)
 
         pipeline_py_content = '''from openhexa.sdk import pipeline, parameter
