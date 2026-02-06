@@ -27,9 +27,15 @@
           {% endblocktranslate %}
         </mj-text>
         <mj-text color="#333333" padding-top="10px">
-          {% blocktranslate with owner=owner owner_email=owner_email organization=organization %}
-          <strong>{{owner}}</strong> ({{owner_email}}) has added you to the organization <strong>{{organization}}</strong> on OpenHEXA.
+          {% if invited_by %}
+          {% blocktranslate with owner_name=invited_by.display_name owner_email=invited_by.email organization=organization %}
+          <strong>{{owner_name}}</strong> ({{owner_email}}) has added you to the organization <strong>{{organization}}</strong> on OpenHEXA.
           {% endblocktranslate %}
+          {% else %}
+          {% blocktranslate with organization=organization %}
+          Your organization <strong>{{organization}}</strong> has been created on OpenHEXA.
+          {% endblocktranslate %}
+          {% endif %}
         </mj-text>
         {% if workspace_invitations %}
         <mj-text color="#333333" padding-top="10px">

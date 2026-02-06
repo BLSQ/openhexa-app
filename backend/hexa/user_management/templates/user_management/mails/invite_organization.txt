@@ -1,8 +1,14 @@
 {% load i18n %}
 {% autoescape off %}
-{% blocktranslate with owner=owner owner_email=owner_email organization=organization %}
-{{owner}} ({{owner_email}}) has invited you to join the organization "{{organization}}" on OpenHEXA.
+{% if invited_by %}
+{% blocktranslate with owner_name=invited_by.display_name owner_email=invited_by.email organization=organization %}
+{{owner_name}} ({{owner_email}}) has invited you to join the organization "{{organization}}" on OpenHEXA.
 {% endblocktranslate %}
+{% else %}
+{% blocktranslate with organization=organization %}
+Your organization "{{organization}}" has been created on OpenHEXA.
+{% endblocktranslate %}
+{% endif %}
 
 {% trans "Click the link below to create your account and start collaborating:" %}
 
