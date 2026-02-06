@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.2](https://github.com/BLSQ/openhexa-app/compare/3.1.1...3.1.2) (2026-02-06)
+
+
+### Bug Fixes
+
+* pipeline scheduling UX: crontab validator fix ([#1604](https://github.com/BLSQ/openhexa-app/issues/1604)) ([1cd0280](https://github.com/BLSQ/openhexa-app/commit/1cd02800c699ae172fde9d8b187c538ffd10136d))
+
 ## [3.1.1](https://github.com/BLSQ/openhexa-app/compare/3.1.0...3.1.1) (2026-02-06)
 
 
