@@ -37,7 +37,7 @@ def send_organization_invite(invitation):
     token = invitation.generate_token()
     action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
     invited_by = invitation.invited_by
-    invited_by = None if isinstance(invited_by, ServiceAccount) else invited_by
+    invited_by_user = None if isinstance(invited_by, ServiceAccount) else invited_by
 
     with override(invited_by.language):
         send_mail(
@@ -45,7 +45,7 @@ def send_organization_invite(invitation):
             template_name="user_management/mails/invite_organization",
             template_variables={
                 "organization": invitation.organization.name,
-                "invited_by": invited_by,
+                "invited_by": invited_by_user,
                 "url": action_url,
                 "workspace_invitations": invitation.workspace_invitations.all(),
             },
