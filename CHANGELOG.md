@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.1](https://github.com/BLSQ/openhexa-app/compare/3.1.0...3.1.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* var name for template email ([9928966](https://github.com/BLSQ/openhexa-app/commit/9928966496f46bfbec66d181ccfd538d483ae627))
+
 ## [3.1.0](https://github.com/BLSQ/openhexa-app/compare/3.0.1...3.1.0) (2026-02-06)
 
 
