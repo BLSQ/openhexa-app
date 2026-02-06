@@ -33,7 +33,7 @@
           {% endblocktranslate %}
           {% else %}
           {% blocktranslate with organization=organization %}
-          Your organization <strong>{{organization}}</strong> has been created on OpenHEXA.
+          You've been added to the organization <strong>{{organization}}</strong> on OpenHEXA.
           {% endblocktranslate %}
           {% endif %}
         </mj-text>

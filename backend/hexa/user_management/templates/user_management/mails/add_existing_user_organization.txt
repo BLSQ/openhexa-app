@@ -10,7 +10,7 @@ Hi {{invitee}},
 {% endblocktranslate %}
 {% else %}
 {% blocktranslate with organization=organization %}
-Your organization "{{organization}}" has been created on OpenHEXA.
+You've been added to the organization "{{organization}}" on OpenHEXA.
 {% endblocktranslate %}
 {% endif %}
 

@@ -6,7 +6,7 @@
 {% endblocktranslate %}
 {% else %}
 {% blocktranslate with organization=organization %}
-Your organization "{{organization}}" has been created on OpenHEXA.
+You've been invited to join the organization "{{organization}}" on OpenHEXA.
 {% endblocktranslate %}
 {% endif %}
 
