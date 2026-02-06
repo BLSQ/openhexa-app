@@ -5,8 +5,10 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
+from django.core.signing import Signer
 from django.db.models.functions import Collate
 from django.utils.crypto import get_random_string
+from django.utils.html import format_html
 
 from hexa.core.admin import GlobalObjectsModelAdmin, country_list
 
@@ -18,6 +20,7 @@ from .models import (
     OrganizationInvitation,
     OrganizationMembership,
     OrganizationSubscription,
+    ServiceAccount,
     SignupRequest,
     Team,
     User,
@@ -375,3 +378,56 @@ class SignupRequestAdmin(admin.ModelAdmin):
     search_fields = ("email",)
     readonly_fields = ("created_at", "updated_at")
     ordering = ("-created_at",)
+
+
+@admin.register(ServiceAccount)
+class ServiceAccountAdmin(admin.ModelAdmin):
+    list_display = ("email", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("email",)
+    filter_horizontal = ("user_permissions",)
+    readonly_fields = ["signed_token"]
+    actions = ["rotate_tokens"]
+
+    _fieldsets_edit = (
+        (
+            None,
+            {"fields": ("email", "signed_token")},
+        ),
+        ("Permissions", {"fields": ("is_active", "user_permissions")}),
+    )
+
+    _fieldsets_add = (
+        (
+            None,
+            {"fields": ("email",)},
+        ),
+        ("Permissions", {"fields": ("is_active", "user_permissions")}),
+    )
+
+    def signed_token(self, obj):
+        if obj.pk and obj.access_token:
+            token = Signer().sign_object(str(obj.access_token))
+            return format_html(
+                '<code data-t="{token}">{mask}</code>'
+                " <a href='#' onclick=\""
+                "var c=this.previousElementSibling,t=c.dataset.t;"
+                "c.dataset.t=c.textContent;c.textContent=t;"
+                "this.textContent=this.textContent==='Reveal'?'Hide':'Reveal';"
+                "return false;"
+                '">Reveal</a>',
+                mask="\u2022" * 16,
+                token=token,
+            )
+        return "-"
+
+    def get_fieldsets(self, request, obj=None):
+        if obj is None:
+            return self._fieldsets_add
+        return self._fieldsets_edit
+
+    @admin.action(description="Rotate access tokens for selected service accounts")
+    def rotate_tokens(self, request, queryset):
+        for svc in queryset:
+            svc.rotate_token()
+        self.message_user(request, "Tokens rotated.")
