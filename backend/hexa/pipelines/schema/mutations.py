@@ -6,7 +6,7 @@ from zipfile import ZipFile
 
 from ariadne import MutationType
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest
 from django.utils import timezone
@@ -133,6 +133,11 @@ def resolve_update_pipeline(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["PERMISSION_DENIED"],
+        }
+    except ValidationError:
+        return {
+            "success": False,
+            "errors": ["INVALID_CONFIG"],
         }
     except MissingPipelineConfiguration:
         return {
