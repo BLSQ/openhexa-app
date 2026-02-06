@@ -73,7 +73,7 @@
     "linkifyjs": "^4.3.2",
     "lodash": "^4.17.21",
     "luxon": "^3.5.0",
-    "next": "^15.0.1",
+    "next": "^16.1.6",
     "next-i18next": "^15.3.1",
     "nextjs-progressbar": "^0.0.16",
     "pluralize": "^8.0.0",
