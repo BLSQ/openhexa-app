@@ -104,7 +104,7 @@ const UpdateMemberPermissionsDialog = (
           }
           throw new Error(t("Failed to update member permissions"));
         }
-        toast.success(t("Permissions updated!"), { autoClose: 2000 });
+        toast.success(t("Permissions updated!"));
       } else {
         const result = await updateExternalCollaborator({
           variables: {
@@ -137,7 +137,7 @@ const UpdateMemberPermissionsDialog = (
             t("Failed to update external collaborator permissions"),
           );
         }
-        toast.success(t("Permissions updated!"), { autoClose: 2000 });
+        toast.success(t("Permissions updated!"));
       }
 
       clearCache();

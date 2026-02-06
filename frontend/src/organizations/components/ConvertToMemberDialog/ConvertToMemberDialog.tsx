@@ -105,7 +105,7 @@ const ConvertToMemberDialog = (props: ConvertToMemberDialogProps) => {
         throw new Error(t("Failed to convert external collaborator to member"));
       }
 
-      toast.success(t("Converted to member!"), { autoClose: 2000 });
+      toast.success(t("Converted to member!"));
       clearCache();
       onClose();
     },

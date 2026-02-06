@@ -72,7 +72,7 @@ export default function RemoveMemberDialog({
           }
           throw new Error(t("Failed to remove member"));
         }
-        toast.success(t("Member removed"), { autoClose: 2000 });
+        toast.success(t("Member removed"));
       } else {
         if (!organizationId) {
           throw new Error(t("Organization ID is required"));
@@ -106,7 +106,7 @@ export default function RemoveMemberDialog({
           }
           throw new Error(t("Failed to remove external collaborator"));
         }
-        toast.success(t("External collaborator removed"), { autoClose: 2000 });
+        toast.success(t("External collaborator removed"));
       }
 
       client.cache.evict({ fieldName: "users" });
