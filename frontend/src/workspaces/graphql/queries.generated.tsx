@@ -35,7 +35,6 @@ import { CreateBucketFolderDialog_WorkspaceFragmentDoc } from '../features/Creat
 import { DatabaseVariablesSection_CredentialsFragmentDoc } from '../features/DatabaseVariablesSection/DatabaseVariablesSection.generated';
 import { DatabaseTableDataGrid_TableFragmentDoc, DatabaseTableDataGrid_WorkspaceFragmentDoc } from '../features/DatabaseTableDataGrid/DatabaseTableDataGrid.generated';
 import { CreateConnectionDialog_WorkspaceFragmentDoc } from '../features/CreateConnectionDialog/CreateConnectionDialog.generated';
-import { ConnectionUsageSnippets_ConnectionFragmentDoc } from '../features/ConnectionUsageSnippets/ConnectionUsageSnippets.generated';
 import { ConnectionFieldsSection_ConnectionFragmentDoc } from '../features/ConnectionFieldsSection/ConnectionFieldsSection.generated';
 import { TemplateCard_TemplateFragmentDoc } from '../features/TemplateCard/TemplateCard.generated';
 import { TemplateLayout_TemplateFragmentDoc } from '../layouts/TemplateLayout/TemplateLayout.generated';
@@ -1688,12 +1687,10 @@ export const ConnectionPageDocument = gql`
       update
       delete
     }
-    ...ConnectionUsageSnippets_connection
     ...ConnectionFieldsSection_connection
   }
 }
     ${WorkspaceLayout_WorkspaceFragmentDoc}
-${ConnectionUsageSnippets_ConnectionFragmentDoc}
 ${ConnectionFieldsSection_ConnectionFragmentDoc}`;
 
 /**
