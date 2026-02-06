@@ -401,3 +401,131 @@ class PipelineTemplateFunctionalTypeAndTagsTest(TestCase):
         self.assertEqual(template.tags.count(), 2)
         self.assertIn(self.tag1, template.tags.all())
         self.assertIn(self.tag2, template.tags.all())
+
+    def test_extract_config_preserves_user_values_with_new_template_defaults(self):
+        """Test that _extract_config correctly merges user config with new template defaults."""
+        target_workspace = Workspace.objects.create(name="Target Workspace")
+
+        source_version = PipelineVersion.objects.create(
+            pipeline=self.pipeline,
+            version_number=1,
+            parameters=[
+                {"code": "param_1", "type": "str", "default": "default_1"},
+                {"code": "param_2", "type": "int", "default": 100},
+            ],
+            config={"param_1": "template_value_1", "param_2": 200},
+        )
+
+        template = PipelineTemplate.objects.create(
+            name="Config Test Template",
+            code="config_test_template",
+            workspace=self.workspace,
+            source_pipeline=self.pipeline,
+        )
+        template_version = template.create_version(source_version, user=self.user)
+
+        target_pipeline = Pipeline.objects.create(
+            name="Target Pipeline",
+            workspace=target_workspace,
+            source_template=template,
+        )
+        PipelineVersion.objects.create(
+            pipeline=target_pipeline,
+            version_number=1,
+            source_template_version=template_version,
+            parameters=[
+                {"code": "param_1", "type": "str", "default": "default_1"},
+                {"code": "param_2", "type": "int", "default": 100},
+            ],
+            config={"param_1": "user_custom_value", "param_2": 999},
+        )
+
+        new_source_version = PipelineVersion.objects.create(
+            pipeline=self.pipeline,
+            version_number=2,
+            parameters=[
+                {"code": "param_1", "type": "str", "default": "new_default_1"},
+                {"code": "param_2", "type": "int", "default": 150},
+                {"code": "param_3", "type": "str", "default": "new_param_default"},
+            ],
+            config={
+                "param_1": "new_template_value",
+                "param_2": 300,
+                "param_3": "template_param_3",
+            },
+        )
+        new_template_version = template.create_version(
+            new_source_version, user=self.user
+        )
+
+        new_pipeline_version = new_template_version.create_pipeline_version(
+            workspace=target_workspace,
+            principal=self.user,
+            pipeline=target_pipeline,
+        )
+
+        self.assertEqual(
+            new_pipeline_version.config.get("param_1"), "user_custom_value"
+        )
+        self.assertEqual(new_pipeline_version.config.get("param_2"), 999)
+        self.assertEqual(
+            new_pipeline_version.config.get("param_3"), "new_param_default"
+        )
+
+    def test_extract_config_with_parameter_structure_changes(self):
+        """Test config preservation when parameter structure changes (e.g., new field added by SDK)."""
+        target_workspace = Workspace.objects.create(name="Target Workspace 2")
+
+        v1_parameters = [{"code": "sheet_id", "type": "str", "required": True}]
+        source_version = PipelineVersion.objects.create(
+            pipeline=self.pipeline,
+            version_number=3,
+            parameters=v1_parameters,
+            config={"sheet_id": "template_sheet"},
+        )
+
+        template = PipelineTemplate.objects.create(
+            name="Structure Test Template",
+            code="structure_test_template",
+            workspace=self.workspace,
+            source_pipeline=self.pipeline,
+        )
+        template_version = template.create_version(source_version, user=self.user)
+
+        target_pipeline = Pipeline.objects.create(
+            name="Target Pipeline 2",
+            workspace=target_workspace,
+            source_template=template,
+        )
+        PipelineVersion.objects.create(
+            pipeline=target_pipeline,
+            version_number=1,
+            source_template_version=template_version,
+            parameters=v1_parameters,
+            config={"sheet_id": "user_configured_sheet"},
+        )
+
+        v2_parameters = [
+            {"code": "sheet_id", "type": "str", "required": True, "directory": None}
+        ]
+        new_source_version = PipelineVersion.objects.create(
+            pipeline=self.pipeline,
+            version_number=4,
+            parameters=v2_parameters,
+            config={"sheet_id": "new_template_sheet"},
+        )
+        new_template_version = template.create_version(
+            new_source_version, user=self.user
+        )
+
+        new_pipeline_version = new_template_version.create_pipeline_version(
+            workspace=target_workspace,
+            principal=self.user,
+            pipeline=target_pipeline,
+        )
+
+        self.assertEqual(
+            new_pipeline_version.config.get("sheet_id"),
+            "user_configured_sheet",
+            "User config should be preserved when parameter structure changes",
+        )

@@ -479,22 +479,16 @@ class Pipeline(SoftDeletedModel):
         """
         Get the config from the previous version of the pipeline considering only overlapping parameters between the new and the previous version.
         """
-
-        def remove_default(parameter):
-            parameter_without_default = parameter.copy()
-            if "default" in parameter:
-                del parameter_without_default["default"]
-            return parameter_without_default
-
         previous_config_from_overlapping_parameters = {}
         if self.last_version:
-            previous_parameters = list(
-                map(remove_default, self.last_version.parameters)
-            )
+            previous_param_keys = {
+                (p["code"], p.get("type")) for p in self.last_version.parameters
+            }
             overlapping_parameters = [
                 new_parameter
                 for new_parameter in new_parameters
-                if remove_default(new_parameter) in previous_parameters
+                if (new_parameter["code"], new_parameter.get("type"))
+                in previous_param_keys
             ]
             previous_param_default_by_code = {
                 previous_parameter["code"]: previous_parameter.get("default")
