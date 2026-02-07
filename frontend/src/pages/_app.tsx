@@ -62,6 +62,8 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
               pauseOnFocusLoss={false}
               pauseOnHover={false}
               hideProgressBar={true}
+              autoClose={2000}
+              position="bottom-right"
             />
           </ApolloProvider>
         </MeProvider>

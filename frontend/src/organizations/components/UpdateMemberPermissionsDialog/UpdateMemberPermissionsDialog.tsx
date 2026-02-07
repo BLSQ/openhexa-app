@@ -21,6 +21,7 @@ import {
 import SimpleSelect from "core/components/forms/SimpleSelect";
 import useCacheKey from "core/hooks/useCacheKey";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import { useUpdateOrganizationMemberMutation } from "organizations/features/OrganizationMembers/OrganizationMembers.generated";
 import { useUpdateExternalCollaboratorMutation } from "organizations/features/OrganizationExternalCollaborators/OrganizationExternalCollaborators.generated";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
@@ -103,6 +104,7 @@ const UpdateMemberPermissionsDialog = (
           }
           throw new Error(t("Failed to update member permissions"));
         }
+        toast.success(t("Permissions updated!"));
       } else {
         const result = await updateExternalCollaborator({
           variables: {
@@ -135,6 +137,7 @@ const UpdateMemberPermissionsDialog = (
             t("Failed to update external collaborator permissions"),
           );
         }
+        toast.success(t("Permissions updated!"));
       }
 
       clearCache();

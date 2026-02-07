@@ -11,6 +11,7 @@ import {
 import SimpleSelect from "core/components/forms/SimpleSelect";
 import useCacheKey from "core/hooks/useCacheKey";
 import { gql } from "@apollo/client";
+import { toast } from "react-toastify";
 import { useConvertExternalCollaboratorToMemberMutation } from "organizations/features/OrganizationExternalCollaborators/OrganizationExternalCollaborators.generated";
 import { formatOrganizationMembershipRole } from "organizations/helpers/organization";
 import { ConvertToMemberDialog_CollaboratorFragment } from "./ConvertToMemberDialog.generated";
@@ -104,6 +105,7 @@ const ConvertToMemberDialog = (props: ConvertToMemberDialogProps) => {
         throw new Error(t("Failed to convert external collaborator to member"));
       }
 
+      toast.success(t("Converted to member!"));
       clearCache();
       onClose();
     },

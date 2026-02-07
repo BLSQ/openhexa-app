@@ -52,7 +52,6 @@ export const useUploadFiles = ({
               type: "success",
               render: t("Upload successful!") + " 🎉",
               isLoading: false,
-              autoClose: 2000,
             }),
           500,
         );
