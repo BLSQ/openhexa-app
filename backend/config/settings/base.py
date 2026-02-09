@@ -37,6 +37,11 @@ OPENHEXA_JWT_ISSUER = os.environ.get("OPENHEXA_JWT_ISSUER", "https://app.openhex
 OPENHEXA_JWT_AUDIENCE = os.environ.get("OPENHEXA_JWT_AUDIENCE", "openhexa-clients")
 OPENHEXA_JWT_TTL = int(os.environ.get("OPENHEXA_JWT_TTL", "3600"))
 
+# Subscription Settings
+SUBSCRIPTION_GRACE_PERIOD_DAYS = int(
+    os.environ.get("SUBSCRIPTION_GRACE_PERIOD_DAYS", "15")
+)
+
 # X Frame Options
 # Allow OpenHEXA to embed itself, typical use is a Superset dashboards in a Web App
 X_FRAME_OPTIONS = "SAMEORIGIN"
