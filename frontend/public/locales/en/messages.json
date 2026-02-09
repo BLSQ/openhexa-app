@@ -257,6 +257,7 @@
   "Executed on": "Executed on",
   "Execution Date": "Execution Date",
   "Existing workspace permissions will be preserved.": "Existing workspace permissions will be preserved.",
+  "Expired on": "Expired on",
   "External Collaborators": "External Collaborators",
   "Extraction": "Extraction",
   "Failed": "Failed",
@@ -838,5 +839,7 @@
   "You must confirm publishing": "You must confirm publishing",
   "You're about to archive the {{workspaceName}} workspace and all its content.": "You're about to archive the {{workspaceName}} workspace and all its content.",
   "You're about to remove {{name}} from this workspace.": "You're about to remove {{name}} from this workspace.",
-  "Your account": "Your account"
+  "Your account": "Your account",
+  "Your subscription has expired. Limits are frozen until you renew.": "Your subscription has expired. Limits are frozen until you renew.",
+  "Your subscription has expired. Please renew soon to avoid service interruption.": "Your subscription has expired. Please renew soon to avoid service interruption."
 }
