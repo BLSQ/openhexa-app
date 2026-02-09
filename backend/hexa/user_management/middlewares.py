@@ -64,7 +64,7 @@ def service_account_token_middleware(get_response):
         except KeyError:
             pass  # No Authorization header
         except ValueError:
-            logger.exception("service account authentication error")
+            logger.error("service account authentication error")
         except ServiceAccount.DoesNotExist:
             pass
         return get_response(request)
