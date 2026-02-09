@@ -403,7 +403,7 @@ class ServiceAccountAdmin(admin.ModelAdmin):
             self.message_user(
                 request,
                 mark_safe(
-                    f"Token created."
+                    f"Token created (will NOT be shown again): <code>{obj._raw_token}</code>"
                     f"<script>prompt('Copy this token (it will NOT be shown again):', '{obj._raw_token}');</script>"
                 ),
                 messages.SUCCESS,
@@ -417,7 +417,7 @@ class ServiceAccountAdmin(admin.ModelAdmin):
             self.message_user(
                 request,
                 mark_safe(
-                    f"Token rotated for {svc.email}."
+                    f"Token for {svc.email} (will NOT be shown again): <code>{token}</code>"
                     f"<script>prompt('Copy token for {svc.email} (will NOT be shown again):', '{token}');</script>"
                 ),
                 messages.SUCCESS,
