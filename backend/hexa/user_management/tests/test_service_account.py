@@ -16,7 +16,6 @@ class ServiceAccountModelTest(GraphQLTestCase):
         )
         self.assertIsInstance(svc, ServiceAccount)
         self.assertIsInstance(svc, User)
-        self.assertEqual(svc.token_prefix, "")
         self.assertEqual(svc.token_hash, "")
 
     def test_generate_token(self):
@@ -26,7 +25,6 @@ class ServiceAccountModelTest(GraphQLTestCase):
         )
         raw_token = svc.generate_token()
         self.assertEqual(len(raw_token), 43)
-        self.assertEqual(svc.token_prefix, raw_token[:8])
         self.assertEqual(len(svc.token_hash), 64)
         self.assertEqual(svc.token_hash, ServiceAccount.hash_token(raw_token))
 
@@ -38,11 +36,9 @@ class ServiceAccountModelTest(GraphQLTestCase):
         svc.generate_token()
         svc.save()
         old_hash = svc.token_hash
-        old_prefix = svc.token_prefix
         svc.rotate_token()
         svc.refresh_from_db()
         self.assertNotEqual(old_hash, svc.token_hash)
-        self.assertNotEqual(old_prefix, svc.token_prefix)
 
     def test_hash_token_static(self):
         token = "test-token-value"

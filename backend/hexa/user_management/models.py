@@ -801,20 +801,18 @@ class ServiceAccount(User):
     class Meta:
         db_table = "identity_service_account"
 
-    token_prefix = models.CharField(max_length=8, db_index=True, blank=True, default="")
     token_hash = models.CharField(max_length=64, unique=True, blank=True, default="")
 
     def generate_token(self):
         """Generate a new secure token. Returns the raw token (one-time only)."""
         raw_token = secrets.token_urlsafe(32)
-        self.token_prefix = raw_token[:8]
         self.token_hash = self.hash_token(raw_token)
         return raw_token
 
     def rotate_token(self):
         """Rotate token and return new raw token (one-time only)."""
         raw_token = self.generate_token()
-        self.save(update_fields=["token_prefix", "token_hash"])
+        self.save(update_fields=["token_hash"])
         return raw_token
 
     @staticmethod

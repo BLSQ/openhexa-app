@@ -1,14 +1,13 @@
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
-from django.core.signing import Signer
 from django.db.models.functions import Collate
 from django.utils.crypto import get_random_string
-from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from hexa.core.admin import GlobalObjectsModelAdmin, country_list
 
@@ -384,50 +383,43 @@ class SignupRequestAdmin(admin.ModelAdmin):
 class ServiceAccountAdmin(admin.ModelAdmin):
     list_display = ("email", "is_active")
     list_filter = ("is_active",)
-    search_fields = ("email",)
+    search_fields = ["email"]
     filter_horizontal = ("user_permissions",)
-    readonly_fields = ["signed_token"]
     actions = ["rotate_tokens"]
 
-    _fieldsets_edit = (
-        (
-            None,
-            {"fields": ("email", "signed_token")},
-        ),
+    fieldsets = (
+        (None, {"fields": ("email",)}),
         ("Permissions", {"fields": ("is_active", "user_permissions")}),
     )
 
-    _fieldsets_add = (
-        (
-            None,
-            {"fields": ("email",)},
-        ),
-        ("Permissions", {"fields": ("is_active", "user_permissions")}),
-    )
+    def save_model(self, request, obj, form, change):
+        if not change:
+            raw_token = obj.generate_token()
+            obj._raw_token = raw_token
+        super().save_model(request, obj, form, change)
 
-    def signed_token(self, obj):
-        if obj.pk and obj.access_token:
-            token = Signer().sign_object(str(obj.access_token))
-            return format_html(
-                '<code data-t="{token}">{mask}</code>'
-                " <a href='#' onclick=\""
-                "var c=this.previousElementSibling,t=c.dataset.t;"
-                "c.dataset.t=c.textContent;c.textContent=t;"
-                "this.textContent=this.textContent==='Reveal'?'Hide':'Reveal';"
-                "return false;"
-                '">Reveal</a>',
-                mask="\u2022" * 16,
-                token=token,
+    def response_add(self, request, obj, post_url_continue=None):
+        if hasattr(obj, "_raw_token"):
+            self.message_user(
+                request,
+                mark_safe(
+                    f"<strong>Copy this token now - it will NOT be shown again:</strong><br>"
+                    f"<code style='font-size:1.2em;background:#f0f0f0;padding:8px;display:block;margin:8px 0;'>"
+                    f"{obj._raw_token}</code>"
+                ),
+                messages.WARNING,
             )
-        return "-"
+        return super().response_add(request, obj, post_url_continue)
 
-    def get_fieldsets(self, request, obj=None):
-        if obj is None:
-            return self._fieldsets_add
-        return self._fieldsets_edit
-
-    @admin.action(description="Rotate access tokens for selected service accounts")
+    @admin.action(description="Rotate tokens (new tokens shown once)")
     def rotate_tokens(self, request, queryset):
-        for svc in queryset:
-            svc.rotate_token()
-        self.message_user(request, "Tokens rotated.")
+        tokens = [f"{svc.email}: {svc.rotate_token()}" for svc in queryset]
+        self.message_user(
+            request,
+            mark_safe(
+                "<strong>Copy these tokens now:</strong><pre style='background:#f0f0f0;padding:8px;'>"
+                + "\n".join(tokens)
+                + "</pre>"
+            ),
+            messages.WARNING,
+        )

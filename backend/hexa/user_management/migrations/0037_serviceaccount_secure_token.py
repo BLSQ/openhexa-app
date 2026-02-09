@@ -8,9 +8,8 @@ def generate_tokens_for_existing_accounts(apps, schema_editor):
     ServiceAccount = apps.get_model("user_management", "ServiceAccount")
     for svc in ServiceAccount.objects.all():
         raw_token = secrets.token_urlsafe(32)
-        svc.token_prefix = raw_token[:8]
         svc.token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-        svc.save(update_fields=["token_prefix", "token_hash"])
+        svc.save(update_fields=["token_hash"])
 
 
 class Migration(migrations.Migration):
@@ -22,11 +21,6 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name="serviceaccount",
             name="access_token",
-        ),
-        migrations.AddField(
-            model_name="serviceaccount",
-            name="token_prefix",
-            field=models.CharField(max_length=8, db_index=True, blank=True, default=""),
         ),
         migrations.AddField(
             model_name="serviceaccount",
