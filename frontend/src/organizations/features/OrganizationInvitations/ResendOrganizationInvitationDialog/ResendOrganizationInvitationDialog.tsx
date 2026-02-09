@@ -6,6 +6,7 @@ import { ResendOrganizationInvitationError } from "graphql/types";
 import { Trans, useTranslation } from "next-i18next";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
+import { toast } from "react-toastify";
 
 type ResendOrganizationInvitationProps = {
   onClose(): void;
@@ -41,6 +42,7 @@ const ResendOrganizationInvitationDialog = (
     }
 
     if (data.resendOrganizationInvitation.success) {
+      toast.success(t("Invitation resent"));
       clearCache();
       setIsSubmitting(false);
       onClose();
