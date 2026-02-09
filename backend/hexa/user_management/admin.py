@@ -403,10 +403,9 @@ class ServiceAccountAdmin(admin.ModelAdmin):
             self.message_user(
                 request,
                 mark_safe(
-                    f"Token created (will NOT be shown again): <code>{obj._raw_token}</code>"
-                    f"<script>prompt('Copy this token (it will NOT be shown again):', '{obj._raw_token}');</script>"
+                    f"Token for {obj.email} (will NOT be shown again): <code>{obj._raw_token}</code>"
                 ),
-                messages.SUCCESS,
+                messages.WARNING,
             )
         return super().response_add(request, obj, post_url_continue)
 
@@ -418,7 +417,6 @@ class ServiceAccountAdmin(admin.ModelAdmin):
                 request,
                 mark_safe(
                     f"Token for {svc.email} (will NOT be shown again): <code>{token}</code>"
-                    f"<script>prompt('Copy token for {svc.email} (will NOT be shown again):', '{token}');</script>"
                 ),
-                messages.SUCCESS,
+                messages.WARNING,
             )
