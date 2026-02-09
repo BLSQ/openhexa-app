@@ -74,12 +74,13 @@ def generate_sample(
         status=DatasetFileSample.STATUS_PROCESSING,
     )
     try:
-        if df.empty is False:
-            sample = df.sample(
-                settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
-                random_state=SAMPLING_SEED,
-                replace=True,
-            )
+        if not df.empty:
+            sample = df
+            if len(df.index) > settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE:
+                sample = df.sample(
+                    settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
+                    random_state=SAMPLING_SEED,
+                )
             sample = sample.replace(
                 {np.inf: "inf", -np.inf: "-inf"}
             )  # We are not supporting Infinity as numbers
