@@ -4991,6 +4991,13 @@ export type Subscription = {
   __typename?: 'Subscription';
   /** The date when the subscription ends. */
   endDate: Scalars['Date']['output'];
+  /** Whether the subscription has expired. */
+  isExpired: Scalars['Boolean']['output'];
+  /**
+   * Whether the subscription is in the grace period after expiration.
+   * During the grace period, limits are not enforced but a warning is shown.
+   */
+  isInGracePeriod: Scalars['Boolean']['output'];
   /** Resource limits for this subscription. */
   limits: ResourceCounts;
   /** The subscription plan code (e.g., "openhexa_starter"). */

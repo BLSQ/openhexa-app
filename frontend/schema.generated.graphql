@@ -4120,6 +4120,15 @@ type Subscription {
   """The date when the subscription ends."""
   endDate: Date!
 
+  """Whether the subscription has expired."""
+  isExpired: Boolean!
+
+  """
+  Whether the subscription is in the grace period after expiration.
+  During the grace period, limits are not enforced but a warning is shown.
+  """
+  isInGracePeriod: Boolean!
+
   """Resource limits for this subscription."""
   limits: ResourceCounts!
 
