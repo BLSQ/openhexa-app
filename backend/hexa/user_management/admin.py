@@ -403,23 +403,22 @@ class ServiceAccountAdmin(admin.ModelAdmin):
             self.message_user(
                 request,
                 mark_safe(
-                    f"<strong>Copy this token now - it will NOT be shown again:</strong><br>"
-                    f"<code style='font-size:1.2em;background:#f0f0f0;padding:8px;display:block;margin:8px 0;'>"
-                    f"{obj._raw_token}</code>"
+                    f"Token created."
+                    f"<script>prompt('Copy this token (it will NOT be shown again):', '{obj._raw_token}');</script>"
                 ),
-                messages.WARNING,
+                messages.SUCCESS,
             )
         return super().response_add(request, obj, post_url_continue)
 
     @admin.action(description="Rotate tokens (new tokens shown once)")
     def rotate_tokens(self, request, queryset):
-        tokens = [f"{svc.email}: {svc.rotate_token()}" for svc in queryset]
-        self.message_user(
-            request,
-            mark_safe(
-                "<strong>Copy these tokens now:</strong><pre style='background:#f0f0f0;padding:8px;'>"
-                + "\n".join(tokens)
-                + "</pre>"
-            ),
-            messages.WARNING,
-        )
+        for svc in queryset:
+            token = svc.rotate_token()
+            self.message_user(
+                request,
+                mark_safe(
+                    f"Token rotated for {svc.email}."
+                    f"<script>prompt('Copy token for {svc.email} (will NOT be shown again):', '{token}');</script>"
+                ),
+                messages.SUCCESS,
+            )
