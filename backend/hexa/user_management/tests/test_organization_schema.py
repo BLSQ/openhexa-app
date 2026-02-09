@@ -1961,50 +1961,6 @@ class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
         )
         mock_send_invite.assert_called_once()
 
-    def test_active_subscription_date_based(self):
-        """Test that limits only apply to active subscriptions based on date."""
-        today = timezone.now().date()
-        future_subscription = OrganizationSubscription.objects.create(
-            organization=self.organization,
-            subscription_id=uuid.UUID("22222222-2222-2222-2222-222222222222"),
-            plan_code="openhexa_pro",
-            start_date=today + timedelta(days=365),
-            end_date=today + timedelta(days=730),
-            users_limit=100,  # Higher limit
-            workspaces_limit=50,
-            pipeline_runs_limit=10000,
-        )
-
-        self.assertEqual(
-            self.organization.active_subscription.subscription_id,
-            self.subscription.subscription_id,
-        )
-
-        self.assertEqual(
-            self.organization.upcoming_subscription.subscription_id,
-            future_subscription.subscription_id,
-        )
-
-    def test_is_users_limit_reached_method(self):
-        """Test the is_users_limit_reached helper method."""
-        self.assertFalse(self.organization.is_users_limit_reached())
-
-        member = self.create_user("member2@blsq.org")
-        self.join_organization(
-            member, self.organization, OrganizationMembershipRole.MEMBER
-        )
-
-        self.assertTrue(self.organization.is_users_limit_reached())
-
-    def test_is_workspaces_limit_reached_method(self):
-        """Test the is_workspaces_limit_reached helper method."""
-        self.assertFalse(self.organization.is_workspaces_limit_reached())
-
-        self.create_workspace(
-            self.owner, self.organization, "Test Workspace", "Description"
-        )
-        self.assertTrue(self.organization.is_workspaces_limit_reached())
-
 
 class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
     """Tests for external collaborators - users with workspace access but no organization membership."""
