@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.contenttypes.fields import GenericRelation
@@ -265,6 +266,27 @@ class Organization(Base, SoftDeletedModel):
         ).first()
 
     @property
+    def current_subscription(self):
+        """
+        Returns the current subscription to display and enforce limits on.
+        This is either the active subscription, or the most recently expired one
+        if no active subscription exists.
+        Returns None if no subscription exists (self-hosted mode).
+        """
+        active = self.active_subscription
+        if active:
+            return active
+        today = timezone.now().date()
+        return (
+            self.subscriptions.filter(
+                start_date__lte=today,
+                end_date__lt=today,
+            )
+            .order_by("-end_date")
+            .first()
+        )
+
+    @property
     def upcoming_subscription(self):
         """
         Returns the next upcoming subscription (if any).
@@ -302,20 +324,32 @@ class Organization(Base, SoftDeletedModel):
             .count()
         )
 
+    @property
+    def is_frozen(self) -> bool:
+        subscription = self.current_subscription
+        return (
+            subscription is not None
+            and subscription.is_expired
+            and not subscription.is_in_grace_period
+        )
+
     def is_users_limit_reached(self) -> bool:
-        """Check if the organization has reached its user limit."""
-        subscription = self.active_subscription
-        return subscription.is_users_limit_reached() if subscription else False
+        subscription = self.current_subscription
+        if not subscription:
+            return False
+        return self.is_frozen or subscription.is_users_limit_reached()
 
     def is_workspaces_limit_reached(self) -> bool:
-        """Check if the organization has reached its workspace limit."""
-        subscription = self.active_subscription
-        return subscription.is_workspaces_limit_reached() if subscription else False
+        subscription = self.current_subscription
+        if not subscription:
+            return False
+        return self.is_frozen or subscription.is_workspaces_limit_reached()
 
     def is_pipeline_runs_limit_reached(self) -> bool:
-        """Check if the organization has reached its pipeline runs limit."""
-        subscription = self.active_subscription
-        return subscription.is_pipeline_runs_limit_reached() if subscription else False
+        subscription = self.current_subscription
+        if not subscription:
+            return False
+        return self.is_frozen or subscription.is_pipeline_runs_limit_reached()
 
 
 class OrganizationSubscription(Base):
@@ -348,6 +382,22 @@ class OrganizationSubscription(Base):
     users_limit = models.PositiveIntegerField()
     workspaces_limit = models.PositiveIntegerField()
     pipeline_runs_limit = models.PositiveIntegerField()
+
+    @property
+    def is_expired(self) -> bool:
+        """Check if the subscription has expired."""
+        return self.end_date < timezone.now().date()
+
+    @property
+    def is_in_grace_period(self) -> bool:
+        """Check if the subscription is in the grace period after expiration."""
+        if not self.is_expired:
+            return False
+        today = timezone.now().date()
+        grace_end_date = self.end_date + timedelta(
+            days=settings.SUBSCRIPTION_GRACE_PERIOD_DAYS
+        )
+        return today <= grace_end_date
 
     def is_users_limit_reached(self) -> bool:
         """Check if the organization has reached its user limit."""
