@@ -393,7 +393,7 @@ class ServiceAccountAdmin(admin.ModelAdmin):
     )
 
     def save_model(self, request, obj, form, change):
-        if not change:
+        if not obj.token_hash:
             raw_token = obj.generate_token()
             obj._raw_token = raw_token
         super().save_model(request, obj, form, change)
