@@ -65,20 +65,19 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 "example_names.csv",
                 DatasetFileSample.STATUS_FINISHED,
                 [
-                    {"name": "Jack", "surname": "Howard"},
-                    {"name": "Olivia", "surname": "Brown"},
-                    {"name": "Lily", "surname": "Evans"},
+                    {"name": "Sofia", "surname": "Howard"},
+                    {'name': 'Aiden', 'surname': 'Adams'},
+                    {'name': 'Eleanor', 'surname': 'Hughes'},
                 ],
                 None,
             ),
-            # The CSV only contains 2 lines so it's going to add existing lines to achieve the desired sample size
+            # The CSV only contains 2 lines so the desired "sample" it's going to be the entire original CSV
             (
                 "example_names_2_lines.csv",
                 DatasetFileSample.STATUS_FINISHED,
                 [
+                    {"name": "Joe", "surname": "Doe"},
                     {"name": "Liam", "surname": "Smith"},
-                    {"name": "Joe", "surname": "Doe"},
-                    {"name": "Joe", "surname": "Doe"},
                 ],
                 None,
             ),
@@ -92,9 +91,9 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 "example_names.parquet",
                 DatasetFileSample.STATUS_FINISHED,
                 [
-                    {"name": "Jack", "surname": "Howard"},
-                    {"name": "Olivia", "surname": "Brown"},
-                    {"name": "Lily", "surname": "Evans"},
+                    {"name": "Sofia", "surname": "Howard"},
+                    {'name': 'Aiden', 'surname': 'Adams'},
+                    {'name': 'Eleanor', 'surname': 'Hughes'},
                 ],
                 None,
             ),
@@ -102,9 +101,9 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 "example_names.xlsx",
                 DatasetFileSample.STATUS_FINISHED,
                 [
-                    {"name": "Jack", "surname": "Howard"},
-                    {"name": "Olivia", "surname": "Brown"},
-                    {"name": "Lily", "surname": "Evans"},
+                    {"name": "Sofia", "surname": "Howard"},
+                    {'name': 'Aiden', 'surname': 'Adams'},
+                    {'name': 'Eleanor', 'surname': 'Hughes'},
                 ],
                 None,
             ),
@@ -113,9 +112,9 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 DatasetFileSample.STATUS_FINISHED,
                 [
                     {
-                        "created_at": "2023-10-05T12:00:00Z",
-                        "id": "5i1f1g0h-2g3h-8i7h-3d4e-5f6g7h8i9j0k",
-                        "label": "Bos taurus",
+                        "created_at": "2023-11-02T12:00:00Z",
+                        "id": "3k9h9i8j-0i1j-6k5j-1f2g-3h4i5j6k7l8m",
+                        "label": "Panthera leo somaliensis",
                     },
                     {
                         "created_at": "2023-11-14T12:00:00Z",
@@ -134,14 +133,9 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 "example_with_nan.csv",
                 DatasetFileSample.STATUS_FINISHED,
                 [
-                    {
-                        "age": None,
-                        "name": "Liam",
-                        "married": False,
-                        "surname": "Smith",
-                    },
                     {"age": 10.0, "name": "Joe", "married": True, "surname": "Doe"},
-                    {"age": 10.0, "name": "Joe", "married": True, "surname": "Doe"},
+                    {"age": None,"name": "Liam","married": False,"surname": "Smith"},
+                    {"age": None, "name": "Emma", "married": False, "surname": "Johnson"},
                 ],
                 None,
             ),
@@ -151,21 +145,21 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 [
                     {
                         "geometry": "<SKIPPED_BYTES>",
+                        "id": "1",
+                        "name": "District A",
+                        "value": None,
+                    },
+                    {
+                        "geometry": "<SKIPPED_BYTES>",
                         "id": "2",
                         "name": "District B",
                         "value": 2.5,
                     },
                     {
                         "geometry": "<SKIPPED_BYTES>",
-                        "id": "1",
-                        "name": "District A",
-                        "value": None,
-                    },
-                    {
-                        "geometry": "<SKIPPED_BYTES>",
-                        "id": "1",
-                        "name": "District A",
-                        "value": None,
+                        "id": "3",
+                        "name": "District C",
+                        "value": 3.0,
                     },
                 ],
                 None,
