@@ -1,4 +1,16 @@
+import hashlib
+import secrets
+
 from django.db import migrations, models
+
+
+def generate_tokens_for_existing_accounts(apps, schema_editor):
+    ServiceAccount = apps.get_model("user_management", "ServiceAccount")
+    for svc in ServiceAccount.objects.all():
+        raw_token = secrets.token_urlsafe(32)
+        svc.token_prefix = raw_token[:8]
+        svc.token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        svc.save(update_fields=["token_prefix", "token_hash"])
 
 
 class Migration(migrations.Migration):
@@ -17,6 +29,15 @@ class Migration(migrations.Migration):
             field=models.CharField(max_length=8, db_index=True, blank=True, default=""),
         ),
         migrations.AddField(
+            model_name="serviceaccount",
+            name="token_hash",
+            field=models.CharField(max_length=64, blank=True, default=""),
+        ),
+        migrations.RunPython(
+            generate_tokens_for_existing_accounts,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AlterField(
             model_name="serviceaccount",
             name="token_hash",
             field=models.CharField(max_length=64, unique=True, blank=True, default=""),
