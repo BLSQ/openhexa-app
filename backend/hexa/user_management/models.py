@@ -266,7 +266,7 @@ class Organization(Base, SoftDeletedModel):
         ).first()
 
     @property
-    def current_subscription(self):
+    def current_subscription(self) -> OrganizationSubscription | None:
         """
         Returns the current subscription to display and enforce limits on.
         This is either the active subscription, or the most recently expired one

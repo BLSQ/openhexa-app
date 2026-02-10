@@ -34,6 +34,7 @@ from hexa.user_management.models import (
     Organization,
     OrganizationInvitation,
     OrganizationMembershipRole,
+    OrganizationSubscription,
     User,
 )
 
@@ -274,7 +275,7 @@ class Workspace(Base):
         return f"postgresql://{self.db_ro_username}:{self.db_ro_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
     @property
-    def current_subscription(self):
+    def current_subscription(self) -> OrganizationSubscription | None:
         if self.organization:
             return self.organization.current_subscription
         return None
