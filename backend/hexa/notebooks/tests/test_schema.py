@@ -2,7 +2,11 @@ import responses
 from django.conf import settings
 
 from hexa.core.test import GraphQLTestCase
-from hexa.user_management.models import User
+from hexa.user_management.models import (
+    Organization,
+    OrganizationSubscription,
+    User,
+)
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -32,11 +36,24 @@ class NotebooksTest(GraphQLTestCase):
             "workspace",
         )
 
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Test Org",
+            short_name="test-org",
+            organization_type="CORPORATE",
+        )
+        OrganizationSubscription.objects.create(
+            organization=cls.ORGANIZATION,
+            subscription_id="sub-1",
+            plan_code="trial",
+            notebook_profile="trial",
+        )
+
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
             cls.USER_JULIA,
             name="Senegal Workspace",
             description="This is a workspace for Senegal",
             countries=[{"code": "AL"}],
+            organization=cls.ORGANIZATION,
         )
 
         cls.WORKSPACE_MEMBERSHIP = WorkspaceMembership.objects.create(
@@ -295,3 +312,8 @@ class NotebooksTest(GraphQLTestCase):
                 },
                 r["data"]["launchNotebookServer"],
             )
+
+            # Verify subscription profile was passed to create_server (call index 2: GET user, POST user, POST server)
+            create_server_call = responses.calls[2]
+            self.assertIn("profile", create_server_call.request.body.decode())
+            self.assertIn("trial", create_server_call.request.body.decode())
