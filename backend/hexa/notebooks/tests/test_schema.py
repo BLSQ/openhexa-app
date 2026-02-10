@@ -1,3 +1,5 @@
+import uuid
+
 import responses
 from django.conf import settings
 
@@ -43,7 +45,13 @@ class NotebooksTest(GraphQLTestCase):
         )
         OrganizationSubscription.objects.create(
             organization=cls.ORGANIZATION,
+            subscription_id=uuid.uuid4(),
             plan_code="trial",
+            start_date="2024-01-01",
+            end_date="2080-01-01",
+            users_limit=10,
+            workspaces_limit=5,
+            pipeline_runs_limit=100,
             notebook_profile="trial",
         )
 
@@ -312,7 +320,8 @@ class NotebooksTest(GraphQLTestCase):
                 r["data"]["launchNotebookServer"],
             )
 
-            # Verify subscription profile was passed to create_server (call index 2: GET user, POST user, POST server)
-            create_server_call = responses.calls[2]
+            # Verify subscription profile was passed to create_server
+            # Call sequence: GET user (404), POST user, GET user, POST server
+            create_server_call = responses.calls[3]
             self.assertIn("profile", create_server_call.request.body.decode())
             self.assertIn("trial", create_server_call.request.body.decode())
