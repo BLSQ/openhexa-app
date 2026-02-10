@@ -273,6 +273,12 @@ class Workspace(Base):
         """Connection URL for read-only access."""
         return f"postgresql://{self.db_ro_username}:{self.db_ro_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
+    @property
+    def current_subscription(self):
+        if self.organization:
+            return self.organization.current_subscription
+        return None
+
     def update_if_has_perm(self, *, principal: User, **kwargs):
         if not principal.has_perm("workspaces.update_workspace", self):
             raise PermissionDenied
