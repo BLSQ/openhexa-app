@@ -12,18 +12,14 @@ class Migration(migrations.Migration):
             model_name="pipelinerun",
             name="cpu_limit",
             field=models.CharField(
-                max_length=32,
-                default=settings.PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT,
+                max_length=32, default=settings.PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT
             ),
-            preserve_default=False,
         ),
         migrations.AddField(
             model_name="pipelinerun",
             name="memory_limit",
             field=models.CharField(
-                max_length=32,
-                default=settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_LIMIT,
+                max_length=32, default=settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_LIMIT
             ),
-            preserve_default=False,
         ),
     ]

@@ -806,8 +806,12 @@ class PipelineRun(Base, WithStatus):
     run_logs = models.TextField(null=True, blank=True)
     current_progress = models.PositiveSmallIntegerField(default=0)
     timeout = models.IntegerField(null=True)
-    cpu_limit = models.CharField(max_length=32)
-    memory_limit = models.CharField(max_length=32)
+    cpu_limit = models.CharField(
+        max_length=32, default=settings.PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT
+    )
+    memory_limit = models.CharField(
+        max_length=32, default=settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_LIMIT
+    )
     send_mail_notifications = models.BooleanField(default=True)
     stopped_by = models.ForeignKey(
         "user_management.User",
