@@ -938,7 +938,6 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
     def test_run_uses_subscription_timeout_when_lower(self):
         OrganizationSubscription.objects.create(
             organization=self.ORGANIZATION,
-            subscription_id="sub-1",
             plan_code="trial",
             max_pipeline_timeout=3600,
         )
@@ -952,7 +951,6 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
     def test_run_uses_requested_timeout_when_lower(self):
         OrganizationSubscription.objects.create(
             organization=self.ORGANIZATION,
-            subscription_id="sub-2",
             plan_code="standard",
             max_pipeline_timeout=10000,
         )
@@ -966,7 +964,6 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
     def test_run_uses_subscription_resource_limits(self):
         OrganizationSubscription.objects.create(
             organization=self.ORGANIZATION,
-            subscription_id="sub-3",
             plan_code="trial",
             pipeline_cpu_limit="1",
             pipeline_memory_limit="1G",

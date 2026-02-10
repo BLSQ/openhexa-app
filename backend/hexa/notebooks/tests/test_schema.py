@@ -43,7 +43,6 @@ class NotebooksTest(GraphQLTestCase):
         )
         OrganizationSubscription.objects.create(
             organization=cls.ORGANIZATION,
-            subscription_id="sub-1",
             plan_code="trial",
             notebook_profile="trial",
         )
