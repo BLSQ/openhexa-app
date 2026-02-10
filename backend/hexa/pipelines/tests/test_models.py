@@ -942,7 +942,7 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
             subscription_id=uuid.uuid4(),
             plan_code="trial",
             start_date="2024-01-01",
-            end_date="2030-01-01",
+            end_date="2080-01-01",
             users_limit=10,
             workspaces_limit=5,
             pipeline_runs_limit=100,
