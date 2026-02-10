@@ -4777,6 +4777,14 @@ export type ResourceCounts = {
 
 /** Input type for resource counts (used for subscription limits). */
 export type ResourceCountsInput = {
+  /** CPU limit for pipeline pods (e.g., "1"). Empty means use default. */
+  cpuLimit?: InputMaybe<Scalars['String']['input']>;
+  /** Maximum pipeline timeout in seconds. Null means use default. */
+  maxTimeout?: InputMaybe<Scalars['Int']['input']>;
+  /** Memory limit for pipeline pods (e.g., "1G"). Empty means use default. */
+  memoryLimit?: InputMaybe<Scalars['String']['input']>;
+  /** JupyterHub profile to use (e.g., "trial"). Empty means use default. */
+  notebookProfile?: InputMaybe<Scalars['String']['input']>;
   /** Number of pipeline runs. */
   pipelineRuns: Scalars['Int']['input'];
   /** Number of users. */
@@ -4989,6 +4997,8 @@ export type StopPipelineResult = {
 /** Subscription details from the Bluesquare Console. */
 export type Subscription = {
   __typename?: 'Subscription';
+  /** CPU limit for pipeline pods (e.g., "1"). */
+  cpuLimit?: Maybe<Scalars['String']['output']>;
   /** The date when the subscription ends. */
   endDate: Scalars['Date']['output'];
   /** Whether the subscription has expired. */
@@ -5000,6 +5010,10 @@ export type Subscription = {
   isInGracePeriod: Scalars['Boolean']['output'];
   /** Resource limits for this subscription. */
   limits: ResourceCounts;
+  /** Maximum pipeline timeout in seconds. */
+  maxTimeout?: Maybe<Scalars['Int']['output']>;
+  /** Memory limit for pipeline pods (e.g., "1G"). */
+  memoryLimit?: Maybe<Scalars['String']['output']>;
   /** The subscription plan code (e.g., "openhexa_starter"). */
   planCode: Scalars['String']['output'];
   /** The date when the subscription starts. */
