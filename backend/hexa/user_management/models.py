@@ -383,6 +383,11 @@ class OrganizationSubscription(Base):
     workspaces_limit = models.PositiveIntegerField()
     pipeline_runs_limit = models.PositiveIntegerField()
 
+    max_pipeline_timeout = models.PositiveIntegerField(null=True, blank=True)
+    pipeline_cpu_limit = models.CharField(max_length=32, blank=True, null=True)
+    pipeline_memory_limit = models.CharField(max_length=32, blank=True, null=True)
+    notebook_profile = models.CharField(max_length=50, blank=True, null=True)
+
     @property
     def is_expired(self) -> bool:
         """Check if the subscription has expired."""
