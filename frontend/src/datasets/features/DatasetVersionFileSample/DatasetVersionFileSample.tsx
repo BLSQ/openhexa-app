@@ -189,9 +189,9 @@ export const DatasetVersionFileSample: ApolloComponent<
                 {columns.length}
               </code>
             </DescriptionList.Item>
-            <DescriptionList.Item label={t("Rows in sample")}>
+            <DescriptionList.Item label={t("Rows in dataset")}>
               <code className="font-mono text-sm text-gray-600">
-                {sample.length} / {rows ?? "n/a"}
+                {rows ?? "n/a"}
               </code>
             </DescriptionList.Item>
           </DescriptionList>
