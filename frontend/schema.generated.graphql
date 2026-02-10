@@ -3898,17 +3898,17 @@ type ResourceCounts {
 
 """Input type for resource counts (used for subscription limits)."""
 input ResourceCountsInput {
-  """CPU limit for pipeline pods (e.g., "1"). Empty means use default."""
-  cpuLimit: String
+  """Maximum pipeline timeout in seconds."""
+  maxPipelineTimeout: Int
 
-  """Maximum pipeline timeout in seconds. Null means use default."""
-  maxTimeout: Int
-
-  """Memory limit for pipeline pods (e.g., "1G"). Empty means use default."""
-  memoryLimit: String
-
-  """JupyterHub profile to use (e.g., "trial"). Empty means use default."""
+  """JupyterHub profile to use (e.g., "trial")."""
   notebookProfile: String
+
+  """CPU limit for pipeline pods (e.g., "1")."""
+  pipelineCpuLimit: String
+
+  """Memory limit for pipeline pods (e.g., "1G")."""
+  pipelineMemoryLimit: String
 
   """Number of pipeline runs."""
   pipelineRuns: Int!
@@ -4129,9 +4129,6 @@ type StopPipelineResult {
 
 """Subscription details from the Bluesquare Console."""
 type Subscription {
-  """CPU limit for pipeline pods (e.g., "1")."""
-  cpuLimit: String
-
   """The date when the subscription ends."""
   endDate: Date!
 
@@ -4146,12 +4143,6 @@ type Subscription {
 
   """Resource limits for this subscription."""
   limits: ResourceCounts!
-
-  """Maximum pipeline timeout in seconds."""
-  maxTimeout: Int
-
-  """Memory limit for pipeline pods (e.g., "1G")."""
-  memoryLimit: String
 
   """The subscription plan code (e.g., "openhexa_starter")."""
   planCode: String!
