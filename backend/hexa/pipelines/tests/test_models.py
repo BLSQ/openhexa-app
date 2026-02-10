@@ -1,3 +1,4 @@
+import uuid
 from unittest.mock import patch
 
 from django.core import mail
@@ -938,7 +939,13 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
     def test_run_uses_subscription_timeout_when_lower(self):
         OrganizationSubscription.objects.create(
             organization=self.ORGANIZATION,
+            subscription_id=uuid.uuid4(),
             plan_code="trial",
+            start_date="2024-01-01",
+            end_date="2030-01-01",
+            users_limit=10,
+            workspaces_limit=5,
+            pipeline_runs_limit=100,
             max_pipeline_timeout=3600,
         )
         run = self.PIPELINE.run(
@@ -951,7 +958,13 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
     def test_run_uses_requested_timeout_when_lower(self):
         OrganizationSubscription.objects.create(
             organization=self.ORGANIZATION,
-            plan_code="standard",
+            subscription_id=uuid.uuid4(),
+            plan_code="trial",
+            start_date="2024-01-01",
+            end_date="2080-01-01",
+            users_limit=10,
+            workspaces_limit=5,
+            pipeline_runs_limit=100,
             max_pipeline_timeout=10000,
         )
         run = self.PIPELINE.run(
@@ -964,7 +977,13 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
     def test_run_uses_subscription_resource_limits(self):
         OrganizationSubscription.objects.create(
             organization=self.ORGANIZATION,
+            subscription_id=uuid.uuid4(),
             plan_code="trial",
+            start_date="2024-01-01",
+            end_date="2080-01-01",
+            users_limit=10,
+            workspaces_limit=5,
+            pipeline_runs_limit=100,
             pipeline_cpu_limit="1",
             pipeline_memory_limit="1G",
         )
