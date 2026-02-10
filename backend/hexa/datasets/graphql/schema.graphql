@@ -126,6 +126,7 @@ type DatasetVersionFile implements MetadataObject{
   createdBy: User
   contentType: String!
   size: BigInt!
+  rows: Int!
   fileSample: DatasetFileSample
   properties: JSON
   attributes: [MetadataAttribute!]!

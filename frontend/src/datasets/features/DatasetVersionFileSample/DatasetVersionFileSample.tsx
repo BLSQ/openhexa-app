@@ -92,6 +92,7 @@ const GET_DATASET_VERSION_FILE_SAMPLE = gql`
   query GetDatasetVersionFileSample($id: ID!) {
     datasetVersionFile(id: $id) {
       id
+      rows
       properties
       fileSample {
         sample
@@ -124,30 +125,35 @@ export const DatasetVersionFileSample: ApolloComponent<
     }
   }, []);
 
-  const { sample, columns, status } = useMemo(() => {
+  const { sample, columns, rows, status } = useMemo(() => {
     if (!data?.datasetVersionFile.fileSample) {
       return {
         sample: [],
         columns: [],
+        rows: null,
         status: "UNSUPPORTED",
       };
     } else if (data.datasetVersionFile.fileSample.status === "FINISHED") {
       const sample = data.datasetVersionFile.fileSample.sample;
+      const rows = data.datasetVersionFile.rows;
       return {
         sample,
         columns: sample.length > 0 ? Object.keys(sample[0]) : [],
+        rows,
         status: "FINISHED",
       };
     } else if (data.datasetVersionFile.fileSample.status === "PROCESSING") {
       return {
         sample: [],
         columns: [],
+        rows: null,
         status: "PROCESSING",
       };
     }
     return {
       sample: [],
       columns: [],
+      rows: null,
       status: "ERROR",
     };
   }, [data]);
@@ -185,7 +191,7 @@ export const DatasetVersionFileSample: ApolloComponent<
             </DescriptionList.Item>
             <DescriptionList.Item label={t("Rows in sample")}>
               <code className="font-mono text-sm text-gray-600">
-                {sample.length}
+                {sample.length} / {rows ?? "n/a"}
               </code>
             </DescriptionList.Item>
           </DescriptionList>

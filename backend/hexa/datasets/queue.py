@@ -243,6 +243,7 @@ def generate_file_metadata_task(file_id: str) -> None:
         # We only support tabular data for now (CSV, Excel, Parquet) for the sample generation & profiling
         if is_file_supported(version_file.filename):
             df = load_df(version_file)
+            version_file.rows = len(df.index)
             generate_sample(version_file, df)
     except Exception as e:
         logger.exception(
