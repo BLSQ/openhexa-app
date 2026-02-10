@@ -1,14 +1,14 @@
 wkb_geometry = {
     "bbox": {
-        "xmax": 40.31659000000002,
-        "xmin": 29.339997592900346,
-        "ymax": -0.9500000000000001,
-        "ymin": -11.720938002166735,
+        "xmax": 180.0,
+        "xmin": -180.0,
+        "ymax": -16.020882256741224,
+        "ymin": -18.28799,
     },
     "geometry": "<SKIPPED_BYTES>",
-    "name": "Tanzania",
-    "iso_a3": "TZA",
-    "pop_est": 58005463.0,
-    "continent": "Africa",
-    "gdp_md_est": 63177,
+    "name": "Fiji",
+    "iso_a3": "FJI",
+    "pop_est": 889953.0,
+    "continent": "Oceania",
+    "gdp_md_est": 5496,
 }
