@@ -1611,6 +1611,10 @@ def resolve_create_organization(_, info, **kwargs):
         users_limit=limits["users"],
         workspaces_limit=limits["workspaces"],
         pipeline_runs_limit=limits["pipeline_runs"],
+        max_pipeline_timeout=limits.get("max_pipeline_timeout"),
+        pipeline_cpu_limit=limits.get("pipeline_cpu_limit"),
+        pipeline_memory_limit=limits.get("pipeline_memory_limit"),
+        notebook_profile=limits.get("notebook_profile"),
     )
 
     try:
@@ -1683,28 +1687,22 @@ def resolve_update_organization_subscription(_, info, **kwargs):
             "errors": ["NOT_FOUND"],
         }
 
-    try:
-        subscription = OrganizationSubscription.objects.get(
-            subscription_id=subscription_id
-        )
-        subscription.plan_code = plan_code
-        subscription.start_date = subscription_start_date
-        subscription.end_date = subscription_end_date
-        subscription.users_limit = limits["users"]
-        subscription.workspaces_limit = limits["workspaces"]
-        subscription.pipeline_runs_limit = limits["pipeline_runs"]
-        subscription.save()
-    except OrganizationSubscription.DoesNotExist:
-        OrganizationSubscription.objects.create(
-            organization=organization,
-            subscription_id=subscription_id,
-            plan_code=plan_code,
-            start_date=subscription_start_date,
-            end_date=subscription_end_date,
-            users_limit=limits["users"],
-            workspaces_limit=limits["workspaces"],
-            pipeline_runs_limit=limits["pipeline_runs"],
-        )
+    OrganizationSubscription.objects.update_or_create(
+        subscription_id=subscription_id,
+        defaults={
+            "organization": organization,
+            "plan_code": plan_code,
+            "start_date": subscription_start_date,
+            "end_date": subscription_end_date,
+            "users_limit": limits["users"],
+            "workspaces_limit": limits["workspaces"],
+            "pipeline_runs_limit": limits["pipeline_runs"],
+            "max_pipeline_timeout": limits.get("max_pipeline_timeout"),
+            "pipeline_cpu_limit": limits.get("pipeline_cpu_limit"),
+            "pipeline_memory_limit": limits.get("pipeline_memory_limit"),
+            "notebook_profile": limits.get("notebook_profile"),
+        },
+    )
 
     return {
         "success": True,
