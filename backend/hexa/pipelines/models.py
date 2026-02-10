@@ -441,9 +441,15 @@ class Pipeline(SoftDeletedModel):
         if organization and organization.is_pipeline_runs_limit_reached():
             raise PipelineRunsLimitReached
 
-        timeout = settings.PIPELINE_RUN_DEFAULT_TIMEOUT
-        if pipeline_version and pipeline_version.timeout:
-            timeout = pipeline_version.timeout
+        subscription = organization.current_subscription if organization else None
+
+        requested_timeout = pipeline_version.timeout if pipeline_version else None
+        max_timeout = subscription.max_pipeline_timeout if subscription else None
+        if requested_timeout and max_timeout:
+            timeout = min(requested_timeout, max_timeout)
+        else:
+            timeout = max_timeout or requested_timeout
+
         run = PipelineRun.objects.create(
             user=user,
             pipeline=self,
@@ -459,7 +465,11 @@ class Pipeline(SoftDeletedModel):
             ),
             access_token=str(uuid.uuid4()),
             send_mail_notifications=send_mail_notifications,
-            timeout=timeout,
+            timeout=timeout or settings.PIPELINE_RUN_DEFAULT_TIMEOUT,
+            cpu_limit=(subscription and subscription.pipeline_cpu_limit)
+            or settings.PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT,
+            memory_limit=(subscription and subscription.pipeline_memory_limit)
+            or settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_LIMIT,
             log_level=log_level,
         )
 
@@ -796,6 +806,8 @@ class PipelineRun(Base, WithStatus):
     run_logs = models.TextField(null=True, blank=True)
     current_progress = models.PositiveSmallIntegerField(default=0)
     timeout = models.IntegerField(null=True)
+    cpu_limit = models.CharField(max_length=32)
+    memory_limit = models.CharField(max_length=32)
     send_mail_notifications = models.BooleanField(default=True)
     stopped_by = models.ForeignKey(
         "user_management.User",
