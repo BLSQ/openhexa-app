@@ -20,9 +20,6 @@ from hexa.datasets.models import (
 
 logger = getLogger(__name__)
 
-# Used for reproducibility for the sample extraction
-SAMPLING_SEED = 22
-
 
 def is_file_supported(filename: str) -> bool:
     supported_mimetypes = [
@@ -74,12 +71,8 @@ def generate_sample(
         status=DatasetFileSample.STATUS_PROCESSING,
     )
     try:
-        if df.empty is False:
-            sample = df.sample(
-                settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
-                random_state=SAMPLING_SEED,
-                replace=True,
-            )
+        if not df.empty:
+            sample = df.head(settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE)
             sample = sample.replace(
                 {np.inf: "inf", -np.inf: "-inf"}
             )  # We are not supporting Infinity as numbers
@@ -213,18 +206,21 @@ def add_system_attributes(version_file: DatasetVersionFile, df: pd.DataFrame | N
         return
     profiling = generate_profile(df)
     columns = {}
+    column_order = []
     for column_profile in profiling:
+        hashed_column_name = hashlib.md5(
+            column_profile["column_name"].encode()
+        ).hexdigest()
+        columns[hashed_column_name] = column_profile["column_name"]
+        column_order.append(hashed_column_name)
         for key, value in column_profile.items():
-            hashed_column_name = hashlib.md5(
-                column_profile["column_name"].encode()
-            ).hexdigest()
-            columns[hashed_column_name] = column_profile["column_name"]
             version_file.update_or_create_attribute(
                 key=f"{hashed_column_name}.{key}",
                 value=value,
                 system=True,
             )
     version_file.properties["columns"] = columns
+    version_file.properties["column_order"] = column_order
     version_file.save()
     # Set properties map
 
