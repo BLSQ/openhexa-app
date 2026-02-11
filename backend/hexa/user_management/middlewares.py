@@ -1,11 +1,8 @@
-import binascii
 import logging
 from functools import cache
 from typing import Callable
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.core.signing import BadSignature, Signer
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
@@ -50,7 +47,7 @@ def is_protected_routes(request: HttpRequest) -> bool:
 
 
 def service_account_token_middleware(get_response):
-    """This middleware allows a service account to be authenticated through a signed Bearer token."""
+    """Authenticate service accounts via Bearer token (hashed lookup)."""
 
     def middleware(request: HttpRequest):
         from .models import ServiceAccount
@@ -58,20 +55,16 @@ def service_account_token_middleware(get_response):
         try:
             auth_type, token = request.headers["Authorization"].split(" ")
             if auth_type.lower() == "bearer":
-                token = Signer().unsign_object(token)
+                token_hash = ServiceAccount.hash_token(token)
                 service_account = ServiceAccount.objects.get(
-                    access_token=token,
+                    token_hash=token_hash,
                     is_active=True,
                 )
                 request.user = service_account
         except KeyError:
             pass  # No Authorization header
         except ValueError:
-            logger.exception(
-                "service account authentication error",
-            )
-        except (UnicodeDecodeError, binascii.Error, BadSignature, ValidationError):
-            pass
+            logger.error("service account authentication error")
         except ServiceAccount.DoesNotExist:
             pass
         return get_response(request)
