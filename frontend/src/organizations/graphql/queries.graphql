@@ -30,6 +30,8 @@ fragment Organization_organization on Organization {
     planCode
     startDate
     endDate
+    isExpired
+    isInGracePeriod
     limits {
       users
       workspaces

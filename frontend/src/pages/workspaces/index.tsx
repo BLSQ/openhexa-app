@@ -19,6 +19,10 @@ import {
   InboxIcon,
 } from "@heroicons/react/24/outline";
 import Link from "core/components/Link";
+import {
+  OrganizationsDocument,
+  OrganizationsQuery,
+} from "organizations/graphql/queries.generated";
 
 type WorkspacesHomeProps = {
   workspaceSlug: string | null;
@@ -125,12 +129,35 @@ export const getServerSideProps = createGetServerSideProps({
       query: WorkspacesPageDocument,
     });
 
+    const hasWorkspaces = (data.workspaces?.items.length ?? 0) > 0;
+
+    if (!hasWorkspaces) {
+      const { data: orgData } = await client.query<OrganizationsQuery>({
+        query: OrganizationsDocument,
+      });
+
+      const organizations = orgData.organizations ?? [];
+
+      if (organizations.length === 1) {
+        return {
+          redirect: {
+            destination: `/organizations/${organizations[0].id}`,
+            permanent: false,
+          },
+        };
+      } else if (organizations.length > 1) {
+        return {
+          redirect: {
+            destination: "/organizations",
+            permanent: false,
+          },
+        };
+      }
+    }
+
     return {
       props: {
-        workspaceSlug:
-          data.workspaces?.items.length > 0
-            ? data.workspaces.items[0]?.slug
-            : null,
+        workspaceSlug: hasWorkspaces ? data.workspaces.items[0]?.slug : null,
       },
     };
   },

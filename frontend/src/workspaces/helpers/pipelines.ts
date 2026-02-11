@@ -88,10 +88,20 @@ export async function updatePipeline(
 
 export function validateCronExpression(cronExpression: string) {
   try {
+    validateFiveFieldCron(cronExpression)
     CronParser.parse(cronExpression);
     return true;
   } catch (err) {
     return false;
+  }
+}
+
+function validateFiveFieldCron(cronExpression: string): void {
+  const fields = cronExpression.trim().split(/\s+/);
+  if (fields.length !== 5) {
+    throw new Error(
+      `Invalid cron expression: expected 5 fields, got ${fields.length}`
+    );
   }
 }
 

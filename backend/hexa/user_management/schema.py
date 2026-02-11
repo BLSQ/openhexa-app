@@ -757,7 +757,7 @@ def resolve_organization_usage(organization: Organization, info, **kwargs):
 @organization_object.field("subscription")
 def resolve_organization_subscription(organization: Organization, info, **kwargs):
     """Resolve subscription details. Returns null for self-hosted deployments."""
-    return organization.active_subscription
+    return organization.current_subscription
 
 
 subscription_object = ObjectType("Subscription")

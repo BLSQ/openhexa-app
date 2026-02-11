@@ -46,6 +46,32 @@ def is_protected_routes(request: HttpRequest) -> bool:
     return get_view_name(request) not in get_anonymous_urls()
 
 
+def service_account_token_middleware(get_response):
+    """Authenticate service accounts via Bearer token (hashed lookup)."""
+
+    def middleware(request: HttpRequest):
+        from .models import ServiceAccount
+
+        try:
+            auth_type, token = request.headers["Authorization"].split(" ")
+            if auth_type.lower() == "bearer":
+                token_hash = ServiceAccount.hash_token(token)
+                service_account = ServiceAccount.objects.get(
+                    token_hash=token_hash,
+                    is_active=True,
+                )
+                request.user = service_account
+        except KeyError:
+            pass  # No Authorization header
+        except ValueError:
+            logger.error("service account authentication error")
+        except ServiceAccount.DoesNotExist:
+            pass
+        return get_response(request)
+
+    return middleware
+
+
 def login_required_middleware(
     get_response: Callable[[HttpRequest], HttpResponse],
 ) -> Callable[[HttpRequest], HttpResponse]:

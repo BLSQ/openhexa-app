@@ -3,15 +3,13 @@
 </div>
 </div>
 
-
 ## Gestion de l'organisation
 
 OpenHEXA utilise une structure hiérarchique où les organisations contiennent plusieurs espaces de travail. La page d'accueil de l'organisation sert de centre de contrôle pour gérer tous les aspects de votre organisation.
 
 ### Page d'accueil de l'organisation
 
-La page d'accueil de l'organisation fournit un aperçu complet et une interface de gestion pour toute votre organisation. 
-
+La page d'accueil de l'organisation fournit un aperçu complet et une interface de gestion pour toute votre organisation.
 
 #### Fonctionnalités clés
 
@@ -36,7 +34,6 @@ Les Admins de l'organisation ont des capacités de gestion complètes sur l'ense
 
 Ce rôle est essentiel pour maintenir une structure organisationnelle appropriée et assurer des opérations fluides dans tous les espaces de travail.
 
-
 #### 👤 Owner
 
 Les Owners ont le plus haut niveau de contrôle sur une organisation. En plus de toutes les capacités d'Admin de l'organisation, vous pouvez :
@@ -45,8 +42,28 @@ Les Owners ont le plus haut niveau de contrôle sur une organisation. En plus de
 - Attribuer des rôles d'Admin de l'organisation
 - Gérer les détails de facturation et les plans d'abonnement (le cas échéant)
 
+## Collaborateurs externes
+
+Les collaborateurs externes sont des utilisateurs qui ont accès à un ou plusieurs espaces de travail au sein de votre organisation mais qui ne sont pas membres directs de l'organisation elle-même. Cela est utile lorsque vous devez collaborer avec des partenaires, des consultants ou d'autres parties prenantes externes sans leur accorder une adhésion complète à l'organisation.
+
+### Voir les collaborateurs externes
+
+Les Admins de l'organisation et les Owners peuvent voir tous les collaborateurs externes depuis les paramètres de l'organisation :
+
+1. Accédez aux **Paramètres de l'organisation**.
+2. Sélectionnez l'onglet **Collaborateurs externes**.
+3. Parcourez la liste des collaborateurs externes.
+
+### Gérer les collaborateurs externes
+
+Les Admins de l'organisation et les Owners peuvent gérer les collaborateurs externes :
+
+- **Modifier** : Mettez à jour les adhésions aux espaces de travail ou les rôles d'un collaborateur externe.
+- **Supprimer** : Supprimez un collaborateur externe de tous les espaces de travail de l'organisation.
+
+!!! info "Ajouter des collaborateurs externes"
+    Les collaborateurs externes sont ajoutés en les invitant à des espaces de travail spécifiques. Lorsqu'un utilisateur qui n'est pas membre de l'organisation accepte une invitation à un espace de travail, il devient automatiquement un collaborateur externe.
 
 ## Changement d'organisation
 
 Pour apprendre comment basculer entre les organisations, consultez [Changement d'organisations](navigation.md#changer-dorganisation) dans le guide de Navigation.
-

@@ -1,5 +1,34 @@
 # Changelog
 
+## [3.1.1](https://github.com/BLSQ/openhexa-app/compare/3.1.0...3.1.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* var name for template email ([9928966](https://github.com/BLSQ/openhexa-app/commit/9928966496f46bfbec66d181ccfd538d483ae627))
+
+## [3.1.0](https://github.com/BLSQ/openhexa-app/compare/3.0.1...3.1.0) (2026-02-06)
+
+
+### Features
+
+* service account (CONSOLE-108) ([#1601](https://github.com/BLSQ/openhexa-app/issues/1601)) ([b5195cf](https://github.com/BLSQ/openhexa-app/commit/b5195cfba53af18ecec26d3fc054171bfca29bd9))
+
+
+### Bug Fixes
+
+* default params lost when upgrading form template (HEXA-1493) ([#1603](https://github.com/BLSQ/openhexa-app/issues/1603)) ([ef0d726](https://github.com/BLSQ/openhexa-app/commit/ef0d7262b1eab587465b25fed89a0d1ef9583d8a))
+* enable scrolling in template creation when description is too long (HEXA-1444)([#1593](https://github.com/BLSQ/openhexa-app/issues/1593)) ([35d0da6](https://github.com/BLSQ/openhexa-app/commit/35d0da64d41d5c9098947f96dd2a187ab6278f2f))
+* mail wording for servcie account creation of organization (CONSOLE-111) ([#1607](https://github.com/BLSQ/openhexa-app/issues/1607)) ([84852e1](https://github.com/BLSQ/openhexa-app/commit/84852e12b3b040476e21884e5df134502fa01ae5))
+* redirect when org membership but no workspace (CONSOLE-111)([#1608](https://github.com/BLSQ/openhexa-app/issues/1608)) ([9fdcb4f](https://github.com/BLSQ/openhexa-app/commit/9fdcb4f1ef3700a761d5409ac0d84abde9196a0e))
+
+## [3.0.1](https://github.com/BLSQ/openhexa-app/compare/3.0.0...3.0.1) (2026-02-03)
+
+
+### Bug Fixes
+
+* removed the version id from the url after deletion (HEXA-1494) ([#1595](https://github.com/BLSQ/openhexa-app/issues/1595)) ([2a1e31e](https://github.com/BLSQ/openhexa-app/commit/2a1e31e6602e20a491f082291c1770140217c047))
+
 ## [3.0.0](https://github.com/BLSQ/openhexa-app/compare/2.18.0...3.0.0) (2026-02-02)
 
 

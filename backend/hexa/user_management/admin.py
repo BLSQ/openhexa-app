@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
@@ -7,6 +7,7 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.db.models.functions import Collate
 from django.utils.crypto import get_random_string
+from django.utils.safestring import mark_safe
 
 from hexa.core.admin import GlobalObjectsModelAdmin, country_list
 
@@ -18,6 +19,7 @@ from .models import (
     OrganizationInvitation,
     OrganizationMembership,
     OrganizationSubscription,
+    ServiceAccount,
     SignupRequest,
     Team,
     User,
@@ -375,3 +377,46 @@ class SignupRequestAdmin(admin.ModelAdmin):
     search_fields = ("email",)
     readonly_fields = ("created_at", "updated_at")
     ordering = ("-created_at",)
+
+
+@admin.register(ServiceAccount)
+class ServiceAccountAdmin(admin.ModelAdmin):
+    list_display = ("email", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("email",)
+    filter_horizontal = ("user_permissions",)
+    actions = ["rotate_tokens"]
+
+    fieldsets = (
+        (None, {"fields": ("email",)}),
+        ("Permissions", {"fields": ("is_active", "user_permissions")}),
+    )
+
+    def save_model(self, request, obj, form, change):
+        if not obj.token_hash:
+            raw_token = obj.generate_token()
+            obj._raw_token = raw_token
+        super().save_model(request, obj, form, change)
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if hasattr(obj, "_raw_token"):
+            self.message_user(
+                request,
+                mark_safe(
+                    f"Token for {obj.email} (will NOT be shown again): <code>{obj._raw_token}</code>"
+                ),
+                messages.WARNING,
+            )
+        return super().response_add(request, obj, post_url_continue)
+
+    @admin.action(description="Rotate tokens (new tokens shown once)")
+    def rotate_tokens(self, request, queryset):
+        for svc in queryset:
+            token = svc.rotate_token()
+            self.message_user(
+                request,
+                mark_safe(
+                    f"Token for {svc.email} (will NOT be shown again): <code>{token}</code>"
+                ),
+                messages.WARNING,
+            )

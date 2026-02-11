@@ -6,6 +6,7 @@ export type ProgressBarProps = {
   max: number;
   className?: string;
   showLabel?: boolean;
+  disabled?: boolean;
 };
 
 type UsageLevel = "normal" | "warning" | "critical";
@@ -23,7 +24,7 @@ const colorClasses: Record<UsageLevel, { bar: string; text: string }> = {
 };
 
 const ProgressBar = (props: ProgressBarProps) => {
-  const { value, max, className, showLabel = true } = props;
+  const { value, max, className, showLabel = true, disabled = false } = props;
 
   const percentage = useMemo(() => {
     if (max <= 0) return 0;
@@ -36,11 +37,16 @@ const ProgressBar = (props: ProgressBarProps) => {
   return (
     <div className={clsx("w-full", className)}>
       <div className="flex items-center gap-3">
-        <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+        <div
+          className={clsx(
+            "flex-1 rounded-full h-2.5",
+            disabled ? "bg-gray-100" : "bg-gray-200",
+          )}
+        >
           <div
             className={clsx(
               "h-2.5 rounded-full transition-all duration-300",
-              colors.bar,
+              disabled ? "bg-gray-300" : colors.bar,
             )}
             style={{ width: `${percentage}%` }}
           />
@@ -49,7 +55,7 @@ const ProgressBar = (props: ProgressBarProps) => {
           <span
             className={clsx(
               "text-sm font-medium whitespace-nowrap",
-              colors.text,
+              disabled ? "text-gray-400" : colors.text,
             )}
           >
             {value} / {max}

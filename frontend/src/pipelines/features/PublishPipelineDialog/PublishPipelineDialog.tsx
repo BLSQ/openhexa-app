@@ -140,10 +140,9 @@ const PublishPipelineDialog = ({
     : t("Create a new Template");
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="max-w-4xl">
-      <form onSubmit={form.handleSubmit}>
-        <Dialog.Title>{actionMessage}</Dialog.Title>
-        <Dialog.Content>
+    <Dialog open={open} onClose={onClose} maxWidth="max-w-4xl" onSubmit={form.handleSubmit}>
+      <Dialog.Title>{actionMessage}</Dialog.Title>
+      <Dialog.Content>
           {templateAlreadyExists ? (
             <Field name="changelog" label={t("Changelog")}>
               <Textarea
@@ -218,8 +217,7 @@ const PublishPipelineDialog = ({
             {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
             {actionMessage}
           </Button>
-        </Dialog.Actions>
-      </form>
+      </Dialog.Actions>
     </Dialog>
   );
 };

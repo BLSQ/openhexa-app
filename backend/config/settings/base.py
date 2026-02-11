@@ -37,6 +37,11 @@ OPENHEXA_JWT_ISSUER = os.environ.get("OPENHEXA_JWT_ISSUER", "https://app.openhex
 OPENHEXA_JWT_AUDIENCE = os.environ.get("OPENHEXA_JWT_AUDIENCE", "openhexa-clients")
 OPENHEXA_JWT_TTL = int(os.environ.get("OPENHEXA_JWT_TTL", "3600"))
 
+# Subscription Settings
+SUBSCRIPTION_GRACE_PERIOD_DAYS = int(
+    os.environ.get("SUBSCRIPTION_GRACE_PERIOD_DAYS", "15")
+)
+
 # X Frame Options
 # Allow OpenHEXA to embed itself, typical use is a Superset dashboards in a Web App
 X_FRAME_OPTIONS = "SAMEORIGIN"
@@ -204,6 +209,7 @@ MIDDLEWARE = [
     "hexa.plugins.connector_airflow.middlewares.dag_run_authentication_middleware",
     "hexa.pipelines.middlewares.pipeline_run_authentication_middleware",
     "hexa.workspaces.middlewares.workspace_token_authentication_middleware",
+    "hexa.user_management.middlewares.service_account_token_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",

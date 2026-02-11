@@ -3,15 +3,13 @@
 </div>
 </div>
 
-
 ## Organization management
 
 OpenHEXA uses a hierarchical structure where organizations contain multiple workspaces. The organization landing page serves as your control center for managing all aspects of your organization.
 
 ### Organization landing page
 
-The organization landing page provides a comprehensive overview and management interface for your entire organization. 
-
+The organization landing page provides a comprehensive overview and management interface for your entire organization.
 
 #### Key features
 
@@ -36,7 +34,6 @@ Organization Admins have comprehensive management capabilities across the entire
 
 This role is essential for maintaining proper organizational structure and ensuring smooth operations across all workspaces.
 
-
 #### 👤 Owner
 
 Owners have the highest level of control over an organization. In addition to all Organization Admin capabilities, you can:
@@ -45,6 +42,27 @@ Owners have the highest level of control over an organization. In addition to al
 - Assign Organization Admin roles
 - Manage billing details and subscription plans (when applicable)
 
+## External collaborators
+
+External collaborators are users who have access to one or more workspaces within your organization but are not direct members of the organization itself. This is useful when you need to collaborate with partners, consultants, or other external stakeholders without granting them full organization membership.
+
+### View external collaborators
+
+Organization Admins and Owners can view all external collaborators from the organization settings:
+
+1. Go to **Organization settings**.
+2. Select the **External Collaborators** tab.
+3. Browse the list of external collaborators, which shows.
+
+### Manage external collaborators
+
+Organization Admins and Owners can manage external collaborators:
+
+- **Edit**: Update an external collaborator's workspace memberships or roles.
+- **Remove**: Remove an external collaborator from all workspaces in the organization.
+
+!!! info "Adding external collaborators"
+    External collaborators are added by inviting them to specific workspaces. When a user who is not an organization member accepts a workspace invitation, they automatically become an external collaborator.
 
 ## Organization switching
 

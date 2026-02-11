@@ -7,7 +7,7 @@ from django_otp import devices_for_user, user_has_device
 
 from hexa.analytics.api import track
 from hexa.core.utils import get_email_attachments, send_mail
-from hexa.user_management.models import Organization
+from hexa.user_management.models import Organization, ServiceAccount
 
 USER_DEFAULT_DEVICE_ATTR_NAME = "_default_device"
 DEVICE_DEFAULT_NAME = "default"
@@ -37,6 +37,7 @@ def send_organization_invite(invitation):
     token = invitation.generate_token()
     action_url = f"{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
     invited_by = invitation.invited_by
+    invited_by_user = None if isinstance(invited_by, ServiceAccount) else invited_by
 
     with override(invited_by.language):
         send_mail(
@@ -44,8 +45,7 @@ def send_organization_invite(invitation):
             template_name="user_management/mails/invite_organization",
             template_variables={
                 "organization": invitation.organization.name,
-                "owner": invited_by.display_name,
-                "owner_email": invited_by.email,
+                "invited_by": invited_by_user,
                 "url": action_url,
                 "workspace_invitations": invitation.workspace_invitations.all(),
             },
@@ -74,6 +74,7 @@ def send_organization_add_user_email(
         f"You've been added to the organization {organization.name} on OpenHEXA"
     )
     action_url = f"{settings.NEW_FRONTEND_DOMAIN}/organizations/{organization.id}"
+    invited_by = None if isinstance(invited_by, ServiceAccount) else invited_by
 
     with override(invitee.language):
         send_mail(
@@ -81,8 +82,7 @@ def send_organization_add_user_email(
             template_name="user_management/mails/add_existing_user_organization",
             template_variables={
                 "organization": organization.name,
-                "owner": invited_by.display_name,
-                "owner_email": invited_by.email,
+                "invited_by": invited_by,
                 "invitee": invitee.display_name,
                 "url": action_url,
                 "workspace_invitations": workspace_invitations or [],
