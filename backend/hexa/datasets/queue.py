@@ -20,9 +20,6 @@ from hexa.datasets.models import (
 
 logger = getLogger(__name__)
 
-# Used for reproducibility for the sample extraction
-SAMPLING_SEED = 22
-
 
 def is_file_supported(filename: str) -> bool:
     supported_mimetypes = [
@@ -74,12 +71,8 @@ def generate_sample(
         status=DatasetFileSample.STATUS_PROCESSING,
     )
     try:
-        if df.empty is False:
-            sample = df.sample(
-                settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE,
-                random_state=SAMPLING_SEED,
-                replace=True,
-            )
+        if not df.empty:
+            sample = df.head(settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE)
             sample = sample.replace(
                 {np.inf: "inf", -np.inf: "-inf"}
             )  # We are not supporting Infinity as numbers

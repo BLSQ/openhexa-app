@@ -66,20 +66,19 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 "example_names.csv",
                 DatasetFileSample.STATUS_FINISHED,
                 [
-                    {"name": "Jack", "surname": "Howard"},
-                    {"name": "Olivia", "surname": "Brown"},
-                    {"name": "Lily", "surname": "Evans"},
+                    {"name": "Joe", "surname": "Doe"},
+                    {"name": "Liam", "surname": "Smith"},
+                    {"name": "Emma", "surname": "Johnson"},
                 ],
                 None,
             ),
-            # The CSV only contains 2 lines so it's going to add existing lines to achieve the desired sample size
+            # The CSV only contains 2 lines so the desired "sample" it's going to be the entire original CSV
             (
                 "example_names_2_lines.csv",
                 DatasetFileSample.STATUS_FINISHED,
                 [
+                    {"name": "Joe", "surname": "Doe"},
                     {"name": "Liam", "surname": "Smith"},
-                    {"name": "Joe", "surname": "Doe"},
-                    {"name": "Joe", "surname": "Doe"},
                 ],
                 None,
             ),
@@ -93,9 +92,9 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 "example_names.parquet",
                 DatasetFileSample.STATUS_FINISHED,
                 [
-                    {"name": "Jack", "surname": "Howard"},
-                    {"name": "Olivia", "surname": "Brown"},
-                    {"name": "Lily", "surname": "Evans"},
+                    {"name": "Joe", "surname": "Doe"},
+                    {"name": "Liam", "surname": "Smith"},
+                    {"name": "Emma", "surname": "Johnson"},
                 ],
                 None,
             ),
@@ -103,9 +102,9 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 "example_names.xlsx",
                 DatasetFileSample.STATUS_FINISHED,
                 [
-                    {"name": "Jack", "surname": "Howard"},
-                    {"name": "Olivia", "surname": "Brown"},
-                    {"name": "Lily", "surname": "Evans"},
+                    {"name": "Joe", "surname": "Doe"},
+                    {"name": "Liam", "surname": "Smith"},
+                    {"name": "Emma", "surname": "Johnson"},
                 ],
                 None,
             ),
@@ -114,19 +113,19 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 DatasetFileSample.STATUS_FINISHED,
                 [
                     {
-                        "created_at": "2023-10-05T12:00:00Z",
-                        "id": "5i1f1g0h-2g3h-8i7h-3d4e-5f6g7h8i9j0k",
-                        "label": "Bos taurus",
-                    },
-                    {
-                        "created_at": "2023-11-14T12:00:00Z",
-                        "id": "5w1t1u0v-2u3v-8w7v-3r4s-5t6u7v8w9x0y",
-                        "label": "Panthera leo bleyenberghi",
-                    },
-                    {
                         "created_at": "2023-10-01T12:00:00Z",
                         "id": "1e7b7e6e-8c9d-4f3e-9c1f-1a2b3c4d5e6f",
                         "label": "Panthera leo",
+                    },
+                    {
+                        "created_at": "2023-10-02T12:00:00Z",
+                        "id": "2f8c8d7e-9d0e-5f4e-0a1b-2c3d4e5f6g7h",
+                        "label": "Canis lupus",
+                    },
+                    {
+                        "created_at": "2023-10-03T12:00:00Z",
+                        "id": "3g9d9e8f-0e1f-6g5f-1b2c-3d4e5f6g7h8i",
+                        "label": "Felis catus",
                     },
                 ],
                 None,
@@ -135,14 +134,14 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 "example_with_nan.csv",
                 DatasetFileSample.STATUS_FINISHED,
                 [
+                    {"age": 10.0, "name": "Joe", "married": True, "surname": "Doe"},
+                    {"age": None, "name": "Liam", "married": False, "surname": "Smith"},
                     {
                         "age": None,
-                        "name": "Liam",
+                        "name": "Emma",
                         "married": False,
-                        "surname": "Smith",
+                        "surname": "Johnson",
                     },
-                    {"age": 10.0, "name": "Joe", "married": True, "surname": "Doe"},
-                    {"age": 10.0, "name": "Joe", "married": True, "surname": "Doe"},
                 ],
                 None,
             ),
@@ -152,21 +151,21 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                 [
                     {
                         "geometry": "<SKIPPED_BYTES>",
+                        "id": "1",
+                        "name": "District A",
+                        "value": None,
+                    },
+                    {
+                        "geometry": "<SKIPPED_BYTES>",
                         "id": "2",
                         "name": "District B",
                         "value": 2.5,
                     },
                     {
                         "geometry": "<SKIPPED_BYTES>",
-                        "id": "1",
-                        "name": "District A",
-                        "value": None,
-                    },
-                    {
-                        "geometry": "<SKIPPED_BYTES>",
-                        "id": "1",
-                        "name": "District A",
-                        "value": None,
+                        "id": "3",
+                        "name": "District C",
+                        "value": 3.0,
                     },
                 ],
                 None,

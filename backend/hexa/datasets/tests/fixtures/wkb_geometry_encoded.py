@@ -1,14 +1,14 @@
 wkb_geometry = {
     "bbox": {
-        "xmax": -66.96465999999998,
-        "xmin": -171.79111060289122,
-        "ymax": 71.35776357694175,
-        "ymin": 18.91619,
+        "xmax": 180.0,
+        "xmin": -180.0,
+        "ymax": -16.020882256741224,
+        "ymin": -18.28799,
     },
     "geometry": "<SKIPPED_BYTES>",
-    "name": "United States of America",
-    "iso_a3": "USA",
-    "pop_est": 328239523.0,
-    "continent": "North America",
-    "gdp_md_est": 21433226,
+    "name": "Fiji",
+    "iso_a3": "FJI",
+    "pop_est": 889953.0,
+    "continent": "Oceania",
+    "gdp_md_est": 5496,
 }
