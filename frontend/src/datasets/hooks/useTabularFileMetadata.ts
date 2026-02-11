@@ -1,5 +1,4 @@
 import { gql, useQuery } from "@apollo/client";
-import { MetadataAttribute } from "graphql/types";
 import { useMemo } from "react";
 import {
   TabularFileMetadataQuery,
@@ -54,19 +53,18 @@ export default function useTabularFileMetadata(fileId: string) {
     }
 
     const { attributes, properties } = data.datasetVersionFile;
-    const colsMapping = properties.columns ?? {};
-    const columns: TabularColumn[] = [];
-    for (const [colKey, colName] of Object.entries<string>(colsMapping)) {
-      const colAttrs = attributes.filter((attr) => attr.key.startsWith(colKey));
+    const colsMapping: Record<string, string> = properties.columns ?? {};
+    const columnOrder: string[] | undefined = properties.column_order;
 
-      columns.push({
+    const orderedKeys = columnOrder ?? Object.keys(colsMapping);
+
+    return orderedKeys
+      .filter((colKey) => colKey in colsMapping)
+      .map((colKey) => ({
         key: colKey,
-        name: colName,
-        attributes: colAttrs,
-      });
-    }
-
-    return columns;
+        name: colsMapping[colKey],
+        attributes: attributes.filter((attr) => attr.key.startsWith(colKey)),
+      }));
   }, [data]);
 
   return {
