@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from hexa.datasets.models import DatasetVersionFile, DatasetFileSample
+from hexa.datasets.models import DatasetFileSample, DatasetVersionFile
 from hexa.datasets.queue import load_df
 
 
@@ -15,10 +15,7 @@ class Command(BaseCommand):
     help = "Update sample and rows fields"
 
     def handle(self, *args, **options):
-        queryset = (
-            DatasetVersionFile.objects
-            .prefetch_related("samples")
-        )
+        queryset = DatasetVersionFile.objects.prefetch_related("samples")
 
         files_to_update = []
         samples_to_update = []
