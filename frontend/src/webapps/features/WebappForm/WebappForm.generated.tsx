@@ -23,6 +23,7 @@ export const WebappForm_WebappFragmentDoc = gql`
     `;
 export const WebappForm_WorkspaceFragmentDoc = gql`
     fragment WebappForm_workspace on Workspace {
+  slug
   ...WorkspaceLayout_workspace
 }
     ${WorkspaceLayout_WorkspaceFragmentDoc}`;
