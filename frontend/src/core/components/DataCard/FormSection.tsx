@@ -176,6 +176,10 @@ function FormSection<F extends { [key: string]: any }>(
       }
       return getProperty(definition, item, form, isEdited);
     },
+    removeProperty(id: string) {
+      definitions.current = definitions.current.filter((d) => d.id !== id);
+      delete properties.current[id];
+    },
   };
 
   const renderEditButton = () => {
