@@ -1,6 +1,7 @@
 import secrets
 
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
 from django.core.validators import validate_slug
 from django.db import models
 from django.db.models import Q
@@ -14,6 +15,7 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.shortcuts.mixins import ShortcutableMixin
+from hexa.superset.models import SupersetDashboard
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -53,8 +55,6 @@ class WebappManager(
     BaseManager, DefaultSoftDeletedManager.from_queryset(WebappQuerySet)
 ):
     def create_if_has_perm(self, principal, ws, **kwargs):
-        from django.core.exceptions import PermissionDenied
-
         if not principal.has_perm(
             f"{self.model._meta.app_label}.create_{self.model._meta.model_name}", ws
         ):
@@ -139,3 +139,16 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
     def __repr__(self) -> str:
         return f"<Webapp: {self.name}>"
+
+
+class SupersetWebapp(Webapp):
+    superset_dashboard = models.OneToOneField(
+        SupersetDashboard,
+        on_delete=models.CASCADE,
+        related_name="webapp",
+    )
+
+    def save(self, *args, **kwargs):
+        self.url = self.superset_dashboard.get_absolute_url()
+        self.type = Webapp.WebappType.SUPERSET
+        super().save(*args, **kwargs)
