@@ -147,8 +147,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         return f"<Webapp: {self.name}>"
 
 
-# TODO : add url to detail
-# TODO  : fix the edit mode
+# TODO : fix the edit mode
 # TODO : unit test
 # TODO : admin panel 2 ways
 class SupersetWebapp(Webapp):

@@ -15,6 +15,7 @@ import {
 import DataCard from "core/components/DataCard";
 import TextProperty from "core/components/DataCard/TextProperty";
 import SelectProperty from "core/components/DataCard/SelectProperty";
+import LinkProperty from "core/components/DataCard/LinkProperty";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import useCacheKey from "core/hooks/useCacheKey";
 import ImageProperty from "core/components/DataCard/ImageProperty";
@@ -182,6 +183,11 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
               accessor="source.dashboardId"
               label={t("Dashboard ID")}
               required
+            />
+            <LinkProperty
+              id="url"
+              accessor="url"
+              label={t("URL")}
             />
           </>
         )}
