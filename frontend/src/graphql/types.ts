@@ -2797,6 +2797,7 @@ export type Mutation = {
   signup: SignupResult;
   /** Stops a pipeline. */
   stopPipeline: StopPipelineResult;
+  testConnection: TestConnectionResult;
   updateAccessmodAccessibilityAnalysis: UpdateAccessmodAccessibilityAnalysisResult;
   updateAccessmodFileset: UpdateAccessmodFilesetResult;
   updateAccessmodProject: UpdateAccessmodProjectResult;
@@ -3307,6 +3308,11 @@ export type MutationSignupArgs = {
 
 export type MutationStopPipelineArgs = {
   input: StopPipelineInput;
+};
+
+
+export type MutationTestConnectionArgs = {
+  input: TestConnectionInput;
 };
 
 
@@ -5089,6 +5095,20 @@ export type TemplateVersionPage = {
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
+};
+
+/** Represents the input for testing a connection. */
+export type TestConnectionInput = {
+  fields: Array<ConnectionFieldInput>;
+  type: ConnectionType;
+  workspaceSlug: Scalars['String']['input'];
+};
+
+/** Represents the result of testing a connection. */
+export type TestConnectionResult = {
+  __typename?: 'TestConnectionResult';
+  error?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
 };
 
 export enum UpdateAccessmodAccessibilityAnalysisError {

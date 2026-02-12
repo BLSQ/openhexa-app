@@ -2852,6 +2852,7 @@ type Mutation {
 
   """Stops a pipeline."""
   stopPipeline(input: StopPipelineInput!): StopPipelineResult!
+  testConnection(input: TestConnectionInput!): TestConnectionResult!
   updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult!
   updateAccessmodFileset(input: UpdateAccessmodFilesetInput!): UpdateAccessmodFilesetResult!
   updateAccessmodProject(input: UpdateAccessmodProjectInput!): UpdateAccessmodProjectResult!
@@ -4224,6 +4225,19 @@ type TemplateVersionPage {
   pageNumber: Int!
   totalItems: Int!
   totalPages: Int!
+}
+
+"""Represents the input for testing a connection."""
+input TestConnectionInput {
+  fields: [ConnectionFieldInput!]!
+  type: ConnectionType!
+  workspaceSlug: String!
+}
+
+"""Represents the result of testing a connection."""
+type TestConnectionResult {
+  error: String
+  success: Boolean!
 }
 
 scalar TimeThresholds

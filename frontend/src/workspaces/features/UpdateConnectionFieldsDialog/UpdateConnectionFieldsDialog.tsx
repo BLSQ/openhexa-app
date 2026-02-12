@@ -12,6 +12,7 @@ import Connections, {
 import { UpdateConnectionFieldsDialog_ConnectionFragment } from "./UpdateConnectionFieldsDialog.generated";
 import { ConnectionType } from "graphql/types";
 import { useUpdateConnectionMutation } from "workspaces/graphql/mutations.generated";
+import TestConnectionButton from "workspaces/features/TestConnectionButton/TestConnectionButton";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
 
 type UpdateConnectionFieldsDialogProps = {
@@ -97,6 +98,10 @@ const UpdateConnectionFieldsDialog = (
           />
         </div>
 
+        <TestConnectionButton
+          connectionType={connection.type}
+          form={form}
+        />
         <Button variant="white" onClick={onClose}>
           {t("Cancel")}
         </Button>

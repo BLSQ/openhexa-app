@@ -925,6 +925,31 @@ extend type Query {
     connectionBySlug(workspaceSlug: String!, connectionSlug: String!): Connection @loginRequired
 }
 
+"""
+Represents the input for testing a connection.
+"""
+input TestConnectionInput {
+    """The workspace in which the connection is being tested."""
+    workspaceSlug: String!
+
+    """The type of the connection to test."""
+    type: ConnectionType!
+
+    """The fields containing the connection parameters to test."""
+    fields: [ConnectionFieldInput!]!
+}
+
+"""
+Represents the result of testing a connection.
+"""
+type TestConnectionResult {
+    # Indicates whether the connection test was successful.
+    success: Boolean!
+
+    # The error message if the connection test failed.
+    error: String
+}
+
 extend type Mutation {
     # Creates a connection in a workspace.
     createConnection(input: CreateConnectionInput!): CreateConnectionResult! @loginRequired
@@ -932,6 +957,8 @@ extend type Mutation {
     updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult! @loginRequired
     # Deletes a connection in a workspace.
     deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult! @loginRequired
+    # Tests connection parameters without saving them.
+    testConnection(input: TestConnectionInput!): TestConnectionResult! @loginRequired
 }
 
 extend type MePermissions {

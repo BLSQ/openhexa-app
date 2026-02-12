@@ -15,6 +15,7 @@ import Connections, {
   convertFieldsToInput,
 } from "workspaces/helpers/connections";
 import { FieldForm } from "workspaces/helpers/connections/utils";
+import TestConnectionButton from "workspaces/features/TestConnectionButton/TestConnectionButton";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
 import { CreateConnectionDialog_WorkspaceFragment } from "./CreateConnectionDialog.generated";
 import { gql } from "@apollo/client";
@@ -251,6 +252,12 @@ export default function CreateConnectionDialog({
                 ]}
               />
             </div>
+            {connectionType && (
+              <TestConnectionButton
+                connectionType={connectionType}
+                form={form}
+              />
+            )}
             <Button variant="white" onClick={onClose}>
               {t("Cancel")}
             </Button>
