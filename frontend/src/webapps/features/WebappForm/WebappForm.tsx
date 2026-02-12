@@ -64,8 +64,16 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const updateExistingWebapp = async (values: any) => {
     setLoading(true);
     try {
+      const source = buildSource[webapp!.type](values);
       await updateWebapp({
-        variables: { input: { id: webapp?.id, ...values } },
+        variables: {
+          input: {
+            id: webapp!.id,
+            name: values.name,
+            icon: values.icon,
+            source,
+          },
+        },
       }).then(() => {
         toast.success(t("Webapp updated successfully"));
         clearCache();
