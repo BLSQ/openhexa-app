@@ -5340,11 +5340,6 @@ export type UpdateExternalCollaboratorResult = {
   success: Scalars['Boolean']['output'];
 };
 
-/** Update iframe source. */
-export type UpdateIframeSourceInput = {
-  url: Scalars['String']['input'];
-};
-
 /** The UpdateMembershipError enum represents the possible errors that can occur during the updateMembership mutation. */
 export enum UpdateMembershipError {
   /** Indicates that the provided role is invalid. */
@@ -5676,6 +5671,9 @@ export type UpdateUserResult = {
 /** Represents the error message for a web app update. */
 export enum UpdateWebappError {
   PermissionDenied = 'PERMISSION_DENIED',
+  SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
+  SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
+  TypeMismatch = 'TYPE_MISMATCH',
   WebappNotFound = 'WEBAPP_NOT_FOUND'
 }
 
@@ -5698,7 +5696,8 @@ export type UpdateWebappResult = {
 
 /** Source update for a webapp - exactly one field must be provided. */
 export type UpdateWebappSourceInput =
-  { iframe: UpdateIframeSourceInput; };
+  { iframe: IframeSourceInput; superset?: never; }
+  |  { iframe?: never; superset: SupersetSourceInput; };
 
 /** Enum representing the possible errors that can occur when updating a workspace. */
 export enum UpdateWorkspaceError {

@@ -4484,11 +4484,6 @@ type UpdateExternalCollaboratorResult {
   success: Boolean!
 }
 
-"""Update iframe source."""
-input UpdateIframeSourceInput {
-  url: String!
-}
-
 """
 The UpdateMembershipError enum represents the possible errors that can occur during the updateMembership mutation.
 """
@@ -4909,6 +4904,9 @@ type UpdateUserResult {
 """Represents the error message for a web app update."""
 enum UpdateWebappError {
   PERMISSION_DENIED
+  SUPERSET_INSTANCE_NOT_FOUND
+  SUPERSET_NOT_CONFIGURED
+  TYPE_MISMATCH
   WEBAPP_NOT_FOUND
 }
 
@@ -4930,7 +4928,8 @@ type UpdateWebappResult {
 
 """Source update for a webapp - exactly one field must be provided."""
 input UpdateWebappSourceInput @oneOf {
-  iframe: UpdateIframeSourceInput
+  iframe: IframeSourceInput
+  superset: SupersetSourceInput
 }
 
 """
