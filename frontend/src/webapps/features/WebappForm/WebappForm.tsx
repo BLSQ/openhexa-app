@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
@@ -6,6 +6,7 @@ import {
   useCreateWebappMutation,
   useUpdateWebappMutation,
 } from "webapps/graphql/mutations.generated";
+import { useSupersetInstancesQuery } from "webapps/graphql/queries.generated";
 import { gql } from "@apollo/client";
 import {
   WebappForm_WebappFragment,
@@ -22,6 +23,18 @@ import WebappIframe from "webapps/features/WebappIframe";
 import { WebappType } from "graphql/types";
 import { getWebappTypeLabel } from "webapps/helpers";
 
+const buildSource: Record<WebappType, (values: any) => any> = {
+  [WebappType.Iframe]: (values) => ({ iframe: { url: values.url } }),
+  [WebappType.Superset]: (values) => ({
+    superset: {
+      instanceId: values.supersetInstanceId?.id,
+      dashboardId: values.externalDashboardId,
+    },
+  }),
+  [WebappType.Html]: (values) => ({}), //Coming soon
+  [WebappType.Bundle]: (values) => ({}), //Coming soon
+};
+
 type WebappFormProps = {
   webapp?: WebappForm_WebappFragment;
   workspace: WebappForm_WorkspaceFragment;
@@ -34,7 +47,16 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const [updateWebapp] = useUpdateWebappMutation();
   const [loading, setLoading] = useState(false);
   const [url, setUrl] = useState(webapp?.url || "");
+  const [selectedType, setSelectedType] = useState<WebappType>(
+    webapp?.type ?? WebappType.Iframe,
+  );
   const debouncedUrl = useDebounce(url, 500);
+
+  const { data: supersetData } = useSupersetInstancesQuery({
+    variables: { workspaceSlug: workspace.slug },
+  });
+
+  const supersetInstances = supersetData?.supersetInstances ?? [];
 
   const clearCache = useCacheKey("webapps");
 
@@ -57,13 +79,23 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const createNewWebapp = async (values: any) => {
     setLoading(true);
     try {
+      const source = buildSource[values.type as WebappType](values);
+
       await createWebapp({
-        variables: { input: { workspaceSlug: workspace.slug, ...values } },
+        variables: {
+          input: {
+            workspaceSlug: workspace.slug,
+            name: values.name,
+            icon: values.icon,
+            source,
+          },
+        },
       }).then(({ data }) => {
         if (!data?.createWebapp?.webapp) {
           throw new Error("Webapp creation failed");
         }
         toast.success(t("Webapp created successfully"));
+        clearCache();
         router.push(`/workspaces/${workspace.slug}/webapps`);
       });
     } catch (error) {
@@ -107,30 +139,49 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           label={""}
           editButtonLabel={t("Change Icon")}
         />
-        <SelectProperty
-          id="type"
-          accessor="type"
-          label={t("Type")}
-          required
-          defaultValue={WebappType.Iframe}
-          options={[
-            WebappType.Iframe,
-            // Coming soon
-            // WebappType.Html,
-            // WebappType.Bundle,
-            WebappType.Superset,
-          ]}
-          getOptionLabel={getWebappTypeLabel}
-        />
-        <TextProperty
-          id="url"
-          accessor="url"
-          label={t("URL")}
-          required
-          onChange={(e) => {
-            setUrl(e.target.value);
-          }}
-        />
+        {!webapp && (
+          <SelectProperty
+            id="type"
+            accessor="type"
+            label={t("Type")}
+            required
+            defaultValue={WebappType.Iframe}
+            options={[
+              WebappType.Iframe,
+              // Coming soon
+              // WebappType.Html,
+              // WebappType.Bundle,
+              WebappType.Superset,
+            ]}
+            getOptionLabel={getWebappTypeLabel}
+            onChange={(value) => setSelectedType(value as WebappType)}
+          />
+        )}
+        {selectedType === WebappType.Iframe && (
+          <TextProperty
+            id="url"
+            accessor="url"
+            label={t("URL")}
+            required
+            onChange={(e) => setUrl(e.target.value)}
+          />
+        )}
+        {selectedType === WebappType.Superset && (
+          <>
+            <SelectProperty
+              id="supersetInstanceId"
+              label={t("Superset Instance")}
+              required
+              options={supersetInstances}
+              getOptionLabel={(inst) => inst?.name ?? ""}
+            />
+            <TextProperty
+              id="externalDashboardId"
+              label={t("Dashboard ID")}
+              required
+            />
+          </>
+        )}
       </DataCard.FormSection>
       {debouncedUrl && (
         <DataCard.Section
@@ -163,6 +214,7 @@ WebappForm.fragment = {
   `,
   workspace: gql`
     fragment WebappForm_workspace on Workspace {
+      slug
       ...WorkspaceLayout_workspace
     }
     ${WorkspaceLayout.fragments.workspace}
