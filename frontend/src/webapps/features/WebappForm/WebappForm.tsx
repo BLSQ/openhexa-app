@@ -170,13 +170,16 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           <>
             <SelectProperty
               id="supersetInstanceId"
+              accessor="source.instance"
               label={t("Superset Instance")}
               required
               options={supersetInstances}
               getOptionLabel={(inst) => inst?.name ?? ""}
+              by="id"
             />
             <TextProperty
               id="externalDashboardId"
+              accessor="source.dashboardId"
               label={t("Dashboard ID")}
               required
             />
@@ -206,6 +209,15 @@ WebappForm.fragment = {
       url
       type
       icon
+      source {
+        ... on SupersetSource {
+          instance {
+            id
+            name
+          }
+          dashboardId
+        }
+      }
       permissions {
         update
         delete

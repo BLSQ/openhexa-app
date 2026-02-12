@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { ComboboxProps } from "../forms/Combobox/Combobox";
 import Select from "../forms/Select";
 import DataCard from "./DataCard";
 import { useDataCardProperty } from "./context";
@@ -11,6 +12,7 @@ type SelectPropertyProps<T = any> = PropertyDefinition & {
   nullable?: boolean;
   className?: string;
   onChange?: (value: T) => void;
+  by?: ComboboxProps<T>["by"];
 };
 
 const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
@@ -21,6 +23,7 @@ const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
     nullable = false,
     className,
     onChange,
+    by,
     ...delegated
   } = props;
 
@@ -51,6 +54,7 @@ const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
           required={property.required}
           disabled={property.readonly}
           className={className || "w-full"}
+          by={by as any}
         />
       </DataCard.Property>
     );
