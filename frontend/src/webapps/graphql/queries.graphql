@@ -1,0 +1,6 @@
+query SupersetInstances($workspaceSlug: String!) {
+  supersetInstances(workspaceSlug: $workspaceSlug) {
+    id
+    name
+  }
+}
