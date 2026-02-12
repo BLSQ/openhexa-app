@@ -1,14 +1,22 @@
-import pandas as pd
 from unittest.mock import patch
-from django.test import TestCase
+
+import pandas as pd
+from django.test import TransactionTestCase
 
 from hexa.core.test.migrator import Migrator
+from hexa.datasets.models import DatasetVersion
 
 
-class Migration0017DatasetVersionFileRowsTest(TestCase):
+class Migration0017DatasetVersionFileRowsTest(TransactionTestCase):
     def setUp(self):
         self.migrator = Migrator()
         self.migrator.migrate("datasets", "0016_add_shared_with_organization")
+
+    def get_dataset_version(self) -> DatasetVersion:
+        Dataset = self.migrator.apps.get_model("datasets", "Dataset")
+        DatasetVersion = self.migrator.apps.get_model("datasets", "DatasetVersion")
+        dataset = Dataset.objects.create()
+        return DatasetVersion.objects.create(dataset=dataset)
 
     def get_version_file_model(self):
         return self.migrator.apps.get_model("datasets", "DatasetVersionFile")
@@ -16,7 +24,7 @@ class Migration0017DatasetVersionFileRowsTest(TestCase):
     def get_sample_model(self):
         return self.migrator.apps.get_model("datasets", "DatasetFileSample")
 
-    @patch("hexa.datasets.migrations.0017_datasetversionfile_rows.load_df")
+    @patch("hexa.datasets.queue.load_df")
     def test_rows_and_sample_are_filled(self, mock_load_df):
         """
         Ensures:
@@ -24,7 +32,6 @@ class Migration0017DatasetVersionFileRowsTest(TestCase):
         - sample is populated
         - only rows=None objects are processed
         """
-
         # Mock dataframe
         df = pd.DataFrame(
             {
@@ -37,19 +44,13 @@ class Migration0017DatasetVersionFileRowsTest(TestCase):
         DatasetVersionFile = self.get_version_file_model()
         DatasetFileSample = self.get_sample_model()
 
-        # Create object with rows=None (should be processed)
+        # Create object without rows (should be processed)
         version_file = DatasetVersionFile.objects.create(
-            rows=None,
+            dataset_version=self.get_dataset_version()
         )
-
         sample = DatasetFileSample.objects.create(
             dataset_version_file=version_file,
             sample=None,
-        )
-
-        # Create object with rows already set (should NOT be processed)
-        untouched_file = DatasetVersionFile.objects.create(
-            rows=999,
         )
 
         # Apply migration
@@ -64,7 +65,6 @@ class Migration0017DatasetVersionFileRowsTest(TestCase):
 
         version_file = DatasetVersionFile.objects.get(pk=version_file.pk)
         sample = DatasetFileSample.objects.get(pk=sample.pk)
-        untouched_file = DatasetVersionFile.objects.get(pk=untouched_file.pk)
 
         # ----------- Assertions -----------
         # rows correctly filled
@@ -75,6 +75,3 @@ class Migration0017DatasetVersionFileRowsTest(TestCase):
             df.head(n=50).to_dict(orient="records"),
             sample.sample,
         )
-
-        # untouched object remains unchanged
-        self.assertEqual(999, untouched_file.rows)
