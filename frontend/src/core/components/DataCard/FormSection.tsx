@@ -113,7 +113,7 @@ function FormSection<F extends { [key: string]: any }>(
     getInitialState() {
       const initialState = {} as any;
       Object.entries(properties.current).forEach(([key, prop]) => {
-        initialState[key] = prop.displayValue;
+        initialState[key] = prop.displayValue ?? prop.defaultValue;
       });
       return initialState;
     },

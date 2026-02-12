@@ -35,7 +35,7 @@ const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
       <DataCard.Property property={property}>
         <Select
           options={nullable ? [null, ...options] : options}
-          value={property.formValue}
+          value={property.formValue ?? null}
           onChange={(value) => {
             property.setValue(value);
             onChange?.(value);
