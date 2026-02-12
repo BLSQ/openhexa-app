@@ -1040,6 +1040,8 @@ export enum CreateTemplateVersionPermissionReason {
 export enum CreateWebappError {
   AlreadyExists = 'ALREADY_EXISTS',
   PermissionDenied = 'PERMISSION_DENIED',
+  SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
+  SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
@@ -1048,8 +1050,7 @@ export type CreateWebappInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
-  type: WebappType;
-  url: Scalars['String']['input'];
+  source: WebappSourceInput;
   workspaceSlug: Scalars['String']['input'];
 };
 
@@ -2344,6 +2345,11 @@ export type IasoQueryResultPage = {
   success: Scalars['Boolean']['output'];
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
+};
+
+/** Iframe webapp source. */
+export type IframeSourceInput = {
+  url: Scalars['String']['input'];
 };
 
 /** The InviteOrganizationMemberError enum represents the possible errors that can occur during the inviteOrganizationMember mutation. */
@@ -4307,6 +4313,7 @@ export type Query = {
   searchFiles: FileResultPage;
   searchPipelineTemplates: PipelineTemplateResultPage;
   searchPipelines: PipelineResultPage;
+  supersetInstances: Array<SupersetInstance>;
   team?: Maybe<Team>;
   teams: TeamPage;
   /** Retrieves a template by workspace slug and code. */
@@ -4571,6 +4578,11 @@ export type QuerySearchPipelinesArgs = {
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
   workspaceSlugs?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+};
+
+
+export type QuerySupersetInstancesArgs = {
+  workspaceSlug: Scalars['String']['input'];
 };
 
 
@@ -5006,6 +5018,19 @@ export type Subscription = {
   startDate: Scalars['Date']['output'];
   /** The external subscription ID from the Bluesquare Console. */
   subscriptionId: Scalars['UUID']['output'];
+};
+
+/** Represents a Superset instance. */
+export type SupersetInstance = {
+  __typename?: 'SupersetInstance';
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+};
+
+/** Superset dashboard source. */
+export type SupersetSourceInput = {
+  dashboardId: Scalars['String']['input'];
+  instanceId: Scalars['UUID']['input'];
 };
 
 export type TableColumn = {
@@ -5844,6 +5869,11 @@ export type WebappPermissions = {
   delete: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
+
+/** Source configuration for a webapp - exactly one field must be provided. */
+export type WebappSourceInput =
+  { iframe: IframeSourceInput; superset?: never; }
+  |  { iframe?: never; superset: SupersetSourceInput; };
 
 /** Represents the type of a web app. */
 export enum WebappType {

@@ -1052,6 +1052,8 @@ enum CreateTemplateVersionPermissionReason {
 enum CreateWebappError {
   ALREADY_EXISTS
   PERMISSION_DENIED
+  SUPERSET_INSTANCE_NOT_FOUND
+  SUPERSET_NOT_CONFIGURED
   WORKSPACE_NOT_FOUND
 }
 
@@ -1060,8 +1062,7 @@ input CreateWebappInput {
   description: String
   icon: String
   name: String!
-  type: WebappType!
-  url: String!
+  source: WebappSourceInput!
   workspaceSlug: String!
 }
 
@@ -2319,6 +2320,11 @@ type IASOQueryResultPage {
   success: Boolean!
   totalItems: Int!
   totalPages: Int!
+}
+
+"""Iframe webapp source."""
+input IframeSourceInput {
+  url: String!
 }
 
 """
@@ -3714,6 +3720,7 @@ type Query {
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
   searchPipelineTemplates(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): PipelineTemplateResultPage!
   searchPipelines(functionalType: PipelineFunctionalType, organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): PipelineResultPage!
+  supersetInstances(workspaceSlug: String!): [SupersetInstance!]!
   team(id: UUID!): Team
   teams(page: Int, perPage: Int, term: String): TeamPage!
 
@@ -4140,6 +4147,18 @@ type Subscription {
 
   """The external subscription ID from the Bluesquare Console."""
   subscriptionId: UUID!
+}
+
+"""Represents a Superset instance."""
+type SupersetInstance {
+  id: UUID!
+  name: String!
+}
+
+"""Superset dashboard source."""
+input SupersetSourceInput {
+  dashboardId: String!
+  instanceId: UUID!
 }
 
 type TableColumn {
@@ -5093,6 +5112,14 @@ type Webapp {
 type WebappPermissions {
   delete: Boolean!
   update: Boolean!
+}
+
+"""
+Source configuration for a webapp - exactly one field must be provided.
+"""
+input WebappSourceInput @oneOf {
+  iframe: IframeSourceInput
+  superset: SupersetSourceInput
 }
 
 """Represents the type of a web app."""

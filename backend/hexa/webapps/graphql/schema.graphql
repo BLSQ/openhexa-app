@@ -9,6 +9,14 @@ enum WebappType {
 }
 
 """
+Represents a Superset instance.
+"""
+type SupersetInstance {
+  id: UUID!
+  name: String!
+}
+
+"""
 Represents a web app.
 """
 type Webapp {
@@ -39,10 +47,32 @@ Represents the input for creating a web app.
 input CreateWebappInput {
   name: String!
   description: String
-  url: String!
-  type: WebappType!
   icon: String
   workspaceSlug: String!
+  source: WebappSourceInput!
+}
+
+"""
+Source configuration for a webapp - exactly one field must be provided.
+"""
+input WebappSourceInput @oneOf {
+  iframe: IframeSourceInput
+  superset: SupersetSourceInput
+}
+
+"""
+Iframe webapp source.
+"""
+input IframeSourceInput {
+  url: String!
+}
+
+"""
+Superset dashboard source.
+"""
+input SupersetSourceInput {
+  instanceId: UUID!
+  dashboardId: String!
 }
 
 """
@@ -60,6 +90,8 @@ enum CreateWebappError {
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
   ALREADY_EXISTS
+  SUPERSET_INSTANCE_NOT_FOUND
+  SUPERSET_NOT_CONFIGURED
 }
 
 """
@@ -169,6 +201,7 @@ type WebappsPage {
 extend type Query {
   webapp(workspaceSlug: String!, slug: String!): Webapp @loginRequired
   webapps(workspaceSlug: String, favorite: Boolean, page: Int, perPage: Int): WebappsPage! @loginRequired
+  supersetInstances(workspaceSlug: String!): [SupersetInstance!]! @loginRequired
 }
 
 extend type Mutation {
