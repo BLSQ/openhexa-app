@@ -2322,6 +2322,10 @@ type IASOQueryResultPage {
   totalPages: Int!
 }
 
+type IframeSource {
+  url: String!
+}
+
 """Iframe webapp source."""
 input IframeSourceInput {
   url: String!
@@ -4155,6 +4159,11 @@ type SupersetInstance {
   name: String!
 }
 
+type SupersetSource {
+  dashboardId: String!
+  instance: SupersetInstance!
+}
+
 """Superset dashboard source."""
 input SupersetSourceInput {
   dashboardId: String!
@@ -5111,6 +5120,7 @@ type Webapp {
   name: String!
   permissions: WebappPermissions!
   slug: String!
+  source: WebappSource!
   type: WebappType!
   url: String!
   workspace: Workspace!
@@ -5121,6 +5131,8 @@ type WebappPermissions {
   delete: Boolean!
   update: Boolean!
 }
+
+union WebappSource = IframeSource | SupersetSource
 
 """
 Source configuration for a webapp - exactly one field must be provided.

@@ -18,6 +18,17 @@ type SupersetInstance {
   name: String!
 }
 
+union WebappSource = IframeSource | SupersetSource
+
+type IframeSource {
+  url: String!
+}
+
+type SupersetSource {
+  instance: SupersetInstance!
+  dashboardId: String!
+}
+
 """
 Represents a web app.
 """
@@ -33,6 +44,7 @@ type Webapp {
   createdBy: User!
   isFavorite: Boolean!
   isShortcut: Boolean!
+  source: WebappSource!
   permissions: WebappPermissions!
 }
 """

@@ -2347,6 +2347,11 @@ export type IasoQueryResultPage = {
   totalPages: Scalars['Int']['output'];
 };
 
+export type IframeSource = {
+  __typename?: 'IframeSource';
+  url: Scalars['String']['output'];
+};
+
 /** Iframe webapp source. */
 export type IframeSourceInput = {
   url: Scalars['String']['input'];
@@ -5027,6 +5032,12 @@ export type SupersetInstance = {
   name: Scalars['String']['output'];
 };
 
+export type SupersetSource = {
+  __typename?: 'SupersetSource';
+  dashboardId: Scalars['String']['output'];
+  instance: SupersetInstance;
+};
+
 /** Superset dashboard source. */
 export type SupersetSourceInput = {
   dashboardId: Scalars['String']['input'];
@@ -5865,6 +5876,7 @@ export type Webapp = {
   name: Scalars['String']['output'];
   permissions: WebappPermissions;
   slug: Scalars['String']['output'];
+  source: WebappSource;
   type: WebappType;
   url: Scalars['String']['output'];
   workspace: Workspace;
@@ -5876,6 +5888,8 @@ export type WebappPermissions = {
   delete: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
+
+export type WebappSource = IframeSource | SupersetSource;
 
 /** Source configuration for a webapp - exactly one field must be provided. */
 export type WebappSourceInput =
