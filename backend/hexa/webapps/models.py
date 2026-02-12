@@ -148,7 +148,44 @@ class SupersetWebapp(Webapp):
         related_name="webapp",
     )
 
-    def save(self, *args, **kwargs):
+    @classmethod
+    def create_if_has_perm(
+        cls,
+        principal,
+        workspace,
+        superset_instance,
+        external_dashboard_id,
+        *,
+        name,
+        created_by,
+        description="",
+        icon=None,
+    ):
+        if not principal.has_perm("webapps.create_webapp", workspace):
+            raise PermissionDenied
+
+        dashboard = SupersetDashboard.objects.create(
+            external_id=external_dashboard_id,
+            superset_instance=superset_instance,
+            name=name,
+            description=description,
+        )
+
+        return cls.objects.create(
+            superset_dashboard=dashboard,
+            workspace=workspace,
+            url=dashboard.get_absolute_url(),
+            type=Webapp.WebappType.SUPERSET,
+            slug=create_webapp_slug(name, workspace),
+            name=name,
+            description=description,
+            icon=icon,
+            created_by=created_by,
+        )
+
+    def update_dashboard(self, superset_instance, external_dashboard_id):
+        self.superset_dashboard.external_id = external_dashboard_id
+        self.superset_dashboard.superset_instance = superset_instance
+        self.superset_dashboard.save()
         self.url = self.superset_dashboard.get_absolute_url()
-        self.type = Webapp.WebappType.SUPERSET
-        super().save(*args, **kwargs)
+        self.save()
