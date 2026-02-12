@@ -10,6 +10,7 @@ type SelectPropertyProps<T = any> = PropertyDefinition & {
   defaultValue?: string;
   nullable?: boolean;
   className?: string;
+  onChange?: (value: T) => void;
 };
 
 const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
@@ -19,6 +20,7 @@ const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
     defaultValue,
     nullable = false,
     className,
+    onChange,
     ...delegated
   } = props;
 
@@ -34,7 +36,10 @@ const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
         <Select
           options={nullable ? [null, ...options] : options}
           value={property.formValue}
-          onChange={(value) => property.setValue(value)}
+          onChange={(value) => {
+            property.setValue(value);
+            onChange?.(value);
+          }}
           getOptionLabel={(option) => {
             if (option === null) return defaultValue || "Not set";
             return getOptionLabel(option);
@@ -56,11 +61,13 @@ const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
 
     return (
       <DataCard.Property property={property}>
-        <div className={clsx(
-          "prose text-sm",
-          property.displayValue ? "text-gray-900" : "text-gray-500 italic",
-          className
-        )}>
+        <div
+          className={clsx(
+            "prose text-sm",
+            property.displayValue ? "text-gray-900" : "text-gray-500 italic",
+            className,
+          )}
+        >
           {displayValue}
         </div>
       </DataCard.Property>
