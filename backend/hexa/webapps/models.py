@@ -61,8 +61,9 @@ class WebappManager(
             raise PermissionDenied
 
         if "slug" not in kwargs:
-            kwargs["slug"] = create_webapp_slug(kwargs["name"], kwargs["workspace"])
+            kwargs["slug"] = create_webapp_slug(kwargs["name"], ws)
 
+        kwargs["workspace"] = ws
         return super(BaseManager, self).create(**kwargs)
 
 

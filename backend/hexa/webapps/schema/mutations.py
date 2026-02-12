@@ -59,8 +59,8 @@ def resolve_create_webapp(_, info, **kwargs):
             )
         else:
             webapp = Webapp.objects.create_if_has_perm(
-                principal=user,
-                workspace=workspace,
+                user,
+                workspace,
                 name=input["name"],
                 description=input.get("description", ""),
                 icon=icon,
