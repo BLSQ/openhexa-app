@@ -3,7 +3,7 @@ import secrets
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.validators import validate_slug
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from slugify import slugify
 
@@ -169,24 +169,25 @@ class SupersetWebapp(Webapp):
         if not principal.has_perm("webapps.create_webapp", workspace):
             raise PermissionDenied
 
-        dashboard = SupersetDashboard.objects.create(
-            external_id=external_dashboard_id,
-            superset_instance=superset_instance,
-            name=name,
-            description=description,
-        )
+        with transaction.atomic():
+            dashboard = SupersetDashboard.objects.create(
+                external_id=external_dashboard_id,
+                superset_instance=superset_instance,
+                name=name,
+                description=description,
+            )
 
-        return cls.objects.create(
-            superset_dashboard=dashboard,
-            workspace=workspace,
-            url=dashboard.get_absolute_url(),
-            type=Webapp.WebappType.SUPERSET,
-            slug=create_webapp_slug(name, workspace),
-            name=name,
-            description=description,
-            icon=icon,
-            created_by=created_by,
-        )
+            return cls.objects.create(
+                superset_dashboard=dashboard,
+                workspace=workspace,
+                url=dashboard.get_absolute_url(),
+                type=Webapp.WebappType.SUPERSET,
+                slug=create_webapp_slug(name, workspace),
+                name=name,
+                description=description,
+                icon=icon,
+                created_by=created_by,
+            )
 
     def update_dashboard(self, superset_instance, external_dashboard_id):
         self.superset_dashboard.external_id = external_dashboard_id
