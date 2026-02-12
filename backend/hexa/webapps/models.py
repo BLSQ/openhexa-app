@@ -148,8 +148,9 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
 
 # TODO : add url to detail
+# TODO  : fix the edit mode
 # TODO : unit test
-# TODO : admin panel
+# TODO : admin panel 2 ways
 class SupersetWebapp(Webapp):
     superset_dashboard = models.OneToOneField(
         SupersetDashboard,
