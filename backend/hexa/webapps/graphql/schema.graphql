@@ -1,3 +1,5 @@
+directive @oneOf on INPUT_OBJECT
+
 """
 Represents the type of a web app.
 """
@@ -101,9 +103,16 @@ input UpdateWebappInput {
   id: UUID!
   name: String
   description: String
-  url: String
-  type: WebappType
   icon: String
+  source: UpdateWebappSourceInput
+}
+
+"""
+Source update for a webapp - exactly one field must be provided.
+"""
+input UpdateWebappSourceInput @oneOf {
+  iframe: IframeSourceInput
+  superset: SupersetSourceInput
 }
 
 """
@@ -121,6 +130,9 @@ Represents the error message for a web app update.
 enum UpdateWebappError {
   WEBAPP_NOT_FOUND
   PERMISSION_DENIED
+  SUPERSET_INSTANCE_NOT_FOUND
+  SUPERSET_NOT_CONFIGURED
+  TYPE_MISMATCH
 }
 
 """

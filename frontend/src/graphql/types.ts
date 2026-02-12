@@ -5340,6 +5340,11 @@ export type UpdateExternalCollaboratorResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Update iframe source. */
+export type UpdateIframeSourceInput = {
+  url: Scalars['String']['input'];
+};
+
 /** The UpdateMembershipError enum represents the possible errors that can occur during the updateMembership mutation. */
 export enum UpdateMembershipError {
   /** Indicates that the provided role is invalid. */
@@ -5680,8 +5685,7 @@ export type UpdateWebappInput = {
   icon?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
-  type?: InputMaybe<WebappType>;
-  url?: InputMaybe<Scalars['String']['input']>;
+  source?: InputMaybe<UpdateWebappSourceInput>;
 };
 
 /** Represents the result of updating a web app. */
@@ -5691,6 +5695,10 @@ export type UpdateWebappResult = {
   success: Scalars['Boolean']['output'];
   webapp?: Maybe<Webapp>;
 };
+
+/** Source update for a webapp - exactly one field must be provided. */
+export type UpdateWebappSourceInput =
+  { iframe: UpdateIframeSourceInput; };
 
 /** Enum representing the possible errors that can occur when updating a workspace. */
 export enum UpdateWorkspaceError {
