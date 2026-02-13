@@ -202,7 +202,9 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
               // Coming soon
               // WebappType.Html,
               // WebappType.Bundle,
-              WebappType.Superset,
+              ...(supersetInstances.length > 0
+                ? [WebappType.Superset]
+                : []),
             ]}
             getOptionLabel={getWebappTypeLabel}
             onChange={(value) => setSelectedType(value as WebappType)}
