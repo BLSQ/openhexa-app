@@ -148,6 +148,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
 
 # TODO : fix the edit mode
+# TODO : hide url on create
 # TODO : unit test
 # TODO : admin panel 2 ways
 class SupersetWebapp(Webapp):
