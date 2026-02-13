@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useEffect } from "react";
 import SimpleSelect from "../forms/SimpleSelect";
 import DataCard from "./DataCard";
 import { useDataCardProperty } from "./context";
@@ -31,6 +32,12 @@ const SimpleSelectProperty = <T,>(props: SimpleSelectPropertyProps<T>) => {
     ...delegated,
     defaultValue: defaultValue as any,
   });
+
+  useEffect(() => {
+    if (property.formValue == null && defaultValue != null) {
+      property.setValue(defaultValue as any);
+    }
+  }, [property.formValue, defaultValue]);
 
   if (!property.visible) {
     return null;
