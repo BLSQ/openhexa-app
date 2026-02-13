@@ -269,6 +269,7 @@ WebappForm.fragment = {
           instance {
             id
             name
+            url
           }
           dashboardId
         }

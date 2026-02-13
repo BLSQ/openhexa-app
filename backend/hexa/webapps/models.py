@@ -147,7 +147,6 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         return f"<Webapp: {self.name}>"
 
 
-# TODO : instance url not showing
 class SupersetWebapp(Webapp):
     superset_dashboard = models.ForeignKey(
         SupersetDashboard,
