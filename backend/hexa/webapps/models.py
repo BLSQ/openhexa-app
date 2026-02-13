@@ -172,11 +172,13 @@ class SupersetWebapp(Webapp):
             raise PermissionDenied
 
         with transaction.atomic():
-            dashboard = SupersetDashboard.objects.create(
+            dashboard, _ = SupersetDashboard.objects.get_or_create(
                 external_id=external_dashboard_id,
                 superset_instance=superset_instance,
-                name=name,
-                description=description,
+                defaults={
+                    "name": name,
+                    "description": description,
+                },
             )
 
             return cls.objects.create(
