@@ -4,7 +4,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("superset", "0001_initial"),
+        ("superset", "0004_alter_supersetdashboard_unique_together"),
         ("webapps", "0006_merge_0004_webapp_type_0005_fix_slug_constraint"),
     ]
 
