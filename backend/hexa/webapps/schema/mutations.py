@@ -1,6 +1,6 @@
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 
 from hexa.superset.models import SupersetInstance
@@ -28,46 +28,47 @@ def resolve_create_webapp(_, info, **kwargs):
     icon = decode_base64_image(input["icon"]) if input.get("icon") else None
 
     try:
-        if "superset" in source:
-            if not workspace.organization:
-                return {
-                    "success": False,
-                    "errors": ["SUPERSET_NOT_CONFIGURED"],
-                    "webapp": None,
-                }
-            try:
-                superset_instance = SupersetInstance.objects.get(
-                    id=source["superset"]["instance_id"],
-                    organization=workspace.organization,
-                )
-            except SupersetInstance.DoesNotExist:
-                return {
-                    "success": False,
-                    "errors": ["SUPERSET_INSTANCE_NOT_FOUND"],
-                    "webapp": None,
-                }
+        with transaction.atomic():
+            if "superset" in source:
+                if not workspace.organization:
+                    return {
+                        "success": False,
+                        "errors": ["SUPERSET_NOT_CONFIGURED"],
+                        "webapp": None,
+                    }
+                try:
+                    superset_instance = SupersetInstance.objects.get(
+                        id=source["superset"]["instance_id"],
+                        organization=workspace.organization,
+                    )
+                except SupersetInstance.DoesNotExist:
+                    return {
+                        "success": False,
+                        "errors": ["SUPERSET_INSTANCE_NOT_FOUND"],
+                        "webapp": None,
+                    }
 
-            webapp = SupersetWebapp.create_if_has_perm(
-                principal=user,
-                workspace=workspace,
-                name=input["name"],
-                description=input.get("description", ""),
-                icon=icon,
-                created_by=user,
-                superset_instance=superset_instance,
-                external_dashboard_id=source["superset"]["dashboard_id"],
-            )
-        else:
-            webapp = Webapp.objects.create_if_has_perm(
-                user,
-                workspace,
-                name=input["name"],
-                description=input.get("description", ""),
-                icon=icon,
-                created_by=user,
-                url=source["iframe"]["url"],
-            )
-        return {"success": True, "errors": [], "webapp": webapp}
+                webapp = SupersetWebapp.create_if_has_perm(
+                    principal=user,
+                    workspace=workspace,
+                    name=input["name"],
+                    description=input.get("description", ""),
+                    icon=icon,
+                    created_by=user,
+                    superset_instance=superset_instance,
+                    external_dashboard_id=source["superset"]["dashboard_id"],
+                )
+            else:
+                webapp = Webapp.objects.create_if_has_perm(
+                    user,
+                    workspace,
+                    name=input["name"],
+                    description=input.get("description", ""),
+                    icon=icon,
+                    created_by=user,
+                    url=source["iframe"]["url"],
+                )
+            return {"success": True, "errors": [], "webapp": webapp}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"], "webapp": None}
     except IntegrityError:

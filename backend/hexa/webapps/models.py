@@ -131,7 +131,12 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     def delete_if_has_perm(self, principal):
         if not principal.has_perm("webapps.delete_webapp", self):
             raise PermissionDenied
-        self.delete()
+        if self.type == Webapp.WebappType.SUPERSET:
+            dashboard = SupersetDashboard.objects.get(webapp__pk=self.pk)
+            self.delete()
+            dashboard.delete()
+        else:
+            self.delete()
 
     def to_shortcut_item(self):
         """Convert this webapp to a shortcut item dict for GraphQL"""
@@ -196,10 +201,3 @@ class SupersetWebapp(Webapp):
         self.superset_dashboard.save()
         self.url = self.superset_dashboard.get_absolute_url()
         self.save()
-
-    def delete_if_has_perm(self, principal):
-        if not principal.has_perm("webapps.delete_webapp", self):
-            raise PermissionDenied
-        dashboard = self.superset_dashboard
-        self.delete()
-        dashboard.delete()
