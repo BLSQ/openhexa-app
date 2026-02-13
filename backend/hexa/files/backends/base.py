@@ -1,6 +1,5 @@
 import io
 import os
-import typing
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from os.path import dirname, isfile, join
@@ -14,7 +13,7 @@ class BadRequest(Exception):
 
 @dataclass
 class ObjectsPage:
-    items: typing.List[any]
+    items: list[object]
     has_next_page: bool
     has_previous_page: bool
     page_number: int
@@ -41,9 +40,9 @@ class StorageObject:
     key: str
     path: str
     type: str
-    updated_at: str = None
+    updated_at: str | None = None
     size: int = 0
-    content_type: str = None
+    content_type: str | None = None
 
 
 class Storage(ABC):
@@ -60,37 +59,41 @@ class Storage(ABC):
         pass
 
     @abstractmethod
-    def bucket_exists(self, bucket_name: str):
+    def bucket_exists(self, bucket_name: str) -> bool:
         pass
 
     @abstractmethod
-    def create_bucket(self, bucket_name: str, *args, **kwargs):
+    def create_bucket(self, bucket_name: str, *args, **kwargs) -> None:
         pass
 
     @abstractmethod
-    def delete_object(self, bucket_name: str, object_key: str):
+    def delete_object(self, bucket_name: str, object_key: str) -> None:
         pass
 
     @abstractmethod
-    def delete_bucket(self, bucket_name: str, force: bool = False):
+    def delete_bucket(self, bucket_name: str, force: bool = False) -> None:
         pass
 
     @abstractmethod
-    def save_object(self, bucket_name: str, file_path: str, file: io.BufferedReader):
+    def save_object(
+        self, bucket_name: str, file_path: str, file: io.BufferedReader
+    ) -> None:
         pass
 
     @abstractmethod
-    def create_bucket_folder(self, bucket_name: str, folder_key: str):
+    def create_bucket_folder(self, bucket_name: str, folder_key: str) -> StorageObject:
         pass
 
     @abstractmethod
     def generate_download_url(
         self, bucket_name: str, target_key: str, force_attachment=False, *args, **kwargs
-    ):
+    ) -> str | None:
         pass
 
     @abstractmethod
-    def get_bucket_object(self, bucket_name: str, object_key: str):
+    def get_bucket_object(
+        self, bucket_name: str, object_key: str
+    ) -> StorageObject | None:
         pass
 
     @abstractmethod
@@ -115,9 +118,9 @@ class Storage(ABC):
         raise_if_exists=False,
         *args,
         **kwargs,
-    ):
+    ) -> tuple[str, dict | None]:
         pass
 
     @abstractmethod
-    def get_bucket_mount_config(self, bucket_name):
+    def get_bucket_mount_config(self, bucket_name) -> dict:
         pass

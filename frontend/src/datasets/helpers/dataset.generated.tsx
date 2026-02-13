@@ -29,7 +29,7 @@ export type GenerateDatasetUploadUrlMutationVariables = Types.Exact<{
 }>;
 
 
-export type GenerateDatasetUploadUrlMutation = { __typename?: 'Mutation', generateDatasetUploadUrl: { __typename?: 'GenerateDatasetUploadUrlResult', success: boolean, errors: Array<Types.CreateDatasetVersionFileError>, uploadUrl?: string | null } };
+export type GenerateDatasetUploadUrlMutation = { __typename?: 'Mutation', generateDatasetUploadUrl: { __typename?: 'GenerateDatasetUploadUrlResult', success: boolean, errors: Array<Types.CreateDatasetVersionFileError>, uploadUrl?: string | null, headers?: any | null } };
 
 export type PrepareVersionFileDownloadMutationVariables = Types.Exact<{
   input: Types.PrepareVersionFileDownloadInput;
@@ -206,6 +206,7 @@ export const GenerateDatasetUploadUrlDocument = gql`
     success
     errors
     uploadUrl
+    headers
   }
 }
     `;
