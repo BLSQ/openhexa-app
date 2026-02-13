@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
@@ -14,16 +14,21 @@ import {
 } from "./WebappForm.generated";
 import DataCard from "core/components/DataCard";
 import TextProperty from "core/components/DataCard/TextProperty";
-import SelectProperty from "core/components/DataCard/SelectProperty";
+import SimpleSelectProperty from "core/components/DataCard/SimpleSelectProperty";
 import LinkProperty from "core/components/DataCard/LinkProperty";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import useCacheKey from "core/hooks/useCacheKey";
 import ImageProperty from "core/components/DataCard/ImageProperty";
 import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
-import { WebappType } from "graphql/types";
+import {
+  CreateWebappError,
+  UpdateWebappError,
+  WebappType,
+} from "graphql/types";
 import { getWebappTypeLabel } from "webapps/helpers";
 
+const DEFAULT_BLUESQUARE_SUPERSET_URL = "https://superset.bluesquare.org";
 const buildSource: Record<WebappType, (values: any) => any> = {
   [WebappType.Iframe]: (values) => ({ iframe: { url: values.url } }),
   [WebappType.Superset]: (values) => ({
@@ -59,13 +64,21 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
 
   const supersetInstances = supersetData?.supersetInstances ?? [];
 
+  const defaultSupersetInstance = useMemo(
+    () =>
+      supersetInstances.find((inst) =>
+        inst.url.startsWith(DEFAULT_BLUESQUARE_SUPERSET_URL),
+      ) ?? supersetInstances[0],
+    [supersetInstances],
+  );
+
   const clearCache = useCacheKey("webapps");
 
   const updateExistingWebapp = async (values: any) => {
     setLoading(true);
     try {
       const source = buildSource[webapp!.type](values);
-      await updateWebapp({
+      const { data } = await updateWebapp({
         variables: {
           input: {
             id: webapp!.id,
@@ -74,10 +87,24 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             source,
           },
         },
-      }).then(() => {
-        toast.success(t("Webapp updated successfully"));
-        clearCache();
       });
+      if (data?.updateWebapp?.errors?.length) {
+        const error = data.updateWebapp.errors[0];
+        if (error === UpdateWebappError.PermissionDenied) {
+          toast.error(t("You do not have permission to update this webapp"));
+        } else if (error === UpdateWebappError.WebappNotFound) {
+          toast.error(t("Webapp not found"));
+        } else if (error === UpdateWebappError.SupersetInstanceNotFound) {
+          toast.error(t("Superset instance not found"));
+        } else if (error === UpdateWebappError.SupersetNotConfigured) {
+          toast.error(t("Superset is not configured"));
+        } else if (error === UpdateWebappError.TypeMismatch) {
+          toast.error(t("Cannot change the type of an existing webapp"));
+        }
+        return;
+      }
+      toast.success(t("Webapp updated successfully"));
+      clearCache();
     } catch (error) {
       toast.error(t("An error occurred while updating the webapp"));
     } finally {
@@ -88,9 +115,10 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const createNewWebapp = async (values: any) => {
     setLoading(true);
     try {
-      const source = buildSource[values.type as WebappType](values);
+      const type = (values.type as WebappType) ?? WebappType.Iframe;
+      const source = buildSource[type](values);
 
-      await createWebapp({
+      const { data } = await createWebapp({
         variables: {
           input: {
             workspaceSlug: workspace.slug,
@@ -99,14 +127,28 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             source,
           },
         },
-      }).then(({ data }) => {
-        if (!data?.createWebapp?.webapp) {
-          throw new Error("Webapp creation failed");
-        }
-        toast.success(t("Webapp created successfully"));
-        clearCache();
-        router.push(`/workspaces/${workspace.slug}/webapps`);
       });
+      if (data?.createWebapp?.errors?.length) {
+        const error = data.createWebapp.errors[0];
+        if (error === CreateWebappError.AlreadyExists) {
+          toast.error(t("A webapp with this name already exists"));
+        } else if (error === CreateWebappError.PermissionDenied) {
+          toast.error(t("You do not have permission to create a webapp"));
+        } else if (error === CreateWebappError.SupersetInstanceNotFound) {
+          toast.error(t("Superset instance not found"));
+        } else if (error === CreateWebappError.SupersetNotConfigured) {
+          toast.error(t("Superset is not configured"));
+        } else if (error === CreateWebappError.WorkspaceNotFound) {
+          toast.error(t("Workspace not found"));
+        }
+        return;
+      }
+      if (!data?.createWebapp?.webapp) {
+        throw new Error("Webapp creation failed");
+      }
+      toast.success(t("Webapp created successfully"));
+      clearCache();
+      router.push(`/workspaces/${workspace.slug}/webapps`).then();
     } catch (error) {
       toast.error(t("An error occurred while creating the webapp"));
     } finally {
@@ -149,7 +191,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           editButtonLabel={t("Change Icon")}
         />
         {!webapp && (
-          <SelectProperty
+          <SimpleSelectProperty
             id="type"
             accessor="type"
             label={t("Type")}
@@ -177,14 +219,15 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         )}
         {selectedType === WebappType.Superset && (
           <>
-            <SelectProperty
+            <SimpleSelectProperty
               id="supersetInstanceId"
               accessor="source.instance"
               label={t("Superset Instance")}
               required
+              defaultValue={defaultSupersetInstance}
               options={supersetInstances}
-              getOptionLabel={(inst) => inst?.name ?? ""}
-              by="id"
+              getOptionLabel={(inst) => inst?.url ?? ""}
+              getOptionValue={(inst) => inst?.id ?? ""}
             />
             <TextProperty
               id="externalDashboardId"
@@ -193,11 +236,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
               required
             />
             {webapp && (
-              <LinkProperty
-                id="supersetUrl"
-                accessor="url"
-                label={t("URL")}
-              />
+              <LinkProperty id="supersetUrl" accessor="url" label={t("URL")} />
             )}
           </>
         )}
