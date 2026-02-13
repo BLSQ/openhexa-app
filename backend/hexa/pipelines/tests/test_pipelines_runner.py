@@ -96,6 +96,8 @@ class TestKubernetesPipelineIntegration(TestCase):
             config={"test": "config"},
             send_mail_notifications=False,
             timeout=300,
+            cpu_limit="1000m",
+            memory_limit="1Gi",
             execution_date=timezone.now(),
         )
 

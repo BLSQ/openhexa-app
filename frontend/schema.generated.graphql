@@ -3898,6 +3898,18 @@ type ResourceCounts {
 
 """Input type for resource counts (used for subscription limits)."""
 input ResourceCountsInput {
+  """Maximum pipeline timeout in seconds."""
+  maxPipelineTimeout: Int
+
+  """JupyterHub profile to use (e.g., "trial")."""
+  notebookProfile: String
+
+  """CPU limit for pipeline pods (e.g., "1")."""
+  pipelineCpuLimit: String
+
+  """Memory limit for pipeline pods (e.g., "1G")."""
+  pipelineMemoryLimit: String
+
   """Number of pipeline runs."""
   pipelineRuns: Int!
 

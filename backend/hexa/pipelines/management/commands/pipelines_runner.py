@@ -183,16 +183,8 @@ def create_pod_kube(run: PipelineRun, image: str, env_vars: dict):
                                 if not is_local_dev
                                 else {}
                             ),
-                            "cpu": (
-                                run.pipeline.cpu_limit
-                                if run.pipeline.cpu_limit != ""
-                                else settings.PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT
-                            ),
-                            "memory": (
-                                run.pipeline.memory_limit
-                                if run.pipeline.memory_limit != ""
-                                else settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_LIMIT
-                            ),
+                            "cpu": run.cpu_limit,
+                            "memory": run.memory_limit,
                         },
                         "requests": {
                             **(

@@ -2043,6 +2043,26 @@ input ResourceCountsInput {
     Number of pipeline runs.
     """
     pipelineRuns: Int!
+
+    """
+    Maximum pipeline timeout in seconds.
+    """
+    maxPipelineTimeout: Int
+
+    """
+    CPU limit for pipeline pods (e.g., "1").
+    """
+    pipelineCpuLimit: String
+
+    """
+    Memory limit for pipeline pods (e.g., "1G").
+    """
+    pipelineMemoryLimit: String
+
+    """
+    JupyterHub profile to use (e.g., "trial").
+    """
+    notebookProfile: String
 }
 
 """
