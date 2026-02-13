@@ -25,7 +25,11 @@ from ..models import (
     WorkspaceMembershipRole,
     WorkspacesLimitReached,
 )
-from ..utils import send_workspace_add_user_email, send_workspace_invite_new_user_email
+from ..utils import (
+    send_workspace_add_user_email,
+    send_workspace_invite_new_user_email,
+    test_connection,
+)
 
 workspace_mutations = MutationType()
 
@@ -425,6 +429,28 @@ def resolve_delete_workspace_connection(_, info, **kwargs):
         return {"success": False, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
+@workspace_mutations.field("testConnection")
+def resolve_test_connection(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    try:
+        workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=mutation_input["workspace_slug"]
+        )
+    except Workspace.DoesNotExist:
+        return {"success": False, "error": "Workspace not found"}
+
+    if not request.user.has_perm("workspaces.create_connection", workspace):
+        return {"success": False, "error": "Permission denied"}
+
+    fields = {f["code"]: f["value"] for f in mutation_input["fields"]}
+    connection_type = mutation_input["type"]
+
+    success, error = test_connection(connection_type, fields)
+    return {"success": success, "error": error}
 
 
 bindables = [

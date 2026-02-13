@@ -166,6 +166,13 @@ export type UploadPipelineMutationVariables = Types.Exact<{
 
 export type UploadPipelineMutation = { __typename?: 'Mutation', uploadPipeline: { __typename?: 'UploadPipelineResult', success: boolean, errors: Array<Types.PipelineError>, details?: string | null, pipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, isLatestVersion: boolean, createdAt: any, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null }>, user?: { __typename?: 'User', displayName: string } | null } | null } };
 
+export type TestConnectionMutationVariables = Types.Exact<{
+  input: Types.TestConnectionInput;
+}>;
+
+
+export type TestConnectionMutation = { __typename?: 'Mutation', testConnection: { __typename?: 'TestConnectionResult', success: boolean, error?: string | null } };
+
 
 export const CreateWorkspaceDocument = gql`
     mutation createWorkspace($input: CreateWorkspaceInput!) {
@@ -1023,3 +1030,37 @@ export function useUploadPipelineMutation(baseOptions?: Apollo.MutationHookOptio
 export type UploadPipelineMutationHookResult = ReturnType<typeof useUploadPipelineMutation>;
 export type UploadPipelineMutationResult = Apollo.MutationResult<UploadPipelineMutation>;
 export type UploadPipelineMutationOptions = Apollo.BaseMutationOptions<UploadPipelineMutation, UploadPipelineMutationVariables>;
+export const TestConnectionDocument = gql`
+    mutation testConnection($input: TestConnectionInput!) {
+  testConnection(input: $input) {
+    success
+    error
+  }
+}
+    `;
+export type TestConnectionMutationFn = Apollo.MutationFunction<TestConnectionMutation, TestConnectionMutationVariables>;
+
+/**
+ * __useTestConnectionMutation__
+ *
+ * To run a mutation, you first call `useTestConnectionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useTestConnectionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [testConnectionMutation, { data, loading, error }] = useTestConnectionMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useTestConnectionMutation(baseOptions?: Apollo.MutationHookOptions<TestConnectionMutation, TestConnectionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<TestConnectionMutation, TestConnectionMutationVariables>(TestConnectionDocument, options);
+      }
+export type TestConnectionMutationHookResult = ReturnType<typeof useTestConnectionMutation>;
+export type TestConnectionMutationResult = Apollo.MutationResult<TestConnectionMutation>;
+export type TestConnectionMutationOptions = Apollo.BaseMutationOptions<TestConnectionMutation, TestConnectionMutationVariables>;
