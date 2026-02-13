@@ -147,10 +147,6 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         return f"<Webapp: {self.name}>"
 
 
-# TODO : handle errros/duplicate naming on create/update
-# TODO : unit test
-# TODO : by default select iframe, and the BLSQ instance
-# TODO : improve UI/checkbox
 class SupersetWebapp(Webapp):
     superset_dashboard = models.OneToOneField(
         SupersetDashboard,
