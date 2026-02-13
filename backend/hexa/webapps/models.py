@@ -147,7 +147,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         return f"<Webapp: {self.name}>"
 
 
-# TODO : fix the edit mode
+# TODO : handle errros/duplicate naming on create/update
 # TODO : hide url on create
 # TODO : unit test
 # TODO : admin panel 2 ways

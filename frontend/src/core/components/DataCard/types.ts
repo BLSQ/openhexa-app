@@ -41,6 +41,5 @@ export type DataCardSectionInstance<F = any> = {
   toggleEdit(): void;
   form: FormInstance<F>;
   setProperty(definition: PropertyDefinition): Property;
-  removeProperty(id: string): void;
   properties: { [key: string]: Property };
 };
