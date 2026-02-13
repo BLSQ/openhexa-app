@@ -205,15 +205,6 @@ def normalize_metadata_response(response) -> PagedMetadataResponse:
         raise ValueError("Unexpected response format")
 
 
-SANITIZED_ERRORS = {
-    ConnectionType.DHIS2: "Connection test failed. Please verify your DHIS2 URL and credentials.",
-    ConnectionType.IASO: "Connection test failed. Please verify your IASO URL and credentials.",
-    ConnectionType.POSTGRESQL: "Connection test failed. Please verify your database host, port, name, and credentials.",
-    ConnectionType.S3: "Connection test failed. Please verify your S3 bucket name and access keys.",
-    ConnectionType.GCS: "Connection test failed. Please verify your GCS bucket name and service account key.",
-}
-
-
 def test_connection(connection_type: str, fields: dict[str, str]) -> tuple[bool, str | None]:
     testers = {
         ConnectionType.DHIS2: _test_dhis2,
@@ -228,11 +219,9 @@ def test_connection(connection_type: str, fields: dict[str, str]) -> tuple[bool,
 
     try:
         return tester(fields)
-    except Exception:
+    except Exception as e:
         logger.exception("Connection test failed for %s", connection_type)
-        return False, SANITIZED_ERRORS.get(
-            connection_type, "Connection test failed. Please verify your parameters."
-        )
+        return False, str(e)
 
 
 def _test_dhis2(fields: dict) -> tuple[bool, str | None]:

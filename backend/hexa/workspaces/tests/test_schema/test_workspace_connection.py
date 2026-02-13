@@ -849,7 +849,7 @@ class TestConnectionTest(GraphQLTestCase):
             self._build_input("DHIS2", self.DHIS2_FIELDS),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertIn("verify your DHIS2", r["data"]["testConnection"]["error"])
+        self.assertIn("401 Unauthorized", r["data"]["testConnection"]["error"])
 
     @patch("hexa.workspaces.utils.IASO")
     def test_test_connection_iaso_success(self, mock_iaso_class):
@@ -922,7 +922,7 @@ class TestConnectionTest(GraphQLTestCase):
             ]),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertIn("verify your database", r["data"]["testConnection"]["error"])
+        self.assertIn("could not connect to server", r["data"]["testConnection"]["error"])
 
     @patch("hexa.workspaces.utils.boto3")
     def test_test_connection_s3_success(self, mock_boto3):
@@ -960,7 +960,7 @@ class TestConnectionTest(GraphQLTestCase):
             ]),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertIn("verify your S3", r["data"]["testConnection"]["error"])
+        self.assertIn("Access Denied", r["data"]["testConnection"]["error"])
 
     @patch("hexa.workspaces.utils.gcs_storage")
     def test_test_connection_gcs_success(self, mock_gcs_storage):
@@ -1010,4 +1010,4 @@ class TestConnectionTest(GraphQLTestCase):
             ]),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertIn("verify your GCS", r["data"]["testConnection"]["error"])
+        self.assertIn("403 Forbidden", r["data"]["testConnection"]["error"])

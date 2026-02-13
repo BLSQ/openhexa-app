@@ -5099,8 +5099,11 @@ export type TemplateVersionPage = {
 
 /** Represents the input for testing a connection. */
 export type TestConnectionInput = {
+  /** The fields containing the connection parameters to test. */
   fields: Array<ConnectionFieldInput>;
+  /** The type of the connection to test. */
   type: ConnectionType;
+  /** The workspace in which the connection is being tested. */
   workspaceSlug: Scalars['String']['input'];
 };
 
