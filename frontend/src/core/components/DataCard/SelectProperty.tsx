@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { ComboboxProps } from "../forms/Combobox/Combobox";
 import Select from "../forms/Select";
 import DataCard from "./DataCard";
 import { useDataCardProperty } from "./context";
@@ -11,8 +10,6 @@ type SelectPropertyProps<T = any> = PropertyDefinition & {
   defaultValue?: string;
   nullable?: boolean;
   className?: string;
-  onChange?: (value: T) => void;
-  by?: ComboboxProps<T>["by"];
 };
 
 const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
@@ -22,8 +19,6 @@ const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
     defaultValue,
     nullable = false,
     className,
-    onChange,
-    by,
     ...delegated
   } = props;
 
@@ -38,11 +33,8 @@ const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
       <DataCard.Property property={property}>
         <Select
           options={nullable ? [null, ...options] : options}
-          value={property.formValue ?? null}
-          onChange={(value) => {
-            property.setValue(value);
-            onChange?.(value);
-          }}
+          value={property.formValue}
+          onChange={(value) => property.setValue(value)}
           getOptionLabel={(option) => {
             if (option === null) return defaultValue || "Not set";
             return getOptionLabel(option);
@@ -54,7 +46,6 @@ const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
           required={property.required}
           disabled={property.readonly}
           className={className || "w-full"}
-          by={by as any}
         />
       </DataCard.Property>
     );
@@ -65,13 +56,11 @@ const SelectProperty = <T,>(props: SelectPropertyProps<T>) => {
 
     return (
       <DataCard.Property property={property}>
-        <div
-          className={clsx(
-            "prose text-sm",
-            property.displayValue ? "text-gray-900" : "text-gray-500 italic",
-            className,
-          )}
-        >
+        <div className={clsx(
+          "prose text-sm",
+          property.displayValue ? "text-gray-900" : "text-gray-500 italic",
+          className
+        )}>
           {displayValue}
         </div>
       </DataCard.Property>
