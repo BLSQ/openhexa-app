@@ -6,6 +6,7 @@ import { DeleteOrganizationInvitationError } from "graphql/types";
 import { Trans, useTranslation } from "next-i18next";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
+import { toast } from "react-toastify";
 
 type DeleteOrganizationInvitationProps = {
   onClose(): void;
@@ -41,6 +42,7 @@ const DeleteOrganizationInvitationDialog = (
     }
 
     if (data.deleteOrganizationInvitation.success) {
+      toast.success(t("Invitation deleted"));
       clearCache();
       setIsSubmitting(false);
       onClose();

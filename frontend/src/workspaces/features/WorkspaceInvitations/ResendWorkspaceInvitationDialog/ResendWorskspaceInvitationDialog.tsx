@@ -8,6 +8,7 @@ import { ResendWorkspaceInvitationError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
+import { toast } from "react-toastify";
 import { ResendWorkspaceInvitation_WorkspaceInvitationFragment } from "./ResendWorskspaceInvitationDialog.generated";
 
 type ResendWorkspaceInvitationProps = {
@@ -40,6 +41,7 @@ const ResendWorkspaceInvitationDialog = (
     }
 
     if (data.resendWorkspaceInvitation.success) {
+      toast.success(t("Invitation resent"));
       clearCache();
       setIsSubmitting(false);
       onClose();

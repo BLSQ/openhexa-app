@@ -8,6 +8,7 @@ import { DeleteWorkspaceInvitationError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
+import { toast } from "react-toastify";
 
 type DeleteWorkspaceInvitationProps = {
   onClose(): void;
@@ -39,6 +40,7 @@ const DeleteWorkspaceInvitationDialog = (
     }
 
     if (data.deleteWorkspaceInvitation.success) {
+      toast.success(t("Invitation deleted"));
       clearCache();
       setIsSubmitting(false);
       onClose();
