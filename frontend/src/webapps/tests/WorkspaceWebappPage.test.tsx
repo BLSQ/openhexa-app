@@ -147,8 +147,11 @@ describe("WorkspaceWebappPage", () => {
                   id: "1",
                   name: "Updated Webapp",
                   icon: "",
-                  type: "IFRAME",
-                  url: "https://updated-url.com",
+                  source: {
+                    iframe: {
+                      url: "https://updated-url.com",
+                    },
+                  },
                 },
               },
             },
