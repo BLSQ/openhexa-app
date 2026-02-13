@@ -5030,6 +5030,7 @@ export type SupersetInstance = {
   __typename?: 'SupersetInstance';
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
+  url: Scalars['String']['output'];
 };
 
 export type SupersetSource = {

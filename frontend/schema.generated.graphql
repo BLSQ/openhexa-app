@@ -4157,6 +4157,7 @@ type Subscription {
 type SupersetInstance {
   id: UUID!
   name: String!
+  url: String!
 }
 
 type SupersetSource {

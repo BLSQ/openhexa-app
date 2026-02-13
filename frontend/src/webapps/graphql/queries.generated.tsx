@@ -8,7 +8,7 @@ export type SupersetInstancesQueryVariables = Types.Exact<{
 }>;
 
 
-export type SupersetInstancesQuery = { __typename?: 'Query', supersetInstances: Array<{ __typename?: 'SupersetInstance', id: string, name: string }> };
+export type SupersetInstancesQuery = { __typename?: 'Query', supersetInstances: Array<{ __typename?: 'SupersetInstance', id: string, name: string, url: string }> };
 
 
 export const SupersetInstancesDocument = gql`
@@ -16,6 +16,7 @@ export const SupersetInstancesDocument = gql`
   supersetInstances(workspaceSlug: $workspaceSlug) {
     id
     name
+    url
   }
 }
     `;

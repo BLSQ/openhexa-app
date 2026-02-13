@@ -16,6 +16,7 @@ Represents a Superset instance.
 type SupersetInstance {
   id: UUID!
   name: String!
+  url: String!
 }
 
 union WebappSource = IframeSource | SupersetSource
