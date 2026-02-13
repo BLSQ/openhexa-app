@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.2.0](https://github.com/BLSQ/openhexa-app/compare/3.1.1...3.2.0) (2026-02-13)
+
+
+### Features
+
+* subscription expiration (CONSOLE-113) ([#1612](https://github.com/BLSQ/openhexa-app/issues/1612)) ([8f61cd7](https://github.com/BLSQ/openhexa-app/commit/8f61cd7263c5c49dbfa2b03a364dbcb16e0e8a62))
+
+
+### Bug Fixes
+
+* Added toasts on managing members of organisation page (HEXA-1488) ([#1605](https://github.com/BLSQ/openhexa-app/issues/1605)) ([30e3ced](https://github.com/BLSQ/openhexa-app/commit/30e3ced3b5893b0dbcbd0f87f67509b19e864a94))
+* display dataset columns in original order ([#1571](https://github.com/BLSQ/openhexa-app/issues/1571)) ([bb7966a](https://github.com/BLSQ/openhexa-app/commit/bb7966af92581b29255acc84585e98d7cb7e1698))
+* Duplicated rows in the dataset explorer ([#1613](https://github.com/BLSQ/openhexa-app/issues/1613)) ([fc110c3](https://github.com/BLSQ/openhexa-app/commit/fc110c3550b4c9e2316f77c34776d516a572c7e1))
+* hash service account tokens and show them only on creation  ([#1614](https://github.com/BLSQ/openhexa-app/issues/1614)) ([f0e763f](https://github.com/BLSQ/openhexa-app/commit/f0e763fc4cc8bb4d0587464d28ff7cdbfe22288f))
+* pipeline dataset runs points to only latest version(Hexa 1327) ([#1602](https://github.com/BLSQ/openhexa-app/issues/1602)) ([93b128c](https://github.com/BLSQ/openhexa-app/commit/93b128c494d91eacf6f3d94b98d2b0025fbe0d9e))
+* pipeline scheduling UX: crontab validator fix ([#1604](https://github.com/BLSQ/openhexa-app/issues/1604)) ([1cd0280](https://github.com/BLSQ/openhexa-app/commit/1cd02800c699ae172fde9d8b187c538ffd10136d))
+
 ## [3.1.1](https://github.com/BLSQ/openhexa-app/compare/3.1.0...3.1.1) (2026-02-06)
 
 
