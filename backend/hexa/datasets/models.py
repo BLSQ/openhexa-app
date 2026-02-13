@@ -356,6 +356,7 @@ class DatasetVersionFile(MetadataMixin, Base):
     content_type = models.TextField(null=False, blank=False)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     properties = JSONField(default=dict)
+    rows = models.IntegerField(default=None, null=True)
     dataset_version = models.ForeignKey(
         DatasetVersion,
         null=False,
