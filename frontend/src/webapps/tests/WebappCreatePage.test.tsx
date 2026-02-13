@@ -44,9 +44,10 @@ const graphqlMocks: MockedResponse[] = [
       query: SidebarMenuDocument,
       variables: {
         page: 1,
-        perPage: 5,
+        perPage: 2000,
       },
     },
+    maxUsageCount: Infinity,
     result: {
       data: {
         pendingWorkspaceInvitations: { totalItems: 1 },
