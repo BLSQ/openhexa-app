@@ -21,5 +21,11 @@ export function useDataCardProperty<V = any, FV = V>(
   const section = useDataCardSection();
   const property = section.setProperty(definition);
 
+  React.useEffect(() => {
+    return () => {
+      section.removeProperty(definition.id);
+    };
+  }, [definition.id, section]);
+
   return { property, section };
 }
