@@ -148,10 +148,10 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
 
 class SupersetWebapp(Webapp):
-    superset_dashboard = models.ForeignKey(
+    superset_dashboard = models.OneToOneField(
         SupersetDashboard,
         on_delete=models.CASCADE,
-        related_name="webapps",
+        related_name="webapp",
     )
 
     @classmethod
@@ -171,13 +171,11 @@ class SupersetWebapp(Webapp):
             raise PermissionDenied
 
         with transaction.atomic():
-            dashboard, _ = SupersetDashboard.objects.get_or_create(
+            dashboard = SupersetDashboard.objects.create(
                 external_id=external_dashboard_id,
                 superset_instance=superset_instance,
-                defaults={
-                    "name": name,
-                    "description": description,
-                },
+                name=name,
+                description=description,
             )
 
             return cls.objects.create(
