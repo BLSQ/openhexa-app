@@ -2,13 +2,14 @@ from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 
 from hexa.core.test import TestCase
+from hexa.superset.models import SupersetDashboard, SupersetInstance
 from hexa.user_management.models import (
     Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
-from hexa.webapps.models import Webapp
+from hexa.webapps.models import SupersetWebapp, Webapp
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -376,3 +377,195 @@ class WebappOrganizationAdminOwnerPermissionsTest(TestCase):
         self.assertIn(self.WEBAPP_1, owner_favorites)
         self.assertIn(self.WEBAPP_2, admin_favorites)
         self.assertEqual(member_favorites.count(), 0)
+
+
+class SupersetWebappModelTest(TestCase):
+    def setUp(self):
+        self.organization = Organization.objects.create(
+            name="Test Organization",
+            short_name="test-org-superset",
+        )
+        self.superset_instance = SupersetInstance.objects.create(
+            name="Superset",
+            url="https://superset.example.com",
+            api_username="test",
+            api_password="password",
+            organization=self.organization,
+        )
+        self.workspace = Workspace.objects.create(
+            name="Test Workspace",
+            organization=self.organization,
+        )
+        self.user_admin = User.objects.create_user(
+            "admin@test.com",
+            "admin",
+        )
+        WorkspaceMembership.objects.create(
+            user=self.user_admin,
+            workspace=self.workspace,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        self.user_viewer = User.objects.create_user(
+            "viewer@test.com",
+            "viewer",
+        )
+        WorkspaceMembership.objects.create(
+            user=self.user_viewer,
+            workspace=self.workspace,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+    def test_create_if_has_perm(self):
+        webapp = SupersetWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            superset_instance=self.superset_instance,
+            external_dashboard_id="ext-123",
+            name="My Dashboard",
+            created_by=self.user_admin,
+            description="A description",
+        )
+
+        self.assertEqual(webapp.name, "My Dashboard")
+        self.assertEqual(webapp.type, Webapp.WebappType.SUPERSET)
+        self.assertEqual(webapp.workspace, self.workspace)
+        self.assertEqual(webapp.superset_dashboard.external_id, "ext-123")
+        self.assertEqual(
+            webapp.superset_dashboard.superset_instance, self.superset_instance
+        )
+
+    def test_create_if_has_perm_denied(self):
+        with self.assertRaises(PermissionDenied):
+            SupersetWebapp.create_if_has_perm(
+                principal=self.user_viewer,
+                workspace=self.workspace,
+                superset_instance=self.superset_instance,
+                external_dashboard_id="ext-123",
+                name="My Dashboard",
+                created_by=self.user_viewer,
+            )
+
+    def test_create_same_external_id_creates_separate_dashboards(self):
+        webapp1 = SupersetWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            superset_instance=self.superset_instance,
+            external_dashboard_id="ext-123",
+            name="Dashboard 1",
+            created_by=self.user_admin,
+        )
+        webapp2 = SupersetWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            superset_instance=self.superset_instance,
+            external_dashboard_id="ext-123",
+            name="Dashboard 2",
+            created_by=self.user_admin,
+        )
+
+        self.assertNotEqual(
+            webapp1.superset_dashboard.id, webapp2.superset_dashboard.id
+        )
+        self.assertEqual(
+            webapp1.superset_dashboard.external_id,
+            webapp2.superset_dashboard.external_id,
+        )
+
+    def test_delete_if_has_perm_deletes_dashboard(self):
+        webapp = SupersetWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            superset_instance=self.superset_instance,
+            external_dashboard_id="ext-123",
+            name="To Delete",
+            created_by=self.user_admin,
+        )
+        dashboard_id = webapp.superset_dashboard.id
+        webapp_id = webapp.id
+
+        webapp.delete_if_has_perm(principal=self.user_admin)
+
+        self.assertFalse(SupersetDashboard.objects.filter(id=dashboard_id).exists())
+        self.assertFalse(Webapp.objects.filter(id=webapp_id).exists())
+
+    def test_delete_if_has_perm_on_base_webapp_deletes_dashboard(self):
+        superset_webapp = SupersetWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            superset_instance=self.superset_instance,
+            external_dashboard_id="ext-base-delete",
+            name="Base Delete",
+            created_by=self.user_admin,
+        )
+        dashboard_id = superset_webapp.superset_dashboard.id
+        webapp_id = superset_webapp.id
+
+        webapp = Webapp.objects.get(pk=webapp_id)
+        webapp.delete_if_has_perm(principal=self.user_admin)
+
+        self.assertFalse(SupersetDashboard.objects.filter(id=dashboard_id).exists())
+        self.assertFalse(Webapp.objects.filter(id=webapp_id).exists())
+
+    def test_delete_if_has_perm_denied(self):
+        webapp = SupersetWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            superset_instance=self.superset_instance,
+            external_dashboard_id="ext-123",
+            name="Protected",
+            created_by=self.user_admin,
+        )
+
+        with self.assertRaises(PermissionDenied):
+            webapp.delete_if_has_perm(principal=self.user_viewer)
+
+        self.assertTrue(SupersetWebapp.objects.filter(id=webapp.id).exists())
+        self.assertTrue(
+            SupersetDashboard.objects.filter(id=webapp.superset_dashboard.id).exists()
+        )
+
+    def test_delete_does_not_affect_standalone_dashboards(self):
+        standalone_dashboard = SupersetDashboard.objects.create(
+            external_id="standalone-123",
+            superset_instance=self.superset_instance,
+            name="Standalone Dashboard",
+        )
+        webapp = SupersetWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            superset_instance=self.superset_instance,
+            external_dashboard_id=standalone_dashboard.external_id,
+            name="Webapp Dashboard",
+            created_by=self.user_admin,
+        )
+
+        webapp.delete_if_has_perm(principal=self.user_admin)
+
+        self.assertTrue(
+            SupersetDashboard.objects.filter(id=standalone_dashboard.id).exists()
+        )
+
+    def test_update_dashboard(self):
+        webapp = SupersetWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            superset_instance=self.superset_instance,
+            external_dashboard_id="ext-123",
+            name="Original",
+            created_by=self.user_admin,
+        )
+
+        other_instance = SupersetInstance.objects.create(
+            name="Other Superset",
+            url="https://other-superset.example.com",
+            api_username="other",
+            api_password="password",
+            organization=self.organization,
+        )
+
+        webapp.update_dashboard(other_instance, "ext-999")
+
+        webapp.refresh_from_db()
+        webapp.superset_dashboard.refresh_from_db()
+        self.assertEqual(webapp.superset_dashboard.external_id, "ext-999")
+        self.assertEqual(webapp.superset_dashboard.superset_instance, other_instance)
