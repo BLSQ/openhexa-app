@@ -14,6 +14,7 @@ import useMe from "identity/hooks/useMe";
 import { gql } from "@apollo/client";
 import { DeleteWorkspaceMember_WorkspaceMemberFragment } from "./DeleteWorkspaceMemberDialog.generated";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { toast } from "react-toastify";
 
 type DeleteWorkspaceMemberProps = {
   onClose(): void;
@@ -47,6 +48,7 @@ const DeleteWorkspaceMemberDialog = (props: DeleteWorkspaceMemberProps) => {
     }
 
     if (data.deleteWorkspaceMember.success) {
+      toast.success(t("Member removed successfully"));
       clearCache();
       setIsSubmitting(false);
       if (me.user?.id === member.user.id) {
