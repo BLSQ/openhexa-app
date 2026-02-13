@@ -147,6 +147,8 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         return f"<Webapp: {self.name}>"
 
 
+# TODO : fix create button
+# TODO : instance url not showing
 class SupersetWebapp(Webapp):
     superset_dashboard = models.OneToOneField(
         SupersetDashboard,
