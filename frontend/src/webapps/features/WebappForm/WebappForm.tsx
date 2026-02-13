@@ -208,37 +208,34 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             onChange={(value) => setSelectedType(value as WebappType)}
           />
         )}
-        {selectedType === WebappType.Iframe && (
-          <TextProperty
-            id="url"
-            accessor="url"
-            label={t("URL")}
-            required
-            onChange={(e) => setUrl(e.target.value)}
-          />
-        )}
-        {selectedType === WebappType.Superset && (
-          <>
-            <SimpleSelectProperty
-              id="supersetInstanceId"
-              accessor="source.instance"
-              label={t("Superset Instance")}
-              required
-              defaultValue={defaultSupersetInstance}
-              options={supersetInstances}
-              getOptionLabel={(inst) => inst?.url ?? ""}
-              getOptionValue={(inst) => inst?.id ?? ""}
-            />
-            <TextProperty
-              id="externalDashboardId"
-              accessor="source.dashboardId"
-              label={t("Dashboard ID")}
-              required
-            />
-            {webapp && (
-              <LinkProperty id="supersetUrl" accessor="url" label={t("URL")} />
-            )}
-          </>
+        <TextProperty
+          id="url"
+          accessor="url"
+          label={t("URL")}
+          visible={selectedType === WebappType.Iframe}
+          required={selectedType === WebappType.Iframe}
+          onChange={(e) => setUrl(e.target.value)}
+        />
+        <SimpleSelectProperty
+          id="supersetInstanceId"
+          accessor="source.instance"
+          label={t("Superset Instance")}
+          visible={selectedType === WebappType.Superset}
+          required={selectedType === WebappType.Superset}
+          defaultValue={defaultSupersetInstance}
+          options={supersetInstances}
+          getOptionLabel={(inst) => inst?.url ?? ""}
+          getOptionValue={(inst) => inst?.id ?? ""}
+        />
+        <TextProperty
+          id="externalDashboardId"
+          accessor="source.dashboardId"
+          label={t("Dashboard ID")}
+          visible={selectedType === WebappType.Superset}
+          required={selectedType === WebappType.Superset}
+        />
+        {webapp && selectedType === WebappType.Superset && (
+          <LinkProperty id="supersetUrl" accessor="url" label={t("URL")} />
         )}
       </DataCard.FormSection>
       {debouncedUrl && (
