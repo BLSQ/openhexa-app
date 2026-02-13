@@ -7,14 +7,16 @@ from django.db import transaction
 from hexa.datasets.models import DatasetFileSample, DatasetVersionFile
 from hexa.datasets.queue import load_df
 
-
 BATCH_SIZE = 1000
+
 
 class Command(BaseCommand):
     help = "Update sample and rows fields"
 
     def handle(self, *args, **options):
-        queryset = DatasetVersionFile.objects.filter(rows__isnull=True).prefetch_related("samples")
+        queryset = DatasetVersionFile.objects.filter(
+            rows__isnull=True
+        ).prefetch_related("samples")
 
         batch_files = []
         batch_samples = []
