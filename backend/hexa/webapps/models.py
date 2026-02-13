@@ -148,7 +148,6 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
 
 # TODO : handle errros/duplicate naming on create/update
-# TODO : hide url on create
 # TODO : unit test
 # TODO : admin panel 2 ways
 class SupersetWebapp(Webapp):

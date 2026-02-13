@@ -192,11 +192,13 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
               label={t("Dashboard ID")}
               required
             />
-            <LinkProperty
-              id="url"
-              accessor="url"
-              label={t("URL")}
-            />
+            {webapp && (
+              <LinkProperty
+                id="supersetUrl"
+                accessor="url"
+                label={t("URL")}
+              />
+            )}
           </>
         )}
       </DataCard.FormSection>
