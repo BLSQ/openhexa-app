@@ -44,6 +44,10 @@
       "FileResult",
       "PipelineResult",
       "PipelineTemplateResult"
+    ],
+    "WebappSource": [
+      "IframeSource",
+      "SupersetSource"
     ]
   }
 }

@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import { TestApp } from "core/helpers/testutils";
 import { SidebarMenuDocument } from "workspaces/features/SidebarMenu/SidebarMenu.generated";
 import { CreateWebappDocument } from "webapps/graphql/mutations.generated";
+import { SupersetInstancesDocument } from "webapps/graphql/queries.generated";
 import { MockedResponse } from "@apollo/client/testing";
 import mockRouter from "next-router-mock";
 
@@ -38,15 +39,29 @@ const mockWorkspace = {
   },
 };
 
+const supersetInstancesMock: MockedResponse = {
+  request: {
+    query: SupersetInstancesDocument,
+    variables: { workspaceSlug: "test-workspace" },
+  },
+  result: {
+    data: {
+      supersetInstances: [],
+    },
+  },
+};
+
 const graphqlMocks: MockedResponse[] = [
+  supersetInstancesMock,
   {
     request: {
       query: SidebarMenuDocument,
       variables: {
         page: 1,
-        perPage: 5,
+        perPage: 2000,
       },
     },
+    maxUsageCount: Infinity,
     result: {
       data: {
         pendingWorkspaceInvitations: { totalItems: 1 },
@@ -75,8 +90,12 @@ const graphqlMocks: MockedResponse[] = [
         input: {
           workspaceSlug: "test-workspace",
           name: "Test Webapp",
-          type: "IFRAME",
-          url: "http://test-webapp.com",
+          icon: undefined,
+          source: {
+            iframe: {
+              url: "http://test-webapp.com",
+            },
+          },
         },
       },
     },
@@ -145,14 +164,16 @@ describe("WebappCreatePage", () => {
 
   it("handles null webapp response", async () => {
     const nullWebappMock: MockedResponse[] = [
+      supersetInstancesMock,
       {
         request: {
           query: SidebarMenuDocument,
           variables: {
             page: 1,
-            perPage: 5,
+            perPage: 2000,
           },
         },
+        maxUsageCount: Infinity,
         result: {
           data: {
             pendingWorkspaceInvitations: { totalItems: 1 },
@@ -181,8 +202,12 @@ describe("WebappCreatePage", () => {
             input: {
               workspaceSlug: "test-workspace",
               name: "Test Webapp",
-              type: "IFRAME",
-              url: "http://test-webapp.com",
+              icon: undefined,
+              source: {
+                iframe: {
+                  url: "http://test-webapp.com",
+                },
+              },
             },
           },
         },
@@ -244,14 +269,16 @@ describe("WebappCreatePage", () => {
 
   it("handles network errors", async () => {
     const errorMock: MockedResponse[] = [
+      supersetInstancesMock,
       {
         request: {
           query: SidebarMenuDocument,
           variables: {
             page: 1,
-            perPage: 5,
+            perPage: 2000,
           },
         },
+        maxUsageCount: Infinity,
         result: {
           data: {
             pendingWorkspaceInvitations: { totalItems: 1 },
@@ -280,8 +307,12 @@ describe("WebappCreatePage", () => {
             input: {
               workspaceSlug: "test-workspace",
               name: "Test Webapp",
-              type: "IFRAME",
-              url: "http://test-webapp.com",
+              icon: undefined,
+              source: {
+                iframe: {
+                  url: "http://test-webapp.com",
+                },
+              },
             },
           },
         },

@@ -1,3 +1,5 @@
+directive @oneOf on INPUT_OBJECT
+
 """
 Represents the type of a web app.
 """
@@ -6,6 +8,26 @@ enum WebappType {
   HTML
   BUNDLE
   SUPERSET
+}
+
+"""
+Represents a Superset instance.
+"""
+type SupersetInstance {
+  id: UUID!
+  name: String!
+  url: String!
+}
+
+union WebappSource = IframeSource | SupersetSource
+
+type IframeSource {
+  url: String!
+}
+
+type SupersetSource {
+  instance: SupersetInstance!
+  dashboardId: String!
 }
 
 """
@@ -23,6 +45,7 @@ type Webapp {
   createdBy: User!
   isFavorite: Boolean!
   isShortcut: Boolean!
+  source: WebappSource!
   permissions: WebappPermissions!
 }
 """
@@ -39,10 +62,32 @@ Represents the input for creating a web app.
 input CreateWebappInput {
   name: String!
   description: String
-  url: String!
-  type: WebappType!
   icon: String
   workspaceSlug: String!
+  source: WebappSourceInput!
+}
+
+"""
+Source configuration for a webapp - exactly one field must be provided.
+"""
+input WebappSourceInput @oneOf {
+  iframe: IframeSourceInput
+  superset: SupersetSourceInput
+}
+
+"""
+Iframe webapp source.
+"""
+input IframeSourceInput {
+  url: String!
+}
+
+"""
+Superset dashboard source.
+"""
+input SupersetSourceInput {
+  instanceId: UUID!
+  dashboardId: String!
 }
 
 """
@@ -60,6 +105,8 @@ enum CreateWebappError {
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
   ALREADY_EXISTS
+  SUPERSET_INSTANCE_NOT_FOUND
+  SUPERSET_NOT_CONFIGURED
 }
 
 """
@@ -69,9 +116,16 @@ input UpdateWebappInput {
   id: UUID!
   name: String
   description: String
-  url: String
-  type: WebappType
   icon: String
+  source: UpdateWebappSourceInput
+}
+
+"""
+Source update for a webapp - exactly one field must be provided.
+"""
+input UpdateWebappSourceInput @oneOf {
+  iframe: IframeSourceInput
+  superset: SupersetSourceInput
 }
 
 """
@@ -89,6 +143,9 @@ Represents the error message for a web app update.
 enum UpdateWebappError {
   WEBAPP_NOT_FOUND
   PERMISSION_DENIED
+  SUPERSET_INSTANCE_NOT_FOUND
+  SUPERSET_NOT_CONFIGURED
+  TYPE_MISMATCH
 }
 
 """
@@ -169,6 +226,7 @@ type WebappsPage {
 extend type Query {
   webapp(workspaceSlug: String!, slug: String!): Webapp @loginRequired
   webapps(workspaceSlug: String, favorite: Boolean, page: Int, perPage: Int): WebappsPage! @loginRequired
+  supersetInstances(workspaceSlug: String!): [SupersetInstance!]! @loginRequired
 }
 
 extend type Mutation {

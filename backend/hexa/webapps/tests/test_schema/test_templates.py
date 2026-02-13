@@ -84,9 +84,8 @@ class WebappsTest(GraphQLTestCase):
             {
                 "input": {
                     "name": "Test Webapp",
-                    "url": "http://newwebapp.com",
-                    "type": "IFRAME",
                     "workspaceSlug": self.WS1.slug,
+                    "source": {"iframe": {"url": "http://newwebapp.com"}},
                 }
             },
         )
@@ -109,9 +108,8 @@ class WebappsTest(GraphQLTestCase):
             {
                 "input": {
                     "name": "New Webapp",
-                    "url": "http://newwebapp.com",
-                    "type": "IFRAME",
                     "workspaceSlug": self.WS1.slug,
+                    "source": {"iframe": {"url": "http://newwebapp.com"}},
                 }
             },
         )
@@ -139,7 +137,7 @@ class WebappsTest(GraphQLTestCase):
                 "input": {
                     "id": str(self.WEBAPP.id),
                     "name": "Updated Webapp",
-                    "url": "http://updatedwebapp.com",
+                    "source": {"iframe": {"url": "http://updatedwebapp.com"}},
                 }
             },
         )

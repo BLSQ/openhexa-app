@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from hexa.webapps.admin import SupersetWebappInline
+
 from .models import SupersetDashboard, SupersetInstance
 
 
@@ -10,6 +12,7 @@ class SupersetDashboardInline(admin.TabularInline):
         "name",
         "external_id",
     )
+    show_change_link = True
 
 
 @admin.register(SupersetInstance)
@@ -31,3 +34,4 @@ class SupersetDashboardAdmin(admin.ModelAdmin):
     )
     search_fields = ("name", "external_id")
     list_filter = ("superset_instance", "created_at", "updated_at")
+    inlines = [SupersetWebappInline]

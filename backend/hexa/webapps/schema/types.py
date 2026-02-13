@@ -1,10 +1,11 @@
-from ariadne import ObjectType
+from ariadne import ObjectType, UnionType
 
 from hexa.utils.base64_image_encode_decode import encode_base64_image
-from hexa.webapps.models import Webapp
+from hexa.webapps.models import SupersetWebapp, Webapp
 
 webapp_permissions = ObjectType("WebappPermissions")
 webapp_object = ObjectType("Webapp")
+webapp_source_union = UnionType("WebappSource")
 
 
 @webapp_object.field("isFavorite")
@@ -54,6 +55,27 @@ def resolve_type(webapp: Webapp, info, **kwargs):
     return webapp.type.upper()
 
 
+@webapp_source_union.type_resolver
+def resolve_webapp_source_type(obj, *_):
+    if "instance" in obj:
+        return "SupersetSource"
+    return "IframeSource"
+
+
+@webapp_object.field("source")
+def resolve_source(webapp: Webapp, info, **kwargs):
+    if webapp.type == Webapp.WebappType.SUPERSET:
+        superset_webapp = SupersetWebapp.objects.select_related(
+            "superset_dashboard__superset_instance"
+        ).get(pk=webapp.pk)
+        dashboard = superset_webapp.superset_dashboard
+        return {
+            "instance": dashboard.superset_instance,
+            "dashboard_id": dashboard.external_id,
+        }
+    return {"url": webapp.url}
+
+
 @webapp_permissions.field("update")
 def resolve_webapp_permissions_update(obj, info, **kwargs):
     request = info.context["request"]
@@ -73,4 +95,5 @@ def resolve_webapp_permissions_delete(obj, info, **kwargs):
 bindables = [
     webapp_permissions,
     webapp_object,
+    webapp_source_union,
 ]

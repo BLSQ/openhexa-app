@@ -34,7 +34,6 @@ class SupersetDashboard(Base):
         return f"{settings.NEW_FRONTEND_DOMAIN}{reverse('superset:dashboard', kwargs={'dashboard_id': self.id})}"
 
     class Meta:
-        unique_together = ("external_id", "superset_instance")
         indexes = [
             models.Index(fields=["external_id"]),
         ]

@@ -113,7 +113,7 @@ function FormSection<F extends { [key: string]: any }>(
     getInitialState() {
       const initialState = {} as any;
       Object.entries(properties.current).forEach(([key, prop]) => {
-        initialState[key] = prop.displayValue;
+        initialState[key] = prop.displayValue ?? prop.defaultValue;
       });
       return initialState;
     },
@@ -151,8 +151,6 @@ function FormSection<F extends { [key: string]: any }>(
       return acc;
     }, {});
     form.resetForm();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [definitions, item, isEdited]);
 
   const toggleEdit = () => {
@@ -174,7 +172,9 @@ function FormSection<F extends { [key: string]: any }>(
           .filter((d) => d.id !== definition.id)
           .concat(definition);
       }
-      return getProperty(definition, item, form, isEdited);
+      const property = getProperty(definition, item, form, isEdited);
+      properties.current[definition.id] = property;
+      return property;
     },
   };
 

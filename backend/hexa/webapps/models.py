@@ -1,8 +1,9 @@
 import secrets
 
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
 from django.core.validators import validate_slug
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from slugify import slugify
 
@@ -14,6 +15,7 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.shortcuts.mixins import ShortcutableMixin
+from hexa.superset.models import SupersetDashboard
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -53,16 +55,15 @@ class WebappManager(
     BaseManager, DefaultSoftDeletedManager.from_queryset(WebappQuerySet)
 ):
     def create_if_has_perm(self, principal, ws, **kwargs):
-        from django.core.exceptions import PermissionDenied
-
         if not principal.has_perm(
             f"{self.model._meta.app_label}.create_{self.model._meta.model_name}", ws
         ):
             raise PermissionDenied
 
         if "slug" not in kwargs:
-            kwargs["slug"] = create_webapp_slug(kwargs["name"], kwargs["workspace"])
+            kwargs["slug"] = create_webapp_slug(kwargs["name"], ws)
 
+        kwargs["workspace"] = ws
         return super(BaseManager, self).create(**kwargs)
 
 
@@ -127,6 +128,16 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         self.favorites.remove(user)
         self.save()
 
+    def delete_if_has_perm(self, principal):
+        if not principal.has_perm("webapps.delete_webapp", self):
+            raise PermissionDenied
+        if self.type == Webapp.WebappType.SUPERSET:
+            dashboard = SupersetDashboard.objects.get(webapp__pk=self.pk)
+            self.delete()
+            dashboard.delete()
+        else:
+            self.delete()
+
     def to_shortcut_item(self):
         """Convert this webapp to a shortcut item dict for GraphQL"""
         return {
@@ -139,3 +150,54 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
     def __repr__(self) -> str:
         return f"<Webapp: {self.name}>"
+
+
+class SupersetWebapp(Webapp):
+    superset_dashboard = models.OneToOneField(
+        SupersetDashboard,
+        on_delete=models.CASCADE,
+        related_name="webapp",
+    )
+
+    @classmethod
+    def create_if_has_perm(
+        cls,
+        principal,
+        workspace,
+        superset_instance,
+        external_dashboard_id,
+        *,
+        name,
+        created_by,
+        description="",
+        icon=None,
+    ):
+        if not principal.has_perm("webapps.create_webapp", workspace):
+            raise PermissionDenied
+
+        with transaction.atomic():
+            dashboard = SupersetDashboard.objects.create(
+                external_id=external_dashboard_id,
+                superset_instance=superset_instance,
+                name=name,
+                description=description,
+            )
+
+            return cls.objects.create(
+                superset_dashboard=dashboard,
+                workspace=workspace,
+                url=dashboard.get_absolute_url(),
+                type=Webapp.WebappType.SUPERSET,
+                slug=create_webapp_slug(name, workspace),
+                name=name,
+                description=description,
+                icon=icon,
+                created_by=created_by,
+            )
+
+    def update_dashboard(self, superset_instance, external_dashboard_id):
+        self.superset_dashboard.external_id = external_dashboard_id
+        self.superset_dashboard.superset_instance = superset_instance
+        self.superset_dashboard.save()
+        self.url = self.superset_dashboard.get_absolute_url()
+        self.save()
