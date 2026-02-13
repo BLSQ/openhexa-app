@@ -252,7 +252,7 @@ export default function CreateConnectionDialog({
                 ]}
               />
             </div>
-            {connectionType && (
+            {connectionType && connectionType !== ConnectionType.Custom && (
               <TestConnectionButton
                 connectionType={connectionType}
                 form={form}
