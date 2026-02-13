@@ -1,18 +1,16 @@
 import json
 import logging
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import StrEnum
+from urllib.parse import urlencode
 
 import boto3
 import psycopg2
 from botocore.config import Config as BotoConfig
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import StrEnum
-from google.cloud import storage as gcs_storage
-from urllib.parse import urlencode
-
 from django.conf import settings
 from django.utils.translation import gettext_lazy, override
+from google.cloud import storage as gcs_storage
 from openhexa.toolbox.dhis2 import DHIS2
 from openhexa.toolbox.iaso import IASO
 
@@ -205,7 +203,9 @@ def normalize_metadata_response(response) -> PagedMetadataResponse:
         raise ValueError("Unexpected response format")
 
 
-def test_connection(connection_type: str, fields: dict[str, str]) -> tuple[bool, str | None]:
+def test_connection(
+    connection_type: str, fields: dict[str, str]
+) -> tuple[bool, str | None]:
     testers = {
         ConnectionType.DHIS2: _test_dhis2,
         ConnectionType.IASO: _test_iaso,

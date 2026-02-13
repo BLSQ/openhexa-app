@@ -791,9 +791,12 @@ class TestConnectionTest(GraphQLTestCase):
         self.client.force_login(self.USER_EDITOR)
         r = self.run_query(
             TEST_CONNECTION_MUTATION,
-            self._build_input("CUSTOM", [
-                {"code": "url", "value": "https://example.com", "secret": False},
-            ]),
+            self._build_input(
+                "CUSTOM",
+                [
+                    {"code": "url", "value": "https://example.com", "secret": False},
+                ],
+            ),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
         self.assertIn("not supported", r["data"]["testConnection"]["error"])
@@ -827,11 +830,18 @@ class TestConnectionTest(GraphQLTestCase):
         self.client.force_login(self.USER_EDITOR)
         r = self.run_query(
             TEST_CONNECTION_MUTATION,
-            self._build_input("DHIS2", [
-                {"code": "url", "value": "https://bad-url.example", "secret": False},
-                {"code": "username", "value": "admin", "secret": False},
-                {"code": "password", "value": "wrong", "secret": True},
-            ]),
+            self._build_input(
+                "DHIS2",
+                [
+                    {
+                        "code": "url",
+                        "value": "https://bad-url.example",
+                        "secret": False,
+                    },
+                    {"code": "username", "value": "admin", "secret": False},
+                    {"code": "password", "value": "wrong", "secret": True},
+                ],
+            ),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
         self.assertIn("not reachable", r["data"]["testConnection"]["error"])
@@ -862,11 +872,18 @@ class TestConnectionTest(GraphQLTestCase):
         self.client.force_login(self.USER_EDITOR)
         r = self.run_query(
             TEST_CONNECTION_MUTATION,
-            self._build_input("IASO", [
-                {"code": "url", "value": "https://iaso.example.com", "secret": False},
-                {"code": "username", "value": "demo", "secret": False},
-                {"code": "password", "value": "demo", "secret": True},
-            ]),
+            self._build_input(
+                "IASO",
+                [
+                    {
+                        "code": "url",
+                        "value": "https://iaso.example.com",
+                        "secret": False,
+                    },
+                    {"code": "username", "value": "demo", "secret": False},
+                    {"code": "password", "value": "demo", "secret": True},
+                ],
+            ),
         )
         self.assertEqual(
             {"success": True, "error": None},
@@ -883,13 +900,16 @@ class TestConnectionTest(GraphQLTestCase):
         self.client.force_login(self.USER_EDITOR)
         r = self.run_query(
             TEST_CONNECTION_MUTATION,
-            self._build_input("POSTGRESQL", [
-                {"code": "host", "value": "localhost", "secret": False},
-                {"code": "port", "value": "5432", "secret": False},
-                {"code": "username", "value": "user", "secret": False},
-                {"code": "password", "value": "pass", "secret": True},
-                {"code": "db_name", "value": "testdb", "secret": False},
-            ]),
+            self._build_input(
+                "POSTGRESQL",
+                [
+                    {"code": "host", "value": "localhost", "secret": False},
+                    {"code": "port", "value": "5432", "secret": False},
+                    {"code": "username", "value": "user", "secret": False},
+                    {"code": "password", "value": "pass", "secret": True},
+                    {"code": "db_name", "value": "testdb", "secret": False},
+                ],
+            ),
         )
         self.assertEqual(
             {"success": True, "error": None},
@@ -913,16 +933,21 @@ class TestConnectionTest(GraphQLTestCase):
         self.client.force_login(self.USER_EDITOR)
         r = self.run_query(
             TEST_CONNECTION_MUTATION,
-            self._build_input("POSTGRESQL", [
-                {"code": "host", "value": "badhost", "secret": False},
-                {"code": "port", "value": "5432", "secret": False},
-                {"code": "username", "value": "user", "secret": False},
-                {"code": "password", "value": "pass", "secret": True},
-                {"code": "db_name", "value": "testdb", "secret": False},
-            ]),
+            self._build_input(
+                "POSTGRESQL",
+                [
+                    {"code": "host", "value": "badhost", "secret": False},
+                    {"code": "port", "value": "5432", "secret": False},
+                    {"code": "username", "value": "user", "secret": False},
+                    {"code": "password", "value": "pass", "secret": True},
+                    {"code": "db_name", "value": "testdb", "secret": False},
+                ],
+            ),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertIn("could not connect to server", r["data"]["testConnection"]["error"])
+        self.assertIn(
+            "could not connect to server", r["data"]["testConnection"]["error"]
+        )
 
     @patch("hexa.workspaces.utils.boto3")
     def test_test_connection_s3_success(self, mock_boto3):
@@ -932,11 +957,14 @@ class TestConnectionTest(GraphQLTestCase):
         self.client.force_login(self.USER_EDITOR)
         r = self.run_query(
             TEST_CONNECTION_MUTATION,
-            self._build_input("S3", [
-                {"code": "access_key_id", "value": "AKIA...", "secret": True},
-                {"code": "access_key_secret", "value": "secret", "secret": True},
-                {"code": "bucket_name", "value": "my-bucket", "secret": False},
-            ]),
+            self._build_input(
+                "S3",
+                [
+                    {"code": "access_key_id", "value": "AKIA...", "secret": True},
+                    {"code": "access_key_secret", "value": "secret", "secret": True},
+                    {"code": "bucket_name", "value": "my-bucket", "secret": False},
+                ],
+            ),
         )
         self.assertEqual(
             {"success": True, "error": None},
@@ -953,11 +981,14 @@ class TestConnectionTest(GraphQLTestCase):
         self.client.force_login(self.USER_EDITOR)
         r = self.run_query(
             TEST_CONNECTION_MUTATION,
-            self._build_input("S3", [
-                {"code": "access_key_id", "value": "AKIA...", "secret": True},
-                {"code": "access_key_secret", "value": "secret", "secret": True},
-                {"code": "bucket_name", "value": "bad-bucket", "secret": False},
-            ]),
+            self._build_input(
+                "S3",
+                [
+                    {"code": "access_key_id", "value": "AKIA...", "secret": True},
+                    {"code": "access_key_secret", "value": "secret", "secret": True},
+                    {"code": "bucket_name", "value": "bad-bucket", "secret": False},
+                ],
+            ),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
         self.assertIn("Access Denied", r["data"]["testConnection"]["error"])
@@ -973,14 +1004,17 @@ class TestConnectionTest(GraphQLTestCase):
         self.client.force_login(self.USER_EDITOR)
         r = self.run_query(
             TEST_CONNECTION_MUTATION,
-            self._build_input("GCS", [
-                {
-                    "code": "service_account_key",
-                    "value": '{"type": "service_account", "project_id": "test"}',
-                    "secret": True,
-                },
-                {"code": "bucket_name", "value": "my-gcs-bucket", "secret": False},
-            ]),
+            self._build_input(
+                "GCS",
+                [
+                    {
+                        "code": "service_account_key",
+                        "value": '{"type": "service_account", "project_id": "test"}',
+                        "secret": True,
+                    },
+                    {"code": "bucket_name", "value": "my-gcs-bucket", "secret": False},
+                ],
+            ),
         )
         self.assertEqual(
             {"success": True, "error": None},
@@ -1000,14 +1034,17 @@ class TestConnectionTest(GraphQLTestCase):
         self.client.force_login(self.USER_EDITOR)
         r = self.run_query(
             TEST_CONNECTION_MUTATION,
-            self._build_input("GCS", [
-                {
-                    "code": "service_account_key",
-                    "value": '{"type": "service_account", "project_id": "test"}',
-                    "secret": True,
-                },
-                {"code": "bucket_name", "value": "bad-bucket", "secret": False},
-            ]),
+            self._build_input(
+                "GCS",
+                [
+                    {
+                        "code": "service_account_key",
+                        "value": '{"type": "service_account", "project_id": "test"}',
+                        "secret": True,
+                    },
+                    {"code": "bucket_name", "value": "bad-bucket", "secret": False},
+                ],
+            ),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
         self.assertIn("403 Forbidden", r["data"]["testConnection"]["error"])
