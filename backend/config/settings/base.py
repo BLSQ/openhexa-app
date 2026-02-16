@@ -155,7 +155,7 @@ LOGGING_HANDLER_CLASS = os.environ.get(
 DEBUG_LOGGING = os.environ.get("DEBUG_LOGGING", "false") == "true"
 LOGGING = {
     "version": 1,
-    "disable_existing_loggers": not DEBUG_LOGGING,
+    "disable_existing_loggers": False,
     "handlers": {
         "default": {
             "class": LOGGING_HANDLER_CLASS,
@@ -168,6 +168,10 @@ LOGGING = {
         },
         "django": {
             "level": "INFO",
+            "propagate": True,
+        },
+        "django.request": {
+            "level": "ERROR",
             "propagate": True,
         },
         "gunicorn": {
