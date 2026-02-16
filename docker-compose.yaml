@@ -147,6 +147,8 @@ services:
     command: azurite --skipApiVersionCheck --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
     profiles:
       - "test"
+    networks:
+      - openhexa
     ports:
       - "10000:10000"
       - "10001:10001"

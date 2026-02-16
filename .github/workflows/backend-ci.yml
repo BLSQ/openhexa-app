@@ -51,7 +51,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
+
       # Caches
       - name: Cache
         id: cache
@@ -86,10 +86,8 @@ jobs:
         run: docker compose build app
 
       - name: Run Django tests
-        env:
-          AZURITE_TEST_SERVER: http://azurite:1000/
         run: |
-          docker compose --profile test run -u $(id -u):$(id -g) app coveraged-test
+          docker compose --profile test run -e AZURITE_TEST_SERVER=http://azurite:10000/ -u $(id -u):$(id -g) app coveraged-test
 
       # Push on main
       - name: Build and push (on main)
@@ -104,4 +102,3 @@ jobs:
           tags: |
             blsq/openhexa-app:main
             blsq/openhexa-app:latest
-      
