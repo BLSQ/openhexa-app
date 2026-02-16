@@ -102,7 +102,6 @@ export default function TestConnectionButton({
 
   return (
     <>
-      {result && <TestConnectionBanner result={result} />}
       <Button
         type="button"
         variant="secondary"
@@ -114,6 +113,7 @@ export default function TestConnectionButton({
         {testing && <Spinner size="xs" className="mr-1" />}
         {t("Test connection")}
       </Button>
+      {result && <TestConnectionBanner result={result} />}
     </>
   );
 }
