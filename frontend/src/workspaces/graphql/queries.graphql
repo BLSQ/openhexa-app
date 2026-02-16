@@ -37,6 +37,7 @@ query WorkspacePipelinesPage(
   $lastRunStates: [PipelineRunStatus!]
   $page: Int
   $perPage: Int
+  $orderBy: PipelineOrderBy
 ) {
   workspace(slug: $workspaceSlug) {
     slug
@@ -55,6 +56,7 @@ query WorkspacePipelinesPage(
     lastRunStates: $lastRunStates
     page: $page
     perPage: $perPage
+    orderBy: $orderBy
   ) {
     items {
       ...PipelineCard_pipeline

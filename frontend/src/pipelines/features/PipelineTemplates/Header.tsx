@@ -14,7 +14,7 @@ import {
 import { useTranslation } from "next-i18next";
 import { TagIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
-import { TemplateSortOption } from "pipelines/config/sorting";
+import { SortOption } from "../../../core/helpers/sorting";
 
 type Filter = {
   workspaceFilter: any;
@@ -40,9 +40,9 @@ type HeaderProps = {
   setTagsFilter?: (tags: string[]) => void;
   templateTags?: string[];
   pipelineTags?: string[];
-  sortOrder?: TemplateSortOption;
-  setSortOrder?: (option: TemplateSortOption) => void;
-  sortOptions?: TemplateSortOption[];
+  sortOrder?: SortOption<any>;
+  setSortOrder?: (option: SortOption<any>) => void;
+  sortOptions?: SortOption<any>[];
 };
 
 const Header = ({

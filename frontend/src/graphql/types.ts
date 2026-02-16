@@ -3823,6 +3823,12 @@ export enum PipelineNotificationLevel {
   Error = 'ERROR'
 }
 
+/** Enum representing the possible orderings for pipeline. */
+export enum PipelineOrderBy {
+  NameAsc = 'NAME_ASC',
+  NameDesc = 'NAME_DESC'
+}
+
 /** Represents a parameter of a pipeline. */
 export type PipelineParameter = {
   __typename?: 'PipelineParameter';
@@ -4519,6 +4525,7 @@ export type QueryPipelinesArgs = {
   functionalType?: InputMaybe<PipelineFunctionalType>;
   lastRunStates?: InputMaybe<Array<PipelineRunStatus>>;
   name?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<PipelineOrderBy>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;

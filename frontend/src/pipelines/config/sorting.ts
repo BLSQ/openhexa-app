@@ -1,5 +1,5 @@
 import { i18n } from "next-i18next";
-import { PipelineTemplateOrderBy } from "graphql/types";
+import { PipelineOrderBy, PipelineTemplateOrderBy } from "graphql/types";
 import { SortOption, createSortingUtils } from "core/helpers/sorting";
 
 export type TemplateSortOption = SortOption<PipelineTemplateOrderBy>;
@@ -50,6 +50,30 @@ export function getTemplateSortOptions(): SortOption<PipelineTemplateOrderBy>[] 
       value: "name-desc",
       orderBy: PipelineTemplateOrderBy.NameDesc,
       label: i18n!.t("Name (Z–A)"),
+    },
+  ];
+}
+
+export type PipelineSortOption = SortOption<PipelineOrderBy>;
+
+export const pipelineSorting = createSortingUtils({
+  name: {
+    asc: PipelineOrderBy.NameAsc,
+    desc: PipelineOrderBy.NameDesc,
+  },
+});
+
+export function getPipelineSortOptions(): SortOption<PipelineOrderBy>[] {
+  return [
+    {
+      value: "name-desc",
+      orderBy: PipelineOrderBy.NameDesc,
+      label: i18n!.t("Name (Z–A)"),
+    },
+    {
+      value: "name-asc",
+      orderBy: PipelineOrderBy.NameAsc,
+      label: i18n!.t("Name (A–Z)"),
     },
   ];
 }

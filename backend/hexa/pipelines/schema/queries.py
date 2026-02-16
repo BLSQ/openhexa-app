@@ -19,6 +19,9 @@ pipelines_query = QueryType()
 
 @pipelines_query.field("pipelines")
 def resolve_pipelines(_, info, **kwargs):
+    print("\n\n\n-------------------")
+    print(f"Getting pipelines: {kwargs}")
+    print("-------------------\n\n\n")
     request: HttpRequest = info.context["request"]
     search = kwargs.get("search", "")
 
@@ -48,7 +51,7 @@ def resolve_pipelines(_, info, **kwargs):
         except Workspace.DoesNotExist:
             qs = Pipeline.objects.none()
     else:
-        qs = qs.order_by("name", "id")
+        qs = qs.order_by("-name", "id")#
 
     tags = kwargs.get("tags", [])
     if tags:
@@ -74,6 +77,10 @@ def resolve_pipelines(_, info, **kwargs):
         qs = qs.annotate(last_run_status=Subquery(last_run_state_subquery)).filter(
             last_run_status__in=last_run_status
         )
+
+    print("\n\n\n-------------------")
+    print(f"Order by: {kwargs.get("order_by")}")
+    print("-------------------\n\n\n")
 
     if "name" in kwargs:
         name_to_order_by = kwargs.get("name")
