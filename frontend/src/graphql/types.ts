@@ -4784,6 +4784,14 @@ export type ResourceCounts = {
 
 /** Input type for resource counts (used for subscription limits). */
 export type ResourceCountsInput = {
+  /** Maximum pipeline timeout in seconds. */
+  maxPipelineTimeout?: InputMaybe<Scalars['Int']['input']>;
+  /** JupyterHub profile to use (e.g., "trial"). */
+  notebookProfile?: InputMaybe<Scalars['String']['input']>;
+  /** CPU limit for pipeline pods (e.g., "1"). */
+  pipelineCpuLimit?: InputMaybe<Scalars['String']['input']>;
+  /** Memory limit for pipeline pods (e.g., "1G"). */
+  pipelineMemoryLimit?: InputMaybe<Scalars['String']['input']>;
   /** Number of pipeline runs. */
   pipelineRuns: Scalars['Int']['input'];
   /** Number of users. */

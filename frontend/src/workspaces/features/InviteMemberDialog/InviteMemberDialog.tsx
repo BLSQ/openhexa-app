@@ -15,6 +15,7 @@ import { InviteMemberWorkspace_WorkspaceFragment } from "./InviteMemberDialog.ge
 import useCacheKey from "core/hooks/useCacheKey";
 import { useEffect } from "react";
 import { UserPicker } from "../UserPicker/UserPicker";
+import { toast } from "react-toastify";
 
 type InviteMemberDialogProps = {
   onClose(): void;
@@ -72,6 +73,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
       ) {
         throw new Error("You are not authorized to perform this action");
       }
+      toast.success(t("Member invited successfully"));
       clearCache();
       handleClose();
     },

@@ -669,7 +669,6 @@ query ConnectionPage($workspaceSlug: String!, $connectionId: UUID!) {
       update
       delete
     }
-    ...ConnectionUsageSnippets_connection
     ...ConnectionFieldsSection_connection
   }
 }

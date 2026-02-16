@@ -73,7 +73,9 @@ const useSearchHotkeys = ({
   useHotkeys(
     "enter",
     () => {
-      const href = getUrl(data[highlightedIndex], currentWorkspaceSlug);
+      const item = data?.[highlightedIndex];
+      if (!item) return;
+      const href = getUrl(item, currentWorkspaceSlug);
       href && router.push(href).then();
     },
     { enableOnFormTags: ["INPUT"], enabled: isOpen },

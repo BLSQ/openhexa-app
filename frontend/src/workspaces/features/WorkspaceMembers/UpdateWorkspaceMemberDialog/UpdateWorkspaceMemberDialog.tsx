@@ -13,6 +13,7 @@ import {
 import { UpdateWorkspaceMember_WorkspaceMemberFragment } from "./UpdateWorkspaceMemberDialog.generated";
 import Field from "core/components/forms/Field";
 import SimpleSelect from "core/components/forms/SimpleSelect";
+import { toast } from "react-toastify";
 
 type UpdateWorkspaceMemberDialogProps = {
   onClose(): void;
@@ -51,6 +52,7 @@ const UpdateWorkspaceMemberDialog = (
       ) {
         throw new Error("You are not authorized to perform this action");
       }
+      toast.success(t("Member role updated successfully"));
       onClose();
     },
     initialState: {

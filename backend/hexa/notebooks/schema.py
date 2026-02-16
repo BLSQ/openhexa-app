@@ -49,6 +49,9 @@ def resolve_launch_notebook_server(_, info, input, **kwargs):
         create_user(username)
         user_data = get_user(username)
 
+    subscription = workspace.current_subscription
+    notebook_profile = subscription.notebook_profile if subscription else None
+
     if workspace_slug not in user_data["servers"]:
         create_server(
             username,
@@ -57,6 +60,7 @@ def resolve_launch_notebook_server(_, info, input, **kwargs):
                 "sessionid": request.COOKIES.get("sessionid"),
                 "csrftoken": request.COOKIES.get("csrftoken"),
             },
+            profile=notebook_profile,
         )
     # When user's email contains special characters, JupyterHub encode the email prefix (part before @)
     # and add it to the generated server url. If we don't apply the same encoding we will face

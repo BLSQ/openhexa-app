@@ -268,7 +268,7 @@ class Organization(Base, SoftDeletedModel):
         ).first()
 
     @property
-    def current_subscription(self):
+    def current_subscription(self) -> OrganizationSubscription | None:
         """
         Returns the current subscription to display and enforce limits on.
         This is either the active subscription, or the most recently expired one
@@ -384,6 +384,11 @@ class OrganizationSubscription(Base):
     users_limit = models.PositiveIntegerField()
     workspaces_limit = models.PositiveIntegerField()
     pipeline_runs_limit = models.PositiveIntegerField()
+
+    max_pipeline_timeout = models.PositiveIntegerField(null=True, blank=True)
+    pipeline_cpu_limit = models.CharField(max_length=32, blank=True, null=True)
+    pipeline_memory_limit = models.CharField(max_length=32, blank=True, null=True)
+    notebook_profile = models.CharField(max_length=50, blank=True, null=True)
 
     @property
     def is_expired(self) -> bool:

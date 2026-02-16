@@ -343,9 +343,15 @@ def resolve_upload_pipeline(_, info, **kwargs):
             "errors": ["PIPELINE_NOT_FOUND"],
         }
     try:
+        max_allowed_timeout = int(settings.PIPELINE_RUN_MAX_TIMEOUT)
+        subscription = pipeline.workspace and pipeline.workspace.current_subscription
+        if subscription and subscription.max_pipeline_timeout:
+            max_allowed_timeout = min(
+                max_allowed_timeout, subscription.max_pipeline_timeout
+            )
+
         if input.get("timeout") and (
-            input.get("timeout") < 0
-            or input.get("timeout") > int(settings.PIPELINE_RUN_MAX_TIMEOUT)
+            input.get("timeout") < 0 or input.get("timeout") > max_allowed_timeout
         ):
             raise InvalidTimeoutValueError(
                 "Pipeline timeout value cannot be negative or greater than the maximum allowed value."
