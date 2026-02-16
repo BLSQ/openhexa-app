@@ -110,6 +110,7 @@ const GridView = ({
         <DateColumn
           accessor="lastRuns.items.0.executionDate"
           label={t("Last Run Date")}
+          disableSortBy={true}
         />
         <BaseColumn label={t("Created By")} id="createdBy" disableSortBy={true}>
           {(pipeline) => {
