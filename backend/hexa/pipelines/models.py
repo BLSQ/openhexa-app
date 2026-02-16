@@ -378,6 +378,9 @@ class Pipeline(SoftDeletedModel):
                 violation_error_message="A pipeline with the same code already exists in this workspace. Consider using `create_if_has_perm` method.",
             )
         ]
+        indexes = [
+            models.Index(fields=["name"], name="idx_pipeline_name"),
+        ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)

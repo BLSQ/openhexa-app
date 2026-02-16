@@ -80,17 +80,17 @@ def resolve_pipelines(_, info, **kwargs):
             .order_by("-execution_date")
             .values("state")[:1]
         )
-        pipelines = pipelines.annotate(last_run_status=Subquery(last_run_state_subquery)).filter(
-            last_run_status__in=last_run_status
-        )
+        pipelines = pipelines.annotate(
+            last_run_status=Subquery(last_run_state_subquery)
+        ).filter(last_run_status__in=last_run_status)
 
     if "name" in kwargs:
         name_to_order_by = kwargs.get("name")
         search_vector = SearchVector("name")
         search_query = SearchQuery(name_to_order_by)
-        pipelines = pipelines.annotate(rank=SearchRank(search_vector, search_query)).order_by(
-            "-rank", "name", "id"
-        )
+        pipelines = pipelines.annotate(
+            rank=SearchRank(search_vector, search_query)
+        ).order_by("-rank", "name", "id")
 
     return result_page(
         queryset=pipelines, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
