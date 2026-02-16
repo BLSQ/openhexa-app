@@ -66,14 +66,14 @@ export const pipelineSorting = createSortingUtils({
 export function getPipelineSortOptions(): SortOption<PipelineOrderBy>[] {
   return [
     {
-      value: "name-desc",
-      orderBy: PipelineOrderBy.NameDesc,
-      label: i18n!.t("Name (Z–A)"),
-    },
-    {
       value: "name-asc",
       orderBy: PipelineOrderBy.NameAsc,
       label: i18n!.t("Name (A–Z)"),
+    },
+    {
+      value: "name-desc",
+      orderBy: PipelineOrderBy.NameDesc,
+      label: i18n!.t("Name (Z–A)"),
     },
   ];
 }

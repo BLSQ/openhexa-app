@@ -58,13 +58,13 @@ const Pipelines = ({
 
   const { data, loading } = useWorkspacePipelinesPageQuery({
     variables: {
+      page,
+      perPage,
       workspaceSlug: workspace.slug,
       search: debouncedSearchQuery,
       tags: selectedTags.length > 0 ? selectedTags : undefined,
       functionalType,
       lastRunStates: lastRunStates.length > 0 ? lastRunStates : undefined,
-      page,
-      perPage,
       orderBy: sortOrder.orderBy,
     },
   });

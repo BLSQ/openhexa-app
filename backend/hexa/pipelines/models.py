@@ -365,6 +365,8 @@ class PipelineManager(DefaultSoftDeletedManager.from_queryset(PipelineQuerySet))
 
 
 class Pipeline(SoftDeletedModel):
+    UNIQUE_SORT_FIELDS = {"name"}
+
     class Meta:
         verbose_name = "Pipeline"
         constraints = [

@@ -19,13 +19,10 @@ pipelines_query = QueryType()
 
 @pipelines_query.field("pipelines")
 def resolve_pipelines(_, info, **kwargs):
-    print("\n\n\n-------------------")
-    print(f"Getting pipelines: {kwargs}")
-    print("-------------------\n\n\n")
     request: HttpRequest = info.context["request"]
     search = kwargs.get("search", "")
 
-    qs = (
+    pipelines = (
         Pipeline.objects.filter_for_user(request.user)
         .prefetch_related("tags")
         .filter(
@@ -38,20 +35,29 @@ def resolve_pipelines(_, info, **kwargs):
     )
 
     if kwargs.get("functional_type"):
-        qs = qs.filter(functional_type=kwargs.get("functional_type"))
+        pipelines = pipelines.filter(functional_type=kwargs.get("functional_type"))
 
-    workspace_slug = kwargs.get("workspace_slug", None)
+    workspace_slug = kwargs.get("workspace_slug")
     ws = None
     if workspace_slug:
         try:
             ws = Workspace.objects.filter_for_user(request.user).get(
                 slug=workspace_slug
             )
-            qs = qs.filter(workspace=ws).order_by("name", "id")
+            pipelines = pipelines.filter(workspace=ws)
         except Workspace.DoesNotExist:
-            qs = Pipeline.objects.none()
+            pipelines = Pipeline.objects.none()
+
+    order_by = kwargs.get("order_by")
+    if order_by:
+        base_field = order_by.lstrip("-")
+
+        if base_field in Pipeline.UNIQUE_SORT_FIELDS:
+            pipelines = pipelines.order_by(order_by, "id")
+        else:
+            pipelines = pipelines.order_by(order_by, "name", "id")
     else:
-        qs = qs.order_by("-name", "id")#
+        pipelines = pipelines.order_by("name", "id")
 
     tags = kwargs.get("tags", [])
     if tags:
@@ -59,9 +65,9 @@ def resolve_pipelines(_, info, **kwargs):
             tag_objects = Tag.from_names(tags)
             if ws:
                 tag_objects = tag_objects.filter(pipelines__workspace=ws).distinct()
-            qs = qs.filter_by_tags(tag_objects)
+            pipelines = pipelines.filter_by_tags(tag_objects)
         except InvalidTag:
-            qs = Pipeline.objects.none()
+            pipelines = Pipeline.objects.none()
 
     last_run_states = kwargs.get("last_run_states")
     if last_run_states:
@@ -74,24 +80,20 @@ def resolve_pipelines(_, info, **kwargs):
             .order_by("-execution_date")
             .values("state")[:1]
         )
-        qs = qs.annotate(last_run_status=Subquery(last_run_state_subquery)).filter(
+        pipelines = pipelines.annotate(last_run_status=Subquery(last_run_state_subquery)).filter(
             last_run_status__in=last_run_status
         )
-
-    print("\n\n\n-------------------")
-    print(f"Order by: {kwargs.get("order_by")}")
-    print("-------------------\n\n\n")
 
     if "name" in kwargs:
         name_to_order_by = kwargs.get("name")
         search_vector = SearchVector("name")
         search_query = SearchQuery(name_to_order_by)
-        qs = qs.annotate(rank=SearchRank(search_vector, search_query)).order_by(
+        pipelines = pipelines.annotate(rank=SearchRank(search_vector, search_query)).order_by(
             "-rank", "name", "id"
         )
 
     return result_page(
-        queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
+        queryset=pipelines, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
     )
 
 
