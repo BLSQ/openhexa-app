@@ -444,7 +444,7 @@ def resolve_test_connection(_, info, **kwargs):
         return {"success": False, "errors": ["NOT_FOUND"]}
 
     if not request.user.has_perm("workspaces.create_connection", workspace):
-        return {"success": False, "error": "Permission denied"}
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
     fields = {f["code"]: f["value"] for f in mutation_input["fields"]}
     connection_type = mutation_input["type"]
