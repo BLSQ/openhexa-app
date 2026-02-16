@@ -85,9 +85,12 @@ jobs:
           DOCKER_BUILDKIT: 1
         run: docker compose build app
 
+      - name: Start Azurite
+        run: docker compose --profile test up -d azurite
+
       - name: Run Django tests
         run: |
-          docker compose --profile test run -e AZURITE_TEST_SERVER=http://azurite:10000/ -u $(id -u):$(id -g) app coveraged-test
+          docker compose run -e AZURITE_TEST_SERVER=http://azurite:10000/ -u $(id -u):$(id -g) app coveraged-test
 
       # Push on main
       - name: Build and push (on main)
