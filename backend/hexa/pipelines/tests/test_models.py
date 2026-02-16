@@ -1,3 +1,4 @@
+import uuid
 from unittest.mock import patch
 
 from django.core import mail
@@ -18,6 +19,7 @@ from hexa.user_management.models import (
     Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
+    OrganizationSubscription,
     User,
 )
 from hexa.workspaces.models import (
@@ -903,3 +905,92 @@ class PipelineFunctionalTypeTest(TestCase):
                 choice_found,
                 f"Choice {choice_value} not found in PipelineFunctionalType.choices",
             )
+
+
+class PipelineRunSubscriptionLimitsTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user(
+            "user@bluesquarehub.com", "password", is_superuser=True
+        )
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Test Org",
+            short_name="test-org",
+            organization_type="CORPORATE",
+        )
+        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.USER,
+            name="Test Workspace",
+            organization=cls.ORGANIZATION,
+        )
+        cls.PIPELINE = Pipeline.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Test Pipeline",
+            code="test-pipeline",
+        )
+        cls.PIPELINE.upload_new_version(
+            cls.USER,
+            zipfile=b"",
+            name="v1",
+            parameters=[],
+            timeout=7200,
+        )
+
+    def test_run_uses_subscription_timeout_when_lower(self):
+        OrganizationSubscription.objects.create(
+            organization=self.ORGANIZATION,
+            subscription_id=uuid.uuid4(),
+            plan_code="trial",
+            start_date="2024-01-01",
+            end_date="2080-01-01",
+            users_limit=10,
+            workspaces_limit=5,
+            pipeline_runs_limit=100,
+            max_pipeline_timeout=3600,
+        )
+        run = self.PIPELINE.run(
+            user=self.USER,
+            pipeline_version=self.PIPELINE.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+        )
+        self.assertEqual(run.timeout, 3600)
+
+    def test_run_uses_requested_timeout_when_lower(self):
+        OrganizationSubscription.objects.create(
+            organization=self.ORGANIZATION,
+            subscription_id=uuid.uuid4(),
+            plan_code="trial",
+            start_date="2024-01-01",
+            end_date="2080-01-01",
+            users_limit=10,
+            workspaces_limit=5,
+            pipeline_runs_limit=100,
+            max_pipeline_timeout=10000,
+        )
+        run = self.PIPELINE.run(
+            user=self.USER,
+            pipeline_version=self.PIPELINE.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+        )
+        self.assertEqual(run.timeout, 7200)
+
+    def test_run_uses_subscription_resource_limits(self):
+        OrganizationSubscription.objects.create(
+            organization=self.ORGANIZATION,
+            subscription_id=uuid.uuid4(),
+            plan_code="trial",
+            start_date="2024-01-01",
+            end_date="2080-01-01",
+            users_limit=10,
+            workspaces_limit=5,
+            pipeline_runs_limit=100,
+            pipeline_cpu_limit="1",
+            pipeline_memory_limit="1G",
+        )
+        run = self.PIPELINE.run(
+            user=self.USER,
+            pipeline_version=self.PIPELINE.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+        )
+        self.assertEqual(run.cpu_limit, "1")
+        self.assertEqual(run.memory_limit, "1G")

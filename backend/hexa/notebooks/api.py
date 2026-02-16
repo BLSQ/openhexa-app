@@ -24,11 +24,18 @@ def create_user(username: str):
     user_response.raise_for_status()
 
 
-def create_server(username: str, server_name: str, cookies: typing.Mapping[str, str]):
+def create_server(
+    username: str,
+    server_name: str,
+    cookies: typing.Mapping[str, str],
+    profile: str = None,
+):
+    body = {"profile": profile} if profile else None
     server_response = requests.post(
         f"{settings.NOTEBOOKS_HUB_URL}/api/users/{username}/servers/{server_name}",
         headers={"Authorization": f"token {settings.HUB_API_TOKEN}"},
         cookies=cookies,
+        json=body,
     )
     server_response.raise_for_status()
 
