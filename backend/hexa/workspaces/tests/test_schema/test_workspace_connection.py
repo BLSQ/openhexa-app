@@ -776,7 +776,7 @@ class TestConnectionTest(GraphQLTestCase):
             self._build_input("DHIS2", self.DHIS2_FIELDS),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertEqual("Permission denied", r["data"]["testConnection"]["error"])
+        self.assertEqual("PERMISSION_DENIED", r["data"]["testConnection"]["error"])
 
     def test_test_connection_permission_denied_outsider(self):
         self.client.force_login(self.USER_OUTSIDER)
@@ -785,7 +785,7 @@ class TestConnectionTest(GraphQLTestCase):
             self._build_input("DHIS2", self.DHIS2_FIELDS),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertEqual("Workspace not found", r["data"]["testConnection"]["error"])
+        self.assertEqual("NOT_FOUND", r["data"]["testConnection"]["error"])
 
     def test_test_connection_unsupported_type(self):
         self.client.force_login(self.USER_EDITOR)
