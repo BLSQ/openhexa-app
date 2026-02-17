@@ -704,7 +704,7 @@ TEST_CONNECTION_MUTATION = """
     mutation testConnection($input: TestConnectionInput!) {
         testConnection(input: $input) {
             success
-            error
+            errors
         }
     }
 """
@@ -776,7 +776,7 @@ class TestConnectionTest(GraphQLTestCase):
             self._build_input("DHIS2", self.DHIS2_FIELDS),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertEqual("PERMISSION_DENIED", r["data"]["testConnection"]["error"])
+        self.assertEqual("PERMISSION_DENIED", r["data"]["testConnection"]["errors"])
 
     def test_test_connection_permission_denied_outsider(self):
         self.client.force_login(self.USER_OUTSIDER)
@@ -785,7 +785,7 @@ class TestConnectionTest(GraphQLTestCase):
             self._build_input("DHIS2", self.DHIS2_FIELDS),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertEqual("NOT_FOUND", r["data"]["testConnection"]["error"])
+        self.assertEqual("NOT_FOUND", r["data"]["testConnection"]["errors"])
 
     def test_test_connection_unsupported_type(self):
         self.client.force_login(self.USER_EDITOR)
@@ -799,7 +799,7 @@ class TestConnectionTest(GraphQLTestCase):
             ),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertIn("not supported", r["data"]["testConnection"]["error"])
+        self.assertIn("not supported", r["data"]["testConnection"]["errors"])
 
     @patch("hexa.workspaces.connection_utils.DHIS2")
     def test_test_connection_dhis2_success(self, mock_dhis2_class):
@@ -814,7 +814,7 @@ class TestConnectionTest(GraphQLTestCase):
             self._build_input("DHIS2", self.DHIS2_FIELDS),
         )
         self.assertEqual(
-            {"success": True, "error": None},
+            {"success": True, "errors": None},
             r["data"]["testConnection"],
         )
         mock_dhis2_class.assert_called_once_with(
@@ -844,7 +844,7 @@ class TestConnectionTest(GraphQLTestCase):
             ),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertIn("not reachable", r["data"]["testConnection"]["error"])
+        self.assertIn("not reachable", r["data"]["testConnection"]["errors"])
 
     @patch("hexa.workspaces.connection_utils.DHIS2")
     def test_test_connection_dhis2_auth_failure(self, mock_dhis2_class):
@@ -859,7 +859,7 @@ class TestConnectionTest(GraphQLTestCase):
             self._build_input("DHIS2", self.DHIS2_FIELDS),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertIn("401 Unauthorized", r["data"]["testConnection"]["error"])
+        self.assertIn("401 Unauthorized", r["data"]["testConnection"]["errors"])
 
     @patch("hexa.workspaces.connection_utils.IASO")
     def test_test_connection_iaso_success(self, mock_iaso_class):
@@ -886,7 +886,7 @@ class TestConnectionTest(GraphQLTestCase):
             ),
         )
         self.assertEqual(
-            {"success": True, "error": None},
+            {"success": True, "errors": None},
             r["data"]["testConnection"],
         )
 
@@ -912,7 +912,7 @@ class TestConnectionTest(GraphQLTestCase):
             ),
         )
         self.assertEqual(
-            {"success": True, "error": None},
+            {"success": True, "errors": None},
             r["data"]["testConnection"],
         )
         mock_psycopg2.connect.assert_called_once_with(
@@ -946,7 +946,7 @@ class TestConnectionTest(GraphQLTestCase):
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
         self.assertIn(
-            "could not connect to server", r["data"]["testConnection"]["error"]
+            "could not connect to server", r["data"]["testConnection"]["errors"]
         )
 
     @patch("hexa.workspaces.connection_utils.boto3")
@@ -967,7 +967,7 @@ class TestConnectionTest(GraphQLTestCase):
             ),
         )
         self.assertEqual(
-            {"success": True, "error": None},
+            {"success": True, "errors": None},
             r["data"]["testConnection"],
         )
         mock_client.head_bucket.assert_called_once_with(Bucket="my-bucket")
@@ -991,7 +991,7 @@ class TestConnectionTest(GraphQLTestCase):
             ),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertIn("Access Denied", r["data"]["testConnection"]["error"])
+        self.assertIn("Access Denied", r["data"]["testConnection"]["errors"])
 
     @patch("hexa.workspaces.connection_utils.gcs_storage")
     def test_test_connection_gcs_success(self, mock_gcs_storage):
@@ -1017,11 +1017,11 @@ class TestConnectionTest(GraphQLTestCase):
             ),
         )
         self.assertEqual(
-            {"success": True, "error": None},
+            {"success": True, "errors": None},
             r["data"]["testConnection"],
         )
         mock_client.bucket.assert_called_once_with("my-gcs-bucket")
-        mock_bucket.list_blobs.assert_called_once_with(max_results=1)
+        mock_bucket.list_blobs.assert_called_once_with(max_results=1, timeout=10)
 
     @patch("hexa.workspaces.connection_utils.gcs_storage")
     def test_test_connection_gcs_failure(self, mock_gcs_storage):
@@ -1047,4 +1047,4 @@ class TestConnectionTest(GraphQLTestCase):
             ),
         )
         self.assertEqual(False, r["data"]["testConnection"]["success"])
-        self.assertIn("403 Forbidden", r["data"]["testConnection"]["error"])
+        self.assertIn("403 Forbidden", r["data"]["testConnection"]["errors"])

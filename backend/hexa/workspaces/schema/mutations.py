@@ -441,10 +441,10 @@ def resolve_test_connection(_, info, **kwargs):
             slug=mutation_input["workspace_slug"]
         )
     except Workspace.DoesNotExist:
-        return {"success": False, "errors": ["NOT_FOUND"]}
+        return {"success": False, "errors": "NOT_FOUND"}
 
     if not request.user.has_perm("workspaces.create_connection", workspace):
-        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+        return {"success": False, "errors": "PERMISSION_DENIED"}
 
     fields = {f["code"]: f["value"] for f in mutation_input["fields"]}
     connection_type = mutation_input["type"]
