@@ -5110,7 +5110,7 @@ export type TestConnectionInput = {
 /** Represents the result of testing a connection. */
 export type TestConnectionResult = {
   __typename?: 'TestConnectionResult';
-  error?: Maybe<Scalars['String']['output']>;
+  errors?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
 };
 

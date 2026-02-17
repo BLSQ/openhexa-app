@@ -801,7 +801,7 @@ class TestConnectionTest(GraphQLTestCase):
         self.assertEqual(False, r["data"]["testConnection"]["success"])
         self.assertIn("not supported", r["data"]["testConnection"]["error"])
 
-    @patch("hexa.workspaces.utils.DHIS2")
+    @patch("hexa.workspaces.connection_utils.DHIS2")
     def test_test_connection_dhis2_success(self, mock_dhis2_class):
         mock_client = MagicMock()
         mock_client.ping.return_value = True
@@ -821,7 +821,7 @@ class TestConnectionTest(GraphQLTestCase):
             url="https://play.dhis2.org", username="admin", password="district"
         )
 
-    @patch("hexa.workspaces.utils.DHIS2")
+    @patch("hexa.workspaces.connection_utils.DHIS2")
     def test_test_connection_dhis2_unreachable(self, mock_dhis2_class):
         mock_client = MagicMock()
         mock_client.ping.return_value = False
@@ -846,7 +846,7 @@ class TestConnectionTest(GraphQLTestCase):
         self.assertEqual(False, r["data"]["testConnection"]["success"])
         self.assertIn("not reachable", r["data"]["testConnection"]["error"])
 
-    @patch("hexa.workspaces.utils.DHIS2")
+    @patch("hexa.workspaces.connection_utils.DHIS2")
     def test_test_connection_dhis2_auth_failure(self, mock_dhis2_class):
         mock_client = MagicMock()
         mock_client.ping.return_value = True
@@ -861,7 +861,7 @@ class TestConnectionTest(GraphQLTestCase):
         self.assertEqual(False, r["data"]["testConnection"]["success"])
         self.assertIn("401 Unauthorized", r["data"]["testConnection"]["error"])
 
-    @patch("hexa.workspaces.utils.IASO")
+    @patch("hexa.workspaces.connection_utils.IASO")
     def test_test_connection_iaso_success(self, mock_iaso_class):
         mock_client = MagicMock()
         mock_response = MagicMock()
@@ -890,7 +890,7 @@ class TestConnectionTest(GraphQLTestCase):
             r["data"]["testConnection"],
         )
 
-    @patch("hexa.workspaces.utils.psycopg2")
+    @patch("hexa.workspaces.connection_utils.psycopg2")
     def test_test_connection_postgresql_success(self, mock_psycopg2):
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
@@ -924,7 +924,7 @@ class TestConnectionTest(GraphQLTestCase):
             connect_timeout=10,
         )
 
-    @patch("hexa.workspaces.utils.psycopg2")
+    @patch("hexa.workspaces.connection_utils.psycopg2")
     def test_test_connection_postgresql_failure(self, mock_psycopg2):
         mock_psycopg2.connect.side_effect = Exception(
             "could not connect to server: Connection refused"
@@ -949,7 +949,7 @@ class TestConnectionTest(GraphQLTestCase):
             "could not connect to server", r["data"]["testConnection"]["error"]
         )
 
-    @patch("hexa.workspaces.utils.boto3")
+    @patch("hexa.workspaces.connection_utils.boto3")
     def test_test_connection_s3_success(self, mock_boto3):
         mock_client = MagicMock()
         mock_boto3.client.return_value = mock_client
@@ -972,7 +972,7 @@ class TestConnectionTest(GraphQLTestCase):
         )
         mock_client.head_bucket.assert_called_once_with(Bucket="my-bucket")
 
-    @patch("hexa.workspaces.utils.boto3")
+    @patch("hexa.workspaces.connection_utils.boto3")
     def test_test_connection_s3_failure(self, mock_boto3):
         mock_client = MagicMock()
         mock_client.head_bucket.side_effect = Exception("Access Denied")
@@ -993,7 +993,7 @@ class TestConnectionTest(GraphQLTestCase):
         self.assertEqual(False, r["data"]["testConnection"]["success"])
         self.assertIn("Access Denied", r["data"]["testConnection"]["error"])
 
-    @patch("hexa.workspaces.utils.gcs_storage")
+    @patch("hexa.workspaces.connection_utils.gcs_storage")
     def test_test_connection_gcs_success(self, mock_gcs_storage):
         mock_client = MagicMock()
         mock_gcs_storage.Client.from_service_account_info.return_value = mock_client
@@ -1023,7 +1023,7 @@ class TestConnectionTest(GraphQLTestCase):
         mock_client.bucket.assert_called_once_with("my-gcs-bucket")
         mock_bucket.list_blobs.assert_called_once_with(max_results=1)
 
-    @patch("hexa.workspaces.utils.gcs_storage")
+    @patch("hexa.workspaces.connection_utils.gcs_storage")
     def test_test_connection_gcs_failure(self, mock_gcs_storage):
         mock_client = MagicMock()
         mock_gcs_storage.Client.from_service_account_info.return_value = mock_client

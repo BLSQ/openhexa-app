@@ -10,6 +10,7 @@ from hexa.countries.models import Country
 from hexa.databases.utils import TableNotFound, delete_table
 from hexa.user_management.models import Organization, User
 
+from ..connection_utils import test_connection
 from ..jwt_utils import (
     JWTConfigurationError,
     JWTGenerationError,
@@ -25,7 +26,6 @@ from ..models import (
     WorkspaceMembershipRole,
     WorkspacesLimitReached,
 )
-from ..connection_utils import test_connection
 from ..utils import (
     send_workspace_add_user_email,
     send_workspace_invite_new_user_email,

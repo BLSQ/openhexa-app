@@ -239,6 +239,6 @@ mutation uploadPipeline($input: UploadPipelineInput!) {
 mutation testConnection($input: TestConnectionInput!) {
   testConnection(input: $input) {
     success
-    error
+    errors
   }
 }

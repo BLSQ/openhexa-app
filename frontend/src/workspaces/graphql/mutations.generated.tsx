@@ -171,7 +171,7 @@ export type TestConnectionMutationVariables = Types.Exact<{
 }>;
 
 
-export type TestConnectionMutation = { __typename?: 'Mutation', testConnection: { __typename?: 'TestConnectionResult', success: boolean, error?: string | null } };
+export type TestConnectionMutation = { __typename?: 'Mutation', testConnection: { __typename?: 'TestConnectionResult', success: boolean, errors?: string | null } };
 
 
 export const CreateWorkspaceDocument = gql`
@@ -1034,7 +1034,7 @@ export const TestConnectionDocument = gql`
     mutation testConnection($input: TestConnectionInput!) {
   testConnection(input: $input) {
     success
-    error
+    errors
   }
 }
     `;

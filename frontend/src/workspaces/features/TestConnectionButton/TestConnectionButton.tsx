@@ -17,7 +17,7 @@ import {
 } from "workspaces/helpers/connections/utils";
 import Connections from "workspaces/helpers/connections";
 
-type TestResult = { success: boolean; error?: string | null };
+type TestResult = { success: boolean; errors?: string | null };
 
 function TestConnectionBanner({ result }: { result: TestResult }) {
   const { t } = useTranslation();
@@ -38,7 +38,7 @@ function TestConnectionBanner({ result }: { result: TestResult }) {
       <p>
         {result.success
           ? t("Connection successful!")
-          : result.error ||
+          : result.errors ||
             t(
               "Authentication failed. Please check your endpoint and/or parameters",
             )}
@@ -91,7 +91,7 @@ export default function TestConnectionButton({
       } catch {
         setResult({
           success: false,
-          error: t("An unexpected error occurred."),
+          errors: t("An unexpected error occurred."),
         });
       } finally {
         setTesting(false);
@@ -101,7 +101,7 @@ export default function TestConnectionButton({
   );
 
   return (
-    <>
+    <div className="flex flex-col items-start gap-2">
       <Button
         type="button"
         variant="secondary"
@@ -114,6 +114,6 @@ export default function TestConnectionButton({
         {t("Test connection")}
       </Button>
       {result && <TestConnectionBanner result={result} />}
-    </>
+    </div>
   );
 }

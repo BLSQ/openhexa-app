@@ -947,7 +947,7 @@ type TestConnectionResult {
     success: Boolean!
 
     # The error message if the connection test failed.
-    error: String
+    errors: String
 }
 
 extend type Mutation {

@@ -4241,7 +4241,7 @@ input TestConnectionInput {
 
 """Represents the result of testing a connection."""
 type TestConnectionResult {
-  error: String
+  errors: String
   success: Boolean!
 }
 
