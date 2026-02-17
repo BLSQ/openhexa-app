@@ -785,6 +785,7 @@ class PipelineRun(Base, WithStatus):
         ordering = ("-execution_date",)
         indexes = [
             models.Index(fields=["access_token"]),
+            models.Index(fields=["pipeline", "-execution_date"]),
         ]
 
     user = models.ForeignKey(

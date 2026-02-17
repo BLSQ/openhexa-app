@@ -18,4 +18,11 @@ class Migration(migrations.Migration):
             model_name="pipeline",
             index=models.Index(fields=["name"], name="idx_pipeline_name"),
         ),
+        migrations.AddIndex(
+            model_name="pipelinerun",
+            index=models.Index(
+                fields=["pipeline", "-execution_date"],
+                name="pipelines_p_pipelin_c58fed_idx",
+            ),
+        ),
     ]

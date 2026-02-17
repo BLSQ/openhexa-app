@@ -1,6 +1,6 @@
 from ariadne import QueryType
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from django.db.models import OuterRef, Q, Subquery, F, QuerySet
+from django.db.models import F, OuterRef, Q, QuerySet, Subquery
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
@@ -98,12 +98,14 @@ def resolve_pipelines(_, info, **kwargs):
         queryset=pipelines, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
     )
 
-def _order_by_last_run_date(pipelines: QuerySet, order_by: str, base_field: str) -> QuerySet:
+
+def _order_by_last_run_date(
+    pipelines: QuerySet, order_by: str, base_field: str
+) -> QuerySet:
     latest_run_subquery = (
-        PipelineRun.objects
-            .filter(pipeline=OuterRef("pk"))
-            .order_by("-execution_date")
-            .values("execution_date")[:1]
+        PipelineRun.objects.filter(pipeline=OuterRef("pk"))
+        .order_by("-execution_date")
+        .values("execution_date")[:1]
     )
     pipelines = pipelines.annotate(
         last_run_date=Subquery(latest_run_subquery),
@@ -113,6 +115,7 @@ def _order_by_last_run_date(pipelines: QuerySet, order_by: str, base_field: str)
     else:
         pipelines = pipelines.order_by(F(base_field).asc(nulls_last=True))
     return pipelines
+
 
 @pipelines_query.field("pipeline")
 def resolve_pipeline(_, info, **kwargs):
