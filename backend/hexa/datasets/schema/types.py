@@ -235,7 +235,7 @@ def resolve_upload_url(obj, info, **kwargs):
 @dataset_version_file_object.field("fileSample")
 def resolve_version_file_metadata(obj: DatasetVersionFile, info, **kwargs):
     try:
-        return obj.sample_entry
+        return obj.sample
     except DatasetFileSample.DoesNotExist:
         logging.error(f"No sample found for file {obj.filename} with id {obj.id}")
         return None
