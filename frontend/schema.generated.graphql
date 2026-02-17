@@ -1052,6 +1052,8 @@ enum CreateTemplateVersionPermissionReason {
 enum CreateWebappError {
   ALREADY_EXISTS
   PERMISSION_DENIED
+  SUPERSET_INSTANCE_NOT_FOUND
+  SUPERSET_NOT_CONFIGURED
   WORKSPACE_NOT_FOUND
 }
 
@@ -1060,8 +1062,7 @@ input CreateWebappInput {
   description: String
   icon: String
   name: String!
-  type: WebappType!
-  url: String!
+  source: WebappSourceInput!
   workspaceSlug: String!
 }
 
@@ -2319,6 +2320,15 @@ type IASOQueryResultPage {
   success: Boolean!
   totalItems: Int!
   totalPages: Int!
+}
+
+type IframeSource {
+  url: String!
+}
+
+"""Iframe webapp source."""
+input IframeSourceInput {
+  url: String!
 }
 
 """
@@ -3714,6 +3724,7 @@ type Query {
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
   searchPipelineTemplates(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): PipelineTemplateResultPage!
   searchPipelines(functionalType: PipelineFunctionalType, organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): PipelineResultPage!
+  supersetInstances(workspaceSlug: String!): [SupersetInstance!]!
   team(id: UUID!): Team
   teams(page: Int, perPage: Int, term: String): TeamPage!
 
@@ -4152,6 +4163,24 @@ type Subscription {
 
   """The external subscription ID from the Bluesquare Console."""
   subscriptionId: UUID!
+}
+
+"""Represents a Superset instance."""
+type SupersetInstance {
+  id: UUID!
+  name: String!
+  url: String!
+}
+
+type SupersetSource {
+  dashboardId: String!
+  instance: SupersetInstance!
+}
+
+"""Superset dashboard source."""
+input SupersetSourceInput {
+  dashboardId: String!
+  instanceId: UUID!
 }
 
 type TableColumn {
@@ -4897,6 +4926,9 @@ type UpdateUserResult {
 """Represents the error message for a web app update."""
 enum UpdateWebappError {
   PERMISSION_DENIED
+  SUPERSET_INSTANCE_NOT_FOUND
+  SUPERSET_NOT_CONFIGURED
+  TYPE_MISMATCH
   WEBAPP_NOT_FOUND
 }
 
@@ -4906,8 +4938,7 @@ input UpdateWebappInput {
   icon: String
   id: UUID!
   name: String
-  type: WebappType
-  url: String
+  source: UpdateWebappSourceInput
 }
 
 """Represents the result of updating a web app."""
@@ -4915,6 +4946,12 @@ type UpdateWebappResult {
   errors: [UpdateWebappError!]!
   success: Boolean!
   webapp: Webapp
+}
+
+"""Source update for a webapp - exactly one field must be provided."""
+input UpdateWebappSourceInput @oneOf {
+  iframe: IframeSourceInput
+  superset: SupersetSourceInput
 }
 
 """
@@ -5096,6 +5133,7 @@ type Webapp {
   name: String!
   permissions: WebappPermissions!
   slug: String!
+  source: WebappSource!
   type: WebappType!
   url: String!
   workspace: Workspace!
@@ -5105,6 +5143,16 @@ type Webapp {
 type WebappPermissions {
   delete: Boolean!
   update: Boolean!
+}
+
+union WebappSource = IframeSource | SupersetSource
+
+"""
+Source configuration for a webapp - exactly one field must be provided.
+"""
+input WebappSourceInput @oneOf {
+  iframe: IframeSourceInput
+  superset: SupersetSourceInput
 }
 
 """Represents the type of a web app."""

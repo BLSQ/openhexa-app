@@ -2,6 +2,7 @@ from ariadne import QueryType
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
+from hexa.superset.models import SupersetInstance
 from hexa.webapps.models import Webapp
 from hexa.workspaces.models import Workspace
 
@@ -46,6 +47,20 @@ def resolve_webapps(_, info, **kwargs):
     return result_page(
         queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
     )
+
+
+@webapp_query.field("supersetInstances")
+def resolve_superset_instances(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    try:
+        workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=kwargs["workspace_slug"]
+        )
+        if not workspace.organization:
+            return []
+        return SupersetInstance.objects.filter(organization=workspace.organization)
+    except Workspace.DoesNotExist:
+        return []
 
 
 bindables = [
