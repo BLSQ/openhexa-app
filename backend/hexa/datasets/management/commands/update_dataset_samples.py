@@ -14,49 +14,8 @@ class Command(BaseCommand):
     help = "Update sample and rows fields"
 
     def handle(self, *args, **options):
-        queryset = DatasetVersionFile.objects.filter(
-            rows__isnull=True
-        ).prefetch_related("samples")
-
-        batch_files = []
-        batch_samples = []
-
-        total_files = 0
-        total_samples = 0
-
-        for version_file in queryset.iterator(chunk_size=1000):
-            df = load_df(version_file)
-            version_file.rows = len(df.index)
-            batch_files.append(version_file)
-
-            if not df.empty:
-                sample = df.head(settings.WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE)
-                sample = sample.replace(
-                    {np.inf: "inf", -np.inf: "-inf"}
-                )  # We are not supporting Infinity as numbers
-                sample = sample.to_dict(orient="records")
-                for version_sample in version_file.samples.all():
-                    version_sample.sample = sample
-                    batch_samples.append(version_sample)
-
-            if len(batch_files) >= BATCH_SIZE:
-                self._flush_batch(batch_files, batch_samples)
-                total_files += len(batch_files)
-                total_samples += len(batch_samples)
-                batch_files.clear()
-                batch_samples.clear()
-
-        # Flush remaining
-        if batch_files:
-            self._flush_batch(batch_files, batch_samples)
-            total_files += len(batch_files)
-            total_samples += len(batch_samples)
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Updated {total_files} files and {total_samples} samples"
-            )
-        )
+        for dvf in DatasetVersionFile.objects.all():
+            dvf.generate_metadata()
 
     @staticmethod
     def _flush_batch(files, samples):

@@ -66,9 +66,8 @@ def generate_sample(
     version_file: DatasetVersionFile, df: pd.DataFrame
 ) -> DatasetFileSample:
     logger.info(f"Creating dataset sample for version file {version_file.id}")
-    dataset_file_sample = DatasetFileSample.objects.create(
+    dataset_file_sample, _ = DatasetFileSample.objects.get_or_create(
         dataset_version_file=version_file,
-        status=DatasetFileSample.STATUS_PROCESSING,
     )
     try:
         if not df.empty:
