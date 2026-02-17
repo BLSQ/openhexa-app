@@ -1,11 +1,8 @@
 # Update dataset files to change the sample and save the number of rows
-import numpy as np
-from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from hexa.datasets.models import DatasetFileSample, DatasetVersionFile
-from hexa.datasets.queue import load_df
 
 BATCH_SIZE = 1000
 

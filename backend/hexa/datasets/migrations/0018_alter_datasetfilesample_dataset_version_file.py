@@ -2,26 +2,25 @@
 
 import django.db.models.deletion
 from django.db import migrations, models
-from django.db.models import Subquery, OuterRef
+from django.db.models import OuterRef, Subquery
 
 
 def deduplicate_samples(apps, schema_editor):
     DatasetFileSample = apps.get_model("datasets", "DatasetFileSample")
 
     latest_ids = (
-        DatasetFileSample.objects
-        .filter(dataset_version_file=OuterRef("dataset_version_file"))
+        DatasetFileSample.objects.filter(
+            dataset_version_file=OuterRef("dataset_version_file")
+        )
         .order_by("-created_at")
         .values("id")[:1]
     )
 
     # Delete all non-latest samples
-    DatasetFileSample.objects.exclude(
-        id__in=Subquery(latest_ids)
-    ).delete()
+    DatasetFileSample.objects.exclude(id__in=Subquery(latest_ids)).delete()
+
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("datasets", "0017_datasetversionfile_rows"),
     ]

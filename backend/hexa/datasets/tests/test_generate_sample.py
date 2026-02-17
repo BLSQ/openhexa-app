@@ -199,9 +199,7 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                     self.assertEqual(sample.sample, expected_sample)
 
                     if expected_status_reason:
-                        self.assertEqual(
-                            sample.status_reason, expected_status_reason
-                        )
+                        self.assertEqual(sample.status_reason, expected_status_reason)
 
     @override_settings(WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE=1)
     def test_generate_sample_wkb(
@@ -243,9 +241,7 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                     self.assertEqual(sample.sample, expected_sample)
 
                     if expected_status_reason:
-                        self.assertEqual(
-                            sample.status_reason, expected_status_reason
-                        )
+                        self.assertEqual(sample.status_reason, expected_status_reason)
 
     def test_generate_sample_fails(self):
         fixture_name = "example_empty_file.csv"
