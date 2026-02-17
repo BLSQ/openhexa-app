@@ -3825,10 +3825,10 @@ export enum PipelineNotificationLevel {
 
 /** Enum representing the possible orderings for pipelines. */
 export enum PipelineOrderBy {
-  NameAsc = 'NAME_ASC',
-  NameDesc = 'NAME_DESC',
   LastRunDateAsc = 'LAST_RUN_DATE_ASC',
   LastRunDateDesc = 'LAST_RUN_DATE_DESC',
+  NameAsc = 'NAME_ASC',
+  NameDesc = 'NAME_DESC'
 }
 
 /** Represents a parameter of a pipeline. */

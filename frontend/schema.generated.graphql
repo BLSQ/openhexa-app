@@ -3239,10 +3239,10 @@ enum PipelineNotificationLevel {
 
 """Enum representing the possible orderings for pipelines."""
 enum PipelineOrderBy {
-  NAME_ASC
-  NAME_DESC
   LAST_RUN_DATE_ASC
   LAST_RUN_DATE_DESC
+  NAME_ASC
+  NAME_DESC
 }
 
 """Represents a parameter of a pipeline."""
