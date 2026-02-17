@@ -15,7 +15,9 @@ logger = logging.getLogger(__name__)
 CONNECT_TIMEOUT = 10
 
 
-def test_connection(connection_type: str, fields: dict[str, str]) -> tuple[bool, str | None]:
+def test_connection(
+    connection_type: str, fields: dict[str, str]
+) -> tuple[bool, str | None]:
     testers = {
         ConnectionType.DHIS2: _test_dhis2,
         ConnectionType.IASO: _test_iaso,

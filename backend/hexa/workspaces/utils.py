@@ -194,5 +194,3 @@ def normalize_metadata_response(response) -> PagedMetadataResponse:
         )
     else:
         raise ValueError("Unexpected response format")
-
-
