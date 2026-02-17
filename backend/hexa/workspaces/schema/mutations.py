@@ -25,10 +25,10 @@ from ..models import (
     WorkspaceMembershipRole,
     WorkspacesLimitReached,
 )
+from ..connection_utils import test_connection
 from ..utils import (
     send_workspace_add_user_email,
     send_workspace_invite_new_user_email,
-    test_connection,
 )
 
 workspace_mutations = MutationType()
@@ -450,7 +450,7 @@ def resolve_test_connection(_, info, **kwargs):
     connection_type = mutation_input["type"]
 
     success, error = test_connection(connection_type, fields)
-    return {"success": success, "error": error}
+    return {"success": success, "errors": error}
 
 
 bindables = [
