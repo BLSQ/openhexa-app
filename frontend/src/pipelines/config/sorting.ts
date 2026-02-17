@@ -61,6 +61,10 @@ export const pipelineSorting = createSortingUtils({
     asc: PipelineOrderBy.NameAsc,
     desc: PipelineOrderBy.NameDesc,
   },
+  lastRunDate: {
+    asc: PipelineOrderBy.LastRunDateAsc,
+    desc: PipelineOrderBy.LastRunDateDesc,
+  },
 });
 
 export function getPipelineSortOptions(): SortOption<PipelineOrderBy>[] {
@@ -74,6 +78,16 @@ export function getPipelineSortOptions(): SortOption<PipelineOrderBy>[] {
       value: "name-desc",
       orderBy: PipelineOrderBy.NameDesc,
       label: i18n!.t("Name (Z–A)"),
+    },
+    {
+      value: "lastrundate-asc",
+      orderBy: PipelineOrderBy.LastRunDateAsc,
+      label: i18n!.t("Last Run Date (Newest)"),
+    },
+    {
+      value: "lastrundate-desc",
+      orderBy: PipelineOrderBy.LastRunDateDesc,
+      label: i18n!.t("Last Run Date (Oldest)"),
     },
   ];
 }

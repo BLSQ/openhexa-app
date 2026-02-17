@@ -369,11 +369,13 @@ enum PipelineError {
 }
 
 """
-Enum representing the possible orderings for pipeline.
+Enum representing the possible orderings for pipelines.
 """
 enum PipelineOrderBy {
   NAME_DESC
   NAME_ASC
+  LAST_RUN_DATE_DESC
+  LAST_RUN_DATE_ASC
 }
 
 """

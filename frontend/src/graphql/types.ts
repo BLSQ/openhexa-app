@@ -3823,10 +3823,12 @@ export enum PipelineNotificationLevel {
   Error = 'ERROR'
 }
 
-/** Enum representing the possible orderings for pipeline. */
+/** Enum representing the possible orderings for pipelines. */
 export enum PipelineOrderBy {
   NameAsc = 'NAME_ASC',
-  NameDesc = 'NAME_DESC'
+  NameDesc = 'NAME_DESC',
+  LastRunDateAsc = 'LAST_RUN_DATE_ASC',
+  LastRunDateDesc = 'LAST_RUN_DATE_DESC',
 }
 
 /** Represents a parameter of a pipeline. */

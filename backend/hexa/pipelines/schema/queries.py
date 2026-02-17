@@ -1,6 +1,6 @@
 from ariadne import QueryType
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from django.db.models import OuterRef, Q, Subquery
+from django.db.models import OuterRef, Q, Subquery, F, QuerySet
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
@@ -48,17 +48,6 @@ def resolve_pipelines(_, info, **kwargs):
         except Workspace.DoesNotExist:
             pipelines = Pipeline.objects.none()
 
-    order_by = kwargs.get("order_by")
-    if order_by:
-        base_field = order_by.lstrip("-")
-
-        if base_field in Pipeline.UNIQUE_SORT_FIELDS:
-            pipelines = pipelines.order_by(order_by, "id")
-        else:
-            pipelines = pipelines.order_by(order_by, "name", "id")
-    else:
-        pipelines = pipelines.order_by("name", "id")
-
     tags = kwargs.get("tags", [])
     if tags:
         try:
@@ -68,6 +57,19 @@ def resolve_pipelines(_, info, **kwargs):
             pipelines = pipelines.filter_by_tags(tag_objects)
         except InvalidTag:
             pipelines = Pipeline.objects.none()
+
+    order_by = kwargs.get("order_by")
+    if order_by:
+        base_field = order_by.lstrip("-")
+
+        if base_field == "last_run_date":
+            pipelines = _order_by_last_run_date(pipelines, order_by, base_field)
+        elif base_field in Pipeline.UNIQUE_SORT_FIELDS:
+            pipelines = pipelines.order_by(order_by, "id")
+        else:
+            pipelines = pipelines.order_by(order_by, "name", "id")
+    else:
+        pipelines = pipelines.order_by("name", "id")
 
     last_run_states = kwargs.get("last_run_states")
     if last_run_states:
@@ -96,6 +98,21 @@ def resolve_pipelines(_, info, **kwargs):
         queryset=pipelines, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
     )
 
+def _order_by_last_run_date(pipelines: QuerySet, order_by: str, base_field: str) -> QuerySet:
+    latest_run_subquery = (
+        PipelineRun.objects
+            .filter(pipeline=OuterRef("pk"))
+            .order_by("-execution_date")
+            .values("execution_date")[:1]
+    )
+    pipelines = pipelines.annotate(
+        last_run_date=Subquery(latest_run_subquery),
+    )
+    if order_by.startswith("-"):
+        pipelines = pipelines.order_by(F(base_field).desc(nulls_last=True))
+    else:
+        pipelines = pipelines.order_by(F(base_field).asc(nulls_last=True))
+    return pipelines
 
 @pipelines_query.field("pipeline")
 def resolve_pipeline(_, info, **kwargs):
