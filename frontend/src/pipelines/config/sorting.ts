@@ -80,13 +80,13 @@ export function getPipelineSortOptions(): SortOption<PipelineOrderBy>[] {
       label: i18n!.t("Name (Z–A)"),
     },
     {
-      value: "lastrundate-asc",
-      orderBy: PipelineOrderBy.LastRunDateAsc,
+      value: "lastrundate-desc",
+      orderBy: PipelineOrderBy.LastRunDateDesc,
       label: i18n!.t("Last Run Date (Newest)"),
     },
     {
-      value: "lastrundate-desc",
-      orderBy: PipelineOrderBy.LastRunDateDesc,
+      value: "lastrundate-asc",
+      orderBy: PipelineOrderBy.LastRunDateAsc,
       label: i18n!.t("Last Run Date (Oldest)"),
     },
   ];

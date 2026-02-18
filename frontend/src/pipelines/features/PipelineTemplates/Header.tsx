@@ -14,7 +14,7 @@ import {
 import { useTranslation } from "next-i18next";
 import { TagIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
-import { SortOption } from "../../../core/helpers/sorting";
+import { SortOption } from "core/helpers/sorting";
 
 type Filter = {
   workspaceFilter: any;

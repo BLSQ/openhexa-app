@@ -9,9 +9,9 @@ import Badge from "core/components/Badge";
 import PipelineRunStatusBadge from "../PipelineRunStatusBadge";
 import { TagsCell, FunctionalTypeCell } from "../PipelineMetadataGrid";
 import User from "core/features/User";
-import { PipelineOrderBy } from "../../../graphql/types";
+import { PipelineOrderBy } from "graphql/types";
 import { SortingRule } from "react-table";
-import { pipelineSorting } from "../../config/sorting";
+import { pipelineSorting } from "pipelines/config/sorting";
 
 type GridViewProps = {
   items: any[];

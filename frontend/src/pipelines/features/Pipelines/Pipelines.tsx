@@ -13,7 +13,7 @@ import {
   getPipelineSortOptions,
   pipelineSorting,
   PipelineSortOption,
-} from "../../config/sorting";
+} from "pipelines/config/sorting";
 import { SortingRule } from "react-table";
 
 type PipelinesProps = {
