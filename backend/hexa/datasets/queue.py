@@ -69,8 +69,8 @@ def generate_sample(
     dataset_file_sample, _ = DatasetFileSample.objects.update_or_create(
         dataset_version_file=version_file,
         defaults={
+            "sample": list,
             "status": DatasetFileSample.STATUS_PROCESSING,
-            "sample": None,
             "status_reason": None,
         },
     )
