@@ -5,7 +5,7 @@ from hexa.datasets.models import DatasetVersionFile
 
 
 class Command(BaseCommand):
-    help = "Update sample and rows fields"
+    help = "Regenerate metadata and preview for all dataset version files"
 
     def handle(self, *args, **options):
         for dvf in DatasetVersionFile.objects.all():
