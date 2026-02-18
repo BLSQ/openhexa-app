@@ -15,6 +15,7 @@ import Connections, {
   convertFieldsToInput,
 } from "workspaces/helpers/connections";
 import { FieldForm } from "workspaces/helpers/connections/utils";
+import TestConnectionButton from "workspaces/features/TestConnectionButton/TestConnectionButton";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
 import { CreateConnectionDialog_WorkspaceFragment } from "./CreateConnectionDialog.generated";
 import { gql } from "@apollo/client";
@@ -182,7 +183,19 @@ export default function CreateConnectionDialog({
       onSubmit={connection ? form.handleSubmit : undefined}
     >
       <Dialog.Title>
-        {t("Create a {{type}} connection", { type: connection?.label })}
+        <span className="flex-1">
+          {t("Create a {{type}} connection", { type: connection?.label })}
+        </span>
+        <Help
+          links={[
+            {
+              label: t("About connections"),
+              href: "https://docs.openhexa.com/connections/",
+            },
+          ]}
+          placement="bottom-end"
+          withPortal
+        />
       </Dialog.Title>
       {connection ? (
         <>
@@ -241,16 +254,13 @@ export default function CreateConnectionDialog({
           </Dialog.Content>
 
           <Dialog.Actions>
-            <div className="flex-1">
-              <Help
-                links={[
-                  {
-                    label: t("About connections"),
-                    href: "https://docs.openhexa.com/connections/",
-                  },
-                ]}
+            {connectionType && connectionType !== ConnectionType.Custom && (
+              <TestConnectionButton
+                connectionType={connectionType}
+                form={form}
               />
-            </div>
+            )}
+            <div className="flex-1" />
             <Button variant="white" onClick={onClose}>
               {t("Cancel")}
             </Button>
@@ -270,16 +280,6 @@ export default function CreateConnectionDialog({
             <ConnectionTypePanel onSelect={(type) => setConnectionType(type)} />
           </Dialog.Content>
           <Dialog.Actions>
-            <div className="flex-1">
-              <Help
-                links={[
-                  {
-                    label: t("About connections"),
-                    href: "https://docs.openhexa.com/connections/",
-                  },
-                ]}
-              />
-            </div>
             <Button variant="white" onClick={onClose}>
               {t("Cancel")}
             </Button>

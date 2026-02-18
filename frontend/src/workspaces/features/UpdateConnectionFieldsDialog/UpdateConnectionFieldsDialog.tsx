@@ -12,6 +12,7 @@ import Connections, {
 import { UpdateConnectionFieldsDialog_ConnectionFragment } from "./UpdateConnectionFieldsDialog.generated";
 import { ConnectionType } from "graphql/types";
 import { useUpdateConnectionMutation } from "workspaces/graphql/mutations.generated";
+import TestConnectionButton from "workspaces/features/TestConnectionButton/TestConnectionButton";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
 
 type UpdateConnectionFieldsDialogProps = {
@@ -73,10 +74,22 @@ const UpdateConnectionFieldsDialog = (
       maxWidth="max-w-4xl"
       onSubmit={form.handleSubmit}
     >
-      <Dialog.Title onClose={onClose}>
-        {t("Update connection fields for {{name}}", {
-          name: connection.name,
-        })}
+      <Dialog.Title>
+        <span className="flex-1">
+          {t("Update connection fields for {{name}}", {
+            name: connection.name,
+          })}
+        </span>
+        <Help
+          links={[
+            {
+              label: t("About connections"),
+              href: "https://docs.openhexa.com/connections/",
+            },
+          ]}
+          placement="bottom-end"
+          withPortal
+        />
       </Dialog.Title>
       <Dialog.Content className="grid flex-1 grid-cols-2 gap-x-2 gap-y-4 ">
         <definition.Form form={form} />
@@ -86,17 +99,11 @@ const UpdateConnectionFieldsDialog = (
         )}
       </Dialog.Content>
       <Dialog.Actions>
-        <div className="flex-1">
-          <Help
-            links={[
-              {
-                label: t("About connections"),
-                href: "https://docs.openhexa.com/connections/",
-              },
-            ]}
-          />
-        </div>
-
+        <TestConnectionButton
+          connectionType={connection.type}
+          form={form}
+        />
+        <div className="flex-1" />
         <Button variant="white" onClick={onClose}>
           {t("Cancel")}
         </Button>

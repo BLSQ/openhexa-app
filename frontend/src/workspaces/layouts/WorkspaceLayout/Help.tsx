@@ -1,19 +1,22 @@
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
-import clsx from "clsx";
+
 import Link from "core/components/Link";
 import Popover from "core/components/Popover/Popover";
 import Title from "core/components/Title";
 import { ReactElement } from "react";
 import { useTranslation } from "next-i18next";
 
-type HelpProps = Pick<React.ComponentProps<typeof Popover>, "placement"> & {
+type HelpProps = Pick<
+  React.ComponentProps<typeof Popover>,
+  "placement" | "withPortal"
+> & {
   links?: { label: string; href: string }[];
   className?: string;
   children?: ReactElement;
 };
 
 const Help = (props: HelpProps) => {
-  const { placement, links, className } = props;
+  const { placement, withPortal, links, className } = props;
   const { t } = useTranslation();
 
   const children = props.children ?? (
@@ -27,6 +30,7 @@ const Help = (props: HelpProps) => {
         trigger={children}
         className="w-96"
         placement={placement}
+        withPortal={withPortal}
       >
         <Title level={5}>{t("Suggested help topics")}</Title>
         <ul className="list-inside list-disc">

@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import StrEnum
@@ -13,6 +14,8 @@ from hexa.user_management.models import User
 
 from ..analytics.api import track
 from .models import Connection, ConnectionType, Workspace, WorkspaceInvitation
+
+logger = logging.getLogger(__name__)
 
 
 def send_workspace_add_user_email(
