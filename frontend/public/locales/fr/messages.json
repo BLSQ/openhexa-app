@@ -145,6 +145,7 @@
   "Confirm": "Confirmer",
   "Confirm Password": "Confirmer le mot de passe",
   "Confirm publishing": "Confirmer la publication",
+  "Connection failed. The endpoint returned:": "La connexion a échoué. Le point d'accès a retourné :",
   "Connection name": "Nom de la connexion",
   "Connection name must be shorter than 40 characters": "Le nom de la connexion doit être inférieur à 40 caractères",
   "Connection successful!": "Connexion réussie !",

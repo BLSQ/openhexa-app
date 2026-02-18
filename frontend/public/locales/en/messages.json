@@ -139,6 +139,7 @@
   "Confirm": "Confirm",
   "Confirm Password": "Confirm Password",
   "Confirm publishing": "Confirm publishing",
+  "Connection failed. The endpoint returned:": "Connection failed. The endpoint returned:",
   "Connection name": "Connection name",
   "Connection name must be shorter than 40 characters": "Connection name must be shorter than 40 characters",
   "Connection successful!": "Connection successful!",

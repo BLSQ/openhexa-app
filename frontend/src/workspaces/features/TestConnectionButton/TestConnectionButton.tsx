@@ -24,7 +24,7 @@ function TestConnectionBanner({ result }: { result: TestResult }) {
 
   return (
     <div
-      className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm ${
+      className={`flex items-start gap-2 rounded-md px-3 py-2 text-sm ${
         result.success
           ? "bg-green-50 text-green-800"
           : "bg-red-50 text-red-800"
@@ -36,12 +36,20 @@ function TestConnectionBanner({ result }: { result: TestResult }) {
         <XCircleIcon className="h-5 w-5 shrink-0 text-red-500" />
       )}
       <p>
-        {result.success
-          ? t("Connection successful!")
-          : result.errors ||
-            t(
-              "Authentication failed. Please check your endpoint and/or parameters",
-            )}
+        {result.success ? (
+          t("Connection successful!")
+        ) : result.errors ? (
+          <>
+            <span className="block  font-semibold">
+              {t("Connection failed. The endpoint returned:")}
+            </span>
+            <span className="block">{result.errors}</span>
+          </>
+        ) : (
+          t(
+            "Authentication failed. Please check your endpoint and/or parameters",
+          )
+        )}
       </p>
     </div>
   );
