@@ -194,12 +194,12 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                     mock_generate_download_url.return_value = fixture_file_path
                     df = load_df(version_file)
                     generate_sample(version_file, df)
-                    sample = version_file.sample
-                    self.assertEqual(sample.status, expected_status)
-                    self.assertEqual(sample.sample, expected_sample)
+                    sample_entry = version_file.sample_entry
+                    self.assertEqual(sample_entry.status, expected_status)
+                    self.assertEqual(sample_entry.sample, expected_sample)
 
                     if expected_status_reason:
-                        self.assertEqual(sample.status_reason, expected_status_reason)
+                        self.assertEqual(sample_entry.status_reason, expected_status_reason)
 
     @override_settings(WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE=1)
     def test_generate_sample_wkb(
@@ -236,12 +236,12 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                     mock_generate_download_url.return_value = fixture_file_path
                     df = load_df(version_file)
                     generate_sample(version_file, df)
-                    sample = version_file.sample
-                    self.assertEqual(sample.status, expected_status)
-                    self.assertEqual(sample.sample, expected_sample)
+                    sample_entry = version_file.sample_entry
+                    self.assertEqual(sample_entry.status, expected_status)
+                    self.assertEqual(sample_entry.sample, expected_sample)
 
                     if expected_status_reason:
-                        self.assertEqual(sample.status_reason, expected_status_reason)
+                        self.assertEqual(sample_entry.status_reason, expected_status_reason)
 
     def test_generate_sample_fails(self):
         fixture_name = "example_empty_file.csv"

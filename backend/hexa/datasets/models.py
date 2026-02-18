@@ -463,7 +463,7 @@ class DatasetFileSample(Base):
         null=False,
         blank=False,
         on_delete=models.CASCADE,
-        related_name="sample",
+        related_name="sample_entry",
     )
 
 

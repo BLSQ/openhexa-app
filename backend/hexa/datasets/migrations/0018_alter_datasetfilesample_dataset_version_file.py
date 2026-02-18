@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
             name="dataset_version_file",
             field=models.OneToOneField(
                 on_delete=django.db.models.deletion.CASCADE,
-                related_name="sample",
+                related_name="sample_entry",
                 to="datasets.datasetversionfile",
             ),
         ),
