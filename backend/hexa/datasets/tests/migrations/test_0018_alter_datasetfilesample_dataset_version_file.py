@@ -4,12 +4,15 @@ from django.test import TransactionTestCase
 from django.utils import timezone
 
 from hexa.core.test.migrator import Migrator
-from hexa.datasets.models import DatasetVersion, DatasetVersionFile, DatasetFileSample
+from hexa.datasets.models import DatasetFileSample, DatasetVersion, DatasetVersionFile
 
 
 class Migration00XXDatasetFileSampleOneToOneTest(TransactionTestCase):
     migrate_from = ("datasets", "0017_datasetversionfile_rows")
-    migrate_to = ("datasets", "0018_alter_datasetfilesample_dataset_version_file")  # adjust
+    migrate_to = (
+        "datasets",
+        "0018_alter_datasetfilesample_dataset_version_file",
+    )  # adjust
 
     def setUp(self):
         self.migrator = Migrator()
@@ -91,9 +94,7 @@ class Migration00XXDatasetFileSampleOneToOneTest(TransactionTestCase):
         sample.delete()
 
         self.assertTrue(
-            self.DatasetVersionFile.objects.filter(
-                pk=self.version_file.pk
-            ).exists()
+            self.DatasetVersionFile.objects.filter(pk=self.version_file.pk).exists()
         )
 
     def test_one_to_one_enforced(self):
