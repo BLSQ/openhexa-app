@@ -436,12 +436,6 @@ class DataframeJsonEncoder(DjangoJSONEncoder):
 class DatasetFileSample(Base):
     class Meta:
         ordering = ["-created_at"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["dataset_version_file"],
-                name="unique_sample_per_file",
-            )
-        ]
 
     STATUS_PROCESSING = "PROCESSING"
     STATUS_FAILED = "FAILED"

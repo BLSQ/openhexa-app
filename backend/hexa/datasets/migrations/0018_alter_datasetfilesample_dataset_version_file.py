@@ -21,19 +21,14 @@ def deduplicate_samples(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    atomic = False
+
     dependencies = [
         ("datasets", "0017_datasetversionfile_rows"),
     ]
 
     operations = [
         migrations.RunPython(deduplicate_samples, migrations.RunPython.noop),
-        migrations.AddConstraint(
-            model_name="datasetfilesample",
-            constraint=models.UniqueConstraint(
-                fields=["dataset_version_file"],
-                name="unique_sample_per_file",
-            ),
-        ),
         migrations.AlterField(
             model_name="datasetfilesample",
             name="dataset_version_file",
