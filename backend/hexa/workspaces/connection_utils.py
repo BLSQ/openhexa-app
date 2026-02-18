@@ -4,6 +4,7 @@ import logging
 import boto3
 import psycopg2
 from botocore.config import Config as BotoConfig
+from django.utils.translation import gettext_lazy as _
 from google.cloud import storage as gcs_storage
 from openhexa.toolbox.dhis2 import DHIS2
 from openhexa.toolbox.iaso import IASO
@@ -43,7 +44,7 @@ def _test_dhis2(fields: dict) -> tuple[bool, str | None]:
         password=fields["password"],
     )
     if not client.ping():
-        return False, "DHIS2 instance is not reachable"
+        return False, str(_("DHIS2 instance is not reachable"))
     client.me()
     return True, None
 

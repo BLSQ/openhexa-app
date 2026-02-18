@@ -2210,6 +2210,10 @@ msgstr "DB PostgreSQL"
 msgid "DHIS2 Instance"
 msgstr ""
 
+#: hexa/workspaces/connection_utils.py:46
+msgid "DHIS2 instance is not reachable"
+msgstr "L'instance DHIS2 n'est pas accessible"
+
 #: hexa/workspaces/models.py:435
 msgid "IASO Instance"
 msgstr "Instance IASO"
