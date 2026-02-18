@@ -66,6 +66,7 @@ export type WorkspacePipelinesPageQueryVariables = Types.Exact<{
   lastRunStates?: Types.InputMaybe<Array<Types.PipelineRunStatus> | Types.PipelineRunStatus>;
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  orderBy?: Types.InputMaybe<Types.PipelineOrderBy>;
 }>;
 
 
@@ -417,7 +418,7 @@ export type WorkspacePageLazyQueryHookResult = ReturnType<typeof useWorkspacePag
 export type WorkspacePageSuspenseQueryHookResult = ReturnType<typeof useWorkspacePageSuspenseQuery>;
 export type WorkspacePageQueryResult = Apollo.QueryResult<WorkspacePageQuery, WorkspacePageQueryVariables>;
 export const WorkspacePipelinesPageDocument = gql`
-    query WorkspacePipelinesPage($workspaceSlug: String!, $search: String, $tags: [String!], $functionalType: PipelineFunctionalType, $lastRunStates: [PipelineRunStatus!], $page: Int, $perPage: Int) {
+    query WorkspacePipelinesPage($workspaceSlug: String!, $search: String, $tags: [String!], $functionalType: PipelineFunctionalType, $lastRunStates: [PipelineRunStatus!], $page: Int, $perPage: Int, $orderBy: PipelineOrderBy) {
   workspace(slug: $workspaceSlug) {
     slug
     name
@@ -434,6 +435,7 @@ export const WorkspacePipelinesPageDocument = gql`
     lastRunStates: $lastRunStates
     page: $page
     perPage: $perPage
+    orderBy: $orderBy
   ) {
     items {
       ...PipelineCard_pipeline
@@ -466,6 +468,7 @@ ${PipelineCard_PipelineFragmentDoc}`;
  *      lastRunStates: // value for 'lastRunStates'
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
+ *      orderBy: // value for 'orderBy'
  *   },
  * });
  */

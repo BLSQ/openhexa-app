@@ -365,6 +365,8 @@ class PipelineManager(DefaultSoftDeletedManager.from_queryset(PipelineQuerySet))
 
 
 class Pipeline(SoftDeletedModel):
+    UNIQUE_SORT_FIELDS = {"name"}
+
     class Meta:
         verbose_name = "Pipeline"
         constraints = [
@@ -375,6 +377,9 @@ class Pipeline(SoftDeletedModel):
                 condition=Q(deleted_at__isnull=True),
                 violation_error_message="A pipeline with the same code already exists in this workspace. Consider using `create_if_has_perm` method.",
             )
+        ]
+        indexes = [
+            models.Index(fields=["name"], name="idx_pipeline_name"),
         ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -780,6 +785,7 @@ class PipelineRun(Base, WithStatus):
         ordering = ("-execution_date",)
         indexes = [
             models.Index(fields=["access_token"]),
+            models.Index(fields=["pipeline", "-execution_date"]),
         ]
 
     user = models.ForeignKey(

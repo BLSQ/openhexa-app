@@ -25,6 +25,15 @@ from hexa.workspaces.schema.types import workspace_permissions
 pipeline_permissions = ObjectType("PipelinePermissions")
 pipeline_version_permissions = ObjectType("PipelineVersionPermissions")
 pipeline_parameter = ObjectType("PipelineParameter")
+pipeline_order_by_enum = EnumType(
+    "PipelineOrderBy",
+    {
+        "NAME_DESC": "-name",
+        "NAME_ASC": "name",
+        "LAST_RUN_DATE_DESC": "-last_run_date",
+        "LAST_RUN_DATE_ASC": "last_run_date",
+    },
+)
 pipeline_run_status_enum = EnumType("PipelineRunStatus", PipelineRun.STATUS_MAPPINGS)
 pipeline_notification_level_enum = EnumType(
     "PipelineNotificationLevel", PipelineNotificationLevel
@@ -459,6 +468,7 @@ bindables = [
     pipeline_permissions,
     pipeline_parameter,
     pipeline_object,
+    pipeline_order_by_enum,
     pipeline_run_object,
     pipeline_run_status_enum,
     pipeline_notification_level_enum,

@@ -369,6 +369,16 @@ enum PipelineError {
 }
 
 """
+Enum representing the possible orderings for pipelines.
+"""
+enum PipelineOrderBy {
+  NAME_DESC
+  NAME_ASC
+  LAST_RUN_DATE_DESC
+  LAST_RUN_DATE_ASC
+}
+
+"""
 Represents the input for creating a pipeline.
 """
 input CreatePipelineInput {
@@ -718,7 +728,7 @@ extend type Query {
   """
   Retrieves a page of pipelines ordered by relevant name.
   """
-  pipelines(workspaceSlug: String, name: String, search: String, tags: [String!], functionalType: PipelineFunctionalType, lastRunStates: [PipelineRunStatus!], page: Int, perPage: Int): PipelinesPage! @loginRequired
+  pipelines(workspaceSlug: String, name: String, search: String, tags: [String!], functionalType: PipelineFunctionalType, lastRunStates: [PipelineRunStatus!], page: Int, perPage: Int, orderBy: PipelineOrderBy): PipelinesPage! @loginRequired
 
   """
   Retrieves a pipeline by ID.

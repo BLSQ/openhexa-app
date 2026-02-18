@@ -9,6 +9,12 @@ import Spinner from "core/components/Spinner";
 import { useWorkspacePipelinesPageQuery } from "workspaces/graphql/queries.generated";
 import { PipelineFunctionalType, PipelineRunStatus } from "graphql/types";
 import usePipelinesView from "pipelines/hooks/usePipelinesView";
+import {
+  getPipelineSortOptions,
+  pipelineSorting,
+  PipelineSortOption,
+} from "pipelines/config/sorting";
+import { SortingRule } from "react-table";
 
 type PipelinesProps = {
   workspace: Pipelines_WorkspaceFragment;
@@ -36,6 +42,12 @@ const Pipelines = ({
   const [view, setView] = usePipelinesView();
   const [page, setPage] = useState(initialPage);
 
+
+  const sortOptions = getPipelineSortOptions()
+  const [sortOrder, setSortOrder] = useState<PipelineSortOption>(
+    sortOptions[0],
+  );
+
   const [functionalType, setFunctionalType] = useState<PipelineFunctionalType | null>(
     initialFunctionalType || null
   );
@@ -46,13 +58,14 @@ const Pipelines = ({
 
   const { data, loading } = useWorkspacePipelinesPageQuery({
     variables: {
+      page,
+      perPage,
       workspaceSlug: workspace.slug,
       search: debouncedSearchQuery,
       tags: selectedTags.length > 0 ? selectedTags : undefined,
       functionalType,
       lastRunStates: lastRunStates.length > 0 ? lastRunStates : undefined,
-      page,
-      perPage,
+      orderBy: sortOrder.orderBy,
     },
   });
 
@@ -76,6 +89,22 @@ const Pipelines = ({
     }
   }, [loading, data]);
 
+  const handleDataGridSort = (params: {
+    page: number;
+    pageSize: number;
+    pageIndex: number;
+    sortBy: SortingRule<object>[];
+  }) => {
+    const orderBy = pipelineSorting.convertDataGridSort(params.sortBy);
+    if (orderBy) {
+      const matchingOption = sortOptions.find((opt) => opt.orderBy === orderBy);
+      if (matchingOption) {
+        setSortOrder(matchingOption);
+      }
+    }
+    setPage(params.page);
+  };
+
   const ViewComponent = view === "grid" ? GridView : CardView;
 
   const totalItems = data?.pipelines?.totalItems ?? 0;
@@ -96,6 +125,9 @@ const Pipelines = ({
         setTagsFilter={setSelectedTags}
         pipelineTags={pipelineTags}
         pipelineLastRunStatuses={pipelineLastRunStatuses}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+        sortOptions={sortOptions}
       />
       <div className="relative">
         {loading && (
@@ -110,6 +142,8 @@ const Pipelines = ({
           perPage={perPage}
           totalItems={totalItems}
           setPage={setPage}
+          onSort={view === "grid" ? handleDataGridSort : undefined}
+          currentSort={view === "grid" ? sortOrder.orderBy : undefined}
         />
       </div>
     </div>

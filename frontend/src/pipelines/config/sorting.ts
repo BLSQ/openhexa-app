@@ -1,5 +1,5 @@
 import { i18n } from "next-i18next";
-import { PipelineTemplateOrderBy } from "graphql/types";
+import { PipelineOrderBy, PipelineTemplateOrderBy } from "graphql/types";
 import { SortOption, createSortingUtils } from "core/helpers/sorting";
 
 export type TemplateSortOption = SortOption<PipelineTemplateOrderBy>;
@@ -50,6 +50,44 @@ export function getTemplateSortOptions(): SortOption<PipelineTemplateOrderBy>[] 
       value: "name-desc",
       orderBy: PipelineTemplateOrderBy.NameDesc,
       label: i18n!.t("Name (Z–A)"),
+    },
+  ];
+}
+
+export type PipelineSortOption = SortOption<PipelineOrderBy>;
+
+export const pipelineSorting = createSortingUtils({
+  name: {
+    asc: PipelineOrderBy.NameAsc,
+    desc: PipelineOrderBy.NameDesc,
+  },
+  lastRunDate: {
+    asc: PipelineOrderBy.LastRunDateAsc,
+    desc: PipelineOrderBy.LastRunDateDesc,
+  },
+});
+
+export function getPipelineSortOptions(): SortOption<PipelineOrderBy>[] {
+  return [
+    {
+      value: "name-asc",
+      orderBy: PipelineOrderBy.NameAsc,
+      label: i18n!.t("Name (A–Z)"),
+    },
+    {
+      value: "name-desc",
+      orderBy: PipelineOrderBy.NameDesc,
+      label: i18n!.t("Name (Z–A)"),
+    },
+    {
+      value: "lastrundate-desc",
+      orderBy: PipelineOrderBy.LastRunDateDesc,
+      label: i18n!.t("Last Run Date (Newest)"),
+    },
+    {
+      value: "lastrundate-asc",
+      orderBy: PipelineOrderBy.LastRunDateAsc,
+      label: i18n!.t("Last Run Date (Oldest)"),
     },
   ];
 }
