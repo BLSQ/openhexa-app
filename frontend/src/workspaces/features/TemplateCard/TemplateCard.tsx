@@ -46,11 +46,13 @@ const TemplateCard = ({ template, workspace }: TemplateCardProps) => {
         className="space-y-4 min-h-20 min-w-20"
         title={template.description ?? ""}
       >
-        <div className={clsx("line-clamp-3")}>
-          <div className="prose [&>*]:inline [&>*]:mr-1">
-            <MarkdownViewer sm markdown={pipeline.description} />
+        {template.description && (
+          <div className={clsx("line-clamp-3")}>
+            <div className="prose [&>*]:inline [&>*]:mr-1">
+              <MarkdownViewer sm markdown={template.description} />
+            </div>
           </div>
-        </div>
+        )}
         <div className="flex items-center justify-between">
           <PipelineMetadataDisplay metadata={template} size="sm" />
           {template.pipelinesCount !== undefined && (
