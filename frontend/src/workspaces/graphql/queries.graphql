@@ -791,6 +791,7 @@ query WorkspaceWebappsPage(
       icon
       description
       url
+      type
       isFavorite
       isShortcut
       createdBy {
