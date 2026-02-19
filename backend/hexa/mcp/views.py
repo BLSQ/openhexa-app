@@ -195,13 +195,7 @@ def tools_page(request: HttpRequest) -> TemplateResponse:
 def mcp_endpoint(request: HttpRequest) -> HttpResponse:
     """Main MCP endpoint. Handles JSON-RPC 2.0 messages from MCP clients."""
     if request.method == "GET":
-        return JsonResponse(
-            {
-                "jsonrpc": "2.0",
-                "error": {"code": -32600, "message": "GET not supported, use POST"},
-            },
-            status=405,
-        )
+        return tools_page(request)
 
     if request.method == "DELETE":
         return HttpResponse(status=200)

@@ -6,7 +6,6 @@ app_name = "mcp"
 
 urlpatterns = [
     path("", views.mcp_endpoint, name="mcp_endpoint"),
-    path("tools/", views.tools_page, name="tools_page"),
     path("login/", views.oauth_login, name="oauth_login"),
     path(
         "register/",
