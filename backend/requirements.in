@@ -80,3 +80,7 @@ openhexa-sdk==2.15.2
 mjml-python
 #
 filetype
+
+# MCP server + OAuth 2.1
+django-oauth-toolkit>=3.0.0
+mcp>=1.0.0

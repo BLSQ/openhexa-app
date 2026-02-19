@@ -129,7 +129,7 @@ if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
         ","
     )
 
-CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$"
+CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$|^/mcp/|^/oauth/|^/\.well-known/"
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -190,6 +190,8 @@ INSTALLED_APPS = [
     "hexa.superset",
     "hexa.webapps",
     "hexa.shortcuts",
+    "oauth2_provider",
+    "hexa.mcp",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
@@ -210,6 +212,7 @@ MIDDLEWARE = [
     "hexa.pipelines.middlewares.pipeline_run_authentication_middleware",
     "hexa.workspaces.middlewares.workspace_token_authentication_middleware",
     "hexa.user_management.middlewares.service_account_token_middleware",
+    "hexa.mcp.middlewares.oauth2_token_authentication_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
@@ -474,3 +477,13 @@ AWS_PERMISSIONS_BOUNDARY_POLICY_ARN = os.environ.get(
 
 # MIXPANEL
 MIXPANEL_TOKEN = os.environ.get("MIXPANEL_TOKEN")
+
+# OAuth2 Provider (django-oauth-toolkit)
+OAUTH2_PROVIDER = {
+    "PKCE_REQUIRED": True,
+    "SCOPES": {"read": "Read access", "write": "Write access"},
+    "DEFAULT_SCOPES": ["read"],
+    "ACCESS_TOKEN_EXPIRE_SECONDS": 3600,
+    "REFRESH_TOKEN_EXPIRE_SECONDS": 86400,
+    "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"],
+}
