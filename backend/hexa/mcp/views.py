@@ -147,6 +147,50 @@ def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
     return JsonResponse(response_data, status=201)
 
 
+def tools_page(request: HttpRequest) -> TemplateResponse:
+    """Public page listing all MCP tools and their schemas."""
+    from .server import (
+        MCP_SERVER_NAME,
+        MCP_SERVER_VERSION,
+        PROTOCOL_VERSION,
+        get_tools_list,
+    )
+
+    raw_tools = get_tools_list()
+    tools = []
+    for t in raw_tools:
+        schema = t.get("inputSchema", {})
+        properties = schema.get("properties", {})
+        required_set = set(schema.get("required", []))
+        params = [
+            {
+                "name": name,
+                "type": prop.get("type", "string"),
+                "required": name in required_set,
+            }
+            for name, prop in properties.items()
+        ]
+        tools.append(
+            {
+                "name": t["name"],
+                "description": t.get("description", ""),
+                "params": params,
+                "param_count": len(params),
+            }
+        )
+
+    return TemplateResponse(
+        request,
+        "mcp/tools.html",
+        {
+            "tools": tools,
+            "server_name": MCP_SERVER_NAME,
+            "server_version": MCP_SERVER_VERSION,
+            "protocol_version": PROTOCOL_VERSION,
+        },
+    )
+
+
 @csrf_exempt
 def mcp_endpoint(request: HttpRequest) -> HttpResponse:
     """Main MCP endpoint. Handles JSON-RPC 2.0 messages from MCP clients."""
