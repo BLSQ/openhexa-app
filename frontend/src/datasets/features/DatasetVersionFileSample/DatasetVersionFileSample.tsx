@@ -88,9 +88,9 @@ const SmartPreviewer = ({
 }: {
   file: DatasetVersionFileSample_FileFragment;
 }) => {
-  const codeLang = getCodeLang(file.filename);
-
   if (!file.downloadUrl || file.size > MAX_SIZE) return <NoPreviewMessage />;
+
+  const codeLang = getCodeLang(file.filename);
 
   if (codeLang && file.size <= MAX_TEXT_SIZE) {
     return <CodePreviewer url={file.downloadUrl} lang={codeLang} />;
