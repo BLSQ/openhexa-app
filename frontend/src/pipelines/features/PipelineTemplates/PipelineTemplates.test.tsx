@@ -76,7 +76,9 @@ describe("PipelineTemplates", () => {
 
     fireEvent.click(screen.getByTestId("card-view"));
 
-    expect(screen.getByText("Description 1")).toBeInTheDocument();
+     await waitFor(() => {
+      expect(screen.getByText("Description 1")).toBeInTheDocument();
+    });
   });
 
   it("handles pagination", async () => {
