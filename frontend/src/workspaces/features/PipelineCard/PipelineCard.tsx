@@ -2,7 +2,6 @@ import { gql } from "@apollo/client";
 import Card from "core/components/Card";
 import Tooltip from "core/components/Tooltip";
 import Badge from "core/components/Badge";
-import { stripMarkdown } from "core/helpers";
 import UserAvatar from "identity/features/UserAvatar";
 import User from "core/features/User";
 import { DateTime } from "luxon";
@@ -14,6 +13,7 @@ import {
   PipelineCard_PipelineFragment,
   PipelineCard_WorkspaceFragment,
 } from "./PipelineCard.generated";
+import MarkdownViewer from "core/components/MarkdownViewer";
 
 interface PipelineCardProps {
   workspace: PipelineCard_WorkspaceFragment;
@@ -50,7 +50,9 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
         <div className="space-y-4 flex-1">
           {pipeline.description && (
             <div className="line-clamp-3 text-gray-700">
-              {stripMarkdown(pipeline.description)}
+              <div className="prose [&>*]:inline [&>*]:mr-1">
+                <MarkdownViewer sm markdown={pipeline.description} />
+              </div>
             </div>
           )}
 
