@@ -109,10 +109,15 @@ const WebappsPage = (props: Props) => {
               totalItems={data.webapps.totalItems}
               fetchData={onChangePage}
             >
-              <BaseColumn id="name" label={t("Name")} minWidth={200} maxWidth={350}>
+              <BaseColumn
+                id="name"
+                label={t("Name")}
+                minWidth={200}
+                maxWidth={350}
+              >
                 {(item) => (
-                  <div className="flex items-center space-x-1">
-                    <div className="flex items-center space-x-1 flex-shrink-0">
+                  <div className="flex items-center">
+                    <div className="flex items-center space-x-1 shrink-0">
                       <FavoriteWebappButton webapp={item} />
                       <ShortcutWebappButton webapp={item} />
                       <img
@@ -151,15 +156,23 @@ const WebappsPage = (props: Props) => {
                   <PlayIcon className="h-4 w-4 text-white fill-white translate-x-0.25" />
                 </div>
               </LinkColumn>
-              <BaseColumn id="createdBy" label={t("Created by")}>
+              <BaseColumn
+                id="createdBy"
+                label={t("Created by")}
+                className="flex items-center"
+              >
                 {(item) => (
-                  <div className={"flex items-center space-x-1"}>
+                  <div className="flex items-center space-x-1">
                     <UserAvatar user={item.createdBy} size="xs" />
                     <p>{item.createdBy.displayName}</p>
                   </div>
                 )}
               </BaseColumn>
-              <BaseColumn id="type" label={t("Type")}>
+              <BaseColumn
+                id="type"
+                label={t("Type")}
+                className="flex items-center"
+              >
                 {(item) => (
                   <div className="flex items-center">
                     {getWebappTypeLabel(item.type)}
@@ -169,6 +182,7 @@ const WebappsPage = (props: Props) => {
               <ChevronLinkColumn
                 accessor="slug"
                 customLabel={t("Edit")}
+                className="flex items-center"
                 url={(slug) => ({
                   pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${slug}`,
                 })}
