@@ -226,8 +226,7 @@ type WebappsPage {
 }
 
 extend type Query {
-  webapp(workspaceSlug: String!, slug: String!): Webapp @loginRequired
-  publicWebapp(workspaceSlug: String!, slug: String!): Webapp
+  webapp(workspaceSlug: String!, slug: String!): Webapp
   webapps(workspaceSlug: String, favorite: Boolean, page: Int, perPage: Int): WebappsPage! @loginRequired
   supersetInstances(workspaceSlug: String!): [SupersetInstance!]! @loginRequired
 }
