@@ -170,7 +170,7 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
                   style="display: flex; flex: 1 0 auto; min-width: 740px;"
                 >
                   <td
-                    class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    class="text-sm text-gray-500 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
                     role="cell"
                     style="box-sizing: border-box; flex: 350 0 auto; min-width: 350px; width: 350px;"
                   >
@@ -205,7 +205,7 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
                     </div>
                   </td>
                   <td
-                    class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    class="text-sm text-gray-500 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
                     role="cell"
                     style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
                   >
@@ -216,7 +216,7 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
                     </span>
                   </td>
                   <td
-                    class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    class="text-sm text-gray-500 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
                     role="cell"
                     style="box-sizing: border-box; flex: 300 0 auto; min-width: 300px; width: 300px;"
                   >
@@ -231,7 +231,7 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
                     </div>
                   </td>
                   <td
-                    class="text-sm text-gray-500 h-full py-4 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    class="text-sm text-gray-500 py-4 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
                     role="cell"
                     style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
                   >
@@ -244,7 +244,7 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
                     </time>
                   </td>
                   <td
-                    class="text-sm text-gray-500 h-full flex justify-end gap-x-2 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    class="text-sm text-gray-500 flex justify-end gap-x-2 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
                     role="cell"
                     style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
                   >
@@ -307,7 +307,7 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
                   style="display: flex; flex: 1 0 auto; min-width: 740px;"
                 >
                   <td
-                    class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    class="text-sm text-gray-500 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
                     role="cell"
                     style="box-sizing: border-box; flex: 350 0 auto; min-width: 350px; width: 350px;"
                   >
@@ -342,7 +342,7 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
                     </div>
                   </td>
                   <td
-                    class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    class="text-sm text-gray-500 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
                     role="cell"
                     style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
                   >
@@ -353,7 +353,7 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
                     </span>
                   </td>
                   <td
-                    class="text-sm text-gray-500 h-full px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    class="text-sm text-gray-500 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
                     role="cell"
                     style="box-sizing: border-box; flex: 300 0 auto; min-width: 300px; width: 300px;"
                   >
@@ -368,7 +368,7 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
                     </div>
                   </td>
                   <td
-                    class="text-sm text-gray-500 h-full py-4 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    class="text-sm text-gray-500 py-4 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
                     role="cell"
                     style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
                   >
@@ -381,7 +381,7 @@ exports[`OrganizationMembers renders organization members list correctly 1`] = `
                     </time>
                   </td>
                   <td
-                    class="text-sm text-gray-500 h-full flex justify-end gap-x-2 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
+                    class="text-sm text-gray-500 flex justify-end gap-x-2 px-4 py-3 first:pl-6 last:pr-6 whitespace-nowrap"
                     role="cell"
                     style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
                   >

@@ -7,7 +7,7 @@ export const TableClasses = {
   tbody: "divide-y divide-gray-200",
   tr: "",
   th: "bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
-  td: "text-sm text-gray-500 h-full",
+  td: "text-sm text-gray-500",
 };
 
 const SpacingClasses = {
