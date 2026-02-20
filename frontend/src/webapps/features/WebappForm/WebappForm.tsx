@@ -19,6 +19,7 @@ import LinkProperty from "core/components/DataCard/LinkProperty";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import useCacheKey from "core/hooks/useCacheKey";
 import ImageProperty from "core/components/DataCard/ImageProperty";
+import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
 import {
@@ -84,6 +85,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             id: webapp!.id,
             name: values.name,
             icon: values.icon,
+            isPublic: values.isPublic,
             source,
           },
         },
@@ -239,6 +241,16 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         {webapp && selectedType === WebappType.Superset && (
           <LinkProperty id="supersetUrl" accessor="url" label={t("URL")} />
         )}
+        {webapp && (
+          <SwitchProperty
+            id="isPublic"
+            accessor="isPublic"
+            label={t("Public access")}
+            help={t(
+              "When enabled, the play link can be accessed without authentication",
+            )}
+          />
+        )}
       </DataCard.FormSection>
       {debouncedUrl && (
         <DataCard.Section
@@ -263,6 +275,7 @@ WebappForm.fragment = {
       url
       type
       icon
+      isPublic
       source {
         ... on SupersetSource {
           instance {
