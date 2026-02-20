@@ -3731,6 +3731,7 @@ type Query {
 
   """Retrieves a page of pipelines ordered by relevant name."""
   pipelines(functionalType: PipelineFunctionalType, lastRunStates: [PipelineRunStatus!], name: String, orderBy: PipelineOrderBy, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
+  publicWebapp(slug: String!, workspaceSlug: String!): Webapp
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
@@ -4967,6 +4968,7 @@ input UpdateWebappInput {
   description: String
   icon: String
   id: UUID!
+  isPublic: Boolean
   name: String
   source: UpdateWebappSourceInput
 }
@@ -5159,6 +5161,7 @@ type Webapp {
   icon: String
   id: UUID!
   isFavorite: Boolean!
+  isPublic: Boolean!
   isShortcut: Boolean!
   name: String!
   permissions: WebappPermissions!

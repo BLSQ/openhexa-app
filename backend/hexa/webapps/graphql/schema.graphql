@@ -43,6 +43,7 @@ type Webapp {
   icon: String
   workspace: Workspace!
   createdBy: User!
+  isPublic: Boolean!
   isFavorite: Boolean!
   isShortcut: Boolean!
   source: WebappSource!
@@ -117,6 +118,7 @@ input UpdateWebappInput {
   name: String
   description: String
   icon: String
+  isPublic: Boolean
   source: UpdateWebappSourceInput
 }
 
@@ -225,6 +227,7 @@ type WebappsPage {
 
 extend type Query {
   webapp(workspaceSlug: String!, slug: String!): Webapp @loginRequired
+  publicWebapp(workspaceSlug: String!, slug: String!): Webapp
   webapps(workspaceSlug: String, favorite: Boolean, page: Int, perPage: Int): WebappsPage! @loginRequired
   supersetInstances(workspaceSlug: String!): [SupersetInstance!]! @loginRequired
 }
