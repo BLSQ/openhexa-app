@@ -1,5 +1,26 @@
 # Changelog
 
+## [4.1.0](https://github.com/BLSQ/openhexa-app/compare/4.0.0...4.1.0) (2026-02-20)
+
+
+### Features
+
+* **Storage:** Support Azure Blob storage ([6a8b11d](https://github.com/BLSQ/openhexa-app/commit/6a8b11d2fca1bcabea1119545e52305a2bc8e5a3))
+* **Storage:** Support Azure Blob storage (HEXA-1475) ([#1559](https://github.com/BLSQ/openhexa-app/issues/1559)) ([6a8b11d](https://github.com/BLSQ/openhexa-app/commit/6a8b11d2fca1bcabea1119545e52305a2bc8e5a3))
+* supporting the preview of json,geojson,yaml,yml and xml (HEXA-1510) ([#1626](https://github.com/BLSQ/openhexa-app/issues/1626)) ([16eb960](https://github.com/BLSQ/openhexa-app/commit/16eb960da27023c46f478c6021878e5e98524cdb))
+
+
+### Bug Fixes
+
+* **AzureBlobStorage:** Update placeholder blob naming and improve delete logic ([6a8b11d](https://github.com/BLSQ/openhexa-app/commit/6a8b11d2fca1bcabea1119545e52305a2bc8e5a3))
+* **DB:** Adaptation for PG16 ([6a8b11d](https://github.com/BLSQ/openhexa-app/commit/6a8b11d2fca1bcabea1119545e52305a2bc8e5a3))
+* disable pipeline scheduling ([#1631](https://github.com/BLSQ/openhexa-app/issues/1631)) ([7b9bcda](https://github.com/BLSQ/openhexa-app/commit/7b9bcdae96727c09fa692f48ddc7b725159c1122))
+* Fix demo data import ([6a8b11d](https://github.com/BLSQ/openhexa-app/commit/6a8b11d2fca1bcabea1119545e52305a2bc8e5a3))
+* HEXA-1157 pipeline decription: show markdown format ([#1628](https://github.com/BLSQ/openhexa-app/issues/1628)) ([cc2c0c9](https://github.com/BLSQ/openhexa-app/commit/cc2c0c9a51000a3acbb3d040a191c44218b208ce))
+* HEXA-1323 Dataset total rows ([#1615](https://github.com/BLSQ/openhexa-app/issues/1615)) ([6d34dae](https://github.com/BLSQ/openhexa-app/commit/6d34dae44110448195b3858c9ee96a6ce76237c7))
+* Remove the STORAGE_BACKEND='azure' from the docker-compose.yaml file ([6a8b11d](https://github.com/BLSQ/openhexa-app/commit/6a8b11d2fca1bcabea1119545e52305a2bc8e5a3))
+* Update Azurite configuration for testing and adjust connection settings in AzureBlobStorage tests ([6a8b11d](https://github.com/BLSQ/openhexa-app/commit/6a8b11d2fca1bcabea1119545e52305a2bc8e5a3))
+
 ## [4.0.0](https://github.com/BLSQ/openhexa-app/compare/3.1.1...4.0.0) (2026-02-18)
 
 
