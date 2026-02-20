@@ -1,14 +1,22 @@
 import clsx from "clsx";
 import React, { useEffect, useMemo, useState } from "react";
 import Spinner from "core/components/Spinner";
+import { useTranslation } from "next-i18next";
 
 type WebappIframeProps = {
   url: string;
   className?: string;
   style?: React.CSSProperties;
+  showPoweredBy?: boolean;
 };
 
-const WebappIframe = ({ url, className, style }: WebappIframeProps) => {
+const WebappIframe = ({
+  url,
+  className,
+  style,
+  showPoweredBy = false,
+}: WebappIframeProps) => {
+  const { t } = useTranslation();
   const [iframeLoading, setIframeLoading] = useState(true);
 
   useEffect(() => {
@@ -51,18 +59,33 @@ const WebappIframe = ({ url, className, style }: WebappIframeProps) => {
 
   return (
     <div
-      className={clsx("flex justify-center items-center", className)}
+      className={clsx("flex flex-col", className)}
       style={{ height: "90vh", ...style }}
     >
-      {iframeLoading && <Spinner size="md" />}{" "}
-      <iframe
-        src={url}
-        className={clsx("w-full h-full", iframeLoading && "hidden")}
-        sandbox={sandboxPermissions}
-        onLoad={() => setIframeLoading(false)}
-        onError={() => setIframeLoading(false)}
-        data-testid="webapp-iframe"
-      />
+      <div className="flex flex-1 justify-center items-center">
+        {iframeLoading && <Spinner size="md" />}{" "}
+        <iframe
+          src={url}
+          className={clsx("w-full h-full", iframeLoading && "hidden")}
+          sandbox={sandboxPermissions}
+          onLoad={() => setIframeLoading(false)}
+          onError={() => setIframeLoading(false)}
+          data-testid="webapp-iframe"
+        />
+      </div>
+      {showPoweredBy && (
+        <div className="flex items-center justify-center border-t bg-gray-50 py-2 text-xs text-gray-500">
+          {t("Powered by")}{" "}
+          <a
+            href="https://www.openhexa.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-1 font-medium text-blue-600 hover:text-blue-500"
+          >
+            OpenHEXA
+          </a>
+        </div>
+      )}
     </div>
   );
 };
