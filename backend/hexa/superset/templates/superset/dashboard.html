@@ -14,8 +14,13 @@
 </head>
 
 <body>
-<div id="container" style="height: 100vh; width: 100vw;">
+<div id="container">
 </div>
+{% if is_public_view %}
+<div id="footer">
+    {% trans "Powered by" %} <a href="https://www.openhexa.com" target="_blank" rel="noopener noreferrer">OpenHEXA</a>
+</div>
+{% endif %}
 <script>
   supersetEmbeddedSdk.embedDashboard({
     id: "{{ dashboard.external_id }}", // given by the Superset embedding UI
@@ -34,14 +39,39 @@
 </script>
 
 </body>
-<style> 
-  #container {
+<style>
+  body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
     height: 100vh;
+  }
+  #container {
+    flex: 1;
     width: 100vw;
   }
   #container iframe {
     height: 100%;
     width: 100%;
+  }
+  #footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    padding: 0.5rem 0;
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+  #footer a {
+    margin-left: 0.25rem;
+    font-weight: 500;
+    color: #2563eb;
+    text-decoration: none;
+  }
+  #footer a:hover {
+    color: #3b82f6;
   }
 </style>
 </html>
