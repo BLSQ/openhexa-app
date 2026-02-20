@@ -2,7 +2,6 @@ import { gql } from "@apollo/client";
 import Card from "core/components/Card";
 import Tooltip from "core/components/Tooltip";
 import Badge from "core/components/Badge";
-import { stripMarkdown } from "core/helpers";
 import UserAvatar from "identity/features/UserAvatar";
 import User from "core/features/User";
 import { DateTime } from "luxon";
@@ -14,6 +13,7 @@ import {
   PipelineCard_PipelineFragment,
   PipelineCard_WorkspaceFragment,
 } from "./PipelineCard.generated";
+import MarkdownViewer from "core/components/MarkdownViewer";
 
 interface PipelineCardProps {
   workspace: PipelineCard_WorkspaceFragment;
@@ -50,21 +50,22 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
         <div className="space-y-4 flex-1">
           {pipeline.description && (
             <div className="line-clamp-3 text-gray-700">
-              {stripMarkdown(pipeline.description)}
+              <div className="prose [&>*]:inline [&>*]:mr-1">
+                <MarkdownViewer sm markdown={pipeline.description} />
+              </div>
             </div>
           )}
-
-          <PipelineMetadataDisplay metadata={pipeline} size="sm" showLabels={false} />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 mt-2">
+          <PipelineMetadataDisplay metadata={pipeline} size="sm" />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">{t("Last Run")}:</span>
+              <span className="text-xs text-gray-500">{t("Last Run")}:</span>
               {pipeline.lastRuns.items[0] ? (
                 <PipelineRunStatusBadge run={pipeline.lastRuns.items[0]} />
               ) : (
-                <span className="text-sm text-gray-400">{t("Not yet run")}</span>
+                <span className="text-xs text-gray-400">{t("Not yet run")}</span>
               )}
             </div>
             {pipeline.lastRuns.items[0]?.executionDate && (
@@ -75,7 +76,7 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-500">{t("Created By")}:</span>
+            <span className="text-xs text-gray-500"></span>
             {pipeline.currentVersion?.user && (
               <Tooltip
                 label={t("Last version uploaded on {{date}} by {{name}}", {

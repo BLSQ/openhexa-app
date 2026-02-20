@@ -13,10 +13,10 @@ import React from "react";
 import Button from "core/components/Button";
 import router from "next/router";
 import User from "core/features/User";
-import { stripMarkdown } from "core/helpers";
 import PipelineMetadataDisplay from "pipelines/features/PipelineMetadataDisplay";
 import TemplateBadge from "pipelines/features/TemplateBadge";
 import PipelineCreateFromTemplateButton from "pipelines/features/PipelineCreateFromTemplateButton";
+import MarkdownViewer from "core/components/MarkdownViewer";
 
 interface TemplateCardProps {
   workspace: TemplateCard_WorkspaceFragment;
@@ -46,9 +46,13 @@ const TemplateCard = ({ template, workspace }: TemplateCardProps) => {
         className="space-y-4 min-h-20 min-w-20"
         title={template.description ?? ""}
       >
-        <div className={clsx("line-clamp-3")}>
-          {stripMarkdown(template.description ?? "")}
-        </div>
+        {template.description && (
+          <div className={clsx("line-clamp-3")}>
+            <div className="prose [&>*]:inline [&>*]:mr-1">
+              <MarkdownViewer sm markdown={template.description} />
+            </div>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <PipelineMetadataDisplay metadata={template} size="sm" />
           {template.pipelinesCount !== undefined && (

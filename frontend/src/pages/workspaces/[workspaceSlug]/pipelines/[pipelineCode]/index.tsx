@@ -103,16 +103,16 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
           onSave={pipeline.permissions.update ? onSavePipeline : undefined}
           collapsible={false}
         >
-          <MarkdownProperty
-            id="description"
-            label={t("Description")}
-            accessor={"description"}
-          />
           <TextProperty
             id="name"
             accessor={"name"}
             label={t("Name")}
             visible={(value, isEditing) => isEditing}
+          />
+          <MarkdownProperty
+            id="description"
+            label={t("Description")}
+            accessor={"description"}
           />
           <TextProperty
             id="code"
