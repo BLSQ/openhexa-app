@@ -111,6 +111,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     type = models.CharField(
         max_length=20, choices=WebappType.choices, default=WebappType.IFRAME
     )
+    is_public = models.BooleanField(default=False)
     favorites = models.ManyToManyField(
         User, related_name="favorite_webapps", blank=True
     )
