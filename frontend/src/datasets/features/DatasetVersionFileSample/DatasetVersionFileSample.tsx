@@ -1,10 +1,11 @@
 import { gql, useQuery } from "@apollo/client";
+import CodeEditor from "core/components/CodeEditor";
 import DataGrid from "core/components/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import DescriptionList from "core/components/DescriptionList";
 import Spinner from "core/components/Spinner";
 import { ApolloComponent } from "core/helpers/types";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   DatasetVersionFileSample_FileFragment,
@@ -27,12 +28,74 @@ const NoPreviewMessage = () => {
   );
 };
 
+const CODE_LANG_BY_EXTENSION: Record<string, string> = {
+  json: "json",
+  geojson: "json",
+  yaml: "yaml",
+  yml: "yaml",
+  xml: "xml",
+};
+
+const MAX_SIZE = 20_000_000;
+const MAX_TEXT_SIZE = 5_000_000;
+
+function getCodeLang(filename: string): string | null {
+  const ext = filename.split(".").pop()?.toLowerCase();
+  return ext ? (CODE_LANG_BY_EXTENSION[ext] ?? null) : null;
+}
+
+const CodePreviewer = ({
+  url,
+  lang,
+}: {
+  url: string;
+  lang: string;
+}) => {
+  const [content, setContent] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.text();
+      })
+      .then(setContent)
+      .catch(() => setError(true));
+  }, [url]);
+
+  if (error) return <NoPreviewMessage />;
+  if (content === null)
+    return (
+      <div className="flex justify-center items-center h-24 p-4">
+        <Spinner size="md" />
+      </div>
+    );
+
+  return (
+    <CodeEditor
+      value={content}
+      lang={lang}
+      readonly
+      editable={false}
+      height="720px"
+    />
+  );
+};
+
 const SmartPreviewer = ({
   file,
 }: {
   file: DatasetVersionFileSample_FileFragment;
 }) => {
-  if (!file.downloadUrl || file.size > 100000000) return <NoPreviewMessage />;
+  if (!file.downloadUrl || file.size > MAX_SIZE) return <NoPreviewMessage />;
+
+  const codeLang = getCodeLang(file.filename);
+
+  if (codeLang && file.size <= MAX_TEXT_SIZE) {
+    return <CodePreviewer url={file.downloadUrl} lang={codeLang} />;
+  }
+
   if (file.contentType.startsWith("image")) {
     return (
       <img
