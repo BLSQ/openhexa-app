@@ -66,9 +66,9 @@ class AzureBlobStorage(Storage):
         except ResourceNotFoundError:
             return False
 
-    def create_bucket(self, bucket_name, *args, **kwargs):
+    def create_bucket(self, bucket_name, labels=None, *args, **kwargs):
         try:
-            bucket = self.client.create_container(bucket_name)
+            bucket = self.client.create_container(bucket_name, metadata=labels)
             return bucket.container_name
         except ResourceExistsError:
             raise Storage.exceptions.AlreadyExists(

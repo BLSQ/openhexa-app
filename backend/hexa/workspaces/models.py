@@ -89,7 +89,7 @@ def create_workspace_bucket(workspace_slug: str):
             # When separated by a dot, each segment can be up to 63 characters long
             return storage.create_bucket(
                 f"{(settings.WORKSPACE_BUCKET_PREFIX + workspace_slug)[: 63 - len(suffix)]}{suffix}",
-                labels={"hexa-workspace": workspace_slug},
+                labels={"hexa_workspace": workspace_slug},
             )
         except storage.exceptions.AlreadyExists:
             suffix = "-" + get_random_string(

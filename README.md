@@ -373,20 +373,20 @@ The address of the server must be the one of the database container gateway, on 
 Use the following command to run the backend tests:
 
 ```bash
-docker compose run --profile test app test
+docker compose --profile test run app test
 ```
 
 Some tests call external resources (such as the public DHIS2 API) and will slow down the suite. You can exclude them
 when running the test suite for unrelated parts of the codebase:
 
 ```bash
-docker compose run --profile test app test --exclude-tag=external
+docker compose --profile test run app test --exclude-tag=external
 ```
 
 You can run a specific test as it follows:
 
 ```bash
-docker compose run --profile test app test hexa.core.tests.CoreTest.test_ready_200
+docker compose --profile test run app test hexa.core.tests.CoreTest.test_ready_200
 ```
 
 Adding the `--profile test` will launch optional services that are needed for the tests to run (e.g. `azurite` to test the Azure storage backend).

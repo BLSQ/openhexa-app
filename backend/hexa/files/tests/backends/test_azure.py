@@ -58,7 +58,10 @@ class AzureBlobStorageTest(TestCase):
         bucket_name = "test-bucket-with-labels"
         labels = {"env": "test", "team": "data"}
         self.storage.create_bucket(bucket_name, labels=labels)
-        self.assertTrue(self.storage.bucket_exists(bucket_name))
+        container_client = self.storage.client.get_container_client(
+            container=bucket_name
+        )
+        self.assertEqual(labels, container_client.get_container_properties().metadata)
 
     def test_create_bucket_already_exists(self):
         """Test that creating an existing bucket doesn't raise an exception"""
