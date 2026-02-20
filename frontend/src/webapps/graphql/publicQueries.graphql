@@ -1,5 +1,5 @@
-query PublicWebapp($workspaceSlug: String!, $webappSlug: String!) {
-  publicWebapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
+query WebappPlay($workspaceSlug: String!, $webappSlug: String!) {
+  webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
     id
     slug
     name
