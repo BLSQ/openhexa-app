@@ -361,6 +361,7 @@ Result of creating an upload url
 """
 type GenerateDatasetUploadUrlResult {
   uploadUrl: String
+  headers: JSON
   success: Boolean!
   errors: [CreateDatasetVersionFileError!]!
 }

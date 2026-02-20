@@ -12,6 +12,11 @@ x-app: &common
         required: true
     environment:
       - ADDITIONAL_ALLOWED_HOSTS=*
+      - SESSION_COOKIE_SECURE=False
+      - CSRF_COOKIE_SECURE=False
+      - SECURE_SSL_REDIRECT=False
+      - PIPELINE_SCHEDULER_SPAWNER=docker
+
     networks:
       - openhexa
     volumes:  # only used for Github Codespaces
@@ -20,6 +25,7 @@ x-app: &common
 
 services:
   db:
+    platform: linux/amd64
     image: postgis/postgis:16-3.5
     env_file:
       - path: ./.env
@@ -63,6 +69,7 @@ services:
       target: pipelines
       args:
         - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+        - WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
     command: "manage pipelines_runner"
     restart: unless-stopped
     profiles:
@@ -84,6 +91,7 @@ services:
       target: pipelines
       args:
         - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+        - WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
     command: "manage pipelines_scheduler"
     restart: unless-stopped
     profiles:
@@ -129,6 +137,22 @@ services:
       - "8025:8025"
     networks:
       - openhexa
+
+  # Azurite is used to test the Azure storage backend locally. This has to be run separately when triggering tests.
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: azurite
+    hostname: azurite
+    restart: always
+    command: azurite --skipApiVersionCheck --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
+    profiles:
+      - "test"
+    networks:
+      - openhexa
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
 
 
   # Legacy services

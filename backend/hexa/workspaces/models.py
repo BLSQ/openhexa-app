@@ -11,7 +11,6 @@ from django.core.exceptions import PermissionDenied
 from django.core.validators import RegexValidator, validate_slug
 from django.db import models
 from django.db.models import Q
-from django.forms import ValidationError
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.regex_helper import _lazy_re_compile
@@ -84,18 +83,19 @@ validate_workspace_slug = RegexValidator(
 
 
 def create_workspace_bucket(workspace_slug: str):
+    suffix = ""
     while True:
-        suffix = get_random_string(
-            4, allowed_chars=string.ascii_lowercase + string.digits
-        )
         try:
             # Bucket names must be unique across all of Google Cloud, so we add a suffix to the workspace slug
             # When separated by a dot, each segment can be up to 63 characters long
             return storage.create_bucket(
-                f"{(settings.WORKSPACE_BUCKET_PREFIX + workspace_slug)[:63]}_{suffix}",
-                labels={"hexa-workspace": workspace_slug},
+                f"{(settings.WORKSPACE_BUCKET_PREFIX + workspace_slug)[: 63 - len(suffix)]}{suffix}",
+                labels={"hexa_workspace": workspace_slug},
             )
-        except ValidationError:
+        except storage.exceptions.AlreadyExists:
+            suffix = "-" + get_random_string(
+                4, allowed_chars=string.ascii_lowercase + string.digits
+            )
             continue
 
 

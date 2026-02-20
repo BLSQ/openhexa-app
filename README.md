@@ -7,7 +7,7 @@
 
 OpenHEXA is an open-source data integration platform developed by [Bluesquare](https://bluesquarehub.com).
 
-Its goal is to facilitate data integration and analysis workflows, in particular in the context of public health 
+Its goal is to facilitate data integration and analysis workflows, in particular in the context of public health
 projects.
 
 Please refer to the [OpenHEXA wiki](https://github.com/BLSQ/openhexa/wiki/Home) for more information about OpenHEXA.
@@ -31,7 +31,7 @@ You can also refer to the [backend](backend/README.md) & [frontend](frontend/REA
 # Release workflow
 
 This project follows [Semantic Versioning](http://semver.org/).
-Tagging and releases' creation are managed by [release-please](https://github.com/googleapis/release-please) that will create and maintain a pull request with 
+Tagging and releases' creation are managed by [release-please](https://github.com/googleapis/release-please) that will create and maintain a pull request with
 the next release based on the [commit messages of the new commits](#how-should-i-write-my-commits).
 
 On creation of a new release, the following actions are performed:
@@ -73,16 +73,16 @@ npm run lint && npm run format
 
 # Getting started
 
-The [Installation instructions](https://github.com/BLSQ/openhexa/wiki/Installation-instructions#development-installation) 
+The [Installation instructions](https://github.com/BLSQ/openhexa/wiki/Installation-instructions#development-installation)
 section of our wiki gives an overview of the local development setup required to run OpenHEXA locally.
 
 To ease the setup of the environment and management of dependencies, we are using containerization, in particular
-[Docker](https://www.docker.com/). As such, we provide a `docker-compose.yaml` file for local development. 
+[Docker](https://www.docker.com/). As such, we provide a `docker-compose.yaml` file for local development.
 
 ## Backend
 
-When running the backend component using `docker compose`, the code of this repository is mounted as a volume within the 
-container, so that any change you make in your local copy of the codebase is directly reflected in the running 
+When running the backend component using `docker compose`, the code of this repository is mounted as a volume within the
+container, so that any change you make in your local copy of the codebase is directly reflected in the running
 container.
 
 1. Prepare the `.env` :
@@ -143,16 +143,16 @@ This will correctly configure all the environment variables, fill the database w
 `db` and `app` services. The app is then exposed on `localhost:8000`. Two main paths are available:
 
 - http://localhost:8000/graphql for the GraphQL API
-- http://localhost:8000/ready for the readiness endpoint 
+- http://localhost:8000/ready for the readiness endpoint
 
 Anything else will be redirected to the frontend served at `http://localhost:3000`.
 
 You can then log in with the following credentials: `root@openhexa.org`/`root`
 
 
-## Backend & Frontend 
+## Backend & Frontend
 
-You can run the frontend along with the backend in a single command : 
+You can run the frontend along with the backend in a single command :
 ```sh
   docker compose --profile frontend up
 ```
@@ -213,7 +213,7 @@ The `pipelines_runner` service is already configured to work with Docker Desktop
 - Use `IfNotPresent` image pull policy to leverage local images
 
 ## Dataset worker
-Generation of file samples and metadata calculation are done in separate worker, in order to run it locally you 
+Generation of file samples and metadata calculation are done in separate worker, in order to run it locally you
 can make use of `dataset_worker` by adding `dataset_worker` profile to the list of enabed profiles.
 
 ````
@@ -240,7 +240,7 @@ We use [Mixpanel](https://mixpanel.com/home/) to track users and their actions. 
 
 ## Debugging
 
-If you want to run the backend app in debugger mode, you can override the default command to execute by adding a 
+If you want to run the backend app in debugger mode, you can override the default command to execute by adding a
 `docker-compose.debug.yaml` file in order to use the your favorite debugger package and wait for a debugger to attach.
 
 ### Using `debugpy` for **VSCode**
@@ -370,23 +370,32 @@ The address of the server must be the one of the database container gateway, on 
 ## Running the tests
 
 ### Backend
-Running the tests is as simple as:
+Use the following command to run the backend tests:
 
 ```bash
-docker compose run app test --settings=config.settings.test
+docker compose --profile test run app test
 ```
 
 Some tests call external resources (such as the public DHIS2 API) and will slow down the suite. You can exclude them
 when running the test suite for unrelated parts of the codebase:
 
 ```bash
-docker compose run app test --exclude-tag=external --settings=config.settings.test
+docker compose --profile test run app test --exclude-tag=external
 ```
 
 You can run a specific test as it follows:
 
 ```bash
-docker compose run app test hexa.core.tests.CoreTest.test_ready_200 --settings=config.settings.test
+docker compose --profile test run app test hexa.core.tests.CoreTest.test_ready_200
+```
+
+Adding the `--profile test` will launch optional services that are needed for the tests to run (e.g. `azurite` to test the Azure storage backend).
+
+If you're running tests directly inside the container with `./manage.py`, you'll need to specify the settings explicitly and ensure the test services (like `azurite`) are running:
+
+```bash
+docker compose --profile test up -d azurite
+python manage.py test --settings=config.settings.test
 ```
 
 There are many other options, if you want to find out more, look at the [documentation of Django test harness](https://docs.djangoproject.com/en/4.2/topics/testing/overview/#running-tests),

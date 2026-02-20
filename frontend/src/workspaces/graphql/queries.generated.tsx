@@ -1425,7 +1425,6 @@ export const WorkspaceFilesPageDocument = gql`
     ...WorkspaceLayout_workspace
     ...UploadObjectDialog_workspace
     ...CreateBucketFolderDialog_workspace
-    ...BucketExplorer_workspace
     bucket {
       objects(
         page: $page

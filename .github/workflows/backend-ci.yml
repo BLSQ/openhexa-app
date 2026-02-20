@@ -51,7 +51,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
+
       # Caches
       - name: Cache
         id: cache
@@ -83,11 +83,14 @@ jobs:
       - name: Build docker app image
         env:
           DOCKER_BUILDKIT: 1
-        run: docker compose build --build-arg DJANGO_SETTINGS_MODULE="config.settings.dev" app
+        run: docker compose build app
+
+      - name: Start Azurite
+        run: docker compose --profile test up -d azurite
 
       - name: Run Django tests
         run: |
-          docker compose run -u $(id -u):$(id -g) app coveraged-test
+          docker compose run -e AZURITE_TEST_SERVER=http://azurite:10000/ -u $(id -u):$(id -g) app coveraged-test
 
       # Push on main
       - name: Build and push (on main)
@@ -97,11 +100,8 @@ jobs:
           context: backend
           target: app
           file: backend/Dockerfile
-          build-args: |
-            DJANGO_SETTINGS_MODULE=config.settings.dev
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
           tags: |
             blsq/openhexa-app:main
             blsq/openhexa-app:latest
-      
