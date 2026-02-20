@@ -23,6 +23,19 @@ def resolve_webapp(_, info, **kwargs):
         return None
 
 
+@webapp_query.field("publicWebapp")
+def resolve_public_webapp(_, info, **kwargs):
+    try:
+        workspace = Workspace.objects.get(slug=kwargs["workspace_slug"])
+        return Webapp.objects.get(
+            workspace=workspace,
+            slug=kwargs["slug"],
+            is_public=True,
+        )
+    except (Webapp.DoesNotExist, Workspace.DoesNotExist):
+        return None
+
+
 @webapp_query.field("webapps")
 def resolve_webapps(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
