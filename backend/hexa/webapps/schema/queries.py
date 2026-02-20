@@ -13,25 +13,18 @@ webapp_query = QueryType()
 def resolve_webapp(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     try:
-        workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=kwargs["workspace_slug"]
-        )
-        return Webapp.objects.filter_for_user(request.user).get(
-            workspace=workspace, slug=kwargs["slug"]
-        )
-    except (Webapp.DoesNotExist, Workspace.DoesNotExist):
-        return None
-
-
-@webapp_query.field("publicWebapp")
-def resolve_public_webapp(_, info, **kwargs):
-    try:
         workspace = Workspace.objects.get(slug=kwargs["workspace_slug"])
-        return Webapp.objects.get(
-            workspace=workspace,
-            slug=kwargs["slug"],
-            is_public=True,
-        )
+        webapp = Webapp.objects.get(workspace=workspace, slug=kwargs["slug"])
+
+        if (
+            webapp.is_public
+            or Webapp.objects.filter_for_user(request.user)
+            .filter(pk=webapp.pk)
+            .exists()
+        ):
+            return webapp
+
+        return None
     except (Webapp.DoesNotExist, Workspace.DoesNotExist):
         return None
 
