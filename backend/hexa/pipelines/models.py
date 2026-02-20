@@ -636,10 +636,10 @@ class Pipeline(SoftDeletedModel):
         self.webhook_enabled = enabled
 
     def set_schedule(self, schedule: str):
-        if not croniter.is_valid(schedule):
-            raise ValidationError("Invalid cron expression")
-        else:
+        if schedule is None or croniter.is_valid(schedule):
             self.schedule = schedule
+        else:
+            raise ValidationError("Invalid cron expression")
 
     def generate_webhook_token(self):
         signer = TimestampSigner()
