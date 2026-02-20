@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-key */
 /* react-table already manages the key */
 
-import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/20/solid";
+import { ChevronDownIcon, ChevronUpIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import { useCheckboxColumn } from "core/hooks/useCheckboxColumn";
 import usePrevious from "core/hooks/usePrevious";
@@ -304,21 +304,23 @@ function DataGrid(props: DataGridProps) {
                         ) : (
                           <>
                             {column.render("Header")}
-                            {column.isSorted &&
+                            {column.canSort &&
                               i === headerGroups.length - 1 && (
                                 <div
                                   className={clsx(
                                     "ml-2 inline-block w-3 flex-none rounded-sm bg-gray-200 text-gray-900 group-hover:bg-gray-300",
                                   )}
                                 >
-                                  {column.isSortedDesc ? (
-                                    <ChevronDownIcon
-                                      className="h-3 w-3"
-                                      aria-hidden="true"
-                                    />
+                                  {column.isSorted ? (
+                                    column.isSortedDesc ? (
+                                      <ChevronDownIcon className="h-3 w-3" aria-hidden="true" />
+                                    ) : (
+                                      <ChevronUpIcon className="h-3 w-3" aria-hidden="true" />
+                                    )
                                   ) : (
-                                    <ChevronUpIcon
-                                      className="h-3 w-3"
+                                    // Neutral "sortable" indicator
+                                    <ChevronUpDownIcon
+                                      className="h-3 w-3 opacity-40"
                                       aria-hidden="true"
                                     />
                                   )}
