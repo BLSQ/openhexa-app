@@ -155,6 +155,7 @@ const GET_DATASET_VERSION_FILE_SAMPLE = gql`
   query GetDatasetVersionFileSample($id: ID!) {
     datasetVersionFile(id: $id) {
       id
+      rows
       properties
       fileSample {
         sample
@@ -187,15 +188,17 @@ export const DatasetVersionFileSample: ApolloComponent<
     }
   }, []);
 
-  const { sample, columns, status } = useMemo(() => {
+  const { sample, columns, rows, status } = useMemo(() => {
     if (!data?.datasetVersionFile.fileSample) {
       return {
         sample: [],
         columns: [],
+        rows: null,
         status: "UNSUPPORTED",
       };
     } else if (data.datasetVersionFile.fileSample.status === "FINISHED") {
       const sample = data.datasetVersionFile.fileSample.sample;
+      const rows = data.datasetVersionFile.rows;
       const properties = data.datasetVersionFile.properties ?? {};
       const columnOrder: string[] | undefined = properties.column_order;
       const colsMapping: Record<string, string> = properties.columns ?? {};
@@ -212,18 +215,21 @@ export const DatasetVersionFileSample: ApolloComponent<
       return {
         sample,
         columns,
+        rows,
         status: "FINISHED",
       };
     } else if (data.datasetVersionFile.fileSample.status === "PROCESSING") {
       return {
         sample: [],
         columns: [],
+        rows: null,
         status: "PROCESSING",
       };
     }
     return {
       sample: [],
       columns: [],
+      rows: null,
       status: "ERROR",
     };
   }, [data]);
@@ -259,9 +265,9 @@ export const DatasetVersionFileSample: ApolloComponent<
                 {columns.length}
               </code>
             </DescriptionList.Item>
-            <DescriptionList.Item label={t("Rows in sample")}>
+            <DescriptionList.Item label={t("Rows in dataset")}>
               <code className="font-mono text-sm text-gray-600">
-                {sample.length}
+                {rows ?? "n/a"}
               </code>
             </DescriptionList.Item>
           </DescriptionList>

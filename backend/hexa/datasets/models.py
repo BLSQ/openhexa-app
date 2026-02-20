@@ -356,6 +356,7 @@ class DatasetVersionFile(MetadataMixin, Base):
     content_type = models.TextField(null=False, blank=False)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     properties = JSONField(default=dict)
+    rows = models.IntegerField(default=None, null=True)
     dataset_version = models.ForeignKey(
         DatasetVersion,
         null=False,
@@ -384,10 +385,6 @@ class DatasetVersionFile(MetadataMixin, Base):
     @property
     def filename(self):
         return self.uri.split("/")[-1]
-
-    @property
-    def sample_entry(self):
-        return self.samples.first()
 
     @property
     def full_uri(self):
@@ -437,6 +434,9 @@ class DataframeJsonEncoder(DjangoJSONEncoder):
 
 
 class DatasetFileSample(Base):
+    class Meta:
+        ordering = ["-created_at"]
+
     STATUS_PROCESSING = "PROCESSING"
     STATUS_FAILED = "FAILED"
     STATUS_FINISHED = "FINISHED"
@@ -458,16 +458,13 @@ class DatasetFileSample(Base):
         default=STATUS_PROCESSING,
     )
     status_reason = models.TextField(blank=True, null=True)
-    dataset_version_file = models.ForeignKey(
+    dataset_version_file = models.OneToOneField(
         DatasetVersionFile,
         null=False,
         blank=False,
         on_delete=models.CASCADE,
-        related_name="samples",
+        related_name="sample_entry",
     )
-
-    class Meta:
-        ordering = ["-created_at"]
 
 
 class DatasetLinkQuerySet(BaseQuerySet):

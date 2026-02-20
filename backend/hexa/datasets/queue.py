@@ -66,9 +66,13 @@ def generate_sample(
     version_file: DatasetVersionFile, df: pd.DataFrame
 ) -> DatasetFileSample:
     logger.info(f"Creating dataset sample for version file {version_file.id}")
-    dataset_file_sample = DatasetFileSample.objects.create(
+    dataset_file_sample, _ = DatasetFileSample.objects.update_or_create(
         dataset_version_file=version_file,
-        status=DatasetFileSample.STATUS_PROCESSING,
+        defaults={
+            "sample": list,
+            "status": DatasetFileSample.STATUS_PROCESSING,
+            "status_reason": None,
+        },
     )
     try:
         if not df.empty:
@@ -239,6 +243,7 @@ def generate_file_metadata_task(file_id: str) -> None:
         # We only support tabular data for now (CSV, Excel, Parquet) for the sample generation & profiling
         if is_file_supported(version_file.filename):
             df = load_df(version_file)
+            version_file.rows = len(df.index)
             generate_sample(version_file, df)
     except Exception as e:
         logger.exception(

@@ -1508,6 +1508,7 @@ export type DatasetVersionFile = MetadataObject & {
   filename: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   properties?: Maybe<Scalars['JSON']['output']>;
+  rows?: Maybe<Scalars['Int']['output']>;
   size: Scalars['BigInt']['output'];
   targetId: Scalars['OpaqueID']['output'];
   uri: Scalars['String']['output'];

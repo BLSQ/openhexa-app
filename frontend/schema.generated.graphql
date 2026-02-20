@@ -1448,6 +1448,7 @@ type DatasetVersionFile implements MetadataObject {
   filename: String!
   id: ID!
   properties: JSON
+  rows: Int
   size: BigInt!
   targetId: OpaqueID!
   uri: String!

@@ -195,6 +195,7 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                     df = load_df(version_file)
                     generate_sample(version_file, df)
                     sample_entry = version_file.sample_entry
+                    sample_entry.refresh_from_db()
                     self.assertEqual(sample_entry.status, expected_status)
                     self.assertEqual(sample_entry.sample, expected_sample)
 
@@ -239,6 +240,7 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
                     df = load_df(version_file)
                     generate_sample(version_file, df)
                     sample_entry = version_file.sample_entry
+                    sample_entry.refresh_from_db()
                     self.assertEqual(sample_entry.status, expected_status)
                     self.assertEqual(sample_entry.sample, expected_sample)
 
