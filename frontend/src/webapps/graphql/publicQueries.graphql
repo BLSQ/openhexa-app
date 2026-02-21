@@ -1,9 +1,0 @@
-query WebappPlay($workspaceSlug: String!, $webappSlug: String!) {
-  webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
-    id
-    slug
-    name
-    url
-    type
-  }
-}
