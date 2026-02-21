@@ -61,15 +61,15 @@ const GridView = ({
       >
         <BaseColumn id="name" label={t("Name")}>
           {(pipeline) => (
-            <Link
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}/pipelines/${pipeline.code}`}
-            >
-              {pipeline.name}
-            </Link>
+            <div className="flex flex-col">
+              <Link
+                href={`/workspaces/${encodeURIComponent(workspace.slug)}/pipelines/${pipeline.code}`}
+              >
+                {pipeline.name}
+              </Link>
+              <span className="text-sm text-gray-500">{pipeline.code}</span>
+            </div>
           )}
-        </BaseColumn>
-        <BaseColumn id="code" label={t("Code")} disableSortBy={true}>
-          {(pipeline) => <span>{pipeline.code}</span>}
         </BaseColumn>
         <BaseColumn id="version" label={t("Version")} disableSortBy={true}>
           {(pipeline) => <span>{pipeline.currentVersion?.versionName}</span>}
