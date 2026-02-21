@@ -173,7 +173,7 @@ const WebappsPage = (props: Props) => {
                   </div>
                 )}
               </BaseColumn>
-              <BaseColumn id="access" label={t("Access")}>
+              <BaseColumn id="access" label={t("Access")} className="flex items-center">
                 {(item) => (
                   <div className="flex items-center gap-1.5">
                     {item.isPublic ? (
