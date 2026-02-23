@@ -122,7 +122,10 @@ def resolve_update_webapp(_, info, **kwargs):
     elif source:
         if webapp.type != Webapp.WebappType.IFRAME:
             return {"success": False, "errors": ["TYPE_MISMATCH"], "webapp": None}
-        URLValidator()(source["iframe"]["url"])
+        try:
+            URLValidator()(source["iframe"]["url"])
+        except ValidationError:
+            return {"success": False, "errors": ["INVALID_URL"], "webapp": None}
         webapp.url = source["iframe"]["url"]
 
     if "name" in input:
@@ -137,8 +140,6 @@ def resolve_update_webapp(_, info, **kwargs):
     try:
         webapp.save()
         return {"success": True, "errors": [], "webapp": webapp}
-    except ValidationError:
-        return {"success": False, "errors": ["INVALID_URL"], "webapp": None}
     except IntegrityError:
         return {"success": False, "errors": ["ALREADY_EXISTS"], "webapp": None}
 
