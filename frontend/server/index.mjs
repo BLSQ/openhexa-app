@@ -31,6 +31,7 @@ app.prepare().then(async () => {
           "/files/up",
           "/files/dl",
           "/superset",
+          "/mcp/",
         ].some((path) => req.path.startsWith(path));
         return needsProxy;
       },
