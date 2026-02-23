@@ -26,6 +26,7 @@ def resolve_create_webapp(_, info, **kwargs):
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"], "webapp": None}
 
     icon = decode_base64_image(input["icon"]) if input.get("icon") else None
+    is_public = input.get("is_public", False)
 
     try:
         with transaction.atomic():
@@ -54,6 +55,7 @@ def resolve_create_webapp(_, info, **kwargs):
                     name=input["name"],
                     description=input.get("description", ""),
                     icon=icon,
+                    is_public=is_public,
                     created_by=user,
                     superset_instance=superset_instance,
                     external_dashboard_id=source["superset"]["dashboard_id"],
@@ -65,6 +67,7 @@ def resolve_create_webapp(_, info, **kwargs):
                     name=input["name"],
                     description=input.get("description", ""),
                     icon=icon,
+                    is_public=is_public,
                     created_by=user,
                     url=source["iframe"]["url"],
                 )

@@ -126,6 +126,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             workspaceSlug: workspace.slug,
             name: values.name,
             icon: values.icon,
+            isPublic: values.isPublic,
             source,
           },
         },
@@ -241,16 +242,14 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         {webapp && selectedType === WebappType.Superset && (
           <LinkProperty id="supersetUrl" accessor="url" label={t("URL")} />
         )}
-        {webapp && (
-          <SwitchProperty
-            id="isPublic"
-            accessor="isPublic"
-            label={t("Public access")}
-            help={t(
-              "When enabled, the play link can be accessed without authentication",
-            )}
-          />
-        )}
+        <SwitchProperty
+          id="isPublic"
+          accessor="isPublic"
+          label={t("Public access")}
+          help={t(
+            "When enabled, the play link can be accessed without authentication",
+          )}
+        />
       </DataCard.FormSection>
       {debouncedUrl && (
         <DataCard.Section
