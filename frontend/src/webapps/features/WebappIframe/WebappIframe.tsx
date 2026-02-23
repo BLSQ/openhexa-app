@@ -18,20 +18,27 @@ const WebappIframe = ({
 }: WebappIframeProps) => {
   const { t } = useTranslation();
   const [iframeLoading, setIframeLoading] = useState(true);
+  const [safeUrl, setSafeUrl] = useState<string | null | undefined>(
+    undefined,
+  );
 
-  const safeUrl = useMemo(() => {
+  useEffect(() => {
     if (!url) {
-      return null;
+      setSafeUrl(null);
+      return;
     }
     try {
-      // Support both absolute and relative URLs, but only allow http/https.
       const resolvedUrl = new URL(url, window.location.origin);
-      if (resolvedUrl.protocol === "http:" || resolvedUrl.protocol === "https:") {
-        return resolvedUrl.toString();
+      if (
+        resolvedUrl.protocol === "http:" ||
+        resolvedUrl.protocol === "https:"
+      ) {
+        setSafeUrl(resolvedUrl.toString());
+      } else {
+        setSafeUrl(null);
       }
-      return null;
     } catch {
-      return null;
+      setSafeUrl(null);
     }
   }, [url]);
 
@@ -65,7 +72,20 @@ const WebappIframe = ({
       return false;
     }
   }, [safeUrl]);
-  if (!safeUrl) {
+  if (safeUrl === undefined) {
+    return (
+      <div
+        className={clsx("flex flex-col", className)}
+        style={{ height: "90vh", ...style }}
+      >
+        <div className="flex flex-1 justify-center items-center">
+          <Spinner size="md" />
+        </div>
+      </div>
+    );
+  }
+
+  if (safeUrl === null) {
     return (
       <div
         className={clsx("flex flex-col", className)}
