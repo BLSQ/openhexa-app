@@ -15,13 +15,14 @@ def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResp
     dashboard: SupersetDashboard = get_object_or_404(SupersetDashboard, id=dashboard_id)
 
     webapp = getattr(dashboard, "webapp", None)
-    if webapp is not None:
-        is_public = webapp.is_public
-        has_access = request.user.is_authenticated and Webapp.objects.filter_for_user(
-            request.user
-        ).contains(webapp)
-
-        if not is_public and not has_access:
+    if webapp is not None and not webapp.is_public:
+        has_access = (
+            request.user.is_authenticated
+            and Webapp.objects.filter_for_user(request.user)
+            .filter(pk=webapp.pk)
+            .exists()
+        )
+        if not has_access:
             return HttpResponse(status=403)
 
     client = dashboard.superset_instance.get_client()
