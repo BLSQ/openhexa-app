@@ -19,30 +19,65 @@ const WebappIframe = ({
   const { t } = useTranslation();
   const [iframeLoading, setIframeLoading] = useState(true);
 
+  const safeUrl = useMemo(() => {
+    if (!url) {
+      return null;
+    }
+    try {
+      // Support both absolute and relative URLs, but only allow http/https.
+      const resolvedUrl = new URL(url, window.location.origin);
+      if (resolvedUrl.protocol === "http:" || resolvedUrl.protocol === "https:") {
+        return resolvedUrl.toString();
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }, [url]);
+
   useEffect(() => {
     setIframeLoading(true);
   }, [url]);
 
   const isSameOrigin = useMemo(() => {
+    if (!safeUrl) {
+      return false;
+    }
     try {
-      const { origin } = new URL(url);
+      const { origin } = new URL(safeUrl);
       return origin === window.location.origin;
     } catch {
       return false;
     }
-  }, [url]);
+  }, [safeUrl]);
 
   const isSupersetDashboard = useMemo(() => {
+    if (!safeUrl) {
+      return false;
+    }
     try {
-      const { origin } = new URL(url);
+      const { origin } = new URL(safeUrl);
       return (
         origin === window.location.origin &&
-        url.includes("/superset/dashboard/")
+        safeUrl.includes("/superset/dashboard/")
       );
     } catch {
       return false;
     }
-  }, [url]);
+  }, [safeUrl]);
+  if (!safeUrl) {
+    return (
+      <div
+        className={clsx("flex flex-col", className)}
+        style={{ height: "90vh", ...style }}
+      >
+        <div className="flex flex-1 items-center justify-center text-sm text-gray-500">
+          {t("The provided URL is invalid or not allowed.")}
+        </div>
+      </div>
+    );
+  }
+
 
   const commonPermissions =
     "allow-forms allow-popups allow-downloads allow-presentation allow-modals allow-scripts";
@@ -65,7 +100,7 @@ const WebappIframe = ({
       <div className="flex flex-1 justify-center items-center">
         {iframeLoading && <Spinner size="md" />}{" "}
         <iframe
-          src={url}
+          src={safeUrl}
           className={clsx("w-full h-full", iframeLoading && "hidden")}
           sandbox={sandboxPermissions}
           onLoad={() => setIframeLoading(false)}
