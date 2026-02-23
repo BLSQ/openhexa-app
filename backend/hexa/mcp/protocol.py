@@ -91,7 +91,11 @@ def handle_jsonrpc(body: bytes, user) -> dict | None:
         tool_args = params.get("arguments", {})
         try:
             result = call_tool(tool_name, tool_args, user)
-            content = json.dumps(result) if not isinstance(result, str) else result
+            content = (
+                json.dumps(result, default=str)
+                if not isinstance(result, str)
+                else result
+            )
             return {
                 "jsonrpc": "2.0",
                 "id": req_id,
