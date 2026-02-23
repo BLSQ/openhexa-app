@@ -173,7 +173,10 @@ const WebappsPage = (props: Props) => {
                 maxWidth={200}
               >
                 {(item) => (
-                  <div className="flex items-center space-x-1 overflow-hidden">
+                  <div
+                    className="flex items-center space-x-1 overflow-hidden"
+                    title={item.createdBy.displayName}
+                  >
                     <UserAvatar user={item.createdBy} size="xs" />
                     <p className="truncate">{item.createdBy.displayName}</p>
                   </div>
