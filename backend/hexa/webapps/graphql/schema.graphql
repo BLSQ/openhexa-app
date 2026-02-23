@@ -64,6 +64,7 @@ input CreateWebappInput {
   name: String!
   description: String
   icon: String
+  isPublic: Boolean
   workspaceSlug: String!
   source: WebappSourceInput!
 }

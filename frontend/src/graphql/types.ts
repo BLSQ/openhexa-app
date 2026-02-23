@@ -1049,6 +1049,7 @@ export enum CreateWebappError {
 export type CreateWebappInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
+  isPublic?: InputMaybe<Scalars['Boolean']['input']>;
   name: Scalars['String']['input'];
   source: WebappSourceInput;
   workspaceSlug: Scalars['String']['input'];

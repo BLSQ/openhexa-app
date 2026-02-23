@@ -1061,6 +1061,7 @@ enum CreateWebappError {
 input CreateWebappInput {
   description: String
   icon: String
+  isPublic: Boolean
   name: String!
   source: WebappSourceInput!
   workspaceSlug: String!
