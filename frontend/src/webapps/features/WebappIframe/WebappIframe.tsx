@@ -80,8 +80,13 @@ const WebappIframe = ({
             href="https://www.openhexa.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-1 font-medium text-blue-600 hover:text-blue-500"
+            className="ml-1 flex items-center gap-1 font-medium text-blue-600 hover:text-blue-500"
           >
+            <img
+              src="/images/logo.svg"
+              alt="OpenHEXA"
+              className="h-4 w-4"
+            />
             OpenHEXA
           </a>
         </div>

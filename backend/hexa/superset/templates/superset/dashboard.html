@@ -18,7 +18,7 @@
 </div>
 {% if is_public_view %}
 <div id="footer">
-    {% trans "Powered by" %} <a href="https://www.openhexa.com" target="_blank" rel="noopener noreferrer">OpenHEXA</a>
+    {% trans "Powered by" %} <a href="https://www.openhexa.com" target="_blank" rel="noopener noreferrer"><img src="{% static 'img/logo/logo.svg' %}" alt="OpenHEXA" class="openhexa-logo">OpenHEXA</a>
 </div>
 {% endif %}
 <script>
@@ -66,9 +66,16 @@
   }
   #footer a {
     margin-left: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
     font-weight: 500;
     color: #2563eb;
     text-decoration: none;
+  }
+  .openhexa-logo {
+    height: 1rem;
+    width: 1rem;
   }
   #footer a:hover {
     color: #3b82f6;
