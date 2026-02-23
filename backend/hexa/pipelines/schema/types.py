@@ -280,7 +280,10 @@ def resolve_pipeline_run_config(run: PipelineRun, info, **kwargs):
 
 @pipeline_run_object.field("code")
 def resolve_pipeline_run_code(run: PipelineRun, info, **kwargs):
-    return base64.b64encode(run.get_code()).decode("ascii")
+    code = run.get_code()
+    if code is None:
+        return None
+    return base64.b64encode(code).decode("ascii")
 
 
 pipeline_run_object.set_alias("progress", "current_progress")
@@ -328,69 +331,73 @@ def resolve_pipeline_version_is_latest(version: PipelineVersion, info, **kwargs)
 
 @pipeline_version_object.field("zipfile")
 def resolve_pipeline_version_zipfile(version: PipelineVersion, info, **kwargs):
-    return base64.b64encode(version.zipfile).decode("ascii")
+    if version.commit_sha and version.pipeline.gitea_repo_name:
+        from hexa.pipelines.gitea import get_archive_zip
+
+        archive = get_archive_zip(version.pipeline.gitea_repo_name, version.commit_sha)
+        return base64.b64encode(archive).decode("ascii")
+    if version.zipfile:
+        return base64.b64encode(version.zipfile).decode("ascii")
+    return None
 
 
-@pipeline_version_object.field("files")
-def resolve_pipeline_version_files(version: PipelineVersion, info, **kwargs):
-    """Extract and return flattened file structure."""
-    if not version.zipfile:
-        return []
-
+def _build_files_dict_from_entries(version_name, entries):
+    """Build the files dict from a list of (path, is_dir, content_bytes|None) tuples."""
     files_dict = {}
 
-    with zipfile.ZipFile(io.BytesIO(version.zipfile), "r") as zip_file:
-        for zip_entry in zip_file.infolist():
-            path = zip_entry.filename.rstrip("/")
-
-            parts = path.split("/")
-            for i in range(
-                1, len(parts)
-            ):  # Add directories up to the current file/directory
-                parent_path = "/".join(parts[:i])
-                if parent_path not in files_dict:
-                    files_dict[parent_path] = {
-                        "id": version.version_name + "/" + parent_path,
-                        "name": parts[i - 1],
-                        "path": parent_path,
-                        "type": "directory",
-                        "content": None,
-                        "parent_id": "/".join([version.version_name] + parts[: i - 1])
-                        if i > 1
-                        else None,
-                        "auto_select": False,
-                        "language": None,
-                        "line_count": None,
-                    }
-
-            if path not in files_dict:  # Add the file or directory if not already added
-                content = None
-                language = None
-                line_count = None
-                if not zip_entry.is_dir():
-                    file_content = zip_file.read(zip_entry.filename)
-                    content = file_content.decode("utf-8")
-                    language = get_language_from_path(path)
-                    line_count = content.count("\n") + 1 if content else 0
-                files_dict[path] = {
-                    "id": version.version_name + "/" + path,
-                    "name": path.split("/")[-1] if "/" in path else path,
-                    "path": path,
-                    "type": "directory" if zip_entry.is_dir() else "file",
-                    "content": content,
-                    "parent_id": "/".join([version.version_name] + path.split("/")[:-1])
-                    if "/" in path
+    for path, is_dir, content_bytes in entries:
+        path = path.rstrip("/")
+        parts = path.split("/")
+        for i in range(1, len(parts)):
+            parent_path = "/".join(parts[:i])
+            if parent_path not in files_dict:
+                files_dict[parent_path] = {
+                    "id": version_name + "/" + parent_path,
+                    "name": parts[i - 1],
+                    "path": parent_path,
+                    "type": "directory",
+                    "content": None,
+                    "parent_id": "/".join([version_name] + parts[: i - 1])
+                    if i > 1
                     else None,
                     "auto_select": False,
-                    "language": language,
-                    "line_count": line_count,
+                    "language": None,
+                    "line_count": None,
                 }
 
-    all_files = sorted(files_dict.values(), key=lambda f: f["name"].lower())
+        if path not in files_dict:
+            content = None
+            language = None
+            line_count = None
+            if not is_dir and content_bytes is not None:
+                try:
+                    content = content_bytes.decode("utf-8")
+                except UnicodeDecodeError:
+                    content = None
+                language = get_language_from_path(path)
+                line_count = content.count("\n") + 1 if content else 0
+            files_dict[path] = {
+                "id": version_name + "/" + path,
+                "name": path.split("/")[-1] if "/" in path else path,
+                "path": path,
+                "type": "directory" if is_dir else "file",
+                "content": content,
+                "parent_id": "/".join([version_name] + path.split("/")[:-1])
+                if "/" in path
+                else None,
+                "auto_select": False,
+                "language": language,
+                "line_count": line_count,
+            }
 
+    return files_dict
+
+
+def _auto_select_and_sort(files_dict):
+    all_files = sorted(files_dict.values(), key=lambda f: f["name"].lower())
     file_candidates = [f for f in all_files if f["type"] == "file"]
 
-    if file_candidates:  # Auto-selection
+    if file_candidates:
 
         def get_file_priority(file_name):
             if file_name in ["main.py", "__main__.py", "pipeline.py"]:
@@ -405,6 +412,59 @@ def resolve_pipeline_version_files(version: PipelineVersion, info, **kwargs):
         auto_select_file["auto_select"] = True
 
     return all_files
+
+
+@pipeline_version_object.field("files")
+def resolve_pipeline_version_files(version: PipelineVersion, info, **kwargs):
+    """Extract and return flattened file structure."""
+    if version.commit_sha and version.pipeline.gitea_repo_name:
+        return _resolve_files_from_gitea(version)
+
+    if not version.zipfile:
+        return []
+
+    return _resolve_files_from_zipfile(version)
+
+
+def _resolve_files_from_gitea(version: PipelineVersion):
+    from hexa.pipelines.gitea import get_archive_zip
+
+    archive_bytes = get_archive_zip(
+        version.pipeline.gitea_repo_name, version.commit_sha
+    )
+    entries = []
+    with zipfile.ZipFile(io.BytesIO(archive_bytes), "r") as zf:
+        for entry in zf.infolist():
+            # Gitea archives contain a top-level directory; strip it
+            path = entry.filename
+            parts = path.split("/", 1)
+            if len(parts) > 1:
+                path = parts[1]
+            else:
+                continue
+            if not path:
+                continue
+            if entry.is_dir():
+                entries.append((path, True, None))
+            else:
+                entries.append((path, False, zf.read(entry.filename)))
+
+    files_dict = _build_files_dict_from_entries(version.version_name, entries)
+    return _auto_select_and_sort(files_dict)
+
+
+def _resolve_files_from_zipfile(version: PipelineVersion):
+    entries = []
+    with zipfile.ZipFile(io.BytesIO(version.zipfile), "r") as zip_file:
+        for zip_entry in zip_file.infolist():
+            path = zip_entry.filename
+            if zip_entry.is_dir():
+                entries.append((path, True, None))
+            else:
+                entries.append((path, False, zip_file.read(zip_entry.filename)))
+
+    files_dict = _build_files_dict_from_entries(version.version_name, entries)
+    return _auto_select_and_sort(files_dict)
 
 
 @pipeline_version_object.field("permissions")

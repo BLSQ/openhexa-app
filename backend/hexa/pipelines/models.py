@@ -1,4 +1,5 @@
 import base64
+import logging
 import secrets
 import time
 import typing
@@ -37,6 +38,8 @@ from hexa.core.models.soft_delete import (
 from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
+
+logger = logging.getLogger(__name__)
 
 
 class PipelineCodeParsingError(Exception):
@@ -167,6 +170,8 @@ class PipelineVersion(models.Model):
         null=True,
         help_text="Time (in seconds) after which the pipeline execution will be stopped (with a default value of 4 hours up to 12 max).",
     )
+
+    commit_sha = models.CharField(max_length=40, null=True, blank=True)
 
     source_template_version = models.ForeignKey(
         "pipeline_templates.PipelineTemplateVersion",
@@ -423,6 +428,7 @@ class Pipeline(SoftDeletedModel):
         help_text="Automatically update this pipeline when its source template is updated",
     )
     tags = models.ManyToManyField("tags.Tag", blank=True, related_name="pipelines")
+    gitea_repo_name = models.CharField(max_length=300, null=True, blank=True)
 
     objects = PipelineManager()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()
@@ -593,6 +599,14 @@ class Pipeline(SoftDeletedModel):
             pipeline=self, state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING]
         ).exists():
             raise PermissionDenied
+
+        if self.gitea_repo_name:
+            try:
+                from hexa.pipelines.gitea import delete_repository
+
+                delete_repository(self.gitea_repo_name)
+            except Exception:
+                logger.exception("Failed to delete Gitea repo %s", self.gitea_repo_name)
 
         self.delete()
 
@@ -813,7 +827,14 @@ class PipelineRun(Base, WithStatus):
             return Status.UNKNOWN
 
     def get_code(self):
-        return self.pipeline_version.zipfile
+        version = self.pipeline_version
+        if not version:
+            return None
+        if version.commit_sha and self.pipeline.gitea_repo_name:
+            from hexa.pipelines.gitea import get_archive_zip
+
+            return get_archive_zip(self.pipeline.gitea_repo_name, version.commit_sha)
+        return version.zipfile
 
     def log_message(self, priority: str, message: str):
         self.refresh_from_db()

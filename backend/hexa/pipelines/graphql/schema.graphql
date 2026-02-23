@@ -162,7 +162,7 @@ type PipelineVersion {
   createdAt: DateTime!  # The timestamp when the pipeline version was created.
   parameters: [PipelineParameter!]!  # The parameters of the pipeline version.
   isLatestVersion: Boolean!  # Indicates if the pipeline version is the latest version.
-  zipfile: String!  # The ZIP file base64 encoded.
+  zipfile: String  # The ZIP file base64 encoded (null for Gitea-backed versions).
   files: [FileNode!]!  # Optimized hierarchical file tree structure with decoded content and auto-selection.
   timeout: Int  # The timeout value for the pipeline version (in seconds).
   permissions: PipelineVersionPermissions!  # The permissions for the pipeline version.
@@ -741,6 +741,48 @@ extend type Query {
   pipelineRun(id: UUID!): PipelineRun @loginRequired
 }
 
+enum PipelineFileError {
+  PIPELINE_NOT_FOUND
+  PERMISSION_DENIED
+  GITEA_NOT_CONFIGURED
+  GITEA_ERROR
+}
+
+input CreatePipelineFileInput {
+  pipelineId: UUID!
+  filePath: String!
+  content: String!
+}
+
+type CreatePipelineFileResult {
+  success: Boolean!
+  errors: [PipelineFileError!]!
+  pipelineVersion: PipelineVersion
+}
+
+input UpdatePipelineFileInput {
+  pipelineId: UUID!
+  filePath: String!
+  content: String!
+}
+
+type UpdatePipelineFileResult {
+  success: Boolean!
+  errors: [PipelineFileError!]!
+  pipelineVersion: PipelineVersion
+}
+
+input DeletePipelineFileInput {
+  pipelineId: UUID!
+  filePath: String!
+}
+
+type DeletePipelineFileResult {
+  success: Boolean!
+  errors: [PipelineFileError!]!
+  pipelineVersion: PipelineVersion
+}
+
 extend type Mutation {
   """
   Creates a new pipeline.
@@ -831,4 +873,19 @@ extend type Mutation {
     Upgrades a pipeline version using the latest template version.
   """
   upgradePipelineVersionFromTemplate(input: UpgradePipelineVersionFromTemplateInput!): UpgradePipelineVersionFromTemplateResult!
+
+  """
+  Creates a new file in a pipeline's Gitea repository.
+  """
+  createPipelineFile(input: CreatePipelineFileInput!): CreatePipelineFileResult! @loginRequired
+
+  """
+  Updates an existing file in a pipeline's Gitea repository.
+  """
+  updatePipelineFile(input: UpdatePipelineFileInput!): UpdatePipelineFileResult! @loginRequired
+
+  """
+  Deletes a file from a pipeline's Gitea repository.
+  """
+  deletePipelineFile(input: DeletePipelineFileInput!): DeletePipelineFileResult! @loginRequired
 }

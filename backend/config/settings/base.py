@@ -382,6 +382,11 @@ EXTERNAL_ASYNC_REFRESH = os.environ.get("EXTERNAL_ASYNC_REFRESH") == "true"
 AIRFLOW_SYNC_WAIT = 61
 GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME", 3600)
 
+# Gitea settings
+GITEA_URL = os.environ.get("GITEA_URL", "http://gitea:3000")
+GITEA_ADMIN_USERNAME = os.environ.get("GITEA_ADMIN_USERNAME", "openhexa")
+GITEA_ADMIN_PASSWORD = os.environ.get("GITEA_ADMIN_PASSWORD", "openhexa")
+
 # Pipeline settings
 PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "docker")
 DEFAULT_WORKSPACE_IMAGE = os.environ.get(

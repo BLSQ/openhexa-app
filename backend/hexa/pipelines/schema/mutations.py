@@ -14,6 +14,8 @@ from openhexa.sdk.pipelines.exceptions import PipelineNotFound
 from openhexa.sdk.pipelines.runtime import get_pipeline
 from psycopg2.errors import UniqueViolation
 
+import logging
+
 from hexa.analytics.api import track
 from hexa.databases.utils import get_table_definition
 from hexa.files import storage
@@ -37,6 +39,8 @@ from hexa.pipelines.models import (
 from hexa.tags.models import Tag
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
+
+logger = logging.getLogger(__name__)
 
 pipelines_mutations = MutationType()
 
@@ -88,6 +92,16 @@ def resolve_create_pipeline(_, info, **kwargs):
 
         if tags is not None:
             pipeline.tags.set(tags)
+
+        if pipeline.type == PipelineType.ZIPFILE:
+            try:
+                from hexa.pipelines.gitea import create_repository
+
+                repo_name = create_repository(workspace.slug, pipeline.code)
+                pipeline.gitea_repo_name = repo_name
+                pipeline.save(update_fields=["gitea_repo_name"])
+            except Exception:
+                logger.exception("Failed to create Gitea repo for pipeline %s", pipeline.id)
 
         event_properties = {
             "pipeline_id": str(pipeline.id),
@@ -361,16 +375,38 @@ def resolve_upload_pipeline(_, info, **kwargs):
                 parameters = []
             except Exception as e:
                 raise PipelineCodeParsingError(str(e))
+        commit_sha = None
+        store_zipfile = zipfile_data
+        if pipeline.gitea_repo_name:
+            try:
+                from hexa.pipelines.gitea import commit_zipfile as gitea_commit_zip
+
+                author_name = request.user.display_name or request.user.email
+                author_email = request.user.email
+                commit_sha = gitea_commit_zip(
+                    pipeline.gitea_repo_name,
+                    zipfile_data,
+                    input.get("name") or "Upload pipeline version",
+                    author_name=author_name,
+                    author_email=author_email,
+                )
+                store_zipfile = None
+            except Exception:
+                logger.exception("Failed to commit to Gitea for pipeline %s, falling back to zipfile", pipeline.id)
+
         version = pipeline.upload_new_version(
             user=request.user,
             name=input.get("name"),
             description=input.get("description"),
             external_link=input.get("external_link"),
-            zipfile=zipfile_data,
+            zipfile=store_zipfile,
             parameters=parameters,
             timeout=input.get("timeout"),
             config=input.get("config"),
         )
+        if commit_sha:
+            version.commit_sha = commit_sha
+            version.save(update_fields=["commit_sha"])
 
         if "tags" in input:
             tags, has_error = Tag.validate_and_get_or_create(input["tags"])
@@ -705,6 +741,148 @@ def resolve_upgrade_pipeline_version_from_template(_, info, **kwargs):
         return {"success": False, "errors": ["NO_NEW_TEMPLATE_VERSION_AVAILABLE"]}
     pipeline_version = pipeline.source_template.upgrade_pipeline(request.user, pipeline)
     return {"success": True, "errors": [], "pipeline_version": pipeline_version}
+
+
+def _commit_file_change(request, pipeline, operations, message):
+    from hexa.pipelines.gitea import commit_files
+
+    if not pipeline.gitea_repo_name:
+        return None, "GITEA_NOT_CONFIGURED"
+
+    if not request.user.has_perm("pipelines.update_pipeline", pipeline):
+        return None, "PERMISSION_DENIED"
+
+    author_name = request.user.display_name or request.user.email
+    author_email = request.user.email
+
+    commit_sha = commit_files(
+        pipeline.gitea_repo_name,
+        operations,
+        message,
+        author_name=author_name,
+        author_email=author_email,
+    )
+
+    previous_version = pipeline.last_version
+    parameters = previous_version.parameters if previous_version else []
+    config = previous_version.config if previous_version else {}
+
+    version = PipelineVersion(
+        user=request.user,
+        pipeline=pipeline,
+        commit_sha=commit_sha,
+        parameters=parameters,
+        config=config,
+    )
+    version.save()
+    return version, None
+
+
+@pipelines_mutations.field("createPipelineFile")
+def resolve_create_pipeline_file(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            id=input["pipeline_id"]
+        )
+    except Pipeline.DoesNotExist:
+        return {"success": False, "errors": ["PIPELINE_NOT_FOUND"]}
+
+    try:
+        version, error = _commit_file_change(
+            request,
+            pipeline,
+            [{"path": input["file_path"], "content": input["content"]}],
+            f"Create {input['file_path']}",
+        )
+        if error:
+            return {"success": False, "errors": [error]}
+        return {"success": True, "errors": [], "pipeline_version": version}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except Exception:
+        logger.exception("Failed to create file in pipeline %s", pipeline.id)
+        return {"success": False, "errors": ["GITEA_ERROR"]}
+
+
+@pipelines_mutations.field("updatePipelineFile")
+def resolve_update_pipeline_file(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            id=input["pipeline_id"]
+        )
+    except Pipeline.DoesNotExist:
+        return {"success": False, "errors": ["PIPELINE_NOT_FOUND"]}
+
+    try:
+        version, error = _commit_file_change(
+            request,
+            pipeline,
+            [{"path": input["file_path"], "content": input["content"]}],
+            f"Update {input['file_path']}",
+        )
+        if error:
+            return {"success": False, "errors": [error]}
+        return {"success": True, "errors": [], "pipeline_version": version}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except Exception:
+        logger.exception("Failed to update file in pipeline %s", pipeline.id)
+        return {"success": False, "errors": ["GITEA_ERROR"]}
+
+
+@pipelines_mutations.field("deletePipelineFile")
+def resolve_delete_pipeline_file(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            id=input["pipeline_id"]
+        )
+    except Pipeline.DoesNotExist:
+        return {"success": False, "errors": ["PIPELINE_NOT_FOUND"]}
+
+    if not pipeline.gitea_repo_name:
+        return {"success": False, "errors": ["GITEA_NOT_CONFIGURED"]}
+
+    if not request.user.has_perm("pipelines.update_pipeline", pipeline):
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+    try:
+        from hexa.pipelines.gitea import delete_file
+
+        author_name = request.user.display_name or request.user.email
+        author_email = request.user.email
+
+        commit_sha = delete_file(
+            pipeline.gitea_repo_name,
+            input["file_path"],
+            f"Delete {input['file_path']}",
+            author_name=author_name,
+            author_email=author_email,
+        )
+
+        previous_version = pipeline.last_version
+        parameters = previous_version.parameters if previous_version else []
+        config = previous_version.config if previous_version else {}
+
+        version = PipelineVersion(
+            user=request.user,
+            pipeline=pipeline,
+            commit_sha=commit_sha,
+            parameters=parameters,
+            config=config,
+        )
+        version.save()
+        return {"success": True, "errors": [], "pipeline_version": version}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except Exception:
+        logger.exception("Failed to delete file in pipeline %s", pipeline.id)
+        return {"success": False, "errors": ["GITEA_ERROR"]}
 
 
 bindables = [pipelines_mutations]
