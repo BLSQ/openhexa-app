@@ -2,6 +2,7 @@ import Block from "core/components/Block";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
 import { getWebappTypeLabel } from "webapps/helpers/webappType";
+import { WebappType } from "graphql/types";
 import Page from "core/components/Page";
 import Link from "core/components/Link";
 import { createGetServerSideProps } from "core/helpers/page";
@@ -147,9 +148,13 @@ const WebappsPage = (props: Props) => {
               </BaseColumn>
               <LinkColumn
                 id="play"
-                url={(item) => ({
-                  pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${item.slug}/play`,
-                })}
+                url={(item) =>
+                  item.type === WebappType.Superset
+                    ? item.url
+                    : {
+                        pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${item.slug}/play`,
+                      }
+                }
                 width={80}
                 className={"flex items-center justify-center"}
               >

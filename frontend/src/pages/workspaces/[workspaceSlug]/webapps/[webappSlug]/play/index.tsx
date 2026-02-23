@@ -5,7 +5,6 @@ import { useTranslation } from "next-i18next";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import WebappIframe from "webapps/features/WebappIframe";
-import { WebappType } from "graphql/types";
 import {
   WebappAccessDocument,
   WebappAccessQuery,
@@ -90,12 +89,6 @@ export const getServerSideProps = createGetServerSideProps({
         };
       }
       return { notFound: true };
-    }
-
-    if (data.webapp.type === WebappType.Superset) {
-      return {
-        redirect: { permanent: false, destination: data.webapp.url },
-      };
     }
 
     if (isAuthenticated) {
