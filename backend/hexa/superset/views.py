@@ -23,7 +23,7 @@ def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResp
             .exists()
         )
         if not has_access:
-            return HttpResponse(status=403)
+            return render(request, "superset/no_access.html", status=403)
 
     client = dashboard.superset_instance.get_client()
     client.authenticate()
