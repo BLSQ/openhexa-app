@@ -86,25 +86,41 @@ def resolve_me_permissions_create_workspace(me, info):
 @workspace_permissions.field("update")
 def resolve_workspace_permission_update(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]
-    return request.user.has_perm("workspaces.update_workspace", workspace)
+    return (
+        request.user.has_perm("workspaces.update_workspace", workspace)
+        if request.user.is_authenticated
+        else False
+    )
 
 
 @workspace_permissions.field("delete")
 def resolve_workspace_permission_delete(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]
-    return request.user.has_perm("workspaces.delete_workspace", workspace)
+    return (
+        request.user.has_perm("workspaces.delete_workspace", workspace)
+        if request.user.is_authenticated
+        else False
+    )
 
 
 @workspace_permissions.field("manageMembers")
 def resolve_workspace_permission_manage(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]
-    return request.user.has_perm("workspaces.manage_members", workspace)
+    return (
+        request.user.has_perm("workspaces.manage_members", workspace)
+        if request.user.is_authenticated
+        else False
+    )
 
 
 @workspace_permissions.field("launchNotebookServer")
 def resolve_workspace_permission_launch_notebooks(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]
-    return request.user.has_perm("workspaces.launch_notebooks", workspace)
+    return (
+        request.user.has_perm("workspaces.launch_notebooks", workspace)
+        if request.user.is_authenticated
+        else False
+    )
 
 
 @workspace_object.field("permissions")
