@@ -377,22 +377,31 @@ def resolve_upload_pipeline(_, info, **kwargs):
                 raise PipelineCodeParsingError(str(e))
         commit_sha = None
         store_zipfile = zipfile_data
-        if pipeline.gitea_repo_name:
-            try:
-                from hexa.pipelines.gitea import commit_zipfile as gitea_commit_zip
+        try:
+            from hexa.pipelines.gitea import (
+                commit_zipfile as gitea_commit_zip,
+                create_repository,
+            )
 
-                author_name = request.user.display_name or request.user.email
-                author_email = request.user.email
-                commit_sha = gitea_commit_zip(
-                    pipeline.gitea_repo_name,
-                    zipfile_data,
-                    input.get("name") or "Upload pipeline version",
-                    author_name=author_name,
-                    author_email=author_email,
+            if not pipeline.gitea_repo_name:
+                repo_name = create_repository(
+                    pipeline.workspace.slug, pipeline.code
                 )
-                store_zipfile = None
-            except Exception:
-                logger.exception("Failed to commit to Gitea for pipeline %s, falling back to zipfile", pipeline.id)
+                pipeline.gitea_repo_name = repo_name
+                pipeline.save(update_fields=["gitea_repo_name"])
+
+            author_name = request.user.display_name or request.user.email
+            author_email = request.user.email
+            commit_sha = gitea_commit_zip(
+                pipeline.gitea_repo_name,
+                zipfile_data,
+                input.get("name") or "Upload pipeline version",
+                author_name=author_name,
+                author_email=author_email,
+            )
+            store_zipfile = None
+        except Exception:
+            logger.exception("Failed to commit to Gitea for pipeline %s, falling back to zipfile", pipeline.id)
 
         version = pipeline.upload_new_version(
             user=request.user,

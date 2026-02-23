@@ -8,8 +8,6 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-_api_token: str | None = None
-
 
 def _base_url() -> str:
     return settings.GITEA_URL.rstrip("/")
@@ -19,59 +17,15 @@ def _api(path: str) -> str:
     return f"{_base_url()}/api/v1{path}"
 
 
-def _auth_headers() -> dict:
-    token = get_api_token()
-    return {"Authorization": f"token {token}"}
-
-
-def get_api_token() -> str:
-    global _api_token
-    if _api_token is None:
-        _api_token = ensure_admin_user()
-    return _api_token
-
-
-def ensure_admin_user() -> str:
-    """Verify the Gitea admin user exists and create/refresh an API token.
-
-    The admin user itself is created by Gitea on container startup via the
-    GITEA_ADMIN_USER / GITEA_ADMIN_PASSWORD environment variables.
-    """
-    username = settings.GITEA_ADMIN_USERNAME
-    password = settings.GITEA_ADMIN_PASSWORD
-
-    token_name = "openhexa-backend"
-
-    resp = requests.get(
-        _api(f"/users/{username}/tokens"),
-        auth=(username, password),
-        timeout=10,
-    )
-    resp.raise_for_status()
-
-    for token in resp.json():
-        if token["name"] == token_name:
-            requests.delete(
-                _api(f"/users/{username}/tokens/{token['id']}"),
-                auth=(username, password),
-                timeout=10,
-            )
-
-    resp = requests.post(
-        _api(f"/users/{username}/tokens"),
-        auth=(username, password),
-        json={"name": token_name, "scopes": ["all"]},
-        timeout=10,
-    )
-    resp.raise_for_status()
-    return resp.json()["sha1"]
+def _basic_auth() -> tuple[str, str]:
+    return (settings.GITEA_ADMIN_USERNAME, settings.GITEA_ADMIN_PASSWORD)
 
 
 def create_repository(workspace_slug: str, pipeline_code: str) -> str:
     repo_name = f"{workspace_slug}_{pipeline_code}"
     resp = requests.post(
         _api("/user/repos"),
-        headers=_auth_headers(),
+        auth=_basic_auth(),
         json={
             "name": repo_name,
             "auto_init": True,
@@ -90,7 +44,7 @@ def delete_repository(repo_name: str):
     owner = settings.GITEA_ADMIN_USERNAME
     resp = requests.delete(
         _api(f"/repos/{owner}/{repo_name}"),
-        headers=_auth_headers(),
+        auth=_basic_auth(),
         timeout=10,
     )
     if resp.status_code == 404:
@@ -129,7 +83,7 @@ def commit_files(
 
     resp = requests.post(
         _api(f"/repos/{owner}/{repo_name}/contents"),
-        headers=_auth_headers(),
+        auth=_basic_auth(),
         json={
             "message": message,
             "files": operations,
@@ -167,7 +121,7 @@ def get_file(repo_name: str, path: str, ref: str) -> bytes:
     owner = settings.GITEA_ADMIN_USERNAME
     resp = requests.get(
         _api(f"/repos/{owner}/{repo_name}/contents/{path}"),
-        headers=_auth_headers(),
+        auth=_basic_auth(),
         params={"ref": ref},
         timeout=10,
     )
@@ -180,7 +134,7 @@ def get_files_tree(repo_name: str, ref: str) -> list[dict]:
     owner = settings.GITEA_ADMIN_USERNAME
     resp = requests.get(
         _api(f"/repos/{owner}/{repo_name}/git/trees/{ref}"),
-        headers=_auth_headers(),
+        auth=_basic_auth(),
         params={"recursive": "true"},
         timeout=30,
     )
@@ -198,7 +152,7 @@ def delete_file(
     owner = settings.GITEA_ADMIN_USERNAME
     resp = requests.delete(
         _api(f"/repos/{owner}/{repo_name}/contents/{path}"),
-        headers=_auth_headers(),
+        auth=_basic_auth(),
         json={
             "message": message,
             "author": {"name": author_name, "email": author_email},
@@ -214,7 +168,7 @@ def get_archive_zip(repo_name: str, ref: str) -> bytes:
     owner = settings.GITEA_ADMIN_USERNAME
     resp = requests.get(
         _api(f"/repos/{owner}/{repo_name}/archive/{ref}.zip"),
-        headers=_auth_headers(),
+        auth=_basic_auth(),
         timeout=30,
     )
     resp.raise_for_status()
