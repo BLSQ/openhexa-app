@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 MCP_SERVER_NAME = "OpenHEXA"
 MCP_SERVER_VERSION = "0.0.1"
-PROTOCOL_VERSION = "2026-02-23"
+PROTOCOL_VERSION = "2025-03-26"
 
 _TOOLS = {}
 
