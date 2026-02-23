@@ -339,6 +339,7 @@
   "Invalid password": "Invalid password",
   "Invalid token": "Invalid token",
   "Invalid URL": "Invalid URL",
+  "Invalid URL. Only http and https URLs are allowed": "Invalid URL. Only http and https URLs are allowed",
   "Invitation deleted": "Invitation deleted",
   "Invitation resent": "Invitation resent",
   "Invitation sent!": "Invitation sent!",

@@ -1,5 +1,5 @@
 from ariadne import MutationType
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 
@@ -74,6 +74,8 @@ def resolve_create_webapp(_, info, **kwargs):
             return {"success": True, "errors": [], "webapp": webapp}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"], "webapp": None}
+    except ValidationError:
+        return {"success": False, "errors": ["INVALID_URL"], "webapp": None}
     except IntegrityError:
         return {"success": False, "errors": ["ALREADY_EXISTS"], "webapp": None}
 
@@ -133,6 +135,8 @@ def resolve_update_webapp(_, info, **kwargs):
     try:
         webapp.save()
         return {"success": True, "errors": [], "webapp": webapp}
+    except ValidationError:
+        return {"success": False, "errors": ["INVALID_URL"], "webapp": None}
     except IntegrityError:
         return {"success": False, "errors": ["ALREADY_EXISTS"], "webapp": None}
 

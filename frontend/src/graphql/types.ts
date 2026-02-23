@@ -1039,6 +1039,7 @@ export enum CreateTemplateVersionPermissionReason {
 /** Represents the error message for a web app creation. */
 export enum CreateWebappError {
   AlreadyExists = 'ALREADY_EXISTS',
+  InvalidUrl = 'INVALID_URL',
   PermissionDenied = 'PERMISSION_DENIED',
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
@@ -5726,6 +5727,7 @@ export type UpdateUserResult = {
 
 /** Represents the error message for a web app update. */
 export enum UpdateWebappError {
+  InvalidUrl = 'INVALID_URL',
   PermissionDenied = 'PERMISSION_DENIED',
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',

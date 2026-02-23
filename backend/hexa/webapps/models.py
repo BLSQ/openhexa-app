@@ -146,6 +146,10 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
             "url": f"/workspaces/{self.workspace.slug}/webapps/{self.slug}/play",
         }
 
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Ensures URLField's validator is called
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 

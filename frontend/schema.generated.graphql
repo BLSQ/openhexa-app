@@ -1051,6 +1051,7 @@ enum CreateTemplateVersionPermissionReason {
 """Represents the error message for a web app creation."""
 enum CreateWebappError {
   ALREADY_EXISTS
+  INVALID_URL
   PERMISSION_DENIED
   SUPERSET_INSTANCE_NOT_FOUND
   SUPERSET_NOT_CONFIGURED
@@ -4956,6 +4957,7 @@ type UpdateUserResult {
 
 """Represents the error message for a web app update."""
 enum UpdateWebappError {
+  INVALID_URL
   PERMISSION_DENIED
   SUPERSET_INSTANCE_NOT_FOUND
   SUPERSET_NOT_CONFIGURED

@@ -102,6 +102,8 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           toast.error(t("Superset is not configured"));
         } else if (error === UpdateWebappError.TypeMismatch) {
           toast.error(t("Cannot change the type of an existing webapp"));
+        } else if (error === UpdateWebappError.InvalidUrl) {
+          toast.error(t("Invalid URL. Only http and https URLs are allowed"));
         }
         return;
       }
@@ -143,6 +145,8 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           toast.error(t("Superset is not configured"));
         } else if (error === CreateWebappError.WorkspaceNotFound) {
           toast.error(t("Workspace not found"));
+        } else if (error === CreateWebappError.InvalidUrl) {
+          toast.error(t("Invalid URL. Only http and https URLs are allowed"));
         }
         return;
       }
