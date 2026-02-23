@@ -706,6 +706,7 @@
   "The logo format is invalid. Please try another image.": "Le format du logo est invalide. Veuillez essayer une autre image.",
   "The object on which you try to add metadata does not exist": "L'objet sur lequel vous essayez d'ajouter des métadonnées n'existe pas",
   "The pipeline version is not available.": "Cette version de pipeline n'est pas disponible.",
+  "The provided URL is invalid or not allowed.": "L'URL fournie est invalide ou non autorisée.",
   "The schedule value should follow the CRON syntax.": "La valeur du calendrier doit respecter la syntaxe CRON.",
   "The service account key in JSON format": "Clé du compte de service au format JSON",
   "The short name is invalid": "Le nom court est invalide",
