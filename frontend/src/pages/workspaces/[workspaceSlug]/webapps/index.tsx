@@ -170,15 +170,21 @@ const WebappsPage = (props: Props) => {
                 id="createdBy"
                 label={t("Created by")}
                 className="flex items-center"
+                maxWidth={200}
               >
                 {(item) => (
-                  <div className="flex items-center space-x-1">
+                  <div className="flex items-center space-x-1 overflow-hidden">
                     <UserAvatar user={item.createdBy} size="xs" />
-                    <p>{item.createdBy.displayName}</p>
+                    <p className="truncate">{item.createdBy.displayName}</p>
                   </div>
                 )}
               </BaseColumn>
-              <BaseColumn id="access" label={t("Access")} className="flex items-center">
+              <BaseColumn
+                id="access"
+                label={t("Access")}
+                className="flex items-center"
+                maxWidth={80}
+              >
                 {(item) => (
                   <div className="flex items-center gap-1.5">
                     {item.isPublic ? (
@@ -203,6 +209,7 @@ const WebappsPage = (props: Props) => {
                 id="type"
                 label={t("Type")}
                 className="flex items-center"
+                maxWidth={80}
               >
                 {(item) => (
                   <div className="flex items-center">
@@ -214,6 +221,7 @@ const WebappsPage = (props: Props) => {
                 accessor="slug"
                 customLabel={t("Edit")}
                 className="flex items-center"
+                maxWidth={80}
                 url={(slug) => ({
                   pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${slug}`,
                 })}
