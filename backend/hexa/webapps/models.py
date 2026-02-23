@@ -2,7 +2,7 @@ import secrets
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
-from django.core.validators import validate_slug
+from django.core.validators import URLValidator, validate_slug
 from django.db import models, transaction
 from django.db.models import Q
 from slugify import slugify
@@ -59,6 +59,9 @@ class WebappManager(
             f"{self.model._meta.app_label}.create_{self.model._meta.model_name}", ws
         ):
             raise PermissionDenied
+
+        if kwargs.get("url"):
+            URLValidator()(kwargs["url"])
 
         if "slug" not in kwargs:
             kwargs["slug"] = create_webapp_slug(kwargs["name"], ws)
@@ -145,10 +148,6 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
             "label": self.name,
             "url": f"/workspaces/{self.workspace.slug}/webapps/{self.slug}/play",
         }
-
-    def save(self, *args, **kwargs):
-        self.full_clean()  # Ensures URLField's validator is called
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

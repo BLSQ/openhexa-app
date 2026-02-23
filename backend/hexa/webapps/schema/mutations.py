@@ -1,5 +1,6 @@
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.validators import URLValidator
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 
@@ -121,6 +122,7 @@ def resolve_update_webapp(_, info, **kwargs):
     elif source:
         if webapp.type != Webapp.WebappType.IFRAME:
             return {"success": False, "errors": ["TYPE_MISMATCH"], "webapp": None}
+        URLValidator()(source["iframe"]["url"])
         webapp.url = source["iframe"]["url"]
 
     if "name" in input:
