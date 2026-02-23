@@ -47,11 +47,11 @@ const DeleteWebappDialog = (props: DeleteWebappDialogProps) => {
     setIsSubmitting(false);
     if (data.deleteWebapp.success) {
       toast.success(t("Webapp deleted successfully."));
-      clearCache();
-      router.push({
+      await router.push({
         pathname: "/workspaces/[workspaceSlug]/webapps",
         query: { workspaceSlug: workspace.slug },
       });
+      clearCache();
     } else if (
       data.deleteWebapp.errors.includes(DeleteWebappError.PermissionDenied)
     ) {
