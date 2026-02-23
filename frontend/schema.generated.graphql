@@ -904,6 +904,18 @@ type CreateOrganizationResult {
   user: User
 }
 
+input CreatePipelineFileInput {
+  content: String!
+  filePath: String!
+  pipelineId: UUID!
+}
+
+type CreatePipelineFileResult {
+  errors: [PipelineFileError!]!
+  pipelineVersion: PipelineVersion
+  success: Boolean!
+}
+
 """
 Enum representing the possible errors that can occur when creating a pipeline from a template version.
 """
@@ -1838,6 +1850,17 @@ type DeleteOrganizationResult {
   success: Boolean!
 }
 
+input DeletePipelineFileInput {
+  filePath: String!
+  pipelineId: UUID!
+}
+
+type DeletePipelineFileResult {
+  errors: [PipelineFileError!]!
+  pipelineVersion: PipelineVersion
+  success: Boolean!
+}
+
 """Represents the input for deleting a pipeline."""
 input DeletePipelineInput {
   id: UUID!
@@ -2708,6 +2731,9 @@ type Mutation {
 
   """Creates a new pipeline."""
   createPipeline(input: CreatePipelineInput!): CreatePipelineResult!
+
+  """Creates a new file in a pipeline's Gitea repository."""
+  createPipelineFile(input: CreatePipelineFileInput!): CreatePipelineFileResult!
   createPipelineFromTemplateVersion(input: CreatePipelineFromTemplateVersionInput!): CreatePipelineFromTemplateVersionResult!
 
   """Creates a new pipeline template version."""
@@ -2745,6 +2771,9 @@ type Mutation {
 
   """Deletes a pipeline."""
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult!
+
+  """Deletes a file from a pipeline's Gitea repository."""
+  deletePipelineFile(input: DeletePipelineFileInput!): DeletePipelineFileResult!
 
   """Deletes a pipeline recipient."""
   deletePipelineRecipient(input: DeletePipelineRecipientInput!): DeletePipelineRecipientResult!
@@ -2875,6 +2904,9 @@ type Mutation {
 
   """Updates an existing pipeline."""
   updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult!
+
+  """Updates an existing file in a pipeline's Gitea repository."""
+  updatePipelineFile(input: UpdatePipelineFileInput!): UpdatePipelineFileResult!
 
   """
   Updates the heartbeat timestamp for the current pipeline run.
@@ -3228,6 +3260,13 @@ enum PipelineError {
   WORKSPACE_NOT_FOUND
 }
 
+enum PipelineFileError {
+  GITEA_ERROR
+  GITEA_NOT_CONFIGURED
+  PERMISSION_DENIED
+  PIPELINE_NOT_FOUND
+}
+
 """
 Represents the functional purpose of a pipeline in data workflows.
 
@@ -3481,6 +3520,7 @@ enum PipelineType {
 
 """Represents a version of a pipeline."""
 type PipelineVersion {
+  commitSha: String
   config: JSON
   createdAt: DateTime!
   description: String
@@ -3498,7 +3538,7 @@ type PipelineVersion {
   user: User
   versionName: String!
   versionNumber: Int!
-  zipfile: String!
+  zipfile: String
 }
 
 """Represents a page of pipeline versions."""
@@ -4732,6 +4772,18 @@ enum UpdatePipelineError {
   MISSING_VERSION_CONFIG
   NOT_FOUND
   PERMISSION_DENIED
+}
+
+input UpdatePipelineFileInput {
+  content: String!
+  filePath: String!
+  pipelineId: UUID!
+}
+
+type UpdatePipelineFileResult {
+  errors: [PipelineFileError!]!
+  pipelineVersion: PipelineVersion
+  success: Boolean!
 }
 
 """Represents the result of updating a pipeline heartbeat."""

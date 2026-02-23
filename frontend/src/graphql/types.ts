@@ -937,6 +937,19 @@ export type CreateOrganizationResult = {
   user?: Maybe<User>;
 };
 
+export type CreatePipelineFileInput = {
+  content: Scalars['String']['input'];
+  filePath: Scalars['String']['input'];
+  pipelineId: Scalars['UUID']['input'];
+};
+
+export type CreatePipelineFileResult = {
+  __typename?: 'CreatePipelineFileResult';
+  errors: Array<PipelineFileError>;
+  pipelineVersion?: Maybe<PipelineVersion>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** Enum representing the possible errors that can occur when creating a pipeline from a template version. */
 export enum CreatePipelineFromTemplateVersionError {
   PermissionDenied = 'PERMISSION_DENIED',
@@ -1887,6 +1900,18 @@ export type DeleteOrganizationResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export type DeletePipelineFileInput = {
+  filePath: Scalars['String']['input'];
+  pipelineId: Scalars['UUID']['input'];
+};
+
+export type DeletePipelineFileResult = {
+  __typename?: 'DeletePipelineFileResult';
+  errors: Array<PipelineFileError>;
+  pipelineVersion?: Maybe<PipelineVersion>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** Represents the input for deleting a pipeline. */
 export type DeletePipelineInput = {
   id: Scalars['UUID']['input'];
@@ -2723,6 +2748,8 @@ export type Mutation = {
   createOrganization: CreateOrganizationResult;
   /** Creates a new pipeline. */
   createPipeline: CreatePipelineResult;
+  /** Creates a new file in a pipeline's Gitea repository. */
+  createPipelineFile: CreatePipelineFileResult;
   createPipelineFromTemplateVersion: CreatePipelineFromTemplateVersionResult;
   /** Creates a new pipeline template version. */
   createPipelineTemplateVersion: CreatePipelineTemplateVersionResult;
@@ -2753,6 +2780,8 @@ export type Mutation = {
   deleteOrganizationMember: DeleteOrganizationMemberResult;
   /** Deletes a pipeline. */
   deletePipeline: DeletePipelineResult;
+  /** Deletes a file from a pipeline's Gitea repository. */
+  deletePipelineFile: DeletePipelineFileResult;
   /** Deletes a pipeline recipient. */
   deletePipelineRecipient: DeletePipelineRecipientResult;
   /** Deletes a pipeline template. */
@@ -2850,6 +2879,8 @@ export type Mutation = {
   updateOrganizationSubscription: UpdateOrganizationSubscriptionResult;
   /** Updates an existing pipeline. */
   updatePipeline: UpdatePipelineResult;
+  /** Updates an existing file in a pipeline's Gitea repository. */
+  updatePipelineFile: UpdatePipelineFileResult;
   /**
    * Updates the heartbeat timestamp for the current pipeline run.
    * Must be called by an authenticated pipeline run.
@@ -2985,6 +3016,11 @@ export type MutationCreatePipelineArgs = {
 };
 
 
+export type MutationCreatePipelineFileArgs = {
+  input: CreatePipelineFileInput;
+};
+
+
 export type MutationCreatePipelineFromTemplateVersionArgs = {
   input: CreatePipelineFromTemplateVersionInput;
 };
@@ -3097,6 +3133,11 @@ export type MutationDeleteOrganizationMemberArgs = {
 
 export type MutationDeletePipelineArgs = {
   input?: InputMaybe<DeletePipelineInput>;
+};
+
+
+export type MutationDeletePipelineFileArgs = {
+  input: DeletePipelineFileInput;
 };
 
 
@@ -3427,6 +3468,11 @@ export type MutationUpdateOrganizationSubscriptionArgs = {
 
 export type MutationUpdatePipelineArgs = {
   input: UpdatePipelineInput;
+};
+
+
+export type MutationUpdatePipelineFileArgs = {
+  input: UpdatePipelineFileInput;
 };
 
 
@@ -3856,6 +3902,13 @@ export enum PipelineError {
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
+export enum PipelineFileError {
+  GiteaError = 'GITEA_ERROR',
+  GiteaNotConfigured = 'GITEA_NOT_CONFIGURED',
+  PermissionDenied = 'PERMISSION_DENIED',
+  PipelineNotFound = 'PIPELINE_NOT_FOUND'
+}
+
 /**
  * Represents the functional purpose of a pipeline in data workflows.
  *
@@ -4131,6 +4184,7 @@ export enum PipelineType {
 /** Represents a version of a pipeline. */
 export type PipelineVersion = {
   __typename?: 'PipelineVersion';
+  commitSha?: Maybe<Scalars['String']['output']>;
   config?: Maybe<Scalars['JSON']['output']>;
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
@@ -4149,7 +4203,7 @@ export type PipelineVersion = {
   user?: Maybe<User>;
   versionName: Scalars['String']['output'];
   versionNumber: Scalars['Int']['output'];
-  zipfile: Scalars['String']['output'];
+  zipfile?: Maybe<Scalars['String']['output']>;
 };
 
 /** Represents a page of pipeline versions. */
@@ -5553,6 +5607,19 @@ export enum UpdatePipelineError {
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
+
+export type UpdatePipelineFileInput = {
+  content: Scalars['String']['input'];
+  filePath: Scalars['String']['input'];
+  pipelineId: Scalars['UUID']['input'];
+};
+
+export type UpdatePipelineFileResult = {
+  __typename?: 'UpdatePipelineFileResult';
+  errors: Array<PipelineFileError>;
+  pipelineVersion?: Maybe<PipelineVersion>;
+  success: Scalars['Boolean']['output'];
+};
 
 /** Represents the result of updating a pipeline heartbeat. */
 export type UpdatePipelineHeartbeatResult = {

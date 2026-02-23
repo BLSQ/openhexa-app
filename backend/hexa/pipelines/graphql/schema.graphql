@@ -162,6 +162,7 @@ type PipelineVersion {
   createdAt: DateTime!  # The timestamp when the pipeline version was created.
   parameters: [PipelineParameter!]!  # The parameters of the pipeline version.
   isLatestVersion: Boolean!  # Indicates if the pipeline version is the latest version.
+  commitSha: String  # The git commit SHA (null for legacy zipfile-backed versions).
   zipfile: String  # The ZIP file base64 encoded (null for Gitea-backed versions).
   files: [FileNode!]!  # Optimized hierarchical file tree structure with decoded content and auto-selection.
   timeout: Int  # The timeout value for the pipeline version (in seconds).

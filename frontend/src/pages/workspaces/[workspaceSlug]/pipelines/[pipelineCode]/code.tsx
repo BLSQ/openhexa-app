@@ -89,6 +89,11 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 onChange={onVersionChange}
               />
             </div>
+            {versionToShow.commitSha && (
+              <span className="font-mono text-xs text-gray-500">
+                {versionToShow.commitSha.slice(0, 7)}
+              </span>
+            )}
           </div>
           <div className="relative">
             {(loading || versionLoading) && (

@@ -157,6 +157,7 @@ query WorkspacePipelineCodePage(
     currentVersion {
       id
       versionName
+      commitSha
       files {
         ...FilesEditor_file
       }
@@ -168,6 +169,7 @@ query GetPipelineVersionFiles($versionId: UUID!) {
   pipelineVersion(id: $versionId) {
     id
     versionName
+    commitSha
     files {
       ...FilesEditor_file
     }

@@ -8,7 +8,7 @@ export type GetTemplateVersionForDownloadQueryVariables = Types.Exact<{
 }>;
 
 
-export type GetTemplateVersionForDownloadQuery = { __typename?: 'Query', pipelineTemplateVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, template: { __typename?: 'PipelineTemplate', code: string }, sourcePipelineVersion: { __typename?: 'PipelineVersion', zipfile: string } } | null };
+export type GetTemplateVersionForDownloadQuery = { __typename?: 'Query', pipelineTemplateVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, template: { __typename?: 'PipelineTemplate', code: string }, sourcePipelineVersion: { __typename?: 'PipelineVersion', zipfile?: string | null } } | null };
 
 
 export const GetTemplateVersionForDownloadDocument = gql`

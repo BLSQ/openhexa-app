@@ -322,6 +322,7 @@ def resolve_pipeline_version_version_name(version: PipelineVersion, info, **kwar
 
 
 pipeline_version_object.set_alias("number", "versionNumber")
+pipeline_version_object.set_alias("commitSha", "commit_sha")
 
 
 @pipeline_version_object.field("isLatestVersion")
