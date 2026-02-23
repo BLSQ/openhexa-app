@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.2.0](https://github.com/BLSQ/openhexa-app/compare/4.1.0...4.2.0) (2026-02-23)
+
+
+### Features
+
+* combining name and code for better readability of  the pipeline table ([#1635](https://github.com/BLSQ/openhexa-app/issues/1635)) ([5412122](https://github.com/BLSQ/openhexa-app/commit/54121228d6f9d8560a3e737b9979b50ca3211e83))
+* improve sorting UX ([#1632](https://github.com/BLSQ/openhexa-app/issues/1632)) ([9984d50](https://github.com/BLSQ/openhexa-app/commit/9984d504fdce563a8a169fa9765458b46fa42ad6))
+
+
+### Bug Fixes
+
+* webapp list page UI (HEXA-1455) ([#1627](https://github.com/BLSQ/openhexa-app/issues/1627)) ([16983d9](https://github.com/BLSQ/openhexa-app/commit/16983d96ad3cb2387ef10f2cbdd403419f0e34d6))
+
 ## [4.1.0](https://github.com/BLSQ/openhexa-app/compare/4.0.0...4.1.0) (2026-02-20)
 
 
