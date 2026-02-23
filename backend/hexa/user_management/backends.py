@@ -32,6 +32,9 @@ class PermissionsBackend(BaseBackend):
         perm: str,
         obj: typing.Any = None,
     ):
+        if not user_obj.is_active or user_obj.is_anonymous:
+            return False
+
         try:
             app_label, app_perm = perm.split(".")
         except ValueError:
