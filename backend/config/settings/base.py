@@ -548,8 +548,8 @@ ACCESSMOD_SET_PASSWORD_URL = os.environ.get("ACCESSMOD_SET_PASSWORD_URL")
 # OAuth2 Provider (django-oauth-toolkit)
 OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": True,
-    "SCOPES": {"read": "Read access", "write": "Write access"},
-    "DEFAULT_SCOPES": ["read"],
+    "SCOPES": {"openhexa:mcp": "Access the OpenHEXA MCP server"},
+    "DEFAULT_SCOPES": ["openhexa:mcp"],
     "ACCESS_TOKEN_EXPIRE_SECONDS": 3600,
     "REFRESH_TOKEN_EXPIRE_SECONDS": 86400,
     "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"],
