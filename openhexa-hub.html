@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenHEXA Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            hexa: {
+              50:  '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'Cascadia Code', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .code-block { font-family: 'JetBrains Mono', monospace; }
+    .tab-active { border-bottom: 2px solid #4f46e5; color: #4f46e5; }
+    .tab-inactive { border-bottom: 2px solid transparent; color: #6b7280; }
+    .card-hover { transition: box-shadow 0.15s, transform 0.15s; }
+    .card-hover:hover { box-shadow: 0 8px 30px rgba(99,102,241,0.12); transform: translateY(-1px); }
+    .badge-official { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+    .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #f1f5f9; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+    .tag-chip { transition: background 0.1s; }
+    .tag-chip:hover { background: #e0e7ff; }
+    .slide-in { animation: slideIn 0.2s ease-out; }
+    @keyframes slideIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+    .highlight-extraction  { background:#dbeafe; color:#1e40af; }
+    .highlight-transformation { background:#d1fae5; color:#065f46; }
+    .highlight-loading { background:#fef3c7; color:#92400e; }
+    .highlight-computation { background:#fce7f3; color:#9d174d; }
+    .syntax-keyword { color: #7c3aed; font-weight: 500; }
+    .syntax-string  { color: #065f46; }
+    .syntax-comment { color: #94a3b8; font-style: italic; }
+    .syntax-decorator { color: #c2410c; }
+    .syntax-func { color: #1d4ed8; }
+    .modal-overlay { backdrop-filter: blur(4px); }
+    .version-dot::before { content:''; display:block; width:8px; height:8px; border-radius:50%; background:#4f46e5; position:absolute; left:-16px; top:6px; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- ── Top Nav ───────────────────────────────────────────── -->
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-6 flex items-center h-14 gap-6">
+    <!-- Logo -->
+    <div class="flex items-center gap-2 shrink-0">
+      <div class="w-7 h-7 rounded-lg badge-official flex items-center justify-center">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <span class="font-bold text-gray-900 text-base tracking-tight">OpenHEXA <span class="text-hexa-600">Hub</span></span>
+    </div>
+
+    <div class="h-5 w-px bg-gray-200"></div>
+
+    <!-- Search -->
+    <div class="flex-1 max-w-md relative">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input id="searchInput" type="text" placeholder="Search pipelines…"
+        class="w-full pl-9 pr-4 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-hexa-500 focus:border-transparent"/>
+    </div>
+
+    <div class="ml-auto flex items-center gap-3">
+      <button class="text-sm text-gray-600 hover:text-gray-900 font-medium">Docs</button>
+      <div class="h-5 w-px bg-gray-200"></div>
+      <div class="w-8 h-8 rounded-full bg-hexa-100 flex items-center justify-center text-hexa-700 font-semibold text-xs">AK</div>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────── -->
+<div class="bg-white border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-6 py-10">
+    <div class="flex items-end justify-between">
+      <div>
+        <div class="inline-flex items-center gap-1.5 bg-hexa-50 text-hexa-700 text-xs font-medium px-2.5 py-1 rounded-full mb-3">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+          Beta
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900">Pipeline Hub</h1>
+        <p class="mt-1.5 text-gray-500 text-base max-w-xl">Discover, fork, and deploy community and official data pipeline templates. Build on shared knowledge instead of starting from scratch.</p>
+      </div>
+      <div class="hidden md:flex items-center gap-6 text-center">
+        <div>
+          <div class="text-2xl font-bold text-gray-900">47</div>
+          <div class="text-xs text-gray-500 mt-0.5">Pipelines</div>
+        </div>
+        <div class="h-8 w-px bg-gray-200"></div>
+        <div>
+          <div class="text-2xl font-bold text-gray-900">12</div>
+          <div class="text-xs text-gray-500 mt-0.5">Organizations</div>
+        </div>
+        <div class="h-8 w-px bg-gray-200"></div>
+        <div>
+          <div class="text-2xl font-bold text-gray-900">284</div>
+          <div class="text-xs text-gray-500 mt-0.5">Forks</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main Layout ────────────────────────────────────────── -->
+<div class="max-w-7xl mx-auto px-6 py-8 flex gap-8">
+
+  <!-- Sidebar Filters -->
+  <aside class="w-56 shrink-0 space-y-6">
+    <!-- Tabs -->
+    <div>
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Source</div>
+      <div class="space-y-0.5">
+        <button onclick="setTab('all')" id="tab-all" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium bg-hexa-50 text-hexa-700">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          All Templates
+        </button>
+        <button onclick="setTab('official')" id="tab-official" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
+          <svg class="w-4 h-4 text-hexa-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          Official
+        </button>
+        <button onclick="setTab('community')" id="tab-community" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Community
+        </button>
+      </div>
+    </div>
+
+    <!-- Functional Type filter -->
+    <div>
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Type</div>
+      <div class="space-y-0.5">
+        <button onclick="toggleType('')" id="type-all" class="type-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700">
+          All types
+        </button>
+        <button onclick="toggleType('extraction')" id="type-extraction" class="type-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
+          <span class="w-2 h-2 rounded-full bg-blue-400 shrink-0"></span> Extraction
+        </button>
+        <button onclick="toggleType('transformation')" id="type-transformation" class="type-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span> Transformation
+        </button>
+        <button onclick="toggleType('loading')" id="type-loading" class="type-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
+          <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span> Loading
+        </button>
+        <button onclick="toggleType('computation')" id="type-computation" class="type-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
+          <span class="w-2 h-2 rounded-full bg-pink-400 shrink-0"></span> Computation
+        </button>
+      </div>
+    </div>
+
+    <!-- Tags filter -->
+    <div>
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Tags</div>
+      <div class="flex flex-wrap gap-1.5" id="tagFilters">
+        <!-- injected by JS -->
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 min-w-0">
+    <!-- Sort bar -->
+    <div class="flex items-center justify-between mb-5">
+      <div id="resultCount" class="text-sm text-gray-500"></div>
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-500">Sort by</span>
+        <select id="sortSelect" onchange="render()" class="text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-hexa-500">
+          <option value="forks">Most forked</option>
+          <option value="name">Name A–Z</option>
+          <option value="newest">Newest</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div id="cardsGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <!-- injected by JS -->
+    </div>
+  </main>
+</div>
+
+<!-- ── Detail Modal ───────────────────────────────────────── -->
+<div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-6">
+  <div class="modal-overlay absolute inset-0 bg-gray-900/50" onclick="closeModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in overflow-hidden">
+    <!-- Modal Header -->
+    <div class="flex items-start justify-between p-6 border-b border-gray-100">
+      <div class="flex-1 min-w-0 pr-4">
+        <div class="flex items-center gap-2 mb-1" id="modalBadges"></div>
+        <h2 class="text-xl font-bold text-gray-900" id="modalTitle"></h2>
+        <p class="text-sm text-gray-500 mt-1" id="modalOrg"></p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="forkBtn" onclick="handleFork()" class="inline-flex items-center gap-2 px-4 py-2 bg-hexa-600 text-white text-sm font-medium rounded-lg hover:bg-hexa-700 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+          Fork to workspace
+        </button>
+        <button onclick="closeModal()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Tabs -->
+    <div class="flex border-b border-gray-100 px-6">
+      <button onclick="setModalTab('overview')" id="mtab-overview" class="modal-tab mr-6 py-3 text-sm font-medium tab-active">Overview</button>
+      <button onclick="setModalTab('code')" id="mtab-code" class="modal-tab mr-6 py-3 text-sm font-medium tab-inactive">Code</button>
+      <button onclick="setModalTab('versions')" id="mtab-versions" class="modal-tab mr-6 py-3 text-sm font-medium tab-inactive">Versions</button>
+      <button onclick="setModalTab('forks')" id="mtab-forks" class="modal-tab py-3 text-sm font-medium tab-inactive">Forks</button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="overflow-y-auto flex-1 scrollbar-thin">
+
+      <!-- Overview Tab -->
+      <div id="mpane-overview" class="p-6 space-y-6">
+        <div id="modalDesc" class="text-sm text-gray-600 leading-relaxed"></div>
+
+        <!-- Stats row -->
+        <div class="grid grid-cols-3 gap-4">
+          <div class="bg-gray-50 rounded-xl p-4">
+            <div class="text-xs text-gray-400 font-medium mb-1">Forks</div>
+            <div class="text-2xl font-bold text-gray-900" id="modalForks"></div>
+          </div>
+          <div class="bg-gray-50 rounded-xl p-4">
+            <div class="text-xs text-gray-400 font-medium mb-1">Active pipelines</div>
+            <div class="text-2xl font-bold text-gray-900" id="modalPipelinesCount"></div>
+          </div>
+          <div class="bg-gray-50 rounded-xl p-4">
+            <div class="text-xs text-gray-400 font-medium mb-1">Latest version</div>
+            <div class="text-2xl font-bold text-gray-900" id="modalLatestVersion"></div>
+          </div>
+        </div>
+
+        <!-- Parameters -->
+        <div>
+          <h3 class="text-sm font-semibold text-gray-700 mb-3">Parameters</h3>
+          <div id="modalParams" class="space-y-2"></div>
+        </div>
+
+        <!-- Tags -->
+        <div>
+          <h3 class="text-sm font-semibold text-gray-700 mb-3">Tags</h3>
+          <div id="modalTags" class="flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+
+      <!-- Code Tab -->
+      <div id="mpane-code" class="hidden">
+        <div class="bg-gray-900 rounded-none text-xs code-block overflow-x-auto">
+          <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-700">
+            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+            <span class="ml-2 text-gray-400 text-xs" id="modalCodeFilename"></span>
+          </div>
+          <pre id="modalCode" class="p-6 text-gray-300 leading-relaxed text-xs overflow-x-auto"></pre>
+        </div>
+      </div>
+
+      <!-- Versions Tab -->
+      <div id="mpane-versions" class="hidden p-6">
+        <div id="modalVersions" class="space-y-0"></div>
+      </div>
+
+      <!-- Forks Tab -->
+      <div id="mpane-forks" class="hidden p-6">
+        <div id="modalForksTable" class="space-y-2"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Fork Confirmation Toast ────────────────────────────── -->
+<div id="toast" class="hidden fixed bottom-6 right-6 z-50 bg-gray-900 text-white text-sm rounded-xl px-5 py-3 shadow-xl flex items-center gap-3">
+  <svg class="w-5 h-5 text-green-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+  <span id="toastMsg"></span>
+</div>
+
+<!-- ── Fork Workspace Modal ───────────────────────────────── -->
+<div id="forkModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-6">
+  <div class="modal-overlay absolute inset-0 bg-gray-900/50" onclick="closeForkModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 slide-in">
+    <h3 class="text-lg font-bold text-gray-900 mb-1">Fork to workspace</h3>
+    <p class="text-sm text-gray-500 mb-5">Create a new pipeline in one of your workspaces using this template.</p>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Target workspace</label>
+        <select class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-hexa-500">
+          <option>Senegal MOH – Production</option>
+          <option>WHO AFRO Analytics</option>
+          <option>UNICEF Health Data Hub</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Pipeline name</label>
+        <input id="forkPipelineName" type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-hexa-500" />
+      </div>
+      <div class="flex items-start gap-2.5 bg-hexa-50 rounded-lg p-3">
+        <input type="checkbox" id="autoUpdate" class="mt-0.5 accent-hexa-600" checked />
+        <label for="autoUpdate" class="text-sm text-hexa-800">
+          <span class="font-medium">Auto-update from template</span><br/>
+          <span class="text-hexa-600 text-xs">Automatically receive new versions when the template is updated.</span>
+        </label>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button onclick="closeForkModal()" class="flex-1 px-4 py-2 border border-gray-200 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50">Cancel</button>
+      <button onclick="confirmFork()" class="flex-1 px-4 py-2 bg-hexa-600 text-white text-sm font-medium rounded-lg hover:bg-hexa-700">Fork pipeline</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────
+
+const TEMPLATES = [
+  {
+    id: 1,
+    name: "DHIS2 Routine Data Extractor",
+    code: "dhis2-routine-extractor",
+    description: "Extracts routine health data from a DHIS2 instance and stores it in an OpenHEXA dataset. Supports data elements, indicators, program indicators, and organisation unit hierarchies. Designed for weekly or monthly automated runs with incremental extraction to minimise API load.",
+    functional_type: "extraction",
+    official: true,
+    org: "WHO / OpenHEXA Team",
+    orgInitials: "WHO",
+    orgColor: "#1d4ed8",
+    tags: ["dhis2", "health", "routine-data", "who"],
+    forks: 62,
+    pipelines_count: 48,
+    versions: [
+      { number: 3, date: "2025-11-04", author: "M. Roux", changelog: "Added support for analytics API. Improved org unit tree caching." },
+      { number: 2, date: "2025-07-18", author: "M. Roux", changelog: "Incremental extraction mode added. Fixes for DHIS2 2.38 API changes." },
+      { number: 1, date: "2025-01-20", author: "M. Roux", changelog: "Initial release." },
+    ],
+    params: [
+      { name: "dhis2_url", type: "str", description: "Base URL of the DHIS2 instance" },
+      { name: "username", type: "str", description: "DHIS2 API username" },
+      { name: "password", type: "str", description: "DHIS2 API password (use a secret)" },
+      { name: "period", type: "str", description: "DHIS2 period format e.g. 202401, 2024Q1" },
+      { name: "incremental", type: "bool", description: "Only fetch data modified since last run" },
+    ],
+    forkedBy: [
+      { workspace: "Senegal MOH", date: "2025-12-01", version: 3 },
+      { workspace: "WHO AFRO Analytics", date: "2025-11-15", version: 3 },
+      { workspace: "UNICEF West Africa", date: "2025-10-08", version: 2 },
+      { workspace: "MSF Operational Centre", date: "2025-09-22", version: 2 },
+    ],
+    code_sample: `<span class="syntax-decorator">@pipeline</span>(name=<span class="syntax-string">"dhis2-routine-extractor"</span>, timeout=3600)
+<span class="syntax-keyword">def</span> <span class="syntax-func">extract_dhis2_data</span>():
+    <span class="syntax-comment"># Pipeline entry point - orchestrates all tasks</span>
+    data = fetch_dhis2_data()
+    store_in_dataset(data)
+
+
+<span class="syntax-decorator">@task</span>
+<span class="syntax-keyword">def</span> <span class="syntax-func">fetch_dhis2_data</span>():
+    <span class="syntax-keyword">import</span> openhexa.toolbox.dhis2 <span class="syntax-keyword">as</span> dhis2
+
+    dhis2_url = workspace.get_secret(<span class="syntax-string">"dhis2_url"</span>)
+    username  = workspace.get_secret(<span class="syntax-string">"dhis2_username"</span>)
+    password  = workspace.get_secret(<span class="syntax-string">"dhis2_password"</span>)
+
+    client = dhis2.Client(dhis2_url, username, password)
+
+    <span class="syntax-keyword">if</span> current_run.get_parameter(<span class="syntax-string">"incremental"</span>):
+        last_run = current_run.get_last_successful_run()
+        modified_since = last_run.execution_date
+    <span class="syntax-keyword">else</span>:
+        modified_since = <span class="syntax-keyword">None</span>
+
+    period = current_run.get_parameter(<span class="syntax-string">"period"</span>)
+    analytics = client.analytics.get(
+        periods=[period],
+        modified_since=modified_since,
+    )
+    <span class="syntax-keyword">return</span> analytics
+
+
+<span class="syntax-decorator">@task</span>
+<span class="syntax-keyword">def</span> <span class="syntax-func">store_in_dataset</span>(data):
+    <span class="syntax-keyword">import</span> pandas <span class="syntax-keyword">as</span> pd
+
+    df = pd.DataFrame(data[<span class="syntax-string">"rows"</span>], columns=data[<span class="syntax-string">"headers"</span>])
+    dataset = workspace.get_dataset(<span class="syntax-string">"dhis2-routine-data"</span>)
+    dataset.write_dataframe(df, <span class="syntax-string">"routine_data.parquet"</span>)`
+  },
+  {
+    id: 2,
+    name: "Malaria Burden Estimator",
+    code: "malaria-burden-estimator",
+    description: "Computes district-level malaria burden estimates from routine case data combined with population projections. Applies WHO-standard adjustment factors for health system completeness and care-seeking behaviour. Outputs both absolute case counts and rates per 1,000 population.",
+    functional_type: "computation",
+    official: true,
+    org: "WHO / MPOX Response",
+    orgInitials: "WHO",
+    orgColor: "#1d4ed8",
+    tags: ["malaria", "burden", "who", "gis"],
+    forks: 31,
+    pipelines_count: 24,
+    versions: [
+      { number: 2, date: "2025-10-11", author: "S. Koné", changelog: "Updated WHO adjustment factors to 2024 edition. Added GeoJSON output." },
+      { number: 1, date: "2025-04-03", author: "S. Koné", changelog: "Initial release with WHO Malaria Report methodology." },
+    ],
+    params: [
+      { name: "input_dataset", type: "str", description: "Dataset containing routine case data" },
+      { name: "population_year", type: "int", description: "Reference year for population estimates" },
+      { name: "completeness_threshold", type: "float", description: "Minimum reporting completeness (0–1)" },
+      { name: "output_format", type: "str", description: "parquet or csv" },
+    ],
+    forkedBy: [
+      { workspace: "Nigeria NCDC", date: "2025-11-02", version: 2 },
+      { workspace: "RBM Partnership", date: "2025-10-20", version: 2 },
+      { workspace: "PATH Analytics", date: "2025-10-05", version: 1 },
+    ],
+    code_sample: `<span class="syntax-decorator">@pipeline</span>(name=<span class="syntax-string">"malaria-burden-estimator"</span>, timeout=7200)
+<span class="syntax-keyword">def</span> <span class="syntax-func">estimate_burden</span>():
+    cases    = load_routine_cases()
+    adjusted = apply_who_adjustments(cases)
+    compute_rates_and_export(adjusted)
+
+
+<span class="syntax-decorator">@task</span>
+<span class="syntax-keyword">def</span> <span class="syntax-func">load_routine_cases</span>():
+    <span class="syntax-keyword">import</span> pandas <span class="syntax-keyword">as</span> pd
+
+    ds = workspace.get_dataset(
+        current_run.get_parameter(<span class="syntax-string">"input_dataset"</span>)
+    )
+    df = ds.read_dataframe(<span class="syntax-string">"cases.parquet"</span>)
+
+    threshold = current_run.get_parameter(<span class="syntax-string">"completeness_threshold"</span>)
+    df = df[df[<span class="syntax-string">"reporting_completeness"</span>] >= threshold]
+    <span class="syntax-keyword">return</span> df
+
+
+<span class="syntax-decorator">@task</span>
+<span class="syntax-keyword">def</span> <span class="syntax-func">apply_who_adjustments</span>(df):
+    <span class="syntax-comment"># WHO 2024 care-seeking adjustment by subregion</span>
+    CARE_SEEKING = {<span class="syntax-string">"AFRO"</span>: 0.52, <span class="syntax-string">"SEARO"</span>: 0.61, <span class="syntax-string">"DEFAULT"</span>: 0.55}
+
+    df[<span class="syntax-string">"region"</span>] = df[<span class="syntax-string">"who_region"</span>].fillna(<span class="syntax-string">"DEFAULT"</span>)
+    df[<span class="syntax-string">"adj_factor"</span>] = df[<span class="syntax-string">"region"</span>].map(CARE_SEEKING)
+    df[<span class="syntax-string">"estimated_cases"</span>] = (
+        df[<span class="syntax-string">"reported_cases"</span>] / df[<span class="syntax-string">"adj_factor"</span>]
+    ).round()
+    <span class="syntax-keyword">return</span> df`
+  },
+  {
+    id: 3,
+    name: "CSV → Parquet Transformer",
+    code: "csv-to-parquet",
+    description: "Reads one or more CSV files from an OpenHEXA dataset, applies configurable type inference and column renaming, and writes optimised Parquet files. Supports large files through chunked processing and automatically infers schemas. A good starting point for any data harmonisation pipeline.",
+    functional_type: "transformation",
+    official: false,
+    org: "UNICEF Innovation",
+    orgInitials: "UN",
+    orgColor: "#0891b2",
+    tags: ["csv", "parquet", "etl", "utility"],
+    forks: 88,
+    pipelines_count: 71,
+    versions: [
+      { number: 4, date: "2025-12-15", author: "L. Diallo", changelog: "Chunked reading for large files. Added gzip/snappy compression option." },
+      { number: 3, date: "2025-08-30", author: "L. Diallo", changelog: "Schema inference with fallback. Support for multiple input files." },
+      { number: 2, date: "2025-05-12", author: "L. Diallo", changelog: "Column renaming map added." },
+      { number: 1, date: "2025-02-01", author: "L. Diallo", changelog: "Initial release." },
+    ],
+    params: [
+      { name: "input_dataset", type: "str", description: "Source dataset containing CSV files" },
+      { name: "output_dataset", type: "str", description: "Destination dataset for Parquet output" },
+      { name: "delimiter", type: "str", description: "CSV delimiter character (default: ,)" },
+      { name: "compression", type: "str", description: "snappy, gzip, or none" },
+      { name: "chunk_size", type: "int", description: "Rows per processing chunk (default: 50000)" },
+    ],
+    forkedBy: [
+      { workspace: "MSF Data Lab", date: "2025-12-20", version: 4 },
+      { workspace: "Johns Hopkins BSPH", date: "2025-12-10", version: 4 },
+      { workspace: "CDC AMED", date: "2025-11-28", version: 3 },
+      { workspace: "USAID Data Works", date: "2025-11-12", version: 3 },
+    ],
+    code_sample: `<span class="syntax-decorator">@pipeline</span>(name=<span class="syntax-string">"csv-to-parquet"</span>, timeout=1800)
+<span class="syntax-keyword">def</span> <span class="syntax-func">transform_csv</span>():
+    files = discover_csv_files()
+    <span class="syntax-keyword">for</span> f <span class="syntax-keyword">in</span> files:
+        convert_file(f)
+
+
+<span class="syntax-decorator">@task</span>
+<span class="syntax-keyword">def</span> <span class="syntax-func">discover_csv_files</span>():
+    ds_name = current_run.get_parameter(<span class="syntax-string">"input_dataset"</span>)
+    ds = workspace.get_dataset(ds_name)
+    <span class="syntax-keyword">return</span> [f <span class="syntax-keyword">for</span> f <span class="syntax-keyword">in</span> ds.list_files() <span class="syntax-keyword">if</span> f.endswith(<span class="syntax-string">".csv"</span>)]
+
+
+<span class="syntax-decorator">@task</span>
+<span class="syntax-keyword">def</span> <span class="syntax-func">convert_file</span>(filename: str):
+    <span class="syntax-keyword">import</span> pandas <span class="syntax-keyword">as</span> pd
+
+    delimiter   = current_run.get_parameter(<span class="syntax-string">"delimiter"</span>) <span class="syntax-keyword">or</span> <span class="syntax-string">","</span>
+    compression = current_run.get_parameter(<span class="syntax-string">"compression"</span>) <span class="syntax-keyword">or</span> <span class="syntax-string">"snappy"</span>
+    chunk_size  = current_run.get_parameter(<span class="syntax-string">"chunk_size"</span>)  <span class="syntax-keyword">or</span> 50_000
+
+    src_ds  = workspace.get_dataset(current_run.get_parameter(<span class="syntax-string">"input_dataset"</span>))
+    dest_ds = workspace.get_dataset(current_run.get_parameter(<span class="syntax-string">"output_dataset"</span>))
+
+    chunks = []
+    <span class="syntax-keyword">for</span> chunk <span class="syntax-keyword">in</span> pd.read_csv(
+        src_ds.open(filename), sep=delimiter, chunksize=chunk_size
+    ):
+        chunks.append(chunk)
+
+    out_name = filename.replace(<span class="syntax-string">".csv"</span>, <span class="syntax-string">".parquet"</span>)
+    pd.concat(chunks).to_parquet(
+        dest_ds.open(out_name, <span class="syntax-string">"wb"</span>),
+        compression=compression,
+        index=<span class="syntax-keyword">False</span>,
+    )`
+  },
+  {
+    id: 4,
+    name: "OpenMRS Patient Export",
+    code: "openmrs-patient-export",
+    description: "Pulls de-identified patient encounter data from an OpenMRS REST API and structures it into a longitudinal dataset compatible with OpenHEXA analytics. Handles pagination, date filtering, and optional PII removal via a configurable salt-based pseudonymisation step.",
+    functional_type: "extraction",
+    official: false,
+    org: "Partners in Health",
+    orgInitials: "PIH",
+    orgColor: "#dc2626",
+    tags: ["openmrs", "ehr", "patients", "pii"],
+    forks: 19,
+    pipelines_count: 14,
+    versions: [
+      { number: 2, date: "2025-09-14", author: "A. Tremblay", changelog: "Added pseudonymisation step. Fixed pagination bug on large instances." },
+      { number: 1, date: "2025-06-05", author: "A. Tremblay", changelog: "Initial release." },
+    ],
+    params: [
+      { name: "openmrs_url", type: "str", description: "OpenMRS server base URL" },
+      { name: "username", type: "str", description: "API username" },
+      { name: "password", type: "str", description: "API password" },
+      { name: "start_date", type: "str", description: "Earliest encounter date (YYYY-MM-DD)" },
+      { name: "pseudonymise", type: "bool", description: "Apply salt-based patient ID hashing" },
+    ],
+    forkedBy: [
+      { workspace: "PIH Haiti", date: "2025-10-01", version: 2 },
+      { workspace: "PIH Rwanda", date: "2025-09-20", version: 2 },
+    ],
+    code_sample: `<span class="syntax-decorator">@pipeline</span>(name=<span class="syntax-string">"openmrs-patient-export"</span>, timeout=3600)
+<span class="syntax-keyword">def</span> <span class="syntax-func">export_patients</span>():
+    encounters = fetch_encounters()
+    <span class="syntax-keyword">if</span> current_run.get_parameter(<span class="syntax-string">"pseudonymise"</span>):
+        encounters = pseudonymise(encounters)
+    store_encounters(encounters)
+
+
+<span class="syntax-decorator">@task</span>
+<span class="syntax-keyword">def</span> <span class="syntax-func">fetch_encounters</span>():
+    <span class="syntax-keyword">import</span> requests, pandas <span class="syntax-keyword">as</span> pd
+
+    base   = current_run.get_parameter(<span class="syntax-string">"openmrs_url"</span>).rstrip(<span class="syntax-string">"/"</span>)
+    auth   = (
+        current_run.get_parameter(<span class="syntax-string">"username"</span>),
+        workspace.get_secret(<span class="syntax-string">"openmrs_password"</span>),
+    )
+    since  = current_run.get_parameter(<span class="syntax-string">"start_date"</span>)
+    rows, start = [], 0
+
+    <span class="syntax-keyword">while True</span>:
+        resp = requests.get(
+            f<span class="syntax-string">"{base}/ws/rest/v1/encounter"</span>,
+            params={<span class="syntax-string">"v"</span>: <span class="syntax-string">"full"</span>, <span class="syntax-string">"startIndex"</span>: start, <span class="syntax-string">"fromdate"</span>: since},
+            auth=auth,
+        ).json()
+        rows += resp[<span class="syntax-string">"results"</span>]
+        <span class="syntax-keyword">if not</span> resp.get(<span class="syntax-string">"links"</span>):
+            <span class="syntax-keyword">break</span>
+        start += 100
+    <span class="syntax-keyword">return</span> pd.json_normalize(rows)`
+  },
+  {
+    id: 5,
+    name: "Dataset → BigQuery Loader",
+    code: "dataset-to-bigquery",
+    description: "Loads Parquet or CSV files from an OpenHEXA dataset into Google BigQuery. Supports both full-replace and append modes. Automatically maps Pandas dtypes to BigQuery schema. Suitable for regular reporting exports to BI tools connected to BigQuery.",
+    functional_type: "loading",
+    official: false,
+    org: "Bluesquare",
+    orgInitials: "BS",
+    orgColor: "#0d9488",
+    tags: ["bigquery", "gcp", "loading", "bi"],
+    forks: 25,
+    pipelines_count: 18,
+    versions: [
+      { number: 3, date: "2025-11-20", author: "C. Bernard", changelog: "Partition by date column support. Cluster keys option added." },
+      { number: 2, date: "2025-08-14", author: "C. Bernard", changelog: "Append mode added. Auto-create table if missing." },
+      { number: 1, date: "2025-05-10", author: "C. Bernard", changelog: "Initial release." },
+    ],
+    params: [
+      { name: "input_dataset", type: "str", description: "OpenHEXA dataset to export" },
+      { name: "bq_project", type: "str", description: "Google Cloud project ID" },
+      { name: "bq_dataset", type: "str", description: "BigQuery dataset name" },
+      { name: "bq_table", type: "str", description: "Target BigQuery table" },
+      { name: "write_mode", type: "str", description: "replace or append" },
+    ],
+    forkedBy: [
+      { workspace: "Bluesquare Internal", date: "2025-11-25", version: 3 },
+      { workspace: "Senegal MOH", date: "2025-11-10", version: 3 },
+      { workspace: "Cameroon MINSANTE", date: "2025-09-03", version: 2 },
+    ],
+    code_sample: `<span class="syntax-decorator">@pipeline</span>(name=<span class="syntax-string">"dataset-to-bigquery"</span>, timeout=3600)
+<span class="syntax-keyword">def</span> <span class="syntax-func">load_to_bq</span>():
+    files = list_source_files()
+    <span class="syntax-keyword">for</span> f <span class="syntax-keyword">in</span> files:
+        upload_file_to_bq(f)
+
+
+<span class="syntax-decorator">@task</span>
+<span class="syntax-keyword">def</span> <span class="syntax-func">upload_file_to_bq</span>(filename: str):
+    <span class="syntax-keyword">from</span> google.cloud <span class="syntax-keyword">import</span> bigquery
+    <span class="syntax-keyword">import</span> pandas <span class="syntax-keyword">as</span> pd
+
+    ds     = workspace.get_dataset(current_run.get_parameter(<span class="syntax-string">"input_dataset"</span>))
+    client = bigquery.Client(project=current_run.get_parameter(<span class="syntax-string">"bq_project"</span>))
+
+    df = pd.read_parquet(ds.open(filename))
+    table_ref = <span class="syntax-string">"{}.{}.{}"</span>.format(
+        current_run.get_parameter(<span class="syntax-string">"bq_project"</span>),
+        current_run.get_parameter(<span class="syntax-string">"bq_dataset"</span>),
+        current_run.get_parameter(<span class="syntax-string">"bq_table"</span>),
+    )
+
+    write_mode = current_run.get_parameter(<span class="syntax-string">"write_mode"</span>) <span class="syntax-keyword">or</span> <span class="syntax-string">"replace"</span>
+    disposition = {
+        <span class="syntax-string">"replace"</span>: bigquery.WriteDisposition.WRITE_TRUNCATE,
+        <span class="syntax-string">"append"</span>:  bigquery.WriteDisposition.WRITE_APPEND,
+    }[write_mode]
+
+    job_config = bigquery.LoadJobConfig(
+        write_disposition=disposition,
+        autodetect=<span class="syntax-keyword">True</span>,
+    )
+    client.load_table_from_dataframe(df, table_ref, job_config=job_config).result()`
+  },
+  {
+    id: 6,
+    name: "Vaccination Coverage Calculator",
+    code: "vaccination-coverage",
+    description: "Calculates antigen-specific vaccination coverage by district using numerator data from DHIS2 and UN population denominators. Applies the WHO/UNICEF recommended methodology including dropout rate calculations, wastage indicators, and equity gap analysis across wealth quintiles.",
+    functional_type: "computation",
+    official: true,
+    org: "UNICEF / OpenHEXA",
+    orgInitials: "UN",
+    orgColor: "#0891b2",
+    tags: ["vaccination", "immunisation", "who", "unicef", "equity"],
+    forks: 44,
+    pipelines_count: 38,
+    versions: [
+      { number: 4, date: "2025-12-01", author: "P. Fourie", changelog: "Equity gap analysis added. DTP dropout rate by subnational level." },
+      { number: 3, date: "2025-09-10", author: "P. Fourie", changelog: "Support for multiple antigens in one run." },
+      { number: 2, date: "2025-06-22", author: "P. Fourie", changelog: "UN population denominator integration." },
+      { number: 1, date: "2025-03-15", author: "P. Fourie", changelog: "Initial release." },
+    ],
+    params: [
+      { name: "numerator_dataset", type: "str", description: "Dataset with administered doses by antigen/district" },
+      { name: "antigens", type: "str", description: "Comma-separated antigen codes e.g. DTP1,DTP3,MCV1" },
+      { name: "reference_year", type: "int", description: "Population reference year" },
+      { name: "output_dataset", type: "str", description: "Destination for results" },
+    ],
+    forkedBy: [
+      { workspace: "Ethiopia EPHI", date: "2025-12-15", version: 4 },
+      { workspace: "DRC PNLP", date: "2025-12-08", version: 4 },
+      { workspace: "WHO AFRO Analytics", date: "2025-11-20", version: 3 },
+      { workspace: "GAVI Alliance", date: "2025-11-05", version: 3 },
+    ],
+    code_sample: `<span class="syntax-decorator">@pipeline</span>(name=<span class="syntax-string">"vaccination-coverage"</span>, timeout=3600)
+<span class="syntax-keyword">def</span> <span class="syntax-func">compute_coverage</span>():
+    doses  = load_doses()
+    pop    = load_population()
+    result = calculate_coverage(doses, pop)
+    export_results(result)
+
+
+<span class="syntax-decorator">@task</span>
+<span class="syntax-keyword">def</span> <span class="syntax-func">calculate_coverage</span>(doses, population):
+    <span class="syntax-keyword">import</span> pandas <span class="syntax-keyword">as</span> pd
+
+    antigens = current_run.get_parameter(<span class="syntax-string">"antigens"</span>).split(<span class="syntax-string">","</span>)
+    results  = []
+
+    <span class="syntax-keyword">for</span> antigen <span class="syntax-keyword">in</span> antigens:
+        df = doses[doses[<span class="syntax-string">"antigen"</span>] == antigen.strip()].copy()
+        df = df.merge(population, on=[<span class="syntax-string">"district_id"</span>, <span class="syntax-string">"year"</span>])
+
+        df[<span class="syntax-string">"coverage_pct"</span>] = (
+            df[<span class="syntax-string">"doses_administered"</span>] / df[<span class="syntax-string">"surviving_infants"</span>] * 100
+        ).round(1)
+
+        <span class="syntax-comment"># WHO dropout rate: (dose1 - dose3) / dose1</span>
+        <span class="syntax-keyword">if</span> antigen == <span class="syntax-string">"DTP3"</span>:
+            dtp1 = doses[doses[<span class="syntax-string">"antigen"</span>] == <span class="syntax-string">"DTP1"</span>]
+            df = df.merge(dtp1[[<span class="syntax-string">"district_id"</span>, <span class="syntax-string">"doses_administered"</span>]], on=<span class="syntax-string">"district_id"</span>, suffixes=(<span class="syntax-string">""</span>, <span class="syntax-string">"_dtp1"</span>))
+            df[<span class="syntax-string">"dropout_rate"</span>] = (
+                (df[<span class="syntax-string">"doses_administered_dtp1"</span>] - df[<span class="syntax-string">"doses_administered"</span>])
+                / df[<span class="syntax-string">"doses_administered_dtp1"</span>] * 100
+            ).round(1)
+
+        results.append(df)
+
+    <span class="syntax-keyword">return</span> pd.concat(results, ignore_index=<span class="syntax-keyword">True</span>)`
+  },
+  {
+    id: 7,
+    name: "S3 → OpenHEXA Sync",
+    code: "s3-to-openhexa",
+    description: "Syncs files from an AWS S3 bucket to an OpenHEXA dataset. Supports prefix filtering, glob patterns, and incremental sync based on ETag comparison. Useful for ingesting partner-submitted data drops or mirroring external data stores.",
+    functional_type: "extraction",
+    official: false,
+    org: "Akros",
+    orgInitials: "AK",
+    orgColor: "#7c3aed",
+    tags: ["s3", "aws", "sync", "files"],
+    forks: 17,
+    pipelines_count: 13,
+    versions: [
+      { number: 2, date: "2025-10-25", author: "N. Mutale", changelog: "Glob pattern support. Incremental sync via ETag." },
+      { number: 1, date: "2025-08-01", author: "N. Mutale", changelog: "Initial release." },
+    ],
+    params: [
+      { name: "s3_bucket", type: "str", description: "Source S3 bucket name" },
+      { name: "s3_prefix", type: "str", description: "Key prefix to filter (e.g. data/2024/)" },
+      { name: "pattern", type: "str", description: "Optional glob pattern e.g. *.csv" },
+      { name: "output_dataset", type: "str", description: "Target OpenHEXA dataset" },
+      { name: "incremental", type: "bool", description: "Skip files already in dataset (ETag match)" },
+    ],
+    forkedBy: [
+      { workspace: "Zambia MOH", date: "2025-11-01", version: 2 },
+      { workspace: "Akros Zambia", date: "2025-10-28", version: 2 },
+    ],
+    code_sample: `<span class="syntax-decorator">@pipeline</span>(name=<span class="syntax-string">"s3-to-openhexa"</span>, timeout=7200)
+<span class="syntax-keyword">def</span> <span class="syntax-func">sync_from_s3</span>():
+    files = list_s3_files()
+    <span class="syntax-keyword">for</span> f <span class="syntax-keyword">in</span> files:
+        sync_file(f)
+
+
+<span class="syntax-decorator">@task</span>
+<span class="syntax-keyword">def</span> <span class="syntax-func">list_s3_files</span>():
+    <span class="syntax-keyword">import</span> boto3, fnmatch
+
+    s3     = boto3.client(<span class="syntax-string">"s3"</span>)
+    bucket = current_run.get_parameter(<span class="syntax-string">"s3_bucket"</span>)
+    prefix = current_run.get_parameter(<span class="syntax-string">"s3_prefix"</span>) <span class="syntax-keyword">or</span> <span class="syntax-string">""</span>
+    pat    = current_run.get_parameter(<span class="syntax-string">"pattern"</span>)
+
+    pages = s3.get_paginator(<span class="syntax-string">"list_objects_v2"</span>).paginate(
+        Bucket=bucket, Prefix=prefix
+    )
+    files = [
+        obj
+        <span class="syntax-keyword">for</span> page <span class="syntax-keyword">in</span> pages
+        <span class="syntax-keyword">for</span> obj <span class="syntax-keyword">in</span> page.get(<span class="syntax-string">"Contents"</span>, [])
+        <span class="syntax-keyword">if not</span> pat <span class="syntax-keyword">or</span> fnmatch.fnmatch(obj[<span class="syntax-string">"Key"</span>], pat)
+    ]
+    <span class="syntax-keyword">return</span> files`
+  },
+  {
+    id: 8,
+    name: "District Health Index",
+    code: "district-health-index",
+    description: "Computes a composite District Health Index (DHI) by aggregating and normalising a configurable set of health indicators. Based on the SCORE methodology. Produces a ranked scorecard and optional choropleth GeoJSON for dashboard embedding.",
+    functional_type: "computation",
+    official: false,
+    org: "Bluesquare",
+    orgInitials: "BS",
+    orgColor: "#0d9488",
+    tags: ["score", "index", "gis", "scorecard"],
+    forks: 11,
+    pipelines_count: 9,
+    versions: [
+      { number: 1, date: "2025-11-30", author: "T. Eeckhoudt", changelog: "Initial release with SCORE methodology." },
+    ],
+    params: [
+      { name: "indicators_config", type: "str", description: "JSON config file path with indicator weights" },
+      { name: "input_dataset", type: "str", description: "Dataset with indicator values by district" },
+      { name: "output_geojson", type: "bool", description: "Also produce a choropleth GeoJSON" },
+    ],
+    forkedBy: [
+      { workspace: "Sierra Leone MOHS", date: "2025-12-18", version: 1 },
+    ],
+    code_sample: `<span class="syntax-decorator">@pipeline</span>(name=<span class="syntax-string">"district-health-index"</span>, timeout=1800)
+<span class="syntax-keyword">def</span> <span class="syntax-func">compute_dhi</span>():
+    data   = load_indicators()
+    config = load_config()
+    scores = aggregate_scores(data, config)
+    export_scorecard(scores)
+
+
+<span class="syntax-decorator">@task</span>
+<span class="syntax-keyword">def</span> <span class="syntax-func">aggregate_scores</span>(df, config):
+    <span class="syntax-keyword">import</span> pandas <span class="syntax-keyword">as</span> pd, numpy <span class="syntax-keyword">as</span> np
+
+    <span class="syntax-comment"># Min-max normalise each indicator then apply weights</span>
+    scored = df.copy()
+    <span class="syntax-keyword">for</span> ind <span class="syntax-keyword">in</span> config[<span class="syntax-string">"indicators"</span>]:
+        col    = ind[<span class="syntax-string">"column"</span>]
+        weight = ind[<span class="syntax-string">"weight"</span>]
+        invert = ind.get(<span class="syntax-string">"invert"</span>, <span class="syntax-keyword">False</span>)
+
+        mn, mx = scored[col].min(), scored[col].max()
+        norm   = (scored[col] - mn) / (mx - mn + 1e-9)
+        <span class="syntax-keyword">if</span> invert:
+            norm = 1 - norm
+        scored[f<span class="syntax-string">"{col}_score"</span>] = norm * weight
+
+    score_cols = [f<span class="syntax-string">"{i['column']}_score"</span> <span class="syntax-keyword">for</span> i <span class="syntax-keyword">in</span> config[<span class="syntax-string">"indicators"</span>]]
+    scored[<span class="syntax-string">"dhi"</span>] = scored[score_cols].sum(axis=1).round(3)
+    scored[<span class="syntax-string">"rank"</span>] = scored[<span class="syntax-string">"dhi"</span>].rank(ascending=<span class="syntax-keyword">False</span>).astype(int)
+    <span class="syntax-keyword">return</span> scored.sort_values(<span class="syntax-string">"rank"</span>)`
+  },
+];
+
+// Fix a bad param (typo in data above - harmless, JS ignores it)
+TEMPLATES[7].params = [
+  { name: "indicators_config", type: "str", description: "JSON config file path with indicator weights" },
+  { name: "input_dataset", type: "str", description: "Dataset with indicator values by district" },
+  { name: "output_geojson", type: "bool", description: "Also produce a choropleth GeoJSON" },
+];
+
+// ── State ────────────────────────────────────────────────
+let activeTab  = 'all';
+let activeType = '';
+let activeTags = new Set();
+let currentTemplate = null;
+let activeModalTab = 'overview';
+
+// ── Filters + Render ─────────────────────────────────────
+function allTags() {
+  const s = new Set();
+  TEMPLATES.forEach(t => t.tags.forEach(g => s.add(g)));
+  return [...s].sort();
+}
+
+function setTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('bg-hexa-50', b.id === `tab-${tab}`);
+    b.classList.toggle('text-hexa-700', b.id === `tab-${tab}`);
+    b.classList.toggle('font-medium', true);
+    if (b.id !== `tab-${tab}`) {
+      b.classList.remove('bg-hexa-50', 'text-hexa-700');
+      b.classList.add('text-gray-600');
+    }
+  });
+  render();
+}
+
+function toggleType(type) {
+  activeType = type;
+  document.querySelectorAll('.type-btn').forEach(b => {
+    const match = b.id === `type-${type || 'all'}`;
+    b.classList.toggle('bg-gray-100', match);
+    b.classList.toggle('text-gray-700', match);
+    if (!match) { b.classList.remove('bg-gray-100', 'text-gray-700'); b.classList.add('text-gray-600'); }
+  });
+  render();
+}
+
+function toggleTag(tag) {
+  if (activeTags.has(tag)) activeTags.delete(tag);
+  else activeTags.add(tag);
+  renderTagFilters();
+  render();
+}
+
+function renderTagFilters() {
+  const container = document.getElementById('tagFilters');
+  container.innerHTML = allTags().map(tag => {
+    const on = activeTags.has(tag);
+    return `<button onclick="toggleTag('${tag}')" class="tag-chip text-xs px-2 py-0.5 rounded-full border ${on ? 'bg-hexa-100 border-hexa-300 text-hexa-700 font-medium' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'}">${tag}</button>`;
+  }).join('');
+}
+
+function filteredTemplates() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const sort = document.getElementById('sortSelect').value;
+  let list = TEMPLATES.filter(t => {
+    if (activeTab === 'official' && !t.official) return false;
+    if (activeTab === 'community' && t.official) return false;
+    if (activeType && t.functional_type !== activeType) return false;
+    if (activeTags.size > 0 && ![...activeTags].every(g => t.tags.includes(g))) return false;
+    if (q && !t.name.toLowerCase().includes(q) && !t.description.toLowerCase().includes(q) && !t.tags.join(' ').includes(q)) return false;
+    return true;
+  });
+  if (sort === 'forks') list.sort((a,b) => b.forks - a.forks);
+  else if (sort === 'name') list.sort((a,b) => a.name.localeCompare(b.name));
+  else if (sort === 'newest') list.sort((a,b) => b.versions[0].date.localeCompare(a.versions[0].date));
+  return list;
+}
+
+const TYPE_LABELS = { extraction: 'Extraction', transformation: 'Transformation', loading: 'Loading', computation: 'Computation' };
+const TYPE_CLASSES = { extraction: 'highlight-extraction', transformation: 'highlight-transformation', loading: 'highlight-loading', computation: 'highlight-computation' };
+
+function render() {
+  const list = filteredTemplates();
+  document.getElementById('resultCount').textContent = `${list.length} template${list.length !== 1 ? 's' : ''}`;
+  const grid = document.getElementById('cardsGrid');
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="col-span-2 text-center py-16 text-gray-400">
+      <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div class="font-medium text-gray-500">No templates match your filters</div>
+      <div class="text-sm mt-1">Try adjusting your search or filters</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = list.map(t => cardHTML(t)).join('');
+}
+
+function cardHTML(t) {
+  const latestVersion = t.versions[0].number;
+  const officialBadge = t.official
+    ? `<span class="inline-flex items-center gap-1 text-xs font-medium text-hexa-700 bg-hexa-50 px-2 py-0.5 rounded-full">
+        <svg class="w-3 h-3 text-hexa-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        Official
+      </span>`
+    : `<span class="inline-flex items-center gap-1 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Community</span>`;
+
+  const typeBadge = t.functional_type
+    ? `<span class="text-xs font-medium px-2 py-0.5 rounded-full ${TYPE_CLASSES[t.functional_type]}">${TYPE_LABELS[t.functional_type]}</span>`
+    : '';
+
+  const tagsHTML = t.tags.slice(0,3).map(g =>
+    `<span class="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">${g}</span>`
+  ).join('') + (t.tags.length > 3 ? `<span class="text-xs text-gray-400">+${t.tags.length-3}</span>` : '');
+
+  return `
+    <div class="bg-white rounded-xl border border-gray-200 p-5 card-hover cursor-pointer" onclick="openModal(${t.id})">
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-center gap-2 flex-wrap">${officialBadge}${typeBadge}</div>
+        <div class="flex items-center gap-1 text-xs text-gray-400">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+          ${t.forks}
+        </div>
+      </div>
+
+      <h3 class="font-semibold text-gray-900 text-base leading-snug mb-1">${t.name}</h3>
+
+      <div class="flex items-center gap-1.5 mb-2.5">
+        <div class="w-4 h-4 rounded-full text-white text-xs flex items-center justify-center font-bold shrink-0" style="background:${t.orgColor};font-size:7px">${t.orgInitials}</div>
+        <span class="text-xs text-gray-400">${t.org}</span>
+      </div>
+
+      <p class="text-sm text-gray-500 leading-relaxed mb-4 line-clamp-2">${t.description}</p>
+
+      <div class="flex items-center justify-between">
+        <div class="flex flex-wrap gap-1.5">${tagsHTML}</div>
+        <div class="text-xs text-gray-400 shrink-0 ml-2">v${latestVersion}</div>
+      </div>
+    </div>
+  `;
+}
+
+// ── Modal ────────────────────────────────────────────────
+function openModal(id) {
+  currentTemplate = TEMPLATES.find(t => t.id === id);
+  const t = currentTemplate;
+
+  // Badges
+  const officialBadge = t.official
+    ? `<span class="inline-flex items-center gap-1 text-xs font-medium text-hexa-700 bg-hexa-50 px-2 py-0.5 rounded-full"><svg class="w-3 h-3 text-hexa-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>Official</span>`
+    : `<span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Community</span>`;
+
+  const typeBadge = t.functional_type
+    ? `<span class="text-xs font-medium px-2 py-0.5 rounded-full ${TYPE_CLASSES[t.functional_type]}">${TYPE_LABELS[t.functional_type]}</span>`
+    : '';
+
+  document.getElementById('modalBadges').innerHTML = officialBadge + typeBadge;
+  document.getElementById('modalTitle').textContent = t.name;
+  document.getElementById('modalOrg').innerHTML = `
+    <span class="inline-flex items-center gap-1.5">
+      <span class="w-4 h-4 rounded-full text-white text-xs flex items-center justify-center font-bold" style="background:${t.orgColor};font-size:7px">${t.orgInitials}</span>
+      ${t.org} · <code class="text-gray-400 text-xs">${t.code}</code>
+    </span>`;
+  document.getElementById('modalDesc').textContent = t.description;
+  document.getElementById('modalForks').textContent = t.forks;
+  document.getElementById('modalPipelinesCount').textContent = t.pipelines_count;
+  document.getElementById('modalLatestVersion').textContent = `v${t.versions[0].number}`;
+
+  // Params
+  document.getElementById('modalParams').innerHTML = t.params.map(p => `
+    <div class="flex items-start gap-3 py-2.5 border-b border-gray-50 last:border-0">
+      <code class="text-hexa-600 font-medium text-xs bg-hexa-50 px-2 py-0.5 rounded shrink-0 mt-0.5">${p.name}</code>
+      <span class="text-xs text-gray-400 font-medium px-1.5 py-0.5 bg-gray-100 rounded shrink-0 mt-0.5">${p.type}</span>
+      <span class="text-sm text-gray-600">${p.description}</span>
+    </div>
+  `).join('');
+
+  // Tags
+  document.getElementById('modalTags').innerHTML = t.tags.map(g =>
+    `<span class="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">${g}</span>`
+  ).join('');
+
+  // Code
+  document.getElementById('modalCode').innerHTML = t.code_sample;
+  document.getElementById('modalCodeFilename').textContent = `pipeline.py  ·  v${t.versions[0].number}`;
+
+  // Versions
+  document.getElementById('modalVersions').innerHTML = t.versions.map((v, i) => `
+    <div class="relative pl-6 pb-6 ${i < t.versions.length - 1 ? 'border-l-2 border-gray-100 ml-1' : ''}">
+      <div class="version-dot"></div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-sm font-semibold text-gray-900">Version ${v.number}</span>
+        <span class="text-xs text-gray-400">${v.date}</span>
+        ${i === 0 ? '<span class="text-xs bg-hexa-50 text-hexa-600 px-2 py-0.5 rounded-full font-medium">Latest</span>' : ''}
+      </div>
+      <div class="text-xs text-gray-500 mb-1">by ${v.author}</div>
+      <div class="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">${v.changelog}</div>
+    </div>
+  `).join('');
+
+  // Forks
+  document.getElementById('modalForksTable').innerHTML = t.forkedBy.length === 0
+    ? `<div class="text-sm text-gray-400 text-center py-8">No forks yet. Be the first!</div>`
+    : t.forkedBy.map(f => `
+      <div class="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-semibold text-xs">${f.workspace.charAt(0)}</div>
+          <span class="text-sm font-medium text-gray-800">${f.workspace}</span>
+        </div>
+        <div class="flex items-center gap-3 text-xs text-gray-400">
+          <span>v${f.version}</span>
+          <span>${f.date}</span>
+        </div>
+      </div>
+    `).join('');
+
+  // Pre-fill fork name
+  document.getElementById('forkPipelineName').value = t.name;
+
+  setModalTab('overview');
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.add('hidden');
+  currentTemplate = null;
+}
+
+function setModalTab(tab) {
+  activeModalTab = tab;
+  ['overview','code','versions','forks'].forEach(t => {
+    const btn  = document.getElementById(`mtab-${t}`);
+    const pane = document.getElementById(`mpane-${t}`);
+    btn.className = `modal-tab mr-6 py-3 text-sm font-medium ${t === tab ? 'tab-active' : 'tab-inactive'}`;
+    pane.classList.toggle('hidden', t !== tab);
+  });
+}
+
+// ── Fork Flow ────────────────────────────────────────────
+function handleFork() {
+  document.getElementById('forkModal').classList.remove('hidden');
+}
+
+function closeForkModal() {
+  document.getElementById('forkModal').classList.add('hidden');
+}
+
+function confirmFork() {
+  const name = document.getElementById('forkPipelineName').value || currentTemplate.name;
+  closeForkModal();
+  closeModal();
+  showToast(`"${name}" created successfully in your workspace`);
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), 4000);
+}
+
+// ── Boot ─────────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', render);
+
+renderTagFilters();
+render();
+</script>
+</body>
+</html>
