@@ -1,0 +1,15 @@
+from hexa.app import CoreAppConfig
+
+
+class McpConfig(CoreAppConfig):
+    name = "hexa.mcp"
+    label = "mcp"
+
+    ANONYMOUS_URLS = [
+        "mcp_endpoint_no_slash",
+        "mcp:mcp_endpoint",
+        "mcp:dynamic_client_registration",
+        "mcp:dynamic_client_registration_no_slash",
+        "oauth2_provider:token",
+        "oauth_token_openid_configuration",
+    ]
