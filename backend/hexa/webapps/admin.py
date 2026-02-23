@@ -5,13 +5,18 @@ from hexa.webapps.models import SupersetWebapp, Webapp
 
 @admin.register(Webapp)
 class WebappAdmin(admin.ModelAdmin):
-    list_display = ("name", "workspace", "is_public")
-    list_filter = ("workspace", "is_public")
+    list_display = ("name", "workspace", "type", "is_public")
+    list_filter = ("workspace", "type", "is_public")
     search_fields = ("id", "name")
-    fields = ("name", "description", "workspace", "created_by", "url", "is_public")
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).exclude(type=Webapp.WebappType.SUPERSET)
+    fields = (
+        "name",
+        "description",
+        "workspace",
+        "created_by",
+        "url",
+        "type",
+        "is_public",
+    )
 
 
 class SupersetWebappInline(admin.StackedInline):
