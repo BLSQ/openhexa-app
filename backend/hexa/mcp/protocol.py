@@ -103,13 +103,18 @@ def handle_jsonrpc(body: bytes, user) -> dict | None:
                     "content": [{"type": "text", "text": content}],
                 },
             }
-        except Exception as e:
+        except Exception:
             logger.exception("Tool call failed: %s", tool_name)
             return {
                 "jsonrpc": "2.0",
                 "id": req_id,
                 "result": {
-                    "content": [{"type": "text", "text": str(e)}],
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "An internal error occurred while running the tool.",
+                        }
+                    ],
                     "isError": True,
                 },
             }
