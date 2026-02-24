@@ -1051,6 +1051,7 @@ enum CreateTemplateVersionPermissionReason {
 """Represents the error message for a web app creation."""
 enum CreateWebappError {
   ALREADY_EXISTS
+  INVALID_URL
   PERMISSION_DENIED
   SUPERSET_INSTANCE_NOT_FOUND
   SUPERSET_NOT_CONFIGURED
@@ -1061,6 +1062,7 @@ enum CreateWebappError {
 input CreateWebappInput {
   description: String
   icon: String
+  isPublic: Boolean
   name: String!
   source: WebappSourceInput!
   workspaceSlug: String!
@@ -4955,6 +4957,7 @@ type UpdateUserResult {
 
 """Represents the error message for a web app update."""
 enum UpdateWebappError {
+  INVALID_URL
   PERMISSION_DENIED
   SUPERSET_INSTANCE_NOT_FOUND
   SUPERSET_NOT_CONFIGURED
@@ -4967,6 +4970,7 @@ input UpdateWebappInput {
   description: String
   icon: String
   id: UUID!
+  isPublic: Boolean
   name: String
   source: UpdateWebappSourceInput
 }
@@ -5159,6 +5163,7 @@ type Webapp {
   icon: String
   id: UUID!
   isFavorite: Boolean!
+  isPublic: Boolean!
   isShortcut: Boolean!
   name: String!
   permissions: WebappPermissions!

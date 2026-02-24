@@ -791,6 +791,7 @@ query WorkspaceWebappsPage(
       description
       url
       type
+      isPublic
       isFavorite
       isShortcut
       createdBy {

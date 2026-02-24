@@ -1039,6 +1039,7 @@ export enum CreateTemplateVersionPermissionReason {
 /** Represents the error message for a web app creation. */
 export enum CreateWebappError {
   AlreadyExists = 'ALREADY_EXISTS',
+  InvalidUrl = 'INVALID_URL',
   PermissionDenied = 'PERMISSION_DENIED',
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
@@ -1049,6 +1050,7 @@ export enum CreateWebappError {
 export type CreateWebappInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
+  isPublic?: InputMaybe<Scalars['Boolean']['input']>;
   name: Scalars['String']['input'];
   source: WebappSourceInput;
   workspaceSlug: Scalars['String']['input'];
@@ -5725,6 +5727,7 @@ export type UpdateUserResult = {
 
 /** Represents the error message for a web app update. */
 export enum UpdateWebappError {
+  InvalidUrl = 'INVALID_URL',
   PermissionDenied = 'PERMISSION_DENIED',
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
@@ -5737,6 +5740,7 @@ export type UpdateWebappInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
+  isPublic?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   source?: InputMaybe<UpdateWebappSourceInput>;
 };
@@ -5916,6 +5920,7 @@ export type Webapp = {
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   isFavorite: Scalars['Boolean']['output'];
+  isPublic: Scalars['Boolean']['output'];
   isShortcut: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   permissions: WebappPermissions;

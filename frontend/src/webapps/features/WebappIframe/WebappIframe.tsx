@@ -1,40 +1,103 @@
 import clsx from "clsx";
 import React, { useEffect, useMemo, useState } from "react";
 import Spinner from "core/components/Spinner";
+import { useTranslation } from "next-i18next";
 
 type WebappIframeProps = {
   url: string;
   className?: string;
   style?: React.CSSProperties;
+  showPoweredBy?: boolean;
 };
 
-const WebappIframe = ({ url, className, style }: WebappIframeProps) => {
+const WebappIframe = ({
+  url,
+  className,
+  style,
+  showPoweredBy = false,
+}: WebappIframeProps) => {
+  const { t } = useTranslation();
   const [iframeLoading, setIframeLoading] = useState(true);
+  const [safeUrl, setSafeUrl] = useState<string | null | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    if (!url) {
+      setSafeUrl(null);
+      return;
+    }
+    try {
+      const resolvedUrl = new URL(url, window.location.origin);
+      if (
+        resolvedUrl.protocol === "http:" ||
+        resolvedUrl.protocol === "https:"
+      ) {
+        setSafeUrl(resolvedUrl.toString());
+      } else {
+        setSafeUrl(null);
+      }
+    } catch {
+      setSafeUrl(null);
+    }
+  }, [url]);
 
   useEffect(() => {
     setIframeLoading(true);
   }, [url]);
 
   const isSameOrigin = useMemo(() => {
+    if (!safeUrl) {
+      return false;
+    }
     try {
-      const { origin } = new URL(url);
+      const { origin } = new URL(safeUrl);
       return origin === window.location.origin;
     } catch {
       return false;
     }
-  }, [url]);
+  }, [safeUrl]);
 
   const isSupersetDashboard = useMemo(() => {
+    if (!safeUrl) {
+      return false;
+    }
     try {
-      const { origin } = new URL(url);
+      const { origin } = new URL(safeUrl);
       return (
         origin === window.location.origin &&
-        url.includes("/superset/dashboard/")
+        safeUrl.includes("/superset/dashboard/")
       );
     } catch {
       return false;
     }
-  }, [url]);
+  }, [safeUrl]);
+  if (safeUrl === undefined) {
+    return (
+      <div
+        className={clsx("flex flex-col", className)}
+        style={{ height: "90vh", ...style }}
+      >
+        <div className="flex flex-1 justify-center items-center">
+          <Spinner size="md" />
+        </div>
+      </div>
+    );
+  }
+
+  if (safeUrl === null) {
+    return (
+      <div
+        className={clsx("flex flex-col", className)}
+        style={{ height: "90vh", ...style }}
+      >
+        <div className="flex flex-1 items-center justify-center text-sm text-gray-500">
+          {t("The provided URL is invalid or not allowed.")}
+        </div>
+      </div>
+    );
+  }
+
 
   const commonPermissions =
     "allow-forms allow-popups allow-downloads allow-presentation allow-modals allow-scripts";
@@ -51,18 +114,38 @@ const WebappIframe = ({ url, className, style }: WebappIframeProps) => {
 
   return (
     <div
-      className={clsx("flex justify-center items-center", className)}
+      className={clsx("flex flex-col", className)}
       style={{ height: "90vh", ...style }}
     >
-      {iframeLoading && <Spinner size="md" />}{" "}
-      <iframe
-        src={url}
-        className={clsx("w-full h-full", iframeLoading && "hidden")}
-        sandbox={sandboxPermissions}
-        onLoad={() => setIframeLoading(false)}
-        onError={() => setIframeLoading(false)}
-        data-testid="webapp-iframe"
-      />
+      <div className="flex flex-1 justify-center items-center">
+        {iframeLoading && <Spinner size="md" />}{" "}
+        <iframe
+          src={safeUrl}
+          className={clsx("w-full h-full", iframeLoading && "hidden")}
+          sandbox={sandboxPermissions}
+          onLoad={() => setIframeLoading(false)}
+          onError={() => setIframeLoading(false)}
+          data-testid="webapp-iframe"
+        />
+      </div>
+      {showPoweredBy && (
+        <div className="flex items-center justify-center border-t bg-gray-50 py-2 text-xs text-gray-500">
+          {t("Powered by")}{" "}
+          <a
+            href="https://www.openhexa.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-1 flex items-center gap-1 font-medium text-blue-600 hover:text-blue-500"
+          >
+            <img
+              src="/images/logo.svg"
+              alt="OpenHEXA"
+              className="h-4 w-4"
+            />
+            OpenHEXA
+          </a>
+        </div>
+      )}
     </div>
   );
 };

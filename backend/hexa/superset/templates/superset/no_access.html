@@ -1,0 +1,96 @@
+{% load static i18n %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>OpenHEXA | {% translate "Access denied" %}</title>
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+    <link rel="shortcut icon" href="{% static "img/favicon.png" %}">
+</head>
+
+<body>
+<div class="container">
+    <div class="card">
+        <img src="{% static 'img/logo/logo_with_text_black.svg' %}" alt="OpenHEXA" class="logo">
+        <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="48" height="48">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+        </div>
+        <h1>{% translate "Access denied" %}</h1>
+        {% if user.is_authenticated %}
+        <p>{% translate "This webapp is not public. Please ask a workspace administrator to grant you access." %}</p>
+        {% else %}
+        <p>{% translate "This webapp is not public. Please log in and/or ask a workspace administrator to grant you access." %}</p>
+        <a href="{% url "core:login" %}?next={{ request.path }}" class="login-link">{% translate "Log in" %}</a>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+    .container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .card {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+        padding: 2.5rem;
+        max-width: 28rem;
+        text-align: center;
+    }
+    .logo {
+        height: 2rem;
+        margin-bottom: 2rem;
+    }
+    .icon {
+        display: flex;
+        justify-content: center;
+        color: #9ca3af;
+        margin-bottom: 1rem;
+    }
+    h1 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #111827;
+        margin: 0 0 0.75rem;
+    }
+    p {
+        font-size: 0.875rem;
+        color: #6b7280;
+        line-height: 1.5;
+        margin: 0;
+    }
+    .login-link {
+        display: inline-block;
+        margin-top: 1.5rem;
+        padding: 0.5rem 1.5rem;
+        background-color: #4f46e5;
+        color: white;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.375rem;
+        text-decoration: none;
+    }
+    .login-link:hover {
+        background-color: #4338ca;
+    }
+</style>
+</body>
+</html>

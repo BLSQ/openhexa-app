@@ -6,12 +6,25 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 
 from hexa.superset.models import SupersetDashboard
+from hexa.webapps.models import Webapp
 
 logger = getLogger(__name__)
 
 
 def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResponse:
     dashboard: SupersetDashboard = get_object_or_404(SupersetDashboard, id=dashboard_id)
+
+    webapp = getattr(dashboard, "webapp", None)
+    if webapp is not None and not webapp.is_public:
+        has_access = (
+            request.user.is_authenticated
+            and Webapp.objects.filter_for_user(request.user)
+            .filter(pk=webapp.pk)
+            .exists()
+        )
+        if not has_access:
+            return render(request, "superset/no_access.html", status=403)
+
     client = dashboard.superset_instance.get_client()
     client.authenticate()
 
@@ -33,10 +46,18 @@ def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResp
         resources=[{"type": "dashboard", "id": dashboard.external_id}],
     )
 
+    is_public_view = (
+        webapp is not None and webapp.is_public and not request.user.is_authenticated
+    )
+
     return render(
         request,
         "superset/dashboard.html",
-        {"dashboard": dashboard, "guest_token": guest_token},
+        {
+            "dashboard": dashboard,
+            "guest_token": guest_token,
+            "is_public_view": is_public_view,
+        },
     )
 
 

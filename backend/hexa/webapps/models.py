@@ -2,7 +2,7 @@ import secrets
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
-from django.core.validators import validate_slug
+from django.core.validators import URLValidator, validate_slug
 from django.db import models, transaction
 from django.db.models import Q
 from slugify import slugify
@@ -60,6 +60,9 @@ class WebappManager(
         ):
             raise PermissionDenied
 
+        if kwargs.get("url"):
+            URLValidator()(kwargs["url"])
+
         if "slug" not in kwargs:
             kwargs["slug"] = create_webapp_slug(kwargs["name"], ws)
 
@@ -111,6 +114,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     type = models.CharField(
         max_length=20, choices=WebappType.choices, default=WebappType.IFRAME
     )
+    is_public = models.BooleanField(default=False)
     favorites = models.ManyToManyField(
         User, related_name="favorite_webapps", blank=True
     )
@@ -171,6 +175,7 @@ class SupersetWebapp(Webapp):
         created_by,
         description="",
         icon=None,
+        is_public=False,
     ):
         if not principal.has_perm("webapps.create_webapp", workspace):
             raise PermissionDenied
@@ -192,6 +197,7 @@ class SupersetWebapp(Webapp):
                 name=name,
                 description=description,
                 icon=icon,
+                is_public=is_public,
                 created_by=created_by,
             )
 
