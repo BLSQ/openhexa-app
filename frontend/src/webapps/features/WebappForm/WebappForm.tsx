@@ -224,6 +224,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           label={t("Superset Instance")}
           visible={selectedType === WebappType.Superset}
           required={selectedType === WebappType.Superset}
+          readonly={supersetInstances.length <= 1}
           defaultValue={defaultSupersetInstance}
           options={supersetInstances}
           getOptionLabel={(inst) => inst?.url ?? ""}

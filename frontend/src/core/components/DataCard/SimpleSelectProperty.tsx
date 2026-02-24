@@ -85,7 +85,7 @@ const SimpleSelectProperty = <T,>(props: SimpleSelectPropertyProps<T>) => {
         <div
           className={clsx(
             "prose text-sm",
-            property.displayValue ? "text-gray-900" : "text-gray-500 italic",
+            displayValue ? "text-gray-900" : "text-gray-500 italic",
             className,
           )}
         >
