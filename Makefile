@@ -7,7 +7,7 @@ rl run_light:
 	docker compose up
 
 rf run_front:
-	@echo "Running backend without workers"
+	@echo "Running frontend"
 	npm run dev --prefix frontend"
 
 t tests:
