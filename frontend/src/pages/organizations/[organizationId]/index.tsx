@@ -10,6 +10,7 @@ import {
   OrganizationQuery,
   useOrganizationWorkspacesQuery,
 } from "organizations/graphql/queries.generated";
+import { CreateWorkspacePermissionReason } from "graphql/types";
 import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
@@ -69,11 +70,6 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   }
   const totalWorkspaces = organization.workspaces?.totalItems ?? 0;
 
-  const isWorkspaceLimitReached =
-    organization.permissions.createWorkspace &&
-    !!organization.subscription &&
-    organization.usage.workspaces >= organization.subscription.limits.workspaces;
-
   const handleArchiveClick = (
     workspace: ArchiveWorkspace_WorkspaceFragment,
   ) => {
@@ -96,14 +92,16 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
         }
         headerActions={
           <SubscriptionLimitTooltip
-            isLimitReached={isWorkspaceLimitReached}
+            isLimitReached={organization.permissions.createWorkspace.reasons.includes(
+              CreateWorkspacePermissionReason.WorkspacesLimitReached,
+            )}
             title={t("You have reached the maximum number of workspaces for your plan.")}
           >
             <Button
               variant="primary"
               onClick={() => setIsCreateDialogOpen(true)}
               leadingIcon={<PlusIcon className="w-4" />}
-              disabled={!organization.permissions.createWorkspace}
+              disabled={!organization.permissions.createWorkspace.isAllowed}
             >
               {t("Create Workspace")}
             </Button>

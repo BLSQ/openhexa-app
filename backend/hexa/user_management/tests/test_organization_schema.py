@@ -1842,6 +1842,82 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(subscription["limits"]["pipelineRuns"], 1000)
 
 
+class CreateWorkspacePermissionTest(GraphQLTestCase, OrganizationTestMixin):
+    """Tests for the createWorkspace structured permission on OrganizationPermissions."""
+
+    QUERY = """
+        query OrganizationCreateWorkspacePermission($organizationId: UUID!) {
+            organization(id: $organizationId) {
+                permissions {
+                    createWorkspace {
+                        isAllowed
+                        reasons
+                    }
+                }
+            }
+        }
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.owner = self.create_user("owner@blsq.org")
+        self.member = self.create_user("member@blsq.org")
+        self.organization = self.create_organization(
+            self.owner, "Test Organization", "Description"
+        )
+        self.join_organization(
+            self.member, self.organization, OrganizationMembershipRole.MEMBER
+        )
+
+    def _get_permission(self, user):
+        self.client.force_login(user)
+        r = self.run_query(self.QUERY, {"organizationId": str(self.organization.id)})
+        return r["data"]["organization"]["permissions"]["createWorkspace"]
+
+    def test_allowed_for_owner_without_subscription(self):
+        perm = self._get_permission(self.owner)
+        self.assertTrue(perm["isAllowed"])
+        self.assertEqual(perm["reasons"], [])
+
+    def test_denied_for_member(self):
+        perm = self._get_permission(self.member)
+        self.assertFalse(perm["isAllowed"])
+        self.assertIn("PERMISSION_DENIED", perm["reasons"])
+
+    def test_denied_when_workspaces_limit_reached(self):
+        today = timezone.now().date()
+        OrganizationSubscription.objects.create(
+            organization=self.organization,
+            subscription_id=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            plan_code="openhexa_starter",
+            start_date=today - timedelta(days=30),
+            end_date=today + timedelta(days=335),
+            users_limit=10,
+            workspaces_limit=0,
+            pipeline_runs_limit=1000,
+        )
+        perm = self._get_permission(self.owner)
+        self.assertFalse(perm["isAllowed"])
+        self.assertIn("WORKSPACES_LIMIT_REACHED", perm["reasons"])
+        self.assertNotIn("PERMISSION_DENIED", perm["reasons"])
+
+    def test_allowed_when_below_workspaces_limit(self):
+        today = timezone.now().date()
+        OrganizationSubscription.objects.create(
+            organization=self.organization,
+            subscription_id=uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+            plan_code="openhexa_starter",
+            start_date=today - timedelta(days=30),
+            end_date=today + timedelta(days=335),
+            users_limit=10,
+            workspaces_limit=5,
+            pipeline_runs_limit=1000,
+        )
+        perm = self._get_permission(self.owner)
+        self.assertTrue(perm["isAllowed"])
+        self.assertEqual(perm["reasons"], [])
+
+
 class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
     """Tests for subscription limit enforcement."""
 

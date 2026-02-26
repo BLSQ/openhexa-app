@@ -227,7 +227,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                 fullWidth
               />
               {(workspace.organization
-                ? workspace.organization.permissions.createWorkspace
+                ? workspace.organization.permissions.createWorkspace.isAllowed
                 : me.permissions.createWorkspace) && (
                 <>
                   <button
@@ -336,7 +336,9 @@ SidebarMenu.fragments = {
         shortName
         logo
         permissions {
-          createWorkspace
+          createWorkspace {
+            isAllowed
+          }
         }
       }
     }

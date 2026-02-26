@@ -1096,6 +1096,18 @@ input CreateWorkspaceInput {
   slug: String
 }
 
+"""Represents the permission details for creating a workspace."""
+type CreateWorkspacePermission {
+  isAllowed: Boolean!
+  reasons: [CreateWorkspacePermissionReason!]!
+}
+
+"""Enum representing the possible reasons preventing workspace creation."""
+enum CreateWorkspacePermissionReason {
+  PERMISSION_DENIED
+  WORKSPACES_LIMIT_REACHED
+}
+
 """Represents the result of creating a workspace."""
 type CreateWorkspaceResult {
   errors: [CreateWorkspaceError!]!
@@ -3088,7 +3100,7 @@ enum OrganizationMembershipRole {
 
 type OrganizationPermissions {
   archiveWorkspace: Boolean!
-  createWorkspace: Boolean!
+  createWorkspace: CreateWorkspacePermission!
   delete: Boolean!
   manageMembers: Boolean!
   manageOwners: Boolean!

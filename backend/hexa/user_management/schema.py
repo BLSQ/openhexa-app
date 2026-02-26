@@ -845,11 +845,24 @@ organization_permissions_object = ObjectType("OrganizationPermissions")
 def resolve_organization_permissions_create_workspace(organization: Organization, info):
     request: HttpRequest = info.context["request"]
     user = request.user
-    return (
+    has_permission = (
         user.has_perm("user_management.create_workspace", organization)
         if user.is_authenticated
         else False
     )
+    workspaces_limit_reached = organization.is_workspaces_limit_reached()
+    is_allowed = has_permission and not workspaces_limit_reached
+    return {
+        "is_allowed": is_allowed,
+        "reasons": [
+            msg
+            for msg in [
+                not has_permission and "PERMISSION_DENIED",
+                workspaces_limit_reached and "WORKSPACES_LIMIT_REACHED",
+            ]
+            if msg
+        ],
+    }
 
 
 @organization_permissions_object.field("archiveWorkspace")

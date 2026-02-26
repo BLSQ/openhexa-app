@@ -1083,6 +1083,19 @@ export type CreateWorkspaceInput = {
   slug?: InputMaybe<Scalars['String']['input']>;
 };
 
+/** Represents the permission details for creating a workspace. */
+export type CreateWorkspacePermission = {
+  __typename?: 'CreateWorkspacePermission';
+  isAllowed: Scalars['Boolean']['output'];
+  reasons: Array<CreateWorkspacePermissionReason>;
+};
+
+/** Enum representing the possible reasons preventing workspace creation. */
+export enum CreateWorkspacePermissionReason {
+  PermissionDenied = 'PERMISSION_DENIED',
+  WorkspacesLimitReached = 'WORKSPACES_LIMIT_REACHED'
+}
+
 /** Represents the result of creating a workspace. */
 export type CreateWorkspaceResult = {
   __typename?: 'CreateWorkspaceResult';
@@ -3666,7 +3679,7 @@ export enum OrganizationMembershipRole {
 export type OrganizationPermissions = {
   __typename?: 'OrganizationPermissions';
   archiveWorkspace: Scalars['Boolean']['output'];
-  createWorkspace: Scalars['Boolean']['output'];
+  createWorkspace: CreateWorkspacePermission;
   delete: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   manageOwners: Scalars['Boolean']['output'];
