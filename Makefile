@@ -14,9 +14,17 @@ t tests:
 	@echo "Running tests"
 	docker compose run -u $(id -u):$(id -g) app coveraged-test
 
-l lint:
-	@echo "Executing lint pre-commit"
+lb lint_backend:
+	@echo "Executing lint in backend code (pre-commit)"
 	pre-commit run --show-diff-on-failure --color=always --all-files
+
+lf lint_frontend:
+	@echo "Executing lint in frontend code"
+	npm run lint --prefix frontend
+
+l lint:
+	make lb
+	make lf
 
 mk makemigrations:
 	@echo "Creating migrations"
