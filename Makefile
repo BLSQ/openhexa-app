@@ -19,7 +19,7 @@ l lint:
 	pre-commit run --show-diff-on-failure --color=always --all-files
 
 mk makemigrations:
-	@echo "Executing migrations"
+	@echo "Creating migrations"
 	docker compose run app manage makemigrations
 
 m migrate:
