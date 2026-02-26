@@ -8,7 +8,7 @@ rl run_light:
 
 rf run_front:
 	@echo "Running frontend"
-	npm run dev --prefix frontend"
+	npm run dev --prefix frontend
 
 t tests:
 	@echo "Running tests"
