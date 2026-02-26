@@ -27,7 +27,7 @@ m migrate:
 	docker compose run app manage makemigrations
 	docker compose run app manage migrate
 
-db:
+db database:
 	@echo "Accessing local db"
 	docker exec -it openhexa-app-db-1 bash -c "psql -U hexa-app"
 
