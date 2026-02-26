@@ -7,7 +7,10 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 
 const { i18n } = require("./next-i18next.config");
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 let config = {
+  basePath,
   experimental: {
     optimizePackageImports: ["luxon"],
   },

@@ -133,10 +133,11 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
     }),
     createHttpLink({
       uri: (operation) => {
+        const apiBasePath = process.env.NEXT_PUBLIC_API_BASE_PATH ?? "";
         let apiUrl =
           typeof window === "undefined"
             ? `${process.env.OPENHEXA_BACKEND_URL}/graphql/`
-            : "/graphql/";
+            : `${apiBasePath}/graphql/`;
         if (operation.operationName) {
           apiUrl += `${operation.operationName}/`;
         }
