@@ -55,7 +55,7 @@ def manage_members(principal: User, organization: Organization):
 
 
 def create_workspace(principal: User, organization: Organization = None):
-    """Only admin and owner users can create a workspace.
+    """Any member of the organization can create a workspace.
 
     Legacy (no organizations on instance): workspace admins can create workspaces.
     """
@@ -74,7 +74,7 @@ def create_workspace(principal: User, organization: Organization = None):
     if not organization:
         return False
 
-    return principal.is_organization_admin_or_owner(organization)
+    return principal.is_organization_member(organization)
 
 
 def archive_workspace(principal: User, organization: Organization):

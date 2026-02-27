@@ -260,62 +260,84 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_create_workspace_as_workspace_admin(self):
-        """Test that a workspace admin who is only an org member cannot create workspaces"""
-        self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
-        r = self.run_query(
-            """
-            mutation createWorkspace($input:CreateWorkspaceInput!) {
-                createWorkspace(input: $input) {
-                    success
-                    workspace {
-                        name
-                        description
+        """Test that a workspace admin (not org admin) can create workspaces"""
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+            r = self.run_query(
+                """
+                mutation createWorkspace($input:CreateWorkspaceInput!) {
+                    createWorkspace(input: $input) {
+                        success
+                        workspace {
+                            name
+                            description
+                        }
+                        errors
                     }
-                    errors
                 }
-            }
-            """,
-            {
-                "input": {
-                    "name": "New Workspace by WS Admin",
-                    "description": "Created by workspace admin",
-                    "organizationId": str(self.ORGANIZATION.id),
-                }
-            },
-        )
-        self.assertEqual(
-            {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
-            r["data"]["createWorkspace"],
-        )
+                """,
+                {
+                    "input": {
+                        "name": "New Workspace by WS Admin",
+                        "description": "Created by workspace admin",
+                        "organizationId": str(self.ORGANIZATION.id),
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": True,
+                    "workspace": {
+                        "name": "New Workspace by WS Admin",
+                        "description": "Created by workspace admin",
+                    },
+                    "errors": [],
+                },
+                r["data"]["createWorkspace"],
+            )
 
     def test_create_workspace_as_org_member(self):
-        """Test that a plain organization member cannot create workspaces"""
-        self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
-        r = self.run_query(
-            """
-            mutation createWorkspace($input:CreateWorkspaceInput!) {
-                createWorkspace(input: $input) {
-                    success
-                    workspace {
-                        name
-                        description
+        """Test that any organization member can create workspaces"""
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
+            r = self.run_query(
+                """
+                mutation createWorkspace($input:CreateWorkspaceInput!) {
+                    createWorkspace(input: $input) {
+                        success
+                        workspace {
+                            name
+                            description
+                        }
+                        errors
                     }
-                    errors
                 }
-            }
-            """,
-            {
-                "input": {
-                    "name": "New Workspace by Org Member",
-                    "description": "Created by org member",
-                    "organizationId": str(self.ORGANIZATION.id),
-                }
-            },
-        )
-        self.assertEqual(
-            {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
-            r["data"]["createWorkspace"],
-        )
+                """,
+                {
+                    "input": {
+                        "name": "New Workspace by Org Member",
+                        "description": "Created by org member",
+                        "organizationId": str(self.ORGANIZATION.id),
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                    "workspace": {
+                        "name": "New Workspace by Org Member",
+                        "description": "Created by org member",
+                    },
+                },
+                r["data"]["createWorkspace"],
+            )
 
     def test_create_workspace_prevent_create(self):
         FeatureFlag.objects.create(

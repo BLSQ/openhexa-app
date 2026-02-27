@@ -1879,10 +1879,10 @@ class CreateWorkspacePermissionTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertTrue(perm["isAllowed"])
         self.assertEqual(perm["reasons"], [])
 
-    def test_denied_for_member(self):
+    def test_allowed_for_member(self):
         perm = self._get_permission(self.member)
-        self.assertFalse(perm["isAllowed"])
-        self.assertIn("PERMISSION_DENIED", perm["reasons"])
+        self.assertTrue(perm["isAllowed"])
+        self.assertEqual(perm["reasons"], [])
 
     def test_denied_when_workspaces_limit_reached(self):
         today = timezone.now().date()
