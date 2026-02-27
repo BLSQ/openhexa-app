@@ -107,8 +107,6 @@ cligj==0.7.2
     # via
     #   fiona
     #   rasterio
-colorama==0.4.6
-    # via griffecli
 colorhash==2.1.0
     # via -r requirements.in
 coverage[toml]==7.9.2
@@ -236,15 +234,8 @@ graphql-core==3.2.5
     #   ariadne
     #   ariadne-codegen
     #   openhexa-sdk
-griffe==2.0.0
-    # via pydantic-ai-slim
-griffecli==2.0.0
-    # via griffe
 griffelib==2.0.0
-    # via
-    #   griffe
-    #   griffecli
-    #   pydantic-ai-slim
+    # via pydantic-ai-slim
 grpc-google-iam-v1==0.14.2
     # via
     #   google-cloud-iam
@@ -419,7 +410,7 @@ pyasn1-modules==0.4.2
     # via google-auth
 pycparser==2.22
     # via cffi
-pydantic==2.11.7
+pydantic==2.12.5
     # via
     #   anthropic
     #   ariadne-codegen
@@ -428,11 +419,11 @@ pydantic==2.11.7
     #   pydantic-ai-slim
     #   pydantic-graph
     #   rio-cogeo
-pydantic-ai-slim[anthropic]==1.60.0
+pydantic-ai-slim[anthropic]==1.63.0
     # via -r requirements.in
-pydantic-core==2.33.2
+pydantic-core==2.41.5
     # via pydantic
-pydantic-graph==1.60.0
+pydantic-graph==1.63.0
     # via pydantic-ai-slim
 pyflakes==3.4.0
     # via autoflake
@@ -578,7 +569,7 @@ typing-extensions==4.14.1
     #   pydantic-core
     #   starlette
     #   typing-inspection
-typing-inspection==0.4.1
+typing-inspection==0.4.2
     # via
     #   pydantic
     #   pydantic-ai-slim
