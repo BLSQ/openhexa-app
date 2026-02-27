@@ -11,12 +11,16 @@ webapp_source_union = UnionType("WebappSource")
 @webapp_object.field("isFavorite")
 def resolve_is_favorite(webapp: Webapp, info, **kwargs):
     request = info.context["request"]
+    if not request.user.is_authenticated:
+        return False
     return webapp.is_favorite(request.user)
 
 
 @webapp_object.field("isShortcut")
 def resolve_is_shortcut(webapp: Webapp, info, **kwargs):
     request = info.context["request"]
+    if not request.user.is_authenticated:
+        return False
     return webapp.is_shortcut(request.user)
 
 

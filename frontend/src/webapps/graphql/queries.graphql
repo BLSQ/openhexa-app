@@ -5,3 +5,19 @@ query SupersetInstances($workspaceSlug: String!) {
     url
   }
 }
+
+fragment WebappPlay_webapp on Webapp {
+  slug
+  url
+  name
+  type
+}
+
+query WebappAccess($workspaceSlug: String!, $webappSlug: String!) {
+  webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
+    ...WebappPlay_webapp
+    workspace {
+      ...WorkspaceLayout_workspace
+    }
+  }
+}

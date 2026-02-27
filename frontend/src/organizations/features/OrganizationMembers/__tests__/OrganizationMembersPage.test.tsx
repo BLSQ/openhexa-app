@@ -28,7 +28,7 @@ const MOCK_ORGANIZATION = {
   permissions: {
     manageOwners: true,
     manageMembers: true,
-    createWorkspace: true,
+    createWorkspace: { isAllowed: true, reasons: [] },
     archiveWorkspace: true,
     update: true,
     delete: true,
@@ -56,7 +56,7 @@ const MOCK_ORGANIZATION_NO_PERMISSIONS = {
   permissions: {
     manageOwners: false,
     manageMembers: false,
-    createWorkspace: false,
+    createWorkspace: { isAllowed: false, reasons: [] },
     archiveWorkspace: false,
     update: false,
     delete: false,
@@ -179,7 +179,7 @@ describe("OrganizationMembersPage", () => {
       permissions: {
         manageOwners: true,
         manageMembers: true,
-        createWorkspace: true,
+        createWorkspace: { isAllowed: true, reasons: [] },
         archiveWorkspace: true,
         update: true,
         delete: true,

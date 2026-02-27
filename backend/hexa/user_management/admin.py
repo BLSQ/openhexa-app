@@ -315,6 +315,10 @@ class OrganizationSubscriptionAdmin(admin.ModelAdmin):
         "users_limit",
         "workspaces_limit",
         "pipeline_runs_limit",
+        "max_pipeline_timeout",
+        "pipeline_cpu_limit",
+        "pipeline_memory_limit",
+        "notebook_profile",
         "created_at",
     )
     list_filter = ("plan_code", "start_date", "end_date")
@@ -349,6 +353,17 @@ class OrganizationSubscriptionAdmin(admin.ModelAdmin):
                     "users_limit",
                     "workspaces_limit",
                     "pipeline_runs_limit",
+                )
+            },
+        ),
+        (
+            "Resource Limits",
+            {
+                "fields": (
+                    "max_pipeline_timeout",
+                    "pipeline_cpu_limit",
+                    "pipeline_memory_limit",
+                    "notebook_profile",
                 )
             },
         ),

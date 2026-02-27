@@ -1051,6 +1051,7 @@ enum CreateTemplateVersionPermissionReason {
 """Represents the error message for a web app creation."""
 enum CreateWebappError {
   ALREADY_EXISTS
+  INVALID_URL
   PERMISSION_DENIED
   SUPERSET_INSTANCE_NOT_FOUND
   SUPERSET_NOT_CONFIGURED
@@ -1061,6 +1062,7 @@ enum CreateWebappError {
 input CreateWebappInput {
   description: String
   icon: String
+  isPublic: Boolean
   name: String!
   source: WebappSourceInput!
   workspaceSlug: String!
@@ -1092,6 +1094,18 @@ input CreateWorkspaceInput {
   name: String!
   organizationId: UUID
   slug: String
+}
+
+"""Represents the permission details for creating a workspace."""
+type CreateWorkspacePermission {
+  isAllowed: Boolean!
+  reasons: [CreateWorkspacePermissionReason!]!
+}
+
+"""Enum representing the possible reasons preventing workspace creation."""
+enum CreateWorkspacePermissionReason {
+  PERMISSION_DENIED
+  WORKSPACES_LIMIT_REACHED
 }
 
 """Represents the result of creating a workspace."""
@@ -3091,7 +3105,7 @@ enum OrganizationMembershipRole {
 
 type OrganizationPermissions {
   archiveWorkspace: Boolean!
-  createWorkspace: Boolean!
+  createWorkspace: CreateWorkspacePermission!
   delete: Boolean!
   manageMembers: Boolean!
   manageOwners: Boolean!
@@ -4978,6 +4992,7 @@ type UpdateUserResult {
 
 """Represents the error message for a web app update."""
 enum UpdateWebappError {
+  INVALID_URL
   PERMISSION_DENIED
   SUPERSET_INSTANCE_NOT_FOUND
   SUPERSET_NOT_CONFIGURED
@@ -4990,6 +5005,7 @@ input UpdateWebappInput {
   description: String
   icon: String
   id: UUID!
+  isPublic: Boolean
   name: String
   source: UpdateWebappSourceInput
 }
@@ -5182,6 +5198,7 @@ type Webapp {
   icon: String
   id: UUID!
   isFavorite: Boolean!
+  isPublic: Boolean!
   isShortcut: Boolean!
   name: String!
   permissions: WebappPermissions!

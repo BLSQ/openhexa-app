@@ -19,6 +19,7 @@ import LinkProperty from "core/components/DataCard/LinkProperty";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import useCacheKey from "core/hooks/useCacheKey";
 import ImageProperty from "core/components/DataCard/ImageProperty";
+import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
 import {
@@ -84,6 +85,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             id: webapp!.id,
             name: values.name,
             icon: values.icon,
+            isPublic: values.isPublic,
             source,
           },
         },
@@ -100,6 +102,8 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           toast.error(t("Superset is not configured"));
         } else if (error === UpdateWebappError.TypeMismatch) {
           toast.error(t("Cannot change the type of an existing webapp"));
+        } else if (error === UpdateWebappError.InvalidUrl) {
+          toast.error(t("Invalid URL. Only http and https URLs are allowed"));
         }
         return;
       }
@@ -124,6 +128,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             workspaceSlug: workspace.slug,
             name: values.name,
             icon: values.icon,
+            isPublic: values.isPublic,
             source,
           },
         },
@@ -140,6 +145,8 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           toast.error(t("Superset is not configured"));
         } else if (error === CreateWebappError.WorkspaceNotFound) {
           toast.error(t("Workspace not found"));
+        } else if (error === CreateWebappError.InvalidUrl) {
+          toast.error(t("Invalid URL. Only http and https URLs are allowed"));
         }
         return;
       }
@@ -224,6 +231,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           label={t("Superset Instance")}
           visible={selectedType === WebappType.Superset}
           required={selectedType === WebappType.Superset}
+          readonly={supersetInstances.length <= 1}
           defaultValue={defaultSupersetInstance}
           options={supersetInstances}
           getOptionLabel={(inst) => inst?.url ?? ""}
@@ -239,6 +247,14 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         {webapp && selectedType === WebappType.Superset && (
           <LinkProperty id="supersetUrl" accessor="url" label={t("URL")} />
         )}
+        <SwitchProperty
+          id="isPublic"
+          accessor="isPublic"
+          label={t("Public access")}
+          help={t(
+            "When enabled, the play link can be accessed without authentication",
+          )}
+        />
       </DataCard.FormSection>
       {debouncedUrl && (
         <DataCard.Section
@@ -263,6 +279,7 @@ WebappForm.fragment = {
       url
       type
       icon
+      isPublic
       source {
         ... on SupersetSource {
           instance {

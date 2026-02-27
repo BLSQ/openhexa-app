@@ -1,5 +1,6 @@
 from ariadne import MutationType
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.validators import URLValidator
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 
@@ -26,6 +27,7 @@ def resolve_create_webapp(_, info, **kwargs):
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"], "webapp": None}
 
     icon = decode_base64_image(input["icon"]) if input.get("icon") else None
+    is_public = input.get("is_public", False)
 
     try:
         with transaction.atomic():
@@ -54,6 +56,7 @@ def resolve_create_webapp(_, info, **kwargs):
                     name=input["name"],
                     description=input.get("description", ""),
                     icon=icon,
+                    is_public=is_public,
                     created_by=user,
                     superset_instance=superset_instance,
                     external_dashboard_id=source["superset"]["dashboard_id"],
@@ -65,12 +68,15 @@ def resolve_create_webapp(_, info, **kwargs):
                     name=input["name"],
                     description=input.get("description", ""),
                     icon=icon,
+                    is_public=is_public,
                     created_by=user,
                     url=source["iframe"]["url"],
                 )
             return {"success": True, "errors": [], "webapp": webapp}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"], "webapp": None}
+    except ValidationError:
+        return {"success": False, "errors": ["INVALID_URL"], "webapp": None}
     except IntegrityError:
         return {"success": False, "errors": ["ALREADY_EXISTS"], "webapp": None}
 
@@ -116,6 +122,10 @@ def resolve_update_webapp(_, info, **kwargs):
     elif source:
         if webapp.type != Webapp.WebappType.IFRAME:
             return {"success": False, "errors": ["TYPE_MISMATCH"], "webapp": None}
+        try:
+            URLValidator()(source["iframe"]["url"])
+        except ValidationError:
+            return {"success": False, "errors": ["INVALID_URL"], "webapp": None}
         webapp.url = source["iframe"]["url"]
 
     if "name" in input:
@@ -124,6 +134,8 @@ def resolve_update_webapp(_, info, **kwargs):
         webapp.description = input["description"]
     if "icon" in input:
         webapp.icon = decode_base64_image(input["icon"]) if input["icon"] else None
+    if "is_public" in input:
+        webapp.is_public = input["is_public"]
 
     try:
         webapp.save()

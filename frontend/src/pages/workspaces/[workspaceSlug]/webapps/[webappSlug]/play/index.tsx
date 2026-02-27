@@ -2,37 +2,36 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
-import {
-  useWorkspaceWebappPageQuery,
-  WorkspaceWebappPageDocument,
-  WorkspaceWebappPageQuery,
-  WorkspaceWebappPageQueryVariables,
-} from "workspaces/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import WebappIframe from "webapps/features/WebappIframe";
+import {
+  WebappAccessDocument,
+  WebappAccessQuery,
+} from "webapps/graphql/queries.generated";
 
 type Props = {
-  webappSlug: string;
-  workspaceSlug: string;
+  webapp: NonNullable<WebappAccessQuery["webapp"]>;
+  isAuthenticated: boolean;
 };
 
 const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
-  const { webappSlug, workspaceSlug } = props;
+  const { webapp, isAuthenticated } = props;
   const { t } = useTranslation();
 
-  const { data } = useWorkspaceWebappPageQuery({
-    variables: {
-      workspaceSlug,
-      webappSlug,
-    },
-  });
-
-  if (!data?.workspace || !data?.webapp) {
-    return null;
+  if (!isAuthenticated) {
+    return (
+      <Page title={webapp.name}>
+        <WebappIframe
+          url={webapp.url}
+          style={{ height: "100vh" }}
+          showPoweredBy
+        />
+      </Page>
+    );
   }
 
-  const { workspace, webapp } = data;
+  const { workspace } = webapp;
 
   return (
     <Page title={t("Web Apps")}>
@@ -58,7 +57,7 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
         }
       >
         <WorkspaceLayout.PageContent>
-          <WebappIframe url={webapp.url ?? undefined} />
+          <WebappIframe url={webapp.url} />
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
     </Page>
@@ -68,29 +67,37 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
 WorkspaceWebappPlayPage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
-  requireAuth: true,
+  requireAuth: false,
   async getServerSideProps(ctx, client) {
-    await WorkspaceLayout.prefetch(ctx, client);
-    const { data } = await client.query<
-      WorkspaceWebappPageQuery,
-      WorkspaceWebappPageQueryVariables
-    >({
-      query: WorkspaceWebappPageDocument,
-      variables: {
-        workspaceSlug: ctx.params!.workspaceSlug as string,
-        webappSlug: ctx.params!.webappSlug as string,
-      },
+    const workspaceSlug = ctx.params!.workspaceSlug as string;
+    const webappSlug = ctx.params!.webappSlug as string;
+    const isAuthenticated = !!ctx.me?.user;
+
+    const { data } = await client.query<WebappAccessQuery>({
+      query: WebappAccessDocument,
+      variables: { workspaceSlug, webappSlug },
     });
 
-    if (!data.workspace || !data.webapp) {
+    if (!data.webapp) {
+      if (!isAuthenticated) {
+        // It's possible the webapp exists but the user doesn't have access because it's not public, so we check authentication first
+        return {
+          redirect: {
+            permanent: false,
+            destination: `/login?next=${encodeURIComponent(ctx.resolvedUrl)}`,
+          },
+        };
+      }
       return { notFound: true };
+    }
+
+    if (isAuthenticated) {
+      await WorkspaceLayout.prefetch(ctx, client);
     }
 
     return {
       props: {
-        workspaceSlug: ctx.params!.workspaceSlug,
-        webappSlug: ctx.params!.webappSlug,
-        workspace: data.workspace,
+        isAuthenticated,
         webapp: data.webapp,
       },
     };

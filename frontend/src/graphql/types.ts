@@ -1039,6 +1039,7 @@ export enum CreateTemplateVersionPermissionReason {
 /** Represents the error message for a web app creation. */
 export enum CreateWebappError {
   AlreadyExists = 'ALREADY_EXISTS',
+  InvalidUrl = 'INVALID_URL',
   PermissionDenied = 'PERMISSION_DENIED',
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
@@ -1049,6 +1050,7 @@ export enum CreateWebappError {
 export type CreateWebappInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
+  isPublic?: InputMaybe<Scalars['Boolean']['input']>;
   name: Scalars['String']['input'];
   source: WebappSourceInput;
   workspaceSlug: Scalars['String']['input'];
@@ -1080,6 +1082,19 @@ export type CreateWorkspaceInput = {
   organizationId?: InputMaybe<Scalars['UUID']['input']>;
   slug?: InputMaybe<Scalars['String']['input']>;
 };
+
+/** Represents the permission details for creating a workspace. */
+export type CreateWorkspacePermission = {
+  __typename?: 'CreateWorkspacePermission';
+  isAllowed: Scalars['Boolean']['output'];
+  reasons: Array<CreateWorkspacePermissionReason>;
+};
+
+/** Enum representing the possible reasons preventing workspace creation. */
+export enum CreateWorkspacePermissionReason {
+  PermissionDenied = 'PERMISSION_DENIED',
+  WorkspacesLimitReached = 'WORKSPACES_LIMIT_REACHED'
+}
 
 /** Represents the result of creating a workspace. */
 export type CreateWorkspaceResult = {
@@ -3671,7 +3686,7 @@ export enum OrganizationMembershipRole {
 export type OrganizationPermissions = {
   __typename?: 'OrganizationPermissions';
   archiveWorkspace: Scalars['Boolean']['output'];
-  createWorkspace: Scalars['Boolean']['output'];
+  createWorkspace: CreateWorkspacePermission;
   delete: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   manageOwners: Scalars['Boolean']['output'];
@@ -5756,6 +5771,7 @@ export type UpdateUserResult = {
 
 /** Represents the error message for a web app update. */
 export enum UpdateWebappError {
+  InvalidUrl = 'INVALID_URL',
   PermissionDenied = 'PERMISSION_DENIED',
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
@@ -5768,6 +5784,7 @@ export type UpdateWebappInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
+  isPublic?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   source?: InputMaybe<UpdateWebappSourceInput>;
 };
@@ -5947,6 +5964,7 @@ export type Webapp = {
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   isFavorite: Scalars['Boolean']['output'];
+  isPublic: Scalars['Boolean']['output'];
   isShortcut: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   permissions: WebappPermissions;

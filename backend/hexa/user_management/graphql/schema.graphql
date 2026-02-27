@@ -1106,8 +1106,24 @@ type Subscription {
     limits: ResourceCounts!
 }
 
+"""
+Represents the permission details for creating a workspace.
+"""
+type CreateWorkspacePermission {
+    isAllowed: Boolean!
+    reasons: [CreateWorkspacePermissionReason!]!
+}
+
+"""
+Enum representing the possible reasons preventing workspace creation.
+"""
+enum CreateWorkspacePermissionReason {
+    PERMISSION_DENIED
+    WORKSPACES_LIMIT_REACHED
+}
+
 type OrganizationPermissions {
-    createWorkspace: Boolean!
+    createWorkspace: CreateWorkspacePermission!
     archiveWorkspace: Boolean!
     manageMembers: Boolean!
     manageOwners: Boolean!

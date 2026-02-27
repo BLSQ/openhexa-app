@@ -2,6 +2,7 @@ import Block from "core/components/Block";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
 import { getWebappTypeLabel } from "webapps/helpers/webappType";
+import { WebappType } from "graphql/types";
 import Page from "core/components/Page";
 import Link from "core/components/Link";
 import { createGetServerSideProps } from "core/helpers/page";
@@ -11,7 +12,12 @@ import React, { useMemo } from "react";
 import Button from "core/components/Button";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Breadcrumbs from "core/components/Breadcrumbs";
-import { PlayIcon, PlusIcon } from "@heroicons/react/24/outline";
+import {
+  GlobeAltIcon,
+  LockClosedIcon,
+  PlayIcon,
+  PlusIcon,
+} from "@heroicons/react/24/outline";
 import {
   useWorkspaceWebappsPageQuery,
   WorkspaceWebappsPageDocument,
@@ -142,9 +148,13 @@ const WebappsPage = (props: Props) => {
               </BaseColumn>
               <LinkColumn
                 id="play"
-                url={(item) => ({
-                  pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${item.slug}/play`,
-                })}
+                url={(item) =>
+                  item.type === WebappType.Superset
+                    ? item.url
+                    : {
+                        pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${item.slug}/play`,
+                      }
+                }
                 width={80}
                 className={"flex items-center justify-center"}
               >
@@ -160,11 +170,41 @@ const WebappsPage = (props: Props) => {
                 id="createdBy"
                 label={t("Created by")}
                 className="flex items-center"
+                maxWidth={200}
               >
                 {(item) => (
-                  <div className="flex items-center space-x-1">
+                  <div
+                    className="flex items-center space-x-1 overflow-hidden"
+                    title={item.createdBy.displayName}
+                  >
                     <UserAvatar user={item.createdBy} size="xs" />
-                    <p>{item.createdBy.displayName}</p>
+                    <p className="truncate">{item.createdBy.displayName}</p>
+                  </div>
+                )}
+              </BaseColumn>
+              <BaseColumn
+                id="access"
+                label={t("Access")}
+                className="flex items-center"
+                maxWidth={80}
+              >
+                {(item) => (
+                  <div className="flex items-center gap-1.5">
+                    {item.isPublic ? (
+                      <>
+                        <GlobeAltIcon className="h-4 w-4 text-green-500" />
+                        <span className="text-sm text-green-700">
+                          {t("Public")}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <LockClosedIcon className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-500">
+                          {t("Private")}
+                        </span>
+                      </>
+                    )}
                   </div>
                 )}
               </BaseColumn>
@@ -172,6 +212,7 @@ const WebappsPage = (props: Props) => {
                 id="type"
                 label={t("Type")}
                 className="flex items-center"
+                maxWidth={80}
               >
                 {(item) => (
                   <div className="flex items-center">
@@ -183,6 +224,7 @@ const WebappsPage = (props: Props) => {
                 accessor="slug"
                 customLabel={t("Edit")}
                 className="flex items-center"
+                maxWidth={80}
                 url={(slug) => ({
                   pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${slug}`,
                 })}

@@ -33,7 +33,7 @@ def test_connection(
     try:
         return tester(fields)
     except Exception as e:
-        logger.exception("Connection test failed for %s", connection_type)
+        logger.warning("Connection test failed for %s: %s", connection_type, e)
         return False, str(e)
 
 

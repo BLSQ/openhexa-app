@@ -12,7 +12,7 @@ export type SidebarMenuQueryVariables = Types.Exact<{
 
 export type SidebarMenuQuery = { __typename?: 'Query', workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string, flag: string }> }> } };
 
-export type SidebarMenu_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean } } | null };
+export type SidebarMenu_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } } | null };
 
 export const SidebarMenu_WorkspaceFragmentDoc = gql`
     fragment SidebarMenu_workspace on Workspace {
@@ -28,7 +28,9 @@ export const SidebarMenu_WorkspaceFragmentDoc = gql`
     shortName
     logo
     permissions {
-      createWorkspace
+      createWorkspace {
+        isAllowed
+      }
     }
   }
 }
