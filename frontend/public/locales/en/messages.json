@@ -764,6 +764,7 @@
   "Upgrade": "Upgrade",
   "Upgrade to latest template version": "Upgrade to latest template version",
   "Upgrade to latest version": "Upgrade to latest version",
+  "Upgrade your subscription": "Upgrade your subscription",
   "Upload": "Upload",
   "Upload a new version": "Upload a new version",
   "Upload files": "Upload files",
@@ -863,6 +864,7 @@
   "You don't have permission to delete this organization": "You don't have permission to delete this organization",
   "You don't have permission to link this dataset": "You don't have permission to link this dataset",
   "You don't have permission to update this organization": "You don't have permission to update this organization",
+  "You have reached the maximum number of workspaces for your plan.": "You have reached the maximum number of workspaces for your plan.",
   "You have to select a notebook": "You have to select a notebook",
   "You have to select a workspace": "You have to select a workspace",
   "You have unsaved changes. Leave anyway?": "You have unsaved changes. Leave anyway?",
@@ -870,6 +872,7 @@
   "You must confirm publishing": "You must confirm publishing",
   "You're about to archive the {{workspaceName}} workspace and all its content.": "You're about to archive the {{workspaceName}} workspace and all its content.",
   "You're about to remove {{name}} from this workspace.": "You're about to remove {{name}} from this workspace.",
+  "You've reached the limit for your subscription plan.": "You've reached the limit for your subscription plan.",
   "Your account": "Your account",
   "Your subscription has expired. Limits are frozen until you renew.": "Your subscription has expired. Limits are frozen until you renew.",
   "Your subscription has expired. Please renew soon to avoid service interruption.": "Your subscription has expired. Please renew soon to avoid service interruption."

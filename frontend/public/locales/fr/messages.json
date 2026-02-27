@@ -770,6 +770,7 @@
   "Upgrade": "Mise à jour",
   "Upgrade to latest template version": "Mise à jour vers la dernière version du modèle",
   "Upgrade to latest version": "Migration vers la nouvelle version",
+  "Upgrade your subscription": "Mettre à niveau votre abonnement",
   "Upload": "Télécharger",
   "Upload a new version": "Télécharger une nouvelle version",
   "Upload files": "Télécharger des fichiers",
@@ -869,6 +870,7 @@
   "You don't have permission to delete this organization": "Vous n'avez pas l'autorisation de supprimer cette organisation",
   "You don't have permission to link this dataset": "Vous n'avez pas l'autorisation de lier cet ensemble de données",
   "You don't have permission to update this organization": "Vous n'avez pas l'autorisation de mettre à jour cette organisation",
+  "You have reached the maximum number of workspaces for your plan.": "Vous avez atteint le nombre maximum d'espaces de travail pour votre forfait.",
   "You have to select a notebook": "Vous devez sélectionner un cahier",
   "You have to select a workspace": "Vous devez sélectionner un workspace",
   "You have unsaved changes. Leave anyway?": "Vous avez des modifications non enregistrées. Quitter quand même ?",
@@ -876,6 +878,7 @@
   "You must confirm publishing": "Vous devez confirmer la publication",
   "You're about to archive the {{workspaceName}} workspace and all its content.": "Vous êtes sur le point d'archiver le workspace {{workspaceName}} et tout son contenu.",
   "You're about to remove {{name}} from this workspace.": "Vous êtes sur le point de supprimer {{name}} de ce workspace.",
+  "You've reached the limit for your subscription plan.": "Vous avez atteint la limite de votre forfait d'abonnement.",
   "Your account": "Votre compte",
   "Your subscription has expired. Limits are frozen until you renew.": "Votre abonnement a expiré. Les limites sont gelées jusqu'à ce que vous renouveliez.",
   "Your subscription has expired. Please renew soon to avoid service interruption.": "Votre abonnement a expiré. Veuillez renouveler bientôt pour éviter toute interruption de service."
